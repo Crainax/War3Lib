@@ -1,0 +1,500 @@
+﻿[KKAPIGetLocalVariables]
+title = "局部变量读取"
+description = "${变量名}"
+comment = "可以获取到任意类型的局部变量。"
+category = TC_KKAPI
+returns = AnyReturnType
+[[.args]]
+type = scriptcode
+
+[DzGetSelectedLeaderUnit]
+title = "当前选择的单位(异步) [NEW]"
+description = "获取主控单位"
+comment = "获取的单位是异步的，请谨慎操作"
+category = TC_KKAPI
+returns = unit
+
+[DzIsChatBoxOpen]
+title = "聊天框是否打开 [NEW]"
+description = "获取聊天框是否打开"
+comment = ""
+category = TC_KKAPI
+returns = boolean
+
+[DzFrameGetChildrenCount]
+title = "获取子控件数量 [NEW]"
+description = "获取 ${界面} 的子控件数量"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = frame
+
+[DzFrameGetChild]
+title = "获取子控件 [NEW]"
+description = "获取 ${界面} 的第 ${编号} 个子控件"
+comment = ""
+category = TC_KKAPI
+returns = frame
+[[.args]]
+type = frame
+[[.args]]
+type = integer
+
+[DzFrameGetInfoPanelSelectButton]
+title = "获取框选控件 [NEW]"
+description = "获取第 ${编号} 个框选控件"
+comment = "鼠标框选单位后，控制面板的队列单位头像控件"
+category = TC_KKAPI
+returns = frame
+[[.args]]
+type = integer
+min = 0
+max = 11
+
+[DzFrameGetInfoPanelBuffButton]
+title = "获取BUFF控件 [NEW]"
+description = "获取第 ${编号} 个BUFF控件"
+comment = "控制面板的单位属性下面的魔法效果buff控件"
+category = TC_KKAPI
+returns = frame
+[[.args]]
+type = integer
+min = 0
+max = 11
+
+[DzFrameGetPeonBar]
+title = "获取农民控件 [NEW]"
+description = "获取农民控件"
+comment = ""
+category = TC_KKAPI
+returns = frame
+
+[DzFrameGetCommandBarButtonNumberText]
+title = "获取技能右下角数字文本控件 [NEW]"
+description = "获取 ${技能控件} 右下角数字文本控件"
+comment = ""
+category = TC_KKAPI
+returns = frame
+[[.args]]
+type = frame
+
+[DzFrameGetCommandBarButtonNumberOverlay]
+title = "获取技能右下角数字文本框体 [NEW]"
+description = "获取 ${技能控件} 右下角数字文本框体"
+comment = ""
+category = TC_KKAPI
+returns = frame
+[[.args]]
+type = frame
+
+[DzFrameGetCommandBarButtonCooldownIndicator]
+title = "获取技能冷却指示器 [NEW]"
+description = "获取 ${技能控件} 冷却指示器"
+comment = "控件类型为sprite frame"
+category = TC_KKAPI
+returns = frame
+[[.args]]
+type = frame
+
+
+[DzFrameGetCommandBarButtonAutoCastIndicator]
+title = "获取技能自动施法指示器 [NEW]"
+description = "获取 ${技能控件} 自动施法指示器"
+comment = "控件类型为sprite frame"
+category = TC_KKAPI
+returns = frame
+[[.args]]
+type = frame
+
+[DzFrameWorldToMinimapPosX]
+title = "转换地图坐标为小地图x坐标 [NEW]"
+description = "转换地图坐标(${x},${y})为小地图x坐标"
+comment = "小地图左下角为（0,0）"
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzFrameWorldToMinimapPosY]
+title = "转换地图坐标为小地图y坐标 [NEW]"
+description = "转换地图坐标(${x},${y})为小地图y坐标"
+comment = "小地图左下角为（0,0）"
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzFrameGetWorldFrameMessage]
+title = "游戏提示信息界面 [NEW]"
+description = "游戏提示信息界面 [NEW]"
+comment = "如建筑升级完成提示"
+category = TC_KKAPI
+returns = frame
+
+[DzConvertWorldPositionX]
+title = "转换世界坐标为屏幕x坐标[同步] [NEW]"
+description = "转换地图坐标（ ${x}，${Y}，${z}）为屏幕x坐标"
+comment = ""
+category = TC_DEPRECATED
+returns = real
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+
+[DzConvertWorldPositionY]
+title = "转换世界坐标为屏幕y坐标[同步] [NEW]"
+description = "转换地图坐标（ ${x}，${Y}，${z}）为屏幕y坐标"
+comment = ""
+category = TC_DEPRECATED
+returns = real
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+
+[DzConvertWorldPositionDepth]
+title = "转换世界坐标为屏幕深度[同步] [NEW]"
+description = "转换地图坐标（ ${x}，${Y}，${z}）为屏幕深度"
+comment = ""
+category = TC_DEPRECATED
+returns = real
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+
+[DzConvertScreenPositionX]
+title = "转换屏幕坐标到世界x坐标 [NEW]"
+description = "转换屏幕坐标（ ${x}，${Y}）为世界x坐标"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+
+[DzConvertScreenPositionY]
+title = "转换屏幕坐标到世界y坐标 [NEW]"
+description = "转换屏幕坐标（ ${x}，${Y}）为世界y坐标"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+
+[DzGetEffectVertexColor]
+title = "获取特效颜色 [NEW]"
+description = "获取 ${特效} 的颜色"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = effect
+
+[DzGetEffectVertexAlpha]
+title = "获取特效透明度 [NEW]"
+description = "获取 ${特效} 的透明度"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = effect
+
+[DzGetItemAbility]
+title = "获取物品技能 [NEW]"
+description = "获取 ${物品} 的第 ${编号} 个技能"
+comment = ""
+category = TC_KKAPI
+returns = ability
+[[.args]]
+type = item
+[[.args]]
+type = integer
+
+[DzGetActivePatron]
+title = "获取商店目标 [NEW]"
+description = "获取 ${商店} 选中的 ${玩家} 单位"
+comment = ""
+category = TC_KKAPI
+returns = unit
+[[.args]]
+type = unit
+[[.args]]
+type = player
+
+[DzGetLocalSelectUnitCount]
+title = "获取玩家选中的单位数量 [NEW]"
+description = "获取玩家选中的单位数量"
+comment = "返回值是异步的，谨慎使用"
+category = TC_KKAPI
+returns = integer
+
+[DzGetLocalSelectUnit]
+title = "获取玩家选中的单位 [NEW]"
+description = "获取玩家选中的第 ${编号} 个单位"
+comment = "返回值是异步的，谨慎使用"
+category = TC_KKAPI
+returns = unit
+[[.args]]
+type = integer
+
+[DzGetJassStringTableCount]
+title = "获取字符串数量 [NEW]"
+description = "获取字符串数量"
+comment = ""
+category = TC_KKAPI
+returns = integer
+
+[DzGetFPS]
+title = "获取 FPS 帧数 [NEW]"
+description = "获取 FPS 帧数"
+comment = ""
+category = TC_KKAPI
+returns = integer
+
+[DzGetOnBuildOrderId]
+title = "获取建造的命令id [NEW]"
+description = "获取建造的命令id"
+comment = "用于监听建筑选位置后"
+category = TC_KKAPI
+returns = integer
+
+[DzGetOnBuildOrderType]
+title = "获取建造的命令类型 [NEW]"
+description = "获取建造的命令类型"
+comment = "用于监听建筑选位置后"
+category = TC_KKAPI
+returns = integer
+
+[DzGetOnBuildAgent]
+title = "获取预建造对象 [NEW]"
+description = "获取预建造对象"
+comment = "用于监听建筑选位置后"
+category = TC_KKAPI
+returns = unit
+
+[DzGetOnTargetAbilId]
+title = "获取监听到的技能 [NEW]"
+description = "获取监听到的技能"
+comment = "用于监听技能预选后"
+category = TC_KKAPI
+returns = abilcode
+
+[DzGetOnTargetOrderId]
+title = "获取监听到技能预选命令 [NEW]"
+description = "获取监听到技能预选命令"
+comment = "用于监听技能预选后"
+category = TC_KKAPI
+returns = integer
+
+[DzGetOnTargetOrderType]
+title = "获取监听到技能预选命令类型 [NEW]"
+description = "获取监听到技能预选命令类型"
+comment = "用于监听技能预选后"
+category = TC_KKAPI
+returns = integer
+
+[DzGetOnTargetAgent]
+title = "获取监听到技能预选目标 [NEW]"
+description = "获取监听到技能预选目标"
+comment = "用于监听技能预选后"
+category = TC_KKAPI
+returns = unit
+
+[DzGetOnTargetInstantTarget]
+title = "获取监听到技能预选目标 [NEW]"
+description = "获取监听到技能预选目标"
+comment = "用于监听技能预选后"
+category = TC_KKAPI
+returns = unit
+
+[DzDoodadCreate]
+title = "新建地形装饰物 [NEW]"
+description = "创建 ${doodadid} 版本：${var} 坐标：(${x}，${Y}，${z}) 角度：${rotate} 缩放：${scale}"
+comment = ""
+category = TC_KKAPI
+returns = doodad
+[[.args]]
+type = doodadcode
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+default = "0"
+[[.args]]
+type = real
+default = "0"
+[[.args]]
+type = real
+default = "0"
+[[.args]]
+type = degree
+default = "GetRandomDirectionDeg"
+[[.args]]
+type = real
+default = "1"
+
+
+[DzDoodadGetTypeId]
+title = "装饰物的类型ID [NEW]"
+description = "获取 ${doodadid} 的类型ID"
+comment = ""
+category = TC_KKAPI
+returns = doodadcode
+[[.args]]
+type = doodad
+
+[DzDoodadGetX]
+title = "装饰物的X坐标 [NEW]"
+description = "获取 ${doodad} 的X坐标"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = doodad
+
+[DzDoodadGetY]
+title = "装饰物的Y坐标 [NEW]"
+description = "获取 ${doodad} 的Y坐标"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = doodad
+
+[DzDoodadGetZ]
+title = "装饰物的Z坐标 [NEW]"
+description = "获取 ${doodad} 的Z坐标"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = doodad
+
+[DzDoodadGetTimeScale]
+title = "装饰物动画播放速度 [NEW]"
+description = " ${doodad} 的动画播放速度"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = doodad
+
+[DzDoodadGetCurrentAnimationIndex]
+title = "装饰物当前动画编号 [NEW]"
+description = " ${doodad} 的当前动画编号"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = doodad
+
+[DzDoodadGetAnimationCount]
+title = "装饰物动画数量 [NEW]"
+description = " ${doodad} 的动画数量"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = doodad
+
+[DzDoodadGetAnimationName ]
+title = "装饰物动画名 [NEW]"
+description = " ${doodad} 第 ${index} 个动画的动画名"
+comment = ""
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = doodad
+[[.args]]
+type = integer
+default = "1"
+min = 0
+
+[DzDoodadGetAnimationTime]
+title = "装饰物动画时间 [NEW]"
+description = " ${doodad} 第 ${index} 个动画的时间"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = doodad
+[[.args]]
+type = integer
+default = "1"
+min = 0
+
+[DzGetAttackAbility]
+title = "获取普攻技能 [NEW]"
+description = "${whichUnit} 普攻技能"
+comment = ""
+category = TC_KKAPI
+returns = ability
+[[.args]]
+type = unit
+
+[DzUnitFindAbility]
+title = "获取单位的指定技能 [NEW]"
+description = "查找 ${单位} 的指定技能 ${技能}"
+comment = ""
+category = TC_KKAPI
+returns = ability
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[KKWEGetObjectTableData]
+title = "【对象表】读取数据"
+description = "【对象表】获取对象 [${类型}] ${null} 的 [${类型}] ${null} 的数据"
+comment = ""
+category = TC_KKAPI
+returns = AnyReturnType
+[[.args]]
+type = typename
+[[.args]]
+type = Null
+[[.args]]
+type = typename
+[[.args]]
+type = Null
+
+[KKGetHandleId]
+title = "获取对象handle值"
+description = "转换 [${类型}] ${null} 为整数"
+comment = "创建一个对应该handle的临时密钥,可以在哈希表中作为索引号使用.当该handle被彻底销毁时,密钥会被回收."
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = typename
+[[.args]]
+type = Null
