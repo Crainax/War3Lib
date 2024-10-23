@@ -3,25 +3,28 @@ local path = {}
 -- path.root        = 'D:/War3' -- 地图的项目目录
 -- path.project     = path.root .. '/Maps/PhantomOrbit'						-- 地图的项目目录
 
-function path.init(root, project)
+---@param root string
+---@param project string
+function path.init(root , project)
     assert(type(root) == "string", "root 参数必须是字符串")
     assert(type(project) == "string", "project 参数必须是字符串")
     path.root = root
     path.project = project
 
-    path.mapName          = "OriginMap" -- 地图名字
-    path.state            = "正式地图" -- 当前状态
-    path.alljass          = path.project .. "/edit/AllJass.h" -- 地图导包文件
-    path.scriptJ          = path.project .. "/edit/config/script.j" -- 脚本源文件
-    path.waveResult       = string.gsub(path.scriptJ, "%.j", ".i") -- wave预处理后的文件
-    path.editOutputJ      = path.project .. "/edit/output.j" -- 脚本区的outputJ文件
-    path.mapJ             = path.project .. "/OriginMap/map/war3map.j" -- 正式地图的War3mapJ文件
-    path.resource         = path.project .. "/OriginMap/resource" -- 地图资源
-    path.icon             = path.resource .. "/replaceabletextures" -- 图标地点
-    path.we               = 'D:/WE/WorldEdit v1.2.9C' -- 都用YDWE的来编译吧
-    path.war3             = 'D:/Program Files (x86)/Warcraft III Frozen Throne' -- 都用YDWE的来编译吧
-    path.vscodeRoot       = 'D:/Program Files (x86)/Microsoft VS Code' -- VSCDOE的根目录
-    path.vscodeExe        = path.vscodeRoot .. '/Code.exe' -- VSCDOE的位置
+    path.mapName        = "OriginMap"											-- 地图名字
+    path.state          = "正式地图"										      -- 当前状态
+    path.alljass        = path.project .. "/edit/AllJass.h"					-- 地图导包文件
+    path.scriptJ        = path.project .. "/edit/config/script.j"				-- 脚本源文件
+    path.waveResultTemp = string.gsub(path.scriptJ, "%.j", ".i")				-- wave预处理后的文件(临时)
+    path.waveResult     = path.project .. "/Output/1_wave.j" -- wave预处理后的文件
+    path.jasshelperResult    = path.project .. "/Output/3_jasshelper.j" -- jasshelper预处理后的文件
+    path.editOutputJ    = path.project .. "/edit/output.j"						-- 脚本区的outputJ文件
+    path.mapJ           = path.project .. "/OriginMap/map/war3map.j"			-- 正式地图的War3mapJ文件
+    path.resource       = path.project .. "/OriginMap/resource"					-- 地图资源
+    path.icon           = path.resource .. "/replaceabletextures"				-- 图标地点
+    path.war3           = 'D:/Program Files (x86)/Warcraft III Frozen Throne'	-- 都用YDWE的来编译吧
+    path.vscodeRoot     = 'D:/Program Files (x86)/Microsoft VS Code'			-- VSCDOE的根目录
+    path.vscodeExe      = path.vscodeRoot .. '/Code.exe'						-- VSCDOE的位置
 
     path.table            = {} -- 物编
     path.table.root       = path.project .. "/OriginMap/table" -- 物编的根目录

@@ -17,5 +17,4 @@ else
 end
 
 path.init(root, projectName)
-
 compiler.StartCompile(path)

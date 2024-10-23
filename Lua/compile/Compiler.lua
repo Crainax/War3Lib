@@ -33,6 +33,13 @@ end
 function compile.StartCompile(path)
 	local code, msg = CompileWave(path)
 	if (code) then
+		pcall(os.remove, path.waveResult) -- 把老的waveResult删除
+		print("[Wave]进行中 : " .. path.waveResultTemp)
+		local suc, errmsg = os.rename(path.waveResultTemp, path.waveResult)
+		if not (suc) then
+			print("[Wave]成功,但复制失败:" .. tostring(errmsg))
+			return false
+		end
 		print("[Wave]成功 : " .. path.waveResult)
 	else
 		print("[Wave]失败:" .. msg)
@@ -40,7 +47,7 @@ function compile.StartCompile(path)
 	end
 
 	-- 使用 string.gsub 创建新的文件路径
-	local preLuaPath = string.gsub(path.waveResult, "[^/]+$", "luaProcessing.j")
+	local preLuaPath = string.gsub(path.waveResult, "[^/]+$", "2_luaProcessing.j")
 	-- 复制 path.waveResult 到新路径
 	fileUtils.CopyFile(path.waveResult, preLuaPath)
 	-- 替换CRNL符号,还有各种以\n\t\t++的压缩.
@@ -88,20 +95,17 @@ function compile.StartCompile(path)
 		end)
 		return false
 	end
-	-- 这里把jassHelper里的文件移回项目里[先把原项目的output给改个临时名]
-	suc, errmsg = os.rename(path.project .. "/edit/output.j", path.project .. "/edit/output2.j")
-	if not (code) then
-		-- 也可能不存在的,不需要return
-		print('[JH后移回去]原项目的output改名失败.' .. msg)
-	end
+
+	pcall(os.remove, path.jasshelperResult) -- 把老的jasshelperResult删除
 	-- 这里把jassHelper里的文件移回项目里[再移回去]
-	suc, errmsg = fileUtils.CopyFile(path.jasshelper .. "/output.j", path.project .. "/edit/output.j")
-	if (code) then
+	suc, errmsg = fileUtils.CopyFile(path.jasshelper .. "/output.j", path.jasshelperResult)
+	if (suc) then
 		os.remove(path.project .. "/edit/output2.j")
-		print('[最终编译]成功: ' .. path.project .. "/edit/output.j")
+		print('[最终编译]成功: ' .. path.jasshelperResult)
 	else
-		print("[JH后移回去]JassHelper编译后的文件移动失败,目前项目内仍然是以前的文件:" .. msg)
-		os.rename(path.project .. "/edit/output2.j", path.project .. "/edit/output.j")
+		print("[最终编译]移动失败:" .. tostring(errmsg))
+		print("[最终编译]最后位置:" .. path.jasshelper .. "/output.j")
+		return false
 	end
 
 	-- 打包前预处理一下物编
