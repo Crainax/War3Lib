@@ -1,4 +1,3 @@
--- package.cpath = package.cpath .. ";./bin/?.dll"
 local lfs = require "lfs"
 local fu = {}
 
@@ -75,6 +74,32 @@ function fu.WriteLast(fileName, content)
 	end
 end
 
+-- 复制一个文件
+function fu.CopyFile(sourcePath, destPath)
+	-- 打开源文件
+	local sourceFile, err = io.open(sourcePath, "rb")
+	if not sourceFile then
+		return false, "无法打开源文件: " .. err
+	end
+
+	-- 打开目标文件
+	local destFile, destErr = io.open(destPath, "wb")
+	if not destFile then
+		sourceFile:close()
+		return false, "无法打开目标文件: " .. destErr
+	end
+
+	-- 复制内容
+	local content = sourceFile:read("*all")
+	destFile:write(content)
+
+	-- 关闭文件
+	sourceFile:close()
+	destFile:close()
+
+	return true
+end
+
 -- 覆盖创建一个新文件
 function fu.WriteOver(fileName, content)
 	local fileWrite = io.open(fileName, "w+")
@@ -115,7 +140,7 @@ function fu.EachDir(srcPath, func)
 	end
 end
 
--- 路径生成:自动在前面与后面加上"
+-- 路径生成:自动在前面与后面加上"(引号)
 function fu.PathString(str)
 	-- local str = path:string()
 	if str:sub(-1) == '\\' then

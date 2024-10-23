@@ -16,7 +16,6 @@ local function Fact(n)
 	end
 end
 
-print("lua1.main")
 
 -- local function mainX() print("lua1.main") end
 
