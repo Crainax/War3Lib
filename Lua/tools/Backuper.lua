@@ -1,7 +1,7 @@
 package.cpath = package.cpath .. ";./bin/?.dll"
 local lfs = require "lfs"
 local path = require("lua.path")
-local copy = require("lua.compile.Copy")
+local copy = require("lua.utils.copy")
 
 local timestring = os.date("%Y-%m-%d-%H-%M-%S", os.time())
 local targetPath = path.backup.root .. "/lni/" .. timestring

@@ -1,6 +1,6 @@
 local path = require "lua.path"
 local fu = require "lua.utils.FileUtils"
-local copy = require "lua.compile.Copy"
+local copy = require "lua.utils.copy"
 local tc = require "lua.compile.TestControl"
 
 -- 库

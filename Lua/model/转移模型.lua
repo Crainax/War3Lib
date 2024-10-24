@@ -1,13 +1,13 @@
 local fu = require "lua.utils.FileUtils"
 local gbk = require "gbk"
 local path = require "lua.path"
-local copy = require "lua.compile.Copy"
+local copy = require "lua.utils.copy"
 
 local flag = {
-	['path'] = [[D:\Ä£ÐÍ\ºÏ²¢×ªÒÆ\µ¯µÀ2]], -- Òª´¦ÀíµÄÎÄ¼þ¼Ð
-	['mdxTar'] = function(fileName) -- [mdlx]Ä£ÐÍÒÆµ½ÄÄ
+	['path'] = [[D:\Ä£ï¿½ï¿½\ï¿½Ï²ï¿½×ªï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½2]], -- Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	['mdxTar'] = function(fileName) -- [mdlx]Ä£ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½
 		fileName = fileName or ""
-		if fileName:lower():match("^Missile") then -- ¸ù¾ÝÇ°×ºÀ´ÒÆ¶¯
+		if fileName:lower():match("^Missile") then -- ï¿½ï¿½ï¿½ï¿½Ç°×ºï¿½ï¿½ï¿½Æ¶ï¿½
 			return path.model.missile
 		else
 			return path.model.effect
@@ -15,31 +15,31 @@ local flag = {
 	end
 }
 
--- Õâ¸öÊÇÒÆÄ£ÐÍºÍËüÓÐ¹ØBLPÎÄ¼þµÄ,À¬»øExploer¿¨µÃÒ»Æ¥
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½Íºï¿½ï¿½ï¿½ï¿½Ð¹ï¿½BLPï¿½Ä¼ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½Exploerï¿½ï¿½ï¿½ï¿½Ò»Æ¥
 function MoveModel()
 	os.execute("explorer " .. string.gsub(flag.mdxTar(), "/", "\\"))
 	fu.ForDir(flag.path, function(filePath)
 		local name, format = fu.GetFile(filePath)
-		local subPath = filePath:sub(#flag.path + 1, #filePath) -- ×¢ÒâÕâ¸ö×îÇ°ÃæÓÐ´ø¸ö/
+		local subPath = filePath:sub(#flag.path + 1, #filePath) -- ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½/
 		if format:lower() == "blp" or format:lower() == "tga" then
 			local output = path.model.root .. subPath
 			local sur, msg = copy.ForceCopyBin(filePath, output)
 			if sur then
-				print(gbk.toutf8(output .. ":ÒÆ¶¯³É¹¦¡£"))
+				print(gbk.toutf8(output .. ":ï¿½Æ¶ï¿½ï¿½É¹ï¿½ï¿½ï¿½"))
 			else
-				print(gbk.toutf8(output .. ":ÒÆ¶¯Ê§°Ü£º" .. tostring(msg)))
+				print(gbk.toutf8(output .. ":ï¿½Æ¶ï¿½Ê§ï¿½Ü£ï¿½" .. tostring(msg)))
 			end
 		elseif format:lower() == "mdx" then
 			local output = flag.mdxTar(name) .. "/" .. name .. "." .. format
 			local sur, msg = copy.CopyBin(filePath, output)
 			if sur then
-				print(gbk.toutf8(output .. ":ÒÆ¶¯³É¹¦¡£"))
+				print(gbk.toutf8(output .. ":ï¿½Æ¶ï¿½ï¿½É¹ï¿½ï¿½ï¿½"))
 			else
-				print(gbk.toutf8(output .. ":ÒÆ¶¯Ê§°Ü£º" .. tostring(msg)))
+				print(gbk.toutf8(output .. ":ï¿½Æ¶ï¿½Ê§ï¿½Ü£ï¿½" .. tostring(msg)))
 			end
 		end
 	end, true)
 end
 
 MoveModel()
-print(gbk.toutf8("ÒÆ¶¯ÎÄ¼þ½áÊøÁË"))
+print(gbk.toutf8("ï¿½Æ¶ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"))

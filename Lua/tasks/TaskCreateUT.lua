@@ -1,4 +1,4 @@
-local copy = require("lua.compile.Copy")
+local copy = require("lua.utils.copy")
 local fu = require("lua.utils.FileUtils")
 local path = require("lua.path")
 

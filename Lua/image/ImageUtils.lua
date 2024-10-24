@@ -2,18 +2,18 @@ local fu = require "lua.utils.FileUtils"
 local lfs = require "lfs"
 local gbk = require "gbk"
 local path = require "lua.path"
-local copy = require "lua.compile.Copy"
+local copy = require "lua.utils.copy"
 
 local BlpLab = {}
 local iu = {['BlpLab'] = BlpLab}
 
--- Ö±½ÓÔÚÕâ³õÊ¼»¯±í
+-- Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½
 function iu.Flag(flag)
 	iu.flag = flag
 	BlpLab.flag = flag
 end
 
--- ºÏ²¢Ò»ÕÅÍ¼Æ¬(ÓÃcompositeºÏ²¢psdºÃÏñ»áÓÐµãÎÊÌâ,»¹ÊÇconvertÏã)
+-- ï¿½Ï²ï¿½Ò»ï¿½ï¿½Í¼Æ¬(ï¿½ï¿½compositeï¿½Ï²ï¿½psdï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½convertï¿½ï¿½)
 function iu:Combine(front, back, output, size)
 	local cmd = 'magick convert \
 	' .. fu.PathString(back) .. ' \
@@ -24,62 +24,62 @@ function iu:Combine(front, back, output, size)
 	-gravity center \
 	-composite \
 	' .. output
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîÐÐ·½±ã»»ÐÐ
+	cmd = string.gsub(cmd, '[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ã»»ï¿½ï¿½
 	os.execute(cmd)
 end
 
--- ¼Óºó¹âÔÎ
+-- ï¿½Óºï¿½ï¿½ï¿½ï¿½
 function iu:Grow(file, outFile)
 	if iu.flag.gColor then
-		-- ÓÐÉ«±³¾°
+		-- ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½
 		iu:Combine(file, path.image.path .. "/fg4_glow" .. iu.flag.gColor .. ".png", outFile, iu.flag.tSize)
 	end
 end
 
--- ´´½¨±³¾°
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 function iu:BG(file, outFile)
 	if iu.flag.bgColor then
-		-- ÓÐÉ«±³¾°
+		-- ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½
 		iu:Combine(file, path.image.path .. "/bg_item_quality_" .. iu.flag.bgColor .. ".png", outFile, iu.flag.tSize)
 	else
-		-- ºÚÉ«±³¾°
+		-- ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½
 		iu:Combine(file, "canvas:black", outFile, iu.flag.tSize)
 	end
 end
 
--- ¼Ó±ß¿ò
+-- ï¿½Ó±ß¿ï¿½
 function iu:Frame(file)
 	if iu.flag.frame then
-		-- DIY±ß¿ò
+		-- DIYï¿½ß¿ï¿½
 		local cmd = 'magick mogrify \
 		-shave ' .. iu.flag.frameSize .. 'x' .. iu.flag.frameSize .. ' \
 		-mattecolor ' .. iu.flag.fColor .. ' \
 		-frame ' .. iu.flag.frameSize .. 'x' .. iu.flag.frameSize .. '+' .. iu.flag.frameOff .. '+' .. iu.flag.frameOff .. ' \
 		-resize ' .. iu.flag.tSize .. 'x' .. iu.flag.tSize .. ' \
 		' .. file
-		cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîÐÐ·½±ã»»ÐÐ
-		-- Êä³öÎÄ¼þÃû
+		cmd = string.gsub(cmd, '[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ã»»ï¿½ï¿½
+		-- ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 		if iu.flag.isPrint then
-			print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+			print(gbk.toutf8(cmd)) -- ï¿½ï¿½Ó¡Ò»ï¿½ï¿½
 		end
 		os.execute(cmd)
 	else
-		-- Ô­Éú±ß¿ò
+		-- Ô­ï¿½ï¿½ï¿½ß¿ï¿½
 		self:Combine(path.image.path .. "/btn.png", file, file, iu.flag.tSize)
 	end
 end
 
--- Í¼±êÅ×¹âÓë±äÐ¡[ÔÚÕâÀï¾Í¿ªÊ¼±ä³É×îÖÕ´óÐ¡ÁË]
+-- Í¼ï¿½ï¿½ï¿½×¹ï¿½ï¿½ï¿½ï¿½Ð¡[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ´ï¿½Ð¡ï¿½ï¿½]
 function iu:Light(file)
 	self:Combine(path.image.path .. "/Paoguangx4.png", file, file, iu.flag.size)
 end
 
--- Éú³É°µÍ¼±ê
+-- ï¿½ï¿½ï¿½É°ï¿½Í¼ï¿½ï¿½
 function iu:Disable(outputFile, disFile)
 	self:Combine(path.image.path .. "/dis.png", outputFile, disFile, iu.flag.size)
 end
 
--- ´ò¿ªBLPLAB
+-- ï¿½ï¿½BLPLAB
 function BlpLab:ConvertBLP(pngPath, blpPath)
 	fu.ExecuteFile(path.image.blplab .. '/blplab.ini', function(line)
 		if (string.match(line, "SourceFolder")) then
@@ -90,10 +90,10 @@ function BlpLab:ConvertBLP(pngPath, blpPath)
 		return line
 	end)
 	os.execute(fu.PathString(path.image.blplab .. "/blplab.exe"))
-	-- ¹Ø±Õ³ÌÐòºó²Å»á¼ÌÐøÍùÏÂÔËÐÐ
+	-- ï¿½Ø±Õ³ï¿½ï¿½ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 end
 
--- ÒÆµ½ÏîÄ¿ÎÄ¼þ
+-- ï¿½Æµï¿½ï¿½ï¿½Ä¿ï¿½Ä¼ï¿½
 function BlpLab:MoveBLP(blpPath)
 	fu.ForDir(blpPath, function(filePath)
 		local fileName, format = fu.GetFile(filePath)
@@ -109,7 +109,7 @@ function BlpLab:MoveBLP(blpPath)
 	os.execute("explorer " .. string.gsub(path.image.disbtn, "/", "\\"))
 end
 
--- ÒÆµ½ÏîÄ¿ÎÄ¼þ[ÌØÐ§ÐòÁÐÖ¡]
+-- ï¿½Æµï¿½ï¿½ï¿½Ä¿ï¿½Ä¼ï¿½[ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½Ö¡]
 function BlpLab:Move(blpPath, newPath)
 	fu.ForDir(blpPath, function(filePath)
 		local fileName, format = fu.GetFile(filePath)

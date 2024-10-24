@@ -2,22 +2,22 @@ local fu = require "lua.utils.FileUtils"
 local gbk = require "gbk"
 local lfs = require "lfs"
 local path = require "lua.path"
-local copy = require "lua.compile.Copy"
+local copy = require "lua.utils.copy"
 
 local flag = {
-	['path'] = [[D:\Ä£ÐÍ\1.32\1]], -- Òª´¦ÀíµÄÎÄ¼þ¼Ð
-	['mdxTar'] = path.model.test.res -- ÒÆµ½ÄÄÀï
+	['path'] = [[D:\Ä£ï¿½ï¿½\1.32\1]], -- Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	['mdxTar'] = path.model.test.res -- ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½
 }
 
--- °ÑÄ¿Â¼ÀïµÄMDX×ª³ÉMDL
--- ÎÒÎòÁË,µÚÒ»¸ö²ÎÊý²»ÄÜ´ø¿Õ¸ñ,²»È»µ÷ÓÃ²»ÁË(³ý·ÇÔÚtaskÀï¾ÍÄÜµ÷ÓÃ)
+-- ï¿½ï¿½Ä¿Â¼ï¿½ï¿½ï¿½MDX×ªï¿½ï¿½MDL
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü´ï¿½ï¿½Õ¸ï¿½,ï¿½ï¿½È»ï¿½ï¿½ï¿½Ã²ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½taskï¿½ï¿½ï¿½ï¿½Üµï¿½ï¿½ï¿½)
 local function Convert(cFormat)
 	fu.ForDir(flag.path, function(filePath)
 		local name, format = fu.GetFile(filePath)
 		if format:lower() == cFormat then
 			local cmd = path.model.tool .. ' \
 		' .. fu.PathString(filePath)
-			cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîÐÐ·½±ã»»ÐÐ
+			cmd = string.gsub(cmd, '[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ã»»ï¿½ï¿½
 			os.execute(cmd)
 			print(gbk.toutf8(cmd))
 		end
@@ -25,7 +25,7 @@ local function Convert(cFormat)
 
 end
 
--- ¸ù¾ÝËùÓÐMDLÎÄ¼þ½øÐÐÐÞ¸Ä
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½MDLï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½
 local function ResetMDL()
 	fu.ForDir(flag.path, function(filePath)
 		local name, format = fu.GetFile(filePath)
@@ -41,10 +41,10 @@ local function ResetMDL()
 end
 
 Convert("mdx")
-print(gbk.toutf8("MDX×ª»»Íê±Ï,¿ªÊ¼´¦ÀíÎÄ¼þÄÚÈÝ"))
+print(gbk.toutf8("MDX×ªï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½"))
 ResetMDL()
-print(gbk.toutf8("MDL´¦ÀíÍê±Ï"))
+print(gbk.toutf8("MDLï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½"))
 Convert("mdl")
-print(gbk.toutf8("´¦ÀíÍê±Ï."))
--- PriorityPlane É¾µô
--- _hd.w3mod:È¥µô
+print(gbk.toutf8("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½."))
+-- PriorityPlane É¾ï¿½ï¿½
+-- _hd.w3mod:È¥ï¿½ï¿½

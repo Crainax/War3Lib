@@ -2,24 +2,24 @@ local fu = require "lua.utils.FileUtils"
 local lfs = require "lfs"
 local gbk = require "gbk"
 local path = require "lua.path"
-local copy = require "lua.compile.Copy"
+local copy = require "lua.utils.copy"
 local iu = require "lua.image.ImageUtils"
 
 local flag = {
-	['path'] = [[D:\Ä£ÐÍ\´´ÊÀ¹ì¼£\°²Í½Éú\Antusheng.mdl]], -- Òª´¦ÀíµÄÎÄ¼þ¼Ð
-	['output'] = [[D:\Ä£ÐÍ\´´ÊÀ¹ì¼£\°²Í½Éú\output.txt]] -- Debug²ÎÕÕÊä³öÎ»ÖÃ
+	['path'] = [[D:\Ä£ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ì¼£\ï¿½ï¿½Í½ï¿½ï¿½\Antusheng.mdl]], -- Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	['output'] = [[D:\Ä£ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ì¼£\ï¿½ï¿½Í½ï¿½ï¿½\output.txt]] -- Debugï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 }
 
--- É¾³ýËùÓÐ[Ëõ·Å]/¸ù¾ÝÒÆ¶¯[ÈÝ²î0.1]À´ÖÇÄÜÉ¾³ýËùÓÐÒÆ¶¯Ö¡/ÓÅ»¯ËùÓÐ´øEµÄÐý×ªÖ¡
+-- É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½]/ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½[ï¿½Ý²ï¿½0.1]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½Ö¡/ï¿½Å»ï¿½ï¿½ï¿½ï¿½Ð´ï¿½Eï¿½ï¿½ï¿½ï¿½×ªÖ¡
 local function OptimizeMDL()
 	local inScaling = false
-	local inTran = false -- ÊÇ·ñÔÚTranµÄÄ£¿éÖÐ
+	local inTran = false -- ï¿½Ç·ï¿½ï¿½ï¿½Tranï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½
 	local inRotate = false
 	local sTran = ""
-	local tranDel = true -- ÊÇ·ñÂú×ãÉ¾³ýµÄÌõ¼þ
+	local tranDel = true -- ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	fu.WriteOver(flag.output, "")
 	fu.ExecuteFile(flag.path, function(line)
-		-- ´¦ÀíËõ·Å.[ÈËÎïÄ£ÐÍ²»ÐèÒªËõ·Å]
+		-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.[ï¿½ï¿½ï¿½ï¿½Ä£ï¿½Í²ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½]
 		if line:match("Scaling") then
 			-- fu.WriteLast(flag.output, line .. "\n")
 			inScaling = true
@@ -31,7 +31,7 @@ local function OptimizeMDL()
 			-- fu.WriteLast(flag.output, line .. "\n")
 			line = nil
 		elseif line:match("Translation") then
-			-- ´¦ÀíÒÆ¶¯.[ÄÜ×Ô¶¯´¦ÀíÐ¡ÓÚ0.1µÄÒÆ¶¯,ÖÇÄÜÅÐ¶ÏÊÇ²»ÊÇÐèÒªÉ¾³ýÕû¶Î(Èç¹ûÈ«ÊÇ0,0,0µÄ»°¾ÍÉ¾)]
+			-- ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½.[ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½ï¿½0.1ï¿½ï¿½ï¿½Æ¶ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½Ç²ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÉ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½È«ï¿½ï¿½0,0,0ï¿½Ä»ï¿½ï¿½ï¿½É¾)]
 			inTran = true
 			sTran = line .. '\n'
 			line = nil
@@ -46,7 +46,7 @@ local function OptimizeMDL()
 			line = nil
 			sTran = sTran .. temp .. '\n'
 			if temp:match("^%s*}%s*$") then
-				if not (tranDel) then -- Âú×ã±£ÁôµÄ»°²Å×¢Èë
+				if not (tranDel) then -- ï¿½ï¿½ï¿½ã±£ï¿½ï¿½ï¿½Ä»ï¿½ï¿½ï¿½×¢ï¿½ï¿½
 					line = sTran
 				end
 				-- fu.WriteLast(flag.output, sTran .. "\n")
@@ -55,8 +55,8 @@ local function OptimizeMDL()
 			end
 			-- fu.WriteLast(flag.output, temp .. "\n")
 		elseif line:match("Rotation") then
-			-- ´¦ÀíÐý×ª[½öÓÅ»¯´øEµÄ]
-			-- todo:¿ÉÒÔÓÃstring.formatÀ´ÓÅ»¯ÕâÀïµÄÆäÊµ.ºóÃæÓÐ¿ÕÔÙ¿´¿´°É
+			-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ª[ï¿½ï¿½ï¿½Å»ï¿½ï¿½ï¿½Eï¿½ï¿½]
+			-- todo:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½string.formatï¿½ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµ.ï¿½ï¿½ï¿½ï¿½ï¿½Ð¿ï¿½ï¿½Ù¿ï¿½ï¿½ï¿½ï¿½ï¿½
 			-- fu.WriteLast(flag.output, line .. "\n")
 			inRotate = true
 		elseif inRotate then
@@ -72,4 +72,4 @@ local function OptimizeMDL()
 end
 
 OptimizeMDL()
-print(gbk.toutf8("ÓÅ»¯Íê³É"))
+print(gbk.toutf8("ï¿½Å»ï¿½ï¿½ï¿½ï¿½"))

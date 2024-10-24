@@ -3,6 +3,7 @@ local tc = require "lua.compile.TestControl"
 
 local launcher = {}
 
+---@param suffix string
 launcher.StartWar3 = function(suffix)
 	suffix = suffix or ''
 	local cmdExe, cmdArgs, cmd
@@ -12,6 +13,7 @@ launcher.StartWar3 = function(suffix)
 	cmdArgs = cmdArgs .. "-loadfile "
 	cmdArgs = cmdArgs .. path.project .. "/" .. path.mapName .. suffix .. ".w3x"
 	cmd = string.format('%s %s', cmdExe, cmdArgs)
+	print(cmd)
 	local _, _, code = os.execute(cmd)
 	if code then
 		print("[" .. path.state .. "]启动war3成功.")

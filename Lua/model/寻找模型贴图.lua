@@ -2,35 +2,35 @@ local fu = require "lua.utils.FileUtils"
 local gbk = require "gbk"
 local lfs = require "lfs"
 local path = require "lua.path"
-local copy = require "lua.compile.Copy"
+local copy = require "lua.utils.copy"
 
 local flag = {
-	['path'] = [[D:\Ä£ÐÍ\Ä£ÐÍ²âÊÔ\20221223]], -- Òª´¦ÀíµÄÎÄ¼þ¼Ð
-	['mdxTar'] = path.model.test.res -- ÒÆµ½ÄÄÀï
+	['path'] = [[D:\Ä£ï¿½ï¿½\Ä£ï¿½Í²ï¿½ï¿½ï¿½\20221223]], -- Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	['mdxTar'] = path.model.test.res -- ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½
 }
 local addr = {
-	[[D:\09ºÍ11ÌØÐ§]], -- Â·¾¶1
-	[[D:\Ä£ÐÍ]], -- Â·¾¶2
-	[[D:\War3\Maps\ResearchJass\Map]], -- Â·¾¶3
-	[[D:\War3\War3HDMod\blp]] -- 1.32µÄ¸ßÇåÌùÍ¼
+	[[D:\09ï¿½ï¿½11ï¿½ï¿½Ð§]], -- Â·ï¿½ï¿½1
+	[[D:\Ä£ï¿½ï¿½]], -- Â·ï¿½ï¿½2
+	[[D:\War3\Maps\ResearchJass\Map]], -- Â·ï¿½ï¿½3
+	[[D:\War3\War3HDMod\blp]] -- 1.32ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½Í¼
 }
 
--- °ÑÄ¿Â¼ÀïµÄMDX×ª³ÉMDL
--- ÎÒÎòÁË,µÚÒ»¸ö²ÎÊý²»ÄÜ´ø¿Õ¸ñ,²»È»µ÷ÓÃ²»ÁË(³ý·ÇÔÚtaskÀï¾ÍÄÜµ÷ÓÃ)
+-- ï¿½ï¿½Ä¿Â¼ï¿½ï¿½ï¿½MDX×ªï¿½ï¿½MDL
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü´ï¿½ï¿½Õ¸ï¿½,ï¿½ï¿½È»ï¿½ï¿½ï¿½Ã²ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½taskï¿½ï¿½ï¿½ï¿½Üµï¿½ï¿½ï¿½)
 local function ConvertMDL()
 	fu.ForDir(flag.path, function(filePath)
 		local name, format = fu.GetFile(filePath)
 		if format:lower() == "mdx" then
 			local cmd = path.model.tool .. ' \
 		' .. fu.PathString(filePath)
-			cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîÐÐ·½±ã»»ÐÐ
+			cmd = string.gsub(cmd, '[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ã»»ï¿½ï¿½
 			os.execute(cmd)
 			print(gbk.toutf8(cmd))
 		end
 	end, false)
 end
 
--- ´ÓMDLÖÐ»ñÈ¡ËùÓÐÍ¼Æ¬µØÖ·
+-- ï¿½ï¿½MDLï¿½Ð»ï¿½È¡ï¿½ï¿½ï¿½ï¿½Í¼Æ¬ï¿½ï¿½Ö·
 local function GetAllImage()
 	local list = {}
 	fu.ForDir(flag.path, function(filePath)
@@ -53,11 +53,11 @@ local function GetAllImage()
 	return new
 end
 
--- Ñ°ÕÒ[ÍÂÁË,forÑ­»·ÖÐ²»ÄÜremove,µÃÓÃwhile]
+-- Ñ°ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½,forÑ­ï¿½ï¿½ï¿½Ð²ï¿½ï¿½ï¿½remove,ï¿½ï¿½ï¿½ï¿½while]
 function SeekBlp(list)
 	for _, seekPath in ipairs(addr) do
 		if #list == 0 then
-			print(gbk.toutf8("[BLPÕÒÍêÁË,ÍË³öÑ°ÕÒ¹ý³Ì]"))
+			print(gbk.toutf8("[BLPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½Ë³ï¿½Ñ°ï¿½Ò¹ï¿½ï¿½ï¿½]"))
 			break
 		end
 		fu.EachDir(seekPath, function(dir)
@@ -67,8 +67,8 @@ function SeekBlp(list)
 				local name, format = fu.GetFile(relPath)
 				local filePath = dir .. '/' .. name .. '.' .. format
 				if fu.FileExist(filePath) then
-					-- print(gbk.toutf8('[ÕÒµ½ÁË]' .. filePath .. '->' .. flag.path .. '/' .. relPath))
-					print(gbk.toutf8('[ÕÒµ½ÁË]' .. filePath))
+					-- print(gbk.toutf8('[ï¿½Òµï¿½ï¿½ï¿½]' .. filePath .. '->' .. flag.path .. '/' .. relPath))
+					print(gbk.toutf8('[ï¿½Òµï¿½ï¿½ï¿½]' .. filePath))
 					copy.ForceCopyBin(filePath, flag.path .. '/' .. relPath)
 					table.remove(list, index)
 				else
@@ -78,11 +78,11 @@ function SeekBlp(list)
 		end)
 	end
 	for _, value in ipairs(list) do
-		print(gbk.toutf8('[Ã»ÕÒµ½]' .. value))
+		print(gbk.toutf8('[Ã»ï¿½Òµï¿½]' .. value))
 	end
 end
 
 ConvertMDL()
 local blpList = GetAllImage()
 SeekBlp(blpList)
-print(gbk.toutf8("ÈÎÎñ½áÊøÀ²~"))
+print(gbk.toutf8("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½~"))

@@ -8,10 +8,11 @@ local modules = {}
 -- 返回的第2个值就是是不是蛋疼的需求
 local function GetState()
 	local ut, ut2 = false, false
-	fu.ReadFile(path.alljass, function(line)
+	fu.ReadFile(path.alljass, function(line,lineCount)
 		if (string.match(line, "^%s*#undef%s*UnitTestMode")) then
 			ut = false
 		elseif (string.match(line, "^%s*#define%s*UnitTestMode")) then
+			print('[检测环境]')
 			ut = true
 		elseif (string.match(line, "^%s*#define%s*NormalUnitTestMode")) then
 			ut2 = true
@@ -20,7 +21,6 @@ local function GetState()
 	end)
 	return ut and not (ut2)
 end
-
 -- 直接初始化是否是单元测试,如果是的话就进行
 modules.isUnitTest = GetState()
 if modules.isUnitTest then

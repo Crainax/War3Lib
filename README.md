@@ -42,10 +42,22 @@ War3Lib/
 │   │   └── FileUtils.lua
 │   └── path.lua
 │
+├── jass/
+│   └── template/
+│       ├── MTTemplate.j
+│       ├── UTTemplate.j
+│       └── UTTemplate2.j
+│
 ├── README.md
 ├── CHANGELOG.md
 └── 编译流程图.MD
 ```
+
+## 模板文件说明
+
+- `MTTemplate.j`: 模型测试模板文件
+- `UTTemplate.j`: 单元测试模板文件
+- `UTTemplate2.j`: 高级单元测试模板文件，包含可视化测试模块
 
 ## 贡献
 

@@ -2,34 +2,34 @@ local fu = require "lua.utils.FileUtils"
 local lfs = require "lfs"
 local gbk = require "gbk"
 local path = require "lua.path"
-local copy = require "lua.compile.Copy"
+local copy = require "lua.utils.copy"
 local iu = require "lua.image.ImageUtils"
 local BlpLab = iu.BlpLab
 
 local flag = {
 
-	['path'] = "D:/War3/´´ÊÀUI/¹âÐ§/2022-2-12", -- Òª´¦ÀíµÄÎÄ¼þ¼Ð
-	['isSubDir'] = false, -- ÊÇ·ñ´¦Àí×ÓÎÄ¼þ¼Ð
-	['size'] = 128, -- ÎÄ¼þ³¤¿í[×îÖÕ×ª»»µÄ]
-	['trimSize'] = 0, -- Í¼±êÏàÁÚËÄ±ßµÄ¾àÀë
-	['bgColor'] = 'black', -- GIFµÄ±³¾°ÑÕÉ«
-	['isPrint'] = false, -- ÊÇ·ñ´òÓ¡Éú³ÉµÄÖ¸Áî
-	['namePrefix'] = 'ig', -- Ãû×ÖÇ°×º
-	['nameCount'] = 100, -- Ãû×ÖÆðÊ¼µã(°üº¬ß@‚€)
-	['frame'] = 6, -- ¶àÉÙÃëÒ»Ö¡
-	['blp'] = true, -- ÊÇ·ñÉú³ÉBLPÎÄ¼þ²¢×ªÒÆ
+	['path'] = "D:/War3/ï¿½ï¿½ï¿½ï¿½UI/ï¿½ï¿½Ð§/2022-2-12", -- Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	['isSubDir'] = false, -- ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	['size'] = 128, -- ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½]
+	['trimSize'] = 0, -- Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ßµÄ¾ï¿½ï¿½ï¿½
+	['bgColor'] = 'black', -- GIFï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½É«
+	['isPrint'] = false, -- ï¿½Ç·ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½Éµï¿½Ö¸ï¿½ï¿½
+	['namePrefix'] = 'ig', -- ï¿½ï¿½ï¿½ï¿½Ç°×º
+	['nameCount'] = 100, -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½@ï¿½ï¿½)
+	['frame'] = 6, -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»Ö¡
+	['blp'] = true, -- ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½BLPï¿½Ä¼ï¿½ï¿½ï¿½×ªï¿½ï¿½
 }
 
--- ÅÅÐòº¯ÊýµÄ»ñÈ¡Ë÷Òý
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä»ï¿½È¡ï¿½ï¿½ï¿½ï¿½
 function string:gifIndex()
 	return tonumber(self:match("_(%d+)%.png$") or self:match("%((%d+)%)%.png$"))
 end
--- ¿ÉÄÜÊÇ_µÄÐÎÊ½Ò²¿ÉÄÜÊÇ(XX)µÄË÷ÒýÐÎÊ½
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½ï¿½Ê½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(XX)ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê½
 function string:gifPrefix()
 	return self:gsub('_%d+$', ''):gsub(' %(%d+%)$', '')
 end
 
--- ÅÅÐòº¯Êý
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 local cp = function(a, b)
 	local ai = tonumber(a:gifIndex())
 	local bi = tonumber(b:gifIndex())
@@ -38,7 +38,7 @@ local cp = function(a, b)
 	return ai <= bi
 end
 
--- ²Ã¼ôÍ¼±ê
+-- ï¿½Ã¼ï¿½Í¼ï¿½ï¿½
 local function Trim(filePath, output)
 	-- -trim +repage \
 	local cmd = 'magick convert \
@@ -50,30 +50,30 @@ local function Trim(filePath, output)
 	-extent ' .. (flag.size + flag.trimSize) .. 'x' .. (flag.size + flag.trimSize) .. ' \
 	-resize ' .. flag.size .. 'x' .. flag.size .. ' \
 	' .. fu.PathString(output)
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîÐÐ·½±ã»»ÐÐ
-	-- Êä³öÎÄ¼þÃû
+	cmd = string.gsub(cmd, '[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ã»»ï¿½ï¿½
+	-- ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+		print(gbk.toutf8(cmd)) -- ï¿½ï¿½Ó¡Ò»ï¿½ï¿½
 	end
 	os.execute(cmd)
 end
 
--- Éú³ÉGIF¿µ¿µ
+-- ï¿½ï¿½ï¿½ï¿½GIFï¿½ï¿½ï¿½ï¿½
 local function GenerateGIF(gifPrefix)
 	local cmd = 'magick convert \
 	-resize ' .. flag.size .. 'x' .. flag.size .. ' \
     -delay ' .. flag.frame .. ' \
     -dispose previous \
     ' .. gifPrefix .. '_*.png ' .. gifPrefix .. '.gif'
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîÐÐ·½±ã»»ÐÐ
-	-- Êä³öÎÄ¼þÃû
+	cmd = string.gsub(cmd, '[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ã»»ï¿½ï¿½
+	-- ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+		print(gbk.toutf8(cmd)) -- ï¿½ï¿½Ó¡Ò»ï¿½ï¿½
 	end
 	os.execute(cmd)
 end
 
--- Éú³ÉÍ¼Æ¬Ô¤ÀÀ
+-- ï¿½ï¿½ï¿½ï¿½Í¼Æ¬Ô¤ï¿½ï¿½
 local function GenerateIcon(gifPath, outputPath, newPath)
 	local gifs = {}
 	os.execute("explorer " .. string.gsub(gifPath, "/", "\\"))
@@ -86,30 +86,30 @@ local function GenerateIcon(gifPath, outputPath, newPath)
 		gifs[listName].list = gifs[listName].list or {}
 		gifs[listName].list[#gifs[listName].list + 1] = filePath
 	end, flag.isSubDir)
-	-- µÚÒ»´ó²½:ÖØÃüÃûÓëÅÅÐò
+	-- ï¿½ï¿½Ò»ï¿½ï¿½:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	for _, gif in pairs(gifs) do
-		table.sort(gif.list, cp) -- ¶Ô¼¯ºÏ½øÐÐÅÅÐò(°Ñ1,10,11Õâ¸öÒÆµ½2ºóÃæ)
+		table.sort(gif.list, cp) -- ï¿½Ô¼ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½1,10,11ï¿½ï¿½ï¿½ï¿½Æµï¿½2ï¿½ï¿½ï¿½ï¿½)
 
-		gif.prefix = newPath .. "/" .. flag.namePrefix .. flag.nameCount -- ÐÂµÄ¸ÄÃûÂ·¾¶
-		gif.gifPrefix = gifPath .. "/" .. flag.namePrefix .. flag.nameCount -- ÐÂµÄ¸ÄÃûÂ·¾¶
-		-- Õë¶ÔÍ¼Æ¬ÎÄ¼þ½øÐÐ¸ÄÃû
+		gif.prefix = newPath .. "/" .. flag.namePrefix .. flag.nameCount -- ï¿½ÂµÄ¸ï¿½ï¿½ï¿½Â·ï¿½ï¿½
+		gif.gifPrefix = gifPath .. "/" .. flag.namePrefix .. flag.nameCount -- ï¿½ÂµÄ¸ï¿½ï¿½ï¿½Â·ï¿½ï¿½
+		-- ï¿½ï¿½ï¿½Í¼Æ¬ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ð¸ï¿½ï¿½ï¿½
 		for j, oldFile in ipairs(gif.list) do
-			local suffix = "_" .. string.format("%02d", j - 1) .. ".png" -- ÕâÀïÓÐµãµ°ÌÛ,Éú³ÉÔ¤ÀÀÒª%02d,µ«ÊÇÄ§ÊÞÊÇ%d
+			local suffix = "_" .. string.format("%02d", j - 1) .. ".png" -- ï¿½ï¿½ï¿½ï¿½ï¿½Ðµãµ°ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½Òª%02d,ï¿½ï¿½ï¿½ï¿½Ä§ï¿½ï¿½ï¿½ï¿½%d
 			local file = gif.prefix .. suffix
 			copy.CopyBin(oldFile, file)
 			gif.list[j] = file
 			local outputFile = outputPath .. "/" .. flag.namePrefix .. flag.nameCount .. suffix
 			local gifFile = gifPath .. "/" .. flag.namePrefix .. flag.nameCount .. suffix
 
-			Trim(file, outputFile) -- µÚ1Ð¡²½:Trim
-			iu:Combine(file, "canvas:" .. flag.bgColor, gifFile, flag.size) -- µÚ2Ð¡²½:¼Ó±³¾°
+			Trim(file, outputFile) -- ï¿½ï¿½1Ð¡ï¿½ï¿½:Trim
+			iu:Combine(file, "canvas:" .. flag.bgColor, gifFile, flag.size) -- ï¿½ï¿½2Ð¡ï¿½ï¿½:ï¿½Ó±ï¿½ï¿½ï¿½
 		end
-		flag.nameCount = flag.nameCount + 1 -- GIFÐòºÅ+1
+		flag.nameCount = flag.nameCount + 1 -- GIFï¿½ï¿½ï¿½+1
 		print(gbk.toutf8(gif.prefix))
 	end
 
-	-- µÚ¶þ´ó²½:Éú³ÉGIF
-	print(gbk.toutf8("Éú³ÉGIFÔ¤ÀÀÍ¼ÖÐ..."))
+	-- ï¿½Ú¶ï¿½ï¿½ï¿½:ï¿½ï¿½ï¿½ï¿½GIF
+	print(gbk.toutf8("ï¿½ï¿½ï¿½ï¿½GIFÔ¤ï¿½ï¿½Í¼ï¿½ï¿½..."))
 	for _, gif in pairs(gifs) do GenerateGIF(gif.gifPrefix) end
 end
 
@@ -123,7 +123,7 @@ function Rename(path)
 	end)
 end
 
-local newPath = fu.GetDir(flag.path) .. "/rename" -- ÖØÐÂ¸ÄÃûºóµÄÎÄ¼þ¼Ð
+local newPath = fu.GetDir(flag.path) .. "/rename" -- ï¿½ï¿½ï¿½Â¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 local gifPath = fu.GetDir(flag.path) .. "/gif"
 local outputPath = fu.GetDir(flag.path) .. "/output"
 local blpPath = fu.GetDir(flag.path) .. "/blp"
@@ -135,11 +135,11 @@ lfs.mkdir(gifPath)
 lfs.mkdir(outputPath)
 lfs.mkdir(blpPath)
 lfs.mkdir(newPath)
-iu.Flag(flag) -- ´«µÝFlag
+iu.Flag(flag) -- ï¿½ï¿½ï¿½ï¿½Flag
 GenerateIcon(gifPath, outputPath, newPath)
-Rename(outputPath) -- Éú³Éºó¸øËùÓÐÎÄ¼þ¸ÄÃû, _05.png -> _5.png ÕâÑù
+Rename(outputPath) -- ï¿½ï¿½ï¿½Éºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½, _05.png -> _5.png ï¿½ï¿½ï¿½ï¿½
 if flag.blp then
 	BlpLab:ConvertBLP(outputPath, blpPath)
 	BlpLab:Move(blpPath, path.image.frame)
 end
-print(gbk.toutf8("GIFÉú³É½áÊø."))
+print(gbk.toutf8("GIFï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½."))

@@ -2,12 +2,12 @@ local fu = require "lua.utils.FileUtils"
 local gbk = require "gbk"
 local lfs = require "lfs"
 local path = require "lua.path"
-local copy = require "lua.compile.Copy"
+local copy = require "lua.utils.copy"
 
 local flag = {
-	['path'] = [[D:\Ä£ÐÍ\Ä£ÐÍ²âÊÔ\20221223]], -- Òª´¦ÀíµÄÎÄ¼þ¼Ð
-	['mdxTar'] = path.model.test.res, -- ÒÆµ½ÄÄÀï
-	['type'] = function(name) -- Õâ¸önameÎÞformat
+	['path'] = [[D:\Ä£ï¿½ï¿½\Ä£ï¿½Í²ï¿½ï¿½ï¿½\20221223]], -- Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	['mdxTar'] = path.model.test.res, -- ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½
+	['type'] = function(name) -- ï¿½ï¿½ï¿½nameï¿½ï¿½format
 		-- if name:match("missile") then
 		-- 	return 'Missile'
 		-- elseif name:match("n%d$") or name:match("portrait") then
@@ -17,13 +17,13 @@ local flag = {
 		-- else
 		-- 	return 'Efx'
 		-- end
-		-- return 'Unit' -- µ¥Î»
-		-- return 'Efx' -- ÌØÐ§
-		-- return 'Bind' -- °ó¶¨ÐÍÌØÐ§
+		-- return 'Unit' -- ï¿½ï¿½Î»
+		-- return 'Efx' -- ï¿½ï¿½Ð§
+		-- return 'Bind' -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§
 		-- if name:match("Flamestrike") then
 		-- 	return 'Efx'
 		-- end
-		-- return 'Missile' -- µ¯µÀÐÍÌØÐ§
+		-- return 'Missile' -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§
 	end
 }
 local prefix = {
@@ -33,58 +33,58 @@ local prefix = {
 	['Missile'] = '\t\tDanmu("'
 }
 local suffix = {
-	['Unit'] = '.mdl");', -- ºó×º
+	['Unit'] = '.mdl");', -- ï¿½ï¿½×º
 	['Efx'] = '.mdl");',
 	['Bind'] = '.mdl");',
 	['Missile'] = '.mdl");'
 }
 
--- ÏÈÉ¾³ýËùÓÐ¾ÉµÄÄ£ÐÍ
+-- ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½Ð¾Éµï¿½Ä£ï¿½ï¿½
 function DeleteOldFile()
 	fu.ForDir(flag.mdxTar, function(filePath)
 		local name, format = fu.GetFile(filePath)
-		if not (name:lower() == "war3mapmap") then -- Î¨Ò»µÄÒ»¸öÎÄ¼þ¾Í²»É¾ÁË,ÆäËûÈ«É¾ÁË
+		if not (name:lower() == "war3mapmap") then -- Î¨Ò»ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½Í²ï¿½É¾ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½È«É¾ï¿½ï¿½
 			os.remove(filePath)
-			print(gbk.toutf8("É¾³ý¾ÉÎÄ¼þ:" .. filePath))
+			print(gbk.toutf8("É¾ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½:" .. filePath))
 		end
 	end, true)
 end
 
--- Õâ¸öÊÇÒÆÄ£ÐÍºÍËüÓÐ¹ØBLPÎÄ¼þµÄ,À¬»øExploer¿¨µÃÒ»Æ¥
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½Íºï¿½ï¿½ï¿½ï¿½Ð¹ï¿½BLPï¿½Ä¼ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½Exploerï¿½ï¿½ï¿½ï¿½Ò»Æ¥
 function MoveModel(mdlList)
 	-- os.execute("explorer " .. string.gsub(flag.mdxTar, "/", "\\"))
 	fu.ForDir(flag.path, function(filePath)
 		local name, format = fu.GetFile(filePath)
-		local subPath = filePath:sub(#flag.path + 1, #filePath) -- ×¢ÒâÕâ¸ö×îÇ°ÃæÓÐ´ø¸ö/
+		local subPath = filePath:sub(#flag.path + 1, #filePath) -- ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½/
 		if format:lower() == "blp" or format:lower() == "tga" then
 			local output = path.model.test.res .. subPath
-			local dir = fu.GetDir(output) -- ¶ÔÓ¦×ÓÎÄ¼þ¼ÐÊÇ·ñ´æÔÚ
+			local dir = fu.GetDir(output) -- ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
 			if not (fu.DirExist(dir)) then
-				fu.Mkdir(dir) -- ´´½¨ÎÄ¼þ¼Ð
-				print(gbk.toutf8("´´½¨ÎÄ¼þ¼Ð:" .. dir))
+				fu.Mkdir(dir) -- ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+				print(gbk.toutf8("ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½:" .. dir))
 			end
 			local sur, msg = copy.CopyBin(filePath, output)
 			if sur then
-				print(gbk.toutf8(output .. ":ÒÆ¶¯³É¹¦¡£"))
+				print(gbk.toutf8(output .. ":ï¿½Æ¶ï¿½ï¿½É¹ï¿½ï¿½ï¿½"))
 			else
-				print(gbk.toutf8(output .. ":ÒÆ¶¯Ê§°Ü£º" .. tostring(msg)))
+				print(gbk.toutf8(output .. ":ï¿½Æ¶ï¿½Ê§ï¿½Ü£ï¿½" .. tostring(msg)))
 			end
 		elseif format:lower() == "mdx" then
 			local output = flag.mdxTar .. "/" .. name .. "." .. format
 			local sur, msg = copy.CopyBin(filePath, output)
 			table.insert(mdlList, name)
 			if sur then
-				print(gbk.toutf8(output .. ":ÒÆ¶¯³É¹¦¡£"))
+				print(gbk.toutf8(output .. ":ï¿½Æ¶ï¿½ï¿½É¹ï¿½ï¿½ï¿½"))
 			else
-				print(gbk.toutf8(output .. ":ÒÆ¶¯Ê§°Ü£º" .. tostring(msg)))
+				print(gbk.toutf8(output .. ":ï¿½Æ¶ï¿½Ê§ï¿½Ü£ï¿½" .. tostring(msg)))
 			end
 		end
 	end, true)
 end
 
--- Éú³É²âÊÔÎÄ¼þ
+-- ï¿½ï¿½ï¿½É²ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
 function GenerateTest(mdxList)
-	-- ÏÈ°ÑÄ£°åÒÆ½øModelTestÖÐ
+	-- ï¿½È°ï¿½Ä£ï¿½ï¿½ï¿½Æ½ï¿½ModelTestï¿½ï¿½
 	copy.CopyFile(path.model.test.template, path.model.test.editJ)
 	fu.ExecuteFile(path.model.test.editJ, function(line)
 		if line:match("//replace") then
@@ -94,17 +94,17 @@ function GenerateTest(mdxList)
 				if prefix[type] then
 					return prefix[type] .. mod .. suffix[type]
 				else
-					return prefix['Unit'] .. mod .. suffix['Unit'] .. '\n' .. -- ·ÀÄÚÁªµÄ×¢ÊÍ
-					prefix['Efx'] .. mod .. suffix['Efx'] .. '\n' .. -- ·ÀÄÚÁªµÄ×¢ÊÍ
-					prefix['Bind'] .. mod .. suffix['Bind'] .. '\n' .. -- ·ÀÄÚÁªµÄ×¢ÊÍ
-					prefix['Missile'] .. mod .. suffix['Missile'] -- ·ÀÄÚÁªµÄ×¢ÊÍ
+					return prefix['Unit'] .. mod .. suffix['Unit'] .. '\n' .. -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½
+					prefix['Efx'] .. mod .. suffix['Efx'] .. '\n' .. -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½
+					prefix['Bind'] .. mod .. suffix['Bind'] .. '\n' .. -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½
+					prefix['Missile'] .. mod .. suffix['Missile'] -- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×¢ï¿½ï¿½
 				end
 			end
 		end
 		return line
 	end)
 	if #mdxList ~= 0 then
-		print(gbk.toutf8("»¹ÓÐ" .. #mdxList .. "¸öÃ»ÓÐ½øÈë²âÊÔ:"))
+		print(gbk.toutf8("ï¿½ï¿½ï¿½ï¿½" .. #mdxList .. "ï¿½ï¿½Ã»ï¿½Ð½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½:"))
 		for index, value in ipairs(mdxList) do
 			print(tostring(index) .. ':' .. tostring(value))
 		end
@@ -112,7 +112,7 @@ function GenerateTest(mdxList)
 end
 
 local mdxList = {}
-DeleteOldFile() -- É¾³ý¾ÉµÄÄ£ÐÍÎÄ¼þ
-MoveModel(mdxList) -- ÒÆ¶¯ÐÂµÄÄ£ÐÍÎÄ¼þ
-GenerateTest(mdxList) -- Éú³É²âÊÔÎÄ¼þ
-print(gbk.toutf8("ÒÆ¶¯ÎÄ¼þ½áÊøÁË,Çë´ò¿ªModelTest.j"))
+DeleteOldFile() -- É¾ï¿½ï¿½ï¿½Éµï¿½Ä£ï¿½ï¿½ï¿½Ä¼ï¿½
+MoveModel(mdxList) -- ï¿½Æ¶ï¿½ï¿½Âµï¿½Ä£ï¿½ï¿½ï¿½Ä¼ï¿½
+GenerateTest(mdxList) -- ï¿½ï¿½ï¿½É²ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
+print(gbk.toutf8("ï¿½Æ¶ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ModelTest.j"))

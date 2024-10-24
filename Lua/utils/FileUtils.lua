@@ -44,9 +44,11 @@ end
 function fu.ReadFile(fileName, func)
 	local file = io.open(fileName, "r")
 	if file then
+		local lineCount = 1
 		local line = file:read()
 		while line do
-			func(line)
+			func(line, lineCount)
+			lineCount = lineCount + 1
 			line = file:read()
 		end
 		file:close()

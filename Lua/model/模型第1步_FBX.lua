@@ -2,42 +2,42 @@ local fu = require "lua.utils.FileUtils"
 local lfs = require "lfs"
 local gbk = require "gbk"
 local path = require "lua.path"
-local copy = require "lua.compile.Copy"
+local copy = require "lua.utils.copy"
 local iu = require "lua.image.ImageUtils"
 local BlpLab = iu.BlpLab
 
 local flag = {
-	['path'] = [[D:\Ä£ÐÍ\´´ÊÀ¹ì¼£\°²Í½Éú]], -- Òª´¦ÀíµÄÎÄ¼þ¼Ð
-	['isPrint'] = true, -- ´òÓ¡ÃüÁîÐÐ
-	['size'] = 512 -- ddsÎÄ¼þµÄ³ß´ç
+	['path'] = [[D:\Ä£ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ì¼£\ï¿½ï¿½Í½ï¿½ï¿½]], -- Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	['isPrint'] = true, -- ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	['size'] = 512 -- ddsï¿½Ä¼ï¿½ï¿½Ä³ß´ï¿½
 }
 
--- ½«ÎÄ¼þ¼ÐÄÚµÄËùÓÐX×ª³ÉFBX
+-- ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½X×ªï¿½ï¿½FBX
 local function ConvertX(filePath)
 	local name = fu.GetFile(filePath)
 	copy.CopyBin(filePath, path.model.jump2fbx .. "/" .. name .. ".x")
 	local cmd = 'jump2fbx.exe \
 			' .. name .. '.x \
 			' .. name .. '.fbx'
-	cmd = cmd:gsub('[\n\t]', '') -- ÃüÁîÐÐ·½±ã»»ÐÐ
-	-- Êä³öÎÄ¼þÃû
+	cmd = cmd:gsub('[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ã»»ï¿½ï¿½
+	-- ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+		print(gbk.toutf8(cmd)) -- ï¿½ï¿½Ó¡Ò»ï¿½ï¿½
 	end
 	os.execute(cmd)
 	copy.CopyBin(path.model.jump2fbx .. "/" .. name .. ".fbx", flag.path .. "/" .. name .. ".fbx")
 end
 
--- ½«ÎÄ¼þ¼ÐÄÚµÄDDS×ª³ÉPNG,ÔÙ×ª³ÉBLP·Å½øCrainaxÀï
+-- ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Úµï¿½DDS×ªï¿½ï¿½PNG,ï¿½ï¿½×ªï¿½ï¿½BLPï¿½Å½ï¿½Crainaxï¿½ï¿½
 function ConvertDDS(filePath, output)
 	local cmd = 'magick convert \
 	' .. fu.PathString(filePath) .. ' \
 	-resize ' .. flag.size .. 'x' .. flag.size .. '! \
 	' .. fu.PathString(output)
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîÐÐ·½±ã»»ÐÐ
-	-- Êä³öÎÄ¼þÃû
+	cmd = string.gsub(cmd, '[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ð·ï¿½ï¿½ã»»ï¿½ï¿½
+	-- ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+		print(gbk.toutf8(cmd)) -- ï¿½ï¿½Ó¡Ò»ï¿½ï¿½
 	end
 	os.execute(cmd)
 end

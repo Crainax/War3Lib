@@ -5,6 +5,8 @@
     * 2021年修正BUG的任意单位伤害事件系统`Jass/YDWETriggerEvent.j`
     * `jass/japi/`文件下的`YDWEAbilityState.j`和`YDWEJapiOther.j`看下要不要删常量.
     * `share/script/wave.lua`删掉`--define=USE_BJ_OPTIMIZATION=1`这条容易引起报错的东西
+    *`jass/YDWEBase.j`加library_once防止重复导入,`jass/Base/`里面其实没有问题的
+
 2. 把`war3/plugins`里的`jasshelper`里的dll全复制过去
 
 ## KKWE更新后的处理
