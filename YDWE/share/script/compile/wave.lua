@@ -40,6 +40,7 @@ function wave:do_compile(op)
 	cmd = cmd .. string.format('--include=%s ',    pathstring(self.jass_include_path))
 	cmd = cmd .. string.format('--define=WARCRAFT_VERSION=%d ', 100 * op.option.runtime_version.major + op.option.runtime_version.minor)
 	cmd = cmd .. string.format('--define=YDWE_VERSION_STRING=\\"%s\\" ', tostring(ydwe_version))
+	cmd = cmd .. '--define=USE_BJ_ANTI_LEAK=1 '
 	if op.option.enable_jasshelper_debug then
 		cmd = cmd .. '--define=DEBUG=1 '
 	end
@@ -70,19 +71,19 @@ function wave:do_compile(op)
 end
 
 function wave:compile(op)
-	log.trace("Wave compilation start.")		
-	
+	log.trace("Wave compilation start.")
+
 	local map_script_file = io.open(op.input, "a+b")
 	if map_script_file then
 		map_script_file:write("/**/\r\n")
 		map_script_file:close()
 	end
-	
+
 	-- 输出路径
 	op.output = op.input:parent_path() / (op.input:stem():string() .. ".i")
-	
+
 	local exit_code, out, err = self:do_compile(op)
-	
+
 	-- 退出码0代表成功
 	if exit_code ~= 0 then
 		if out and err then

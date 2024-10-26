@@ -16,7 +16,7 @@ launcher.StartWar3 = function(suffix)
 	print(cmd)
 	local _, _, code = os.execute(cmd)
 	if code then
-		print("[" .. path.state .. "]启动war3成功.")
+		print("[" .. path.state .. "]启动war3成功,运行地图:" .. path.mapName .. suffix .. ".w3x")
 	else
 		print("[" .. path.state .. "]启动war3失败." .. code)
 	end

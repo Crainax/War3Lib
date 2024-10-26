@@ -33,6 +33,8 @@
 #define FRAME_MOUSE_LEFT 1
 #define FRAME_MOUSE_RIGHT 2
 
+// API文档: https://create.reckfeng.com/kkapidoc/#/
+
 library BzAPI
     //hardware
     native DzGetMouseTerrainX takes nothing returns real
