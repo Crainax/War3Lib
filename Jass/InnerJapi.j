@@ -7,1205 +7,683 @@ japi引用的常量库 由于wave宏定义 只对以下的代码有效
 请将常量库里所有内容复制到  自定义脚本代码区
 */
 
-    //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-    #define version_124b   6374
-    #define version_124e   6387
-    #define version_126    6401
-    #define version_127a   7000
-    #define version_127b   7085
-    #define version_128a   7205
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+#define version_124b   6374
+#define version_124e   6387
+#define version_126    6401
+#define version_127a   7000
+#define version_127b   7085
+#define version_128a   7205
 
-    //-----------模拟聊天------------------
-    #define CHAT_RECIPIENT_ALL    0    // [所有人]
-    #define CHAT_RECIPIENT_ALLIES      1    // [盟友]
-    #define CHAT_RECIPIENT_OBSERVERS   2    // [观看者]
-    #define CHAT_RECIPIENT_REFEREES    2    // [裁判]
-    #define CHAT_RECIPIENT_PRIVATE     3    // [私人的]
+//-----------模拟聊天------------------
+#define CHAT_RECIPIENT_ALL    0    // [所有人]
+#define CHAT_RECIPIENT_ALLIES      1    // [盟友]
+#define CHAT_RECIPIENT_OBSERVERS   2    // [观看者]
+#define CHAT_RECIPIENT_REFEREES    2    // [裁判]
+#define CHAT_RECIPIENT_PRIVATE     3    // [私人的]
 
-    //---------技能数据类型---------------
+//---------技能数据类型---------------
 
-    //冷却时间
-    #define ABILITY_STATE_COOLDOWN 1
+//冷却时间
+#define ABILITY_STATE_COOLDOWN 1
 
-    //目标允许
-    #define ABILITY_DATA_TARGS 100
+//目标允许
+#define ABILITY_DATA_TARGS 100
 
-    //施放时间
-    #define ABILITY_DATA_CAST 101
+//施放时间
+#define ABILITY_DATA_CAST 101
 
-    //持续时间
-    #define ABILITY_DATA_DUR 102
+//持续时间
+#define ABILITY_DATA_DUR 102
 
-    //持续时间
-    #define ABILITY_DATA_HERODUR 103
+//持续时间
+#define ABILITY_DATA_HERODUR 103
 
-    //魔法消耗
-    #define ABILITY_DATA_COST 104
+//魔法消耗
+#define ABILITY_DATA_COST 104
 
-    //施放间隔
-    #define ABILITY_DATA_COOL 105
+//施放间隔
+#define ABILITY_DATA_COOL 105
 
-    //影响区域
-    #define ABILITY_DATA_AREA 106
+//影响区域
+#define ABILITY_DATA_AREA 106
 
-    //施法距离
-    #define ABILITY_DATA_RNG 107
+//施法距离
+#define ABILITY_DATA_RNG 107
 
-    //数据A
-    #define ABILITY_DATA_DATA_A 108
+//数据A
+#define ABILITY_DATA_DATA_A 108
 
-    //数据B
-    #define ABILITY_DATA_DATA_B 109
+//数据B
+#define ABILITY_DATA_DATA_B 109
 
-    //数据C
-    #define ABILITY_DATA_DATA_C 110
+//数据C
+#define ABILITY_DATA_DATA_C 110
 
-    //数据D
-    #define ABILITY_DATA_DATA_D 111
+//数据D
+#define ABILITY_DATA_DATA_D 111
 
-    //数据E
-    #define ABILITY_DATA_DATA_E 112
+//数据E
+#define ABILITY_DATA_DATA_E 112
 
-    //数据F
-    #define ABILITY_DATA_DATA_F 113
+//数据F
+#define ABILITY_DATA_DATA_F 113
 
-    //数据G
-    #define ABILITY_DATA_DATA_G 114
+//数据G
+#define ABILITY_DATA_DATA_G 114
 
-    //数据H
-    #define ABILITY_DATA_DATA_H 115
+//数据H
+#define ABILITY_DATA_DATA_H 115
 
-    //数据I
-    #define ABILITY_DATA_DATA_I 116
+//数据I
+#define ABILITY_DATA_DATA_I 116
 
-    //单位类型
-    #define ABILITY_DATA_UNITID 117
+//单位类型
+#define ABILITY_DATA_UNITID 117
 
-    //热键
-    #define ABILITY_DATA_HOTKET 200
+//热键
+#define ABILITY_DATA_HOTKET 200
 
-    //关闭热键
-    #define ABILITY_DATA_UNHOTKET 201
+//关闭热键
+#define ABILITY_DATA_UNHOTKET 201
 
-    //学习热键
-    #define ABILITY_DATA_RESEARCH_HOTKEY 202
+//学习热键
+#define ABILITY_DATA_RESEARCH_HOTKEY 202
 
-    //名字
-    #define ABILITY_DATA_NAME 203
+//名字
+#define ABILITY_DATA_NAME 203
 
-    //图标
-    #define ABILITY_DATA_ART 204
+//图标
+#define ABILITY_DATA_ART 204
 
-    //目标效果
-    #define ABILITY_DATA_TARGET_ART 205
+//目标效果
+#define ABILITY_DATA_TARGET_ART 205
 
-    //施法者效果
-    #define ABILITY_DATA_CASTER_ART 206
+//施法者效果
+#define ABILITY_DATA_CASTER_ART 206
 
-    //目标点效果
-    #define ABILITY_DATA_EFFECT_ART 207
+//目标点效果
+#define ABILITY_DATA_EFFECT_ART 207
 
-    //区域效果
-    #define ABILITY_DATA_AREAEFFECT_ART 208
+//区域效果
+#define ABILITY_DATA_AREAEFFECT_ART 208
 
-    //投射物
-    #define ABILITY_DATA_MISSILE_ART 209
+//投射物
+#define ABILITY_DATA_MISSILE_ART 209
 
-    //特殊效果
-    #define ABILITY_DATA_SPECIAL_ART 210
+//特殊效果
+#define ABILITY_DATA_SPECIAL_ART 210
 
-    //闪电效果
-    #define ABILITY_DATA_LIGHTNING_EFFECT 211
+//闪电效果
+#define ABILITY_DATA_LIGHTNING_EFFECT 211
 
-    //buff提示
-    #define ABILITY_DATA_BUFF_TIP 212
+//buff提示
+#define ABILITY_DATA_BUFF_TIP 212
 
-    //buff提示
-    #define ABILITY_DATA_BUFF_UBERTIP 213
+//buff提示
+#define ABILITY_DATA_BUFF_UBERTIP 213
 
-    //学习提示
-    #define ABILITY_DATA_RESEARCH_TIP 214
+//学习提示
+#define ABILITY_DATA_RESEARCH_TIP 214
 
-    //提示
-    #define ABILITY_DATA_TIP 215
+//提示
+#define ABILITY_DATA_TIP 215
 
-    //关闭提示
-    #define ABILITY_DATA_UNTIP 216
+//关闭提示
+#define ABILITY_DATA_UNTIP 216
 
-    //学习提示
-    #define ABILITY_DATA_RESEARCH_UBERTIP 217
+//学习提示
+#define ABILITY_DATA_RESEARCH_UBERTIP 217
 
-    //提示
-    #define ABILITY_DATA_UBERTIP 218
+//提示
+#define ABILITY_DATA_UBERTIP 218
 
-    //关闭提示
-    #define ABILITY_DATA_UNUBERTIP 219
+//关闭提示
+#define ABILITY_DATA_UNUBERTIP 219
 
-    #define ABILITY_DATA_UNART 220
+#define ABILITY_DATA_UNART 220
 
-    #define ABILITY_DATA_RESEARCH_ART 221
+#define ABILITY_DATA_RESEARCH_ART 221
 
-    //----------物品数据类型----------------------
+//----------物品数据类型----------------------
 
-    //物品图标
-    #define ITEM_DATA_ART 1
+//物品图标
+#define ITEM_DATA_ART 1
 
-    //物品提示
-    #define ITEM_DATA_TIP 2
+//物品提示
+#define ITEM_DATA_TIP 2
 
-    //物品扩展提示
-    #define ITEM_DATA_UBERTIP 3
+//物品扩展提示
+#define ITEM_DATA_UBERTIP 3
 
-    //物品名字
-    #define ITEM_DATA_NAME 4
+//物品名字
+#define ITEM_DATA_NAME 4
 
-    //物品说明
-    #define ITEM_DATA_DESCRIPTION 5
+//物品说明
+#define ITEM_DATA_DESCRIPTION 5
 
 
-    //------------单位数据类型--------------
-    //攻击1 伤害骰子数量
-    #define UNIT_STATE_ATTACK1_DAMAGE_DICE 0x10
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+#define UNIT_STATE_ATTACK1_DAMAGE_DICE 0x10
 
-    //攻击1 伤害骰子面数
-    #define UNIT_STATE_ATTACK1_DAMAGE_SIDE 0x11
+//攻击1 伤害骰子面数
+#define UNIT_STATE_ATTACK1_DAMAGE_SIDE 0x11
 
-    //攻击1 基础伤害
-    #define UNIT_STATE_ATTACK1_DAMAGE_BASE 0x12
+//攻击1 基础伤害
+#define UNIT_STATE_ATTACK1_DAMAGE_BASE 0x12
 
-    //攻击1 升级奖励
-    #define UNIT_STATE_ATTACK1_DAMAGE_BONUS 0x13
+//攻击1 升级奖励
+#define UNIT_STATE_ATTACK1_DAMAGE_BONUS 0x13
 
-    //攻击1 最小伤害
-    #define UNIT_STATE_ATTACK1_DAMAGE_MIN 0x14
+//攻击1 最小伤害
+#define UNIT_STATE_ATTACK1_DAMAGE_MIN 0x14
 
-    //攻击1 最大伤害
-    #define UNIT_STATE_ATTACK1_DAMAGE_MAX 0x15
+//攻击1 最大伤害
+#define UNIT_STATE_ATTACK1_DAMAGE_MAX 0x15
 
-    //攻击1 全伤害范围
-    #define UNIT_STATE_ATTACK1_RANGE 0x16
+//攻击1 全伤害范围
+#define UNIT_STATE_ATTACK1_RANGE 0x16
 
-    //装甲
-    #define UNIT_STATE_ARMOR 0x20
+//装甲
+#define UNIT_STATE_ARMOR 0x20
 
-    // attack 1 attribute adds
-    //攻击1 伤害衰减参数
-    #define UNIT_STATE_ATTACK1_DAMAGE_LOSS_FACTOR 0x21
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+#define UNIT_STATE_ATTACK1_DAMAGE_LOSS_FACTOR 0x21
 
-    //攻击1 武器声音
-    #define UNIT_STATE_ATTACK1_WEAPON_SOUND 0x22
+//攻击1 武器声音
+#define UNIT_STATE_ATTACK1_WEAPON_SOUND 0x22
 
-    //攻击1 攻击类型
-    #define UNIT_STATE_ATTACK1_ATTACK_TYPE 0x23
+//攻击1 攻击类型
+#define UNIT_STATE_ATTACK1_ATTACK_TYPE 0x23
 
-    //攻击1 最大目标数
-    #define UNIT_STATE_ATTACK1_MAX_TARGETS 0x24
+//攻击1 最大目标数
+#define UNIT_STATE_ATTACK1_MAX_TARGETS 0x24
 
-    //攻击1 攻击间隔
-    #define UNIT_STATE_ATTACK1_INTERVAL 0x25
+//攻击1 攻击间隔
+#define UNIT_STATE_ATTACK1_INTERVAL 0x25
 
-    //攻击1 攻击延迟/summary>
-    #define UNIT_STATE_ATTACK1_INITIAL_DELAY 0x26
+//攻击1 攻击延迟/summary>
+#define UNIT_STATE_ATTACK1_INITIAL_DELAY 0x26
 
-    //攻击1 弹射弧度
-    #define UNIT_STATE_ATTACK1_BACK_SWING 0x28
+//攻击1 弹射弧度
+#define UNIT_STATE_ATTACK1_BACK_SWING 0x28
 
-    //攻击1 攻击范围缓冲
-    #define UNIT_STATE_ATTACK1_RANGE_BUFFER 0x27
+//攻击1 攻击范围缓冲
+#define UNIT_STATE_ATTACK1_RANGE_BUFFER 0x27
 
-    //攻击1 目标允许
-    #define UNIT_STATE_ATTACK1_TARGET_TYPES 0x29
+//攻击1 目标允许
+#define UNIT_STATE_ATTACK1_TARGET_TYPES 0x29
 
-    //攻击1 溅出区域
-    #define UNIT_STATE_ATTACK1_SPILL_DIST 0x56
+//攻击1 溅出区域
+#define UNIT_STATE_ATTACK1_SPILL_DIST 0x56
 
-    //攻击1 溅出半径
-    #define UNIT_STATE_ATTACK1_SPILL_RADIUS 0x57
+//攻击1 溅出半径
+#define UNIT_STATE_ATTACK1_SPILL_RADIUS 0x57
 
-    //攻击1 武器类型
-    #define UNIT_STATE_ATTACK1_WEAPON_TYPE 0x58
+//攻击1 武器类型
+#define UNIT_STATE_ATTACK1_WEAPON_TYPE 0x58
 
-    // attack 2 attributes (sorted in a sequencial order based on memory address)
-    //攻击2 伤害骰子数量
-    #define UNIT_STATE_ATTACK2_DAMAGE_DICE 0x30
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+#define UNIT_STATE_ATTACK2_DAMAGE_DICE 0x30
 
-    //攻击2 伤害骰子面数
-    #define UNIT_STATE_ATTACK2_DAMAGE_SIDE 0x31
+//攻击2 伤害骰子面数
+#define UNIT_STATE_ATTACK2_DAMAGE_SIDE 0x31
 
-    //攻击2 基础伤害
-    #define UNIT_STATE_ATTACK2_DAMAGE_BASE 0x32
+//攻击2 基础伤害
+#define UNIT_STATE_ATTACK2_DAMAGE_BASE 0x32
 
-    //攻击2 升级奖励
-    #define UNIT_STATE_ATTACK2_DAMAGE_BONUS 0x33
+//攻击2 升级奖励
+#define UNIT_STATE_ATTACK2_DAMAGE_BONUS 0x33
 
-    //攻击2 伤害衰减参数
-    #define UNIT_STATE_ATTACK2_DAMAGE_LOSS_FACTOR 0x34
+//攻击2 伤害衰减参数
+#define UNIT_STATE_ATTACK2_DAMAGE_LOSS_FACTOR 0x34
 
-    //攻击2 武器声音
-    #define UNIT_STATE_ATTACK2_WEAPON_SOUND 0x35
+//攻击2 武器声音
+#define UNIT_STATE_ATTACK2_WEAPON_SOUND 0x35
 
-    //攻击2 攻击类型
-    #define UNIT_STATE_ATTACK2_ATTACK_TYPE 0x36
+//攻击2 攻击类型
+#define UNIT_STATE_ATTACK2_ATTACK_TYPE 0x36
 
-    //攻击2 最大目标数
-    #define UNIT_STATE_ATTACK2_MAX_TARGETS 0x37
+//攻击2 最大目标数
+#define UNIT_STATE_ATTACK2_MAX_TARGETS 0x37
 
-    //攻击2 攻击间隔
-    #define UNIT_STATE_ATTACK2_INTERVAL 0x38
+//攻击2 攻击间隔
+#define UNIT_STATE_ATTACK2_INTERVAL 0x38
 
-    //攻击2 攻击延迟
-    #define UNIT_STATE_ATTACK2_INITIAL_DELAY 0x39
+//攻击2 攻击延迟
+#define UNIT_STATE_ATTACK2_INITIAL_DELAY 0x39
 
-    //攻击2 攻击范围
-    #define UNIT_STATE_ATTACK2_RANGE 0x40
+//攻击2 攻击范围
+#define UNIT_STATE_ATTACK2_RANGE 0x40
 
-    //攻击2 攻击缓冲
-    #define UNIT_STATE_ATTACK2_RANGE_BUFFER 0x41
+//攻击2 攻击缓冲
+#define UNIT_STATE_ATTACK2_RANGE_BUFFER 0x41
 
-    //攻击2 最小伤害
-    #define UNIT_STATE_ATTACK2_DAMAGE_MIN 0x42
+//攻击2 最小伤害
+#define UNIT_STATE_ATTACK2_DAMAGE_MIN 0x42
 
-    //攻击2 最大伤害
-    #define UNIT_STATE_ATTACK2_DAMAGE_MAX 0x43
+//攻击2 最大伤害
+#define UNIT_STATE_ATTACK2_DAMAGE_MAX 0x43
 
-    //攻击2 弹射弧度
-    #define UNIT_STATE_ATTACK2_BACK_SWING 0x44
+//攻击2 弹射弧度
+#define UNIT_STATE_ATTACK2_BACK_SWING 0x44
 
-    //攻击2 目标允许类型
-    #define UNIT_STATE_ATTACK2_TARGET_TYPES 0x45
+//攻击2 目标允许类型
+#define UNIT_STATE_ATTACK2_TARGET_TYPES 0x45
 
-    //攻击2 溅出区域
-    #define UNIT_STATE_ATTACK2_SPILL_DIST 0x46
+//攻击2 溅出区域
+#define UNIT_STATE_ATTACK2_SPILL_DIST 0x46
 
-    //攻击2 溅出半径
-    #define UNIT_STATE_ATTACK2_SPILL_RADIUS 0x47
+//攻击2 溅出半径
+#define UNIT_STATE_ATTACK2_SPILL_RADIUS 0x47
 
-    //攻击2 武器类型
-    #define UNIT_STATE_ATTACK2_WEAPON_TYPE 0x59
+//攻击2 武器类型
+#define UNIT_STATE_ATTACK2_WEAPON_TYPE 0x59
 
-    //装甲类型
-    #define UNIT_STATE_ARMOR_TYPE 0x50
+//装甲类型
+#define UNIT_STATE_ARMOR_TYPE 0x50
 
-    #define UNIT_STATE_RATE_OF_FIRE 0x51 // global attack rate of unit, work on both attacks
-    #define UNIT_STATE_ACQUISITION_RANGE 0x52 // how far the unit will automatically look for targets
-    #define UNIT_STATE_LIFE_REGEN 0x53
-    #define UNIT_STATE_MANA_REGEN 0x54
+#define UNIT_STATE_RATE_OF_FIRE 0x51 // global attack rate of unit, work on both attacks
+#define UNIT_STATE_ACQUISITION_RANGE 0x52 // how far the unit will automatically look for targets
+#define UNIT_STATE_LIFE_REGEN 0x53
+#define UNIT_STATE_MANA_REGEN 0x54
 
-    #define UNIT_STATE_MIN_RANGE 0x55
-    #define UNIT_STATE_AS_TARGET_TYPE 0x60
-    #define UNIT_STATE_TYPE 0x61
-
-
-library_once japi
-
-    function FrameHideInterface takes nothing returns nothing
-        call GetTriggeringTrigger()
-    endfunction
-
-    function EXGetEventDamageData takes integer p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function EXSetEventDamage takes real p1 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXSetUnitReal takes integer p1, integer p2, real p3 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function DestroyFrame takes integer p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXGetUnitReal takes integer p1, integer p2 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function VirtualMpqRegisterPath takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameGetModelSpeed takes integer p1 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function EXGetUnitString takes integer p1, integer p2 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function EXSetUnitString takes integer p1, integer p2, string p3 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXGetUnitInteger takes integer p1, integer p2 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function EXBlpRect takes string p1, string p2, integer p3, integer p4, integer p5, integer p6 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXSetUnitInteger takes integer p1, integer p2, integer p3 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXGetUnitArrayString takes integer p1, integer p2, integer p3 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function FrameSetModelColor takes integer p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXBlendButtonIcon takes string p1, string p2, string p3 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function FrameShowInterface takes nothing returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXSetItemDataString takes integer p1, integer p2, string p3 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXSetUnitArrayString takes integer p1, integer p2, integer p3, string p4 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXPauseUnit takes unit p1, boolean p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXGetAbilityDataString takes ability p1, integer p2, integer p3 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function FrameSetTextColor takes integer p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXExecuteScript takes string p1 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function EXGetUnitAbility takes unit p1, integer p2 returns ability
-    	call GetTriggeringTrigger()
-    	return null
-    endfunction
-
-    function EXGetUnitAbilityByIndex takes unit p1, integer p2 returns ability
-    	call GetTriggeringTrigger()
-    	return null
-    endfunction
-
-    function EXGetAbilityId takes ability p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function EXGetAbilityState takes ability p1, integer p2 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function EXSetAbilityState takes ability p1, integer p2, real p3 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXGetAbilityDataReal takes ability p1, integer p2, integer p3 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function GetMouseX takes nothing returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function GetFps takes nothing returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function EXSetAbilityDataReal takes ability p1, integer p2, integer p3, real p4 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function ShowFpsText takes boolean p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXGetAbilityDataInteger takes ability p1, integer p2, integer p3 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function EXSetAbilityDataInteger takes ability p1, integer p2, integer p3, integer p4 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXSetAbilityString takes integer p1, integer p2, integer p3, string p4 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXSetAbilityDataString takes ability p1, integer p2, integer p3, string p4 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXSetAbilityAEmeDataA takes ability p1, integer p2 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXGetBuffDataString takes integer p1, integer p2 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function EXSetBuffDataString takes integer p1, integer p2, string p3 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXGetAbilityString takes integer p1, integer p2, integer p3 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function LocalPointOrder takes integer p1, real p2, real p3, integer p4 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXGetItemDataString takes integer p1, integer p2 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function ExExecuteFunc takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetByte takes string p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function EXDisplayChat takes player p1, integer p2, string p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXSetEffectAnimation takes effect p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXSetEffectColor takes effect p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetChatState takes nothing returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function Hex takes integer p1 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function EXDclareButtonIcon takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EXBlpSector takes string p1, string p2, integer p3, integer p4, integer p5, integer p6, integer p7 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXPolygon takes string p1, integer p2, integer p3, hashtable p4, integer p5, integer p6 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function EXClear takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function png2tga_file takes string p1 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function SaveFunc takes integer p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetTexture takes integer p1, string p2, integer p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetMouseY takes nothing returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function timer_start takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function timer_end takes integer p1 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function timer_destroy takes integer p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function EnableWideScreen takes boolean p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetPlayerSelectedUnit takes integer p1 returns unit
-    	call GetTriggeringTrigger()
-    	return null
-    endfunction
-
-    function LocalOrder takes integer p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function LocalTargetOrder takes integer p1, widget p2, integer p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetMapName takes nothing returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function GetMapPath takes nothing returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function GetWar3Path takes nothing returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function GetGameVersion takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function GetPluginVersion takes nothing returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function SetUnitAbilityButtonShow takes integer p1, integer p2, boolean p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetHeroLevels takes code p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function get_code_addr takes string p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function get_code_id takes string p1 returns code
-    	call GetTriggeringTrigger()
-    	return null
-    endfunction
-
-    function get_code_name takes integer p1 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function FrameGetHeroManaBar takes integer p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function Box takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetOwner takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function get_copy_str takes nothing returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function GetTargetObject takes nothing returns unit
-    	call GetTriggeringTrigger()
-    	return null
-    endfunction
-
-    // 异步获取 当前玩家大头像模型的单位 当框选一群单位时 切换选择也会改变返回值 一般用来做UI操作时需要用到的接口
-    function GetRealSelectUnit takes nothing returns unit
-    	call GetTriggeringTrigger()
-    	return null
-    endfunction
-
-    function FrameGetUnitMessage takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function GetUnitAddress takes unit p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function SetUnitPosition2 takes unit p1, real p2, real p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetUnitTexture takes unit p1, string p2, integer p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetUnitModel takes unit p1, string p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetUnitPortrait takes unit p1, string p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetUnitName takes unit p1, string p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    //字符串相关
-    function ReleaseString takes string str returns nothing
-        call GetTriggeringTrigger()
-    endfunction
-    function ReleaseAllString takes nothing returns nothing
-        call GetTriggeringTrigger()
-    endfunction
-    function GetCacheStringCount takes nothing returns integer
-        call GetTriggeringTrigger()
-        return 0
-    endfunction
-
-    function DumpAllString takes string filename returns integer
-        call GetTriggeringTrigger()
-        return 0
-    endfunction
-
-    function GetWindowHeight takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function SetUnitProperName takes unit p1, string p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function DestroySimpleFrame takes integer p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetUnitMissileModel takes unit p1, string p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetTextFontSpacing takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetUnitMissileArc takes unit p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SimpleFontStringFindByName takes string p1, integer p2 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function SetUnitMissileSpeed takes unit p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetAnimationByIndex takes integer p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetUnitMissileHoming takes unit p1, boolean p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetGlueUI takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameSetModelScale takes integer p1, real p2, real p3, real p4 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetGameUI takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameSetScale takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameEditBlackBorders takes real p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameGetMinimapButton takes integer p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetMinimap takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetPortrait takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetCommandBarButton takes integer p1, integer p2 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetHeroBarButton takes integer p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetHeroHPBar takes integer p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetTooltip takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetChatMessage takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetItemBarButton takes integer p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetTopMessage takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetButtonCooldownModel takes integer p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function GetWindowX takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameSetButtonCooldownModelSize takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameGetMouseBorders takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetItemBar takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function GetWindowWidth takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetItemBackground takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetItemBackgroundTexture takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetSimpleConsole takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetSimpleConsole2 takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function LoadToc takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetAllPoints takes integer p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameGetTextHeight takes integer p1 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function CreateFrame takes string p1, integer p2, integer p3 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function CreateSimpleFrame takes string p1, integer p2, integer p3 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function CreateFrameByTagName takes string p1, string p2, integer p3, string p4, integer p5 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameSetSize takes integer p1, real p2, real p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SetKeyboard takes integer p1, boolean p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetWidth takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function RegisterMessageEvent takes trigger p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameClearAllPoints takes integer p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetHeight takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetPoint takes integer p1, integer p2, integer p3, integer p4, real p5, real p6 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetAbsolutePoint takes integer p1, integer p2, real p3, real p4 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameShow takes integer p1, boolean p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetEnable takes integer p1, boolean p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetFocus takes integer p1, boolean p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameGetModelSize takes integer p1 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function FrameSetEditFocus takes integer p1, boolean p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetAlpha takes integer p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameGetAlpha takes integer p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetWidth takes integer p1 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function FrameGetHeight takes integer p1 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function FrameSetModelRotateY takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameGetTextWidth takes integer p1 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function FrameSetText takes integer p1, string p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameGetText takes integer p1 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function FrameGetTextColor takes integer p1 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameSetTextFont takes integer p1, string p2, real p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetAnimate takes integer p1, integer p2, boolean p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetAnimateOffset takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetModel takes integer p1, string p2, integer p3, integer p4 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetModelSize takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetMouseVectorY takes nothing returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function FrameSetModelXY takes integer p1, real p2, real p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameGetModelX takes integer p1 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function FrameGetModelY takes integer p1 returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function FrameSetModelSpeed takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetModelRotateX takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetModelRotateZ takes integer p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetWindowY takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameSetModelTexture takes integer p1, string p2, integer p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameCageMouse takes integer p1, boolean p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetLevel takes integer p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetParent takes integer p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameSetSimpleFrameParent takes integer p1, integer p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function FrameFindByName takes string p1, integer p2 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function SimpleFrameFindByName takes string p1, integer p2 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function SimpleTextureFindByName takes string p1, integer p2 returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function GetMouseFocus takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function FrameGetType takes integer p1 returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function SetWar3MapMap takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetTriggerKey takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function GetWheelDelta takes nothing returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function IsWindowActive takes nothing returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function GetKeyState takes integer p1 returns boolean
-    	call GetTriggeringTrigger()
-    	return false
-    endfunction
-
-    function RegisterFrameEvent takes integer p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetMessagePlayer takes nothing returns player
-    	call GetTriggeringTrigger()
-    	return null
-    endfunction
-
-    function GetTriggerMessage takes nothing returns string
-    	call GetTriggeringTrigger()
-    	return ""
-    endfunction
-
-    function SendCustomMessage takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function SendMessage takes integer p1, integer p2, integer p3 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetMouseVectorX takes nothing returns real
-    	call GetTriggeringTrigger()
-    	return 0.0
-    endfunction
-
-    function SetMousePos takes real p1, real p2 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-    function GetWindowMouseX takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function GetWindowMouseY takes nothing returns integer
-    	call GetTriggeringTrigger()
-    	return 0
-    endfunction
-
-    function set_copy_str takes string p1 returns nothing
-    	call GetTriggeringTrigger()
-    endfunction
-
-
-    function initializePlugin takes nothing returns integer
-        call ExecuteFunc("DoNothing")
-        call StartCampaignAI( Player(PLAYER_NEUTRAL_AGGRESSIVE), "callback" )
-        call ExecuteFunc("DoNothing")
-        call AbilityId("exec-lua:plugin_main")
-
-        return 0
-    endfunction
-endlibrary
-
-
-//
-#define SetCameraBounds(a,b,c,d,e,f,g,h) initializePlugin() CRNL call SetCameraBounds(a,b,c,d,e,f,g,h)
-
-
+#define UNIT_STATE_MIN_RANGE 0x55
+#define UNIT_STATE_AS_TARGET_TYPE 0x60
+#define UNIT_STATE_TYPE 0x61
 
 
 //! zinc
 /*
 初始化内置JAPI
 */
-library InnerJapi requires optional japi{
+library InnerJapi {
 
+    // 显示屏幕中间的 FPS 文本
+    public function ShowFpsText(boolean show) {
+        GetTriggeringTrigger();
+    }
+
+    // 异步获取 玩家当前的帧数
+    // 玩家比较卡时 帧数较低 可以异步空特效路径 以及 弹道模型 屏蔽特效来提高帧数。
+    public function GetFps () -> real {
+        GetTriggeringTrigger();
+        return 0.0;
+    }
+    // 解锁帧数上限 突破 60 帧
+    // 填 true 解锁 填 false 恢复
+    public function UnlockFps (boolean is_unlock) {
+        GetTriggeringTrigger();
+    }
+
+    /* 清除魔兽 jass 虚拟机里缓存的字符串 解决游戏后期字符串太多导致游戏卡顿的问题
+    ReleaseAllString 做了特殊处理 不处理 jass 全局变量 局部变量 哈希表里的字符串 能安全使用
+    ReleaseString 没判定 字符串是否被引用， 需要小心使用。
+    DumpAllString 将现存的字符串 输出到文件里
+    顺便修复了 对玩家发送消息太多 导致卡顿的问题 */
+    public function GetCacheStringCount () -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    public function ReleaseString(string str) {
+        GetTriggeringTrigger();
+    }
+    public function ReleaseAllString() {
+        GetTriggeringTrigger();
+    }
+    public function DumpAllString(string filename) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 用来清空魔兽的模型文件缓存 降低内存占用 直到下一次读取 才会重新占用。
+    //call ReleaseModel("xxx.mdx")
+    public function ReleaseModel(string model_path) {
+        GetTriggeringTrigger();
+    }
+    public function ReleaseAllModel() {
+        GetTriggeringTrigger();
+    }
+    public function GetCacheModelCount() -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 异步获取 获取当前指向单位 一般用来做 UI 操作时需要用到的接口,注意返回是异步的 handle，切记小心使用
+    public function GetTargetObject() -> unit {
+        GetTriggeringTrigger();
+        return null;
+    }
+
+    // 异步获取 当前玩家大头像模型的单位 当框选一群单位时 切换选择也会改变返回值 一般用来做 UI 操作时需要用到的接口
+    public function GetRealSelectUnit () -> unit {
+        GetTriggeringTrigger();
+        return null;
+    }
+
+    // 异步获取 玩家的聊天框是否被打开 一般用来做键盘操作时 避免与输入冲突
+    // 打开时返回 true 未打开时返回 false 注意返回是异步的，切记小心使用
+    public function GetChatState () -> boolean {
+        GetTriggeringTrigger();
+        return false;
+    }
+
+    //解锁 blp 贴图的像素上限 原本魔兽高清图片也会被限制在 512p 之内
+    // 填 true 解锁 填 false 恢复
+    public function UnlockBlpSize (boolean is_unlock) {
+        GetTriggeringTrigger();
+    }
+
+
+    //设置单位名字 每个单位独立 互相不影响 修改后 获取单位名字 还是返回原值
+    public function SetUnitName (unit u, string name) {
+        GetTriggeringTrigger();
+    }
+
+    //设置单位头像模型 设置之后会立即改变 当 设置单位模型时 会被新的自动覆盖掉
+    // 模型路径 后缀可以是.mdx .mdl 省略后缀自动默认.mdx
+    public function SetUnitPortrait (unit u, string model) {
+        GetTriggeringTrigger();
+    }
+
+    //设置单位普攻弹道弧度 每个单位独立 互相不影响 会被法球覆盖
+    //call SetUnitMissileArc(GetTriggerUnit(), 0.8)
+    public function SetUnitMissileArc (unit u, real value) {
+        GetTriggeringTrigger();
+    }
+
+    //设置单位普攻弹道模型 每个单位独立 互相不影响 会被法球覆盖
+    //call SetUnitMissileModel(GetTriggerUnit(), "units\\human\\phoenix\\phoenix.mdx")
+    public function SetUnitMissileModel (unit u, string model) {
+        GetTriggeringTrigger();
+    }
+
+    //设置单位普攻弹道是否自动追踪 每个单位独立 互相不影响 会被法球覆盖
+    //call SetUnitMissileHoming(GetTriggerUnit(), true)
+    public function SetUnitMissileHoming (unit u, boolean value) {
+        GetTriggeringTrigger();
+    }
+
+    //设置单位普攻弹道速度 每个单位独立 互相不影响 会被法球覆盖
+    // call SetUnitMissileSpeed(GetTriggerUnit(), 2000)
+    public function SetUnitMissileSpeed (unit u, real value) {
+        GetTriggeringTrigger();
+    }
+
+    //设置单位模型 包括大头像模型也会自动设置 该接口 也可以给物品 特效 可破坏物 更换模型
+    // call SetUnitModel(GetTriggerUnit(), "units\\human\\Peasant\\Peasant.mdx")
+    public function SetUnitModel (unit u, string model) {
+        GetTriggeringTrigger();
+    }
+
+    //设置单位贴图 替换单位身上的 id 贴图 例如队伍颜色的 id 贴图是 0 队伍光晕 id 是 1
+    // call SetUnitTexture(GetTriggerUnit(), "xx.blp", 0)
+    public function SetUnitTexture (unit u, string texture, integer id) {
+        GetTriggeringTrigger();
+    }
+
+    //隐藏单位跟物品 鼠标指向时显示的 UI 包括单位血条
+    // 警告
+    // 目前对 物品使用会引起 掉线 请勿对物品使用
+    // 是否显示 填 false 就是隐藏
+    public function SetUnitPressUIVisible (unit u, boolean is_show) {
+        GetTriggeringTrigger();
+    }
+
+    // 设置特效动画
+    // index 动画索引
+    public function EXSetEffectAnimation (effect e, integer index) {
+        GetTriggeringTrigger();
+    }
+
+    // 设置特效 X Y 轴坐标
+    // 设置特效坐标 修复了原本 ydjapi 里面特效超过出生范围一定距离 游戏不会渲染的问题 用了类似全图挂的方式 强行让魔兽渲染该特效。 todo:测试一下来自普通japi的这个能不能强制渲染
+    //public function EXSetEffectXY (effect e, real x, real y) {
+    //    GetTriggeringTrigger();
+    //}
+
+    // 设置特效 Z 轴坐标
+    // 设置特效坐标 修复了原本 ydjapi 里面特效超过出生范围一定距离 游戏不会渲染的问题 用了类似全图挂的方式 强行让魔兽渲染该特效。
+    //public function EXSetEffectZ (effect e, real z) {
+    //    GetTriggeringTrigger();
+    //}
+
+    // 设置特效是否可见
+    public function EXSetEffectVisible (effect e, boolean visible) {
+        GetTriggeringTrigger();
+    }
+    // 设置特效是否在迷雾中可见
+    public function EXSetEffectFogVisible (effect e, boolean visible) {
+        GetTriggeringTrigger();
+    }
+    // 设置特效是否在阴影中可见
+    public function EXSetEffectMaskVisible (effect e, boolean visible) {
+        GetTriggeringTrigger();
+    }
+
+    // 设置特效颜色 透明值无效 16进制
+    public function EXSetEffectColor (effect e, integer color) {
+        GetTriggeringTrigger();
+    }
+    // 获取特效的颜色 跟 设置特效颜色 配合使用
+    public function EXGetEffectColor (effect e) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 设置英雄称谓 每个单位独立 互相不影响 GetHeroProperName 获取英雄称谓 是修改后的值。
+    public function SetUnitProperName (unit u, string name) {
+        GetTriggeringTrigger();
+    }
+
+    // 获取指定商店 选择 指定玩家的哪个单位 返回值是同步的接口 可以安全使用
+    // 如果商店周围没有可选的人的时候 会返回 0
+    // store 商店单位 拥有 出售物品 选择英雄 的单位
+    public function GetStoreTarget (unit store, player p) -> unit {
+        GetTriggeringTrigger();
+        return null;
+    }
+
+    // 获取指定 frame 的子控件 不能对 simple 类型的控件使用
+    // 整数	frame	控件地址
+    // 整数	last	上一个控件的地址 第一次读可以填 0
+    public function FrameGetChilds (integer frame, boolean last) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 获取指定 frame 的父控件 不能对 simple 类型的控件使用 可以获取 大头像模型 的父控件 然后为其新建子控件 用来放置在所有界面之下
+    public function FrameGetParent (integer frame) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 全屏状态下 返回 false 窗口化模式 返回 true
+    public function IsWindowMode () -> boolean {
+        GetTriggeringTrigger();
+        return false;
+    }
+
+    // 设置指定 frame 是否启用视口
+    // 设置开启 设置控件视口 比如 底板开启后 他的子控件 在边缘 超出部分不会渲染
+    public function FrameSetViewPort (integer frame, boolean enable) {
+        GetTriggeringTrigger();
+    }
+
+    // 设置窗口大小
+    // 修改窗口大小 可以强行限制用户 窗口模式下的 窗口比例 16/9
+    // call SetWindowSize(1024, 768)
+    public function SetWindowSize (integer width, integer height) {
+        GetTriggeringTrigger();
+    }
+
+
+    // 播放特效动画
+    // 特效	handle	绑定的特效
+    // 动画名	animation_name	字符串动画名字
+    // 链接名	link_name	变身动画才需要的链接名 一般情况填 "" 空字符串就行、
+    // call EXPlayEffectAnimation(eff, "attack", "")
+    public function EXPlayEffectAnimation (effect e, string animation_name, string link_name) {
+        GetTriggeringTrigger();
+    }
+
+    // 绑定特效
+    // 主动绑定 effect 到 handle 上面 可以单位绑 特效 可以特效绑 特效
+    // 对象	handle	可以是单位 特效 物品
+    // 绑点	socket	绑点名字
+    // 特效	handle	绑定的特效
+    // local effect eff = AddSpecialEffect("units\\human\\Peasant\\Peasant.mdl", 0, 0)
+    // call BindEffect(GetTriggerUnit(), eff)
+    public function BindEffect (widget u, string socket, effect e) {
+        GetTriggeringTrigger();
+    }
+
+    // 解除特效绑定
+    // 可以让绑定在单位身上的特效 分离出来， 被分离的特效能设置坐标 跟缩放、
+    public function UnBindEffect (effect e) {
+        GetTriggeringTrigger();
+    }
+
+    //内置默认是 解锁 frame 控件的 屏幕限制的 就是可以随便移动到屏幕之外的位置， 但是有个别用户 依赖这个限制 用网易的接口写了 ui 导致加了内置之后 位置变了， 故此新增这个接口 自行决定是否解锁。
+    // 布尔值	is_limit	填 true 是锁定 填 false 是解锁
+    public function SetFrameLimitScreen (integer frame, boolean is_limit) {
+        GetTriggeringTrigger();
+    }
+
+    // 获取当前玩家 id
+    public function GetUserId () -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    //异步获取 当前玩家在 11 或网易平台游戏时的 uid， 本地返回 0
+    //返回值是异步的 建议先同步后再使用
+    //这 2 个接口一般情况下 返回值都是一致的 有万分之一局的概率 2 个接口会返回不一致， 自己验证使用吧。
+    //网易的 uid 获取率 达到 99.999% 目前来说测试是稳定 有效的 11 的 uid 还没有经过测试， 需要自行测试 小心使用 切记。
+    public function GetUserIdEx () -> string {
+        GetTriggeringTrigger();
+        return "";
+    }
+
+    // 设置单位碰撞体积
+    //跟物编一样 修改单位的碰撞体积 会刷新寻路， 依然受到魔兽碰撞上限的限制
+    // 就是 当你 size 填 512 的时候 在远距离走路时 魔兽寻路 会按照 512 的碰撞体积去搜索路线， 在近距离时 魔兽会按照最高上限 估计 128 去搜索寻路 单位实际碰撞 也最高只有 128
+    public function SetUnitCollisionSize (unit u, real size) {
+        GetTriggeringTrigger();
+    }
+
+    // 设置单位移动类型
+    // 修改指定单位的移动类型 按字符串修改 类型可以是跟物编里效果一样 type 有以下几个数值
+    // "none"  = 没有， 无视碰撞
+    // "foot"  = 步行， 地面碰撞跟寻路
+    // "horse" = 骑马
+    // "fly"   = 飞行  具有飞行视野，寻路能穿越树木跟悬崖，可以直接设置飞行高度 不用乌鸦形态了
+    // "hover" = 浮空  不会踩中地雷
+    // "float" = 漂浮 只能在深水里活动 不能在地面活动
+    // "amph"  = 两栖
+    // "unbuild" = 未知 自己测试
+    public function SetUnitMoveType (unit u, string s) {
+        GetTriggeringTrigger();
+    }
+
+    // 获取 框选按钮 slot 从0 ~ 11
+    public function FrameGetInfoSelectButton (integer slot) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 获取 下方buff按钮 slot 从0 ~ 7
+    public function FrameGetBuffButton (integer slot) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 获取 农民按钮
+    public function FrameGetUnitButton () -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 获取 技能右下角数字文本控件 button = 技能按钮  返回值 = SimpleString 类型控件
+    public function FrameGetButtonSimpleString (integer btn) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 获取 技能右下角控件  button = 技能按钮  返回值 = SimpleFrame 类型控件
+    public function FrameGetButtonSimpleFrame (integer btn) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 判断控件是否显示
+    public function FrameIsShow (integer frame) -> boolean {
+        GetTriggeringTrigger();
+        return false;
+    }
+
+    // 修改/获取 原生按钮图片 button 可以是 技能按钮 物品按钮 英雄按钮 农民按钮 框选按钮 buff按钮
+    public function FrameSetOriginButtonTexture (integer btn, string path) {
+        GetTriggeringTrigger();
+    }
+
+    public function FrameGetOriginButtonTexture (integer btn) -> string {
+        GetTriggeringTrigger();
+        return "";
+    }
+
+    // 修改/获取 simple类型控件的 父控件
+    public function FrameGetSimpleParent (integer SimpleFrame) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    public function FrameSetSimpleParent (integer SimpleFrame, integer parentSimple) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 为Simple绑定 frame类型的子控件
+    // 可以将任意frame类型 绑定到 原生ui下面 返回值 可以解除绑定
+    // 返回的是一个 SetupFrame值
+    public function FrameSimpleBindFrame (integer SimpleFrame, integer Frame) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+
+    // 解除绑定 解除后 frame跟simple 就不再关联
+    public function FrameSimpleUnBindFrame (integer SetupFrame) {
+        GetTriggeringTrigger();
+    }
+
+    //获取物品技能的 handle 返回值 可以用在 ydjapi 的技能接口
+    //slot	指定槽位 0 从开始
+    public function GetItemAbility (item Item, integer slot) -> ability {
+        GetTriggeringTrigger();
+        return null;
+    }
+
+    #define SetCameraBounds(a,b,c,d,e,f,g,h) initializePlugin() CRNL call SetCameraBounds(a,b,c,d,e,f,g,h)
+
+    // main 函数就初始化的
+    public function initializePlugin () -> integer {
+        ExecuteFunc("DoNothing");
+        StartCampaignAI( Player(PLAYER_NEUTRAL_AGGRESSIVE), "callback" );
+        ExecuteFunc("DoNothing");
+        AbilityId("exec-lua:plugin_main");
+        return 0;
+    }
+
+    //显示内置Japi的版本
+    function GetPluginVersion  () -> string {
+    	GetTriggeringTrigger();
+    	return "";
+    }
+
+    // 显示版本
     function onInit ()  {
         integer i = 0;
         // BJDebugMsg(GetPluginVersion());
@@ -1217,7 +695,7 @@ library InnerJapi requires optional japi{
 
 
 #ifdef OPEN
-    #undef public
+#undef public
 #endif
 
 
