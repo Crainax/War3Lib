@@ -1,4 +1,4 @@
-local fileUtils = require "lua.utils.FileUtils"
+local fileUtils = require "Lua.utils.FileUtils"
 local lfs = require "lfs"
 local injecter = require "lua.compile.inject"
 
@@ -56,6 +56,15 @@ function compile:StartCompile(path)
 		print("[第一次Wave]预处理失败:" .. msg)
 		return false
 	end
+
+	fileUtils.ReadFile(path.CompileStep1, function(line)
+		-- 捕获lua_print后面的内容
+		local capture = string.match(line, "^%s*//% *lua_print:%s*(.+)$")
+		if capture then
+			path.buildString = path.buildString .. '[' .. capture .. ']-'
+			return
+		end
+	end)
 
 	code, msg = fileUtils.CopyFile(path.CompileStep1, path.CompileStep2)
 	if not (code) then

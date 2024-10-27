@@ -13,6 +13,9 @@ function path.init(root, project, we)
 
     path.mapName          = "OriginMap" -- 地图名字
     path.state            = "正式地图" -- 当前状态
+
+    path.buildVersion     = "单元测试" -- 当前构建版本(默认单元测试)   "单元测试|正式版本|模型测试|内测版本|公测版本"
+
     path.alljass          = path.project .. "/edit/AllJass.h" -- 地图导包文件
     path.scriptJ          = path.project .. "/edit/config/script.j" -- 脚本源文件(不要动这个文件)
     path.CompileStep0     = path.project .. "/Output/0_script.j" -- 脚本源文件的复制(第一步)
@@ -22,24 +25,26 @@ function path.init(root, project, we)
     path.CompileStep4     = path.project .. "/Output/4_luaexecute.j" -- wave第二次预处理后的文件
     path.CompileStep5     = path.project .. "/Output/5_jasshelper.j" -- jasshelper预处理后的文件
     path.editOutputJ      = path.project .. "/edit/output.j" -- 脚本区的outputJ文件
-    path.mapJ             = path.project .. "/OriginMap/map/war3map.j" -- 正式地图的War3mapJ文件
-    path.resource         = path.project .. "/OriginMap/resource" -- 地图资源
+    path.buildString     = "" -- 输出字符串()
+
+    path.mapJ             = path.project .. "/".. path.mapName .. "/map/war3map.j" -- 正式地图的War3mapJ文件
+    path.resource         = path.project .. "/".. path.mapName .. "/resource" -- 地图资源
     path.icon             = path.resource .. "/replaceabletextures" -- 图标地点
     path.war3             = 'D:/Program Files (x86)/Warcraft III Frozen Throne' -- 都用YDWE的来编译吧
     path.vscodeRoot       = 'D:/Program Files (x86)/Microsoft VS Code' -- VSCDOE的根目录
     path.vscodeExe        = path.vscodeRoot .. '/Code.exe' -- VSCDOE的位置
 
+    path.jasshelper    = path.root .. '/plugins/jasshelper'    -- 独立到了plugins里调用
+    path.wave          = path.root .. '/plugins/wave'          -- Wave抽到了项目目录里
+
     path.table            = {} -- 物编
-    path.table.root       = path.project .. "/OriginMap/table" -- 物编的根目录
+    path.table.root       = path.project .. "/".. path.mapName .. "/table" -- 物编的根目录
     path.table.unit       = path.table.root .. "/unit.ini" -- 物编的单位
     path.table.item       = path.table.root .. "/item.ini" -- 物编的物品
     path.table.ability    = path.table.root .. "/ability.ini" -- 物编的技能
     path.table.upgrade    = path.table.root .. "/upgrade.ini" -- 物编的技能
     path.table.buff       = path.table.root .. "/buff.ini" -- 物编的BUFF
     path.table.misc       = path.table.root .. "/misc.ini" -- 一些特殊设置
-
-    path.jasshelper       = path.root .. '/plugins/jasshelper' -- 独立到了plugins里调用
-    path.wave             = path.root .. '/plugins/wave' -- Wave抽到了项目目录里
 
     path.ut               = {}
     path.ut.mapName       = 'UnitTestMap'                                -- 单元测试的地图名字
@@ -58,7 +63,7 @@ function path.init(root, project, we)
 
     path.backup              = {}                                                -- 数据备份
     path.backup.root         = path.root .. "/Backup/PhantomOrbit"               -- 备份根目录
-    path.backup.resource     = path.project .. "/OriginMap/table"                -- 需要备份的路径
+    path.backup.resource     = path.project .. "/".. path.mapName .. "/table"                -- 需要备份的路径
 
     path.image               = {}                                                -- 图片处理
     path.image.path          = path.project .. "/Tools/Image"                    -- 图片处理路径
@@ -83,6 +88,16 @@ function path.init(root, project, we)
     path.model.test.res      = path.project .. "/ModelTest/resource"             -- 模型测试收集位置
     path.model.test.template = path.project .. "/edit/config/MTTemplate.j"       -- J模板
     path.model.test.editJ    = path.project .. "/edit/ModelTest.j"               -- J模板替换到的位置
+end
+
+---@param name string
+--- 更新地图名字,同时更新编译涉及的文件路径
+path.setMapName	= function(name)
+    path.mapName			= name
+    path.mapJ				= path.project .. "/" .. path.mapName .. "/map/war3map.j"     -- 正式地图的War3mapJ文件
+    path.resource			= path.project .. "/" .. path.mapName .. "/resource"          -- 地图资源
+    path.table.root			= path.project .. "/" .. path.mapName .. "/table"             -- 物编的根目录
+    path.backup.resource	= path.project .. "/" .. path.mapName .. "/table"             -- 需要备份的路径
 end
 
 return path

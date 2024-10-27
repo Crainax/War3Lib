@@ -23,4 +23,8 @@ else
 end
 
 path.init(root, projectName, we)
-compiler:StartCompile(path)                         -- 再把后面几个步骤运行一遍
+compiler:StartCompile(path) -- 再把后面几个步骤运行一遍
+
+if path.buildString then    -- 打印一下构建版本名称
+    print(path.buildString)
+end
