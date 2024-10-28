@@ -1,13 +1,14 @@
 local fileUtils = require "Lua.utils.FileUtils"
 local lfs = require "lfs"
 local injecter = require "lua.compile.inject"
+local path = require "Lua.path"
 
 local compile = {}
 
 -- todo:学习YDWE的预添加函数
 
 -- 进行Wave的预处理(会)
-function compile:CompileWave(path, input, args)
+function compile:CompileWave( input, args)
 	lfs.chdir(path.wave)
 	local waveExe = 'Wave.exe'
 	local waveCmdArgs = ''
@@ -34,7 +35,7 @@ function compile:CompileWave(path, input, args)
 	return os.execute(waveCmd)
 end
 
-function compile:StartCompile(path)
+function compile:StartCompile()
 	local code, msg = fileUtils.CopyFile(path.scriptJ, path.CompileStep0) -- 复制scriptJ成0_script.j再处理
 	if not (code) then
 		print("[编译移动]复制CompileStep0失败:" .. msg)
@@ -42,7 +43,7 @@ function compile:StartCompile(path)
 	end
 	print("[即将开始]编译源文件 : " .. path.CompileStep0)
 
-	code, msg = self:CompileWave(path, path.CompileStep0) -- 先预处理一次
+	code, msg = self:CompileWave( path.CompileStep0) -- 先预处理一次
 	if (code) then
 		local waveResult = string.gsub(path.CompileStep0, "%.j", ".i")
 		pcall(os.remove, path.CompileStep1) -- 把老的waveResult删除
@@ -79,7 +80,7 @@ function compile:StartCompile(path)
 		return false
 	end
 
-	code, msg = self:CompileWave(path, path.CompileStep2, '--define=USE_BJ_ANTI_LEAK=1 ') -- 再预处理一次(不会影响CompileStep2)
+	code, msg = self:CompileWave( path.CompileStep2, '--define=USE_BJ_ANTI_LEAK=1 ') -- 再预处理一次(不会影响CompileStep2)
 	if (code) then
 		local waveResult = string.gsub(path.CompileStep2, "%.j", ".i")
 		pcall(os.remove, path.CompileStep3) -- 把老的waveResult删除
@@ -153,7 +154,7 @@ function compile:StartCompile(path)
 	-- 打包前预处理一下物编
 	-- todo:新脚本
 
-	return true
+	return fileUtils.CopyFile(path.CompileStep5, path.CompileResult) -- 后续内容都以这个compileResult为准
 end
 
 return compile

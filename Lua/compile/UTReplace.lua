@@ -1,4 +1,4 @@
-local path = require "lua.path"
+local path = require "Lua.path"
 local fu = require "lua.utils.FileUtils"
 local copy = require "lua.utils.copy"
 local tc = require "lua.compile.TestControl"
@@ -137,6 +137,8 @@ utr.MoveLuaFile = function()
 	end)
 end
 
+
+-- 以下是单独测试的
 -- 替换物编
 -- utr.ReplaceTable()
 

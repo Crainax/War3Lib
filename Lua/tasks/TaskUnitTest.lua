@@ -25,14 +25,15 @@ else
 end
 
 path.init(root, projectName, we) -- 初始化路径
-tc.path = path
 tc.ChangeBuildVersion("单元测试")
 
 local sur = compiler:StartCompile(path)
-if path.buildString then -- 输出字符串
-	print(path.buildString)
+
+if sur then
+	w3xlni:StartSLK()
+	launcher.StartWar3('_slk')
 end
--- if sur then
--- 	w3xlni.StartSLK()
--- 	launcher.StartWar3('_slk')
--- end
+
+if path.buildString then -- 输出字符串
+	print("---[启动单元测试]任务结束---" .. path.buildString)
+end

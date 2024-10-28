@@ -12,8 +12,6 @@ function path.init(root, project, we)
     path.we               = we
 
     path.mapName          = "OriginMap" -- 地图名字
-    path.state            = "正式地图" -- 当前状态
-
     path.buildVersion     = "单元测试" -- 当前构建版本(默认单元测试)   "单元测试|正式版本|模型测试|内测版本|公测版本"
 
     path.alljass          = path.project .. "/edit/AllJass.h" -- 地图导包文件
@@ -24,7 +22,7 @@ function path.init(root, project, we)
     path.CompileStep3     = path.project .. "/Output/3_wave.j" -- wave第二次预处理后的文件
     path.CompileStep4     = path.project .. "/Output/4_luaexecute.j" -- wave第二次预处理后的文件
     path.CompileStep5     = path.project .. "/Output/5_jasshelper.j" -- jasshelper预处理后的文件
-    path.editOutputJ      = path.project .. "/edit/output.j" -- 脚本区的outputJ文件
+    path.CompileResult    = path.project .. "/Output/output.j" -- 输出字符串(最终)
     path.buildString     = "" -- 输出字符串()
 
     path.mapJ             = path.project .. "/".. path.mapName .. "/map/war3map.j" -- 正式地图的War3mapJ文件
@@ -98,6 +96,33 @@ path.setMapName	= function(name)
     path.resource			= path.project .. "/" .. path.mapName .. "/resource"          -- 地图资源
     path.table.root			= path.project .. "/" .. path.mapName .. "/table"             -- 物编的根目录
     path.backup.resource	= path.project .. "/" .. path.mapName .. "/table"             -- 需要备份的路径
+end
+
+--- 设置当前版本为内测版本
+path.initAlpha = function()
+    path.buildVersion = "内测版本"
+end
+
+--- 设置当前版本为公测版本
+path.initBeta = function()
+    path.buildVersion = "公测版本"
+end
+
+--- 设置当前版本为正式版本
+path.initRelease = function()
+    path.buildVersion = "正式版本"
+end
+
+--- 设置当前版本为单元测试
+path.initUnitTest = function()
+    path.buildVersion = "单元测试"
+    path.setMapName(path.ut.mapName)
+end
+
+--- 设置当前版本为模型测试
+path.initModelTest = function()
+    path.buildVersion = "模型测试"
+    path.setMapName(path.model.test.mapName)
 end
 
 return path

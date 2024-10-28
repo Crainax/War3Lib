@@ -1,5 +1,5 @@
 local compiler = require("lua.compile.compiler")
-local path = require("lua.path")
+local path = require("Lua.path")
 local root, projectName, we
 
 if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
@@ -23,7 +23,7 @@ else
 end
 
 path.init(root, projectName, we)
-compiler:StartCompile(path) -- 再把后面几个步骤运行一遍
+compiler:StartCompile() -- 再把后面几个步骤运行一遍
 
 if path.buildString then    -- 打印一下构建版本名称
     print(path.buildString)
