@@ -63,17 +63,23 @@ function inject_code:do_inject(path, tbl)
     if tbl and next(tbl) then
         -- 默认成功
         result = 0
-        -- print("[代码注入] : " .. path.inject)
 
-        -- 打开文件供写入（追加模式）
-        local map_script_file, e = io.open(path.inject, "a+b")
+        -- 首先读取原文件内容
+        local original_content = read_file(path.inject)
+        if not original_content then
+            print("Error reading original file content")
+            return -1
+        end
+
+        -- 打开文件供写入（覆盖模式）
+        local map_script_file, e = io.open(path.inject, "w+b")
         if map_script_file then
             -- 循环处理每个需要注入的文件
             for injectPath in pairs(tbl) do
                 local s = "    ...注入:... " .. injectPath
                 local code_content = read_file(injectPath)
                 if code_content then
-                    -- 插入代码到原文件最后
+                    -- 插入代码到文件开头
                     map_script_file:write(code_content)
                     -- 写上一个换行符
                     map_script_file:write("\r\n")
@@ -86,6 +92,9 @@ function inject_code:do_inject(path, tbl)
                     print(s)
                 end
             end
+
+            -- 写入原始内容
+            map_script_file:write(original_content)
 
             -- 关闭文件
             map_script_file:close()

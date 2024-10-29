@@ -35,6 +35,8 @@ function path.init(root, project, we)
     path.jasshelper    = path.root .. '/plugins/jasshelper'    -- 独立到了plugins里调用
     path.wave          = path.root .. '/plugins/wave'          -- Wave抽到了项目目录里
 
+    path.toolRoot        = path.root .. "/tools" -- 工具根目录
+
     path.table            = {} -- 物编
     path.table.root       = path.project .. "/".. path.mapName .. "/table" -- 物编的根目录
     path.table.unit       = path.table.root .. "/unit.ini" -- 物编的单位
@@ -64,8 +66,8 @@ function path.init(root, project, we)
     path.backup.resource     = path.project .. "/".. path.mapName .. "/table"                -- 需要备份的路径
 
     path.image               = {}                                                -- 图片处理
-    path.image.path          = path.project .. "/Tools/Image"                    -- 图片处理路径
-    path.image.blplab        = path.project .. "/Tools/BLPLAB/"                  -- BLPLAB路径
+    path.image.path          = path.toolRoot .. "/Image"                    -- 图片处理路径
+    path.image.blplab        = path.toolRoot .. "/BLPLAB/"                  -- BLPLAB路径
     path.image.btn           = path.icon .. "/commandbuttons"                    -- 图标路径
     path.image.disbtn        = path.icon .. "/commandbuttonsdisabled"            -- 暗图标路径
     path.image.bg            = path.resource .. "/ui/image"                      -- 默认路径
@@ -73,7 +75,7 @@ function path.init(root, project, we)
     path.image.frame         = path.resource .. "/ui/efx"                        -- 序列帧特效
 
     path.model               = {}                                                -- 模型处理
-    path.model.tool          = path.project .. "/Tools/MDLX/MdlxConverterCC.exe" -- 模型转换工具
+    path.model.tool          = path.toolRoot .. "/MDLX/MdlxConverterCC.exe" -- 模型转换工具
     path.model.unit          = path.resource .. "/unit"                          -- 单位模型存放地
     path.model.root          = path.resource                                     -- 资源根目录
     path.model.effect        = path.resource .. "/effects"                       -- 特效目录

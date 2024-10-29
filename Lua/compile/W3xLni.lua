@@ -8,7 +8,7 @@ local w3xlni     = {}
 
 -- 根据AllJassH文件情况判断返回是不是处于单元测试状态
 local Convert    = function(cType, inPath, outPath)
-	local cmdExe = path.project .. "/tools/w3x2lni/w2l.exe"
+	local cmdExe = path.toolRoot .. "/w3x2lni/w2l.exe"
 	local cmdArgs = cType .. " "
 	cmdArgs = cmdArgs .. string.format("%s ", fu.PathString(path.project .. inPath))
 	cmdArgs = cmdArgs .. string.format("%s ", fu.PathString(path.project .. outPath))
@@ -70,7 +70,7 @@ end
 
 -- 根据AllJassH文件情况判断返回是不是处于单元测试状态
 local ConvertLNI = function(lniPath, objPath)
-	local cmdExe = path.project .. "/tools/w3x2lni/w2l.exe"
+	local cmdExe = path.toolRoot .. "/w3x2lni/w2l.exe"
 	local cmdArgs = "lni "
 	cmdArgs = cmdArgs .. string.format("%s ", path.project .. fu.PathString(lniPath))
 	cmdArgs = cmdArgs .. string.format("%s ", path.project .. fu.PathString(objPath))

@@ -1,3 +1,5 @@
+#define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
+
 
 // API文档: https://japi.war3rpg.top/
 /*
@@ -16,14 +18,18 @@ japi引用的常量库 由于wave宏定义 只对以下的代码有效
 #define version_128a   7205
 
 //-----------模拟聊天------------------
+#ifndef JapiOtherConstantIncluded
+#define JapiOtherConstantIncluded
 #define CHAT_RECIPIENT_ALL    0    // [所有人]
 #define CHAT_RECIPIENT_ALLIES      1    // [盟友]
 #define CHAT_RECIPIENT_OBSERVERS   2    // [观看者]
 #define CHAT_RECIPIENT_REFEREES    2    // [裁判]
 #define CHAT_RECIPIENT_PRIVATE     3    // [私人的]
-
+#endif
 //---------技能数据类型---------------
 
+#ifndef JapiAbilityConstantIncluded
+#define JapiAbilityConstantIncluded
 //冷却时间
 #define ABILITY_STATE_COOLDOWN 1
 
@@ -144,6 +150,9 @@ japi引用的常量库 由于wave宏定义 只对以下的代码有效
 #define ABILITY_DATA_UNART 220
 
 #define ABILITY_DATA_RESEARCH_ART 221
+
+#endif
+
 
 //----------物品数据类型----------------------
 
@@ -301,6 +310,12 @@ japi引用的常量库 由于wave宏定义 只对以下的代码有效
 初始化内置JAPI
 */
 library InnerJapi {
+
+    // 运行Lua内容(在Jass端)
+    public function EXExecuteScript (string p1) -> string {
+        GetTriggeringTrigger();
+        return "";
+    }
 
     // 显示屏幕中间的 FPS 文本
     public function ShowFpsText(boolean show) {
@@ -679,8 +694,8 @@ library InnerJapi {
 
     //显示内置Japi的版本
     function GetPluginVersion  () -> string {
-    	GetTriggeringTrigger();
-    	return "";
+        GetTriggeringTrigger();
+        return "";
     }
 
     // 显示版本

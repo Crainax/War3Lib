@@ -11,7 +11,7 @@ launcher.StartWar3 = function(suffix)
 	cmdExe = fu.PathString(path.we .. "/bin/YDWEConfig.exe")
 	cmdArgs = "-launchwar3 "
 	cmdArgs = cmdArgs .. "-loadfile "
-	cmdArgs = cmdArgs .. path.project .. "/" .. path.mapName .. suffix .. ".w3x"
+	cmdArgs = cmdArgs .. path.project .. "/output/" .. path.mapName .. suffix .. ".w3x"
 	cmd = string.format('%s %s', cmdExe, cmdArgs)
 	print(cmd)
 	local _, _, code = os.execute(cmd)
