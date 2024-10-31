@@ -72,8 +72,8 @@ end
 local ConvertLNI = function(lniPath, objPath)
 	local cmdExe = path.toolRoot .. "/w3x2lni/w2l.exe"
 	local cmdArgs = "lni "
-	cmdArgs = cmdArgs .. string.format("%s ", path.project .. fu.PathString(lniPath))
-	cmdArgs = cmdArgs .. string.format("%s ", path.project .. fu.PathString(objPath))
+	cmdArgs = cmdArgs .. string.format("%s ", fu.PathString(path.project .. lniPath))
+	cmdArgs = cmdArgs .. string.format("%s ", fu.PathString(path.project .. objPath))
 	local cmd = string.format('%s %s', cmdExe, cmdArgs)
 	print(cmd)
 	return os.execute(cmd)

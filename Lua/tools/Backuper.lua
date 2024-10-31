@@ -1,15 +1,13 @@
-package.cpath = package.cpath .. ";./bin/?.dll"
 local lfs = require "lfs"
-local path = require("lua.path")
-local copy = require("lua.utils.copy")
+local path = require("Lua.path")
+local copy = require("Lua.utils.copy")
 
 local timestring = os.date("%Y-%m-%d-%H-%M-%S", os.time())
-local targetPath = path.backup.root .. "/lni/" .. timestring
+local targetPath = nil
 
 local modules = {}
 
 local function multiCopyFile(srcPath, tarPath)
-	-- lfs.chdir(path)
 	for file in lfs.dir((srcPath)) do
 		if file ~= "." and file ~= ".." then -- 遍历过程中会有这两个,本层和上一层,过滤掉
 			local attr = lfs.attributes((srcPath .. "/" .. file))
@@ -21,13 +19,21 @@ local function multiCopyFile(srcPath, tarPath)
 				end
 			end
 			if attr.mode == "directory" then
-				multiCopyFile(srcPath .. "/" .. file)
+				-- 创建目标子目录
+				local newTarPath = tarPath .. "/" .. file
+				lfs.mkdir(newTarPath)
+				-- 递归时传入正确的源路径和目标路径
+				multiCopyFile(srcPath .. "/" .. file, newTarPath)
 			end
 		end
 	end
 end
 
+--- 备份资源目录到备份目录(然后再开始W3xLni覆盖原资源目录)
 function modules.StartBackup()
+	if targetPath == nil then
+		targetPath = path.backup.root .. "/lni/" .. timestring
+	end
 	print("备份目标:" .. targetPath)
 	local code = lfs.mkdir(targetPath)
 	if code then
@@ -38,11 +44,13 @@ function modules.StartBackup()
 	return false
 end
 
+--- 将备份目录的内容还原到资源目录(Lni之后)
 function modules.StartRecover()
-	-- local rPath = "D:/War3/Backup/PhantomOrbit/Lni/normal"
+	if targetPath == nil then
+		targetPath = path.backup.root .. "/lni/" .. timestring
+	end
 	print("还原路径:" .. targetPath)
 	multiCopyFile(targetPath, path.backup.resource)
 end
 
-modules.StartRecover()
 return modules

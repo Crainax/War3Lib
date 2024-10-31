@@ -11,6 +11,8 @@ function path.init(root, project, we)
     path.project          = project
     path.we               = we
 
+    path.libRoot          = path.root .. "/Library/War3Lib" -- 本库根目录
+
     path.mapName          = "OriginMap" -- 地图名字
     path.buildVersion     = "单元测试" -- 当前构建版本(默认单元测试)   "单元测试|正式版本|模型测试|内测版本|公测版本"
 
@@ -28,9 +30,6 @@ function path.init(root, project, we)
     path.mapJ             = path.project .. "/".. path.mapName .. "/map/war3map.j" -- 正式地图的War3mapJ文件
     path.resource         = path.project .. "/".. path.mapName .. "/resource" -- 地图资源
     path.icon             = path.resource .. "/replaceabletextures" -- 图标地点
-    path.war3             = 'D:/Program Files (x86)/Warcraft III Frozen Throne' -- 都用YDWE的来编译吧
-    path.vscodeRoot       = 'D:/Program Files (x86)/Microsoft VS Code' -- VSCDOE的根目录
-    path.vscodeExe        = path.vscodeRoot .. '/Code.exe' -- VSCDOE的位置
 
     path.jasshelper    = path.root .. '/plugins/jasshelper'    -- 独立到了plugins里调用
     path.wave          = path.root .. '/plugins/wave'          -- Wave抽到了项目目录里
@@ -48,8 +47,8 @@ function path.init(root, project, we)
 
     path.ut               = {}
     path.ut.mapName       = 'UnitTestMap'                                -- 单元测试的地图名字
-    path.ut.fileH         = path.project .. "/edit/config/UnitTest.h"    -- 单元测试集合区
-    path.ut.template      = path.project .. "/edit/config/UTTemplate.j"  -- 单元测试模板文件
+    path.ut.fileH         = path.project .. "/edit/config/UnitTest.h"    -- 单元测试编译区
+    path.ut.template      = path.libRoot .. "/Jass/template/UTTemplate.j"  -- 单元测试模板文件
     path.ut.mapJ          = path.project .. "/UnitTestMap/map/war3map.j" -- 单元测试的War3mapJ文件
     path.ut.table         = {}                                           -- 单元测试的物编
     path.ut.table.root    = path.project .. "/UnitTestMap/table"         -- 单元测试的根目录
@@ -63,7 +62,7 @@ function path.init(root, project, we)
 
     path.backup              = {}                                                -- 数据备份
     path.backup.root         = path.root .. "/Backup/PhantomOrbit"               -- 备份根目录
-    path.backup.resource     = path.project .. "/".. path.mapName .. "/table"                -- 需要备份的路径
+    path.backup.resource     = path.project .. "/".. path.mapName .. "/table"    -- 需要备份的路径
 
     path.image               = {}                                                -- 图片处理
     path.image.path          = path.toolRoot .. "/Image"                    -- 图片处理路径
@@ -82,9 +81,10 @@ function path.init(root, project, we)
     path.model.missile       = path.resource .. "/missiles"                      -- 投射物目录
     path.model.jump2fbx      = [[D:\Program Files (x86)\Jump2FBX]]               -- 将X文件转成FBX
     path.model.test          = {}                                                -- 模型测试
+
+
     path.model.test.mapName  = 'ModelTest'                                       -- 模型测试的地图名字
     path.model.test.script   = path.project .. "/edit/config/mtScript.j"         -- 打开模型测试后替换script
-    path.model.test.mapJ     = path.project .. "/ModelTest/map/war3map.j"        -- 模型测试的War3mapJ文件
     path.model.test.res      = path.project .. "/ModelTest/resource"             -- 模型测试收集位置
     path.model.test.template = path.project .. "/edit/config/MTTemplate.j"       -- J模板
     path.model.test.editJ    = path.project .. "/edit/ModelTest.j"               -- J模板替换到的位置
@@ -125,6 +125,7 @@ end
 path.initModelTest = function()
     path.buildVersion = "模型测试"
     path.setMapName(path.model.test.mapName)
+    path.scriptJ = path.model.test.script -- 替换需要编译的J文件
 end
 
 return path

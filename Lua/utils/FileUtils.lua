@@ -142,6 +142,9 @@ fu.EachDir = function (srcPath, func)
 	end
 end
 
+---comment
+---@param str string
+---@return string
 -- 路径生成:自动在前面与后面加上"(引号)
 fu.PathString = function (str)
 	-- local str = path:string()

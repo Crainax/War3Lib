@@ -7,37 +7,37 @@ local iu = require "lua.image.ImageUtils"
 local BlpLab = iu.BlpLab
 
 local flag = {
-	['path'] = [[D:\Ä£ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ì¼£\ï¿½ï¿½Í½ï¿½ï¿½]], -- Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
-	['isPrint'] = true, -- ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	['size'] = 512 -- ddsï¿½Ä¼ï¿½ï¿½Ä³ß´ï¿½
+	['path'] = [[D:\?\?\?]], -- ??
+	['isPrint'] = true, -- ?
+	['size'] = 512 -- dds???
 }
 
--- ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½X×ªï¿½ï¿½FBX
+-- ??X?FBX
 local function ConvertX(filePath)
 	local name = fu.GetFile(filePath)
 	copy.CopyBin(filePath, path.model.jump2fbx .. "/" .. name .. ".x")
 	local cmd = 'jump2fbx.exe \
 			' .. name .. '.x \
 			' .. name .. '.fbx'
-	cmd = cmd:gsub('[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ğ·ï¿½ï¿½ã»»ï¿½ï¿½
-	-- ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	cmd = cmd:gsub('[\n\t]', '') -- ??
+	-- ?
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ï¿½ï¿½Ó¡Ò»ï¿½ï¿½
+		print(gbk.toutf8(cmd)) -- ??
 	end
 	os.execute(cmd)
 	copy.CopyBin(path.model.jump2fbx .. "/" .. name .. ".fbx", flag.path .. "/" .. name .. ".fbx")
 end
 
--- ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Úµï¿½DDS×ªï¿½ï¿½PNG,ï¿½ï¿½×ªï¿½ï¿½BLPï¿½Å½ï¿½Crainaxï¿½ï¿½
+-- ??DDS?PNG,?BLPCrainax
 function ConvertDDS(filePath, output)
 	local cmd = 'magick convert \
 	' .. fu.PathString(filePath) .. ' \
 	-resize ' .. flag.size .. 'x' .. flag.size .. '! \
 	' .. fu.PathString(output)
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ï¿½ï¿½ï¿½ï¿½ï¿½Ğ·ï¿½ï¿½ã»»ï¿½ï¿½
-	-- ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½
+	cmd = string.gsub(cmd, '[\n\t]', '') -- ??
+	-- ?
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ï¿½ï¿½Ó¡Ò»ï¿½ï¿½
+		print(gbk.toutf8(cmd)) -- ??
 	end
 	os.execute(cmd)
 end

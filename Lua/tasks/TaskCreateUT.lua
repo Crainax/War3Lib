@@ -1,6 +1,7 @@
-local copy = require("lua.utils.copy")
-local fu = require("lua.utils.FileUtils")
-local path = require("lua.path")
+local path = require("Lua.path")
+local copy = require("Lua.utils.copy")
+local fu = require("Lua.utils.FileUtils")
+local tc = require("Lua.compile.TestControl")
 
 function CreateUTFile(jPath, jName, utPath)
 	-- 会覆盖创建,得先判断文件是否存在
@@ -11,8 +12,7 @@ function CreateUTFile(jPath, jName, utPath)
 		if (sur) then
 			print('[创建单测J文件]' .. utPath .. '成功.')
 		else
-			print('[创建单测J文件]' .. utPath .. '失败.' .. msg)
-			return
+			return false, '[创建单测J文件]' .. utPath .. '失败.' .. msg
 		end
 
 		-- 这里替换一下生成测试文件的一些内容
@@ -22,63 +22,85 @@ function CreateUTFile(jPath, jName, utPath)
 			line = string.gsub(line, "^#include$", "#include \"" .. string.gsub(jPath, "\\", "/") .. "\"")
 			return line
 		end)
-
 	end
+	return true
 end
 
-function ActivateUTH(jPath, jName, utPath)
-	local found = false
-	fu.ExecuteFile(path.ut.fileH, function(line)
-		if string.match(line, jName .. "%.j") then
-			line = string.match(line, "(#include.*)$")
-			found = true
-		else
-			-- 没找到的情况下把本行给注释了
-			local result = string.match(line, "^%s*(//)")
-			if result == nil then
-				line = "//" .. line
-			end
+function CreateUnitTest(args)
+	local jPath, utPath, jName
+	if not string.match(args, "%.j$") then
+		error("错误: 当前[" .. args .. "]路径不是.j文件")
+		return false
+	end
+
+	-- 判断是否已经是单测文件路径
+	if string.match(args, "_Test%.j$") then
+		utPath = args
+		print("检测到当前是单测文件路径,直接使用该路径")
+	else
+		jPath = args
+		utPath = string.gsub(jPath, "%.j$", "_Test.j") -- 单测文件路径
+		jName = string.match(jPath, "([^\\]+)%.(.+)$") -- 获取单元测试名字
+		print("给" .. jName .. "创建单元测试文件中...")
+
+		-- 判断并创建UT文件
+		local sur, msg = CreateUTFile(jPath, jName, utPath)
+		if not sur then
+			return false, msg
+		end
+
+		local code, msg = os.execute(string.format("%s %s", "code", utPath))
+		if (code) then
+			print('[VSCODE]打开生成文件成功.')
+		end
+	end
+
+	-- 接下来对UnitTest.h文件进行修改(遍历)
+	fu.ExecuteFile(path.ut.fileH, function(line) -- 遍历单元测试编译区
+		if string.match(line, "%.j") then     -- 匹配".j"文件 就替换掉整行
+			line = "#include " .. fu.PathString(string.gsub(utPath, "\\", "/"))
 		end
 		return line
 	end)
 
-	if found then
-		-- 找到了对应的注释
-		print('[UnitTest.h]找到了对应的引用,解除注释')
-	else
-		local code = fu.WriteLast(path.ut.fileH, "#include \"../UnitTest/UnitTest_" .. jName .. ".j\" //[自动创建的宏定义]\n")
-		if (code) then
-			print('[UnitTest.h]没找到对应的引用,创建新的成功.')
-		else
-			print('[UnitTest.h]没找到对应的引用,创建新的失败.')
-		end
-	end
-end
-
-function CreateUnitTest(args)
-	local jPath = args
-	local jName = string.match(jPath, "([^\\]+)%.(.+)$")
-	print("给" .. jName .. "创建单元测试文件中...")
-	local utPath = path.project .. "/edit/UnitTest/UnitTest_" .. jName .. ".j"
-
-	-- 判断并创建UT文件
-	CreateUTFile(jPath, jName, utPath)
-
-	local code, msg = os.execute(fu.PathString(path.vscodeExe) .. ' ' .. utPath)
-	if (code) then
-		print('[VSCODE]打开生成文件成功.')
-	else
-		print('[VSCODE]打开生成文件失败.' .. msg)
-	end
-
-	-- 接下来对UnitTest.h文件进行修改(遍历)
-	ActivateUTH(jPath, jName, utPath)
-
+	tc.ChangeBuildVersion("单元测试") -- 修改单元测试版本
 	print("[创建单测]结束!")
 	return true
 end
 
-CreateUnitTest(arg[1])
+local root, projectName, we, filePath
+if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
+	root = arg[1]
+else
+	error("error: 请输入项目目录")
+	return
+end
+if arg[2] ~= nil and arg[2] ~= "" then    -- 如果调用时传入了参数,则使用传入的参数作为项目目录
+	projectName = root .. '/Maps/' .. arg[2] -- 地图的项目目录
+else
+	error("error: 请输入地图名称")
+	return
+end
+if arg[3] ~= nil and arg[3] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
+	we = arg[3]                        -- 地图的项目目录
+else
+	error("error: 请输入WE路径")
+	return
+end
+if arg[4] ~= nil and arg[4] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
+	filePath = arg[4]                  -- 地图的项目目录
+else
+	error("error: 请输入文件路径")
+	return
+end
+
+-- print("root:", arg[1])
+-- print("projectName:", arg[2])
+-- print("we:", arg[3])
+-- print("filePath:", arg[4])
+
+path.init(root, projectName, we) -- 初始化路径
+CreateUnitTest(filePath)
 
 -- 可以获取到参数就好说了.
 -- print (arg[0]) -- 这个是本lua文件的路径,不考虑
