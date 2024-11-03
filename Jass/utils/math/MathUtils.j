@@ -7,31 +7,40 @@
 */
 library MathUtils {
 
-    real RTriangleX = 0.0; //三角形随机取点X
-    real RTriangleY = 0.0; //三角形随机取点Y
-    //三角形随机取点[RTriangleX/RTriangleY]来取
-    public function InitTriangleRandomXY (real ax,real ay,real bx,real by,real cx,real cy) {
-        real rA  = GetRandomReal(0,1.0);
-        real rB  = GetRandomReal(0,1.0);
-        real abx = bx-ax , aby = by-ay;
-        real acx = cx-ax , acy = cy-ay;
-
-        if (rA + rB > 1.0) {
-            rA = 1.0 - rA;
-            rB = 1.0 - rB;
-        }
-        RTriangleX = ax + rA * abx + rB * acx;
-        RTriangleY = ay + rA * aby + rB * acy;
+    // 实转整 带概率进1的
+    public function R2IRandom (real value) -> integer {
+        return R2I(value) + I3(GetRandomReal(0,1.0) <= ModuloReal(value,1.0),1,0);
     }
-
-    public struct triangleRandom [] {
-
-
-        static method function_name ()  -> nothing {}
+    // 除法,但是相等的话还是为0哦
+    public function Divide1 (integer i1,integer i2) -> integer {
+        return i1/i2 - I3(ModuloInteger(i1,i2) == 0,1,0);
+    }
+    // 实数归一化相加
+    public function RealAdd ( real a1,real a2 ) -> real {
+        if (RAbsBJ(a2) >= 1.0) {return a1;}
+        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
+        else {return 1.0-(1.0-a1)/(1.0+a2);}
+    }
+    // 最小最大值限制
+    public function ILimit ( integer target,integer min,integer max ) -> integer {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    // 最小最大值限制
+    public function RLimit ( real target,real min,real max ) -> real {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    //四舍五入法实数转整数
+    public function R2IM (real r)  -> integer {
+        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
+        else return R2I(r);
     }
 
     // 计算射线与地图边界的交点
-    public struct radiationEnd [] {
+    public struct radiationEnd {
         static real x = 0,y = 0;
 
         //修正一下Tan这个函数的问题(精确到1度)
@@ -54,7 +63,6 @@ library MathUtils {
         // 输入参数:
         // x1, y1: 起始点坐标
         // angle: 射线的角度（0-360度）
-
         // 功能说明：
         // 1. 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
         // 2. 将计算结果存储在结构体的静态变量x和y中
