@@ -1,9 +1,13 @@
 local path = {}
 
+
 ---@param root string
 ---@param project string
 ---@param we string
 function path.init(root, project, we)
+    if path.jassPathName == nil then
+        path.jassPathName = "edit"
+    end
     assert(type(root) == "string", "root 参数必须是字符串")
     assert(type(project) == "string", "project 参数必须是字符串")
     assert(type(we) == "string", "we 参数必须是字符串")
@@ -13,11 +17,15 @@ function path.init(root, project, we)
 
     path.libRoot          = path.root .. "/Library/War3Lib" -- 本库根目录
 
+    if path.libRoot == path.project then -- 如果本库根目录和项目目录相同,则使用Jass作为Jass路径
+        path.jassPathName = "Jass"
+    end
+
     path.mapName          = "OriginMap" -- 地图名字
     path.buildVersion     = "单元测试" -- 当前构建版本(默认单元测试)   "单元测试|正式版本|模型测试|内测版本|公测版本"
 
-    path.alljass          = path.project .. "/edit/AllJass.h" -- 地图导包文件
-    path.scriptJ          = path.project .. "/edit/config/script.j" -- 脚本源文件(不要动这个文件)
+    path.alljass          = path.project .. "/"..path.jassPathName .."/AllJass.h" -- 地图导包文件
+    path.scriptJ          = path.project .. "/"..path.jassPathName .."/config/script.j" -- 脚本源文件(不要动这个文件)
     path.CompileStep0     = path.project .. "/Output/0_script.j" -- 脚本源文件的复制(第一步)
     path.CompileStep1     = path.project .. "/Output/1_wave.j" -- wave预处理后的文件
     path.CompileStep2     = path.project .. "/Output/2_inject.j" -- wave第二次预处理后的文件
@@ -36,7 +44,7 @@ function path.init(root, project, we)
 
     path.toolRoot        = path.root .. "/tools" -- 工具根目录
 
-    path.table            = {} -- 物编
+    path.table            = {} -- 正式图的物编
     path.table.root       = path.project .. "/".. path.mapName .. "/table" -- 物编的根目录
     path.table.unit       = path.table.root .. "/unit.ini" -- 物编的单位
     path.table.item       = path.table.root .. "/item.ini" -- 物编的物品
@@ -47,7 +55,7 @@ function path.init(root, project, we)
 
     path.ut               = {}
     path.ut.mapName       = 'UnitTestMap'                                -- 单元测试的地图名字
-    path.ut.fileH         = path.project .. "/edit/config/UnitTest.h"    -- 单元测试编译区
+    path.ut.fileH         = path.project .. "/"..path.jassPathName .."/config/UnitTest.h"    -- 单元测试编译区
     path.ut.template      = path.libRoot .. "/Jass/template/UTTemplate.j"  -- 单元测试模板文件
     path.ut.mapJ          = path.project .. "/UnitTestMap/map/war3map.j" -- 单元测试的War3mapJ文件
     path.ut.table         = {}                                           -- 单元测试的物编
@@ -84,10 +92,10 @@ function path.init(root, project, we)
 
 
     path.model.test.mapName  = 'ModelTest'                                       -- 模型测试的地图名字
-    path.model.test.script   = path.project .. "/edit/config/mtScript.j"         -- 打开模型测试后替换script
+    path.model.test.script   = path.project .. "/"..path.jassPathName .."/config/mtScript.j"         -- 打开模型测试后替换script
     path.model.test.res      = path.project .. "/ModelTest/resource"             -- 模型测试收集位置
-    path.model.test.template = path.project .. "/edit/config/MTTemplate.j"       -- J模板
-    path.model.test.editJ    = path.project .. "/edit/ModelTest.j"               -- J模板替换到的位置
+    path.model.test.template = path.project .. "/"..path.jassPathName .."/config/MTTemplate.j"       -- J模板
+    path.model.test.editJ    = path.project .. "/"..path.jassPathName .."/ModelTest.j"               -- J模板替换到的位置
 end
 
 ---@param name string

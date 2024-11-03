@@ -38,9 +38,20 @@ function inject_code:detect(path)
         local all_table = self.new_table
 
         for function_name, file in pairs(all_table) do
-            if not r[file] and s:find(function_name) then
+            -- 使用模式匹配确保是完整的函数名，而不是函数名的一部分
+            -- if not r[file] and s:match(function_name) then
+            if not r[file] and s:match("[^%w_]" .. function_name .. "[^%w_]") then
                 r[file] = true
             end
+
+            -- 使用模式匹配确保是完整的函数名，而不是函数名的一部分
+            -- local pattern = "[^%w_]" .. function_name .. "[^%w_]"
+            -- for line in s:gmatch("[^\r\n]+") do
+            --     if line:match(pattern) then
+            --         r[file] = true
+            --         print(string.format("检测到函数 '%s' 在行: %s", function_name, line))
+            --     end
+            -- end
         end
     else
         print("Error occured when opening map script.")

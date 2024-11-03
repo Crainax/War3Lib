@@ -10,6 +10,7 @@
 2. 把`war3/plugins`里的`jasshelper`里的dll全复制过去
 3. 修改`share/script/ydwe_on_save.lua`里的`wave:compile(compile_t)`复制多一份移到inject前面,实行两次预处理.
 4. 创建`Mklink` : `mklink /D "D:\WE\KKWE_Plugin\jass\Crainax" "D:\War3\Library\War3Lib\Jass"`
+5. `jass/AntiBJLeak/detail`里所有傻逼YDWE不搞全词匹配改成全词匹配
 
 ## KKWE更新后的处理
 

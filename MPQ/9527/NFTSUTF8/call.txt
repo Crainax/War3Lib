@@ -1,0 +1,27 @@
+﻿[NFTSUTF8Len]
+title = "获取字符串长度 [9527]"
+description = "获取 ${字符串} 长度"
+comment = "获取 [帅气的9527] 长度为 [7]"
+category = TC_CONV
+returns = integer
+[[.args]]
+type = string
+default = "GetEventPlayerChatString"
+
+[NFTSUTF8Sub]
+title = "截取字符串 [9527]"
+description = "截取 ${字符串} 的 ${开始} 到 ${结束} 部分"
+comment = "截取 [帅气的9527] 的 [1] 到 [3] 部分为 [帅气的]；截取 [帅气的9527] 的 [4] 到 [7] 部分为 [9527] "
+category = TC_NOTHING
+returns = string
+[[.args]]
+type = string
+default = "GetEventPlayerChatString"
+[[.args]]
+type = integer
+default = "1"
+[[.args]]
+type = integer
+default = "3"
+
+

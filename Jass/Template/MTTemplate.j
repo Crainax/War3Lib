@@ -21,7 +21,7 @@ library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
 		DzSetUnitModel(u,path);
 		// 这个是下面的变化,是异步的
 		if (GetConvertedPlayerId(p) == GetConvertedPlayerId(GetLocalPlayer())) {
-			EXSetUnitString('Hamg',14,path);
+			DzSetUnitModel(u,path);
 			SetCinematicScene('Hamg',GetPlayerColor(Player(0)),"","",.01,0);
 			EndCinematicScene();
 		}

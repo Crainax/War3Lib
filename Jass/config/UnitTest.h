@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "D:/War3/Maps/PhantomOrbit/edit/Utils/Zinc_Test.j"
+#include "D:/War3/Library/War3Lib/Jass/learn/Zinc_Test.j"
 
 
 

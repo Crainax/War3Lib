@@ -4,7 +4,7 @@ local w3xlni = require("lua.compile.W3xLni")
 local launcher = require("lua.compile.Launcher")
 local path = require("Lua.path")
 local copy = require ("Lua.utils.copy")
-local root, projectName, we, buildVersion
+local root, projectPath, we, buildVersion
 
 if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
 	root = arg[1]
@@ -13,7 +13,7 @@ else
 	return
 end
 if arg[2] ~= nil and arg[2] ~= "" then    -- 如果调用时传入了参数,则使用传入的参数作为项目目录
-	projectName = root .. '/Maps/' .. arg[2] -- 地图的项目目录
+	projectPath = arg[2]               -- 地图的项目目录
 else
 	error("error: 请输入地图名称")
 	return
@@ -41,7 +41,7 @@ else
 	return
 end
 
-path.init(root, projectName, we) -- 初始化路径
+path.init(root, projectPath, we) -- 初始化路径
 tc.ChangeBuildVersion(buildVersion)
 
 local sur = compiler:StartCompile(path)

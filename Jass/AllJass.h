@@ -11,7 +11,7 @@
 // 当前的平台分包
 #define CURRENT_BUILD_PLATFORM PLATFORM_DZ
 
-if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+#if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
     // 单元测试
     #define TestMode
     #undef GongceMode
@@ -30,7 +30,7 @@ if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
 
 //函数入口
 #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST) // 单元测试
-  #include "config/UnitTest.h"
+    #include "config/UnitTest.h"
 #elif (CURRENT_BUILD_VERSION == VERSION_MODELTEST) // 模型测试
-  #include "config/ModelTest.h"
+    #include "config/ModelTest.h"
 #endif

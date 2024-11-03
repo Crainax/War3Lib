@@ -1,0 +1,156 @@
+﻿[Index]
+// The "CampaignList" key defines the campaigns which will
+// appear on the campaign selection screen.  The values listed
+// here are the section names of the specific campaign mission data
+// below.  The order of these values is significant, as that is the
+// order in which they will appear on the campaign selection screen.
+
+CampaignList="Tutorial","Human","Undead","Orc","NightElf"
+
+// The sections below make up the campaign data for each specific
+// campaign.  Each mission entry is made up of 3 comma-separated
+// strings.  In order they are: Header, Mission Name, Map Filename.
+// You can have up to 128 missions in a given campaign, but putting 
+// more than 15 will make a scrollbar appear to see the rest.
+//
+// Each campaign section can also have three cinematics associated
+// with them: Intro Cinematic, Open Cinematic, and End Cintematic.
+// The cinematic entries follow a similar pattern as the mission
+// entries: Header, Cinematic Name, Cinematic Filename.
+//
+// Using the "DefaultOpen" key, you can specify that this campaign
+// should be initially open and selectable by a new user.
+//
+// You can specify which model to use for the background, using the
+// "Background" key.  The value specified must be an entry in the
+// war3skins.txt file. Realize the this value is processed using the
+// expansion naming convention (i.e. V0, V1, etc).  You should also set 
+// the fog parameters using the "BackgroundFogXXX" keys.
+//
+// The racial cursor for the campaign can be set using the "Cursor"
+// key.  The values are as follows: Human = 0, Orc = 1, Undead = 2, 
+// Night Elf = 3.
+//      
+// Finally, you can set which ambient sound to play on this screen using
+// the "AmbientSound" key.  The value specified must be an entry in
+// the AmbienceSounds.slk file.
+
+[Tutorial]
+Header="序幕"
+Name="兽族大逃亡"
+DefaultOpen=1
+Background="TutorialBackdrop"
+BackgroundFogStyle=0
+BackgroundFogColor=255,0,51,77
+BackgroundFogDensity=0.5
+BackgroundFogStart=0
+BackgroundFogEnd=2000
+Cursor=1
+AmbientSound="TutorialGlueScreenLoop"
+IntroCinematic="介绍","预言","TutorialIn"
+OpenCinematic="过场动画","萨尔的幻象","TutorialOp"
+EndCinematic=""
+Mission0="第一章","对梦想的追逐","Maps\Campaign\Prologue01.w3m"
+Mission1="第二章","离开","Maps\Campaign\Prologue02.w3m"
+
+[Human]
+Header="人族战役"
+Name="洛丹伦大陆的灾难"
+DefaultOpen=1
+Background="HumanBackdrop"
+BackgroundFogStyle=0
+BackgroundFogColor=255,77,77,51
+BackgroundFogDensity=0.5
+BackgroundFogStart=0
+BackgroundFogEnd=9000
+Cursor=0
+AmbientSound="HumanGlueScreenLoop"
+IntroCinematic=""
+OpenCinematic="过场动画","警告","HumanOp"
+EndCinematic="过场动画","阿尔赛斯的背叛","HumanEd"
+Mission0="第一章","斯坦恩布莱德防御战","Maps\Campaign\human01.w3m"
+Mission1="第二章","黑石族的混战","Maps\Campaign\human02.w3m"
+Mission2="插曲","吉安娜的会议","Maps\Campaign\human02interlude.w3m"
+Mission3="第三章","灾难的创伤","Maps\Campaign\human03.w3m"
+Mission4="第四章","诅咒教派","Maps\Campaign\human04.w3m"
+Mission5="第五章","灾难的扩散","Maps\Campaign\human05.w3m"
+Mission6="插曲","王子和预言者","Maps\Campaign\human05interlude.w3m"
+Mission7="第六章","快择","Maps\Campaign\human06.w3m"
+Mission8="插曲","异途","Maps\Campaign\human06interlude.w3m"
+Mission9="第七章","诺森德海岸","Maps\Campaign\human07.w3m"
+Mission10="第八章","纷争","Maps\Campaign\human08.w3m"
+Mission11="第九章","霜之哀伤","Maps\Campaign\human09.w3m"
+
+[Undead]
+Header="不死族战役"
+Name="诅咒之路"
+Background="UndeadBackdrop"
+BackgroundFogStyle=0
+BackgroundFogColor=255,0,51,51
+BackgroundFogDensity=0.5
+BackgroundFogStart=0
+BackgroundFogEnd=8000
+Cursor=2
+AmbientSound="UndeadGlueScreenLoop"
+IntroCinematic=""
+OpenCinematic=""
+EndCinematic="过场动画","达拉然的毁灭","UndeadEd"
+Mission0="第一章","在灰烬中前行","Maps\Campaign\undead01.w3m"
+Mission1="第二章","死亡的觉醒","Maps\Campaign\undead02.w3m"
+Mission2="插曲","恐惧魔王的集结","Maps\Campaign\undead02interlude.w3m"
+Mission3="第三章","深入永恒领域","Maps\Campaign\undead03.w3m"
+Mission4="第四章","三月之钥","Maps\Campaign\undead04.w3m"
+Mission5="第五章","败走银月城","Maps\Campaign\undead05.w3m"
+Mission6="插曲","启示","Maps\Campaign\undead05interlude.w3m"
+Mission7="第六章","黑石族大混战-又一次!","Maps\Campaign\undead06.w3m"
+Mission8="第七章","对达拉然的围攻","Maps\Campaign\undead07.w3m"
+Mission9="第八章","在燃烧的天空下","Maps\Campaign\undead08.w3m"
+
+[Orc]
+Header="兽族战役"
+Name="入侵卡利姆多"
+Background="OrcBackdrop"
+BackgroundFogStyle=0
+BackgroundFogColor=255,77,51,0
+BackgroundFogDensity=0.5
+BackgroundFogStart=0
+BackgroundFogEnd=2950
+Cursor=1
+AmbientSound="OrcGlueScreenLoop"
+IntroCinematic=""
+OpenCinematic=""
+EndCinematic="过场动画","地狱咆哮的死亡","OrcEd"
+Mission0="第一章","坠落的大地","Maps\Campaign\orc01.w3m"
+Mission1="第二章","长征","Maps\Campaign\orc02.w3m"
+Mission2="插曲","洛丹伦的灾难","Maps\Campaign\orc02interlude.w3m"
+Mission3="第三章","战歌的哭嚎","Maps\Campaign\orc03.w3m"
+Mission4="第四章","白杨谷之魂","Maps\Campaign\orc04.w3m"
+Mission5="插曲","玛诺洛斯的鲜血","Maps\Campaign\orc04interlude.w3m"
+Mission6="第五章","黑暗的猎人","Maps\Campaign\orc05.w3m"
+Mission7="第六章","双足飞龙","Maps\Campaign\orc06.w3m"
+Mission8="第七章","神谕","Maps\Campaign\orc07.w3m"
+Mission9="第八章","恶魔的驱赶","Maps\Campaign\orc08.w3m"
+
+[NightElf]
+Header="暗夜精灵族战役"
+Name="永恒的结束"
+Background="NightElfBackdrop"
+BackgroundFogStyle=0
+BackgroundFogColor=255,51,77,128
+BackgroundFogDensity=0.5
+BackgroundFogStart=0
+BackgroundFogEnd=1600
+Cursor=3
+AmbientSound="NightElfGlueScreenLoop"
+IntroCinematic=""
+OpenCinematic=""
+EndCinematic="过场动画","永恒的结局","NightElfEd"
+Mission0="第一章","兵临城下","Maps\Campaign\nightelf01.w3m"
+Mission1="第二章","月之女儿","Maps\Campaign\nightelf02.w3m"
+Mission2="第三章","暴风的苏醒","Maps\Campaign\nightelf03.w3m"
+Mission3="第四章","德鲁伊的觉醒","Maps\Campaign\nightelf04.w3m"
+Mission4="第五章","血弟同盟","Maps\Campaign\nightelf05.w3m"
+Mission5="第六章","烈焰和悲哀的终结","Maps\Campaign\nightelf06.w3m"
+Mission6="插曲","最后的守护者","Maps\Campaignnightelf06interlude.w3m"
+Mission7="第七章","神之黎明","Maps\Campaign\nightelf07.w3m"
+

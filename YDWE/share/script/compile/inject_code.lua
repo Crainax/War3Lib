@@ -30,7 +30,7 @@ function inject_code:detect(op)
 		local all_table = op.option.runtime_version:is_new() and self.new_table or self.old_table
 
 		for function_name, file in pairs(all_table) do
-			if not r[file] and s:find(function_name) then
+            if not r[file] and s:match("[^%w_]" .. function_name .. "[^%w_]") then
 				r[file] = true
 			end
 		end

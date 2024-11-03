@@ -1,0 +1,16 @@
+{
+    "Lua.diagnostics.globals": [
+        "ac",
+        "fs",
+        "base",
+        "war3",
+        "nisdfsoa"
+    ],
+    "Lua.workspace.library": [
+        "${3rd}/Jass/library"
+    ],
+    "Lua.workspace.checkThirdParty": false,
+    "War3RootPath": "D:/War3", //在tasks.json中使用${config:War3RootPath}获取
+    "War3RootMac": "/Users/crainax/War3", //mac端的项目目录
+    "WEPath": "D:/WE/KKWE_Plugin", //在tasks.json中使用${config:WEPath}获取
+}

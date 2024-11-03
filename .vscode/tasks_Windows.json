@@ -1,0 +1,242 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "process",
+            "label": "⚡️切换单测",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "chcp 65001 && cd ${config:War3RootPath}/Library/War3Lib && lua lua/tasks/TaskCreateUT.lua",
+                "${config:War3RootPath}",
+                "PhantomOrbit",
+                "${config:WEPath}",
+                "${file}"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "none",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "process",
+            "label": "😈编译",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "chcp 65001 && cd ${config:War3RootPath}/Library/War3Lib && lua lua/tasks/TaskCompile.lua",
+                "${config:War3RootPath}",
+                "PhantomOrbit",
+                "${config:WEPath}"
+            ],
+            "problemMatcher": [],
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "process",
+            "label": "🤖构建地图(OBJ)",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "chcp 65001 && cd ${config:War3RootPath}/Library/War3Lib && lua lua/tasks/TaskOBJ.lua",
+                "${config:War3RootPath}",
+                "PhantomOrbit",
+                "${config:WEPath}"
+            ],
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "process",
+            "label": "😎备份地图(LNI)",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "chcp 65001 && cd ${config:War3RootPath}/Library/War3Lib && lua lua/tasks/TaskLNI.lua",
+                "${config:War3RootPath}",
+                "PhantomOrbit",
+                "${config:WEPath}"
+            ],
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "process",
+            "label": "🥭启动:单元测试",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "chcp 65001 && cd ${config:War3RootPath}/Library/War3Lib && lua lua/tasks/TaskStartMap.lua",
+                "${config:War3RootPath}",
+                "PhantomOrbit",
+                "${config:WEPath}",
+                "VERSION_UNITTEST"
+            ],
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "process",
+            "label": "🥭启动:正式版本",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "chcp 65001 && cd ${config:War3RootPath}/Library/War3Lib && lua lua/tasks/TaskStartMap.lua",
+                "${config:War3RootPath}",
+                "PhantomOrbit",
+                "${config:WEPath}",
+                "VERSION_RELEASE"
+            ],
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        },
+        {
+            "type": "process",
+            "label": "🥭启动:内测版本",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "chcp 65001 && cd ${config:War3RootPath}/Library/War3Lib && lua lua/tasks/TaskStartMap.lua",
+                "${config:War3RootPath}",
+                "PhantomOrbit",
+                "${config:WEPath}",
+                "VERSION_ALPHA"
+            ],
+            "presentation": {
+                "echo": false,
+                "reveal": "always"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        },
+        {
+            "type": "process",
+            "label": "🥭启动:公测版本",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "chcp 65001 && cd ${config:War3RootPath}/Library/War3Lib && lua lua/tasks/TaskStartMap.lua",
+                "${config:War3RootPath}",
+                "PhantomOrbit",
+                "${config:WEPath}",
+                "VERSION_BETA"
+            ],
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        },
+        {
+            "type": "process",
+            "label": "🥭启动:模型测试",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "chcp 65001 && cd ${config:War3RootPath}/Library/War3Lib && lua lua/tasks/TaskStartMap.lua",
+                "${config:War3RootPath}",
+                "PhantomOrbit",
+                "${config:WEPath}",
+                "VERSION_BETA"
+            ],
+            "options": {
+                "statusbar": {
+                    "hide": true
+                }
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "always"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "test",
+                "isDefault": false
+            }
+        },
+        {
+            "type": "process",
+            "label": "💙打开魔兽",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "\"${config:WEPath}/bin/YDWEConfig.exe\"",
+                "-launchwar3"
+            ],
+            "presentation": {
+                "echo": false,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$nvcc"
+            ]
+        }
+    ],
+}
