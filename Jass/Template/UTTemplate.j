@@ -1,6 +1,9 @@
 #ifndef {UnitTest}Included
 #define {UnitTest}Included
 
+// 用原始地图测试
+#undef OriginMapUnitTestMode
+
 #include "edit/Constant/Variable.j"
 #include
 // #include "edit/Base/UIBase.j"
@@ -8,13 +11,13 @@
 // #include "UnitTest_HeroStruct.j" //测试模块
 // #include "UnitTest_GuaiStruct.j" //测试模块[创建怪物们]
 // #include "edit/Event/EventAll.j" //事件
-#include "edit/UI/Camera.j"
+#include "LibraryName.j"
 // #include "edit/ChatEvent.j" //通用聊天事件
 
 //! zinc
 
 //自动生成的文件
-library {UnitTest} requires optional LibraryName,Variable,optional LuaUtils,optional UTHeroStruct,optional ChatEvent {
+library {UnitTest} requires optional LibraryName {
 
 	#ifdef TestMode
 	function TTest{UnitTest}1 (player p) {}
@@ -62,8 +65,7 @@ library {UnitTest} requires optional LibraryName,Variable,optional LuaUtils,opti
 
 	function onInit () {
 
-		#ifdef TestMode
-		TriggerAddCondition(TUnitTest, Condition(function () {
+		UnitTestRegisterChatEvent( Condition(function () {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 
@@ -81,9 +83,7 @@ library {UnitTest} requires optional LibraryName,Variable,optional LuaUtils,opti
 			else if(str == "s8") TTest{UnitTest}8(GetTriggerPlayer());
 			else if(str == "s9") TTest{UnitTest}9(GetTriggerPlayer());
 			else if(str == "s10") TTest{UnitTest}10(GetTriggerPlayer());
-
 		}));
-		#endif
 	}
 
 }
