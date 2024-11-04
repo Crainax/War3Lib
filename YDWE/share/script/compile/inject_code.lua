@@ -1,4 +1,3 @@
-
 inject_code = {}
 
 -- 注入代码表
@@ -30,8 +29,17 @@ function inject_code:detect(op)
 		local all_table = op.option.runtime_version:is_new() and self.new_table or self.old_table
 
 		for function_name, file in pairs(all_table) do
-			if not r[file] and s:match("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then
-				r[file] = true
+			if not r[file] then -- 速度慢但是是全词匹配
+				-- 根据函数名是否以YDWE开头选择不同的匹配模式
+				if function_name:sub(1, 4) == "YDWE" then                           -- 简单模式
+					if not r[file] and s:find(function_name:gsub("%.", "%%.")) then -- 速度很快但是不是全词匹配
+						r[file] = true
+					end
+				else                                                                                        -- 严格模式
+					if not r[file] and s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then -- 速度慢但是是全词匹配
+						r[file] = true
+					end
+				end
 			end
 		end
 	else
@@ -100,7 +108,6 @@ function inject_code:do_inject(op, tbl)
 	return result
 end
 
-
 function inject_code:compile(op)
 	op.output = op.input
 	return self:do_inject(op, self:detect(op))
@@ -162,15 +169,15 @@ function inject_code:scan(config_dir)
 				for _, fname in ipairs(a) do
 					if b[fname] then
 						local unuse = file
-						log.warn('注入函数['..fname..']重复定义')
+						log.warn('注入函数[' .. fname .. ']重复定义')
 						if fs.last_write_time(file) > fs.last_write_time(b[fname]) then
 							unuse = b[fname]
 							b[fname] = file
 						end
 						if not once[fname] then
-							log.warn('注入函数['..fname..']重复定义')
+							log.warn('注入函数[' .. fname .. ']重复定义')
 							log.warn('	生效', b[fname], fs.last_write_time(b[fname]))
-							log.warn('	失效', unuse, fs.last_write_time(unuse) )
+							log.warn('	失效', unuse, fs.last_write_time(unuse))
 							once[fname] = true
 						end
 					else

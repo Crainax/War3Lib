@@ -28,32 +28,49 @@ end
 
 -- 侦测需要注入哪些代码(使用的是string.find方式,所以说注释下也会检测到)
 function inject_code:detect(path)
+    -- 添加开始时间记录
+    local start_time = os.clock()
+
     local r = {}
     local s, e = read_file(path.inject)
     if s then
         local all_table = self.new_table
 
         for function_name, file in pairs(all_table) do
-            if not r[file] and s:match("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then
-                r[file] = true
+            if not r[file] then -- 速度慢但是是全词匹配
 
-                --[[                 -- 转义点号，并使用更严格的边界匹配
-                local escaped_name = function_name:gsub("%.", "%%.")
-                local pattern = "%f[%w_]" .. escaped_name .. "%f[^%w_]"
-
-                -- 调试输出
-                for line in s:gmatch("[^\r\n]+") do
-                    if line:match(pattern) then
-                        print(string.format("检测到函数 '%s' 在行: %s", function_name, line))
+                -- 根据函数名是否以YDWE开头选择不同的匹配模式
+                if function_name:sub(1, 4) == "YDWE" then -- 简单模式
+                    -- print(string.format("[简单模式]开始检测函数 '%s' 文件 '%s'", function_name, file))
+                    if not r[file] and s:find(function_name:gsub("%.", "%%.")) then -- 速度很快但是不是全词匹配
+                        -- if not r[file] and s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then -- 速度慢但是是全词匹配
                         r[file] = true
                     end
-                end ]]
+                else -- 严格模式
+                    if not r[file] and s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then -- 速度慢但是是全词匹配
+                        r[file] = true
+                    end
+                    --[[ local pattern = "[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]" -- 严格模式,检查边界
+                    print(string.format("[严格模式]开始检测函数 '%s' 文件 '%s'", function_name, file))
+                    -- 调试输出
+                    for line in s:gmatch("[^\r\n]+") do
+                        if line:match(pattern) then
+                            print(string.format("检测到函数 '%s' 在行: %s", function_name, line))
+                            r[file] = true
+                            break
+                        end
+                    end ]]
+                end
             end
         end
     else
         print("Error occured when opening map script.")
         print(e)
     end
+
+    -- 添加结束时间记录和输出
+    local end_time = os.clock()
+    print(string.format("函数检测用时: %.3f 秒", end_time - start_time))
 
     return r
 end
