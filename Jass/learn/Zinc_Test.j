@@ -4,12 +4,12 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "edit/Constant/Variable.j"
+#include "Zinc.j"
 
 //! zinc
 
 //库名
-library UTZinc requires Variable {
+library UTZinc requires Zinc {
 
     //不写修饰符的话当private处理
     integer IIII = 0;
@@ -192,9 +192,9 @@ library UTZinc requires Variable {
 
     function onInit () {
         integer i2 = 1;
+        timer t;
         //这里初始化
-        #ifdef TestMode
-        TriggerAddAction(TUnitTest, function () { //后面写上注释
+        UnitTestRegisterChatEvent(function () { //后面写上注释
             string str = GetEventPlayerChatString();
             integer i = 1;
 
@@ -224,9 +224,23 @@ library UTZinc requires Variable {
             else if(str == "sj" ) TTestUTZinc20(GetTriggerPlayer());
 
         });
+
+        t = CreateTimer();
+        TimerStart(t,1,false,function (){
+            timer t = GetExpiredTimer();
+            integer id = GetHandleId(t);
+            BJDebugMsg("这是Zinc测试");
+            PauseTimer(t);
+            FlushChildHashtable(TITable,id);
+            DestroyTimer(t);
+            t = null;
+        });
+        t = null;
+
+        cameraControl.openWheel(); //打开滚轮控制镜头
+
     }
 
-    #endif
 }
 //! endzinc
 

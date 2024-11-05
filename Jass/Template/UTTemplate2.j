@@ -186,7 +186,7 @@ library UTHeroStruct requires optional HeroStruct,Variable,UIBase,optional LuaUt
         t = null;
 
         #ifdef TestMode
-        TriggerAddCondition(TUnitTest, Condition(function () {
+        UnitTestRegisterChatEvent(function () {
             string str = GetEventPlayerChatString();
             integer i = 1;
 

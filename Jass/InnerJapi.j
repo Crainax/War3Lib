@@ -4,7 +4,7 @@
 // API文档: https://japi.war3rpg.top/
 
 
-#include "Crainax/JapiConstant.j"
+#include "Crainax/core/constant/JapiConstant.j"
 
 //! zinc
 /*

@@ -1,18 +1,12 @@
 #ifndef MTIncluded
 #define MTIncluded
 
-#include "edit/Constant/JAPIConstant.j"
-#include "API/japi/YDWEJapiEffect.j"
-#include "API/japi/YDWEJapiUnit.j"
-#include "edit/Constant/Variable.j"
-#include "edit/Utils/EffectUtils.j"
-#include "edit/Base/CRBase.j"
-#include "API/Base/YDWEBase_common.j"
+#include "Crainax/core/constant/Variable.j"
 
 //! zinc
 
 //模型测试
-library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
+library MT requires optional Variable {
 
 	group g = null;
 	//单位模型
@@ -21,7 +15,7 @@ library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
 		DzSetUnitModel(u,path);
 		// 这个是下面的变化,是异步的
 		if (GetConvertedPlayerId(p) == GetConvertedPlayerId(GetLocalPlayer())) {
-			DzSetUnitModel(u,path);
+			DzSetUnitPortrait(u,path);
 			SetCinematicScene('Hamg',GetPlayerColor(Player(0)),"","",.01,0);
 			EndCinematicScene();
 		}
@@ -119,58 +113,112 @@ library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
 	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
 	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
 	function TTestMT1 (player p) {
-		//replace
+		UnitModel(p,"qiuti_antusheng.mdl");
+		Efx("qiuti_antusheng.mdl");
+		EfxB("chest","qiuti_antusheng.mdl");
+		Danmu("qiuti_antusheng.mdl");
 	}
 	function TTestMT2 (player p) {
-		//replace
+		UnitModel(p,"e_summon (7).mdl");
+		Efx("e_summon (7).mdl");
+		EfxB("chest","e_summon (7).mdl");
+		Danmu("e_summon (7).mdl");
 	}
 	function TTestMT3 (player p) {
-		//replace
+		UnitModel(p,"e_summon (6).mdl");
+		Efx("e_summon (6).mdl");
+		EfxB("chest","e_summon (6).mdl");
+		Danmu("e_summon (6).mdl");
 	}
 	function TTestMT4 (player p) {
-		//replace
+		UnitModel(p,"e_summon (5).mdl");
+		Efx("e_summon (5).mdl");
+		EfxB("chest","e_summon (5).mdl");
+		Danmu("e_summon (5).mdl");
 	}
 	function TTestMT5 (player p) {
-		//replace
+		UnitModel(p,"e_summon (4).mdl");
+		Efx("e_summon (4).mdl");
+		EfxB("chest","e_summon (4).mdl");
+		Danmu("e_summon (4).mdl");
 	}
 	function TTestMT6 (player p) {
-		//replace
+		UnitModel(p,"e_summon (3).mdl");
+		Efx("e_summon (3).mdl");
+		EfxB("chest","e_summon (3).mdl");
+		Danmu("e_summon (3).mdl");
 	}
 	function TTestMT7 (player p) {
-		//replace
+		UnitModel(p,"e_summon (2).mdl");
+		Efx("e_summon (2).mdl");
+		EfxB("chest","e_summon (2).mdl");
+		Danmu("e_summon (2).mdl");
 	}
 	function TTestMT8 (player p) {
-		//replace
+		UnitModel(p,"e_summon (1).mdl");
+		Efx("e_summon (1).mdl");
+		EfxB("chest","e_summon (1).mdl");
+		Danmu("e_summon (1).mdl");
 	}
 	function TTestMT9 (player p) {
-		//replace
+		UnitModel(p,"e_pet_blink.mdl");
+		Efx("e_pet_blink.mdl");
+		EfxB("chest","e_pet_blink.mdl");
+		Danmu("e_pet_blink.mdl");
 	}
 	function TTestMT10 (player p) {
-		//replace
+		UnitModel(p,"effect_roar_langhun.mdl");
+		Efx("effect_roar_langhun.mdl");
+		EfxB("chest","effect_roar_langhun.mdl");
+		Danmu("effect_roar_langhun.mdl");
 	}
 	function TTestMT11 (player p) {
-		//replace
+		UnitModel(p,"effect_langhun_f_target.mdl");
+		Efx("effect_langhun_f_target.mdl");
+		EfxB("chest","effect_langhun_f_target.mdl");
+		Danmu("effect_langhun_f_target.mdl");
 	}
 	function TTestMT12 (player p) {
-		//replace
+		UnitModel(p,"effect_knight_w_blast.mdl");
+		Efx("effect_knight_w_blast.mdl");
+		EfxB("chest","effect_knight_w_blast.mdl");
+		Danmu("effect_knight_w_blast.mdl");
 	}
 	function TTestMT13 (player p) {
-		//replace
+		UnitModel(p,"effect_knight_w_1.mdl");
+		Efx("effect_knight_w_1.mdl");
+		EfxB("chest","effect_knight_w_1.mdl");
+		Danmu("effect_knight_w_1.mdl");
 	}
 	function TTestMT14 (player p) {
-		//replace
+		UnitModel(p,"effect_knight_r.mdl");
+		Efx("effect_knight_r.mdl");
+		EfxB("chest","effect_knight_r.mdl");
+		Danmu("effect_knight_r.mdl");
 	}
 	function TTestMT15 (player p) {
-		//replace
+		UnitModel(p,"effect_knight_q_1.mdl");
+		Efx("effect_knight_q_1.mdl");
+		EfxB("chest","effect_knight_q_1.mdl");
+		Danmu("effect_knight_q_1.mdl");
 	}
 	function TTestMT16 (player p) {
-		//replace
+		UnitModel(p,"effect_knight_f.mdl");
+		Efx("effect_knight_f.mdl");
+		EfxB("chest","effect_knight_f.mdl");
+		Danmu("effect_knight_f.mdl");
 	}
 	function TTestMT17 (player p) {
-		//replace
+		// UnitModel(p,"effect_knight_e_impact.mdl");
+		// Efx("effect_knight_e_impact.mdl");
+		EfxB("chest","effect_knight_e_impact.mdl");
+		// Danmu("effect_knight_e_impact.mdl");
 	}
 	function TTestMT18 (player p) {
-		//replace
+		// UnitModel(p,"effect_knight_e.mdl");
+		Efx("effect_knight_e.mdl");
+		// EfxB("chest","effect_knight_e.mdl");
+		// Danmu("effect_knight_e.mdl");
 	}
 	function TTestMT19 (player p) {
 		//replace
@@ -281,7 +329,6 @@ library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
 			CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() );
 			SetCameraFieldForPlayer( ConvertedPlayer(i), CAMERA_FIELD_ZOFFSET, ( GetCameraTargetPositionZ() + 800.00 ), 0 );
 		}
-		#ifdef TestMode
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
@@ -339,9 +386,8 @@ library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
 			else if(str == "s49") TTestMT49(GetTriggerPlayer());
 			else if(str == "s50") TTestMT50(GetTriggerPlayer());
 
-		}));
+		});
 
-		#endif
 		g = CreateGroup();
 	}
 

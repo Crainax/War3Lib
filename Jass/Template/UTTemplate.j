@@ -65,7 +65,7 @@ library {UnitTest} requires optional LibraryName {
 
 	function onInit () {
 
-		UnitTestRegisterChatEvent( Condition(function () {
+		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 
