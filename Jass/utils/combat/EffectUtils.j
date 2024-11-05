@@ -1,8 +1,6 @@
 #ifndef EffectUtilsIncluded
 #define EffectUtilsIncluded
 
-#include "GroupUtils.j"
-
 //! zinc
 /*
 特效工具

@@ -1,8 +1,6 @@
 #ifndef GroupUtilsIncluded
 #define GroupUtilsIncluded
 
-#include "Crainax/utils/unit/UnitFilter.j"
-
 //! zinc
 /*
 单位组有关

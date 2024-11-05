@@ -4,6 +4,7 @@ local inject_code = {}
 -- 注入代码表
 inject_code.new_table = {}
 inject_code.old_table = {}
+inject_code.chain_table = {} -- 链式依赖
 
 -- 辅助函数：获取文件扩展名
 local function get_extension(filename)
@@ -33,7 +34,23 @@ function inject_code:detect(path)
 
     local r = {}
     local s, e = read_file(path.inject)
+
+    -- 递归处理依赖文件
+    local function process_chain_files(file)
+        if self.chain_table and self.chain_table[file] then
+            for _, chain_file in ipairs(self.chain_table[file]) do
+                if not r[chain_file] then
+                    r[chain_file] = true
+                    print(file .. " 的依赖文件同时注入: " .. chain_file)
+                    -- 递归处理依赖文件的依赖
+                    process_chain_files(chain_file)
+                end
+            end
+        end
+    end
+
     if s then
+        -- 检查是否有需要注入的函数
         local all_table = self.new_table
 
         for function_name, file in pairs(all_table) do
@@ -45,10 +62,12 @@ function inject_code:detect(path)
                     if not r[file] and s:find(function_name:gsub("%.", "%%.")) then -- 速度很快但是不是全词匹配
                         -- if not r[file] and s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then -- 速度慢但是是全词匹配
                         r[file] = true
+                        process_chain_files(file)  -- 处理依赖文件
                     end
                 else -- 严格模式
                     if not r[file] and s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then -- 速度慢但是是全词匹配
                         r[file] = true
+                        process_chain_files(file)  -- 处理依赖文件
                     end
                     --[[ local pattern = "[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]" -- 严格模式,检查边界
                     print(string.format("[严格模式]开始检测函数 '%s' 文件 '%s'", function_name, file))
@@ -98,7 +117,7 @@ function inject_code:do_inject(path, tbl)
                 local s = "    ...注入:... " .. injectPath
                 local code_content = read_file(injectPath)
                 if code_content then
-                    -- 插入代码到文件开头
+                    -- 插入代码文件开头
                     map_script_file:write(code_content)
                     -- 写上一个换行符
                     map_script_file:write("\r\n")
@@ -156,15 +175,33 @@ function inject_code:scan(config_dir)
                 local new_table = {}
                 local old_table = {}
 
-                -- 解析状态，默认0
-                -- 0 - 1.24/1.20通用
-                -- 1 - 1.24专用
-                -- 2 - 1.20专用
+                -- 如果 self.chain_table 不存在则初始化
+                if not self.chain_table then
+                    self.chain_table = {}
+                end
+
+                -- 获取当前cfg文件的目录路径
+                local base_dir = full_path:match("(.*[/\\])")
+                local current_file = full_path:gsub("%.cfg$", ".j")
+
+                -- 将相对路径转为绝对路径
+                local function resolve_path(relative_path)
+                    -- 处理 "../" 的情况
+                    local abs_path = base_dir .. relative_path
+                    abs_path = abs_path:gsub("[/\\]+", "/")  -- 统一路径分隔符
+
+                    -- 处理 "../" 的情况
+                    while abs_path:match("([^/]+)/%.%./") do
+                        abs_path = abs_path:gsub("([^/]+)/%.%./", "")
+                    end
+
+                    return abs_path
+                end
+
                 local state = 0
 
                 -- 循环处理每一行
                 for line in io.lines(full_path) do
-                    -- 插入函数名
                     local trimed = trim(line)
                     if trimed ~= "" and trimed:sub(1, 1) ~= "#" then
                         if trimed == "[general]" then
@@ -173,6 +210,9 @@ function inject_code:scan(config_dir)
                             state = 1
                         elseif trimed == "[old]" then
                             state = 2
+                        elseif trimed == "[chain]" then
+                            state = 3
+                            self.chain_table[current_file] = self.chain_table[current_file] or {}
                         else
                             if state == 0 then
                                 table.insert(new_table, trimed)
@@ -181,8 +221,12 @@ function inject_code:scan(config_dir)
                                 table.insert(new_table, trimed)
                             elseif state == 2 then
                                 table.insert(old_table, trimed)
+                            elseif state == 3 then
+                                -- 将相对路径转换为绝对路径后存入
+                                local abs_path = resolve_path(trimed)
+                                table.insert(self.chain_table[current_file], abs_path)
+                                print(current_file .. " 的依赖文件: " .. abs_path)
                             end
-                            -- print(" Injected:  " .. trimed) -- 显示每条注入的函数
                         end
                     end
                 end

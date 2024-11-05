@@ -9,11 +9,17 @@ library MathUtils {
 
     // 实转整 带概率进1的
     public function R2IRandom (real value) -> integer {
-        return R2I(value) + I3(GetRandomReal(0,1.0) <= ModuloReal(value,1.0),1,0);
+        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
+            return R2I(value) + 1;
+        }
+        return R2I(value);
     }
     // 除法,但是相等的话还是为0哦
     public function Divide1 (integer i1,integer i2) -> integer {
-        return i1/i2 - I3(ModuloInteger(i1,i2) == 0,1,0);
+        if (ModuloInteger(i1,i2) == 0) {
+            return i1/i2 - 1;
+        }
+        return i1/i2;
     }
     // 实数归一化相加
     public function RealAdd ( real a1,real a2 ) -> real {
@@ -40,6 +46,7 @@ library MathUtils {
     }
 
     // 计算射线与地图边界的交点
+    // 原名字 : limitXY
     public struct radiationEnd {
         static real x = 0,y = 0;
 

@@ -1,5 +1,5 @@
 logs\currentmapscript.j
 pjass.exe
-Line 783:  Undeclared variable MAX_PLAYER_COUNT. Maybe you meant bj_TEXT_DELAY_HINT or EVENT_GAME_LOADED
-Line 802:  Undeclared variable MAX_PLAYER_COUNT
+Line 2483:  Undeclared function MemoryLeakShow. Maybe you meant ConvertGameSpeed, ConvertGameSpeed or LoadEffectHandle
+Line 2484:  Undeclared function StructShow. Maybe you meant StopMusic, SetPlayers or SetPlayers
 2

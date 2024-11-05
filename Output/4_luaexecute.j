@@ -1,5 +1,633 @@
 //! zinc
 /*
+单位有关
+*/
+library UnitFilter {
+    //判断是否是敌方(不带无敌)
+    public function IsEnemy (player p,unit u) -> boolean {
+        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitEnemy(u, p) && GetUnitAbilityLevel(u,'Avul') == 0;
+    }
+    //旧名：IsEnemy2
+    //判断是否是敌方(能匹配到无敌单位)
+    public function IsEnemyIncludeInvul (player p,unit u) -> boolean {
+        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitEnemy(u, p);
+    }
+    //判断是否是友方
+    public function IsAlly (player p,unit u) -> boolean {
+        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p);
+    }
+}
+//! endzinc
+//! zinc
+/*
+数字工具
+*/
+library NumberUtils {
+    // 老版本叫GetIntegerBit(替换)
+    // 获取一个整数中指定范围的数字(按十进制位数)
+    // @param value - 要处理的整数,如1483
+    // @param bit1 - 起始位置(从右往左,从1开始),如1表示个位
+    // @param bit2 - 结束位置,如3表示百位
+    // @return - 返回指定范围的数字,如1483取1-3位返回483
+    public function GetNumberRange (integer value,integer bit1,integer bit2) -> integer {
+        if (bit1 > bit2) {return 0;}
+        if (bit1 <= 0 || bit2 <= 0) {return 0;}
+        return ModuloInteger(value,R2I(Pow(10,bit2)))/R2I(Pow(10,bit1-1));
+    }
+    // 老版本叫GetBit(替换)
+    // 获取一个整数中指定位置的单个数字(按十进制位数)
+    // @param num - 要处理的整数,如1483
+    // @param bit - 要获取的位置(从右往左,从1开始),如2表示十位
+    // @return - 返回指定位置的数字,如1483取第2位返回8
+    // 注意:会自动处理负数(取绝对值),位数超出或不合法返回0
+    public function GetDigitAt (integer num,integer bit) -> integer {
+        integer bit1 = R2I(Pow(10,bit-1)); //举例,1483取位2 ->这个是10;
+integer bit2 = R2I(Pow(10,bit)); //举例,1483取位2 ->这个是100;
+num = IAbsBJ(num); //取绝对值
+if (bit <= 0 || bit >= 32) {return 0;} //超了整数上限
+if (bit1 > num) {return 0;} //取了不该取的位
+bit1 = IMaxBJ(1,bit1);
+        //先取余100,再除10 ->
+        return ModuloInteger(num,bit2) / bit1;
+    }
+}
+//! endzinc
+// API文档: https://japi.war3rpg.top/
+/*
+
+japi引用的常量库 由于wave宏定义 只对以下的代码有效
+
+请将常量库里所有内容复制到  自定义脚本代码区
+*/
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//冷却时间
+//目标允许
+//施放时间
+//持续时间
+//持续时间
+//魔法消耗
+//施放间隔
+//影响区域
+//施法距离
+//数据A
+//数据B
+//数据C
+//数据D
+//数据E
+//数据F
+//数据G
+//数据H
+//数据I
+//单位类型
+//热键
+//关闭热键
+//学习热键
+//名字
+//图标
+//目标效果
+//施法者效果
+//目标点效果
+//区域效果
+//投射物
+//特殊效果
+//闪电效果
+//buff提示
+//buff提示
+//学习提示
+//提示
+//关闭提示
+//学习提示
+//提示
+//关闭提示
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
+//! zinc
+/*
+初始化内置JAPI
+*/
+library InnerJapi {
+    // 运行Lua内容(在Jass端)
+    public function EXExecuteScript (string p1) -> string {
+        GetTriggeringTrigger();
+        return "";
+    }
+    // 显示屏幕中间的 FPS 文本
+    public function ShowFpsText(boolean show) {
+        GetTriggeringTrigger();
+    }
+    // 异步获取 玩家当前的帧数
+    // 玩家比较卡时 帧数较低 可以异步空特效路径 以及 弹道模型 屏蔽特效来提高帧数。
+    public function GetFps () -> real {
+        GetTriggeringTrigger();
+        return 0.0;
+    }
+    // 解锁帧数上限 突破 60 帧
+    // 填 true 解锁 填 false 恢复
+    public function UnlockFps (boolean is_unlock) {
+        GetTriggeringTrigger();
+    }
+    /* 清除魔兽 jass 虚拟机里缓存的字符串 解决游戏后期字符串太多导致游戏卡顿的问题
+    ReleaseAllString 做了特殊处理 不处理 jass 全局变量 局部变量 哈希表里的字符串 能安全使用
+    ReleaseString 没判定 字符串是否被引用， 需要小心使用。
+    DumpAllString 将现存的字符串 输出到文件里
+    顺便修复了 对玩家发送消息太多 导致卡顿的问题 */
+    public function GetCacheStringCount () -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    public function ReleaseString(string str) {
+        GetTriggeringTrigger();
+    }
+    public function ReleaseAllString() {
+        GetTriggeringTrigger();
+    }
+    public function DumpAllString(string filename) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 用来清空魔兽的模型文件缓存 降低内存占用 直到下一次读取 才会重新占用。
+    //call ReleaseModel("xxx.mdx")
+    public function ReleaseModel(string model_path) {
+        GetTriggeringTrigger();
+    }
+    public function ReleaseAllModel() {
+        GetTriggeringTrigger();
+    }
+    public function GetCacheModelCount() -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 异步获取 获取当前指向单位 一般用来做 UI 操作时需要用到的接口,注意返回是异步的 handle，切记小心使用
+    public function GetTargetObject() -> unit {
+        GetTriggeringTrigger();
+        return null;
+    }
+    // 异步获取 当前玩家大头像模型的单位 当框选一群单位时 切换选择也会改变返回值 一般用来做 UI 操作时需要用到的接口
+    public function GetRealSelectUnit () -> unit {
+        GetTriggeringTrigger();
+        return null;
+    }
+    // 异步获取 玩家的聊天框是否被打开 一般用来做键盘操作时 避免与输入冲突
+    // 打开时返回 true 未打开时返回 false 注意返回是异步的，切记小心使用
+    public function GetChatState () -> boolean {
+        GetTriggeringTrigger();
+        return false;
+    }
+    //解锁 blp 贴图的像素上限 原本魔兽高清图片也会被限制在 512p 之内
+    // 填 true 解锁 填 false 恢复
+    public function UnlockBlpSize (boolean is_unlock) {
+        GetTriggeringTrigger();
+    }
+    //设置单位名字 每个单位独立 互相不影响 修改后 获取单位名字 还是返回原值
+    public function SetUnitName (unit u, string name) {
+        GetTriggeringTrigger();
+    }
+    //设置单位头像模型 设置之后会立即改变 当 设置单位模型时 会被新的自动覆盖掉
+    // 模型路径 后缀可以是.mdx .mdl 省略后缀自动默认.mdx
+    public function SetUnitPortrait (unit u, string model) {
+        GetTriggeringTrigger();
+    }
+    //设置单位普攻弹道弧度 每个单位独立 互相不影响 会被法球覆盖
+    //call SetUnitMissileArc(GetTriggerUnit(), 0.8)
+    public function SetUnitMissileArc (unit u, real value) {
+        GetTriggeringTrigger();
+    }
+    //设置单位普攻弹道模型 每个单位独立 互相不影响 会被法球覆盖
+    //call SetUnitMissileModel(GetTriggerUnit(), "units\\human\\phoenix\\phoenix.mdx")
+    public function SetUnitMissileModel (unit u, string model) {
+        GetTriggeringTrigger();
+    }
+    //设置单位普攻弹道是否自动追踪 每个单位独立 互相不影响 会被法球覆盖
+    //call SetUnitMissileHoming(GetTriggerUnit(), true)
+    public function SetUnitMissileHoming (unit u, boolean value) {
+        GetTriggeringTrigger();
+    }
+    //设置单位普攻弹道速度 每个单位独立 互相不影响 会被法球覆盖
+    // call SetUnitMissileSpeed(GetTriggerUnit(), 2000)
+    public function SetUnitMissileSpeed (unit u, real value) {
+        GetTriggeringTrigger();
+    }
+    //设置单位模型 包括大头像模型也会自动设置 该接口 也可以给物品 特效 可破坏物 更换模型
+    // call SetUnitModel(GetTriggerUnit(), "units\\human\\Peasant\\Peasant.mdx")
+    public function SetUnitModel (unit u, string model) {
+        GetTriggeringTrigger();
+    }
+    //设置单位贴图 替换单位身上的 id 贴图 例如队伍颜色的 id 贴图是 0 队伍光晕 id 是 1
+    // call SetUnitTexture(GetTriggerUnit(), "xx.blp", 0)
+    public function SetUnitTexture (unit u, string texture, integer id) {
+        GetTriggeringTrigger();
+    }
+    //隐藏单位跟物品 鼠标指向时显示的 UI 包括单位血条
+    // 警告
+    // 目前对 物品使用会引起 掉线 请勿对物品使用
+    // 是否显示 填 false 就是隐藏
+    public function SetUnitPressUIVisible (unit u, boolean is_show) {
+        GetTriggeringTrigger();
+    }
+    // 设置特效动画
+    // index 动画索引
+    public function EXSetEffectAnimation (effect e, integer index) {
+        GetTriggeringTrigger();
+    }
+    // 设置特效 X Y 轴坐标
+    // 设置特效坐标 修复了原本 ydjapi 里面特效超过出生范围一定距离 游戏不会渲染的问题 用了类似全图挂的方式 强行让魔兽渲染该特效。 todo:测试一下来自普通japi的这个能不能强制渲染
+    //public function EXSetEffectXY (effect e, real x, real y) {
+    //    GetTriggeringTrigger();
+    //}
+    // 设置特效 Z 轴坐标
+    // 设置特效坐标 修复了原本 ydjapi 里面特效超过出生范围一定距离 游戏不会渲染的问题 用了类似全图挂的方式 强行让魔兽渲染该特效。
+    //public function EXSetEffectZ (effect e, real z) {
+    //    GetTriggeringTrigger();
+    //}
+    // 设置特效是否可见
+    public function EXSetEffectVisible (effect e, boolean visible) {
+        GetTriggeringTrigger();
+    }
+    // 设置特效是否在迷雾中可见
+    public function EXSetEffectFogVisible (effect e, boolean visible) {
+        GetTriggeringTrigger();
+    }
+    // 设置特效是否在阴影中可见
+    public function EXSetEffectMaskVisible (effect e, boolean visible) {
+        GetTriggeringTrigger();
+    }
+    // 设置特效颜色 透明值无效 16进制
+    public function EXSetEffectColor (effect e, integer color) {
+        GetTriggeringTrigger();
+    }
+    // 获取特效的颜色 跟 设置特效颜色 配合使用
+    public function EXGetEffectColor (effect e) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 设置英雄称谓 每个单位独立 互相不影响 GetHeroProperName 获取英雄称谓 是修改后的值。
+    public function SetUnitProperName (unit u, string name) {
+        GetTriggeringTrigger();
+    }
+    // 获取指定商店 选择 指定玩家的哪个单位 返回值是同步的接口 可以安全使用
+    // 如果商店周围没有可选的人的时候 会返回 0
+    // store 商店单位 拥有 出售物品 选择英雄 的单位
+    public function GetStoreTarget (unit store, player p) -> unit {
+        GetTriggeringTrigger();
+        return null;
+    }
+    // 获取指定 frame 的子控件 不能对 simple 类型的控件使用
+    // 整数	frame	控件地址
+    // 整数	last	上一个控件的地址 第一次读可以填 0
+    public function FrameGetChilds (integer frame, boolean last) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 获取指定 frame 的父控件 不能对 simple 类型的控件使用 可以获取 大头像模型 的父控件 然后为其新建子控件 用来放置在所有界面之下
+    public function FrameGetParent (integer frame) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 全屏状态下 返回 false 窗口化模式 返回 true
+    public function IsWindowMode () -> boolean {
+        GetTriggeringTrigger();
+        return false;
+    }
+    // 设置指定 frame 是否启用视口
+    // 设置开启 设置控件视口 比如 底板开启后 他的子控件 在边缘 超出部分不会渲染
+    public function FrameSetViewPort (integer frame, boolean enable) {
+        GetTriggeringTrigger();
+    }
+    // 设置窗口大小
+    // 修改窗口大小 可以强行限制用户 窗口模式下的 窗口比例 16/9
+    // call SetWindowSize(1024, 768)
+    public function SetWindowSize (integer width, integer height) {
+        GetTriggeringTrigger();
+    }
+    // 播放特效动画
+    // 特效	handle	绑定的特效
+    // 动画名	animation_name	字符串动画名字
+    // 链接名	link_name	变身动画才需要的链接名 一般情况填 "" 空字符串就行、
+    // call EXPlayEffectAnimation(eff, "attack", "")
+    public function EXPlayEffectAnimation (effect e, string animation_name, string link_name) {
+        GetTriggeringTrigger();
+    }
+    // 绑定特效
+    // 主动绑定 effect 到 handle 上面 可以单位绑 特效 可以特效绑 特效
+    // 对象	handle	可以是单位 特效 物品
+    // 绑点	socket	绑点名字
+    // 特效	handle	绑定的特效
+    // local effect eff = AddSpecialEffect("units\\human\\Peasant\\Peasant.mdl", 0, 0)
+    // call BindEffect(GetTriggerUnit(), eff)
+    public function BindEffect (widget u, string socket, effect e) {
+        GetTriggeringTrigger();
+    }
+    // 解除特效绑定
+    // 可以让绑定在单位身上的特效 分离出来， 被分离的特效能设置坐标 跟缩放、
+    public function UnBindEffect (effect e) {
+        GetTriggeringTrigger();
+    }
+    //内置默认是 解锁 frame 控件的 屏幕限制的 就是可以随便移动到屏幕之外的位置， 但是有个别用户 依赖这个限制 用网易的接口写了 ui 导致加了内置之后 位置变了， 故此新增这个接口 自行决定是否解锁。
+    // 布尔值	is_limit	填 true 是锁定 填 false 是解锁
+    public function SetFrameLimitScreen (integer frame, boolean is_limit) {
+        GetTriggeringTrigger();
+    }
+    // 获取当前玩家 id
+    public function GetUserId () -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    //异步获取 当前玩家在 11 或网易平台游戏时的 uid， 本地返回 0
+    //返回值是异步的 建议先同步后再使用
+    //这 2 个接口一般情况下 返回值都是一致的 有万分之一局的概率 2 个接口会返回不一致， 自己验证使用吧。
+    //网易的 uid 获取率 达到 99.999% 目前来说测试是稳定 有效的 11 的 uid 还没有经过测试， 需要自行测试 小心使用 切记。
+    public function GetUserIdEx () -> string {
+        GetTriggeringTrigger();
+        return "";
+    }
+    // 设置单位碰撞体积
+    //跟物编一样 修改单位的碰撞体积 会刷新寻路， 依然受到魔兽碰撞上限的限制
+    // 就是 当你 size 填 512 的时候 在远距离走路时 魔兽寻路 会按照 512 的碰撞体积去搜索路线， 在近距离时 魔兽会按照最高上限 估计 128 去搜索寻路 单位实际碰撞 也最高只有 128
+    public function SetUnitCollisionSize (unit u, real size) {
+        GetTriggeringTrigger();
+    }
+    // 设置单位移动类型
+    // 修改指定单位的移动类型 按字符串修改 类型可以是跟物编里效果一样 type 有以下几个数值
+    // "none"  = 没有， 无视碰撞
+    // "foot"  = 步行， 地面碰撞跟寻路
+    // "horse" = 骑马
+    // "fly"   = 飞行  具有飞行视野，寻路能穿越树木跟悬崖，可以直接设置飞行高度 不用乌鸦形态了
+    // "hover" = 浮空  不会踩中地雷
+    // "float" = 漂浮 只能在深水里活动 不能在地面活动
+    // "amph"  = 两栖
+    // "unbuild" = 未知 自己测试
+    public function SetUnitMoveType (unit u, string s) {
+        GetTriggeringTrigger();
+    }
+    // 获取 框选按钮 slot 从0 ~ 11
+    public function FrameGetInfoSelectButton (integer slot) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 获取 下方buff按钮 slot 从0 ~ 7
+    public function FrameGetBuffButton (integer slot) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 获取 农民按钮
+    public function FrameGetUnitButton () -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 获取 技能右下角数字文本控件 button = 技能按钮  返回值 = SimpleString 类型控件
+    public function FrameGetButtonSimpleString (integer btn) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 获取 技能右下角控件  button = 技能按钮  返回值 = SimpleFrame 类型控件
+    public function FrameGetButtonSimpleFrame (integer btn) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 判断控件是否显示
+    public function FrameIsShow (integer frame) -> boolean {
+        GetTriggeringTrigger();
+        return false;
+    }
+    // 修改/获取 原生按钮图片 button 可以是 技能按钮 物品按钮 英雄按钮 农民按钮 框选按钮 buff按钮
+    public function FrameSetOriginButtonTexture (integer btn, string path) {
+        GetTriggeringTrigger();
+    }
+    public function FrameGetOriginButtonTexture (integer btn) -> string {
+        GetTriggeringTrigger();
+        return "";
+    }
+    // 修改/获取 simple类型控件的 父控件
+    public function FrameGetSimpleParent (integer SimpleFrame) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    public function FrameSetSimpleParent (integer SimpleFrame, integer parentSimple) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 为Simple绑定 frame类型的子控件
+    // 可以将任意frame类型 绑定到 原生ui下面 返回值 可以解除绑定
+    // 返回的是一个 SetupFrame值
+    public function FrameSimpleBindFrame (integer SimpleFrame, integer Frame) -> integer {
+        GetTriggeringTrigger();
+        return 0;
+    }
+    // 解除绑定 解除后 frame跟simple 就不再关联
+    public function FrameSimpleUnBindFrame (integer SetupFrame) {
+        GetTriggeringTrigger();
+    }
+    //获取物品技能的 handle 返回值 可以用在 ydjapi 的技能接口
+    //slot	指定槽位 0 从开始
+    public function GetItemAbility (item Item, integer slot) -> ability {
+        GetTriggeringTrigger();
+        return null;
+    }
+    // main 函数就初始化的
+    public function initializePlugin () -> integer {
+        ExecuteFunc("DoNothing");
+        StartCampaignAI( Player(PLAYER_NEUTRAL_AGGRESSIVE), "callback" );
+        ExecuteFunc("DoNothing");
+        AbilityId("exec-lua:plugin_main");
+        return 0;
+    }
+    //显示内置Japi的版本
+    function GetPluginVersion () -> string {
+        GetTriggeringTrigger();
+        return "";
+    }
+    // 显示版本
+    function onInit () {
+        integer i = 0;
+        // BJDebugMsg(GetPluginVersion());
+        GetPluginVersion();
+    }
+}
+//! endzinc
+//! zinc
+/*
+数学工具
+*/
+library MathUtils {
+    // 实转整 带概率进1的
+    public function R2IRandom (real value) -> integer {
+        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
+            return R2I(value) + 1;
+        }
+        return R2I(value);
+    }
+    // 除法,但是相等的话还是为0哦
+    public function Divide1 (integer i1,integer i2) -> integer {
+        if (ModuloInteger(i1,i2) == 0) {
+            return i1/i2 - 1;
+        }
+        return i1/i2;
+    }
+    // 实数归一化相加
+    public function RealAdd ( real a1,real a2 ) -> real {
+        if (RAbsBJ(a2) >= 1.0) {return a1;}
+        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
+        else {return 1.0-(1.0-a1)/(1.0+a2);}
+    }
+    // 最小最大值限制
+    public function ILimit ( integer target,integer min,integer max ) -> integer {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    // 最小最大值限制
+    public function RLimit ( real target,real min,real max ) -> real {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    //四舍五入法实数转整数
+    public function R2IM (real r) -> integer {
+        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
+        else return R2I(r);
+    }
+    // 计算射线与地图边界的交点
+    // 原名字 : limitXY
+    public struct radiationEnd {
+        static real x = 0,y = 0;
+        //修正一下Tan这个函数的问题(精确到1度)
+        private static method tan (real angle) -> real {
+            real a = ModuloReal(angle,180); //求余数
+if (a < 1.0) { //接近0度
+return 0.0001;
+            } else if (a > 179.0) { //接近180度
+return -0.0001;
+            } else if (a > 89 && a <= 90) { //89-90
+return 55555.0;
+            } else if (a > 90 && a < 91) { //90-91
+return -55555.0;
+            } else { //正常角度
+return TanBJ(angle);
+            }
+        }
+        //一个坐标沿着某个方向的边缘值
+        // 输入参数:
+        // x1, y1: 起始点坐标
+        // angle: 射线的角度（0-360度）
+        // 功能说明：
+        // 1. 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
+        // 2. 将计算结果存储在结构体的静态变量x和y中
+        // 3. 根据角度不同分为四个象限处理：
+        //    - 0-90度：第一象限，可能与上边界或右边界相交
+        //    - 90-180度：第二象限，可能与上边界或左边界相交
+        //    - 180-270度：第三象限，可能与下边界或左边界相交
+        //    - 270-360度：第四象限，可能与下边界或右边界相交
+        // 这个函数在游戏中经常用于：
+        // 限制单位移动范围
+        // 计算技能射程终点
+        // 确定视线或投射物的最远点
+        static method cal (real x1,real y1,real angle) {
+            real x2 = 0; //相交点
+real y2 = 0; //相交点
+real a = ModuloReal(angle,360); //求余数
+real tan;
+            x = 0;
+            y = 0;
+            if (a <= 90) { //第一象限
+tan = tan(a);
+                x2 = (yd_MapMaxY - y1) / tan + x1;
+                y2 = (yd_MapMaxX - x1) * tan + y1;
+                if (x2 <= yd_MapMaxX) { //取这个
+x = x2;
+                    y = yd_MapMaxY;
+                } else {
+                    x = yd_MapMaxX;
+                    y = y2;
+                }
+            } else if( a <= 180) { //第二象限
+tan = tan(a);
+                x2 = (yd_MapMaxY - y1) / tan + x1;
+                y2 = (yd_MapMinX - x1) * tan + y1;
+                if (x2 >= yd_MapMinX) { //取这个
+x = x2;
+                    y = yd_MapMaxY;
+                } else {
+                    x = yd_MapMinX;
+                    y = y2;
+                }
+            } else if( a <= 270) { //第三象限
+tan = tan(a);
+                x2 = (yd_MapMinY - y1) / tan + x1;
+                y2 = (yd_MapMinX - x1) * tan + y1;
+                if (x2 >= yd_MapMinX) { //取这个
+x = x2;
+                    y = yd_MapMinY;
+                } else {
+                    x = yd_MapMinX;
+                    y = y2;
+                }
+            } else { //第四象限
+tan = tan(a);
+                x2 = (yd_MapMinY - y1) / tan + x1;
+                y2 = (yd_MapMaxX - x1) * tan + y1;
+                if (x2 <= yd_MapMaxX) { //取这个
+x = x2;
+                    y = yd_MapMinY;
+                } else {
+                    x = yd_MapMaxX;
+                    y = y2;
+                }
+            }
+        }
+    }
+}
+//! endzinc
+//! zinc
+/*
 几何工具
 todo:直接用宏定义修改试试
 */
@@ -17,6 +645,146 @@ library Geometry {
     // 4个坐标的角度,前面是人的位置，后面是点的位置
     public function GetFacing (real x1,real y1,real x2,real y2) -> real {
         return Atan2BJ(y2-y1,x2-x1);
+    }
+}
+//! endzinc
+/*
+
+japi引用的常量库 由于wave宏定义 只对以下的代码有效
+
+请将常量库里所有内容复制到  自定义脚本代码区
+*/
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
+//! zinc
+/*
+单位有关的增强功能
+*/
+library UnitUtils {
+    //获取单位的攻击力/防御/生命/魔法值
+    //设置攻击力
+    //增加攻击力
+    //设置防御
+    //增加防御
+    //修改生命最大值
+    //增加生命最大值
+	public function AddUnitHP(unit u,real hp ) {
+		SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(RMaxBJ(GetUnitState(u,UNIT_STATE_MAX_LIFE)+hp,10.0),5.0));
+		if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
+	}
+    //回血(定值)
+    //回蓝(百分比)
+    //设置魔法最大值
+    //增加魔法最大值
+	public function AddUnitMP(unit u,real mp ) {
+		SetUnitState(u,UNIT_STATE_MAX_MANA,GetUnitState(u,UNIT_STATE_MAX_MANA)+mp);
+		if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
+	}
+    //回蓝(定值)
+    //回蓝(百分比)
+    // 获取移速
+    public function GetUnitSpeed (unit u) -> integer {
+        if (HaveSavedInteger(UNTable,GetHandleId(u),237960560)) { //突破522与0的移速的Hook
+return LoadInteger(UNTable,GetHandleId(u),237960560);
+        }
+        else {return R2I(GetUnitMoveSpeed(u));}
+    }
+    //todo: 这个UNTable其他地图需要兼容
+    // 增加移速
+    public function AddUnitSpeed (unit u,integer speed) {
+        integer value;
+        if (HaveSavedInteger(UNTable,GetHandleId(u),237960560)) { //突破522与0的移速的Hook
+value = LoadInteger(UNTable,GetHandleId(u),237960560);
+            value += speed;
+            SaveInteger(UNTable,GetHandleId(u),237960560,value);
+        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
+		SetUnitMoveSpeed(u,value);
+    }
+    // 初始化突破移速
+    public function InitUnitSpeed (unit u) {
+        SaveInteger(UNTable,GetHandleId(u),237960560,R2I(GetUnitMoveSpeed(u)));
+    }
+    //射程(还会+警戒范围)
+    //设置射程(还会设置警戒范围)
+    public function SetUnitAttackRange (unit u,real range) {
+		SetUnitState(u,ConvertUnitState(0x16),range);
+		SetUnitAcquireRange(u,RMaxBJ(range,900.0));
+    }
+    //增加射程(还会+警戒范围)
+	public function AddUnitAttackRange (unit u,real range) {
+		SetUnitState(u,ConvertUnitState(0x16),GetUnitState(u,ConvertUnitState(0x16)) + range);
+		SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0));
+    }
+    // 获取攻速
+    // 增加攻速
+	public function AddUnitAttackSpeed (unit u,real speed) {
+		SetUnitState(u,ConvertUnitState(0x51),GetUnitState(u,ConvertUnitState(0x51)) + speed);
+	}
+    // 攻击间隔(虽然写着加,但是实际是减)
+	public function AddAttackInterval (unit u,real value) {
+        SetUnitState(u,ConvertUnitState(0x25),GetUnitState(u,ConvertUnitState(0x25)) - value);
+	}
+    //传送单位(带特效与镜头转换)
+    public function TransportUnit (unit u,real x,real y,boolean camera) {
+        if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);
+        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)));
+        SetUnitPosition(u,x,y);
+        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
+    }
+    //删除单位
+    public function DeleteUnit (unit u) {
+        FlushChildHashtable(UNTable,GetHandleId(u));
+        RemoveUnit(u);
     }
 }
 //! endzinc
@@ -69,6 +837,45 @@ library YDWEJapiEffect
 		call EXSetEffectXY(e, GetLocationX(loc), GetLocationY(loc))
 	endfunction
 endlibrary
+//! zinc
+/*
+单位组有关
+伤害有关
+// u = FirstOfGroup(g);  //少用这个,单位删了后直接是0了
+用GroupPickRandomUnit(g);好一些
+*/
+library GroupUtils requires UnitFilter {
+    group tempG = null;
+    unit tempU = null;
+    //库补充,防内存泄漏
+    public function GroupEnumUnitsInRangeEx (group whichGroup,real x,real y,real radius,boolexpr filter) {
+        GroupEnumUnitsInRange(whichGroup, x, y, radius, filter);
+        DestroyBoolExpr(filter);
+    }
+    //库补充,防内存泄漏
+    public function GroupEnumUnitsInRectEx (group whichGroup,rect r,boolexpr filter) {
+        GroupEnumUnitsInRect(whichGroup, r, filter);
+        DestroyBoolExpr(filter);
+    }
+    //获取单位组:[敌方]
+    public function GetEnemyGroup (unit u,real x,real y,real radius) -> group {
+        tempG = CreateGroup();
+        tempU = u;
+        GroupEnumUnitsInRangeEx(tempG, x, y, radius, Filter(function () -> boolean {
+            if (IsEnemy(GetOwningPlayer(tempU),GetFilterUnit())) {
+                return true;
+            }
+            return false;
+        }));
+        tempU = null;
+        return tempG;
+    }
+    //获取圆形随机单位
+    public function GetRandomEnemy (unit u,real x,real y,real radius) -> unit {
+        return GroupPickRandomUnit(GetEnemyGroup(u,x,y,radius));
+    }
+}
+//! endzinc
 library BzAPI
     //hardware
     native DzGetMouseTerrainX takes nothing returns real
@@ -1025,209 +1832,32 @@ function InitializeYD takes nothing returns nothing
     call YDWEVersion_Init()
 endfunction
 endlibrary
-library LBKKAPI
-        globals
-                string MOVE_TYPE_NONE = "none" //没有（无视碰撞）
-string MOVE_TYPE_FOOT = "foot" //步行
-string MOVE_TYPE_HORSE = "horse" //骑马
-string MOVE_TYPE_FLY = "fly" //飞行（还具有空中视野，也可以设置飞行高度）
-string MOVE_TYPE_HOVER = "hover" //浮空（不会踩中地雷）
-string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）
-string MOVE_TYPE_AMPH = "amph" //两栖
-string MOVE_TYPE_UNBUILD = "unbuild" //不可建造
-constant integer DEFENSE_TYPE_LIGHT = 0
-		constant integer DEFENSE_TYPE_MEDIUM = 1
-		constant integer DEFENSE_TYPE_LARGE = 2
-		constant integer DEFENSE_TYPE_FORT = 3
-		constant integer DEFENSE_TYPE_NORMAL = 4
-		constant integer DEFENSE_TYPE_HERO = 5
-		constant integer DEFENSE_TYPE_DIVINE = 6
-		constant integer DEFENSE_TYPE_NONE = 7
-        endglobals
-        native DzGetSelectedLeaderUnit takes nothing returns unit
-        native DzIsChatBoxOpen takes nothing returns boolean
-        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing
-        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing
-        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing
-        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing
-        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing
-        native DzSetEffectModel takes effect whichEffect, string model returns nothing
-        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
-        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing
-        native DzChangeWindowSize takes integer width, integer height returns boolean
-        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing
-        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing
-        native DzUnbindEffect takes effect whichEffect returns nothing
-        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing
-        native DzSetEffectScale takes effect whichHandle, real scale returns nothing
-        native DzGetEffectVertexColor takes effect whichEffect returns integer
-        native DzGetEffectVertexAlpha takes effect whichEffect returns integer
-        native DzGetItemAbility takes item whichEffect, integer index returns ability
-        native DzFrameGetChildrenCount takes integer whichframe returns integer
-        native DzFrameGetChild takes integer whichframe, integer index returns integer
-        native DzUnlockBlpSizeLimit takes boolean enable returns nothing
-        native DzGetActivePatron takes unit store, player p returns unit
-        native DzGetLocalSelectUnitCount takes nothing returns integer
-        native DzGetLocalSelectUnit takes integer index returns unit
-        native DzGetJassStringTableCount takes nothing returns integer
-        native DzModelRemoveFromCache takes string path returns nothing
-        native DzModelRemoveAllFromCache takes nothing returns nothing
-        native DzFrameGetInfoPanelSelectButton takes integer index returns integer
-        native DzFrameGetInfoPanelBuffButton takes integer index returns integer
-        native DzFrameGetPeonBar takes nothing returns integer
-        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer
-        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer
-        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer
-        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer
-        native DzToggleFPS takes boolean show returns nothing
-        native DzGetFPS takes nothing returns integer
-        native DzFrameWorldToMinimapPosX takes real x, real y returns real
-        native DzFrameWorldToMinimapPosY takes real x, real y returns real
-        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing
-        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing
-        native DzFrameGetWorldFrameMessage takes nothing returns integer
-        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing
-        native DzSimpleMessageFrameClear takes integer whichframe returns nothing
-        //转换屏幕坐标到世界坐标
-        native DzConvertScreenPositionX takes real x, real y returns real
-        native DzConvertScreenPositionY takes real x, real y returns real
-        //监听建筑选位置
-        native DzRegisterOnBuildLocal takes code func returns nothing
-        //等于0时是结束事件
-        native DzGetOnBuildOrderId takes nothing returns integer
-        native DzGetOnBuildOrderType takes nothing returns integer
-        native DzGetOnBuildAgent takes nothing returns widget
-        //监听技能选目标
-        native DzRegisterOnTargetLocal takes code func returns nothing
-        //等于0时是结束事件
-        native DzGetOnTargetAbilId takes nothing returns integer
-        native DzGetOnTargetOrderId takes nothing returns integer
-        native DzGetOnTargetOrderType takes nothing returns integer
-        native DzGetOnTargetAgent takes nothing returns widget
-        native DzGetOnTargetInstantTarget takes nothing returns widget
-        // 打开QQ群链接
-        native DzOpenQQGroupUrl takes string url returns boolean
-        native DzFrameEnableClipRect takes boolean enable returns nothing
-        native DzSetUnitName takes unit whichUnit, string name returns nothing
-        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing
-        native DzSetUnitDescription takes unit whichUnit, string value returns nothing
-        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing
-        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing
-        native DzSetUnitProperName takes unit whichUnit, string name returns nothing
-        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing
-        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing
-        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing
-        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing
-        native DzGetAttackAbility takes unit whichUnit returns ability
-        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing
-        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean
-        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean
-        function DzSetHeroTypeProperName takes integer uid, string name returns nothing
-                call EXSetUnitArrayString(uid, 61, 0, name)
-                call EXSetUnitInteger(uid, 61, 1)
-        endfunction
-        function DzSetUnitTypeName takes integer uid, string name returns nothing
-                call EXSetUnitArrayString(uid, 10, 0, name)
-                call EXSetUnitInteger(uid, 10, 1)
-        endfunction
-        function DzIsUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns boolean
-                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType
-        endfunction
-        function DzSetUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns nothing
-                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType))
-        endfunction
-        function DzIsUnitDefenseType takes unit whichUnit, integer defenseType returns boolean
-                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType
-        endfunction
-        function DzSetUnitDefenseType takes unit whichUnit, integer defenseType returns nothing
-                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType)
-        endfunction
-        // 地形装饰物
-        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer
-        native DzDoodadGetTypeId takes integer doodad returns integer
-        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing
-        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing
-        native DzDoodadSetColor takes integer doodad, integer color returns nothing
-        native DzDoodadGetX takes integer doodad returns real
-        native DzDoodadGetY takes integer doodad returns real
-        native DzDoodadGetZ takes integer doodad returns real
-        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing
-        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing
-        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing
-        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing
-        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing
-        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing
-        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing
-        native DzDoodadGetTimeScale takes integer doodad returns real
-        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer
-        native DzDoodadGetAnimationCount takes integer doodad returns integer
-        native DzDoodadGetAnimationName takes integer doodad, integer index returns string
-        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer
-        // 查找单位技能
-        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
-        // 修改技能数据-字符串
-        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
-        // 启用/禁用技能
-        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
-        // 设置单位移动类型
-        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
-        // 获取控件宽度
-        native DzFrameGetWidth takes integer frame returns real
-        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
-        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
-        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
-        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
-                call DzSetUnitDataCacheInteger( uid, id, 0, v)
-        endfunction
-        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 94, id, v)
-        endfunction
-        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 100, id, v)
-        endfunction
-        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 112, id, v)
-        endfunction
-        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 106, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 118, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 124, id, v)
-        endfunction
-        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 130, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 172, id, v)
-        endfunction
+library YDWEGetUnitsInRectMatchingNull
+globals
+    group yd_NullTempGroup
+endglobals
+function YDWEGetUnitsInRectMatchingNull takes rect r, boolexpr filter returns group
+    local group g = CreateGroup()
+    call GroupEnumUnitsInRect(g, r, filter)
+    call DestroyBoolExpr(filter)
+    set yd_NullTempGroup = g
+    set g = null
+    return yd_NullTempGroup
+endfunction
 endlibrary
-// [DzSetUnitMoveType]
-// title = "设置单位移动类型[NEW]"
-// description = "设置 ${单位} 的移动类型：${movetype} "
-// comment = ""
-// category = TC_KKPRE
-// [[.args]]
-// type = unit
-// [[.args]]
-// type = MoveTypeName
-// default = MoveTypeName01
+library YDWEGetUnitsInRectAllNull requires YDWEGetUnitsInRectMatchingNull
+function YDWEGetUnitsInRectAllNull takes rect r returns group
+    return YDWEGetUnitsInRectMatchingNull(r, null)
+endfunction
+endlibrary
 //===========================================================================
 //
-// 只是另外一张魔兽争霸的地图
+// - |cff00ff00单元测试地图|r -
 //
 //   Warcraft III map script
 //   Generated by the Warcraft III World Editor
-//   Date: Sun Nov 21 04:56:35 2021
-//   Map Author: 未知
+//   Date: Sun Nov 27 05:00:30 2022
+//   Map Author: Crainax
 //
 //===========================================================================
 //***************************************************************************
@@ -1237,7 +1867,26 @@ endlibrary
 //***************************************************************************
 globals
     // Generated
+    rect gg_rct_Wave1 = null
+    rect gg_rct_Wave2 = null
+    rect gg_rct_Wave3 = null
+    rect gg_rct_Wave4 = null
+    rect gg_rct_Base = null
+    rect gg_rct_BaseBack = null
+    rect gg_rct_Home1 = null
+    rect gg_rct_Home2 = null
+    rect gg_rct_Home3 = null
+    rect gg_rct_Home4 = null
+    rect gg_rct_Fuben1 = null
+    rect gg_rct_Fuben2 = null
+    rect gg_rct_Fuben3 = null
+    rect gg_rct_Fuben4 = null
+    rect gg_rct_Fuben5 = null
+    rect gg_rct_Fuben6 = null
+    rect gg_rct_Fuben7 = null
+    rect gg_rct_Fuben8 = null
     trigger gg_trg_______u = null
+    unit gg_unit_hcas_0011 = null
 endglobals
 function InitGlobals takes nothing returns nothing
 endfunction
@@ -1247,31 +1896,20 @@ endfunction
 //*
 //***************************************************************************
 //===========================================================================
-function CreateUnitsForPlayer0 takes nothing returns nothing
-    local player p = Player(0)
+function CreateBuildingsForPlayer8 takes nothing returns nothing
+    local player p = Player(8)
     local unit u
     local integer unitID
     local trigger t
     local real life
-    set u = CreateUnit( p, 'Hpal', 570.0, 552.3, 51.429 )
-    set u = CreateUnit( p, 'hpea', -552.3, 69.1, 282.313 )
-    set u = CreateUnit( p, 'hpea', -145.7, -39.9, 323.623 )
-    set u = CreateUnit( p, 'hpea', 96.7, -330.2, 92.189 )
-    set u = CreateUnit( p, 'hpea', -524.6, -462.3, 34.256 )
-    set u = CreateUnit( p, 'hfoo', 502.5, -170.6, 231.775 )
-    set u = CreateUnit( p, 'hfoo', 705.6, -242.4, 293.674 )
-    set u = CreateUnit( p, 'hfoo', 813.7, -187.0, 59.053 )
-    set u = CreateUnit( p, 'hfoo', 846.7, -125.9, 192.179 )
-    set u = CreateUnit( p, 'Hblm', 123.7, 250.6, 0.000 )
-    set u = CreateUnit( p, 'Hamg', -299.6, 414.6, 1.033 )
-    set u = CreateUnit( p, 'Hmkg', 329.3, 207.7, 69.337 )
+    set gg_unit_hcas_0011 = CreateUnit( p, 'hcas', -64.0, -1984.0, 270.000 )
 endfunction
 //===========================================================================
 function CreatePlayerBuildings takes nothing returns nothing
+    call CreateBuildingsForPlayer8( )
 endfunction
 //===========================================================================
 function CreatePlayerUnits takes nothing returns nothing
-    call CreateUnitsForPlayer0( )
 endfunction
 //===========================================================================
 function CreateAllUnits takes nothing returns nothing
@@ -1280,21 +1918,45 @@ function CreateAllUnits takes nothing returns nothing
 endfunction
 //***************************************************************************
 //*
-//*  Triggers
+//*  Regions
 //*
 //***************************************************************************
-//===========================================================================
-// Trigger: 简介
-//===========================================================================
+function CreateRegions takes nothing returns nothing
+    local weathereffect we
+    set gg_rct_Wave1 = Rect( -5088.0, 3168.0, -4448.0, 3968.0 )
+    set gg_rct_Wave2 = Rect( -1568.0, 3360.0, -928.0, 4160.0 )
+    set gg_rct_Wave3 = Rect( 1312.0, 3584.0, 1952.0, 4384.0 )
+    set gg_rct_Wave4 = Rect( 4320.0, 3232.0, 4960.0, 4032.0 )
+    set gg_rct_Base = Rect( -320.0, -2304.0, 192.0, -1664.0 )
+    set gg_rct_BaseBack = Rect( -320.0, -3328.0, 160.0, -2848.0 )
+    set gg_rct_Home1 = Rect( -10496.0, 1440.0, -8128.0, 3776.0 )
+    set gg_rct_Home2 = Rect( 7712.0, 1568.0, 10080.0, 3904.0 )
+    set gg_rct_Home3 = Rect( -10464.0, -3680.0, -8096.0, -1344.0 )
+    set gg_rct_Home4 = Rect( 7712.0, -3552.0, 10080.0, -1216.0 )
+    set gg_rct_Fuben1 = Rect( -11872.0, 7968.0, -8224.0, 11584.0 )
+    set gg_rct_Fuben2 = Rect( -5472.0, 8000.0, -1824.0, 11616.0 )
+    set gg_rct_Fuben3 = Rect( 1184.0, 8000.0, 4832.0, 11616.0 )
+    set gg_rct_Fuben4 = Rect( 7712.0, 7968.0, 11360.0, 11584.0 )
+    set gg_rct_Fuben5 = Rect( -11872.0, -11328.0, -8224.0, -7712.0 )
+    set gg_rct_Fuben6 = Rect( -5472.0, -11328.0, -1824.0, -7712.0 )
+    set gg_rct_Fuben7 = Rect( 1184.0, -11328.0, 4832.0, -7712.0 )
+    set gg_rct_Fuben8 = Rect( 7712.0, -11328.0, 11360.0, -7712.0 )
+endfunction
+//***************************************************************************
+//*
+//*  Custom Script Code
+//*
+//***************************************************************************
 //TESH.scrollpos=0
 //TESH.alwaysfold=0
 // 当前构建版本
 // 当前的平台分包
-    // 模型测试
-    // lua_print: 模型测试
+    // 单元测试
+    // lua_print: 单元测试
 // #define StructMode // todo:结构体数量查看模式:用条件编译直接全部搞定
 //函数入口
-// lua_print: 模型地图
+// 用原始地图测试
+// 用空地图测试
 /*
 常用常量
 */
@@ -1391,94 +2053,648 @@ public hashtable SPTable = InitHashtable(); //以SpellStruct为头的表
 }
 //! endzinc
 //! zinc
-//模型测试
-library MT requires optional Variable {
-	group g = null;
-	//单位模型
-	function UnitModel (player p,string path) {
-		unit u = CreateUnit(Player(0),'Hamg',GetRandomReal(0,300),GetRandomReal(0,300),GetRandomReal(0,360));
-		DzSetUnitModel(u,path);
-		// 这个是下面的变化,是异步的
-		if (GetConvertedPlayerId(p) == GetConvertedPlayerId(GetLocalPlayer())) {
-			DzSetUnitPortrait(u,path);
-			SetCinematicScene('Hamg',GetPlayerColor(Player(0)),"","",.01,0);
-			EndCinematicScene();
-		}
-		GroupAddUnit(g,u);
-		u = null;
+/*
+特效工具
+*/
+library EffectUtils requires GroupUtils {
+    public struct efut [] {
+        static integer args1 = 0;
+        static group g = null; //临时
+}
+    //直线型特效
+    public struct missile {
+        public static thistype ethis = 0;	//正在运行的实例获取
+static timer t = null; //运动计时器
+static thistype List [];	//内容列表
+static integer size = 0;	//现在有几个东西
+
+        integer uID; //[成员]绑定的ID
+real x, y, z, dx, dy, dz; //[成员]起点与终点
+real xySpeed, zSpeed, speed;	//[成员]移动速度
+effect e; //[成员]特效本体
+trigger tr; //[成员]特效到达目标后
+boolean down; //[成员]是向上还是向下
+
+        optional module efStat; //[外导的]存储信息
+
+        method isExist () -> boolean {return (this != null && si__missile_V[this] == -1);}
+        method onDestroy () {
+            DestroyEffect(e);
+            DestroyTrigger(tr);
+            e = null;
+            tr = null;
+        }
+        method unreg () {
+            if (!(isExist())) return;
+            if (uID != 0) {
+                //这个其实就是将List的[2]设成5  假设2是删  5是最长
+                //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)
+                //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+                List[uID] = List[size];
+                List[uID].uID = uID;
+                size -= 1;
+                uID = 0;
+            }
+            this.destroy();
+        }
+        //func1 是结束时调用
+        static method reg (string s,real x,real y,real z,real dx,real dy,real dz,real speed,code func1) -> thistype {
+            real distanceXY , distance , distanceZ;
+            thistype this = allocate();
+            if (this <= 0) {return this;}
+            if (size > 8190) {return this;} //防止爆炸
+
+            if (func1 != null) {
+                tr = CreateTrigger();
+                TriggerAddCondition(tr,Condition(func1));
+            }
+            e = AddSpecialEffect(s, x, y );
+            EXSetEffectZ(e,z);
+            EXEffectMatRotateZ(e,GetFacing(x,y,dx,dy));
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.dx = dx;
+            this.dy = dy;
+            this.dz = dz;
+            distanceXY = GetDistance(x,y,dx,dy);
+            distanceZ = RAbsBJ(z-dz);
+            distance = GetDistanceZ(x,y,z,dx,dy,dz);
+            if (distance > 0) { //设置一下速度
+this.speed = speed;
+                this.xySpeed = speed * SquareRoot(distanceXY * distanceXY / distance / distance);
+                this.zSpeed = speed * SquareRoot(distanceZ * distanceZ / distance / distance);
+                if (dz > z) {
+                    down = false;
+                } else {
+                    down = true;
+                }
+            } else { //原地还行,那就立刻触发吧
+if (tr != null) {
+                    ethis = this;
+                    TriggerEvaluate(tr);
+                }
+                destroy();
+                return 0;
+            }
+            if (uID == 0) { //这里是初始化时的设置内容,不需要改
+size += 1;
+                List[size] = this;
+                uID = size;
+            }
+            if (t == null) {
+                t = CreateTimer();
+                TimerStart(t,0.05,true,function (){
+                    trigger tr;
+                    integer i , this;
+                    boolean b;
+                    if (size > 0) {
+                        for (1 <= i <= size) {
+                            tr = CreateTrigger();
+                            efut.args1 = List[i];
+                            TriggerAddCondition(tr, Condition(function () -> boolean {
+                                thistype this = efut.args1;
+                                real angle = GetFacing(x,y,dx,dy);
+                                real nx = YDWECoordinateX(x + xySpeed * CosBJ(angle));
+                                real ny = YDWECoordinateY(y + xySpeed * SinBJ(angle));
+                                real nz;
+                                if (down) nz = RMaxBJ(dz,z - zSpeed); //向下运动,z速是负数
+else nz = RMinBJ(dz,zSpeed + z); //向上运动,z速是正数
+
+                                EXSetEffectXY(e,nx,ny);
+                                EXSetEffectZ(e,nz);
+                                if (GetDistanceZ(nx,ny,nz,dx,dy,dz) <= speed) { //到地方了
+if (tr != null) {
+                                        ethis = this;
+                                        TriggerEvaluate(tr);
+                                    }
+                                    unreg();
+                                    return false;
+                                } else { //没到 存一下地点
+x = nx;
+                                    y = ny;
+                                    z = nz;
+                                }
+                                return true;
+                            }));
+                            b = TriggerEvaluate(tr);
+                            DestroyTrigger(tr);
+                            tr = null;
+                            if (!b) i -= 1; //代替在里面的减
+}
+                    }
+                    if (size <= 0) { //这里就删计时器吧
+PauseTimer(t);
+                        DestroyTimer(t);
+                        t = null;
+                    }
+                });
+            }
+            return this;
+        }
+    }
+    //瞄准单位型(带Z轴的贝塞尔曲线)
+    public struct umissile {
+        public static thistype ethis = 0;	//正在运行的实例获取
+static timer t = null; //运动计时器
+static thistype List [];	//内容列表
+static integer size = 0;	//现在有几个东西
+
+        integer uID; //[成员]绑定的ID
+real cd; //[成员]倒计时
+real ux, uy, uz;	//[成员]贝塞尔点1(起点)
+real ex, ey, ez;	//[成员]贝塞尔点2(中点)
+real nx, ny, nz;	//[成员]贝塞尔点2(终点),用于如果目标死亡的缓存点
+unit u; //[成员]目标单位
+effect e; //[成员]特效本体
+trigger tr; //[成员]特效到达目标后
+
+        optional module efStat; //[外导的]存储信息
+
+        method isExist () -> boolean {return (this != null && si__umissile_V[this] == -1);}
+        method onDestroy () {
+            DestroyEffect(e);
+            DestroyTrigger(tr);
+            e = null;
+            tr = null;
+            u = null;
+        }
+        method unreg () {
+            if (!(isExist())) return;
+            if (uID != 0) {
+                //这个其实就是将List的[2]设成5  假设2是删  5是最长
+                //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)
+                //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+                List[uID] = List[size];
+                List[uID].uID = uID;
+                size -= 1;
+                uID = 0;
+            }
+            this.destroy();
+        }
+        //由于是跟踪型,目标
+        static method reg (string s,real x,real y,real z,unit target,code func1) -> thistype {
+            real angle,angle2;
+            real x1,y1;
+            integer random;
+            thistype this = allocate();
+            if (this <= 0) {return this;}
+            if (size > 8190) {return this;} //防止爆炸
+
+            if (func1 != null) {
+                tr = CreateTrigger();
+                TriggerAddCondition(tr,Condition(func1));
+            }
+			angle = GetFacing(x,y,GetUnitX(target),GetUnitY(target));
+			ux = YDWECoordinateX(x - 60 * CosBJ(angle));
+			uy = YDWECoordinateY(y - 60 * SinBJ(angle));
+			uz = z + 80;
+			x1 = YDWECoordinateX(x - 1 * CosBJ(angle));
+			y1 = YDWECoordinateY(y - 1 * SinBJ(angle));
+			angle2 = GetFacing(x,y,x1,y1);
+			random = GetRandomInt(1,10);
+			ex = CosBJ(90-(18*random+angle2)) * 1000 + x1;
+			ey = SinBJ(90-(18*random+angle2)) * 1000 + y1;
+			ez = 600;
+			e = AddSpecialEffect(s, ux,uy );
+			u = target;
+			cd = 0.;
+			nx = GetUnitX(target);
+			ny = GetUnitY(target);
+			nz = GetUnitFlyHeight(target) + 50;
+			EXSetEffectZ(e,uz);
+            if (uID == 0) { //这里是初始化时的设置内容,不需要改
+size += 1;
+                List[size] = this;
+                uID = size;
+            }
+            if (t == null) {
+                t = CreateTimer();
+                TimerStart(t,0.03,true,function (){
+                    trigger tr;
+                    integer i , this;
+                    boolean b;
+                    if (size > 0) {
+                        for (1 <= i <= size) {
+                            tr = CreateTrigger();
+                            efut.args1 = List[i];
+                            TriggerAddCondition(tr, Condition(function () -> boolean {
+                                thistype this = efut.args1;
+                                real tx,ty,tz; //贝塞尔坐标
+real txi,tyi; //下一步的位置,求出角度
+
+                                if (cd > 0.98) { //到地方了
+if (tr != null) {
+                                        ethis = this;
+                                        TriggerEvaluate(tr);
+                                    }
+                                    unreg();
+                                    return false;
+                                } else { //没到 存一下地点以防万一
+if (IsUnitAliveBJ(u)) { //活着跟踪
+nx = GetUnitX(u);
+                                        ny = GetUnitY(u);
+                                        nz = GetUnitFlyHeight(u) + 50;
+                                    } //没活着就
+
+                                    cd += 0.02;
+                                    tx = Pow((1-cd),2)*ux + 2 *cd * (1-cd)*ex + Pow(cd,2)*nx;
+                                    ty = Pow((1-cd),2)*uy + 2 *cd * (1-cd)*ey + Pow(cd,2)*ny;
+                                    tz = Pow((1-cd),2)*uz + 2 *cd * (1-cd)*ez + Pow(cd,2)*nz;
+                                    EXSetEffectZ(e,tz);
+                                    EXSetEffectXY(e,tx,ty);
+                                    EXEffectMatReset(e);
+                                    txi = Pow((1-(cd+0.02)),2)*ux + 2 *(cd+0.02) * (1-(cd+0.02))*ex + Pow((cd+0.02),2)*nx;
+                                    tyi = Pow((1-(cd+0.02)),2)*uy + 2 *(cd+0.02) * (1-(cd+0.02))*ey + Pow((cd+0.02),2)*ny;
+                                    EXEffectMatRotateZ(e,GetFacing(tx,ty,txi,tyi));
+                                }
+                                return true;
+                            }));
+                            b = TriggerEvaluate(tr);
+                            DestroyTrigger(tr);
+                            tr = null;
+                            if (!b) i -= 1; //代替在里面的减
+}
+                    }
+                    if (size <= 0) { //这里就删计时器吧
+PauseTimer(t);
+                        DestroyTimer(t);
+                        t = null;
+                    }
+                });
+            }
+            return this;
+        }
+    }
+    //直线穿透型
+    public struct pierce {
+        public static thistype ethis = 0;	//正在运行的实例获取
+static timer t = null; //运动计时器
+static thistype List []; //内容列表
+static integer size = 0; //现在有几个东西
+
+        integer uID; //[成员]绑定的ID
+real x, y, dx, dy;	//[成员]起点与终点(没有Z)
+real speed,radius;	//[成员]移动速度/单位组检测范围
+effect e; //[成员]特效本体
+trigger trU,trEnd;	//[成员]触发(伤害时(与帧事件)/结束时)
+group g; //[成员]缓存单位组
+
+        optional module efStat; //[外导的]存储信息
+
+        method isExist () -> boolean {return (this != null && si__pierce_V[this] == -1);}
+        method onDestroy () {
+            DestroyEffect(e);
+            DestroyTrigger(trU);
+            DestroyTrigger(trEnd);
+            DestroyGroup(g);
+            e = null;
+            trU = null;
+            trEnd = null;
+            g = null;
+        }
+        method unreg () {
+            if (!(isExist())) return;
+            if (uID != 0) {
+                //这个其实就是将List的[2]设成5  假设2是删  5是最长
+                //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)
+                //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+                List[uID] = List[size];
+                List[uID].uID = uID;
+                size -= 1;
+                uID = 0;
+            }
+            this.destroy();
+        }
+        //func1 是结束时调用
+        static method reg (string s,real x,real y,real dx,real dy,real speed,real radius,code funU,code funEnd) -> thistype {
+            thistype this = allocate();
+            if (this <= 0) {return this;}
+            if (size > 8190) {return this;} //防止爆炸
+
+            if (funU != null) {
+                trU = CreateTrigger();
+                TriggerAddCondition(trU,Condition(funU));
+            }
+            if (funEnd != null) {
+                trEnd = CreateTrigger();
+                TriggerAddCondition(trEnd,Condition(funEnd));
+            }
+            e = AddSpecialEffect(s, x, y );
+            EXEffectMatRotateZ(e,GetFacing(x,y,dx,dy));
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
+            this.speed = speed;
+            this.radius = radius;
+            this.g = CreateGroup();
+            if (uID == 0) { //这里是初始化时的设置内容,不需要改
+size += 1;
+                List[size] = this;
+                uID = size;
+            }
+            if (t == null) {
+                t = CreateTimer();
+                TimerStart(t,0.05,true,function (){
+                    trigger tr;
+                    integer i , this;
+                    boolean b;
+                    if (size > 0) {
+                        for (1 <= i <= size) {
+                            tr = CreateTrigger();
+                            efut.args1 = List[i];
+                            TriggerAddCondition(tr, Condition(function () -> boolean {
+                                thistype this = efut.args1;
+                                real angle = GetFacing(x,y,dx,dy);
+                                real nx = YDWECoordinateX(x + speed * CosBJ(angle));
+                                real ny = YDWECoordinateY(y + speed * SinBJ(angle));
+                                EXSetEffectXY(e,nx,ny);
+                                efut.g = CreateGroup();
+                                efut.args1 = this;
+                                GroupEnumUnitsInRangeEx(efut.g, nx,ny, radius, Filter(function () -> boolean {
+                                    thistype this = efut.args1;
+                                    if (!IsUnitInGroup(GetFilterUnit(),g)) {
+                                        GroupAddUnit(g,GetFilterUnit());
+                                        return true;
+                                    }
+                                    return false;
+                                }));
+                                if (trU != null) { //针对每个穿刺到的单位进行操作,也自动归进单位组了
+ethis = this;
+                                    TriggerEvaluate(trU); //Frame也写到这里吧 帧事件
+}
+                                DestroyGroup(efut.g);
+                                efut.g = null;
+                                if (GetDistance(nx,ny,dx,dy) <= speed) { //到地方了
+if (trEnd != null) {
+                                        ethis = this;
+                                        TriggerEvaluate(trEnd);
+                                    }
+                                    unreg();
+                                    return false;
+                                } else { //没到 存一下地点
+x = nx;
+                                    y = ny;
+                                }
+                                return true;
+                            }));
+                            b = TriggerEvaluate(tr);
+                            DestroyTrigger(tr);
+                            tr = null;
+                            if (!b) i -= 1; //代替在里面的减
+}
+                    }
+                    if (size <= 0) { //这里就删计时器吧
+PauseTimer(t);
+                        DestroyTimer(t);
+                        t = null;
+                    }
+                });
+            }
+            return this;
+        }
+    }
+}
+//! endzinc
+//! zinc
+//blp
+//blp
+//blp
+//自动生成的文件
+library UTEffectUtils requires optional EffectUtils,Variable { //blp
+//blp
+//blp
+
+	//blp
+	//blp
+	//blp
+	//blp
+	//blp
+	function TTestUTEffectUtils1 (player p) {
+		MemoryLeakShow();
+		StructShow();
+		GetLocalizedHotkey("yd_leak_monitor::create_report");
+		DumpAllString("PO_stringTT.txt");
 	}
-	//普通一次性特效
-	//绑定特效,并在5秒后删除
-	function EfxB (string bind,string path) {
-		timer t = CreateTimer();
-		unit u = CreateUnit(Player(0),'Hblm',GetRandomReal(0,300),GetRandomReal(0,300),GetRandomReal(0,360));
-		SaveEffectHandle(TITable,GetHandleId(t),1,AddSpecialEffectTargetUnitBJ(bind,u,path));
-		SaveUnitHandle(TITable,GetHandleId(t),2,u);
-		TimerStart(t,5.0,false,function (){
+	//blp
+	//blp
+	//blp
+	function TTestUTEffectUtils2 (player p) { //测试一下纯直线弹幕
+missile ms;
+		integer i;
+		for (1 <= i <= 10) {
+			ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",GetRandomReal(-2000,2000),GetRandomReal(-2000,2000),0,GetRandomReal(-2000,2000),GetRandomReal(-2000,2000),0,GetRandomReal(30,100),function(){
+				BJDebugMsg("到达地点咯!");
+			});
+		}
+	}
+	function TTestUTEffectUtils3 (player p) { //測試一下向上飞的直线弹幕
+missile ms;
+		integer i;
+		real x;
+		real y;
+		for (1 <= i <= 10) {
+			// ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",0,0,0,GetRandomReal(-1000,2000),GetRandomReal(-1000,2000),GetRandomReal(2000,3000),GetRandomReal(10,30),function(){
+			// 	BJDebugMsg("飞天咯!");
+			// });
+			x = GetRandomReal(-1000,2000);
+			y = GetRandomReal(-1000,2000);
+			ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",x,y,0,x,y,GetRandomReal(2000,3000),GetRandomReal(30,100),function(){
+				BJDebugMsg("飞天咯!");
+			});
+			EXEffectMatRotateY(ms.e,270);
+			// EXEffectMatRotateY(ms.e,90);
+		}
+	}
+	function TTestUTEffectUtils4 (player p) { //測試一下向下飞的直线弹幕
+missile ms;
+		integer i;
+		real x;
+		real y;
+		for (1 <= i <= 10) {
+			// ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",GetRandomReal(-1000,2000),GetRandomReal(-1000,2000),GetRandomReal(2000,3000),0,0,0,GetRandomReal(10,30),function(){
+			// 	BJDebugMsg("落地咯!");
+			// });
+			x = GetRandomReal(-1000,2000);
+			y = GetRandomReal(-1000,2000);
+			ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",x,y,GetRandomReal(2000,3000),x,y,0,GetRandomReal(30,100),function(){
+				BJDebugMsg("落地咯!");
+			});
+			EXEffectMatRotateY(ms.e,90);
+		}
+	}
+	effect ef = null;
+	function TTestUTEffectUtils5 (player p) { //研究一下特效X轴旋转
+timer t;
+		if (ef == null) {
+			ef = AddSpecialEffect("units\\human\\phoenix\\phoenix.mdl", 0,0 );
+			EXSetEffectZ(ef,100);
+			EXEffectMatScale(ef,2.0,2.0,2.0);
+		}
+		t = CreateTimer();
+		SaveInteger(TITable,GetHandleId(t),1,1);
+		TimerStart(t,0.02,true,function (){
 			timer t = GetExpiredTimer();
 			integer id = GetHandleId(t);
-			effect e = LoadEffectHandle(TITable,id,1);
-			unit u = LoadUnitHandle(TITable,id,2);
-			timer t2 = CreateTimer();
-			DestroyEffect(e);
-			SaveUnitHandle(TITable,GetHandleId(t2),1,u);
-			TimerStart(t2,3.0,false,function (){
-				timer t2 = GetExpiredTimer();
-				integer id = GetHandleId(t2);
-				unit u = LoadUnitHandle(TITable,id,1);
-				RemoveUnit(u);
-				PauseTimer(t2);
+			integer i = LoadInteger(TITable,id,1);
+			if (i <= 360) {
+				EXEffectMatRotateX(ef,1.0);
+				i += 1;
+				SaveInteger(TITable,id,1,i);
+			} else {
+				PauseTimer(t);
 				FlushChildHashtable(TITable,id);
-				DestroyTimer(t2);
-				t2 = null;
-				u = null;
-			});
-			t2 = null;
-			PauseTimer(t);
-			FlushChildHashtable(TITable,id);
-			DestroyTimer(t);
+				DestroyTimer(t);
+			}
 			t = null;
-			e = null;
-			u = null;
 		});
 		t = null;
 	}
-	//测试弹幕
-	function Danmu (string path) {
-		timer t = CreateTimer();
-		real cx = 0, cy = 0;
-		real dx = GetRandomReal(-1200,1200), dy = GetRandomReal(-1200,1200);
-		real cz = 0, dz = GetRandomReal(300,600);
-		real speed = 25.0;
-		effect e = AddSpecialEffect(path, cx,cy);
-		// EXEffectMatScale(e,2.0,2.0,2.0);
-		EXEffectMatRotateZ(e,GetFacing(cx,cy,dx,dy));
-		SaveEffectHandle(TITable,GetHandleId(t),1,e);
-		SaveReal(TITable,GetHandleId(t),2,cx);
-		SaveReal(TITable,GetHandleId(t),3,cy);
-		SaveReal(TITable,GetHandleId(t),4,dx);
-		SaveReal(TITable,GetHandleId(t),5,dy);
-		SaveReal(TITable,GetHandleId(t),6,cz);
-		SaveReal(TITable,GetHandleId(t),7,dz);
-		SaveReal(TITable,GetHandleId(t),8,speed*(RAbsBJ(dz-cz))/GetDistance(cx,cy,dx,dy));
-		SaveReal(TITable,GetHandleId(t),9,speed); //帧速度,乘间隔就是秒速
-TimerStart(t,0.02,true,function (){
+	function TTestUTEffectUtils6 (player p) { //研究一下特效Y轴旋转
+timer t;
+		if (ef == null) {
+			ef = AddSpecialEffect("units\\human\\phoenix\\phoenix.mdl", 0,0 );
+			EXSetEffectZ(ef,100);
+			EXEffectMatScale(ef,2.0,2.0,2.0);
+		}
+		t = CreateTimer();
+		SaveInteger(TITable,GetHandleId(t),1,1);
+		TimerStart(t,0.02,true,function (){
 			timer t = GetExpiredTimer();
 			integer id = GetHandleId(t);
-			effect e = LoadEffectHandle(TITable,id,1);
-			real cx = LoadReal(TITable,id,2), cy = LoadReal(TITable,id,3);
-			real dx = LoadReal(TITable,id,4), dy = LoadReal(TITable,id,5);
-			real cz = LoadReal(TITable,id,6), dz = LoadReal(TITable,id,7);
-			real speed = LoadReal(TITable,id,9), zSpeed = LoadReal(TITable,id,8);
-			real angle = GetFacing(cx,cy,dx,dy);
-			real ncx = YDWECoordinateX(cx + speed *CosBJ(angle)), ncy = YDWECoordinateY(cy + speed * SinBJ(angle)), ncz = zSpeed + cz;
-			if (GetDistance(cx,cy,dx,dy) > speed) {
-				//还行
-				SaveReal(TITable,GetHandleId(t),2,ncx);
-				SaveReal(TITable,GetHandleId(t),3,ncy);
-				SaveReal(TITable,GetHandleId(t),6,ncz);
-				EXSetEffectXY(e,ncx,ncy);
-				EXSetEffectZ(e,ncz);
+			integer i = LoadInteger(TITable,id,1);
+			if (i <= 360) {
+				EXEffectMatRotateY(ef,1.0);
+				i += 1;
+				SaveInteger(TITable,id,1,i);
+			} else {
+				PauseTimer(t);
+				FlushChildHashtable(TITable,id);
+				DestroyTimer(t);
+			}
+			t = null;
+		});
+		t = null;
+	}
+	function TTestUTEffectUtils7 (player p) { //研究一下特效Z轴旋转:就是普通的
+timer t;
+		if (ef == null) {
+			ef = AddSpecialEffect("units\\human\\phoenix\\phoenix.mdl", 0,0 );
+			EXSetEffectZ(ef,100);
+			EXEffectMatScale(ef,2.0,2.0,2.0);
+		}
+		t = CreateTimer();
+		SaveInteger(TITable,GetHandleId(t),1,1);
+		TimerStart(t,0.02,true,function (){
+			timer t = GetExpiredTimer();
+			integer id = GetHandleId(t);
+			integer i = LoadInteger(TITable,id,1);
+			if (i <= 360) {
+				EXEffectMatRotateZ(ef,1.0);
+				i += 1;
+				SaveInteger(TITable,id,1,i);
+			} else {
+				PauseTimer(t);
+				FlushChildHashtable(TITable,id);
+				DestroyTimer(t);
+			}
+			t = null;
+		});
+		t = null;
+	}
+	unit u1 = null;
+	unit u2 = null;
+	trigger trSY = null;
+	function TTestUTEffectUtils8 (player p) { //贝塞尔
+timer t;
+		if (trSY == null) {
+			trSY = CreateTrigger();
+			TriggerAddCondition(trSY, Condition(function () {
+				if (GetIssuedOrderId() == String2OrderIdBJ("smart")) {
+					DzSetUnitPosition(GetTriggerUnit(),GetOrderPointX(),GetOrderPointY());
+				}
+			}));
+		}
+		if (u1 == null) {
+			u1 = CreateUnit(p,'Hpal',0,0,0);
+			TriggerRegisterUnitEvent(trSY,u1,EVENT_UNIT_ISSUED_POINT_ORDER);
+		}
+		if (u2 == null) {
+			u2 = CreateUnit(p,'Ewar',1000,1000,0);
+			TriggerRegisterUnitEvent(trSY,u2,EVENT_UNIT_ISSUED_POINT_ORDER);
+		}
+		t = CreateTimer();
+		SaveInteger(TITable,GetHandleId(t),1,1);
+		TimerStart(t,0.1,true,function (){
+			timer t2;
+			timer t = GetExpiredTimer();
+			integer id = GetHandleId(t);
+			integer i = LoadInteger(TITable,id,1);
+			real angle = GetFacing(GetUnitX(u1),GetUnitY(u1),GetUnitX(u2),GetUnitY(u2));
+			real ux = GetUnitX(u1) - 60 * CosBJ(angle);
+			real uy = GetUnitY(u1) - 60 * SinBJ(angle);
+			real uz = GetUnitFlyHeight(u1) + 80;
+			real x1 = GetUnitX(u1) - 1 * CosBJ(angle);
+			real y1 = GetUnitY(u1) - 1 * SinBJ(angle);
+			real angle2 = GetFacing(GetUnitX(u1),GetUnitY(u1),x1,y1);
+			integer random = GetRandomInt(1,10);
+			real ex = CosBJ(90-(18*random+angle2)) * 1000 + x1;
+			real ey = SinBJ(90-(18*random+angle2)) * 1000 + y1;
+			real ez = 600;
+			effect e = AddSpecialEffect("Abilities\\Weapons\\PoisonArrow\\PoisonArrowMissile.mdl", ux,uy );
+			EXSetEffectZ(e,uz);
+			if (i <= 100) {
+				t2 = CreateTimer();
+				SaveReal(TITable,GetHandleId(t2),1,0.0);
+				SaveReal(TITable,GetHandleId(t2),2,ux);
+				SaveReal(TITable,GetHandleId(t2),3,uy);
+				SaveReal(TITable,GetHandleId(t2),4,uz);
+				SaveReal(TITable,GetHandleId(t2),5,ex);
+				SaveReal(TITable,GetHandleId(t2),6,ey);
+				SaveReal(TITable,GetHandleId(t2),7,ez);
+				SaveEffectHandle(TITable,GetHandleId(t2),8,e);
+				TimerStart(t2,0.03,true,function (){
+					timer t2 = GetExpiredTimer();
+					integer id = GetHandleId(t2);
+					real cd = LoadReal(TITable,id,1);
+					real ux = LoadReal(TITable,id,2);
+					real uy = LoadReal(TITable,id,3);
+					real uz = LoadReal(TITable,id,4);
+					real ex = LoadReal(TITable,id,5);
+					real ey = LoadReal(TITable,id,6);
+					real ez = LoadReal(TITable,id,7);
+					effect e = LoadEffectHandle(TITable,id,8);
+					real nx,ny,nz; //当前单位的位置
+real tx,ty,tz; //
+real txi,tyi; //下一步的位置,求出角度
+if (cd <= 0.98) {
+						nx = GetUnitX(u2);
+						ny = GetUnitY(u2);
+						nz = GetUnitFlyHeight(u2) + 50;
+						cd += 0.02;
+						tx = Pow((1-cd),2)*ux + 2 *cd * (1-cd)*ex + Pow(cd,2)*nx;
+						ty = Pow((1-cd),2)*uy + 2 *cd * (1-cd)*ey + Pow(cd,2)*ny;
+						tz = Pow((1-cd),2)*uz + 2 *cd * (1-cd)*ez + Pow(cd,2)*nz;
+						EXSetEffectZ(e,tz);
+						EXSetEffectXY(e,tx,ty);
+						EXEffectMatReset(e);
+						txi = Pow((1-(cd+0.02)),2)*ux + 2 *(cd+0.02) * (1-(cd+0.02))*ex + Pow((cd+0.02),2)*nx;
+						tyi = Pow((1-(cd+0.02)),2)*uy + 2 *(cd+0.02) * (1-(cd+0.02))*ey + Pow((cd+0.02),2)*ny;
+						EXEffectMatRotateZ(e,GetFacing(tx,ty,txi,tyi));
+						SaveReal(TITable,id,1,cd);
+					} else {
+						DestroyEffect(e);
+						PauseTimer(t2);
+						FlushChildHashtable(TITable,id);
+						DestroyTimer(t2);
+					}
+					t2 = null;
+					e = null;
+				});
+				t2 = null;
+				i += 1;
+				SaveInteger(TITable,id,1,i);
 			} else {
 				DestroyEffect(e);
 				PauseTimer(t);
@@ -1489,286 +2705,253 @@ TimerStart(t,0.02,true,function (){
 			e = null;
 		});
 		t = null;
-		e = null;
 	}
-	//UnitModel(p,"hero_singer.mdl");
-	//Efx("Abilities\\Spells\\Undead\\FrostNova\\FrostNovaTarget.mdl");
-	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
-	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
-	function TTestMT1 (player p) {
-		UnitModel(p,"qiuti_antusheng.mdl");
-		DestroyEffect(AddSpecialEffect("qiuti_antusheng.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","qiuti_antusheng.mdl");
-		Danmu("qiuti_antusheng.mdl");
-	}
-	function TTestMT2 (player p) {
-		UnitModel(p,"e_summon (7).mdl");
-		DestroyEffect(AddSpecialEffect("e_summon (7).mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","e_summon (7).mdl");
-		Danmu("e_summon (7).mdl");
-	}
-	function TTestMT3 (player p) {
-		UnitModel(p,"e_summon (6).mdl");
-		DestroyEffect(AddSpecialEffect("e_summon (6).mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","e_summon (6).mdl");
-		Danmu("e_summon (6).mdl");
-	}
-	function TTestMT4 (player p) {
-		UnitModel(p,"e_summon (5).mdl");
-		DestroyEffect(AddSpecialEffect("e_summon (5).mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","e_summon (5).mdl");
-		Danmu("e_summon (5).mdl");
-	}
-	function TTestMT5 (player p) {
-		UnitModel(p,"e_summon (4).mdl");
-		DestroyEffect(AddSpecialEffect("e_summon (4).mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","e_summon (4).mdl");
-		Danmu("e_summon (4).mdl");
-	}
-	function TTestMT6 (player p) {
-		UnitModel(p,"e_summon (3).mdl");
-		DestroyEffect(AddSpecialEffect("e_summon (3).mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","e_summon (3).mdl");
-		Danmu("e_summon (3).mdl");
-	}
-	function TTestMT7 (player p) {
-		UnitModel(p,"e_summon (2).mdl");
-		DestroyEffect(AddSpecialEffect("e_summon (2).mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","e_summon (2).mdl");
-		Danmu("e_summon (2).mdl");
-	}
-	function TTestMT8 (player p) {
-		UnitModel(p,"e_summon (1).mdl");
-		DestroyEffect(AddSpecialEffect("e_summon (1).mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","e_summon (1).mdl");
-		Danmu("e_summon (1).mdl");
-	}
-	function TTestMT9 (player p) {
-		UnitModel(p,"e_pet_blink.mdl");
-		DestroyEffect(AddSpecialEffect("e_pet_blink.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","e_pet_blink.mdl");
-		Danmu("e_pet_blink.mdl");
-	}
-	function TTestMT10 (player p) {
-		UnitModel(p,"effect_roar_langhun.mdl");
-		DestroyEffect(AddSpecialEffect("effect_roar_langhun.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","effect_roar_langhun.mdl");
-		Danmu("effect_roar_langhun.mdl");
-	}
-	function TTestMT11 (player p) {
-		UnitModel(p,"effect_langhun_f_target.mdl");
-		DestroyEffect(AddSpecialEffect("effect_langhun_f_target.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","effect_langhun_f_target.mdl");
-		Danmu("effect_langhun_f_target.mdl");
-	}
-	function TTestMT12 (player p) {
-		UnitModel(p,"effect_knight_w_blast.mdl");
-		DestroyEffect(AddSpecialEffect("effect_knight_w_blast.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","effect_knight_w_blast.mdl");
-		Danmu("effect_knight_w_blast.mdl");
-	}
-	function TTestMT13 (player p) {
-		UnitModel(p,"effect_knight_w_1.mdl");
-		DestroyEffect(AddSpecialEffect("effect_knight_w_1.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","effect_knight_w_1.mdl");
-		Danmu("effect_knight_w_1.mdl");
-	}
-	function TTestMT14 (player p) {
-		UnitModel(p,"effect_knight_r.mdl");
-		DestroyEffect(AddSpecialEffect("effect_knight_r.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","effect_knight_r.mdl");
-		Danmu("effect_knight_r.mdl");
-	}
-	function TTestMT15 (player p) {
-		UnitModel(p,"effect_knight_q_1.mdl");
-		DestroyEffect(AddSpecialEffect("effect_knight_q_1.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","effect_knight_q_1.mdl");
-		Danmu("effect_knight_q_1.mdl");
-	}
-	function TTestMT16 (player p) {
-		UnitModel(p,"effect_knight_f.mdl");
-		DestroyEffect(AddSpecialEffect("effect_knight_f.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		EfxB("chest","effect_knight_f.mdl");
-		Danmu("effect_knight_f.mdl");
-	}
-	function TTestMT17 (player p) {
-		// UnitModel(p,"effect_knight_e_impact.mdl");
-		// Efx("effect_knight_e_impact.mdl");
-		EfxB("chest","effect_knight_e_impact.mdl");
-		// Danmu("effect_knight_e_impact.mdl");
-	}
-	function TTestMT18 (player p) {
-		// UnitModel(p,"effect_knight_e.mdl");
-		DestroyEffect(AddSpecialEffect("effect_knight_e.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300)));
-		// EfxB("chest","effect_knight_e.mdl");
-		// Danmu("effect_knight_e.mdl");
-	}
-	function TTestMT19 (player p) {
-		//replace
-	}
-	function TTestMT20 (player p) {
-		//replace
-	}
-	function TTestMT21 (player p) {
-		//replace
-	}
-	function TTestMT22 (player p) {
-		//replace
-	}
-	function TTestMT23 (player p) {
-		//replace
-	}
-	function TTestMT24 (player p) {
-		//replace
-	}
-	function TTestMT25 (player p) {
-		//replace
-	}
-	function TTestMT26 (player p) {
-		//replace
-	}
-	function TTestMT27 (player p) {
-		//replace
-	}
-	function TTestMT28 (player p) {
-		//replace
-	}
-	function TTestMT29 (player p) {
-		//replace
-	}
-	function TTestMT30 (player p) {
-		//replace
-	}
-	function TTestMT31 (player p) {
-		//replace
-	}
-	function TTestMT32 (player p) {
-		//replace
-	}
-	function TTestMT33 (player p) {
-		//replace
-	}
-	function TTestMT34 (player p) {
-		//replace
-	}
-	function TTestMT35 (player p) {
-		//replace
-	}
-	function TTestMT36 (player p) {
-		//replace
-	}
-	function TTestMT37 (player p) {
-		//replace
-	}
-	function TTestMT38 (player p) {
-		//replace
-	}
-	function TTestMT39 (player p) {
-		//replace
-	}
-	function TTestMT40 (player p) {
-		//replace
-	}
-	function TTestMT41 (player p) {
-		//replace
-	}
-	function TTestMT42 (player p) {
-		//replace
-	}
-	function TTestMT43 (player p) {
-		//replace
-	}
-	function TTestMT44 (player p) {
-		//replace
-	}
-	function TTestMT45 (player p) {
-		//replace
-	}
-	function TTestMT46 (player p) {
-		//replace
-	}
-	function TTestMT47 (player p) {
-		//replace
-	}
-	function TTestMT48 (player p) {
-		//replace
-	}
-	function TTestMT49 (player p) {
-		//replace
-	}
-	function TTestMT50 (player p) {
-		//replace
-	}
-	function DeleteUnits () {
-		ForGroup(g,function () {
-			RemoveUnit(GetEnumUnit());
+	function TTestUTEffectUtils9 (player p) { //测试一下umissile
+timer t;
+		if (trSY == null) {
+			trSY = CreateTrigger();
+			TriggerAddCondition(trSY, Condition(function () {
+				if (GetIssuedOrderId() == String2OrderIdBJ("smart")) {
+					DzSetUnitPosition(GetTriggerUnit(),GetOrderPointX(),GetOrderPointY());
+				}
+			}));
+		}
+		if (u1 == null) {
+			u1 = CreateUnit(p,'Hpal',0,0,0);
+			TriggerRegisterUnitEvent(trSY,u1,EVENT_UNIT_ISSUED_POINT_ORDER);
+		}
+		if (u2 == null) {
+			u2 = CreateUnit(p,'Ewar',1000,1000,0);
+			TriggerRegisterUnitEvent(trSY,u2,EVENT_UNIT_ISSUED_POINT_ORDER);
+		}
+		t = CreateTimer();
+		SaveInteger(TITable,GetHandleId(t),1,1);
+		TimerStart(t,0.1,true,function (){
+			timer t = GetExpiredTimer();
+			integer id = GetHandleId(t);
+			integer i = LoadInteger(TITable,id,1);
+			if (i <= 100) {
+				umissile.reg("Abilities\\Weapons\\PoisonArrow\\PoisonArrowMissile.mdl",GetUnitX(u1),GetUnitY(u1),GetUnitFlyHeight(u1),u2,function(){
+					BJDebugMsg("击中了哦.");
+				});
+				i += 1;
+				SaveInteger(TITable,id,1,i);
+			} else {
+				PauseTimer(t);
+				FlushChildHashtable(TITable,id);
+				DestroyTimer(t);
+			}
+			t = null;
 		});
+		t = null;
 	}
+	integer fra[];
+	function TTestUTEffectUtils10 (player p) { //测试一下穿刺
+pierce pe;
+		integer i;
+		integer index = GetConvertedPlayerId(p);
+		ForGroup(YDWEGetUnitsInRectAllNull(GetPlayableMapRect()),function () {
+			if (GetUnitTypeId(GetEnumUnit()) == 'nmam') {
+				RemoveUnit(GetEnumUnit());
+			}
+		});
+		// for (1 <= i <= 10) {
+		pe = pierce.reg("Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdl",GetRandomReal(-2000,-1000),GetRandomReal(-2000,-1000),GetRandomReal(1000,2000),GetRandomReal(1000,2000),100,450,function(){ //帧事件与单位
+pierce pe = pierce.ethis;
+			if (CountUnitsInGroup(efut.g) > 0) {
+				ForGroup(efut.g,function () {
+					pierce pe = pierce.ethis;
+					integer index = 1;
+					if (IsEnemyIncludeInvul(Player(0),GetEnumUnit())) {
+						BJDebugMsg(pd[index].name +"的敌人:"+GetUnitName(GetEnumUnit()));
+						KillUnit(GetEnumUnit());
+					} else if (IsAlly(Player(0),GetEnumUnit())) {
+						BJDebugMsg(pd[index].name +"的队友:"+GetUnitName(GetEnumUnit()));
+						SetUnitState(GetEnumUnit(),UNIT_STATE_LIFE,100);
+					} else {
+						BJDebugMsg("已经死亡的:"+GetUnitName(GetEnumUnit()));
+					}
+				});
+			}
+			fra[pe] = ModuloInteger(fra[pe],3)+1;
+			if (ModuloInteger(fra[pe],3) == 0) {
+				DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Other\\Charm\\CharmTarget.mdl", pe.x,pe.y ));
+			}
+		},
+		function(){ //结束事件
+pierce pe = pierce.ethis;
+			BJDebugMsg("结束啦!!");
+		});
+		// pe.h = MH[index];
+		fra[pe]= 0;
+		EXEffectMatScale(pe.e,3.0,3.0,3.0);
+		EXSetEffectZ(pe.e,200);
+		// }
+		for (1 <= i <= 20) { //创建几个单位
+CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE),'nmam',GetRandomReal(-200,200),GetRandomReal(-200,200),0);
+			CreateUnit(Player(0),'nmam',GetRandomReal(-200,200),GetRandomReal(-200,200),0);
+		}
+	}
+	real xLi = 0.;
+	real yLi = 0.;
+	function TTestUTEffectUtils11 (player p) { //测试一下边界点
+timer t;
+		t = CreateTimer();
+		SaveInteger(TITable,GetHandleId(t),1,1);
+		TimerStart(t,0.05,true,function (){
+			timer t = GetExpiredTimer();
+			integer id = GetHandleId(t);
+			integer i = LoadInteger(TITable,id,1);
+			pierce pe;
+			if (i <= 720) {
+				//每个角度各来一发
+				radiationEnd.cal(xLi,yLi,i*0.5);
+				pe = pierce.reg("Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdl",xLi,
+				yLi,YDWECoordinateX(radiationEnd.x),YDWECoordinateY(radiationEnd.y),100,450,function(){ //帧事件与单位
+pierce pe = pierce.ethis;
+					if (CountUnitsInGroup(efut.g) > 0) {
+						ForGroup(efut.g,function () {
+							pierce pe = pierce.ethis;
+							BJDebugMsg("单位名字:"+GetUnitName(GetEnumUnit()));
+						});
+					}
+				},
+				function(){ //结束事件
+pierce pe = pierce.ethis;
+					BJDebugMsg("光波("+I2S(pe)+")结束啦:"+R2S(pe.x)+","+R2S(pe.y));
+				});
+				i += 1;
+				SaveInteger(TITable,id,1,i);
+			} else {
+				PauseTimer(t);
+				FlushChildHashtable(TITable,id);
+				DestroyTimer(t);
+			}
+			t = null;
+		});
+		t = null;
+	}
+	function TTestUTEffectUtils12 (player p) {
+	}
+	function TTestUTEffectUtils13 (player p) {
+	}
+	function TTestUTEffectUtils14 (player p) {
+	}
+	function TTestUTEffectUtils15 (player p) {
+	}
+	function TTestUTEffectUtils16 (player p) {
+	}
+	function TTestUTEffectUtils17 (player p) {
+	}
+	function TTestUTEffectUtils18 (player p) {
+	}
+	function TTestUTEffectUtils19 (player p) {
+	}
+	function TTestUTEffectUtils20 (player p) {
+	}
+	function TTestActUTEffectUtils1 (string str) {
+		player p = GetTriggerPlayer();
+		integer index = GetConvertedPlayerId(p);
+		integer i, num = 0, len = StringLength(str); //获取范围式数字
+string paramS []; //所有参数S
+integer paramI []; //所有参数I
+real	paramR []; //所有参数R
+for (0 <= i <= len - 1) {
+			if (SubString(str,i,i+1) == " ") {
+				paramS[num]= SubString(str,0,i);
+				paramI[num]= S2I(paramS[num]);
+				paramR[num]= S2R(paramS[num]);
+				num = num + 1;
+				str = SubString(str,i + 1,len);
+				len = StringLength(str);
+				i = -1;
+			}
+		}
+		paramS[num]= str;
+		paramI[num]= S2I(paramS[num]);
+		paramR[num]= S2R(paramS[num]);
+		num = num + 1;
+		if (paramS[0] == "x") { //测试一下混合的特效
+EXEffectMatRotateX(ef,paramR[1]);
+		} else if (paramS[0] == "y") {
+			EXEffectMatRotateY(ef,paramR[1]);
+		} else if (paramS[0] == "z") {
+			EXEffectMatRotateZ(ef,paramR[1]);
+		} else if (paramS[0] == "height") { //高度
+EXSetEffectZ(ef,paramR[1]);
+		} else if (paramS[0] == "reset") { //恢复
+EXEffectMatReset(ef);
+			EXEffectMatScale(ef,2.0,2.0,2.0);
+		} else if (paramS[0] == "xl") { //设置一下s11的初始位置
+xLi = paramR[1];
+			BJDebugMsg("xLi"+":"+R2S(xLi));
+		} else if (paramS[0] == "yl") { //设置一下s11的初始位置
+yLi = paramR[1];
+			BJDebugMsg("yLi"+":"+R2S(yLi));
+		}
+		p = null;
+	}
+	//blpend
+	//blpend
+	//blpend
 	function onInit () {
 		integer i;
-		for (1 <= i <= 12) {
+		for (1 <= i <= 16) {
 			CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() );
-			SetCameraFieldForPlayer( ConvertedPlayer(i), CAMERA_FIELD_ZOFFSET, ( GetCameraTargetPositionZ() + 800.00 ), 0 );
 		}
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
-			if (str == "t") DeleteUnits();
-			if (str == "s1") TTestMT1(GetTriggerPlayer());
-			else if(str == "s2") TTestMT2(GetTriggerPlayer());
-			else if(str == "s3") TTestMT3(GetTriggerPlayer());
-			else if(str == "s4") TTestMT4(GetTriggerPlayer());
-			else if(str == "s5") TTestMT5(GetTriggerPlayer());
-			else if(str == "s6") TTestMT6(GetTriggerPlayer());
-			else if(str == "s7") TTestMT7(GetTriggerPlayer());
-			else if(str == "s8") TTestMT8(GetTriggerPlayer());
-			else if(str == "s9") TTestMT9(GetTriggerPlayer());
-			else if(str == "s10") TTestMT10(GetTriggerPlayer());
-			else if(str == "s11") TTestMT11(GetTriggerPlayer());
-			else if(str == "s12") TTestMT12(GetTriggerPlayer());
-			else if(str == "s13") TTestMT13(GetTriggerPlayer());
-			else if(str == "s14") TTestMT14(GetTriggerPlayer());
-			else if(str == "s15") TTestMT15(GetTriggerPlayer());
-			else if(str == "s16") TTestMT16(GetTriggerPlayer());
-			else if(str == "s17") TTestMT17(GetTriggerPlayer());
-			else if(str == "s18") TTestMT18(GetTriggerPlayer());
-			else if(str == "s19") TTestMT19(GetTriggerPlayer());
-			else if(str == "s20") TTestMT20(GetTriggerPlayer());
-			else if(str == "s21") TTestMT21(GetTriggerPlayer());
-			else if(str == "s22") TTestMT22(GetTriggerPlayer());
-			else if(str == "s23") TTestMT23(GetTriggerPlayer());
-			else if(str == "s24") TTestMT24(GetTriggerPlayer());
-			else if(str == "s25") TTestMT25(GetTriggerPlayer());
-			else if(str == "s26") TTestMT26(GetTriggerPlayer());
-			else if(str == "s27") TTestMT27(GetTriggerPlayer());
-			else if(str == "s28") TTestMT28(GetTriggerPlayer());
-			else if(str == "s29") TTestMT29(GetTriggerPlayer());
-			else if(str == "s30") TTestMT30(GetTriggerPlayer());
-			else if(str == "s31") TTestMT31(GetTriggerPlayer());
-			else if(str == "s32") TTestMT32(GetTriggerPlayer());
-			else if(str == "s33") TTestMT33(GetTriggerPlayer());
-			else if(str == "s34") TTestMT34(GetTriggerPlayer());
-			else if(str == "s35") TTestMT35(GetTriggerPlayer());
-			else if(str == "s36") TTestMT36(GetTriggerPlayer());
-			else if(str == "s37") TTestMT37(GetTriggerPlayer());
-			else if(str == "s38") TTestMT38(GetTriggerPlayer());
-			else if(str == "s39") TTestMT39(GetTriggerPlayer());
-			else if(str == "s40") TTestMT40(GetTriggerPlayer());
-			else if(str == "s41") TTestMT41(GetTriggerPlayer());
-			else if(str == "s42") TTestMT42(GetTriggerPlayer());
-			else if(str == "s43") TTestMT43(GetTriggerPlayer());
-			else if(str == "s44") TTestMT44(GetTriggerPlayer());
-			else if(str == "s45") TTestMT45(GetTriggerPlayer());
-			else if(str == "s46") TTestMT46(GetTriggerPlayer());
-			else if(str == "s47") TTestMT47(GetTriggerPlayer());
-			else if(str == "s48") TTestMT48(GetTriggerPlayer());
-			else if(str == "s49") TTestMT49(GetTriggerPlayer());
-			else if(str == "s50") TTestMT50(GetTriggerPlayer());
+			if (SubStringBJ(str,1,1) == "-") {
+				TTestActUTEffectUtils1(SubStringBJ(str,2,StringLength(str)));
+				return;
+			}
+			if (str == "s1") TTestUTEffectUtils1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTEffectUtils2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTEffectUtils3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTEffectUtils4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTEffectUtils5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTEffectUtils6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTEffectUtils7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTEffectUtils8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTEffectUtils9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTEffectUtils10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTEffectUtils11(GetTriggerPlayer());
+			else if(str == "s12") TTestUTEffectUtils12(GetTriggerPlayer());
+			else if(str == "s13") TTestUTEffectUtils13(GetTriggerPlayer());
+			else if(str == "s14") TTestUTEffectUtils14(GetTriggerPlayer());
+			else if(str == "s15") TTestUTEffectUtils15(GetTriggerPlayer());
+			else if(str == "s16") TTestUTEffectUtils16(GetTriggerPlayer());
+			else if(str == "s17") TTestUTEffectUtils17(GetTriggerPlayer());
+			else if(str == "s18") TTestUTEffectUtils18(GetTriggerPlayer());
+			else if(str == "s19") TTestUTEffectUtils19(GetTriggerPlayer());
+			else if(str == "s20") TTestUTEffectUtils20(GetTriggerPlayer());
 		});
-		g = CreateGroup();
 	}
 }
 //! endzinc
+// lua_print: 空白地图
+//***************************************************************************
+//*
+//*  Triggers
+//*
+//***************************************************************************
+//===========================================================================
+// Trigger: 简介
+//===========================================================================
+function Trig_______uActions takes nothing returns nothing
+    // 欢迎使用世界编辑器，开始你的地图创造之旅。
+    // 你可以从dz.163.com获取最新编辑器咨询。
+    // 当你的地图意外损坏时，你可以在backups目录找到你最近26次保存的地图。
+    // 任何疑问请加官方作者群：QQ35063417。
+    // 本次更新添加判断玩家是否为平台AI玩家，现在平台已经添加虚拟玩家，不用再担心匹配没人问题了！如果你的地图有AI，试试在作者之家开启这个功能吧！
+endfunction
+//===========================================================================
+function InitTrig_______u takes nothing returns nothing
+    set gg_trg_______u = CreateTrigger()
+    call DoNothing()
+    call TriggerAddAction(gg_trg_______u, function Trig_______uActions)
+endfunction
 //===========================================================================
 function InitCustomTriggers takes nothing returns nothing
     call InitTrig_______u( )
@@ -1781,14 +2964,282 @@ endfunction
 function InitCustomPlayerSlots takes nothing returns nothing
     // Player 0
     call SetPlayerStartLocation( Player(0), 0 )
+    call ForcePlayerStartLocation( Player(0), 0 )
     call SetPlayerColor( Player(0), ConvertPlayerColor(0) )
     call SetPlayerRacePreference( Player(0), RACE_PREF_HUMAN )
-    call SetPlayerRaceSelectable( Player(0), true )
+    call SetPlayerRaceSelectable( Player(0), false )
     call SetPlayerController( Player(0), MAP_CONTROL_USER )
+    // Player 1
+    call SetPlayerStartLocation( Player(1), 1 )
+    call ForcePlayerStartLocation( Player(1), 1 )
+    call SetPlayerColor( Player(1), ConvertPlayerColor(1) )
+    call SetPlayerRacePreference( Player(1), RACE_PREF_HUMAN )
+    call SetPlayerRaceSelectable( Player(1), false )
+    call SetPlayerController( Player(1), MAP_CONTROL_USER )
+    // Player 2
+    call SetPlayerStartLocation( Player(2), 2 )
+    call ForcePlayerStartLocation( Player(2), 2 )
+    call SetPlayerColor( Player(2), ConvertPlayerColor(2) )
+    call SetPlayerRacePreference( Player(2), RACE_PREF_HUMAN )
+    call SetPlayerRaceSelectable( Player(2), false )
+    call SetPlayerController( Player(2), MAP_CONTROL_USER )
+    // Player 3
+    call SetPlayerStartLocation( Player(3), 3 )
+    call ForcePlayerStartLocation( Player(3), 3 )
+    call SetPlayerColor( Player(3), ConvertPlayerColor(3) )
+    call SetPlayerRacePreference( Player(3), RACE_PREF_HUMAN )
+    call SetPlayerRaceSelectable( Player(3), false )
+    call SetPlayerController( Player(3), MAP_CONTROL_USER )
+    // Player 4
+    call SetPlayerStartLocation( Player(4), 4 )
+    call ForcePlayerStartLocation( Player(4), 4 )
+    call SetPlayerColor( Player(4), ConvertPlayerColor(4) )
+    call SetPlayerRacePreference( Player(4), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(4), false )
+    call SetPlayerController( Player(4), MAP_CONTROL_COMPUTER )
+    // Player 5
+    call SetPlayerStartLocation( Player(5), 5 )
+    call ForcePlayerStartLocation( Player(5), 5 )
+    call SetPlayerColor( Player(5), ConvertPlayerColor(5) )
+    call SetPlayerRacePreference( Player(5), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(5), false )
+    call SetPlayerController( Player(5), MAP_CONTROL_COMPUTER )
+    // Player 6
+    call SetPlayerStartLocation( Player(6), 6 )
+    call ForcePlayerStartLocation( Player(6), 6 )
+    call SetPlayerColor( Player(6), ConvertPlayerColor(6) )
+    call SetPlayerRacePreference( Player(6), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(6), false )
+    call SetPlayerController( Player(6), MAP_CONTROL_COMPUTER )
+    // Player 7
+    call SetPlayerStartLocation( Player(7), 7 )
+    call ForcePlayerStartLocation( Player(7), 7 )
+    call SetPlayerColor( Player(7), ConvertPlayerColor(7) )
+    call SetPlayerRacePreference( Player(7), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(7), false )
+    call SetPlayerController( Player(7), MAP_CONTROL_COMPUTER )
+    // Player 8
+    call SetPlayerStartLocation( Player(8), 8 )
+    call ForcePlayerStartLocation( Player(8), 8 )
+    call SetPlayerColor( Player(8), ConvertPlayerColor(8) )
+    call SetPlayerRacePreference( Player(8), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(8), false )
+    call SetPlayerController( Player(8), MAP_CONTROL_COMPUTER )
+    // Player 9
+    call SetPlayerStartLocation( Player(9), 9 )
+    call ForcePlayerStartLocation( Player(9), 9 )
+    call SetPlayerColor( Player(9), ConvertPlayerColor(9) )
+    call SetPlayerRacePreference( Player(9), RACE_PREF_UNDEAD )
+    call SetPlayerRaceSelectable( Player(9), false )
+    call SetPlayerController( Player(9), MAP_CONTROL_COMPUTER )
+    // Player 10
+    call SetPlayerStartLocation( Player(10), 10 )
+    call ForcePlayerStartLocation( Player(10), 10 )
+    call SetPlayerColor( Player(10), ConvertPlayerColor(10) )
+    call SetPlayerRacePreference( Player(10), RACE_PREF_UNDEAD )
+    call SetPlayerRaceSelectable( Player(10), false )
+    call SetPlayerController( Player(10), MAP_CONTROL_COMPUTER )
+    // Player 11
+    call SetPlayerStartLocation( Player(11), 11 )
+    call ForcePlayerStartLocation( Player(11), 11 )
+    call SetPlayerColor( Player(11), ConvertPlayerColor(11) )
+    call SetPlayerRacePreference( Player(11), RACE_PREF_UNDEAD )
+    call SetPlayerRaceSelectable( Player(11), false )
+    call SetPlayerController( Player(11), MAP_CONTROL_COMPUTER )
 endfunction
 function InitCustomTeams takes nothing returns nothing
-    // Force: TRIGSTR_002
+    // Force: TRIGSTR_013
     call SetPlayerTeam( Player(0), 0 )
+    call SetPlayerTeam( Player(1), 0 )
+    call SetPlayerTeam( Player(2), 0 )
+    call SetPlayerTeam( Player(3), 0 )
+    call SetPlayerTeam( Player(4), 0 )
+    call SetPlayerTeam( Player(5), 0 )
+    call SetPlayerTeam( Player(6), 0 )
+    call SetPlayerTeam( Player(7), 0 )
+    call SetPlayerTeam( Player(8), 0 )
+    //   Allied
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(7), true )
+    //   Shared Vision
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(7), true )
+    // Force: TRIGSTR_014
+    call SetPlayerTeam( Player(9), 1 )
+    call SetPlayerTeam( Player(10), 1 )
+    call SetPlayerTeam( Player(11), 1 )
+    //   Allied
+    call SetPlayerAllianceStateAllyBJ( Player(9), Player(10), true )
+    call SetPlayerAllianceStateAllyBJ( Player(9), Player(11), true )
+    call SetPlayerAllianceStateAllyBJ( Player(10), Player(9), true )
+    call SetPlayerAllianceStateAllyBJ( Player(10), Player(11), true )
+    call SetPlayerAllianceStateAllyBJ( Player(11), Player(9), true )
+    call SetPlayerAllianceStateAllyBJ( Player(11), Player(10), true )
+    //   Shared Vision
+    call SetPlayerAllianceStateVisionBJ( Player(9), Player(10), true )
+    call SetPlayerAllianceStateVisionBJ( Player(9), Player(11), true )
+    call SetPlayerAllianceStateVisionBJ( Player(10), Player(9), true )
+    call SetPlayerAllianceStateVisionBJ( Player(10), Player(11), true )
+    call SetPlayerAllianceStateVisionBJ( Player(11), Player(9), true )
+    call SetPlayerAllianceStateVisionBJ( Player(11), Player(10), true )
+endfunction
+function InitAllyPriorities takes nothing returns nothing
+    call SetStartLocPrioCount( 0, 3 )
+    call SetStartLocPrio( 0, 0, 1, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 0, 1, 2, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 0, 2, 3, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrioCount( 1, 3 )
+    call SetStartLocPrio( 1, 0, 0, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 1, 1, 2, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 1, 2, 3, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrioCount( 2, 3 )
+    call SetStartLocPrio( 2, 0, 0, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 2, 1, 1, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 2, 2, 3, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrioCount( 3, 3 )
+    call SetStartLocPrio( 3, 0, 0, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 3, 1, 1, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 3, 2, 2, MAP_LOC_PRIO_HIGH )
 endfunction
 //***************************************************************************
 //*
@@ -1797,12 +3248,14 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function main takes nothing returns nothing
-    call SetCameraBounds( -3328.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), -3584.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 3328.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 3072.0 - GetCameraMargin(CAMERA_MARGIN_TOP), -3328.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 3072.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 3328.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), -3584.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM) )
+    call initializePlugin() 
+ call SetCameraBounds( -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM) )
     call SetDayNightModels( "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl" )
     call NewSoundEnvironment( "Default" )
-    call SetAmbientDaySound( "LordaeronSummerDay" )
-    call SetAmbientNightSound( "LordaeronSummerNight" )
+    call SetAmbientDaySound( "NorthrendDay" )
+    call SetAmbientNightSound( "NorthrendNight" )
     call SetMapMusic( "Music", true, 0 )
+    call CreateRegions( )
     call CreateAllUnits( )
     call InitBlizzard( )
     call InitGlobals( )
@@ -1814,15 +3267,26 @@ endfunction
 //*
 //***************************************************************************
 function config takes nothing returns nothing
-    call SetMapName( "只是另外一张魔兽争霸的地图" )
-    call SetMapDescription( "没有说明" )
-    call SetPlayers( 1 )
-    call SetTeams( 1 )
-    call SetGamePlacement( MAP_PLACEMENT_USE_MAP_SETTINGS )
-    call DefineStartLocation( 0, -2048.0, 1088.0 )
+    call SetMapName( "TRIGSTR_1232" )
+    call SetMapDescription( "TRIGSTR_1234" )
+    call SetPlayers( 12 )
+    call SetTeams( 12 )
+    call SetGamePlacement( MAP_PLACEMENT_TEAMS_TOGETHER )
+    call DefineStartLocation( 0, 0.0, 0.0 )
+    call DefineStartLocation( 1, 0.0, 0.0 )
+    call DefineStartLocation( 2, 0.0, 0.0 )
+    call DefineStartLocation( 3, 0.0, 0.0 )
+    call DefineStartLocation( 4, 0.0, 0.0 )
+    call DefineStartLocation( 5, 0.0, 0.0 )
+    call DefineStartLocation( 6, 0.0, 0.0 )
+    call DefineStartLocation( 7, 0.0, 0.0 )
+    call DefineStartLocation( 8, 0.0, 0.0 )
+    call DefineStartLocation( 9, 0.0, 0.0 )
+    call DefineStartLocation( 10, 0.0, 0.0 )
+    call DefineStartLocation( 11, 0.0, 0.0 )
     // Player setup
     call InitCustomPlayerSlots( )
-    call SetPlayerSlotAvailable( Player(0), MAP_CONTROL_USER )
-    call InitGenericPlayerSlots( )
+    call InitCustomTeams( )
+    call InitAllyPriorities( )
 endfunction
 /**/

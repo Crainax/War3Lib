@@ -1,16 +1,8 @@
 #ifndef UTEffectUtilsIncluded
 #define UTEffectUtilsIncluded
 
-#include "edit/core/constant/Variable.j"
-#include "d:/War3/Maps/PhantomOrbit/edit/Utils/EffectUtils.j"
-// #include "edit/Base/UIBase.j"
-#include "edit/Utils/LuaUtils.j"
-// #include "UnitTest_HeroStruct.j" //测试模块
-// #include "UnitTest_GuaiStruct.j" //测试模块[创建怪物们]
-// #include "edit/Event/EventAll.j" //事件
-
-// #include "edit/ChatEvent.j" //通用聊天事件
-// #include "edit/Utils/modules/EffectStat.j"
+#include "Crainax/core/constant/Variable.j"
+#include "EffectUtils.j"
 
 //! zinc
 
@@ -18,7 +10,7 @@
 //blp
 //blp
 //自动生成的文件
-library UTEffectUtils requires optional EffectUtils,Variable,optional LuaUtils,optional UTHeroStruct,optional ChatEvent { //blp
+library UTEffectUtils requires optional EffectUtils,Variable { //blp
 	//blp
 	//blp
 
@@ -322,7 +314,7 @@ library UTEffectUtils requires optional EffectUtils,Variable,optional LuaUtils,o
 				ForGroup(efut.g,function () {
 					pierce pe = pierce.ethis;
 					integer index = 1;
-					if (IsEnemy2(Player(0),GetEnumUnit())) {
+					if (IsEnemyIncludeInvul(Player(0),GetEnumUnit())) {
 						BJDebugMsg(pd[index].name +"的敌人:"+GetUnitName(GetEnumUnit()));
 						KillUnit(GetEnumUnit());
 					} else if (IsAlly(Player(0),GetEnumUnit())) {
@@ -367,9 +359,9 @@ library UTEffectUtils requires optional EffectUtils,Variable,optional LuaUtils,o
 			pierce pe;
 			if (i <= 720) {
 				//每个角度各来一发
-				limitXY.cal(xLi,yLi,i*0.5);
+				radiationEnd.cal(xLi,yLi,i*0.5);
 				pe = pierce.reg("Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdl",xLi,
-				yLi,YDWECoordinateX(limitXY.x),YDWECoordinateY(limitXY.y),100,450,function(){ //帧事件与单位
+				yLi,YDWECoordinateX(radiationEnd.x),YDWECoordinateY(radiationEnd.y),100,450,function(){ //帧事件与单位
 					pierce pe = pierce.ethis;
 					if (CountUnitsInGroup(efut.g) > 0) {
 						ForGroup(efut.g,function () {
@@ -507,7 +499,7 @@ library UTEffectUtils requires optional EffectUtils,Variable,optional LuaUtils,o
 			else if(str == "s19") TTestUTEffectUtils19(GetTriggerPlayer());
 			else if(str == "s20") TTestUTEffectUtils20(GetTriggerPlayer());
 
-		}));
+		});
 		#endif
 	}
 
