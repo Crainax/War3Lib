@@ -41,7 +41,7 @@ function inject_code:detect(path)
             for _, chain_file in ipairs(self.chain_table[file]) do
                 if not r[chain_file] then
                     r[chain_file] = true
-                    print(file .. " 的依赖文件同时注入: " .. chain_file)
+                    -- print(file .. " 的依赖文件同时注入: " .. chain_file)
                     -- 递归处理依赖文件的依赖
                     process_chain_files(chain_file)
                 end
@@ -225,7 +225,7 @@ function inject_code:scan(config_dir)
                                 -- 将相对路径转换为绝对路径后存入
                                 local abs_path = resolve_path(trimed)
                                 table.insert(self.chain_table[current_file], abs_path)
-                                print(current_file .. " 的依赖文件: " .. abs_path)
+                                -- print(current_file .. " 的依赖文件: " .. abs_path)
                             end
                         end
                     end

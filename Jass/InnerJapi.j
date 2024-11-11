@@ -402,8 +402,18 @@ library InnerJapi {
     // 显示版本
     function onInit ()  {
         integer i = 0;
-        // BJDebugMsg(GetPluginVersion());
-        GetPluginVersion();
+        timer t;
+        t = CreateTimer();
+        TimerStart(t,0.0,false,function (){
+            timer t = GetExpiredTimer();
+            integer id = GetHandleId(t);
+            BJDebugMsg("内置Japi" + GetPluginVersion());
+            PauseTimer(t);
+            FlushChildHashtable(TITable,id);
+            DestroyTimer(t);
+            t = null;
+        });
+        t = null;
     }
 }
 

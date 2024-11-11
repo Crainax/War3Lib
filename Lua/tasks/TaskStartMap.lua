@@ -48,13 +48,14 @@ local sur = compiler:StartCompile(path)
 
 if sur then
 	w3xlni:StartSLK()
-	launcher.StartWar3('_slk')
 
 	local map = path.project .. "/" .. path.mapName .. "_slk.w3x"
 	local tarMap = path.project .. "/output/" .. path.mapName .. "_slk.w3x"
 	copy.CopyBin(map, tarMap)
 	os.remove(map)
 
+
+	launcher.StartWar3('_slk')
 end
 
 if path.buildString then -- 输出字符串

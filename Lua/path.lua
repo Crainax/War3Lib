@@ -59,6 +59,7 @@ function path.init(root, project, we)
     path.ut.template      = path.libRoot .. "/Jass/template/UTTemplate.j"  -- 单元测试模板文件
     path.ut.mapJ          = path.project .. "/UnitTestMap/map/war3map.j" -- 单元测试的War3mapJ文件
     path.ut.table         = {}                                           -- 单元测试的物编
+    path.ut.luaFrom       = path.project .. "/"..path.jassPathName .."/config/UTLuaFrom.j" -- 单元测试的LuaFrom
     path.ut.table.root    = path.project .. "/UnitTestMap/table"         -- 单元测试的根目录
     path.ut.table.unit    = path.ut.table.root .. "/unit.ini"            -- 单元测试的单位
     path.ut.table.item    = path.ut.table.root .. "/item.ini"            -- 单元测试的物品
