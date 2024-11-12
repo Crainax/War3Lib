@@ -62,7 +62,7 @@ local function split(str, p)
 	local s = string.gsub(str, '[^]' .. p .. ']+', function(w) table.insert(rt, w) end)
 	return rt
 end
-log.path = '创世轨迹\\日志\\' .. split(log.path, '\\')[2]
+log.path = 'War3Lib\\日志\\' .. split(log.path, '\\')[2]
 
 -- 重载打印函数,全部都输出到日志里
 local std_print = print

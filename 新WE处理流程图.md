@@ -31,3 +31,4 @@
 
 
 ## 新建项目后要做的事
+1. 创建`Mklink` : `mklink /D "D:\War3\Maps\PhantomOrbit\script\depends" "D:\War3\Library\War3Lib\script\depends" `
