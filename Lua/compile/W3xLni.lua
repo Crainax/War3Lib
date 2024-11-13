@@ -40,7 +40,7 @@ function w3xlni:Start(func)
 		-- 判断是否是单元测试,进行物编转移/特效的
 		utr.ReplaceTable()
 		utr.ReplaceMapJ()
-		utr.MoveLuaFile()
+		-- utr.MoveLuaFile() -- 暂时先不移动Lua文件
 		print("[Lua" .. path.buildVersion .. "]开始进行单元测试的物编结束.")
 	end
 	local result = table.pack(func())
@@ -48,7 +48,7 @@ function w3xlni:Start(func)
 	if path.buildVersion == "单元测试" then
 		-- 删除单元测试的临时物编
 		utr.RemoveTable()
-		print("[Lua" .. path.buildVersion .. "]清除临时物编.")
+		print("[Lua" .. path.buildVersion .. "]清除临时物编(不含Lua文件).")
 	end
 	return table.unpack(result)
 end

@@ -1,73 +1,3 @@
-#ifndef UnitFilterIncluded
-#define UnitFilterIncluded
-
-//! zinc
-/*
-单位有关
-*/
-library UnitFilter {
-
-    //判断是否是敌方(不带无敌)
-    public function IsEnemy (player p,unit u)  -> boolean {
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitEnemy(u, p) && GetUnitAbilityLevel(u,'Avul') == 0;
-    }
-    //旧名：IsEnemy2
-    //判断是否是敌方(能匹配到无敌单位)
-    public function IsEnemyIncludeInvul (player p,unit u)  -> boolean {
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitEnemy(u, p);
-    }
-    //判断是否是友方
-    public function IsAlly (player p,unit u)  -> boolean {
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p);
-    }
-
-}
-
-//! endzinc
-#endif
-
-
-#ifndef NumberUtilsIncluded
-#define NumberUtilsIncluded
-
-//! zinc
-/*
-数字工具
-*/
-library NumberUtils  {
-
-    // 老版本叫GetIntegerBit(替换)
-    // 获取一个整数中指定范围的数字(按十进制位数)
-    // @param value - 要处理的整数,如1483
-    // @param bit1 - 起始位置(从右往左,从1开始),如1表示个位
-    // @param bit2 - 结束位置,如3表示百位
-    // @return - 返回指定范围的数字,如1483取1-3位返回483
-    public function GetNumberRange (integer value,integer bit1,integer bit2) -> integer {
-        if (bit1 > bit2) {return 0;}
-        if (bit1 <= 0 || bit2 <= 0) {return 0;}
-        return ModuloInteger(value,R2I(Pow(10,bit2)))/R2I(Pow(10,bit1-1));
-    }
-    // 老版本叫GetBit(替换)
-    // 获取一个整数中指定位置的单个数字(按十进制位数)
-    // @param num - 要处理的整数,如1483
-    // @param bit - 要获取的位置(从右往左,从1开始),如2表示十位
-    // @return - 返回指定位置的数字,如1483取第2位返回8
-    // 注意:会自动处理负数(取绝对值),位数超出或不合法返回0
-    public function GetDigitAt (integer num,integer bit) -> integer {
-        integer bit1 = R2I(Pow(10,bit-1));     //举例,1483取位2 ->这个是10;
-        integer bit2 = R2I(Pow(10,bit));       //举例,1483取位2 ->这个是100;
-        num = IAbsBJ(num);                     //取绝对值
-        if (bit <= 0 || bit >= 32) {return 0;} //超了整数上限
-        if (bit1 > num) {return 0;}            //取了不该取的位
-        bit1 = IMaxBJ(1,bit1);
-        //先取余100,再除10 ->
-        return ModuloInteger(num,bit2) / bit1;
-    }
-}
-
-//! endzinc
-#endif
-
 #define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
 
 
@@ -472,8 +402,17 @@ library InnerJapi {
     // 显示版本
     function onInit ()  {
         integer i = 0;
-        // BJDebugMsg(GetPluginVersion());
-        GetPluginVersion();
+        timer t;
+        t = CreateTimer();
+        TimerStart(t,0.0,false,function (){
+            timer t = GetExpiredTimer();
+            integer id = GetHandleId(t);
+            BJDebugMsg("内置Japi" + GetPluginVersion());
+            PauseTimer(t);
+            DestroyTimer(t);
+            t = null;
+        });
+        t = null;
     }
 }
 
@@ -485,301 +424,6 @@ library InnerJapi {
 #endif
 
 
-
-#ifndef MathUtilsIncluded
-#define MathUtilsIncluded
-
-//! zinc
-/*
-数学工具
-*/
-library MathUtils {
-
-    // 实转整 带概率进1的
-    public function R2IRandom (real value) -> integer {
-        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
-            return R2I(value) + 1;
-        }
-        return R2I(value);
-    }
-    // 除法,但是相等的话还是为0哦
-    public function Divide1 (integer i1,integer i2) -> integer {
-        if (ModuloInteger(i1,i2) == 0) {
-            return i1/i2 - 1;
-        }
-        return i1/i2;
-    }
-    // 实数归一化相加
-    public function RealAdd ( real a1,real a2 ) -> real {
-        if (RAbsBJ(a2) >= 1.0) {return a1;}
-        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
-        else {return 1.0-(1.0-a1)/(1.0+a2);}
-    }
-    // 最小最大值限制
-    public function ILimit ( integer target,integer min,integer max ) -> integer {
-        if (target < min) {return min;}
-        else if (target > max) {return max;}
-        else {return target;}
-    }
-    // 最小最大值限制
-    public function RLimit ( real target,real min,real max ) -> real {
-        if (target < min) {return min;}
-        else if (target > max) {return max;}
-        else {return target;}
-    }
-    //四舍五入法实数转整数
-    public function R2IM (real r)  -> integer {
-        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
-        else return R2I(r);
-    }
-
-    // 计算射线与地图边界的交点
-    // 原名字 : limitXY
-    public struct radiationEnd {
-        static real x = 0,y = 0;
-
-        //修正一下Tan这个函数的问题(精确到1度)
-        private static method tan (real angle)  -> real {
-            real a = ModuloReal(angle,180); //求余数
-            if (a < 1.0) { //接近0度
-                return 0.0001;
-            } else if (a > 179.0) { //接近180度
-                return -0.0001;
-            } else if (a > 89 && a <= 90) { //89-90
-                return 55555.0;
-            } else if (a > 90 && a < 91) { //90-91
-                return -55555.0;
-            } else { //正常角度
-                return TanBJ(angle);
-            }
-        }
-
-        //一个坐标沿着某个方向的边缘值
-        // 输入参数:
-        // x1, y1: 起始点坐标
-        // angle: 射线的角度（0-360度）
-        // 功能说明：
-        // 1. 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
-        // 2. 将计算结果存储在结构体的静态变量x和y中
-        // 3. 根据角度不同分为四个象限处理：
-        //    - 0-90度：第一象限，可能与上边界或右边界相交
-        //    - 90-180度：第二象限，可能与上边界或左边界相交
-        //    - 180-270度：第三象限，可能与下边界或左边界相交
-        //    - 270-360度：第四象限，可能与下边界或右边界相交
-        // 这个函数在游戏中经常用于：
-        // 限制单位移动范围
-        // 计算技能射程终点
-        // 确定视线或投射物的最远点
-        static method cal (real x1,real y1,real angle) {
-            real x2  = 0; //相交点
-            real y2  = 0; //相交点
-            real a = ModuloReal(angle,360); //求余数
-            real tan;
-            x = 0;
-            y = 0;
-            if (a <= 90) { //第一象限
-                tan = tan(a);
-                x2 = (yd_MapMaxY - y1) / tan + x1;
-                y2 = (yd_MapMaxX - x1) * tan + y1;
-                if (x2 <= yd_MapMaxX) { //取这个
-                    x = x2;
-                    y = yd_MapMaxY;
-                } else {
-                    x = yd_MapMaxX;
-                    y = y2;
-                }
-            } else if( a <= 180) { //第二象限
-                tan = tan(a);
-                x2 = (yd_MapMaxY - y1) / tan + x1;
-                y2 = (yd_MapMinX - x1) * tan + y1;
-                if (x2 >= yd_MapMinX) { //取这个
-                    x = x2;
-                    y = yd_MapMaxY;
-                } else {
-                    x = yd_MapMinX;
-                    y = y2;
-                }
-            } else if( a <= 270) { //第三象限
-                tan = tan(a);
-                x2 = (yd_MapMinY - y1) / tan + x1;
-                y2 = (yd_MapMinX - x1) * tan + y1;
-                if (x2 >= yd_MapMinX) { //取这个
-                    x = x2;
-                    y = yd_MapMinY;
-                } else {
-                    x = yd_MapMinX;
-                    y = y2;
-                }
-            } else { //第四象限
-                tan = tan(a);
-                x2 = (yd_MapMinY - y1) / tan + x1;
-                y2 = (yd_MapMaxX - x1) * tan + y1;
-                if (x2 <= yd_MapMaxX) { //取这个
-                    x = x2;
-                    y = yd_MapMinY;
-                } else {
-                    x = yd_MapMaxX;
-                    y = y2;
-                }
-            }
-        }
-    }
-
-
-}
-
-//! endzinc
-#endif
-
-#ifndef GeometryIncluded
-#define GeometryIncluded
-
-//! zinc
-/*
-几何工具
-todo:直接用宏定义修改试试
-*/
-library Geometry {
-
-    // 4个坐标的距离
-    public function GetDistance (real x1,real y1,real x2,real y2) -> real {
-        real dx = x2 - x1 , dy = y2 - y1;
-        return SquareRoot(dx*dx+dy*dy);
-    }
-    // 6个坐标的距离
-    public function GetDistanceZ (real x1,real y1,real z1,real x2,real y2,real z2) -> real {
-        real dx = x2 - x1 , dy = y2 - y1, dz = z2 - z1;
-        return SquareRoot(dx*dx+dy*dy+dz*dz);
-    }
-    // 4个坐标的角度,前面是人的位置，后面是点的位置
-    public function GetFacing (real x1,real y1,real x2,real y2) -> real {
-        return Atan2BJ(y2-y1,x2-x1);
-    }
-
-}
-
-//! endzinc
-#endif
-
-#ifndef UnitUtilsIncluded
-#define UnitUtilsIncluded
-
-#include "Crainax/core/constant/UNDefine.j"
-#include "Crainax/core/constant/JapiConstant.j"
-
-//! zinc
-/*
-单位有关的增强功能
-*/
-library UnitUtils {
-
-    //获取单位的攻击力/防御/生命/魔法值
-    #define GetUnitAttack(u) R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)))
-    #define GetUnitDefense(u) R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR)))
-    #define GetUnitHP(u) GetUnitState(u,UNIT_STATE_MAX_LIFE)
-    #define GetUnitMP(u) GetUnitState(u,UNIT_STATE_MAX_MANA)
-
-    //设置攻击力
-    #define SetUnitAttack(u,attack) SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE),attack)
-    //增加攻击力
-    #define AddUnitAttack(u,attack) SetUnitAttack(u,GetUnitAttack(u) + attack)
-
-    //设置防御
-	#define SetUnitDefense(u,defense) SetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR),defense)
-    //增加防御
-	#define AddUnitDefense(u,defense) SetUnitDefense(u,GetUnitDefense(u)+defense)
-
-    //修改生命最大值
-    #define SetUnitHP(u,hp) SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,5.0))
-    //增加生命最大值
-	public function AddUnitHP(unit u,real hp ) {
-		SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
-		if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
-	}
-    //回血(定值)
-    #define RegenUnitHP(u,volume) SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+volume)
-    //回蓝(百分比)
-    #define RegenUnitHPPercent(u,rate) SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate)
-
-    //设置魔法最大值
-    #define SetUnitMP(u,mp) SetUnitState(u,UNIT_STATE_MAX_MANA,mp)
-    //增加魔法最大值
-	public function AddUnitMP(unit u,real mp ) {
-		SetUnitMP(u,GetUnitMP(u)+mp);
-		if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
-	}
-    //回蓝(定值)
-    #define RegenUnitMP(u,volume) SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+volume)
-    //回蓝(百分比)
-    #define RegenUnitMPPercent(u,rate) SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate)
-
-    // 获取移速
-    public function GetUnitSpeed (unit u)  -> integer {
-        if (HaveSavedInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            return LoadInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
-        }
-        else {return R2I(GetUnitMoveSpeed(u));}
-    }
-    //todo: 这个UNTable其他地图需要兼容
-    // 增加移速
-    public function AddUnitSpeed (unit u,integer speed) {
-        integer value;
-        if (HaveSavedInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            value  = LoadInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
-            value += speed;
-            SaveInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
-        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
-		SetUnitMoveSpeed(u,value);
-    }
-    // 初始化突破移速
-    public function InitUnitSpeed (unit u) {
-        SaveInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED,R2I(GetUnitMoveSpeed(u)));
-    }
-
-    //射程(还会+警戒范围)
-    #define GetUnitAttackRange(u) GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE))
-    //设置射程(还会设置警戒范围)
-    public function SetUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),range);
-		SetUnitAcquireRange(u,RMaxBJ(range,900.0));
-    }
-    //增加射程(还会+警戒范围)
-	public function AddUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),GetUnitAttackRange(u) + range);
-		SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0));
-    }
-
-    // 获取攻速
-    #define GetUnitAttackSpeed(u) GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE))
-    // 增加攻速
-	public function AddUnitAttackSpeed (unit u,real speed) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE)) + speed);
-	}
-
-    #define GetUnitInterval(u) GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL))
-    // 攻击间隔(虽然写着加,但是实际是减)
-	public function AddAttackInterval (unit u,real value) {
-        SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL),GetUnitInterval(u) - value);
-	}
-
-    //传送单位(带特效与镜头转换)
-    public function TransportUnit (unit u,real x,real y,boolean camera) {
-        if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)));
-        SetUnitPosition(u,x,y);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
-    }
-
-    //删除单位
-    public function DeleteUnit (unit u) {
-        FlushChildHashtable(UNTable,GetHandleId(u));
-        RemoveUnit(u);
-    }
-
-}
-
-//! endzinc
-#endif
 
 #ifndef UnitTestFramworkIncluded
 #define UnitTestFramworkIncluded
@@ -825,382 +469,85 @@ library UnitTestFramwork {
 
 
 
-#ifndef YDWEEffectIncluded
-#define YDWEEffectIncluded
-
-library YDWEJapiEffect
-	native EXGetEffectX takes effect e returns real
-	native EXGetEffectY takes effect e returns real
-	native EXGetEffectZ takes effect e returns real
-	native EXSetEffectXY takes effect e, real x, real y returns nothing
-	native EXSetEffectZ takes effect e, real z returns nothing
-	native EXGetEffectSize takes effect e returns real
-	native EXSetEffectSize takes effect e, real size returns nothing
-	native EXEffectMatRotateX takes effect e, real angle returns nothing
-	native EXEffectMatRotateY takes effect e, real angle returns nothing
-	native EXEffectMatRotateZ takes effect e, real angle returns nothing
-	native EXEffectMatScale takes effect e, real x, real y, real z returns nothing
-	native EXEffectMatReset takes effect e returns nothing
-	native EXSetEffectSpeed takes effect e, real speed returns nothing
-
-	function YDWESetEffectLoc takes effect e, location loc returns nothing
-		call EXSetEffectXY(e, GetLocationX(loc), GetLocationY(loc))
-	endfunction
-endlibrary
-
-#endif  /// YDWEEffectIncluded
-
-#ifndef GroupUtilsIncluded
-#define GroupUtilsIncluded
+#ifndef LoggerIncluded
+#define LoggerIncluded
 
 //! zinc
-/*
-单位组有关
-伤害有关
-// u = FirstOfGroup(g);  //少用这个,单位删了后直接是0了
-用GroupPickRandomUnit(g);好一些
-*/
-library GroupUtils requires UnitFilter {
+//==================================
+// 日志打印系统
+// version: 1.0
+// author: 系统自动生成
+// date: 2024/3/21
+//
+// 功能：提供五个日志级别输出
+// - TRACE(灰)：追踪调试用
+// - DEBUG(绿)：调试信息用
+// - INFO(白)：普通信息用
+// - WARN(黄)：警告信息用
+// - ERROR(红)：错误信息用
+//
+// 示例：
+// call Info("普通信息")
+// call Error(Player(0), "玩家1的错误")
+//==================================
+library Logger requires InnerJapi {
 
-    group tempG = null;
-    unit tempU = null;
-
-    //库补充,防内存泄漏
-    public function GroupEnumUnitsInRangeEx (group whichGroup,real x,real y,real radius,boolexpr filter) {
-        GroupEnumUnitsInRange(whichGroup, x, y, radius, filter);
-        DestroyBoolExpr(filter);
-    }
-    //库补充,防内存泄漏
-    public function GroupEnumUnitsInRectEx (group whichGroup,rect r,boolexpr filter) {
-        GroupEnumUnitsInRect(whichGroup, r, filter);
-        DestroyBoolExpr(filter);
-    }
-
-    //获取单位组:[敌方]
-    public function GetEnemyGroup (unit u,real x,real y,real radius) -> group {
-        tempG = CreateGroup();
-        tempU = u;
-        GroupEnumUnitsInRangeEx(tempG, x, y, radius, Filter(function () -> boolean {
-            if (IsEnemy(GetOwningPlayer(tempU),GetFilterUnit())) {
-                return true;
-            }
-            return false;
-        }));
-        tempU = null;
-        return tempG;
+    // 追踪级别日志(灰色),用于程序执行追踪
+    public function Trace(string msg) {
+        GetTriggerUnit();
     }
 
-    //获取圆形随机单位
-    public function GetRandomEnemy (unit u,real x,real y,real radius)  -> unit {
-        return GroupPickRandomUnit(GetEnemyGroup(u,x,y,radius));
+    // 调试级别日志(绿色),用于输出变量值等调试信息
+    public function Debug(string msg) {
+        GetTriggerUnit();
     }
 
+    // 信息级别日志(白色),用于输出普通提示信息
+    public function Info(string msg) {
+        GetTriggerUnit();
+    }
+
+    // 警告级别日志(黄色),用于输出警告信息
+    public function Warn(string msg) {
+        GetTriggerUnit();
+    }
+
+    // 错误级别日志(红色),用于输出错误信息
+    public function Error(string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出追踪日志(灰色)
+    public function TraceToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出调试日志(绿色)
+    public function DebugToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出信息日志(白色)
+    public function InfoToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出警告日志(黄色)
+    public function WarnToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出错误日志(红色)
+    public function ErrorToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    function onInit() {
+        AbilityId("exec-lua:depends.debug.logger"); //日志打印系统初始化
+    }
 }
 
 //! endzinc
-#endif
-
-#ifndef BZAPIINCLUDE
-#define BZAPIINCLUDE
-
-#define ANCHOR_TOPLEFT 0
-#define ANCHOR_TOP 1
-#define ANCHOR_TOPRIGHT 2
-#define ANCHOR_LEFT 3
-#define ANCHOR_CENTER 4
-#define ANCHOR_RIGHT 5
-#define ANCHOR_BOTTOMLEFT 6
-#define ANCHOR_BOTTOM 7
-#define ANCHOR_BOTTOMRIGHT 8
-
-#define FRAME_EVENT_NONE  0
-#define FRAME_EVENT_PRESSED  1
-#define FRAME_MOUSE_ENTER  2
-#define FRAME_MOUSE_LEAVE  3
-#define FRAME_MOUSE_UP  4
-#define FRAME_MOUSE_DOWN  5
-#define FRAME_MOUSE_WHEEL  6
-#define FRAME_FOCUS_ENTER  2
-#define FRAME_FOCUS_LEAVE  3
-#define FRAME_CHECKBOX_CHECKED  7
-#define FRAME_CHECKBOX_UNCHECKED  8
-#define FRAME_EDITBOX_TEXT_CHANGED  9
-#define FRAME_POPUPMENU_ITEM_CHANGE_START  10
-#define FRAME_POPUPMENU_ITEM_CHANGED  11
-#define FRAME_MOUSE_DOUBLECLICK  12
-#define FRAME_SPRITE_ANIM_UPDATE  13
-
-#define FRAME_EVENT_KEY_PRESSED 1
-#define FRAME_EVENT_KEY_UP 0
-#define FRAME_MOUSE_LEFT 1
-#define FRAME_MOUSE_RIGHT 2
-
-library BzAPI
-    //hardware
-    native DzGetMouseTerrainX takes nothing returns real
-    native DzGetMouseTerrainY takes nothing returns real
-    native DzGetMouseTerrainZ takes nothing returns real
-    native DzIsMouseOverUI takes nothing returns boolean
-    native DzGetMouseX takes nothing returns integer
-    native DzGetMouseY takes nothing returns integer
-    native DzGetMouseXRelative takes nothing returns integer
-    native DzGetMouseYRelative takes nothing returns integer
-    native DzSetMousePos takes integer x, integer y returns nothing
-    native DzTriggerRegisterMouseEvent takes trigger trig, integer btn, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseEventByCode takes trigger trig, integer btn, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterKeyEvent takes trigger trig, integer key, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterKeyEventByCode takes trigger trig, integer key, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseWheelEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseWheelEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseMoveEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseMoveEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzGetTriggerKey takes nothing returns integer
-    native DzGetWheelDelta takes nothing returns integer
-    native DzIsKeyDown takes integer iKey returns boolean
-    native DzGetTriggerKeyPlayer takes nothing returns player
-    native DzGetWindowWidth takes nothing returns integer
-    native DzGetWindowHeight takes nothing returns integer
-    native DzGetWindowX takes nothing returns integer
-    native DzGetWindowY takes nothing returns integer
-    native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzIsWindowActive takes nothing returns boolean
-    //plus
-    native DzDestructablePosition takes destructable d, real x, real y returns nothing
-    native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
-    native DzExecuteFunc takes string funcName returns nothing
-    native DzGetUnitUnderMouse takes nothing returns unit
-    native DzSetUnitTexture takes unit whichUnit, string path, integer texId returns nothing
-    native DzSetMemory takes integer address, real value returns nothing
-    native DzSetUnitID takes unit whichUnit, integer id returns nothing
-    native DzSetUnitModel takes unit whichUnit, string path returns nothing
-    native DzSetWar3MapMap takes string map returns nothing
-    native DzGetLocale takes nothing returns string
-    native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
-    //sync
-    native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
-    native DzSyncData takes string prefix, string data returns nothing
-    native DzGetTriggerSyncPrefix takes nothing returns string
-    native DzGetTriggerSyncData takes nothing returns string
-    native DzGetTriggerSyncPlayer takes nothing returns player
-    native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
-    //native DzGetPushContext takes nothing returns string
-    native DzSyncDataImmediately takes string prefix, string data returns nothing
-    //gui
-    native DzFrameHideInterface takes nothing returns nothing
-    native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
-    native DzFrameGetPortrait takes nothing returns integer
-    native DzFrameGetMinimap takes nothing returns integer
-    native DzFrameGetCommandBarButton takes integer row, integer column returns integer
-    native DzFrameGetHeroBarButton takes integer buttonId returns integer
-    native DzFrameGetHeroHPBar takes integer buttonId returns integer
-    native DzFrameGetHeroManaBar takes integer buttonId returns integer
-    native DzFrameGetItemBarButton takes integer buttonId returns integer
-    native DzFrameGetMinimapButton takes integer buttonId returns integer
-    native DzFrameGetUpperButtonBarButton takes integer buttonId returns integer
-    native DzFrameGetTooltip takes nothing returns integer
-    native DzFrameGetChatMessage takes nothing returns integer
-    native DzFrameGetUnitMessage takes nothing returns integer
-    native DzFrameGetTopMessage takes nothing returns integer
-    native DzGetColor takes integer r, integer g, integer b, integer a returns integer
-    native DzFrameSetUpdateCallback takes string func returns nothing
-    native DzFrameSetUpdateCallbackByCode takes code funcHandle returns nothing
-    native DzFrameShow takes integer frame, boolean enable returns nothing
-    native DzCreateFrame takes string frame, integer parent, integer id returns integer
-    native DzCreateSimpleFrame takes string frame, integer parent, integer id returns integer
-    native DzDestroyFrame takes integer frame returns nothing
-    native DzLoadToc takes string fileName returns nothing
-    native DzFrameSetPoint takes integer frame, integer point, integer relativeFrame, integer relativePoint, real x, real y returns nothing
-    native DzFrameSetAbsolutePoint takes integer frame, integer point, real x, real y returns nothing
-    native DzFrameClearAllPoints takes integer frame returns nothing
-    native DzFrameSetEnable takes integer name, boolean enable returns nothing
-    native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
-    native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
-    native DzGetTriggerUIEventPlayer takes nothing returns player
-    native DzGetTriggerUIEventFrame takes nothing returns integer
-    native DzFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFontStringFindByName takes string name, integer id returns integer
-    native DzSimpleTextureFindByName takes string name, integer id returns integer
-    native DzGetGameUI takes nothing returns integer
-    native DzClickFrame takes integer frame returns nothing
-    native DzSetCustomFovFix takes real value returns nothing
-    native DzEnableWideScreen takes boolean enable returns nothing
-    native DzFrameSetText takes integer frame, string text returns nothing
-    native DzFrameGetText takes integer frame returns string
-    native DzFrameSetTextSizeLimit takes integer frame, integer size returns nothing
-    native DzFrameGetTextSizeLimit takes integer frame returns integer
-    native DzFrameSetTextColor takes integer frame, integer color returns nothing
-    native DzGetMouseFocus takes nothing returns integer
-    native DzFrameSetAllPoints takes integer frame, integer relativeFrame returns boolean
-    native DzFrameSetFocus takes integer frame, boolean enable returns boolean
-    native DzFrameSetModel takes integer frame, string modelFile, integer modelType, integer flag returns nothing
-    native DzFrameGetEnable takes integer frame returns boolean
-    native DzFrameSetAlpha takes integer frame, integer alpha returns nothing
-    native DzFrameGetAlpha takes integer frame returns integer
-    native DzFrameSetAnimate takes integer frame, integer animId, boolean autocast returns nothing
-    native DzFrameSetAnimateOffset takes integer frame, real offset returns nothing
-    native DzFrameSetTexture takes integer frame, string texture, integer flag returns nothing
-    native DzFrameSetScale takes integer frame, real scale returns nothing
-    native DzFrameSetTooltip takes integer frame, integer tooltip returns nothing
-    native DzFrameCageMouse takes integer frame, boolean enable returns nothing
-    native DzFrameGetValue takes integer frame returns real
-    native DzFrameSetMinMaxValue takes integer frame, real minValue, real maxValue returns nothing
-    native DzFrameSetStepValue takes integer frame, real step returns nothing
-    native DzFrameSetValue takes integer frame, real value returns nothing
-    native DzFrameSetSize takes integer frame, real w, real h returns nothing
-    native DzCreateFrameByTagName takes string frameType, string name, integer parent, string template, integer id returns integer
-    native DzFrameSetVertexColor takes integer frame, integer color returns nothing
-    native DzOriginalUIAutoResetPoint takes boolean enable returns nothing
-    native DzFrameSetPriority takes integer frame, integer priority returns nothing
-    native DzFrameSetParent takes integer frame, integer parent returns nothing
-    native DzFrameGetHeight takes integer frame returns real
-    native DzFrameSetFont takes integer frame, string fileName, real height, integer flag returns nothing
-    native DzFrameGetParent takes integer frame returns integer
-    native DzFrameSetTextAlignment takes integer frame, integer align returns nothing
-    native DzFrameGetName takes integer frame returns string
-    native DzGetClientWidth takes nothing returns integer
-    native DzGetClientHeight takes nothing returns integer
-    native DzFrameIsVisible takes integer frame returns boolean
-        //显示/隐藏SimpleFrame
-    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
-    // 追加文字（支持TextArea）
-    native DzFrameAddText takes integer frame, string text returns nothing
-    // 沉默单位-禁用技能
-    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
-    // 禁用攻击
-    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
-    // 禁用道具
-    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
-    // 刷新小地图
-    native DzUpdateMinimap takes nothing returns nothing
-    // 修改单位alpha
-    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
-    // 设置单位是否可以选中
-    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
-    // 修改单位是否可以被设置为目标
-    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
-    // 保存内存数据
-    native DzSaveMemoryCache takes string cache returns nothing
-    // 读取内存数据
-    native DzGetMemoryCache takes nothing returns string
-    // 设置加速倍率
-    native DzSetSpeed takes real ratio returns nothing
-    // 转换世界坐标为屏幕坐标-异步
-    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
-    // 转换世界坐标为屏幕坐标-获取转换后的X坐标
-    native DzGetConvertWorldPositionX takes nothing returns real
-    // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
-    native DzGetConvertWorldPositionY takes nothing returns real
-    // 创建command button
-    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
-    function DzTriggerRegisterMouseEventTrg takes trigger trg, integer status, integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
-    endfunction
-
-    function DzTriggerRegisterKeyEventTrg takes trigger trg, integer status, integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterKeyEvent(trg, btn, status, true, null)
-    endfunction
-
-    function DzTriggerRegisterMouseMoveEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseMoveEvent(trg, true, null)
-    endfunction
-
-    function DzTriggerRegisterMouseWheelEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseWheelEvent(trg, true, null)
-    endfunction
-
-    function DzTriggerRegisterWindowResizeEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterWindowResizeEvent(trg, true, null)
-    endfunction
-
-    function DzF2I takes integer i returns integer
-        return i
-    endfunction
-
-    function DzI2F takes integer i returns integer
-        return i
-    endfunction
-
-    function DzK2I takes integer i returns integer
-        return i
-    endfunction
-
-    function DzI2K takes integer i returns integer
-        return i
-    endfunction
-
-    function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMIA", true)
-    endfunction
-
-    function DzGetTriggerMallItemPlayer takes nothing returns player
-        return DzGetTriggerSyncPlayer()
-    endfunction
-
-    function DzGetTriggerMallItem takes nothing returns string
-        return DzGetTriggerSyncData()
-    endfunction
-
-
-
-endlibrary
-
-#endif /// YDWEAddAIOrderIncluded
-
-#ifndef YDWEBaseIncluded
-#define YDWEBaseIncluded
-
-library_once YDWEBase initializer InitializeYD
-
-#if WARCRAFT_VERSION >= 124
-#  include "Base/YDWEBase_hashtable.j"
-#else
-#  include "Base/YDWEBase_returnbug.j"
-#endif
-#
-#  include "Base/YDWEBase_common.j"
-
-endlibrary
-
-#endif // YDWEBaseIncluded
-
-#if 0
-//--------------------------------------------//
-//         本文件为自动生成，请勿编辑         //
-//             thanks to 最萌小汐             //
-//--------------------------------------------//
-#endif
-#ifdef USE_BJ_ANTI_LEAK
-#ifndef YDWEGetUnitsInRectAllNullIncluded
-#define YDWEGetUnitsInRectAllNullIncluded
-
-#include "AntiBJLeak/detail/GetUnitsInRectMatching.j"
-
-library YDWEGetUnitsInRectAllNull requires YDWEGetUnitsInRectMatchingNull
-
-function YDWEGetUnitsInRectAllNull takes rect r returns group
-    return YDWEGetUnitsInRectMatchingNull(r, null)
-endfunction
-
-endlibrary
-
-#endif
 #endif
 
 //===========================================================================
@@ -1310,975 +657,111 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
-/*
-常用常量
-*/
-//玩家总数
+// 用原始地图测试
 //! zinc
-library Constant {
-    public integer playerCount = 0; //从游戏开始的玩家人数
-public integer renshu = 0; //动态游戏人数
-
-    function onInit () {
-        integer i;
-        for (1 <= i <= 4) {
-            if ((GetPlayerSlotState(ConvertedPlayer(i)) == PLAYER_SLOT_STATE_PLAYING) && (GetPlayerController(ConvertedPlayer(i)) == MAP_CONTROL_USER)) {
-                playerCount += 1;
-                renshu += 1;
-            }
-        }
-    }
-}
-//! endzinc
-//! zinc
-/*
-公用变量
-*/
-library Variable requires Constant {
-	//玩家信息
-	public struct pd [] {
-		integer gold;	//金币
-integer gem;	//宝石
-integer kill;	//杀怪
-string name;	//名字
-
-		integer goldRate;	//金币获取率,除100
-integer goldNega;	//金币负获取率,除100
-integer gemRate;	//结晶获取率,除100
-integer gemNega;	//结晶负获取率,除100
-integer killExtra;	//不用除100,单纯加减
-integer killNega;	//不用除100,单纯加减
-//以后再说:要不要金币与宝石突破上限
-
-		optional module auraAfter; //引用
-}
-	//主英雄
-	public unit H[];
-	public unit USelected[]; //正在选择的单位[同步]
-
-	//表数据
-	public hashtable UNTable = InitHashtable(); //以unittype为头的表
-public hashtable UTTable = InitHashtable(); //以unit为头的表
-public hashtable TITable = InitHashtable(); //以计时器为头的表
-public hashtable GRTable = InitHashtable(); //以单位组为头的表
-public hashtable SPTable = InitHashtable(); //以SpellStruct为头的表
-
-	//选择事件
-	public trigger TrSelect = null;
-	//[结构体创建事件]类型
-	public integer StType = 0;
-	//[结构体创建事件]指针
-	public integer StThis = 0;
-	//[结构体创建事件]触发器
-	public trigger TrStruct = null;
-	//几个矩形区域
-	public rect RHome[];
-	public rect RFuben[];
-	public function OnStructCreate (integer typeid,integer stthis) {
-		StType = typeid;
-		StThis = stthis;
-		if (TrStruct != null) {
-			TriggerEvaluate(TrStruct);
-		}
+//==================================
+// Logger测试模块
+// version: 1.0
+// author: 系统自动生成
+// date: 2024/3/21
+//
+// 功能：测试Logger库的所有日志输出功能
+// 测试指令：
+// s1 - 测试全局日志输出(Trace/Debug/Info/Warn/Error)
+// s2 - 测试指定玩家日志输出
+// -a [msg] - 测试自定义消息的全局日志输出
+// -b [msg] - 测试自定义消息的玩家日志输出
+//==================================
+library UTLogger requires Logger {
+	// 测试全局日志输出
+	function TTestUTLogger1(player p) {
+		Trace("这是一条追踪日志");
+		Debug("这是一条调试日志");
+		Info("这是一条信息日志");
+		Warn("这是一条警告日志");
+		Error("这是一条错误日志");
 	}
-	function onInit () {
-		//在游戏开始0.1秒后再调用
-		integer i = 1;
-		trigger tr = CreateTrigger();
-		TriggerRegisterTimerEventSingle(tr,0.2);
-		TriggerAddCondition(tr,Condition(function (){
-			integer i;
-			for (1 <= i <= 4) {
-				pd[i].name = GetPlayerName(ConvertedPlayer(i));
-			}
-			DestroyTrigger(GetTriggeringTrigger());
-		}));
-		tr = null;
-		//选单位的事件[同步]
-		TrSelect = CreateTrigger();
-		for (1 <= i <= 4) {TriggerRegisterPlayerSelectionEventBJ(TrSelect, ConvertedPlayer(i), true);}
-		TriggerAddCondition(TrSelect, Condition(function (){
-			//单位选择事件[同步]
-			integer index = GetConvertedPlayerId(GetTriggerPlayer());
-			USelected[index] = GetTriggerUnit();
-		}));
+	// 测试指定玩家日志输出
+	function TTestUTLogger2(player p) {
+		TraceToPlayer(p, "这是发送给玩家的追踪日志");
+		DebugToPlayer(p, "这是发送给玩家的调试日志");
+		InfoToPlayer(p, "这是发送给玩家的信息日志");
+		WarnToPlayer(p, "这是发送给玩家的警告日志");
+		ErrorToPlayer(p, "这是发送给玩家的错误日志");
 	}
-}
-//! endzinc
-//! zinc
-/*
-特效工具
-*/
-library EffectUtils requires GroupUtils {
-    public struct efut [] {
-        static integer args1 = 0;
-        static group g = null; //临时
-}
-    //直线型特效
-    public struct missile {
-        public static thistype ethis = 0;	//正在运行的实例获取
-static timer t = null; //运动计时器
-static thistype List [];	//内容列表
-static integer size = 0;	//现在有几个东西
-
-        integer uID; //[成员]绑定的ID
-real x, y, z, dx, dy, dz; //[成员]起点与终点
-real xySpeed, zSpeed, speed;	//[成员]移动速度
-effect e; //[成员]特效本体
-trigger tr; //[成员]特效到达目标后
-boolean down; //[成员]是向上还是向下
-
-        optional module efStat; //[外导的]存储信息
-
-        method isExist () -> boolean {return (this != null && si__missile_V[this] == -1);}
-        method onDestroy () {
-            DestroyEffect(e);
-            DestroyTrigger(tr);
-            e = null;
-            tr = null;
-        }
-        method unreg () {
-            if (!(isExist())) return;
-            if (uID != 0) {
-                //这个其实就是将List的[2]设成5  假设2是删  5是最长
-                //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)
-                //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
-                List[uID] = List[size];
-                List[uID].uID = uID;
-                size -= 1;
-                uID = 0;
-            }
-            this.destroy();
-        }
-        //func1 是结束时调用
-        static method reg (string s,real x,real y,real z,real dx,real dy,real dz,real speed,code func1) -> thistype {
-            real distanceXY , distance , distanceZ;
-            thistype this = allocate();
-            if (this <= 0) {return this;}
-            if (size > 8190) {return this;} //防止爆炸
-
-            if (func1 != null) {
-                tr = CreateTrigger();
-                TriggerAddCondition(tr,Condition(func1));
-            }
-            e = AddSpecialEffect(s, x, y );
-            EXSetEffectZ(e,z);
-            EXEffectMatRotateZ(e,GetFacing(x,y,dx,dy));
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.dx = dx;
-            this.dy = dy;
-            this.dz = dz;
-            distanceXY = GetDistance(x,y,dx,dy);
-            distanceZ = RAbsBJ(z-dz);
-            distance = GetDistanceZ(x,y,z,dx,dy,dz);
-            if (distance > 0) { //设置一下速度
-this.speed = speed;
-                this.xySpeed = speed * SquareRoot(distanceXY * distanceXY / distance / distance);
-                this.zSpeed = speed * SquareRoot(distanceZ * distanceZ / distance / distance);
-                if (dz > z) {
-                    down = false;
-                } else {
-                    down = true;
-                }
-            } else { //原地还行,那就立刻触发吧
-if (tr != null) {
-                    ethis = this;
-                    TriggerEvaluate(tr);
-                }
-                destroy();
-                return 0;
-            }
-            if (uID == 0) { //这里是初始化时的设置内容,不需要改
-size += 1;
-                List[size] = this;
-                uID = size;
-            }
-            if (t == null) {
-                t = CreateTimer();
-                TimerStart(t,0.05,true,function (){
-                    trigger tr;
-                    integer i , this;
-                    boolean b;
-                    if (size > 0) {
-                        for (1 <= i <= size) {
-                            tr = CreateTrigger();
-                            efut.args1 = List[i];
-                            TriggerAddCondition(tr, Condition(function () -> boolean {
-                                thistype this = efut.args1;
-                                real angle = GetFacing(x,y,dx,dy);
-                                real nx = YDWECoordinateX(x + xySpeed * CosBJ(angle));
-                                real ny = YDWECoordinateY(y + xySpeed * SinBJ(angle));
-                                real nz;
-                                if (down) nz = RMaxBJ(dz,z - zSpeed); //向下运动,z速是负数
-else nz = RMinBJ(dz,zSpeed + z); //向上运动,z速是正数
-
-                                EXSetEffectXY(e,nx,ny);
-                                EXSetEffectZ(e,nz);
-                                if (GetDistanceZ(nx,ny,nz,dx,dy,dz) <= speed) { //到地方了
-if (tr != null) {
-                                        ethis = this;
-                                        TriggerEvaluate(tr);
-                                    }
-                                    unreg();
-                                    return false;
-                                } else { //没到 存一下地点
-x = nx;
-                                    y = ny;
-                                    z = nz;
-                                }
-                                return true;
-                            }));
-                            b = TriggerEvaluate(tr);
-                            DestroyTrigger(tr);
-                            tr = null;
-                            if (!b) i -= 1; //代替在里面的减
-}
-                    }
-                    if (size <= 0) { //这里就删计时器吧
-PauseTimer(t);
-                        DestroyTimer(t);
-                        t = null;
-                    }
-                });
-            }
-            return this;
-        }
-    }
-    //瞄准单位型(带Z轴的贝塞尔曲线)
-    public struct umissile {
-        public static thistype ethis = 0;	//正在运行的实例获取
-static timer t = null; //运动计时器
-static thistype List [];	//内容列表
-static integer size = 0;	//现在有几个东西
-
-        integer uID; //[成员]绑定的ID
-real cd; //[成员]倒计时
-real ux, uy, uz;	//[成员]贝塞尔点1(起点)
-real ex, ey, ez;	//[成员]贝塞尔点2(中点)
-real nx, ny, nz;	//[成员]贝塞尔点2(终点),用于如果目标死亡的缓存点
-unit u; //[成员]目标单位
-effect e; //[成员]特效本体
-trigger tr; //[成员]特效到达目标后
-
-        optional module efStat; //[外导的]存储信息
-
-        method isExist () -> boolean {return (this != null && si__umissile_V[this] == -1);}
-        method onDestroy () {
-            DestroyEffect(e);
-            DestroyTrigger(tr);
-            e = null;
-            tr = null;
-            u = null;
-        }
-        method unreg () {
-            if (!(isExist())) return;
-            if (uID != 0) {
-                //这个其实就是将List的[2]设成5  假设2是删  5是最长
-                //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)
-                //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
-                List[uID] = List[size];
-                List[uID].uID = uID;
-                size -= 1;
-                uID = 0;
-            }
-            this.destroy();
-        }
-        //由于是跟踪型,目标
-        static method reg (string s,real x,real y,real z,unit target,code func1) -> thistype {
-            real angle,angle2;
-            real x1,y1;
-            integer random;
-            thistype this = allocate();
-            if (this <= 0) {return this;}
-            if (size > 8190) {return this;} //防止爆炸
-
-            if (func1 != null) {
-                tr = CreateTrigger();
-                TriggerAddCondition(tr,Condition(func1));
-            }
-			angle = GetFacing(x,y,GetUnitX(target),GetUnitY(target));
-			ux = YDWECoordinateX(x - 60 * CosBJ(angle));
-			uy = YDWECoordinateY(y - 60 * SinBJ(angle));
-			uz = z + 80;
-			x1 = YDWECoordinateX(x - 1 * CosBJ(angle));
-			y1 = YDWECoordinateY(y - 1 * SinBJ(angle));
-			angle2 = GetFacing(x,y,x1,y1);
-			random = GetRandomInt(1,10);
-			ex = CosBJ(90-(18*random+angle2)) * 1000 + x1;
-			ey = SinBJ(90-(18*random+angle2)) * 1000 + y1;
-			ez = 600;
-			e = AddSpecialEffect(s, ux,uy );
-			u = target;
-			cd = 0.;
-			nx = GetUnitX(target);
-			ny = GetUnitY(target);
-			nz = GetUnitFlyHeight(target) + 50;
-			EXSetEffectZ(e,uz);
-            if (uID == 0) { //这里是初始化时的设置内容,不需要改
-size += 1;
-                List[size] = this;
-                uID = size;
-            }
-            if (t == null) {
-                t = CreateTimer();
-                TimerStart(t,0.03,true,function (){
-                    trigger tr;
-                    integer i , this;
-                    boolean b;
-                    if (size > 0) {
-                        for (1 <= i <= size) {
-                            tr = CreateTrigger();
-                            efut.args1 = List[i];
-                            TriggerAddCondition(tr, Condition(function () -> boolean {
-                                thistype this = efut.args1;
-                                real tx,ty,tz; //贝塞尔坐标
-real txi,tyi; //下一步的位置,求出角度
-
-                                if (cd > 0.98) { //到地方了
-if (tr != null) {
-                                        ethis = this;
-                                        TriggerEvaluate(tr);
-                                    }
-                                    unreg();
-                                    return false;
-                                } else { //没到 存一下地点以防万一
-if (IsUnitAliveBJ(u)) { //活着跟踪
-nx = GetUnitX(u);
-                                        ny = GetUnitY(u);
-                                        nz = GetUnitFlyHeight(u) + 50;
-                                    } //没活着就
-
-                                    cd += 0.02;
-                                    tx = Pow((1-cd),2)*ux + 2 *cd * (1-cd)*ex + Pow(cd,2)*nx;
-                                    ty = Pow((1-cd),2)*uy + 2 *cd * (1-cd)*ey + Pow(cd,2)*ny;
-                                    tz = Pow((1-cd),2)*uz + 2 *cd * (1-cd)*ez + Pow(cd,2)*nz;
-                                    EXSetEffectZ(e,tz);
-                                    EXSetEffectXY(e,tx,ty);
-                                    EXEffectMatReset(e);
-                                    txi = Pow((1-(cd+0.02)),2)*ux + 2 *(cd+0.02) * (1-(cd+0.02))*ex + Pow((cd+0.02),2)*nx;
-                                    tyi = Pow((1-(cd+0.02)),2)*uy + 2 *(cd+0.02) * (1-(cd+0.02))*ey + Pow((cd+0.02),2)*ny;
-                                    EXEffectMatRotateZ(e,GetFacing(tx,ty,txi,tyi));
-                                }
-                                return true;
-                            }));
-                            b = TriggerEvaluate(tr);
-                            DestroyTrigger(tr);
-                            tr = null;
-                            if (!b) i -= 1; //代替在里面的减
-}
-                    }
-                    if (size <= 0) { //这里就删计时器吧
-PauseTimer(t);
-                        DestroyTimer(t);
-                        t = null;
-                    }
-                });
-            }
-            return this;
-        }
-    }
-    //直线穿透型
-    public struct pierce {
-        public static thistype ethis = 0;	//正在运行的实例获取
-static timer t = null; //运动计时器
-static thistype List []; //内容列表
-static integer size = 0; //现在有几个东西
-
-        integer uID; //[成员]绑定的ID
-real x, y, dx, dy;	//[成员]起点与终点(没有Z)
-real speed,radius;	//[成员]移动速度/单位组检测范围
-effect e; //[成员]特效本体
-trigger trU,trEnd;	//[成员]触发(伤害时(与帧事件)/结束时)
-group g; //[成员]缓存单位组
-
-        optional module efStat; //[外导的]存储信息
-
-        method isExist () -> boolean {return (this != null && si__pierce_V[this] == -1);}
-        method onDestroy () {
-            DestroyEffect(e);
-            DestroyTrigger(trU);
-            DestroyTrigger(trEnd);
-            DestroyGroup(g);
-            e = null;
-            trU = null;
-            trEnd = null;
-            g = null;
-        }
-        method unreg () {
-            if (!(isExist())) return;
-            if (uID != 0) {
-                //这个其实就是将List的[2]设成5  假设2是删  5是最长
-                //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)
-                //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
-                List[uID] = List[size];
-                List[uID].uID = uID;
-                size -= 1;
-                uID = 0;
-            }
-            this.destroy();
-        }
-        //func1 是结束时调用
-        static method reg (string s,real x,real y,real dx,real dy,real speed,real radius,code funU,code funEnd) -> thistype {
-            thistype this = allocate();
-            if (this <= 0) {return this;}
-            if (size > 8190) {return this;} //防止爆炸
-
-            if (funU != null) {
-                trU = CreateTrigger();
-                TriggerAddCondition(trU,Condition(funU));
-            }
-            if (funEnd != null) {
-                trEnd = CreateTrigger();
-                TriggerAddCondition(trEnd,Condition(funEnd));
-            }
-            e = AddSpecialEffect(s, x, y );
-            EXEffectMatRotateZ(e,GetFacing(x,y,dx,dy));
-            this.x = x;
-            this.y = y;
-            this.dx = dx;
-            this.dy = dy;
-            this.speed = speed;
-            this.radius = radius;
-            this.g = CreateGroup();
-            if (uID == 0) { //这里是初始化时的设置内容,不需要改
-size += 1;
-                List[size] = this;
-                uID = size;
-            }
-            if (t == null) {
-                t = CreateTimer();
-                TimerStart(t,0.05,true,function (){
-                    trigger tr;
-                    integer i , this;
-                    boolean b;
-                    if (size > 0) {
-                        for (1 <= i <= size) {
-                            tr = CreateTrigger();
-                            efut.args1 = List[i];
-                            TriggerAddCondition(tr, Condition(function () -> boolean {
-                                thistype this = efut.args1;
-                                real angle = GetFacing(x,y,dx,dy);
-                                real nx = YDWECoordinateX(x + speed * CosBJ(angle));
-                                real ny = YDWECoordinateY(y + speed * SinBJ(angle));
-                                EXSetEffectXY(e,nx,ny);
-                                efut.g = CreateGroup();
-                                efut.args1 = this;
-                                GroupEnumUnitsInRangeEx(efut.g, nx,ny, radius, Filter(function () -> boolean {
-                                    thistype this = efut.args1;
-                                    if (!IsUnitInGroup(GetFilterUnit(),g)) {
-                                        GroupAddUnit(g,GetFilterUnit());
-                                        return true;
-                                    }
-                                    return false;
-                                }));
-                                if (trU != null) { //针对每个穿刺到的单位进行操作,也自动归进单位组了
-ethis = this;
-                                    TriggerEvaluate(trU); //Frame也写到这里吧 帧事件
-}
-                                DestroyGroup(efut.g);
-                                efut.g = null;
-                                if (GetDistance(nx,ny,dx,dy) <= speed) { //到地方了
-if (trEnd != null) {
-                                        ethis = this;
-                                        TriggerEvaluate(trEnd);
-                                    }
-                                    unreg();
-                                    return false;
-                                } else { //没到 存一下地点
-x = nx;
-                                    y = ny;
-                                }
-                                return true;
-                            }));
-                            b = TriggerEvaluate(tr);
-                            DestroyTrigger(tr);
-                            tr = null;
-                            if (!b) i -= 1; //代替在里面的减
-}
-                    }
-                    if (size <= 0) { //这里就删计时器吧
-PauseTimer(t);
-                        DestroyTimer(t);
-                        t = null;
-                    }
-                });
-            }
-            return this;
-        }
-    }
-}
-//! endzinc
-//! zinc
-//blp
-//blp
-//blp
-//自动生成的文件
-library UTEffectUtils requires optional EffectUtils,Variable { //blp
-//blp
-//blp
-
-	//blp
-	//blp
-	//blp
-	//blp
-	//blp
-	function TTestUTEffectUtils1 (player p) {
-		MemoryLeakShow();
-		StructShow();
-		GetLocalizedHotkey("yd_leak_monitor::create_report");
-		DumpAllString("PO_stringTT.txt");
-	}
-	//blp
-	//blp
-	//blp
-	function TTestUTEffectUtils2 (player p) { //测试一下纯直线弹幕
-missile ms;
-		integer i;
-		for (1 <= i <= 10) {
-			ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",GetRandomReal(-2000,2000),GetRandomReal(-2000,2000),0,GetRandomReal(-2000,2000),GetRandomReal(-2000,2000),0,GetRandomReal(30,100),function(){
-				BJDebugMsg("到达地点咯!");
-			});
-		}
-	}
-	function TTestUTEffectUtils3 (player p) { //測試一下向上飞的直线弹幕
-missile ms;
-		integer i;
-		real x;
-		real y;
-		for (1 <= i <= 10) {
-			// ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",0,0,0,GetRandomReal(-1000,2000),GetRandomReal(-1000,2000),GetRandomReal(2000,3000),GetRandomReal(10,30),function(){
-			// 	BJDebugMsg("飞天咯!");
-			// });
-			x = GetRandomReal(-1000,2000);
-			y = GetRandomReal(-1000,2000);
-			ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",x,y,0,x,y,GetRandomReal(2000,3000),GetRandomReal(30,100),function(){
-				BJDebugMsg("飞天咯!");
-			});
-			EXEffectMatRotateY(ms.e,270);
-			// EXEffectMatRotateY(ms.e,90);
-		}
-	}
-	function TTestUTEffectUtils4 (player p) { //測試一下向下飞的直线弹幕
-missile ms;
-		integer i;
-		real x;
-		real y;
-		for (1 <= i <= 10) {
-			// ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",GetRandomReal(-1000,2000),GetRandomReal(-1000,2000),GetRandomReal(2000,3000),0,0,0,GetRandomReal(10,30),function(){
-			// 	BJDebugMsg("落地咯!");
-			// });
-			x = GetRandomReal(-1000,2000);
-			y = GetRandomReal(-1000,2000);
-			ms = missile.reg("units\\human\\phoenix\\phoenix.mdl",x,y,GetRandomReal(2000,3000),x,y,0,GetRandomReal(30,100),function(){
-				BJDebugMsg("落地咯!");
-			});
-			EXEffectMatRotateY(ms.e,90);
-		}
-	}
-	effect ef = null;
-	function TTestUTEffectUtils5 (player p) { //研究一下特效X轴旋转
-timer t;
-		if (ef == null) {
-			ef = AddSpecialEffect("units\\human\\phoenix\\phoenix.mdl", 0,0 );
-			EXSetEffectZ(ef,100);
-			EXEffectMatScale(ef,2.0,2.0,2.0);
-		}
-		t = CreateTimer();
-		SaveInteger(TITable,GetHandleId(t),1,1);
-		TimerStart(t,0.02,true,function (){
-			timer t = GetExpiredTimer();
-			integer id = GetHandleId(t);
-			integer i = LoadInteger(TITable,id,1);
-			if (i <= 360) {
-				EXEffectMatRotateX(ef,1.0);
-				i += 1;
-				SaveInteger(TITable,id,1,i);
-			} else {
-				PauseTimer(t);
-				FlushChildHashtable(TITable,id);
-				DestroyTimer(t);
-			}
-			t = null;
-		});
-		t = null;
-	}
-	function TTestUTEffectUtils6 (player p) { //研究一下特效Y轴旋转
-timer t;
-		if (ef == null) {
-			ef = AddSpecialEffect("units\\human\\phoenix\\phoenix.mdl", 0,0 );
-			EXSetEffectZ(ef,100);
-			EXEffectMatScale(ef,2.0,2.0,2.0);
-		}
-		t = CreateTimer();
-		SaveInteger(TITable,GetHandleId(t),1,1);
-		TimerStart(t,0.02,true,function (){
-			timer t = GetExpiredTimer();
-			integer id = GetHandleId(t);
-			integer i = LoadInteger(TITable,id,1);
-			if (i <= 360) {
-				EXEffectMatRotateY(ef,1.0);
-				i += 1;
-				SaveInteger(TITable,id,1,i);
-			} else {
-				PauseTimer(t);
-				FlushChildHashtable(TITable,id);
-				DestroyTimer(t);
-			}
-			t = null;
-		});
-		t = null;
-	}
-	function TTestUTEffectUtils7 (player p) { //研究一下特效Z轴旋转:就是普通的
-timer t;
-		if (ef == null) {
-			ef = AddSpecialEffect("units\\human\\phoenix\\phoenix.mdl", 0,0 );
-			EXSetEffectZ(ef,100);
-			EXEffectMatScale(ef,2.0,2.0,2.0);
-		}
-		t = CreateTimer();
-		SaveInteger(TITable,GetHandleId(t),1,1);
-		TimerStart(t,0.02,true,function (){
-			timer t = GetExpiredTimer();
-			integer id = GetHandleId(t);
-			integer i = LoadInteger(TITable,id,1);
-			if (i <= 360) {
-				EXEffectMatRotateZ(ef,1.0);
-				i += 1;
-				SaveInteger(TITable,id,1,i);
-			} else {
-				PauseTimer(t);
-				FlushChildHashtable(TITable,id);
-				DestroyTimer(t);
-			}
-			t = null;
-		});
-		t = null;
-	}
-	unit u1 = null;
-	unit u2 = null;
-	trigger trSY = null;
-	function TTestUTEffectUtils8 (player p) { //贝塞尔
-timer t;
-		if (trSY == null) {
-			trSY = CreateTrigger();
-			TriggerAddCondition(trSY, Condition(function () {
-				if (GetIssuedOrderId() == String2OrderIdBJ("smart")) {
-					DzSetUnitPosition(GetTriggerUnit(),GetOrderPointX(),GetOrderPointY());
-				}
-			}));
-		}
-		if (u1 == null) {
-			u1 = CreateUnit(p,'Hpal',0,0,0);
-			TriggerRegisterUnitEvent(trSY,u1,EVENT_UNIT_ISSUED_POINT_ORDER);
-		}
-		if (u2 == null) {
-			u2 = CreateUnit(p,'Ewar',1000,1000,0);
-			TriggerRegisterUnitEvent(trSY,u2,EVENT_UNIT_ISSUED_POINT_ORDER);
-		}
-		t = CreateTimer();
-		SaveInteger(TITable,GetHandleId(t),1,1);
-		TimerStart(t,0.1,true,function (){
-			timer t2;
-			timer t = GetExpiredTimer();
-			integer id = GetHandleId(t);
-			integer i = LoadInteger(TITable,id,1);
-			real angle = GetFacing(GetUnitX(u1),GetUnitY(u1),GetUnitX(u2),GetUnitY(u2));
-			real ux = GetUnitX(u1) - 60 * CosBJ(angle);
-			real uy = GetUnitY(u1) - 60 * SinBJ(angle);
-			real uz = GetUnitFlyHeight(u1) + 80;
-			real x1 = GetUnitX(u1) - 1 * CosBJ(angle);
-			real y1 = GetUnitY(u1) - 1 * SinBJ(angle);
-			real angle2 = GetFacing(GetUnitX(u1),GetUnitY(u1),x1,y1);
-			integer random = GetRandomInt(1,10);
-			real ex = CosBJ(90-(18*random+angle2)) * 1000 + x1;
-			real ey = SinBJ(90-(18*random+angle2)) * 1000 + y1;
-			real ez = 600;
-			effect e = AddSpecialEffect("Abilities\\Weapons\\PoisonArrow\\PoisonArrowMissile.mdl", ux,uy );
-			EXSetEffectZ(e,uz);
-			if (i <= 100) {
-				t2 = CreateTimer();
-				SaveReal(TITable,GetHandleId(t2),1,0.0);
-				SaveReal(TITable,GetHandleId(t2),2,ux);
-				SaveReal(TITable,GetHandleId(t2),3,uy);
-				SaveReal(TITable,GetHandleId(t2),4,uz);
-				SaveReal(TITable,GetHandleId(t2),5,ex);
-				SaveReal(TITable,GetHandleId(t2),6,ey);
-				SaveReal(TITable,GetHandleId(t2),7,ez);
-				SaveEffectHandle(TITable,GetHandleId(t2),8,e);
-				TimerStart(t2,0.03,true,function (){
-					timer t2 = GetExpiredTimer();
-					integer id = GetHandleId(t2);
-					real cd = LoadReal(TITable,id,1);
-					real ux = LoadReal(TITable,id,2);
-					real uy = LoadReal(TITable,id,3);
-					real uz = LoadReal(TITable,id,4);
-					real ex = LoadReal(TITable,id,5);
-					real ey = LoadReal(TITable,id,6);
-					real ez = LoadReal(TITable,id,7);
-					effect e = LoadEffectHandle(TITable,id,8);
-					real nx,ny,nz; //当前单位的位置
-real tx,ty,tz; //
-real txi,tyi; //下一步的位置,求出角度
-if (cd <= 0.98) {
-						nx = GetUnitX(u2);
-						ny = GetUnitY(u2);
-						nz = GetUnitFlyHeight(u2) + 50;
-						cd += 0.02;
-						tx = Pow((1-cd),2)*ux + 2 *cd * (1-cd)*ex + Pow(cd,2)*nx;
-						ty = Pow((1-cd),2)*uy + 2 *cd * (1-cd)*ey + Pow(cd,2)*ny;
-						tz = Pow((1-cd),2)*uz + 2 *cd * (1-cd)*ez + Pow(cd,2)*nz;
-						EXSetEffectZ(e,tz);
-						EXSetEffectXY(e,tx,ty);
-						EXEffectMatReset(e);
-						txi = Pow((1-(cd+0.02)),2)*ux + 2 *(cd+0.02) * (1-(cd+0.02))*ex + Pow((cd+0.02),2)*nx;
-						tyi = Pow((1-(cd+0.02)),2)*uy + 2 *(cd+0.02) * (1-(cd+0.02))*ey + Pow((cd+0.02),2)*ny;
-						EXEffectMatRotateZ(e,GetFacing(tx,ty,txi,tyi));
-						SaveReal(TITable,id,1,cd);
-					} else {
-						DestroyEffect(e);
-						PauseTimer(t2);
-						FlushChildHashtable(TITable,id);
-						DestroyTimer(t2);
-					}
-					t2 = null;
-					e = null;
-				});
-				t2 = null;
-				i += 1;
-				SaveInteger(TITable,id,1,i);
-			} else {
-				DestroyEffect(e);
-				PauseTimer(t);
-				FlushChildHashtable(TITable,id);
-				DestroyTimer(t);
-			}
-			t = null;
-			e = null;
-		});
-		t = null;
-	}
-	function TTestUTEffectUtils9 (player p) { //测试一下umissile
-timer t;
-		if (trSY == null) {
-			trSY = CreateTrigger();
-			TriggerAddCondition(trSY, Condition(function () {
-				if (GetIssuedOrderId() == String2OrderIdBJ("smart")) {
-					DzSetUnitPosition(GetTriggerUnit(),GetOrderPointX(),GetOrderPointY());
-				}
-			}));
-		}
-		if (u1 == null) {
-			u1 = CreateUnit(p,'Hpal',0,0,0);
-			TriggerRegisterUnitEvent(trSY,u1,EVENT_UNIT_ISSUED_POINT_ORDER);
-		}
-		if (u2 == null) {
-			u2 = CreateUnit(p,'Ewar',1000,1000,0);
-			TriggerRegisterUnitEvent(trSY,u2,EVENT_UNIT_ISSUED_POINT_ORDER);
-		}
-		t = CreateTimer();
-		SaveInteger(TITable,GetHandleId(t),1,1);
-		TimerStart(t,0.1,true,function (){
-			timer t = GetExpiredTimer();
-			integer id = GetHandleId(t);
-			integer i = LoadInteger(TITable,id,1);
-			if (i <= 100) {
-				umissile.reg("Abilities\\Weapons\\PoisonArrow\\PoisonArrowMissile.mdl",GetUnitX(u1),GetUnitY(u1),GetUnitFlyHeight(u1),u2,function(){
-					BJDebugMsg("击中了哦.");
-				});
-				i += 1;
-				SaveInteger(TITable,id,1,i);
-			} else {
-				PauseTimer(t);
-				FlushChildHashtable(TITable,id);
-				DestroyTimer(t);
-			}
-			t = null;
-		});
-		t = null;
-	}
-	integer fra[];
-	function TTestUTEffectUtils10 (player p) { //测试一下穿刺
-pierce pe;
-		integer i;
-		integer index = GetConvertedPlayerId(p);
-		ForGroup(YDWEGetUnitsInRectAllNull(GetPlayableMapRect()),function () {
-			if (GetUnitTypeId(GetEnumUnit()) == 'nmam') {
-				RemoveUnit(GetEnumUnit());
-			}
-		});
-		// for (1 <= i <= 10) {
-		pe = pierce.reg("Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdl",GetRandomReal(-2000,-1000),GetRandomReal(-2000,-1000),GetRandomReal(1000,2000),GetRandomReal(1000,2000),100,450,function(){ //帧事件与单位
-pierce pe = pierce.ethis;
-			if (CountUnitsInGroup(efut.g) > 0) {
-				ForGroup(efut.g,function () {
-					pierce pe = pierce.ethis;
-					integer index = 1;
-					if (IsEnemyIncludeInvul(Player(0),GetEnumUnit())) {
-						BJDebugMsg(pd[index].name +"的敌人:"+GetUnitName(GetEnumUnit()));
-						KillUnit(GetEnumUnit());
-					} else if (IsAlly(Player(0),GetEnumUnit())) {
-						BJDebugMsg(pd[index].name +"的队友:"+GetUnitName(GetEnumUnit()));
-						SetUnitState(GetEnumUnit(),UNIT_STATE_LIFE,100);
-					} else {
-						BJDebugMsg("已经死亡的:"+GetUnitName(GetEnumUnit()));
-					}
-				});
-			}
-			fra[pe] = ModuloInteger(fra[pe],3)+1;
-			if (ModuloInteger(fra[pe],3) == 0) {
-				DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Other\\Charm\\CharmTarget.mdl", pe.x,pe.y ));
-			}
-		},
-		function(){ //结束事件
-pierce pe = pierce.ethis;
-			BJDebugMsg("结束啦!!");
-		});
-		// pe.h = MH[index];
-		fra[pe]= 0;
-		EXEffectMatScale(pe.e,3.0,3.0,3.0);
-		EXSetEffectZ(pe.e,200);
-		// }
-		for (1 <= i <= 20) { //创建几个单位
-CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE),'nmam',GetRandomReal(-200,200),GetRandomReal(-200,200),0);
-			CreateUnit(Player(0),'nmam',GetRandomReal(-200,200),GetRandomReal(-200,200),0);
-		}
-	}
-	real xLi = 0.;
-	real yLi = 0.;
-	function TTestUTEffectUtils11 (player p) { //测试一下边界点
-timer t;
-		t = CreateTimer();
-		SaveInteger(TITable,GetHandleId(t),1,1);
-		TimerStart(t,0.05,true,function (){
-			timer t = GetExpiredTimer();
-			integer id = GetHandleId(t);
-			integer i = LoadInteger(TITable,id,1);
-			pierce pe;
-			if (i <= 720) {
-				//每个角度各来一发
-				radiationEnd.cal(xLi,yLi,i*0.5);
-				pe = pierce.reg("Abilities\\Spells\\Orc\\Shockwave\\ShockwaveMissile.mdl",xLi,
-				yLi,YDWECoordinateX(radiationEnd.x),YDWECoordinateY(radiationEnd.y),100,450,function(){ //帧事件与单位
-pierce pe = pierce.ethis;
-					if (CountUnitsInGroup(efut.g) > 0) {
-						ForGroup(efut.g,function () {
-							pierce pe = pierce.ethis;
-							BJDebugMsg("单位名字:"+GetUnitName(GetEnumUnit()));
-						});
-					}
-				},
-				function(){ //结束事件
-pierce pe = pierce.ethis;
-					BJDebugMsg("光波("+I2S(pe)+")结束啦:"+R2S(pe.x)+","+R2S(pe.y));
-				});
-				i += 1;
-				SaveInteger(TITable,id,1,i);
-			} else {
-				PauseTimer(t);
-				FlushChildHashtable(TITable,id);
-				DestroyTimer(t);
-			}
-			t = null;
-		});
-		t = null;
-	}
-	function TTestUTEffectUtils12 (player p) {
-	}
-	function TTestUTEffectUtils13 (player p) {
-	}
-	function TTestUTEffectUtils14 (player p) {
-	}
-	function TTestUTEffectUtils15 (player p) {
-	}
-	function TTestUTEffectUtils16 (player p) {
-	}
-	function TTestUTEffectUtils17 (player p) {
-	}
-	function TTestUTEffectUtils18 (player p) {
-	}
-	function TTestUTEffectUtils19 (player p) {
-	}
-	function TTestUTEffectUtils20 (player p) {
-	}
-	function TTestActUTEffectUtils1 (string str) {
+	// 其他测试函数预留
+	function TTestUTLogger3(player p) {}
+	function TTestUTLogger4(player p) {}
+	function TTestUTLogger5(player p) {}
+	function TTestUTLogger6(player p) {}
+	function TTestUTLogger7(player p) {}
+	function TTestUTLogger8(player p) {}
+	function TTestUTLogger9(player p) {}
+	function TTestUTLogger10(player p) {}
+	// 处理带参数的测试命令
+	function TTestActUTLogger1(string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str); //获取范围式数字
-string paramS []; //所有参数S
-integer paramI []; //所有参数I
-real	paramR []; //所有参数R
-for (0 <= i <= len - 1) {
+		integer i, num = 0, len = StringLength(str);
+		string paramS[]; // 所有参数S
+integer paramI[]; // 所有参数I
+real paramR[]; // 所有参数R
+
+		// 解析参数
+		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
-				paramS[num]= SubString(str,0,i);
-				paramI[num]= S2I(paramS[num]);
-				paramR[num]= S2R(paramS[num]);
+				paramS[num] = SubString(str,0,i);
+				paramI[num] = S2I(paramS[num]);
+				paramR[num] = S2R(paramS[num]);
 				num = num + 1;
 				str = SubString(str,i + 1,len);
 				len = StringLength(str);
 				i = -1;
 			}
 		}
-		paramS[num]= str;
-		paramI[num]= S2I(paramS[num]);
-		paramR[num]= S2R(paramS[num]);
+		paramS[num] = str;
+		paramI[num] = S2I(paramS[num]);
+		paramR[num] = S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "x") { //测试一下混合的特效
-EXEffectMatRotateX(ef,paramR[1]);
-		} else if (paramS[0] == "y") {
-			EXEffectMatRotateY(ef,paramR[1]);
-		} else if (paramS[0] == "z") {
-			EXEffectMatRotateZ(ef,paramR[1]);
-		} else if (paramS[0] == "height") { //高度
-EXSetEffectZ(ef,paramR[1]);
-		} else if (paramS[0] == "reset") { //恢复
-EXEffectMatReset(ef);
-			EXEffectMatScale(ef,2.0,2.0,2.0);
-		} else if (paramS[0] == "xl") { //设置一下s11的初始位置
-xLi = paramR[1];
-			BJDebugMsg("xLi"+":"+R2S(xLi));
-		} else if (paramS[0] == "yl") { //设置一下s11的初始位置
-yLi = paramR[1];
-			BJDebugMsg("yLi"+":"+R2S(yLi));
+		// 测试自定义消息的全局日志输出
+		if (paramS[0] == "a") {
+			Trace(paramS[1]);
+			Debug(paramS[1]);
+			Info(paramS[1]);
+			Warn(paramS[1]);
+			Error(paramS[1]);
+		}
+		// 测试自定义消息的玩家日志输出
+		else if (paramS[0] == "b") {
+			TraceToPlayer(p, paramS[1]);
+			DebugToPlayer(p, paramS[1]);
+			InfoToPlayer(p, paramS[1]);
+			WarnToPlayer(p, paramS[1]);
+			ErrorToPlayer(p, paramS[1]);
 		}
 		p = null;
 	}
-	//blpend
-	//blpend
-	//blpend
-	function onInit () {
-		integer i;
-		for (1 <= i <= 16) {
-			CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() );
-		}
-		UnitTestRegisterChatEvent(function () {
+	function onInit() {
+		// 注册聊天事件处理器
+		UnitTestRegisterChatEvent(function() {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
+			// 处理带参数的命令
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTEffectUtils1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTLogger1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTEffectUtils1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTEffectUtils2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTEffectUtils3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTEffectUtils4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTEffectUtils5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTEffectUtils6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTEffectUtils7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTEffectUtils8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTEffectUtils9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTEffectUtils10(GetTriggerPlayer());
-			else if(str == "s11") TTestUTEffectUtils11(GetTriggerPlayer());
-			else if(str == "s12") TTestUTEffectUtils12(GetTriggerPlayer());
-			else if(str == "s13") TTestUTEffectUtils13(GetTriggerPlayer());
-			else if(str == "s14") TTestUTEffectUtils14(GetTriggerPlayer());
-			else if(str == "s15") TTestUTEffectUtils15(GetTriggerPlayer());
-			else if(str == "s16") TTestUTEffectUtils16(GetTriggerPlayer());
-			else if(str == "s17") TTestUTEffectUtils17(GetTriggerPlayer());
-			else if(str == "s18") TTestUTEffectUtils18(GetTriggerPlayer());
-			else if(str == "s19") TTestUTEffectUtils19(GetTriggerPlayer());
-			else if(str == "s20") TTestUTEffectUtils20(GetTriggerPlayer());
+			// 处理简单测试命令
+			if (str == "s1") TTestUTLogger1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTLogger2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTLogger3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTLogger4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTLogger5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTLogger6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTLogger7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTLogger8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTLogger9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTLogger10(GetTriggerPlayer());
 		});
 	}
 }

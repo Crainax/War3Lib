@@ -106,9 +106,10 @@ utr.RemoveTable = function()
 	os.remove(path.ut.table.upgrade)
 	os.remove(path.ut.table.buff)
 	os.remove(path.ut.table.misc)
-	fu.ForDir(path.project .. '/UnitTestMap/map', function(fileName)
-		if fileName:sub(#fileName - 2, #fileName):lower() == 'lua' then os.remove(fileName) end
-	end)
+	-- 暂时先不删除Lua文件
+	-- fu.ForDir(path.project .. '/UnitTestMap/map', function(fileName)
+	-- 	if fileName:sub(#fileName - 2, #fileName):lower() == 'lua' then os.remove(fileName) end
+	-- end)
 end
 
 -- 替代特效与图标

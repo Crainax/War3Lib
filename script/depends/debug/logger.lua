@@ -6,7 +6,7 @@ local code = require 'jass.code'
 local mt = {}
 
 -- 日志级别列表
-local LOG_LEVELS = {'trace', 'debug', 'info', 'warn', 'error'}
+local LOG_LEVELS = { 'trace', 'debug', 'info', 'warn', 'error' }
 
 -- 生成针对特定玩家的日志函数
 for _, level in ipairs(LOG_LEVELS) do
@@ -16,17 +16,17 @@ for _, level in ipairs(LOG_LEVELS) do
             console.write(msg)
         end
     end
-    code[level..'ToPlayer'] = mt[level]
+    code[level:sub(1, 1):upper() .. level:sub(2) .. 'ToPlayer'] = mt[level]
 end
 
 -- 生成针对所有玩家的日志函数
 for _, level in ipairs(LOG_LEVELS) do
-    local funcName = level..'All'
+    local funcName = level .. 'All'
     mt[funcName] = function(msg)
         log[level](msg)
         console.write(msg)
     end
-    code[level:sub(1,1):upper()..level:sub(2)] = mt[funcName]
+    code[level:sub(1, 1):upper() .. level:sub(2)] = mt[funcName]
 end
 
 console.write("[日志系统]初始化成功.")

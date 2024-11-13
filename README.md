@@ -44,46 +44,37 @@ War3Lib 是一个用于开发魔兽争霸3地图的工具库。它提供了编�
 ```
 War3Lib/
 │
-├── script/                                  # 脚本目录
-│   └── depends/                            # 依赖工具库
-│       ├── debug/                          # 调试工具集
-│       │   ├── logger.lua                  # 日志系统
-│       │   ├── memory_leak.lua             # 内存泄露检测
-│       │   ├── hero_detector.lua           # 英雄数据检测
-│       │   └── struct_detector.lua         # 结构体检测
-│       ├── init.lua                        # 基础初始化
-│       ├── slkutils.lua                    # SLK数据工具
-│       ├── w2s.lua                         # 坐标转换工具
-│       ├── IOUtils.lua                     # IO操作工具
-│       └── CRTest.lua                      # 测试工具
-│
 ├── Lua/
-│   ├── compile/                            # 编译相关模块
-│   │   ├── Compiler.lua                    # 核心编译器
-│   │   ├── TestControl.lua                 # 测试控制器
-│   │   ├── UTReplace.lua                   # 单元测试替换工具
-│   │   ├── PreSlk.lua                      # SLK预处理工具
-│   │   └── W3xLni.lua                      # 地图格式转换工具
-│   ├── tasks/                              # 任务管理模块
-│   │   ├── TaskCompile.lua                 # 编译任务
-│   │   ├── TaskCreateUT.lua                # 单元测试创建
-│   │   ├── TaskLNI.lua                     # 地图LNI格式转换
-│   │   ├── TaskOBJ.lua                     # 物编重构建
-│   │   ├── TaskLaunch.lua                  # 游戏启动
-│   │   └── TaskStartMap.lua                # 地图启动(支持多版本)
-│   ├── tools/                              # 工具类模块
-│   │   └── Backuper.lua                    # 文件备份还原工具
-│   ├── model/                              # 模型处理相关
-│   │   ├── 1.32模型处理.lua                # 1.32版本模型适配工具
-│   │   ├── 转移模型.lua                    # 模型迁移工具
-│   │   ├── 模型第1步_FBX.lua               # FBX模型转换工具
-│   │   ├── 模型第3步_压缩.lua              # 模型压缩工具
-│   │   ├── 模型测试.lua                    # 模型效果测试工具
-│   │   └── 寻找模型贴图.lua                # 模型贴图提取工具
-│   ├── image/                              # 图片处理工具
-│   │   ├── ImageUtils.lua                  # 图片处理工具集
-│   │   └── GIF生成器.lua                   # GIF动图制作工具
-│   └── path.lua                            # 项目路径管理器
+│   ├── compile/                              # 编译相关模块
+│   │   ├── Compiler.lua                      # 核心编译器,处理地图编译流程
+│   │   ├── TestControl.lua                   # 测试控制器,管理测试版本和环境
+│   │   ├── UTReplace.lua                     # 单元测试替换工具
+│   │   ├── W3xLni.lua                        # 地图格式转换工具
+│   │   ├── Inject.lua                        # 代码注入工具
+│   │   └── Launcher.lua                      # 游戏启动器
+│   ├── tasks/                                # 任务管理模块
+│   │   ├── TaskCompile.lua                   # 编译任务
+│   │   ├── TaskCreateUT.lua                  # 单元测试创建
+│   │   ├── TaskLNI.lua                       # 地图LNI格式转换
+│   │   ├── TaskOBJ.lua                       # 物编重构建
+│   │   ├── TaskLaunch.lua                    # 游戏启动
+│   │   └── TaskStartMap.lua                  # 地图启动(支持多版本)
+│   ├── tools/                                # 工具类模块
+│   │   └── Backuper.lua                      # 文件备份还原工具
+│   ├── model/                                # 模型处理相关
+│   │   ├── 1.32模型处理.lua                  # 1.32版本模型适配工具
+│   │   ├── 转移模型.lua                      # 模型迁移工具
+│   │   ├── 模型第1步_FBX.lua                 # FBX模型转换工具
+│   │   ├── 模型第3步_压缩.lua                # 模型压缩工具
+│   │   ├── 模型测试.lua                      # 模型效果测试工具
+│   │   └── 寻找模型贴图.lua                  # 模型贴图提取工具
+│   ├── image/                                # 图片处理工具
+│   │   ├── ImageUtils.lua                    # 图片处理工具集
+│   │   └── GIF生成器.lua                     # GIF动图制作工具
+│   ├── utils/                                # 通用工具类
+│   │   ├── FileUtils.lua                     # 文件操作工具
+│   │   └── copy.lua                          # 文件复制工具
+│   └── path.lua                              # 项目路径管理器
 │
 ├── jass/
 │   ├── core/                                 # 核心模块
@@ -99,12 +90,17 @@ War3Lib/
 │   │   │   ├── UnitUtils.j                  # 单位操作工具集
 │   │   │   ├── UnitFilter.j                 # 单位筛选器
 │   │   │   └── UnitFilter.cfg               # 单位筛选配置
+│   │   ├── debug/                           # 调试工具集
+│   │   │   ├── Logger.j                     # 日志系统(支持5个级别输出)
+│   │   │   ├── MemoryLeak.j                 # 内存泄露检测工具
+│   │   │   └── StructDetector.j             # 结构体检测工具
 │   │   └── math/                            # 数学计算工具
 │   │       └── NumberUtils.j                # 数值计算工具集
-│   └── template/                            # 测试模板文件
-│       ├── MTTemplate.j                     # 模型测试模板
-│       ├── UTTemplate.j                     # 单元测试模板
-│       └── UTTemplate2.j                    # 高级单元测试模板(可视化)
+│   ├── template/                            # 测试模板文件
+│   │   ├── MTTemplate.j                     # 模型测试模板
+│   │   ├── UTTemplate.j                     # 单元测试模板
+│   │   └── UTTemplate2.j                    # 高级单元测试模板(可视化)
+│   └── InnerJapi.j                          # 内部JAPI接口定义
 │
 ├── README.md                                # 项目说明文档
 ├── CHANGELOG.md                             # 更新日志

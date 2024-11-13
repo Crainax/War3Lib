@@ -409,7 +409,6 @@ library InnerJapi {
             integer id = GetHandleId(t);
             BJDebugMsg("内置Japi" + GetPluginVersion());
             PauseTimer(t);
-            FlushChildHashtable(TITable,id);
             DestroyTimer(t);
             t = null;
         });

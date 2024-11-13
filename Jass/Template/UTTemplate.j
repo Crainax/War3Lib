@@ -4,22 +4,13 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "edit/Constant/Variable.j"
-#include
-// #include "edit/Base/UIBase.j"
-// #include "edit/Utils/LuaUtils.j"
-// #include "UnitTest_HeroStruct.j" //测试模块
-// #include "UnitTest_GuaiStruct.j" //测试模块[创建怪物们]
-// #include "edit/Event/EventAll.j" //事件
 #include "LibraryName.j"
-// #include "edit/ChatEvent.j" //通用聊天事件
 
 //! zinc
 
 //自动生成的文件
-library {UnitTest} requires optional LibraryName {
+library {UnitTest} requires LibraryName {
 
-	#ifdef TestMode
 	function TTest{UnitTest}1 (player p) {}
 	function TTest{UnitTest}2 (player p) {}
 	function TTest{UnitTest}3 (player p) {}
@@ -61,7 +52,6 @@ library {UnitTest} requires optional LibraryName {
 
 		p = null;
 	}
-	#endif
 
 	function onInit () {
 
@@ -83,7 +73,7 @@ library {UnitTest} requires optional LibraryName {
 			else if(str == "s8") TTest{UnitTest}8(GetTriggerPlayer());
 			else if(str == "s9") TTest{UnitTest}9(GetTriggerPlayer());
 			else if(str == "s10") TTest{UnitTest}10(GetTriggerPlayer());
-		}));
+		});
 	}
 
 }

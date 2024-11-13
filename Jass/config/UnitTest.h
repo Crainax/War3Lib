@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/utils/combat/EffectUtils_Test.j"
+#include "D:/War3/Library/War3Lib/Jass/utils/debug/Logger_Test.j"
 
 
 

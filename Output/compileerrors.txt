@@ -1,5 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 2483:  Undeclared function MemoryLeakShow. Maybe you meant ConvertGameSpeed, ConvertGameSpeed or LoadEffectHandle
-Line 2484:  Undeclared function StructShow. Maybe you meant StopMusic, SetPlayers or SetPlayers
-2
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 669: Unexpected local variable.
+1
