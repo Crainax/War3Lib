@@ -1,7 +1,13 @@
 globals
+//globals from ConversionUtils:
+constant boolean LIBRARY_ConversionUtils=true
+//endglobals from ConversionUtils
 //globals from InnerJapi:
 constant boolean LIBRARY_InnerJapi=true
 //endglobals from InnerJapi
+//globals from RandSet:
+constant boolean LIBRARY_RandSet=true
+//endglobals from RandSet
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork___TUnitTest=null
@@ -9,9 +15,9 @@ trigger UnitTestFramwork___TUnitTest=null
 //globals from Logger:
 constant boolean LIBRARY_Logger=true
 //endglobals from Logger
-//globals from UTLogger:
-constant boolean LIBRARY_UTLogger=true
-//endglobals from UTLogger
+//globals from UTRandSet:
+constant boolean LIBRARY_UTRandSet=true
+//endglobals from UTRandSet
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -37,10 +43,62 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
+constant integer si__randSet=1
+integer array s__randSet_values
+integer s__randSet_length=0
 
 endglobals
 
 
+//library ConversionUtils:
+    function B2S takes boolean b returns string
+        if ( b ) then
+            return "true"
+        else
+            return "false"
+        endif
+    endfunction  //三目运算符
+    function S3 takes boolean b,string s1,string s2 returns string
+        if ( b ) then
+            return s1
+        else
+            return s2
+        endif
+    endfunction  //三目运算符
+    function I3 takes boolean b,integer i1,integer i2 returns integer
+        if ( b ) then
+            return i1
+        else
+            return i2
+        endif
+    endfunction  //三目运算符
+    function R3 takes boolean b,real r1,real r2 returns real
+        if ( b ) then
+            return r1
+        else
+            return r2
+        endif
+    endfunction  // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    function GetIDSymbol takes integer pos returns integer
+        local integer bit=pos / 36
+        set pos=ModuloInteger(pos, 36)
+        if ( pos < 10 ) then
+            return pos + bit * 256
+        else
+            return '000a' - '0000' + pos - 10 + bit * 256
+        endif
+    endfunction  // 将魔兽的四字符ID转换回对应数字
+    function GetSymbolID takes integer s returns integer
+        local integer i1=s / 256
+        local integer i2=ModuloInteger(s, 256)
+        if ( i2 < 10 ) then
+            return i1 * 36 + i2
+        else
+            return i2 - '000a' + '0000' + 10 + i1 * 36
+        endif
+    endfunction
+
+//library ConversionUtils ends
 //library InnerJapi:
 
     function EXExecuteScript takes string p1 returns string
@@ -271,6 +329,87 @@ endglobals
     endfunction
 
 //library InnerJapi ends
+//library RandSet:
+        function s__randSet_clear takes nothing returns nothing
+            local integer i=0
+            set i=0
+            loop
+            exitwhen ( i >= s__randSet_length )
+                set s__randSet_values[i]=0
+            set i=i + 1
+            endloop
+            set s__randSet_length=0
+        endfunction  // 添加一个数字
+        function s__randSet_add takes integer value returns nothing
+            set s__randSet_values[s__randSet_length]=value
+            set s__randSet_length=s__randSet_length + 1
+        endfunction  // 生成1到n的序列
+        function s__randSet_sequence takes integer n returns nothing
+            local integer i=0
+            if ( n <= 0 ) then
+                call BJDebugMsg("error: randSet.sequence - n must be positive")
+                return
+            endif
+            set i=0
+            loop
+            exitwhen ( i >= n )
+                set s__randSet_values[i]=i + 1
+            set i=i + 1
+            endloop
+            set s__randSet_length=n
+        endfunction  // 随机取出一个数字(会从集合中移除)
+        function s__randSet_next takes nothing returns integer
+            local integer rand
+            local integer result
+            if ( s__randSet_length <= 0 ) then
+                return 0
+            endif
+            set rand=GetRandomInt(0, s__randSet_length - 1)
+            set result=s__randSet_values[rand] // 用最后一个元素填补空缺
+            set s__randSet_values[rand]=s__randSet_values[s__randSet_length - 1]
+            set s__randSet_values[s__randSet_length - 1]=0
+            set s__randSet_length=s__randSet_length - 1
+            return result
+        endfunction  // 随机返回一个数字(不会移除)
+        function s__randSet_peek takes nothing returns integer
+            if ( s__randSet_length <= 0 ) then
+                return 0
+            endif
+            return s__randSet_values[GetRandomInt(0, s__randSet_length - 1)]
+        endfunction  // 打乱序列
+        function s__randSet_shuffle takes nothing returns nothing
+            local integer i=0
+            local integer j
+            local integer temp
+            set i=0
+            loop
+            exitwhen ( i >= s__randSet_length )
+                set j=GetRandomInt(0, s__randSet_length - 1)
+                set temp=s__randSet_values[i]
+                set s__randSet_values[i]=s__randSet_values[j]
+                set s__randSet_values[j]=temp
+            set i=i + 1
+            endloop
+        endfunction  // 是否为空
+        function s__randSet_isEmpty takes nothing returns boolean
+            return s__randSet_length == 0
+        endfunction  // 当前长度
+        function s__randSet_size takes nothing returns integer
+            return s__randSet_length
+        endfunction  // 调试用:显示当前所有数字
+        function s__randSet_toString takes nothing returns string
+            local string s=""
+            local integer i=0
+            set i=0
+            loop
+            exitwhen ( i >= s__randSet_length )
+                set s=s + I2S(s__randSet_values[i]) + " "
+            set i=i + 1
+            endloop
+            return s
+        endfunction
+
+//library RandSet ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
@@ -336,39 +475,102 @@ endglobals
     endfunction
 
 //library Logger ends
-//library UTLogger:
+//library UTRandSet:
 
-    function UTLogger___TTestUTLogger1 takes player p returns nothing
-        call Trace("这是一条追踪日志")
-        call Debug("这是一条调试日志")
-        call Info("这是一条信息日志")
-        call Warn("这是一条警告日志")
-        call Error("这是一条错误日志")
-    endfunction  // 测试指定玩家日志输出
-    function UTLogger___TTestUTLogger2 takes player p returns nothing
-        call TraceToPlayer(p , "这是发送给玩家的追踪日志")
-        call DebugToPlayer(p , "这是发送给玩家的调试日志")
-        call InfoToPlayer(p , "这是发送给玩家的信息日志")
-        call WarnToPlayer(p , "这是发送给玩家的警告日志")
-        call ErrorToPlayer(p , "这是发送给玩家的错误日志")
-    endfunction  // 其他测试函数预留
-    function UTLogger___TTestUTLogger3 takes player p returns nothing
-    endfunction
-    function UTLogger___TTestUTLogger4 takes player p returns nothing
-    endfunction
-    function UTLogger___TTestUTLogger5 takes player p returns nothing
-    endfunction
-    function UTLogger___TTestUTLogger6 takes player p returns nothing
-    endfunction
-    function UTLogger___TTestUTLogger7 takes player p returns nothing
-    endfunction
-    function UTLogger___TTestUTLogger8 takes player p returns nothing
-    endfunction
-    function UTLogger___TTestUTLogger9 takes player p returns nothing
-    endfunction
-    function UTLogger___TTestUTLogger10 takes player p returns nothing
-    endfunction
-    function UTLogger___TTestActUTLogger1 takes string str returns nothing
+    function UTRandSet___TTestUTRandSet1 takes player p returns nothing
+        call Trace("测试1: 生成1-5的序列")
+        call s__randSet_sequence(5)
+        call Trace("当前序列: " + s__randSet_toString())
+        call s__randSet_clear()
+    endfunction  // 测试add()方法
+    function UTRandSet___TTestUTRandSet2 takes player p returns nothing
+        call Trace("测试2: 添加自定义数字")
+        call s__randSet_add(10)
+        call s__randSet_add(20)
+        call s__randSet_add(30)
+        call Trace("当前序列: " + s__randSet_toString())
+        call s__randSet_clear()
+    endfunction  // 测试next()方法
+    function UTRandSet___TTestUTRandSet3 takes player p returns nothing
+        local integer result
+        call Trace("测试3: 随机取数测试")
+        call s__randSet_sequence(5)
+        call Trace("初始序列: " + s__randSet_toString())
+        set result=s__randSet_next()
+        call Trace("取出数字: " + I2S(result))
+        call Trace("剩余序列: " + s__randSet_toString())
+        call s__randSet_clear()
+    endfunction  // 测试peek()方法
+    function UTRandSet___TTestUTRandSet4 takes player p returns nothing
+        local integer result
+        call Trace("测试4: 随机查看测试")
+        call s__randSet_sequence(5)
+        call Trace("当前序列: " + s__randSet_toString())
+        set result=s__randSet_peek()
+        call Trace("查看数字: " + I2S(result))
+        call Trace("序列不变: " + s__randSet_toString())
+        call s__randSet_clear()
+    endfunction  // 测试shuffle()方法
+    function UTRandSet___TTestUTRandSet5 takes player p returns nothing
+        call Trace("测试5: 打乱序列测试")
+        call s__randSet_sequence(10)
+        call Trace("原始序列: " + s__randSet_toString())
+        call s__randSet_shuffle()
+        call Trace("打乱后: " + s__randSet_toString())
+        call s__randSet_clear()
+    endfunction  // 测试clear()方法
+    function UTRandSet___TTestUTRandSet6 takes player p returns nothing
+        call Trace("测试6: 清理测试")
+        call s__randSet_sequence(5)
+        call Trace("清理前: " + s__randSet_toString())
+        call s__randSet_clear()
+        call Trace("清理后: " + s__randSet_toString())
+    endfunction  // 测试isEmpty()和size()方法
+    function UTRandSet___TTestUTRandSet7 takes player p returns nothing
+        call Trace("测试7: 空和大小测试")
+        call Trace("空集合判断: " + B2S(s__randSet_isEmpty()))
+        call s__randSet_sequence(3)
+        call Trace("添加3个数后:")
+        call Trace("是否为空: " + B2S(s__randSet_isEmpty()))
+        call Trace("集合大小: " + I2S(s__randSet_size()))
+        call s__randSet_clear()
+    endfunction  // 测试toString()方法
+    function UTRandSet___TTestUTRandSet8 takes player p returns nothing
+        call Trace("测试8: 字符串显示测试")
+        call s__randSet_sequence(5)
+        call Trace("序列内容: " + s__randSet_toString())
+        call s__randSet_clear()
+    endfunction  // 测试边界情况
+    function UTRandSet___TTestUTRandSet9 takes player p returns nothing
+        call Trace("测试9: 边界情况测试")
+        call Trace("空集合next(): " + I2S(s__randSet_next()))
+        call Trace("空集合peek(): " + I2S(s__randSet_peek()))
+        call s__randSet_sequence(0)
+        call s__randSet_sequence(- 1)
+        call s__randSet_clear()
+    endfunction  // 综合测试
+    function UTRandSet___TTestUTRandSet10 takes player p returns nothing
+        local integer i=0
+        local integer result
+        call Trace("测试10: 综合测试") // 初始化序列
+        call s__randSet_sequence(5)
+        call Trace("初始序列: " + s__randSet_toString()) // 打乱序列
+        call s__randSet_shuffle()
+        call Trace("打乱后: " + s__randSet_toString()) // 连续取出3个数字
+        call Trace("开始随机取数:")
+        set i=0
+        loop
+        exitwhen ( i >= 3 )
+            set result=s__randSet_next()
+            call Trace("取出: " + I2S(result) + ", 剩余序列: " + s__randSet_toString())
+        set i=i + 1
+        endloop // 显示最终状态
+        call Trace("最终状态:")
+        call Trace("剩余序列: " + s__randSet_toString())
+        call Trace("剩余大小: " + I2S(s__randSet_size()))
+        call s__randSet_clear()
+    endfunction  // 处理自定义命令
+    function UTRandSet___TTestActUTRandSet1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -377,7 +579,7 @@ endglobals
         local string array paramS
         local integer array paramI
         local real array paramR
-        set i=0 // 解析参数
+        set i=0
         loop
         exitwhen ( i > len - 1 )
             if ( SubString(str, i, i + 1) == " " ) then
@@ -394,56 +596,63 @@ endglobals
         set paramS[num]=str
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
-        set num=num + 1 // 测试自定义消息的全局日志输出
-        if ( paramS[0] == "a" ) then
-            call Trace(paramS[1])
-            call Debug(paramS[1])
-            call Info(paramS[1])
-            call Warn(paramS[1])
-            call Error(paramS[1])
-        elseif ( paramS[0] == "b" ) then // 测试自定义消息的玩家日志输出
-            call TraceToPlayer(p , paramS[1])
-            call DebugToPlayer(p , paramS[1])
-            call InfoToPlayer(p , paramS[1])
-            call WarnToPlayer(p , paramS[1])
-            call ErrorToPlayer(p , paramS[1])
+        set num=num + 1
+        if ( paramS[0] == "a" ) then // 添加指定数字
+            call s__randSet_add(paramI[1])
+            call Trace("添加数字 " + I2S(paramI[1]))
+            call Trace("当前序列: " + s__randSet_toString())
+        elseif ( paramS[0] == "b" ) then // 生成指定范围序列
+            call s__randSet_sequence(paramI[1])
+            call Trace("生成1到" + I2S(paramI[1]) + "的序列")
+            call Trace("当前序列: " + s__randSet_toString())
         endif
         set p=null
     endfunction
-        function UTLogger___anon__0 takes nothing returns nothing
+        function UTRandSet___anon__0 takes nothing returns nothing
+            call Trace("[RandSet] 单元测试已加载")
+            call Trace("输入s1-s10测试不同功能")
+            call Trace("输入-a n添加数字, -b n生成序列")
+            call DestroyTrigger(GetTriggeringTrigger())
+        endfunction
+        function UTRandSet___anon__1 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTLogger___TTestActUTLogger1(SubStringBJ(str, 2, StringLength(str)))
+                call UTRandSet___TTestActUTRandSet1(SubStringBJ(str, 2, StringLength(str)))
                 return
-            endif // 处理简单测试命令
+            endif
             if ( str == "s1" ) then
-                call UTLogger___TTestUTLogger1(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTLogger___TTestUTLogger2(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTLogger___TTestUTLogger3(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTLogger___TTestUTLogger4(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTLogger___TTestUTLogger5(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTLogger___TTestUTLogger6(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTLogger___TTestUTLogger7(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTLogger___TTestUTLogger8(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTLogger___TTestUTLogger9(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTLogger___TTestUTLogger10(GetTriggerPlayer())
+                call UTRandSet___TTestUTRandSet10(GetTriggerPlayer())
             endif
         endfunction
-    function UTLogger___onInit takes nothing returns nothing
-        call UnitTestRegisterChatEvent(function UTLogger___anon__0)
+    function UTRandSet___onInit takes nothing returns nothing
+        local trigger tr=CreateTrigger()
+        call TriggerRegisterTimerEventSingle(tr, 0.5)
+        call TriggerAddCondition(tr, Condition(function UTRandSet___anon__0))
+        set tr=null
+        call UnitTestRegisterChatEvent(function UTRandSet___anon__1)
     endfunction
 
-//library UTLogger ends
+//library UTRandSet ends
+
 // API文档: https://japi.war3rpg.top/
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
@@ -537,7 +746,6 @@ endglobals
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
-
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -952,10 +1160,11 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
+call ExecuteFunc("jasshelper__initstructs14303390")
 call ExecuteFunc("InnerJapi___onInit")
 call ExecuteFunc("UnitTestFramwork___onInit")
 call ExecuteFunc("Logger___onInit")
-call ExecuteFunc("UTLogger___onInit")
+call ExecuteFunc("UTRandSet___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -993,4 +1202,9 @@ endfunction
 
 
 //Struct method generated initializers/callers:
+
+function jasshelper__initstructs14303390 takes nothing returns nothing
+
+
+endfunction
 

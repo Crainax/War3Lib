@@ -7,6 +7,12 @@
 */
 library ConversionUtils {
 
+    //补充函数
+    public function B2S(boolean b) -> string {
+        if (b) {return "true";}
+        else {return "false";}
+    }
+
     //三目运算符
     public function S3 (boolean b,string s1,string s2)  -> string {
         if (b) {return s1;}

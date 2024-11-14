@@ -4,7 +4,7 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "LibraryName.j"
+#include
 
 //! zinc
 
@@ -54,6 +54,14 @@ library {UnitTest} requires LibraryName {
 	}
 
 	function onInit () {
+		//在游戏开始0.0秒后再调用
+		trigger tr = CreateTrigger();
+		TriggerRegisterTimerEventSingle(tr,0.5);
+		TriggerAddCondition(tr,Condition(function (){
+			BJDebugMsg("[LibraryName] 单元测试已加载");
+			DestroyTrigger(GetTriggeringTrigger());
+		}));
+		tr = null;
 
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
@@ -74,6 +82,7 @@ library {UnitTest} requires LibraryName {
 			else if(str == "s9") TTest{UnitTest}9(GetTriggerPlayer());
 			else if(str == "s10") TTest{UnitTest}10(GetTriggerPlayer());
 		});
+
 	}
 
 }

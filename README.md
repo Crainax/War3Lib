@@ -1,7 +1,7 @@
 # War3Lib
 
 这是我个人的魔兽争霸3地图开发工具库。
-当前版本 0.0.4
+当前版本 0.0.6
 
 ## 简介
 
@@ -78,8 +78,10 @@ War3Lib/
 │
 ├── jass/
 │   ├── core/                                 # 核心模块
-│   │   └── constant/                         # 常量定义
-│   │       └── UNDefine.j                    # 单位相关常量定义
+│   │   ├── constant/                         # 常量定义
+│   │   │   └── UNDefine.j                    # 单位相关常量定义
+│   │   └── structs/                          # 核心数据结构
+│   │       └── RandSet.j                     # 随机集合工具(不重复随机数)
 │   ├── utils/                                # 实用工具集
 │   │   ├── combat/                           # 战斗相关工具
 │   │   │   ├── DamageUtils.j                 # 伤害计算工具
@@ -95,7 +97,10 @@ War3Lib/
 │   │   │   ├── MemoryLeak.j                 # 内存泄露检测工具
 │   │   │   └── StructDetector.j             # 结构体检测工具
 │   │   └── math/                            # 数学计算工具
-│   │       └── NumberUtils.j                # 数值计算工具集
+│   │       ├── NumberUtils.j                # 数值计算工具集
+│   │       └── MapBoundsUtils.j             # 地图边界计算工具
+│   │   ├── ConversionUtils.j                # 数据类型转换工具
+│   │   └── ConversionUtils.cfg              # 转换工具配置
 │   ├── template/                            # 测试模板文件
 │   │   ├── MTTemplate.j                     # 模型测试模板
 │   │   ├── UTTemplate.j                     # 单元测试模板

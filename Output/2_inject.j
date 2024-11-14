@@ -1,3 +1,182 @@
+#ifndef UnitTestFramworkIncluded
+#define UnitTestFramworkIncluded
+
+/*
+单元测试框架(注入)
+*/
+
+//! zinc
+library UnitTestFramwork {
+
+	//单元测试总
+	trigger TUnitTest = null;
+
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
+    }
+
+    function onInit ()  {
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+            }
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+    }
+}
+
+//! endzinc
+#endif
+
+
+
+#ifndef LoggerIncluded
+#define LoggerIncluded
+
+//! zinc
+//==================================
+// 日志打印系统
+// version: 1.0
+// author: 系统自动生成
+// date: 2024/3/21
+//
+// 功能：提供五个日志级别输出
+// - TRACE(灰)：追踪调试用
+// - DEBUG(绿)：调试信息用
+// - INFO(白)：普通信息用
+// - WARN(黄)：警告信息用
+// - ERROR(红)：错误信息用
+//
+// 示例：
+// call Info("普通信息")
+// call Error(Player(0), "玩家1的错误")
+//==================================
+library Logger requires InnerJapi {
+
+    // 追踪级别日志(灰色),用于程序执行追踪
+    public function Trace(string msg) {
+        GetTriggerUnit();
+    }
+
+    // 调试级别日志(绿色),用于输出变量值等调试信息
+    public function Debug(string msg) {
+        GetTriggerUnit();
+    }
+
+    // 信息级别日志(白色),用于输出普通提示信息
+    public function Info(string msg) {
+        GetTriggerUnit();
+    }
+
+    // 警告级别日志(黄色),用于输出警告信息
+    public function Warn(string msg) {
+        GetTriggerUnit();
+    }
+
+    // 错误级别日志(红色),用于输出错误信息
+    public function Error(string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出追踪日志(灰色)
+    public function TraceToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出调试日志(绿色)
+    public function DebugToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出信息日志(白色)
+    public function InfoToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出警告日志(黄色)
+    public function WarnToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    // 向指定玩家输出错误日志(红色)
+    public function ErrorToPlayer(player p, string msg) {
+        GetTriggerUnit();
+    }
+
+    function onInit() {
+        AbilityId("exec-lua:depends.debug.logger"); //日志打印系统初始化
+    }
+}
+
+//! endzinc
+#endif
+
+#ifndef ConversionUtilsIncluded
+#define ConversionUtilsIncluded
+
+//! zinc
+/*
+转换工具
+*/
+library ConversionUtils {
+
+    //补充函数
+    public function B2S(boolean b) -> string {
+        if (b) {return "true";}
+        else {return "false";}
+    }
+
+    //三目运算符
+    public function S3 (boolean b,string s1,string s2)  -> string {
+        if (b) {return s1;}
+        else {return s2;}
+    }
+    //三目运算符
+    public function I3 (boolean b,integer i1,integer i2)  -> integer  {
+        if (b) {return i1;}
+        else {return i2;}
+    }
+    //三目运算符
+    public function R3 (boolean b,real r1,real r2)  -> real  {
+        if (b) {return r1;}
+        else {return r2;}
+    }
+    // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    // pos为输入数字,每36个数字进一位,每位用0-9和a-z表示(共36个字符)
+    // 示例:0->'0000', 35->'000z', 36->'0010'(进位), 37->'0011'
+    public function GetIDSymbol ( integer pos ) -> integer {
+        integer bit = pos/36;
+        pos = ModuloInteger(pos,36);
+        if (pos < 10) {return pos + bit * 256;}
+        else {return '000a' - '0000' + pos - 10 + bit * 256;}
+    }
+    // 将魔兽的四字符ID转换回对应数字
+    // s为输入的四字符ID,将其还原为原始数字
+    // 示例:'0000'->0, '000z'->35, '0010'->36, '0011'->37
+    public function GetSymbolID ( integer s ) -> integer {
+        integer i1 = s/256;
+        integer i2 = ModuloInteger(s,256);
+        if (i2 < 10) {return i1 * 36 + i2;}
+        else {return i2 - '000a' + '0000' + 10 + i1 * 36;}
+    }
+
+}
+
+//! endzinc
+#endif
+
 #define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
 
 
@@ -425,131 +604,6 @@ library InnerJapi {
 
 
 
-#ifndef UnitTestFramworkIncluded
-#define UnitTestFramworkIncluded
-
-/*
-单元测试框架(注入)
-*/
-
-//! zinc
-library UnitTestFramwork {
-
-	//单元测试总
-	trigger TUnitTest = null;
-
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-
-    function onInit ()  {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-            }
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
-    }
-}
-
-//! endzinc
-#endif
-
-
-
-#ifndef LoggerIncluded
-#define LoggerIncluded
-
-//! zinc
-//==================================
-// 日志打印系统
-// version: 1.0
-// author: 系统自动生成
-// date: 2024/3/21
-//
-// 功能：提供五个日志级别输出
-// - TRACE(灰)：追踪调试用
-// - DEBUG(绿)：调试信息用
-// - INFO(白)：普通信息用
-// - WARN(黄)：警告信息用
-// - ERROR(红)：错误信息用
-//
-// 示例：
-// call Info("普通信息")
-// call Error(Player(0), "玩家1的错误")
-//==================================
-library Logger requires InnerJapi {
-
-    // 追踪级别日志(灰色),用于程序执行追踪
-    public function Trace(string msg) {
-        GetTriggerUnit();
-    }
-
-    // 调试级别日志(绿色),用于输出变量值等调试信息
-    public function Debug(string msg) {
-        GetTriggerUnit();
-    }
-
-    // 信息级别日志(白色),用于输出普通提示信息
-    public function Info(string msg) {
-        GetTriggerUnit();
-    }
-
-    // 警告级别日志(黄色),用于输出警告信息
-    public function Warn(string msg) {
-        GetTriggerUnit();
-    }
-
-    // 错误级别日志(红色),用于输出错误信息
-    public function Error(string msg) {
-        GetTriggerUnit();
-    }
-
-    // 向指定玩家输出追踪日志(灰色)
-    public function TraceToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-
-    // 向指定玩家输出调试日志(绿色)
-    public function DebugToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-
-    // 向指定玩家输出信息日志(白色)
-    public function InfoToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-
-    // 向指定玩家输出警告日志(黄色)
-    public function WarnToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-
-    // 向指定玩家输出错误日志(红色)
-    public function ErrorToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-
-    function onInit() {
-        AbilityId("exec-lua:depends.debug.logger"); //日志打印系统初始化
-    }
-}
-
-//! endzinc
-#endif
-
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -659,111 +713,294 @@ endfunction
 // 用空地图测试
 // 用原始地图测试
 //! zinc
-//==================================
-// Logger测试模块
-// version: 1.0
-// author: 系统自动生成
-// date: 2024/3/21
-//
-// 功能：测试Logger库的所有日志输出功能
-// 测试指令：
-// s1 - 测试全局日志输出(Trace/Debug/Info/Warn/Error)
-// s2 - 测试指定玩家日志输出
-// -a [msg] - 测试自定义消息的全局日志输出
-// -b [msg] - 测试自定义消息的玩家日志输出
-//==================================
-library UTLogger requires Logger {
-	// 测试全局日志输出
-	function TTestUTLogger1(player p) {
-		Trace("这是一条追踪日志");
-		Debug("这是一条调试日志");
-		Info("这是一条信息日志");
-		Warn("这是一条警告日志");
-		Error("这是一条错误日志");
-	}
-	// 测试指定玩家日志输出
-	function TTestUTLogger2(player p) {
-		TraceToPlayer(p, "这是发送给玩家的追踪日志");
-		DebugToPlayer(p, "这是发送给玩家的调试日志");
-		InfoToPlayer(p, "这是发送给玩家的信息日志");
-		WarnToPlayer(p, "这是发送给玩家的警告日志");
-		ErrorToPlayer(p, "这是发送给玩家的错误日志");
-	}
-	// 其他测试函数预留
-	function TTestUTLogger3(player p) {}
-	function TTestUTLogger4(player p) {}
-	function TTestUTLogger5(player p) {}
-	function TTestUTLogger6(player p) {}
-	function TTestUTLogger7(player p) {}
-	function TTestUTLogger8(player p) {}
-	function TTestUTLogger9(player p) {}
-	function TTestUTLogger10(player p) {}
-	// 处理带参数的测试命令
-	function TTestActUTLogger1(string str) {
-		player p = GetTriggerPlayer();
-		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str);
-		string paramS[]; // 所有参数S
-integer paramI[]; // 所有参数I
-real paramR[]; // 所有参数R
+/*
+randSet - 生成不重复随机数的静态工具
+主要用于:
+- 随机抽取不重复的物品/单位
+- 生成随机但不重复的位置
+- 需要按随机顺序遍历1-N的场景
 
-		// 解析参数
-		for (0 <= i <= len - 1) {
-			if (SubString(str,i,i+1) == " ") {
-				paramS[num] = SubString(str,0,i);
-				paramI[num] = S2I(paramS[num]);
-				paramR[num] = S2R(paramS[num]);
-				num = num + 1;
-				str = SubString(str,i + 1,len);
-				len = StringLength(str);
-				i = -1;
-			}
-		}
-		paramS[num] = str;
-		paramI[num] = S2I(paramS[num]);
-		paramR[num] = S2R(paramS[num]);
-		num = num + 1;
-		// 测试自定义消息的全局日志输出
-		if (paramS[0] == "a") {
-			Trace(paramS[1]);
-			Debug(paramS[1]);
-			Info(paramS[1]);
-			Warn(paramS[1]);
-			Error(paramS[1]);
-		}
-		// 测试自定义消息的玩家日志输出
-		else if (paramS[0] == "b") {
-			TraceToPlayer(p, paramS[1]);
-			DebugToPlayer(p, paramS[1]);
-			InfoToPlayer(p, paramS[1]);
-			WarnToPlayer(p, paramS[1]);
-			ErrorToPlayer(p, paramS[1]);
-		}
-		p = null;
-	}
-	function onInit() {
-		// 注册聊天事件处理器
-		UnitTestRegisterChatEvent(function() {
-			string str = GetEventPlayerChatString();
-			integer i = 1;
-			// 处理带参数的命令
-			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTLogger1(SubStringBJ(str,2,StringLength(str)));
-				return;
-			}
-			// 处理简单测试命令
-			if (str == "s1") TTestUTLogger1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTLogger2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTLogger3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTLogger4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTLogger5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTLogger6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTLogger7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTLogger8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTLogger9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTLogger10(GetTriggerPlayer());
-		});
-	}
+用法示例:
+randSet.sequence(5)     // 生成1-5的序列
+randSet.next()          // 随机取出一个数字
+randSet.clear()         // 用完记得清理
+*/
+library RandSet {
+    public struct randSet [] {
+        private static integer values [];
+        private static integer length = 0;
+        // 清理数据
+        static method clear() {
+            integer i = 0;
+            for (0 <= i < length) {
+                values[i] = 0;
+            }
+            length = 0;
+        }
+        // 添加一个数字
+        static method add(integer value) {
+            values[length] = value;
+            length += 1;
+        }
+        // 生成1到n的序列
+        static method sequence(integer n) {
+            integer i = 0;
+            if (n <= 0) {
+                BJDebugMsg("error: randSet.sequence - n must be positive");
+                return;
+            }
+            for (0 <= i < n) {
+                values[i] = i + 1;
+            }
+            length = n;
+        }
+        // 随机取出一个数字(会从集合中移除)
+        static method next() -> integer {
+            integer rand;
+            integer result;
+            if (length <= 0) {
+                return 0;
+            }
+            rand = GetRandomInt(0, length - 1);
+            result = values[rand];
+            // 用最后一个元素填补空缺
+            values[rand] = values[length - 1];
+            values[length - 1] = 0;
+            length -= 1;
+            return result;
+        }
+        // 随机返回一个数字(不会移除)
+        static method peek() -> integer {
+            if (length <= 0) {
+                return 0;
+            }
+            return values[GetRandomInt(0, length - 1)];
+        }
+        // 打乱序列
+        static method shuffle() {
+            integer i = 0;
+            integer j;
+            integer temp;
+            for (0 <= i < length) {
+                j = GetRandomInt(0, length - 1);
+                temp = values[i];
+                values[i] = values[j];
+                values[j] = temp;
+            }
+        }
+        // 是否为空
+        static method isEmpty() -> boolean {
+            return length == 0;
+        }
+        // 当前长度
+        static method size() -> integer {
+            return length;
+        }
+        // 调试用:显示当前所有数字
+        static method toString() -> string {
+            string s = "";
+            integer i = 0;
+            for (0 <= i < length) {
+                s += I2S(values[i]) + " ";
+            }
+            return s;
+        }
+    }
+}
+//! endzinc
+//! zinc
+/*
+RandSet单元测试库
+作者: Crainax
+日期: 2024-11-14
+
+测试命令:
+s1 - 测试sequence()方法生成1-5的序列
+s2 - 测试add()方法添加自定义数字
+s3 - 测试next()方法随机取数
+s4 - 测试peek()方法随机查看
+s5 - 测试shuffle()方法打乱序列
+s6 - 测试clear()方法清理
+s7 - 测试isEmpty()和size()方法
+s8 - 测试toString()方法
+s9 - 测试边界情况(空集合、负数等)
+s10 - 综合测试
+
+自定义命令:
+-a n    : 添加数字n到集合
+-b n    : 生成1到n的序列
+*/
+library UTRandSet requires RandSet {
+    // 测试sequence()方法
+    function TTestUTRandSet1(player p) {
+        Trace("测试1: 生成1-5的序列");
+        randSet.sequence(5);
+        Trace("当前序列: " + randSet.toString());
+        randSet.clear();
+    }
+    // 测试add()方法
+    function TTestUTRandSet2(player p) {
+        Trace("测试2: 添加自定义数字");
+        randSet.add(10);
+        randSet.add(20);
+        randSet.add(30);
+        Trace("当前序列: " + randSet.toString());
+        randSet.clear();
+    }
+    // 测试next()方法
+    function TTestUTRandSet3(player p) {
+        integer result;
+        Trace("测试3: 随机取数测试");
+        randSet.sequence(5);
+        Trace("初始序列: " + randSet.toString());
+        result = randSet.next();
+        Trace("取出数字: " + I2S(result));
+        Trace("剩余序列: " + randSet.toString());
+        randSet.clear();
+    }
+    // 测试peek()方法
+    function TTestUTRandSet4(player p) {
+        integer result;
+        Trace("测试4: 随机查看测试");
+        randSet.sequence(5);
+        Trace("当前序列: " + randSet.toString());
+        result = randSet.peek();
+        Trace("查看数字: " + I2S(result));
+        Trace("序列不变: " + randSet.toString());
+        randSet.clear();
+    }
+    // 测试shuffle()方法
+    function TTestUTRandSet5(player p) {
+        Trace("测试5: 打乱序列测试");
+        randSet.sequence(10);
+        Trace("原始序列: " + randSet.toString());
+        randSet.shuffle();
+        Trace("打乱后: " + randSet.toString());
+        randSet.clear();
+    }
+    // 测试clear()方法
+    function TTestUTRandSet6(player p) {
+        Trace("测试6: 清理测试");
+        randSet.sequence(5);
+        Trace("清理前: " + randSet.toString());
+        randSet.clear();
+        Trace("清理后: " + randSet.toString());
+    }
+    // 测试isEmpty()和size()方法
+    function TTestUTRandSet7(player p) {
+        Trace("测试7: 空和大小测试");
+        Trace("空集合判断: " + B2S(randSet.isEmpty()));
+        randSet.sequence(3);
+        Trace("添加3个数后:");
+        Trace("是否为空: " + B2S(randSet.isEmpty()));
+        Trace("集合大小: " + I2S(randSet.size()));
+        randSet.clear();
+    }
+    // 测试toString()方法
+    function TTestUTRandSet8(player p) {
+        Trace("测试8: 字符串显示测试");
+        randSet.sequence(5);
+        Trace("序列内容: " + randSet.toString());
+        randSet.clear();
+    }
+    // 测试边界情况
+    function TTestUTRandSet9(player p) {
+        Trace("测试9: 边界情况测试");
+        Trace("空集合next(): " + I2S(randSet.next()));
+        Trace("空集合peek(): " + I2S(randSet.peek()));
+        randSet.sequence(0);
+        randSet.sequence(-1);
+        randSet.clear();
+    }
+    // 综合测试
+    function TTestUTRandSet10(player p) {
+        integer i = 0;
+        integer result;
+        Trace("测试10: 综合测试");
+        // 初始化序列
+        randSet.sequence(5);
+        Trace("初始序列: " + randSet.toString());
+        // 打乱序列
+        randSet.shuffle();
+        Trace("打乱后: " + randSet.toString());
+        // 连续取出3个数字
+        Trace("开始随机取数:");
+        for (0 <= i < 3) {
+            result = randSet.next();
+            Trace("取出: " + I2S(result) + ", 剩余序列: " + randSet.toString());
+        }
+        // 显示最终状态
+        Trace("最终状态:");
+        Trace("剩余序列: " + randSet.toString());
+        Trace("剩余大小: " + I2S(randSet.size()));
+        randSet.clear();
+    }
+    // 处理自定义命令
+    function TTestActUTRandSet1(string str) {
+        player p = GetTriggerPlayer();
+        integer index = GetConvertedPlayerId(p);
+        integer i, num = 0, len = StringLength(str);
+        string paramS[];
+        integer paramI[];
+        real paramR[];
+        // 解析参数
+        for (0 <= i <= len - 1) {
+            if (SubString(str,i,i+1) == " ") {
+                paramS[num] = SubString(str,0,i);
+                paramI[num] = S2I(paramS[num]);
+                paramR[num] = S2R(paramS[num]);
+                num = num + 1;
+                str = SubString(str,i + 1,len);
+                len = StringLength(str);
+                i = -1;
+            }
+        }
+        paramS[num] = str;
+        paramI[num] = S2I(paramS[num]);
+        paramR[num] = S2R(paramS[num]);
+        num = num + 1;
+        if (paramS[0] == "a") {
+            // 添加指定数字
+            randSet.add(paramI[1]);
+            Trace("添加数字 " + I2S(paramI[1]));
+            Trace("当前序列: " + randSet.toString());
+        } else if (paramS[0] == "b") {
+            // 生成指定范围序列
+            randSet.sequence(paramI[1]);
+            Trace("生成1到" + I2S(paramI[1]) + "的序列");
+            Trace("当前序列: " + randSet.toString());
+        }
+        p = null;
+    }
+    function onInit() {
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.5);
+        TriggerAddCondition(tr,Condition(function() {
+            Trace("[RandSet] 单元测试已加载");
+            Trace("输入s1-s10测试不同功能");
+            Trace("输入-a n添加数字, -b n生成序列");
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+        UnitTestRegisterChatEvent(function() {
+            string str = GetEventPlayerChatString();
+            integer i = 1;
+            if (SubStringBJ(str,1,1) == "-") {
+                TTestActUTRandSet1(SubStringBJ(str,2,StringLength(str)));
+                return;
+            }
+            if (str == "s1") TTestUTRandSet1(GetTriggerPlayer());
+            else if(str == "s2") TTestUTRandSet2(GetTriggerPlayer());
+            else if(str == "s3") TTestUTRandSet3(GetTriggerPlayer());
+            else if(str == "s4") TTestUTRandSet4(GetTriggerPlayer());
+            else if(str == "s5") TTestUTRandSet5(GetTriggerPlayer());
+            else if(str == "s6") TTestUTRandSet6(GetTriggerPlayer());
+            else if(str == "s7") TTestUTRandSet7(GetTriggerPlayer());
+            else if(str == "s8") TTestUTRandSet8(GetTriggerPlayer());
+            else if(str == "s9") TTestUTRandSet9(GetTriggerPlayer());
+            else if(str == "s10") TTestUTRandSet10(GetTriggerPlayer());
+        });
+    }
 }
 //! endzinc
 // lua_print: 空白地图
