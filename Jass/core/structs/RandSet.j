@@ -21,6 +21,7 @@ library RandSet {
         private static integer values [];
         private static integer length = 0;
 
+        //老函数:ArrayDestroy
         // 清理数据
         static method clear() {
             integer i = 0;
@@ -30,12 +31,14 @@ library RandSet {
             length = 0;
         }
 
+        // 老函数:ArrayAdd
         // 添加一个数字
         static method add(integer value) {
             values[length] = value;
             length += 1;
         }
 
+        // 老函数:ArraySequence
         // 生成1到n的序列
         static method sequence(integer n) {
             integer i = 0;
@@ -49,6 +52,7 @@ library RandSet {
             length = n;
         }
 
+        // 老函数:ArrayIterator
         // 随机取出一个数字(会从集合中移除)
         static method next() -> integer {
             integer rand;
@@ -69,6 +73,7 @@ library RandSet {
             return result;
         }
 
+        // 老函数:ArrayInstance
         // 随机返回一个数字(不会移除)
         static method peek() -> integer {
             if (length <= 0) {
@@ -77,6 +82,7 @@ library RandSet {
             return values[GetRandomInt(0, length - 1)];
         }
 
+        // 老函数:ArrayShuffle
         // 打乱序列
         static method shuffle() {
             integer i = 0;
@@ -91,6 +97,7 @@ library RandSet {
             }
         }
 
+        // 老函数:IsArrayEmpty
         // 是否为空
         static method isEmpty() -> boolean {
             return length == 0;
@@ -101,6 +108,7 @@ library RandSet {
             return length;
         }
 
+        // 老函数:ArrayShow
         // 调试用:显示当前所有数字
         static method toString() -> string {
             string s = "";

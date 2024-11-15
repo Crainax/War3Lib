@@ -2,27 +2,12 @@
 #define DamageUtilsIncluded
 
 #include "Crainax/core/constant/JapiConstant.j"
-#include "Crainax/utils/unit/UnitFilter.j"
 
 //! zinc
 /*
 伤害工具
 */
-library DamageUtils requires UnitFilter {
-
-    //中转的东西
-    public struct gF [] {
-        static group  g         = null;  //生成的单位组
-        public static unit    u1 = null;  //绑定的单位1
-        public static player  p1 = null;  //绑定的玩家1
-        public static integer i1 = 0;     //绑定的整数1
-        public static real    r1 = 0;     //绑定的实数1
-        public static string  s1 = null;  //绑定的字符串1
-        public static boolean b1 = false; //绑定的布尔1
-    }
-    //todo: 改成进出栈方式来造成伤害
-
-    //todo: 用一个结构体来传参,不要在这里传bj
+library DamageUtils requires UnitFilter,GroupUtils {
 
     //旧名替换:DamageSingle
     //单体伤害:物理
@@ -41,42 +26,100 @@ library DamageUtils requires UnitFilter {
         UnitDamageTarget( u, target, GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE))*(1.0+fd), true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
     }
 
+    //伤害参数结构体
+    private struct DmgP {
+        unit    source;  //伤害来源
+        string  eft;     //特效
+        real    damage;  //伤害值
+        boolean isBj;    //是否暴击
+
+        method destroy() {
+            this.source = null;
+            this.eft = null;
+        }
+    }
+
+    //伤害参数栈
+    public struct DmgS [] {
+        private static DmgP stack[100];
+        private static integer top = -1;
+
+        public static method push(DmgP params) {
+            thistype.top += 1;
+            thistype.stack[thistype.top] = params;
+        }
+
+        public static method pop() -> DmgP {
+            DmgP params = thistype.stack[thistype.top];
+            thistype.stack[thistype.top] = 0;
+            thistype.top -= 1;
+            return params;
+        }
+
+        public static method getTop() -> integer {
+            return thistype.top;
+        }
+
+        public static method current() -> DmgP {
+            return thistype.stack[thistype.top];
+        }
+    }
+
     //范围普通伤害
     public function DamageArea (unit u,real x,real y,real radius,real damage,boolean bj,string efx) {
         group g = CreateGroup();
-        gF.u1 = u;
-        gF.s1 = efx;
-        gF.r1 = damage;
-        gF.b1 = bj;
+        DmgP params = DmgP.create();
+        params.source = u;
+        params.eft = efx;
+        params.damage = damage;
+        params.isBj = bj;
+
+        DmgS.push(params);
+
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
-            if (IsEnemy(GetOwningPlayer(gF.u1),GetFilterUnit())) {
-                ApplyPhysicalDamage(gF.u1,GetFilterUnit(),gF.r1,gF.b1);
-                if (gF.s1 != null) {DestroyEffect(AddSpecialEffect(gF.s1, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit()) ));}
+            DmgP current = DmgS.current();
+            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
+                ApplyPhysicalDamage(current.source,GetFilterUnit(),current.damage,current.isBj);
+                if (current.eft != null) {
+                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
+                }
                 return true;
             }
             return false;
         }));
+
+        params = DmgS.pop();
+        params.destroy();
         DestroyGroup(g);
-        gF.u1 = null;
         g = null;
     }
+
     //范围真实伤害
     public function DamageAreaPure (unit u,real x,real y,real radius,real damage,boolean bj,string efx) {
         group g = CreateGroup();
-        gF.u1 = u;
-        gF.s1 = efx;
-        gF.r1 = damage;
-        gF.b1 = bj;
+        DmgP params = DmgP.create();
+        params.source = u;
+        params.eft = efx;
+        params.damage = damage;
+        params.isBj = bj;
+
+        DmgS.push(params);
+
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
-            if (IsEnemy(GetOwningPlayer(gF.u1),GetFilterUnit())) {
-                ApplyPureDamage(gF.u1,GetFilterUnit(),gF.r1,gF.b1);
-                if (gF.s1 != null) {DestroyEffect(AddSpecialEffect(gF.s1, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit()) ));}
+            DmgP current = DmgS.current();
+            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
+                ApplyPureDamage(current.source,GetFilterUnit(),current.damage,current.isBj);
+                if (current.eft != null) {
+                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
+                }
                 return true;
             }
             return false;
         }));
+
+        params = DmgS.pop();
+        params.destroy();
         DestroyGroup(g);
-        gF.u1 = null;
         g = null;
     }
 

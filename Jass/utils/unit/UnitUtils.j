@@ -1,8 +1,8 @@
 #ifndef UnitUtilsIncluded
 #define UnitUtilsIncluded
 
-#include "Crainax/core/constant/UNDefine.j"
-#include "Crainax/core/constant/JapiConstant.j"
+#include "Crainax/core/constant/UNDefine.j" //constant可以直接加进去没问题
+#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
 
 //! zinc
 /*
@@ -52,8 +52,8 @@ library UnitUtils {
 
     // 获取移速
     public function GetUnitSpeed (unit u)  -> integer {
-        if (HaveSavedInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            return LoadInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
+        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
+            return LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
         }
         else {return R2I(GetUnitMoveSpeed(u));}
     }
@@ -61,16 +61,16 @@ library UnitUtils {
     // 增加移速
     public function AddUnitSpeed (unit u,integer speed) {
         integer value;
-        if (HaveSavedInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            value  = LoadInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
+        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
+            value  = LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
             value += speed;
-            SaveInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
+            SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
         } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
 		SetUnitMoveSpeed(u,value);
     }
     // 初始化突破移速
     public function InitUnitSpeed (unit u) {
-        SaveInteger(UNTable,GetHandleId(u),KEY_UNIT_MOVE_SPEED,R2I(GetUnitMoveSpeed(u)));
+        SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,R2I(GetUnitMoveSpeed(u)));
     }
 
     //射程(还会+警戒范围)
@@ -109,7 +109,7 @@ library UnitUtils {
 
     //删除单位
     public function DeleteUnit (unit u) {
-        FlushChildHashtable(UNTable,GetHandleId(u));
+        FlushChildHashtable(HASH_UNIT,GetHandleId(u));
         RemoveUnit(u);
     }
 

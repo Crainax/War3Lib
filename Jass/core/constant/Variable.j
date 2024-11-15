@@ -31,11 +31,11 @@ library Variable requires Constant {
 	public unit USelected[]; //正在选择的单位[同步]
 
 	//表数据
-	public hashtable UNTable = InitHashtable(); //以unittype为头的表
-	public hashtable UTTable = InitHashtable(); //以unit为头的表
-	public hashtable TITable = InitHashtable(); //以计时器为头的表
-	public hashtable GRTable = InitHashtable(); //以单位组为头的表
-	public hashtable SPTable = InitHashtable(); //以SpellStruct为头的表
+	public hashtable HASH_UNIT_TYPE = InitHashtable();   // 单位类型哈希表
+	public hashtable HASH_UNIT = InitHashtable();        // 单位实例哈希表
+	public hashtable HASH_TIMER = InitHashtable();       // 计时器哈希表
+	public hashtable HASH_GROUP = InitHashtable();       // 单位组哈希表
+	public hashtable HASH_SPELL = InitHashtable();       // 技能结构哈希表
 
 	//选择事件
 	public trigger TrSelect = null;

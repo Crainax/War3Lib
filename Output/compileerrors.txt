@@ -1,5 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 206:  Undeclared function B2S
-Line 209:  Undeclared function B2S
-2
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 1484: Syntax Error (Unexpected: ")"?
+1

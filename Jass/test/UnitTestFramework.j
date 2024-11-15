@@ -24,6 +24,7 @@ library UnitTestFramwork {
             integer i;
             for (1 <= i <= 12) {
 				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
             }
             DestroyTrigger(GetTriggeringTrigger());
         }));

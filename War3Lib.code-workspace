@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../../Program Files (x86)/Warcraft III Frozen Throne/War3Lib/日志"
 		}
 	],
 	"settings": {}
