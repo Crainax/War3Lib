@@ -18,15 +18,15 @@ constant boolean LIBRARY_UnitFilter=true
 //endglobals from UnitFilter
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork___TUnitTest=null
+trigger UnitTestFramwork__TUnitTest=null
 //endglobals from UnitTestFramwork
 //globals from UnitUtils:
 constant boolean LIBRARY_UnitUtils=true
 //endglobals from UnitUtils
 //globals from GroupUtils:
 constant boolean LIBRARY_GroupUtils=true
-group GroupUtils___tempG=null
-unit GroupUtils___tempU=null
+group GroupUtils__tempG=null
+unit GroupUtils__tempU=null
 //endglobals from GroupUtils
 //globals from HardwellEvent:
 constant boolean LIBRARY_HardwellEvent=true
@@ -36,26 +36,26 @@ constant boolean LIBRARY_Logger=true
 //endglobals from Logger
 //globals from CameraControl:
 constant boolean LIBRARY_CameraControl=true
-integer CameraControl___ViewLevel=8
-boolean CameraControl___ResetCam=false
-real CameraControl___WheelSpeed=0.1
-boolean CameraControl___WideScr=false
-real CameraControl___X_ANGLE=304
+integer CameraControl__ViewLevel=8
+boolean CameraControl__ResetCam=false
+real CameraControl__WheelSpeed=0.1
+boolean CameraControl__WideScr=false
+real CameraControl__X_ANGLE=304
 //endglobals from CameraControl
 //globals from DamageUtils:
 constant boolean LIBRARY_DamageUtils=true
 //endglobals from DamageUtils
 //globals from UTDamageUtils:
 constant boolean LIBRARY_UTDamageUtils=true
-unit UTDamageUtils___testDummy=null
-unit UTDamageUtils___testSource=null
-real UTDamageUtils___testDamage=100.0
-real UTDamageUtils___testRadius=300.0
-string UTDamageUtils___testEffect="Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdl"
-trigger UTDamageUtils___damageEventTrigger=null
-boolean UTDamageUtils___isShowDamage=false
-boolean UTDamageUtils___isReflectDamage=false
-integer UTDamageUtils___reflectCount=0
+unit UTDamageUtils__testDummy=null
+unit UTDamageUtils__testSource=null
+real UTDamageUtils__testDamage=100.0
+real UTDamageUtils__testRadius=300.0
+string UTDamageUtils__testEffect="Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdl"
+trigger UTDamageUtils__damageEventTrigger=null
+boolean UTDamageUtils__isShowDamage=false
+boolean UTDamageUtils__isReflectDamage=false
+integer UTDamageUtils__reflectCount=0
 //endglobals from UTDamageUtils
     // Generated
 rect gg_rct_Wave1= null
@@ -93,14 +93,14 @@ constant integer si__cameraControl=2
 integer si__cameraControl_F=0
 integer si__cameraControl_I=0
 integer array si__cameraControl_V
-constant integer si__DamageUtils___DmgP=3
-integer si__DamageUtils___DmgP_F=0
-integer si__DamageUtils___DmgP_I=0
-integer array si__DamageUtils___DmgP_V
-unit array s__DamageUtils___DmgP_source
-string array s__DamageUtils___DmgP_eft
-real array s__DamageUtils___DmgP_damage
-boolean array s__DamageUtils___DmgP_isBj
+constant integer si__DamageUtils__DmgP=3
+integer si__DamageUtils__DmgP_F=0
+integer si__DamageUtils__DmgP_I=0
+integer array si__DamageUtils__DmgP_V
+unit array s__DamageUtils__DmgP_source
+string array s__DamageUtils__DmgP_eft
+real array s__DamageUtils__DmgP_damage
+boolean array s__DamageUtils__DmgP_isBj
 constant integer si__DmgS=4
 integer s__DmgS_top=- 1
 integer array s__s__DmgS_stack
@@ -275,35 +275,35 @@ function s__hardwellEvent_deallocate takes integer this returns nothing
     set si__hardwellEvent_F=this
 endfunction
 
-//Generated allocator of DamageUtils___DmgP
-function s__DamageUtils___DmgP__allocate takes nothing returns integer
- local integer this=si__DamageUtils___DmgP_F
+//Generated allocator of DamageUtils__DmgP
+function s__DamageUtils__DmgP__allocate takes nothing returns integer
+ local integer this=si__DamageUtils__DmgP_F
     if (this!=0) then
-        set si__DamageUtils___DmgP_F=si__DamageUtils___DmgP_V[this]
+        set si__DamageUtils__DmgP_F=si__DamageUtils__DmgP_V[this]
     else
-        set si__DamageUtils___DmgP_I=si__DamageUtils___DmgP_I+1
-        set this=si__DamageUtils___DmgP_I
+        set si__DamageUtils__DmgP_I=si__DamageUtils__DmgP_I+1
+        set this=si__DamageUtils__DmgP_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: DamageUtils___DmgP")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: DamageUtils__DmgP")
         return 0
     endif
 
-    set si__DamageUtils___DmgP_V[this]=-1
+    set si__DamageUtils__DmgP_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of DamageUtils___DmgP
-function s__DamageUtils___DmgP_deallocate takes integer this returns nothing
+//Generated destructor of DamageUtils__DmgP
+function s__DamageUtils__DmgP_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: DamageUtils___DmgP")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: DamageUtils__DmgP")
         return
-    elseif (si__DamageUtils___DmgP_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: DamageUtils___DmgP")
+    elseif (si__DamageUtils__DmgP_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: DamageUtils__DmgP")
         return
     endif
-    set si__DamageUtils___DmgP_V[this]=si__DamageUtils___DmgP_F
-    set si__DamageUtils___DmgP_F=this
+    set si__DamageUtils__DmgP_V[this]=si__DamageUtils__DmgP_F
+    set si__DamageUtils__DmgP_F=this
 endfunction
 
 //Generated allocator of cameraControl
@@ -762,23 +762,23 @@ endfunction
         call AbilityId("exec-lua:plugin_main")
         return 0
     endfunction  //显示内置Japi的版本
-    function InnerJapi___GetPluginVersion takes nothing returns string
+    function InnerJapi__GetPluginVersion takes nothing returns string
         call GetTriggeringTrigger()
         return ""
     endfunction  // 显示版本
-        function InnerJapi___anon__0 takes nothing returns nothing
+        function InnerJapi__anon__0 takes nothing returns nothing
             local timer t=GetExpiredTimer()
             local integer id=GetHandleId(t)
-            call BJDebugMsg("内置Japi" + InnerJapi___GetPluginVersion())
+            call BJDebugMsg("内置Japi" + InnerJapi__GetPluginVersion())
             call PauseTimer(t)
             call DestroyTimer(t)
             set t=null
         endfunction
-    function InnerJapi___onInit takes nothing returns nothing
+    function InnerJapi__onInit takes nothing returns nothing
         local integer i=0
         local timer t
         set t=CreateTimer()
-        call TimerStart(t, 0.0, false, function InnerJapi___anon__0)
+        call TimerStart(t, 0.0, false, function InnerJapi__anon__0)
         set t=null
     endfunction
 
@@ -798,9 +798,9 @@ endfunction
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
     endfunction
-        function UnitTestFramwork___anon__0 takes nothing returns nothing
+        function UnitTestFramwork__anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -811,16 +811,16 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork___onInit takes nothing returns nothing
+    function UnitTestFramwork__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
         set tr=null
-        set UnitTestFramwork___TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
+        set UnitTestFramwork__TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
@@ -895,18 +895,18 @@ endfunction
         call GroupEnumUnitsInRect(whichGroup, r, filter)
         call DestroyBoolExpr(filter)
     endfunction  //获取单位组:[敌方]
-        function GroupUtils___anon__0 takes nothing returns boolean
-            if ( IsEnemy(GetOwningPlayer(GroupUtils___tempU) , GetFilterUnit()) ) then
+        function GroupUtils__anon__0 takes nothing returns boolean
+            if ( IsEnemy(GetOwningPlayer(GroupUtils__tempU) , GetFilterUnit()) ) then
                 return true
             endif
             return false
         endfunction
     function GetEnemyGroup takes unit u,real x,real y,real radius returns group
-        set GroupUtils___tempG=CreateGroup()
-        set GroupUtils___tempU=u
-        call GroupEnumUnitsInRangeEx(GroupUtils___tempG , x , y , radius , Filter(function GroupUtils___anon__0))
-        set GroupUtils___tempU=null
-        return GroupUtils___tempG
+        set GroupUtils__tempG=CreateGroup()
+        set GroupUtils__tempU=u
+        call GroupEnumUnitsInRangeEx(GroupUtils__tempG , x , y , radius , Filter(function GroupUtils__anon__0))
+        set GroupUtils__tempU=null
+        return GroupUtils__tempG
     endfunction  //获取圆形随机单位
     function GetRandomEnemy takes unit u,real x,real y,real radius returns unit
         return GroupPickRandomUnit(GetEnemyGroup(u , x , y , radius))
@@ -989,7 +989,7 @@ endfunction
     function ErrorToPlayer takes player p,string msg returns nothing
         call GetTriggerUnit()
     endfunction
-    function Logger___onInit takes nothing returns nothing
+    function Logger__onInit takes nothing returns nothing
         call AbilityId("exec-lua:depends.debug.logger")
     endfunction
 
@@ -999,36 +999,36 @@ endfunction
         function s__cameraControl_openWheel takes nothing returns nothing
             call DoNothing()
         endfunction
-        function CameraControl___anon__0 takes nothing returns nothing
+        function CameraControl__anon__0 takes nothing returns nothing
             local integer delta=DzGetWheelDelta()
             if ( not ( DzIsMouseOverUI() ) ) then //标记需要重置镜头属性
                 return
             endif
-            set CameraControl___ResetCam=true //滚轮下滑
+            set CameraControl__ResetCam=true //滚轮下滑
             if ( delta < 0 ) then //视野等级上限
-                if ( CameraControl___ViewLevel < 14 ) then //滚轮上滑
-                    set CameraControl___ViewLevel=CameraControl___ViewLevel + 1
+                if ( CameraControl__ViewLevel < 14 ) then //滚轮上滑
+                    set CameraControl__ViewLevel=CameraControl__ViewLevel + 1
                 endif
-            elseif ( CameraControl___ViewLevel > 3 ) then //视野等级下限
-                set CameraControl___ViewLevel=CameraControl___ViewLevel - 1
+            elseif ( CameraControl__ViewLevel > 3 ) then //视野等级下限
+                set CameraControl__ViewLevel=CameraControl__ViewLevel - 1
             endif
-            set CameraControl___X_ANGLE=Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK)) //记录滚动前的镜头角度
+            set CameraControl__X_ANGLE=Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK)) //记录滚动前的镜头角度
         endfunction  //注册每帧渲染事件
-        function CameraControl___anon__1 takes nothing returns nothing
-            if ( CameraControl___ResetCam ) then
-                call SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, CameraControl___X_ANGLE, 0)
-                call SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, CameraControl___ViewLevel * 200, CameraControl___WheelSpeed)
-                set CameraControl___ResetCam=false
+        function CameraControl__anon__1 takes nothing returns nothing
+            if ( CameraControl__ResetCam ) then
+                call SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, CameraControl__X_ANGLE, 0)
+                call SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, CameraControl__ViewLevel * 200, CameraControl__WheelSpeed)
+                set CameraControl__ResetCam=false
             endif
         endfunction  //注册按下键码为145的按键(ScrollLock)事件
-        function CameraControl___anon__2 takes nothing returns nothing
-            set CameraControl___WideScr=not CameraControl___WideScr
-            call DzEnableWideScreen(CameraControl___WideScr)
+        function CameraControl__anon__2 takes nothing returns nothing
+            set CameraControl__WideScr=not CameraControl__WideScr
+            call DzEnableWideScreen(CameraControl__WideScr)
         endfunction
-    function CameraControl___onInit takes nothing returns nothing
-        call s__hardwellEvent_RegWheelEvent(function CameraControl___anon__0)
-        call s__hardwellEvent_RegUpdateEvent(function CameraControl___anon__1)
-        call DzTriggerRegisterKeyEventByCode(null, 145, 1, false, function CameraControl___anon__2)
+    function CameraControl__onInit takes nothing returns nothing
+        call s__hardwellEvent_RegWheelEvent(function CameraControl__anon__0)
+        call s__hardwellEvent_RegUpdateEvent(function CameraControl__anon__1)
+        call DzTriggerRegisterKeyEventByCode(null, 145, 1, false, function CameraControl__anon__2)
     endfunction
 
 //library CameraControl ends
@@ -1048,9 +1048,9 @@ endfunction
     function SimulateBasicAttack takes unit u,unit target,real fd returns nothing
         call UnitDamageTarget(u, target, GetUnitState(u, ConvertUnitState(0x12)) * ( 1.0 + fd ), true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
     endfunction  //伤害参数结构体
-        function s__DamageUtils___DmgP_destroy takes integer this returns nothing
-            set s__DamageUtils___DmgP_source[this]=null
-            set s__DamageUtils___DmgP_eft[this]=null
+        function s__DamageUtils__DmgP_destroy takes integer this returns nothing
+            set s__DamageUtils__DmgP_source[this]=null
+            set s__DamageUtils__DmgP_eft[this]=null
         endfunction
         function s__DmgS_push takes integer params returns nothing
             set s__DmgS_top=s__DmgS_top + 1
@@ -1068,12 +1068,12 @@ endfunction
         function s__DmgS_current takes nothing returns integer
             return s__s__DmgS_stack[s__DmgS_top]
         endfunction
-        function DamageUtils___anon__0 takes nothing returns boolean
+        function DamageUtils__anon__0 takes nothing returns boolean
             local integer current=s__DmgS_current()
-            if ( IsEnemy(GetOwningPlayer(s__DamageUtils___DmgP_source[current]) , GetFilterUnit()) ) then
-                call ApplyPhysicalDamage(s__DamageUtils___DmgP_source[current] , GetFilterUnit() , s__DamageUtils___DmgP_damage[current] , s__DamageUtils___DmgP_isBj[current])
-                if ( s__DamageUtils___DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils___DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
+            if ( IsEnemy(GetOwningPlayer(s__DamageUtils__DmgP_source[current]) , GetFilterUnit()) ) then
+                call ApplyPhysicalDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current] , s__DamageUtils__DmgP_isBj[current])
+                if ( s__DamageUtils__DmgP_eft[current] != null ) then
+                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
                 endif
                 return true
             endif
@@ -1081,24 +1081,24 @@ endfunction
         endfunction
     function DamageArea takes unit u,real x,real y,real radius,real damage,boolean bj,string efx returns nothing
         local group g=CreateGroup()
-        local integer params=s__DamageUtils___DmgP__allocate()
-        set s__DamageUtils___DmgP_source[params]=u
-        set s__DamageUtils___DmgP_eft[params]=efx
-        set s__DamageUtils___DmgP_damage[params]=damage
-        set s__DamageUtils___DmgP_isBj[params]=bj
+        local integer params=s__DamageUtils__DmgP__allocate()
+        set s__DamageUtils__DmgP_source[params]=u
+        set s__DamageUtils__DmgP_eft[params]=efx
+        set s__DamageUtils__DmgP_damage[params]=damage
+        set s__DamageUtils__DmgP_isBj[params]=bj
         call s__DmgS_push(params)
-        call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils___anon__0))
+        call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__0))
         set params=s__DmgS_pop()
-        call s__DamageUtils___DmgP_destroy(params)
+        call s__DamageUtils__DmgP_destroy(params)
         call DestroyGroup(g)
         set g=null
     endfunction  //范围真实伤害
-        function DamageUtils___anon__1 takes nothing returns boolean
+        function DamageUtils__anon__1 takes nothing returns boolean
             local integer current=s__DmgS_current()
-            if ( IsEnemy(GetOwningPlayer(s__DamageUtils___DmgP_source[current]) , GetFilterUnit()) ) then
-                call ApplyPureDamage(s__DamageUtils___DmgP_source[current] , GetFilterUnit() , s__DamageUtils___DmgP_damage[current] , s__DamageUtils___DmgP_isBj[current])
-                if ( s__DamageUtils___DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils___DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
+            if ( IsEnemy(GetOwningPlayer(s__DamageUtils__DmgP_source[current]) , GetFilterUnit()) ) then
+                call ApplyPureDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current] , s__DamageUtils__DmgP_isBj[current])
+                if ( s__DamageUtils__DmgP_eft[current] != null ) then
+                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
                 endif
                 return true
             endif
@@ -1106,15 +1106,15 @@ endfunction
         endfunction
     function DamageAreaPure takes unit u,real x,real y,real radius,real damage,boolean bj,string efx returns nothing
         local group g=CreateGroup()
-        local integer params=s__DamageUtils___DmgP__allocate()
-        set s__DamageUtils___DmgP_source[params]=u
-        set s__DamageUtils___DmgP_eft[params]=efx
-        set s__DamageUtils___DmgP_damage[params]=damage
-        set s__DamageUtils___DmgP_isBj[params]=bj
+        local integer params=s__DamageUtils__DmgP__allocate()
+        set s__DamageUtils__DmgP_source[params]=u
+        set s__DamageUtils__DmgP_eft[params]=efx
+        set s__DamageUtils__DmgP_damage[params]=damage
+        set s__DamageUtils__DmgP_isBj[params]=bj
         call s__DmgS_push(params)
-        call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils___anon__1))
+        call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__1))
         set params=s__DmgS_pop()
-        call s__DamageUtils___DmgP_destroy(params)
+        call s__DamageUtils__DmgP_destroy(params)
         call DestroyGroup(g)
         set g=null
     endfunction
@@ -1122,14 +1122,14 @@ endfunction
 //library DamageUtils ends
 //library UTDamageUtils:
 
-        function UTDamageUtils___anon__0 takes nothing returns nothing
+        function UTDamageUtils__anon__0 takes nothing returns nothing
             local unit u=GetEnumUnit()
             if ( GetUnitTypeId(u) == 'opeo' or GetUnitTypeId(u) == 'hpea' ) then
                 call RemoveUnit(u)
             endif
             set u=null
         endfunction
-    function UTDamageUtils___CreateTestEnv takes player p returns nothing
+    function UTDamageUtils__CreateTestEnv takes player p returns nothing
         local real x=GetPlayerStartLocationX(p)
         local real y=GetPlayerStartLocationY(p)
         local real angle
@@ -1137,74 +1137,74 @@ endfunction
         local group g=CreateGroup()
         local unit dummy
         call GroupEnumUnitsInRange(g, x, y, 1000, null)
-        call ForGroup(g, function UTDamageUtils___anon__0)
+        call ForGroup(g, function UTDamageUtils__anon__0)
         call DestroyGroup(g)
         set g=null
-        set UTDamageUtils___testDummy=null
-        set UTDamageUtils___testSource=null // 创建中心苦工单位
-        set UTDamageUtils___testDummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200, y, 270)
-        call SetUnitInvulnerable(UTDamageUtils___testDummy, false)
-        call SetUnitState(UTDamageUtils___testDummy, UNIT_STATE_LIFE, GetUnitState(UTDamageUtils___testDummy, UNIT_STATE_MAX_LIFE)) // 注册伤害事件
-        call TriggerRegisterUnitEvent(UTDamageUtils___damageEventTrigger, UTDamageUtils___testDummy, EVENT_UNIT_DAMAGED) // 创建环形分布的额外苦工
+        set UTDamageUtils__testDummy=null
+        set UTDamageUtils__testSource=null // 创建中心苦工单位
+        set UTDamageUtils__testDummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200, y, 270)
+        call SetUnitInvulnerable(UTDamageUtils__testDummy, false)
+        call SetUnitState(UTDamageUtils__testDummy, UNIT_STATE_LIFE, GetUnitState(UTDamageUtils__testDummy, UNIT_STATE_MAX_LIFE)) // 注册伤害事件
+        call TriggerRegisterUnitEvent(UTDamageUtils__damageEventTrigger, UTDamageUtils__testDummy, EVENT_UNIT_DAMAGED) // 创建环形分布的额外苦工
         set i=0
         loop
         exitwhen ( i >= 8 )
             set angle=i * 45.0 * bj_DEGTORAD
-            set dummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200 + UTDamageUtils___testRadius * Cos(angle), y + UTDamageUtils___testRadius * Sin(angle), 270)
-            call TriggerRegisterUnitEvent(UTDamageUtils___damageEventTrigger, dummy, EVENT_UNIT_DAMAGED) // 为每个苦工注册伤害事件
+            set dummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200 + UTDamageUtils__testRadius * Cos(angle), y + UTDamageUtils__testRadius * Sin(angle), 270)
+            call TriggerRegisterUnitEvent(UTDamageUtils__damageEventTrigger, dummy, EVENT_UNIT_DAMAGED) // 为每个苦工注册伤害事件
         set i=i + 1
         endloop // 创建伤害源(农民)
-        set UTDamageUtils___testSource=CreateUnit(p, 'hpea', x, y, 90)
-        call SetUnitState(UTDamageUtils___testSource, ConvertUnitState(0x12), 50) // 为农民也注册伤害事件
-        call TriggerRegisterUnitEvent(UTDamageUtils___damageEventTrigger, UTDamageUtils___testSource, EVENT_UNIT_DAMAGED)
+        set UTDamageUtils__testSource=CreateUnit(p, 'hpea', x, y, 90)
+        call SetUnitState(UTDamageUtils__testSource, ConvertUnitState(0x12), 50) // 为农民也注册伤害事件
+        call TriggerRegisterUnitEvent(UTDamageUtils__damageEventTrigger, UTDamageUtils__testSource, EVENT_UNIT_DAMAGED)
     endfunction  // 测试物理伤害
-    function UTDamageUtils___TTestUTDamageUtils1 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试物理伤害: " + R2S(UTDamageUtils___testDamage))
-        call ApplyPhysicalDamage(UTDamageUtils___testSource , UTDamageUtils___testDummy , UTDamageUtils___testDamage , true)
+    function UTDamageUtils__TTestUTDamageUtils1 takes player p returns nothing
+        call UTDamageUtils__CreateTestEnv(p)
+        call Trace("测试物理伤害: " + R2S(UTDamageUtils__testDamage))
+        call ApplyPhysicalDamage(UTDamageUtils__testSource , UTDamageUtils__testDummy , UTDamageUtils__testDamage , true)
     endfunction  // 测试真实伤害
-    function UTDamageUtils___TTestUTDamageUtils2 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试真实伤害: " + R2S(UTDamageUtils___testDamage))
-        call ApplyPureDamage(UTDamageUtils___testSource , UTDamageUtils___testDummy , UTDamageUtils___testDamage , true)
+    function UTDamageUtils__TTestUTDamageUtils2 takes player p returns nothing
+        call UTDamageUtils__CreateTestEnv(p)
+        call Trace("测试真实伤害: " + R2S(UTDamageUtils__testDamage))
+        call ApplyPureDamage(UTDamageUtils__testSource , UTDamageUtils__testDummy , UTDamageUtils__testDamage , true)
     endfunction  // 测试模拟普攻
-    function UTDamageUtils___TTestUTDamageUtils3 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
+    function UTDamageUtils__TTestUTDamageUtils3 takes player p returns nothing
+        call UTDamageUtils__CreateTestEnv(p)
         call Trace("测试模拟普攻，基础攻击: 50")
-        call SimulateBasicAttack(UTDamageUtils___testSource , UTDamageUtils___testDummy , 0)
+        call SimulateBasicAttack(UTDamageUtils__testSource , UTDamageUtils__testDummy , 0)
     endfunction  // 测试范围物理伤害
-    function UTDamageUtils___TTestUTDamageUtils4 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试范围物理伤害: " + R2S(UTDamageUtils___testDamage) + " 范围: " + R2S(UTDamageUtils___testRadius))
-        call Trace("中心点有1个假人，半径 " + R2S(UTDamageUtils___testRadius) + " 处有8个假人")
+    function UTDamageUtils__TTestUTDamageUtils4 takes player p returns nothing
+        call UTDamageUtils__CreateTestEnv(p)
+        call Trace("测试范围物理伤害: " + R2S(UTDamageUtils__testDamage) + " 范围: " + R2S(UTDamageUtils__testRadius))
+        call Trace("中心点有1个假人，半径 " + R2S(UTDamageUtils__testRadius) + " 处有8个假人")
         call Trace("范围内的假人都会受到伤害和特效")
-        call DamageArea(UTDamageUtils___testSource , GetUnitX(UTDamageUtils___testSource) , GetUnitY(UTDamageUtils___testSource) , UTDamageUtils___testRadius , UTDamageUtils___testDamage , true , UTDamageUtils___testEffect)
+        call DamageArea(UTDamageUtils__testSource , GetUnitX(UTDamageUtils__testSource) , GetUnitY(UTDamageUtils__testSource) , UTDamageUtils__testRadius , UTDamageUtils__testDamage , true , UTDamageUtils__testEffect)
     endfunction  // 测试范围真实伤害
-    function UTDamageUtils___TTestUTDamageUtils5 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试范围真实伤害: " + R2S(UTDamageUtils___testDamage) + " 范围: " + R2S(UTDamageUtils___testRadius))
-        call Trace("中心点有1个假人，半径 " + R2S(UTDamageUtils___testRadius) + " 处有8个假人")
+    function UTDamageUtils__TTestUTDamageUtils5 takes player p returns nothing
+        call UTDamageUtils__CreateTestEnv(p)
+        call Trace("测试范围真实伤害: " + R2S(UTDamageUtils__testDamage) + " 范围: " + R2S(UTDamageUtils__testRadius))
+        call Trace("中心点有1个假人，半径 " + R2S(UTDamageUtils__testRadius) + " 处有8个假人")
         call Trace("范围内的假人都会受到伤害和特效")
-        call DamageAreaPure(UTDamageUtils___testSource , GetUnitX(UTDamageUtils___testSource) , GetUnitY(UTDamageUtils___testSource) , UTDamageUtils___testRadius , UTDamageUtils___testDamage , true , UTDamageUtils___testEffect)
+        call DamageAreaPure(UTDamageUtils__testSource , GetUnitX(UTDamageUtils__testSource) , GetUnitY(UTDamageUtils__testSource) , UTDamageUtils__testRadius , UTDamageUtils__testDamage , true , UTDamageUtils__testEffect)
     endfunction  // 测试伤害显示开关
-    function UTDamageUtils___TTestUTDamageUtils6 takes player p returns nothing
-        set UTDamageUtils___isShowDamage=not UTDamageUtils___isShowDamage
-        if ( UTDamageUtils___isShowDamage ) then
+    function UTDamageUtils__TTestUTDamageUtils6 takes player p returns nothing
+        set UTDamageUtils__isShowDamage=not UTDamageUtils__isShowDamage
+        if ( UTDamageUtils__isShowDamage ) then
             call Trace("|cff00ff00开启|r伤害数值显示")
         else
             call Trace("|cffff0000关闭|r伤害数值显示")
         endif
     endfunction  // 测试反伤开关
-    function UTDamageUtils___TTestUTDamageUtils7 takes player p returns nothing
-        set UTDamageUtils___isReflectDamage=not UTDamageUtils___isReflectDamage
-        if ( UTDamageUtils___isReflectDamage ) then // 重置反伤计数
-            set UTDamageUtils___reflectCount=0
+    function UTDamageUtils__TTestUTDamageUtils7 takes player p returns nothing
+        set UTDamageUtils__isReflectDamage=not UTDamageUtils__isReflectDamage
+        if ( UTDamageUtils__isReflectDamage ) then // 重置反伤计数
+            set UTDamageUtils__reflectCount=0
             call Trace("|cff00ff00开启|r伤害反弹测试 - 受伤单位将反弹50%伤害(最多5次)")
         else
             call Trace("|cffff0000关闭|r伤害反弹测试")
         endif
     endfunction  // 处理参数设置命令
-    function UTDamageUtils___TTestActUTDamageUtils1 takes string str returns nothing
+    function UTDamageUtils__TTestActUTDamageUtils1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1232,18 +1232,18 @@ endfunction
         set paramR[num]=S2R(paramS[num])
         set num=num + 1 // 处理命令
         if ( paramS[0] == "d" ) then
-            set UTDamageUtils___testDamage=paramR[1]
-            call Trace("设置伤害值为: " + R2S(UTDamageUtils___testDamage))
+            set UTDamageUtils__testDamage=paramR[1]
+            call Trace("设置伤害值为: " + R2S(UTDamageUtils__testDamage))
         elseif ( paramS[0] == "r" ) then
-            set UTDamageUtils___testRadius=paramR[1]
-            call Trace("设置范围值为: " + R2S(UTDamageUtils___testRadius))
+            set UTDamageUtils__testRadius=paramR[1]
+            call Trace("设置范围值为: " + R2S(UTDamageUtils__testRadius))
         elseif ( paramS[0] == "e" ) then
-            set UTDamageUtils___testEffect=paramS[1]
-            call Trace("设置特效为: " + UTDamageUtils___testEffect)
+            set UTDamageUtils__testEffect=paramS[1]
+            call Trace("设置特效为: " + UTDamageUtils__testEffect)
         endif
         set p=null
     endfunction
-        function UTDamageUtils___anon__1 takes nothing returns nothing
+        function UTDamageUtils__anon__1 takes nothing returns nothing
             call Trace("|cff00ff00[DamageUtils测试]|r 输入以下命令进行测试:")
             call Trace("s1 - 测试物理伤害")
             call Trace("s2 - 测试真实伤害")
@@ -1258,61 +1258,60 @@ endfunction
             call Trace("-e [路径] - 设置特效")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTDamageUtils___anon__2 takes nothing returns nothing
+        function UTDamageUtils__anon__2 takes nothing returns nothing
             local unit source=GetEventDamageSource()
             local unit target=GetTriggerUnit()
             local real damage=GetEventDamage()
-            if ( UTDamageUtils___isShowDamage ) then
+            if ( UTDamageUtils__isShowDamage ) then
                 call Trace("|cffff0000伤害事件|r - 来源: " + GetUnitName(source) + " 目标: " + GetUnitName(target) + "(" + I2S(GetHandleId(target)) + ") 伤害: " + R2S(damage) + " 当前栈层: " + I2S(s__DmgS_getTop()))
             endif // 反伤测试
-            if ( UTDamageUtils___isReflectDamage and UTDamageUtils___reflectCount < 1 ) then // 限制反伤次数 // 增加反伤计数
-                set UTDamageUtils___reflectCount=UTDamageUtils___reflectCount + 1
-                call Trace("第 " + I2S(UTDamageUtils___reflectCount) + " 次反伤") // 造成反伤
+            if ( UTDamageUtils__isReflectDamage and UTDamageUtils__reflectCount < 5 ) then // 限制反伤次数 // 增加反伤计数
+                set UTDamageUtils__reflectCount=UTDamageUtils__reflectCount + 1
+                call Trace("第 " + I2S(UTDamageUtils__reflectCount) + " 次反伤") // 造成反伤
                 call DamageArea(target , GetUnitX(target) , GetUnitY(target) , 100 , damage * 0.5 , true , I2S(s__DmgS_getTop()))
-                if ( UTDamageUtils___reflectCount >= 1 ) then
+                if ( UTDamageUtils__reflectCount >= 5 ) then
                     call Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(s__DmgS_getTop()))
                 endif
             endif
         endfunction  // 注册聊天事件
-        function UTDamageUtils___anon__3 takes nothing returns nothing
+        function UTDamageUtils__anon__3 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             if ( SubString(str, 0, 1) == "-" ) then
-                call UTDamageUtils___TTestActUTDamageUtils1(SubString(str, 1, StringLength(str)))
+                call UTDamageUtils__TTestActUTDamageUtils1(SubString(str, 1, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTDamageUtils___TTestUTDamageUtils1(GetTriggerPlayer())
+                call UTDamageUtils__TTestUTDamageUtils1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTDamageUtils___TTestUTDamageUtils2(GetTriggerPlayer())
+                call UTDamageUtils__TTestUTDamageUtils2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTDamageUtils___TTestUTDamageUtils3(GetTriggerPlayer())
+                call UTDamageUtils__TTestUTDamageUtils3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTDamageUtils___TTestUTDamageUtils4(GetTriggerPlayer())
+                call UTDamageUtils__TTestUTDamageUtils4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTDamageUtils___TTestUTDamageUtils5(GetTriggerPlayer())
+                call UTDamageUtils__TTestUTDamageUtils5(GetTriggerPlayer())
             elseif ( str == "s6" ) then // 新增命令
-                call UTDamageUtils___TTestUTDamageUtils6(GetTriggerPlayer())
+                call UTDamageUtils__TTestUTDamageUtils6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTDamageUtils___TTestUTDamageUtils7(GetTriggerPlayer())
+                call UTDamageUtils__TTestUTDamageUtils7(GetTriggerPlayer())
             endif
         endfunction
-    function UTDamageUtils___onInit takes nothing returns nothing
+    function UTDamageUtils__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTDamageUtils___anon__1))
+        call TriggerAddCondition(tr, Condition(function UTDamageUtils__anon__1))
         set tr=null
-        set UTDamageUtils___damageEventTrigger=CreateTrigger()
-        call TriggerAddCondition(UTDamageUtils___damageEventTrigger, Condition(function UTDamageUtils___anon__2))
-        call UnitTestRegisterChatEvent(function UTDamageUtils___anon__3)
+        set UTDamageUtils__damageEventTrigger=CreateTrigger()
+        call TriggerAddCondition(UTDamageUtils__damageEventTrigger, Condition(function UTDamageUtils__anon__2))
+        call UnitTestRegisterChatEvent(function UTDamageUtils__anon__3)
         call s__cameraControl_openWheel()
     endfunction
-    function UTDamageUtils___onDestroy takes nothing returns nothing
-        call DestroyTrigger(UTDamageUtils___damageEventTrigger)
-        set UTDamageUtils___damageEventTrigger=null
+    function UTDamageUtils__onDestroy takes nothing returns nothing
+        call DestroyTrigger(UTDamageUtils__damageEventTrigger)
+        set UTDamageUtils__damageEventTrigger=null
     endfunction
 
 //library UTDamageUtils ends
-
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1405,7 +1404,6 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
-// 常用哈希表
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1459,6 +1457,7 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
+// 常用哈希表
 // API文档: https://japi.war3rpg.top/
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
@@ -1513,6 +1512,7 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
+
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1926,12 +1926,12 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs113373390")
-call ExecuteFunc("InnerJapi___onInit")
-call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("Logger___onInit")
-call ExecuteFunc("CameraControl___onInit")
-call ExecuteFunc("UTDamageUtils___onInit")
+call ExecuteFunc("jasshelper__initstructs77066171")
+call ExecuteFunc("InnerJapi__onInit")
+call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("Logger__onInit")
+call ExecuteFunc("CameraControl__onInit")
+call ExecuteFunc("UTDamageUtils__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1972,7 +1972,7 @@ endfunction
 
 //Functions for BigArrays:
 
-function jasshelper__initstructs113373390 takes nothing returns nothing
+function jasshelper__initstructs77066171 takes nothing returns nothing
 
 
 

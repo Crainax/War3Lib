@@ -300,12 +300,12 @@ real paramR[]; // 所有参数R
 				"("+I2S(GetHandleId(target))+ ") 伤害: " + R2S(damage) + " 当前栈层: " + I2S(DmgS.getTop()));
 			}
 			// 反伤测试
-			if(isReflectDamage && reflectCount < 1) { // 限制反伤次数
+			if(isReflectDamage && reflectCount < 5) { // 限制反伤次数
 reflectCount += 1; // 增加反伤计数
 Trace("第 " + I2S(reflectCount) + " 次反伤");
 				// 造成反伤
 				DamageArea(target, GetUnitX(target),GetUnitY(target), 100, damage * 0.5, true, I2S(DmgS.getTop()));
-				if(reflectCount >= 1) {
+				if(reflectCount >= 5) {
 					Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(DmgS.getTop()));
 				}
 			}

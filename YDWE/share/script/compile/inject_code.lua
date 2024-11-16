@@ -3,6 +3,7 @@ inject_code = {}
 -- 注入代码表
 inject_code.new_table = {}
 inject_code.old_table = {}
+inject_code.chain_table = {} -- 链式依赖
 
 local root = fs.ydwe_path():parent_path():remove_filename():remove_filename() / "Component"
 if not fs.exists(root) then
@@ -13,31 +14,76 @@ function inject_code:inject_file(op, path_in_archive)
 	op.inject_file(root / "share" / "mpq" / "units" / path_in_archive, path_in_archive)
 end
 
+
 -- 侦测需要注入哪些代码
 -- op.input - 脚本的路径，fs.path变量
 -- op.option - 选项，table类型，支持成员：
 -- 	runtime_version - 表示魔兽版本
 -- 返回：一个table，数组形式，包含所有需要注入的文件名（注意不是fs.path）
 function inject_code:detect(op)
-	-- 结果变量
 	local r = {}
-	-- 读入所有文本
 	local s, e = io.load(op.input)
-	-- 文件存在
+
+	-- 修改递归处理依赖文件的函数
+	local function process_chain_files(file)
+		-- 尝试不同的路径格式来查找依赖
+		local file_str = tostring(file)
+		local normalized_path = file_str:gsub("\\", "/")
+
+		local deps = self.chain_table[file_str] or self.chain_table[normalized_path]
+
+		if deps then
+			for i, chain_file in ipairs(deps) do
+				-- 将chain_file转换为fs.path对象
+				local chain_path = fs.path(chain_file)
+
+				-- 检查是否已经添加过这个文件（使用规范化的路径进行比较）
+				local chain_path_str = tostring(chain_path):gsub("\\", "/")
+				local already_exists = false
+
+				for existing_path in pairs(r) do
+					local existing_str = tostring(existing_path):gsub("\\", "/")
+					if existing_str == chain_path_str then
+						already_exists = true
+						break
+					end
+				end
+
+				if not already_exists then
+					r[chain_path] = true
+					process_chain_files(chain_file)
+				end
+			end
+		end
+	end
+
 	if s then
-		-- 检查是否有需要注入的函数
 		local all_table = op.option.runtime_version:is_new() and self.new_table or self.old_table
 
 		for function_name, file in pairs(all_table) do
-			if not r[file] then -- 速度慢但是是全词匹配
-				-- 根据函数名是否以YDWE开头选择不同的匹配模式
-				if function_name:sub(1, 4) == "YDWE" then                           -- 简单模式
-					if not r[file] and s:find(function_name:gsub("%.", "%%.")) then -- 速度很快但是不是全词匹配
-						r[file] = true
+			local file_path = fs.path(file)
+			-- 检查是否已经添加过这个文件（使用规范化的路径进行比较）
+			local file_path_str = tostring(file_path):gsub("\\", "/")
+			local already_exists = false
+
+			for existing_path in pairs(r) do
+				local existing_str = tostring(existing_path):gsub("\\", "/")
+				if existing_str == file_path_str then
+					already_exists = true
+					break
+				end
+			end
+
+			if not already_exists then
+				if function_name:sub(1, 4) == "YDWE" then
+					if s:find(function_name:gsub("%.", "%%.")) then
+						r[file_path] = true
+						process_chain_files(file)
 					end
-				else                                                                                        -- 严格模式
-					if not r[file] and s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then -- 速度慢但是是全词匹配
-						r[file] = true
+				else
+					if s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then
+						r[file_path] = true
+						process_chain_files(file)
 					end
 				end
 			end
@@ -51,7 +97,7 @@ end
 
 -- 注入代码到Jass代码文件（最常见的是war3map.j）中
 -- op.output - war3map.j的路径，fs.path对象
--- tbl - 所有需要注入的代码文件路径，table，table中可以是
+-- tbl - 所有需要注入代码文件路径，table，table中可以是
 -- 		string - 此时为YDWE / "jass" 目录下的对应名称的文件
 --		fs.path - 此时取其路径
 -- 注：该table必须是数组形式的，哈希表形式的不处理
@@ -132,6 +178,37 @@ function inject_code:scan(config_dir)
 			local new_table = {}
 			local old_table = {}
 
+			-- 如果 self.chain_table 不存在则初始化
+			if not self.chain_table then
+				self.chain_table = {}
+			end
+
+			-- 获取当前cfg文件的目录路径
+			local full_path_str = tostring(full_path)
+			local base_dir = full_path_str:match("(.+)[/\\]")
+			if not base_dir then
+				base_dir = "."  -- 如果没有找到目录分隔符，使用当前目录
+			end
+
+			local current_file = full_path_str:gsub("%.cfg$", ".j")
+
+			-- 将相对路径转为绝对路径
+			local function resolve_path(relative_path)
+				-- 添加调试日志
+
+				local abs_path = base_dir .. "/" .. relative_path
+				abs_path = abs_path:gsub("[/\\]+", "/")
+
+
+				-- 处理 "../" 的情况
+				while abs_path:match("([^/]+)/%.%./") do
+					local before = abs_path
+					abs_path = abs_path:gsub("([^/]+)/%.%./", "")
+				end
+
+				return abs_path
+			end
+
 			-- 解析状态，默认0
 			-- 0 - 1.24/1.20通用
 			-- 1 - 1.24专用
@@ -149,6 +226,11 @@ function inject_code:scan(config_dir)
 						state = 1
 					elseif trimed == "[old]" then
 						state = 2
+					elseif trimed == "[chain]" then
+						state = 3
+						-- 标准化路径格式
+						local normalized_current = current_file:gsub("\\", "/")
+						self.chain_table[normalized_current] = self.chain_table[normalized_current] or {}
 					else
 						if state == 0 then
 							table.insert(new_table, trimed)
@@ -157,6 +239,12 @@ function inject_code:scan(config_dir)
 							table.insert(new_table, trimed)
 						elseif state == 2 then
 							table.insert(old_table, trimed)
+						elseif state == 3 then
+							-- 将相对路径转换为绝对路径后存入
+							local abs_path = resolve_path(trimed)
+							-- 标准化路径格式
+							local normalized_current = current_file:gsub("\\", "/")
+							table.insert(self.chain_table[normalized_current], abs_path)
 						end
 					end
 				end
@@ -190,6 +278,7 @@ function inject_code:scan(config_dir)
 			counter = counter + 1
 		end
 	end
+
 	return counter
 end
 
