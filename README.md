@@ -78,6 +78,9 @@ War3Lib/
 │
 ├── jass/
 │   ├── core/                                 # 核心模块
+│   │   ├── timer/                           # 计时器相关
+│   │   │   ├── AC.j                         # 计时器事件总线(Action Controller)
+│   │   │   └── AC_Test.j                    # AC单元测试
 │   │   ├── constant/                         # 常量定义
 │   │   │   └── UNDefine.j                    # 单位相关常量定义
 │   │   └── structs/                          # 核心数据结构

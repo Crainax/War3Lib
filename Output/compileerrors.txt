@@ -1,4 +1,5 @@
 logs\currentmapscript.j
-JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 1484: Syntax Error (Unexpected: ")"?
-1
+pjass.exe
+Line 524:  Undeclared variable this
+Line 542:  Undeclared variable this
+2

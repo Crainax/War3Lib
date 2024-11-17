@@ -1,62 +1,20 @@
 globals
-//globals from BzAPI:
-constant boolean LIBRARY_BzAPI=true
-//endglobals from BzAPI
-//globals from HashTable:
-constant boolean LIBRARY_HashTable=true
-hashtable HASH_UNIT_TYPE=InitHashtable()
-hashtable HASH_UNIT=InitHashtable()
-hashtable HASH_TIMER=InitHashtable()
-hashtable HASH_GROUP=InitHashtable()
-hashtable HASH_SPELL=InitHashtable()
-//endglobals from HashTable
+//globals from AC:
+constant boolean LIBRARY_AC=true
+//endglobals from AC
 //globals from InnerJapi:
 constant boolean LIBRARY_InnerJapi=true
 //endglobals from InnerJapi
-//globals from UnitFilter:
-constant boolean LIBRARY_UnitFilter=true
-//endglobals from UnitFilter
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork__TUnitTest=null
 //endglobals from UnitTestFramwork
-//globals from UnitUtils:
-constant boolean LIBRARY_UnitUtils=true
-//endglobals from UnitUtils
-//globals from GroupUtils:
-constant boolean LIBRARY_GroupUtils=true
-group GroupUtils__tempG=null
-unit GroupUtils__tempU=null
-//endglobals from GroupUtils
-//globals from HardwellEvent:
-constant boolean LIBRARY_HardwellEvent=true
-//endglobals from HardwellEvent
 //globals from Logger:
 constant boolean LIBRARY_Logger=true
 //endglobals from Logger
-//globals from CameraControl:
-constant boolean LIBRARY_CameraControl=true
-integer CameraControl__ViewLevel=8
-boolean CameraControl__ResetCam=false
-real CameraControl__WheelSpeed=0.1
-boolean CameraControl__WideScr=false
-real CameraControl__X_ANGLE=304
-//endglobals from CameraControl
-//globals from DamageUtils:
-constant boolean LIBRARY_DamageUtils=true
-//endglobals from DamageUtils
-//globals from UTDamageUtils:
-constant boolean LIBRARY_UTDamageUtils=true
-unit UTDamageUtils__testDummy=null
-unit UTDamageUtils__testSource=null
-real UTDamageUtils__testDamage=100.0
-real UTDamageUtils__testRadius=300.0
-string UTDamageUtils__testEffect="Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdl"
-trigger UTDamageUtils__damageEventTrigger=null
-boolean UTDamageUtils__isShowDamage=false
-boolean UTDamageUtils__isReflectDamage=false
-integer UTDamageUtils__reflectCount=0
-//endglobals from UTDamageUtils
+//globals from UTAC:
+constant boolean LIBRARY_UTAC=true
+//endglobals from UTAC
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -82,477 +40,181 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
-constant integer si__hardwellEvent=1
-integer si__hardwellEvent_F=0
-integer si__hardwellEvent_I=0
-integer array si__hardwellEvent_V
-trigger s__hardwellEvent_trWheel=null
-trigger s__hardwellEvent_trUpdate=null
-trigger s__hardwellEvent_trResize=null
-constant integer si__cameraControl=2
-integer si__cameraControl_F=0
-integer si__cameraControl_I=0
-integer array si__cameraControl_V
-constant integer si__DamageUtils__DmgP=3
-integer si__DamageUtils__DmgP_F=0
-integer si__DamageUtils__DmgP_I=0
-integer array si__DamageUtils__DmgP_V
-unit array s__DamageUtils__DmgP_source
-string array s__DamageUtils__DmgP_eft
-real array s__DamageUtils__DmgP_damage
-boolean array s__DamageUtils__DmgP_isBj
-constant integer si__DmgS=4
-integer s__DmgS_top=- 1
-integer array s__s__DmgS_stack
+constant integer si__ac=1
+integer si__ac_F=0
+integer si__ac_I=0
+integer array si__ac_V
+integer s__ac_ethis=0
+integer array s__ac_List
+integer s__ac_size=0
+hashtable s__ac_table=InitHashtable()
+timer s__ac_t=null
+real s__ac_lastTick=0
+integer array s__ac_uID
+trigger array s__ac_tr
+real array s__ac_remainTime
+real array s__ac_duration
+boolean array s__ac_cycle
+trigger st__ac_onDestroy
+integer f__arg_this
 
 endglobals
-    native DzGetMouseTerrainX takes nothing returns real
-    native DzGetMouseTerrainY takes nothing returns real
-    native DzGetMouseTerrainZ takes nothing returns real
-    native DzIsMouseOverUI takes nothing returns boolean
-    native DzGetMouseX takes nothing returns integer
-    native DzGetMouseY takes nothing returns integer
-    native DzGetMouseXRelative takes nothing returns integer
-    native DzGetMouseYRelative takes nothing returns integer
-    native DzSetMousePos takes integer x, integer y returns nothing
-    native DzTriggerRegisterMouseEvent takes trigger trig, integer btn, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseEventByCode takes trigger trig, integer btn, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterKeyEvent takes trigger trig, integer key, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterKeyEventByCode takes trigger trig, integer key, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseWheelEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseWheelEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseMoveEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseMoveEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzGetTriggerKey takes nothing returns integer
-    native DzGetWheelDelta takes nothing returns integer
-    native DzIsKeyDown takes integer iKey returns boolean
-    native DzGetTriggerKeyPlayer takes nothing returns player
-    native DzGetWindowWidth takes nothing returns integer
-    native DzGetWindowHeight takes nothing returns integer
-    native DzGetWindowX takes nothing returns integer
-    native DzGetWindowY takes nothing returns integer
-    native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzIsWindowActive takes nothing returns boolean
-    native DzDestructablePosition takes destructable d, real x, real y returns nothing
-    native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
-    native DzExecuteFunc takes string funcName returns nothing
-    native DzGetUnitUnderMouse takes nothing returns unit
-    native DzSetUnitTexture takes unit whichUnit, string path, integer texId returns nothing
-    native DzSetMemory takes integer address, real value returns nothing
-    native DzSetUnitID takes unit whichUnit, integer id returns nothing
-    native DzSetUnitModel takes unit whichUnit, string path returns nothing
-    native DzSetWar3MapMap takes string map returns nothing
-    native DzGetLocale takes nothing returns string
-    native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
-    native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
-    native DzSyncData takes string prefix, string data returns nothing
-    native DzGetTriggerSyncPrefix takes nothing returns string
-    native DzGetTriggerSyncData takes nothing returns string
-    native DzGetTriggerSyncPlayer takes nothing returns player
-    native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
-    native DzSyncDataImmediately takes string prefix, string data returns nothing
-    native DzFrameHideInterface takes nothing returns nothing
-    native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
-    native DzFrameGetPortrait takes nothing returns integer
-    native DzFrameGetMinimap takes nothing returns integer
-    native DzFrameGetCommandBarButton takes integer row, integer column returns integer
-    native DzFrameGetHeroBarButton takes integer buttonId returns integer
-    native DzFrameGetHeroHPBar takes integer buttonId returns integer
-    native DzFrameGetHeroManaBar takes integer buttonId returns integer
-    native DzFrameGetItemBarButton takes integer buttonId returns integer
-    native DzFrameGetMinimapButton takes integer buttonId returns integer
-    native DzFrameGetUpperButtonBarButton takes integer buttonId returns integer
-    native DzFrameGetTooltip takes nothing returns integer
-    native DzFrameGetChatMessage takes nothing returns integer
-    native DzFrameGetUnitMessage takes nothing returns integer
-    native DzFrameGetTopMessage takes nothing returns integer
-    native DzGetColor takes integer r, integer g, integer b, integer a returns integer
-    native DzFrameSetUpdateCallback takes string func returns nothing
-    native DzFrameSetUpdateCallbackByCode takes code funcHandle returns nothing
-    native DzFrameShow takes integer frame, boolean enable returns nothing
-    native DzCreateFrame takes string frame, integer parent, integer id returns integer
-    native DzCreateSimpleFrame takes string frame, integer parent, integer id returns integer
-    native DzDestroyFrame takes integer frame returns nothing
-    native DzLoadToc takes string fileName returns nothing
-    native DzFrameSetPoint takes integer frame, integer point, integer relativeFrame, integer relativePoint, real x, real y returns nothing
-    native DzFrameSetAbsolutePoint takes integer frame, integer point, real x, real y returns nothing
-    native DzFrameClearAllPoints takes integer frame returns nothing
-    native DzFrameSetEnable takes integer name, boolean enable returns nothing
-    native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
-    native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
-    native DzGetTriggerUIEventPlayer takes nothing returns player
-    native DzGetTriggerUIEventFrame takes nothing returns integer
-    native DzFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFontStringFindByName takes string name, integer id returns integer
-    native DzSimpleTextureFindByName takes string name, integer id returns integer
-    native DzGetGameUI takes nothing returns integer
-    native DzClickFrame takes integer frame returns nothing
-    native DzSetCustomFovFix takes real value returns nothing
-    native DzEnableWideScreen takes boolean enable returns nothing
-    native DzFrameSetText takes integer frame, string text returns nothing
-    native DzFrameGetText takes integer frame returns string
-    native DzFrameSetTextSizeLimit takes integer frame, integer size returns nothing
-    native DzFrameGetTextSizeLimit takes integer frame returns integer
-    native DzFrameSetTextColor takes integer frame, integer color returns nothing
-    native DzGetMouseFocus takes nothing returns integer
-    native DzFrameSetAllPoints takes integer frame, integer relativeFrame returns boolean
-    native DzFrameSetFocus takes integer frame, boolean enable returns boolean
-    native DzFrameSetModel takes integer frame, string modelFile, integer modelType, integer flag returns nothing
-    native DzFrameGetEnable takes integer frame returns boolean
-    native DzFrameSetAlpha takes integer frame, integer alpha returns nothing
-    native DzFrameGetAlpha takes integer frame returns integer
-    native DzFrameSetAnimate takes integer frame, integer animId, boolean autocast returns nothing
-    native DzFrameSetAnimateOffset takes integer frame, real offset returns nothing
-    native DzFrameSetTexture takes integer frame, string texture, integer flag returns nothing
-    native DzFrameSetScale takes integer frame, real scale returns nothing
-    native DzFrameSetTooltip takes integer frame, integer tooltip returns nothing
-    native DzFrameCageMouse takes integer frame, boolean enable returns nothing
-    native DzFrameGetValue takes integer frame returns real
-    native DzFrameSetMinMaxValue takes integer frame, real minValue, real maxValue returns nothing
-    native DzFrameSetStepValue takes integer frame, real step returns nothing
-    native DzFrameSetValue takes integer frame, real value returns nothing
-    native DzFrameSetSize takes integer frame, real w, real h returns nothing
-    native DzCreateFrameByTagName takes string frameType, string name, integer parent, string template, integer id returns integer
-    native DzFrameSetVertexColor takes integer frame, integer color returns nothing
-    native DzOriginalUIAutoResetPoint takes boolean enable returns nothing
-    native DzFrameSetPriority takes integer frame, integer priority returns nothing
-    native DzFrameSetParent takes integer frame, integer parent returns nothing
-    native DzFrameGetHeight takes integer frame returns real
-    native DzFrameSetFont takes integer frame, string fileName, real height, integer flag returns nothing
-    native DzFrameGetParent takes integer frame returns integer
-    native DzFrameSetTextAlignment takes integer frame, integer align returns nothing
-    native DzFrameGetName takes integer frame returns string
-    native DzGetClientWidth takes nothing returns integer
-    native DzGetClientHeight takes nothing returns integer
-    native DzFrameIsVisible takes integer frame returns boolean
-    native DzFrameAddText takes integer frame, string text returns nothing
-    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
-    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
-    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
-    native DzUpdateMinimap takes nothing returns nothing
-    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
-    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
-    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
-    native DzSaveMemoryCache takes string cache returns nothing
-    native DzGetMemoryCache takes nothing returns string
-    native DzSetSpeed takes real ratio returns nothing
-    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
-    native DzGetConvertWorldPositionX takes nothing returns real
-    native DzGetConvertWorldPositionY takes nothing returns real
-    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
 
 
-//Generated allocator of hardwellEvent
-function s__hardwellEvent__allocate takes nothing returns integer
- local integer this=si__hardwellEvent_F
+//Generated method caller for ac.onDestroy
+function sc__ac_onDestroy takes integer this returns nothing
+            call FlushChildHashtable(s__ac_table, this)
+            call DestroyTrigger(s__ac_tr[this])
+            set s__ac_tr[this]=null
+endfunction
+
+//Generated allocator of ac
+function s__ac__allocate takes nothing returns integer
+ local integer this=si__ac_F
     if (this!=0) then
-        set si__hardwellEvent_F=si__hardwellEvent_V[this]
+        set si__ac_F=si__ac_V[this]
     else
-        set si__hardwellEvent_I=si__hardwellEvent_I+1
-        set this=si__hardwellEvent_I
+        set si__ac_I=si__ac_I+1
+        set this=si__ac_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: hardwellEvent")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: ac")
         return 0
     endif
 
-    set si__hardwellEvent_V[this]=-1
+    set si__ac_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of hardwellEvent
-function s__hardwellEvent_deallocate takes integer this returns nothing
+//Generated destructor of ac
+function sc__ac_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: hardwellEvent")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: ac")
         return
-    elseif (si__hardwellEvent_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: hardwellEvent")
+    elseif (si__ac_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: ac")
         return
     endif
-    set si__hardwellEvent_V[this]=si__hardwellEvent_F
-    set si__hardwellEvent_F=this
+    set f__arg_this=this
+    call TriggerEvaluate(st__ac_onDestroy)
+    set si__ac_V[this]=si__ac_F
+    set si__ac_F=this
 endfunction
 
-//Generated allocator of DamageUtils__DmgP
-function s__DamageUtils__DmgP__allocate takes nothing returns integer
- local integer this=si__DamageUtils__DmgP_F
-    if (this!=0) then
-        set si__DamageUtils__DmgP_F=si__DamageUtils__DmgP_V[this]
-    else
-        set si__DamageUtils__DmgP_I=si__DamageUtils__DmgP_I+1
-        set this=si__DamageUtils__DmgP_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: DamageUtils__DmgP")
-        return 0
-    endif
+//library AC:
+        function s__ac_isExist takes integer this returns boolean
+            return ( this != null and si__ac_V[this] == - 1 )
+        endfunction
+        function s__ac_onDestroy takes integer this returns nothing
+            call FlushChildHashtable(s__ac_table, this)
+            call DestroyTrigger(s__ac_tr[this])
+            set s__ac_tr[this]=null
+        endfunction  // 注销当前任务
 
-    set si__DamageUtils__DmgP_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of DamageUtils__DmgP
-function s__DamageUtils__DmgP_deallocate takes integer this returns nothing
+//Generated destructor of ac
+function s__ac_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: DamageUtils__DmgP")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: ac")
         return
-    elseif (si__DamageUtils__DmgP_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: DamageUtils__DmgP")
+    elseif (si__ac_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: ac")
         return
     endif
-    set si__DamageUtils__DmgP_V[this]=si__DamageUtils__DmgP_F
-    set si__DamageUtils__DmgP_F=this
+    call s__ac_onDestroy(this)
+    set si__ac_V[this]=si__ac_F
+    set si__ac_F=this
 endfunction
-
-//Generated allocator of cameraControl
-function s__cameraControl__allocate takes nothing returns integer
- local integer this=si__cameraControl_F
-    if (this!=0) then
-        set si__cameraControl_F=si__cameraControl_V[this]
-    else
-        set si__cameraControl_I=si__cameraControl_I+1
-        set this=si__cameraControl_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: cameraControl")
-        return 0
-    endif
-
-    set si__cameraControl_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of cameraControl
-function s__cameraControl_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: cameraControl")
-        return
-    elseif (si__cameraControl_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: cameraControl")
-        return
-    endif
-    set si__cameraControl_V[this]=si__cameraControl_F
-    set si__cameraControl_F=this
-endfunction
-
-//library BzAPI:
-    //hardware
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //plus
-
-
-
-
-
-
-
-
-
-
-
-    //sync
-
-
-
-
-
-
-    //native DzGetPushContext takes nothing returns string
-
-    //gui
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //显示/隐藏SimpleFrame
-    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
-    // 追加文字（支持TextArea）
-
-    // 沉默单位-禁用技能
-
-    // 禁用攻击
-
-    // 禁用道具
-
-    // 刷新小地图
-
-    // 修改单位alpha
-
-    // 设置单位是否可以选中
-
-    // 修改单位是否可以被设置为目标
-
-    // 保存内存数据
-
-    // 读取内存数据
-
-    // 设置加速倍率
-
-    // 转换世界坐标为屏幕坐标-异步
-
-    // 转换世界坐标为屏幕坐标-获取转换后的X坐标
-
-    // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
-
-    // 创建command button
-
-    function DzTriggerRegisterMouseEventTrg takes trigger trg,integer status,integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
-    endfunction
-    function DzTriggerRegisterKeyEventTrg takes trigger trg,integer status,integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterKeyEvent(trg, btn, status, true, null)
-    endfunction
-    function DzTriggerRegisterMouseMoveEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseMoveEvent(trg, true, null)
-    endfunction
-    function DzTriggerRegisterMouseWheelEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseWheelEvent(trg, true, null)
-    endfunction
-    function DzTriggerRegisterWindowResizeEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterWindowResizeEvent(trg, true, null)
-    endfunction
-    function DzF2I takes integer i returns integer
-        return i
-    endfunction
-    function DzI2F takes integer i returns integer
-        return i
-    endfunction
-    function DzK2I takes integer i returns integer
-        return i
-    endfunction
-    function DzI2K takes integer i returns integer
-        return i
-    endfunction
-    function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMIA", true)
-    endfunction
-    function DzGetTriggerMallItemPlayer takes nothing returns player
-        return DzGetTriggerSyncPlayer()
-    endfunction
-    function DzGetTriggerMallItem takes nothing returns string
-        return DzGetTriggerSyncData()
-    endfunction
-
-//library BzAPI ends
-//library HashTable:
-    //public:  // 单位类型哈希表
-
-//library HashTable ends
+        function s__ac_unreg takes integer this returns nothing
+            if ( ( not ( s__ac_isExist(this) ) ) ) then
+                call BJDebugMsg("error in unreg: AC is not exist")
+                return
+            endif //交换数据(以结构体形式)
+            if ( s__ac_uID[this] != 0 ) then
+                set s__ac_List[s__ac_uID[this]]=s__ac_List[s__ac_size]
+                set s__ac_uID[s__ac_List[s__ac_uID[this]]]=s__ac_uID[this]
+                set s__ac_size=s__ac_size - 1
+                set s__ac_uID[this]=0
+            endif
+            call s__ac_deallocate(this)
+        endfunction  // 将当前注册的所有任务转为字符串形式
+        function s__ac_toString takes nothing returns string
+            local string s=""
+            local integer i
+            local integer this
+            set i=1
+            loop
+            exitwhen i > s__ac_size
+                set this=s__ac_List[i]
+                if ( s__ac_tr[this] == null ) then
+                    set s=s + "[" + I2S(i) + "]null->"
+                else
+                    set s=s + "[" + I2S(this) + "]" + I2S(GetHandleId(s__ac_tr[this])) + "->"
+                endif
+            set i=i + 1
+            endloop
+            set s=s + "/"
+            return "事件总数[" + I2S(s__ac_size) + "]:" + s
+        endfunction  // 注册一个带数据绑定的定时任务
+            function s__ac_anon__0 takes nothing returns nothing
+                local integer i
+                local integer this
+                if ( s__ac_size > 0 ) then
+                    set i=1
+                    loop
+                    exitwhen ( i > s__ac_size )
+                        set this=s__ac_List[i] // 减去实际流逝的时间
+                        set s__ac_remainTime[this]=s__ac_remainTime[this] - 0.1
+                        if ( s__ac_remainTime[this] <= 0 ) then // 时间到
+                            if ( s__ac_tr[this] != null ) then
+                                set s__ac_ethis=this
+                                call TriggerEvaluate(s__ac_tr[this])
+                            endif // 循环任务
+                            if ( s__ac_cycle[this] ) then // 重置时间
+                                set s__ac_remainTime[this]=s__ac_duration[this] // 一次性任务
+                            else
+                                call s__ac_unreg(this)
+                                set i=i - 1
+                            endif
+                        endif
+                    set i=i + 1
+                    endloop
+                endif
+                if ( s__ac_size <= 0 ) then
+                    call PauseTimer(s__ac_t)
+                    call DestroyTimer(s__ac_t)
+                    set s__ac_t=null
+                endif
+            endfunction
+        function s__ac_reg takes real duration,boolean b,code func returns integer
+            local integer this=s__ac__allocate()
+            if ( this <= 0 ) then
+                return this
+            endif
+            set s__ac_cycle[this]=b
+            set s__ac_remainTime[this]=duration
+            set s__ac_duration[this]=duration
+            set s__ac_tr[this]=CreateTrigger()
+            call TriggerAddCondition(s__ac_tr[this], Condition(func))
+            call FlushChildHashtable(s__ac_table, this)
+            if ( s__ac_uID[this] == 0 ) then
+                set s__ac_size=s__ac_size + 1
+                set s__ac_List[s__ac_size]=this
+                set s__ac_uID[this]=s__ac_size
+            endif
+            if ( s__ac_t == null ) then
+                set s__ac_t=CreateTimer()
+                call TimerStart(s__ac_t, 0.1, true, function s__ac_anon__0)
+            endif
+            return this
+        endfunction  // 保存整数数据
+        function s__ac_saveInt takes integer this,integer key,integer value returns nothing
+            call SaveInteger(s__ac_table, this, key, value)
+        endfunction  // 获取整数数据
+        function s__ac_getInt takes integer this,integer key returns integer
+            return LoadInteger(s__ac_table, this, key)
+        endfunction
+
+//library AC ends
 //library InnerJapi:
 
     function EXExecuteScript takes string p1 returns string
@@ -783,18 +445,6 @@ endfunction
     endfunction
 
 //library InnerJapi ends
-//library UnitFilter:
-    function IsEnemy takes player p,unit u returns boolean
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 and ( not ( IsUnitType(u, UNIT_TYPE_STRUCTURE) ) ) and ( not ( IsUnitHidden(u) ) ) and IsUnitEnemy(u, p) and GetUnitAbilityLevel(u, 'Avul') == 0
-    endfunction  //旧名：IsEnemy2
-    function IsEnemyIncludeInvul takes player p,unit u returns boolean
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 and ( not ( IsUnitType(u, UNIT_TYPE_STRUCTURE) ) ) and ( not ( IsUnitHidden(u) ) ) and IsUnitEnemy(u, p)
-    endfunction  //判断是否是友方
-    function IsAlly takes player p,unit u returns boolean
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 and ( not ( IsUnitType(u, UNIT_TYPE_STRUCTURE) ) ) and ( not ( IsUnitHidden(u) ) ) and IsUnitAlly(u, p)
-    endfunction
-
-//library UnitFilter ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
@@ -824,139 +474,6 @@ endfunction
     endfunction
 
 //library UnitTestFramwork ends
-//library UnitUtils:
-    function AddUnitHP takes unit u,real hp returns nothing
-        call SetUnitState(u, UNIT_STATE_MAX_LIFE, RMaxBJ(RMaxBJ(GetUnitState(u, UNIT_STATE_MAX_LIFE) + hp, 10.0), 5.0))
-        if ( hp > 0 ) then
-            call SetUnitLifeBJ(u, GetUnitState(u, UNIT_STATE_LIFE) + hp)
-        endif
-    endfunction  //回血(定值)
-    function AddUnitMP takes unit u,real mp returns nothing
-        call SetUnitState(u, UNIT_STATE_MAX_MANA, GetUnitState(u, UNIT_STATE_MAX_MANA) + mp)
-        if ( mp > 0 ) then
-            call SetUnitManaBJ(u, GetUnitState(u, UNIT_STATE_MANA) + mp)
-        endif
-    endfunction  //回蓝(定值)
-    function GetUnitSpeed takes unit u returns integer
-        if ( HaveSavedInteger(HASH_UNIT, GetHandleId(u), 237960560) ) then
-            return LoadInteger(HASH_UNIT, GetHandleId(u), 237960560)
-        else
-            return R2I(GetUnitMoveSpeed(u))
-        endif
-    endfunction  //todo: 这个UNTable其他地图需要兼容
-    function AddUnitSpeed takes unit u,integer speed returns nothing
-        local integer value
-        if ( HaveSavedInteger(HASH_UNIT, GetHandleId(u), 237960560) ) then
-            set value=LoadInteger(HASH_UNIT, GetHandleId(u), 237960560)
-            set value=value + speed
-            call SaveInteger(HASH_UNIT, GetHandleId(u), 237960560, value)
-        else
-            set value=R2I(GetUnitMoveSpeed(u)) + speed
-        endif
-        call SetUnitMoveSpeed(u, value)
-    endfunction  // 初始化突破移速
-    function InitUnitSpeed takes unit u returns nothing
-        call SaveInteger(HASH_UNIT, GetHandleId(u), 237960560, R2I(GetUnitMoveSpeed(u)))
-    endfunction  //射程(还会+警戒范围)
-    function SetUnitAttackRange takes unit u,real range returns nothing
-        call SetUnitState(u, ConvertUnitState(0x16), range)
-        call SetUnitAcquireRange(u, RMaxBJ(range, 900.0))
-    endfunction  //增加射程(还会+警戒范围)
-    function AddUnitAttackRange takes unit u,real range returns nothing
-        call SetUnitState(u, ConvertUnitState(0x16), GetUnitState(u, ConvertUnitState(0x16)) + range)
-        call SetUnitAcquireRange(u, RMaxBJ(GetUnitAcquireRange(u) + range, 900.0))
-    endfunction  // 获取攻速
-    function AddUnitAttackSpeed takes unit u,real speed returns nothing
-        call SetUnitState(u, ConvertUnitState(0x51), GetUnitState(u, ConvertUnitState(0x51)) + speed)
-    endfunction  // 攻击间隔(虽然写着加,但是实际是减)
-    function AddAttackInterval takes unit u,real value returns nothing
-        call SetUnitState(u, ConvertUnitState(0x25), GetUnitState(u, ConvertUnitState(0x25)) - value)
-    endfunction  //传送单位(带特效与镜头转换)
-    function TransportUnit takes unit u,real x,real y,boolean camera returns nothing
-        if ( camera ) then
-            call PanCameraToTimedForPlayer(GetOwningPlayer(u), x, y, 0.2)
-        endif
-        call DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)))
-        call SetUnitPosition(u, x, y)
-        call DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)))
-    endfunction  //删除单位
-    function DeleteUnit takes unit u returns nothing
-        call FlushChildHashtable(HASH_UNIT, GetHandleId(u))
-        call RemoveUnit(u)
-    endfunction
-
-//library UnitUtils ends
-//library GroupUtils:
-    function GroupEnumUnitsInRangeEx takes group whichGroup,real x,real y,real radius,boolexpr filter returns nothing
-        call GroupEnumUnitsInRange(whichGroup, x, y, radius, filter)
-        call DestroyBoolExpr(filter)
-    endfunction  //库补充,防内存泄漏
-    function GroupEnumUnitsInRectEx takes group whichGroup,rect r,boolexpr filter returns nothing
-        call GroupEnumUnitsInRect(whichGroup, r, filter)
-        call DestroyBoolExpr(filter)
-    endfunction  //获取单位组:[敌方]
-        function GroupUtils__anon__0 takes nothing returns boolean
-            if ( IsEnemy(GetOwningPlayer(GroupUtils__tempU) , GetFilterUnit()) ) then
-                return true
-            endif
-            return false
-        endfunction
-    function GetEnemyGroup takes unit u,real x,real y,real radius returns group
-        set GroupUtils__tempG=CreateGroup()
-        set GroupUtils__tempU=u
-        call GroupEnumUnitsInRangeEx(GroupUtils__tempG , x , y , radius , Filter(function GroupUtils__anon__0))
-        set GroupUtils__tempU=null
-        return GroupUtils__tempG
-    endfunction  //获取圆形随机单位
-    function GetRandomEnemy takes unit u,real x,real y,real radius returns unit
-        return GroupPickRandomUnit(GetEnemyGroup(u , x , y , radius))
-    endfunction
-
-//library GroupUtils ends
-//library HardwellEvent:
-        function s__hardwellEvent_RegLeftClickEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
-        endfunction  // 注册一个左键按下事件
-        function s__hardwellEvent_RegLeftDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 1, false, func)
-        endfunction  // 注册一个左键按下事件
-        function s__hardwellEvent_RegRightClickEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 2, 0, false, func)
-        endfunction  // 注册一个滚轮事件
-        function s__hardwellEvent_RegWheelEvent takes code func returns nothing
-            if ( s__hardwellEvent_trWheel == null ) then
-                set s__hardwellEvent_trWheel=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardwellEvent_trWheel, Condition(func))
-        endfunction  // 注册一个绘制事件
-        function s__hardwellEvent_RegUpdateEvent takes code func returns nothing
-            if ( s__hardwellEvent_trUpdate == null ) then
-                set s__hardwellEvent_trUpdate=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardwellEvent_trUpdate, Condition(func))
-        endfunction  // 注册一个窗口变化事件
-        function s__hardwellEvent_RegResizeEvent takes code func returns nothing
-            if ( s__hardwellEvent_trResize == null ) then
-                set s__hardwellEvent_trResize=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardwellEvent_trResize, Condition(func))
-        endfunction
-            function s__hardwellEvent_anon__0 takes nothing returns nothing
-                call TriggerEvaluate(s__hardwellEvent_trWheel)
-            endfunction  // 帧绘制事件
-            function s__hardwellEvent_anon__1 takes nothing returns nothing
-                call TriggerEvaluate(s__hardwellEvent_trUpdate)
-            endfunction  // 窗口大小变化事件
-            function s__hardwellEvent_anon__2 takes nothing returns nothing
-                call TriggerEvaluate(s__hardwellEvent_trResize)
-            endfunction
-        function s__hardwellEvent_onInit takes nothing returns nothing
-            call DzTriggerRegisterMouseWheelEventByCode(null, false, function s__hardwellEvent_anon__0)
-            call DzFrameSetUpdateCallbackByCode(function s__hardwellEvent_anon__1)
-            call DzTriggerRegisterWindowResizeEventByCode(null, false, function s__hardwellEvent_anon__2)
-        endfunction
-
-//library HardwellEvent ends
 //library Logger:
 
     function Trace takes string msg returns nothing
@@ -994,226 +511,67 @@ endfunction
     endfunction
 
 //library Logger ends
-//library CameraControl:
+//library UTAC:
 
-        function s__cameraControl_openWheel takes nothing returns nothing
-            call DoNothing()
+        function UTAC__anon__0 takes nothing returns nothing
+            local integer this=s__ac_ethis
+            call Trace("[线程:" + I2S(this) + "] 一次性定时任务测试: 2秒后触发一次")
         endfunction
-        function CameraControl__anon__0 takes nothing returns nothing
-            local integer delta=DzGetWheelDelta()
-            if ( not ( DzIsMouseOverUI() ) ) then //标记需要重置镜头属性
-                return
-            endif
-            set CameraControl__ResetCam=true //滚轮下滑
-            if ( delta < 0 ) then //视野等级上限
-                if ( CameraControl__ViewLevel < 14 ) then //滚轮上滑
-                    set CameraControl__ViewLevel=CameraControl__ViewLevel + 1
-                endif
-            elseif ( CameraControl__ViewLevel > 3 ) then //视野等级下限
-                set CameraControl__ViewLevel=CameraControl__ViewLevel - 1
-            endif
-            set CameraControl__X_ANGLE=Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK)) //记录滚动前的镜头角度
-        endfunction  //注册每帧渲染事件
-        function CameraControl__anon__1 takes nothing returns nothing
-            if ( CameraControl__ResetCam ) then
-                call SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, CameraControl__X_ANGLE, 0)
-                call SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, CameraControl__ViewLevel * 200, CameraControl__WheelSpeed)
-                set CameraControl__ResetCam=false
-            endif
-        endfunction  //注册按下键码为145的按键(ScrollLock)事件
-        function CameraControl__anon__2 takes nothing returns nothing
-            set CameraControl__WideScr=not CameraControl__WideScr
-            call DzEnableWideScreen(CameraControl__WideScr)
+    function UTAC__TTestUTAC1 takes player p returns nothing
+        call s__ac_reg(2.0 , false , function UTAC__anon__0)
+    endfunction  // 测试循环定时任务
+        function UTAC__anon__1 takes nothing returns nothing
+            local integer this=s__ac_ethis
+            call Trace("[线程:" + I2S(this) + "] 循环定时任务测试: 每1秒触发一次")
         endfunction
-    function CameraControl__onInit takes nothing returns nothing
-        call s__hardwellEvent_RegWheelEvent(function CameraControl__anon__0)
-        call s__hardwellEvent_RegUpdateEvent(function CameraControl__anon__1)
-        call DzTriggerRegisterKeyEventByCode(null, 145, 1, false, function CameraControl__anon__2)
+    function UTAC__TTestUTAC2 takes player p returns nothing
+        local integer task=s__ac_reg(1.0 , true , function UTAC__anon__1)
+        call Trace("已创建循环任务,ID:" + I2S(task))
+    endfunction  // 测试数据绑定
+        function UTAC__anon__2 takes nothing returns nothing
+            local integer this=s__ac_ethis
+            local integer count=s__ac_getInt(this,1) + 1
+            call s__ac_saveInt(this,1 , count)
+            call Trace("[线程:" + I2S(this) + "] 数据绑定测试: 当前计数 " + I2S(count))
+        endfunction  // 初始化计数器
+    function UTAC__TTestUTAC3 takes player p returns nothing
+        local integer task=s__ac_reg(1.0 , true , function UTAC__anon__2)
+        call s__ac_saveInt(task,1 , 0)
+        call Trace("已创建带数据绑定的任务,ID:" + I2S(task))
+    endfunction  // 测试任务注销
+        function UTAC__anon__3 takes nothing returns nothing
+            local integer this=s__ac_ethis
+            call Trace("[线程:" + I2S(this) + "] 该消息只会显示一次,然后任务自动注销")
+            call s__ac_unreg(this)
+        endfunction
+    function UTAC__TTestUTAC4 takes player p returns nothing
+        local integer task=s__ac_reg(1.0 , true , function UTAC__anon__3)
+    endfunction  // 打印当前任务列表
+    function UTAC__TTestUTAC5 takes player p returns nothing
+        call Trace(s__ac_toString())
+    endfunction  // 其他测试函数保持空实现
+    function UTAC__TTestUTAC6 takes player p returns nothing
     endfunction
-
-//library CameraControl ends
-//library DamageUtils:
-    function ApplyPhysicalDamage takes unit u,unit target,real dmg,boolean bj returns nothing
-//#         static if LIBRARY_Damage then
-//#             set dmgF.isBJ=bj
-//#         endif
-        call UnitDamageTarget(u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
-    endfunction  //单体伤害:真实
-    function ApplyPureDamage takes unit u,unit target,real dmg,boolean bj returns nothing
-//#         static if LIBRARY_Damage then
-//#             set dmgF.isBJ=bj
-//#         endif
-        call UnitDamageTarget(u, target, dmg, false, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS)
-    endfunction  //模拟普攻(最后一个参数代表额外的终伤,0)
-    function SimulateBasicAttack takes unit u,unit target,real fd returns nothing
-        call UnitDamageTarget(u, target, GetUnitState(u, ConvertUnitState(0x12)) * ( 1.0 + fd ), true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
-    endfunction  //伤害参数结构体
-        function s__DamageUtils__DmgP_destroy takes integer this returns nothing
-            set s__DamageUtils__DmgP_source[this]=null
-            set s__DamageUtils__DmgP_eft[this]=null
-        endfunction
-        function s__DmgS_push takes integer params returns nothing
-            set s__DmgS_top=s__DmgS_top + 1
-            set s__s__DmgS_stack[s__DmgS_top]= params
-        endfunction
-        function s__DmgS_pop takes nothing returns integer
-            local integer params=s__s__DmgS_stack[s__DmgS_top]
-            set s__s__DmgS_stack[s__DmgS_top]= 0
-            set s__DmgS_top=s__DmgS_top - 1
-            return params
-        endfunction
-        function s__DmgS_getTop takes nothing returns integer
-            return s__DmgS_top
-        endfunction
-        function s__DmgS_current takes nothing returns integer
-            return s__s__DmgS_stack[s__DmgS_top]
-        endfunction
-        function DamageUtils__anon__0 takes nothing returns boolean
-            local integer current=s__DmgS_current()
-            if ( IsEnemy(GetOwningPlayer(s__DamageUtils__DmgP_source[current]) , GetFilterUnit()) ) then
-                call ApplyPhysicalDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current] , s__DamageUtils__DmgP_isBj[current])
-                if ( s__DamageUtils__DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
-                endif
-                return true
-            endif
-            return false
-        endfunction
-    function DamageArea takes unit u,real x,real y,real radius,real damage,boolean bj,string efx returns nothing
-        local group g=CreateGroup()
-        local integer params=s__DamageUtils__DmgP__allocate()
-        set s__DamageUtils__DmgP_source[params]=u
-        set s__DamageUtils__DmgP_eft[params]=efx
-        set s__DamageUtils__DmgP_damage[params]=damage
-        set s__DamageUtils__DmgP_isBj[params]=bj
-        call s__DmgS_push(params)
-        call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__0))
-        set params=s__DmgS_pop()
-        call s__DamageUtils__DmgP_destroy(params)
-        call DestroyGroup(g)
-        set g=null
-    endfunction  //范围真实伤害
-        function DamageUtils__anon__1 takes nothing returns boolean
-            local integer current=s__DmgS_current()
-            if ( IsEnemy(GetOwningPlayer(s__DamageUtils__DmgP_source[current]) , GetFilterUnit()) ) then
-                call ApplyPureDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current] , s__DamageUtils__DmgP_isBj[current])
-                if ( s__DamageUtils__DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
-                endif
-                return true
-            endif
-            return false
-        endfunction
-    function DamageAreaPure takes unit u,real x,real y,real radius,real damage,boolean bj,string efx returns nothing
-        local group g=CreateGroup()
-        local integer params=s__DamageUtils__DmgP__allocate()
-        set s__DamageUtils__DmgP_source[params]=u
-        set s__DamageUtils__DmgP_eft[params]=efx
-        set s__DamageUtils__DmgP_damage[params]=damage
-        set s__DamageUtils__DmgP_isBj[params]=bj
-        call s__DmgS_push(params)
-        call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__1))
-        set params=s__DmgS_pop()
-        call s__DamageUtils__DmgP_destroy(params)
-        call DestroyGroup(g)
-        set g=null
+    function UTAC__TTestUTAC7 takes player p returns nothing
     endfunction
-
-//library DamageUtils ends
-//library UTDamageUtils:
-
-        function UTDamageUtils__anon__0 takes nothing returns nothing
-            local unit u=GetEnumUnit()
-            if ( GetUnitTypeId(u) == 'opeo' or GetUnitTypeId(u) == 'hpea' ) then
-                call RemoveUnit(u)
-            endif
-            set u=null
-        endfunction
-    function UTDamageUtils__CreateTestEnv takes player p returns nothing
-        local real x=GetPlayerStartLocationX(p)
-        local real y=GetPlayerStartLocationY(p)
-        local real angle
-        local integer i
-        local group g=CreateGroup()
-        local unit dummy
-        call GroupEnumUnitsInRange(g, x, y, 1000, null)
-        call ForGroup(g, function UTDamageUtils__anon__0)
-        call DestroyGroup(g)
-        set g=null
-        set UTDamageUtils__testDummy=null
-        set UTDamageUtils__testSource=null // 创建中心苦工单位
-        set UTDamageUtils__testDummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200, y, 270)
-        call SetUnitInvulnerable(UTDamageUtils__testDummy, false)
-        call SetUnitState(UTDamageUtils__testDummy, UNIT_STATE_LIFE, GetUnitState(UTDamageUtils__testDummy, UNIT_STATE_MAX_LIFE)) // 注册伤害事件
-        call TriggerRegisterUnitEvent(UTDamageUtils__damageEventTrigger, UTDamageUtils__testDummy, EVENT_UNIT_DAMAGED) // 创建环形分布的额外苦工
-        set i=0
-        loop
-        exitwhen ( i >= 8 )
-            set angle=i * 45.0 * bj_DEGTORAD
-            set dummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200 + UTDamageUtils__testRadius * Cos(angle), y + UTDamageUtils__testRadius * Sin(angle), 270)
-            call TriggerRegisterUnitEvent(UTDamageUtils__damageEventTrigger, dummy, EVENT_UNIT_DAMAGED) // 为每个苦工注册伤害事件
-        set i=i + 1
-        endloop // 创建伤害源(农民)
-        set UTDamageUtils__testSource=CreateUnit(p, 'hpea', x, y, 90)
-        call SetUnitState(UTDamageUtils__testSource, ConvertUnitState(0x12), 50) // 为农民也注册伤害事件
-        call TriggerRegisterUnitEvent(UTDamageUtils__damageEventTrigger, UTDamageUtils__testSource, EVENT_UNIT_DAMAGED)
-    endfunction  // 测试物理伤害
-    function UTDamageUtils__TTestUTDamageUtils1 takes player p returns nothing
-        call UTDamageUtils__CreateTestEnv(p)
-        call Trace("测试物理伤害: " + R2S(UTDamageUtils__testDamage))
-        call ApplyPhysicalDamage(UTDamageUtils__testSource , UTDamageUtils__testDummy , UTDamageUtils__testDamage , true)
-    endfunction  // 测试真实伤害
-    function UTDamageUtils__TTestUTDamageUtils2 takes player p returns nothing
-        call UTDamageUtils__CreateTestEnv(p)
-        call Trace("测试真实伤害: " + R2S(UTDamageUtils__testDamage))
-        call ApplyPureDamage(UTDamageUtils__testSource , UTDamageUtils__testDummy , UTDamageUtils__testDamage , true)
-    endfunction  // 测试模拟普攻
-    function UTDamageUtils__TTestUTDamageUtils3 takes player p returns nothing
-        call UTDamageUtils__CreateTestEnv(p)
-        call Trace("测试模拟普攻，基础攻击: 50")
-        call SimulateBasicAttack(UTDamageUtils__testSource , UTDamageUtils__testDummy , 0)
-    endfunction  // 测试范围物理伤害
-    function UTDamageUtils__TTestUTDamageUtils4 takes player p returns nothing
-        call UTDamageUtils__CreateTestEnv(p)
-        call Trace("测试范围物理伤害: " + R2S(UTDamageUtils__testDamage) + " 范围: " + R2S(UTDamageUtils__testRadius))
-        call Trace("中心点有1个假人，半径 " + R2S(UTDamageUtils__testRadius) + " 处有8个假人")
-        call Trace("范围内的假人都会受到伤害和特效")
-        call DamageArea(UTDamageUtils__testSource , GetUnitX(UTDamageUtils__testSource) , GetUnitY(UTDamageUtils__testSource) , UTDamageUtils__testRadius , UTDamageUtils__testDamage , true , UTDamageUtils__testEffect)
-    endfunction  // 测试范围真实伤害
-    function UTDamageUtils__TTestUTDamageUtils5 takes player p returns nothing
-        call UTDamageUtils__CreateTestEnv(p)
-        call Trace("测试范围真实伤害: " + R2S(UTDamageUtils__testDamage) + " 范围: " + R2S(UTDamageUtils__testRadius))
-        call Trace("中心点有1个假人，半径 " + R2S(UTDamageUtils__testRadius) + " 处有8个假人")
-        call Trace("范围内的假人都会受到伤害和特效")
-        call DamageAreaPure(UTDamageUtils__testSource , GetUnitX(UTDamageUtils__testSource) , GetUnitY(UTDamageUtils__testSource) , UTDamageUtils__testRadius , UTDamageUtils__testDamage , true , UTDamageUtils__testEffect)
-    endfunction  // 测试伤害显示开关
-    function UTDamageUtils__TTestUTDamageUtils6 takes player p returns nothing
-        set UTDamageUtils__isShowDamage=not UTDamageUtils__isShowDamage
-        if ( UTDamageUtils__isShowDamage ) then
-            call Trace("|cff00ff00开启|r伤害数值显示")
-        else
-            call Trace("|cffff0000关闭|r伤害数值显示")
-        endif
-    endfunction  // 测试反伤开关
-    function UTDamageUtils__TTestUTDamageUtils7 takes player p returns nothing
-        set UTDamageUtils__isReflectDamage=not UTDamageUtils__isReflectDamage
-        if ( UTDamageUtils__isReflectDamage ) then // 重置反伤计数
-            set UTDamageUtils__reflectCount=0
-            call Trace("|cff00ff00开启|r伤害反弹测试 - 受伤单位将反弹50%伤害(最多5次)")
-        else
-            call Trace("|cffff0000关闭|r伤害反弹测试")
-        endif
-    endfunction  // 处理参数设置命令
-    function UTDamageUtils__TTestActUTDamageUtils1 takes string str returns nothing
+    function UTAC__TTestUTAC8 takes player p returns nothing
+    endfunction
+    function UTAC__TTestUTAC9 takes player p returns nothing
+    endfunction
+    function UTAC__TTestUTAC10 takes player p returns nothing
+    endfunction
+    function UTAC__TTestActUTAC1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
         local integer num=0
         local integer len=StringLength(str)
+        local integer count=0
+        local integer task
         local string array paramS
         local integer array paramI
         local real array paramR
-        set i=0 // 解析参数
+        set i=0
         loop
         exitwhen ( i > len - 1 )
             if ( SubString(str, i, i + 1) == " " ) then
@@ -1231,87 +589,66 @@ endfunction
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1 // 处理命令
-        if ( paramS[0] == "d" ) then
-            set UTDamageUtils__testDamage=paramR[1]
-            call Trace("设置伤害值为: " + R2S(UTDamageUtils__testDamage))
-        elseif ( paramS[0] == "r" ) then
-            set UTDamageUtils__testRadius=paramR[1]
-            call Trace("设置范围值为: " + R2S(UTDamageUtils__testRadius))
-        elseif ( paramS[0] == "e" ) then
-            set UTDamageUtils__testEffect=paramS[1]
-            call Trace("设置特效为: " + UTDamageUtils__testEffect)
+        if ( paramS[0] == "unreg" ) then
+            set task=paramI[1]
+            if ( s__ac_isExist(task) ) then
+                call s__ac_unreg(task)
+                call Trace("已注销任务 " + I2S(task))
+            else
+                call Trace("任务不存在")
+            endif
+        elseif ( paramS[0] == "unregAll" ) then // 从后往前遍历,避免数组重排带来的问题
+            set i=s__ac_size
+            loop
+            exitwhen i < 1
+                set task=s__ac_List[i]
+                if ( s__ac_isExist(task) ) then
+                    call s__ac_unreg(task)
+                    set count=count + 1
+                endif
+            set i=i - 1
+            endloop
+            call Trace("已注销所有任务,共" + I2S(count) + "个")
         endif
         set p=null
     endfunction
-        function UTDamageUtils__anon__1 takes nothing returns nothing
-            call Trace("|cff00ff00[DamageUtils测试]|r 输入以下命令进行测试:")
-            call Trace("s1 - 测试物理伤害")
-            call Trace("s2 - 测试真实伤害")
-            call Trace("s3 - 测试模拟普攻")
-            call Trace("s4 - 测试范围物理伤害")
-            call Trace("s5 - 测试范围真实伤害")
-            call Trace("s6 - 切换伤害数值显示")
-            call Trace("s7 - 切换伤害反弹测试")
-            call Trace("参数设置:")
-            call Trace("-d [数值] - 设置伤害值")
-            call Trace("-r [数值] - 设置范围值")
-            call Trace("-e [路径] - 设置特效")
+        function UTAC__anon__4 takes nothing returns nothing
+            call Trace("[AC] 单元测试已加载")
+            call Trace("输入s1-s5测试不同功能")
+            call Trace("-unreg [id] 可注销指定任务")
+            call Trace("-unregAll 可注销所有任务")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTDamageUtils__anon__2 takes nothing returns nothing
-            local unit source=GetEventDamageSource()
-            local unit target=GetTriggerUnit()
-            local real damage=GetEventDamage()
-            if ( UTDamageUtils__isShowDamage ) then
-                call Trace("|cffff0000伤害事件|r - 来源: " + GetUnitName(source) + " 目标: " + GetUnitName(target) + "(" + I2S(GetHandleId(target)) + ") 伤害: " + R2S(damage) + " 当前栈层: " + I2S(s__DmgS_getTop()))
-            endif // 反伤测试
-            if ( UTDamageUtils__isReflectDamage and UTDamageUtils__reflectCount < 5 ) then // 限制反伤次数 // 增加反伤计数
-                set UTDamageUtils__reflectCount=UTDamageUtils__reflectCount + 1
-                call Trace("第 " + I2S(UTDamageUtils__reflectCount) + " 次反伤") // 造成反伤
-                call DamageArea(target , GetUnitX(target) , GetUnitY(target) , 100 , damage * 0.5 , true , I2S(s__DmgS_getTop()))
-                if ( UTDamageUtils__reflectCount >= 5 ) then
-                    call Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(s__DmgS_getTop()))
-                endif
-            endif
-        endfunction  // 注册聊天事件
-        function UTDamageUtils__anon__3 takes nothing returns nothing
+        function UTAC__anon__5 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
-            if ( SubString(str, 0, 1) == "-" ) then
-                call UTDamageUtils__TTestActUTDamageUtils1(SubString(str, 1, StringLength(str)))
+            local integer i=1
+            if ( SubStringBJ(str, 1, 1) == "-" ) then
+                call UTAC__TTestActUTAC1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTDamageUtils__TTestUTDamageUtils1(GetTriggerPlayer())
+                call UTAC__TTestUTAC1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTDamageUtils__TTestUTDamageUtils2(GetTriggerPlayer())
+                call UTAC__TTestUTAC2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTDamageUtils__TTestUTDamageUtils3(GetTriggerPlayer())
+                call UTAC__TTestUTAC3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTDamageUtils__TTestUTDamageUtils4(GetTriggerPlayer())
+                call UTAC__TTestUTAC4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTDamageUtils__TTestUTDamageUtils5(GetTriggerPlayer())
-            elseif ( str == "s6" ) then // 新增命令
-                call UTDamageUtils__TTestUTDamageUtils6(GetTriggerPlayer())
-            elseif ( str == "s7" ) then
-                call UTDamageUtils__TTestUTDamageUtils7(GetTriggerPlayer())
+                call UTAC__TTestUTAC5(GetTriggerPlayer())
             endif
         endfunction
-    function UTDamageUtils__onInit takes nothing returns nothing
+    function UTAC__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTDamageUtils__anon__1))
+        call TriggerAddCondition(tr, Condition(function UTAC__anon__4))
         set tr=null
-        set UTDamageUtils__damageEventTrigger=CreateTrigger()
-        call TriggerAddCondition(UTDamageUtils__damageEventTrigger, Condition(function UTDamageUtils__anon__2))
-        call UnitTestRegisterChatEvent(function UTDamageUtils__anon__3)
-        call s__cameraControl_openWheel()
-    endfunction
-    function UTDamageUtils__onDestroy takes nothing returns nothing
-        call DestroyTrigger(UTDamageUtils__damageEventTrigger)
-        set UTDamageUtils__damageEventTrigger=null
+        call UnitTestRegisterChatEvent(function UTAC__anon__5)
     endfunction
 
-//library UTDamageUtils ends
+//library UTAC ends
+
+// API文档: https://japi.war3rpg.top/
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1404,115 +741,6 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
-
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-// 常用哈希表
-// API文档: https://japi.war3rpg.top/
-
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1593,10 +821,10 @@ endfunction
 // 当前的平台分包
     // 单元测试
     // lua_print: 单元测试
-// #define StructMode // todo:结构体数量查看模式:用条件编译直接全部搞定
 //函数入口
 // 用原始地图测试
 // 用空地图测试
+// 用原始地图测试
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -1926,12 +1154,11 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs77066171")
+call ExecuteFunc("jasshelper__initstructs163975781")
 call ExecuteFunc("InnerJapi__onInit")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("Logger__onInit")
-call ExecuteFunc("CameraControl__onInit")
-call ExecuteFunc("UTDamageUtils__onInit")
+call ExecuteFunc("UTAC__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1969,15 +1196,18 @@ endfunction
 
 
 //Struct method generated initializers/callers:
+function sa__ac_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            call FlushChildHashtable(s__ac_table, this)
+            call DestroyTrigger(s__ac_tr[this])
+            set s__ac_tr[this]=null
+   return true
+endfunction
 
-//Functions for BigArrays:
-
-function jasshelper__initstructs77066171 takes nothing returns nothing
-
-
+function jasshelper__initstructs163975781 takes nothing returns nothing
+    set st__ac_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__ac_onDestroy,Condition( function sa__ac_onDestroy))
 
 
-
-    call ExecuteFunc("s__hardwellEvent_onInit")
 endfunction
 

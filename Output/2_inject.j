@@ -1,360 +1,207 @@
-#ifndef UnitUtilsIncluded
-#define UnitUtilsIncluded
+#ifndef UnitTestFramworkIncluded
+#define UnitTestFramworkIncluded
 
-#include "Crainax/core/constant/UNDefine.j" //constant可以直接加进去没问题
-#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
+/*
+单元测试框架(注入)
+*/
 
 //! zinc
-/*
-单位有关的增强功能
-*/
-library UnitUtils {
+library UnitTestFramwork {
 
-    //获取单位的攻击力/防御/生命/魔法值
-    #define GetUnitAttack(u) R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)))
-    #define GetUnitDefense(u) R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR)))
-    #define GetUnitHP(u) GetUnitState(u,UNIT_STATE_MAX_LIFE)
-    #define GetUnitMP(u) GetUnitState(u,UNIT_STATE_MAX_MANA)
+	//单元测试总
+	trigger TUnitTest = null;
 
-    //设置攻击力
-    #define SetUnitAttack(u,attack) SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE),attack)
-    //增加攻击力
-    #define AddUnitAttack(u,attack) SetUnitAttack(u,GetUnitAttack(u) + attack)
-
-    //设置防御
-	#define SetUnitDefense(u,defense) SetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR),defense)
-    //增加防御
-	#define AddUnitDefense(u,defense) SetUnitDefense(u,GetUnitDefense(u)+defense)
-
-    //修改生命最大值
-    #define SetUnitHP(u,hp) SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,5.0))
-    //增加生命最大值
-	public function AddUnitHP(unit u,real hp ) {
-		SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
-		if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
-	}
-    //回血(定值)
-    #define RegenUnitHP(u,volume) SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+volume)
-    //回蓝(百分比)
-    #define RegenUnitHPPercent(u,rate) SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate)
-
-    //设置魔法最大值
-    #define SetUnitMP(u,mp) SetUnitState(u,UNIT_STATE_MAX_MANA,mp)
-    //增加魔法最大值
-	public function AddUnitMP(unit u,real mp ) {
-		SetUnitMP(u,GetUnitMP(u)+mp);
-		if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
-	}
-    //回蓝(定值)
-    #define RegenUnitMP(u,volume) SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+volume)
-    //回蓝(百分比)
-    #define RegenUnitMPPercent(u,rate) SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate)
-
-    // 获取移速
-    public function GetUnitSpeed (unit u)  -> integer {
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            return LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
-        }
-        else {return R2I(GetUnitMoveSpeed(u));}
-    }
-    //todo: 这个UNTable其他地图需要兼容
-    // 增加移速
-    public function AddUnitSpeed (unit u,integer speed) {
-        integer value;
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            value  = LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
-            value += speed;
-            SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
-        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
-		SetUnitMoveSpeed(u,value);
-    }
-    // 初始化突破移速
-    public function InitUnitSpeed (unit u) {
-        SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,R2I(GetUnitMoveSpeed(u)));
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
     }
 
-    //射程(还会+警戒范围)
-    #define GetUnitAttackRange(u) GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE))
-    //设置射程(还会设置警戒范围)
-    public function SetUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),range);
-		SetUnitAcquireRange(u,RMaxBJ(range,900.0));
-    }
-    //增加射程(还会+警戒范围)
-	public function AddUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),GetUnitAttackRange(u) + range);
-		SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0));
-    }
-
-    // 获取攻速
-    #define GetUnitAttackSpeed(u) GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE))
-    // 增加攻速
-	public function AddUnitAttackSpeed (unit u,real speed) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE)) + speed);
-	}
-
-    #define GetUnitInterval(u) GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL))
-    // 攻击间隔(虽然写着加,但是实际是减)
-	public function AddAttackInterval (unit u,real value) {
-        SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL),GetUnitInterval(u) - value);
-	}
-
-    //传送单位(带特效与镜头转换)
-    public function TransportUnit (unit u,real x,real y,boolean camera) {
-        if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)));
-        SetUnitPosition(u,x,y);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
-    }
-
-    //删除单位
-    public function DeleteUnit (unit u) {
-        FlushChildHashtable(HASH_UNIT,GetHandleId(u));
-        RemoveUnit(u);
-    }
-
-}
-
-//! endzinc
-#endif
-
-#ifndef DamageUtilsIncluded
-#define DamageUtilsIncluded
-
-#include "Crainax/core/constant/JapiConstant.j"
-
-//! zinc
-/*
-伤害工具
-*/
-library DamageUtils requires UnitFilter,GroupUtils {
-
-    //旧名替换:DamageSingle
-    //单体伤害:物理
-    public function ApplyPhysicalDamage (unit u,unit target,real dmg,boolean bj) {
-        static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
-        UnitDamageTarget( u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
-    }
-    //单体伤害:真实
-    public function ApplyPureDamage (unit u,unit target,real dmg,boolean bj) {
-        static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
-        UnitDamageTarget( u, target, dmg, false, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
-    }
-
-    //模拟普攻(最后一个参数代表额外的终伤,0)
-    public function SimulateBasicAttack (unit u,unit target,real fd) {
-        UnitDamageTarget( u, target, GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE))*(1.0+fd), true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
-    }
-
-    //伤害参数结构体
-    private struct DmgP {
-        unit    source;  //伤害来源
-        string  eft;     //特效
-        real    damage;  //伤害值
-        boolean isBj;    //是否暴击
-
-        method destroy() {
-            this.source = null;
-            this.eft = null;
-        }
-    }
-
-    //伤害参数栈
-    public struct DmgS [] {
-        private static DmgP stack[100];
-        private static integer top = -1;
-
-        public static method push(DmgP params) {
-            thistype.top += 1;
-            thistype.stack[thistype.top] = params;
-        }
-
-        public static method pop() -> DmgP {
-            DmgP params = thistype.stack[thistype.top];
-            thistype.stack[thistype.top] = 0;
-            thistype.top -= 1;
-            return params;
-        }
-
-        public static method getTop() -> integer {
-            return thistype.top;
-        }
-
-        public static method current() -> DmgP {
-            return thistype.stack[thistype.top];
-        }
-    }
-
-    //范围普通伤害
-    public function DamageArea (unit u,real x,real y,real radius,real damage,boolean bj,string efx) {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
-        params.source = u;
-        params.eft = efx;
-        params.damage = damage;
-        params.isBj = bj;
-
-        DmgS.push(params);
-
-        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
-            DmgP current = DmgS.current();
-            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
-                ApplyPhysicalDamage(current.source,GetFilterUnit(),current.damage,current.isBj);
-                if (current.eft != null) {
-                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
-                }
-                return true;
-            }
-            return false;
-        }));
-
-        params = DmgS.pop();
-        params.destroy();
-        DestroyGroup(g);
-        g = null;
-    }
-
-    //范围真实伤害
-    public function DamageAreaPure (unit u,real x,real y,real radius,real damage,boolean bj,string efx) {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
-        params.source = u;
-        params.eft = efx;
-        params.damage = damage;
-        params.isBj = bj;
-
-        DmgS.push(params);
-
-        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
-            DmgP current = DmgS.current();
-            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
-                ApplyPureDamage(current.source,GetFilterUnit(),current.damage,current.isBj);
-                if (current.eft != null) {
-                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
-                }
-                return true;
-            }
-            return false;
-        }));
-
-        params = DmgS.pop();
-        params.destroy();
-        DestroyGroup(g);
-        g = null;
-    }
-
-}
-
-//! endzinc
-#endif
-
-#ifndef GroupUtilsIncluded
-#define GroupUtilsIncluded
-
-//! zinc
-/*
-单位组有关
-伤害有关
-// u = FirstOfGroup(g);  //少用这个,单位删了后直接是0了
-用GroupPickRandomUnit(g);好一些
-*/
-library GroupUtils requires UnitFilter {
-
-    group tempG = null;
-    unit tempU = null;
-
-    //库补充,防内存泄漏
-    public function GroupEnumUnitsInRangeEx (group whichGroup,real x,real y,real radius,boolexpr filter) {
-        GroupEnumUnitsInRange(whichGroup, x, y, radius, filter);
-        DestroyBoolExpr(filter);
-    }
-    //库补充,防内存泄漏
-    public function GroupEnumUnitsInRectEx (group whichGroup,rect r,boolexpr filter) {
-        GroupEnumUnitsInRect(whichGroup, r, filter);
-        DestroyBoolExpr(filter);
-    }
-
-    //获取单位组:[敌方]
-    public function GetEnemyGroup (unit u,real x,real y,real radius) -> group {
-        tempG = CreateGroup();
-        tempU = u;
-        GroupEnumUnitsInRangeEx(tempG, x, y, radius, Filter(function () -> boolean {
-            if (IsEnemy(GetOwningPlayer(tempU),GetFilterUnit())) {
-                return true;
-            }
-            return false;
-        }));
-        tempU = null;
-        return tempG;
-    }
-
-    //获取圆形随机单位
-    public function GetRandomEnemy (unit u,real x,real y,real radius)  -> unit {
-        return GroupPickRandomUnit(GetEnemyGroup(u,x,y,radius));
-    }
-
-}
-
-//! endzinc
-#endif
-
-#ifndef CameraIncluded
-#define CameraIncluded
-
-#include "Crainax/ui/base/HardwellEvent.j"
-//! zinc
-/*
-鼠标滚轮控制视距
-一键切换宽屏模式
-made by 裂魂
-2018/10/19
-*/
-library CameraControl requires HardwellEvent{
-
-    integer ViewLevel  = 8;     //初始视野等级
-    boolean ResetCam   = false; //开启重置镜头属性标识
-    real    WheelSpeed = 0.1;   //镜头变化平滑度
-    boolean WideScr    = false; //是否是宽屏
-    real    X_ANGLE    = 304;   //默认X轴角度
-
-    public struct cameraControl {
-        // 打开滚轮控制镜头高度
-        public static method openWheel () {DoNothing();}
-    }
-
-    // 滚轮控制镜头
-    // 初始化就调用
     function onInit ()  {
-        //注册滚轮事件
-        hardwellEvent.RegWheelEvent(function (){
-            integer delta = DzGetWheelDelta(); //滚轮变化量
-            if (!DzIsMouseOverUI()) {return;} //如果鼠标不在游戏内，就不响应鼠标滚轮
-            ResetCam = true; //标记需要重置镜头属性
-            if (delta < 0) { //滚轮下滑
-                if (ViewLevel < 14) {ViewLevel = ViewLevel + 1;} //视野等级上限
-            } else { //滚轮上滑
-                if (ViewLevel > 3) {ViewLevel = ViewLevel - 1;} //视野等级下限
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
             }
-            X_ANGLE = Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK)); //记录滚动前的镜头角度
-        });
-        //注册每帧渲染事件
-        hardwellEvent.RegUpdateEvent(function (){
-            if (ResetCam) {//重设镜头角度和高度
-                SetCameraField( CAMERA_FIELD_ANGLE_OF_ATTACK, X_ANGLE, 0 );
-                SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, ViewLevel*200, WheelSpeed);
-                ResetCam = false;
-            }
-        });
-        //注册按下键码为145的按键(ScrollLock)事件
-        DzTriggerRegisterKeyEventByCode( null, 145, 1, false, function (){
-            WideScr = !WideScr;
-            DzEnableWideScreen(WideScr);
-        });
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
     }
 }
 
 //! endzinc
 #endif
+
+
+
+#ifndef ACIncluded
+#define ACIncluded
+
+//! zinc
+
+// AC (Action Controller) - 计时器事件总线
+//
+// 用于管理游戏中的定时触发事件,支持:
+// - 一次性定时任务
+// - 循环定时任务
+// - 带数据绑定的定时任务
+//
+// 警告: 禁止在异步环境下使用!
+//
+// @author Crainax
+// @version 1.0
+
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
+
+#define DELTA_TIME 0.1 // 计时器精度
+library AC {
+
+    public struct ac {
+        static thistype ethis  = 0;                // 当前正在运行的实例引用
+        static thistype List [];                   // 任务列表
+        static integer size   = 0;                 // 当前任务数量
+
+        private static hashtable table = InitHashtable();  // 存储绑定数据的哈希表
+        private static timer t        = null;              // 主计时器
+        private static real lastTick = 0;                  // 上次计时器触发的时间
+
+        integer uID;                       // 任务唯一ID
+        trigger tr;                        // 绑定的触发器
+        real remainTime;                   // 当前剩余时间
+        real duration;                     // 初始持续时间
+        boolean cycle;                     // 是否循环
+
+        STRUCT_SHARED_METHODS(ac)
+
+        // 实例销毁时的清理工作
+        method onDestroy () {
+            FlushChildHashtable(table, this);
+            DestroyTrigger(tr);
+            tr = null;
+        }
+
+        // 注销当前任务
+        // 会自动清理相关资源
+        public method unreg () {
+            if (!(isExist())) {
+                BJDebugMsg("error in unreg: AC is not exist");
+                return;
+            }
+            if (uID != 0) { //交换数据(以结构体形式)
+                List[uID]      = List[size];
+                List[uID].uID  = uID;
+                size          -= 1;
+                uID            = 0;
+            }
+            this.destroy();
+        }
+
+        // 将当前注册的所有任务转为字符串形式
+        // 主要用于调试
+        // @return string 任务列表的字符串表示
+        static method toString () -> string {
+            string s = "";
+            integer i;
+            thistype this;
+            for (i = 1;i<= size;i += 1) { //不能用isExist,毕竟最后一个还是自己
+                this = List[i];
+                if (tr == null) {s += "[" + I2S(i) + "]null->";}
+                else {s += "[" + I2S(this) + "]"+I2S(GetHandleId(tr))+"->";}
+            }
+            s += "/";
+            return "事件总数[" + I2S(size) + "]:" + s;
+        }
+
+        // 注册一个带数据绑定的定时任务
+        // @param duration 持续时间,以0.1秒为单位
+        // @param b        是否循环执行
+        // @param func     要执行的函数
+        // @return thistype 返回任务实例
+        static method reg (real duration,boolean b,code func) -> thistype {
+            thistype this = allocate();
+            if (this <= 0) {return this;}
+
+            cycle           = b;
+            this.remainTime = duration;  // 转换为实数
+            this.duration   = duration;
+            tr             = CreateTrigger();
+            TriggerAddCondition(tr,Condition(func));
+            FlushChildHashtable(table, this);
+
+            if (uID == 0) {
+                size       += 1;
+                List[size]  = this;
+                uID         = size;
+            }
+
+            // 开始计时器
+            if (t == null) {
+                t = CreateTimer();
+                TimerStart(t,DELTA_TIME,true,function (){  // 提高精度到0.1秒
+                    integer i;
+                    thistype this;
+
+                    if (size > 0) {
+                        for (1 <= i <= size) {
+                            this = List[i];
+                            this.remainTime -= DELTA_TIME;  // 减去实际流逝的时间
+
+                            if (this.remainTime <= 0) {  // 时间到
+                                if (tr != null) {
+                                    ethis = this;
+                                    TriggerEvaluate(tr);
+                                }
+                                if (cycle) {  // 循环任务
+                                    this.remainTime = this.duration;  // 重置时间
+                                } else {  // 一次性任务
+                                    unreg();
+                                    i -= 1;
+                                }
+                            }
+                        }
+                    }
+
+                    if(size <= 0) {
+                        PauseTimer(t);
+                        DestroyTimer(t);
+                        t = null;
+                    }
+                });
+            }
+            return this;
+        }
+
+        // 保存整数数据
+        // @param key   键
+        // @param value 值
+        method saveInt (integer key,integer value) -> nothing {
+            SaveInteger(table, this, key, value);
+        }
+
+        // 获取整数数据
+        // @param key 键
+        // @return integer 值
+        method getInt (integer key) -> integer {
+            return LoadInteger(table, this, key);
+        }
+
+    }
+}
+#undef DELTA_TIME
+
+//! endzinc
+#endif
+
+
 
 #ifndef LoggerIncluded
 #define LoggerIncluded
@@ -437,26 +284,6 @@ library Logger requires InnerJapi {
 //! endzinc
 #endif
 
-#ifndef HashTableIncluded
-#define HashTableIncluded
-
-// 常用哈希表
-
-//! zinc
-library HashTable {
-    // 全局哈希表定义
-    public{
-        hashtable HASH_UNIT_TYPE = InitHashtable();   // 单位类型哈希表
-        hashtable HASH_UNIT = InitHashtable();        // 单位实例哈希表
-        hashtable HASH_TIMER = InitHashtable();       // 计时器哈希表
-        hashtable HASH_GROUP = InitHashtable();       // 单位组哈希表
-        hashtable HASH_SPELL = InitHashtable();       // 技能结构哈希表
-    }
-
-}
-//! endzinc
-
-#endif
 #define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
 
 
@@ -884,80 +711,6 @@ library InnerJapi {
 
 
 
-#ifndef UnitFilterIncluded
-#define UnitFilterIncluded
-
-//! zinc
-/*
-单位有关
-*/
-library UnitFilter {
-
-    //判断是否是敌方(不带无敌)
-    public function IsEnemy (player p,unit u)  -> boolean {
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitEnemy(u, p) && GetUnitAbilityLevel(u,'Avul') == 0;
-    }
-    //旧名：IsEnemy2
-    //判断是否是敌方(能匹配到无敌单位)
-    public function IsEnemyIncludeInvul (player p,unit u)  -> boolean {
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitEnemy(u, p);
-    }
-    //判断是否是友方
-    public function IsAlly (player p,unit u)  -> boolean {
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p);
-    }
-
-}
-
-//! endzinc
-#endif
-
-
-#ifndef UnitTestFramworkIncluded
-#define UnitTestFramworkIncluded
-
-/*
-单元测试框架(注入)
-*/
-
-//! zinc
-library UnitTestFramwork {
-
-	//单元测试总
-	trigger TUnitTest = null;
-
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-
-    function onInit ()  {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
-            }
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
-    }
-}
-
-//! endzinc
-#endif
-
-
-
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1061,236 +814,144 @@ endfunction
 // 当前的平台分包
     // 单元测试
     // lua_print: 单元测试
-// #define StructMode // todo:结构体数量查看模式:用条件编译直接全部搞定
 //函数入口
 // 用原始地图测试
 // 用空地图测试
+// 用原始地图测试
 //! zinc
 /*
-DamageUtils测试库
-测试命令:
-s1 - 测试物理伤害
-s2 - 测试真实伤害
-s3 - 测试模拟普攻
-s4 - 测试范围物理伤害
-s5 - 测试范围真实伤害
-s6 - 切换伤害数值显示
-s7 - 切换伤害反弹测试
-参数命令:
--d [数值] - 设置伤害值
--r [数值] - 设置范围值
--e [特效路径] - 设置特效
+ * AC (Action Controller) 单元测试
+ *
+ * 测试指令:
+ * s1 - 测试一次性定时任务
+ * s2 - 测试循环定时任务
+ * s3 - 测试数据绑定
+ * s4 - 测试任务注销
+ * s5 - 打印当前任务列表
+ * -unreg [id] - 注销指定ID的任务
+ * -unregAll - 注销所有任务
+ *
+ * @author Crainax
+ * @version 1.0
 */
-library UTDamageUtils requires DamageUtils {
-	private unit testDummy = null; // 测试用假人
-private unit testSource = null; // 测试用伤害源
-private real testDamage = 100.0; // 测试用伤害值
-private real testRadius = 300.0; // 测试用范围值
-private string testEffect = "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdl"; // 测试用特效
-private trigger damageEventTrigger = null;
-	private boolean isShowDamage = false;
-	private boolean isReflectDamage = false; // 反伤开关
-private integer reflectCount = 0; // 反伤计数器
-
-	// 创建测试环境
-	function CreateTestEnv(player p) {
-		real x = GetPlayerStartLocationX(p);
-		real y = GetPlayerStartLocationY(p);
-		real angle;
-		integer i;
-		group g = CreateGroup();
-		unit dummy;
-		// 清理所有已存在的测试单位
-		GroupEnumUnitsInRange(g, x, y, 1000, null);
-		ForGroup(g, function() {
-			unit u = GetEnumUnit();
-			if(GetUnitTypeId(u) == 'opeo' || GetUnitTypeId(u) == 'hpea') {
-				RemoveUnit(u);
-			}
-			u = null;
-		});
-		DestroyGroup(g);
-		g = null;
-		testDummy = null;
-		testSource = null;
-		// 创建中心苦工单位
-		testDummy = CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200, y, 270);
-		SetUnitInvulnerable(testDummy, false);
-		SetUnitState(testDummy, UNIT_STATE_LIFE, GetUnitState(testDummy, UNIT_STATE_MAX_LIFE));
-		// 注册伤害事件
-		TriggerRegisterUnitEvent(damageEventTrigger, testDummy, EVENT_UNIT_DAMAGED);
-		// 创建环形分布的额外苦工
-		for(0 <= i < 8) {
-			angle = i * 45.0 * bj_DEGTORAD;
-			dummy = CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo',
-			x + 200 + testRadius * Cos(angle),
-			y + testRadius * Sin(angle),
-			270);
-			// 为每个苦工注册伤害事件
-			TriggerRegisterUnitEvent(damageEventTrigger, dummy, EVENT_UNIT_DAMAGED);
-		}
-		// 创建伤害源(农民)
-		testSource = CreateUnit(p, 'hpea', x, y, 90);
-		SetUnitAttack(testSource, 50);
-		// 为农民也注册伤害事件
-		TriggerRegisterUnitEvent(damageEventTrigger, testSource, EVENT_UNIT_DAMAGED);
-	}
-	// 测试物理伤害
-	function TTestUTDamageUtils1(player p) {
-		CreateTestEnv(p);
-		Trace("测试物理伤害: " + R2S(testDamage));
-		ApplyPhysicalDamage(testSource, testDummy, testDamage, true);
-	}
-	// 测试真实伤害
-	function TTestUTDamageUtils2(player p) {
-		CreateTestEnv(p);
-		Trace("测试真实伤害: " + R2S(testDamage));
-		ApplyPureDamage(testSource, testDummy, testDamage, true);
-	}
-	// 测试模拟普攻
-	function TTestUTDamageUtils3(player p) {
-		CreateTestEnv(p);
-		Trace("测试模拟普攻，基础攻击: 50");
-		SimulateBasicAttack(testSource, testDummy, 0);
-	}
-	// 测试范围物理伤害
-	function TTestUTDamageUtils4(player p) {
-		CreateTestEnv(p);
-		Trace("测试范围物理伤害: " + R2S(testDamage) + " 范围: " + R2S(testRadius));
-		Trace("中心点有1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
-		Trace("范围内的假人都会受到伤害和特效");
-		DamageArea(testSource, GetUnitX(testSource), GetUnitY(testSource),
-		testRadius, testDamage, true, testEffect);
-	}
-	// 测试范围真实伤害
-	function TTestUTDamageUtils5(player p) {
-		CreateTestEnv(p);
-		Trace("测试范围真实伤害: " + R2S(testDamage) + " 范围: " + R2S(testRadius));
-		Trace("中心点有1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
-		Trace("范围内的假人都会受到伤害和特效");
-		DamageAreaPure(testSource, GetUnitX(testSource), GetUnitY(testSource),
-		testRadius, testDamage, true, testEffect);
-	}
-	// 测试伤害显示开关
-	function TTestUTDamageUtils6(player p) {
-		isShowDamage = !isShowDamage;
-		if(isShowDamage) {
-			Trace("|cff00ff00开启|r伤害数值显示");
-		} else {
-			Trace("|cffff0000关闭|r伤害数值显示");
-		}
-	}
-	// 测试反伤开关
-	function TTestUTDamageUtils7(player p) {
-		isReflectDamage = !isReflectDamage;
-		if(isReflectDamage) {
-			reflectCount = 0; // 重置反伤计数
-Trace("|cff00ff00开启|r伤害反弹测试 - 受伤单位将反弹50%伤害(最多5次)");
-		} else {
-			Trace("|cffff0000关闭|r伤害反弹测试");
-		}
-	}
-	// 处理参数设置命令
-	function TTestActUTDamageUtils1(string str) {
-		player p = GetTriggerPlayer();
-		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str);
-		string paramS[]; // 所有参数S
-integer paramI[]; // 所有参数I
-real paramR[]; // 所有参数R
-
-		// 解析参数
-		for (0 <= i <= len - 1) {
-			if (SubString(str,i,i+1) == " ") {
-				paramS[num]= SubString(str,0,i);
-				paramI[num]= S2I(paramS[num]);
-				paramR[num]= S2R(paramS[num]);
-				num = num + 1;
-				str = SubString(str,i + 1,len);
-				len = StringLength(str);
-				i = -1;
-			}
-		}
-		paramS[num]= str;
-		paramI[num]= S2I(paramS[num]);
-		paramR[num]= S2R(paramS[num]);
-		num = num + 1;
-		// 处理命令
-		if (paramS[0] == "d") {
-			testDamage = paramR[1];
-			Trace("设置伤害值为: " + R2S(testDamage));
-		} else if (paramS[0] == "r") {
-			testRadius = paramR[1];
-			Trace("设置范围值为: " + R2S(testRadius));
-		} else if (paramS[0] == "e") {
-			testEffect = paramS[1];
-			Trace("设置特效为: " + testEffect);
-		}
-		p = null;
-	}
-	function onInit() {
-		trigger tr = CreateTrigger();
-		TriggerRegisterTimerEventSingle(tr, 0.5);
-		TriggerAddCondition(tr, Condition(function() {
-			Trace("|cff00ff00[DamageUtils测试]|r 输入以下命令进行测试:");
-			Trace("s1 - 测试物理伤害");
-			Trace("s2 - 测试真实伤害");
-			Trace("s3 - 测试模拟普攻");
-			Trace("s4 - 测试范围物理伤害");
-			Trace("s5 - 测试范围真实伤害");
-			Trace("s6 - 切换伤害数值显示");
-			Trace("s7 - 切换伤害反弹测试");
-			Trace("参数设置:");
-			Trace("-d [数值] - 设置伤害值");
-			Trace("-r [数值] - 设置范围值");
-			Trace("-e [路径] - 设置特效");
-			DestroyTrigger(GetTriggeringTrigger());
-		}));
-		tr = null;
-		// 创建伤害事件触发器
-		damageEventTrigger = CreateTrigger();
-		TriggerAddCondition(damageEventTrigger, Condition(function (){
-			unit source = GetEventDamageSource();
-			unit target = GetTriggerUnit();
-			real damage = GetEventDamage();
-			// 显示伤害信息
-			if(isShowDamage) {
-				Trace("|cffff0000伤害事件|r - 来源: " + GetUnitName(source) +
-				" 目标: " + GetUnitName(target) +
-				"("+I2S(GetHandleId(target))+ ") 伤害: " + R2S(damage) + " 当前栈层: " + I2S(DmgS.getTop()));
-			}
-			// 反伤测试
-			if(isReflectDamage && reflectCount < 5) { // 限制反伤次数
-reflectCount += 1; // 增加反伤计数
-Trace("第 " + I2S(reflectCount) + " 次反伤");
-				// 造成反伤
-				DamageArea(target, GetUnitX(target),GetUnitY(target), 100, damage * 0.5, true, I2S(DmgS.getTop()));
-				if(reflectCount >= 5) {
-					Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(DmgS.getTop()));
-				}
-			}
-		}));
-		// 注册聊天事件
-		UnitTestRegisterChatEvent(function() {
-			string str = GetEventPlayerChatString();
-			if(SubString(str, 0, 1) == "-") {
-				TTestActUTDamageUtils1(SubString(str, 1, StringLength(str)));
-				return;
-			}
-			if(str == "s1") TTestUTDamageUtils1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTDamageUtils2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTDamageUtils3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTDamageUtils4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTDamageUtils5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTDamageUtils6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTDamageUtils7(GetTriggerPlayer()); // 新增命令
-});
-		cameraControl.openWheel();
-	}
-	function onDestroy() {
-		DestroyTrigger(damageEventTrigger);
-		damageEventTrigger = null;
-	}
+library UTAC requires AC {
+    // 测试一次性定时任务
+    function TTestUTAC1 (player p) {
+        ac.reg(2.0, false, function() {
+			ac this = ac.ethis;
+            Trace("[线程:" + I2S(this) + "] 一次性定时任务测试: 2秒后触发一次");
+        });
+    }
+    // 测试循环定时任务
+    function TTestUTAC2 (player p) {
+        ac task = ac.reg(1.0, true, function() {
+			ac this = ac.ethis;
+            Trace("[线程:" + I2S(this) + "] 循环定时任务测试: 每1秒触发一次");
+        });
+        Trace("已创建循环任务,ID:" + I2S(task));
+    }
+    // 测试数据绑定
+    function TTestUTAC3 (player p) {
+        ac task = ac.reg(1.0, true, function() {
+            ac this = ac.ethis;
+            integer count = this.getInt(1) + 1;
+            this.saveInt(1, count);
+            Trace("[线程:" + I2S(this) + "] 数据绑定测试: 当前计数 " + I2S(count));
+        });
+        task.saveInt(1, 0); // 初始化计数器
+Trace("已创建带数据绑定的任务,ID:" + I2S(task));
+    }
+    // 测试任务注销
+    function TTestUTAC4 (player p) {
+        ac task = ac.reg(1.0, true, function() {
+			ac this = ac.ethis;
+            Trace("[线程:" + I2S(this) + "] 该消息只会显示一次,然后任务自动注销");
+            this.unreg();
+        });
+    }
+    // 打印当前任务列表
+    function TTestUTAC5 (player p) {
+        Trace(ac.toString());
+    }
+    // 其他测试函数保持空实现
+    function TTestUTAC6 (player p) {}
+    function TTestUTAC7 (player p) {}
+    function TTestUTAC8 (player p) {}
+    function TTestUTAC9 (player p) {}
+    function TTestUTAC10 (player p) {}
+    // 处理带参数的命令
+    function TTestActUTAC1 (string str) {
+        player p = GetTriggerPlayer();
+        integer index = GetConvertedPlayerId(p);
+        integer i, num = 0, len = StringLength(str);
+        integer count = 0;
+		ac task;
+        string paramS [];
+        integer paramI [];
+        real paramR [];
+        // 解析参数
+        for (0 <= i <= len - 1) {
+            if (SubString(str,i,i+1) == " ") {
+                paramS[num]= SubString(str,0,i);
+                paramI[num]= S2I(paramS[num]);
+                paramR[num]= S2R(paramS[num]);
+                num = num + 1;
+                str = SubString(str,i + 1,len);
+                len = StringLength(str);
+                i = -1;
+            }
+        }
+        paramS[num]= str;
+        paramI[num]= S2I(paramS[num]);
+        paramR[num]= S2R(paramS[num]);
+        num = num + 1;
+        // 处理命令
+        if (paramS[0] == "unreg") {
+            task = paramI[1];
+            if (task.isExist()) {
+                task.unreg();
+                Trace("已注销任务 " + I2S(task));
+            } else {
+                Trace("任务不存在");
+            }
+        } else if (paramS[0] == "unregAll") {
+            // 从后往前遍历,避免数组重排带来的问题
+            for (i = ac.size; i >= 1; i -= 1) {
+                task = ac.List[i];
+                if (task.isExist()) {
+                    task.unreg();
+                    count += 1;
+                }
+            }
+            Trace("已注销所有任务,共" + I2S(count) + "个");
+        }
+        p = null;
+    }
+    function onInit () {
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.5);
+        TriggerAddCondition(tr,Condition(function (){
+            Trace("[AC] 单元测试已加载");
+            Trace("输入s1-s5测试不同功能");
+            Trace("-unreg [id] 可注销指定任务");
+            Trace("-unregAll 可注销所有任务");
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+        UnitTestRegisterChatEvent(function () {
+            string str = GetEventPlayerChatString();
+            integer i = 1;
+            if (SubStringBJ(str,1,1) == "-") {
+                TTestActUTAC1(SubStringBJ(str,2,StringLength(str)));
+                return;
+            }
+            if (str == "s1") TTestUTAC1(GetTriggerPlayer());
+            else if(str == "s2") TTestUTAC2(GetTriggerPlayer());
+            else if(str == "s3") TTestUTAC3(GetTriggerPlayer());
+            else if(str == "s4") TTestUTAC4(GetTriggerPlayer());
+            else if(str == "s5") TTestUTAC5(GetTriggerPlayer());
+        });
+    }
 }
 //! endzinc
 // lua_print: 空白地图

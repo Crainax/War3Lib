@@ -1,695 +1,166 @@
 /*
-
-japi引用的常量库 由于wave宏定义 只对以下的代码有效
-
-请将常量库里所有内容复制到  自定义脚本代码区
+单元测试框架(注入)
 */
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//冷却时间
-//目标允许
-//施放时间
-//持续时间
-//持续时间
-//魔法消耗
-//施放间隔
-//影响区域
-//施法距离
-//数据A
-//数据B
-//数据C
-//数据D
-//数据E
-//数据F
-//数据G
-//数据H
-//数据I
-//单位类型
-//热键
-//关闭热键
-//学习热键
-//名字
-//图标
-//目标效果
-//施法者效果
-//目标点效果
-//区域效果
-//投射物
-//特殊效果
-//闪电效果
-//buff提示
-//buff提示
-//学习提示
-//提示
-//关闭提示
-//学习提示
-//提示
-//关闭提示
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
 //! zinc
-/*
-单位有关的增强功能
-*/
-library UnitUtils {
-    //获取单位的攻击力/防御/生命/魔法值
-    //设置攻击力
-    //增加攻击力
-    //设置防御
-    //增加防御
-    //修改生命最大值
-    //增加生命最大值
-	public function AddUnitHP(unit u,real hp ) {
-		SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(RMaxBJ(GetUnitState(u,UNIT_STATE_MAX_LIFE)+hp,10.0),5.0));
-		if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
-	}
-    //回血(定值)
-    //回蓝(百分比)
-    //设置魔法最大值
-    //增加魔法最大值
-	public function AddUnitMP(unit u,real mp ) {
-		SetUnitState(u,UNIT_STATE_MAX_MANA,GetUnitState(u,UNIT_STATE_MAX_MANA)+mp);
-		if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
-	}
-    //回蓝(定值)
-    //回蓝(百分比)
-    // 获取移速
-    public function GetUnitSpeed (unit u) -> integer {
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),237960560)) { //突破522与0的移速的Hook
-return LoadInteger(HASH_UNIT,GetHandleId(u),237960560);
-        }
-        else {return R2I(GetUnitMoveSpeed(u));}
+library UnitTestFramwork {
+	//单元测试总
+	trigger TUnitTest = null;
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
     }
-    //todo: 这个UNTable其他地图需要兼容
-    // 增加移速
-    public function AddUnitSpeed (unit u,integer speed) {
-        integer value;
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),237960560)) { //突破522与0的移速的Hook
-value = LoadInteger(HASH_UNIT,GetHandleId(u),237960560);
-            value += speed;
-            SaveInteger(HASH_UNIT,GetHandleId(u),237960560,value);
-        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
-		SetUnitMoveSpeed(u,value);
-    }
-    // 初始化突破移速
-    public function InitUnitSpeed (unit u) {
-        SaveInteger(HASH_UNIT,GetHandleId(u),237960560,R2I(GetUnitMoveSpeed(u)));
-    }
-    //射程(还会+警戒范围)
-    //设置射程(还会设置警戒范围)
-    public function SetUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(0x16),range);
-		SetUnitAcquireRange(u,RMaxBJ(range,900.0));
-    }
-    //增加射程(还会+警戒范围)
-	public function AddUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(0x16),GetUnitState(u,ConvertUnitState(0x16)) + range);
-		SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0));
-    }
-    // 获取攻速
-    // 增加攻速
-	public function AddUnitAttackSpeed (unit u,real speed) {
-		SetUnitState(u,ConvertUnitState(0x51),GetUnitState(u,ConvertUnitState(0x51)) + speed);
-	}
-    // 攻击间隔(虽然写着加,但是实际是减)
-	public function AddAttackInterval (unit u,real value) {
-        SetUnitState(u,ConvertUnitState(0x25),GetUnitState(u,ConvertUnitState(0x25)) - value);
-	}
-    //传送单位(带特效与镜头转换)
-    public function TransportUnit (unit u,real x,real y,boolean camera) {
-        if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)));
-        SetUnitPosition(u,x,y);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
-    }
-    //删除单位
-    public function DeleteUnit (unit u) {
-        FlushChildHashtable(HASH_UNIT,GetHandleId(u));
-        RemoveUnit(u);
-    }
-}
-//! endzinc
-/*
-
-japi引用的常量库 由于wave宏定义 只对以下的代码有效
-
-请将常量库里所有内容复制到  自定义脚本代码区
-*/
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-//! zinc
-/*
-伤害工具
-*/
-library DamageUtils requires UnitFilter,GroupUtils {
-    //旧名替换:DamageSingle
-    //单体伤害:物理
-    public function ApplyPhysicalDamage (unit u,unit target,real dmg,boolean bj) {
-        static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
-        UnitDamageTarget( u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
-    }
-    //单体伤害:真实
-    public function ApplyPureDamage (unit u,unit target,real dmg,boolean bj) {
-        static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
-        UnitDamageTarget( u, target, dmg, false, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
-    }
-    //模拟普攻(最后一个参数代表额外的终伤,0)
-    public function SimulateBasicAttack (unit u,unit target,real fd) {
-        UnitDamageTarget( u, target, GetUnitState(u,ConvertUnitState(0x12))*(1.0+fd), true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
-    }
-    //伤害参数结构体
-    private struct DmgP {
-        unit source; //伤害来源
-string eft; //特效
-real damage; //伤害值
-boolean isBj; //是否暴击
-
-        method destroy() {
-            this.source = null;
-            this.eft = null;
-        }
-    }
-    //伤害参数栈
-    public struct DmgS [] {
-        private static DmgP stack[100];
-        private static integer top = -1;
-        public static method push(DmgP params) {
-            thistype.top += 1;
-            thistype.stack[thistype.top] = params;
-        }
-        public static method pop() -> DmgP {
-            DmgP params = thistype.stack[thistype.top];
-            thistype.stack[thistype.top] = 0;
-            thistype.top -= 1;
-            return params;
-        }
-        public static method getTop() -> integer {
-            return thistype.top;
-        }
-        public static method current() -> DmgP {
-            return thistype.stack[thistype.top];
-        }
-    }
-    //范围普通伤害
-    public function DamageArea (unit u,real x,real y,real radius,real damage,boolean bj,string efx) {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
-        params.source = u;
-        params.eft = efx;
-        params.damage = damage;
-        params.isBj = bj;
-        DmgS.push(params);
-        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
-            DmgP current = DmgS.current();
-            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
-                ApplyPhysicalDamage(current.source,GetFilterUnit(),current.damage,current.isBj);
-                if (current.eft != null) {
-                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
-                }
-                return true;
-            }
-            return false;
-        }));
-        params = DmgS.pop();
-        params.destroy();
-        DestroyGroup(g);
-        g = null;
-    }
-    //范围真实伤害
-    public function DamageAreaPure (unit u,real x,real y,real radius,real damage,boolean bj,string efx) {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
-        params.source = u;
-        params.eft = efx;
-        params.damage = damage;
-        params.isBj = bj;
-        DmgS.push(params);
-        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
-            DmgP current = DmgS.current();
-            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
-                ApplyPureDamage(current.source,GetFilterUnit(),current.damage,current.isBj);
-                if (current.eft != null) {
-                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
-                }
-                return true;
-            }
-            return false;
-        }));
-        params = DmgS.pop();
-        params.destroy();
-        DestroyGroup(g);
-        g = null;
-    }
-}
-//! endzinc
-//! zinc
-/*
-单位组有关
-伤害有关
-// u = FirstOfGroup(g);  //少用这个,单位删了后直接是0了
-用GroupPickRandomUnit(g);好一些
-*/
-library GroupUtils requires UnitFilter {
-    group tempG = null;
-    unit tempU = null;
-    //库补充,防内存泄漏
-    public function GroupEnumUnitsInRangeEx (group whichGroup,real x,real y,real radius,boolexpr filter) {
-        GroupEnumUnitsInRange(whichGroup, x, y, radius, filter);
-        DestroyBoolExpr(filter);
-    }
-    //库补充,防内存泄漏
-    public function GroupEnumUnitsInRectEx (group whichGroup,rect r,boolexpr filter) {
-        GroupEnumUnitsInRect(whichGroup, r, filter);
-        DestroyBoolExpr(filter);
-    }
-    //获取单位组:[敌方]
-    public function GetEnemyGroup (unit u,real x,real y,real radius) -> group {
-        tempG = CreateGroup();
-        tempU = u;
-        GroupEnumUnitsInRangeEx(tempG, x, y, radius, Filter(function () -> boolean {
-            if (IsEnemy(GetOwningPlayer(tempU),GetFilterUnit())) {
-                return true;
-            }
-            return false;
-        }));
-        tempU = null;
-        return tempG;
-    }
-    //获取圆形随机单位
-    public function GetRandomEnemy (unit u,real x,real y,real radius) -> unit {
-        return GroupPickRandomUnit(GetEnemyGroup(u,x,y,radius));
-    }
-}
-//! endzinc
-library BzAPI
-    //hardware
-    native DzGetMouseTerrainX takes nothing returns real
-    native DzGetMouseTerrainY takes nothing returns real
-    native DzGetMouseTerrainZ takes nothing returns real
-    native DzIsMouseOverUI takes nothing returns boolean
-    native DzGetMouseX takes nothing returns integer
-    native DzGetMouseY takes nothing returns integer
-    native DzGetMouseXRelative takes nothing returns integer
-    native DzGetMouseYRelative takes nothing returns integer
-    native DzSetMousePos takes integer x, integer y returns nothing
-    native DzTriggerRegisterMouseEvent takes trigger trig, integer btn, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseEventByCode takes trigger trig, integer btn, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterKeyEvent takes trigger trig, integer key, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterKeyEventByCode takes trigger trig, integer key, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseWheelEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseWheelEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseMoveEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseMoveEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzGetTriggerKey takes nothing returns integer
-    native DzGetWheelDelta takes nothing returns integer
-    native DzIsKeyDown takes integer iKey returns boolean
-    native DzGetTriggerKeyPlayer takes nothing returns player
-    native DzGetWindowWidth takes nothing returns integer
-    native DzGetWindowHeight takes nothing returns integer
-    native DzGetWindowX takes nothing returns integer
-    native DzGetWindowY takes nothing returns integer
-    native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzIsWindowActive takes nothing returns boolean
-    //plus
-    native DzDestructablePosition takes destructable d, real x, real y returns nothing
-    native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
-    native DzExecuteFunc takes string funcName returns nothing
-    native DzGetUnitUnderMouse takes nothing returns unit
-    native DzSetUnitTexture takes unit whichUnit, string path, integer texId returns nothing
-    native DzSetMemory takes integer address, real value returns nothing
-    native DzSetUnitID takes unit whichUnit, integer id returns nothing
-    native DzSetUnitModel takes unit whichUnit, string path returns nothing
-    native DzSetWar3MapMap takes string map returns nothing
-    native DzGetLocale takes nothing returns string
-    native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
-    //sync
-    native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
-    native DzSyncData takes string prefix, string data returns nothing
-    native DzGetTriggerSyncPrefix takes nothing returns string
-    native DzGetTriggerSyncData takes nothing returns string
-    native DzGetTriggerSyncPlayer takes nothing returns player
-    native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
-    //native DzGetPushContext takes nothing returns string
-    native DzSyncDataImmediately takes string prefix, string data returns nothing
-    //gui
-    native DzFrameHideInterface takes nothing returns nothing
-    native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
-    native DzFrameGetPortrait takes nothing returns integer
-    native DzFrameGetMinimap takes nothing returns integer
-    native DzFrameGetCommandBarButton takes integer row, integer column returns integer
-    native DzFrameGetHeroBarButton takes integer buttonId returns integer
-    native DzFrameGetHeroHPBar takes integer buttonId returns integer
-    native DzFrameGetHeroManaBar takes integer buttonId returns integer
-    native DzFrameGetItemBarButton takes integer buttonId returns integer
-    native DzFrameGetMinimapButton takes integer buttonId returns integer
-    native DzFrameGetUpperButtonBarButton takes integer buttonId returns integer
-    native DzFrameGetTooltip takes nothing returns integer
-    native DzFrameGetChatMessage takes nothing returns integer
-    native DzFrameGetUnitMessage takes nothing returns integer
-    native DzFrameGetTopMessage takes nothing returns integer
-    native DzGetColor takes integer r, integer g, integer b, integer a returns integer
-    native DzFrameSetUpdateCallback takes string func returns nothing
-    native DzFrameSetUpdateCallbackByCode takes code funcHandle returns nothing
-    native DzFrameShow takes integer frame, boolean enable returns nothing
-    native DzCreateFrame takes string frame, integer parent, integer id returns integer
-    native DzCreateSimpleFrame takes string frame, integer parent, integer id returns integer
-    native DzDestroyFrame takes integer frame returns nothing
-    native DzLoadToc takes string fileName returns nothing
-    native DzFrameSetPoint takes integer frame, integer point, integer relativeFrame, integer relativePoint, real x, real y returns nothing
-    native DzFrameSetAbsolutePoint takes integer frame, integer point, real x, real y returns nothing
-    native DzFrameClearAllPoints takes integer frame returns nothing
-    native DzFrameSetEnable takes integer name, boolean enable returns nothing
-    native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
-    native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
-    native DzGetTriggerUIEventPlayer takes nothing returns player
-    native DzGetTriggerUIEventFrame takes nothing returns integer
-    native DzFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFontStringFindByName takes string name, integer id returns integer
-    native DzSimpleTextureFindByName takes string name, integer id returns integer
-    native DzGetGameUI takes nothing returns integer
-    native DzClickFrame takes integer frame returns nothing
-    native DzSetCustomFovFix takes real value returns nothing
-    native DzEnableWideScreen takes boolean enable returns nothing
-    native DzFrameSetText takes integer frame, string text returns nothing
-    native DzFrameGetText takes integer frame returns string
-    native DzFrameSetTextSizeLimit takes integer frame, integer size returns nothing
-    native DzFrameGetTextSizeLimit takes integer frame returns integer
-    native DzFrameSetTextColor takes integer frame, integer color returns nothing
-    native DzGetMouseFocus takes nothing returns integer
-    native DzFrameSetAllPoints takes integer frame, integer relativeFrame returns boolean
-    native DzFrameSetFocus takes integer frame, boolean enable returns boolean
-    native DzFrameSetModel takes integer frame, string modelFile, integer modelType, integer flag returns nothing
-    native DzFrameGetEnable takes integer frame returns boolean
-    native DzFrameSetAlpha takes integer frame, integer alpha returns nothing
-    native DzFrameGetAlpha takes integer frame returns integer
-    native DzFrameSetAnimate takes integer frame, integer animId, boolean autocast returns nothing
-    native DzFrameSetAnimateOffset takes integer frame, real offset returns nothing
-    native DzFrameSetTexture takes integer frame, string texture, integer flag returns nothing
-    native DzFrameSetScale takes integer frame, real scale returns nothing
-    native DzFrameSetTooltip takes integer frame, integer tooltip returns nothing
-    native DzFrameCageMouse takes integer frame, boolean enable returns nothing
-    native DzFrameGetValue takes integer frame returns real
-    native DzFrameSetMinMaxValue takes integer frame, real minValue, real maxValue returns nothing
-    native DzFrameSetStepValue takes integer frame, real step returns nothing
-    native DzFrameSetValue takes integer frame, real value returns nothing
-    native DzFrameSetSize takes integer frame, real w, real h returns nothing
-    native DzCreateFrameByTagName takes string frameType, string name, integer parent, string template, integer id returns integer
-    native DzFrameSetVertexColor takes integer frame, integer color returns nothing
-    native DzOriginalUIAutoResetPoint takes boolean enable returns nothing
-    native DzFrameSetPriority takes integer frame, integer priority returns nothing
-    native DzFrameSetParent takes integer frame, integer parent returns nothing
-    native DzFrameGetHeight takes integer frame returns real
-    native DzFrameSetFont takes integer frame, string fileName, real height, integer flag returns nothing
-    native DzFrameGetParent takes integer frame returns integer
-    native DzFrameSetTextAlignment takes integer frame, integer align returns nothing
-    native DzFrameGetName takes integer frame returns string
-    native DzGetClientWidth takes nothing returns integer
-    native DzGetClientHeight takes nothing returns integer
-    native DzFrameIsVisible takes integer frame returns boolean
-        //显示/隐藏SimpleFrame
-    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
-    // 追加文字（支持TextArea）
-    native DzFrameAddText takes integer frame, string text returns nothing
-    // 沉默单位-禁用技能
-    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
-    // 禁用攻击
-    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
-    // 禁用道具
-    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
-    // 刷新小地图
-    native DzUpdateMinimap takes nothing returns nothing
-    // 修改单位alpha
-    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
-    // 设置单位是否可以选中
-    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
-    // 修改单位是否可以被设置为目标
-    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
-    // 保存内存数据
-    native DzSaveMemoryCache takes string cache returns nothing
-    // 读取内存数据
-    native DzGetMemoryCache takes nothing returns string
-    // 设置加速倍率
-    native DzSetSpeed takes real ratio returns nothing
-    // 转换世界坐标为屏幕坐标-异步
-    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
-    // 转换世界坐标为屏幕坐标-获取转换后的X坐标
-    native DzGetConvertWorldPositionX takes nothing returns real
-    // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
-    native DzGetConvertWorldPositionY takes nothing returns real
-    // 创建command button
-    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
-    function DzTriggerRegisterMouseEventTrg takes trigger trg, integer status, integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
-    endfunction
-    function DzTriggerRegisterKeyEventTrg takes trigger trg, integer status, integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterKeyEvent(trg, btn, status, true, null)
-    endfunction
-    function DzTriggerRegisterMouseMoveEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseMoveEvent(trg, true, null)
-    endfunction
-    function DzTriggerRegisterMouseWheelEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseWheelEvent(trg, true, null)
-    endfunction
-    function DzTriggerRegisterWindowResizeEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterWindowResizeEvent(trg, true, null)
-    endfunction
-    function DzF2I takes integer i returns integer
-        return i
-    endfunction
-    function DzI2F takes integer i returns integer
-        return i
-    endfunction
-    function DzK2I takes integer i returns integer
-        return i
-    endfunction
-    function DzI2K takes integer i returns integer
-        return i
-    endfunction
-    function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMIA", true)
-    endfunction
-    function DzGetTriggerMallItemPlayer takes nothing returns player
-        return DzGetTriggerSyncPlayer()
-    endfunction
-    function DzGetTriggerMallItem takes nothing returns string
-        return DzGetTriggerSyncData()
-    endfunction
-endlibrary
-//! zinc
-/*
-结构体
-硬件事件(按/滑/帧事件)
-*/
-library HardwellEvent requires BzAPI {
-	public struct hardwellEvent {
-		// 注册一个左键事件
-		static method RegLeftClickEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,1,0,false,func);
-		}
-		// 注册一个左键按下事件
-		static method RegLeftDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,1,1,false,func);
-		}
-		// 注册一个左键按下事件
-		static method RegRightClickEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,2,0,false,func);
-		}
-		// 注册一个滚轮事件
-		static method RegWheelEvent (code func) {
-			if (trWheel == null) {trWheel = CreateTrigger();}
-			TriggerAddCondition(trWheel, Condition(func));
-		}
-		// 注册一个绘制事件
-		static method RegUpdateEvent (code func) {
-			if (trUpdate == null) {trUpdate = CreateTrigger();}
-			TriggerAddCondition(trUpdate, Condition(func));
-		}
-		// 注册一个窗口变化事件
-		static method RegResizeEvent (code func) {
-			if (trResize == null) {trResize = CreateTrigger();}
-			TriggerAddCondition(trResize, Condition(func));
-		}
-		static trigger trWheel = null;
-		static trigger trUpdate = null;
-		static trigger trResize = null;
-		static method onInit () {
-			// 滚轮事件
-			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
-				TriggerEvaluate(trWheel);
-			});
-			// 帧绘制事件
-			DzFrameSetUpdateCallbackByCode(function (){
-				TriggerEvaluate(trUpdate);
-			});
-			// 窗口大小变化事件
-			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
-				TriggerEvaluate(trResize);
-			});
-		}
-	}
-}
-//! endzinc
-//! zinc
-/*
-鼠标滚轮控制视距
-一键切换宽屏模式
-made by 裂魂
-2018/10/19
-*/
-library CameraControl requires HardwellEvent{
-    integer ViewLevel = 8; //初始视野等级
-boolean ResetCam = false; //开启重置镜头属性标识
-real WheelSpeed = 0.1; //镜头变化平滑度
-boolean WideScr = false; //是否是宽屏
-real X_ANGLE = 304; //默认X轴角度
-
-    public struct cameraControl {
-        // 打开滚轮控制镜头高度
-        public static method openWheel () {DoNothing();}
-    }
-    // 滚轮控制镜头
-    // 初始化就调用
     function onInit () {
-        //注册滚轮事件
-        hardwellEvent.RegWheelEvent(function (){
-            integer delta = DzGetWheelDelta(); //滚轮变化量
-if (!DzIsMouseOverUI()) {return;} //如果鼠标不在游戏内，就不响应鼠标滚轮
-ResetCam = true; //标记需要重置镜头属性
-if (delta < 0) { //滚轮下滑
-if (ViewLevel < 14) {ViewLevel = ViewLevel + 1;} //视野等级上限
-} else { //滚轮上滑
-if (ViewLevel > 3) {ViewLevel = ViewLevel - 1;} //视野等级下限
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
 }
-            X_ANGLE = Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK)); //记录滚动前的镜头角度
-});
-        //注册每帧渲染事件
-        hardwellEvent.RegUpdateEvent(function (){
-            if (ResetCam) {//重设镜头角度和高度
-                SetCameraField( CAMERA_FIELD_ANGLE_OF_ATTACK, X_ANGLE, 0 );
-                SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, ViewLevel*200, WheelSpeed);
-                ResetCam = false;
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+    }
+}
+//! endzinc
+//! zinc
+// AC (Action Controller) - 计时器事件总线
+//
+// 用于管理游戏中的定时触发事件,支持:
+// - 一次性定时任务
+// - 循环定时任务
+// - 带数据绑定的定时任务
+//
+// 警告: 禁止在异步环境下使用!
+//
+// @author Crainax
+// @version 1.0
+// 结构体共用方法定义
+library AC {
+    public struct ac {
+        static thistype ethis = 0; // 当前正在运行的实例引用
+static thistype List []; // 任务列表
+static integer size = 0; // 当前任务数量
+
+        private static hashtable table = InitHashtable(); // 存储绑定数据的哈希表
+private static timer t = null; // 主计时器
+private static real lastTick = 0; // 上次计时器触发的时间
+
+        integer uID; // 任务唯一ID
+trigger tr; // 绑定的触发器
+real remainTime; // 当前剩余时间
+real duration; // 初始持续时间
+boolean cycle; // 是否循环
+
+        method isExist () -> boolean {return (this != null && si__ac_V[this] == -1);}
+        // 实例销毁时的清理工作
+        method onDestroy () {
+            FlushChildHashtable(table, this);
+            DestroyTrigger(tr);
+            tr = null;
+        }
+        // 注销当前任务
+        // 会自动清理相关资源
+        public method unreg () {
+            if (!(isExist())) {
+                BJDebugMsg("error in unreg: AC is not exist");
+                return;
             }
-        });
-        //注册按下键码为145的按键(ScrollLock)事件
-        DzTriggerRegisterKeyEventByCode( null, 145, 1, false, function (){
-            WideScr = !WideScr;
-            DzEnableWideScreen(WideScr);
-        });
+            if (uID != 0) { //交换数据(以结构体形式)
+List[uID] = List[size];
+                List[uID].uID = uID;
+                size -= 1;
+                uID = 0;
+            }
+            this.destroy();
+        }
+        // 将当前注册的所有任务转为字符串形式
+        // 主要用于调试
+        // @return string 任务列表的字符串表示
+        static method toString () -> string {
+            string s = "";
+            integer i;
+            thistype this;
+            for (i = 1;i<= size;i += 1) { //不能用isExist,毕竟最后一个还是自己
+this = List[i];
+                if (tr == null) {s += "[" + I2S(i) + "]null->";}
+                else {s += "[" + I2S(this) + "]"+I2S(GetHandleId(tr))+"->";}
+            }
+            s += "/";
+            return "事件总数[" + I2S(size) + "]:" + s;
+        }
+        // 注册一个带数据绑定的定时任务
+        // @param duration 持续时间,以0.1秒为单位
+        // @param b        是否循环执行
+        // @param func     要执行的函数
+        // @return thistype 返回任务实例
+        static method reg (real duration,boolean b,code func) -> thistype {
+            thistype this = allocate();
+            if (this <= 0) {return this;}
+            cycle = b;
+            this.remainTime = duration; // 转换为实数
+this.duration = duration;
+            tr = CreateTrigger();
+            TriggerAddCondition(tr,Condition(func));
+            FlushChildHashtable(table, this);
+            if (uID == 0) {
+                size += 1;
+                List[size] = this;
+                uID = size;
+            }
+            // 开始计时器
+            if (t == null) {
+                t = CreateTimer();
+                TimerStart(t,0.1,true,function (){ // 提高精度到0.1秒
+integer i;
+                    thistype this;
+                    if (size > 0) {
+                        for (1 <= i <= size) {
+                            this = List[i];
+                            this.remainTime -= 0.1; // 减去实际流逝的时间
+
+                            if (this.remainTime <= 0) { // 时间到
+if (tr != null) {
+                                    ethis = this;
+                                    TriggerEvaluate(tr);
+                                }
+                                if (cycle) { // 循环任务
+this.remainTime = this.duration; // 重置时间
+} else { // 一次性任务
+unreg();
+                                    i -= 1;
+                                }
+                            }
+                        }
+                    }
+                    if(size <= 0) {
+                        PauseTimer(t);
+                        DestroyTimer(t);
+                        t = null;
+                    }
+                });
+            }
+            return this;
+        }
+        // 保存整数数据
+        // @param key   键
+        // @param value 值
+        method saveInt (integer key,integer value) -> nothing {
+            SaveInteger(table, this, key, value);
+        }
+        // 获取整数数据
+        // @param key 键
+        // @return integer 值
+        method getInt (integer key) -> integer {
+            return LoadInteger(table, this, key);
+        }
     }
 }
 //! endzinc
@@ -757,19 +228,6 @@ library Logger requires InnerJapi {
 }
 }
 //! endzinc
-// 常用哈希表
-//! zinc
-library HashTable {
-    // 全局哈希表定义
-    public{
-        hashtable HASH_UNIT_TYPE = InitHashtable(); // 单位类型哈希表
-hashtable HASH_UNIT = InitHashtable(); // 单位实例哈希表
-hashtable HASH_TIMER = InitHashtable(); // 计时器哈希表
-hashtable HASH_GROUP = InitHashtable(); // 单位组哈希表
-hashtable HASH_SPELL = InitHashtable(); // 技能结构哈希表
-}
-}
-//! endzinc
 // API文档: https://japi.war3rpg.top/
 /*
 
@@ -780,6 +238,45 @@ japi引用的常量库 由于wave宏定义 只对以下的代码有效
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
 //---------技能数据类型---------------
+//冷却时间
+//目标允许
+//施放时间
+//持续时间
+//持续时间
+//魔法消耗
+//施放间隔
+//影响区域
+//施法距离
+//数据A
+//数据B
+//数据C
+//数据D
+//数据E
+//数据F
+//数据G
+//数据H
+//数据I
+//单位类型
+//热键
+//关闭热键
+//学习热键
+//名字
+//图标
+//目标效果
+//施法者效果
+//目标点效果
+//区域效果
+//投射物
+//特殊效果
+//闪电效果
+//buff提示
+//buff提示
+//学习提示
+//提示
+//关闭提示
+//学习提示
+//提示
+//关闭提示
 //----------物品数据类型----------------------
 //物品图标
 //物品提示
@@ -1181,58 +678,6 @@ library InnerJapi {
     }
 }
 //! endzinc
-//! zinc
-/*
-单位有关
-*/
-library UnitFilter {
-    //判断是否是敌方(不带无敌)
-    public function IsEnemy (player p,unit u) -> boolean {
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitEnemy(u, p) && GetUnitAbilityLevel(u,'Avul') == 0;
-    }
-    //旧名：IsEnemy2
-    //判断是否是敌方(能匹配到无敌单位)
-    public function IsEnemyIncludeInvul (player p,unit u) -> boolean {
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitEnemy(u, p);
-    }
-    //判断是否是友方
-    public function IsAlly (player p,unit u) -> boolean {
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p);
-    }
-}
-//! endzinc
-/*
-单元测试框架(注入)
-*/
-//! zinc
-library UnitTestFramwork {
-	//单元测试总
-	trigger TUnitTest = null;
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-    function onInit () {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
-}
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
-    }
-}
-//! endzinc
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1336,236 +781,144 @@ endfunction
 // 当前的平台分包
     // 单元测试
     // lua_print: 单元测试
-// #define StructMode // todo:结构体数量查看模式:用条件编译直接全部搞定
 //函数入口
 // 用原始地图测试
 // 用空地图测试
+// 用原始地图测试
 //! zinc
 /*
-DamageUtils测试库
-测试命令:
-s1 - 测试物理伤害
-s2 - 测试真实伤害
-s3 - 测试模拟普攻
-s4 - 测试范围物理伤害
-s5 - 测试范围真实伤害
-s6 - 切换伤害数值显示
-s7 - 切换伤害反弹测试
-参数命令:
--d [数值] - 设置伤害值
--r [数值] - 设置范围值
--e [特效路径] - 设置特效
+ * AC (Action Controller) 单元测试
+ *
+ * 测试指令:
+ * s1 - 测试一次性定时任务
+ * s2 - 测试循环定时任务
+ * s3 - 测试数据绑定
+ * s4 - 测试任务注销
+ * s5 - 打印当前任务列表
+ * -unreg [id] - 注销指定ID的任务
+ * -unregAll - 注销所有任务
+ *
+ * @author Crainax
+ * @version 1.0
 */
-library UTDamageUtils requires DamageUtils {
-	private unit testDummy = null; // 测试用假人
-private unit testSource = null; // 测试用伤害源
-private real testDamage = 100.0; // 测试用伤害值
-private real testRadius = 300.0; // 测试用范围值
-private string testEffect = "Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdl"; // 测试用特效
-private trigger damageEventTrigger = null;
-	private boolean isShowDamage = false;
-	private boolean isReflectDamage = false; // 反伤开关
-private integer reflectCount = 0; // 反伤计数器
-
-	// 创建测试环境
-	function CreateTestEnv(player p) {
-		real x = GetPlayerStartLocationX(p);
-		real y = GetPlayerStartLocationY(p);
-		real angle;
-		integer i;
-		group g = CreateGroup();
-		unit dummy;
-		// 清理所有已存在的测试单位
-		GroupEnumUnitsInRange(g, x, y, 1000, null);
-		ForGroup(g, function() {
-			unit u = GetEnumUnit();
-			if(GetUnitTypeId(u) == 'opeo' || GetUnitTypeId(u) == 'hpea') {
-				RemoveUnit(u);
-			}
-			u = null;
-		});
-		DestroyGroup(g);
-		g = null;
-		testDummy = null;
-		testSource = null;
-		// 创建中心苦工单位
-		testDummy = CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200, y, 270);
-		SetUnitInvulnerable(testDummy, false);
-		SetUnitState(testDummy, UNIT_STATE_LIFE, GetUnitState(testDummy, UNIT_STATE_MAX_LIFE));
-		// 注册伤害事件
-		TriggerRegisterUnitEvent(damageEventTrigger, testDummy, EVENT_UNIT_DAMAGED);
-		// 创建环形分布的额外苦工
-		for(0 <= i < 8) {
-			angle = i * 45.0 * bj_DEGTORAD;
-			dummy = CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo',
-			x + 200 + testRadius * Cos(angle),
-			y + testRadius * Sin(angle),
-			270);
-			// 为每个苦工注册伤害事件
-			TriggerRegisterUnitEvent(damageEventTrigger, dummy, EVENT_UNIT_DAMAGED);
-		}
-		// 创建伤害源(农民)
-		testSource = CreateUnit(p, 'hpea', x, y, 90);
-		SetUnitState(testSource,ConvertUnitState(0x12), 50);
-		// 为农民也注册伤害事件
-		TriggerRegisterUnitEvent(damageEventTrigger, testSource, EVENT_UNIT_DAMAGED);
-	}
-	// 测试物理伤害
-	function TTestUTDamageUtils1(player p) {
-		CreateTestEnv(p);
-		Trace("测试物理伤害: " + R2S(testDamage));
-		ApplyPhysicalDamage(testSource, testDummy, testDamage, true);
-	}
-	// 测试真实伤害
-	function TTestUTDamageUtils2(player p) {
-		CreateTestEnv(p);
-		Trace("测试真实伤害: " + R2S(testDamage));
-		ApplyPureDamage(testSource, testDummy, testDamage, true);
-	}
-	// 测试模拟普攻
-	function TTestUTDamageUtils3(player p) {
-		CreateTestEnv(p);
-		Trace("测试模拟普攻，基础攻击: 50");
-		SimulateBasicAttack(testSource, testDummy, 0);
-	}
-	// 测试范围物理伤害
-	function TTestUTDamageUtils4(player p) {
-		CreateTestEnv(p);
-		Trace("测试范围物理伤害: " + R2S(testDamage) + " 范围: " + R2S(testRadius));
-		Trace("中心点有1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
-		Trace("范围内的假人都会受到伤害和特效");
-		DamageArea(testSource, GetUnitX(testSource), GetUnitY(testSource),
-		testRadius, testDamage, true, testEffect);
-	}
-	// 测试范围真实伤害
-	function TTestUTDamageUtils5(player p) {
-		CreateTestEnv(p);
-		Trace("测试范围真实伤害: " + R2S(testDamage) + " 范围: " + R2S(testRadius));
-		Trace("中心点有1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
-		Trace("范围内的假人都会受到伤害和特效");
-		DamageAreaPure(testSource, GetUnitX(testSource), GetUnitY(testSource),
-		testRadius, testDamage, true, testEffect);
-	}
-	// 测试伤害显示开关
-	function TTestUTDamageUtils6(player p) {
-		isShowDamage = !isShowDamage;
-		if(isShowDamage) {
-			Trace("|cff00ff00开启|r伤害数值显示");
-		} else {
-			Trace("|cffff0000关闭|r伤害数值显示");
-		}
-	}
-	// 测试反伤开关
-	function TTestUTDamageUtils7(player p) {
-		isReflectDamage = !isReflectDamage;
-		if(isReflectDamage) {
-			reflectCount = 0; // 重置反伤计数
-Trace("|cff00ff00开启|r伤害反弹测试 - 受伤单位将反弹50%伤害(最多5次)");
-		} else {
-			Trace("|cffff0000关闭|r伤害反弹测试");
-		}
-	}
-	// 处理参数设置命令
-	function TTestActUTDamageUtils1(string str) {
-		player p = GetTriggerPlayer();
-		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str);
-		string paramS[]; // 所有参数S
-integer paramI[]; // 所有参数I
-real paramR[]; // 所有参数R
-
-		// 解析参数
-		for (0 <= i <= len - 1) {
-			if (SubString(str,i,i+1) == " ") {
-				paramS[num]= SubString(str,0,i);
-				paramI[num]= S2I(paramS[num]);
-				paramR[num]= S2R(paramS[num]);
-				num = num + 1;
-				str = SubString(str,i + 1,len);
-				len = StringLength(str);
-				i = -1;
-			}
-		}
-		paramS[num]= str;
-		paramI[num]= S2I(paramS[num]);
-		paramR[num]= S2R(paramS[num]);
-		num = num + 1;
-		// 处理命令
-		if (paramS[0] == "d") {
-			testDamage = paramR[1];
-			Trace("设置伤害值为: " + R2S(testDamage));
-		} else if (paramS[0] == "r") {
-			testRadius = paramR[1];
-			Trace("设置范围值为: " + R2S(testRadius));
-		} else if (paramS[0] == "e") {
-			testEffect = paramS[1];
-			Trace("设置特效为: " + testEffect);
-		}
-		p = null;
-	}
-	function onInit() {
-		trigger tr = CreateTrigger();
-		TriggerRegisterTimerEventSingle(tr, 0.5);
-		TriggerAddCondition(tr, Condition(function() {
-			Trace("|cff00ff00[DamageUtils测试]|r 输入以下命令进行测试:");
-			Trace("s1 - 测试物理伤害");
-			Trace("s2 - 测试真实伤害");
-			Trace("s3 - 测试模拟普攻");
-			Trace("s4 - 测试范围物理伤害");
-			Trace("s5 - 测试范围真实伤害");
-			Trace("s6 - 切换伤害数值显示");
-			Trace("s7 - 切换伤害反弹测试");
-			Trace("参数设置:");
-			Trace("-d [数值] - 设置伤害值");
-			Trace("-r [数值] - 设置范围值");
-			Trace("-e [路径] - 设置特效");
-			DestroyTrigger(GetTriggeringTrigger());
-		}));
-		tr = null;
-		// 创建伤害事件触发器
-		damageEventTrigger = CreateTrigger();
-		TriggerAddCondition(damageEventTrigger, Condition(function (){
-			unit source = GetEventDamageSource();
-			unit target = GetTriggerUnit();
-			real damage = GetEventDamage();
-			// 显示伤害信息
-			if(isShowDamage) {
-				Trace("|cffff0000伤害事件|r - 来源: " + GetUnitName(source) +
-				" 目标: " + GetUnitName(target) +
-				"("+I2S(GetHandleId(target))+ ") 伤害: " + R2S(damage) + " 当前栈层: " + I2S(DmgS.getTop()));
-			}
-			// 反伤测试
-			if(isReflectDamage && reflectCount < 5) { // 限制反伤次数
-reflectCount += 1; // 增加反伤计数
-Trace("第 " + I2S(reflectCount) + " 次反伤");
-				// 造成反伤
-				DamageArea(target, GetUnitX(target),GetUnitY(target), 100, damage * 0.5, true, I2S(DmgS.getTop()));
-				if(reflectCount >= 5) {
-					Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(DmgS.getTop()));
-				}
-			}
-		}));
-		// 注册聊天事件
-		UnitTestRegisterChatEvent(function() {
-			string str = GetEventPlayerChatString();
-			if(SubString(str, 0, 1) == "-") {
-				TTestActUTDamageUtils1(SubString(str, 1, StringLength(str)));
-				return;
-			}
-			if(str == "s1") TTestUTDamageUtils1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTDamageUtils2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTDamageUtils3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTDamageUtils4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTDamageUtils5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTDamageUtils6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTDamageUtils7(GetTriggerPlayer()); // 新增命令
-});
-		cameraControl.openWheel();
-	}
-	function onDestroy() {
-		DestroyTrigger(damageEventTrigger);
-		damageEventTrigger = null;
-	}
+library UTAC requires AC {
+    // 测试一次性定时任务
+    function TTestUTAC1 (player p) {
+        ac.reg(2.0, false, function() {
+			ac this = ac.ethis;
+            Trace("[线程:" + I2S(this) + "] 一次性定时任务测试: 2秒后触发一次");
+        });
+    }
+    // 测试循环定时任务
+    function TTestUTAC2 (player p) {
+        ac task = ac.reg(1.0, true, function() {
+			ac this = ac.ethis;
+            Trace("[线程:" + I2S(this) + "] 循环定时任务测试: 每1秒触发一次");
+        });
+        Trace("已创建循环任务,ID:" + I2S(task));
+    }
+    // 测试数据绑定
+    function TTestUTAC3 (player p) {
+        ac task = ac.reg(1.0, true, function() {
+            ac this = ac.ethis;
+            integer count = this.getInt(1) + 1;
+            this.saveInt(1, count);
+            Trace("[线程:" + I2S(this) + "] 数据绑定测试: 当前计数 " + I2S(count));
+        });
+        task.saveInt(1, 0); // 初始化计数器
+Trace("已创建带数据绑定的任务,ID:" + I2S(task));
+    }
+    // 测试任务注销
+    function TTestUTAC4 (player p) {
+        ac task = ac.reg(1.0, true, function() {
+			ac this = ac.ethis;
+            Trace("[线程:" + I2S(this) + "] 该消息只会显示一次,然后任务自动注销");
+            this.unreg();
+        });
+    }
+    // 打印当前任务列表
+    function TTestUTAC5 (player p) {
+        Trace(ac.toString());
+    }
+    // 其他测试函数保持空实现
+    function TTestUTAC6 (player p) {}
+    function TTestUTAC7 (player p) {}
+    function TTestUTAC8 (player p) {}
+    function TTestUTAC9 (player p) {}
+    function TTestUTAC10 (player p) {}
+    // 处理带参数的命令
+    function TTestActUTAC1 (string str) {
+        player p = GetTriggerPlayer();
+        integer index = GetConvertedPlayerId(p);
+        integer i, num = 0, len = StringLength(str);
+        integer count = 0;
+		ac task;
+        string paramS [];
+        integer paramI [];
+        real paramR [];
+        // 解析参数
+        for (0 <= i <= len - 1) {
+            if (SubString(str,i,i+1) == " ") {
+                paramS[num]= SubString(str,0,i);
+                paramI[num]= S2I(paramS[num]);
+                paramR[num]= S2R(paramS[num]);
+                num = num + 1;
+                str = SubString(str,i + 1,len);
+                len = StringLength(str);
+                i = -1;
+            }
+        }
+        paramS[num]= str;
+        paramI[num]= S2I(paramS[num]);
+        paramR[num]= S2R(paramS[num]);
+        num = num + 1;
+        // 处理命令
+        if (paramS[0] == "unreg") {
+            task = paramI[1];
+            if (task.isExist()) {
+                task.unreg();
+                Trace("已注销任务 " + I2S(task));
+            } else {
+                Trace("任务不存在");
+            }
+        } else if (paramS[0] == "unregAll") {
+            // 从后往前遍历,避免数组重排带来的问题
+            for (i = ac.size; i >= 1; i -= 1) {
+                task = ac.List[i];
+                if (task.isExist()) {
+                    task.unreg();
+                    count += 1;
+                }
+            }
+            Trace("已注销所有任务,共" + I2S(count) + "个");
+        }
+        p = null;
+    }
+    function onInit () {
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.5);
+        TriggerAddCondition(tr,Condition(function (){
+            Trace("[AC] 单元测试已加载");
+            Trace("输入s1-s5测试不同功能");
+            Trace("-unreg [id] 可注销指定任务");
+            Trace("-unregAll 可注销所有任务");
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+        UnitTestRegisterChatEvent(function () {
+            string str = GetEventPlayerChatString();
+            integer i = 1;
+            if (SubStringBJ(str,1,1) == "-") {
+                TTestActUTAC1(SubStringBJ(str,2,StringLength(str)));
+                return;
+            }
+            if (str == "s1") TTestUTAC1(GetTriggerPlayer());
+            else if(str == "s2") TTestUTAC2(GetTriggerPlayer());
+            else if(str == "s3") TTestUTAC3(GetTriggerPlayer());
+            else if(str == "s4") TTestUTAC4(GetTriggerPlayer());
+            else if(str == "s5") TTestUTAC5(GetTriggerPlayer());
+        });
+    }
 }
 //! endzinc
 // lua_print: 空白地图

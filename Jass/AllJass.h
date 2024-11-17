@@ -25,8 +25,7 @@
     // lua_print: 模型测试
 #endif
 
-#include "config/Log.h" // 输出日志配置
-// #define StructMode // todo:结构体数量查看模式:用条件编译直接全部搞定
+#include "Crainax/config/Log.h" // 输出日志配置
 
 //函数入口
 #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST) // 单元测试

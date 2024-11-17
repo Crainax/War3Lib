@@ -103,7 +103,7 @@
             "command": "cmd",
             "args": [
                 "/c",
-                "\"${config:WEPath}/bin/YDWEConfig.exe\"",
+                "${config:WEPath}/bin/YDWEConfig.exe",
                 "-launchwar3"
             ],
             "presentation": {
