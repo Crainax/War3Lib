@@ -1198,7 +1198,7 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs338341031")
+call ExecuteFunc("jasshelper__initstructs341798828")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("UTUIUtils__onInit")
 
@@ -1239,7 +1239,7 @@ endfunction
 
 //Struct method generated initializers/callers:
 
-function jasshelper__initstructs338341031 takes nothing returns nothing
+function jasshelper__initstructs341798828 takes nothing returns nothing
 
 
 

@@ -14,7 +14,6 @@ function inject_code:inject_file(op, path_in_archive)
 	op.inject_file(root / "share" / "mpq" / "units" / path_in_archive, path_in_archive)
 end
 
-
 -- 侦测需要注入哪些代码
 -- op.input - 脚本的路径，fs.path变量
 -- op.option - 选项，table类型，支持成员：
@@ -187,37 +186,51 @@ function inject_code:scan(config_dir)
 			local full_path_str = tostring(full_path)
 			local base_dir = full_path_str:match("(.+)[/\\]")
 			if not base_dir then
-				base_dir = "."  -- 如果没有找到目录分隔符，使用当前目录
+				base_dir = "." -- 如果没有找到目录分隔符，使用当前目录
 			end
 
 			local current_file = full_path_str:gsub("%.cfg$", ".j")
 
 			-- 将相对路径转为绝对路径
 			local function resolve_path(relative_path)
+				-- 首先统一路径分隔符为 "/"
+				local normalized_base = base_dir:gsub("\\", "/")
+				local normalized_relative = relative_path:gsub("\\", "/")
+
+				-- 确保基础路径以 "/" 结尾
+				if not normalized_base:match("/$") then
+					normalized_base = normalized_base .. "/"
+				end
+
+
 				-- 如果是以 ../ 开头的相对路径
-				if relative_path:match("^%.%.") then
-					local abs_path = base_dir
+				if normalized_relative:match("^%.%.") then
 					local parts = {}
 
 					-- 分割基础路径
-					for part in base_dir:gmatch("[^/]+") do
+					for part in normalized_base:gmatch("[^/]+") do
 						table.insert(parts, part)
 					end
 
 					-- 分割相对路径
-					for part in relative_path:gmatch("[^/]+") do
+					for part in normalized_relative:gmatch("[^/]+") do
 						if part == ".." then
-							table.remove(parts)     -- 移除最后一个目录
+							table.remove(parts) -- 移除最后一个目录
 						else
 							table.insert(parts, part)
 						end
 					end
 
 					-- 重新组合路径
-					return table.concat(parts, "/")
+					local result = table.concat(parts, "/")
+					return result
+				elseif normalized_relative:match("^/") then
+					return normalized_relative
 				else
-					-- 如果不是以 ../ 开头，直接拼接
-					return (base_dir .. relative_path):gsub("[/\\]+", "/")
+					-- 如果是普通的相对路径（不以 ../ 或 / 开头），
+					-- 则在当前目录下查找
+					local result = normalized_base .. normalized_relative
+					return result
 				end
 			end
 
