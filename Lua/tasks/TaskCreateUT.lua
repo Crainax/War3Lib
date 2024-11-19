@@ -3,6 +3,7 @@ local copy = require("Lua.utils.copy")
 local fu = require("Lua.utils.FileUtils")
 local tc = require("Lua.compile.TestControl")
 
+
 function CreateUTFile(jPath, jName, utPath)
 	-- 会覆盖创建,得先判断文件是否存在
 	if copy.IsExist(utPath) then
@@ -40,7 +41,7 @@ function CreateUnitTest(args)
 	else
 		jPath = args
 		utPath = string.gsub(jPath, "%.j$", "_Test.j") -- 单测文件路径
-		jName = string.match(jPath, "([^\\]+)%.(.+)$") -- 获取单元测试名字
+		jName = string.match(jPath, "([^/\\]+)%.(.+)$") -- 获取单元测试名字（同时支持/和\分隔符）
 		print("给" .. jName .. "创建单元测试文件中...")
 
 		-- 判断并创建UT文件
@@ -68,6 +69,11 @@ function CreateUnitTest(args)
 	return true
 end
 
+-- print("root:", arg[1])
+-- print("projectName:", arg[2])
+-- print("we:", arg[3])
+-- print("filePath:", arg[4])
+
 local root, projectPath, we, filePath
 if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
 	root = arg[1]
@@ -94,10 +100,6 @@ else
 	return
 end
 
--- print("root:", arg[1])
--- print("projectName:", arg[2])
--- print("we:", arg[3])
--- print("filePath:", arg[4])
 
 path.init(root, projectPath, we) -- 初始化路径
 CreateUnitTest(filePath)

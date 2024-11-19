@@ -1,5 +1,5 @@
 logs\currentmapscript.j
 pjass.exe
-Line 524:  Undeclared variable this
-Line 542:  Undeclared variable this
+Line 446:  Undeclared function RLimit
+Line 449:  Undeclared function RLimit
 2

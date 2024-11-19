@@ -30,13 +30,6 @@ library Variable requires Constant {
 	public unit H[];
 	public unit USelected[]; //正在选择的单位[同步]
 
-	//表数据
-	public hashtable HASH_UNIT_TYPE = InitHashtable();   // 单位类型哈希表
-	public hashtable HASH_UNIT = InitHashtable();        // 单位实例哈希表
-	public hashtable HASH_TIMER = InitHashtable();       // 计时器哈希表
-	public hashtable HASH_GROUP = InitHashtable();       // 单位组哈希表
-	public hashtable HASH_SPELL = InitHashtable();       // 技能结构哈希表
-
 	//选择事件
 	public trigger TrSelect = null;
 

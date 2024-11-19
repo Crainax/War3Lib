@@ -186,16 +186,31 @@ function inject_code:scan(config_dir)
 
                 -- 将相对路径转为绝对路径
                 local function resolve_path(relative_path)
-                    -- 处理 "../" 的情况
-                    local abs_path = base_dir .. relative_path
-                    abs_path = abs_path:gsub("[/\\]+", "/")  -- 统一路径分隔符
+                    -- 如果是以 ../ 开头的相对路径
+                    if relative_path:match("^%.%.") then
+                        local abs_path = base_dir
+                        local parts = {}
 
-                    -- 处理 "../" 的情况
-                    while abs_path:match("([^/]+)/%.%./") do
-                        abs_path = abs_path:gsub("([^/]+)/%.%./", "")
+                        -- 分割基础路径
+                        for part in base_dir:gmatch("[^/]+") do
+                            table.insert(parts, part)
+                        end
+
+                        -- 分割相对路径
+                        for part in relative_path:gmatch("[^/]+") do
+                            if part == ".." then
+                                table.remove(parts) -- 移除最后一个目录
+                            else
+                                table.insert(parts, part)
+                            end
+                        end
+
+                        -- 重新组合路径
+                        return table.concat(parts, "/")
+                    else
+                        -- 如果不是以 ../ 开头，直接拼接
+                        return (base_dir .. relative_path):gsub("[/\\]+", "/")
                     end
-
-                    return abs_path
                 end
 
                 local state = 0

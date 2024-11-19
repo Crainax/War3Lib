@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "process",
+            "label": "⚡️切换单测",
+            "command": "lua",
+            "args": [
+                "${config:War3RootPathMac}/Library/War3Lib/lua/tasks/TaskCreateUT.lua",
+                "${config:War3RootPathMac}",
+                "${config:War3RootPathMac}/Library/War3Lib",
+                "${config:WEPathMac}",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${config:War3RootPathMac}/Library/War3Lib"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "none",
+                "isDefault": true
+            }
+        }
+    ]
+}

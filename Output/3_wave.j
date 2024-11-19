@@ -1,3 +1,408 @@
+//! zinc
+/*
+* 数学工具库
+* 作者：AI Assistant
+*
+* 提供了一些常用的数学函数，包括实数到整数的转换、除法、实数相加、值限制、四舍五入以及射线与地图边界的交点计算。
+*/
+library MathUtils {
+    // 实转整 带概率进1的
+    // 将实数转换为整数，若小数部分大于随机数则进1
+    public function R2IRandom (real value) -> integer {
+        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
+            return R2I(value) + 1;
+        }
+        return R2I(value);
+    }
+    // 进行整数除法，若能整除则结果减1
+    public function Divide1 (integer i1,integer i2) -> integer {
+        if (ModuloInteger(i1,i2) == 0) {
+            return i1/i2 - 1;
+        }
+        return i1/i2;
+    }
+    // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
+    // 该函数可以避免简单线性相加导致的数值溢出，保证叠加后的效果符合递减收益原则
+    //
+    // 特点：
+    // - 正数叠加时使用概率学公式：1-(1-a1)*(1-a2)
+    // - 负数叠加时使用衰减公式：1-(1-a1)/(1+a2)
+    // - 当第二个参数绝对值>=1.0时，直接返回第一个参数
+    //
+    // 适用场景：
+    // - 技能冷却缩减叠加（CDR）
+    // - 暴击率、闪避率等概率性属性叠加
+    // - 移速加成等需要控制上限的属性叠加
+    //
+    // 参数说明：
+    // a1: 第一个数值，通常表示当前已有的加成效果
+    // a2: 第二个数值，表示要叠加的新加成效果
+    // 返回值: 叠加后的最终效果值
+    //
+    // 使用示例：
+    // real currentCDR = 0.4;    // 当前40%冷却缩减
+    // real newCDR = 0.5;        // 新装备50%冷却缩减
+    // real finalCDR = RealAdd(currentCDR, newCDR);  // 结果约为0.7，即70%冷却缩减
+    //
+    // 注意事项：
+    // 1. 虽然函数支持任意实数输入，但建议输入值在[-1.0, 1.0]范围内
+    // 2. 当|a2| >= 1.0时，函数会直接返回a1值
+    // 3. 该函数满足结合律，但不满足交换律，建议将已有效果作为第一个参数
+    // 4. 已测试过可以在用负数叠加后,使用负数的绝对值进行恢复
+    public function RealAdd ( real a1,real a2 ) -> real {
+        if (RAbsBJ(a2) >= 1.0) {return a1;}
+        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
+        else {return 1.0-(1.0-a1)/(1.0+a2);}
+    }
+    // 最小最大值限制
+    // 限制整数在[min, max]范围内
+    public function ILimit ( integer target,integer min,integer max ) -> integer {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    // 最小最大值限制
+    // 限制实数在[min, max]范围内
+    public function RLimit ( real target,real min,real max ) -> real {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    // 四舍五入法实数转整数
+    // 将实数四舍五入为整数
+    public function R2IM (real r) -> integer {
+        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
+        else return R2I(r);
+    }
+    // 计算射线与地图边界的交点
+    // 计算从给定点出发的射线与地图边界的交点
+    public struct radiationEnd {
+        static real x = 0,y = 0;
+        // 一个坐标沿着某个方向的边缘值
+        // 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
+        static method cal (real x1,real y1,real angle) {
+            real x2 = 0; //相交点
+real y2 = 0; //相交点
+real a = ModuloReal(angle,360); //求余数
+real tan;
+            x = 0;
+            y = 0;
+            // 处理特殊角度
+            if (a == 0) { // 正右方
+x = mapBounds.maxX;
+                y = y1;
+                return;
+            }
+            if (a == 90) { // 正上方
+x = x1;
+                y = mapBounds.maxY;
+                return;
+            }
+            if (a == 180) { // 正左方
+x = mapBounds.minX;
+                y = y1;
+                return;
+            }
+            if (a == 270) { // 正下方
+x = x1;
+                y = mapBounds.minY;
+                return;
+            }
+            // 处理一般角度
+            if (a < 90) { //第一象限
+tan = TanBJ(a);
+                x2 = (mapBounds.maxY - y1) / tan + x1;
+                y2 = (mapBounds.maxX - x1) * tan + y1;
+                if (x2 <= mapBounds.maxX) { //取这个
+x = x2;
+                    y = mapBounds.maxY;
+                } else {
+                    x = mapBounds.maxX;
+                    y = y2;
+                }
+            } else if(a < 180) { //第二象限
+tan = TanBJ(a);
+                x2 = (mapBounds.maxY - y1) / tan + x1;
+                y2 = (mapBounds.minX - x1) * tan + y1;
+                if (x2 >= mapBounds.minX) { //取这个
+x = x2;
+                    y = mapBounds.maxY;
+                } else {
+                    x = mapBounds.minX;
+                    y = y2;
+                }
+            } else if(a < 270) { //第三象限
+tan = TanBJ(a);
+                x2 = (mapBounds.minY - y1) / tan + x1;
+                y2 = (mapBounds.minX - x1) * tan + y1;
+                if (x2 >= mapBounds.minX) { //取这个
+x = x2;
+                    y = mapBounds.minY;
+                } else {
+                    x = mapBounds.minX;
+                    y = y2;
+                }
+            } else { //第四象限
+tan = TanBJ(a);
+                x2 = (mapBounds.minY - y1) / tan + x1;
+                y2 = (mapBounds.maxX - x1) * tan + y1;
+                if (x2 <= mapBounds.maxX) { //取这个
+x = x2;
+                    y = mapBounds.minY;
+                } else {
+                    x = mapBounds.maxX;
+                    y = y2;
+                }
+            }
+        }
+    }
+}
+//! endzinc
+library BzAPI
+    //hardware
+    native DzGetMouseTerrainX takes nothing returns real
+    native DzGetMouseTerrainY takes nothing returns real
+    native DzGetMouseTerrainZ takes nothing returns real
+    native DzIsMouseOverUI takes nothing returns boolean
+    native DzGetMouseX takes nothing returns integer
+    native DzGetMouseY takes nothing returns integer
+    native DzGetMouseXRelative takes nothing returns integer
+    native DzGetMouseYRelative takes nothing returns integer
+    native DzSetMousePos takes integer x, integer y returns nothing
+    native DzTriggerRegisterMouseEvent takes trigger trig, integer btn, integer status, boolean sync, string func returns nothing
+    native DzTriggerRegisterMouseEventByCode takes trigger trig, integer btn, integer status, boolean sync, code funcHandle returns nothing
+    native DzTriggerRegisterKeyEvent takes trigger trig, integer key, integer status, boolean sync, string func returns nothing
+    native DzTriggerRegisterKeyEventByCode takes trigger trig, integer key, integer status, boolean sync, code funcHandle returns nothing
+    native DzTriggerRegisterMouseWheelEvent takes trigger trig, boolean sync, string func returns nothing
+    native DzTriggerRegisterMouseWheelEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
+    native DzTriggerRegisterMouseMoveEvent takes trigger trig, boolean sync, string func returns nothing
+    native DzTriggerRegisterMouseMoveEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
+    native DzGetTriggerKey takes nothing returns integer
+    native DzGetWheelDelta takes nothing returns integer
+    native DzIsKeyDown takes integer iKey returns boolean
+    native DzGetTriggerKeyPlayer takes nothing returns player
+    native DzGetWindowWidth takes nothing returns integer
+    native DzGetWindowHeight takes nothing returns integer
+    native DzGetWindowX takes nothing returns integer
+    native DzGetWindowY takes nothing returns integer
+    native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
+    native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
+    native DzIsWindowActive takes nothing returns boolean
+    //plus
+    native DzDestructablePosition takes destructable d, real x, real y returns nothing
+    native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
+    native DzExecuteFunc takes string funcName returns nothing
+    native DzGetUnitUnderMouse takes nothing returns unit
+    native DzSetUnitTexture takes unit whichUnit, string path, integer texId returns nothing
+    native DzSetMemory takes integer address, real value returns nothing
+    native DzSetUnitID takes unit whichUnit, integer id returns nothing
+    native DzSetUnitModel takes unit whichUnit, string path returns nothing
+    native DzSetWar3MapMap takes string map returns nothing
+    native DzGetLocale takes nothing returns string
+    native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
+    //sync
+    native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
+    native DzSyncData takes string prefix, string data returns nothing
+    native DzGetTriggerSyncPrefix takes nothing returns string
+    native DzGetTriggerSyncData takes nothing returns string
+    native DzGetTriggerSyncPlayer takes nothing returns player
+    native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
+    //native DzGetPushContext takes nothing returns string
+    native DzSyncDataImmediately takes string prefix, string data returns nothing
+    //gui
+    native DzFrameHideInterface takes nothing returns nothing
+    native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
+    native DzFrameGetPortrait takes nothing returns integer
+    native DzFrameGetMinimap takes nothing returns integer
+    native DzFrameGetCommandBarButton takes integer row, integer column returns integer
+    native DzFrameGetHeroBarButton takes integer buttonId returns integer
+    native DzFrameGetHeroHPBar takes integer buttonId returns integer
+    native DzFrameGetHeroManaBar takes integer buttonId returns integer
+    native DzFrameGetItemBarButton takes integer buttonId returns integer
+    native DzFrameGetMinimapButton takes integer buttonId returns integer
+    native DzFrameGetUpperButtonBarButton takes integer buttonId returns integer
+    native DzFrameGetTooltip takes nothing returns integer
+    native DzFrameGetChatMessage takes nothing returns integer
+    native DzFrameGetUnitMessage takes nothing returns integer
+    native DzFrameGetTopMessage takes nothing returns integer
+    native DzGetColor takes integer r, integer g, integer b, integer a returns integer
+    native DzFrameSetUpdateCallback takes string func returns nothing
+    native DzFrameSetUpdateCallbackByCode takes code funcHandle returns nothing
+    native DzFrameShow takes integer frame, boolean enable returns nothing
+    native DzCreateFrame takes string frame, integer parent, integer id returns integer
+    native DzCreateSimpleFrame takes string frame, integer parent, integer id returns integer
+    native DzDestroyFrame takes integer frame returns nothing
+    native DzLoadToc takes string fileName returns nothing
+    native DzFrameSetPoint takes integer frame, integer point, integer relativeFrame, integer relativePoint, real x, real y returns nothing
+    native DzFrameSetAbsolutePoint takes integer frame, integer point, real x, real y returns nothing
+    native DzFrameClearAllPoints takes integer frame returns nothing
+    native DzFrameSetEnable takes integer name, boolean enable returns nothing
+    native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
+    native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
+    native DzGetTriggerUIEventPlayer takes nothing returns player
+    native DzGetTriggerUIEventFrame takes nothing returns integer
+    native DzFrameFindByName takes string name, integer id returns integer
+    native DzSimpleFrameFindByName takes string name, integer id returns integer
+    native DzSimpleFontStringFindByName takes string name, integer id returns integer
+    native DzSimpleTextureFindByName takes string name, integer id returns integer
+    native DzGetGameUI takes nothing returns integer
+    native DzClickFrame takes integer frame returns nothing
+    native DzSetCustomFovFix takes real value returns nothing
+    native DzEnableWideScreen takes boolean enable returns nothing
+    native DzFrameSetText takes integer frame, string text returns nothing
+    native DzFrameGetText takes integer frame returns string
+    native DzFrameSetTextSizeLimit takes integer frame, integer size returns nothing
+    native DzFrameGetTextSizeLimit takes integer frame returns integer
+    native DzFrameSetTextColor takes integer frame, integer color returns nothing
+    native DzGetMouseFocus takes nothing returns integer
+    native DzFrameSetAllPoints takes integer frame, integer relativeFrame returns boolean
+    native DzFrameSetFocus takes integer frame, boolean enable returns boolean
+    native DzFrameSetModel takes integer frame, string modelFile, integer modelType, integer flag returns nothing
+    native DzFrameGetEnable takes integer frame returns boolean
+    native DzFrameSetAlpha takes integer frame, integer alpha returns nothing
+    native DzFrameGetAlpha takes integer frame returns integer
+    native DzFrameSetAnimate takes integer frame, integer animId, boolean autocast returns nothing
+    native DzFrameSetAnimateOffset takes integer frame, real offset returns nothing
+    native DzFrameSetTexture takes integer frame, string texture, integer flag returns nothing
+    native DzFrameSetScale takes integer frame, real scale returns nothing
+    native DzFrameSetTooltip takes integer frame, integer tooltip returns nothing
+    native DzFrameCageMouse takes integer frame, boolean enable returns nothing
+    native DzFrameGetValue takes integer frame returns real
+    native DzFrameSetMinMaxValue takes integer frame, real minValue, real maxValue returns nothing
+    native DzFrameSetStepValue takes integer frame, real step returns nothing
+    native DzFrameSetValue takes integer frame, real value returns nothing
+    native DzFrameSetSize takes integer frame, real w, real h returns nothing
+    native DzCreateFrameByTagName takes string frameType, string name, integer parent, string template, integer id returns integer
+    native DzFrameSetVertexColor takes integer frame, integer color returns nothing
+    native DzOriginalUIAutoResetPoint takes boolean enable returns nothing
+    native DzFrameSetPriority takes integer frame, integer priority returns nothing
+    native DzFrameSetParent takes integer frame, integer parent returns nothing
+    native DzFrameGetHeight takes integer frame returns real
+    native DzFrameSetFont takes integer frame, string fileName, real height, integer flag returns nothing
+    native DzFrameGetParent takes integer frame returns integer
+    native DzFrameSetTextAlignment takes integer frame, integer align returns nothing
+    native DzFrameGetName takes integer frame returns string
+    native DzGetClientWidth takes nothing returns integer
+    native DzGetClientHeight takes nothing returns integer
+    native DzFrameIsVisible takes integer frame returns boolean
+        //显示/隐藏SimpleFrame
+    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
+    // 追加文字（支持TextArea）
+    native DzFrameAddText takes integer frame, string text returns nothing
+    // 沉默单位-禁用技能
+    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
+    // 禁用攻击
+    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
+    // 禁用道具
+    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
+    // 刷新小地图
+    native DzUpdateMinimap takes nothing returns nothing
+    // 修改单位alpha
+    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
+    // 设置单位是否可以选中
+    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
+    // 修改单位是否可以被设置为目标
+    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
+    // 保存内存数据
+    native DzSaveMemoryCache takes string cache returns nothing
+    // 读取内存数据
+    native DzGetMemoryCache takes nothing returns string
+    // 设置加速倍率
+    native DzSetSpeed takes real ratio returns nothing
+    // 转换世界坐标为屏幕坐标-异步
+    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
+    // 转换世界坐标为屏幕坐标-获取转换后的X坐标
+    native DzGetConvertWorldPositionX takes nothing returns real
+    // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
+    native DzGetConvertWorldPositionY takes nothing returns real
+    // 创建command button
+    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
+    function DzTriggerRegisterMouseEventTrg takes trigger trg, integer status, integer btn returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
+    endfunction
+    function DzTriggerRegisterKeyEventTrg takes trigger trg, integer status, integer btn returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterKeyEvent(trg, btn, status, true, null)
+    endfunction
+    function DzTriggerRegisterMouseMoveEventTrg takes trigger trg returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterMouseMoveEvent(trg, true, null)
+    endfunction
+    function DzTriggerRegisterMouseWheelEventTrg takes trigger trg returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterMouseWheelEvent(trg, true, null)
+    endfunction
+    function DzTriggerRegisterWindowResizeEventTrg takes trigger trg returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterWindowResizeEvent(trg, true, null)
+    endfunction
+    function DzF2I takes integer i returns integer
+        return i
+    endfunction
+    function DzI2F takes integer i returns integer
+        return i
+    endfunction
+    function DzK2I takes integer i returns integer
+        return i
+    endfunction
+    function DzI2K takes integer i returns integer
+        return i
+    endfunction
+    function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMIA", true)
+    endfunction
+    function DzGetTriggerMallItemPlayer takes nothing returns player
+        return DzGetTriggerSyncPlayer()
+    endfunction
+    function DzGetTriggerMallItem takes nothing returns string
+        return DzGetTriggerSyncData()
+    endfunction
+endlibrary
+//窗口的大小
+//! zinc
+/*
+UI工具库
+*/
+library UIUtils requires BzAPI{
+	//获得现在的X / Y比例
+	//主要用于UI缩放
+	public function GetResizeRate () -> real {
+		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
+		else return 1.0;
+	}
+	// 获取鼠标位置X(绝对坐标)[修正版]
+	public function GetMouseXEx () -> real {
+		integer width = DzGetClientWidth();
+		if (width > 0) return DzGetMouseXRelative()* 0.80 / width;
+		else return 0.1;
+	}
+	// 获取鼠标位置Y(绝对坐标)[修正版]
+	public function GetMouseYEx () -> real {
+		integer height = DzGetClientHeight();
+		if (height > 0) return 0.60 - DzGetMouseYRelative()* 0.60 / height;
+		else return 0.1;
+	}
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseX (real min,real max) -> real {
+		return RLimit(GetMouseXEx(),min,max);
+	}
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseY (real min,real max) -> real {
+		return RLimit(GetMouseYEx(),min,max);
+	}
+}
+//! endzinc
 /*
 单元测试框架(注入)
 */
@@ -31,650 +436,28 @@ library UnitTestFramwork {
 }
 //! endzinc
 //! zinc
-// AC (Action Controller) - 计时器事件总线
-//
-// 用于管理游戏中的定时触发事件,支持:
-// - 一次性定时任务
-// - 循环定时任务
-// - 带数据绑定的定时任务
-//
-// 警告: 禁止在异步环境下使用!
-//
-// @author Crainax
-// @version 1.0
-// 结构体共用方法定义
-library AC {
-    public struct ac {
-        static thistype ethis = 0; // 当前正在运行的实例引用
-static thistype List []; // 任务列表
-static integer size = 0; // 当前任务数量
-
-        private static hashtable table = InitHashtable(); // 存储绑定数据的哈希表
-private static timer t = null; // 主计时器
-private static real lastTick = 0; // 上次计时器触发的时间
-
-        integer uID; // 任务唯一ID
-trigger tr; // 绑定的触发器
-real remainTime; // 当前剩余时间
-real duration; // 初始持续时间
-boolean cycle; // 是否循环
-
-        method isExist () -> boolean {return (this != null && si__ac_V[this] == -1);}
-        // 实例销毁时的清理工作
-        method onDestroy () {
-            FlushChildHashtable(table, this);
-            DestroyTrigger(tr);
-            tr = null;
+// 地图边界工具库
+library MapBoundsUtils {
+    public struct mapBounds {
+        static real maxX = 0.;
+        static real minX = 0.;
+        static real maxY = 0.;
+        static real minY = 0.;
+        // 限制X坐标在地图范围内
+        static method X (real x) -> real {
+            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
         }
-        // 注销当前任务
-        // 会自动清理相关资源
-        public method unreg () {
-            if (!(isExist())) {
-                BJDebugMsg("error in unreg: AC is not exist");
-                return;
-            }
-            if (uID != 0) { //交换数据(以结构体形式)
-List[uID] = List[size];
-                List[uID].uID = uID;
-                size -= 1;
-                uID = 0;
-            }
-            this.destroy();
+        // 限制Y坐标在地图范围内
+        static method Y (real y) -> real {
+            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
         }
-        // 将当前注册的所有任务转为字符串形式
-        // 主要用于调试
-        // @return string 任务列表的字符串表示
-        static method toString () -> string {
-            string s = "";
-            integer i;
-            thistype this;
-            for (i = 1;i<= size;i += 1) { //不能用isExist,毕竟最后一个还是自己
-this = List[i];
-                if (tr == null) {s += "[" + I2S(i) + "]null->";}
-                else {s += "[" + I2S(this) + "]"+I2S(GetHandleId(tr))+"->";}
-            }
-            s += "/";
-            return "事件总数[" + I2S(size) + "]:" + s;
+        // 初始化
+        static method onInit () {
+            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
+            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
+            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
+            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
         }
-        // 注册一个带数据绑定的定时任务
-        // @param duration 持续时间,以0.1秒为单位
-        // @param b        是否循环执行
-        // @param func     要执行的函数
-        // @return thistype 返回任务实例
-        static method reg (real duration,boolean b,code func) -> thistype {
-            thistype this = allocate();
-            if (this <= 0) {return this;}
-            cycle = b;
-            this.remainTime = duration; // 转换为实数
-this.duration = duration;
-            tr = CreateTrigger();
-            TriggerAddCondition(tr,Condition(func));
-            FlushChildHashtable(table, this);
-            if (uID == 0) {
-                size += 1;
-                List[size] = this;
-                uID = size;
-            }
-            // 开始计时器
-            if (t == null) {
-                t = CreateTimer();
-                TimerStart(t,0.1,true,function (){ // 提高精度到0.1秒
-integer i;
-                    thistype this;
-                    if (size > 0) {
-                        for (1 <= i <= size) {
-                            this = List[i];
-                            this.remainTime -= 0.1; // 减去实际流逝的时间
-
-                            if (this.remainTime <= 0) { // 时间到
-if (tr != null) {
-                                    ethis = this;
-                                    TriggerEvaluate(tr);
-                                }
-                                if (cycle) { // 循环任务
-this.remainTime = this.duration; // 重置时间
-} else { // 一次性任务
-unreg();
-                                    i -= 1;
-                                }
-                            }
-                        }
-                    }
-                    if(size <= 0) {
-                        PauseTimer(t);
-                        DestroyTimer(t);
-                        t = null;
-                    }
-                });
-            }
-            return this;
-        }
-        // 保存整数数据
-        // @param key   键
-        // @param value 值
-        method saveInt (integer key,integer value) -> nothing {
-            SaveInteger(table, this, key, value);
-        }
-        // 获取整数数据
-        // @param key 键
-        // @return integer 值
-        method getInt (integer key) -> integer {
-            return LoadInteger(table, this, key);
-        }
-    }
-}
-//! endzinc
-//! zinc
-//==================================
-// 日志打印系统
-// version: 1.0
-// author: 系统自动生成
-// date: 2024/3/21
-//
-// 功能：提供五个日志级别输出
-// - TRACE(灰)：追踪调试用
-// - DEBUG(绿)：调试信息用
-// - INFO(白)：普通信息用
-// - WARN(黄)：警告信息用
-// - ERROR(红)：错误信息用
-//
-// 示例：
-// call Info("普通信息")
-// call Error(Player(0), "玩家1的错误")
-//==================================
-library Logger requires InnerJapi {
-    // 追踪级别日志(灰色),用于程序执行追踪
-    public function Trace(string msg) {
-        GetTriggerUnit();
-    }
-    // 调试级别日志(绿色),用于输出变量值等调试信息
-    public function Debug(string msg) {
-        GetTriggerUnit();
-    }
-    // 信息级别日志(白色),用于输出普通提示信息
-    public function Info(string msg) {
-        GetTriggerUnit();
-    }
-    // 警告级别日志(黄色),用于输出警告信息
-    public function Warn(string msg) {
-        GetTriggerUnit();
-    }
-    // 错误级别日志(红色),用于输出错误信息
-    public function Error(string msg) {
-        GetTriggerUnit();
-    }
-    // 向指定玩家输出追踪日志(灰色)
-    public function TraceToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-    // 向指定玩家输出调试日志(绿色)
-    public function DebugToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-    // 向指定玩家输出信息日志(白色)
-    public function InfoToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-    // 向指定玩家输出警告日志(黄色)
-    public function WarnToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-    // 向指定玩家输出错误日志(红色)
-    public function ErrorToPlayer(player p, string msg) {
-        GetTriggerUnit();
-    }
-    function onInit() {
-        AbilityId("exec-lua:depends.debug.logger"); //日志打印系统初始化
-}
-}
-//! endzinc
-// API文档: https://japi.war3rpg.top/
-/*
-
-japi引用的常量库 由于wave宏定义 只对以下的代码有效
-
-请将常量库里所有内容复制到  自定义脚本代码区
-*/
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//冷却时间
-//目标允许
-//施放时间
-//持续时间
-//持续时间
-//魔法消耗
-//施放间隔
-//影响区域
-//施法距离
-//数据A
-//数据B
-//数据C
-//数据D
-//数据E
-//数据F
-//数据G
-//数据H
-//数据I
-//单位类型
-//热键
-//关闭热键
-//学习热键
-//名字
-//图标
-//目标效果
-//施法者效果
-//目标点效果
-//区域效果
-//投射物
-//特殊效果
-//闪电效果
-//buff提示
-//buff提示
-//学习提示
-//提示
-//关闭提示
-//学习提示
-//提示
-//关闭提示
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-//! zinc
-/*
-初始化内置JAPI
-*/
-library InnerJapi {
-    // 运行Lua内容(在Jass端)
-    public function EXExecuteScript (string p1) -> string {
-        GetTriggeringTrigger();
-        return "";
-    }
-    // 显示屏幕中间的 FPS 文本
-    public function ShowFpsText(boolean show) {
-        GetTriggeringTrigger();
-    }
-    // 异步获取 玩家当前的帧数
-    // 玩家比较卡时 帧数较低 可以异步空特效路径 以及 弹道模型 屏蔽特效来提高帧数。
-    public function GetFps () -> real {
-        GetTriggeringTrigger();
-        return 0.0;
-    }
-    // 解锁帧数上限 突破 60 帧
-    // 填 true 解锁 填 false 恢复
-    public function UnlockFps (boolean is_unlock) {
-        GetTriggeringTrigger();
-    }
-    /* 清除魔兽 jass 虚拟机里缓存的字符串 解决游戏后期字符串太多导致游戏卡顿的问题
-    ReleaseAllString 做了特殊处理 不处理 jass 全局变量 局部变量 哈希表里的字符串 能安全使用
-    ReleaseString 没判定 字符串是否被引用， 需要小心使用。
-    DumpAllString 将现存的字符串 输出到文件里
-    顺便修复了 对玩家发送消息太多 导致卡顿的问题 */
-    public function GetCacheStringCount () -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    public function ReleaseString(string str) {
-        GetTriggeringTrigger();
-    }
-    public function ReleaseAllString() {
-        GetTriggeringTrigger();
-    }
-    public function DumpAllString(string filename) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 用来清空魔兽的模型文件缓存 降低内存占用 直到下一次读取 才会重新占用。
-    //call ReleaseModel("xxx.mdx")
-    public function ReleaseModel(string model_path) {
-        GetTriggeringTrigger();
-    }
-    public function ReleaseAllModel() {
-        GetTriggeringTrigger();
-    }
-    public function GetCacheModelCount() -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 异步获取 获取当前指向单位 一般用来做 UI 操作时需要用到的接口,注意返回是异步的 handle，切记小心使用
-    public function GetTargetObject() -> unit {
-        GetTriggeringTrigger();
-        return null;
-    }
-    // 异步获取 当前玩家大头像模型的单位 当框选一群单位时 切换选择也会改变返回值 一般用来做 UI 操作时需要用到的接口
-    public function GetRealSelectUnit () -> unit {
-        GetTriggeringTrigger();
-        return null;
-    }
-    // 异步获取 玩家的聊天框是否被打开 一般用来做键盘操作时 避免与输入冲突
-    // 打开时返回 true 未打开时返回 false 注意返回是异步的，切记小心使用
-    public function GetChatState () -> boolean {
-        GetTriggeringTrigger();
-        return false;
-    }
-    //解锁 blp 贴图的像素上限 原本魔兽高清图片也会被限制在 512p 之内
-    // 填 true 解锁 填 false 恢复
-    public function UnlockBlpSize (boolean is_unlock) {
-        GetTriggeringTrigger();
-    }
-    //设置单位名字 每个单位独立 互相不影响 修改后 获取单位名字 还是返回原值
-    public function SetUnitName (unit u, string name) {
-        GetTriggeringTrigger();
-    }
-    //设置单位头像模型 设置之后会立即改变 当 设置单位模型时 会被新的自动覆盖掉
-    // 模型路径 后缀可以是.mdx .mdl 省略后缀自动默认.mdx
-    public function SetUnitPortrait (unit u, string model) {
-        GetTriggeringTrigger();
-    }
-    //设置单位普攻弹道弧度 每个单位独立 互相不影响 会被法球覆盖
-    //call SetUnitMissileArc(GetTriggerUnit(), 0.8)
-    public function SetUnitMissileArc (unit u, real value) {
-        GetTriggeringTrigger();
-    }
-    //设置单位普攻弹道模型 每个单位独立 互相不影响 会被法球覆盖
-    //call SetUnitMissileModel(GetTriggerUnit(), "units\\human\\phoenix\\phoenix.mdx")
-    public function SetUnitMissileModel (unit u, string model) {
-        GetTriggeringTrigger();
-    }
-    //设置单位普攻弹道是否自动追踪 每个单位独立 互相不影响 会被法球覆盖
-    //call SetUnitMissileHoming(GetTriggerUnit(), true)
-    public function SetUnitMissileHoming (unit u, boolean value) {
-        GetTriggeringTrigger();
-    }
-    //设置单位普攻弹道速度 每个单位独立 互相不影响 会被法球覆盖
-    // call SetUnitMissileSpeed(GetTriggerUnit(), 2000)
-    public function SetUnitMissileSpeed (unit u, real value) {
-        GetTriggeringTrigger();
-    }
-    //设置单位模型 包括大头像模型也会自动设置 该接口 也可以给物品 特效 可破坏物 更换模型
-    // call SetUnitModel(GetTriggerUnit(), "units\\human\\Peasant\\Peasant.mdx")
-    public function SetUnitModel (unit u, string model) {
-        GetTriggeringTrigger();
-    }
-    //设置单位贴图 替换单位身上的 id 贴图 例如队伍颜色的 id 贴图是 0 队伍光晕 id 是 1
-    // call SetUnitTexture(GetTriggerUnit(), "xx.blp", 0)
-    public function SetUnitTexture (unit u, string texture, integer id) {
-        GetTriggeringTrigger();
-    }
-    //隐藏单位跟物品 鼠标指向时显示的 UI 包括单位血条
-    // 警告
-    // 目前对 物品使用会引起 掉线 请勿对物品使用
-    // 是否显示 填 false 就是隐藏
-    public function SetUnitPressUIVisible (unit u, boolean is_show) {
-        GetTriggeringTrigger();
-    }
-    // 设置特效动画
-    // index 动画索引
-    public function EXSetEffectAnimation (effect e, integer index) {
-        GetTriggeringTrigger();
-    }
-    // 设置特效 X Y 轴坐标
-    // 设置特效坐标 修复了原本 ydjapi 里面特效超过出生范围一定距离 游戏不会渲染的问题 用了类似全图挂的方式 强行让魔兽渲染该特效。 todo:测试一下来自普通japi的这个能不能强制渲染
-    //public function EXSetEffectXY (effect e, real x, real y) {
-    //    GetTriggeringTrigger();
-    //}
-    // 设置特效 Z 轴坐标
-    // 设置特效坐标 修复了原本 ydjapi 里面特效超过出生范围一定距离 游戏不会渲染的问题 用了类似全图挂的方式 强行让魔兽渲染该特效。
-    //public function EXSetEffectZ (effect e, real z) {
-    //    GetTriggeringTrigger();
-    //}
-    // 设置特效是否可见
-    public function EXSetEffectVisible (effect e, boolean visible) {
-        GetTriggeringTrigger();
-    }
-    // 设置特效是否在迷雾中可见
-    public function EXSetEffectFogVisible (effect e, boolean visible) {
-        GetTriggeringTrigger();
-    }
-    // 设置特效是否在阴影中可见
-    public function EXSetEffectMaskVisible (effect e, boolean visible) {
-        GetTriggeringTrigger();
-    }
-    // 设置特效颜色 透明值无效 16进制
-    public function EXSetEffectColor (effect e, integer color) {
-        GetTriggeringTrigger();
-    }
-    // 获取特效的颜色 跟 设置特效颜色 配合使用
-    public function EXGetEffectColor (effect e) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 设置英雄称谓 每个单位独立 互相不影响 GetHeroProperName 获取英雄称谓 是修改后的值。
-    public function SetUnitProperName (unit u, string name) {
-        GetTriggeringTrigger();
-    }
-    // 获取指定商店 选择 指定玩家的哪个单位 返回值是同步的接口 可以安全使用
-    // 如果商店周围没有可选的人的时候 会返回 0
-    // store 商店单位 拥有 出售物品 选择英雄 的单位
-    public function GetStoreTarget (unit store, player p) -> unit {
-        GetTriggeringTrigger();
-        return null;
-    }
-    // 获取指定 frame 的子控件 不能对 simple 类型的控件使用
-    // 整数	frame	控件地址
-    // 整数	last	上一个控件的地址 第一次读可以填 0
-    public function FrameGetChilds (integer frame, boolean last) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 获取指定 frame 的父控件 不能对 simple 类型的控件使用 可以获取 大头像模型 的父控件 然后为其新建子控件 用来放置在所有界面之下
-    public function FrameGetParent (integer frame) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 全屏状态下 返回 false 窗口化模式 返回 true
-    public function IsWindowMode () -> boolean {
-        GetTriggeringTrigger();
-        return false;
-    }
-    // 设置指定 frame 是否启用视口
-    // 设置开启 设置控件视口 比如 底板开启后 他的子控件 在边缘 超出部分不会渲染
-    public function FrameSetViewPort (integer frame, boolean enable) {
-        GetTriggeringTrigger();
-    }
-    // 设置窗口大小
-    // 修改窗口大小 可以强行限制用户 窗口模式下的 窗口比例 16/9
-    // call SetWindowSize(1024, 768)
-    public function SetWindowSize (integer width, integer height) {
-        GetTriggeringTrigger();
-    }
-    // 播放特效动画
-    // 特效	handle	绑定的特效
-    // 动画名	animation_name	字符串动画名字
-    // 链接名	link_name	变身动画才需要的链接名 一般情况填 "" 空字符串就行、
-    // call EXPlayEffectAnimation(eff, "attack", "")
-    public function EXPlayEffectAnimation (effect e, string animation_name, string link_name) {
-        GetTriggeringTrigger();
-    }
-    // 绑定特效
-    // 主动绑定 effect 到 handle 上面 可以单位绑 特效 可以特效绑 特效
-    // 对象	handle	可以是单位 特效 物品
-    // 绑点	socket	绑点名字
-    // 特效	handle	绑定的特效
-    // local effect eff = AddSpecialEffect("units\\human\\Peasant\\Peasant.mdl", 0, 0)
-    // call BindEffect(GetTriggerUnit(), eff)
-    public function BindEffect (widget u, string socket, effect e) {
-        GetTriggeringTrigger();
-    }
-    // 解除特效绑定
-    // 可以让绑定在单位身上的特效 分离出来， 被分离的特效能设置坐标 跟缩放、
-    public function UnBindEffect (effect e) {
-        GetTriggeringTrigger();
-    }
-    //内置默认是 解锁 frame 控件的 屏幕限制的 就是可以随便移动到屏幕之外的位置， 但是有个别用户 依赖这个限制 用网易的接口写了 ui 导致加了内置之后 位置变了， 故此新增这个接口 自行决定是否解锁。
-    // 布尔值	is_limit	填 true 是锁定 填 false 是解锁
-    public function SetFrameLimitScreen (integer frame, boolean is_limit) {
-        GetTriggeringTrigger();
-    }
-    // 获取当前玩家 id
-    public function GetUserId () -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    //异步获取 当前玩家在 11 或网易平台游戏时的 uid， 本地返回 0
-    //返回值是异步的 建议先同步后再使用
-    //这 2 个接口一般情况下 返回值都是一致的 有万分之一局的概率 2 个接口会返回不一致， 自己验证使用吧。
-    //网易的 uid 获取率 达到 99.999% 目前来说测试是稳定 有效的 11 的 uid 还没有经过测试， 需要自行测试 小心使用 切记。
-    public function GetUserIdEx () -> string {
-        GetTriggeringTrigger();
-        return "";
-    }
-    // 设置单位碰撞体积
-    //跟物编一样 修改单位的碰撞体积 会刷新寻路， 依然受到魔兽碰撞上限的限制
-    // 就是 当你 size 填 512 的时候 在远距离走路时 魔兽寻路 会按照 512 的碰撞体积去搜索路线， 在近距离时 魔兽会按照最高上限 估计 128 去搜索寻路 单位实际碰撞 也最高只有 128
-    public function SetUnitCollisionSize (unit u, real size) {
-        GetTriggeringTrigger();
-    }
-    // 设置单位移动类型
-    // 修改指定单位的移动类型 按字符串修改 类型可以是跟物编里效果一样 type 有以下几个数值
-    // "none"  = 没有， 无视碰撞
-    // "foot"  = 步行， 地面碰撞跟寻路
-    // "horse" = 骑马
-    // "fly"   = 飞行  具有飞行视野，寻路能穿越树木跟悬崖，可以直接设置飞行高度 不用乌鸦形态了
-    // "hover" = 浮空  不会踩中地雷
-    // "float" = 漂浮 只能在深水里活动 不能在地面活动
-    // "amph"  = 两栖
-    // "unbuild" = 未知 自己测试
-    public function SetUnitMoveType (unit u, string s) {
-        GetTriggeringTrigger();
-    }
-    // 获取 框选按钮 slot 从0 ~ 11
-    public function FrameGetInfoSelectButton (integer slot) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 获取 下方buff按钮 slot 从0 ~ 7
-    public function FrameGetBuffButton (integer slot) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 获取 农民按钮
-    public function FrameGetUnitButton () -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 获取 技能右下角数字文本控件 button = 技能按钮  返回值 = SimpleString 类型控件
-    public function FrameGetButtonSimpleString (integer btn) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 获取 技能右下角控件  button = 技能按钮  返回值 = SimpleFrame 类型控件
-    public function FrameGetButtonSimpleFrame (integer btn) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 判断控件是否显示
-    public function FrameIsShow (integer frame) -> boolean {
-        GetTriggeringTrigger();
-        return false;
-    }
-    // 修改/获取 原生按钮图片 button 可以是 技能按钮 物品按钮 英雄按钮 农民按钮 框选按钮 buff按钮
-    public function FrameSetOriginButtonTexture (integer btn, string path) {
-        GetTriggeringTrigger();
-    }
-    public function FrameGetOriginButtonTexture (integer btn) -> string {
-        GetTriggeringTrigger();
-        return "";
-    }
-    // 修改/获取 simple类型控件的 父控件
-    public function FrameGetSimpleParent (integer SimpleFrame) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    public function FrameSetSimpleParent (integer SimpleFrame, integer parentSimple) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 为Simple绑定 frame类型的子控件
-    // 可以将任意frame类型 绑定到 原生ui下面 返回值 可以解除绑定
-    // 返回的是一个 SetupFrame值
-    public function FrameSimpleBindFrame (integer SimpleFrame, integer Frame) -> integer {
-        GetTriggeringTrigger();
-        return 0;
-    }
-    // 解除绑定 解除后 frame跟simple 就不再关联
-    public function FrameSimpleUnBindFrame (integer SetupFrame) {
-        GetTriggeringTrigger();
-    }
-    //获取物品技能的 handle 返回值 可以用在 ydjapi 的技能接口
-    //slot	指定槽位 0 从开始
-    public function GetItemAbility (item Item, integer slot) -> ability {
-        GetTriggeringTrigger();
-        return null;
-    }
-    // main 函数就初始化的
-    public function initializePlugin () -> integer {
-        ExecuteFunc("DoNothing");
-        StartCampaignAI( Player(PLAYER_NEUTRAL_AGGRESSIVE), "callback" );
-        ExecuteFunc("DoNothing");
-        AbilityId("exec-lua:plugin_main");
-        return 0;
-    }
-    //显示内置Japi的版本
-    function GetPluginVersion () -> string {
-        GetTriggeringTrigger();
-        return "";
-    }
-    // 显示版本
-    function onInit () {
-        integer i = 0;
-        timer t;
-        t = CreateTimer();
-        TimerStart(t,0.0,false,function (){
-            timer t = GetExpiredTimer();
-            integer id = GetHandleId(t);
-            BJDebugMsg("内置Japi" + GetPluginVersion());
-            PauseTimer(t);
-            DestroyTimer(t);
-            t = null;
-        });
-        t = null;
     }
 }
 //! endzinc
@@ -787,138 +570,110 @@ endfunction
 // 用原始地图测试
 //! zinc
 /*
- * AC (Action Controller) 单元测试
- *
- * 测试指令:
- * s1 - 测试一次性定时任务
- * s2 - 测试循环定时任务
- * s3 - 测试数据绑定
- * s4 - 测试任务注销
- * s5 - 打印当前任务列表
- * -unreg [id] - 注销指定ID的任务
- * -unregAll - 注销所有任务
- *
- * @author Crainax
- * @version 1.0
+* UI工具库测试文件
+*
+* 测试命令:
+* s1 - 测试GetResizeRate函数
+* s2 - 测试GetMouseXEx和GetMouseYEx函数
+* s3 - 测试GetFixedMouseX和GetFixedMouseY函数
+* -a [min] [max] - 测试固定范围内的鼠标X坐标
+* -b [min] [max] - 测试固定范围内的鼠标Y坐标
 */
-library UTAC requires AC {
-    // 测试一次性定时任务
-    function TTestUTAC1 (player p) {
-        ac.reg(2.0, false, function() {
-			ac this = ac.ethis;
-            Trace("[线程:" + I2S(this) + "] 一次性定时任务测试: 2秒后触发一次");
-        });
-    }
-    // 测试循环定时任务
-    function TTestUTAC2 (player p) {
-        ac task = ac.reg(1.0, true, function() {
-			ac this = ac.ethis;
-            Trace("[线程:" + I2S(this) + "] 循环定时任务测试: 每1秒触发一次");
-        });
-        Trace("已创建循环任务,ID:" + I2S(task));
-    }
-    // 测试数据绑定
-    function TTestUTAC3 (player p) {
-        ac task = ac.reg(1.0, true, function() {
-            ac this = ac.ethis;
-            integer count = this.getInt(1) + 1;
-            this.saveInt(1, count);
-            Trace("[线程:" + I2S(this) + "] 数据绑定测试: 当前计数 " + I2S(count));
-        });
-        task.saveInt(1, 0); // 初始化计数器
-Trace("已创建带数据绑定的任务,ID:" + I2S(task));
-    }
-    // 测试任务注销
-    function TTestUTAC4 (player p) {
-        ac task = ac.reg(1.0, true, function() {
-			ac this = ac.ethis;
-            Trace("[线程:" + I2S(this) + "] 该消息只会显示一次,然后任务自动注销");
-            this.unreg();
-        });
-    }
-    // 打印当前任务列表
-    function TTestUTAC5 (player p) {
-        Trace(ac.toString());
-    }
-    // 其他测试函数保持空实现
-    function TTestUTAC6 (player p) {}
-    function TTestUTAC7 (player p) {}
-    function TTestUTAC8 (player p) {}
-    function TTestUTAC9 (player p) {}
-    function TTestUTAC10 (player p) {}
-    // 处理带参数的命令
-    function TTestActUTAC1 (string str) {
-        player p = GetTriggerPlayer();
-        integer index = GetConvertedPlayerId(p);
-        integer i, num = 0, len = StringLength(str);
-        integer count = 0;
-		ac task;
-        string paramS [];
-        integer paramI [];
-        real paramR [];
-        // 解析参数
-        for (0 <= i <= len - 1) {
-            if (SubString(str,i,i+1) == " ") {
-                paramS[num]= SubString(str,0,i);
-                paramI[num]= S2I(paramS[num]);
-                paramR[num]= S2R(paramS[num]);
-                num = num + 1;
-                str = SubString(str,i + 1,len);
-                len = StringLength(str);
-                i = -1;
-            }
-        }
-        paramS[num]= str;
-        paramI[num]= S2I(paramS[num]);
-        paramR[num]= S2R(paramS[num]);
-        num = num + 1;
-        // 处理命令
-        if (paramS[0] == "unreg") {
-            task = paramI[1];
-            if (task.isExist()) {
-                task.unreg();
-                Trace("已注销任务 " + I2S(task));
-            } else {
-                Trace("任务不存在");
-            }
-        } else if (paramS[0] == "unregAll") {
-            // 从后往前遍历,避免数组重排带来的问题
-            for (i = ac.size; i >= 1; i -= 1) {
-                task = ac.List[i];
-                if (task.isExist()) {
-                    task.unreg();
-                    count += 1;
-                }
-            }
-            Trace("已注销所有任务,共" + I2S(count) + "个");
-        }
-        p = null;
-    }
-    function onInit () {
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.5);
-        TriggerAddCondition(tr,Condition(function (){
-            Trace("[AC] 单元测试已加载");
-            Trace("输入s1-s5测试不同功能");
-            Trace("-unreg [id] 可注销指定任务");
-            Trace("-unregAll 可注销所有任务");
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-        UnitTestRegisterChatEvent(function () {
-            string str = GetEventPlayerChatString();
-            integer i = 1;
-            if (SubStringBJ(str,1,1) == "-") {
-                TTestActUTAC1(SubStringBJ(str,2,StringLength(str)));
-                return;
-            }
-            if (str == "s1") TTestUTAC1(GetTriggerPlayer());
-            else if(str == "s2") TTestUTAC2(GetTriggerPlayer());
-            else if(str == "s3") TTestUTAC3(GetTriggerPlayer());
-            else if(str == "s4") TTestUTAC4(GetTriggerPlayer());
-            else if(str == "s5") TTestUTAC5(GetTriggerPlayer());
-        });
-    }
+library UTUIUtils requires UIUtils {
+	// 测试GetResizeRate函数
+	function TTestUTUIUtils1(player p) {
+		real rate = GetResizeRate();
+		BJDebugMsg("当前窗口缩放比例: " + R2S(rate));
+	}
+	// 测试GetMouseXEx和GetMouseYEx函数
+	function TTestUTUIUtils2(player p) {
+		real mouseX = GetMouseXEx();
+		real mouseY = GetMouseYEx();
+		BJDebugMsg("鼠标X坐标: " + R2S(mouseX));
+		BJDebugMsg("鼠标Y坐标: " + R2S(mouseY));
+	}
+	// 测试GetFixedMouseX和GetFixedMouseY函数
+	function TTestUTUIUtils3(player p) {
+		real fixedX = GetFixedMouseX(0.1, 0.7);
+		real fixedY = GetFixedMouseY(0.1, 0.5);
+		BJDebugMsg("限制范围后的鼠标X坐标: " + R2S(fixedX));
+		BJDebugMsg("限制范围后的鼠标Y坐标: " + R2S(fixedY));
+	}
+	// 保留其他测试函数占位
+	function TTestUTUIUtils4(player p) {}
+	function TTestUTUIUtils5(player p) {}
+	function TTestUTUIUtils6(player p) {}
+	function TTestUTUIUtils7(player p) {}
+	function TTestUTUIUtils8(player p) {}
+	function TTestUTUIUtils9(player p) {}
+	function TTestUTUIUtils10(player p) {}
+	// 处理带参数的测试命令
+	function TTestActUTUIUtils1(string str) {
+		player p = GetTriggerPlayer();
+		integer index = GetConvertedPlayerId(p);
+		integer i, num = 0, len = StringLength(str);
+		string paramS[];
+		integer paramI[];
+		real paramR[];
+		real fixedX;
+		real fixedY;
+		// 解析参数
+		for (0 <= i <= len - 1) {
+			if (SubString(str,i,i+1) == " ") {
+				paramS[num] = SubString(str,0,i);
+				paramI[num] = S2I(paramS[num]);
+				paramR[num] = S2R(paramS[num]);
+				num = num + 1;
+				str = SubString(str,i + 1,len);
+				len = StringLength(str);
+				i = -1;
+			}
+		}
+		paramS[num] = str;
+		paramI[num] = S2I(paramS[num]);
+		paramR[num] = S2R(paramS[num]);
+		num = num + 1;
+		// 测试固定范围的鼠标X坐标
+		if (paramS[0] == "a") {
+			fixedX = GetFixedMouseX(paramR[1], paramR[2]);
+			BJDebugMsg("在范围 " + R2S(paramR[1]) + " 到 " + R2S(paramR[2]) + " 内的鼠标X坐标: " + R2S(fixedX));
+		}
+		// 测试固定范围的鼠标Y坐标
+		else if (paramS[0] == "b") {
+			fixedY = GetFixedMouseY(paramR[1], paramR[2]);
+			BJDebugMsg("在范围 " + R2S(paramR[1]) + " 到 " + R2S(paramR[2]) + " 内的鼠标Y坐标: " + R2S(fixedY));
+		}
+		p = null;
+	}
+	function onInit() {
+		trigger tr = CreateTrigger();
+		TriggerRegisterTimerEventSingle(tr, 0.5);
+		TriggerAddCondition(tr, Condition(function() {
+			BJDebugMsg("[UIUtils] 单元测试已加载");
+			BJDebugMsg("使用 s1-s3 测试基本功能");
+			BJDebugMsg("使用 -a [min] [max] 测试固定范围的鼠标X坐标");
+			BJDebugMsg("使用 -b [min] [max] 测试固定范围的鼠标Y坐标");
+			DestroyTrigger(GetTriggeringTrigger());
+		}));
+		tr = null;
+		UnitTestRegisterChatEvent(function() {
+			string str = GetEventPlayerChatString();
+			if (SubStringBJ(str,1,1) == "-") {
+				TTestActUTUIUtils1(SubStringBJ(str,2,StringLength(str)));
+				return;
+			}
+			if (str == "s1") TTestUTUIUtils1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUIUtils2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUIUtils3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUIUtils4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUIUtils5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUIUtils6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUIUtils7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUIUtils8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUIUtils9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUIUtils10(GetTriggerPlayer());
+		});
+	}
 }
 //! endzinc
 // lua_print: 空白地图
@@ -1239,7 +994,7 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function main takes nothing returns nothing
-    call initializePlugin() <?='\n'?> call SetCameraBounds( -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM) )
+    call SetCameraBounds( -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM) )
     call SetDayNightModels( "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl" )
     call NewSoundEnvironment( "Default" )
     call SetAmbientDaySound( "NorthrendDay" )
