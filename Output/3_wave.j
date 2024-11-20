@@ -1,35 +1,115 @@
-//窗口的大小
+// 结构体共用方法定义
+//Index名:
+//默认原生图片路径
+//模板名
 //! zinc
 /*
-UI工具库
+文字UI组件
 */
-library UIUtils requires BzAPI{
-	//获得现在的X / Y比例
-	//主要用于UI缩放
-	public function GetResizeRate () -> real {
-		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
-		else return 1.0;
-	}
-	// 获取鼠标位置X(绝对坐标)[修正版]
-	public function GetMouseXEx () -> real {
-		integer width = DzGetClientWidth();
-		if (width > 0) return DzGetMouseXRelative()* 0.80 / width;
-		else return 0.1;
-	}
-	// 获取鼠标位置Y(绝对坐标)[修正版]
-	public function GetMouseYEx () -> real {
-		integer height = DzGetClientHeight();
-		if (height > 0) return 0.60 - DzGetMouseYRelative()* 0.60 / height;
-		else return 0.1;
-	}
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseX (real min,real max) -> real {
-		return RLimit(GetMouseXEx(),min,max);
-	}
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseY (real min,real max) -> real {
-		return RLimit(GetMouseYEx(),min,max);
-	}
+library UIText requires UIId,UITocInit {
+    public struct uiText {
+        integer ui; //frameID
+integer id; //可以回收的ID名(为了销毁时ID不重复)
+
+        method isExist () -> boolean {return (this != null && si__uiText_V[this] == -1);}
+        static method create (integer parent,integer size) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("TEXT","Text" + I2S(id),parent,"TextTemplate",0);
+            DzFrameSetFont(ui,"fonts\\zt.ttf",size,0);
+            return this;
+        }
+        // TEXT_ALIGN_TOP_LEFT = 0        // 左上对齐
+        // TEXT_ALIGN_TOP_CENTER = 1      // 顶部居中对齐
+        // TEXT_ALIGN_TOP_RIGHT = 2       // 右上对齐
+        // TEXT_ALIGN_MIDDLE_LEFT = 3     // 左中对齐
+        // TEXT_ALIGN_MIDDLE_CENTER = 4   // 中心对齐
+        // TEXT_ALIGN_MIDDLE_RIGHT = 5    // 右中对齐
+        // TEXT_ALIGN_BOTTOM_LEFT = 6     // 左下对齐
+        // TEXT_ALIGN_BOTTOM_CENTER = 7   // 底部居中对齐
+        // TEXT_ALIGN_BOTTOM_RIGHT = 8    // 右下对齐
+        method setAlign (integer align) -> nothing {
+            if (!this.isExist()) {return;}
+            DzFrameSetTextAlignment(ui,align);
+        }
+        method setText (string text) -> nothing {
+            if (!this.isExist()) {return;}
+            DzFrameSetText(ui,text);
+        }
+        //销毁时调用
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+            ui = 0;
+            id = 0;
+        }
+    }
+}
+//! endzinc
+//! zinc
+/*
+ID复用器
+*/
+// 使用常量定义父键，使代码更清晰
+library UIId {
+    public struct uiId []{
+        static hashtable ht;
+        static integer nextId;
+        static integer recycleCount;
+        static method onInit () {
+            thistype.ht = InitHashtable();
+            thistype.nextId = 1;
+            thistype.recycleCount = 0;
+        }
+        static method get () -> integer {
+            integer id;
+            // 如果有已回收的ID，优先使用
+            if (recycleCount > 0) {
+                // 获取最后一个回收的ID
+                id = LoadInteger(ht, 1, recycleCount - 1);
+                // 从回收池中删除这个ID
+                RemoveSavedInteger(ht, 1, recycleCount - 1);
+                // 从状态表中删除
+                RemoveSavedBoolean(ht, 2, id);
+                recycleCount = recycleCount - 1;
+                return id;
+            }
+            // 如果没有可复用的ID，返回新的ID
+            id = nextId;
+            nextId = nextId + 1;
+            return id;
+        }
+        static method recycle (integer id) {
+            // 快速检查ID是否已经在回收池中
+            if (!HaveSavedBoolean(ht, 2, id)) {
+                // 将ID存入回收池
+                SaveInteger(ht, 1, recycleCount, id);
+                // 标记该ID已被回收
+                SaveBoolean(ht, 2, id, true);
+                recycleCount = recycleCount + 1;
+            }
+        }
+        // 获取回收池中ID的数量
+        static method getRecycledCount() -> integer {
+            return recycleCount;
+        }
+        // 获取当前正在使用的ID数量
+        static method getActiveCount() -> integer {
+            // 最大ID减去已回收的ID数量
+            return (nextId - 1) - recycleCount;
+        }
+    }
+}
+//! endzinc
+//! zinc
+/*
+Toc初始化,才能使用UI功能
+*/
+library UITocInit requires BzAPI {
+  function onInit () {
+		DzLoadToc("ui\\PhantomOrbit.toc");
+  }
 }
 //! endzinc
 /*
@@ -114,7 +194,7 @@ library BzAPI
     native DzGetTriggerSyncPlayer takes nothing returns player
     native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
     //native DzGetPushContext takes nothing returns string
-    native DzSyncDataImmediately takes string prefix, string data returns nothing
+    native DzSyncDataImmediately takes string prefix, string data returns nothing 
     //gui
     native DzFrameHideInterface takes nothing returns nothing
     native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
@@ -268,199 +348,22 @@ library BzAPI
     function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
         call DzTriggerRegisterSyncData(trig, "DZMIA", true)
     endfunction
+    //玩家消耗/使用商城道具事件
+    function DzTriggerRegisterMallItemConsumeEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMIC", true)
+    endfunction
+    //玩家删除商城道具事件
+    function DzTriggerRegisterMallItemRemoveEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMID", true)
+    endfunction
     function DzGetTriggerMallItemPlayer takes nothing returns player
         return DzGetTriggerSyncPlayer()
     endfunction
     function DzGetTriggerMallItem takes nothing returns string
         return DzGetTriggerSyncData()
     endfunction
+    
 endlibrary
-//! zinc
-// 地图边界工具库
-library MapBoundsUtils {
-    public struct mapBounds {
-        static real maxX = 0.;
-        static real minX = 0.;
-        static real maxY = 0.;
-        static real minY = 0.;
-        // 限制X坐标在地图范围内
-        static method X (real x) -> real {
-            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
-        }
-        // 限制Y坐标在地图范围内
-        static method Y (real y) -> real {
-            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
-        }
-        // 初始化
-        static method onInit () {
-            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
-            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
-            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
-            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
-        }
-    }
-}
-//! endzinc
-//! zinc
-/*
-* 数学工具库
-* 作者：AI Assistant
-*
-* 提供了一些常用的数学函数，包括实数到整数的转换、除法、实数相加、值限制、四舍五入以及射线与地图边界的交点计算。
-*/
-library MathUtils {
-    // 实转整 带概率进1的
-    // 将实数转换为整数，若小数部分大于随机数则进1
-    public function R2IRandom (real value) -> integer {
-        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
-            return R2I(value) + 1;
-        }
-        return R2I(value);
-    }
-    // 进行整数除法，若能整除则结果减1
-    public function Divide1 (integer i1,integer i2) -> integer {
-        if (ModuloInteger(i1,i2) == 0) {
-            return i1/i2 - 1;
-        }
-        return i1/i2;
-    }
-    // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
-    // 该函数可以避免简单线性相加导致的数值溢出，保证叠加后的效果符合递减收益原则
-    //
-    // 特点：
-    // - 正数叠加时使用概率学公式：1-(1-a1)*(1-a2)
-    // - 负数叠加时使用衰减公式：1-(1-a1)/(1+a2)
-    // - 当第二个参数绝对值>=1.0时，直接返回第一个参数
-    //
-    // 适用场景：
-    // - 技能冷却缩减叠加（CDR）
-    // - 暴击率、闪避率等概率性属性叠加
-    // - 移速加成等需要控制上限的属性叠加
-    //
-    // 参数说明：
-    // a1: 第一个数值，通常表示当前已有的加成效果
-    // a2: 第二个数值，表示要叠加的新加成效果
-    // 返回值: 叠加后的最终效果值
-    //
-    // 使用示例：
-    // real currentCDR = 0.4;    // 当前40%冷却缩减
-    // real newCDR = 0.5;        // 新装备50%冷却缩减
-    // real finalCDR = RealAdd(currentCDR, newCDR);  // 结果约为0.7，即70%冷却缩减
-    //
-    // 注意事项：
-    // 1. 虽然函数支持任意实数输入，但建议输入值在[-1.0, 1.0]范围内
-    // 2. 当|a2| >= 1.0时，函数会直接返回a1值
-    // 3. 该函数满足结合律，但不满足交换律，建议将已有效果作为第一个参数
-    // 4. 已测试过可以在用负数叠加后,使用负数的绝对值进行恢复
-    public function RealAdd ( real a1,real a2 ) -> real {
-        if (RAbsBJ(a2) >= 1.0) {return a1;}
-        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
-        else {return 1.0-(1.0-a1)/(1.0+a2);}
-    }
-    // 最小最大值限制
-    // 限制整数在[min, max]范围内
-    public function ILimit ( integer target,integer min,integer max ) -> integer {
-        if (target < min) {return min;}
-        else if (target > max) {return max;}
-        else {return target;}
-    }
-    // 最小最大值限制
-    // 限制实数在[min, max]范围内
-    public function RLimit ( real target,real min,real max ) -> real {
-        if (target < min) {return min;}
-        else if (target > max) {return max;}
-        else {return target;}
-    }
-    // 四舍五入法实数转整数
-    // 将实数四舍五入为整数
-    public function R2IM (real r) -> integer {
-        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
-        else return R2I(r);
-    }
-    // 计算射线与地图边界的交点
-    // 计算从给定点出发的射线与地图边界的交点
-    public struct radiationEnd {
-        static real x = 0,y = 0;
-        // 一个坐标沿着某个方向的边缘值
-        // 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
-        static method cal (real x1,real y1,real angle) {
-            real x2 = 0; //相交点
-real y2 = 0; //相交点
-real a = ModuloReal(angle,360); //求余数
-real tan;
-            x = 0;
-            y = 0;
-            // 处理特殊角度
-            if (a == 0) { // 正右方
-x = mapBounds.maxX;
-                y = y1;
-                return;
-            }
-            if (a == 90) { // 正上方
-x = x1;
-                y = mapBounds.maxY;
-                return;
-            }
-            if (a == 180) { // 正左方
-x = mapBounds.minX;
-                y = y1;
-                return;
-            }
-            if (a == 270) { // 正下方
-x = x1;
-                y = mapBounds.minY;
-                return;
-            }
-            // 处理一般角度
-            if (a < 90) { //第一象限
-tan = TanBJ(a);
-                x2 = (mapBounds.maxY - y1) / tan + x1;
-                y2 = (mapBounds.maxX - x1) * tan + y1;
-                if (x2 <= mapBounds.maxX) { //取这个
-x = x2;
-                    y = mapBounds.maxY;
-                } else {
-                    x = mapBounds.maxX;
-                    y = y2;
-                }
-            } else if(a < 180) { //第二象限
-tan = TanBJ(a);
-                x2 = (mapBounds.maxY - y1) / tan + x1;
-                y2 = (mapBounds.minX - x1) * tan + y1;
-                if (x2 >= mapBounds.minX) { //取这个
-x = x2;
-                    y = mapBounds.maxY;
-                } else {
-                    x = mapBounds.minX;
-                    y = y2;
-                }
-            } else if(a < 270) { //第三象限
-tan = TanBJ(a);
-                x2 = (mapBounds.minY - y1) / tan + x1;
-                y2 = (mapBounds.minX - x1) * tan + y1;
-                if (x2 >= mapBounds.minX) { //取这个
-x = x2;
-                    y = mapBounds.minY;
-                } else {
-                    x = mapBounds.minX;
-                    y = y2;
-                }
-            } else { //第四象限
-tan = TanBJ(a);
-                x2 = (mapBounds.minY - y1) / tan + x1;
-                y2 = (mapBounds.maxX - x1) * tan + y1;
-                if (x2 <= mapBounds.maxX) { //取这个
-x = x2;
-                    y = mapBounds.minY;
-                } else {
-                    x = mapBounds.maxX;
-                    y = y2;
-                }
-            }
-        }
-    }
-}
-//! endzinc
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -569,109 +472,73 @@ endfunction
 // 用空地图测试
 // 用原始地图测试
 //! zinc
-/*
-* UI工具库测试文件
-*
-* 测试命令:
-* s1 - 测试GetResizeRate函数
-* s2 - 测试GetMouseXEx和GetMouseYEx函数
-* s3 - 测试GetFixedMouseX和GetFixedMouseY函数
-* -a [min] [max] - 测试固定范围内的鼠标X坐标
-* -b [min] [max] - 测试固定范围内的鼠标Y坐标
-*/
-library UTUIUtils requires UIUtils {
-	// 测试GetResizeRate函数
-	function TTestUTUIUtils1(player p) {
-		real rate = GetResizeRate();
-		BJDebugMsg("当前窗口缩放比例: " + R2S(rate));
+//自动生成的文件
+library UTUIText requires UIText {
+	function TTestUTUIText1 (player p) {
+		uiText t = uiText.create(uiId.get(),10);
 	}
-	// 测试GetMouseXEx和GetMouseYEx函数
-	function TTestUTUIUtils2(player p) {
-		real mouseX = GetMouseXEx();
-		real mouseY = GetMouseYEx();
-		BJDebugMsg("鼠标X坐标: " + R2S(mouseX));
-		BJDebugMsg("鼠标Y坐标: " + R2S(mouseY));
-	}
-	// 测试GetFixedMouseX和GetFixedMouseY函数
-	function TTestUTUIUtils3(player p) {
-		real fixedX = GetFixedMouseX(0.1, 0.7);
-		real fixedY = GetFixedMouseY(0.1, 0.5);
-		BJDebugMsg("限制范围后的鼠标X坐标: " + R2S(fixedX));
-		BJDebugMsg("限制范围后的鼠标Y坐标: " + R2S(fixedY));
-	}
-	// 保留其他测试函数占位
-	function TTestUTUIUtils4(player p) {}
-	function TTestUTUIUtils5(player p) {}
-	function TTestUTUIUtils6(player p) {}
-	function TTestUTUIUtils7(player p) {}
-	function TTestUTUIUtils8(player p) {}
-	function TTestUTUIUtils9(player p) {}
-	function TTestUTUIUtils10(player p) {}
-	// 处理带参数的测试命令
-	function TTestActUTUIUtils1(string str) {
+	function TTestUTUIText2 (player p) {}
+	function TTestUTUIText3 (player p) {}
+	function TTestUTUIText4 (player p) {}
+	function TTestUTUIText5 (player p) {}
+	function TTestUTUIText6 (player p) {}
+	function TTestUTUIText7 (player p) {}
+	function TTestUTUIText8 (player p) {}
+	function TTestUTUIText9 (player p) {}
+	function TTestUTUIText10 (player p) {}
+	function TTestActUTUIText1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str);
-		string paramS[];
-		integer paramI[];
-		real paramR[];
-		real fixedX;
-		real fixedY;
-		// 解析参数
-		for (0 <= i <= len - 1) {
+		integer i, num = 0, len = StringLength(str); //获取范围式数字
+string paramS []; //所有参数S
+integer paramI []; //所有参数I
+real	paramR []; //所有参数R
+for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
-				paramS[num] = SubString(str,0,i);
-				paramI[num] = S2I(paramS[num]);
-				paramR[num] = S2R(paramS[num]);
+				paramS[num]= SubString(str,0,i);
+				paramI[num]= S2I(paramS[num]);
+				paramR[num]= S2R(paramS[num]);
 				num = num + 1;
 				str = SubString(str,i + 1,len);
 				len = StringLength(str);
 				i = -1;
 			}
 		}
-		paramS[num] = str;
-		paramI[num] = S2I(paramS[num]);
-		paramR[num] = S2R(paramS[num]);
+		paramS[num]= str;
+		paramI[num]= S2I(paramS[num]);
+		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		// 测试固定范围的鼠标X坐标
 		if (paramS[0] == "a") {
-			fixedX = GetFixedMouseX(paramR[1], paramR[2]);
-			BJDebugMsg("在范围 " + R2S(paramR[1]) + " 到 " + R2S(paramR[2]) + " 内的鼠标X坐标: " + R2S(fixedX));
-		}
-		// 测试固定范围的鼠标Y坐标
-		else if (paramS[0] == "b") {
-			fixedY = GetFixedMouseY(paramR[1], paramR[2]);
-			BJDebugMsg("在范围 " + R2S(paramR[1]) + " 到 " + R2S(paramR[2]) + " 内的鼠标Y坐标: " + R2S(fixedY));
+		} else if (paramS[0] == "b") {
 		}
 		p = null;
 	}
-	function onInit() {
+	function onInit () {
+		//在游戏开始0.0秒后再调用
 		trigger tr = CreateTrigger();
-		TriggerRegisterTimerEventSingle(tr, 0.5);
-		TriggerAddCondition(tr, Condition(function() {
-			BJDebugMsg("[UIUtils] 单元测试已加载");
-			BJDebugMsg("使用 s1-s3 测试基本功能");
-			BJDebugMsg("使用 -a [min] [max] 测试固定范围的鼠标X坐标");
-			BJDebugMsg("使用 -b [min] [max] 测试固定范围的鼠标Y坐标");
+		TriggerRegisterTimerEventSingle(tr,0.5);
+		TriggerAddCondition(tr,Condition(function (){
+			BJDebugMsg("[UIText] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
-		UnitTestRegisterChatEvent(function() {
+		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
+			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUIUtils1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUIText1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUIUtils1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUIUtils2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUIUtils3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUIUtils4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUIUtils5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUIUtils6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUIUtils7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUIUtils8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUIUtils9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUIUtils10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUIText1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUIText2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUIText3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUIText4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUIText5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUIText6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUIText7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUIText8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUIText9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUIText10(GetTriggerPlayer());
 		});
 	}
 }

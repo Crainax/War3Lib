@@ -1,21 +1,21 @@
 #ifndef UILayerIncluded
 #define UILayerIncluded
 
-#include "constants/UIConstants.j"
+#include "Crainax/ui/constants/UIConstants.j"
 
 //! zinc
 //UI层级
-library UILayer {
+library UILayer requires UITocInit {
 
 	public struct uilayer [] {
 
-		static integer lv1 = 0;//预设几个层级,越大越上
-		static integer lv2 = 0;//预设几个层级,越大越上
-		static integer lv3 = 0;//预设几个层级,越大越上
-		static integer lv4 = 0;//预设几个层级,越大越上
-		static integer lv5 = 0;//预设几个层级,越大越上
-		static integer lv6 = 0;//预设几个层级,越大越上
-		static integer lv7 = 0;//预设几个层级,越大越上
+		static integer lv1 = 0 ; //预设几个层级,越大越上
+		static integer lv2 = 0 ; //预设几个层级,越大越上
+		static integer lv3 = 0 ; //预设几个层级,越大越上
+		static integer lv4 = 0 ; //预设几个层级,越大越上
+		static integer lv5 = 0 ; //预设几个层级,越大越上
+		static integer lv6 = 0 ; //预设几个层级,越大越上
+		static integer lv7 = 0 ; //预设几个层级,越大越上
 
 		static method onInit () {
 			uilayer.lv1 = DzCreateFrameByTagName("BACKDROP","layer1",DzGetGameUI(),TEMPLATE_IMAGE,0);

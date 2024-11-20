@@ -9,9 +9,7 @@ UI的基础API
 library UIBase requires BzAPI {
 
 	public integer UIIndex = 0;
-	function onInit ()  {
-		DzLoadToc("ui\\PhantomOrbit.toc");
-	}
+
 
 	//创建一个文本[居中]
 	public function NewTextOrigin (integer parent,real size) -> integer {

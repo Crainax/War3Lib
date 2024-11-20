@@ -1,5 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 446:  Undeclared function RLimit
-Line 449:  Undeclared function RLimit
-2
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 463: library redeclared : UIText
+1

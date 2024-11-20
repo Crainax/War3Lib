@@ -12,7 +12,7 @@ library DzAPI
     native RequestExtraBooleanData          takes integer dataType, player whichPlayer, string param1, string param2, boolean param3, integer param4, integer param5, integer param6 returns boolean
     native RequestExtraStringData           takes integer dataType, player whichPlayer, string param1, string param2, boolean param3, integer param4, integer param5, integer param6 returns string
     native RequestExtraRealData             takes integer dataType, player whichPlayer, string param1, string param2, boolean param3, integer param4, integer param5, integer param6 returns real
-
+    
     // SaveServerValue,               //保存服务器存档
     function DzAPI_Map_SaveServerValue takes player whichPlayer, string key, string value returns boolean
         return RequestExtraBooleanData(4, whichPlayer, key, value, false, 0, 0, 0)
@@ -96,7 +96,7 @@ library DzAPI
     function DzAPI_Map_IsRPGLobby takes nothing returns boolean
         return RequestExtraBooleanData(10, null, null, null, false, 0, 0, 0)
     endfunction
-
+    
 
 
     // MissionComplete,               //用作完成某个任务，发奖励
@@ -541,7 +541,7 @@ library DzAPI
     endfunction
 
     //获取玩家在KK平台的完整昵称（基础昵称#编号）
-    function DzAPI_Map_GetPlayerUserName takes player whichPlayer returns string
+    function DzAPI_Map_GetPlayerUserName takes player whichPlayer returns string 
         return RequestExtraStringData(81, whichPlayer, null, null, false, 0, 0, 0)
     endfunction
 
@@ -550,7 +550,7 @@ library DzAPI
         return RequestExtraIntegerData(82, whichPlayer, key, null, false, 0, 0, 0)
     endfunction
 
-    // RequestBackendLogic,       //请求后端逻辑生成
+    // RequestBackendLogic,       //请求后端逻辑生成 
     function KKApiRequestBackendLogic takes player whichPlayer, string key, string groupkey returns boolean
         return RequestExtraBooleanData(83, whichPlayer, key, groupkey, false, 0, 0, 0)
     endfunction
@@ -635,7 +635,7 @@ library DzAPI
     function KKApiAchievementPoints takes player whichPlayer returns integer
         return RequestExtraIntegerData(99, whichPlayer, null, null, false, 0, 0, 0)
     endfunction
-
+    
     // 判断游戏时长是否满足条件 minHours: 最小小时数，maxHours: 最大小时数，0表示不限制
     function KKApiPlayedTime takes player whichPlayer, integer minHours, integer maxHours returns boolean
         return RequestExtraBooleanData(100, whichPlayer, null, null, false, minHours, maxHours, 0)
@@ -645,12 +645,12 @@ library DzAPI
     function KKApiBeginBatchSaveArchive takes player whichPlayer returns boolean
         return RequestExtraBooleanData(102, whichPlayer, null, null, false, 0, 0, 0)
     endfunction
-
+    
     // AddBatchSaveArchive,    // 添加批量保存存档条目
     function KKApiAddBatchSaveArchive takes player whichPlayer, string key, string value, boolean caseInsensitive returns boolean
         return RequestExtraBooleanData(103, whichPlayer, key, value, caseInsensitive, 0, 0, 0)
     endfunction
-
+    
     // EndBatchSaveArchive,    // 结束批量保存存档
     function KKApiEndBatchSaveArchive takes player whichPlayer, boolean abandon returns boolean
         return RequestExtraBooleanData(104, whichPlayer, null, null, abandon, 0, 0, 0)
@@ -679,12 +679,21 @@ library DzAPI
     function KKApiMapExplorationTime takes player whichPlayer returns integer
         return RequestExtraIntegerData(108, whichPlayer, null, null, false, 0, 0, 0)
     endfunction
-
+    
     //测试大厅预约人数
     function KKApiMapOrderNum takes nothing returns integer
         return RequestExtraIntegerData(109, null, null, null, false, 0, 0, 0)
     endfunction
 
+    // 发送云脚本数据
+    function KKApiMlScriptEvent takes player whichPlayer, string eventName, string payload returns boolean
+        return RequestExtraBooleanData(110, whichPlayer, eventName, payload, false, 0, 0, 0)
+    endfunction
+
+    // 获取商城道具最后变动的数量（新增/删除）
+    function KKApiGetMallItemUpdateCount takes player whichPlayer, string key returns integer
+        return RequestExtraIntegerData(110, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
 
 endlibrary
 

@@ -1,7 +1,15 @@
 [TriggerEventStrings]
-DzTriggerRegisterMallItemSyncData=玩家实时获得地图商城道具事件
-DzTriggerRegisterMallItemSyncData="注册玩家实时获得地图商城道具事件"
-DzTriggerRegisterMallItemSyncDataHint="玩家背包中新获得了当前地图商城道具的回调事件，用于地图实现玩家在游戏内商城购买成功后在游戏内立即生效。可在事件内配合[事件响应-实时获得平台道具的玩家]和[事件响应-实时获得的平台道具]使用。"
+DzTriggerRegisterMallItemSyncData=玩家获得地图商城道具事件（实时）
+DzTriggerRegisterMallItemSyncData="注册玩家获得地图商城道具事件（实时）"
+DzTriggerRegisterMallItemSyncDataHint="玩家背包中新获得了当前地图商城道具的回调事件，用于地图实现玩家在游戏内商城购买成功后在游戏内立即生效。[触发的商城道具事件的玩家]、[触发的商城道具]和[商城道具最后变动的数量]使用。"
+
+DzTriggerRegisterMallItemConsumeEvent=玩家消耗地图商城道具事件（实时）
+DzTriggerRegisterMallItemConsumeEvent="注册玩家消耗地图商城道具事件（实时）"
+DzTriggerRegisterMallItemConsumeEventHint="玩家背包中消耗或使用商城道具的回调事件。可在事件内配合[触发的商城道具事件的玩家]、[触发的商城道具]和[商城道具最后变动的数量]使用。"
+
+DzTriggerRegisterMallItemRemoveEvent=玩家删除地图商城道具事件（实时）
+DzTriggerRegisterMallItemRemoveEvent="注册玩家删除地图商城道具事件（实时）"
+DzTriggerRegisterMallItemRemoveEventHint="玩家背包中删除地图商城道具的回调事件。可在事件内配合[触发的商城道具事件的玩家]和[商城道具最后变动的数量]使用。（该事件一般不太可能用到，一般为商城商品被删除才会触发）"
 
 KKApiTriggerRegisterBackendLogicUpdata=注册随机存档更新事件
 KKApiTriggerRegisterBackendLogicUpdata="注册随机存档更新事件"
@@ -172,6 +180,10 @@ KKApiAddBatchSaveArchiveHint="对添加批量保存存档条目进行保存。"
 KKApiEndBatchSaveArchive=【批量存档】结束保存
 KKApiEndBatchSaveArchive="设置 ",~whichPlayer," ",~abandon," 结束批量保存存档"
 KKApiEndBatchSaveArchiveHint="结束批量保存存档。"
+
+KKApiMlScriptEvent=发送云脚本数据
+KKApiMlScriptEvent="发送云脚本数据 ",~玩家," ",~事件," ",~数据,""
+KKApiMlScriptEventHint="发送云脚本数据"
 
 [TriggerCallStrings]
 
@@ -409,9 +421,9 @@ DzAPI_Map_ServerArchive=读取服务器存档（区分大小写）
 DzAPI_Map_ServerArchive="读取服务器玩家 ",~whichPlayer,",名称:",~key," 里的数据"
 DzAPI_Map_ServerArchiveHint="从服务器上读取变量数据，存档变量Key区分大小写，保存时会受到开发者平台所配置的防刷分规则限制。"
 
-DzGetTriggerMallItem=事件响应 - 实时获得的地图商城道具
-DzGetTriggerMallItem="实时获得的地图商城道具"
-DzGetTriggerMallItemHint="获取实时购买的地图商城道具。仅限在玩家实时获得地图商城道具事件内使用。"
+DzGetTriggerMallItem=事件响应 - 触发的商城道具（实时）
+DzGetTriggerMallItem="触发的商城道具"
+DzGetTriggerMallItemHint="可以用于【玩家获取商城道具事件】、【玩家消耗使用商城道具事件】和【玩家删除商城道具事件】后。"
 
 DzAPI_Map_GetPlayerUserName=玩家在KK对战平台的完整昵称
 DzAPI_Map_GetPlayerUserName=~whichPlayer," 在KK对战平台的完整昵称"
@@ -454,9 +466,9 @@ DzAPI_Map_GetStoredReal=读取服务器上的实数变量
 DzAPI_Map_GetStoredReal="获取 ",~whichPlayer," 数据名称:",~key," 里存储的实数"
 DzAPI_Map_GetStoredRealHint="这是经过封装的接口，实际Key会在原Key前面加”R”"
 
-DzGetTriggerMallItemPlayer=事件响应 - 实时获得地图商城道具的玩家
-DzGetTriggerMallItemPlayer="实时获得地图商城道具的玩家"
-DzGetTriggerMallItemPlayerHint="获取是哪位玩家获得了平台道具。仅限在玩家实时获得地图商城道具事件内使用。"
+DzGetTriggerMallItemPlayer=事件响应 - 触发的商城道具事件的玩家
+DzGetTriggerMallItemPlayer="触发的商城道具事件的玩家"
+DzGetTriggerMallItemPlayerHint="可以用于【玩家获取商城道具事件】、【玩家消耗使用商城道具事件】和【玩家删除商城道具事件】后。"
 
 KKApiGetSyncBackendLogic=获取变动的随机存档
 KKApiGetSyncBackendLogic="获取变动的随机存档"
@@ -514,7 +526,10 @@ KKApiMapExplorationTime=宠物探险时间
 KKApiMapExplorationTime=" ",~whichPlayer," 宠物探险时间"
 KKApiMapExplorationTimeHint="获取平台宠物探险时间"
 
-
 KKApiMapOrderNum=测试大厅预约人数
 KKApiMapOrderNum="测试大厅预约人数"
 KKApiMapOrderNumHint=""
+
+KKApiGetMallItemUpdateCount=事件响应 - 商城道具最后变动的数量[new]
+KKApiGetMallItemUpdateCount=" ",~whichPlayer," 商城道具：",~key," 最后更新的数量"
+KKApiGetMallItemUpdateCountHint="获取的是当次玩家商城背包新增或消耗的数量，如果是时效型道具获取的是剩余时间，可以用于【玩家获取商城道具事件】、【玩家消耗使用商城道具事件】和【玩家删除商城道具事件】后。"

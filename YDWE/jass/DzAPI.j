@@ -685,6 +685,15 @@ library DzAPI
         return RequestExtraIntegerData(109, null, null, null, false, 0, 0, 0)
     endfunction
 
+    // 发送云脚本数据
+    function KKApiMlScriptEvent takes player whichPlayer, string eventName, string payload returns boolean
+        return RequestExtraBooleanData(110, whichPlayer, eventName, payload, false, 0, 0, 0)
+    endfunction
+
+    // 获取商城道具最后变动的数量（新增/删除）
+    function KKApiGetMallItemUpdateCount takes player whichPlayer, string key returns integer
+        return RequestExtraIntegerData(110, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
 
 endlibrary
 

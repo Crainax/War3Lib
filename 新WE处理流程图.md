@@ -14,16 +14,15 @@
 
 ## KKWE更新后的处理
 
-1. `jass/BlizzardAPI.j`里里对比diff后看看要不要更新,并加入UI的宏定义.
-2. 抽离`kkwe`这四个j文件和cfg到`YDWE/jass`里覆盖:
+1. 抽离`kkwe`这四个j文件和cfg到`YDWE/jass`里覆盖,并更新JassVSC里的内容
     * `BlizzardAPI.j`
     * `DzAPi.j`
     * `KKAPI.j`
     * `KKPRE.j`
-3. 更新`share/mpq/`内容到`mpq/`里
-4. `YDWE`里面所有内容重新覆盖到`kkwe`里
-5. `kkwe`里的`jass/`挑选出.j文件移到War3Lib的API里研究.
-5. 创建`Mklink` : `mklink /D "D:\WE\KKWE_Plugin\jass\Crainax" "D:\War3\Library\War3Lib\Jass"`
+2. 更新`share/mpq/`内容到`mpq/`里
+3. `YDWE`里面所有内容重新覆盖到`kkwe`里
+4. `kkwe`里的`jass/`挑选出.j文件移到War3Lib的API里研究.
+5. 修改`share/script/ydwe_on_save.lua`里的`wave:compile(compile_t)`复制多一份移到inject前面,实行两次预处理.
 
 
 

@@ -34,6 +34,14 @@ DzTriggerRegisterMallItemSyncData=0
 _DzTriggerRegisterMallItemSyncData_Defaults=
 _DzTriggerRegisterMallItemSyncData_Category=TC_DZAPI
 
+DzTriggerRegisterMallItemConsumeEvent=0
+_DzTriggerRegisterMallItemConsumeEvent_Defaults=
+_DzTriggerRegisterMallItemConsumeEvent_Category=TC_DZAPI
+
+DzTriggerRegisterMallItemRemoveEvent=0
+_DzTriggerRegisterMallItemRemoveEvent_Defaults=
+_DzTriggerRegisterMallItemRemoveEvent_Category=TC_DZAPI
+
 KKApiTriggerRegisterBackendLogicUpdata=0
 _KKApiTriggerRegisterBackendLogicUpdata_Defaults=
 _KKApiTriggerRegisterBackendLogicUpdata_Category=TC_DZAPI
@@ -173,6 +181,10 @@ _KKApiAddBatchSaveArchive_Category=TC_DZAPI
 KKApiEndBatchSaveArchive=0,player,boolean
 _KKApiEndBatchSaveArchive_Defaults=Player00,false
 _KKApiEndBatchSaveArchive_Category=TC_DZAPI
+
+KKApiMlScriptEvent=0,player,string,string
+_KKApiMlScriptEvent_Defaults=Player00,_,_
+_KKApiMlScriptEvent_Category=TC_DZAPI
 
 [TriggerCalls]
 
@@ -462,6 +474,10 @@ _KKApiMapExplorationTime_Category=TC_DZAPI
 KKApiMapOrderNum=0,0,integer
 _KKApiMapOrderNum_Defaults=
 _KKApiMapOrderNum_Category=TC_DZAPI
+
+KKApiGetMallItemUpdateCount=0,0,integer,player,string
+_KKApiGetMallItemUpdateCount_Defaults=Player00,_,
+_KKApiGetMallItemUpdateCount_Category=TC_DZAPI
 
 [DefaultTriggerCategories]
 

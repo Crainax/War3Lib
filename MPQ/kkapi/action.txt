@@ -1,5 +1,5 @@
 ﻿[KKAPISetLocalVariables]
-title = "设置【真】局部变量[NEW]"
+title = "设置【真】局部变量"
 description = "设置 [${类型}] ${变量名} = ${null}"
 comment = "注意此为真局部变量，不能穿透计时器和触发."
 category = TC_KKAPI
@@ -11,7 +11,7 @@ type = scriptcode
 type = Null
 
 [DzSetUnitPreselectUIVisible]
-title = "设置单位的鼠标指向UI和血条显示/隐藏[NEW]"
+title = "设置单位的鼠标指向UI和血条显示/隐藏"
 description = "设置 ${单位} 的鼠标指向UI和血条 ${显示}"
 comment = ""
 category = TC_KKAPI
@@ -21,7 +21,7 @@ type = unit
 type = showhideoption
 
 [DzSetEffectModel]
-title = "设置特效模型[NEW]"
+title = "设置特效模型"
 description = "设置 ${特效} 的模型： ${modelFile}"
 comment = ""
 category = TC_KKAPI
@@ -31,7 +31,7 @@ type = effect
 type = modelfile
 
 [DzSetEffectTeamColor]
-title = "设置特效队伍颜色[NEW]"
+title = "设置特效队伍颜色"
 description = "设置 ${特效} 的队伍颜色： ${Color}"
 comment = ""
 category = TC_KKAPI
@@ -42,7 +42,7 @@ type = playercolorid
 default = "Color00"
 
 [DzSetEffectAnimation]
-title = "设置特效播放动画[NEW]"
+title = "设置特效播放动画"
 description = "设置 ${特效} 播放第 ${编号} 号动画，播放方式${方式} "
 comment = ""
 category = TC_KKAPI
@@ -54,7 +54,7 @@ type = integer
 type = integer
 
 [DzPlayEffectAnimation]
-title = "设置特效播放动画[NEW]"
+title = "设置特效播放动画"
 description = "设置 ${特效} 播放 ${death} 动画，附加动画链接名 ${alternate}"
 comment = "变身动画才需要附加链接名 一般情况填 “” 空字符串就行"
 category = TC_KKAPI
@@ -66,7 +66,7 @@ type = string
 type = string
 
 [DzBindEffect]
-title = "绑定特效[NEW]"
+title = "绑定特效"
 description = "在 ${单位} 附着点 ${origin} 绑定特效 ${特效}"
 comment = ""
 category = TC_KKAPI
@@ -78,7 +78,7 @@ type = string
 type = effect
 
 [DzUnbindEffect]
-title = "解除绑定特效[NEW]"
+title = "解除绑定特效"
 description = "解除绑定的特效 ${特效}"
 comment = "可以让绑定在单位身上的特效分离出来，被分离的特效能设置坐标、缩放"
 category = TC_KKAPI
@@ -86,7 +86,7 @@ category = TC_KKAPI
 type = effect
 
 [DzSetWidgetSpriteScale]
-title = "单位缩放 [NEW]"
+title = "单位缩放"
 description = "设置 ${单位} 的缩放为 ${scale} "
 comment = "可以用来缩放单位"
 category = TC_KKAPI
@@ -96,7 +96,7 @@ type = unit
 type = real
 
 [DzSetEffectScale]
-title = "特效缩放 [NEW]"
+title = "特效缩放"
 description = "设置 ${特效} 的缩放为 ${scale} "
 comment = "可以用来缩放特效"
 category = TC_KKAPI
@@ -106,7 +106,7 @@ type = effect
 type = real
 
 [DzSetEffectPos]
-title = "设置特效坐标[NEW]"
+title = "设置特效坐标"
 description = "设置 ${特效} 的坐标（ ${x},${y},${z}）"
 comment = ""
 category = TC_KKAPI
@@ -120,7 +120,7 @@ type = real
 type = real
 
 [DzSetEffectVertexColor]
-title = "设置特效颜色[NEW]"
+title = "设置特效颜色"
 description = "设置 ${特效} 的颜色：${color} "
 comment = ""
 category = TC_KKAPI
@@ -131,7 +131,7 @@ type = rgba2color
 default = "DzGetColor"
 
 [DzSetEffectVertexAlpha]
-title = "设置特效透明度[NEW]"
+title = "设置特效透明度"
 description = "设置 ${特效} 的透明度：${alpha} "
 comment = ""
 category = TC_KKAPI
@@ -142,7 +142,7 @@ type = integer
 default = "255"
 
 [DzSetEffectVisible]
-title = "特效显示/隐藏 [NEW]"
+title = "特效显示/隐藏"
 description = "设置 ${whichEffect}  ${Show/Hide}"
 comment = ""
 category = TC_KKAPI
@@ -153,7 +153,7 @@ type = showhideoption
 default = "ShowHideHide"
 
 [DzFrameSetClip]
-title = "设置控件视口[NEW]"
+title = "设置控件视口"
 description = "设置 ${frame} 的视口为 ${状态}"
 comment = "设置控件视口后，他的子控件在边缘超出部分不会显示"
 category = TC_KKAPI
@@ -164,7 +164,7 @@ type = onoffoption
 default = OnOffOn
 
 [DzChangeWindowSize]
-title = "设置魔兽窗口大小[NEW]"
+title = "设置魔兽窗口大小"
 description = "设置魔兽窗口大小：${宽}/${高}"
 comment = "如修改窗口模式下的窗口大小为 1920/1080"
 category = TC_KKAPI
@@ -174,7 +174,7 @@ type = integer
 type = integer
 
 [DzUnlockBlpSizeLimit]
-title = "解锁BLP像素限制[NEW]"
+title = "解锁BLP像素限制"
 description = "解锁BLP像素限制：${true}"
 comment = "填true会解除原本魔兽高清图片的512像素限制"
 category = TC_KKAPI
@@ -182,7 +182,7 @@ category = TC_KKAPI
 type = boolean
 
 [DzToggleFPS]
-title = "设置FPS显示/隐藏[NEW]"
+title = "设置FPS显示/隐藏"
 description = "设置 FPS ${显示/隐藏}"
 comment = ""
 category = TC_KKAPI
@@ -191,7 +191,7 @@ type = showhideoption
 default = ShowHideShow
 
 [DzModelRemoveFromCache]
-title = "清除模型内存缓存 [NEW]"
+title = "清除模型内存缓存"
 description = "清除模型 ${模型} 内存缓存"
 comment = ""
 category = TC_KKAPI
@@ -199,13 +199,13 @@ category = TC_KKAPI
 type = modelfile
 
 [DzModelRemoveAllFromCache]
-title = "清除所有模型内存缓存 [NEW]"
+title = "清除所有模型内存缓存"
 description = "清除所有模型内存缓存"
 comment = ""
 category = TC_KKAPI
 
 [DzWidgetSetMinimapIcon]
-title = "自定义指定单位的小地图图标 [NEW]"
+title = "自定义指定单位的小地图图标"
 description = "设置指定 ${单位} 的小地图图标：${imagefile}"
 comment = "图标大小只支持16×16，设置图标之前需要开启：中立建筑 - 小地图特殊标志"
 category = TC_KKAPI
@@ -215,7 +215,7 @@ type = unit
 type = imagefile
 
 [DzWidgetSetMinimapIconEnable]
-title = "开启/关闭自定义指定单位的小地图图标 [NEW]"
+title = "开启/关闭自定义指定单位的小地图图标"
 description = "设置 ${单位} ${On/Off} 自定义小地图图标"
 comment = ""
 category = TC_KKAPI
@@ -226,7 +226,7 @@ type = onoffoption
 default = "OnOffOn"
 
 [DzSimpleMessageFrameAddMessage]
-title = "显示游戏提示信息 [NEW]"
+title = "显示游戏提示信息"
 description = "设置 ${消息界面} 显示 ${消息} 颜色：${颜色}，持续 ${时间} 秒，${是/否}永久显示"
 comment = ""
 category = TC_KKAPI
@@ -244,7 +244,7 @@ type = YESNO
 default = "NO"
 
 [DzSimpleMessageFrameClear]
-title = "清理游戏提示信息 [NEW]"
+title = "清理游戏提示信息"
 description = "清理 ${消息界面} 的游戏提示信息"
 comment = ""
 category = TC_KKAPI
@@ -252,27 +252,35 @@ category = TC_KKAPI
 type = frame
 
 [DzRegisterOnBuildLocal]
-title = "监听建筑选位置 [NEW]"
+title = "监听建筑选位置"
 description = "监听建筑选位置"
 comment = ""
 category = TC_KKAPI
 
 [DzRegisterOnTargetLocal]
-title = "监听技能预选目标 [NEW]"
+title = "监听技能预选目标"
 description = "监听技能预选目标"
 comment = ""
 category = TC_KKAPI
 
 [DzOpenQQGroupUrl]
-title = "打开QQ群链接 [NEW]"
+title = "打开QQ群链接"
 description = "打开QQ群链接：${地址}"
 comment = "必须包括http://qm.qq.com开头的QQ群链接，调用后触发玩家加群，注意每分钟只能触发一次。"
 category = TC_KKAPI
 [[.args]]
 type = string
 
+[DzSetClipboard]
+title = "设置剪切板 [NEW]"
+description = "设置剪切板 ${内容}"
+comment = ""
+category = TC_KKAPI
+[[.args]]
+type = string
+
 [DzFrameEnableClipRect]
-title = "游戏界面限制设置 [NEW]"
+title = "游戏界面限制设置"
 description = "界面 ${是/否} 限制在游戏窗口内"
 comment = "当为 ‘否’ 时游戏里的界面可以拖到游戏外面 "
 category = TC_KKAPI
@@ -281,7 +289,7 @@ type = YESNO
 default = "YES"
 
 [DzSetUnitName]
-title = "设置单位名字 [NEW]"
+title = "设置单位名字"
 description = "设置 ${单位} 名字：${name} "
 comment = ""
 category = TC_KKAPI
@@ -291,7 +299,7 @@ type = unit
 type = string
 
 [DzSetUnitProperName]
-title = "设置英雄称谓 [NEW]"
+title = "设置英雄称谓"
 description = "设置 ${英雄} 称谓：${name} "
 comment = ""
 category = TC_KKAPI
@@ -301,7 +309,7 @@ type = unit
 type = string
 
 [DzSetUnitDescription]
-title = "设置单位描述 [NEW]"
+title = "设置单位描述"
 description = "设置 ${单位} 的描述： ${value} "
 comment = ""
 category = TC_KKAPI
@@ -311,7 +319,7 @@ type = unit
 type = string
 
 [DzSetUnitPortrait]
-title = "设置单位头像模型 [NEW]"
+title = "设置单位头像模型"
 description = "设置 ${单位} 头像模型：${modelFile} "
 comment = ""
 category = TC_KKAPI
@@ -321,7 +329,7 @@ type = unit
 type = modelfile
 
 [DzSetUnitMissileModel]
-title = "设置单位普攻弹道模型 [NEW]"
+title = "设置单位普攻弹道模型"
 description = "设置 ${单位} 普攻弹道模型：${modelFile} "
 comment = ""
 category = TC_KKAPI
@@ -331,7 +339,7 @@ type = unit
 type = modelfile
 
 [DzSetUnitMissileArc]
-title = "设置单位普攻弹道弧度 [NEW]"
+title = "设置单位普攻弹道弧度"
 description = "设置 ${单位} 普攻弹道弧度：${arc} "
 comment = ""
 category = TC_KKAPI
@@ -341,7 +349,7 @@ type = unit
 type = real
 
 [DzSetUnitMissileHoming]
-title = "设置单位普攻弹道自导允许 [NEW]"
+title = "设置单位普攻弹道自导允许"
 description = "设置 ${单位} 普攻弹道自导：${enable} "
 comment = ""
 category = TC_KKAPI
@@ -351,7 +359,7 @@ type = unit
 type = boolean
 
 [DzSetUnitMissileSpeed]
-title = "设置单位普攻弹道速度 [NEW]"
+title = "设置单位普攻弹道速度"
 description = "设置 ${单位} 普攻弹道速度：${seed} "
 comment = ""
 category = TC_KKAPI
@@ -361,7 +369,7 @@ type = unit
 type = real
 
 [DzReviveUnit]
-title = "复活单位 [NEW]"
+title = "复活单位"
 description = "设置 ${whichUnit} 复活为 ${whichPlayer} 的单位，生命值：${hp}，魔法值：${mp}，坐标(${x},${y})"
 comment = ""
 category = TC_KKAPI
@@ -381,7 +389,7 @@ type = real
 type = real
 
 [DzAttackAbilityEndCooldown]
-title = "结束普攻技能CD [NEW]"
+title = "结束普攻技能CD"
 description = "结束普攻 ${whichAbility} 的技能CD"
 comment = ""
 category = TC_KKAPI
@@ -389,7 +397,7 @@ category = TC_KKAPI
 type = ability
 
 [DzDoodadCreate]
-title = "新建地形装饰物 [NEW]"
+title = "新建地形装饰物"
 description = "创建 ${doodadid} 样式：${var} 坐标：(${x}，${Y}，${z}) 角度：${rotate} 缩放：${scale}"
 comment = ""
 category = TC_KKAPI
@@ -414,8 +422,16 @@ default = "GetRandomDirectionDeg"
 type = real
 default = "1"
 
+[DzDoodadRemove]
+title = "删除装饰物  [NEW]"
+description = "删除 ${doodad} "
+comment = ""
+category = TC_KKAPI
+[[.args]]
+type = doodad
+
 [DzDoodadSetModel]
-title = "设置装饰物模型 [NEW]"
+title = "设置装饰物模型"
 description = "设置 ${doodad} 的模型：${modelFile} "
 comment = ""
 category = TC_KKAPI
@@ -425,7 +441,7 @@ type = doodad
 type = modelfile
 
 [DzDoodadSetTeamColor]
-title = "改变装饰物队伍颜色 [NEW]"
+title = "改变装饰物队伍颜色"
 description = "改变 ${doodad} 的队伍颜色：${Color}"
 comment = ""
 category = TC_KKAPI
@@ -436,7 +452,7 @@ type = playercolorid
 default = "Color00"
 
 [DzDoodadSetColor]
-title = "设置装饰物颜色[NEW]"
+title = "设置装饰物颜色"
 description = "设置 ${doodad} 的颜色：${color} "
 comment = ""
 category = TC_KKAPI
@@ -447,7 +463,7 @@ type = rgba2color
 default = "DzGetColor"
 
 [DzDoodadSetPosition]
-title = "设置装饰物位置 [NEW]"
+title = "设置装饰物位置"
 description = "设置 ${doodad} 的坐标：(${x}，${Y}，${z})"
 comment = ""
 category = TC_KKAPI
@@ -464,7 +480,7 @@ type = real
 default = "0"
 
 [DzDoodadSetOrientMatrixRotate]
-title = "设置装饰物旋转 [NEW]"
+title = "设置装饰物旋转"
 description = "设置 ${doodad} 旋转，角度：${rotate} 方向：(${axisX}，${axisY}，${axisZ})"
 comment = ""
 category = TC_KKAPI
@@ -484,7 +500,7 @@ type = real
 default = "0"
 
 [DzDoodadSetOrientMatrixScale]
-title = "修改装饰物尺寸 [NEW]"
+title = "修改装饰物尺寸"
 description = "设置 ${doodad} 缩放：(${x}，${y}，${z})"
 comment = ""
 category = TC_KKAPI
@@ -501,7 +517,7 @@ type = real
 default = "0"
 
 [DzDoodadSetOrientMatrixResize]
-title = "装饰物重置大小 [NEW]"
+title = "装饰物重置大小"
 description = "设置 ${doodad} 重置大小"
 comment = ""
 category = TC_KKAPI
@@ -509,7 +525,7 @@ category = TC_KKAPI
 type = doodad
 
 [DzDoodadSetVisible]
-title = "装饰物显示/隐藏 [NEW]"
+title = "装饰物显示/隐藏"
 description = "设置 ${doodad} ${Show/Hide}"
 comment = ""
 category = TC_KKAPI
@@ -520,7 +536,7 @@ type = showhideoption
 default = "ShowHideHide"
 
 [DzDoodadSetAnimation]
-title = "装饰物播放动画 [NEW]"
+title = "装饰物播放动画"
 description = "设置 ${doodad} 播放${Animation Name}  随机播放${inNoAnim}"
 comment = ""
 category = TC_KKAPI
@@ -533,7 +549,7 @@ default = "\"death\""
 type = boolean
 
 [DzDoodadSetTimeScale]
-title = "设置装饰物动画播放速度 [NEW]"
+title = "设置装饰物动画播放速度"
 description = "设置 ${doodad} 的动画播放速度为正常速度的 ${Percent} 倍"
 comment = ""
 category = TC_KKAPI
@@ -545,7 +561,7 @@ default = "1"
 min = 0
 
 [DzAbilitySetStringData]
-title = "设置技能数据-字符串 [NEW]"
+title = "设置技能数据-字符串"
 description = "设置 ${技能} 的字符串 ${名字} 数据为 ${内容}"
 comment = ""
 category = TC_KKAPI
@@ -557,7 +573,7 @@ type = string
 type = string
 
 [DzAbilitySetEnable]
-title = "设置技能启用/禁用 [NEW]"
+title = "设置技能启用/禁用"
 description = "设置 ${技能} 的启用状态为 ${启用} ，隐藏UI为 ${隐藏}"
 comment = ""
 category = TC_KKAPI
@@ -570,7 +586,7 @@ type = boolean
 default = "false"
 
 [DzUnitSetMoveType]
-title = "设置单位实例的移动类型 [NEW]"
+title = "设置单位实例的移动类型"
 description = "设置 ${单位} 实例的移动类型为 ${Value}"
 comment = ""
 category = TC_KKAPI
@@ -616,7 +632,7 @@ type = Null
 type = typename
 
 [DzFrameSetAnimateByIndex]
-title = "设置模型界面播放动画（编号） [NEW]"
+title = "设置模型界面播放动画（编号）"
 description = "设置 ${模型界面} 播放第 ${index}）个动画，播放方式${flag}"
 comment = ""
 category = TC_KKAPI
@@ -631,7 +647,7 @@ default = 0
 
 
 [KKWESetUnitDataCacheInteger]
-title = "设置单位整数物编数据[NEW]"
+title = "设置单位整数物编数据"
 description = "设置 ${单位} 的 ${id} 数值为 ${data}"
 comment = ""
 category = TC_KKAPI
@@ -643,7 +659,7 @@ type = UnitCacheIntegerData
 type = integer
 
 [KKWEUnitUIAddUpgradesIds]
-title = "设置单位物编数据(建筑升级)[NEW]"
+title = "设置单位物编数据(建筑升级)"
 description = "设置 ${单位} 的第 ${id} 个建筑升级 ${单位类型}"
 comment = ""
 category = TC_KKAPI
@@ -655,7 +671,7 @@ type = integer
 type = unitcode
 
 [KKWEUnitUIAddBuildsIds]
-title = "设置单位物编数据(农民可建造建筑)[NEW]"
+title = "设置单位物编数据(农民可建造建筑)"
 description = "设置 ${单位} 的第 ${id} 个可建造建筑 ${单位类型}"
 comment = ""
 category = TC_KKAPI
@@ -667,7 +683,7 @@ type = integer
 type = unitcode
 
 [KKWEUnitUIAddResearchesIds]
-title = "设置单位物编数据(可研究的科技)[NEW]"
+title = "设置单位物编数据(可研究的科技)"
 description = "设置 ${单位} 的第 ${id} 个可研究的科技 ${科技类型}"
 comment = ""
 category = TC_KKAPI
@@ -679,7 +695,7 @@ type = integer
 type = techcode
 
 [KKWEUnitUIAddTrainsIds]
-title = "设置单位物编数据(可训练的单位)[NEW]"
+title = "设置单位物编数据(可训练的单位)"
 description = "设置 ${单位} 的第 ${id} 个可训练的单位 ${单位类型}"
 comment = ""
 category = TC_KKAPI
@@ -691,7 +707,7 @@ type = integer
 type = unitcode
 
 [KKWEUnitUIAddSellsUnitIds]
-title = "设置单位物编数据(出售的单位)[NEW]"
+title = "设置单位物编数据(出售的单位)"
 description = "设置 ${单位} 的第 ${id} 个可出售的单位 ${单位类型}"
 comment = ""
 category = TC_KKAPI
@@ -703,7 +719,7 @@ type = integer
 type = unitcode
 
 [KKWEUnitUIAddSellsItemIds]
-title = "设置单位物编数据(出售的物品)[NEW]"
+title = "设置单位物编数据(出售的物品)"
 description = "设置 ${单位} 的第 ${id} 个可出售的物品 ${物品类型}"
 comment = ""
 category = TC_KKAPI
@@ -715,7 +731,7 @@ type = integer
 type = itemcode
 
 [KKWEUnitUIAddMakesItemIds]
-title = "设置单位物编数据(制造的物品)[NEW]"
+title = "设置单位物编数据(制造的物品)"
 description = "设置 ${单位} 的第 ${id} 个可制造的物品 ${物品类型}"
 comment = ""
 category = TC_KKAPI
@@ -727,7 +743,7 @@ type = integer
 type = itemcode
 
 [KKWEUnitUIAddRequiresUnitCode]
-title = "设置单位物编数据(科技需求)[单位][NEW]"
+title = "设置单位物编数据(科技需求)[单位]"
 description = "设置 ${单位} 的第 ${id} 个科技需求 ${单位类型}"
 comment = ""
 category = TC_KKAPI
@@ -739,7 +755,7 @@ type = integer
 type = unitcode
 
 [KKWEUnitUIAddRequiresTechcode]
-title = "设置单位物编数据(科技需求)[科技][NEW]"
+title = "设置单位物编数据(科技需求)[科技]"
 description = "设置 ${单位} 的第 ${id} 个科技需求 ${科技类型}"
 comment = ""
 category = TC_KKAPI
@@ -751,7 +767,7 @@ type = integer
 type = techcode
 
 [KKWEUnitUIAddRequiresAmounts]
-title = "设置单位物编数据(科技需求值)[NEW]"
+title = "设置单位物编数据(科技需求值)"
 description = "设置 ${单位} 的第 ${id} 个科技需求值 ${数量}"
 comment = ""
 category = TC_KKAPI
@@ -766,17 +782,27 @@ type = integer
 title = "设置物品模型 [NEW]"
 description = "设置 ${whichItem} 的模型：${modelFile} "
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
+[[.args]]
+type = item
+[[.args]]
+type = modelfile
+
+[DzItemSetPortrait]
+title = "设置物品头像 [NEW]"
+description = "设置 ${whichItem} 的头像：${modelFile} "
+comment = ""
+category = TC_KKAPI
 [[.args]]
 type = item
 [[.args]]
 type = modelfile
 
 [DzItemSetVertexColor]
-title = "设置物品颜色[NEW]"
+title = "设置物品颜色 [NEW]"
 description = "设置 ${whichItem} 的颜色：${color} "
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = item
 [[.args]]
@@ -784,10 +810,10 @@ type = rgba2color
 default = "DzGetColor"
 
 [DzItemSetAlpha]
-title = "设置物品透明度(0-255)[NEW]"
+title = "设置物品透明度(0-255) [NEW]"
 description = "设置 ${whichItem} 的透明度为 ${alpha}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = item
 [[.args]]
@@ -795,10 +821,22 @@ type = integer
 default = "255"
 
 [DzUnlockOpCodeLimit]
-title = "解锁JASS字节码限制[NEW]"
+title = "解锁JASS字节码限制 [NEW]"
 description = " ${是/否} 解锁JASS字节码限制"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = YESNO
 default = "NO"
+
+[DzRemovePlayerTechResearched]
+title = "降低玩家科技等级 [NEW]"
+description = " 降低${玩家} 的 ${科技} ${等级} 个等级"
+comment = ""
+category = TC_KKAPI
+[[.args]]
+type = player
+[[.args]]
+type = techcode
+[[.args]]
+type = integer

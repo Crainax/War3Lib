@@ -1,40 +1,6 @@
 #ifndef BZAPIINCLUDE
 #define BZAPIINCLUDE
 
-#define ANCHOR_TOPLEFT 0
-#define ANCHOR_TOP 1
-#define ANCHOR_TOPRIGHT 2
-#define ANCHOR_LEFT 3
-#define ANCHOR_CENTER 4
-#define ANCHOR_RIGHT 5
-#define ANCHOR_BOTTOMLEFT 6
-#define ANCHOR_BOTTOM 7
-#define ANCHOR_BOTTOMRIGHT 8
-
-#define FRAME_EVENT_NONE  0
-#define FRAME_EVENT_PRESSED  1
-#define FRAME_MOUSE_ENTER  2
-#define FRAME_MOUSE_LEAVE  3
-#define FRAME_MOUSE_UP  4
-#define FRAME_MOUSE_DOWN  5
-#define FRAME_MOUSE_WHEEL  6
-#define FRAME_FOCUS_ENTER  2
-#define FRAME_FOCUS_LEAVE  3
-#define FRAME_CHECKBOX_CHECKED  7
-#define FRAME_CHECKBOX_UNCHECKED  8
-#define FRAME_EDITBOX_TEXT_CHANGED  9
-#define FRAME_POPUPMENU_ITEM_CHANGE_START  10
-#define FRAME_POPUPMENU_ITEM_CHANGED  11
-#define FRAME_MOUSE_DOUBLECLICK  12
-#define FRAME_SPRITE_ANIM_UPDATE  13
-
-#define FRAME_EVENT_KEY_PRESSED 1
-#define FRAME_EVENT_KEY_UP 0
-#define FRAME_MOUSE_LEFT 1
-#define FRAME_MOUSE_RIGHT 2
-
-// API文档: https://create.reckfeng.com/kkapidoc/#/
-
 library BzAPI
     //hardware
     native DzGetMouseTerrainX takes nothing returns real
@@ -85,7 +51,7 @@ library BzAPI
     native DzGetTriggerSyncPlayer takes nothing returns player
     native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
     //native DzGetPushContext takes nothing returns string
-    native DzSyncDataImmediately takes string prefix, string data returns nothing
+    native DzSyncDataImmediately takes string prefix, string data returns nothing   
     //gui
     native DzFrameHideInterface takes nothing returns nothing
     native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
@@ -249,6 +215,16 @@ library BzAPI
         call DzTriggerRegisterSyncData(trig, "DZMIA", true)
     endfunction
 
+    //玩家消耗/使用商城道具事件
+    function DzTriggerRegisterMallItemConsumeEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMIC", true)
+    endfunction
+
+    //玩家删除商城道具事件
+    function DzTriggerRegisterMallItemRemoveEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMID", true)
+    endfunction
+
     function DzGetTriggerMallItemPlayer takes nothing returns player
         return DzGetTriggerSyncPlayer()
     endfunction
@@ -257,7 +233,7 @@ library BzAPI
         return DzGetTriggerSyncData()
     endfunction
 
-
+    
 
 endlibrary
 
