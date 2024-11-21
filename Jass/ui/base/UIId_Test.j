@@ -18,69 +18,94 @@ library UTUIId requires UIId {
 
     // 测试基本的ID获取功能
     function TTestUTUIId1 (player p) {
-        integer id1 = uiId.get();
-        integer id2 = uiId.get();
-        Trace("测试1 - 基本ID获取：");
-        Trace("获取的第一个ID: " + I2S(id1));
-        Trace("获取的第二个ID: " + I2S(id2));
-        Trace("当前活跃ID数量: " + I2S(uiId.getActiveCount()));
+        integer id1;
+        integer id2;
+        if (GetLocalPlayer() == p) {
+            id1 = uiId.get();
+            id2 = uiId.get();
+            Trace("测试1 - 基本ID获取：");
+            Trace("获取的第一个ID: " + I2S(id1));
+            Trace("获取的第二个ID: " + I2S(id2));
+            Trace("当前活跃ID数量: " + I2S(uiId.getActiveCount()));
+        }
     }
 
     // 测试ID回收功能
     function TTestUTUIId2 (player p) {
-        integer id = uiId.get();
-        Trace("测试2 - ID回收：");
-        Trace("获取新ID: " + I2S(id));
-        uiId.recycle(id);
-        Trace("回收后的回收池数量: " + I2S(uiId.getRecycledCount()));
+        integer id;
+        if (GetLocalPlayer() == p) {
+            id = uiId.get();
+            Trace("测试2 - ID回收：");
+            Trace("获取新ID: " + I2S(id));
+            uiId.recycle(id);
+            Trace("回收后的回收池数量: " + I2S(uiId.getRecycledCount()));
+        }
     }
 
     // 测试ID复用功能
     function TTestUTUIId3 (player p) {
-        integer id1 = uiId.get(),id2;
-        Trace("测试3 - ID复用：");
-        Trace("获取新ID: " + I2S(id1));
-        uiId.recycle(id1);
-        Trace("回收ID: " + I2S(id1));
-        id2 = uiId.get();
-        Trace("复用的ID: " + I2S(id2));
+        integer id1;
+        integer id2;
+        if (GetLocalPlayer() == p) {
+            id1 = uiId.get();
+            Trace("测试3 - ID复用：");
+            Trace("获取新ID: " + I2S(id1));
+            uiId.recycle(id1);
+            Trace("回收ID: " + I2S(id1));
+            id2 = uiId.get();
+            Trace("复用的ID: " + I2S(id2));
+        }
     }
 
     // 测试多个ID的回收和复用
     function TTestUTUIId4 (player p) {
-        integer id1 = uiId.get(),newId1,newId2;
-        integer id2 = uiId.get();
-        integer id3 = uiId.get();
-        Trace("测试4 - 多ID回收复用：");
-        Trace("获取三个ID: " + I2S(id1) + ", " + I2S(id2) + ", " + I2S(id3));
-        uiId.recycle(id2);
-        uiId.recycle(id3);
-        Trace("回收后的回收池数量: " + I2S(uiId.getRecycledCount()));
-        newId1 = uiId.get();
-        newId2 = uiId.get();
-        Trace("复用的两个ID: " + I2S(newId1) + ", " + I2S(newId2));
+        integer id1;
+        integer id2;
+        integer id3;
+        integer newId1;
+        integer newId2;
+        if (GetLocalPlayer() == p) {
+            id1 = uiId.get();
+            id2 = uiId.get();
+            id3 = uiId.get();
+            Trace("测试4 - 多ID回收复用：");
+            Trace("获取三个ID: " + I2S(id1) + ", " + I2S(id2) + ", " + I2S(id3));
+            uiId.recycle(id2);
+            uiId.recycle(id3);
+            Trace("回收后的回收池数量: " + I2S(uiId.getRecycledCount()));
+            newId1 = uiId.get();
+            newId2 = uiId.get();
+            Trace("复用的两个ID: " + I2S(newId1) + ", " + I2S(newId2));
+        }
     }
 
     // 测试重复回收同一ID
     function TTestUTUIId5 (player p) {
-        integer id = uiId.get();
-        Trace("测试5 - 重复回收：");
-        Trace("获取新ID: " + I2S(id));
-        uiId.recycle(id);
-        Trace("第一次回收后数量: " + I2S(uiId.getRecycledCount()));
-        uiId.recycle(id);
-        Trace("重复回收后数量: " + I2S(uiId.getRecycledCount()));
+        integer id;
+        if (GetLocalPlayer() == p) {
+            id = uiId.get();
+            Trace("测试5 - 重复回收：");
+            Trace("获取新ID: " + I2S(id));
+            uiId.recycle(id);
+            Trace("第一次回收后数量: " + I2S(uiId.getRecycledCount()));
+            uiId.recycle(id);
+            Trace("重复回收后数量: " + I2S(uiId.getRecycledCount()));
+        }
     }
 
     // 测试计数器功能
     function TTestUTUIId6 (player p) {
-        integer id1 = uiId.get();
-        integer id2 = uiId.get();
-        Trace("测试6 - 计数器：");
-        Trace("活跃ID数量: " + I2S(uiId.getActiveCount()));
-        Trace("回收池数量: " + I2S(uiId.getRecycledCount()));
-        uiId.recycle(id1);
-        Trace("回收一个后活跃数量: " + I2S(uiId.getActiveCount()));
+        integer id1;
+        integer id2;
+        if (GetLocalPlayer() == p) {
+            id1 = uiId.get();
+            id2 = uiId.get();
+            Trace("测试6 - 计数器：");
+            Trace("活跃ID数量: " + I2S(uiId.getActiveCount()));
+            Trace("回收池数量: " + I2S(uiId.getRecycledCount()));
+            uiId.recycle(id1);
+            Trace("回收一个后活跃数量: " + I2S(uiId.getActiveCount()));
+        }
     }
 
     // 保留原有的其他测试函数框架
@@ -97,6 +122,9 @@ library UTUIId requires UIId {
         string  paramS [];
         integer paramI [];
         real    paramR [];
+
+        index = GetConvertedPlayerId(p);
+        len = StringLength(str);
 
         // 解析参数
         for (0 <= i <= len - 1) {
@@ -115,17 +143,18 @@ library UTUIId requires UIId {
         paramR[num]= S2R(paramS[num]);
         num = num + 1;
 
-        // 处理特定命令
-        if (paramS[0] == "get") {
-            id = uiId.get();
-            Trace("获取新ID: " + I2S(id));
-        } else if (paramS[0] == "recycle") {
-            if (num > 1) {
-                uiId.recycle(paramI[1]);
-                Trace("回收ID: " + I2S(paramI[1]));
+        if (GetLocalPlayer() == p) {
+            // 处理特定命令
+            if (paramS[0] == "get") {
+                id = uiId.get();
+                Trace("获取新ID: " + I2S(id));
+            } else if (paramS[0] == "recycle") {
+                if (num > 1) {
+                    uiId.recycle(paramI[1]);
+                    Trace("回收ID: " + I2S(paramI[1]));
+                }
             }
         }
-
         p = null;
     }
 

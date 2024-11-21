@@ -1,22 +1,35 @@
-library UIButton requires UIComponent
-    struct UIButton extends UIComponent
-        trigger clickTrigger
+#ifndef UIButtonIncluded
+#define UIButtonIncluded
 
-        method onClick takes code func returns nothing
-            call TriggerAddAction(this.clickTrigger, func)
-        endmethod
+#include "Crainax/config/SharedMethod.h"
+#include "Crainax/ui/constants/UIConstants.j"
+#include "Crainax/ui/modules/UIBaseModule.j" // 引入共用模块
 
-        static method create takes string name, framehandle parent returns thistype
-            local thistype this = thistype.allocate()
-            set this.handle = CreateFrame("BUTTON", name, parent, 0, 0)
-            set this.clickTrigger = CreateTrigger()
-            call BlzTriggerRegisterFrameEvent(this.clickTrigger, this.handle, FRAMEEVENT_CONTROL_CLICK)
-            return this
-        endmethod
+//! zinc
+library UIButton requires UIId,UITocInit,UIBaseModule {
 
-        method destroy takes nothing returns nothing
-            call DestroyTrigger(this.clickTrigger)
-            call super.destroy()
-        endmethod
-    endstruct
-endlibrary
+    public struct uiButton {
+        integer ui; //frameID
+        integer id; //可以回收的ID名
+
+        STRUCT_SHARED_METHODS(uiButton)
+
+        module uiBaseModule; // UI控件的共用方法
+
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("TEXT",STRING_BUTTON + I2S(id),parent,TEMPLATE_BLANK_BUTTON,0);
+            return this;
+        }
+
+
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
+    }
+}
+//! endzinc
+#endif

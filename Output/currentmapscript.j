@@ -1,12 +1,57 @@
-//! zinc
+globals
+//globals from BzAPI:
+constant boolean LIBRARY_BzAPI=true
+//endglobals from BzAPI
+//globals from UIBaseModule:
+constant boolean LIBRARY_UIBaseModule=true
+//endglobals from UIBaseModule
+//globals from UIEventModule:
+constant boolean LIBRARY_UIEventModule=true
+//endglobals from UIEventModule
+//globals from UIId:
+constant boolean LIBRARY_UIId=true
+//endglobals from UIId
+//globals from UITextModule:
+constant boolean LIBRARY_UITextModule=true
+//endglobals from UITextModule
+//globals from UnitTestFramwork:
+constant boolean LIBRARY_UnitTestFramwork=true
+    trigger UnitTestFramwork__TUnitTest=null
+//endglobals from UnitTestFramwork
+//globals from UITocInit:
+constant boolean LIBRARY_UITocInit=true
+//endglobals from UITocInit
+//globals from UIEventText:
+constant boolean LIBRARY_UIEventText=true
+//endglobals from UIEventText
+//globals from UTUIEventText:
+constant boolean LIBRARY_UTUIEventText=true
+//endglobals from UTUIEventText
+    // Generated
+    rect gg_rct_Wave1 = null
+    rect gg_rct_Wave2 = null
+    rect gg_rct_Wave3 = null
+    rect gg_rct_Wave4 = null
+    rect gg_rct_Base = null
+    rect gg_rct_BaseBack = null
+    rect gg_rct_Home1 = null
+    rect gg_rct_Home2 = null
+    rect gg_rct_Home3 = null
+    rect gg_rct_Home4 = null
+    rect gg_rct_Fuben1 = null
+    rect gg_rct_Fuben2 = null
+    rect gg_rct_Fuben3 = null
+    rect gg_rct_Fuben4 = null
+    rect gg_rct_Fuben5 = null
+    rect gg_rct_Fuben6 = null
+    rect gg_rct_Fuben7 = null
+    rect gg_rct_Fuben8 = null
+    trigger gg_trg_______u = null
+    unit gg_unit_hcas_0011 = null
 
-library UITocInit requires BzAPI {
-  function onInit () {
-		DzLoadToc("ui\\PhantomOrbit.toc");
-  }
-}
-//! endzinc
-library BzAPI
+trigger l__library_init
+endglobals
+//library BzAPI:
     //hardware
     native DzGetMouseTerrainX takes nothing returns real
     native DzGetMouseTerrainY takes nothing returns real
@@ -56,7 +101,7 @@ library BzAPI
     native DzGetTriggerSyncPlayer takes nothing returns player
     native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
     //native DzGetPushContext takes nothing returns string
-    native DzSyncDataImmediately takes string prefix, string data returns nothing
+    native DzSyncDataImmediately takes string prefix, string data returns nothing 
     //gui
     native DzFrameHideInterface takes nothing returns nothing
     native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
@@ -210,143 +255,399 @@ library BzAPI
     function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
         call DzTriggerRegisterSyncData(trig, "DZMIA", true)
     endfunction
+    //玩家消耗/使用商城道具事件
+    function DzTriggerRegisterMallItemConsumeEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMIC", true)
+    endfunction
+    //玩家删除商城道具事件
+    function DzTriggerRegisterMallItemRemoveEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMID", true)
+    endfunction
     function DzGetTriggerMallItemPlayer takes nothing returns player
         return DzGetTriggerSyncPlayer()
     endfunction
     function DzGetTriggerMallItem takes nothing returns string
         return DzGetTriggerSyncData()
     endfunction
-endlibrary
-//! zinc
+    
 
-// 使用常量定义父键，使代码更清晰
-library UIId {
-    public struct uiId []{
-        static hashtable ht;
-        static integer nextId;
-        static integer recycleCount;
-        static method onInit () {
-            thistype.ht = InitHashtable();
-            thistype.nextId = 1;
-            thistype.recycleCount = 0;
-        }
-        static method get () -> integer {
-            integer id;
-            // 如果有已回收的ID，优先使用
-            if (recycleCount > 0) {
-                // 获取最后一个回收的ID
-                id = LoadInteger(ht, 1, recycleCount - 1);
-                // 从回收池中删除这个ID
-                RemoveSavedInteger(ht, 1, recycleCount - 1);
-                // 从状态表中删除
-                RemoveSavedBoolean(ht, 2, id);
-                recycleCount = recycleCount - 1;
-                return id;
-            }
-            // 如果没有可复用的ID，返回新的ID
-            id = nextId;
-            nextId = nextId + 1;
-            return id;
-        }
-        static method recycle (integer id) {
-            // 快速检查ID是否已经在回收池中
-            if (!HaveSavedBoolean(ht, 2, id)) {
-                // 将ID存入回收池
-                SaveInteger(ht, 1, recycleCount, id);
-                // 标记该ID已被回收
-                SaveBoolean(ht, 2, id, true);
-                recycleCount = recycleCount + 1;
-            }
-        }
-        // 获取回收池中ID的数量
-        static method getRecycledCount() -> integer {
-            return recycleCount;
-        }
-        // 获取当前正在使用的ID数量
-        static method getActiveCount() -> integer {
-            // 最大ID减去已回收的ID数量
-            return (nextId - 1) - recycleCount;
-        }
-    }
-}
-//! endzinc
+//library BzAPI ends
+//library UIBaseModule:
+    module uiBaseModule  // 设置位置
+        method setPoint takes integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY)
+            return this
+        endmethod  // 大小完全对齐父框架
+        method setAllPoint takes integer relative returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetAllPoints(ui,relative)
+            return this
+        endmethod  // 清除所有位置
+        method clearPoint takes nothing returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameClearAllPoints(ui)
+            return this
+        endmethod  // 设置大小
+        method setSize takes real width,real height returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetSize(ui,width,height)
+            return this
+        endmethod
+    endmodule
 
-//! zinc
-library UnitTestFramwork {
-	//单元测试总
-	trigger TUnitTest = null;
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-    function onInit () {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
-}
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
-    }
-}
-//! endzinc
-// 结构体共用方法定义
+//library UIBaseModule ends
+//library UIEventModule:
+    module uiEventModule  // 鼠标进入事件
+        method onMouseEnter takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,2,fun,false)
+            return this
+        endmethod  // 鼠标离开事件
+        method onMouseLeave takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,3,fun,false)
+            return this
+        endmethod  // 鼠标松开事件,和点击一样,基本可以当相同事件
+        method onMouseUp takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,4,fun,false)
+            return this
+        endmethod  // 鼠标点击事件
+        method onMouseClick takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,1,fun,false)
+            return this
+        endmethod  // 鼠标滚轮事件
+        method onMouseWheel takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,6,fun,false)
+            return this
+        endmethod  // 鼠标双击事件
+        method onMouseDoubleClick takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,12,fun,false)
+            return this
+        endmethod
+    endmodule
+
+//library UIEventModule ends
+//library UIId:
+    struct uiId extends array
+    //! pragma implicitthis
+        static hashtable ht
+        static integer nextId
+        static integer recycleCount
+        static method onInit takes nothing returns nothing
+            set thistype.ht=InitHashtable()
+            set thistype.nextId=1
+            set thistype.recycleCount=0
+        endmethod
+        static method get takes nothing returns integer
+            local integer id  // 如果有已回收的ID，优先使用
+            if (recycleCount>0)then  // 获取最后一个回收的ID
+                set id=LoadInteger(ht,1,recycleCount-1)  // 从回收池中删除这个ID
+                call RemoveSavedInteger(ht,1,recycleCount-1)  // 从状态表中删除
+                call RemoveSavedBoolean(ht,2,id)
+                set recycleCount=recycleCount-1
+                return id
+            endif  // 如果没有可复用的ID，返回新的ID
+            set id=nextId
+            set nextId=nextId+1
+            return id
+        endmethod
+        static method recycle takes integer id returns nothing  // 快速检查ID是否已经在回收池中
+            if (not (HaveSavedBoolean(ht,2,id)))then  // 将ID存入回收池
+                call SaveInteger(ht,1,recycleCount,id)  // 标记该ID已被回收
+                call SaveBoolean(ht,2,id,true)
+                set recycleCount=recycleCount+1
+            endif
+        endmethod  // 获取回收池中ID的数量
+        static method getRecycledCount takes nothing returns integer
+            return recycleCount
+        endmethod  // 获取当前正在使用的ID数量
+        static method getActiveCount takes nothing returns integer  // 最大ID减去已回收的ID数量
+            return (nextId-1)-recycleCount
+        endmethod
+    endstruct
+
+//library UIId ends
+//library UITextModule:
+    module uiTextModule  // 设置标准字体大小
+        method setFontSize takes integer size returns thistype  // size: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
+            local real fontSize=0.01
+            if (not (this.isExist()))then
+                return this
+            endif
+            if (size==1)then
+                set fontSize=0.006
+            elseif (size==2)then
+                set fontSize=0.008
+            elseif (size==3)then
+                set fontSize=0.009
+            elseif (size==4)then
+                set fontSize=0.01
+            elseif (size==5)then
+                set fontSize=0.011
+            elseif (size==6)then
+                set fontSize=0.012
+            elseif (size==7)then
+                set fontSize=0.015
+            endif
+            call DzFrameSetFont(ui,"fonts\\zt.ttf",fontSize,0)
+            return this
+        endmethod  // 设置对齐方式(前提要先定好大小,不然无处对齐)
+        method setAlign takes integer align returns thistype  // align: 可以使用0-8的简单数字,或TEXT_ALIGN_*常量 // 0=左上, 1=顶部居中, 2=右上 // 3=左中, 4=居中, 5=右中 // 6=左下, 7=底部居中, 8=右下
+            local integer finalAlign=align
+            if (not (this.isExist()))then  // 如果输入0-8,转换为对应的组合值
+                return this
+            endif
+            if (align>=0 and align<=8)then
+                if (align==0)then  // 左上
+                    set finalAlign=9
+                elseif (align==1)then  // 顶部居中
+                    set finalAlign=17
+                elseif (align==2)then  // 右上
+                    set finalAlign=33
+                elseif (align==3)then  // 左中
+                    set finalAlign=10
+                elseif (align==4)then  // 居中
+                    set finalAlign=18
+                elseif (align==5)then  // 右中
+                    set finalAlign=34
+                elseif (align==6)then  // 左下
+                    set finalAlign=12
+                elseif (align==7)then  // 底部居中
+                    set finalAlign=20
+                elseif (align==8)then  // 右下
+                    set finalAlign=36
+                endif
+            endif
+            call DzFrameSetTextAlignment(ui,finalAlign)
+            return this
+        endmethod  // 设置文本内容
+        method setText takes string text returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetText(ui,text)
+            return this
+        endmethod
+    endmodule
+
+//library UITextModule ends
+//library UnitTestFramwork:
+
+    function UnitTestRegisterChatEvent takes code func returns nothing
+        call TriggerAddAction(UnitTestFramwork__TUnitTest,func)
+    endfunction
+        function UnitTestFramwork__anon__0 takes nothing returns nothing  //在游戏开始0.1秒后再调用
+            local integer i
+            set i=1
+            loop
+            exitwhen (i>12)
+                call SetPlayerName(ConvertedPlayer(i),"测试员"+I2S(i)+"号")  //迷雾全关
+                call CreateFogModifierRectBJ(true,ConvertedPlayer(i),FOG_OF_WAR_VISIBLE,GetPlayableMapRect())
+            set i = i+1
+            endloop
+            call DestroyTrigger(GetTriggeringTrigger())
+        endfunction
+    function UnitTestFramwork__onInit takes nothing returns nothing
+        local trigger tr=CreateTrigger()
+        call TriggerRegisterTimerEventSingle(tr,0.1)
+        call TriggerAddCondition(tr,Condition(function UnitTestFramwork__anon__0))
+        set tr=null
+        set UnitTestFramwork__TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest,Player(0),"",false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest,Player(1),"",false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest,Player(2),"",false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest,Player(3),"",false)
+    endfunction
+
+//library UnitTestFramwork ends
+//library UITocInit:
+
+    function UITocInit__onInit takes nothing returns nothing
+        call DzLoadToc("ui\\PhantomOrbit.toc")
+    endfunction
+
+//library UITocInit ends
+//library UIEventText:
+    struct uiEventText   //frameID
+    //! pragma implicitthis
+        integer ui  //可以回收的ID名(为了销毁时ID不重复)
+        integer id
+        method isExist takes nothing returns boolean  // UI控件的共用方法
+            return (this!=null and si__uiEventText_V[this]==-1)
+        endmethod
+        implement  uiBaseModule  // UI事件的共用方法
+        implement  uiEventModule  // UI文本的共用方法
+        implement  uiTextModule
+        static method create takes integer parent,integer fontSize returns thistype  // 创建文本 // parent: 父级框架 // fontSize: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
+            local thistype this=allocate()
+            set id=uiId.get()
+            set ui=DzCreateFrameByTagName("TEXT","Text"+I2S(id),parent,"T2",0)
+            call this.setFontSize(fontSize)
+            return this
+        endmethod
+        method onDestroy takes nothing returns nothing
+            if (not (this.isExist()))then
+                return
+            endif
+            call DzDestroyFrame(ui)
+            call uiId.recycle(id)
+        endmethod
+    endstruct
+
+//library UIEventText ends
+//library UTUIEventText:
+
+        function UTUIEventText__anon__0 takes nothing returns nothing
+            call BJDebugMsg("鼠标进入:"+I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+        function UTUIEventText__anon__1 takes nothing returns nothing
+            call BJDebugMsg("鼠标离开:"+I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+        function UTUIEventText__anon__2 takes nothing returns nothing
+            call BJDebugMsg("鼠标松开:"+I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+        function UTUIEventText__anon__3 takes nothing returns nothing
+            call BJDebugMsg("鼠标点击:"+I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+        function UTUIEventText__anon__4 takes nothing returns nothing
+            call BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+        function UTUIEventText__anon__5 takes nothing returns nothing
+            call BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+    function UTUIEventText__TTestUTUIEventText1 takes player p returns nothing
+        if (GetLocalPlayer()==p)then
+            set currentText=uiEventText.create(DzGetGameUI(),4).setPoint(4,DzGetGameUI(),4,currentText.id*0.01,currentText.id*0.01).setText("这是一个测试文本"+I2S(currentText.id)+"\n测试一下事件功能").onMouseEnter(function UTUIEventText__anon__0).onMouseLeave(function UTUIEventText__anon__1).onMouseUp(function UTUIEventText__anon__2).onMouseClick(function UTUIEventText__anon__3).onMouseWheel(function UTUIEventText__anon__4).onMouseDoubleClick(function UTUIEventText__anon__5)
+            call BJDebugMsg("创建了一个文本UI，测试事件系统")
+        endif
+    endfunction
+    function UTUIEventText__TTestUTUIEventText2 takes player p returns nothing
+    endfunction
+    function UTUIEventText__TTestUTUIEventText3 takes player p returns nothing
+    endfunction
+    function UTUIEventText__TTestUTUIEventText4 takes player p returns nothing
+    endfunction
+    function UTUIEventText__TTestUTUIEventText5 takes player p returns nothing
+    endfunction
+    function UTUIEventText__TTestUTUIEventText6 takes player p returns nothing
+    endfunction
+    function UTUIEventText__TTestUTUIEventText7 takes player p returns nothing
+    endfunction
+    function UTUIEventText__TTestUTUIEventText8 takes player p returns nothing
+    endfunction
+    function UTUIEventText__TTestUTUIEventText9 takes player p returns nothing
+    endfunction
+    function UTUIEventText__TTestUTUIEventText10 takes player p returns nothing
+    endfunction
+    function UTUIEventText__TTestActUTUIEventText1 takes string str returns nothing
+        local player p=GetTriggerPlayer()
+        local integer index=GetConvertedPlayerId(p)  //获取范围式数字
+        local integer i  //所有参数S
+        local integer num=0
+        local integer len=StringLength(str)
+        local string  array paramS  //所有参数I
+        local integer  array paramI  //所有参数R
+        local real  array paramR
+        set i=0
+        loop
+        exitwhen (i>len-1)
+            if (SubString(str,i,i+1)==" ")then
+                set paramS[num]=SubString(str,0,i)
+                set paramI[num]=S2I(paramS[num])
+                set paramR[num]=S2R(paramS[num])
+                set num=num+1
+                set str=SubString(str,i+1,len)
+                set len=StringLength(str)
+                set i=-1
+            endif
+        set i = i+1
+        endloop
+        set paramS[num]=str
+        set paramI[num]=S2I(paramS[num])
+        set paramR[num]=S2R(paramS[num])
+        set num=num+1
+        if (paramS[0]=="a")then
+        elseif (paramS[0]=="b")then
+        endif
+        set p=null
+    endfunction
+        function UTUIEventText__anon__6 takes nothing returns nothing  //在游戏开始0.0秒后再调用
+            call BJDebugMsg("[UIEventText] 单元测试已加载")
+            call DestroyTrigger(GetTriggeringTrigger())
+        endfunction
+        function UTUIEventText__anon__7 takes nothing returns nothing
+            local string str=GetEventPlayerChatString()
+            local integer i=1
+            if (SubStringBJ(str,1,1)=="-")then
+                call UTUIEventText__TTestActUTUIEventText1(SubStringBJ(str,2,StringLength(str)))
+                return
+            endif
+            if (str=="s1")then
+                call UTUIEventText__TTestUTUIEventText1(GetTriggerPlayer())
+            elseif (str=="s2")then
+                call UTUIEventText__TTestUTUIEventText2(GetTriggerPlayer())
+            elseif (str=="s3")then
+                call UTUIEventText__TTestUTUIEventText3(GetTriggerPlayer())
+            elseif (str=="s4")then
+                call UTUIEventText__TTestUTUIEventText4(GetTriggerPlayer())
+            elseif (str=="s5")then
+                call UTUIEventText__TTestUTUIEventText5(GetTriggerPlayer())
+            elseif (str=="s6")then
+                call UTUIEventText__TTestUTUIEventText6(GetTriggerPlayer())
+            elseif (str=="s7")then
+                call UTUIEventText__TTestUTUIEventText7(GetTriggerPlayer())
+            elseif (str=="s8")then
+                call UTUIEventText__TTestUTUIEventText8(GetTriggerPlayer())
+            elseif (str=="s9")then
+                call UTUIEventText__TTestUTUIEventText9(GetTriggerPlayer())
+            elseif (str=="s10")then
+                call UTUIEventText__TTestUTUIEventText10(GetTriggerPlayer())
+            endif
+        endfunction
+    function UTUIEventText__onInit takes nothing returns nothing
+        local trigger tr=CreateTrigger()
+        call TriggerRegisterTimerEventSingle(tr,0.5)
+        call TriggerAddCondition(tr,Condition(function UTUIEventText__anon__6))
+        set tr=null
+        call UnitTestRegisterChatEvent(function UTUIEventText__anon__7)
+    endfunction
+
+//library UTUIEventText ends
+// 锚点常量
+// 事件常量
+//鼠标点击事件
 //Index名:
 //默认原生图片路径
 //模板名
-//! zinc
+//TEXT对齐常量:(uiText.setAlign)
 
-library UIText requires UIId,UITocInit {
-    public struct uiText {
-        integer ui; //frameID
-integer id; //可以回收的ID名(为了销毁时ID不重复)
-
-        method isExist () -> boolean {return (this != null && si__uiText_V[this] == -1);}
-        static method create (integer parent,integer size) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("TEXT","Text" + I2S(id),parent,"TextTemplate",0);
-            DzFrameSetFont(ui,"fonts\\zt.ttf",size,0);
-            return this;
-        }
-        // TEXT_ALIGN_TOP_LEFT = 0        // 左上对齐
-        // TEXT_ALIGN_TOP_CENTER = 1      // 顶部居中对齐
-        // TEXT_ALIGN_TOP_RIGHT = 2       // 右上对齐
-        // TEXT_ALIGN_MIDDLE_LEFT = 3     // 左中对齐
-        // TEXT_ALIGN_MIDDLE_CENTER = 4   // 中心对齐
-        // TEXT_ALIGN_MIDDLE_RIGHT = 5    // 右中对齐
-        // TEXT_ALIGN_BOTTOM_LEFT = 6     // 左下对齐
-        // TEXT_ALIGN_BOTTOM_CENTER = 7   // 底部居中对齐
-        // TEXT_ALIGN_BOTTOM_RIGHT = 8    // 右下对齐
-        method setAlign (integer align) -> nothing {
-            if (!this.isExist()) {return;}
-            DzFrameSetTextAlignment(ui,align);
-        }
-        method setText (string text) -> nothing {
-            if (!this.isExist()) {return;}
-            DzFrameSetText(ui,text);
-        }
-        //销毁时调用
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-            ui = 0;
-            id = 0;
-        }
-    }
-}
-//! endzinc
+// 结构体共用方法定义
+//控件的共用基本方法
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -362,29 +663,6 @@ integer id; //可以回收的ID名(为了销毁时ID不重复)
 //*  Global Variables
 //*
 //***************************************************************************
-globals
-    // Generated
-    rect gg_rct_Wave1 = null
-    rect gg_rct_Wave2 = null
-    rect gg_rct_Wave3 = null
-    rect gg_rct_Wave4 = null
-    rect gg_rct_Base = null
-    rect gg_rct_BaseBack = null
-    rect gg_rct_Home1 = null
-    rect gg_rct_Home2 = null
-    rect gg_rct_Home3 = null
-    rect gg_rct_Home4 = null
-    rect gg_rct_Fuben1 = null
-    rect gg_rct_Fuben2 = null
-    rect gg_rct_Fuben3 = null
-    rect gg_rct_Fuben4 = null
-    rect gg_rct_Fuben5 = null
-    rect gg_rct_Fuben6 = null
-    rect gg_rct_Fuben7 = null
-    rect gg_rct_Fuben8 = null
-    trigger gg_trg_______u = null
-    unit gg_unit_hcas_0011 = null
-endglobals
 function InitGlobals takes nothing returns nothing
 endfunction
 //***************************************************************************
@@ -454,125 +732,6 @@ endfunction
 // 用原始地图测试
 // 用空地图测试
 // 用原始地图测试
-// 结构体共用方法定义
-//Index名:
-//默认原生图片路径
-//模板名
-//! zinc
-
-library UIText requires UIId,UITocInit {
-    public struct uiText {
-        integer ui; //frameID
-integer id; //可以回收的ID名(为了销毁时ID不重复)
-
-        method isExist () -> boolean {return (this != null && si__uiText_V[this] == -1);}
-        static method create (integer parent,integer size) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("TEXT","Text" + I2S(id),parent,"TextTemplate",0);
-            DzFrameSetFont(ui,"fonts\\zt.ttf",size,0);
-            return this;
-        }
-        // TEXT_ALIGN_TOP_LEFT = 0        // 左上对齐
-        // TEXT_ALIGN_TOP_CENTER = 1      // 顶部居中对齐
-        // TEXT_ALIGN_TOP_RIGHT = 2       // 右上对齐
-        // TEXT_ALIGN_MIDDLE_LEFT = 3     // 左中对齐
-        // TEXT_ALIGN_MIDDLE_CENTER = 4   // 中心对齐
-        // TEXT_ALIGN_MIDDLE_RIGHT = 5    // 右中对齐
-        // TEXT_ALIGN_BOTTOM_LEFT = 6     // 左下对齐
-        // TEXT_ALIGN_BOTTOM_CENTER = 7   // 底部居中对齐
-        // TEXT_ALIGN_BOTTOM_RIGHT = 8    // 右下对齐
-        method setAlign (integer align) -> nothing {
-            if (!this.isExist()) {return;}
-            DzFrameSetTextAlignment(ui,align);
-        }
-        method setText (string text) -> nothing {
-            if (!this.isExist()) {return;}
-            DzFrameSetText(ui,text);
-        }
-        //销毁时调用
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-            ui = 0;
-            id = 0;
-        }
-    }
-}
-//! endzinc
-//! zinc
-//自动生成的文件
-library UTUIText requires UIText {
-	function TTestUTUIText1 (player p) {
-		uiText t = uiText.create(uiId.get(),10);
-	}
-	function TTestUTUIText2 (player p) {}
-	function TTestUTUIText3 (player p) {}
-	function TTestUTUIText4 (player p) {}
-	function TTestUTUIText5 (player p) {}
-	function TTestUTUIText6 (player p) {}
-	function TTestUTUIText7 (player p) {}
-	function TTestUTUIText8 (player p) {}
-	function TTestUTUIText9 (player p) {}
-	function TTestUTUIText10 (player p) {}
-	function TTestActUTUIText1 (string str) {
-		player p = GetTriggerPlayer();
-		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str); //获取范围式数字
-string paramS []; //所有参数S
-integer paramI []; //所有参数I
-real	paramR []; //所有参数R
-for (0 <= i <= len - 1) {
-			if (SubString(str,i,i+1) == " ") {
-				paramS[num]= SubString(str,0,i);
-				paramI[num]= S2I(paramS[num]);
-				paramR[num]= S2R(paramS[num]);
-				num = num + 1;
-				str = SubString(str,i + 1,len);
-				len = StringLength(str);
-				i = -1;
-			}
-		}
-		paramS[num]= str;
-		paramI[num]= S2I(paramS[num]);
-		paramR[num]= S2R(paramS[num]);
-		num = num + 1;
-		if (paramS[0] == "a") {
-		} else if (paramS[0] == "b") {
-		}
-		p = null;
-	}
-	function onInit () {
-		//在游戏开始0.0秒后再调用
-		trigger tr = CreateTrigger();
-		TriggerRegisterTimerEventSingle(tr,0.5);
-		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UIText] 单元测试已加载");
-			DestroyTrigger(GetTriggeringTrigger());
-		}));
-		tr = null;
-		UnitTestRegisterChatEvent(function () {
-			string str = GetEventPlayerChatString();
-			integer i = 1;
-			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUIText1(SubStringBJ(str,2,StringLength(str)));
-				return;
-			}
-			if (str == "s1") TTestUTUIText1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUIText2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUIText3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUIText4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUIText5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUIText6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUIText7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUIText8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUIText9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUIText10(GetTriggerPlayer());
-		});
-	}
-}
-//! endzinc
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -900,6 +1059,13 @@ function main takes nothing returns nothing
     call CreateRegions( )
     call CreateAllUnits( )
     call InitBlizzard( )
+
+//! initstructs
+call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("UITocInit__onInit")
+call ExecuteFunc("UTUIEventText__onInit")
+
+//! initdatastructs
     call InitGlobals( )
     call InitCustomTriggers( )
 endfunction

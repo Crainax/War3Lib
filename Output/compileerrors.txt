@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 463: library redeclared : UIText
+JASSHelper - Step 2 (structs)
+Line 545: currentText is not of a type that allows . syntax
 1
