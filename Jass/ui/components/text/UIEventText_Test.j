@@ -76,6 +76,7 @@ library UTUIEventText requires UIEventText {
 		}));
 		tr = null;
 
+
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
 			integer i = 1;

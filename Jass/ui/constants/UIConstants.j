@@ -49,13 +49,13 @@
 #define UI_STRING_PATH_BLANK "UI\\Widgets\\EscMenu\\Human\\blank-background.blp"
 
 //模板名
-#define TEMPLATE_BLANK_BUTTON       "BlankButtonTemplate"
-#define TEMPLATE_NORMAL_BUTTON      "ButtonTemplate" //无声
-#define TEMPLATE_TEXT_BUTTON        "TextButtonTemplate"
-#define TEMPLATE_IMAGE              "ImageTemplate"
-#define TEMPLATE_IMAGE_TOOLTIPS     "ToolTipsTemplate"
-#define TEMPLATE_IMAGE_TOOLTIPS_2   "ToolTipsTemplate2"
-#define TEMPLATE_IMAGE_TOOLTIPS_1_2 "ToolTipsTemplate3"
+#define TEMPLATE_NORMAL_BUTTON      "BT" //无声,有高亮
+#define TEMPLATE_TEXT_BUTTON        "TBT"
+#define TEMPLATE_IMAGE              "IT"
+#define TEMPLATE_BLANK_BUTTON       "BB"
+#define TEMPLATE_IMAGE_TOOLTIPS    "ToolTipsTemplate"
+#define TEMPLATE_IMAGE_TOOLTIPS2   "ToolTipsTemplate2"
+#define TEMPLATE_IMAGE_TOOLTIPS3   "ToolTipsTemplate3"
 #define TEMPLATE_SPRITE             "SpriteTemplate"
 #define TEMPLATE_TEXT               "T1"      // 标准文字模板(无事件)
 #define TEMPLATE_TEXT_EVENT         "T2"      // 标准文字模板(有事件)

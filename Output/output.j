@@ -2,29 +2,34 @@ globals
 //globals from BzAPI:
 constant boolean LIBRARY_BzAPI=true
 //endglobals from BzAPI
-//globals from HashTable:
-constant boolean LIBRARY_HashTable=true
-hashtable HASH_UNIT_TYPE=InitHashtable()
-hashtable HASH_UNIT=InitHashtable()
-hashtable HASH_TIMER=InitHashtable()
-hashtable HASH_GROUP=InitHashtable()
-hashtable HASH_SPELL=InitHashtable()
-//endglobals from HashTable
-//globals from MapBoundsUtils:
-constant boolean LIBRARY_MapBoundsUtils=true
-//endglobals from MapBoundsUtils
-//globals from MathUtils:
-constant boolean LIBRARY_MathUtils=true
-//endglobals from MathUtils
+//globals from LBKKAPI:
+constant boolean LIBRARY_LBKKAPI=true
+string MOVE_TYPE_NONE= "none"
+string MOVE_TYPE_FOOT= "foot"
+string MOVE_TYPE_HORSE= "horse"
+string MOVE_TYPE_FLY= "fly"
+string MOVE_TYPE_HOVER= "hover"
+string MOVE_TYPE_FLOAT= "float"
+string MOVE_TYPE_AMPH= "amph"
+string MOVE_TYPE_UNBUILD= "unbuild"
+constant integer DEFENSE_TYPE_LIGHT= 0
+constant integer DEFENSE_TYPE_MEDIUM= 1
+constant integer DEFENSE_TYPE_LARGE= 2
+constant integer DEFENSE_TYPE_FORT= 3
+constant integer DEFENSE_TYPE_NORMAL= 4
+constant integer DEFENSE_TYPE_HERO= 5
+constant integer DEFENSE_TYPE_DIVINE= 6
+constant integer DEFENSE_TYPE_NONE= 7
+//endglobals from LBKKAPI
 //globals from UIBaseModule:
 constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
 //endglobals from UIId
-//globals from UITextModule:
-constant boolean LIBRARY_UITextModule=true
-//endglobals from UITextModule
+//globals from UIImageModule:
+constant boolean LIBRARY_UIImageModule=true
+//endglobals from UIImageModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork__TUnitTest=null
@@ -32,15 +37,13 @@ trigger UnitTestFramwork__TUnitTest=null
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
-//globals from UIText:
-constant boolean LIBRARY_UIText=true
-//endglobals from UIText
-//globals from UTUIText:
-constant boolean LIBRARY_UTUIText=true
-integer UTUIText__currentText=0
-timer array UTUIText__playerTimers
-// processed:     UTUIText__TestData  array UTUIText__playerTestData[16]
-//endglobals from UTUIText
+//globals from UIImage:
+constant boolean LIBRARY_UIImage=true
+//endglobals from UIImage
+//globals from UTUIImage:
+constant boolean LIBRARY_UTUIImage=true
+integer UTUIImage__currentImage=0
+//endglobals from UTUIImage
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -66,39 +69,17 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
-constant integer si__mapBounds=1
-integer si__mapBounds_F=0
-integer si__mapBounds_I=0
-integer array si__mapBounds_V
-real s__mapBounds_maxX=0.
-real s__mapBounds_minX=0.
-real s__mapBounds_maxY=0.
-real s__mapBounds_minY=0.
-constant integer si__radiationEnd=2
-integer si__radiationEnd_F=0
-integer si__radiationEnd_I=0
-integer array si__radiationEnd_V
-real s__radiationEnd_x=0
-real s__radiationEnd_y=0
-constant integer si__uiId=3
+constant integer si__uiId=1
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__uiText=4
-integer si__uiText_F=0
-integer si__uiText_I=0
-integer array si__uiText_V
-integer array s__uiText_ui
-integer array s__uiText_id
-constant integer si__UTUIText__TestData=5
-integer si__UTUIText__TestData_F=0
-integer si__UTUIText__TestData_I=0
-integer array si__UTUIText__TestData_V
-integer array s__UTUIText__TestData_count
-integer array s__UTUIText__TestData_operationCount
-integer array s__UTUIText__TestData_texts
-integer array s__UTUIText__playerTestData
-trigger st__uiText_onDestroy
+constant integer si__uiImage=2
+integer si__uiImage_F=0
+integer si__uiImage_I=0
+integer array si__uiImage_V
+integer array s__uiImage_ui
+integer array s__uiImage_id
+trigger st__uiImage_onDestroy
 integer f__arg_this
 
 endglobals
@@ -238,138 +219,153 @@ endglobals
     native DzGetConvertWorldPositionX takes nothing returns real
     native DzGetConvertWorldPositionY takes nothing returns real
     native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
+        native DzGetSelectedLeaderUnit takes nothing returns unit 
+        native DzIsChatBoxOpen takes nothing returns boolean 
+        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
+        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
+        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
+        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
+        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
+        native DzSetEffectModel takes effect whichEffect, string model returns nothing
+        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
+        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
+        native DzChangeWindowSize takes integer width, integer height returns boolean 
+        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
+        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
+        native DzUnbindEffect takes effect whichEffect returns nothing 
+        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
+        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
+        native DzGetEffectVertexColor takes effect whichEffect returns integer 
+        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
+        native DzGetItemAbility takes item whichEffect, integer index returns ability 
+        native DzFrameGetChildrenCount takes integer whichframe returns integer 
+        native DzFrameGetChild takes integer whichframe, integer index returns integer 
+        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
+        native DzGetActivePatron takes unit store, player p returns unit 
+        native DzGetLocalSelectUnitCount takes nothing returns integer 
+        native DzGetLocalSelectUnit takes integer index returns unit 
+        native DzGetJassStringTableCount takes nothing returns integer 
+        native DzModelRemoveFromCache takes string path returns nothing 
+        native DzModelRemoveAllFromCache takes nothing returns nothing 
+        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
+        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
+        native DzFrameGetPeonBar takes nothing returns integer 
+        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
+        native DzToggleFPS takes boolean show returns nothing 
+        native DzGetFPS takes nothing returns integer 
+        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
+        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
+        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
+        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
+        native DzFrameGetWorldFrameMessage takes nothing returns integer 
+        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
+        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
+        native DzConvertScreenPositionX takes real x, real y returns real 
+        native DzConvertScreenPositionY takes real x, real y returns real 
+        native DzRegisterOnBuildLocal takes code func returns nothing 
+        native DzGetOnBuildOrderId takes nothing returns integer 
+        native DzGetOnBuildOrderType takes nothing returns integer 
+        native DzGetOnBuildAgent takes nothing returns widget 
+        native DzRegisterOnTargetLocal takes code func returns nothing 
+        native DzGetOnTargetAbilId takes nothing returns integer 
+        native DzGetOnTargetOrderId takes nothing returns integer 
+        native DzGetOnTargetOrderType takes nothing returns integer 
+        native DzGetOnTargetAgent takes nothing returns widget 
+        native DzGetOnTargetInstantTarget takes nothing returns widget 
+        native DzOpenQQGroupUrl takes string url returns boolean 
+        native DzFrameEnableClipRect takes boolean enable returns nothing 
+        native DzSetUnitName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
+        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
+        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
+        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
+        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
+        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
+        native DzGetAttackAbility takes unit whichUnit returns ability 
+        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
+        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
+        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
+        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
+        native DzDoodadGetTypeId takes integer doodad returns integer 
+        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
+        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
+        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
+        native DzDoodadGetX takes integer doodad returns real 
+        native DzDoodadGetY takes integer doodad returns real 
+        native DzDoodadGetZ takes integer doodad returns real 
+        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
+        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
+        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
+        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
+        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
+        native DzDoodadGetTimeScale takes integer doodad returns real 
+        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
+        native DzDoodadGetAnimationCount takes integer doodad returns integer 
+        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
+        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
+        native DzUnlockOpCodeLimit takes boolean enable returns nothing
+        native DzSetClipboard takes string content returns boolean
+        native DzDoodadRemove takes integer doodad returns nothing
+        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
+        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
+        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
+        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
+        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
+        native DzFrameGetWidth takes integer frame returns real
+        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
+        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
+        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
+        native DzItemSetModel takes item whichItem, string file returns nothing
+        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
+        native DzItemSetAlpha takes item whichItem, integer color returns nothing
+        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
 
-//Generated allocator of mapBounds
-function s__mapBounds__allocate takes nothing returns integer
- local integer this=si__mapBounds_F
-    if (this!=0) then
-        set si__mapBounds_F=si__mapBounds_V[this]
-    else
-        set si__mapBounds_I=si__mapBounds_I+1
-        set this=si__mapBounds_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: mapBounds")
-        return 0
-    endif
-
-    set si__mapBounds_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of mapBounds
-function s__mapBounds_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: mapBounds")
-        return
-    elseif (si__mapBounds_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: mapBounds")
-        return
-    endif
-    set si__mapBounds_V[this]=si__mapBounds_F
-    set si__mapBounds_F=this
-endfunction
-
-//Generated allocator of UTUIText__TestData
-function s__UTUIText__TestData__allocate takes nothing returns integer
- local integer this=si__UTUIText__TestData_F
-    if (this!=0) then
-        set si__UTUIText__TestData_F=si__UTUIText__TestData_V[this]
-    else
-        set si__UTUIText__TestData_I=si__UTUIText__TestData_I+1
-        set this=si__UTUIText__TestData_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: UTUIText__TestData")
-        return 0
-    endif
-
-    set si__UTUIText__TestData_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of UTUIText__TestData
-function s__UTUIText__TestData_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: UTUIText__TestData")
-        return
-    elseif (si__UTUIText__TestData_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: UTUIText__TestData")
-        return
-    endif
-    set si__UTUIText__TestData_V[this]=si__UTUIText__TestData_F
-    set si__UTUIText__TestData_F=this
-endfunction
-
-//Generated method caller for uiText.onDestroy
-function sc__uiText_onDestroy takes integer this returns nothing
+//Generated method caller for uiImage.onDestroy
+function sc__uiImage_onDestroy takes integer this returns nothing
     set f__arg_this=this
-    call TriggerEvaluate(st__uiText_onDestroy)
+    call TriggerEvaluate(st__uiImage_onDestroy)
 endfunction
 
-//Generated allocator of uiText
-function s__uiText__allocate takes nothing returns integer
- local integer this=si__uiText_F
+//Generated allocator of uiImage
+function s__uiImage__allocate takes nothing returns integer
+ local integer this=si__uiImage_F
     if (this!=0) then
-        set si__uiText_F=si__uiText_V[this]
+        set si__uiImage_F=si__uiImage_V[this]
     else
-        set si__uiText_I=si__uiText_I+1
-        set this=si__uiText_I
+        set si__uiImage_I=si__uiImage_I+1
+        set this=si__uiImage_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiText")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiImage")
         return 0
     endif
 
-    set si__uiText_V[this]=-1
+    set si__uiImage_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiText
-function sc__uiText_deallocate takes integer this returns nothing
+//Generated destructor of uiImage
+function sc__uiImage_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiText")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
         return
-    elseif (si__uiText_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiText")
+    elseif (si__uiImage_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiText_onDestroy)
-    set si__uiText_V[this]=si__uiText_F
-    set si__uiText_F=this
-endfunction
-
-//Generated allocator of radiationEnd
-function s__radiationEnd__allocate takes nothing returns integer
- local integer this=si__radiationEnd_F
-    if (this!=0) then
-        set si__radiationEnd_F=si__radiationEnd_V[this]
-    else
-        set si__radiationEnd_I=si__radiationEnd_I+1
-        set this=si__radiationEnd_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: radiationEnd")
-        return 0
-    endif
-
-    set si__radiationEnd_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of radiationEnd
-function s__radiationEnd_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: radiationEnd")
-        return
-    elseif (si__radiationEnd_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: radiationEnd")
-        return
-    endif
-    set si__radiationEnd_V[this]=si__radiationEnd_F
-    set si__radiationEnd_F=this
+    call TriggerEvaluate(st__uiImage_onDestroy)
+    set si__uiImage_V[this]=si__uiImage_F
+    set si__uiImage_F=this
 endfunction
 
 //library BzAPI:
@@ -593,148 +589,192 @@ endfunction
     
 
 //library BzAPI ends
-//library HashTable:
-    //public:  // 单位类型哈希表
+//library LBKKAPI:
 
-//library HashTable ends
-//library MapBoundsUtils:
-        function s__mapBounds_X takes real x returns real
-            return RMinBJ(RMaxBJ(x, s__mapBounds_minX), s__mapBounds_maxX)
-        endfunction  // 限制Y坐标在地图范围内
-        function s__mapBounds_Y takes real y returns real
-            return RMinBJ(RMaxBJ(y, s__mapBounds_minY), s__mapBounds_maxY)
-        endfunction  // 初始化
-        function s__mapBounds_onInit takes nothing returns nothing
-            set s__mapBounds_minX=GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT)
-            set s__mapBounds_minY=GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM)
-            set s__mapBounds_maxX=GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT)
-            set s__mapBounds_maxY=GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //转换屏幕坐标到世界坐标  
+
+
+        //监听建筑选位置  
+
+        //等于0时是结束事件  
+
+
+
+        //监听技能选目标  
+
+        //等于0时是结束事件  
+
+
+
+
+
+        // 打开QQ群链接  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function DzSetHeroTypeProperName takes integer uid,string name returns nothing
+                call EXSetUnitArrayString(uid, 61, 0, name)
+                call EXSetUnitInteger(uid, 61, 1)
+        endfunction 
+        function DzSetUnitTypeName takes integer uid,string name returns nothing
+                call EXSetUnitArrayString(uid, 10, 0, name)
+                call EXSetUnitInteger(uid, 10, 1)
+        endfunction 
+        function DzIsUnitAttackType takes unit whichUnit,integer index,attacktype attackType returns boolean
+                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType
+        endfunction 
+        function DzSetUnitAttackType takes unit whichUnit,integer index,attacktype attackType returns nothing
+                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType))
+        endfunction 
+        function DzIsUnitDefenseType takes unit whichUnit,integer defenseType returns boolean
+                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType
+        endfunction 
+        function DzSetUnitDefenseType takes unit whichUnit,integer defenseType returns nothing
+                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType)
+        endfunction 
+        // 地形装饰物
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // 解锁JASS字节码限制
+
+        // 设置剪切板内容
+
+        //删除装饰物
+
+        //移除科技等级
+
+        
+        // 查找单位技能
+
+        // 修改技能数据-字符串
+
+                
+        // 启用/禁用技能
+
+        // 设置单位移动类型
+
+        // 获取控件宽度
+
+
+
+
+        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
+                call DzSetUnitDataCacheInteger(uid, id, 0, v)
         endfunction
-
-//library MapBoundsUtils ends
-//library MathUtils:
-    function R2IRandom takes real value returns integer
-        if ( GetRandomReal(0, 1.0) <= ModuloReal(value, 1.0) ) then
-            return R2I(value) + 1
-        endif
-        return R2I(value)
-    endfunction  // 进行整数除法，若能整除则结果减1
-    function Divide1 takes integer i1,integer i2 returns integer
-        if ( ModuloInteger(i1, i2) == 0 ) then
-            return i1 / i2 - 1
-        endif
-        return i1 / i2
-    endfunction  // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
-    function RealAdd takes real a1,real a2 returns real
-        if ( RAbsBJ(a2) >= 1.0 ) then
-            return a1
-        endif
-        if ( a2 >= 0 ) then
-            return 1.0 - ( 1.0 - a1 ) * ( 1.0 - a2 )
-        else
-            return 1.0 - ( 1.0 - a1 ) / ( 1.0 + a2 )
-        endif
-    endfunction  // 最小最大值限制
-    function ILimit takes integer target,integer min,integer max returns integer
-        if ( target < min ) then
-            return min
-        elseif ( target > max ) then
-            return max
-        else
-            return target
-        endif
-    endfunction  // 最小最大值限制
-    function RLimit takes real target,real min,real max returns real
-        if ( target < min ) then
-            return min
-        elseif ( target > max ) then
-            return max
-        else
-            return target
-        endif
-    endfunction  // 四舍五入法实数转整数
-    function R2IM takes real r returns integer
-        if ( ModuloReal(r, 1.0) >= 0.5 ) then
-            return R2I(r) + 1
-        else
-            return R2I(r)
-        endif
-    endfunction  // 计算射线与地图边界的交点
-        function s__radiationEnd_cal takes real x1,real y1,real angle returns nothing
-            local real x2=0
-            local real y2=0
-            local real a=ModuloReal(angle, 360)
-            local real tan
-            set s__radiationEnd_x=0
-            set s__radiationEnd_y=0 // 处理特殊角度
-            if ( a == 0 ) then // 正右方
-                set s__radiationEnd_x=s__mapBounds_maxX
-                set s__radiationEnd_y=y1
-                return
-            endif // 正上方
-            if ( a == 90 ) then
-                set s__radiationEnd_x=x1
-                set s__radiationEnd_y=s__mapBounds_maxY
-                return
-            endif // 正左方
-            if ( a == 180 ) then
-                set s__radiationEnd_x=s__mapBounds_minX
-                set s__radiationEnd_y=y1
-                return
-            endif // 正下方
-            if ( a == 270 ) then
-                set s__radiationEnd_x=x1
-                set s__radiationEnd_y=s__mapBounds_minY
-                return
-            endif // 处理一般角度
-            if ( a < 90 ) then //第一象限
-                set tan=TanBJ(a)
-                set x2=( s__mapBounds_maxY - y1 ) / tan + x1
-                set y2=( s__mapBounds_maxX - x1 ) * tan + y1 //取这个
-                if ( x2 <= s__mapBounds_maxX ) then
-                    set s__radiationEnd_x=x2
-                    set s__radiationEnd_y=s__mapBounds_maxY
-                else
-                    set s__radiationEnd_x=s__mapBounds_maxX
-                    set s__radiationEnd_y=y2
-                endif //第二象限
-            elseif ( a < 180 ) then
-                set tan=TanBJ(a)
-                set x2=( s__mapBounds_maxY - y1 ) / tan + x1
-                set y2=( s__mapBounds_minX - x1 ) * tan + y1 //取这个
-                if ( x2 >= s__mapBounds_minX ) then
-                    set s__radiationEnd_x=x2
-                    set s__radiationEnd_y=s__mapBounds_maxY
-                else
-                    set s__radiationEnd_x=s__mapBounds_minX
-                    set s__radiationEnd_y=y2
-                endif //第三象限
-            elseif ( a < 270 ) then
-                set tan=TanBJ(a)
-                set x2=( s__mapBounds_minY - y1 ) / tan + x1
-                set y2=( s__mapBounds_minX - x1 ) * tan + y1 //取这个
-                if ( x2 >= s__mapBounds_minX ) then
-                    set s__radiationEnd_x=x2
-                    set s__radiationEnd_y=s__mapBounds_minY
-                else
-                    set s__radiationEnd_x=s__mapBounds_minX
-                    set s__radiationEnd_y=y2
-                endif //第四象限
-            else
-                set tan=TanBJ(a)
-                set x2=( s__mapBounds_minY - y1 ) / tan + x1
-                set y2=( s__mapBounds_maxX - x1 ) * tan + y1 //取这个
-                if ( x2 <= s__mapBounds_maxX ) then
-                    set s__radiationEnd_x=x2
-                    set s__radiationEnd_y=s__mapBounds_minY
-                else
-                    set s__radiationEnd_x=s__mapBounds_maxX
-                    set s__radiationEnd_y=y2
-                endif
-            endif
+        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 94, id, v)
         endfunction
+        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 100, id, v)
+        endfunction
+        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 112, id, v)
+        endfunction
+        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 106, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 118, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 124, id, v)
+        endfunction
+        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 130, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger(uid, 172, id, v)
+        endfunction
+         // 设置道具模型
 
-//library MathUtils ends
+        // 设置道具颜色
+
+        // 设置道具透明度
+
+        // 设置道具头像
+
+
+//library LBKKAPI ends
 //library UIBaseModule:
 
 //library UIBaseModule ends
@@ -772,9 +812,9 @@ endfunction
         endfunction
 
 //library UIId ends
-//library UITextModule:
+//library UIImageModule:
 
-//library UITextModule ends
+//library UIImageModule ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
@@ -808,307 +848,154 @@ endfunction
 
     function UITocInit__onInit takes nothing returns nothing
         call DzLoadToc("ui\\PhantomOrbit.toc")
+        call DzFrameEnableClipRect(false)
     endfunction
 
 //library UITocInit ends
-//library UIText:
-        function s__uiText_isExist takes integer this returns boolean
-            return ( this != null and si__uiText_V[this] == - 1 )
+//library UIImage:
+        function s__uiImage_isExist takes integer this returns boolean
+            return ( this != null and si__uiImage_V[this] == - 1 )
         endfunction
 //Implemented from module uiBaseModule:
-        function s__uiText_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
+        function s__uiImage_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetPoint(s__uiText_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            call DzFrameSetPoint(s__uiImage_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
             return this
         endfunction  // 大小完全对齐父框架
-        function s__uiText_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
+        function s__uiImage_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetAllPoints(s__uiText_ui[this], relative)
+            call DzFrameSetAllPoints(s__uiImage_ui[this], relative)
             return this
         endfunction  // 清除所有位置
-        function s__uiText_clearPoint takes integer this returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
+        function s__uiImage_clearPoint takes integer this returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameClearAllPoints(s__uiText_ui[this])
+            call DzFrameClearAllPoints(s__uiImage_ui[this])
             return this
         endfunction  // 设置大小
-        function s__uiText_setSize takes integer this,real width,real height returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
+        function s__uiImage_size takes integer this,real width,real height returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetSize(s__uiText_ui[this], width, height)
+            call DzFrameSetSize(s__uiImage_ui[this], width, height)
             return this
         endfunction
-//Implemented from module uiTextModule:
-        function s__uiText_setFontSize takes integer this,integer size returns integer
-            local real fontSize=0.01
-            if ( not ( s__uiText_isExist(this) ) ) then
+//Implemented from module uiImageModule:
+        function s__uiImage_texture takes integer this,string path returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            if ( size == 1 ) then
-                set fontSize=0.006
-            elseif ( size == 2 ) then
-                set fontSize=0.008
-            elseif ( size == 3 ) then
-                set fontSize=0.009
-            elseif ( size == 4 ) then
-                set fontSize=0.01
-            elseif ( size == 5 ) then
-                set fontSize=0.011
-            elseif ( size == 6 ) then
-                set fontSize=0.012
-            elseif ( size == 7 ) then
-                set fontSize=0.015
-            endif
-            call DzFrameSetFont(s__uiText_ui[this], "fonts\\zt.ttf", fontSize, 0)
-            return this
-        endfunction  // 设置对齐方式(前提要先定好大小,不然无处对齐)
-        function s__uiText_setAlign takes integer this,integer align returns integer
-            local integer finalAlign=align
-            if ( not ( s__uiText_isExist(this) ) ) then // 如果输入0-8,转换为对应的组合值
-                return this
-            endif
-            if ( align >= 0 and align <= 8 ) then
-                if ( align == 0 ) then // 左上
-                    set finalAlign=9
-                elseif ( align == 1 ) then // 顶部居中
-                    set finalAlign=17
-                elseif ( align == 2 ) then // 右上
-                    set finalAlign=33
-                elseif ( align == 3 ) then // 左中
-                    set finalAlign=10
-                elseif ( align == 4 ) then // 居中
-                    set finalAlign=18
-                elseif ( align == 5 ) then // 右中
-                    set finalAlign=34
-                elseif ( align == 6 ) then // 左下
-                    set finalAlign=12
-                elseif ( align == 7 ) then // 底部居中
-                    set finalAlign=20
-                elseif ( align == 8 ) then // 右下
-                    set finalAlign=36
-                endif
-            endif
-            call DzFrameSetTextAlignment(s__uiText_ui[this], finalAlign)
-            return this
-        endfunction  // 设置文本内容
-        function s__uiText_setText takes integer this,string text returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetText(s__uiText_ui[this], text)
+            call DzFrameSetTexture(s__uiImage_ui[this], path, 0)
             return this
         endfunction
-        function s__uiText_create takes integer parent returns integer
-            local integer this=s__uiText__allocate()
-            set s__uiText_id[this]=s__uiId_get()
-            set s__uiText_ui[this]=DzCreateFrameByTagName("TEXT", "Text" + I2S(s__uiText_id[this]), parent, "T1", 0)
+        function s__uiImage_create takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "IT", 0)
+            return this
+        endfunction  // 创建工具提示背景图片(种类1)
+        function s__uiImage_createToolTips takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate", 0)
+            return this
+        endfunction  // 创建工具提示背景图片(种类2)
+        function s__uiImage_createToolTips2 takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate2", 0)
+            return this
+        endfunction  // 创建工具提示背景图片(种类3)
+        function s__uiImage_createToolTips3 takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate3", 0)
             return this
         endfunction
-        function s__uiText_onDestroy takes integer this returns nothing
-            if ( not ( s__uiText_isExist(this) ) ) then
+        function s__uiImage_onDestroy takes integer this returns nothing
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return
             endif
-            call DzDestroyFrame(s__uiText_ui[this])
-            call s__uiId_recycle(s__uiText_id[this])
+            call DzDestroyFrame(s__uiImage_ui[this])
+            call s__uiId_recycle(s__uiImage_id[this])
         endfunction
 
-//Generated destructor of uiText
-function s__uiText_deallocate takes integer this returns nothing
+//Generated destructor of uiImage
+function s__uiImage_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiText")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
         return
-    elseif (si__uiText_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiText")
+    elseif (si__uiImage_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
         return
     endif
-    call s__uiText_onDestroy(this)
-    set si__uiText_V[this]=si__uiText_F
-    set si__uiText_F=this
+    call s__uiImage_onDestroy(this)
+    set si__uiImage_V[this]=si__uiImage_F
+    set si__uiImage_F=this
 endfunction
 
-//library UIText ends
-//library UTUIText:
+//library UIImage ends
+//library UTUIImage:
 
-    function UTUIText__TTestUTUIText1 takes player p returns nothing
+    function UTUIImage__TTestUTUIImage1 takes player p returns nothing
         if ( GetLocalPlayer() == p ) then
-            set UTUIText__currentText=s__uiText_setText(s__uiText_setPoint(s__uiText_create(DzGetGameUI()),4 , DzGetGameUI() , 4 , s__uiText_id[UTUIText__currentText] * 0.01 , s__uiText_id[UTUIText__currentText] * 0.01),"这是一个测试文本" + I2S(s__uiText_id[UTUIText__currentText]))
-            call BJDebugMsg("创建了一个文本UI，使用标准字体大小")
+            set UTUIImage__currentImage=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_size(s__uiImage_create(DzGetGameUI()),0.04 , 0.04),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp")
+            call BJDebugMsg("创建了一个基础图像UI") // .texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
         endif
-    endfunction  // 测试文本对齐
-        function UTUIText__anon__0 takes nothing returns nothing
-            local timer t=GetExpiredTimer()
-            local integer id=GetHandleId(t)
-            local integer alignIndex=LoadInteger(HASH_TIMER, id, 1)
-            local string alignName=""
-            set alignIndex=ModuloInteger(alignIndex + 1, 9)
-            call SaveInteger(HASH_TIMER, id, 1, alignIndex)
-            if ( UTUIText__currentText != 0 ) then
-                call s__uiText_setAlign(UTUIText__currentText,alignIndex) // 更新对齐方式说明文本
-                if ( alignIndex == 0 ) then
-                    set alignName="左上"
-                elseif ( alignIndex == 1 ) then
-                    set alignName="顶部居中"
-                elseif ( alignIndex == 2 ) then
-                    set alignName="右上"
-                elseif ( alignIndex == 3 ) then
-                    set alignName="左中"
-                elseif ( alignIndex == 4 ) then
-                    set alignName="居中"
-                elseif ( alignIndex == 5 ) then
-                    set alignName="右中"
-                elseif ( alignIndex == 6 ) then
-                    set alignName="左下"
-                elseif ( alignIndex == 7 ) then
-                    set alignName="底部居中"
-                elseif ( alignIndex == 8 ) then
-                    set alignName="右下"
-                endif
-                call s__uiText_setText(UTUIText__currentText,"测试对齐方式\n当前对齐: " + alignName + I2S(alignIndex) + "\n每秒切换一次对齐方式")
-            endif
-            set alignName=null
-            set t=null
-        endfunction
-    function UTUIText__TTestUTUIText2 takes player p returns nothing
-        local timer t
+    endfunction  // 测试图像销毁功能
+    function UTUIImage__TTestUTUIImage4 takes player p returns nothing
         if ( GetLocalPlayer() == p ) then
-            set UTUIText__currentText=s__uiText_setText(s__uiText_setAllPoint(s__uiText_create(DzGetGameUI()),DzGetGameUI()),"测试对齐方式\n当前对齐: 左上\n每秒切换一次对齐方式")
+            if ( UTUIImage__currentImage != 0 ) then
+                call s__uiImage_deallocate(UTUIImage__currentImage)
+                call BJDebugMsg("销毁了当前图像")
+                set UTUIImage__currentImage=0
+            else
+                call BJDebugMsg("当前没有可销毁的图像")
+            endif
         endif
-        set t=CreateTimer()
-        call SaveInteger(HASH_TIMER, GetHandleId(t), 1, 0)
-        call TimerStart(t, 1.0, true, function UTUIText__anon__0)
-        call BJDebugMsg("创建了一个文本UI，将自动切换对齐方式")
-        call BJDebugMsg("使用-destroy命令可以停止演示")
-        set t=null
-    endfunction  // 测试文本内容设置
-        function UTUIText__anon__1 takes nothing returns nothing
-            local timer t=GetExpiredTimer()
-            local integer id=GetHandleId(t)
-            local integer sizeIndex=LoadInteger(HASH_TIMER, id, 1)
-            local string sizeName=""
-            set sizeIndex=ModuloInteger(sizeIndex, 7) + 1
-            call SaveInteger(HASH_TIMER, id, 1, sizeIndex)
-            if ( UTUIText__currentText != 0 ) then
-                call s__uiText_setFontSize(UTUIText__currentText,sizeIndex) // 更新字体大小说明文本
-                if ( sizeIndex == 1 ) then
-                    set sizeName="迷你"
-                elseif ( sizeIndex == 2 ) then
-                    set sizeName="特小"
-                elseif ( sizeIndex == 3 ) then
-                    set sizeName="小"
-                elseif ( sizeIndex == 4 ) then
-                    set sizeName="标准"
-                elseif ( sizeIndex == 5 ) then
-                    set sizeName="中"
-                elseif ( sizeIndex == 6 ) then
-                    set sizeName="大"
-                elseif ( sizeIndex == 7 ) then
-                    set sizeName="特大"
-                endif
-                call s__uiText_setText(UTUIText__currentText,"测试字体大小\n当前大小: " + sizeName + "(" + I2S(sizeIndex) + ")\n每秒切换一次大小")
+    endfunction  // 测试工具提示背景图片1
+    function UTUIImage__TTestUTUIImage5 takes player p returns nothing
+        if ( GetLocalPlayer() == p ) then
+            if ( UTUIImage__currentImage != 0 ) then
+                call s__uiImage_deallocate(UTUIImage__currentImage)
+                set UTUIImage__currentImage=0
             endif
-            set sizeName=null
-            set t=null
-        endfunction
-    function UTUIText__TTestUTUIText3 takes player p returns nothing
-        local timer t
-        set UTUIText__currentText=s__uiText_setText(s__uiText_setPoint(s__uiText_create(DzGetGameUI()),4 , DzGetGameUI() , 4 , 0 , 0),"测试字体大小\n当前大小: 标准(4)\n每秒切换一次大小")
-        set t=CreateTimer()
-        call SaveInteger(HASH_TIMER, GetHandleId(t), 1, 4)
-        call TimerStart(t, 1.0, true, function UTUIText__anon__1)
-        call BJDebugMsg("创建了一个文本UI，将自动切换字体大小")
-        call BJDebugMsg("使用-destroy命令可以停止演示")
-        set t=null
-    endfunction  // 测试大量创建和销毁,ID回收机制,支持异步了
-        function UTUIText__anon__2 takes nothing returns nothing
-            local timer t=GetExpiredTimer()
-            local integer i
-            local player p
-            local integer index
-            local integer data
-            local real randX
-            local real randY
-            local integer tempText
-            local integer randomIndex
-            set i=0
-            loop
-            exitwhen ( i >= 16 )
-                if ( UTUIText__playerTimers[i] == t ) then
-                    set index=i
-                    set p=Player(i - 1)
-                    exitwhen true
-                endif
-            set i=i + 1
-            endloop
-            set data=s__UTUIText__playerTestData[index] // 50%概率创建新的uitext
-            if ( GetRandomInt(0, 1) == 0 ) then
-                set randX=GetRandomReal(- 0.2, 0.2)
-                set randY=GetRandomReal(- 0.2, 0.2)
-                if ( GetLocalPlayer() == p ) then
-                    set tempText=s__uiText_setPoint(s__uiText_create(DzGetGameUI()),4 , DzGetGameUI() , 4 , randX , randY)
-                    set s__UTUIText__TestData_texts[s__UTUIText__TestData_count[data]]=tempText
-                    set s__UTUIText__TestData_count[data]=s__UTUIText__TestData_count[data] + 1
-                    call s__uiText_setText(tempText,"序号:" + I2S(s__uiText_id[tempText]) + "\nTotal:" + I2S(s__UTUIText__TestData_count[data]))
-                endif // 50%概率删除一个已存在的uitext
-            elseif ( s__UTUIText__TestData_count[data] > 0 ) then
-                if ( GetLocalPlayer() == p ) then
-                    set randomIndex=ILimit(s__UTUIText__TestData_count[data] / 2 , 0 , s__UTUIText__TestData_count[data])
-                    set tempText=s__UTUIText__TestData_texts[randomIndex]
-                    if ( tempText != 0 ) then
-                        call s__uiText_deallocate(tempText)
-                    endif // 整理数组
-                    set s__UTUIText__TestData_count[data]=s__UTUIText__TestData_count[data] - 1
-                    if ( randomIndex < s__UTUIText__TestData_count[data] ) then
-                        set s__UTUIText__TestData_texts[randomIndex]=s__UTUIText__TestData_texts[s__UTUIText__TestData_count[data]]
-                    endif
-                    set s__UTUIText__TestData_texts[s__UTUIText__TestData_count[data]]=0
-                endif
-            endif
-            if ( GetLocalPlayer() == p ) then // 更新操作次数
-                set s__UTUIText__TestData_operationCount[data]=s__UTUIText__TestData_operationCount[data] + 1 // 每100次操作输出一次统计信息
-                if ( ModuloInteger(s__UTUIText__TestData_operationCount[data], 100) == 0 ) then
-                    call DisplayTimedTextToPlayer(p, 0, 0, 10, "===统计信息===")
-                    call DisplayTimedTextToPlayer(p, 0, 0, 10, "总操作次数: " + I2S(s__UTUIText__TestData_operationCount[data]))
-                    call DisplayTimedTextToPlayer(p, 0, 0, 10, "当前文本数: " + I2S(s__UTUIText__TestData_count[data]))
-                endif
-            endif
-            set p=null
-            set t=null
-        endfunction
-    function UTUIText__TTestUTUIText4 takes player p returns nothing
-        local timer t
-        local integer index=GetConvertedPlayerId(p)
-        if ( UTUIText__playerTimers[index] != null ) then
-            call PauseTimer(UTUIText__playerTimers[index])
-            call DestroyTimer(UTUIText__playerTimers[index])
+            set UTUIImage__currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
+            call BJDebugMsg("创建了工具提示背景图片(种类1)")
         endif
-        set s__UTUIText__playerTestData[index]= s__UTUIText__TestData__allocate()
-        set t=CreateTimer()
-        set UTUIText__playerTimers[index]=t
-        call TimerStart(t, 0.1, true, function UTUIText__anon__2)
-        call DisplayTimedTextToPlayer(p, 0, 0, 10, "开始自动测试UIText创建和销毁")
-        call DisplayTimedTextToPlayer(p, 0, 0, 10, "使用-destroy命令可以停止测试")
-        call DisplayTimedTextToPlayer(p, 0, 0, 10, "每100次操作会输出一次统计信息")
-        set t=null
-    endfunction  //测试大量ID创建删除
-    function UTUIText__TTestUTUIText5 takes player p returns nothing
-    endfunction  // 保留空函数以维持原有架构
-    function UTUIText__TTestUTUIText6 takes player p returns nothing
+    endfunction  // 测试工具提示背景图片2
+    function UTUIImage__TTestUTUIImage6 takes player p returns nothing
+        if ( GetLocalPlayer() == p ) then
+            if ( UTUIImage__currentImage != 0 ) then
+                call s__uiImage_deallocate(UTUIImage__currentImage)
+                set UTUIImage__currentImage=0
+            endif
+            set UTUIImage__currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips2(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
+            call BJDebugMsg("创建了工具提示背景图片(种类2)")
+        endif
+    endfunction  // 测试工具提示背景图片3
+    function UTUIImage__TTestUTUIImage7 takes player p returns nothing
+        if ( GetLocalPlayer() == p ) then
+            if ( UTUIImage__currentImage != 0 ) then
+                call s__uiImage_deallocate(UTUIImage__currentImage)
+                set UTUIImage__currentImage=0
+            endif
+            set UTUIImage__currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips3(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
+            call BJDebugMsg("创建了工具提示背景图片(种类3)")
+        endif
+    endfunction  // 将TTestUTUIImage8-10保持为空函数
+    function UTUIImage__TTestUTUIImage8 takes player p returns nothing
     endfunction
-    function UTUIText__TTestUTUIText7 takes player p returns nothing
+    function UTUIImage__TTestUTUIImage9 takes player p returns nothing
     endfunction
-    function UTUIText__TTestUTUIText8 takes player p returns nothing
+    function UTUIImage__TTestUTUIImage10 takes player p returns nothing
     endfunction
-    function UTUIText__TTestUTUIText9 takes player p returns nothing
-    endfunction
-    function UTUIText__TTestUTUIText10 takes player p returns nothing
-    endfunction
-    function UTUIText__TTestActUTUIText1 takes string str returns nothing
+    function UTUIImage__TTestActUTUIImage1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1134,86 +1021,50 @@ endfunction
         set paramS[num]=str
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
-        set num=num + 1 // 命令处理
-        if ( paramS[0] == "align" ) then
-            if ( UTUIText__currentText != 0 ) then
-                call s__uiText_setText(s__uiText_setAlign(UTUIText__currentText,paramI[0]),"当前对齐: " + paramS[0])
-                call BJDebugMsg("设置对齐方式为: " + paramS[0])
-            endif
-        elseif ( paramS[0] == "text" ) then
-            if ( UTUIText__currentText != 0 ) then
-                call s__uiText_setText(UTUIText__currentText,paramS[1])
-                call BJDebugMsg("设置文本内容为: " + paramS[1])
-            endif
-        elseif ( paramS[0] == "destroy" ) then
-            call BJDebugMsg("停止")
-            if ( UTUIText__currentText != 0 ) then
-                call s__uiText_deallocate(UTUIText__currentText)
-                set UTUIText__currentText=0
-                call BJDebugMsg("销毁当前文本UI")
-            endif // 停止并清理计时器和测试数据
-            if ( UTUIText__playerTimers[index] != null ) then
-                call PauseTimer(UTUIText__playerTimers[index])
-                call DestroyTimer(UTUIText__playerTimers[index])
-                set UTUIText__playerTimers[index]=null
-                call s__UTUIText__TestData_deallocate(s__UTUIText__playerTestData[index])
-                call DisplayTextToPlayer(p, 0, 0, "停止自动测试")
-            endif
-        elseif ( paramS[0] == "size" ) then
-            if ( UTUIText__currentText != 0 ) then
-                call s__uiText_setFontSize(UTUIText__currentText,paramI[1])
-                call BJDebugMsg("设置字体大小为: " + I2S(paramI[1]) + " (1=迷你,2=特小,3=小,4=标准,5=中,6=大,7=特大)")
-            endif
+        set num=num + 1
+        if ( paramS[0] == "a" ) then // 可以添加带参数的测试功能
+        elseif ( paramS[0] == "b" ) then // 可以添加带参数的测试功能
         endif
         set p=null
     endfunction
-        function UTUIText__anon__3 takes nothing returns nothing
-            call BJDebugMsg("[UIText] 单元测试已加载")
-            call BJDebugMsg("使用s1-s5测试不同功能")
-            call BJDebugMsg("-align <0-8> 设置对齐")
-            call BJDebugMsg("-text <内容> 设置文本")
-            call BJDebugMsg("-destroy 销毁文本")
+        function UTUIImage__anon__0 takes nothing returns nothing
+            call BJDebugMsg("[UIImage] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUIText__anon__4 takes nothing returns nothing
+        function UTUIImage__anon__1 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUIText__TTestActUTUIText1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUIImage__TTestActUTUIImage1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUIText__TTestUTUIText1(GetTriggerPlayer())
-            elseif ( str == "s2" ) then
-                call UTUIText__TTestUTUIText2(GetTriggerPlayer())
-            elseif ( str == "s3" ) then
-                call UTUIText__TTestUTUIText3(GetTriggerPlayer())
+                call UTUIImage__TTestUTUIImage1(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUIText__TTestUTUIText4(GetTriggerPlayer())
+                call UTUIImage__TTestUTUIImage4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUIText__TTestUTUIText5(GetTriggerPlayer())
+                call UTUIImage__TTestUTUIImage5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUIText__TTestUTUIText6(GetTriggerPlayer())
+                call UTUIImage__TTestUTUIImage6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUIText__TTestUTUIText7(GetTriggerPlayer())
+                call UTUIImage__TTestUTUIImage7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUIText__TTestUTUIText8(GetTriggerPlayer())
+                call UTUIImage__TTestUTUIImage8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUIText__TTestUTUIText9(GetTriggerPlayer())
+                call UTUIImage__TTestUTUIImage9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUIText__TTestUTUIText10(GetTriggerPlayer())
+                call UTUIImage__TTestUTUIImage10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUIText__onInit takes nothing returns nothing
+    function UTUIImage__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUIText__anon__3))
+        call TriggerAddCondition(tr, Condition(function UTUIImage__anon__0))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUIText__anon__4)
+        call UnitTestRegisterChatEvent(function UTUIImage__anon__1)
     endfunction
 
-//library UTUIText ends
-// 结构体共用方法定义
+//library UTUIImage ends
 // 锚点常量
 // 事件常量
 //鼠标点击事件
@@ -1221,9 +1072,19 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
-
-// 常用哈希表
 //控件的共用基本方法
+// 结构体共用方法定义
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
+
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1636,10 +1497,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs40321750")
+call ExecuteFunc("jasshelper__initstructs49196343")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UTUIText__onInit")
+call ExecuteFunc("UTUIImage__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1677,28 +1538,22 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-
-//Functions for BigArrays:
-function sa__uiText_onDestroy takes nothing returns boolean
+function sa__uiImage_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiText_isExist(this) ) ) then
+            if ( not ( s__uiImage_isExist(this) ) ) then
 return true
             endif
-            call DzDestroyFrame(s__uiText_ui[this])
-            call s__uiId_recycle(s__uiText_id[this])
+            call DzDestroyFrame(s__uiImage_ui[this])
+            call s__uiId_recycle(s__uiImage_id[this])
    return true
 endfunction
 
-function jasshelper__initstructs40321750 takes nothing returns nothing
-    set st__uiText_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiText_onDestroy,Condition( function sa__uiText_onDestroy))
+function jasshelper__initstructs49196343 takes nothing returns nothing
+    set st__uiImage_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
 
 
 
-
-
-
-    call ExecuteFunc("s__mapBounds_onInit")
     call ExecuteFunc("s__uiId_onInit")
 endfunction
 

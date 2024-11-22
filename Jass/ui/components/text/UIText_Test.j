@@ -12,8 +12,8 @@
 * s1 - 测试创建文本并设置基本属性
 * s2 - 测试文本对齐方式(9种对齐方式)
 * s3 - 测试文本内容设置
-* s4 - 测试文本销毁
-* s5 - 测试多个文本创建和管理
+* s4 - 测试文本销毁还有大量创建删除
+* s5 - 测试UI移动,还有到边界的显示情况
 * -align <数字> - 设置当前文本对齐方式(0-8)
 * -text <文本> - 设置当前文本内容
 * -destroy - 销毁当前文本和自动测试计时器
@@ -233,14 +233,71 @@ library UTUIText requires UIText {
 
 		DisplayTimedTextToPlayer(p, 0, 0, 10, "开始自动测试UIText创建和销毁");
 		DisplayTimedTextToPlayer(p, 0, 0, 10, "使用-destroy命令可以停止测试");
-		DisplayTimedTextToPlayer(p, 0, 0, 10, "每100次操作会输出一次统计信息");
+		DisplayTimedTextToPlayer(p, 0, 0, 10, "每100次操作会输出一次统���信息");
 
 		t = null;
 	}
 
 	//测试大量ID创建删除
 	function TTestUTUIText5 (player p) {
+		timer t;
+		integer index = GetConvertedPlayerId(p);
 
+		// 如果该玩家已有计时器在运行，先停止它
+		if (playerTimers[index] != null) {
+			PauseTimer(playerTimers[index]);
+			DestroyTimer(playerTimers[index]);
+		}
+
+		// 创建文本UI
+		if (GetLocalPlayer() == p) {
+			currentText = uiText.create(DzGetGameUI())
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, -0.5, 0)
+				.setText("移动的文本");
+		}
+
+		// 创建计时器控制移动
+		t = CreateTimer();
+		playerTimers[index] = t;
+
+		// 保存移动方向 (1为向右, -1为向左)
+		SaveInteger(HASH_TIMER, GetHandleId(t), 0, 1);
+		// 保存当前X坐标
+		SaveReal(HASH_TIMER, GetHandleId(t), 1, -0.5);
+
+		TimerStart(t, 0.03, true, function() {
+			timer t = GetExpiredTimer();
+			integer direction = LoadInteger(HASH_TIMER, GetHandleId(t), 0);
+			real currentX = LoadReal(HASH_TIMER, GetHandleId(t), 1);
+
+			// 更新位置
+			currentX = currentX + 0.01 * direction;
+
+			// 检查边界并改变方向
+			if (currentX >= 0.5) {
+				direction = -1;
+				currentX = 0.5;
+			} else if (currentX <= -0.5) {
+				direction = 1;
+				currentX = -0.5;
+			}
+
+			// 保存新的状态
+			SaveInteger(HASH_TIMER, GetHandleId(t), 0, direction);
+			SaveReal(HASH_TIMER, GetHandleId(t), 1, currentX);
+
+			// 更新文本位置
+			if (currentText != 0) {
+				currentText.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, currentX, 0);
+			}
+
+			t = null;
+		});
+
+		DisplayTextToPlayer(p, 0, 0, "开始测试文本UI横向移动");
+		DisplayTextToPlayer(p, 0, 0, "使用-destroy命令可以停止测试");
+
+		t = null;
 	}
 
 	// 保留空函数以维持原有架构
@@ -327,6 +384,7 @@ library UTUIText requires UIText {
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
+
 
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();

@@ -1,4 +1,5 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 545: currentText is not of a type that allows . syntax
-1
+pjass.exe
+Line 911:  Undeclared variable TEMPLATE_IMAGE_TOOLTIPS2
+Line 917:  Undeclared variable TEMPLATE_IMAGE_TOOLTIPS3
+2

@@ -10,40 +10,6 @@ library UIBase requires BzAPI {
 
 	public integer UIIndex = 0;
 
-	// 创建一个空按钮
-	public function CreateBlankButton (integer parent) -> integer {
-		integer ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(UIIndex),parent,TEMPLATE_BLANK_BUTTON,0);
-		UIIndex = UIIndex + 1;
-		return ui;
-	}
-
-	// 创建一个反馈按钮(无声)
-	public function CreateButton (integer parent) -> integer {
-		integer ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(UIIndex),parent,TEMPLATE_NORMAL_BUTTON,0);
-		UIIndex = UIIndex + 1;
-		return ui;
-	}
-
-	// 创建一个反馈按钮(有声)
-	public function CreateSoundButton (integer parent) -> integer {
-		integer ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(UIIndex),parent,TEMPLATE_NORMAL_BUTTON,0);
-		UIIndex = UIIndex + 1;
-		return ui;
-	}
-
-	// 创建一个文本式按钮
-	public function CreateTextButton (integer parent) -> integer {
-		integer ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(UIIndex),parent,TEMPLATE_TEXT_BUTTON,0);
-		UIIndex = UIIndex + 1;
-		return ui;
-	}
-
-	// 创建一个图片
-	public function CreateBackDrop (integer parent) -> integer {
-		integer ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(UIIndex),parent,TEMPLATE_IMAGE,0);
-		UIIndex = UIIndex + 1;
-		return ui;
-	}
 
 	// 创建一个动态模型
 	public function CreateSprite (integer parent) -> integer {

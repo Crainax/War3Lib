@@ -1,0 +1,385 @@
+AllianceAcceptButton
+AllianceAcceptButtonText
+AllianceBackdrop
+AllianceCancelButton
+AllianceCancelButtonText
+AllianceDialog
+AllianceDialogScrollBar
+AllianceSlot [0 to 23]
+AllianceTitle
+AlliedVictoryCheckBox
+AlliedVictoryLabel
+AllyCheckBox [0 to 23]
+AllyHeader
+AmbientCheckBox
+AmbientLabel
+AnimQualityLabel
+AnimQualityValue
+BottomButtonPanel
+ButtonBackdropTemplate
+ButtonDisabledBackdropTemplate
+ButtonDisabledPushedBackdropTemplate
+ButtonPushedBackdropTemplate
+CancelButtonText
+ChatDialog
+ChatBackdrop
+ChatTitle
+ChatPlayerRadioButton
+ChatAlliesRadioButton
+ChatObserversRadioButton
+ChatEveryoneRadioButton
+ChatPlayerLabel
+ChatAlliesLabel
+ChatObserversLabel
+ChatEveryoneLabel
+ChatPlayerMenu
+ChatAcceptButton
+ChatAcceptButtonText
+ChatHistoryDisplayBackdrop
+ChatHistoryDisplay
+ChatHistoryScrollBar
+ChatHistoryLabel
+ChatInfoText
+CinematicBottomBorder
+CinematicDialogueText
+CinematicPanel
+CinematicPortrait
+CinematicPortraitBackground
+CinematicPortraitCover
+CinematicScenePanel
+CinematicSpeakerText
+CinematicTopBorder
+ColorBackdrop [0 to 23]
+ColorBorder [0 to 23]
+ConfirmQuitCancelButton
+ConfirmQuitCancelButtonText
+ConfirmQuitMessageText
+ConfirmQuitPanel
+ConfirmQuitQuitButton
+ConfirmQuitQuitButtonText
+ConfirmQuitTitleText
+ConsoleUI
+CustomKeysLabel
+CustomKeysValue
+DecoratedMapListBox
+DeleteCancelButton
+DeleteCancelButtonText
+DeleteDeleteButton
+DeleteDeleteButtonText
+DeleteMessageText
+DeleteOnly
+DeleteTitleText
+DifficultyLabel
+DifficultyValue
+EndGameButton
+EndGameButtonText
+EndGamePanel
+EndGameTitleText
+EnviroCheckBox
+EnviroLabel
+EscMenuBackdrop
+EscMenuDeleteContainer
+EscMenuMainPanel
+EscMenuOptionsPanel
+EscMenuOverwriteContainer
+EscMenuSaveGamePanel
+EscMenuSaveLoadContainer
+EscOptionsLightsMenu
+EscOptionsLightsPopupMenuArrow
+EscOptionsLightsPopupMenuBackdrop
+EscOptionsLightsPopupMenuDisabledBackdrop
+EscOptionsLightsPopupMenuMenu
+EscOptionsLightsPopupMenuTitle
+EscOptionsOcclusionMenu
+EscOptionsOcclusionPopupMenuArrow
+EscOptionsOcclusionPopupMenuBackdrop
+EscOptionsOcclusionPopupMenuDisabledBackdrop
+EscOptionsOcclusionPopupMenuMenu
+EscOptionsOcclusionPopupMenuTitle
+EscOptionsParticlesMenu
+EscOptionsParticlesPopupMenuArrow
+EscOptionsParticlesPopupMenuBackdrop
+EscOptionsParticlesPopupMenuDisabledBackdrop
+EscOptionsParticlesPopupMenuMenu
+EscOptionsParticlesPopupMenuTitle
+EscOptionsResolutionMenu
+EscOptionsResolutionPopupMenuArrow
+EscOptionsResolutionPopupMenuBackdrop
+EscOptionsResolutionPopupMenuDisabledBackdrop
+EscOptionsResolutionPopupMenuMenu
+EscOptionsResolutionPopupMenuTitle
+EscOptionsShadowsMenu
+EscOptionsShadowsPopupMenuArrow
+EscOptionsShadowsPopupMenuBackdrop
+EscOptionsShadowsPopupMenuDisabledBackdrop
+EscOptionsShadowsPopupMenuMenu
+EscOptionsShadowsPopupMenuTitle
+EscOptionsWindowModeMenu
+EscOptionsWindowModePopupMenuArrow
+EscOptionsWindowModePopupMenuBackdrop
+EscOptionsWindowModePopupMenuDisabledBackdrop
+EscOptionsWindowModePopupMenuMenu
+EscOptionsWindowModePopupMenuTitle
+ExitButton
+ExitButtonText
+ExtraHighLatencyLabel
+ExtraHighLatencyRadio
+FileListFrame
+FormationToggleCheckBox
+FormationToggleLabel
+GameplayButton
+GameplayButtonText
+GameplayPanel
+GameplayTitleText
+GameSpeedLabel
+GameSpeedSlider
+GameSpeedValue
+GammaBrightLabel
+GammaDarkLabel
+GammaLabel
+GammaSlider
+GoldBackdrop [0 to 23]
+GoldHeader
+GoldText [0 to 23]
+HealthBarsCheckBox
+HealthBarsLabel
+HelpButton
+HelpButtonText
+HelpOKButton
+HelpOKButtonText
+HelpPanel
+HelpTextArea
+HelpTitleText
+HighLatencyLabel
+HighLatencyRadio
+InfoPanelIconAllyFoodIcon [7]
+InfoPanelIconAllyFoodValue [7]
+InfoPanelIconAllyGoldIcon [7]
+InfoPanelIconAllyGoldValue [7]
+InfoPanelIconAllyTitle [7]
+InfoPanelIconAllyUpkeep [7]
+InfoPanelIconAllyWoodIcon [7]
+InfoPanelIconAllyWoodValue [7]
+InfoPanelIconBackdrop [0 to 5]
+InfoPanelIconHeroAgilityLabel [6]
+InfoPanelIconHeroAgilityValue [6]
+InfoPanelIconHeroIcon [6]
+InfoPanelIconHeroIntellectLabel [6]
+InfoPanelIconHeroIntellectValue [6]
+InfoPanelIconHeroStrengthLabel [6]
+InfoPanelIconHeroStrengthValue [6]
+InfoPanelIconLabel [0 to 5]
+InfoPanelIconLevel [0 to 5]
+InfoPanelIconValue [0 to 5]
+InsideConfirmQuitPanel
+InsideEndGamePanel
+InsideHelpPanel
+InsideMainPanel
+InsideTipsPanel
+KeyScrollFastLabel
+KeyScrollLabel
+KeyScrollSlider
+KeyScrollSlowLabel
+LatencyInfo1
+LatencyInfo2
+Leaderboard
+LeaderboardBackdrop
+LeaderboardListContainer
+LeaderboardTitle
+LightsLabel
+LoadGameButton
+LoadGameButtonText
+LoadGameCancelButton
+LoadGameCancelButtonText
+LoadGameLoadButton
+LoadGameLoadButtonText
+LoadGameTitleText
+LoadOnly
+LogArea
+LogAreaBackdrop
+LogAreaScrollBar
+LogBackdrop
+LogDialog
+LogOkButton
+LogOkButtonText
+LogTitle
+LowLatencyLabel
+LowLatencyRadio
+LumberBackdrop [0 to 23]
+LumberHeader
+LumberText [0 to 23]
+MainPanel
+MapListBoxBackdrop
+MapListScrollBar
+ModelDetailLabel
+ModelDetailValue
+MouseScrollDisable
+MouseScrollDisableLabel
+MouseScrollFastLabel
+MouseScrollLabel
+MouseScrollSlider
+MouseScrollSlowLabel
+MovementCheckBox
+MovementLabel
+Multiboard
+MultiboardBackdrop
+MultiboardListContainer
+MultiboardMinimizeButton
+MultiboardTitle
+MultiboardTitleBackdrop
+MusicCheckBox
+MusicVolumeHighLabel
+MusicVolumeLabel
+MusicVolumeLowLabel
+MusicVolumeSlider
+NetworkButton
+NetworkButtonText
+NetworkLabel
+NetworkPanel
+NetworkTitleText
+ObserverCameraCheckBox
+ObserverCameraString
+ObserverFogCheckBox
+ObserverFogString
+ObserverVisionMenu
+ObserverVisionMenuArrow
+ObserverVisionMenuBackdrop
+ObserverVisionMenuDisabledBackdrop
+ObserverVisionMenuTitle
+ObserverVisionPopupMenu
+ObserverVisionPopupMenuMenuBackdropTemplate
+OcclusionLabel
+OKButtonText
+OptionsButton
+OptionsButtonText
+OptionsCancelButton
+OptionsOKButton
+OptionsPanel
+OptionsPreviousButton
+OptionsPreviousButtonText
+OptionsTitleText
+OverwriteCancelButton
+OverwriteCancelButtonText
+OverwriteMessageText
+OverwriteOnly
+OverwriteOverwriteButton
+OverwriteOverwriteButtonText
+OverwriteTitleText
+ParticlesLabel
+PauseButton
+PauseButtonText
+PlayerNameLabel [0 to 23]
+PlayersHeader
+PositionalCheckBox
+PositionalLabel
+PreviousButton
+PreviousButtonText
+ProviderLabel
+ProviderValue
+QuitButton
+QuitButtonText
+ResolutionLabel
+ResourceBarFrame
+ResourceBarGoldText
+ResourceBarLumberText
+ResourceBarSupplyText
+ResourceBarUpkeepText
+ResourceTradingTitle
+RestartButton
+RestartButtonText
+ReturnButton
+ReturnButtonText
+SaveAndLoad
+SaveGameButton
+SaveGameButtonText
+SaveGameCancelButton
+SaveGameCancelButtonText
+SaveGameDeleteButton
+SaveGameDeleteButtonText
+SaveGameFileEditBox
+SaveGameFileEditBoxText
+SaveGameSaveButton
+SaveGameSaveButtonText
+SaveGameTitleText
+SaveOnly
+ShadowsLabel
+SimpleBuildingActionLabel [0 & 1]
+SimpleBuildingDescriptionValue [1]
+SimpleBuildingNameValue [1]
+SimpleBuildQueueBackdrop [1]
+SimpleBuildTimeIndicator [0 & 1]
+SimpleClassValue
+SimpleDestructableNameValue [4]
+SimpleHeroLevelBar
+SimpleHoldDescriptionValue [2]
+SimpleHoldNameValue [2]
+SimpleInfoPanelBuildingDetail [1]
+SimpleInfoPanelCargoDetail [2]
+SimpleInfoPanelDestructableDetail [4]
+SimpleInfoPanelIconAlly [7]
+SimpleInfoPanelIconArmor [2]
+SimpleInfoPanelIconDamage [0 & 1]
+SimpleInfoPanelIconFood [4]
+SimpleInfoPanelIconGold [5]
+SimpleInfoPanelIconHero [6]
+SimpleInfoPanelIconHeroText [6]
+SimpleInfoPanelIconRank [3]
+SimpleInfoPanelItemDetail [3]
+SimpleInfoPanelUnitDetail
+SimpleItemDescriptionValue [3]
+SimpleItemNameValue [3]
+SimpleNameValue
+SimpleObserverPanel
+SimpleProgressIndicator
+SimpleUnitStatsPanel
+SoundButton
+SoundButtonText
+SoundCheckBox
+SoundPanel
+SoundTitleText
+SoundVolumeHighLabel
+SoundVolumeLabel
+SoundVolumeLowLabel
+SoundVolumeSlider
+SubgroupCheckBox
+SubgroupLabel
+SubtitlesCheckBox
+SubtitlesLabel
+TextureQualityLabel
+TextureQualityValue
+TimerDialog [0 to x]
+TimerDialogBackdrop [0 to x]
+TimerDialogValue [0 to x]
+TimerDialogTitle [0 to x]
+TipsBackButton
+TipsBackButtonText
+TipsButton
+TipsButtonText
+TipsNextButton
+TipsNextButtonText
+TipsOKButton
+TipsOKButtonText
+TipsPanel
+TipsTextArea
+TipsTitleText
+TooltipsCheckBox
+TooltipsLabel
+UnitCheckBox
+UnitLabel
+UnitsCheckBox [0 to 23]
+UnitsHeader
+UpperButtonBarAlliesButton
+UpperButtonBarChatButton
+UpperButtonBarFrame
+UpperButtonBarMenuButton
+UpperButtonBarQuestsButton
+VideoButton
+VideoButtonText
+VideoPanel
+VideoTitleText
+VisionCheckBox [0 to 23]
+VisionHeader
+VSyncCheckBox
+VSyncLabel
+WindowModeLabel
+WouldTheRealOptionsTitleTextPleaseStandUp

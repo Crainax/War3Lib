@@ -38,8 +38,8 @@ function w3xlni:Start(func)
 	end
 	if path.buildVersion == "单元测试" then -- todo:根据正式或单元测试,创建lua.currentpath的require来分包控制.
 		-- 判断是否是单元测试,进行物编转移/特效的
-		utr.ReplaceTable()
-		utr.ReplaceMapJ()
+		-- utr.ReplaceTable()
+		-- utr.ReplaceMapJ()
 		-- utr.MoveLuaFile() -- 暂时先不移动Lua文件
 		print("[Lua" .. path.buildVersion .. "]开始进行单元测试的物编结束.")
 	end

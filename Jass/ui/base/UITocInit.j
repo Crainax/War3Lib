@@ -5,10 +5,11 @@
 /*
 Toc初始化,才能使用UI功能
 */
-library UITocInit requires BzAPI {
+library UITocInit requires BzAPI,LBKKAPI {
 
   function onInit ()  {
 		DzLoadToc("ui\\PhantomOrbit.toc");
+		DzFrameEnableClipRect(false);
   }
 }
 
