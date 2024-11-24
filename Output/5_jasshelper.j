@@ -32,7 +32,7 @@ constant boolean LIBRARY_UIImageModule=true
 //endglobals from UIImageModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
+trigger UnitTestFramwork___TUnitTest=null
 //endglobals from UnitTestFramwork
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
@@ -42,7 +42,7 @@ constant boolean LIBRARY_UIImage=true
 //endglobals from UIImage
 //globals from UTUIImage:
 constant boolean LIBRARY_UTUIImage=true
-integer UTUIImage__currentImage=0
+integer UTUIImage___currentImage=0
 //endglobals from UTUIImage
     // Generated
 rect gg_rct_Wave1= null
@@ -818,9 +818,9 @@ endfunction
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -831,22 +831,22 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
 //library UITocInit:
 
-    function UITocInit__onInit takes nothing returns nothing
+    function UITocInit___onInit takes nothing returns nothing
         call DzLoadToc("ui\\PhantomOrbit.toc")
         call DzFrameEnableClipRect(false)
     endfunction
@@ -910,12 +910,6 @@ endfunction
             set s__uiImage_id[this]=s__uiId_get()
             set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate2", 0)
             return this
-        endfunction  // 创建工具提示背景图片(种类3)
-        function s__uiImage_createToolTips3 takes integer parent returns integer
-            local integer this=s__uiImage__allocate()
-            set s__uiImage_id[this]=s__uiId_get()
-            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate3", 0)
-            return this
         endfunction
         function s__uiImage_onDestroy takes integer this returns nothing
             if ( not ( s__uiImage_isExist(this) ) ) then
@@ -942,60 +936,52 @@ endfunction
 //library UIImage ends
 //library UTUIImage:
 
-    function UTUIImage__TTestUTUIImage1 takes player p returns nothing
+    function UTUIImage___TTestUTUIImage1 takes player p returns nothing
         if ( GetLocalPlayer() == p ) then
-            set UTUIImage__currentImage=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_size(s__uiImage_create(DzGetGameUI()),0.04 , 0.04),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp")
+            set UTUIImage___currentImage=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_size(s__uiImage_create(DzGetGameUI()),0.04 , 0.04),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp")
             call BJDebugMsg("创建了一个基础图像UI") // .texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
         endif
     endfunction  // 测试图像销毁功能
-    function UTUIImage__TTestUTUIImage4 takes player p returns nothing
+    function UTUIImage___TTestUTUIImage4 takes player p returns nothing
         if ( GetLocalPlayer() == p ) then
-            if ( UTUIImage__currentImage != 0 ) then
-                call s__uiImage_deallocate(UTUIImage__currentImage)
+            if ( UTUIImage___currentImage != 0 ) then
+                call s__uiImage_deallocate(UTUIImage___currentImage)
                 call BJDebugMsg("销毁了当前图像")
-                set UTUIImage__currentImage=0
+                set UTUIImage___currentImage=0
             else
                 call BJDebugMsg("当前没有可销毁的图像")
             endif
         endif
     endfunction  // 测试工具提示背景图片1
-    function UTUIImage__TTestUTUIImage5 takes player p returns nothing
+    function UTUIImage___TTestUTUIImage5 takes player p returns nothing
         if ( GetLocalPlayer() == p ) then
-            if ( UTUIImage__currentImage != 0 ) then
-                call s__uiImage_deallocate(UTUIImage__currentImage)
-                set UTUIImage__currentImage=0
+            if ( UTUIImage___currentImage != 0 ) then
+                call s__uiImage_deallocate(UTUIImage___currentImage)
+                set UTUIImage___currentImage=0
             endif
-            set UTUIImage__currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
+            set UTUIImage___currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
             call BJDebugMsg("创建了工具提示背景图片(种类1)")
         endif
     endfunction  // 测试工具提示背景图片2
-    function UTUIImage__TTestUTUIImage6 takes player p returns nothing
+    function UTUIImage___TTestUTUIImage6 takes player p returns nothing
         if ( GetLocalPlayer() == p ) then
-            if ( UTUIImage__currentImage != 0 ) then
-                call s__uiImage_deallocate(UTUIImage__currentImage)
-                set UTUIImage__currentImage=0
+            if ( UTUIImage___currentImage != 0 ) then
+                call s__uiImage_deallocate(UTUIImage___currentImage)
+                set UTUIImage___currentImage=0
             endif
-            set UTUIImage__currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips2(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
+            set UTUIImage___currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips2(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
             call BJDebugMsg("创建了工具提示背景图片(种类2)")
         endif
-    endfunction  // 测试工具提示背景图片3
-    function UTUIImage__TTestUTUIImage7 takes player p returns nothing
-        if ( GetLocalPlayer() == p ) then
-            if ( UTUIImage__currentImage != 0 ) then
-                call s__uiImage_deallocate(UTUIImage__currentImage)
-                set UTUIImage__currentImage=0
-            endif
-            set UTUIImage__currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips3(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
-            call BJDebugMsg("创建了工具提示背景图片(种类3)")
-        endif
+    endfunction
+    function UTUIImage___TTestUTUIImage7 takes player p returns nothing
     endfunction  // 将TTestUTUIImage8-10保持为空函数
-    function UTUIImage__TTestUTUIImage8 takes player p returns nothing
+    function UTUIImage___TTestUTUIImage8 takes player p returns nothing
     endfunction
-    function UTUIImage__TTestUTUIImage9 takes player p returns nothing
+    function UTUIImage___TTestUTUIImage9 takes player p returns nothing
     endfunction
-    function UTUIImage__TTestUTUIImage10 takes player p returns nothing
+    function UTUIImage___TTestUTUIImage10 takes player p returns nothing
     endfunction
-    function UTUIImage__TTestActUTUIImage1 takes string str returns nothing
+    function UTUIImage___TTestActUTUIImage1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1027,53 +1013,44 @@ endfunction
         endif
         set p=null
     endfunction
-        function UTUIImage__anon__0 takes nothing returns nothing
+        function UTUIImage___anon__0 takes nothing returns nothing
             call BJDebugMsg("[UIImage] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUIImage__anon__1 takes nothing returns nothing
+        function UTUIImage___anon__1 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUIImage__TTestActUTUIImage1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUIImage___TTestActUTUIImage1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUIImage__TTestUTUIImage1(GetTriggerPlayer())
+                call UTUIImage___TTestUTUIImage1(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUIImage__TTestUTUIImage4(GetTriggerPlayer())
+                call UTUIImage___TTestUTUIImage4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUIImage__TTestUTUIImage5(GetTriggerPlayer())
+                call UTUIImage___TTestUTUIImage5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUIImage__TTestUTUIImage6(GetTriggerPlayer())
+                call UTUIImage___TTestUTUIImage6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUIImage__TTestUTUIImage7(GetTriggerPlayer())
+                call UTUIImage___TTestUTUIImage7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUIImage__TTestUTUIImage8(GetTriggerPlayer())
+                call UTUIImage___TTestUTUIImage8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUIImage__TTestUTUIImage9(GetTriggerPlayer())
+                call UTUIImage___TTestUTUIImage9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUIImage__TTestUTUIImage10(GetTriggerPlayer())
+                call UTUIImage___TTestUTUIImage10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUIImage__onInit takes nothing returns nothing
+    function UTUIImage___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUIImage__anon__0))
+        call TriggerAddCondition(tr, Condition(function UTUIImage___anon__0))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUIImage__anon__1)
+        call UnitTestRegisterChatEvent(function UTUIImage___anon__1)
     endfunction
 
 //library UTUIImage ends
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
-//控件的共用基本方法
-// 结构体共用方法定义
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -1084,7 +1061,16 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 
+//控件的共用基本方法
+// 结构体共用方法定义
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1497,10 +1483,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs49196343")
-call ExecuteFunc("UnitTestFramwork__onInit")
-call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UTUIImage__onInit")
+call ExecuteFunc("jasshelper__initstructs19608078")
+call ExecuteFunc("UnitTestFramwork___onInit")
+call ExecuteFunc("UITocInit___onInit")
+call ExecuteFunc("UTUIImage___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1548,7 +1534,7 @@ return true
    return true
 endfunction
 
-function jasshelper__initstructs49196343 takes nothing returns nothing
+function jasshelper__initstructs19608078 takes nothing returns nothing
     set st__uiImage_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
 

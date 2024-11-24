@@ -1,7 +1,7 @@
 local tc = require("Lua.compile.TestControl")
 local compiler = require("lua.compile.compiler")
-local w3xlni = require("lua.compile.W3xLni")
-local launcher = require("lua.compile.Launcher")
+local w3xlni = require("Lua.compile.W3xLni")
+local launcher = require("Lua.compile.Launcher")
 local path = require("Lua.path")
 local copy = require ("Lua.utils.copy")
 local root, projectPath, we, buildVersion

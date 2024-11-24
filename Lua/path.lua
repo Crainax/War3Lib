@@ -60,7 +60,7 @@ function path.init(root, project, we)
     path.ut.mapJ          = path.project .. "/UnitTestMap/map/war3map.j" -- 单元测试的War3mapJ文件
     path.ut.table         = {}                                           -- 单元测试的物编
     path.ut.luaFrom       = path.project .. "/"..path.jassPathName .."/config/UTLuaFrom.j" -- 单元测试的LuaFrom
-    path.ut.table.root    = path.project .. "/UnitTestMap/table"         -- 单元测试的根目录
+    path.ut.table.root    = path.project .. "/UnitTestMap/table"         -- 单元测试的物编根目录
     path.ut.table.unit    = path.ut.table.root .. "/unit.ini"            -- 单元测试的单位
     path.ut.table.item    = path.ut.table.root .. "/item.ini"            -- 单元测试的物品
     path.ut.table.ability = path.ut.table.root .. "/ability.ini"         -- 单元测试的技能
@@ -68,6 +68,7 @@ function path.init(root, project, we)
     path.ut.table.buff    = path.ut.table.root .. "/buff.ini"            -- 单元测试的BUFF
     path.ut.table.misc    = path.ut.table.root .. "/misc.ini"            -- 一些特殊设置
 
+    path.assets           = "D:/War3Asset/Import"                                          -- 原始地图资源根目录
 
     path.backup              = {}                                                -- 数据备份
     path.backup.root         = path.root .. "/Backup/PhantomOrbit"               -- 备份根目录

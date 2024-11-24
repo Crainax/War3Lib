@@ -1,7 +1,8 @@
 local path = require "Lua.path"
-local fu = require "lua.utils.FileUtils"
-local copy = require "lua.utils.copy"
+local fu = require "Lua.utils.FileUtils"
+local copy = require "Lua.utils.copy"
 local tc = require "lua.compile.TestControl"
+local compileFiles = require "Lua.compile.CompileFiles"
 
 -- 库
 local utr = {}
@@ -93,9 +94,9 @@ utr.ReplaceTable = function()
 		end
 	end)
 
-	copy.CopyFile(path.table.upgrade, path.ut.table.upgrade)
-	copy.CopyFile(path.table.buff, path.ut.table.buff)
-	copy.CopyFile(path.table.misc, path.ut.table.misc)
+	copy.copyFile(path.table.upgrade, path.ut.table.upgrade)
+	copy.copyFile(path.table.buff, path.ut.table.buff)
+	copy.copyFile(path.table.misc, path.ut.table.misc)
 end
 
 -- 清除临时物编
@@ -134,10 +135,64 @@ end
 utr.MoveLuaFile = function()
 	fu.ForDir(path.project .. '/OriginMap/map', function(fileName)
 		local name, format = fu.GetFile(fileName)
-		if tostring(format):lower() == 'lua' then copy.CopyFile(fileName, path.project .. '/UnitTestMap/map/' .. name .. "." .. format) end
+		if tostring(format):lower() == 'lua' then copy.copyFile(fileName, path.project .. '/UnitTestMap/map/' .. name .. "." .. format) end
 	end)
 end
 
+-- 复制资源文件到单元测试地图
+-- 功能：将编译过程中使用的资源文件从原始地图复制到单元测试地图
+-- 参数说明：
+-- path.assets: 原始地图资源根目录
+-- path.resource: 单元测试地图资源根目录
+-- compileFiles.resourceFiles: 记录的是相对于资源根目录的路径
+utr.copyResourceFiles = function()
+	-- 用于记录所有创建的文件路径，供后续清理使用
+	local createdFiles = {}
+
+	-- 遍历CompileFiles中记录的所有资源文件（相对路径）
+	for _, relativePath in ipairs(compileFiles.resourceFiles) do
+		-- 构建源文件完整路径
+		local sourcePath = path.assets .. '/' .. relativePath
+		-- 构建目标文件完整路径
+		local targetPath = path.resource .. '/' .. relativePath
+
+		-- 确保目标文件的目录存在
+		local targetDir = targetPath:match("(.*)[/\\]")
+		if targetDir and not fu.DirExist(targetDir) then
+			fu.createDir(targetDir)
+		end
+
+		-- 复制文件
+		local success, msg = fu.copyFile(sourcePath, targetPath)
+		print("    ...临时资源... " .. relativePath .. (success and " √" or (" x" .. " " .. msg)))
+		-- 记录创建的文件路径
+		table.insert(createdFiles, targetPath)
+	end
+
+	-- 将创建的文件列表保存到 CompileFiles 中
+	compileFiles.utResourceFiles = createdFiles
+end
+
+
+-- 清理单元测试地图中的临时资源文件
+-- 功能：仅清理由copyResourceFiles创建的临时文件
+-- 使用compileFiles.utResourceFiles记录的文件列表进行清理
+utr.removeResourceFiles = function()
+	-- 检查是否有需要清理的文件记录
+	print("[删除临时资源]数量: " .. #compileFiles.utResourceFiles)
+	if compileFiles.utResourceFiles then
+		-- 仅删除之前创建的文件
+		for _, filePath in ipairs(compileFiles.utResourceFiles) do
+			if fu.fileExist(filePath) then
+				local success, msg = fu.DeleteFile(filePath)
+				print("    ...删除临时资源... " .. filePath .. (success and " √" or (" x" .. " " .. msg)))
+			end
+		end
+
+		-- 清空文件记录
+		compileFiles.utResourceFiles = {}
+	end
+end
 
 -- 以下是单独测试的
 -- 替换物编

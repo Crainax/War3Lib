@@ -1,5 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 911:  Undeclared variable TEMPLATE_IMAGE_TOOLTIPS2
-Line 917:  Undeclared variable TEMPLATE_IMAGE_TOOLTIPS3
-2
+JASSHelper - Step 2 (structs)
+Line 683: createToolTips3 is not a member of uiImage
+1

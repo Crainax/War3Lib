@@ -25,6 +25,34 @@ local WriteFile = function(file, fileTab, func)
 	end
 end
 
+-- 安全删除Windows系统文件
+fu.DeleteFile = function(filepath)
+	-- 确保文件存在
+	if not lfs.attributes(filepath) then
+		return false, "文件不存在"
+	end
+
+	-- 确保文件已关闭
+	collectgarbage() -- 强制垃圾回收，关闭可能打开的文件句柄
+
+	-- 尝试移除只读属性
+	os.execute('attrib -r "' .. filepath .. '"')
+
+	-- 尝试普通删除
+	local success, err = os.remove(filepath)
+	if not success then
+		-- 如果普通删除失败，尝试使用 del 命令强制删除
+		local force_success = os.execute('del /f /q "' .. filepath .. '" 2>nul')
+		if force_success then
+			return true
+		else
+			return false, "删除失败: " .. (err or "未知错误")
+		end
+	end
+
+	return true
+end
+
 -- 读取一个文件,每行字符串使用func进行处理重写,func参数一个字符串,返回处理后的字符串
 fu.ExecuteFile = function (fileName, func)
 	local fileRead = io.open(fileName)
@@ -77,7 +105,7 @@ fu.WriteLast = function (fileName, content)
 end
 
 -- 复制一个文件
-fu.CopyFile = function (sourcePath, destPath)
+fu.copyFile = function (sourcePath, destPath)
 	-- 打开源文件
 	local sourceFile, err = io.open(sourcePath, "rb")
 	if not sourceFile then
@@ -183,10 +211,11 @@ fu.DirExist = function (path)
 	return v ~= 2
 end
 
-fu.FileExist = function (file) return io.open(file, "r") ~= nil end
+-- 判断文件是否存在
+fu.fileExist = function (file) return io.open(file, "r") ~= nil end
 
 -- 使用mkdir来直接创建一个文件夹(无视当前目录)
-fu.Mkdir = function (path) os.execute('mkdir "' .. path .. '"') end
+fu.createDir = function (path) os.execute('mkdir "' .. path .. '"') end
 
 -- local filePath = "D:/War3/创世UI/Test/equit/battlepass_task_icon_004.png"
 -- local filePath2 = [[D:\War3\创世UI\Test\equit\battlepass_task_icon_004.png]]

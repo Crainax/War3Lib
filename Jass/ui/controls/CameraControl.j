@@ -26,7 +26,7 @@ library CameraControl requires HardwellEvent{
     // 初始化就调用
     function onInit ()  {
         //注册滚轮事件
-        hardwellEvent.RegWheelEvent(function (){
+        hardware.regWheelEvent(function (){
             integer delta = DzGetWheelDelta(); //滚轮变化量
             if (!DzIsMouseOverUI()) {return;} //如果鼠标不在游戏内，就不响应鼠标滚轮
             ResetCam = true; //标记需要重置镜头属性
@@ -38,7 +38,7 @@ library CameraControl requires HardwellEvent{
             X_ANGLE = Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK)); //记录滚动前的镜头角度
         });
         //注册每帧渲染事件
-        hardwellEvent.RegUpdateEvent(function (){
+        hardware.RegUpdateEvent(function (){
             if (ResetCam) {//重设镜头角度和高度
                 SetCameraField( CAMERA_FIELD_ANGLE_OF_ATTACK, X_ANGLE, 0 );
                 SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, ViewLevel*200, WheelSpeed);

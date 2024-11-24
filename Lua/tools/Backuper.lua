@@ -37,7 +37,7 @@ local function multiCopyFile(srcPath, tarPath)
 		if file ~= "." and file ~= ".." then -- 遍历过程中会有这两个,本层和上一层,过滤掉
 			local attr = lfs.attributes((srcPath .. "/" .. file))
 			if attr.mode == "file" then
-				if copy.CopyFile(srcPath .. "/" .. file, tarPath .. "/" .. file) then
+				if copy.copyFile(srcPath .. "/" .. file, tarPath .. "/" .. file) then
 					print("成功:" .. srcPath .. "/" .. file .. " -> " .. tarPath .. "/" .. file)
 				else
 					print("失败:" .. srcPath .. "/" .. file .. " -> " .. tarPath .. "/" .. file)

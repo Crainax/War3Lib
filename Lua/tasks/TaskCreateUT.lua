@@ -9,7 +9,7 @@ function CreateUTFile(jPath, jName, utPath)
 	if copy.IsExist(utPath) then
 		print('[创建单测J文件]单测J文件已存在,跳过创建.')
 	else
-		local sur, msg = copy.CopyFile(path.ut.template, utPath)
+		local sur, msg = copy.copyFile(path.ut.template, utPath)
 		if (sur) then
 			print('[创建单测J文件]' .. utPath .. '成功.')
 		else

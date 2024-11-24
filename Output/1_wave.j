@@ -166,18 +166,7 @@ library UTUIImage requires UIImage {
 			BJDebugMsg("创建了工具提示背景图片(种类2)");
 		}
 	}
-	// 测试工具提示背景图片3
 	function TTestUTUIImage7 (player p) {
-		if (GetLocalPlayer() == p) {
-			if (currentImage != 0) {
-				currentImage.destroy();
-				currentImage = 0;
-			}
-			currentImage = uiImage.createToolTips3(DzGetGameUI())
-				.size(0.3, 0.4)
-				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
-			BJDebugMsg("创建了工具提示背景图片(种类3)");
-		}
 	}
 	// 将TTestUTUIImage8-10保持为空函数
 	function TTestUTUIImage8 (player p) {}

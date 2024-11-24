@@ -1,6 +1,6 @@
 local fu         = require "Lua.utils.FileUtils"
 local lfs        = require "lfs"
-local copy       = require "lua.utils.copy"
+local copy       = require "Lua.utils.copy"
 local path       = require "Lua.path"
 local utr        = require("Lua.compile.UTReplace")
 
@@ -29,7 +29,7 @@ function w3xlni:Start(func)
 	print("[开始打包地图]:" .. path.buildVersion .. ".")
 	lfs.chdir(path.project)
 	if path.mapJ then
-		local code, msg = copy.CopyFile(path.CompileResult, path.mapJ)
+		local code, msg = copy.copyFile(path.CompileResult, path.mapJ)
 		if code then
 			print("[Lua" .. path.buildVersion .. "]脚本打包进地图成功")
 		else
@@ -41,13 +41,14 @@ function w3xlni:Start(func)
 		-- utr.ReplaceTable()
 		-- utr.ReplaceMapJ()
 		-- utr.MoveLuaFile() -- 暂时先不移动Lua文件
+		utr.copyResourceFiles() -- 复制资源文件
 		print("[Lua" .. path.buildVersion .. "]开始进行单元测试的物编结束.")
 	end
 	local result = table.pack(func())
-	if fu.FileExist(path.mapJ) then fu.WriteOver(path.mapJ, "") end --覆盖一下war3map.j为空
+	if fu.fileExist(path.mapJ) then fu.WriteOver(path.mapJ, "") end --覆盖一下war3map.j为空
 	if path.buildVersion == "单元测试" then
-		-- 删除单元测试的临时物编
-		utr.RemoveTable()
+		utr.RemoveTable() -- 删除单元测试的物编
+		utr.removeResourceFiles()                                -- 删除资源文件(blp,mdx这些)
 		print("[Lua" .. path.buildVersion .. "]清除临时物编(不含Lua文件).")
 	end
 	return table.unpack(result)

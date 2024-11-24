@@ -2,6 +2,7 @@ local fileUtils = require "Lua.utils.FileUtils"
 local lfs = require "lfs"
 local injecter = require "lua.compile.inject"
 local path = require "Lua.path"
+local compileFiles = require "Lua.compile.CompileFiles"
 
 local compile = {}
 
@@ -36,11 +37,14 @@ function compile:CompileWave( input, args)
 end
 
 function compile:StartCompile()
-	local code, msg = fileUtils.CopyFile(path.scriptJ, path.CompileStep0) -- 复制scriptJ成0_script.j再处理
-	if not (code) then
-		print("[编译移动]复制CompileStep0失败:" .. msg)
-		return false
-	end
+	-- 清理上次编译信息
+	compileFiles:clear()
+
+	-- 在编译过程中记录文件
+	local code, msg = fileUtils.copyFile(path.scriptJ, path.CompileStep0)
+	compileFiles:addSourceFile(path.scriptJ)
+	compileFiles:addGeneratedFile(path.CompileStep0)
+
 	print("[即将开始]编译源文件 : " .. path.CompileStep0)
 
 	code, msg = self:CompileWave( path.CompileStep0) -- 先预处理一次
@@ -67,7 +71,7 @@ function compile:StartCompile()
 		end
 	end)
 
-	code, msg = fileUtils.CopyFile(path.CompileStep1, path.CompileStep2)
+	code, msg = fileUtils.copyFile(path.CompileStep1, path.CompileStep2)
 	if not (code) then
 		print("[编译移动]复制CompileStep2失败:" .. msg)
 		return false
@@ -96,9 +100,19 @@ function compile:StartCompile()
 	end
 
 	-- 复制 path.waveResult 到新路径
-	fileUtils.CopyFile(path.CompileStep3, path.CompileStep4)
+	fileUtils.copyFile(path.CompileStep3, path.CompileStep4)
 	-- 替换CRNL符号,还有各种以\n\t\t++的压缩.
 	if fileUtils.ExecuteFile(path.CompileStep4, function(line)
+			-- 检查是否是 import 行
+			local importPath = line:match("^%s*//import:%s*(.+)$")
+			if importPath then
+				-- 替换路径分隔符并记录
+				importPath = importPath:gsub("\\", "/")
+				compileFiles:addResourceFile(importPath)  -- 对于资源文件使用 addResourceFile
+				return line
+			end
+
+			-- 原有的处理逻辑
 			line = string.gsub(line, "\\n\t+", "\\n")
 			return string.gsub(line, "<%?='\\n'%?>", "\n")
 		end) then
@@ -110,7 +124,7 @@ function compile:StartCompile()
 
 	-- 移到jasshelper编译
 	os.remove(path.jasshelper .. "/input.j")
-	local suc, errmsg = fileUtils.CopyFile(path.CompileStep4, path.jasshelper .. "/input.j")
+	local suc, errmsg = fileUtils.copyFile(path.CompileStep4, path.jasshelper .. "/input.j")
 	if not (suc) then
 		print("[JassHelper]编译前移动J(input)失败." .. tostring(errmsg))
 		return false
@@ -122,14 +136,14 @@ function compile:StartCompile()
 		-- 复制编译错误日志到Output文件夹
 		local errorLogSrc = path.jasshelper .. "/logs/compileerrors.txt"
 		local errorLogDest = path.project .. "/Output/compileerrors.txt"
-		local success, errMsg = fileUtils.CopyFile(errorLogSrc, errorLogDest)
+		local success, errMsg = fileUtils.copyFile(errorLogSrc, errorLogDest)
 		if not (success) then
 			print("复制编译错误日志失败: " .. tostring(errMsg))
 		end
 		-- 复制处理文件到Output文件夹
 		local mapScriptSrc = path.jasshelper .. "/logs/currentmapscript.j"
 		local mapScriptDest = path.project .. "/Output/currentmapscript.j"
-		success, errMsg = fileUtils.CopyFile(mapScriptSrc, mapScriptDest)
+		success, errMsg = fileUtils.copyFile(mapScriptSrc, mapScriptDest)
 		if not (success) then
 			print("复制编译文件失败: " .. tostring(errMsg))
 		end
@@ -142,7 +156,7 @@ function compile:StartCompile()
 	end
 
 	-- 这里把jassHelper里的文件移回项目里[再移回去]
-	suc, errmsg = fileUtils.CopyFile(path.jasshelper .. "/output.j", path.CompileStep5)
+	suc, errmsg = fileUtils.copyFile(path.jasshelper .. "/output.j", path.CompileStep5)
 	if (suc) then
 		print('[最终编译]成功: ' .. path.CompileStep5)
 	else
@@ -154,7 +168,28 @@ function compile:StartCompile()
 	-- 打包前预处理一下物编
 	-- todo:新脚本
 
-	return fileUtils.CopyFile(path.CompileStep5, path.CompileResult) -- 后续内容都以这个compileResult为准
+	-- 记录编译生成的文件
+	compileFiles:addGeneratedFile(path.CompileStep1)
+	compileFiles:addGeneratedFile(path.CompileStep2)
+	compileFiles:addGeneratedFile(path.CompileStep3)
+	compileFiles:addGeneratedFile(path.CompileStep4)
+	compileFiles:addGeneratedFile(path.CompileStep5)
+	compileFiles:addGeneratedFile(path.CompileResult)
+
+	-- 记录编译完成时间
+	compileFiles.lastBuildTime = os.time()
+
+	-- 打印资源文件
+	print("[资源文件]内容: ")
+	if compileFiles.resourceFiles then
+		for _, value in pairs(compileFiles.resourceFiles) do
+			print(value)
+		end
+	else
+		print("没有资源文件或资源文件列表未初始化")
+	end
+
+	return fileUtils.copyFile(path.CompileStep5, path.CompileResult) -- 后续内容都以这个compileResult为准
 end
 
 return compile

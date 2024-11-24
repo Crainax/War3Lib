@@ -3,7 +3,7 @@ local modules = {}
 
 -- 将src的文件复制到tar文件中
 -- 无视文件存在,但是仅针对文本文件
-function modules.CopyFile(src, tar)
+function modules.copyFile(src, tar)
 	local srcFile = io.open(src, "r")
 	if srcFile then
 		local content = srcFile:read("a")
@@ -33,7 +33,7 @@ end
 function modules.ForceCopyBin(src, tar)
 	local dir = fu.GetDir(tar) -- 对应子文件夹是否存在
 	if not (fu.DirExist(dir)) then
-		fu.Mkdir(dir) -- 创建文件夹
+		fu.createDir(dir) -- 创建文件夹
 	end
 	return modules.CopyBin(src, tar)
 end

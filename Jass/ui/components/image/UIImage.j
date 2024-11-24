@@ -8,6 +8,10 @@
 /*
 文字UI组件
 */
+
+//import:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
+//import:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
+
 library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
 
     public struct uiImage {
