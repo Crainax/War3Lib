@@ -29,7 +29,7 @@ library UIBaseModule {
         }
 
         // 设置大小
-        method size (real width, real height) -> thistype {
+        method setSize (real width, real height) -> thistype {
             if (!this.isExist()) {return this;}
             DzFrameSetSize(ui,width,height);
             return this;

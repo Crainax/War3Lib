@@ -23,7 +23,7 @@ library UTUIButton requires UIButton {
 	function TTestUTUIButton1 (player p) {
 		uiImage img;
 		if (GetLocalPlayer() == p) {
-			img = uiImage.create(DzGetGameUI()).size(0.04,0.04)
+			img = uiImage.create(DzGetGameUI()).setSize(0.04,0.04)
 				.texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp")
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
 			currentBtn = uiBtn.create(DzGetGameUI())
@@ -36,7 +36,7 @@ library UTUIButton requires UIButton {
 	function TTestUTUIButton2 (player p) {
 		if (GetLocalPlayer() == p) {
 			currentBtn = uiBtn.create(DzGetGameUI())
-				.size(0.04,0.04)
+				.setSize(0.04,0.04)
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 				.onMouseEnter(function() { BJDebugMsg("鼠标进入按钮"); })
 				.onMouseLeave(function() { BJDebugMsg("鼠标离开按钮"); })
@@ -48,7 +48,7 @@ library UTUIButton requires UIButton {
 
 	// 测试空白按钮
 	function TTestUTUIButton3 (player p) {
-		uiBtn blankBtn = uiBtn.createBlank(DzGetGameUI()).size(0.04,0.04)
+		uiBtn blankBtn = uiBtn.createBlank(DzGetGameUI()).setSize(0.04,0.04)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 			.onMouseEnter(function() { BJDebugMsg("鼠标进入按钮"); })
 			.onMouseLeave(function() { BJDebugMsg("鼠标离开按钮"); })
@@ -78,7 +78,7 @@ library UTUIButton requires UIButton {
 	function TTestUTUIButton5 (player p) {
 		if (GetLocalPlayer() == p) {
 			currentBtn = uiBtn.createRC(DzGetGameUI())
-				.size(0.04,0.04)
+				.setSize(0.04,0.04)
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 				.onMouseEnter(function() { BJDebugMsg("鼠标进入按钮"); })
 				.onMouseLeave(function() { BJDebugMsg("鼠标离开按钮"); })

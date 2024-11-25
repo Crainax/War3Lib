@@ -38,12 +38,11 @@
 
 
 //Index名:
-#define STRING_BUTTON         "Btn"
-#define STRING_IMAGE          "Img"
-#define STRING_IMAGE_TOOLTIPS "ToolTips"
-#define STRING_SPRITE         "Sprite"
-#define STRING_TEXT           "Text"
-#define STRING_SLIDER_NORMAL  "NormalSlider"
+#define STRING_BUTTON "Btn"
+#define STRING_IMAGE  "Img"
+#define STRING_SPRITE "Sprite"
+#define STRING_TEXT   "Text"
+#define STRING_SLIDER "Slider"
 
 //默认原生图片路径
 #define UI_STRING_PATH_BLANK "UI\\Widgets\\EscMenu\\Human\\blank-background.blp"
@@ -55,11 +54,10 @@
 #define TEMPLATE_BLANK_BUTTON       "BB"
 #define TEMPLATE_IMAGE_TOOLTIPS    "ToolTipsTemplate"
 #define TEMPLATE_IMAGE_TOOLTIPS2   "ToolTipsTemplate2"
-#define TEMPLATE_IMAGE_TOOLTIPS3   "ToolTipsTemplate3"
 #define TEMPLATE_SPRITE             "SpriteTemplate"
 #define TEMPLATE_TEXT               "T1"      // 标准文字模板(无事件)
 #define TEMPLATE_TEXT_EVENT         "T2"      // 标准文字模板(有事件)
-#define TEMPLATE_SLIDER_NORMAL      "NormalSlider"
+#define TEMPLATE_SLIDER_NORMAL      "SB1"
 
 
 //TEXT对齐常量:(uiText.setAlign)

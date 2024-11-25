@@ -47,7 +47,7 @@ library UIEventModule {
             return this;
         }
 
-        optional extendEvent; //扩展事件
+        optional module extendEvent; //扩展事件
     }
 
 }

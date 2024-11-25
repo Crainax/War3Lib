@@ -27,23 +27,23 @@ constant boolean LIBRARY_UIBaseModule=true
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
 //endglobals from UIId
-//globals from UIImageModule:
-constant boolean LIBRARY_UIImageModule=true
-//endglobals from UIImageModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork___TUnitTest=null
+trigger UnitTestFramwork__TUnitTest=null
 //endglobals from UnitTestFramwork
+//globals from Hardware:
+constant boolean LIBRARY_Hardware=true
+//endglobals from Hardware
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
-//globals from UIImage:
-constant boolean LIBRARY_UIImage=true
-//endglobals from UIImage
-//globals from UTUIImage:
-constant boolean LIBRARY_UTUIImage=true
-integer UTUIImage___currentImage=0
-//endglobals from UTUIImage
+//globals from UISlider:
+constant boolean LIBRARY_UISlider=true
+//endglobals from UISlider
+//globals from UTUISlider:
+constant boolean LIBRARY_UTUISlider=true
+integer UTUISlider__uiSliderTest=0
+//endglobals from UTUISlider
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -73,13 +73,27 @@ constant integer si__uiId=1
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__uiImage=2
-integer si__uiImage_F=0
-integer si__uiImage_I=0
-integer array si__uiImage_V
-integer array s__uiImage_ui
-integer array s__uiImage_id
-trigger st__uiImage_onDestroy
+constant integer si__hardware=2
+integer si__hardware_F=0
+integer si__hardware_I=0
+integer array si__hardware_V
+trigger s__hardware_trWheel=null
+trigger s__hardware_trUpdate=null
+trigger s__hardware_trResize=null
+constant integer si__uiSlider=3
+integer si__uiSlider_F=0
+integer si__uiSlider_I=0
+integer array si__uiSlider_V
+integer array s__uiSlider_List
+integer s__uiSlider_size=0
+integer array s__uiSlider_uID
+integer array s__uiSlider_ui
+integer array s__uiSlider_id
+integer array s__uiSlider_fun
+real array s__uiSlider_oldValue
+trigger st__uiSlider_onDestroy
+trigger array st___prototype14
+integer f__arg_integer1
 integer f__arg_this
 
 endglobals
@@ -329,43 +343,85 @@ endglobals
         native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
 
-//Generated method caller for uiImage.onDestroy
-function sc__uiImage_onDestroy takes integer this returns nothing
+//Generated method caller for uiSlider.onDestroy
+function sc__uiSlider_onDestroy takes integer this returns nothing
     set f__arg_this=this
-    call TriggerEvaluate(st__uiImage_onDestroy)
+    call TriggerEvaluate(st__uiSlider_onDestroy)
 endfunction
 
-//Generated allocator of uiImage
-function s__uiImage__allocate takes nothing returns integer
- local integer this=si__uiImage_F
+//Generated allocator of uiSlider
+function s__uiSlider__allocate takes nothing returns integer
+ local integer this=si__uiSlider_F
     if (this!=0) then
-        set si__uiImage_F=si__uiImage_V[this]
+        set si__uiSlider_F=si__uiSlider_V[this]
     else
-        set si__uiImage_I=si__uiImage_I+1
-        set this=si__uiImage_I
+        set si__uiSlider_I=si__uiSlider_I+1
+        set this=si__uiSlider_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiImage")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiSlider")
         return 0
     endif
 
-    set si__uiImage_V[this]=-1
+    set si__uiSlider_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiImage
-function sc__uiImage_deallocate takes integer this returns nothing
+//Generated destructor of uiSlider
+function sc__uiSlider_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSlider")
         return
-    elseif (si__uiImage_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
+    elseif (si__uiSlider_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSlider")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiImage_onDestroy)
-    set si__uiImage_V[this]=si__uiImage_F
-    set si__uiImage_F=this
+    call TriggerEvaluate(st__uiSlider_onDestroy)
+    set si__uiSlider_V[this]=si__uiSlider_F
+    set si__uiSlider_F=this
+endfunction
+
+//Generated allocator of hardware
+function s__hardware__allocate takes nothing returns integer
+ local integer this=si__hardware_F
+    if (this!=0) then
+        set si__hardware_F=si__hardware_V[this]
+    else
+        set si__hardware_I=si__hardware_I+1
+        set this=si__hardware_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: hardware")
+        return 0
+    endif
+
+    set si__hardware_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of hardware
+function s__hardware_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: hardware")
+        return
+    elseif (si__hardware_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: hardware")
+        return
+    endif
+    set si__hardware_V[this]=si__hardware_F
+    set si__hardware_F=this
+endfunction
+function sc___prototype14_execute takes integer i,integer a1 returns nothing
+    set f__arg_integer1=a1
+
+    call TriggerExecute(st___prototype14[i])
+endfunction
+function sc___prototype14_evaluate takes integer i,integer a1 returns nothing
+    set f__arg_integer1=a1
+
+    call TriggerEvaluate(st___prototype14[i])
+
 endfunction
 
 //library BzAPI:
@@ -812,15 +868,12 @@ endfunction
         endfunction
 
 //library UIId ends
-//library UIImageModule:
-
-//library UIImageModule ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
     endfunction
-        function UnitTestFramwork___anon__0 takes nothing returns nothing
+        function UnitTestFramwork__anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -831,157 +884,253 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork___onInit takes nothing returns nothing
+    function UnitTestFramwork__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
         set tr=null
-        set UnitTestFramwork___TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
+        set UnitTestFramwork__TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
+//library Hardware:
+        function s__hardware_regLeftClickEvent takes code func returns nothing
+            call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
+        endfunction  // 注册一个左键按下事件
+        function s__hardware_regLeftDownEvent takes code func returns nothing
+            call DzTriggerRegisterMouseEventByCode(null, 1, 1, false, func)
+        endfunction  // 注册一个右键按下事件
+        function s__hardware_regRightClickEvent takes code func returns nothing
+            call DzTriggerRegisterMouseEventByCode(null, 2, 0, false, func)
+        endfunction  // 注册一个滚轮事件
+        function s__hardware_regWheelEvent takes code func returns nothing
+            if ( s__hardware_trWheel == null ) then
+                set s__hardware_trWheel=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__hardware_trWheel, Condition(func))
+        endfunction  // 注册一个绘制事件
+        function s__hardware_regUpdateEvent takes code func returns nothing
+            if ( s__hardware_trUpdate == null ) then
+                set s__hardware_trUpdate=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__hardware_trUpdate, Condition(func))
+        endfunction  // 注册一个窗口变化事件
+        function s__hardware_regResizeEvent takes code func returns nothing
+            if ( s__hardware_trResize == null ) then
+                set s__hardware_trResize=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__hardware_trResize, Condition(func))
+        endfunction
+        //private:
+            function s__hardware_anon__0 takes nothing returns nothing
+                call TriggerEvaluate(s__hardware_trWheel)
+            endfunction  // 帧绘制事件
+            function s__hardware_anon__1 takes nothing returns nothing
+                call TriggerEvaluate(s__hardware_trUpdate)
+            endfunction  // 窗口大小变化事件
+            function s__hardware_anon__2 takes nothing returns nothing
+                call TriggerEvaluate(s__hardware_trResize)
+            endfunction
+        function s__hardware_onInit takes nothing returns nothing
+            call DzTriggerRegisterMouseWheelEventByCode(null, false, function s__hardware_anon__0)
+            call DzFrameSetUpdateCallbackByCode(function s__hardware_anon__1)
+            call DzTriggerRegisterWindowResizeEventByCode(null, false, function s__hardware_anon__2)
+        endfunction
+
+//library Hardware ends
 //library UITocInit:
 
-    function UITocInit___onInit takes nothing returns nothing
+    function UITocInit__onInit takes nothing returns nothing
         call DzLoadToc("ui\\PhantomOrbit.toc")
         call DzFrameEnableClipRect(false)
     endfunction
 
 //library UITocInit ends
-//library UIImage:
-        function s__uiImage_isExist takes integer this returns boolean
-            return ( this != null and si__uiImage_V[this] == - 1 )
+//library UISlider:
+//processed:     function interface funSlider takes uiSlider arg0 returns nothing
+        function s__uiSlider_isExist takes integer this returns boolean
+            return ( this != null and si__uiSlider_V[this] == - 1 )
         endfunction
 //Implemented from module uiBaseModule:
-        function s__uiImage_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
+        function s__uiSlider_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiSlider_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetPoint(s__uiImage_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            call DzFrameSetPoint(s__uiSlider_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
             return this
         endfunction  // 大小完全对齐父框架
-        function s__uiImage_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
+        function s__uiSlider_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiSlider_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetAllPoints(s__uiImage_ui[this], relative)
+            call DzFrameSetAllPoints(s__uiSlider_ui[this], relative)
             return this
         endfunction  // 清除所有位置
-        function s__uiImage_clearPoint takes integer this returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
+        function s__uiSlider_clearPoint takes integer this returns integer
+            if ( not ( s__uiSlider_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameClearAllPoints(s__uiImage_ui[this])
+            call DzFrameClearAllPoints(s__uiSlider_ui[this])
             return this
         endfunction  // 设置大小
-        function s__uiImage_size takes integer this,real width,real height returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
+        function s__uiSlider_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiSlider_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetSize(s__uiImage_ui[this], width, height)
+            call DzFrameSetSize(s__uiSlider_ui[this], width, height)
             return this
         endfunction
-//Implemented from module uiImageModule:
-        function s__uiImage_texture takes integer this,string path returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
+        function s__uiSlider_create takes integer parent returns integer
+            local integer this=s__uiSlider__allocate()
+            set s__uiSlider_id[this]=s__uiId_get()
+            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "SB1", 0)
+            set s__uiSlider_fun[this]=0
+            set s__uiSlider_oldValue[this]=0. //这里是初始化时的设置内容,不需要改
+            if ( s__uiSlider_uID[this] == 0 ) then
+                set s__uiSlider_size=s__uiSlider_size + 1
+                set s__uiSlider_List[s__uiSlider_size]=this
+                set s__uiSlider_uID[this]=s__uiSlider_size
+            endif
+            return this
+        endfunction  // 获取滑块的滑块按钮UI
+        function s__uiSlider_getThumbButton takes integer this returns integer
+            return DzFrameGetChild(s__uiSlider_ui[this], 1)
+        endfunction  // 设置滑块的滑块按钮大小
+        function s__uiSlider_setThumbScale takes integer this,real scale returns integer
+            if ( not ( s__uiSlider_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetTexture(s__uiImage_ui[this], path, 0)
+            call DzFrameSetSize(s__uiSlider_getThumbButton(this), 0.0055 * scale, 0.0145 * scale)
             return this
-        endfunction
-        function s__uiImage_create takes integer parent returns integer
-            local integer this=s__uiImage__allocate()
-            set s__uiImage_id[this]=s__uiId_get()
-            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "IT", 0)
+        endfunction  // 设置滑块的数值变化回调
+        function s__uiSlider_onChange takes integer this,integer func returns integer
+            if ( not ( s__uiSlider_isExist(this) ) ) then
+                return this
+            endif
+            set s__uiSlider_fun[this]=func
             return this
-        endfunction  // 创建工具提示背景图片(种类1)
-        function s__uiImage_createToolTips takes integer parent returns integer
-            local integer this=s__uiImage__allocate()
-            set s__uiImage_id[this]=s__uiId_get()
-            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate", 0)
+        endfunction  // 设置滑块的步长
+        function s__uiSlider_setStep takes integer this,real step returns integer
+            if ( not ( s__uiSlider_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetStepValue(s__uiSlider_ui[this], step)
             return this
-        endfunction  // 创建工具提示背景图片(种类2)
-        function s__uiImage_createToolTips2 takes integer parent returns integer
-            local integer this=s__uiImage__allocate()
-            set s__uiImage_id[this]=s__uiId_get()
-            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate2", 0)
+        endfunction  // 设置滑块的最小值和最大值
+        function s__uiSlider_setMinMaxValue takes integer this,real min,real max returns integer
+            if ( not ( s__uiSlider_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetMinMaxValue(s__uiSlider_ui[this], min, max)
             return this
-        endfunction
-        function s__uiImage_onDestroy takes integer this returns nothing
-            if ( not ( s__uiImage_isExist(this) ) ) then
+        endfunction  // 获取滑块的当前值
+        function s__uiSlider_getValue takes integer this returns real
+            if ( not ( s__uiSlider_isExist(this) ) ) then
+                return 0.
+            endif
+            return DzFrameGetValue(s__uiSlider_ui[this])
+        endfunction  // 回调函数(外部也可直接调用,比如滚轮事件setValue后)
+        function s__uiSlider_callBack takes integer this returns nothing
+            if ( s__uiSlider_isExist(this) and s__uiSlider_fun[this] != 0 ) then
+                call sc___prototype14_evaluate(s__uiSlider_fun[this],this) //更新旧值
+                set s__uiSlider_oldValue[this]=s__uiSlider_getValue(this)
+            endif
+        endfunction  // 设置滑块的当前值,并调用回调函数
+        function s__uiSlider_setValue takes integer this,real value returns integer
+            if ( not ( s__uiSlider_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetValue(s__uiSlider_ui[this], value) //调用回调函数
+            call s__uiSlider_callBack(this)
+            return this
+        endfunction  // 销毁
+        function s__uiSlider_onDestroy takes integer this returns nothing
+            if ( not ( s__uiSlider_isExist(this) ) ) then
                 return
             endif
-            call DzDestroyFrame(s__uiImage_ui[this])
-            call s__uiId_recycle(s__uiImage_id[this])
-        endfunction
+            call DzDestroyFrame(s__uiSlider_ui[this])
+            call s__uiId_recycle(s__uiSlider_id[this])
+            if ( s__uiSlider_uID[this] != 0 ) then //这个其实就是将List的[2]设成5  假设2是删  5是最长
+                set s__uiSlider_List[s__uiSlider_uID[this]]=s__uiSlider_List[s__uiSlider_size] //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立) //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+                set s__uiSlider_uID[s__uiSlider_List[s__uiSlider_uID[this]]]=s__uiSlider_uID[this]
+                set s__uiSlider_size=s__uiSlider_size - 1
+                set s__uiSlider_uID[this]=0
+            endif
+        endfunction  //初始化就同步创建,不要异步删除计时器
 
-//Generated destructor of uiImage
-function s__uiImage_deallocate takes integer this returns nothing
+//Generated destructor of uiSlider
+function s__uiSlider_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSlider")
         return
-    elseif (si__uiImage_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
+    elseif (si__uiSlider_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSlider")
         return
     endif
-    call s__uiImage_onDestroy(this)
-    set si__uiImage_V[this]=si__uiImage_F
-    set si__uiImage_F=this
+    call s__uiSlider_onDestroy(this)
+    set si__uiSlider_V[this]=si__uiSlider_F
+    set si__uiSlider_F=this
 endfunction
+            function s__uiSlider_anon__0 takes nothing returns nothing
+                local integer this
+                local integer i
+                if ( s__uiSlider_size > 0 ) then
+                    set i=1 //从结论来说i就是.uID
+                    loop
+                    exitwhen ( i > s__uiSlider_size )
+                        set this=s__uiSlider_List[i] //和旧值不相等才调用回调
+                        if ( s__uiSlider_getValue(this) != s__uiSlider_oldValue[this] ) then
+                            call s__uiSlider_callBack(this)
+                        endif
+                    set i=i + 1
+                    endloop
+                endif
+            endfunction
+        function s__uiSlider_onInit takes nothing returns nothing
+            call TimerStart(CreateTimer(), 0.1, true, function s__uiSlider_anon__0)
+        endfunction
 
-//library UIImage ends
-//library UTUIImage:
+//library UISlider ends
+//library UTUISlider:
 
-    function UTUIImage___TTestUTUIImage1 takes player p returns nothing
-        if ( GetLocalPlayer() == p ) then
-            set UTUIImage___currentImage=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_size(s__uiImage_create(DzGetGameUI()),0.04 , 0.04),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp")
-            call BJDebugMsg("创建了一个基础图像UI") // .texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
+        function UTUISlider__anon__0 takes integer ui returns nothing
+            call BJDebugMsg("滑块值:" + R2S(s__uiSlider_getValue(ui)))
+        endfunction
+    function UTUISlider__TTestUTUISlider1 takes player p returns nothing
+        if ( UTUISlider__uiSliderTest != null ) then
+            call s__uiSlider_deallocate(UTUISlider__uiSliderTest)
         endif
-    endfunction  // 测试图像销毁功能
-    function UTUIImage___TTestUTUIImage4 takes player p returns nothing
-        if ( GetLocalPlayer() == p ) then
-            if ( UTUIImage___currentImage != 0 ) then
-                call s__uiImage_deallocate(UTUIImage___currentImage)
-                call BJDebugMsg("销毁了当前图像")
-                set UTUIImage___currentImage=0
-            else
-                call BJDebugMsg("当前没有可销毁的图像")
-            endif
-        endif
-    endfunction  // 测试工具提示背景图片1
-    function UTUIImage___TTestUTUIImage5 takes player p returns nothing
-        if ( GetLocalPlayer() == p ) then
-            if ( UTUIImage___currentImage != 0 ) then
-                call s__uiImage_deallocate(UTUIImage___currentImage)
-                set UTUIImage___currentImage=0
-            endif
-            set UTUIImage___currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
-            call BJDebugMsg("创建了工具提示背景图片(种类1)")
-        endif
-    endfunction  // 测试工具提示背景图片2
-    function UTUIImage___TTestUTUIImage6 takes player p returns nothing
-        if ( GetLocalPlayer() == p ) then
-            if ( UTUIImage___currentImage != 0 ) then
-                call s__uiImage_deallocate(UTUIImage___currentImage)
-                set UTUIImage___currentImage=0
-            endif
-            set UTUIImage___currentImage=s__uiImage_setPoint(s__uiImage_size(s__uiImage_createToolTips2(DzGetGameUI()),0.3 , 0.4),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
-            call BJDebugMsg("创建了工具提示背景图片(种类2)")
-        endif
+        set UTUISlider__uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_create(DzGetGameUI()),0.0074 * 2 , 0.22006 * 2),1),50),1 , 100),2.5),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(1))
     endfunction
-    function UTUIImage___TTestUTUIImage7 takes player p returns nothing
-    endfunction  // 将TTestUTUIImage8-10保持为空函数
-    function UTUIImage___TTestUTUIImage8 takes player p returns nothing
+    function UTUISlider__TTestUTUISlider2 takes player p returns nothing
+        local integer UIHeroSlider=DzCreateFrameByTagName("SLIDER", "NormalSlider", DzGetGameUI(), "NormalSlider", 0)
+        call DzFrameSetSize(UIHeroSlider, 0.0074, 0.22006)
+        call DzFrameSetPoint(UIHeroSlider, 4, DzGetGameUI(), 4, - 0.005, - 0.007)
+        call DzFrameSetMinMaxValue(UIHeroSlider, 1.0, 20.0)
+        call DzFrameSetValue(UIHeroSlider, 20.0)
+        call DzFrameSetStepValue(UIHeroSlider, 1)
     endfunction
-    function UTUIImage___TTestUTUIImage9 takes player p returns nothing
+    function UTUISlider__TTestUTUISlider3 takes player p returns nothing
     endfunction
-    function UTUIImage___TTestUTUIImage10 takes player p returns nothing
+    function UTUISlider__TTestUTUISlider4 takes player p returns nothing
     endfunction
-    function UTUIImage___TTestActUTUIImage1 takes string str returns nothing
+    function UTUISlider__TTestUTUISlider5 takes player p returns nothing
+    endfunction
+    function UTUISlider__TTestUTUISlider6 takes player p returns nothing
+    endfunction
+    function UTUISlider__TTestUTUISlider7 takes player p returns nothing
+    endfunction
+    function UTUISlider__TTestUTUISlider8 takes player p returns nothing
+    endfunction
+    function UTUISlider__TTestUTUISlider9 takes player p returns nothing
+    endfunction
+    function UTUISlider__TTestUTUISlider10 takes player p returns nothing
+    endfunction
+    function UTUISlider__TTestActUTUISlider1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1008,49 +1157,75 @@ endfunction
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
-        if ( paramS[0] == "a" ) then // 可以添加带参数的测试功能
-        elseif ( paramS[0] == "b" ) then // 可以添加带参数的测试功能
+        if ( paramS[0] == "a" ) then
+        elseif ( paramS[0] == "b" ) then
         endif
         set p=null
     endfunction
-        function UTUIImage___anon__0 takes nothing returns nothing
-            call BJDebugMsg("[UIImage] 单元测试已加载")
+        function UTUISlider__anon__1 takes nothing returns nothing
+            call BJDebugMsg("[UISlider] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUIImage___anon__1 takes nothing returns nothing
+        function UTUISlider__anon__2 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUIImage___TTestActUTUIImage1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUISlider__TTestActUTUISlider1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUIImage___TTestUTUIImage1(GetTriggerPlayer())
+                call UTUISlider__TTestUTUISlider1(GetTriggerPlayer())
+            elseif ( str == "s2" ) then
+                call UTUISlider__TTestUTUISlider2(GetTriggerPlayer())
+            elseif ( str == "s3" ) then
+                call UTUISlider__TTestUTUISlider3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUIImage___TTestUTUIImage4(GetTriggerPlayer())
+                call UTUISlider__TTestUTUISlider4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUIImage___TTestUTUIImage5(GetTriggerPlayer())
+                call UTUISlider__TTestUTUISlider5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUIImage___TTestUTUIImage6(GetTriggerPlayer())
+                call UTUISlider__TTestUTUISlider6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUIImage___TTestUTUIImage7(GetTriggerPlayer())
+                call UTUISlider__TTestUTUISlider7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUIImage___TTestUTUIImage8(GetTriggerPlayer())
+                call UTUISlider__TTestUTUISlider8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUIImage___TTestUTUIImage9(GetTriggerPlayer())
+                call UTUISlider__TTestUTUISlider9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUIImage___TTestUTUIImage10(GetTriggerPlayer())
+                call UTUISlider__TTestUTUISlider10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUIImage___onInit takes nothing returns nothing
+        function UTUISlider__anon__3 takes nothing returns nothing
+            local integer delta=DzGetWheelDelta()
+            call BJDebugMsg("滚轮事件:" + I2S(delta))
+            if ( delta > 0 ) then
+                call BJDebugMsg("滚轮向上")
+                call s__uiSlider_setValue(UTUISlider__uiSliderTest,s__uiSlider_getValue(UTUISlider__uiSliderTest) + 1)
+            else
+                call BJDebugMsg("滚轮向下")
+                call s__uiSlider_setValue(UTUISlider__uiSliderTest,s__uiSlider_getValue(UTUISlider__uiSliderTest) - 1)
+            endif
+        endfunction
+    function UTUISlider__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUIImage___anon__0))
+        call TriggerAddCondition(tr, Condition(function UTUISlider__anon__1))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUIImage___anon__1)
+        call UnitTestRegisterChatEvent(function UTUISlider__anon__2)
+        call s__hardware_regWheelEvent(function UTUISlider__anon__3)
     endfunction
 
-//library UTUIImage ends
+//library UTUISlider ends
+
+//控件的共用基本方法
+// 结构体共用方法定义
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -1061,16 +1236,6 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
-
-//控件的共用基本方法
-// 结构体共用方法定义
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1483,10 +1648,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs19608078")
-call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("UITocInit___onInit")
-call ExecuteFunc("UTUIImage___onInit")
+call ExecuteFunc("jasshelper__initstructs25684437")
+call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("UITocInit__onInit")
+call ExecuteFunc("UTUISlider__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1524,22 +1689,41 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__uiImage_onDestroy takes nothing returns boolean
+function sa__uiSlider_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiImage_isExist(this) ) ) then
+            if ( not ( s__uiSlider_isExist(this) ) ) then
 return true
             endif
-            call DzDestroyFrame(s__uiImage_ui[this])
-            call s__uiId_recycle(s__uiImage_id[this])
+            call DzDestroyFrame(s__uiSlider_ui[this])
+            call s__uiId_recycle(s__uiSlider_id[this])
+            if ( s__uiSlider_uID[this] != 0 ) then //这个其实就是将List的[2]设成5  假设2是删  5是最长
+                set s__uiSlider_List[s__uiSlider_uID[this]]=s__uiSlider_List[s__uiSlider_size] //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立) //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+                set s__uiSlider_uID[s__uiSlider_List[s__uiSlider_uID[this]]]=s__uiSlider_uID[this]
+                set s__uiSlider_size=s__uiSlider_size - 1
+                set s__uiSlider_uID[this]=0
+            endif
    return true
 endfunction
+function sa___prototype14_UTUISlider__anon__0 takes nothing returns boolean
+ local integer ui=f__arg_integer1
 
-function jasshelper__initstructs19608078 takes nothing returns nothing
-    set st__uiImage_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
+            call BJDebugMsg("滑块值:" + R2S(s__uiSlider_getValue(ui)))
+    return true
+endfunction
+
+function jasshelper__initstructs25684437 takes nothing returns nothing
+    set st__uiSlider_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiSlider_onDestroy,Condition( function sa__uiSlider_onDestroy))
+    set st___prototype14[1]=CreateTrigger()
+    call TriggerAddAction(st___prototype14[1],function sa___prototype14_UTUISlider__anon__0)
+    call TriggerAddCondition(st___prototype14[1],Condition(function sa___prototype14_UTUISlider__anon__0))
+
+
 
 
 
     call ExecuteFunc("s__uiId_onInit")
+    call ExecuteFunc("s__hardware_onInit")
+    call ExecuteFunc("s__uiSlider_onInit")
 endfunction
 

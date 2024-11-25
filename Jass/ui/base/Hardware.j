@@ -2,6 +2,7 @@
 #define HardwareIncluded
 
 #include "BlizzardAPI.j"
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 //! zinc
 /*

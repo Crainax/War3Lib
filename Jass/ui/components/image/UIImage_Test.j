@@ -23,7 +23,7 @@ library UTUIImage requires UIImage {
 	function TTestUTUIImage1 (player p) {
 		if (GetLocalPlayer() == p) {
 			currentImage = uiImage.create(DzGetGameUI())
-				.size(0.04, 0.04)
+				.setSize(0.04, 0.04)
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 				// .texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
 				.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
@@ -52,7 +52,7 @@ library UTUIImage requires UIImage {
 				currentImage = 0;
 			}
 			currentImage = uiImage.createToolTips(DzGetGameUI())
-				.size(0.3, 0.4)
+				.setSize(0.3, 0.4)
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
 			BJDebugMsg("创建了工具提示背景图片(种类1)");
 		}
@@ -66,7 +66,7 @@ library UTUIImage requires UIImage {
 				currentImage = 0;
 			}
 			currentImage = uiImage.createToolTips2(DzGetGameUI())
-				.size(0.3, 0.4)
+				.setSize(0.3, 0.4)
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
 			BJDebugMsg("创建了工具提示背景图片(种类2)");
 		}

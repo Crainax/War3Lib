@@ -8,7 +8,7 @@
 /*
 文字UI组件
 */
-library UIText requires UIId,UITocInit,UIBaseModule {
+library UIText requires UIId,UITocInit,UIBaseModule,UITextModule {
 
 
     public struct uiText {
