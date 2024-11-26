@@ -1,7 +1,7 @@
 #ifndef CameraIncluded
 #define CameraIncluded
 
-#include "Crainax/ui/base/HardwellEvent.j"
+#include "Crainax/ui/base/Hardware.j"
 //! zinc
 /*
 鼠标滚轮控制视距
@@ -9,7 +9,7 @@
 made by 裂魂
 2018/10/19
 */
-library CameraControl requires HardwellEvent{
+library CameraControl requires Hardware{
 
     integer ViewLevel  = 8;     //初始视野等级
     boolean ResetCam   = false; //开启重置镜头属性标识

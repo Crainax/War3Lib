@@ -6,7 +6,16 @@
 
 //! zinc
 
-//自动生成的文件
+/*
+滑块组件单元测试
+测试命令:
+s1 - 创建竖直滑块
+s2 - 创建水平滑块
+s3 - 创建魔兽风格竖直滑块
+s4 - 创建魔兽风格水平滑块
+支持鼠标滚轮控制滑块值
+*/
+
 library UTUISlider requires UISlider {
 
 	uiSlider uiSliderTest = 0;
@@ -110,11 +119,16 @@ library UTUISlider requires UISlider {
 	}
 
 	function onInit () {
-		//在游戏开始0.0秒后再调用
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UISlider] 单元测试已加载");
+			BJDebugMsg("----------滑块组件测试----------");
+			BJDebugMsg("s1 - 创建竖直滑块");
+			BJDebugMsg("s2 - 创建水平滑块");
+			BJDebugMsg("s3 - 创建魔兽风格竖直滑块");
+			BJDebugMsg("s4 - 创建魔兽风格水平滑块");
+			BJDebugMsg("支持鼠标滚轮控制滑块值");
+			BJDebugMsg("------------------------------");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

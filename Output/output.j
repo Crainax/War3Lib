@@ -24,9 +24,15 @@ constant integer DEFENSE_TYPE_NONE= 7
 //globals from UIBaseModule:
 constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
+//globals from UIEventModule:
+constant boolean LIBRARY_UIEventModule=true
+//endglobals from UIEventModule
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
 //endglobals from UIId
+//globals from UITextModule:
+constant boolean LIBRARY_UITextModule=true
+//endglobals from UITextModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork___TUnitTest=null
@@ -37,13 +43,13 @@ constant boolean LIBRARY_Hardware=true
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
-//globals from UISlider:
-constant boolean LIBRARY_UISlider=true
-//endglobals from UISlider
-//globals from UTUISlider:
-constant boolean LIBRARY_UTUISlider=true
-integer UTUISlider___uiSliderTest=0
-//endglobals from UTUISlider
+//globals from UIEditbox:
+constant boolean LIBRARY_UIEditbox=true
+//endglobals from UIEditbox
+//globals from UTUIEditbox:
+constant boolean LIBRARY_UTUIEditbox=true
+integer UTUIEditbox__currentEditbox=0
+//endglobals from UTUIEditbox
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -80,20 +86,13 @@ integer array si__hardware_V
 trigger s__hardware_trWheel=null
 trigger s__hardware_trUpdate=null
 trigger s__hardware_trResize=null
-constant integer si__uiSlider=3
-integer si__uiSlider_F=0
-integer si__uiSlider_I=0
-integer array si__uiSlider_V
-integer array s__uiSlider_List
-integer s__uiSlider_size=0
-integer array s__uiSlider_uID
-integer array s__uiSlider_ui
-integer array s__uiSlider_id
-integer array s__uiSlider_fun
-real array s__uiSlider_oldValue
-trigger st__uiSlider_onDestroy
-trigger array st___prototype14
-integer f__arg_integer1
+constant integer si__uiEditbox=3
+integer si__uiEditbox_F=0
+integer si__uiEditbox_I=0
+integer array si__uiEditbox_V
+integer array s__uiEditbox_ui
+integer array s__uiEditbox_id
+trigger st__uiEditbox_onDestroy
 integer f__arg_this
 
 endglobals
@@ -343,43 +342,43 @@ endglobals
         native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
 
-//Generated method caller for uiSlider.onDestroy
-function sc__uiSlider_onDestroy takes integer this returns nothing
+//Generated method caller for uiEditbox.onDestroy
+function sc__uiEditbox_onDestroy takes integer this returns nothing
     set f__arg_this=this
-    call TriggerEvaluate(st__uiSlider_onDestroy)
+    call TriggerEvaluate(st__uiEditbox_onDestroy)
 endfunction
 
-//Generated allocator of uiSlider
-function s__uiSlider__allocate takes nothing returns integer
- local integer this=si__uiSlider_F
+//Generated allocator of uiEditbox
+function s__uiEditbox__allocate takes nothing returns integer
+ local integer this=si__uiEditbox_F
     if (this!=0) then
-        set si__uiSlider_F=si__uiSlider_V[this]
+        set si__uiEditbox_F=si__uiEditbox_V[this]
     else
-        set si__uiSlider_I=si__uiSlider_I+1
-        set this=si__uiSlider_I
+        set si__uiEditbox_I=si__uiEditbox_I+1
+        set this=si__uiEditbox_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiSlider")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiEditbox")
         return 0
     endif
 
-    set si__uiSlider_V[this]=-1
+    set si__uiEditbox_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiSlider
-function sc__uiSlider_deallocate takes integer this returns nothing
+//Generated destructor of uiEditbox
+function sc__uiEditbox_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSlider")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiEditbox")
         return
-    elseif (si__uiSlider_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSlider")
+    elseif (si__uiEditbox_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiEditbox")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiSlider_onDestroy)
-    set si__uiSlider_V[this]=si__uiSlider_F
-    set si__uiSlider_F=this
+    call TriggerEvaluate(st__uiEditbox_onDestroy)
+    set si__uiEditbox_V[this]=si__uiEditbox_F
+    set si__uiEditbox_F=this
 endfunction
 
 //Generated allocator of hardware
@@ -411,17 +410,6 @@ function s__hardware_deallocate takes integer this returns nothing
     endif
     set si__hardware_V[this]=si__hardware_F
     set si__hardware_F=this
-endfunction
-function sc___prototype14_execute takes integer i,integer a1 returns nothing
-    set f__arg_integer1=a1
-
-    call TriggerExecute(st___prototype14[i])
-endfunction
-function sc___prototype14_evaluate takes integer i,integer a1 returns nothing
-    set f__arg_integer1=a1
-
-    call TriggerEvaluate(st___prototype14[i])
-
 endfunction
 
 //library BzAPI:
@@ -834,6 +822,9 @@ endfunction
 //library UIBaseModule:
 
 //library UIBaseModule ends
+//library UIEventModule:
+
+//library UIEventModule ends
 //library UIId:
         function s__uiId_onInit takes nothing returns nothing
             set s__uiId_ht=InitHashtable()
@@ -868,6 +859,9 @@ endfunction
         endfunction
 
 //library UIId ends
+//library UITextModule:
+
+//library UITextModule ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
@@ -950,251 +944,233 @@ endfunction
     endfunction
 
 //library UITocInit ends
-//library UISlider:
-//processed:     function interface funSlider takes uiSlider arg0 returns nothing
-        function s__uiSlider_isExist takes integer this returns boolean
-            return ( this != null and si__uiSlider_V[this] == - 1 )
+//library UIEditbox:
+        function s__uiEditbox_isExist takes integer this returns boolean
+            return ( this != null and si__uiEditbox_V[this] == - 1 )
         endfunction
 //Implemented from module uiBaseModule:
-        function s__uiSlider_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+        function s__uiEditbox_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetPoint(s__uiSlider_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            call DzFrameSetPoint(s__uiEditbox_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
             return this
         endfunction  // 大小完全对齐父框架
-        function s__uiSlider_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+        function s__uiEditbox_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetAllPoints(s__uiSlider_ui[this], relative)
+            call DzFrameSetAllPoints(s__uiEditbox_ui[this], relative)
             return this
         endfunction  // 清除所有位置
-        function s__uiSlider_clearPoint takes integer this returns integer
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+        function s__uiEditbox_clearPoint takes integer this returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameClearAllPoints(s__uiSlider_ui[this])
+            call DzFrameClearAllPoints(s__uiEditbox_ui[this])
             return this
         endfunction  // 设置大小
-        function s__uiSlider_setSize takes integer this,real width,real height returns integer
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+        function s__uiEditbox_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetSize(s__uiSlider_ui[this], width, height)
+            call DzFrameSetSize(s__uiEditbox_ui[this], width, height)
             return this
         endfunction
-        function s__uiSlider_create takes integer parent returns integer
-            local integer this=s__uiSlider__allocate()
-            set s__uiSlider_id[this]=s__uiId_get()
-            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "SB1V", 0) //这里是初始化时的设置内容,不需要改
-            if ( s__uiSlider_uID[this] == 0 ) then
-                set s__uiSlider_size=s__uiSlider_size + 1
-                set s__uiSlider_List[s__uiSlider_size]=this
-                set s__uiSlider_uID[this]=s__uiSlider_size
-            endif
-            return this
-        endfunction  // 创建横滑条
-        function s__uiSlider_createH1 takes integer parent returns integer
-            local integer this=s__uiSlider__allocate()
-            set s__uiSlider_id[this]=s__uiId_get()
-            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "SB1H", 0) //这里是初始化时的设置内容,不需要改
-            if ( s__uiSlider_uID[this] == 0 ) then
-                set s__uiSlider_size=s__uiSlider_size + 1
-                set s__uiSlider_List[s__uiSlider_size]=this
-                set s__uiSlider_uID[this]=s__uiSlider_size
-            endif
-            return this
-        endfunction  // 创建竖滑条(魔兽风格)
-        function s__uiSlider_createW takes integer parent returns integer
-            local integer this=s__uiSlider__allocate()
-            set s__uiSlider_id[this]=s__uiId_get()
-            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "Base1SB1V", 0) //这里是初始化时的设置内容,不需要改
-            if ( s__uiSlider_uID[this] == 0 ) then
-                set s__uiSlider_size=s__uiSlider_size + 1
-                set s__uiSlider_List[s__uiSlider_size]=this
-                set s__uiSlider_uID[this]=s__uiSlider_size
-            endif
-            return this
-        endfunction  // 创建横滑条
-        function s__uiSlider_createWH1 takes integer parent returns integer
-            local integer this=s__uiSlider__allocate()
-            set s__uiSlider_id[this]=s__uiId_get()
-            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "Base1SB1H", 0) //这里是初始化时的设置内容,不需要改
-            if ( s__uiSlider_uID[this] == 0 ) then
-                set s__uiSlider_size=s__uiSlider_size + 1
-                set s__uiSlider_List[s__uiSlider_size]=this
-                set s__uiSlider_uID[this]=s__uiSlider_size
-            endif
-            return this
-        endfunction  // 获取滑块的滑块按钮UI
-        function s__uiSlider_getThumbButton takes integer this returns integer
-            return DzFrameGetChild(s__uiSlider_ui[this], 1)
-        endfunction  // 设置滑块的滑块按钮大小
-        function s__uiSlider_setThumbScale takes integer this,real scale returns integer
-            local integer btnUI
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+//Implemented from module uiTextModule:
+        function s__uiEditbox_setFontSize takes integer this,integer size returns integer
+            local real fontSize=0.01
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
                 return this
             endif
-            set btnUI=s__uiSlider_getThumbButton(this)
-            call DzFrameSetSize(btnUI, DzFrameGetWidth(btnUI) * scale, DzFrameGetHeight(btnUI) * scale)
+            if ( size == 1 ) then
+                set fontSize=0.006
+            elseif ( size == 2 ) then
+                set fontSize=0.008
+            elseif ( size == 3 ) then
+                set fontSize=0.009
+            elseif ( size == 4 ) then
+                set fontSize=0.01
+            elseif ( size == 5 ) then
+                set fontSize=0.011
+            elseif ( size == 6 ) then
+                set fontSize=0.012
+            elseif ( size == 7 ) then
+                set fontSize=0.015
+            endif
+            call DzFrameSetFont(s__uiEditbox_ui[this], "fonts\\zt.ttf", fontSize, 0)
             return this
-        endfunction  // 设置滑块的数值变化回调
-        function s__uiSlider_onChange takes integer this,integer func returns integer
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+        endfunction  // 设置对齐方式(前提要先定好大小,不然无处对齐)
+        function s__uiEditbox_setAlign takes integer this,integer align returns integer
+            local integer finalAlign=align
+            if ( not ( s__uiEditbox_isExist(this) ) ) then // 如果输入0-8,转换为对应的组合值
                 return this
             endif
-            set s__uiSlider_fun[this]=func
+            if ( align >= 0 and align <= 8 ) then
+                if ( align == 0 ) then // 左上
+                    set finalAlign=9
+                elseif ( align == 1 ) then // 顶部居中
+                    set finalAlign=17
+                elseif ( align == 2 ) then // 右上
+                    set finalAlign=33
+                elseif ( align == 3 ) then // 左中
+                    set finalAlign=10
+                elseif ( align == 4 ) then // 居中
+                    set finalAlign=18
+                elseif ( align == 5 ) then // 右中
+                    set finalAlign=34
+                elseif ( align == 6 ) then // 左下
+                    set finalAlign=12
+                elseif ( align == 7 ) then // 底部居中
+                    set finalAlign=20
+                elseif ( align == 8 ) then // 右下
+                    set finalAlign=36
+                endif
+            endif
+            call DzFrameSetTextAlignment(s__uiEditbox_ui[this], finalAlign)
             return this
-        endfunction  // 设置滑块的步长
-        function s__uiSlider_setStep takes integer this,real step returns integer
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+        endfunction  // 设置文本内容
+        function s__uiEditbox_setText takes integer this,string text returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetStepValue(s__uiSlider_ui[this], step)
+            call DzFrameSetText(s__uiEditbox_ui[this], text)
             return this
-        endfunction  // 设置滑块的最小值和最大值
-        function s__uiSlider_setMinMaxValue takes integer this,real min,real max returns integer
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+        endfunction
+//Implemented from module uiEventModule:
+        function s__uiEditbox_onMouseEnter takes integer this,code fun returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetMinMaxValue(s__uiSlider_ui[this], min, max)
+            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 2, fun, false)
             return this
-        endfunction  // 获取滑块的当前值
-        function s__uiSlider_getValue takes integer this returns real
-            if ( not ( s__uiSlider_isExist(this) ) ) then
-                return 0.
-            endif
-            return DzFrameGetValue(s__uiSlider_ui[this])
-        endfunction  // 回调函数(外部也可直接调用,比如滚轮事件setValue后)
-        function s__uiSlider_callBack takes integer this returns nothing
-            if ( s__uiSlider_isExist(this) and s__uiSlider_fun[this] != 0 ) then
-                call sc___prototype14_evaluate(s__uiSlider_fun[this],this) //更新旧值
-                set s__uiSlider_oldValue[this]=s__uiSlider_getValue(this)
-            endif
-        endfunction  // 设置滑块的当前值,并调用回调函数
-        function s__uiSlider_setValue takes integer this,real value returns integer
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+        endfunction  // 鼠标离开事件
+        function s__uiEditbox_onMouseLeave takes integer this,code fun returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetValue(s__uiSlider_ui[this], value) //调用回调函数
-            call s__uiSlider_callBack(this)
+            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 3, fun, false)
             return this
-        endfunction  // 销毁
-        function s__uiSlider_onDestroy takes integer this returns nothing
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+        endfunction  // 鼠标松开事件,和点击一样,基本可以当相同事件
+        function s__uiEditbox_onMouseUp takes integer this,code fun returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 4, fun, false)
+            return this
+        endfunction  // 鼠标点击事件
+        function s__uiEditbox_onMouseClick takes integer this,code fun returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 1, fun, false)
+            return this
+        endfunction  // 鼠标滚轮事件
+        function s__uiEditbox_onMouseWheel takes integer this,code fun returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 6, fun, false)
+            return this
+        endfunction  // 鼠标双击事件
+        function s__uiEditbox_onMouseDoubleClick takes integer this,code fun returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 12, fun, false)
+            return this
+        endfunction  //扩展事件
+        function s__uiEditbox_create takes integer parent returns integer
+            local integer this=s__uiEditbox__allocate()
+            set s__uiEditbox_id[this]=s__uiId_get()
+            set s__uiEditbox_ui[this]=DzCreateFrameByTagName("EDITBOX", "Editbox" + I2S(s__uiEditbox_id[this]), parent, "TestEditBox", 0)
+            return this
+        endfunction  // 设置焦点
+        function s__uiEditbox_setFocus takes integer this,boolean focus returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetFocus(s__uiEditbox_ui[this], focus)
+            return this
+        endfunction  // 文本改变事件, DzFrameGetText获取内容
+        function s__uiEditbox_onChange takes integer this,code c returns integer
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 9, c, false)
+            return this
+        endfunction
+        function s__uiEditbox_onDestroy takes integer this returns nothing
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
                 return
             endif
-            call DzDestroyFrame(s__uiSlider_ui[this])
-            call s__uiId_recycle(s__uiSlider_id[this])
-            if ( s__uiSlider_uID[this] != 0 ) then //这个其实就是将List的[2]设成5  假设2是删  5是最长
-                set s__uiSlider_List[s__uiSlider_uID[this]]=s__uiSlider_List[s__uiSlider_size] //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立) //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
-                set s__uiSlider_uID[s__uiSlider_List[s__uiSlider_uID[this]]]=s__uiSlider_uID[this]
-                set s__uiSlider_size=s__uiSlider_size - 1
-                set s__uiSlider_uID[this]=0
-            endif
-        endfunction  //初始化就同步创建,不要异步删除计时器
+            call DzDestroyFrame(s__uiEditbox_ui[this])
+            call s__uiId_recycle(s__uiEditbox_id[this])
+        endfunction
 
-//Generated destructor of uiSlider
-function s__uiSlider_deallocate takes integer this returns nothing
+//Generated destructor of uiEditbox
+function s__uiEditbox_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSlider")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiEditbox")
         return
-    elseif (si__uiSlider_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSlider")
+    elseif (si__uiEditbox_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiEditbox")
         return
     endif
-    call s__uiSlider_onDestroy(this)
-    set si__uiSlider_V[this]=si__uiSlider_F
-    set si__uiSlider_F=this
+    call s__uiEditbox_onDestroy(this)
+    set si__uiEditbox_V[this]=si__uiEditbox_F
+    set si__uiEditbox_F=this
 endfunction
-            function s__uiSlider_anon__0 takes nothing returns nothing
-                local integer this
-                local integer i
-                if ( s__uiSlider_size > 0 ) then
-                    set i=1 //从结论来说i就是.uID
-                    loop
-                    exitwhen ( i > s__uiSlider_size )
-                        set this=s__uiSlider_List[i] //和旧值不相等才调用回调
-                        if ( s__uiSlider_getValue(this) != s__uiSlider_oldValue[this] ) then
-                            call s__uiSlider_callBack(this)
-                        endif
-                    set i=i + 1
-                    endloop
-                endif
-            endfunction
-        function s__uiSlider_onInit takes nothing returns nothing
-            call TimerStart(CreateTimer(), 0.1, true, function s__uiSlider_anon__0)
-        endfunction
 
-//library UISlider ends
-//library UTUISlider:
+//library UIEditbox ends
+//library UTUIEditbox:
 
-        function UTUISlider___anon__0 takes integer ui returns nothing
-            call BJDebugMsg("滑块值:" + R2S(s__uiSlider_getValue(ui)))
+        function UTUIEditbox__anon__0 takes nothing returns nothing
+            call BJDebugMsg("文本改变:" + DzFrameGetText(DzGetTriggerUIEventFrame()))
         endfunction
-    function UTUISlider___TTestUTUISlider1 takes player p returns nothing
-        if ( GetLocalPlayer() != p ) then
-            return
-        endif
-        if ( UTUISlider___uiSliderTest != null ) then
-            call s__uiSlider_deallocate(UTUISlider___uiSliderTest)
-        endif
-        set UTUISlider___uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_create(DzGetGameUI()),0.0074 * 2 , 0.22006 * 2),1),50),1 , 100),2.5),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(1))
-        call BJDebugMsg("创建了竖的滑块。")
-    endfunction
-        function UTUISlider___anon__1 takes integer ui returns nothing
-            call BJDebugMsg("横滑块值:" + R2S(s__uiSlider_getValue(ui)))
+        function UTUIEditbox__anon__1 takes nothing returns nothing
+            call BJDebugMsg("鼠标进入:" + I2S(DzGetTriggerUIEventFrame()))
         endfunction
-    function UTUISlider___TTestUTUISlider2 takes player p returns nothing
-        if ( GetLocalPlayer() != p ) then
-            return
-        endif
-        if ( UTUISlider___uiSliderTest != null ) then
-            call s__uiSlider_deallocate(UTUISlider___uiSliderTest)
-        endif
-        set UTUISlider___uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_createH1(DzGetGameUI()),0.2 , 0.01),1),50),1 , 100),1.2),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(2))
-        call BJDebugMsg("创建了横的滑块。")
-    endfunction
-        function UTUISlider___anon__2 takes integer ui returns nothing
-            call BJDebugMsg("Warcraft竖滑块值:" + R2S(s__uiSlider_getValue(ui)))
+        function UTUIEditbox__anon__2 takes nothing returns nothing
+            call BJDebugMsg("鼠标离开:" + I2S(DzGetTriggerUIEventFrame()))
         endfunction
-    function UTUISlider___TTestUTUISlider3 takes player p returns nothing
-        if ( GetLocalPlayer() != p ) then
-            return
-        endif
-        if ( UTUISlider___uiSliderTest != null ) then
-            call s__uiSlider_deallocate(UTUISlider___uiSliderTest)
-        endif
-        set UTUISlider___uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_createW(DzGetGameUI()),0.012 , 0.139),1),50),1 , 100),1),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(3))
-        call BJDebugMsg("创建了竖的滑块(魔兽风格)。")
-    endfunction
-        function UTUISlider___anon__3 takes integer ui returns nothing
-            call BJDebugMsg("Warcraft横滑块值:" + R2S(s__uiSlider_getValue(ui)))
+        function UTUIEditbox__anon__3 takes nothing returns nothing
+            call BJDebugMsg("鼠标松开:" + I2S(DzGetTriggerUIEventFrame()))
         endfunction
-    function UTUISlider___TTestUTUISlider4 takes player p returns nothing
-        if ( GetLocalPlayer() != p ) then
-            return
+        function UTUIEditbox__anon__4 takes nothing returns nothing
+            call BJDebugMsg("鼠标点击:" + I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+        function UTUIEditbox__anon__5 takes nothing returns nothing
+            call BJDebugMsg("鼠标滚轮:" + I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+        function UTUIEditbox__anon__6 takes nothing returns nothing
+            call BJDebugMsg("鼠标双击:" + I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+    function UTUIEditbox__TTestUTUIEditbox1 takes player p returns nothing
+        if ( GetLocalPlayer() == p ) then
+            set UTUIEditbox__currentEditbox=s__uiEditbox_onMouseDoubleClick(s__uiEditbox_onMouseWheel(s__uiEditbox_onMouseClick(s__uiEditbox_onMouseUp(s__uiEditbox_onMouseLeave(s__uiEditbox_onMouseEnter(s__uiEditbox_onChange(s__uiEditbox_setAlign(s__uiEditbox_setText(s__uiEditbox_setPoint(s__uiEditbox_setSize(s__uiEditbox_create(DzGetGameUI()),0.2 , 0.05),4 , DzGetGameUI() , 4 , 0 , 0),"这是一个测试文本" + I2S(s__uiEditbox_id[UTUIEditbox__currentEditbox]) + "\n测试一下事件功能"),5),function UTUIEditbox__anon__0),function UTUIEditbox__anon__1),function UTUIEditbox__anon__2),function UTUIEditbox__anon__3),function UTUIEditbox__anon__4),function UTUIEditbox__anon__5),function UTUIEditbox__anon__6)
+            call BJDebugMsg("创建了一个文本UI，测试事件系统")
         endif
-        if ( UTUISlider___uiSliderTest != null ) then
-            call s__uiSlider_deallocate(UTUISlider___uiSliderTest)
-        endif
-        set UTUISlider___uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_createWH1(DzGetGameUI()),0.139 , 0.012),1),50),1 , 100),1),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(4))
-        call BJDebugMsg("创建了横的滑块(魔兽风格)。")
     endfunction
-    function UTUISlider___TTestUTUISlider5 takes player p returns nothing
+    function UTUIEditbox__TTestUTUIEditbox2 takes player p returns nothing
     endfunction
-    function UTUISlider___TTestUTUISlider6 takes player p returns nothing
+    function UTUIEditbox__TTestUTUIEditbox3 takes player p returns nothing
     endfunction
-    function UTUISlider___TTestUTUISlider7 takes player p returns nothing
+    function UTUIEditbox__TTestUTUIEditbox4 takes player p returns nothing
     endfunction
-    function UTUISlider___TTestUTUISlider8 takes player p returns nothing
+    function UTUIEditbox__TTestUTUIEditbox5 takes player p returns nothing
     endfunction
-    function UTUISlider___TTestUTUISlider9 takes player p returns nothing
+    function UTUIEditbox__TTestUTUIEditbox6 takes player p returns nothing
     endfunction
-    function UTUISlider___TTestUTUISlider10 takes player p returns nothing
+    function UTUIEditbox__TTestUTUIEditbox7 takes player p returns nothing
     endfunction
-    function UTUISlider___TTestActUTUISlider1 takes string str returns nothing
+    function UTUIEditbox__TTestUTUIEditbox8 takes player p returns nothing
+    endfunction
+    function UTUIEditbox__TTestUTUIEditbox9 takes player p returns nothing
+    endfunction
+    function UTUIEditbox__TTestUTUIEditbox10 takes player p returns nothing
+    endfunction
+    function UTUIEditbox__TTestActUTUIEditbox1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1226,64 +1202,53 @@ endfunction
         endif
         set p=null
     endfunction
-        function UTUISlider___anon__4 takes nothing returns nothing
-            call BJDebugMsg("[UISlider] 单元测试已加载")
+        function UTUIEditbox__anon__7 takes nothing returns nothing
+            call BJDebugMsg("[UIEditbox] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUISlider___anon__5 takes nothing returns nothing
+        function UTUIEditbox__anon__8 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUISlider___TTestActUTUISlider1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUIEditbox__TTestActUTUIEditbox1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUISlider___TTestUTUISlider1(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUISlider___TTestUTUISlider2(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUISlider___TTestUTUISlider3(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUISlider___TTestUTUISlider4(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUISlider___TTestUTUISlider5(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUISlider___TTestUTUISlider6(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUISlider___TTestUTUISlider7(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUISlider___TTestUTUISlider8(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUISlider___TTestUTUISlider9(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUISlider___TTestUTUISlider10(GetTriggerPlayer())
+                call UTUIEditbox__TTestUTUIEditbox10(GetTriggerPlayer())
             endif
         endfunction
-        function UTUISlider___anon__6 takes nothing returns nothing
-            local integer delta=DzGetWheelDelta()
-            if ( UTUISlider___uiSliderTest == 0 ) then
-                return
-            endif
-            if ( delta > 0 ) then
-                call BJDebugMsg("滚轮向上")
-                call s__uiSlider_setValue(UTUISlider___uiSliderTest,s__uiSlider_getValue(UTUISlider___uiSliderTest) + 1)
-            else
-                call BJDebugMsg("滚轮向下")
-                call s__uiSlider_setValue(UTUISlider___uiSliderTest,s__uiSlider_getValue(UTUISlider___uiSliderTest) - 1)
-            endif
+        function UTUIEditbox__anon__9 takes nothing returns nothing
+            call s__uiEditbox_setFocus(UTUIEditbox__currentEditbox,false)
+            call BJDebugMsg("取消焦点")
         endfunction
-    function UTUISlider___onInit takes nothing returns nothing
+    function UTUIEditbox__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUISlider___anon__4))
+        call TriggerAddCondition(tr, Condition(function UTUIEditbox__anon__7))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUISlider___anon__5)
-        call s__hardware_regWheelEvent(function UTUISlider___anon__6)
+        call UnitTestRegisterChatEvent(function UTUIEditbox__anon__8)
+        call s__hardware_regRightClickEvent(function UTUIEditbox__anon__9)
     endfunction
 
-//library UTUISlider ends
-//控件的共用基本方法
-// 结构体共用方法定义
+//library UTUIEditbox ends
 // 锚点常量
 // 事件常量
 //鼠标点击事件
@@ -1291,6 +1256,7 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
+
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -1301,7 +1267,8 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
-
+//控件的共用基本方法
+// 结构体共用方法定义
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1714,10 +1681,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs8637234")
+call ExecuteFunc("jasshelper__initstructs24428906")
 call ExecuteFunc("UnitTestFramwork___onInit")
 call ExecuteFunc("UITocInit___onInit")
-call ExecuteFunc("UTUISlider___onInit")
+call ExecuteFunc("UTUIEditbox__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1755,68 +1722,24 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__uiSlider_onDestroy takes nothing returns boolean
+function sa__uiEditbox_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiSlider_isExist(this) ) ) then
+            if ( not ( s__uiEditbox_isExist(this) ) ) then
 return true
             endif
-            call DzDestroyFrame(s__uiSlider_ui[this])
-            call s__uiId_recycle(s__uiSlider_id[this])
-            if ( s__uiSlider_uID[this] != 0 ) then //这个其实就是将List的[2]设成5  假设2是删  5是最长
-                set s__uiSlider_List[s__uiSlider_uID[this]]=s__uiSlider_List[s__uiSlider_size] //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立) //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
-                set s__uiSlider_uID[s__uiSlider_List[s__uiSlider_uID[this]]]=s__uiSlider_uID[this]
-                set s__uiSlider_size=s__uiSlider_size - 1
-                set s__uiSlider_uID[this]=0
-            endif
+            call DzDestroyFrame(s__uiEditbox_ui[this])
+            call s__uiId_recycle(s__uiEditbox_id[this])
    return true
 endfunction
-function sa___prototype14_UTUISlider___anon__0 takes nothing returns boolean
- local integer ui=f__arg_integer1
 
-            call BJDebugMsg("滑块值:" + R2S(s__uiSlider_getValue(ui)))
-    return true
-endfunction
-function sa___prototype14_UTUISlider___anon__1 takes nothing returns boolean
- local integer ui=f__arg_integer1
-
-            call BJDebugMsg("横滑块值:" + R2S(s__uiSlider_getValue(ui)))
-    return true
-endfunction
-function sa___prototype14_UTUISlider___anon__2 takes nothing returns boolean
- local integer ui=f__arg_integer1
-
-            call BJDebugMsg("Warcraft竖滑块值:" + R2S(s__uiSlider_getValue(ui)))
-    return true
-endfunction
-function sa___prototype14_UTUISlider___anon__3 takes nothing returns boolean
- local integer ui=f__arg_integer1
-
-            call BJDebugMsg("Warcraft横滑块值:" + R2S(s__uiSlider_getValue(ui)))
-    return true
-endfunction
-
-function jasshelper__initstructs8637234 takes nothing returns nothing
-    set st__uiSlider_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiSlider_onDestroy,Condition( function sa__uiSlider_onDestroy))
-    set st___prototype14[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype14[1],function sa___prototype14_UTUISlider___anon__0)
-    call TriggerAddCondition(st___prototype14[1],Condition(function sa___prototype14_UTUISlider___anon__0))
-    set st___prototype14[2]=CreateTrigger()
-    call TriggerAddAction(st___prototype14[2],function sa___prototype14_UTUISlider___anon__1)
-    call TriggerAddCondition(st___prototype14[2],Condition(function sa___prototype14_UTUISlider___anon__1))
-    set st___prototype14[3]=CreateTrigger()
-    call TriggerAddAction(st___prototype14[3],function sa___prototype14_UTUISlider___anon__2)
-    call TriggerAddCondition(st___prototype14[3],Condition(function sa___prototype14_UTUISlider___anon__2))
-    set st___prototype14[4]=CreateTrigger()
-    call TriggerAddAction(st___prototype14[4],function sa___prototype14_UTUISlider___anon__3)
-    call TriggerAddCondition(st___prototype14[4],Condition(function sa___prototype14_UTUISlider___anon__3))
-
+function jasshelper__initstructs24428906 takes nothing returns nothing
+    set st__uiEditbox_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiEditbox_onDestroy,Condition( function sa__uiEditbox_onDestroy))
 
 
 
 
     call ExecuteFunc("s__uiId_onInit")
     call ExecuteFunc("s__hardware_onInit")
-    call ExecuteFunc("s__uiSlider_onInit")
 endfunction
 

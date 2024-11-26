@@ -1,0 +1,527 @@
+//Modified with MdlVis.
+Version {
+	FormatVersion 800,
+}
+Model "Minimap-Ping" {
+	NumGeosets 5,
+	NumBones 4,
+	BlendTime 150,
+}
+Sequences 3 {
+	Anim "Birth" {
+		Interval { 0, 833 },
+		MinimumExtent { -0.195133, -0.195133, -0.00685823 },
+		MaximumExtent { 0.195133, 0.195133, 0.0195 },
+		BoundsRadius 0.195578,
+	}
+	Anim "Stand" {
+		Interval { 1000, 1833 },
+		MinimumExtent { -0.194986, -0.194986, 0.00107121 },
+		MaximumExtent { 0.194986, 0.194986, 0.0195 },
+		BoundsRadius 0.195351,
+	}
+	Anim "Death" {
+		Interval { 2000, 2333 },
+		NonLooping,
+		MinimumExtent { -0.194701, -0.194701, 0.006 },
+		MaximumExtent { 0.194701, 0.194701, 0.0195 },
+		BoundsRadius 0.19525,
+	}
+}
+GlobalSequences 1 {
+	Duration 1833,
+}
+Textures 4 {
+	Bitmap {
+		Image "ui\MiniMap\ping5.blp",
+	}
+	Bitmap {
+		Image "ui\MiniMap\ping2.blp",
+	}
+	Bitmap {
+		Image "ui\MiniMap\ping4.blp",
+	}
+	Bitmap {
+		Image "ui\MiniMap\ping6.blp",
+	}
+}
+Materials 5 {
+	Material {
+		FullResolution,
+		Layer {
+			FilterMode Additive,
+			Unshaded,
+			static TextureID 0,
+			Alpha 3 {
+				Bezier,
+				0: 0,
+					InTan 0,
+					OutTan 0,
+				1000: 0,
+					InTan 0,
+					OutTan 0,
+				2000: 0,
+					InTan 0,
+					OutTan 0,
+			}
+		}
+	}
+	Material {
+		FullResolution,
+		Layer {
+			FilterMode Additive,
+			Unshaded,
+			static TextureID 1,
+			Alpha 3 {
+				Bezier,
+				0: 0,
+					InTan 0,
+					OutTan 0,
+				1000: 0,
+					InTan 0,
+					OutTan 0,
+				2000: 0,
+					InTan 0,
+					OutTan 0,
+			}
+		}
+	}
+	Material {
+		FullResolution,
+		Layer {
+			FilterMode Additive,
+			Unshaded,
+			static TextureID 2,
+			Alpha 7 {
+				Bezier,
+				0: 0,
+					InTan -0.0380952,
+					OutTan 0.0952381,
+				417: 1,
+					InTan 1,
+					OutTan 1,
+				833: 0,
+					InTan 0.0952381,
+					OutTan -0.0380952,
+				1000: 0,
+					InTan -0.0408497,
+					OutTan 0.0980392,
+				1400: 1,
+					InTan 0.974359,
+					OutTan 1.02778,
+				1833: 0,
+					InTan 0.0925926,
+					OutTan -0.0356125,
+				2000: 0,
+					InTan 0,
+					OutTan 0,
+			}
+		}
+	}
+	Material {
+		FullResolution,
+		Layer {
+			FilterMode Additive,
+			Unshaded,
+			static TextureID 3,
+			Alpha 4 {
+				Bezier,
+				0: 0,
+					InTan -0.0111111,
+					OutTan 0.0555556,
+				833: 1,
+					InTan 0.944444,
+					OutTan 1.01111,
+				2000: 1,
+					InTan 1.05556,
+					OutTan 0.888889,
+				2333: 0,
+					InTan 0.555556,
+					OutTan 0,
+			}
+		}
+	}
+	Material {
+		FullResolution,
+		Layer {
+			FilterMode Additive,
+			Unshaded,
+			static TextureID 3,
+			Alpha 6 {
+				Bezier,
+				0: 0,
+					InTan -0.328205,
+					OutTan 0.205128,
+				104: 1,
+					InTan 0.75,
+					OutTan 2,
+				521: 0,
+					InTan 0.142857,
+					OutTan -0.107143,
+				833: 0,
+					InTan 0,
+					OutTan 0,
+				1000: 0,
+					InTan 0,
+					OutTan 0,
+				2000: 0,
+					InTan 0,
+					OutTan 0,
+			}
+		}
+	}
+}
+Geoset {
+	Vertices 4 {
+		{ -0.13798, 0.13798, 0.0195 },
+		{ -0.13798, -0.13798, 0.0195 },
+		{ 0.13798, 0.13798, 0.0195 },
+		{ 0.13798, -0.13798, 0.0195 },
+	}
+	Normals 4 {
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+	}
+	TVertices 4 {
+		{ 0, 0 },
+		{ 0, 1 },
+		{ 1, 0 },
+		{ 1, 1 },
+	}
+	VertexGroup {
+		0,
+		0,
+		0,
+		0,
+	}
+	Faces 1 6 {
+		Triangles {
+			{ 0, 1, 2, 3, 2, 1 },
+		}
+	}
+	Groups 1 1 {
+		Matrices { 0 },
+	}
+	MinimumExtent { -0.1379799992, -0.13798, 0.0195 },
+	MaximumExtent { 0.1379799992, 0.13798, 0.0195 },
+	BoundsRadius 0.39027,
+	Anim {
+		MinimumExtent { -0.1379799992, -0.1379799992, 0.0195000004 },
+		MaximumExtent { 0.13798, 0.13798, 0.0195 },
+		BoundsRadius 0.3902664,
+	}
+	Anim {
+		MinimumExtent { -0.1379799992, -0.1379799992, 0.0195000004 },
+		MaximumExtent { 0.13798, 0.13798, 0.0195 },
+		BoundsRadius 0.3902664,
+	}
+	Anim {
+		MinimumExtent { -0.1379799992, -0.1379799992, 0.0195000004 },
+		MaximumExtent { 0.13798, 0.13798, 0.0195 },
+		BoundsRadius 0.3902664,
+	}
+	Anim {
+		MinimumExtent { -0.1379799992, -0.1379799992, 0.0195000004 },
+		MaximumExtent { 0.13798, 0.13798, 0.0195 },
+		BoundsRadius 0.3902664,
+	}
+	Anim {
+		MinimumExtent { -0.1379799992, -0.1379799992, 0.0195000004 },
+		MaximumExtent { 0.13798, 0.13798, 0.0195 },
+		BoundsRadius 0.3902664,
+	}
+	Anim {
+		MinimumExtent { -0.1379799992, -0.1379799992, 0.0195000004 },
+		MaximumExtent { 0.13798, 0.13798, 0.0195 },
+		BoundsRadius 0.3902664,
+	}
+	MaterialID 0,
+	SelectionGroup 0,
+}
+Geoset {
+	Vertices 4 {
+		{ -0.0125, 0.0124, 0.0131 },
+		{ -0.0125, -0.0124, 0.0131 },
+		{ 0.0125, 0.0124, 0.0131 },
+		{ 0.0125, -0.0124, 0.0131 },
+	}
+	Normals 4 {
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+	}
+	TVertices 4 {
+		{ 0, 0 },
+		{ 0, 1 },
+		{ 1, 0 },
+		{ 1, 1 },
+	}
+	VertexGroup {
+		0,
+		0,
+		0,
+		0,
+	}
+	Faces 1 6 {
+		Triangles {
+			{ 0, 1, 2, 3, 2, 1 },
+		}
+	}
+	Groups 1 1 {
+		Matrices { 1 },
+	}
+	MinimumExtent { -0.01250000019, -0.0124, 0.0131 },
+	MaximumExtent { 0.01250000019, 0.0124, 0.0131 },
+	BoundsRadius 0.03521,
+	MaterialID 1,
+	SelectionGroup 0,
+}
+Geoset {
+	Vertices 4 {
+		{ -0.003, 0.003, 0.006 },
+		{ -0.003, -0.003, 0.006 },
+		{ 0.003, 0.003, 0.006 },
+		{ 0.003, -0.003, 0.006 },
+	}
+	Normals 4 {
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+	}
+	TVertices 4 {
+		{ 0, 0 },
+		{ 0, 1 },
+		{ 1, 0 },
+		{ 1, 1 },
+	}
+	VertexGroup {
+		0,
+		0,
+		0,
+		0,
+	}
+	Faces 1 6 {
+		Triangles {
+			{ 0, 1, 2, 3, 2, 1 },
+		}
+	}
+	Groups 1 1 {
+		Matrices { 2 },
+	}
+	MinimumExtent { -0.003000000026, -0.003, 0.006 },
+	MaximumExtent { 0.003000000026, 0.003, 0.006 },
+	BoundsRadius 0.00849,
+	Anim {
+		MinimumExtent { -0.003000000026, -0.003000000026, 0.006000000052 },
+		MaximumExtent { 0.003, 0.003, 0.006 },
+		BoundsRadius 0.008485282,
+	}
+	Anim {
+		MinimumExtent { -0.003000000026, -0.003000000026, 0.006000000052 },
+		MaximumExtent { 0.003, 0.003, 0.006 },
+		BoundsRadius 0.008485282,
+	}
+	Anim {
+		MinimumExtent { -0.003000000026, -0.003000000026, 0.006000000052 },
+		MaximumExtent { 0.003, 0.003, 0.006 },
+		BoundsRadius 0.008485282,
+	}
+	Anim {
+		MinimumExtent { -0.003000000026, -0.003000000026, 0.006000000052 },
+		MaximumExtent { 0.003, 0.003, 0.006 },
+		BoundsRadius 0.008485282,
+	}
+	Anim {
+		MinimumExtent { -0.003000000026, -0.003000000026, 0.006000000052 },
+		MaximumExtent { 0.003, 0.003, 0.006 },
+		BoundsRadius 0.008485282,
+	}
+	Anim {
+		MinimumExtent { -0.003000000026, -0.003000000026, 0.006000000052 },
+		MaximumExtent { 0.003, 0.003, 0.006 },
+		BoundsRadius 0.008485282,
+	}
+	MaterialID 2,
+	SelectionGroup 0,
+}
+Geoset {
+	Vertices 4 {
+		{ -0.0125, 0.0124, 0.008 },
+		{ -0.0125, -0.0124, 0.008 },
+		{ 0.0125, 0.0124, 0.008 },
+		{ 0.0125, -0.0124, 0.008 },
+	}
+	Normals 4 {
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+	}
+	TVertices 4 {
+		{ 0, 0 },
+		{ 0, 1 },
+		{ 1, 0 },
+		{ 1, 1 },
+	}
+	VertexGroup {
+		0,
+		0,
+		0,
+		0,
+	}
+	Faces 1 6 {
+		Triangles {
+			{ 0, 1, 2, 3, 2, 1 },
+		}
+	}
+	Groups 1 1 {
+		Matrices { 1 },
+	}
+	MinimumExtent { -0.01250000019, -0.0124, 0.008 },
+	MaximumExtent { 0.01250000019, 0.0124, 0.008 },
+	BoundsRadius 0.03521,
+	MaterialID 3,
+	SelectionGroup 0,
+}
+Geoset {
+	Vertices 4 {
+		{ -0.0125, 0.0124, 0.0113 },
+		{ -0.0125, -0.0124, 0.0113 },
+		{ 0.0125, 0.0124, 0.0113 },
+		{ 0.0125, -0.0124, 0.0113 },
+	}
+	Normals 4 {
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+		{ 0, 0, 1 },
+	}
+	TVertices 4 {
+		{ 0, 0 },
+		{ 0, 1 },
+		{ 1, 0 },
+		{ 1, 1 },
+	}
+	VertexGroup {
+		0,
+		0,
+		0,
+		0,
+	}
+	Faces 1 6 {
+		Triangles {
+			{ 0, 1, 2, 3, 2, 1 },
+		}
+	}
+	Groups 1 1 {
+		Matrices { 3 },
+	}
+	MinimumExtent { -0.01250000019, -0.0124, 0.0113 },
+	MaximumExtent { 0.01250000019, 0.0124, 0.0113 },
+	BoundsRadius 0.03521,
+	Anim {
+		MinimumExtent { -0.01250000019, -0.01240000036, 0.01130000036 },
+		MaximumExtent { 0.0125, 0.0124, 0.0113 },
+		BoundsRadius 0.0352142,
+	}
+	Anim {
+		MinimumExtent { -0.01250000019, -0.01240000036, 0.01130000036 },
+		MaximumExtent { 0.0125, 0.0124, 0.0113 },
+		BoundsRadius 0.0352142,
+	}
+	Anim {
+		MinimumExtent { -0.01250000019, -0.01240000036, 0.01130000036 },
+		MaximumExtent { 0.0125, 0.0124, 0.0113 },
+		BoundsRadius 0.0352142,
+	}
+	Anim {
+		MinimumExtent { -0.01250000019, -0.01240000036, 0.01130000036 },
+		MaximumExtent { 0.0125, 0.0124, 0.0113 },
+		BoundsRadius 0.0352142,
+	}
+	Anim {
+		MinimumExtent { -0.01250000019, -0.01240000036, 0.01130000036 },
+		MaximumExtent { 0.0125, 0.0124, 0.0113 },
+		BoundsRadius 0.0352142,
+	}
+	Anim {
+		MinimumExtent { -0.01250000019, -0.01240000036, 0.01130000036 },
+		MaximumExtent { 0.0125, 0.0124, 0.0113 },
+		BoundsRadius 0.0352142,
+	}
+	MaterialID 4,
+	SelectionGroup 0,
+}
+Bone "Ping Arrows" {
+	ObjectId 0,
+	GeosetId 0,
+	GeosetAnimId None,
+	Rotation 5 {
+		Hermite,
+		GlobalSeqId 0,
+		0: { 0, 0, 0, 1 },
+			InTan { 0, 0, 0, 1 },
+			OutTan { 0, 0, 0, 1 },
+		208: { 0, 0, 0.923879, 0.382684 },
+			InTan { 0, 0, 0.933376, 0.358899 },
+			OutTan { 0, 0, 0.933376, 0.358899 },
+		625: { 0, 0, 0.707107, 0.707107 },
+			InTan { 0, 0, 0.688767, 0.724983 },
+			OutTan { 0, 0, 0.688767, 0.724983 },
+		1167: { 0, 0, 0.382683, 0.92388 },
+			InTan { 0, 0, 0.36384, 0.931462 },
+			OutTan { 0, 0, 0.36384, 0.931462 },
+		1833: { 0, 0, 0, -1 },
+			InTan { 0, 0, 0, -1 },
+			OutTan { 0, 0, 0, -1 },
+	}
+}
+Bone "Ping" {
+	ObjectId 1,
+	GeosetId Multiple,
+	GeosetAnimId None,
+}
+Bone "Ping Echo" {
+	ObjectId 2,
+	GeosetId 2,
+	GeosetAnimId None,
+	Scaling 4 {
+		Bezier,
+		0: { 1, 1, 1 },
+			InTan { 1.1463, 1.1463, 1.1463 },
+			OutTan { 1.18287, 1.18287, 1.18287 },
+		833: { 20, 20, 20 },
+			InTan { 20, 20, 20 },
+			OutTan { 20, 20, 20 },
+		1000: { 1, 1, 1 },
+			InTan { 1, 1, 1 },
+			OutTan { 1, 1, 1 },
+		1833: { 6, 6, 6 },
+			InTan { 13.3611, 13.3611, 13.3611 },
+			OutTan { 0, 0, 0 },
+	}
+}
+Bone "Ally Ping01" {
+	ObjectId 3,
+	GeosetId 4,
+	GeosetAnimId None,
+	Scaling 2 {
+		Bezier,
+		0: { 1, 1, 1 },
+			InTan { 2.87826, 2.87826, 2.87826 },
+			OutTan { 1.52174, 1.52174, 1.52174 },
+		833: { 3, 3, 3 },
+			InTan { 3.81159, 3.81159, 3.81159 },
+			OutTan { 0, 0, 0 },
+	}
+}
+PivotPoints 4 {
+	{ 0, 0, 0.0195442 },
+	{ 0, 0, 0.013112 },
+	{ 0, 0, 0.00667984 },
+	{ 0, 0, 0.0113752 },
+}

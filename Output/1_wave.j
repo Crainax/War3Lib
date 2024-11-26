@@ -107,75 +107,36 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTUISlider requires UISlider {
-	uiSlider uiSliderTest = 0;
-	function TTestUTUISlider1 (player p) {
-		if (GetLocalPlayer() != p) {return;}
-		if (uiSliderTest != null) {uiSliderTest.destroy();}
-		uiSliderTest = uiSlider.create(DzGetGameUI())
-			.setSize(0.0074*2,0.22006*2)
-			.setStep(1)
-			.setValue(50)
-			.setMinMaxValue(1,100)
-			.setThumbScale(2.5)
-			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0)
-			.onChange(function (uiSlider ui) {
-				BJDebugMsg("滑块值:"+R2S(ui.getValue()));
-			});
-		BJDebugMsg("创建了竖的滑块。");
+library UTUIEditbox requires UIEditbox {
+	uiEditbox currentEditbox = 0;
+	function TTestUTUIEditbox1 (player p) {
+		if (GetLocalPlayer() == p) {
+			currentEditbox = uiEditbox.create(DzGetGameUI())
+				.setSize(0.2,0.05)
+				.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0)
+				.setText("这是一个测试文本"+I2S(currentEditbox.id)+"\n测试一下事件功能")
+				.setAlign(5)
+				.onChange(function (){BJDebugMsg("文本改变:"+DzFrameGetText(DzGetTriggerUIEventFrame()));})
+				.onMouseEnter(function (){BJDebugMsg("鼠标进入:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseLeave(function (){BJDebugMsg("鼠标离开:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseUp(function (){BJDebugMsg("鼠标松开:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseClick(function (){BJDebugMsg("鼠标点击:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseWheel(function (){BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseDoubleClick(function (){BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()));});
+			BJDebugMsg("创建了一个文本UI，测试事件系统");
+		}
 	}
-	function TTestUTUISlider2 (player p) {
-		if (GetLocalPlayer() != p) {return;}
-		if (uiSliderTest != null) {uiSliderTest.destroy();}
-		uiSliderTest = uiSlider.createH1(DzGetGameUI())
-			.setSize(0.2,0.01)
-			.setStep(1)
-			.setValue(50)
-			.setMinMaxValue(1,100)
-			.setThumbScale(1.2)
-			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0)
-			.onChange(function (uiSlider ui) {
-				BJDebugMsg("横滑块值:"+R2S(ui.getValue()));
-			});
-		BJDebugMsg("创建了横的滑块。");
+	function TTestUTUIEditbox2 (player p) {
 	}
-	function TTestUTUISlider3 (player p) {
-		if (GetLocalPlayer() != p) {return;}
-		if (uiSliderTest != null) {uiSliderTest.destroy();}
-		uiSliderTest = uiSlider.createW(DzGetGameUI())
-			.setSize(0.012,0.139)
-			.setStep(1)
-			.setValue(50)
-			.setMinMaxValue(1,100)
-			.setThumbScale(1)
-			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0)
-			.onChange(function (uiSlider ui) {
-				BJDebugMsg("Warcraft竖滑块值:"+R2S(ui.getValue()));
-			});
-		BJDebugMsg("创建了竖的滑块(魔兽风格)。");
-	}
-	function TTestUTUISlider4 (player p) {
-		if (GetLocalPlayer() != p) {return;}
-		if (uiSliderTest != null) {uiSliderTest.destroy();}
-		uiSliderTest = uiSlider.createWH1(DzGetGameUI())
-			.setSize(0.139,0.012)
-			.setStep(1)
-			.setValue(50)
-			.setMinMaxValue(1,100)
-			.setThumbScale(1)
-			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0)
-			.onChange(function (uiSlider ui) {
-				BJDebugMsg("Warcraft横滑块值:"+R2S(ui.getValue()));
-			});
-		BJDebugMsg("创建了横的滑块(魔兽风格)。");
-	}
-	function TTestUTUISlider5 (player p) {}
-	function TTestUTUISlider6 (player p) {}
-	function TTestUTUISlider7 (player p) {}
-	function TTestUTUISlider8 (player p) {}
-	function TTestUTUISlider9 (player p) {}
-	function TTestUTUISlider10 (player p) {}
-	function TTestActUTUISlider1 (string str) {
+	function TTestUTUIEditbox3 (player p) {}
+	function TTestUTUIEditbox4 (player p) {}
+	function TTestUTUIEditbox5 (player p) {}
+	function TTestUTUIEditbox6 (player p) {}
+	function TTestUTUIEditbox7 (player p) {}
+	function TTestUTUIEditbox8 (player p) {}
+	function TTestUTUIEditbox9 (player p) {}
+	function TTestUTUIEditbox10 (player p) {}
+	function TTestActUTUIEditbox1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -207,7 +168,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UISlider] 单元测试已加载");
+			BJDebugMsg("[UIEditbox] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -215,30 +176,23 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUISlider1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUIEditbox1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUISlider1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUISlider2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUISlider3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUISlider4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUISlider5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUISlider6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUISlider7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUISlider8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUISlider9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUISlider10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUIEditbox1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUIEditbox2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUIEditbox3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUIEditbox4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUIEditbox5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUIEditbox6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUIEditbox7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUIEditbox8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUIEditbox9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUIEditbox10(GetTriggerPlayer());
 		});
-		hardware.regWheelEvent(function () {
-			integer delta = DzGetWheelDelta();
-			if (uiSliderTest == 0) {return;}
-			if (delta > 0) {
-				BJDebugMsg("滚轮向上");
-				uiSliderTest.setValue(uiSliderTest.getValue() + 1);
-			} else {
-				BJDebugMsg("滚轮向下");
-				uiSliderTest.setValue(uiSliderTest.getValue() - 1);
-			}
+		hardware.regRightClickEvent(function (){
+			currentEditbox.setFocus(false);
+			BJDebugMsg("取消焦点");
 		});
 	}
 }

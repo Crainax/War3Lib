@@ -63,8 +63,9 @@
 #define TEMPLATE_SLIDER_HORIZONTAL "SB1H"                     // 横滑条(异度风格)
 #define TEMPLATE_SLIDER_WAR3       "Base1SB1V"        // 竖滑条(魔兽风格)
 #define TEMPLATE_SLIDER_WAR3_H     "Base1SB1H" // 横滑条(魔兽风格)
-#define TEMPLATE_CHECKBOX          "StandardCheckBoxTemplate"
-#define TEMPLATE_EDITBOX           "StandardEditBoxTemplate"
+#define TEMPLATE_CHECKBOX          "CBTemplate"
+#define TEMPLATE_CHECKBOX_RADIO    "RBTemplate"
+#define TEMPLATE_EDITBOX           "TestEditBox"
 
 
 //TEXT对齐常量:(uiText.setAlign)

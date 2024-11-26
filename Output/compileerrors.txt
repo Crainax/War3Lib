@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 45:  Cannot convert null to integer
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 818: Missing requirement: UIEditbox (libraries cannot require scopes)
 1

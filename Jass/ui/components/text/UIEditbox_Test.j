@@ -4,15 +4,33 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include
-
 //! zinc
 
 //自动生成的文件
 library UTUIEditbox requires UIEditbox {
 
-	function TTestUTUIEditbox1 (player p) {}
-	function TTestUTUIEditbox2 (player p) {}
+	uiEditbox currentEditbox = 0;
+
+	function TTestUTUIEditbox1 (player p) {
+		if (GetLocalPlayer() == p) {
+			currentEditbox = uiEditbox.create(DzGetGameUI())
+				.setSize(0.2,0.05)
+				.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0)
+				.setText("这是一个测试文本"+I2S(currentEditbox.id)+"\n测试一下事件功能")
+				// .setAlign(5)  // 这个函数没用
+				.onChange(function (){BJDebugMsg("文本改变:"+DzFrameGetText(DzGetTriggerUIEventFrame()));})
+				.onMouseEnter(function (){BJDebugMsg("鼠标进入:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseLeave(function (){BJDebugMsg("鼠标离开:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseUp(function (){BJDebugMsg("鼠标松开:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseClick(function (){BJDebugMsg("鼠标点击:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseWheel(function (){BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onMouseDoubleClick(function (){BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()));});
+			BJDebugMsg("创建了一个文本UI，测试事件系统");
+		}
+	}
+	function TTestUTUIEditbox2 (player p) {
+
+	}
 	function TTestUTUIEditbox3 (player p) {}
 	function TTestUTUIEditbox4 (player p) {}
 	function TTestUTUIEditbox5 (player p) {}
@@ -83,6 +101,10 @@ library UTUIEditbox requires UIEditbox {
 			else if(str == "s10") TTestUTUIEditbox10(GetTriggerPlayer());
 		});
 
+		hardware.regRightClickEvent(function (){
+			currentEditbox.setFocus(false);
+			BJDebugMsg("取消焦点");
+		});
 	}
 
 }

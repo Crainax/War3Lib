@@ -19,12 +19,32 @@ library UICheckbox requires UIId,UITocInit,UIBaseModule {
 
         module uiBaseModule;   // UI控件的共用方法
 
-        // 创建文本
-        // parent: 父级框架
+        // 创建打钩型复选框
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE,0);
+            ui = DzCreateFrameByTagName("GLUECHECKBOX",STRING_CHECKBOX + I2S(id),parent,TEMPLATE_CHECKBOX,0);
+            return this;
+        }
+
+        // 创建单选型复选框
+        static method createR (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("GLUECHECKBOX",STRING_CHECKBOX + I2S(id),parent,TEMPLATE_CHECKBOX_RADIO,0);
+            return this;
+        }
+
+        // 当被选中时
+        method onChecked (code fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScriptByCode(ui,FRAME_CHECKBOX_CHECKED,fun,false);
+            return this;
+        }
+        // 当未被选中时
+        method onUnchecked (code fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScriptByCode(ui,FRAME_CHECKBOX_UNCHECKED,fun,false);
             return this;
         }
 

@@ -4,15 +4,41 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include
-
 //! zinc
 
-//自动生成的文件
+/*
+复选框组件单元测试
+测试命令:
+s1 - 创建复选框(Checkbox)
+s2 - 创建单选框(Radio)
+*/
+
 library UTUICheckbox requires UICheckbox {
 
-	function TTestUTUICheckbox1 (player p) {}
-	function TTestUTUICheckbox2 (player p) {}
+	uiCheckbox uiCheckboxTest = 0;
+
+	function TTestUTUICheckbox1 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		if (uiCheckboxTest != null) {uiCheckboxTest.destroy();}
+		uiCheckboxTest = uiCheckbox.create(DzGetGameUI())
+			.onChecked(function () {
+				BJDebugMsg("复选框: 选中状态");})
+			.onUnchecked(function () {
+				BJDebugMsg("复选框: 取消选中");})
+			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0);
+		BJDebugMsg("创建了复选框。");
+	}
+	function TTestUTUICheckbox2 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		if (uiCheckboxTest != null) {uiCheckboxTest.destroy();}
+		uiCheckboxTest = uiCheckbox.createR(DzGetGameUI())
+			.onChecked(function () {
+				BJDebugMsg("单选框: 选中状态");})
+			.onUnchecked(function () {
+				BJDebugMsg("单选框: 取消选中");})
+			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0);
+		BJDebugMsg("创建了单选框。");
+	}
 	function TTestUTUICheckbox3 (player p) {}
 	function TTestUTUICheckbox4 (player p) {}
 	function TTestUTUICheckbox5 (player p) {}
@@ -54,11 +80,14 @@ library UTUICheckbox requires UICheckbox {
 	}
 
 	function onInit () {
-		//在游戏开始0.0秒后再调用
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UICheckbox] 单元测试已加载");
+			BJDebugMsg("----------复选框组件测试----------");
+			BJDebugMsg("s1 - 创建复选框(Checkbox)");
+			BJDebugMsg("s2 - 创建单选框(Radio)");
+			BJDebugMsg("点击可切换选中状态");
+			BJDebugMsg("--------------------------------");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
