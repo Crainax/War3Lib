@@ -110,6 +110,7 @@ endfunction
 library UTUISlider requires UISlider {
 	uiSlider uiSliderTest = 0;
 	function TTestUTUISlider1 (player p) {
+		if (GetLocalPlayer() != p) {return;}
 		if (uiSliderTest != null) {uiSliderTest.destroy();}
 		uiSliderTest = uiSlider.create(DzGetGameUI())
 			.setSize(0.0074*2,0.22006*2)
@@ -121,17 +122,53 @@ library UTUISlider requires UISlider {
 			.onChange(function (uiSlider ui) {
 				BJDebugMsg("滑块值:"+R2S(ui.getValue()));
 			});
+		BJDebugMsg("创建了竖的滑块。");
 	}
 	function TTestUTUISlider2 (player p) {
-		integer UIHeroSlider = DzCreateFrameByTagName("SLIDER","NormalSlider",DzGetGameUI(),"NormalSlider",0);
-		DzFrameSetSize(UIHeroSlider,0.0074,0.22006);
-		DzFrameSetPoint(UIHeroSlider,ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,-0.005,-0.007);
-		DzFrameSetMinMaxValue(UIHeroSlider,1.0,20.0);
-		DzFrameSetValue(UIHeroSlider,20.0);
-		DzFrameSetStepValue(UIHeroSlider,1);
+		if (GetLocalPlayer() != p) {return;}
+		if (uiSliderTest != null) {uiSliderTest.destroy();}
+		uiSliderTest = uiSlider.createH1(DzGetGameUI())
+			.setSize(0.2,0.01)
+			.setStep(1)
+			.setValue(50)
+			.setMinMaxValue(1,100)
+			.setThumbScale(1.2)
+			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0)
+			.onChange(function (uiSlider ui) {
+				BJDebugMsg("横滑块值:"+R2S(ui.getValue()));
+			});
+		BJDebugMsg("创建了横的滑块。");
 	}
-	function TTestUTUISlider3 (player p) {}
-	function TTestUTUISlider4 (player p) {}
+	function TTestUTUISlider3 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		if (uiSliderTest != null) {uiSliderTest.destroy();}
+		uiSliderTest = uiSlider.createW(DzGetGameUI())
+			.setSize(0.012,0.139)
+			.setStep(1)
+			.setValue(50)
+			.setMinMaxValue(1,100)
+			.setThumbScale(1)
+			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0)
+			.onChange(function (uiSlider ui) {
+				BJDebugMsg("Warcraft竖滑块值:"+R2S(ui.getValue()));
+			});
+		BJDebugMsg("创建了竖的滑块(魔兽风格)。");
+	}
+	function TTestUTUISlider4 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		if (uiSliderTest != null) {uiSliderTest.destroy();}
+		uiSliderTest = uiSlider.createWH1(DzGetGameUI())
+			.setSize(0.139,0.012)
+			.setStep(1)
+			.setValue(50)
+			.setMinMaxValue(1,100)
+			.setThumbScale(1)
+			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0)
+			.onChange(function (uiSlider ui) {
+				BJDebugMsg("Warcraft横滑块值:"+R2S(ui.getValue()));
+			});
+		BJDebugMsg("创建了横的滑块(魔兽风格)。");
+	}
 	function TTestUTUISlider5 (player p) {}
 	function TTestUTUISlider6 (player p) {}
 	function TTestUTUISlider7 (player p) {}
@@ -194,7 +231,7 @@ for (0 <= i <= len - 1) {
 		});
 		hardware.regWheelEvent(function () {
 			integer delta = DzGetWheelDelta();
-			BJDebugMsg("滚轮事件:"+I2S(delta));
+			if (uiSliderTest == 0) {return;}
 			if (delta > 0) {
 				BJDebugMsg("滚轮向上");
 				uiSliderTest.setValue(uiSliderTest.getValue() + 1);

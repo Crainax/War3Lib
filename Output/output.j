@@ -29,7 +29,7 @@ constant boolean LIBRARY_UIId=true
 //endglobals from UIId
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
+trigger UnitTestFramwork___TUnitTest=null
 //endglobals from UnitTestFramwork
 //globals from Hardware:
 constant boolean LIBRARY_Hardware=true
@@ -42,7 +42,7 @@ constant boolean LIBRARY_UISlider=true
 //endglobals from UISlider
 //globals from UTUISlider:
 constant boolean LIBRARY_UTUISlider=true
-integer UTUISlider__uiSliderTest=0
+integer UTUISlider___uiSliderTest=0
 //endglobals from UTUISlider
     // Generated
 rect gg_rct_Wave1= null
@@ -871,9 +871,9 @@ endfunction
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -884,16 +884,16 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
@@ -944,8 +944,8 @@ endfunction
 //library Hardware ends
 //library UITocInit:
 
-    function UITocInit__onInit takes nothing returns nothing
-        call DzLoadToc("ui\\PhantomOrbit.toc")
+    function UITocInit___onInit takes nothing returns nothing
+        call DzLoadToc("ui\\Crainax.toc")
         call DzFrameEnableClipRect(false)
     endfunction
 
@@ -987,9 +987,40 @@ endfunction
         function s__uiSlider_create takes integer parent returns integer
             local integer this=s__uiSlider__allocate()
             set s__uiSlider_id[this]=s__uiId_get()
-            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "SB1", 0)
-            set s__uiSlider_fun[this]=0
-            set s__uiSlider_oldValue[this]=0. //这里是初始化时的设置内容,不需要改
+            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "SB1V", 0) //这里是初始化时的设置内容,不需要改
+            if ( s__uiSlider_uID[this] == 0 ) then
+                set s__uiSlider_size=s__uiSlider_size + 1
+                set s__uiSlider_List[s__uiSlider_size]=this
+                set s__uiSlider_uID[this]=s__uiSlider_size
+            endif
+            return this
+        endfunction  // 创建横滑条
+        function s__uiSlider_createH1 takes integer parent returns integer
+            local integer this=s__uiSlider__allocate()
+            set s__uiSlider_id[this]=s__uiId_get()
+            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "SB1H", 0) //这里是初始化时的设置内容,不需要改
+            if ( s__uiSlider_uID[this] == 0 ) then
+                set s__uiSlider_size=s__uiSlider_size + 1
+                set s__uiSlider_List[s__uiSlider_size]=this
+                set s__uiSlider_uID[this]=s__uiSlider_size
+            endif
+            return this
+        endfunction  // 创建竖滑条(魔兽风格)
+        function s__uiSlider_createW takes integer parent returns integer
+            local integer this=s__uiSlider__allocate()
+            set s__uiSlider_id[this]=s__uiId_get()
+            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "Base1SB1V", 0) //这里是初始化时的设置内容,不需要改
+            if ( s__uiSlider_uID[this] == 0 ) then
+                set s__uiSlider_size=s__uiSlider_size + 1
+                set s__uiSlider_List[s__uiSlider_size]=this
+                set s__uiSlider_uID[this]=s__uiSlider_size
+            endif
+            return this
+        endfunction  // 创建横滑条
+        function s__uiSlider_createWH1 takes integer parent returns integer
+            local integer this=s__uiSlider__allocate()
+            set s__uiSlider_id[this]=s__uiId_get()
+            set s__uiSlider_ui[this]=DzCreateFrameByTagName("SLIDER", "Slider" + I2S(s__uiSlider_id[this]), parent, "Base1SB1H", 0) //这里是初始化时的设置内容,不需要改
             if ( s__uiSlider_uID[this] == 0 ) then
                 set s__uiSlider_size=s__uiSlider_size + 1
                 set s__uiSlider_List[s__uiSlider_size]=this
@@ -1001,10 +1032,12 @@ endfunction
             return DzFrameGetChild(s__uiSlider_ui[this], 1)
         endfunction  // 设置滑块的滑块按钮大小
         function s__uiSlider_setThumbScale takes integer this,real scale returns integer
+            local integer btnUI
             if ( not ( s__uiSlider_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetSize(s__uiSlider_getThumbButton(this), 0.0055 * scale, 0.0145 * scale)
+            set btnUI=s__uiSlider_getThumbButton(this)
+            call DzFrameSetSize(btnUI, DzFrameGetWidth(btnUI) * scale, DzFrameGetHeight(btnUI) * scale)
             return this
         endfunction  // 设置滑块的数值变化回调
         function s__uiSlider_onChange takes integer this,integer func returns integer
@@ -1097,40 +1130,71 @@ endfunction
 //library UISlider ends
 //library UTUISlider:
 
-        function UTUISlider__anon__0 takes integer ui returns nothing
+        function UTUISlider___anon__0 takes integer ui returns nothing
             call BJDebugMsg("滑块值:" + R2S(s__uiSlider_getValue(ui)))
         endfunction
-    function UTUISlider__TTestUTUISlider1 takes player p returns nothing
-        if ( UTUISlider__uiSliderTest != null ) then
-            call s__uiSlider_deallocate(UTUISlider__uiSliderTest)
+    function UTUISlider___TTestUTUISlider1 takes player p returns nothing
+        if ( GetLocalPlayer() != p ) then
+            return
         endif
-        set UTUISlider__uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_create(DzGetGameUI()),0.0074 * 2 , 0.22006 * 2),1),50),1 , 100),2.5),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(1))
+        if ( UTUISlider___uiSliderTest != null ) then
+            call s__uiSlider_deallocate(UTUISlider___uiSliderTest)
+        endif
+        set UTUISlider___uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_create(DzGetGameUI()),0.0074 * 2 , 0.22006 * 2),1),50),1 , 100),2.5),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(1))
+        call BJDebugMsg("创建了竖的滑块。")
     endfunction
-    function UTUISlider__TTestUTUISlider2 takes player p returns nothing
-        local integer UIHeroSlider=DzCreateFrameByTagName("SLIDER", "NormalSlider", DzGetGameUI(), "NormalSlider", 0)
-        call DzFrameSetSize(UIHeroSlider, 0.0074, 0.22006)
-        call DzFrameSetPoint(UIHeroSlider, 4, DzGetGameUI(), 4, - 0.005, - 0.007)
-        call DzFrameSetMinMaxValue(UIHeroSlider, 1.0, 20.0)
-        call DzFrameSetValue(UIHeroSlider, 20.0)
-        call DzFrameSetStepValue(UIHeroSlider, 1)
+        function UTUISlider___anon__1 takes integer ui returns nothing
+            call BJDebugMsg("横滑块值:" + R2S(s__uiSlider_getValue(ui)))
+        endfunction
+    function UTUISlider___TTestUTUISlider2 takes player p returns nothing
+        if ( GetLocalPlayer() != p ) then
+            return
+        endif
+        if ( UTUISlider___uiSliderTest != null ) then
+            call s__uiSlider_deallocate(UTUISlider___uiSliderTest)
+        endif
+        set UTUISlider___uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_createH1(DzGetGameUI()),0.2 , 0.01),1),50),1 , 100),1.2),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(2))
+        call BJDebugMsg("创建了横的滑块。")
     endfunction
-    function UTUISlider__TTestUTUISlider3 takes player p returns nothing
+        function UTUISlider___anon__2 takes integer ui returns nothing
+            call BJDebugMsg("Warcraft竖滑块值:" + R2S(s__uiSlider_getValue(ui)))
+        endfunction
+    function UTUISlider___TTestUTUISlider3 takes player p returns nothing
+        if ( GetLocalPlayer() != p ) then
+            return
+        endif
+        if ( UTUISlider___uiSliderTest != null ) then
+            call s__uiSlider_deallocate(UTUISlider___uiSliderTest)
+        endif
+        set UTUISlider___uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_createW(DzGetGameUI()),0.012 , 0.139),1),50),1 , 100),1),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(3))
+        call BJDebugMsg("创建了竖的滑块(魔兽风格)。")
     endfunction
-    function UTUISlider__TTestUTUISlider4 takes player p returns nothing
+        function UTUISlider___anon__3 takes integer ui returns nothing
+            call BJDebugMsg("Warcraft横滑块值:" + R2S(s__uiSlider_getValue(ui)))
+        endfunction
+    function UTUISlider___TTestUTUISlider4 takes player p returns nothing
+        if ( GetLocalPlayer() != p ) then
+            return
+        endif
+        if ( UTUISlider___uiSliderTest != null ) then
+            call s__uiSlider_deallocate(UTUISlider___uiSliderTest)
+        endif
+        set UTUISlider___uiSliderTest=s__uiSlider_onChange(s__uiSlider_setPoint(s__uiSlider_setThumbScale(s__uiSlider_setMinMaxValue(s__uiSlider_setValue(s__uiSlider_setStep(s__uiSlider_setSize(s__uiSlider_createWH1(DzGetGameUI()),0.139 , 0.012),1),50),1 , 100),1),4 , DzGetGameUI() , 4 , 0.0 , 0.0),(4))
+        call BJDebugMsg("创建了横的滑块(魔兽风格)。")
     endfunction
-    function UTUISlider__TTestUTUISlider5 takes player p returns nothing
+    function UTUISlider___TTestUTUISlider5 takes player p returns nothing
     endfunction
-    function UTUISlider__TTestUTUISlider6 takes player p returns nothing
+    function UTUISlider___TTestUTUISlider6 takes player p returns nothing
     endfunction
-    function UTUISlider__TTestUTUISlider7 takes player p returns nothing
+    function UTUISlider___TTestUTUISlider7 takes player p returns nothing
     endfunction
-    function UTUISlider__TTestUTUISlider8 takes player p returns nothing
+    function UTUISlider___TTestUTUISlider8 takes player p returns nothing
     endfunction
-    function UTUISlider__TTestUTUISlider9 takes player p returns nothing
+    function UTUISlider___TTestUTUISlider9 takes player p returns nothing
     endfunction
-    function UTUISlider__TTestUTUISlider10 takes player p returns nothing
+    function UTUISlider___TTestUTUISlider10 takes player p returns nothing
     endfunction
-    function UTUISlider__TTestActUTUISlider1 takes string str returns nothing
+    function UTUISlider___TTestActUTUISlider1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1162,61 +1226,62 @@ endfunction
         endif
         set p=null
     endfunction
-        function UTUISlider__anon__1 takes nothing returns nothing
+        function UTUISlider___anon__4 takes nothing returns nothing
             call BJDebugMsg("[UISlider] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUISlider__anon__2 takes nothing returns nothing
+        function UTUISlider___anon__5 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUISlider__TTestActUTUISlider1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUISlider___TTestActUTUISlider1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUISlider__TTestUTUISlider1(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUISlider__TTestUTUISlider2(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUISlider__TTestUTUISlider3(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUISlider__TTestUTUISlider4(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUISlider__TTestUTUISlider5(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUISlider__TTestUTUISlider6(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUISlider__TTestUTUISlider7(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUISlider__TTestUTUISlider8(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUISlider__TTestUTUISlider9(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUISlider__TTestUTUISlider10(GetTriggerPlayer())
+                call UTUISlider___TTestUTUISlider10(GetTriggerPlayer())
             endif
         endfunction
-        function UTUISlider__anon__3 takes nothing returns nothing
+        function UTUISlider___anon__6 takes nothing returns nothing
             local integer delta=DzGetWheelDelta()
-            call BJDebugMsg("滚轮事件:" + I2S(delta))
+            if ( UTUISlider___uiSliderTest == 0 ) then
+                return
+            endif
             if ( delta > 0 ) then
                 call BJDebugMsg("滚轮向上")
-                call s__uiSlider_setValue(UTUISlider__uiSliderTest,s__uiSlider_getValue(UTUISlider__uiSliderTest) + 1)
+                call s__uiSlider_setValue(UTUISlider___uiSliderTest,s__uiSlider_getValue(UTUISlider___uiSliderTest) + 1)
             else
                 call BJDebugMsg("滚轮向下")
-                call s__uiSlider_setValue(UTUISlider__uiSliderTest,s__uiSlider_getValue(UTUISlider__uiSliderTest) - 1)
+                call s__uiSlider_setValue(UTUISlider___uiSliderTest,s__uiSlider_getValue(UTUISlider___uiSliderTest) - 1)
             endif
         endfunction
-    function UTUISlider__onInit takes nothing returns nothing
+    function UTUISlider___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUISlider__anon__1))
+        call TriggerAddCondition(tr, Condition(function UTUISlider___anon__4))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUISlider__anon__2)
-        call s__hardware_regWheelEvent(function UTUISlider__anon__3)
+        call UnitTestRegisterChatEvent(function UTUISlider___anon__5)
+        call s__hardware_regWheelEvent(function UTUISlider___anon__6)
     endfunction
 
 //library UTUISlider ends
-
 //控件的共用基本方法
 // 结构体共用方法定义
 // 锚点常量
@@ -1236,6 +1301,7 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
+
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1648,10 +1714,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs25684437")
-call ExecuteFunc("UnitTestFramwork__onInit")
-call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UTUISlider__onInit")
+call ExecuteFunc("jasshelper__initstructs8637234")
+call ExecuteFunc("UnitTestFramwork___onInit")
+call ExecuteFunc("UITocInit___onInit")
+call ExecuteFunc("UTUISlider___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1704,19 +1770,46 @@ return true
             endif
    return true
 endfunction
-function sa___prototype14_UTUISlider__anon__0 takes nothing returns boolean
+function sa___prototype14_UTUISlider___anon__0 takes nothing returns boolean
  local integer ui=f__arg_integer1
 
             call BJDebugMsg("滑块值:" + R2S(s__uiSlider_getValue(ui)))
     return true
 endfunction
+function sa___prototype14_UTUISlider___anon__1 takes nothing returns boolean
+ local integer ui=f__arg_integer1
 
-function jasshelper__initstructs25684437 takes nothing returns nothing
+            call BJDebugMsg("横滑块值:" + R2S(s__uiSlider_getValue(ui)))
+    return true
+endfunction
+function sa___prototype14_UTUISlider___anon__2 takes nothing returns boolean
+ local integer ui=f__arg_integer1
+
+            call BJDebugMsg("Warcraft竖滑块值:" + R2S(s__uiSlider_getValue(ui)))
+    return true
+endfunction
+function sa___prototype14_UTUISlider___anon__3 takes nothing returns boolean
+ local integer ui=f__arg_integer1
+
+            call BJDebugMsg("Warcraft横滑块值:" + R2S(s__uiSlider_getValue(ui)))
+    return true
+endfunction
+
+function jasshelper__initstructs8637234 takes nothing returns nothing
     set st__uiSlider_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiSlider_onDestroy,Condition( function sa__uiSlider_onDestroy))
     set st___prototype14[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype14[1],function sa___prototype14_UTUISlider__anon__0)
-    call TriggerAddCondition(st___prototype14[1],Condition(function sa___prototype14_UTUISlider__anon__0))
+    call TriggerAddAction(st___prototype14[1],function sa___prototype14_UTUISlider___anon__0)
+    call TriggerAddCondition(st___prototype14[1],Condition(function sa___prototype14_UTUISlider___anon__0))
+    set st___prototype14[2]=CreateTrigger()
+    call TriggerAddAction(st___prototype14[2],function sa___prototype14_UTUISlider___anon__1)
+    call TriggerAddCondition(st___prototype14[2],Condition(function sa___prototype14_UTUISlider___anon__1))
+    set st___prototype14[3]=CreateTrigger()
+    call TriggerAddAction(st___prototype14[3],function sa___prototype14_UTUISlider___anon__2)
+    call TriggerAddCondition(st___prototype14[3],Condition(function sa___prototype14_UTUISlider___anon__2))
+    set st___prototype14[4]=CreateTrigger()
+    call TriggerAddAction(st___prototype14[4],function sa___prototype14_UTUISlider___anon__3)
+    call TriggerAddCondition(st___prototype14[4],Condition(function sa___prototype14_UTUISlider___anon__3))
 
 
 

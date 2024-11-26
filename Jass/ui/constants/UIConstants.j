@@ -38,26 +38,33 @@
 
 
 //Index名:
-#define STRING_BUTTON "Btn"
-#define STRING_IMAGE  "Img"
-#define STRING_SPRITE "Sprite"
-#define STRING_TEXT   "Text"
-#define STRING_SLIDER "Slider"
+#define STRING_BUTTON   "Btn"
+#define STRING_IMAGE    "Img"
+#define STRING_SPRITE   "Sprite"
+#define STRING_TEXT     "Text"
+#define STRING_EDITBOX  "Editbox"
+#define STRING_SLIDER   "Slider"
+#define STRING_CHECKBOX "Checkbox"
 
 //默认原生图片路径
 #define UI_STRING_PATH_BLANK "UI\\Widgets\\EscMenu\\Human\\blank-background.blp"
 
 //模板名
-#define TEMPLATE_NORMAL_BUTTON      "BT" //无声,有高亮
-#define TEMPLATE_TEXT_BUTTON        "TBT"
-#define TEMPLATE_IMAGE              "IT"
-#define TEMPLATE_BLANK_BUTTON       "BB"
+#define TEMPLATE_NORMAL_BUTTON     "BT"                       //无声,有高亮
+#define TEMPLATE_TEXT_BUTTON       "TBT"
+#define TEMPLATE_IMAGE             "IT"
+#define TEMPLATE_BLANK_BUTTON      "BB"
 #define TEMPLATE_IMAGE_TOOLTIPS    "ToolTipsTemplate"
 #define TEMPLATE_IMAGE_TOOLTIPS2   "ToolTipsTemplate2"
-#define TEMPLATE_SPRITE             "SpriteTemplate"
-#define TEMPLATE_TEXT               "T1"      // 标准文字模板(无事件)
-#define TEMPLATE_TEXT_EVENT         "T2"      // 标准文字模板(有事件)
-#define TEMPLATE_SLIDER_NORMAL      "SB1"
+#define TEMPLATE_SPRITE            "SpriteTemplate"
+#define TEMPLATE_TEXT              "T1"                       // 标准文字模板(无事件)
+#define TEMPLATE_TEXT_EVENT        "T2"                       // 标准文字模板(有事件)
+#define TEMPLATE_SLIDER            "SB1V"                     // 竖滑条(异度风格)
+#define TEMPLATE_SLIDER_HORIZONTAL "SB1H"                     // 横滑条(异度风格)
+#define TEMPLATE_SLIDER_WAR3       "Base1SB1V"        // 竖滑条(魔兽风格)
+#define TEMPLATE_SLIDER_WAR3_H     "Base1SB1H" // 横滑条(魔兽风格)
+#define TEMPLATE_CHECKBOX          "StandardCheckBoxTemplate"
+#define TEMPLATE_EDITBOX           "StandardEditBoxTemplate"
 
 
 //TEXT对齐常量:(uiText.setAlign)

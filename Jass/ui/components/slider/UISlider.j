@@ -11,6 +11,10 @@
 
 //import: ui/slider/slider_background.blp
 //import: ui/slider/slider_handle.blp
+//import: ui/slider/nandu_slider_bg.blp
+//import: ui/slider/nandu_slider_button.blp
+
+//todo: 那个按钮看下要不要onResize
 
 library UISlider requires UIId,UITocInit,UIBaseModule {
 
@@ -30,12 +34,53 @@ library UISlider requires UIId,UITocInit,UIBaseModule {
 
         module uiBaseModule; // UI控件的共用方法
 
-        // 创建模型
-        // parent: 父级框架
+        // 创建竖滑条
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
-            ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER_NORMAL,0);
+            ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER,0);
+
+            if (uID == 0) { //这里是初始化时的设置内容,不需要改
+                size       += 1;
+                List[size]  = this;
+                uID         = size;
+            }
+            return this;
+        }
+
+        // 创建横滑条
+        static method createH1 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER_HORIZONTAL,0);
+
+            if (uID == 0) { //这里是初始化时的设置内容,不需要改
+                size       += 1;
+                List[size]  = this;
+                uID         = size;
+            }
+            return this;
+        }
+
+        // 创建竖滑条(魔兽风格)
+        static method createW (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER_WAR3,0);
+
+            if (uID == 0) { //这里是初始化时的设置内容,不需要改
+                size       += 1;
+                List[size]  = this;
+                uID         = size;
+            }
+            return this;
+        }
+
+        // 创建横滑条
+        static method createWH1 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER_WAR3_H,0);
 
             if (uID == 0) { //这里是初始化时的设置内容,不需要改
                 size       += 1;
@@ -52,8 +97,10 @@ library UISlider requires UIId,UITocInit,UIBaseModule {
 
         // 设置滑块的滑块按钮大小
         method setThumbScale (real scale) -> thistype {
+            integer btnUI;
             if (!this.isExist()) {return this;}
-            DzFrameSetSize(getThumbButton(),0.0055*scale,0.0145*scale);
+            btnUI = getThumbButton();
+            DzFrameSetSize(btnUI,DzFrameGetWidth(btnUI)*scale,DzFrameGetHeight(btnUI)*scale);
             return this;
         }
 
