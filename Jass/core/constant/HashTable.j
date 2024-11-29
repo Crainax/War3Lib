@@ -12,7 +12,6 @@ library HashTable {
         hashtable HASH_TIMER     = InitHashtable();  // 计时器哈希表
         hashtable HASH_GROUP     = InitHashtable();  // 单位组哈希表
         hashtable HASH_SPELL     = InitHashtable();  // 技能结构哈希表
-        hashtable HASH_UI        = InitHashtable();  // UI结构哈希表
     }
 
 }

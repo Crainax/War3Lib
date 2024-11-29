@@ -1,0 +1,191 @@
+// Converted Thu Nov 28 02:40:19 2024
+// MdlxConv Version Mar  3 2007.
+Version {
+	FormatVersion 800,
+}
+Model "BattlenetProgressBar" {
+	BlendTime 150,
+}
+Sequences 1 {
+	Anim "birth" {
+		Interval { 3333, 4333 },
+		NonLooping,
+		MinimumExtent { 0.000000, 0.000000, 0.000000 },
+		MaximumExtent { 0.511998, 0.048000, 1.200000 },
+		BoundsRadius 0.000000,
+	}
+}
+Textures 2 {
+	Bitmap {
+		Image "Textures\Black32.blp",
+	}
+	Bitmap {
+		Image "ui\bar\hpbar_glow.blp",
+	}
+}
+Materials 2 {
+	Material {
+		PriorityPlane 1,
+		Layer {
+			FilterMode None,
+			Unshaded,
+			static TextureID 0,
+		}
+	}
+	Material {
+		PriorityPlane 5,
+		Layer {
+			FilterMode AddAlpha,
+			Unshaded,
+			Unfogged,
+			static TextureID 1,
+			Alpha 3 {
+				Linear,
+				3333: 0.000000,
+				3334: 1.000000,
+				4333: 0.000000,
+			}
+		}
+		Layer {
+			FilterMode AddAlpha,
+			Unshaded,
+			Unfogged,
+			static TextureID 1,
+			Alpha 3 {
+				Linear,
+				3333: 0.000000,
+				3334: 1.000000,
+				4333: 0.000000,
+			}
+		}
+		Layer {
+			FilterMode AddAlpha,
+			Unshaded,
+			Unfogged,
+			static TextureID 1,
+			Alpha 3 {
+				Linear,
+				3333: 0.000000,
+				3334: 0.560000,
+				4333: 0.000000,
+			}
+		}
+	}
+}
+Geoset {
+	Vertices 4 {
+		{ -0.098974, 0.005986, 0.600000 },
+		{ -0.098974, 0.000514, 0.600000 },
+		{ 0.101191, 0.005986, 0.600000 },
+		{ 0.101191, 0.000514, 0.600000 },
+	}
+	Normals 4 {
+		{ 0.000000, 0.000000, 1.000000 },
+		{ 0.000000, 0.000000, 1.000000 },
+		{ 0.000000, 0.000000, 1.000000 },
+		{ 0.000000, 0.000000, 1.000000 },
+	}
+	TVertices 4 {
+		{ 0.000000, 0.000000 },
+		{ 0.000000, 1.000000 },
+		{ 1.000000, 0.000000 },
+		{ 1.000000, 1.000000 },
+	}
+	VertexGroup {
+		1,
+		1,
+		0,
+		0,
+	}
+	Faces 1 6 {
+		Triangles {
+			{ 0, 1, 2, 3, 2, 1 },
+		}
+	}
+	Groups 2 2 {
+		Matrices { 0 },
+		Matrices { 1 },
+	}
+	MinimumExtent { -0.098974, 0.000514, 0.600000 },
+	MaximumExtent { 0.101191, 0.005986, 0.600000 },
+	BoundsRadius 0.197760,
+	Anim {
+		MinimumExtent { -0.098974, 0.000514, 0.600000 },
+		MaximumExtent { 0.101191, 0.005986, 0.600000 },
+		BoundsRadius 0.197760,
+	}
+	MaterialID 0,
+	SelectionGroup 0,
+}
+Geoset {
+	Vertices 4 {
+		{ -0.117042, 0.009406, 0.650000 },
+		{ -0.117042, -0.002906, 0.650000 },
+		{ -0.080906, 0.009406, 0.650000 },
+		{ -0.080906, -0.002906, 0.650000 },
+	}
+	Normals 4 {
+		{ 0.000000, 0.000000, 1.000000 },
+		{ 0.000000, 0.000000, 1.000000 },
+		{ 0.000000, 0.000000, 1.000000 },
+		{ 0.000000, 0.000000, 1.000000 },
+	}
+	TVertices 4 {
+		{ 0.000000, 0.000000 },
+		{ 0.000000, 1.000000 },
+		{ 1.000000, 0.000000 },
+		{ 1.000000, 1.000000 },
+	}
+	VertexGroup {
+		0,
+		0,
+		0,
+		0,
+	}
+	Faces 1 6 {
+		Triangles {
+			{ 0, 1, 2, 3, 2, 1 },
+		}
+	}
+	Groups 1 1 {
+		Matrices { 1 },
+	}
+	MinimumExtent { -0.117042, -0.002906, 0.650000 },
+	MaximumExtent { -0.080906, 0.009406, 0.650000 },
+	BoundsRadius 0.038177,
+	Anim {
+		MinimumExtent { -0.117042, -0.002906, 0.650000 },
+		MaximumExtent { -0.080906, 0.009406, 0.650000 },
+		BoundsRadius 0.038177,
+	}
+	MaterialID 1,
+	SelectionGroup 0,
+}
+GeosetAnim {
+	Alpha 1 {
+		DontInterp,
+		0: 1.000000,
+	}
+	static Color { 1.000000, 0.501961, 0.376471 },
+	GeosetId 1,
+}
+Bone "Loading Bar Border" {
+	ObjectId 0,
+	GeosetId 0,
+	GeosetAnimId None,
+}
+Bone "bar" {
+	ObjectId 1,
+	Parent 0,
+	GeosetId Multiple,
+	GeosetAnimId None,
+	Translation 2 {
+		Linear,
+		3333: { 0.000000, 0.000000, -0.000001 },
+		4333: { 0.200165, 0.000000, -0.000001 },
+	}
+}
+PivotPoints 2 {
+	{ 0.000000, 0.016000, 0.462791 },
+	{ 0.000000, 0.016000, 0.462791 },
+}

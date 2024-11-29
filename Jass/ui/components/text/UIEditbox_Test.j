@@ -28,8 +28,9 @@ library UTUIEditbox requires UIEditbox {
 			BJDebugMsg("创建了一个文本UI，测试事件系统");
 		}
 	}
-	function TTestUTUIEditbox2 (player p) {
 
+
+	function TTestUTUIEditbox2 (player p) {
 	}
 	function TTestUTUIEditbox3 (player p) {}
 	function TTestUTUIEditbox4 (player p) {}

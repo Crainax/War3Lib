@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/ui/components/text/UIEditbox_Test.j"
+#include "D:/War3/Library/War3Lib/Jass/ui/composite/progbar/UIProgBar_Test.j"
 
 
 

@@ -24,32 +24,33 @@ constant integer DEFENSE_TYPE_NONE= 7
 //globals from UIBaseModule:
 constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
-//globals from UIEventModule:
-constant boolean LIBRARY_UIEventModule=true
-//endglobals from UIEventModule
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
 //endglobals from UIId
-//globals from UITextModule:
-constant boolean LIBRARY_UITextModule=true
-//endglobals from UITextModule
+//globals from UIImageModule:
+constant boolean LIBRARY_UIImageModule=true
+//endglobals from UIImageModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork___TUnitTest=null
+trigger UnitTestFramwork__TUnitTest=null
 //endglobals from UnitTestFramwork
-//globals from Hardware:
-constant boolean LIBRARY_Hardware=true
-//endglobals from Hardware
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
-//globals from UIEditbox:
-constant boolean LIBRARY_UIEditbox=true
-//endglobals from UIEditbox
-//globals from UTUIEditbox:
-constant boolean LIBRARY_UTUIEditbox=true
-integer UTUIEditbox__currentEditbox=0
-//endglobals from UTUIEditbox
+//globals from UIImage:
+constant boolean LIBRARY_UIImage=true
+//endglobals from UIImage
+//globals from UISprite:
+constant boolean LIBRARY_UISprite=true
+//endglobals from UISprite
+//globals from UIProgBar:
+constant boolean LIBRARY_UIProgBar=true
+//endglobals from UIProgBar
+//globals from UTUIProgBar:
+constant boolean LIBRARY_UTUIProgBar=true
+integer UTUIProgBar__progBar=0
+real UTUIProgBar__progress=0.0
+//endglobals from UTUIProgBar
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -79,20 +80,27 @@ constant integer si__uiId=1
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__hardware=2
-integer si__hardware_F=0
-integer si__hardware_I=0
-integer array si__hardware_V
-trigger s__hardware_trWheel=null
-trigger s__hardware_trUpdate=null
-trigger s__hardware_trResize=null
-constant integer si__uiEditbox=3
-integer si__uiEditbox_F=0
-integer si__uiEditbox_I=0
-integer array si__uiEditbox_V
-integer array s__uiEditbox_ui
-integer array s__uiEditbox_id
-trigger st__uiEditbox_onDestroy
+constant integer si__uiImage=2
+integer si__uiImage_F=0
+integer si__uiImage_I=0
+integer array si__uiImage_V
+integer array s__uiImage_ui
+integer array s__uiImage_id
+constant integer si__uiSprite=3
+integer si__uiSprite_F=0
+integer si__uiSprite_I=0
+integer array si__uiSprite_V
+integer array s__uiSprite_ui
+integer array s__uiSprite_id
+constant integer si__uiProgBar=4
+integer si__uiProgBar_F=0
+integer si__uiProgBar_I=0
+integer array si__uiProgBar_V
+integer array s__uiProgBar_uiGlow
+integer array s__uiProgBar_uiShade
+trigger st__uiImage_onDestroy
+trigger st__uiSprite_onDestroy
+trigger st__uiProgBar_onDestroy
 integer f__arg_this
 
 endglobals
@@ -342,74 +350,121 @@ endglobals
         native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
 
-//Generated method caller for uiEditbox.onDestroy
-function sc__uiEditbox_onDestroy takes integer this returns nothing
+//Generated method caller for uiProgBar.onDestroy
+function sc__uiProgBar_onDestroy takes integer this returns nothing
     set f__arg_this=this
-    call TriggerEvaluate(st__uiEditbox_onDestroy)
+    call TriggerEvaluate(st__uiProgBar_onDestroy)
 endfunction
 
-//Generated allocator of uiEditbox
-function s__uiEditbox__allocate takes nothing returns integer
- local integer this=si__uiEditbox_F
+//Generated allocator of uiProgBar
+function s__uiProgBar__allocate takes nothing returns integer
+ local integer this=si__uiProgBar_F
     if (this!=0) then
-        set si__uiEditbox_F=si__uiEditbox_V[this]
+        set si__uiProgBar_F=si__uiProgBar_V[this]
     else
-        set si__uiEditbox_I=si__uiEditbox_I+1
-        set this=si__uiEditbox_I
+        set si__uiProgBar_I=si__uiProgBar_I+1
+        set this=si__uiProgBar_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiEditbox")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiProgBar")
         return 0
     endif
 
-    set si__uiEditbox_V[this]=-1
+    set si__uiProgBar_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiEditbox
-function sc__uiEditbox_deallocate takes integer this returns nothing
+//Generated destructor of uiProgBar
+function sc__uiProgBar_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiEditbox")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiProgBar")
         return
-    elseif (si__uiEditbox_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiEditbox")
+    elseif (si__uiProgBar_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiProgBar")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiEditbox_onDestroy)
-    set si__uiEditbox_V[this]=si__uiEditbox_F
-    set si__uiEditbox_F=this
+    call TriggerEvaluate(st__uiProgBar_onDestroy)
+    set si__uiProgBar_V[this]=si__uiProgBar_F
+    set si__uiProgBar_F=this
 endfunction
 
-//Generated allocator of hardware
-function s__hardware__allocate takes nothing returns integer
- local integer this=si__hardware_F
+//Generated method caller for uiSprite.onDestroy
+function sc__uiSprite_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiSprite_onDestroy)
+endfunction
+
+//Generated allocator of uiSprite
+function s__uiSprite__allocate takes nothing returns integer
+ local integer this=si__uiSprite_F
     if (this!=0) then
-        set si__hardware_F=si__hardware_V[this]
+        set si__uiSprite_F=si__uiSprite_V[this]
     else
-        set si__hardware_I=si__hardware_I+1
-        set this=si__hardware_I
+        set si__uiSprite_I=si__uiSprite_I+1
+        set this=si__uiSprite_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: hardware")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiSprite")
         return 0
     endif
 
-    set si__hardware_V[this]=-1
+    set si__uiSprite_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of hardware
-function s__hardware_deallocate takes integer this returns nothing
+//Generated destructor of uiSprite
+function sc__uiSprite_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: hardware")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSprite")
         return
-    elseif (si__hardware_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: hardware")
+    elseif (si__uiSprite_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSprite")
         return
     endif
-    set si__hardware_V[this]=si__hardware_F
-    set si__hardware_F=this
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiSprite_onDestroy)
+    set si__uiSprite_V[this]=si__uiSprite_F
+    set si__uiSprite_F=this
+endfunction
+
+//Generated method caller for uiImage.onDestroy
+function sc__uiImage_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiImage_onDestroy)
+endfunction
+
+//Generated allocator of uiImage
+function s__uiImage__allocate takes nothing returns integer
+ local integer this=si__uiImage_F
+    if (this!=0) then
+        set si__uiImage_F=si__uiImage_V[this]
+    else
+        set si__uiImage_I=si__uiImage_I+1
+        set this=si__uiImage_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiImage")
+        return 0
+    endif
+
+    set si__uiImage_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of uiImage
+function sc__uiImage_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
+        return
+    elseif (si__uiImage_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiImage_onDestroy)
+    set si__uiImage_V[this]=si__uiImage_F
+    set si__uiImage_F=this
 endfunction
 
 //library BzAPI:
@@ -822,9 +877,6 @@ endfunction
 //library UIBaseModule:
 
 //library UIBaseModule ends
-//library UIEventModule:
-
-//library UIEventModule ends
 //library UIId:
         function s__uiId_onInit takes nothing returns nothing
             set s__uiId_ht=InitHashtable()
@@ -859,15 +911,15 @@ endfunction
         endfunction
 
 //library UIId ends
-//library UITextModule:
+//library UIImageModule:
 
-//library UITextModule ends
+//library UIImageModule ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
     endfunction
-        function UnitTestFramwork___anon__0 takes nothing returns nothing
+        function UnitTestFramwork__anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -878,299 +930,269 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork___onInit takes nothing returns nothing
+    function UnitTestFramwork__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
         set tr=null
-        set UnitTestFramwork___TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
+        set UnitTestFramwork__TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
-//library Hardware:
-        function s__hardware_regLeftClickEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
-        endfunction  // 注册一个左键按下事件
-        function s__hardware_regLeftDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 1, false, func)
-        endfunction  // 注册一个右键按下事件
-        function s__hardware_regRightClickEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 2, 0, false, func)
-        endfunction  // 注册一个滚轮事件
-        function s__hardware_regWheelEvent takes code func returns nothing
-            if ( s__hardware_trWheel == null ) then
-                set s__hardware_trWheel=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trWheel, Condition(func))
-        endfunction  // 注册一个绘制事件
-        function s__hardware_regUpdateEvent takes code func returns nothing
-            if ( s__hardware_trUpdate == null ) then
-                set s__hardware_trUpdate=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trUpdate, Condition(func))
-        endfunction  // 注册一个窗口变化事件
-        function s__hardware_regResizeEvent takes code func returns nothing
-            if ( s__hardware_trResize == null ) then
-                set s__hardware_trResize=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trResize, Condition(func))
-        endfunction
-        //private:
-            function s__hardware_anon__0 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trWheel)
-            endfunction  // 帧绘制事件
-            function s__hardware_anon__1 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trUpdate)
-            endfunction  // 窗口大小变化事件
-            function s__hardware_anon__2 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trResize)
-            endfunction
-        function s__hardware_onInit takes nothing returns nothing
-            call DzTriggerRegisterMouseWheelEventByCode(null, false, function s__hardware_anon__0)
-            call DzFrameSetUpdateCallbackByCode(function s__hardware_anon__1)
-            call DzTriggerRegisterWindowResizeEventByCode(null, false, function s__hardware_anon__2)
-        endfunction
-
-//library Hardware ends
 //library UITocInit:
 
-    function UITocInit___onInit takes nothing returns nothing
+    function UITocInit__onInit takes nothing returns nothing
         call DzLoadToc("ui\\Crainax.toc")
         call DzFrameEnableClipRect(false)
     endfunction
 
 //library UITocInit ends
-//library UIEditbox:
-        function s__uiEditbox_isExist takes integer this returns boolean
-            return ( this != null and si__uiEditbox_V[this] == - 1 )
+//library UIImage:
+        function s__uiImage_isExist takes integer this returns boolean
+            return ( this != null and si__uiImage_V[this] == - 1 )
         endfunction
 //Implemented from module uiBaseModule:
-        function s__uiEditbox_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
+        function s__uiImage_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetPoint(s__uiEditbox_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            call DzFrameSetPoint(s__uiImage_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
             return this
         endfunction  // 大小完全对齐父框架
-        function s__uiEditbox_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
+        function s__uiImage_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetAllPoints(s__uiEditbox_ui[this], relative)
+            call DzFrameSetAllPoints(s__uiImage_ui[this], relative)
             return this
         endfunction  // 清除所有位置
-        function s__uiEditbox_clearPoint takes integer this returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
+        function s__uiImage_clearPoint takes integer this returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameClearAllPoints(s__uiEditbox_ui[this])
+            call DzFrameClearAllPoints(s__uiImage_ui[this])
             return this
         endfunction  // 设置大小
-        function s__uiEditbox_setSize takes integer this,real width,real height returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
+        function s__uiImage_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetSize(s__uiEditbox_ui[this], width, height)
+            call DzFrameSetSize(s__uiImage_ui[this], width, height)
             return this
         endfunction
-//Implemented from module uiTextModule:
-        function s__uiEditbox_setFontSize takes integer this,integer size returns integer
-            local real fontSize=0.01
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
+//Implemented from module uiImageModule:
+        function s__uiImage_texture takes integer this,string path returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            if ( size == 1 ) then
-                set fontSize=0.006
-            elseif ( size == 2 ) then
-                set fontSize=0.008
-            elseif ( size == 3 ) then
-                set fontSize=0.009
-            elseif ( size == 4 ) then
-                set fontSize=0.01
-            elseif ( size == 5 ) then
-                set fontSize=0.011
-            elseif ( size == 6 ) then
-                set fontSize=0.012
-            elseif ( size == 7 ) then
-                set fontSize=0.015
-            endif
-            call DzFrameSetFont(s__uiEditbox_ui[this], "fonts\\zt.ttf", fontSize, 0)
-            return this
-        endfunction  // 设置对齐方式(前提要先定好大小,不然无处对齐)
-        function s__uiEditbox_setAlign takes integer this,integer align returns integer
-            local integer finalAlign=align
-            if ( not ( s__uiEditbox_isExist(this) ) ) then // 如果输入0-8,转换为对应的组合值
-                return this
-            endif
-            if ( align >= 0 and align <= 8 ) then
-                if ( align == 0 ) then // 左上
-                    set finalAlign=9
-                elseif ( align == 1 ) then // 顶部居中
-                    set finalAlign=17
-                elseif ( align == 2 ) then // 右上
-                    set finalAlign=33
-                elseif ( align == 3 ) then // 左中
-                    set finalAlign=10
-                elseif ( align == 4 ) then // 居中
-                    set finalAlign=18
-                elseif ( align == 5 ) then // 右中
-                    set finalAlign=34
-                elseif ( align == 6 ) then // 左下
-                    set finalAlign=12
-                elseif ( align == 7 ) then // 底部居中
-                    set finalAlign=20
-                elseif ( align == 8 ) then // 右下
-                    set finalAlign=36
-                endif
-            endif
-            call DzFrameSetTextAlignment(s__uiEditbox_ui[this], finalAlign)
-            return this
-        endfunction  // 设置文本内容
-        function s__uiEditbox_setText takes integer this,string text returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetText(s__uiEditbox_ui[this], text)
+            call DzFrameSetTexture(s__uiImage_ui[this], path, 0)
             return this
         endfunction
-//Implemented from module uiEventModule:
-        function s__uiEditbox_onMouseEnter takes integer this,code fun returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 2, fun, false)
+        function s__uiImage_create takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "IT", 0)
             return this
-        endfunction  // 鼠标离开事件
-        function s__uiEditbox_onMouseLeave takes integer this,code fun returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 3, fun, false)
+        endfunction  // 创建工具提示背景图片(种类1)
+        function s__uiImage_createToolTips takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate", 0)
             return this
-        endfunction  // 鼠标松开事件,和点击一样,基本可以当相同事件
-        function s__uiEditbox_onMouseUp takes integer this,code fun returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 4, fun, false)
-            return this
-        endfunction  // 鼠标点击事件
-        function s__uiEditbox_onMouseClick takes integer this,code fun returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 1, fun, false)
-            return this
-        endfunction  // 鼠标滚轮事件
-        function s__uiEditbox_onMouseWheel takes integer this,code fun returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 6, fun, false)
-            return this
-        endfunction  // 鼠标双击事件
-        function s__uiEditbox_onMouseDoubleClick takes integer this,code fun returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 12, fun, false)
-            return this
-        endfunction  //扩展事件
-        function s__uiEditbox_create takes integer parent returns integer
-            local integer this=s__uiEditbox__allocate()
-            set s__uiEditbox_id[this]=s__uiId_get()
-            set s__uiEditbox_ui[this]=DzCreateFrameByTagName("EDITBOX", "Editbox" + I2S(s__uiEditbox_id[this]), parent, "TestEditBox", 0)
-            return this
-        endfunction  // 设置焦点
-        function s__uiEditbox_setFocus takes integer this,boolean focus returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetFocus(s__uiEditbox_ui[this], focus)
-            return this
-        endfunction  // 文本改变事件, DzFrameGetText获取内容
-        function s__uiEditbox_onChange takes integer this,code c returns integer
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiEditbox_ui[this], 9, c, false)
+        endfunction  // 创建工具提示背景图片(种类2)
+        function s__uiImage_createToolTips2 takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate2", 0)
             return this
         endfunction
-        function s__uiEditbox_onDestroy takes integer this returns nothing
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
+        function s__uiImage_onDestroy takes integer this returns nothing
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return
             endif
-            call DzDestroyFrame(s__uiEditbox_ui[this])
-            call s__uiId_recycle(s__uiEditbox_id[this])
+            call DzDestroyFrame(s__uiImage_ui[this])
+            call s__uiId_recycle(s__uiImage_id[this])
         endfunction
 
-//Generated destructor of uiEditbox
-function s__uiEditbox_deallocate takes integer this returns nothing
+//Generated destructor of uiImage
+function s__uiImage_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiEditbox")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
         return
-    elseif (si__uiEditbox_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiEditbox")
+    elseif (si__uiImage_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
         return
     endif
-    call s__uiEditbox_onDestroy(this)
-    set si__uiEditbox_V[this]=si__uiEditbox_F
-    set si__uiEditbox_F=this
+    call s__uiImage_onDestroy(this)
+    set si__uiImage_V[this]=si__uiImage_F
+    set si__uiImage_F=this
 endfunction
 
-//library UIEditbox ends
-//library UTUIEditbox:
+//library UIImage ends
+//library UISprite:
+        function s__uiSprite_isExist takes integer this returns boolean
+            return ( this != null and si__uiSprite_V[this] == - 1 )
+        endfunction
+//Implemented from module uiBaseModule:
+        function s__uiSprite_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetPoint(s__uiSprite_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            return this
+        endfunction  // 大小完全对齐父框架
+        function s__uiSprite_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAllPoints(s__uiSprite_ui[this], relative)
+            return this
+        endfunction  // 清除所有位置
+        function s__uiSprite_clearPoint takes integer this returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameClearAllPoints(s__uiSprite_ui[this])
+            return this
+        endfunction  // 设置大小
+        function s__uiSprite_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiSprite_ui[this], width, height)
+            return this
+        endfunction
+        function s__uiSprite_create takes integer parent returns integer
+            local integer this=s__uiSprite__allocate()
+            set s__uiSprite_id[this]=s__uiId_get()
+            set s__uiSprite_ui[this]=DzCreateFrameByTagName("SPRITE", "Sprite" + I2S(s__uiSprite_id[this]), parent, "SpriteTemplate", 0)
+            return this
+        endfunction  // 设置模型(目前只做平面型就行了,后面2个0固定了)
+        function s__uiSprite_setModel takes integer this,string path,integer modelType,integer flag returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetModel(s__uiSprite_ui[this], path, modelType, flag)
+            return this
+        endfunction  // 设置缩放
+        function s__uiSprite_setScale takes integer this,real scale returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScale(s__uiSprite_ui[this], scale)
+            return this
+        endfunction  // 设置动画
+        function s__uiSprite_setAnimate takes integer this,integer animate,boolean auto returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAnimate(s__uiSprite_ui[this], animate, auto)
+            return this
+        endfunction
+        function s__uiSprite_onDestroy takes integer this returns nothing
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return
+            endif
+            call DzDestroyFrame(s__uiSprite_ui[this])
+            call s__uiId_recycle(s__uiSprite_id[this])
+        endfunction
 
-        function UTUIEditbox__anon__0 takes nothing returns nothing
-            call BJDebugMsg("文本改变:" + DzFrameGetText(DzGetTriggerUIEventFrame()))
+//Generated destructor of uiSprite
+function s__uiSprite_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSprite")
+        return
+    elseif (si__uiSprite_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSprite")
+        return
+    endif
+    call s__uiSprite_onDestroy(this)
+    set si__uiSprite_V[this]=si__uiSprite_F
+    set si__uiSprite_F=this
+endfunction
+
+//library UISprite ends
+//library UIProgBar:
+        function s__uiProgBar_isExist takes integer this returns boolean
+            return ( this != null and si__uiProgBar_V[this] == - 1 )
         endfunction
-        function UTUIEditbox__anon__1 takes nothing returns nothing
-            call BJDebugMsg("鼠标进入:" + I2S(DzGetTriggerUIEventFrame()))
+        function s__uiProgBar_create takes integer parent returns integer
+            local integer this=s__uiProgBar__allocate()
+            set s__uiProgBar_uiGlow[this]=s__uiSprite_setAnimate(s__uiSprite_setSize(s__uiSprite_setModel(s__uiSprite_create(parent),"ui\\bar\\grow_yellow.mdx" , 0 , 0),0.001 , 0.001),0 , true)
+            set s__uiProgBar_uiShade[this]=s__uiSprite_setAllPoint(s__uiSprite_setAnimate(s__uiSprite_setSize(s__uiSprite_setModel(s__uiSprite_create(parent),"ui\\bar\\shade_yellow.mdx" , 0 , 0),0.001 , 0.001),0 , false),s__uiSprite_ui[s__uiProgBar_uiGlow[this]])
+            return this
+        endfunction  // 设置进度(0-1.0)
+        function s__uiProgBar_setProgress takes integer this,real progress returns integer
+            if ( not ( s__uiProgBar_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAnimateOffset(s__uiSprite_ui[s__uiProgBar_uiShade[this]], progress)
+            return this
+        endfunction  // 设置位置
+        function s__uiProgBar_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiProgBar_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetPoint(s__uiSprite_ui[s__uiProgBar_uiGlow[this]], anchor, relative, relativeAnchor, offsetX, offsetY)
+            return this
+        endfunction  // 设置进度条的大小
+        function s__uiProgBar_setScale takes integer this,real scale returns integer
+            call s__uiSprite_setScale(s__uiProgBar_uiGlow[this],scale)
+            call s__uiSprite_setScale(s__uiProgBar_uiShade[this],scale)
+            return this
         endfunction
-        function UTUIEditbox__anon__2 takes nothing returns nothing
-            call BJDebugMsg("鼠标离开:" + I2S(DzGetTriggerUIEventFrame()))
+        function s__uiProgBar_onDestroy takes integer this returns nothing
+            if ( not ( s__uiProgBar_isExist(this) ) ) then //注意顺序
+                return
+            endif
+            call s__uiSprite_onDestroy(s__uiProgBar_uiShade[this])
+            call s__uiSprite_onDestroy(s__uiProgBar_uiGlow[this])
         endfunction
-        function UTUIEditbox__anon__3 takes nothing returns nothing
-            call BJDebugMsg("鼠标松开:" + I2S(DzGetTriggerUIEventFrame()))
-        endfunction
-        function UTUIEditbox__anon__4 takes nothing returns nothing
-            call BJDebugMsg("鼠标点击:" + I2S(DzGetTriggerUIEventFrame()))
-        endfunction
-        function UTUIEditbox__anon__5 takes nothing returns nothing
-            call BJDebugMsg("鼠标滚轮:" + I2S(DzGetTriggerUIEventFrame()))
-        endfunction
-        function UTUIEditbox__anon__6 takes nothing returns nothing
-            call BJDebugMsg("鼠标双击:" + I2S(DzGetTriggerUIEventFrame()))
-        endfunction
-    function UTUIEditbox__TTestUTUIEditbox1 takes player p returns nothing
-        if ( GetLocalPlayer() == p ) then
-            set UTUIEditbox__currentEditbox=s__uiEditbox_onMouseDoubleClick(s__uiEditbox_onMouseWheel(s__uiEditbox_onMouseClick(s__uiEditbox_onMouseUp(s__uiEditbox_onMouseLeave(s__uiEditbox_onMouseEnter(s__uiEditbox_onChange(s__uiEditbox_setAlign(s__uiEditbox_setText(s__uiEditbox_setPoint(s__uiEditbox_setSize(s__uiEditbox_create(DzGetGameUI()),0.2 , 0.05),4 , DzGetGameUI() , 4 , 0 , 0),"这是一个测试文本" + I2S(s__uiEditbox_id[UTUIEditbox__currentEditbox]) + "\n测试一下事件功能"),5),function UTUIEditbox__anon__0),function UTUIEditbox__anon__1),function UTUIEditbox__anon__2),function UTUIEditbox__anon__3),function UTUIEditbox__anon__4),function UTUIEditbox__anon__5),function UTUIEditbox__anon__6)
-            call BJDebugMsg("创建了一个文本UI，测试事件系统")
-        endif
+
+//Generated destructor of uiProgBar
+function s__uiProgBar_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiProgBar")
+        return
+    elseif (si__uiProgBar_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiProgBar")
+        return
+    endif
+    call s__uiProgBar_onDestroy(this)
+    set si__uiProgBar_V[this]=si__uiProgBar_F
+    set si__uiProgBar_F=this
+endfunction
+
+//library UIProgBar ends
+//library UTUIProgBar:
+
+    function UTUIProgBar__TTestUTUIProgBar1 takes player p returns nothing
+        set UTUIProgBar__progBar=s__uiProgBar_setPoint(s__uiProgBar_setScale(s__uiProgBar_create(DzGetGameUI()),2),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
     endfunction
-    function UTUIEditbox__TTestUTUIEditbox2 takes player p returns nothing
+    function UTUIProgBar__TTestUTUIProgBar2 takes player p returns nothing
+        local integer currentImage=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(DzGetGameUI()),0.2 , 0.01),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp")
     endfunction
-    function UTUIEditbox__TTestUTUIEditbox3 takes player p returns nothing
+    function UTUIProgBar__TTestUTUIProgBar3 takes player p returns nothing
     endfunction
-    function UTUIEditbox__TTestUTUIEditbox4 takes player p returns nothing
+    function UTUIProgBar__TTestUTUIProgBar4 takes player p returns nothing
     endfunction
-    function UTUIEditbox__TTestUTUIEditbox5 takes player p returns nothing
+    function UTUIProgBar__TTestUTUIProgBar5 takes player p returns nothing
     endfunction
-    function UTUIEditbox__TTestUTUIEditbox6 takes player p returns nothing
+    function UTUIProgBar__TTestUTUIProgBar6 takes player p returns nothing
     endfunction
-    function UTUIEditbox__TTestUTUIEditbox7 takes player p returns nothing
+    function UTUIProgBar__TTestUTUIProgBar7 takes player p returns nothing
     endfunction
-    function UTUIEditbox__TTestUTUIEditbox8 takes player p returns nothing
+    function UTUIProgBar__TTestUTUIProgBar8 takes player p returns nothing
     endfunction
-    function UTUIEditbox__TTestUTUIEditbox9 takes player p returns nothing
+    function UTUIProgBar__TTestUTUIProgBar9 takes player p returns nothing
     endfunction
-    function UTUIEditbox__TTestUTUIEditbox10 takes player p returns nothing
+    function UTUIProgBar__TTestUTUIProgBar10 takes player p returns nothing
     endfunction
-    function UTUIEditbox__TTestActUTUIEditbox1 takes string str returns nothing
+    function UTUIProgBar__TTestActUTUIProgBar1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1202,53 +1224,58 @@ endfunction
         endif
         set p=null
     endfunction
-        function UTUIEditbox__anon__7 takes nothing returns nothing
-            call BJDebugMsg("[UIEditbox] 单元测试已加载")
+        function UTUIProgBar__anon__0 takes nothing returns nothing
+            call BJDebugMsg("[UIProgBar] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUIEditbox__anon__8 takes nothing returns nothing
+        function UTUIProgBar__anon__1 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUIEditbox__TTestActUTUIEditbox1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUIProgBar__TTestActUTUIProgBar1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUIEditbox__TTestUTUIEditbox1(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUIEditbox__TTestUTUIEditbox2(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUIEditbox__TTestUTUIEditbox3(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUIEditbox__TTestUTUIEditbox4(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUIEditbox__TTestUTUIEditbox5(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUIEditbox__TTestUTUIEditbox6(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUIEditbox__TTestUTUIEditbox7(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUIEditbox__TTestUTUIEditbox8(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUIEditbox__TTestUTUIEditbox9(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUIEditbox__TTestUTUIEditbox10(GetTriggerPlayer())
+                call UTUIProgBar__TTestUTUIProgBar10(GetTriggerPlayer())
             endif
         endfunction
-        function UTUIEditbox__anon__9 takes nothing returns nothing
-            call s__uiEditbox_setFocus(UTUIEditbox__currentEditbox,false)
-            call BJDebugMsg("取消焦点")
+        function UTUIProgBar__anon__2 takes nothing returns nothing
+            local string str
+            set UTUIProgBar__progress=UTUIProgBar__progress + 0.01
+            if ( UTUIProgBar__progress >= 1.0 ) then
+                set UTUIProgBar__progress=0.0
+            endif
+            call s__uiProgBar_setProgress(UTUIProgBar__progBar,UTUIProgBar__progress)
+            call BJDebugMsg("进度:" + R2S(UTUIProgBar__progress))
         endfunction
-    function UTUIEditbox__onInit takes nothing returns nothing
+    function UTUIProgBar__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUIEditbox__anon__7))
+        call TriggerAddCondition(tr, Condition(function UTUIProgBar__anon__0))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUIEditbox__anon__8)
-        call s__hardware_regRightClickEvent(function UTUIEditbox__anon__9)
+        call UnitTestRegisterChatEvent(function UTUIProgBar__anon__1)
+        call TimerStart(CreateTimer(), 0.1, true, function UTUIProgBar__anon__2)
     endfunction
 
-//library UTUIEditbox ends
+//library UTUIProgBar ends
 // 锚点常量
 // 事件常量
 //鼠标点击事件
@@ -1256,6 +1283,7 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
+//控件的共用基本方法
 
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
@@ -1267,8 +1295,8 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
-//控件的共用基本方法
 // 结构体共用方法定义
+//共享打印方法
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1681,10 +1709,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs24428906")
-call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("UITocInit___onInit")
-call ExecuteFunc("UTUIEditbox__onInit")
+call ExecuteFunc("jasshelper__initstructs31963781")
+call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("UITocInit__onInit")
+call ExecuteFunc("UTUIProgBar__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1722,24 +1750,46 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__uiEditbox_onDestroy takes nothing returns boolean
+function sa__uiProgBar_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiEditbox_isExist(this) ) ) then
+            if ( not ( s__uiProgBar_isExist(this) ) ) then //注意顺序
 return true
             endif
-            call DzDestroyFrame(s__uiEditbox_ui[this])
-            call s__uiId_recycle(s__uiEditbox_id[this])
+            call s__uiSprite_onDestroy(s__uiProgBar_uiShade[this])
+            call s__uiSprite_onDestroy(s__uiProgBar_uiGlow[this])
+   return true
+endfunction
+function sa__uiSprite_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+return true
+            endif
+            call DzDestroyFrame(s__uiSprite_ui[this])
+            call s__uiId_recycle(s__uiSprite_id[this])
+   return true
+endfunction
+function sa__uiImage_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( not ( s__uiImage_isExist(this) ) ) then
+return true
+            endif
+            call DzDestroyFrame(s__uiImage_ui[this])
+            call s__uiId_recycle(s__uiImage_id[this])
    return true
 endfunction
 
-function jasshelper__initstructs24428906 takes nothing returns nothing
-    set st__uiEditbox_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiEditbox_onDestroy,Condition( function sa__uiEditbox_onDestroy))
+function jasshelper__initstructs31963781 takes nothing returns nothing
+    set st__uiProgBar_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiProgBar_onDestroy,Condition( function sa__uiProgBar_onDestroy))
+    set st__uiSprite_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiSprite_onDestroy,Condition( function sa__uiSprite_onDestroy))
+    set st__uiImage_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
+
 
 
 
 
     call ExecuteFunc("s__uiId_onInit")
-    call ExecuteFunc("s__hardware_onInit")
 endfunction
 

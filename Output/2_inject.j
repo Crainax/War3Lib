@@ -1,21 +1,3 @@
-#ifndef UITocInitIncluded
-#define UITocInitIncluded
-
-//! zinc
-/*
-Toc初始化,才能使用UI功能
-*/
-library UITocInit requires BzAPI,LBKKAPI {
-
-  function onInit ()  {
-		DzLoadToc("ui\\Crainax.toc");
-		DzFrameEnableClipRect(false);
-  }
-}
-
-//! endzinc
-#endif
-
 #ifndef BZAPIINCLUDE
 #define BZAPIINCLUDE
 
@@ -257,58 +239,90 @@ endlibrary
 
 #endif /// YDWEAddAIOrderIncluded
 
-#ifndef UIEventModuleIncluded
-#define UIEventModuleIncluded
+#ifndef UIImageModuleIncluded
+#define UIImageModuleIncluded
 
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 //! zinc
 /*
-UI事件的共用方法
+UI图片的共用方法
 */
-library UIEventModule {
+
+library UIImageModule {
     // 定义共用的方法结构
-    public module uiEventModule {
-        // 鼠标进入事件
-        method onMouseEnter (code fun) -> thistype {
+    public module uiImageModule {
+        // 设置图片路径
+        method texture (string path) -> thistype {
             if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_ENTER,fun,false);
-            return this;
-        }
-        // 鼠标离开事件
-        method onMouseLeave (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_LEAVE,fun,false);
-            return this;
-        }
-        // 鼠标松开事件,和点击一样,基本可以当相同事件
-        method onMouseUp (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_UP,fun,false);
-            return this;
-        }
-        // 鼠标点击事件
-        method onMouseClick (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_DOWN,fun,false);
-            return this;
-        }
-        // 鼠标滚轮事件
-        method onMouseWheel (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_WHEEL,fun,false);
-            return this;
-        }
-        // 鼠标双击事件
-        method onMouseDoubleClick (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_DOUBLECLICK,fun,false);
+            DzFrameSetTexture(this.ui,path,0);
             return this;
         }
 
-        optional module extendEvent; //扩展事件
     }
 
+}
+
+
+//! endzinc
+#endif
+
+#ifndef UIBaseModuleIncluded
+#define UIBaseModuleIncluded
+
+//控件的共用基本方法
+
+//! zinc
+library UIBaseModule {
+    // 定义共用的方法结构
+    public module uiBaseModule {
+        // 设置位置
+        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
+            return this;
+        }
+
+        // 大小完全对齐父框架
+        method setAllPoint (integer relative) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAllPoints(ui,relative);
+            return this;
+        }
+
+        // 清除所有位置
+        method clearPoint () -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameClearAllPoints(ui);
+            return this;
+        }
+
+        // 设置大小
+        method setSize (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width,height);
+            return this;
+        }
+    }
+}
+//! endzinc
+
+#endif
+
+
+#ifndef UITocInitIncluded
+#define UITocInitIncluded
+
+//! zinc
+/*
+Toc初始化,才能使用UI功能
+*/
+library UITocInit requires BzAPI,LBKKAPI {
+
+  function onInit ()  {
+		DzLoadToc("ui\\Crainax.toc");
+		DzFrameEnableClipRect(false);
+  }
 }
 
 //! endzinc
@@ -353,85 +367,6 @@ library UnitTestFramwork {
 		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
     }
 }
-
-//! endzinc
-#endif
-
-
-
-#ifndef UIIdIncluded
-#define UIIdIncluded
-
-//! zinc
-
-/*
-ID复用器
-*/
-// 使用常量定义父键，使代码更清晰
-#define RECYCLE_POOL  1  // 存储回收的ID
-#define ID_STATUS     2  // 存储ID状态
-
-library UIId {
-
-    public struct uiId []{
-        static hashtable ht;
-        static integer nextId;
-        static integer recycleCount;
-
-        static method onInit () {
-            thistype.ht = InitHashtable();
-            thistype.nextId = 1;
-            thistype.recycleCount = 0;
-        }
-
-        static method get ()  -> integer {
-            integer id;
-
-            // 如果有已回收的ID，优先使用
-            if (recycleCount > 0) {
-                // 获取最后一个回收的ID
-                id = LoadInteger(ht, RECYCLE_POOL, recycleCount - 1);
-                // 从回收池中删除这个ID
-                RemoveSavedInteger(ht, RECYCLE_POOL, recycleCount - 1);
-                // 从状态表中删除
-                RemoveSavedBoolean(ht, ID_STATUS, id);
-                recycleCount = recycleCount - 1;
-                return id;
-            }
-
-            // 如果没有可复用的ID，返回新的ID
-            id = nextId;
-            nextId = nextId + 1;
-            return id;
-        }
-
-        static method recycle (integer id) {
-            // 快速检查ID是否已经在回收池中
-            if (!HaveSavedBoolean(ht, ID_STATUS, id)) {
-                // 将ID存入回收池
-                SaveInteger(ht, RECYCLE_POOL, recycleCount, id);
-                // 标记该ID已被回收
-                SaveBoolean(ht, ID_STATUS, id, true);
-                recycleCount = recycleCount + 1;
-            }
-        }
-
-        // 获取回收池中ID的数量
-        static method getRecycledCount() -> integer {
-            return recycleCount;
-        }
-
-        // 获取当前正在使用的ID数量
-        static method getActiveCount() -> integer {
-            // 最大ID减去已回收的ID数量
-            return (nextId - 1) - recycleCount;
-        }
-
-    }
-}
-
-#undef RECYCLE_POOL
-#undef ID_STATUS
 
 //! endzinc
 #endif
@@ -677,227 +612,165 @@ endlibrary
 #endif 
 
 
-#ifndef UITextModuleIncluded
-#define UITextModuleIncluded
+#ifndef ProgBarIncluded
+#define ProgBarIncluded
 
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 //! zinc
 /*
-UI文本的共用方法
+动态进度条(使用Sprite组件)
+组合式UI
 */
 
-#define FONT_SIZE_HUGE   0.015 // 特大号
-#define FONT_SIZE_LARGE  0.012 // 大号
-#define FONT_SIZE_MEDIUM 0.011 // 中号
-#define FONT_SIZE_NORMAL 0.01  // 标准
-#define FONT_SIZE_SMALL  0.009 // 小号
-#define FONT_SIZE_TINY   0.008 // 特小号
-#define FONT_SIZE_MINI   0.006 // 迷你号
+//import: ui/bar/grow_yellow.mdx
+//import: ui/bar/grow_mp.mdx
+//import: ui/bar/shade_yellow.mdx
+//import: ui/bar/shade_hmp.mdx
+//import: ui/bar/grow_hp.mdx
+//import: ui/bar/hpbar_glow.blp
 
+library UIProgBar requires UISprite {
 
-library UITextModule {
-    // 定义共用的方法结构
-    public module uiTextModule {
+    public struct uiProgBar {
 
-        // 设置标准字体大小
-        // size: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
-        method setFontSize (integer size) -> thistype {
-            real fontSize = FONT_SIZE_NORMAL;
-            if (!this.isExist()) {return this;}
+        uiSprite uiGlow;
+        uiSprite uiShade;
 
-            if (size == 1) {
-                fontSize = FONT_SIZE_MINI;
-            } else if (size == 2) {
-                fontSize = FONT_SIZE_TINY;
-            } else if (size == 3) {
-                fontSize = FONT_SIZE_SMALL;
-            } else if (size == 4) {
-                fontSize = FONT_SIZE_NORMAL;
-            } else if (size == 5) {
-                fontSize = FONT_SIZE_MEDIUM;
-            } else if (size == 6) {
-                fontSize = FONT_SIZE_LARGE;
-            } else if (size == 7) {
-                fontSize = FONT_SIZE_HUGE;
-            }
+        STRUCT_SHARED_METHODS(uiProgBar)
 
-            DzFrameSetFont(ui, "fonts\\zt.ttf", fontSize, 0);
+        // 原理是用uiFill来挡住uiBackground，通过设置uiFill的偏移来实现进度条的效果
+        //uiFill进度前进时,uiBackground的前端被挡住部分就更少了
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            uiGlow = uiSprite.create(parent)
+                .setModel("ui\\bar\\grow_yellow.mdx",0,0)
+                .setSize(0.001,0.001)
+                .setAnimate(0,true);
+            uiShade = uiSprite.create(parent)
+                .setModel("ui\\bar\\shade_yellow.mdx",0,0)
+                .setSize(0.001,0.001)
+                .setAnimate(0,false)
+                .setAllPoint(uiGlow.ui);
             return this;
         }
 
-        // 设置对齐方式(前提要先定好大小,不然无处对齐)
-        // align: 可以使用0-8的简单数字,或TEXT_ALIGN_*常量
-        // 0=左上, 1=顶部居中, 2=右上
-        // 3=左中, 4=居中, 5=右中
-        // 6=左下, 7=底部居中, 8=右下
-        method setAlign (integer align) -> thistype {
-            integer finalAlign = align;
-
+        // 设置进度(0-1.0)
+        method setProgress (real progress) -> thistype {
             if (!this.isExist()) {return this;}
-
-            // 如果输入0-8,转换为对应的组合值
-            if (align >= 0 && align <= 8) {
-                if (align == 0) {
-                    finalAlign = 9;       // 左上
-                } else if (align == 1) {
-                    finalAlign = 17;      // 顶部居中
-                } else if (align == 2) {
-                    finalAlign = 33;      // 右上
-                } else if (align == 3) {
-                    finalAlign = 10;      // 左中
-                } else if (align == 4) {
-                    finalAlign = 18;      // 居中
-                } else if (align == 5) {
-                    finalAlign = 34;      // 右中
-                } else if (align == 6) {
-                    finalAlign = 12;      // 左下
-                } else if (align == 7) {
-                    finalAlign = 20;      // 底部居中
-                } else if (align == 8) {
-                    finalAlign = 36;      // 右下
-                }
-            }
-
-            DzFrameSetTextAlignment(ui, finalAlign);
+            DzFrameSetAnimateOffset(uiShade.ui,progress);
             return this;
         }
 
-        // 设置文本内容
-        method setText (string text) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetText(ui,text);
-            return this;
-        }
-
-    }
-
-}
-
-#undef FONT_SIZE_HUGE
-#undef FONT_SIZE_LARGE
-#undef FONT_SIZE_MEDIUM
-#undef FONT_SIZE_NORMAL
-#undef FONT_SIZE_SMALL
-#undef FONT_SIZE_TINY
-#undef FONT_SIZE_MINI
-
-
-//! endzinc
-#endif
-
-#ifndef UIBaseModuleIncluded
-#define UIBaseModuleIncluded
-
-//控件的共用基本方法
-
-//! zinc
-library UIBaseModule {
-    // 定义共用的方法结构
-    public module uiBaseModule {
         // 设置位置
         method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
             if (!this.isExist()) {return this;}
-            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
+            DzFrameSetPoint(uiGlow.ui,anchor,relative,relativeAnchor,offsetX,offsetY);
             return this;
         }
 
-        // 大小完全对齐父框架
-        method setAllPoint (integer relative) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAllPoints(ui,relative);
+        // 设置进度条的大小
+        method setScale (real scale) -> thistype {
+            uiGlow.setScale(scale);
+            uiShade.setScale(scale);
             return this;
         }
 
-        // 清除所有位置
-        method clearPoint () -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameClearAllPoints(ui);
-            return this;
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            uiShade.onDestroy(); //注意顺序
+            uiGlow.onDestroy();
         }
 
-        // 设置大小
-        method setSize (real width, real height) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetSize(ui,width,height);
-            return this;
-        }
     }
-}
-//! endzinc
 
+}
+
+//! endzinc
 #endif
 
-
-#ifndef HardwareIncluded
-#define HardwareIncluded
-
-#include "BlizzardAPI.j"
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
+#ifndef UIIdIncluded
+#define UIIdIncluded
 
 //! zinc
+
 /*
-结构体
-硬件事件(按/滑/帧事件)
+ID复用器
 */
-library Hardware requires BzAPI {
+// 使用常量定义父键，使代码更清晰
+#define RECYCLE_POOL  1  // 存储回收的ID
+#define ID_STATUS     2  // 存储ID状态
 
-	public struct hardware {
-		// 注册一个左键事件
-		static method regLeftClickEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_UP,false,func);
-		}
-		// 注册一个左键按下事件
-		static method regLeftDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_PRESSED,false,func);
-		}
-		// 注册一个右键按下事件
-		static method regRightClickEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_UP,false,func);
-		}
-		// 注册一个滚轮事件
-		static method regWheelEvent (code func) {
-			if (trWheel == null) {trWheel = CreateTrigger();}
-			TriggerAddCondition(trWheel, Condition(func));
-		}
-		// 注册一个绘制事件
-		static method regUpdateEvent (code func) {
-			if (trUpdate == null) {trUpdate = CreateTrigger();}
-			TriggerAddCondition(trUpdate, Condition(func));
-		}
-		// 注册一个窗口变化事件
-		static method regResizeEvent (code func) {
-			if (trResize == null) {trResize = CreateTrigger();}
-			TriggerAddCondition(trResize, Condition(func));
-		}
+library UIId {
 
-		private {
-			static trigger trWheel = null;
-			static trigger trUpdate = null;
-			static trigger trResize = null;
-		}
-		static method onInit () {
-			// 滚轮事件
-			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
-				TriggerEvaluate(trWheel);
-			});
-			// 帧绘制事件
-			DzFrameSetUpdateCallbackByCode(function (){
-				TriggerEvaluate(trUpdate);
-			});
-			// 窗口大小变化事件
-			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
-				TriggerEvaluate(trResize);
-			});
-		}
-	}
+    public struct uiId []{
+        static hashtable ht;
+        static integer nextId;
+        static integer recycleCount;
+
+        static method onInit () {
+            thistype.ht = InitHashtable();
+            thistype.nextId = 1;
+            thistype.recycleCount = 0;
+        }
+
+        static method get ()  -> integer {
+            integer id;
+
+            // 如果有已回收的ID，优先使用
+            if (recycleCount > 0) {
+                // 获取最后一个回收的ID
+                id = LoadInteger(ht, RECYCLE_POOL, recycleCount - 1);
+                // 从回收池中删除这个ID
+                RemoveSavedInteger(ht, RECYCLE_POOL, recycleCount - 1);
+                // 从状态表中删除
+                RemoveSavedBoolean(ht, ID_STATUS, id);
+                recycleCount = recycleCount - 1;
+                return id;
+            }
+
+            // 如果没有可复用的ID，返回新的ID
+            id = nextId;
+            nextId = nextId + 1;
+            return id;
+        }
+
+        static method recycle (integer id) {
+            // 快速检查ID是否已经在回收池中
+            if (!HaveSavedBoolean(ht, ID_STATUS, id)) {
+                // 将ID存入回收池
+                SaveInteger(ht, RECYCLE_POOL, recycleCount, id);
+                // 标记该ID已被回收
+                SaveBoolean(ht, ID_STATUS, id, true);
+                recycleCount = recycleCount + 1;
+            }
+        }
+
+        // 获取回收池中ID的数量
+        static method getRecycledCount() -> integer {
+            return recycleCount;
+        }
+
+        // 获取当前正在使用的ID数量
+        static method getActiveCount() -> integer {
+            // 最大ID减去已回收的ID数量
+            return (nextId - 1) - recycleCount;
+        }
+
+    }
 }
+
+#undef RECYCLE_POOL
+#undef ID_STATUS
 
 //! endzinc
 #endif
 
-#ifndef UIEditboxIncluded
-#define UIEditboxIncluded
+
+
+#ifndef UIImageIncluded
+#define UIImageIncluded
 
 #include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
@@ -906,38 +779,115 @@ library Hardware requires BzAPI {
 /*
 文字UI组件
 */
-library UIEditbox requires UIId,UITocInit,UIBaseModule,UITextModule,UIEventModule {
 
-    public struct uiEditbox {
+//import:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
+//import:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
+
+library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
+
+    public struct uiImage {
         integer ui; //frameID
         integer id; //可以回收的ID名(为了销毁时ID不重复)
 
-        STRUCT_SHARED_METHODS(uiEditbox)
+        STRUCT_SHARED_METHODS(uiImage)
 
-        module uiBaseModule; // UI控件的共用方法
-        module uiTextModule;   // UI文本的共用方法
-        module uiEventModule;  // UI事件的共用方法
+        module uiBaseModule;   // UI控件的共用方法
+        module uiImageModule;  // UI图片的共用方法
 
         // 创建文本
         // parent: 父级框架
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
-            ui = DzCreateFrameByTagName("EDITBOX",STRING_EDITBOX + I2S(id),parent,TEMPLATE_EDITBOX,0);
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE,0);
             return this;
         }
 
-        // 设置焦点
-        method setFocus (boolean focus) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetFocus(ui,focus);
+        // 创建工具提示背景图片(种类1)
+        // parent: 父级框架
+        static method createToolTips (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS,0);
             return this;
         }
 
-        // 文本改变事件, DzFrameGetText获取内容
-        method onChange (code c) -> thistype {
+        // 创建工具提示背景图片(种类2)
+        // parent: 父级框架
+        static method createToolTips2 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS2,0);
+            return this;
+        }
+
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
+    }
+}
+
+
+
+//! endzinc
+#endif
+
+#ifndef UISpriteIncluded
+#define UISpriteIncluded
+
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
+//! zinc
+/*
+模型UI组件
+*/
+library UISprite requires UIId,UITocInit,UIBaseModule {
+
+
+    public struct uiSprite {
+        integer ui; //frameID
+        integer id; //可以回收的ID名(为了销毁时ID不重复)
+
+        STRUCT_SHARED_METHODS(uiSprite)
+
+        module uiBaseModule; // UI控件的共用方法
+
+        // 创建模型
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("SPRITE",STRING_SPRITE + I2S(id),parent,TEMPLATE_SPRITE,0);
+            return this;
+        }
+
+        // 设置模型(目前只做平面型就行了,后面2个0固定了)
+        // @param path: 模型路径
+        // @param modelType: 模型类型(0 = SPRITE（精灵/图标）,1 = MODEL（3D模型）,2 = STATUSBAR（状态条）)
+        // @param flag: 标志(0 = 普通显示,1 = 允许选择模型,2 = 使用鼠标移动模型,4 = 添加模型动画控制器),要位运算
+        method setModel(string path,integer modelType,integer flag) -> thistype {
             if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_EDITBOX_TEXT_CHANGED,c,false);
+            DzFrameSetModel(ui,path,modelType,flag);
+            return this;
+        }
+
+        // 设置缩放
+        // @param scale: 缩放比例
+        method setScale (real scale) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScale(ui,scale);
+            return this;
+        }
+
+        // 设置动画
+        // @param animate: 动画ID,一般为0
+        // @param auto: 是否自动播放
+        method setAnimate(integer animate,boolean auto) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAnimate(ui,animate,auto);
             return this;
         }
 
@@ -1061,36 +1011,28 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTUIEditbox requires UIEditbox {
-	uiEditbox currentEditbox = 0;
-	function TTestUTUIEditbox1 (player p) {
-		if (GetLocalPlayer() == p) {
-			currentEditbox = uiEditbox.create(DzGetGameUI())
-				.setSize(0.2,0.05)
-				.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0)
-				.setText("这是一个测试文本"+I2S(currentEditbox.id)+"\n测试一下事件功能")
-				.setAlign(5)
-				.onChange(function (){BJDebugMsg("文本改变:"+DzFrameGetText(DzGetTriggerUIEventFrame()));})
-				.onMouseEnter(function (){BJDebugMsg("鼠标进入:"+I2S(DzGetTriggerUIEventFrame()));})
-				.onMouseLeave(function (){BJDebugMsg("鼠标离开:"+I2S(DzGetTriggerUIEventFrame()));})
-				.onMouseUp(function (){BJDebugMsg("鼠标松开:"+I2S(DzGetTriggerUIEventFrame()));})
-				.onMouseClick(function (){BJDebugMsg("鼠标点击:"+I2S(DzGetTriggerUIEventFrame()));})
-				.onMouseWheel(function (){BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()));})
-				.onMouseDoubleClick(function (){BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()));});
-			BJDebugMsg("创建了一个文本UI，测试事件系统");
-		}
+library UTUIProgBar requires UIProgBar {
+	uiProgBar progBar = 0;
+	function TTestUTUIProgBar1 (player p) {
+		progBar = uiProgBar.create(DzGetGameUI())
+			.setScale(2)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
 	}
-	function TTestUTUIEditbox2 (player p) {
+	function TTestUTUIProgBar2 (player p) {
+		uiImage currentImage = uiImage.create(DzGetGameUI())
+			.setSize(0.2,0.01)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+			.texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
 	}
-	function TTestUTUIEditbox3 (player p) {}
-	function TTestUTUIEditbox4 (player p) {}
-	function TTestUTUIEditbox5 (player p) {}
-	function TTestUTUIEditbox6 (player p) {}
-	function TTestUTUIEditbox7 (player p) {}
-	function TTestUTUIEditbox8 (player p) {}
-	function TTestUTUIEditbox9 (player p) {}
-	function TTestUTUIEditbox10 (player p) {}
-	function TTestActUTUIEditbox1 (string str) {
+	function TTestUTUIProgBar3 (player p) {}
+	function TTestUTUIProgBar4 (player p) {}
+	function TTestUTUIProgBar5 (player p) {}
+	function TTestUTUIProgBar6 (player p) {}
+	function TTestUTUIProgBar7 (player p) {}
+	function TTestUTUIProgBar8 (player p) {}
+	function TTestUTUIProgBar9 (player p) {}
+	function TTestUTUIProgBar10 (player p) {}
+	function TTestActUTUIProgBar1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -1117,12 +1059,13 @@ for (0 <= i <= len - 1) {
 		}
 		p = null;
 	}
+	real progress = 0.0;
 	function onInit () {
 		//在游戏开始0.0秒后再调用
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UIEditbox] 单元测试已加载");
+			BJDebugMsg("[UIProgBar] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -1130,23 +1073,26 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUIEditbox1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUIProgBar1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUIEditbox1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUIEditbox2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUIEditbox3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUIEditbox4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUIEditbox5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUIEditbox6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUIEditbox7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUIEditbox8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUIEditbox9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUIEditbox10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUIProgBar1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUIProgBar2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUIProgBar3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUIProgBar4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUIProgBar5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUIProgBar6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUIProgBar7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUIProgBar8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUIProgBar9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUIProgBar10(GetTriggerPlayer());
 		});
-		hardware.regRightClickEvent(function (){
-			currentEditbox.setFocus(false);
-			BJDebugMsg("取消焦点");
+		TimerStart(CreateTimer(),0.1,true,function (){
+			string str;
+			progress = progress + 0.01;
+			if (progress >= 1.0) progress = 0.0;
+			progBar.setProgress(progress);
+			BJDebugMsg("进度:"+R2S(progress));
 		});
 	}
 }

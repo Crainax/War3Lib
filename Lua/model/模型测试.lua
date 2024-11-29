@@ -94,12 +94,9 @@ function GenerateTest(mdxList)
                 if prefix[type] then
                     return prefix[type] .. mod .. suffix[type]
                 else
-                    return prefix['Unit'] .. mod .. suffix['Unit'] .. '
-' .. -- 都生成下注释
-                    prefix['Efx'] .. mod .. suffix['Efx'] .. '
-' .. -- 都生成下注释
-                    prefix['Bind'] .. mod .. suffix['Bind'] .. '
-' .. -- 都生成下注释
+                    return prefix['Unit'] .. mod .. suffix['Unit'] .. '' .. -- 都生成下注释
+                    prefix['Efx'] .. mod .. suffix['Efx'] .. '' .. -- 都生成下注释
+                    prefix['Bind'] .. mod .. suffix['Bind'] .. '' .. -- 都生成下注释
                     prefix['Missile'] .. mod .. suffix['Missile'] -- 都生成下注释
                 end
             end
