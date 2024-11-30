@@ -1,11 +1,17 @@
 #ifndef BaseAnimIncluded
 #define BaseAnimIncluded
 
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
+#include "Crainax/core/table/Hash_UIDefine.j" // UI哈希表键值定义
+
 //! zinc
 /*
 基础的UI动画效果
 */
-library BaseAnim {
+library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
+
+	// 生命周期结束时调用
+	public type onLifeEnd extends function(baseanim);
 
 	/*
 	常用的动画效果
@@ -15,8 +21,6 @@ library BaseAnim {
 	*/
 	public struct baseanim {
 
-        // 生命周期结束时调用
-        public type onLifeEnd extends function(thistype);
 
 		static thistype DList[] , MList[] , AList[] , ZList[] , SList[] , BList[] , LList[];
 		static integer DNum = 0 , MNum = 0 , ANum = 0 , ZNum = 0 , SNum = 0 , BNum = 0 , LNum = 0;
@@ -25,12 +29,13 @@ library BaseAnim {
 
 		integer ui; //结构成员
 
-        STRUCT_SHARED_METHODS(baseanim)
+		STRUCT_SHARED_METHODS(baseanim)
 
 		//创建与删除
 		static method create (integer ui) -> thistype {
 			thistype this = allocate();
 			this.ui = ui;
+			SaveInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM,this);
 			size += 1; //统计数量++
 			return this;
 		}
@@ -62,13 +67,13 @@ library BaseAnim {
 		integer align,mTime,mNow,anchor1,anchor2,mID; //移动组
 		real dist,off,angle; //移动组
 		//线性移动
-        // @param align 需要对齐的UI
-        // @param off 偏移
-        // @param dist 距离
-        // @param time 时间(0.02为一帧)
-        // @param angle 角度
-        // @param anchor1 本体的锚点
-        // @param anchor2 需要对齐的UI的锚点
+		// @param align 需要对齐的UI
+		// @param off 偏移
+		// @param dist 距离
+		// @param time 时间(0.02为一帧)
+		// @param angle 角度
+		// @param anchor1 本体的锚点
+		// @param anchor2 需要对齐的UI的锚点
 		method addMove (integer align,real off,real dist,integer time,real angle,integer anchor1,integer anchor2) {
 			if (dist <= 0. || !(isExist())) {return;}
 			//数据设置都放这
@@ -101,9 +106,9 @@ library BaseAnim {
 		//透明组
 		integer aID,aStart,aTar,aTime,aNow;
 		//透明度(0-255)
-        // @param start 开始透明度
-        // @param tar 目标透明度
-        // @param time 时间(0.02为一帧)
+		// @param start 开始透明度
+		// @param tar 目标透明度
+		// @param time 时间(0.02为一帧)
 		method addAlpha (integer start,integer tar,integer time) {
 			if (time <= 0 || !(isExist())) {return;}
 			//数据设置都放这
@@ -132,11 +137,11 @@ library BaseAnim {
 		integer zID,zTime,zNow;
 		real zStartX,zTarX,zStartY,zTarY;
 		//放大
-        // @param startX 开始X
-        // @param tarX 目标X
-        // @param startY 开始Y
-        // @param tarY 目标Y
-        // @param time 时间(0.02为一帧)
+		// @param startX 开始X
+		// @param tarX 目标X
+		// @param startY 开始Y
+		// @param tarY 目标Y
+		// @param time 时间(0.02为一帧)
 		method addZoom (real startX,real tarX,real startY,real tarY,integer time) {
 			if (time <= 0 || !(isExist())) {return;}
 			//数据设置都放这
@@ -174,10 +179,10 @@ library BaseAnim {
 		boolean sLoop;   //是否循环
 
 		//序列帧已经自动从0开始了。
-        // @param path 路径 (帧图片取名要这种格式: xxx_0.blp)
-        // @param maxFrame 最大帧数
-        // @param interval 帧间隔
-        // @param isL 是否循环
+		// @param path 路径 (帧图片取名要这种格式: xxx_0.blp)
+		// @param maxFrame 最大帧数
+		// @param interval 帧间隔
+		// @param isL 是否循环
 		method addSequ (string path,integer maxFrame,integer interval,boolean isL) {
 			if (maxFrame <= 0 || !(isExist())) {return;}
 			//数据设置都放这
@@ -210,8 +215,8 @@ library BaseAnim {
 		integer bID,bPeriod,bTime,bStart;
 		boolean bOrient;
 		//闪烁组,Time是周期，取消后记得在外面设置Alpha回255
-        // @param start 开始透明度
-        // @param period 周期(0.02为一帧)
+		// @param start 开始透明度
+		// @param period 周期(0.02为一帧)
 		method addBlink (integer start,integer period) {
 			if (period <= 0 || !(isExist())) {return;}
 			//数据设置都放这
@@ -238,9 +243,9 @@ library BaseAnim {
 		}
 		//生命周期组
 		integer lID,lPeriod,lTime;
-        onLifeEnd lCB;
+		onLifeEnd lCB;
 		// @param period 生命周期时长(0.02为一帧)
-        // @param lCB 生命周期结束时调用
+		// @param lCB 生命周期结束时调用
 		method addLife (integer period,onLifeEnd lCB) {
 			if (period <= 0 || !(isExist())) {return;}
 			//数据设置都放这
@@ -261,7 +266,7 @@ library BaseAnim {
 			if (lID != 0) {
 				//这里开始删ui
 				if (ui != 0 && lCB != 0) {
-                    lCB.evaluate(this);
+					lCB.evaluate(this);
 				}
 				LList[lID]      = LList[LNum];
 				LList[lID].lID  = lID;
@@ -440,7 +445,16 @@ library BaseAnim {
 
 				if (DNum <= 0 && MNum <= 0 && ANum <= 0 && ZNum <= 0 && SNum <= 0 && BNum <= 0 && LNum <= 0 ) {
 					UIA.unreg(); //这里就删计时器吧
-                    Trace("baseanim停止了");
+					BJDebugMsg("baseanim停止了");
+				}
+			});
+			// UI销毁时回调删除基础动画(UI销毁时会自动调用)
+			uiLifeCycle.registerDestroy(function (){
+				integer ui = uiLifeCycle.agrsFrame;
+				thistype this;
+				if (HaveSavedInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM)) {
+					this = GetInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM);
+					this.onDestroy();
 				}
 			});
 		}

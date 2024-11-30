@@ -32,25 +32,25 @@ constant boolean LIBRARY_UIImageModule=true
 //endglobals from UIImageModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
+trigger UnitTestFramwork___TUnitTest=null
 //endglobals from UnitTestFramwork
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
+//globals from UIBorder:
+constant boolean LIBRARY_UIBorder=true
+//endglobals from UIBorder
 //globals from UIImage:
 constant boolean LIBRARY_UIImage=true
 //endglobals from UIImage
-//globals from UISprite:
-constant boolean LIBRARY_UISprite=true
-//endglobals from UISprite
-//globals from UIProgBar:
-constant boolean LIBRARY_UIProgBar=true
-//endglobals from UIProgBar
-//globals from UTUIProgBar:
-constant boolean LIBRARY_UTUIProgBar=true
-integer UTUIProgBar__progBar=0
-real UTUIProgBar__progress=0.0
-//endglobals from UTUIProgBar
+//globals from UIImageBar:
+constant boolean LIBRARY_UIImageBar=true
+//endglobals from UIImageBar
+//globals from UTUIImageBar:
+constant boolean LIBRARY_UTUIImageBar=true
+integer UTUIImageBar__bar=0
+real UTUIImageBar__progress=0.0
+//endglobals from UTUIImageBar
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -80,27 +80,28 @@ constant integer si__uiId=1
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__uiImage=2
+constant integer si__uiBorder=2
+integer si__uiBorder_F=0
+integer si__uiBorder_I=0
+integer array si__uiBorder_V
+integer array s__uiBorder_ui
+integer array s__uiBorder_id
+constant integer si__uiImage=3
 integer si__uiImage_F=0
 integer si__uiImage_I=0
 integer array si__uiImage_V
 integer array s__uiImage_ui
 integer array s__uiImage_id
-constant integer si__uiSprite=3
-integer si__uiSprite_F=0
-integer si__uiSprite_I=0
-integer array si__uiSprite_V
-integer array s__uiSprite_ui
-integer array s__uiSprite_id
-constant integer si__uiProgBar=4
-integer si__uiProgBar_F=0
-integer si__uiProgBar_I=0
-integer array si__uiProgBar_V
-integer array s__uiProgBar_uiGlow
-integer array s__uiProgBar_uiShade
+constant integer si__uiImageBar=4
+integer si__uiImageBar_F=0
+integer si__uiImageBar_I=0
+integer array si__uiImageBar_V
+integer array s__uiImageBar_uiBackground
+integer array s__uiImageBar_uiFill
+integer array s__uiImageBar_border
+trigger st__uiBorder_onDestroy
 trigger st__uiImage_onDestroy
-trigger st__uiSprite_onDestroy
-trigger st__uiProgBar_onDestroy
+trigger st__uiImageBar_onDestroy
 integer f__arg_this
 
 endglobals
@@ -350,82 +351,43 @@ endglobals
         native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
 
-//Generated method caller for uiProgBar.onDestroy
-function sc__uiProgBar_onDestroy takes integer this returns nothing
+//Generated method caller for uiImageBar.onDestroy
+function sc__uiImageBar_onDestroy takes integer this returns nothing
     set f__arg_this=this
-    call TriggerEvaluate(st__uiProgBar_onDestroy)
+    call TriggerEvaluate(st__uiImageBar_onDestroy)
 endfunction
 
-//Generated allocator of uiProgBar
-function s__uiProgBar__allocate takes nothing returns integer
- local integer this=si__uiProgBar_F
+//Generated allocator of uiImageBar
+function s__uiImageBar__allocate takes nothing returns integer
+ local integer this=si__uiImageBar_F
     if (this!=0) then
-        set si__uiProgBar_F=si__uiProgBar_V[this]
+        set si__uiImageBar_F=si__uiImageBar_V[this]
     else
-        set si__uiProgBar_I=si__uiProgBar_I+1
-        set this=si__uiProgBar_I
+        set si__uiImageBar_I=si__uiImageBar_I+1
+        set this=si__uiImageBar_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiProgBar")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiImageBar")
         return 0
     endif
 
-    set si__uiProgBar_V[this]=-1
+    set si__uiImageBar_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiProgBar
-function sc__uiProgBar_deallocate takes integer this returns nothing
+//Generated destructor of uiImageBar
+function sc__uiImageBar_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiProgBar")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImageBar")
         return
-    elseif (si__uiProgBar_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiProgBar")
-        return
-    endif
-    set f__arg_this=this
-    call TriggerEvaluate(st__uiProgBar_onDestroy)
-    set si__uiProgBar_V[this]=si__uiProgBar_F
-    set si__uiProgBar_F=this
-endfunction
-
-//Generated method caller for uiSprite.onDestroy
-function sc__uiSprite_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__uiSprite_onDestroy)
-endfunction
-
-//Generated allocator of uiSprite
-function s__uiSprite__allocate takes nothing returns integer
- local integer this=si__uiSprite_F
-    if (this!=0) then
-        set si__uiSprite_F=si__uiSprite_V[this]
-    else
-        set si__uiSprite_I=si__uiSprite_I+1
-        set this=si__uiSprite_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiSprite")
-        return 0
-    endif
-
-    set si__uiSprite_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of uiSprite
-function sc__uiSprite_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSprite")
-        return
-    elseif (si__uiSprite_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSprite")
+    elseif (si__uiImageBar_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImageBar")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiSprite_onDestroy)
-    set si__uiSprite_V[this]=si__uiSprite_F
-    set si__uiSprite_F=this
+    call TriggerEvaluate(st__uiImageBar_onDestroy)
+    set si__uiImageBar_V[this]=si__uiImageBar_F
+    set si__uiImageBar_F=this
 endfunction
 
 //Generated method caller for uiImage.onDestroy
@@ -465,6 +427,45 @@ function sc__uiImage_deallocate takes integer this returns nothing
     call TriggerEvaluate(st__uiImage_onDestroy)
     set si__uiImage_V[this]=si__uiImage_F
     set si__uiImage_F=this
+endfunction
+
+//Generated method caller for uiBorder.onDestroy
+function sc__uiBorder_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiBorder_onDestroy)
+endfunction
+
+//Generated allocator of uiBorder
+function s__uiBorder__allocate takes nothing returns integer
+ local integer this=si__uiBorder_F
+    if (this!=0) then
+        set si__uiBorder_F=si__uiBorder_V[this]
+    else
+        set si__uiBorder_I=si__uiBorder_I+1
+        set this=si__uiBorder_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiBorder")
+        return 0
+    endif
+
+    set si__uiBorder_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of uiBorder
+function sc__uiBorder_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBorder")
+        return
+    elseif (si__uiBorder_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBorder")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiBorder_onDestroy)
+    set si__uiBorder_V[this]=si__uiBorder_F
+    set si__uiBorder_F=this
 endfunction
 
 //library BzAPI:
@@ -917,9 +918,9 @@ endfunction
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -930,16 +931,16 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
@@ -951,6 +952,90 @@ endfunction
     endfunction
 
 //library UITocInit ends
+//library UIBorder:
+        function s__uiBorder_isExist takes integer this returns boolean
+            return ( this != null and si__uiBorder_V[this] == - 1 )
+        endfunction
+//Implemented from module uiBaseModule:
+        function s__uiBorder_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetPoint(s__uiBorder_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            return this
+        endfunction  // 大小完全对齐父框架
+        function s__uiBorder_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAllPoints(s__uiBorder_ui[this], relative)
+            return this
+        endfunction  // 清除所有位置
+        function s__uiBorder_clearPoint takes integer this returns integer
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameClearAllPoints(s__uiBorder_ui[this])
+            return this
+        endfunction  // 设置大小
+        function s__uiBorder_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiBorder_ui[this], width, height)
+            return this
+        endfunction
+//Implemented from module uiImageModule:
+        function s__uiBorder_texture takes integer this,string path returns integer
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetTexture(s__uiBorder_ui[this], path, 0)
+            return this
+        endfunction
+        function s__uiBorder_create takes integer parent returns integer
+            local integer this=s__uiBorder__allocate()
+            set s__uiBorder_id[this]=s__uiId_get()
+            set s__uiBorder_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiBorder_id[this]), parent, "Border1", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiBorder.typeid,ui)
+//#             endif
+            return this
+        endfunction
+        function s__uiBorder_alignParent takes integer this,integer ui returns integer
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+                return this
+            endif
+            call s__uiBorder_setPoint(this,0 , ui , 0 , - 0.005 , 0.005)
+            call s__uiBorder_setPoint(this,8 , ui , 8 , 0.005 , - 0.005)
+            return this
+        endfunction
+        function s__uiBorder_onDestroy takes integer this returns nothing
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+                return
+            endif
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onDestroyCB(this,uiBorder.typeid,ui)
+//#             endif
+            call DzDestroyFrame(s__uiBorder_ui[this])
+            call s__uiId_recycle(s__uiBorder_id[this])
+        endfunction
+
+//Generated destructor of uiBorder
+function s__uiBorder_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBorder")
+        return
+    elseif (si__uiBorder_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBorder")
+        return
+    endif
+    call s__uiBorder_onDestroy(this)
+    set si__uiBorder_V[this]=si__uiBorder_F
+    set si__uiBorder_F=this
+endfunction
+
+//library UIBorder ends
 //library UIImage:
         function s__uiImage_isExist takes integer this returns boolean
             return ( this != null and si__uiImage_V[this] == - 1 )
@@ -996,24 +1081,36 @@ endfunction
             local integer this=s__uiImage__allocate()
             set s__uiImage_id[this]=s__uiId_get()
             set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "IT", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
+//#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类1)
         function s__uiImage_createToolTips takes integer parent returns integer
             local integer this=s__uiImage__allocate()
             set s__uiImage_id[this]=s__uiId_get()
             set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
+//#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类2)
         function s__uiImage_createToolTips2 takes integer parent returns integer
             local integer this=s__uiImage__allocate()
             set s__uiImage_id[this]=s__uiId_get()
             set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate2", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
+//#             endif
             return this
         endfunction
         function s__uiImage_onDestroy takes integer this returns nothing
             if ( not ( s__uiImage_isExist(this) ) ) then
                 return
             endif
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onDestroyCB(this,uiImage.typeid,ui)
+//#             endif
             call DzDestroyFrame(s__uiImage_ui[this])
             call s__uiId_recycle(s__uiImage_id[this])
         endfunction
@@ -1033,166 +1130,140 @@ function s__uiImage_deallocate takes integer this returns nothing
 endfunction
 
 //library UIImage ends
-//library UISprite:
-        function s__uiSprite_isExist takes integer this returns boolean
-            return ( this != null and si__uiSprite_V[this] == - 1 )
+//library UIImageBar:
+        function s__uiImageBar_isExist takes integer this returns boolean
+            return ( this != null and si__uiImageBar_V[this] == - 1 )
         endfunction
-//Implemented from module uiBaseModule:
-        function s__uiSprite_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiSprite_isExist(this) ) ) then
+        function s__uiImageBar_create takes integer parent returns integer
+            local integer this=s__uiImageBar__allocate()
+            set s__uiImageBar_uiBackground[this]=s__uiImage_texture(s__uiImage_create(parent),"ReplaceableTextures\\TeamColor\\TeamColor15.blp")
+            set s__uiImageBar_uiFill[this]=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setPoint(s__uiImage_create(parent),0 , s__uiImage_ui[s__uiImageBar_uiBackground[this]] , 0 , 0.0 , 0.0),6 , s__uiImage_ui[s__uiImageBar_uiBackground[this]] , 6 , 0.0 , 0.0),"ReplaceableTextures\\TeamColor\\TeamColor02.blp")
+            set s__uiImageBar_border[this]=0 // 默认没有边框
+            return this
+        endfunction  // 设置填充颜色
+        function s__uiImageBar_setFillColor takes integer this,integer playerColor returns integer
+            local integer color
+            if ( not ( s__uiImageBar_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetPoint(s__uiSprite_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            set color=ModuloInteger(playerColor, 16)
+            if ( color < 10 ) then
+                call s__uiImage_texture(s__uiImageBar_uiFill[this],"ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp")
+            else
+                call s__uiImage_texture(s__uiImageBar_uiFill[this],"ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp")
+            endif
             return this
-        endfunction  // 大小完全对齐父框架
-        function s__uiSprite_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiSprite_isExist(this) ) ) then
+        endfunction  // 设置背景颜色
+        function s__uiImageBar_setBackgroundColor takes integer this,integer playerColor returns integer
+            local integer color
+            if ( not ( s__uiImageBar_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetAllPoints(s__uiSprite_ui[this], relative)
+            set color=ModuloInteger(playerColor, 16)
+            if ( color < 10 ) then
+                call s__uiImage_texture(s__uiImageBar_uiBackground[this],"ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp")
+            else
+                call s__uiImage_texture(s__uiImageBar_uiBackground[this],"ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp")
+            endif
             return this
-        endfunction  // 清除所有位置
-        function s__uiSprite_clearPoint takes integer this returns integer
-            if ( not ( s__uiSprite_isExist(this) ) ) then
+        endfunction  // 设置外边框
+        function s__uiImageBar_setBorder takes integer this,integer borderType returns integer
+            if ( not ( s__uiImageBar_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameClearAllPoints(s__uiSprite_ui[this])
-            return this
-        endfunction  // 设置大小
-        function s__uiSprite_setSize takes integer this,real width,real height returns integer
-            if ( not ( s__uiSprite_isExist(this) ) ) then
-                return this
+            if ( s__uiImageBar_border[this] == 0 ) then
+                set s__uiImageBar_border[this]=s__uiBorder_alignParent(s__uiBorder_create(s__uiImage_ui[s__uiImageBar_uiFill[this]]),s__uiImage_ui[s__uiImageBar_uiBackground[this]])
             endif
-            call DzFrameSetSize(s__uiSprite_ui[this], width, height)
             return this
-        endfunction
-        function s__uiSprite_create takes integer parent returns integer
-            local integer this=s__uiSprite__allocate()
-            set s__uiSprite_id[this]=s__uiId_get()
-            set s__uiSprite_ui[this]=DzCreateFrameByTagName("SPRITE", "Sprite" + I2S(s__uiSprite_id[this]), parent, "SpriteTemplate", 0)
-            return this
-        endfunction  // 设置模型(目前只做平面型就行了,后面2个0固定了)
-        function s__uiSprite_setModel takes integer this,string path,integer modelType,integer flag returns integer
-            if ( not ( s__uiSprite_isExist(this) ) ) then
-                return this
+        endfunction  // 获取进度
+        function s__uiImageBar_getProgress takes integer this returns real
+            if ( not ( s__uiImageBar_isExist(this) ) ) then
+                return 0.0
             endif
-            call DzFrameSetModel(s__uiSprite_ui[this], path, modelType, flag)
-            return this
-        endfunction  // 设置缩放
-        function s__uiSprite_setScale takes integer this,real scale returns integer
-            if ( not ( s__uiSprite_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScale(s__uiSprite_ui[this], scale)
-            return this
-        endfunction  // 设置动画
-        function s__uiSprite_setAnimate takes integer this,integer animate,boolean auto returns integer
-            if ( not ( s__uiSprite_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetAnimate(s__uiSprite_ui[this], animate, auto)
-            return this
-        endfunction
-        function s__uiSprite_onDestroy takes integer this returns nothing
-            if ( not ( s__uiSprite_isExist(this) ) ) then
-                return
-            endif
-            call DzDestroyFrame(s__uiSprite_ui[this])
-            call s__uiId_recycle(s__uiSprite_id[this])
-        endfunction
-
-//Generated destructor of uiSprite
-function s__uiSprite_deallocate takes integer this returns nothing
-    if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSprite")
-        return
-    elseif (si__uiSprite_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSprite")
-        return
-    endif
-    call s__uiSprite_onDestroy(this)
-    set si__uiSprite_V[this]=si__uiSprite_F
-    set si__uiSprite_F=this
-endfunction
-
-//library UISprite ends
-//library UIProgBar:
-        function s__uiProgBar_isExist takes integer this returns boolean
-            return ( this != null and si__uiProgBar_V[this] == - 1 )
-        endfunction
-        function s__uiProgBar_create takes integer parent returns integer
-            local integer this=s__uiProgBar__allocate()
-            set s__uiProgBar_uiGlow[this]=s__uiSprite_setAnimate(s__uiSprite_setSize(s__uiSprite_setModel(s__uiSprite_create(parent),"ui\\bar\\grow_yellow.mdx" , 0 , 0),0.001 , 0.001),0 , true)
-            set s__uiProgBar_uiShade[this]=s__uiSprite_setAllPoint(s__uiSprite_setAnimate(s__uiSprite_setSize(s__uiSprite_setModel(s__uiSprite_create(parent),"ui\\bar\\shade_yellow.mdx" , 0 , 0),0.001 , 0.001),0 , false),s__uiSprite_ui[s__uiProgBar_uiGlow[this]])
-            return this
+            return DzFrameGetWidth(s__uiImage_ui[s__uiImageBar_uiFill[this]]) / DzFrameGetWidth(s__uiImage_ui[s__uiImageBar_uiBackground[this]])
         endfunction  // 设置进度(0-1.0)
-        function s__uiProgBar_setProgress takes integer this,real progress returns integer
-            if ( not ( s__uiProgBar_isExist(this) ) ) then
+        function s__uiImageBar_setProgress takes integer this,real progress returns integer
+            if ( not ( s__uiImageBar_isExist(this) ) ) then // 设置填充图片的宽度为背景宽度 * 进度值
                 return this
             endif
-            call DzFrameSetAnimateOffset(s__uiSprite_ui[s__uiProgBar_uiShade[this]], progress)
+            call s__uiImage_setSize(s__uiImageBar_uiFill[this],DzFrameGetWidth(s__uiImage_ui[s__uiImageBar_uiBackground[this]]) * progress , 0.0)
             return this
         endfunction  // 设置位置
-        function s__uiProgBar_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiProgBar_isExist(this) ) ) then
+        function s__uiImageBar_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiImageBar_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetPoint(s__uiSprite_ui[s__uiProgBar_uiGlow[this]], anchor, relative, relativeAnchor, offsetX, offsetY)
+            call DzFrameSetPoint(s__uiImage_ui[s__uiImageBar_uiBackground[this]], anchor, relative, relativeAnchor, offsetX, offsetY)
             return this
         endfunction  // 设置进度条的大小
-        function s__uiProgBar_setScale takes integer this,real scale returns integer
-            call s__uiSprite_setScale(s__uiProgBar_uiGlow[this],scale)
-            call s__uiSprite_setScale(s__uiProgBar_uiShade[this],scale)
+        function s__uiImageBar_setSize takes integer this,real width,real height returns integer
+            call s__uiImage_setSize(s__uiImageBar_uiBackground[this],width , height)
             return this
         endfunction
-        function s__uiProgBar_onDestroy takes integer this returns nothing
-            if ( not ( s__uiProgBar_isExist(this) ) ) then //注意顺序
+        function s__uiImageBar_onDestroy takes integer this returns nothing
+            if ( not ( s__uiImageBar_isExist(this) ) ) then
                 return
             endif
-            call s__uiSprite_onDestroy(s__uiProgBar_uiShade[this])
-            call s__uiSprite_onDestroy(s__uiProgBar_uiGlow[this])
+            if ( s__uiImageBar_border[this] != 0 ) then //注意顺序
+                call s__uiBorder_deallocate(s__uiImageBar_border[this])
+            endif
+            call s__uiImage_deallocate(s__uiImageBar_uiFill[this])
+            call s__uiImage_deallocate(s__uiImageBar_uiBackground[this])
         endfunction
 
-//Generated destructor of uiProgBar
-function s__uiProgBar_deallocate takes integer this returns nothing
+//Generated destructor of uiImageBar
+function s__uiImageBar_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiProgBar")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImageBar")
         return
-    elseif (si__uiProgBar_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiProgBar")
+    elseif (si__uiImageBar_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImageBar")
         return
     endif
-    call s__uiProgBar_onDestroy(this)
-    set si__uiProgBar_V[this]=si__uiProgBar_F
-    set si__uiProgBar_F=this
+    call s__uiImageBar_onDestroy(this)
+    set si__uiImageBar_V[this]=si__uiImageBar_F
+    set si__uiImageBar_F=this
 endfunction
 
-//library UIProgBar ends
-//library UTUIProgBar:
+//library UIImageBar ends
+//library UTUIImageBar:
 
-    function UTUIProgBar__TTestUTUIProgBar1 takes player p returns nothing
-        set UTUIProgBar__progBar=s__uiProgBar_setPoint(s__uiProgBar_setScale(s__uiProgBar_create(DzGetGameUI()),2),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
+        function UTUIImageBar__anon__0 takes nothing returns nothing
+            if ( s__uiImageBar_isExist(UTUIImageBar__bar) ) then
+                set UTUIImageBar__progress=UTUIImageBar__progress + 0.01
+                if ( UTUIImageBar__progress >= 1.0 ) then
+                    set UTUIImageBar__progress=0.0
+                endif
+                call s__uiImageBar_setProgress(UTUIImageBar__bar,UTUIImageBar__progress)
+                call BJDebugMsg("getProgress: " + R2S(s__uiImageBar_getProgress(UTUIImageBar__bar)))
+            endif
+        endfunction
+    function UTUIImageBar__TTestUTUIImageBar1 takes player p returns nothing
+        set UTUIImageBar__bar=s__uiImageBar_setPoint(s__uiImageBar_setFillColor(s__uiImageBar_setBorder(s__uiImageBar_setSize(s__uiImageBar_setProgress(s__uiImageBar_create(DzGetGameUI()),0.5),0.2 , 0.01),1),1),4 , DzGetGameUI() , 4 , 0 , 0)
+        call TimerStart(CreateTimer(), 0.03, true, function UTUIImageBar__anon__0)
     endfunction
-    function UTUIProgBar__TTestUTUIProgBar2 takes player p returns nothing
-        local integer currentImage=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(DzGetGameUI()),0.2 , 0.01),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp")
+    function UTUIImageBar__TTestUTUIImageBar2 takes player p returns nothing
+        if ( s__uiImageBar_isExist(UTUIImageBar__bar) ) then
+            call s__uiImageBar_deallocate(UTUIImageBar__bar)
+        endif
     endfunction
-    function UTUIProgBar__TTestUTUIProgBar3 takes player p returns nothing
+    function UTUIImageBar__TTestUTUIImageBar3 takes player p returns nothing
     endfunction
-    function UTUIProgBar__TTestUTUIProgBar4 takes player p returns nothing
+    function UTUIImageBar__TTestUTUIImageBar4 takes player p returns nothing
     endfunction
-    function UTUIProgBar__TTestUTUIProgBar5 takes player p returns nothing
+    function UTUIImageBar__TTestUTUIImageBar5 takes player p returns nothing
     endfunction
-    function UTUIProgBar__TTestUTUIProgBar6 takes player p returns nothing
+    function UTUIImageBar__TTestUTUIImageBar6 takes player p returns nothing
     endfunction
-    function UTUIProgBar__TTestUTUIProgBar7 takes player p returns nothing
+    function UTUIImageBar__TTestUTUIImageBar7 takes player p returns nothing
     endfunction
-    function UTUIProgBar__TTestUTUIProgBar8 takes player p returns nothing
+    function UTUIImageBar__TTestUTUIImageBar8 takes player p returns nothing
     endfunction
-    function UTUIProgBar__TTestUTUIProgBar9 takes player p returns nothing
+    function UTUIImageBar__TTestUTUIImageBar9 takes player p returns nothing
     endfunction
-    function UTUIProgBar__TTestUTUIProgBar10 takes player p returns nothing
+    function UTUIImageBar__TTestUTUIImageBar10 takes player p returns nothing
     endfunction
-    function UTUIProgBar__TTestActUTUIProgBar1 takes string str returns nothing
+    function UTUIImageBar__TTestActUTUIImageBar1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1219,63 +1290,63 @@ endfunction
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
-        if ( paramS[0] == "a" ) then
-        elseif ( paramS[0] == "b" ) then
+        if ( paramS[0] == "size" ) then
+            call s__uiImageBar_setSize(UTUIImageBar__bar,paramR[1] , paramR[2])
+        elseif ( paramS[0] == "color" ) then
+            call s__uiImageBar_setFillColor(UTUIImageBar__bar,paramI[1])
         endif
         set p=null
     endfunction
-        function UTUIProgBar__anon__0 takes nothing returns nothing
-            call BJDebugMsg("[UIProgBar] 单元测试已加载")
+        function UTUIImageBar__anon__1 takes nothing returns nothing
+            call BJDebugMsg("[UIImageBar] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUIProgBar__anon__1 takes nothing returns nothing
+        function UTUIImageBar__anon__2 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUIProgBar__TTestActUTUIProgBar1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUIImageBar__TTestActUTUIImageBar1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUIProgBar__TTestUTUIProgBar1(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUIProgBar__TTestUTUIProgBar2(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUIProgBar__TTestUTUIProgBar3(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUIProgBar__TTestUTUIProgBar4(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUIProgBar__TTestUTUIProgBar5(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUIProgBar__TTestUTUIProgBar6(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUIProgBar__TTestUTUIProgBar7(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUIProgBar__TTestUTUIProgBar8(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUIProgBar__TTestUTUIProgBar9(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUIProgBar__TTestUTUIProgBar10(GetTriggerPlayer())
+                call UTUIImageBar__TTestUTUIImageBar10(GetTriggerPlayer())
             endif
         endfunction
-        function UTUIProgBar__anon__2 takes nothing returns nothing
-            local string str
-            set UTUIProgBar__progress=UTUIProgBar__progress + 0.01
-            if ( UTUIProgBar__progress >= 1.0 ) then
-                set UTUIProgBar__progress=0.0
-            endif
-            call s__uiProgBar_setProgress(UTUIProgBar__progBar,UTUIProgBar__progress)
-            call BJDebugMsg("进度:" + R2S(UTUIProgBar__progress))
-        endfunction
-    function UTUIProgBar__onInit takes nothing returns nothing
+    function UTUIImageBar__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUIProgBar__anon__0))
+        call TriggerAddCondition(tr, Condition(function UTUIImageBar__anon__1))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUIProgBar__anon__1)
-        call TimerStart(CreateTimer(), 0.1, true, function UTUIProgBar__anon__2)
+        call UnitTestRegisterChatEvent(function UTUIImageBar__anon__2)
     endfunction
 
-//library UTUIProgBar ends
+//library UTUIImageBar ends
+//控件的共用基本方法
+
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
 // 锚点常量
 // 事件常量
 //鼠标点击事件
@@ -1283,8 +1354,6 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
-//控件的共用基本方法
-
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -1295,8 +1364,6 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
-// 结构体共用方法定义
-//共享打印方法
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1709,10 +1776,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs31963781")
-call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("jasshelper__initstructs40034093")
+call ExecuteFunc("UnitTestFramwork___onInit")
 call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UTUIProgBar__onInit")
+call ExecuteFunc("UTUIImageBar__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1750,22 +1817,16 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__uiProgBar_onDestroy takes nothing returns boolean
+function sa__uiImageBar_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiProgBar_isExist(this) ) ) then //注意顺序
+            if ( not ( s__uiImageBar_isExist(this) ) ) then
 return true
             endif
-            call s__uiSprite_onDestroy(s__uiProgBar_uiShade[this])
-            call s__uiSprite_onDestroy(s__uiProgBar_uiGlow[this])
-   return true
-endfunction
-function sa__uiSprite_onDestroy takes nothing returns boolean
-local integer this=f__arg_this
-            if ( not ( s__uiSprite_isExist(this) ) ) then
-return true
+            if ( s__uiImageBar_border[this] != 0 ) then //注意顺序
+                call s__uiBorder_deallocate(s__uiImageBar_border[this])
             endif
-            call DzDestroyFrame(s__uiSprite_ui[this])
-            call s__uiId_recycle(s__uiSprite_id[this])
+            call s__uiImage_deallocate(s__uiImageBar_uiFill[this])
+            call s__uiImage_deallocate(s__uiImageBar_uiBackground[this])
    return true
 endfunction
 function sa__uiImage_onDestroy takes nothing returns boolean
@@ -1777,14 +1838,23 @@ return true
             call s__uiId_recycle(s__uiImage_id[this])
    return true
 endfunction
+function sa__uiBorder_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+return true
+            endif
+            call DzDestroyFrame(s__uiBorder_ui[this])
+            call s__uiId_recycle(s__uiBorder_id[this])
+   return true
+endfunction
 
-function jasshelper__initstructs31963781 takes nothing returns nothing
-    set st__uiProgBar_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiProgBar_onDestroy,Condition( function sa__uiProgBar_onDestroy))
-    set st__uiSprite_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiSprite_onDestroy,Condition( function sa__uiSprite_onDestroy))
+function jasshelper__initstructs40034093 takes nothing returns nothing
+    set st__uiImageBar_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiImageBar_onDestroy,Condition( function sa__uiImageBar_onDestroy))
     set st__uiImage_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
+    set st__uiBorder_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiBorder_onDestroy,Condition( function sa__uiBorder_onDestroy))
 
 
 

@@ -1,3 +1,208 @@
+//控件的共用基本方法
+//! zinc
+library UIBaseModule {
+    // 定义共用的方法结构
+    public module uiBaseModule {
+        // 设置位置
+        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
+            return this;
+        }
+        // 大小完全对齐父框架
+        method setAllPoint (integer relative) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAllPoints(ui,relative);
+            return this;
+        }
+        // 清除所有位置
+        method clearPoint () -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameClearAllPoints(ui);
+            return this;
+        }
+        // 设置大小
+        method setSize (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width,height);
+            return this;
+        }
+    }
+}
+//! endzinc
+/*
+单元测试框架(注入)
+*/
+//! zinc
+library UnitTestFramwork {
+	//单元测试总
+	trigger TUnitTest = null;
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
+    }
+    function onInit () {
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
+}
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+    }
+}
+//! endzinc
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
+//! zinc
+/*
+进度条(使用两个Image组件)
+组合式UI
+*/
+// 颜色
+library UIImageBar requires UIImage {
+    public struct uiImageBar {
+        uiImage uiBackground;
+        uiImage uiFill;
+        private uiBorder border;
+        method isExist () -> boolean {return (this != null && si__uiImageBar_V[this] == -1);}
+        // 原理是用uiFill来挡住uiBackground，通过设置uiFill的偏移来实现进度条的效果
+        //uiFill进度前进时,uiBackground的前端被挡住部分就更少了
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            uiBackground = uiImage.create(parent)
+                .texture("ReplaceableTextures\\TeamColor\\TeamColor15.blp");
+            uiFill = uiImage.create(parent)
+                .setPoint(0, uiBackground.ui , 0, 0.0, 0.0)
+                .setPoint(6, uiBackground.ui , 6, 0.0, 0.0)
+                .texture("ReplaceableTextures\\TeamColor\\TeamColor02.blp");
+            border = 0; // 默认没有边框
+return this;
+        }
+        // 设置填充颜色
+        method setFillColor (integer playerColor) -> thistype {
+            integer color;
+            if (!this.isExist()) {return this;}
+            color = ModuloInteger(playerColor, 16);
+            if (color < 10) {
+                uiFill.texture("ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp");
+            } else {
+                uiFill.texture("ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp");
+            }
+            return this;
+        }
+        // 设置背景颜色
+        method setBackgroundColor (integer playerColor) -> thistype {
+            integer color;
+            if (!this.isExist()) {return this;}
+            color = ModuloInteger(playerColor, 16);
+            if (color < 10) {
+                uiBackground.texture("ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp");
+            } else {
+                uiBackground.texture("ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp");
+            }
+            return this;
+        }
+        // 设置外边框
+        method setBorder (integer borderType) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (border == 0) {
+                border = uiBorder.create(uiFill.ui)
+                    .alignParent(uiBackground.ui);
+            }
+            return this;
+        }
+        // 获取进度
+        method getProgress () -> real {
+            if (!this.isExist()) {return 0.0;}
+            return DzFrameGetWidth(uiFill.ui) / DzFrameGetWidth(uiBackground.ui);
+        }
+        // 设置进度(0-1.0)
+        method setProgress (real progress) -> thistype {
+            if (!this.isExist()) {return this;}
+            // 设置填充图片的宽度为背景宽度 * 进度值
+            uiFill.setSize(DzFrameGetWidth(uiBackground.ui) * progress,0.0);
+            return this;
+        }
+        // 设置位置
+        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetPoint(uiBackground.ui,anchor,relative,relativeAnchor,offsetX,offsetY);
+            return this;
+        }
+        // 设置进度条的大小
+        method setSize (real width, real height) -> thistype {
+            uiBackground.setSize(width,height);
+            return this;
+        }
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            if (border != 0) {border.destroy();}
+            uiFill.destroy(); //注意顺序
+uiBackground.destroy();
+        }
+    }
+}
+//! endzinc
+//! zinc
+/*
+边框图片UI组件
+*/
+library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
+    public struct uiBorder {
+        // UI组件内部共享方法及成员
+        integer ui; 
+ integer id; 
+ method isExist () -> boolean {return (this != null && si__uiBorder_V[this] == -1);} 
+ optional module uiLifeCycle; 
+ module uiBaseModule;
+        module uiImageModule; // UI图片的共用方法
+
+        // 创建文本
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"Border1",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);}
+            return this;
+        }
+        method alignParent(integer ui) -> thistype {
+            if (!this.isExist()) {return this;}
+            this.setPoint(0, ui, 0, -0.005, 0.005);
+            this.setPoint(8, ui, 8, 0.005, -0.005);
+            return this;
+        }
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);}
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
+    }
+}
+//! endzinc
 library BzAPI
     //hardware
     native DzGetMouseTerrainX takes nothing returns real
@@ -218,13 +423,72 @@ library BzAPI
     endfunction
     
 endlibrary
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
+//! zinc
+/*
+ID复用器
+*/
+// 使用常量定义父键，使代码更清晰
+library UIId {
+    public struct uiId []{
+        static hashtable ht;
+        static integer nextId;
+        static integer recycleCount;
+        static method onInit () {
+            thistype.ht = InitHashtable();
+            thistype.nextId = 1;
+            thistype.recycleCount = 0;
+        }
+        static method get () -> integer {
+            integer id;
+            // 如果有已回收的ID，优先使用
+            if (recycleCount > 0) {
+                // 获取最后一个回收的ID
+                id = LoadInteger(ht, 1, recycleCount - 1);
+                // 从回收池中删除这个ID
+                RemoveSavedInteger(ht, 1, recycleCount - 1);
+                // 从状态表中删除
+                RemoveSavedBoolean(ht, 2, id);
+                recycleCount = recycleCount - 1;
+                return id;
+            }
+            // 如果没有可复用的ID，返回新的ID
+            id = nextId;
+            nextId = nextId + 1;
+            return id;
+        }
+        static method recycle (integer id) {
+            // 快速检查ID是否已经在回收池中
+            if (!HaveSavedBoolean(ht, 2, id)) {
+                // 将ID存入回收池
+                SaveInteger(ht, 1, recycleCount, id);
+                // 标记该ID已被回收
+                SaveBoolean(ht, 2, id, true);
+                recycleCount = recycleCount + 1;
+            }
+        }
+        // 获取回收池中ID的数量
+        static method getRecycledCount() -> integer {
+            return recycleCount;
+        }
+        // 获取当前正在使用的ID数量
+        static method getActiveCount() -> integer {
+            // 最大ID减去已回收的ID数量
+            return (nextId - 1) - recycleCount;
+        }
+    }
+}
+//! endzinc
+//! zinc
+/*
+Toc初始化,才能使用UI功能
+*/
+library UITocInit requires BzAPI,LBKKAPI {
+  function onInit () {
+		DzLoadToc("ui\\Crainax.toc");
+		DzFrameEnableClipRect(false);
+  }
+}
+//! endzinc
 //! zinc
 /*
 UI图片的共用方法
@@ -241,78 +505,55 @@ library UIImageModule {
     }
 }
 //! endzinc
-//控件的共用基本方法
-//! zinc
-library UIBaseModule {
-    // 定义共用的方法结构
-    public module uiBaseModule {
-        // 设置位置
-        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
-            return this;
-        }
-        // 大小完全对齐父框架
-        method setAllPoint (integer relative) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAllPoints(ui,relative);
-            return this;
-        }
-        // 清除所有位置
-        method clearPoint () -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameClearAllPoints(ui);
-            return this;
-        }
-        // 设置大小
-        method setSize (real width, real height) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetSize(ui,width,height);
-            return this;
-        }
-    }
-}
-//! endzinc
 //! zinc
 /*
-Toc初始化,才能使用UI功能
+图片UI组件
 */
-library UITocInit requires BzAPI,LBKKAPI {
-  function onInit () {
-		DzLoadToc("ui\\Crainax.toc");
-		DzFrameEnableClipRect(false);
-  }
-}
-//! endzinc
-/*
-单元测试框架(注入)
-*/
-//! zinc
-library UnitTestFramwork {
-	//单元测试总
-	trigger TUnitTest = null;
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-    function onInit () {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
-}
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+//import:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
+//import:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
+library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
+    public struct uiImage {
+        // UI组件内部共享方法及成员
+        integer ui; 
+ integer id; 
+ method isExist () -> boolean {return (this != null && si__uiImage_V[this] == -1);} 
+ optional module uiLifeCycle; 
+ module uiBaseModule;
+        module uiImageModule; // UI图片的共用方法
+
+        // 创建图片
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"IT",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);}
+            return this;
+        }
+        // 创建工具提示背景图片(种类1)
+        // parent: 父级框架
+        static method createToolTips (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"ToolTipsTemplate",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);}
+            return this;
+        }
+        // 创建工具提示背景图片(种类2)
+        // parent: 父级框架
+        static method createToolTips2 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"ToolTipsTemplate2",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);}
+            return this;
+        }
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);}
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
     }
 }
 //! endzinc
@@ -529,219 +770,6 @@ endlibrary
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
-// 结构体共用方法定义
-//共享打印方法
-//! zinc
-/*
-动态进度条(使用Sprite组件)
-组合式UI
-*/
-//import: ui/bar/grow_yellow.mdx
-//import: ui/bar/grow_mp.mdx
-//import: ui/bar/shade_yellow.mdx
-//import: ui/bar/shade_hmp.mdx
-//import: ui/bar/grow_hp.mdx
-//import: ui/bar/hpbar_glow.blp
-library UIProgBar requires UISprite {
-    public struct uiProgBar {
-        uiSprite uiGlow;
-        uiSprite uiShade;
-        method isExist () -> boolean {return (this != null && si__uiProgBar_V[this] == -1);}
-        // 原理是用uiFill来挡住uiBackground，通过设置uiFill的偏移来实现进度条的效果
-        //uiFill进度前进时,uiBackground的前端被挡住部分就更少了
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            uiGlow = uiSprite.create(parent)
-                .setModel("ui\\bar\\grow_yellow.mdx",0,0)
-                .setSize(0.001,0.001)
-                .setAnimate(0,true);
-            uiShade = uiSprite.create(parent)
-                .setModel("ui\\bar\\shade_yellow.mdx",0,0)
-                .setSize(0.001,0.001)
-                .setAnimate(0,false)
-                .setAllPoint(uiGlow.ui);
-            return this;
-        }
-        // 设置进度(0-1.0)
-        method setProgress (real progress) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAnimateOffset(uiShade.ui,progress);
-            return this;
-        }
-        // 设置位置
-        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetPoint(uiGlow.ui,anchor,relative,relativeAnchor,offsetX,offsetY);
-            return this;
-        }
-        // 设置进度条的大小
-        method setScale (real scale) -> thistype {
-            uiGlow.setScale(scale);
-            uiShade.setScale(scale);
-            return this;
-        }
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            uiShade.onDestroy(); //注意顺序
-uiGlow.onDestroy();
-        }
-    }
-}
-//! endzinc
-//! zinc
-/*
-ID复用器
-*/
-// 使用常量定义父键，使代码更清晰
-library UIId {
-    public struct uiId []{
-        static hashtable ht;
-        static integer nextId;
-        static integer recycleCount;
-        static method onInit () {
-            thistype.ht = InitHashtable();
-            thistype.nextId = 1;
-            thistype.recycleCount = 0;
-        }
-        static method get () -> integer {
-            integer id;
-            // 如果有已回收的ID，优先使用
-            if (recycleCount > 0) {
-                // 获取最后一个回收的ID
-                id = LoadInteger(ht, 1, recycleCount - 1);
-                // 从回收池中删除这个ID
-                RemoveSavedInteger(ht, 1, recycleCount - 1);
-                // 从状态表中删除
-                RemoveSavedBoolean(ht, 2, id);
-                recycleCount = recycleCount - 1;
-                return id;
-            }
-            // 如果没有可复用的ID，返回新的ID
-            id = nextId;
-            nextId = nextId + 1;
-            return id;
-        }
-        static method recycle (integer id) {
-            // 快速检查ID是否已经在回收池中
-            if (!HaveSavedBoolean(ht, 2, id)) {
-                // 将ID存入回收池
-                SaveInteger(ht, 1, recycleCount, id);
-                // 标记该ID已被回收
-                SaveBoolean(ht, 2, id, true);
-                recycleCount = recycleCount + 1;
-            }
-        }
-        // 获取回收池中ID的数量
-        static method getRecycledCount() -> integer {
-            return recycleCount;
-        }
-        // 获取当前正在使用的ID数量
-        static method getActiveCount() -> integer {
-            // 最大ID减去已回收的ID数量
-            return (nextId - 1) - recycleCount;
-        }
-    }
-}
-//! endzinc
-//! zinc
-/*
-文字UI组件
-*/
-//import:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
-//import:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
-library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
-    public struct uiImage {
-        integer ui; //frameID
-integer id; //可以回收的ID名(为了销毁时ID不重复)
-
-        method isExist () -> boolean {return (this != null && si__uiImage_V[this] == -1);}
-        module uiBaseModule; // UI控件的共用方法
-module uiImageModule; // UI图片的共用方法
-
-        // 创建文本
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"IT",0);
-            return this;
-        }
-        // 创建工具提示背景图片(种类1)
-        // parent: 父级框架
-        static method createToolTips (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"ToolTipsTemplate",0);
-            return this;
-        }
-        // 创建工具提示背景图片(种类2)
-        // parent: 父级框架
-        static method createToolTips2 (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"ToolTipsTemplate2",0);
-            return this;
-        }
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
-    }
-}
-//! endzinc
-//! zinc
-/*
-模型UI组件
-*/
-library UISprite requires UIId,UITocInit,UIBaseModule {
-    public struct uiSprite {
-        integer ui; //frameID
-integer id; //可以回收的ID名(为了销毁时ID不重复)
-
-        method isExist () -> boolean {return (this != null && si__uiSprite_V[this] == -1);}
-        module uiBaseModule; // UI控件的共用方法
-
-        // 创建模型
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("SPRITE","Sprite" + I2S(id),parent,"SpriteTemplate",0);
-            return this;
-        }
-        // 设置模型(目前只做平面型就行了,后面2个0固定了)
-        // @param path: 模型路径
-        // @param modelType: 模型类型(0 = SPRITE（精灵/图标）,1 = MODEL（3D模型）,2 = STATUSBAR（状态条）)
-        // @param flag: 标志(0 = 普通显示,1 = 允许选择模型,2 = 使用鼠标移动模型,4 = 添加模型动画控制器),要位运算
-        method setModel(string path,integer modelType,integer flag) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetModel(ui,path,modelType,flag);
-            return this;
-        }
-        // 设置缩放
-        // @param scale: 缩放比例
-        method setScale (real scale) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScale(ui,scale);
-            return this;
-        }
-        // 设置动画
-        // @param animate: 动画ID,一般为0
-        // @param auto: 是否自动播放
-        method setAnimate(integer animate,boolean auto) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAnimate(ui,animate,auto);
-            return this;
-        }
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
-    }
-}
-//! endzinc
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -851,28 +879,42 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTUIProgBar requires UIProgBar {
-	uiProgBar progBar = 0;
-	function TTestUTUIProgBar1 (player p) {
-		progBar = uiProgBar.create(DzGetGameUI())
-			.setScale(2)
-			.setPoint(4, DzGetGameUI(), 4, 0.0, 0.0);
+library UTUIImageBar requires UIImageBar {
+	uiImageBar bar = 0;
+	real progress = 0.0;
+	function TTestUTUIImageBar1 (player p) {
+		// 创建进度条
+		bar = uiImageBar.create(DzGetGameUI())
+			.setProgress(0.5)
+			.setSize(0.2, 0.01)
+			.setBorder(1)
+			.setFillColor(1)
+			.setPoint(4, DzGetGameUI(), 4, 0,0);
+		TimerStart(CreateTimer(),0.03,true,function (){
+			if (bar.isExist()) {
+				progress += 0.01;
+				if (progress >= 1.0) {
+					progress = 0.0;
+				}
+				bar.setProgress(progress);
+				BJDebugMsg("getProgress: " + R2S(bar.getProgress()));
+			}
+		});
 	}
-	function TTestUTUIProgBar2 (player p) {
-		uiImage currentImage = uiImage.create(DzGetGameUI())
-			.setSize(0.2,0.01)
-			.setPoint(4, DzGetGameUI(), 4, 0.0, 0.0)
-			.texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
+	function TTestUTUIImageBar2 (player p) {
+		if (bar.isExist()) {
+			bar.destroy();
+		}
 	}
-	function TTestUTUIProgBar3 (player p) {}
-	function TTestUTUIProgBar4 (player p) {}
-	function TTestUTUIProgBar5 (player p) {}
-	function TTestUTUIProgBar6 (player p) {}
-	function TTestUTUIProgBar7 (player p) {}
-	function TTestUTUIProgBar8 (player p) {}
-	function TTestUTUIProgBar9 (player p) {}
-	function TTestUTUIProgBar10 (player p) {}
-	function TTestActUTUIProgBar1 (string str) {
+	function TTestUTUIImageBar3 (player p) {}
+	function TTestUTUIImageBar4 (player p) {}
+	function TTestUTUIImageBar5 (player p) {}
+	function TTestUTUIImageBar6 (player p) {}
+	function TTestUTUIImageBar7 (player p) {}
+	function TTestUTUIImageBar8 (player p) {}
+	function TTestUTUIImageBar9 (player p) {}
+	function TTestUTUIImageBar10 (player p) {}
+	function TTestActUTUIImageBar1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -894,18 +936,19 @@ for (0 <= i <= len - 1) {
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "a") {
-		} else if (paramS[0] == "b") {
+		if (paramS[0] == "size") {
+			bar.setSize(paramR[1], paramR[2]);
+		} else if (paramS[0] == "color") {
+			bar.setFillColor(paramI[1]);
 		}
 		p = null;
 	}
-	real progress = 0.0;
 	function onInit () {
 		//在游戏开始0.0秒后再调用
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UIProgBar] 单元测试已加载");
+			BJDebugMsg("[UIImageBar] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -913,26 +956,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUIProgBar1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUIImageBar1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUIProgBar1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUIProgBar2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUIProgBar3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUIProgBar4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUIProgBar5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUIProgBar6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUIProgBar7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUIProgBar8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUIProgBar9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUIProgBar10(GetTriggerPlayer());
-		});
-		TimerStart(CreateTimer(),0.1,true,function (){
-			string str;
-			progress = progress + 0.01;
-			if (progress >= 1.0) progress = 0.0;
-			progBar.setProgress(progress);
-			BJDebugMsg("进度:"+R2S(progress));
+			if (str == "s1") TTestUTUIImageBar1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUIImageBar2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUIImageBar3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUIImageBar4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUIImageBar5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUIImageBar6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUIImageBar7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUIImageBar8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUIImageBar9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUIImageBar10(GetTriggerPlayer());
 		});
 	}
 }

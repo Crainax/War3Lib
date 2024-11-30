@@ -5,8 +5,19 @@
 #undef OriginMapUnitTestMode
 
 //! zinc
-
-//自动生成的文件
+/*
+ * 进度条组件单元测试
+ *
+ * @作者: 你的名字
+ * @时间: 2024-03-xx
+ * @版本: 1.0.0
+ *
+ * 测试命令:
+ * s1 - 创建一个基础进度条
+ * s2 - 创建一个测试图像
+ * -a [参数] - 执行特定测试动作
+ * -b [参数] - 执行特定测试动作
+ */
 library UTUIProgBar requires UIProgBar {
 
 	uiProgBar progBar = 0;
@@ -21,7 +32,9 @@ library UTUIProgBar requires UIProgBar {
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 			.texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
 	}
-	function TTestUTUIProgBar3 (player p) {}
+	function TTestUTUIProgBar3 (player p) {
+
+	}
 	function TTestUTUIProgBar4 (player p) {}
 	function TTestUTUIProgBar5 (player p) {}
 	function TTestUTUIProgBar6 (player p) {}
@@ -67,7 +80,9 @@ library UTUIProgBar requires UIProgBar {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UIProgBar] 单元测试已加载");
+			BJDebugMsg("|cff00ff00[UIProgBar]|r 进度条组件单元测试已加载");
+			BJDebugMsg(" - 输入 |cffffcc00s1|r 创建基础进度条");
+			BJDebugMsg(" - 输入 |cffffcc00s2|r 创建测试图像");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

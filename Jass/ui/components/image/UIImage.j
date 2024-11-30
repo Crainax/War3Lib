@@ -6,7 +6,7 @@
 
 //! zinc
 /*
-文字UI组件
+图片UI组件
 */
 
 //import:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
@@ -15,20 +15,18 @@
 library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
 
     public struct uiImage {
-        integer ui; //frameID
-        integer id; //可以回收的ID名(为了销毁时ID不重复)
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiImage)
 
-        STRUCT_SHARED_METHODS(uiImage)
-
-        module uiBaseModule;   // UI控件的共用方法
         module uiImageModule;  // UI图片的共用方法
 
-        // 创建文本
+        // 创建图片
         // parent: 父级框架
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
             return this;
         }
 
@@ -38,6 +36,7 @@ library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
             return this;
         }
 
@@ -47,11 +46,13 @@ library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS2,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
             return this;
         }
 
         method onDestroy () {
             if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiImage)
             DzDestroyFrame(ui);
             uiId.recycle(id);
         }

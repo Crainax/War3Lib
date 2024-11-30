@@ -7,19 +7,19 @@
 //! zinc
 
 /*
- * UISprite组件测试文件
- *
- * 测试功能:
- * 1. 创建模型UI (s1) - 创建默认大小 0.001 x 0.001
- * 2. 设置模型路径 (s2) - 创建步兵模型 0.2 x 0.2
- * 3. 设置位置 (s3)
- * 4. 设置大小 (s4) - 创建大尺寸 0.04 x 0.04
- * 5. 销毁模型UI (s5)
- * 6. 批量创建测试 (s6)
- * 7. 参数化测试:
- *    - 位置: -x y z
- *    - 大小: -size w h (推荐值: 小型0.001~0.01, 中型0.01~0.05, 大型0.05~0.1)
- */
+* UISprite组件测试文件
+*
+* 测试功能:
+* 1. 创建模型UI (s1) - 创建默认大小 0.001 x 0.001
+* 2. 设置模型路径 (s2) - 创建步兵模型 0.2 x 0.2
+* 3. 设置位置 (s3)
+* 4. 设置大小 (s4) - 创建大尺寸 0.04 x 0.04
+* 5. 销毁模型UI (s5)
+* 6. 批量创建测试 (s6)
+* 7. 参数化测试:
+*    - 位置: -x y z
+*    - 大小: -size w h (推荐值: 小型0.001~0.01, 中型0.01~0.05, 大型0.05~0.1)
+*/
 
 //import: ui/model/ping2.mdx
 library UTUISprite requires UISprite {
@@ -30,10 +30,11 @@ library UTUISprite requires UISprite {
     // 测试创建模型UI
     function TTestUTUISprite1(player p) {
         testSprite = uiSprite.create(DzGetGameUI())
-			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0)
-			.setSize(0.001,0.001)  //测试过无论设置成什么都不影响ping的大小
-			.setModel("ui\\model\\ping2.mdx",0,0);
+            .setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0)
+            .setSize(0.001,0.001)  //测试过无论设置成什么都不影响ping的大小
+            .setModel("ui\\model\\ping2.mdx",0,0);
         BJDebugMsg("创建模型UI成功");
+
     }
 
     function TTestUTUISprite2(player p) {
@@ -46,20 +47,23 @@ library UTUISprite requires UISprite {
         testSprite = uiSprite.create(DzGetGameUI())
             .setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0)
             .setSize(0.2,0.2)  // 调整为更小的尺寸
-            .setModel("units\\human\\Footman\\Footman.mdx",1,0);
+            .setScale(0.001)
+            .setModel("units\\human\\Footman\\Footman.mdx",0,3);
         BJDebugMsg("创建步兵模型UI (0.05 x 0.05)");
     }
 
     function TTestUTUISprite3(player p) {
-		// 创建主框架
-		integer FootmanDisplay =  DzCreateFrame("FootmanDisplay",DzGetGameUI(),0);
-		// 获取Sprite框架句柄
-		integer FootmanSprite =  DzFrameFindByName("FootmanSprite", 0);
-		BJDebugMsg("FootmanDisplay:"+I2S(FootmanDisplay));
-		BJDebugMsg("FootmanSprite:"+I2S(FootmanSprite));
-		DzFrameShow(FootmanDisplay,true);
-		DzFrameSetPoint(FootmanDisplay,ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0);
-		DzFrameSetScale(FootmanSprite,1.0);
+        // 创建主框架
+        integer FootmanDisplay =  DzCreateFrame("FootmanDisplay",DzGetGameUI(),0);
+        // 获取Sprite框架句柄
+        integer FootmanSprite =  DzFrameFindByName("FootmanSprite", 0);
+        BJDebugMsg("FootmanDisplay:"+I2S(FootmanDisplay));
+        BJDebugMsg("FootmanSprite:"+I2S(FootmanSprite));
+        DzFrameShow(FootmanDisplay,true);
+        DzFrameSetPoint(FootmanDisplay
+            ,ANCHOR_CENTER
+            ,DzGetGameUI(),ANCHOR_CENTER,0,0);
+        DzFrameSetScale(FootmanSprite,1.0);
     }
 
     // 测试设置大小

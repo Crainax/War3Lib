@@ -1,4 +1,4 @@
 logs\currentmapscript.j
 JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 837: Syntax Error (Unexpected: "."?
+Line 39: Unexpected local variable.
 1

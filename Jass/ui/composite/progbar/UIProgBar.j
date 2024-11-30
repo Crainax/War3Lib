@@ -1,5 +1,5 @@
-#ifndef ProgBarIncluded
-#define ProgBarIncluded
+#ifndef UIProgBarIncluded
+#define UIProgBarIncluded
 
 #include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
@@ -26,8 +26,8 @@ library UIProgBar requires UISprite {
 
         STRUCT_SHARED_METHODS(uiProgBar)
 
-        // 原理是用uiFill来挡住uiBackground，通过设置uiFill的偏移来实现进度条的效果
-        //uiFill进度前进时,uiBackground的前端被挡住部分就更少了
+        // 原理是用uiShade来挡住uiGlow，通过设置uiShade的偏移来实现进度条的效果
+        //uiShade进度前进时,uiGlow的前端被挡住部分就更少了
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             uiGlow = uiSprite.create(parent)
@@ -65,8 +65,8 @@ library UIProgBar requires UISprite {
 
         method onDestroy () {
             if (!this.isExist()) {return;}
-            uiShade.onDestroy(); //注意顺序
-            uiGlow.onDestroy();
+            uiShade.destroy(); //注意顺序
+            uiGlow.destroy();
         }
 
     }

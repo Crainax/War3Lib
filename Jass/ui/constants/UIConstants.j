@@ -65,8 +65,8 @@
 #define TEMPLATE_SLIDER_WAR3_H     "Base1SB1H" // 横滑条(魔兽风格)
 #define TEMPLATE_CHECKBOX          "CBTemplate"
 #define TEMPLATE_CHECKBOX_RADIO    "RBTemplate"
-#define TEMPLATE_EDITBOX           "TestEditBox"
-
+#define TEMPLATE_EDITBOX           "EB"
+#define TEMPLATE_BORDER1           "Border1"
 
 //TEXT对齐常量:(uiText.setAlign)
 #define TEXT_ALIGN_TOPLEFT      9  // TOP + LEFT
