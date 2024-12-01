@@ -42,7 +42,6 @@ library UIAnimTimer {
 		}
 		//关
 		method unreg () {
-			trig = null;
 			if (trID != 0) {
 				//这个其实就是将List的[2]设成5  假设2是删  5是最长
 				//然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)

@@ -106,9 +106,20 @@ function compile:StartCompile()
 			-- 检查是否是 import 行
 			local importPath = line:match("^%s*//import:%s*(.+)$")
 			if importPath then
-				-- 替换路径分隔符并记录
 				importPath = importPath:gsub("\\", "/")
-				compileFiles:addResourceFile(importPath)  -- 对于资源文件使用 addResourceFile
+				compileFiles:addResourceFile(importPath)
+				return line
+			end
+
+			-- 检查序列帧声明
+			local basePath, start, stop, ext = line:match("^%s*//sequence:%s*(.+){(%d+)-(%d+)}%.(%w+)$")
+			if basePath then
+				start = tonumber(start)
+				stop = tonumber(stop)
+				for i = start, stop do
+					local fullPath = string.format("%s%d.%s", basePath, i, ext)
+					compileFiles:addResourceFile(fullPath)
+				end
 				return line
 			end
 
@@ -180,14 +191,14 @@ function compile:StartCompile()
 	compileFiles.lastBuildTime = os.time()
 
 	-- 打印资源文件
-	print("[资源文件]内容: ")
-	if compileFiles.resourceFiles then
-		for _, value in pairs(compileFiles.resourceFiles) do
-			print(value)
-		end
-	else
-		print("没有资源文件或资源文件列表未初始化")
-	end
+	print("[资源文件]内容: " .. #compileFiles.resourceFiles .. "个")
+	-- if compileFiles.resourceFiles then
+	-- 	for _, value in pairs(compileFiles.resourceFiles) do
+	-- 		print(value)
+	-- 	end
+	-- else
+	-- 	print("没有资源文件或资源文件列表未初始化")
+	-- end
 
 	return fileUtils.copyFile(path.CompileStep5, path.CompileResult) -- 后续内容都以这个compileResult为准
 end

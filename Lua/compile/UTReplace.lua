@@ -146,52 +146,68 @@ end
 -- path.resource: 单元测试地图资源根目录
 -- compileFiles.resourceFiles: 记录的是相对于资源根目录的路径
 utr.copyResourceFiles = function()
-	-- 用于记录所有创建的文件路径，供后续清理使用
 	local createdFiles = {}
+	local successCount = 0
+	local failedFiles = {}
 
-	-- 遍历CompileFiles中记录的所有资源文件（相对路径）
 	for _, relativePath in ipairs(compileFiles.resourceFiles) do
-		-- 构建源文件完整路径
 		local sourcePath = path.assets .. '/' .. relativePath
-		-- 构建目标文件完整路径
 		local targetPath = path.resource .. '/' .. relativePath
 
-		-- 确保目标文件的目录存在
 		local targetDir = targetPath:match("(.*)[/\\]")
 		if targetDir and not fu.DirExist(targetDir) then
 			fu.createDir(targetDir)
 		end
 
-		-- 复制文件
 		local success, msg = fu.copyFile(sourcePath, targetPath)
-		print("    ...临时资源... " .. relativePath .. (success and " √" or (" x" .. " " .. msg)))
-		-- 记录创建的文件路径
-		table.insert(createdFiles, targetPath)
+		if success then
+			successCount = successCount + 1
+			table.insert(createdFiles, targetPath)
+		else
+			table.insert(failedFiles, {path = relativePath, error = msg})
+		end
 	end
 
-	-- 将创建的文件列表保存到 CompileFiles 中
+	print(string.format("    [临时资源] 成功: %d, 失败: %d", successCount, #failedFiles))
+	if #failedFiles > 0 then
+		print("    [临时资源] 失败文件列表:")
+		for _, fail in ipairs(failedFiles) do
+			print(string.format("        %s (%s)", fail.path, fail.error))
+		end
+	end
+
 	compileFiles.utResourceFiles = createdFiles
 end
-
 
 -- 清理单元测试地图中的临时资源文件
 -- 功能：仅清理由copyResourceFiles创建的临时文件
 -- 使用compileFiles.utResourceFiles记录的文件列表进行清理
 utr.removeResourceFiles = function()
-	-- 检查是否有需要清理的文件记录
-	print("[删除临时资源]数量: " .. #compileFiles.utResourceFiles)
-	if compileFiles.utResourceFiles then
-		-- 仅删除之前创建的文件
-		for _, filePath in ipairs(compileFiles.utResourceFiles) do
-			if fu.fileExist(filePath) then
-				local success, msg = fu.DeleteFile(filePath)
-				print("    ...删除临时资源... " .. filePath .. (success and " √" or (" x" .. " " .. msg)))
+	if not compileFiles.utResourceFiles then return end
+
+	local successCount = 0
+	local failedFiles = {}
+
+	for _, filePath in ipairs(compileFiles.utResourceFiles) do
+		if fu.fileExist(filePath) then
+			local success, msg = fu.DeleteFile(filePath)
+			if success then
+				successCount = successCount + 1
+			else
+				table.insert(failedFiles, {path = filePath, error = msg})
 			end
 		end
-
-		-- 清空文件记录
-		compileFiles.utResourceFiles = {}
 	end
+
+	print(string.format("    [删除临时资源] 成功: %d, 失败: %d", successCount, #failedFiles))
+	if #failedFiles > 0 then
+		print("    [删除临时资源] 失败文件列表:")
+		for _, fail in ipairs(failedFiles) do
+			print(string.format("        %s (%s)", fail.path, fail.error))
+		end
+	end
+
+	compileFiles.utResourceFiles = {}
 end
 
 -- 以下是单独测试的

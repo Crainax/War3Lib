@@ -68,8 +68,8 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 		real dist,off,angle; //移动组
 		//线性移动
 		// @param align 需要对齐的UI
-		// @param off 偏移
-		// @param dist 距离
+		// @param off 初始的对应anchor的偏移
+		// @param dist 距离（加上面的off)
 		// @param time 时间(0.02为一帧)
 		// @param angle 角度
 		// @param anchor1 本体的锚点
@@ -121,7 +121,7 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 				AList[ANum] = this;
 				aID         = ANum;
 			}
-			// DzFrameSetAlpha(ui,start) //这个不能设置的原因是有可能有2个一起设置，存在延迟;
+			DzFrameSetAlpha(ui,start); //这个不能设置的原因是有可能有2个一起设置，存在延迟;
 			UIA.reg(); //Add了后就调用了这个自动开始
 		}
 		private method delAlpha () {
@@ -245,7 +245,7 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 		integer lID,lPeriod,lTime;
 		onLifeEnd lCB;
 		// @param period 生命周期时长(0.02为一帧)
-		// @param lCB 生命周期结束时调用
+		// @param lCB 生命周期结束时调用,设成0则不调用,自动排泄ba
 		method addLife (integer period,onLifeEnd lCB) {
 			if (period <= 0 || !(isExist())) {return;}
 			//数据设置都放这
@@ -266,6 +266,7 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 			if (lID != 0) {
 				//这里开始删ui
 				if (ui != 0 && lCB != 0) {
+					RemoveSavedInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM); //因为会自动排泄,防止在回调删UI的时候继续再调用一次
 					lCB.evaluate(this);
 				}
 				LList[lID]      = LList[LNum];
@@ -277,6 +278,7 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 
 		//析构,手动调用或者生命周期结束时自动调用
 		method onDestroy () {
+			if (!isExist()) {return;}
 			delDelay();
 			delMove();
 			delZoom();
@@ -284,6 +286,9 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 			delSequ();
 			delBlink();
 			delLife();
+			if (HaveSavedInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM)) {
+				RemoveSavedInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM);
+			}
 			ui = 0;
 			size -= 1; //统计数量--
 		}
@@ -375,14 +380,11 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 								zID          = 0;
 							} else {
 								zNow = zNow + 1;
-								//DzFrameSetScale(ui,.zStart + (zTar -.zStart) * (I2R(zNow)/ zTime));
 								DzFrameSetSize(ui,zStartX + (zTarX -zStartX) * (I2R(zNow)/ zTime),zStartY + (zTarY -zStartY) * (I2R(zNow)/ zTime));
 							}
 						} //还在延迟中不进行操作
 					}
 				}
-				//blp
-				//blp
 
 				if ( SNum > 0 ){ //序列帧
 					for (1 <= i <= SNum) {
@@ -413,9 +415,6 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 					}
 				}
 
-				//blpend
-				//blpend
-
 				if ( BNum > 0 ){ //闪烁组
 					for (1 <= i <= BNum) {
 						//从结论来说i就是aID
@@ -439,7 +438,10 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 						this   = LList[i];
 						lTime += 1;
 						//结束了
-						if (lTime >= lPeriod) {destroy();}
+						if (lTime >= lPeriod) {
+							destroy();
+							i -= 1;
+						}
 					}
 				}
 
@@ -448,13 +450,15 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 					BJDebugMsg("baseanim停止了");
 				}
 			});
-			// UI销毁时回调删除基础动画(UI销毁时会自动调用)
+			// UI销毁时回调删除基础动画(UI销毁时会自动调用),但是不需要再删ba了,
 			uiLifeCycle.registerDestroy(function (){
 				integer ui = uiLifeCycle.agrsFrame;
 				thistype this;
 				if (HaveSavedInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM)) {
-					this = GetInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM);
-					this.onDestroy();
+					this = LoadInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM);
+					if (this.isExist()) {
+						this.destroy();
+					}
 				}
 			});
 		}

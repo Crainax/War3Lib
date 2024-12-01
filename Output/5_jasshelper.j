@@ -2,6 +2,14 @@ globals
 //globals from BzAPI:
 constant boolean LIBRARY_BzAPI=true
 //endglobals from BzAPI
+//globals from HashTable:
+constant boolean LIBRARY_HashTable=true
+hashtable HASH_UNIT_TYPE=InitHashtable()
+hashtable HASH_UNIT=InitHashtable()
+hashtable HASH_TIMER=InitHashtable()
+hashtable HASH_GROUP=InitHashtable()
+hashtable HASH_SPELL=InitHashtable()
+//endglobals from HashTable
 //globals from LBKKAPI:
 constant boolean LIBRARY_LBKKAPI=true
 string MOVE_TYPE_NONE= "none"
@@ -21,15 +29,25 @@ constant integer DEFENSE_TYPE_HERO= 5
 constant integer DEFENSE_TYPE_DIVINE= 6
 constant integer DEFENSE_TYPE_NONE= 7
 //endglobals from LBKKAPI
+//globals from UIAnimTimer:
+constant boolean LIBRARY_UIAnimTimer=true
+//endglobals from UIAnimTimer
 //globals from UIBaseModule:
 constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
+//globals from UIHashTable:
+constant boolean LIBRARY_UIHashTable=true
+hashtable HASH_UI=InitHashtable()
+//endglobals from UIHashTable
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
 //endglobals from UIId
 //globals from UIImageModule:
 constant boolean LIBRARY_UIImageModule=true
 //endglobals from UIImageModule
+//globals from UILifeCycle:
+constant boolean LIBRARY_UILifeCycle=true
+//endglobals from UILifeCycle
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork___TUnitTest=null
@@ -37,20 +55,17 @@ trigger UnitTestFramwork___TUnitTest=null
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
-//globals from UIBorder:
-constant boolean LIBRARY_UIBorder=true
-//endglobals from UIBorder
+//globals from BaseAnim:
+constant boolean LIBRARY_BaseAnim=true
+//endglobals from BaseAnim
 //globals from UIImage:
 constant boolean LIBRARY_UIImage=true
 //endglobals from UIImage
-//globals from UIImageBar:
-constant boolean LIBRARY_UIImageBar=true
-//endglobals from UIImageBar
-//globals from UTUIImageBar:
-constant boolean LIBRARY_UTUIImageBar=true
-integer UTUIImageBar__bar=0
-real UTUIImageBar__progress=0.0
-//endglobals from UTUIImageBar
+//globals from UTBaseAnim:
+constant boolean LIBRARY_UTBaseAnim=true
+integer array UTBaseAnim__tFromBA
+real UTBaseAnim__testAngle=0.0
+//endglobals from UTBaseAnim
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -76,32 +91,105 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
-constant integer si__uiId=1
+constant integer si__uianim=1
+integer si__uianim_F=0
+integer si__uianim_I=0
+integer array si__uianim_V
+integer array s__uianim_UIAList
+integer s__uianim_size=0
+trigger array s__uianim_trig
+integer array s__uianim_trID
+constant integer si__uiId=2
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__uiBorder=2
-integer si__uiBorder_F=0
-integer si__uiBorder_I=0
-integer array si__uiBorder_V
-integer array s__uiBorder_ui
-integer array s__uiBorder_id
-constant integer si__uiImage=3
+constant integer si__uiLifeCycle=3
+integer s__uiLifeCycle_agrsUI=0
+integer s__uiLifeCycle_agrsTypeID=0
+integer s__uiLifeCycle_agrsFrame=0
+trigger s__uiLifeCycle_trCreate=null
+trigger s__uiLifeCycle_trDestroy=null
+constant integer si__baseanim=4
+integer si__baseanim_F=0
+integer si__baseanim_I=0
+integer array si__baseanim_V
+integer array s__baseanim_DList
+integer array s__baseanim_MList
+integer array s__baseanim_AList
+integer array s__baseanim_ZList
+integer array s__baseanim_SList
+integer array s__baseanim_BList
+integer array s__baseanim_LList
+integer s__baseanim_DNum=0
+integer s__baseanim_MNum=0
+integer s__baseanim_ANum=0
+integer s__baseanim_ZNum=0
+integer s__baseanim_SNum=0
+integer s__baseanim_BNum=0
+integer s__baseanim_LNum=0
+integer s__baseanim_UIA=0
+integer s__baseanim_size=0
+integer array s__baseanim_ui
+integer array s__baseanim_dID
+integer array s__baseanim_dTime
+integer array s__baseanim_dNow
+integer array s__baseanim_align
+integer array s__baseanim_mTime
+integer array s__baseanim_mNow
+integer array s__baseanim_anchor1
+integer array s__baseanim_anchor2
+integer array s__baseanim_mID
+real array s__baseanim_dist
+real array s__baseanim_off
+real array s__baseanim_angle
+integer array s__baseanim_aID
+integer array s__baseanim_aStart
+integer array s__baseanim_aTar
+integer array s__baseanim_aTime
+integer array s__baseanim_aNow
+integer array s__baseanim_zID
+integer array s__baseanim_zTime
+integer array s__baseanim_zNow
+real array s__baseanim_zStartX
+real array s__baseanim_zTarX
+real array s__baseanim_zStartY
+real array s__baseanim_zTarY
+string array s__baseanim_sPath
+integer array s__baseanim_sID
+integer array s__baseanim_sMax
+integer array s__baseanim_sPos
+integer array s__baseanim_sGap
+integer array s__baseanim_sGapPos
+boolean array s__baseanim_sLoop
+integer array s__baseanim_bID
+integer array s__baseanim_bPeriod
+integer array s__baseanim_bTime
+integer array s__baseanim_bStart
+boolean array s__baseanim_bOrient
+integer array s__baseanim_lID
+integer array s__baseanim_lPeriod
+integer array s__baseanim_lTime
+integer array s__baseanim_lCB
+constant integer si__uiImage=5
 integer si__uiImage_F=0
 integer si__uiImage_I=0
 integer array si__uiImage_V
 integer array s__uiImage_ui
 integer array s__uiImage_id
-constant integer si__uiImageBar=4
-integer si__uiImageBar_F=0
-integer si__uiImageBar_I=0
-integer array si__uiImageBar_V
-integer array s__uiImageBar_uiBackground
-integer array s__uiImageBar_uiFill
-integer array s__uiImageBar_border
-trigger st__uiBorder_onDestroy
+constant integer si__test=6
+integer si__test_F=0
+integer si__test_I=0
+integer array si__test_V
+integer array s__test_List
+integer s__test_size=0
+integer array s__test_img
+integer array s__test_ba
+integer array s__test_uID
+trigger st__baseanim_onDestroy
 trigger st__uiImage_onDestroy
-trigger st__uiImageBar_onDestroy
+trigger st__test_onDestroy
+trigger array st___prototype14
+integer f__arg_integer1
 integer f__arg_this
 
 endglobals
@@ -351,43 +439,75 @@ endglobals
         native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
 
-//Generated method caller for uiImageBar.onDestroy
-function sc__uiImageBar_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__uiImageBar_onDestroy)
-endfunction
-
-//Generated allocator of uiImageBar
-function s__uiImageBar__allocate takes nothing returns integer
- local integer this=si__uiImageBar_F
+//Generated allocator of uianim
+function s__uianim__allocate takes nothing returns integer
+ local integer this=si__uianim_F
     if (this!=0) then
-        set si__uiImageBar_F=si__uiImageBar_V[this]
+        set si__uianim_F=si__uianim_V[this]
     else
-        set si__uiImageBar_I=si__uiImageBar_I+1
-        set this=si__uiImageBar_I
+        set si__uianim_I=si__uianim_I+1
+        set this=si__uianim_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiImageBar")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uianim")
         return 0
     endif
 
-    set si__uiImageBar_V[this]=-1
+    set si__uianim_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiImageBar
-function sc__uiImageBar_deallocate takes integer this returns nothing
+//Generated destructor of uianim
+function s__uianim_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImageBar")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uianim")
         return
-    elseif (si__uiImageBar_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImageBar")
+    elseif (si__uianim_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uianim")
+        return
+    endif
+    set si__uianim_V[this]=si__uianim_F
+    set si__uianim_F=this
+endfunction
+
+//Generated method caller for test.onDestroy
+function sc__test_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__test_onDestroy)
+endfunction
+
+//Generated allocator of test
+function s__test__allocate takes nothing returns integer
+ local integer this=si__test_F
+    if (this!=0) then
+        set si__test_F=si__test_V[this]
+    else
+        set si__test_I=si__test_I+1
+        set this=si__test_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: test")
+        return 0
+    endif
+
+   set s__test_uID[this]=0
+    set si__test_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of test
+function sc__test_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: test")
+        return
+    elseif (si__test_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: test")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiImageBar_onDestroy)
-    set si__uiImageBar_V[this]=si__uiImageBar_F
-    set si__uiImageBar_F=this
+    call TriggerEvaluate(st__test_onDestroy)
+    set si__test_V[this]=si__test_F
+    set si__test_F=this
 endfunction
 
 //Generated method caller for uiImage.onDestroy
@@ -429,43 +549,54 @@ function sc__uiImage_deallocate takes integer this returns nothing
     set si__uiImage_F=this
 endfunction
 
-//Generated method caller for uiBorder.onDestroy
-function sc__uiBorder_onDestroy takes integer this returns nothing
+//Generated method caller for baseanim.onDestroy
+function sc__baseanim_onDestroy takes integer this returns nothing
     set f__arg_this=this
-    call TriggerEvaluate(st__uiBorder_onDestroy)
+    call TriggerEvaluate(st__baseanim_onDestroy)
 endfunction
 
-//Generated allocator of uiBorder
-function s__uiBorder__allocate takes nothing returns integer
- local integer this=si__uiBorder_F
+//Generated allocator of baseanim
+function s__baseanim__allocate takes nothing returns integer
+ local integer this=si__baseanim_F
     if (this!=0) then
-        set si__uiBorder_F=si__uiBorder_V[this]
+        set si__baseanim_F=si__baseanim_V[this]
     else
-        set si__uiBorder_I=si__uiBorder_I+1
-        set this=si__uiBorder_I
+        set si__baseanim_I=si__baseanim_I+1
+        set this=si__baseanim_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiBorder")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: baseanim")
         return 0
     endif
 
-    set si__uiBorder_V[this]=-1
+    set si__baseanim_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiBorder
-function sc__uiBorder_deallocate takes integer this returns nothing
+//Generated destructor of baseanim
+function sc__baseanim_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBorder")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: baseanim")
         return
-    elseif (si__uiBorder_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBorder")
+    elseif (si__baseanim_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: baseanim")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiBorder_onDestroy)
-    set si__uiBorder_V[this]=si__uiBorder_F
-    set si__uiBorder_F=this
+    call TriggerEvaluate(st__baseanim_onDestroy)
+    set si__baseanim_V[this]=si__baseanim_F
+    set si__baseanim_F=this
+endfunction
+function sc___prototype14_execute takes integer i,integer a1 returns nothing
+    set f__arg_integer1=a1
+
+    call TriggerExecute(st___prototype14[i])
+endfunction
+function sc___prototype14_evaluate takes integer i,integer a1 returns nothing
+    set f__arg_integer1=a1
+
+    call TriggerEvaluate(st___prototype14[i])
+
 endfunction
 
 //library BzAPI:
@@ -689,6 +820,10 @@ endfunction
     
 
 //library BzAPI ends
+//library HashTable:
+    //public:  // 单位类型哈希表
+
+//library HashTable ends
 //library LBKKAPI:
 
 
@@ -875,9 +1010,83 @@ endfunction
 
 
 //library LBKKAPI ends
+//library UIAnimTimer:
+        function s__uianim_isExist takes integer this returns boolean
+            return ( this != null and si__uianim_V[this] == - 1 )
+        endfunction
+        function s__uianim_create takes code fun returns integer
+            local integer this=s__uianim__allocate()
+            set s__uianim_trig[this]=CreateTrigger()
+            call TriggerAddCondition(s__uianim_trig[this], Condition(fun))
+            return this
+        endfunction  //动画启动,可重复调用
+        function s__uianim_reg takes integer this returns nothing
+            if ( not ( s__uianim_isExist(this) ) ) then
+                return
+            endif
+            if ( s__uianim_trID[this] == 0 ) then
+                set s__uianim_size=s__uianim_size + 1
+                set s__uianim_UIAList[s__uianim_size]=this
+                set s__uianim_trID[this]=s__uianim_size
+            endif
+        endfunction  //关
+        function s__uianim_unreg takes integer this returns nothing
+            if ( s__uianim_trID[this] != 0 ) then //这个其实就是将List的[2]设成5  假设2是删  5是最长
+                set s__uianim_UIAList[s__uianim_trID[this]]=s__uianim_UIAList[s__uianim_size] //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立) //但是实例[2]本身的内容已经被清除 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+                set s__uianim_trID[s__uianim_UIAList[s__uianim_trID[this]]]=s__uianim_trID[this]
+                set s__uianim_size=s__uianim_size - 1
+                set s__uianim_trID[this]=0
+            endif
+        endfunction  //共享打印方法
+        function s__uianim_toString takes nothing returns string
+            local string s=I2S(s__uianim_size) + "个:"
+            local integer i
+            set i=1
+            loop
+            exitwhen ( i > s__uianim_size )
+                set s=s + "[" + I2S(i) + "]|r" + I2S(s__uianim_UIAList[i]) + "->"
+            set i=i + 1
+            endloop
+            set s=s + "/"
+            return s
+        endfunction
+            function s__uianim_anon__0 takes nothing returns nothing
+                local integer i
+                local integer this
+                if ( s__uianim_size > 0 ) then
+                    set i=1
+                    loop
+                    exitwhen ( i > s__uianim_size )
+                        set this=s__uianim_UIAList[i] //这里可以设置一个静态成员来传参获得是第几个uia
+                        call TriggerEvaluate(s__uianim_trig[this])
+                    set i=i + 1
+                    endloop
+                endif
+            endfunction
+        function s__uianim_onInit takes nothing returns nothing
+            local timer t=CreateTimer()
+            call TimerStart(t, 0.02, true, function s__uianim_anon__0)
+            set t=null
+        endfunction
+
+//library UIAnimTimer ends
 //library UIBaseModule:
 
 //library UIBaseModule ends
+//library UIHashTable:
+    //public:  // UI结构哈希表
+        function BindFrameToUI takes integer frame,integer typeID,integer ui returns nothing
+            call SaveInteger(HASH_UI, frame, 1820, typeID)
+            call SaveInteger(HASH_UI, frame, 1821, ui)
+        endfunction  //由绑定的frame反推UIStruct用
+        function GetUIFromFrame takes integer frame returns integer
+            return LoadInteger(HASH_UI, frame, 1820)
+        endfunction  //由绑定的frame反推UIStruct用
+        function GetTypeIDFromFrame takes integer frame returns integer
+            return LoadInteger(HASH_UI, frame, 1821)
+        endfunction
+
+//library UIHashTable ends
 //library UIId:
         function s__uiId_onInit takes nothing returns nothing
             set s__uiId_ht=InitHashtable()
@@ -915,6 +1124,32 @@ endfunction
 //library UIImageModule:
 
 //library UIImageModule ends
+//library UILifeCycle:
+        //private:
+        function s__uiLifeCycle_registerCreate takes code func returns nothing
+            call TriggerAddCondition(s__uiLifeCycle_trCreate, Condition(func))
+        endfunction  // 注册销毁回调
+        function s__uiLifeCycle_registerDestroy takes code func returns nothing
+            call TriggerAddCondition(s__uiLifeCycle_trDestroy, Condition(func))
+        endfunction
+        function s__uiLifeCycle_onCreateCB takes integer ui,integer typeID,integer frame returns nothing
+            set s__uiLifeCycle_agrsUI=ui
+            set s__uiLifeCycle_agrsTypeID=typeID
+            set s__uiLifeCycle_agrsFrame=frame
+            call TriggerEvaluate(s__uiLifeCycle_trCreate)
+        endfunction
+        function s__uiLifeCycle_onDestroyCB takes integer ui,integer typeID,integer frame returns nothing
+            set s__uiLifeCycle_agrsUI=ui
+            set s__uiLifeCycle_agrsTypeID=typeID
+            set s__uiLifeCycle_agrsFrame=frame
+            call TriggerEvaluate(s__uiLifeCycle_trDestroy)
+        endfunction
+        function s__uiLifeCycle_onInit takes nothing returns nothing
+            set s__uiLifeCycle_trCreate=CreateTrigger()
+            set s__uiLifeCycle_trDestroy=CreateTrigger()
+        endfunction
+
+//library UILifeCycle ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
@@ -946,96 +1181,414 @@ endfunction
 //library UnitTestFramwork ends
 //library UITocInit:
 
-    function UITocInit__onInit takes nothing returns nothing
+    function UITocInit___onInit takes nothing returns nothing
         call DzLoadToc("ui\\Crainax.toc")
         call DzFrameEnableClipRect(false)
     endfunction
 
 //library UITocInit ends
-//library UIBorder:
-        function s__uiBorder_isExist takes integer this returns boolean
-            return ( this != null and si__uiBorder_V[this] == - 1 )
+//library BaseAnim:
+//processed:     function interface onLifeEnd takes baseanim arg0 returns nothing
+        function s__baseanim_isExist takes integer this returns boolean
+            return ( this != null and si__baseanim_V[this] == - 1 )
         endfunction
-//Implemented from module uiBaseModule:
-        function s__uiBorder_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetPoint(s__uiBorder_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+        function s__baseanim_create takes integer ui returns integer
+            local integer this=s__baseanim__allocate()
+            set s__baseanim_ui[this]=ui
+            call SaveInteger(HASH_UI, ui, 1822, this) //统计数量++
+            set s__baseanim_size=s__baseanim_size + 1
             return this
-        endfunction  // 大小完全对齐父框架
-        function s__uiBorder_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetAllPoints(s__uiBorder_ui[this], relative)
-            return this
-        endfunction  // 清除所有位置
-        function s__uiBorder_clearPoint takes integer this returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameClearAllPoints(s__uiBorder_ui[this])
-            return this
-        endfunction  // 设置大小
-        function s__uiBorder_setSize takes integer this,real width,real height returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetSize(s__uiBorder_ui[this], width, height)
-            return this
-        endfunction
-//Implemented from module uiImageModule:
-        function s__uiBorder_texture takes integer this,string path returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetTexture(s__uiBorder_ui[this], path, 0)
-            return this
-        endfunction
-        function s__uiBorder_create takes integer parent returns integer
-            local integer this=s__uiBorder__allocate()
-            set s__uiBorder_id[this]=s__uiId_get()
-            set s__uiBorder_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiBorder_id[this]), parent, "Border1", 0)
-//#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiBorder.typeid,ui)
-//#             endif
-            return this
-        endfunction
-        function s__uiBorder_alignParent takes integer this,integer ui returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call s__uiBorder_setPoint(this,0 , ui , 0 , - 0.005 , 0.005)
-            call s__uiBorder_setPoint(this,8 , ui , 8 , 0.005 , - 0.005)
-            return this
-        endfunction
-        function s__uiBorder_onDestroy takes integer this returns nothing
-            if ( not ( s__uiBorder_isExist(this) ) ) then
+        endfunction  //延迟组
+        function s__baseanim_addDelay takes integer this,integer time returns nothing
+            if ( time <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
                 return
             endif
-//#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onDestroyCB(this,uiBorder.typeid,ui)
-//#             endif
-            call DzDestroyFrame(s__uiBorder_ui[this])
-            call s__uiId_recycle(s__uiBorder_id[this])
+            set s__baseanim_dTime[this]=time
+            set s__baseanim_dNow[this]=0 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_dID[this] == 0 ) then
+                set s__baseanim_DNum=s__baseanim_DNum + 1
+                set s__baseanim_DList[s__baseanim_DNum]=this
+                set s__baseanim_dID[this]=s__baseanim_DNum
+            endif //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
         endfunction
+        function s__baseanim_delDelay takes integer this returns nothing
+            if ( s__baseanim_dID[this] != 0 ) then
+                set s__baseanim_DList[s__baseanim_dID[this]]=s__baseanim_DList[s__baseanim_DNum]
+                set s__baseanim_dID[s__baseanim_DList[s__baseanim_dID[this]]]=s__baseanim_dID[this]
+                set s__baseanim_DNum=s__baseanim_DNum - 1
+                set s__baseanim_dID[this]=0
+            endif
+        endfunction  //移动组
+        function s__baseanim_addMove takes integer this,integer align,real off,real dist,integer time,real angle,integer anchor1,integer anchor2 returns nothing
+            if ( dist <= 0. or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_align[this]=align
+            set s__baseanim_dist[this]=dist
+            set s__baseanim_off[this]=off
+            set s__baseanim_mTime[this]=time
+            set s__baseanim_mNow[this]=0
+            set s__baseanim_angle[this]=angle
+            set s__baseanim_anchor1[this]=anchor1
+            set s__baseanim_anchor2[this]=anchor2 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_mID[this] == 0 ) then
+                set s__baseanim_MNum=s__baseanim_MNum + 1
+                set s__baseanim_MList[s__baseanim_MNum]=this
+                set s__baseanim_mID[this]=s__baseanim_MNum
+            endif
+            call DzFrameSetPoint(s__baseanim_ui[this], anchor1, align, anchor2, CosBJ(angle) * off, SinBJ(angle) * off) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delMove takes integer this returns nothing
+            if ( s__baseanim_mID[this] != 0 ) then
+                set s__baseanim_MList[s__baseanim_mID[this]]=s__baseanim_MList[s__baseanim_MNum]
+                set s__baseanim_mID[s__baseanim_MList[s__baseanim_mID[this]]]=s__baseanim_mID[this]
+                set s__baseanim_MNum=s__baseanim_MNum - 1
+                set s__baseanim_mID[this]=0
+            endif
+        endfunction  //透明组
+        function s__baseanim_addAlpha takes integer this,integer start,integer tar,integer time returns nothing
+            if ( time <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_aStart[this]=start
+            set s__baseanim_aTar[this]=tar
+            set s__baseanim_aTime[this]=time
+            set s__baseanim_aNow[this]=0 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_aID[this] == 0 ) then
+                set s__baseanim_ANum=s__baseanim_ANum + 1
+                set s__baseanim_AList[s__baseanim_ANum]=this
+                set s__baseanim_aID[this]=s__baseanim_ANum
+            endif //这个不能设置的原因是有可能有2个一起设置，存在延迟;
+            call DzFrameSetAlpha(s__baseanim_ui[this], start) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delAlpha takes integer this returns nothing
+            if ( s__baseanim_aID[this] != 0 ) then
+                set s__baseanim_AList[s__baseanim_aID[this]]=s__baseanim_AList[s__baseanim_ANum]
+                set s__baseanim_aID[s__baseanim_AList[s__baseanim_aID[this]]]=s__baseanim_aID[this]
+                set s__baseanim_ANum=s__baseanim_ANum - 1
+                set s__baseanim_aID[this]=0
+            endif
+        endfunction  //放大组[垃圾scale还是用size香]
+        function s__baseanim_addZoom takes integer this,real startX,real tarX,real startY,real tarY,integer time returns nothing
+            if ( time <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_zStartX[this]=startX
+            set s__baseanim_zTarX[this]=tarX
+            set s__baseanim_zStartY[this]=startY
+            set s__baseanim_zTarY[this]=tarY
+            set s__baseanim_zTime[this]=time
+            set s__baseanim_zNow[this]=0 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_zID[this] == 0 ) then
+                set s__baseanim_ZNum=s__baseanim_ZNum + 1
+                set s__baseanim_ZList[s__baseanim_ZNum]=this
+                set s__baseanim_zID[this]=s__baseanim_ZNum
+            endif
+            call DzFrameSetSize(s__baseanim_ui[this], startX, startY) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delZoom takes integer this returns nothing
+            if ( s__baseanim_zID[this] != 0 ) then
+                set s__baseanim_ZList[s__baseanim_zID[this]]=s__baseanim_ZList[s__baseanim_ZNum]
+                set s__baseanim_zID[s__baseanim_ZList[s__baseanim_zID[this]]]=s__baseanim_zID[this]
+                set s__baseanim_ZNum=s__baseanim_ZNum - 1
+                set s__baseanim_zID[this]=0
+            endif
+        endfunction  //序列组(永恒序列/一次性序列)
+        function s__baseanim_addSequ takes integer this,string path,integer maxFrame,integer interval,boolean isL returns nothing
+            if ( maxFrame <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_sPath[this]=path //路径; //最大帧数;
+            set s__baseanim_sMax[this]=maxFrame //当前帧;
+            set s__baseanim_sPos[this]=0 //帧间隔;
+            set s__baseanim_sGap[this]=interval //帧间隔;
+            set s__baseanim_sGapPos[this]=0 //是否循环;
+            set s__baseanim_sLoop[this]=isL //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_sID[this] == 0 ) then
+                set s__baseanim_SNum=s__baseanim_SNum + 1
+                set s__baseanim_SList[s__baseanim_SNum]=this
+                set s__baseanim_sID[this]=s__baseanim_SNum
+            endif
+            call DzFrameSetTexture(s__baseanim_ui[this], s__baseanim_sPath[this] + "0.blp", 0) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delSequ takes integer this returns nothing
+            set s__baseanim_sPath[this]=null
+            if ( s__baseanim_sID[this] != 0 ) then
+                set s__baseanim_SList[s__baseanim_sID[this]]=s__baseanim_SList[s__baseanim_SNum]
+                set s__baseanim_sID[s__baseanim_SList[s__baseanim_sID[this]]]=s__baseanim_sID[this]
+                set s__baseanim_SNum=s__baseanim_SNum - 1
+                set s__baseanim_sID[this]=0
+            endif
+        endfunction  //闪烁组
+        function s__baseanim_addBlink takes integer this,integer start,integer period returns nothing
+            if ( period <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_bStart[this]=start
+            set s__baseanim_bOrient[this]=false
+            set s__baseanim_bPeriod[this]=period
+            set s__baseanim_bTime[this]=0 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_bID[this] == 0 ) then
+                set s__baseanim_BNum=s__baseanim_BNum + 1
+                set s__baseanim_BList[s__baseanim_BNum]=this
+                set s__baseanim_bID[this]=s__baseanim_BNum
+            endif
+            call DzFrameSetAlpha(s__baseanim_ui[this], start) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delBlink takes integer this returns nothing
+            if ( s__baseanim_bID[this] != 0 ) then
+                set s__baseanim_BList[s__baseanim_bID[this]]=s__baseanim_BList[s__baseanim_BNum]
+                set s__baseanim_bID[s__baseanim_BList[s__baseanim_bID[this]]]=s__baseanim_bID[this]
+                set s__baseanim_BNum=s__baseanim_BNum - 1
+                set s__baseanim_bID[this]=0
+            endif
+        endfunction  //生命周期组
+        function s__baseanim_addLife takes integer this,integer period,integer lCB returns nothing
+            if ( period <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_lPeriod[this]=period
+            set s__baseanim_lTime[this]=0
+            set s__baseanim_lCB[this]=lCB //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_lID[this] == 0 ) then
+                set s__baseanim_LNum=s__baseanim_LNum + 1
+                set s__baseanim_LList[s__baseanim_LNum]=this
+                set s__baseanim_lID[this]=s__baseanim_LNum
+            endif //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delLife takes integer this returns nothing
+            set s__baseanim_lTime[this]=0
+            if ( s__baseanim_lID[this] != 0 ) then //这里开始删ui
+                if ( s__baseanim_ui[this] != 0 and s__baseanim_lCB[this] != 0 ) then //因为会自动排泄,防止在回调删UI的时候继续再调用一次
+                    call RemoveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822)
+                    call sc___prototype14_evaluate(s__baseanim_lCB[this],this)
+                endif
+                set s__baseanim_LList[s__baseanim_lID[this]]=s__baseanim_LList[s__baseanim_LNum]
+                set s__baseanim_lID[s__baseanim_LList[s__baseanim_lID[this]]]=s__baseanim_lID[this]
+                set s__baseanim_LNum=s__baseanim_LNum - 1
+                set s__baseanim_lID[this]=0
+            endif
+        endfunction  //析构,手动调用或者生命周期结束时自动调用
+        function s__baseanim_onDestroy takes integer this returns nothing
+            if ( not ( s__baseanim_isExist(this) ) ) then
+                return
+            endif
+            call s__baseanim_delDelay(this)
+            call s__baseanim_delMove(this)
+            call s__baseanim_delZoom(this)
+            call s__baseanim_delAlpha(this)
+            call s__baseanim_delSequ(this)
+            call s__baseanim_delBlink(this)
+            call s__baseanim_delLife(this)
+            if ( HaveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822) ) then
+                call RemoveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822)
+            endif
+            set s__baseanim_ui[this]=0 //统计数量--
+            set s__baseanim_size=s__baseanim_size - 1
+        endfunction  //查看当前的东西
 
-//Generated destructor of uiBorder
-function s__uiBorder_deallocate takes integer this returns nothing
+//Generated destructor of baseanim
+function s__baseanim_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBorder")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: baseanim")
         return
-    elseif (si__uiBorder_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBorder")
+    elseif (si__baseanim_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: baseanim")
         return
     endif
-    call s__uiBorder_onDestroy(this)
-    set si__uiBorder_V[this]=si__uiBorder_F
-    set si__uiBorder_F=this
+    call s__baseanim_onDestroy(this)
+    set si__baseanim_V[this]=si__baseanim_F
+    set si__baseanim_F=this
 endfunction
+        function s__baseanim_toString takes nothing returns string
+            local string s=""
+            set s=s + "[DNum]" + I2S(s__baseanim_DNum) + "->"
+            set s=s + "[MNum]" + I2S(s__baseanim_MNum) + "->"
+            set s=s + "[ANum]" + I2S(s__baseanim_ANum) + "->"
+            set s=s + "[ZNum]" + I2S(s__baseanim_ZNum) + "->"
+            set s=s + "[SNum]" + I2S(s__baseanim_SNum) + "->"
+            set s=s + "[BNum]" + I2S(s__baseanim_BNum) + "->"
+            set s=s + "[LNum]" + I2S(s__baseanim_LNum)
+            return s
+        endfunction
+            function s__baseanim_anon__0 takes nothing returns nothing
+                local integer i
+                local integer this
+                local real r
+                if ( s__baseanim_DNum > 0 ) then
+                    set i=1 //从结论来说i就是dID
+                    loop
+                    exitwhen ( i > s__baseanim_DNum )
+                        set this=s__baseanim_DList[i]
+                        set s__baseanim_dNow[this]=s__baseanim_dNow[this] + 1 //结束了
+                        if ( s__baseanim_dNow[this] >= s__baseanim_dTime[this] ) then
+                            set s__baseanim_DList[i]=s__baseanim_DList[s__baseanim_DNum]
+                            set s__baseanim_dID[s__baseanim_DList[i]]=i
+                            set s__baseanim_DNum=s__baseanim_DNum - 1
+                            set s__baseanim_dID[this]=0
+                            set i=i - 1
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //移动
+                if ( s__baseanim_MNum > 0 ) then
+                    set i=1 //从结论来说i就是mID
+                    loop
+                    exitwhen ( i > s__baseanim_MNum )
+                        set this=s__baseanim_MList[i]
+                        if ( s__baseanim_dID[this] == 0 ) then //结束了
+                            if ( s__baseanim_mNow[this] >= s__baseanim_mTime[this] ) then
+                                call DzFrameClearAllPoints(s__baseanim_ui[this])
+                                call DzFrameSetPoint(s__baseanim_ui[this], s__baseanim_anchor1[this], s__baseanim_align[this], s__baseanim_anchor2[this], CosBJ(s__baseanim_angle[this]) * ( s__baseanim_off[this] + s__baseanim_dist[this] ), SinBJ(s__baseanim_angle[this]) * ( s__baseanim_off[this] + s__baseanim_dist[this] ))
+                                set s__baseanim_MList[i]=s__baseanim_MList[s__baseanim_MNum]
+                                set s__baseanim_mID[s__baseanim_MList[i]]=i
+                                set s__baseanim_MNum=s__baseanim_MNum - 1
+                                set i=i - 1
+                                set s__baseanim_mID[this]=0
+                            else
+                                set s__baseanim_mNow[this]=s__baseanim_mNow[this] + 1
+                                call DzFrameClearAllPoints(s__baseanim_ui[this])
+                                call DzFrameSetPoint(s__baseanim_ui[this], s__baseanim_anchor1[this], s__baseanim_align[this], s__baseanim_anchor2[this], CosBJ(s__baseanim_angle[this]) * ( s__baseanim_off[this] + s__baseanim_dist[this] * s__baseanim_mNow[this] / s__baseanim_mTime[this] ), SinBJ(s__baseanim_angle[this]) * ( s__baseanim_off[this] + s__baseanim_dist[this] * s__baseanim_mNow[this] / s__baseanim_mTime[this] ))
+                            endif //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //透明度
+                if ( s__baseanim_ANum > 0 ) then
+                    set i=1 //从结论来说i就是aID
+                    loop
+                    exitwhen ( i > s__baseanim_ANum )
+                        set this=s__baseanim_AList[i] // 结束了
+                        if ( s__baseanim_dID[this] == 0 ) then
+                            if ( s__baseanim_aNow[this] >= s__baseanim_aTime[this] ) then
+                                call DzFrameSetAlpha(s__baseanim_ui[this], s__baseanim_aTar[this])
+                                if ( s__baseanim_aTar[this] <= 0 ) then
+                                    call DzFrameShow(s__baseanim_ui[this], false)
+                                endif
+                                set s__baseanim_AList[i]=s__baseanim_AList[s__baseanim_ANum]
+                                set s__baseanim_aID[s__baseanim_AList[i]]=i
+                                set s__baseanim_ANum=s__baseanim_ANum - 1
+                                set i=i - 1
+                                set s__baseanim_aID[this]=0
+                            else
+                                set s__baseanim_aNow[this]=s__baseanim_aNow[this] + 1
+                                call DzFrameSetAlpha(s__baseanim_ui[this], R2I(s__baseanim_aStart[this] + ( s__baseanim_aTar[this] - s__baseanim_aStart[this] ) * ( I2R(s__baseanim_aNow[this]) / s__baseanim_aTime[this] )))
+                            endif //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //放大组
+                if ( s__baseanim_ZNum > 0 ) then
+                    set i=1 //从结论来说i就是aID
+                    loop
+                    exitwhen ( i > s__baseanim_ZNum )
+                        set this=s__baseanim_ZList[i] // 结束了
+                        if ( s__baseanim_dID[this] == 0 ) then
+                            if ( s__baseanim_zNow[this] >= s__baseanim_zTime[this] ) then //DzFrameSetScale(ui,zTar);
+                                call DzFrameSetSize(s__baseanim_ui[this], s__baseanim_zTarX[this], s__baseanim_zTarY[this])
+                                set s__baseanim_ZList[i]=s__baseanim_ZList[s__baseanim_ZNum]
+                                set s__baseanim_zID[s__baseanim_ZList[i]]=i
+                                set s__baseanim_ZNum=s__baseanim_ZNum - 1
+                                set i=i - 1
+                                set s__baseanim_zID[this]=0
+                            else
+                                set s__baseanim_zNow[this]=s__baseanim_zNow[this] + 1
+                                call DzFrameSetSize(s__baseanim_ui[this], s__baseanim_zStartX[this] + ( s__baseanim_zTarX[this] - s__baseanim_zStartX[this] ) * ( I2R(s__baseanim_zNow[this]) / s__baseanim_zTime[this] ), s__baseanim_zStartY[this] + ( s__baseanim_zTarY[this] - s__baseanim_zStartY[this] ) * ( I2R(s__baseanim_zNow[this]) / s__baseanim_zTime[this] ))
+                            endif //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //序列帧
+                if ( s__baseanim_SNum > 0 ) then
+                    set i=1 //从结论来说i就是sID
+                    loop
+                    exitwhen ( i > s__baseanim_SNum )
+                        set this=s__baseanim_SList[i]
+                        if ( s__baseanim_dID[this] == 0 ) then
+                            set s__baseanim_sGapPos[this]=s__baseanim_sGapPos[this] + 1 //几帧一绘
+                            if ( s__baseanim_sGapPos[this] >= s__baseanim_sGap[this] ) then
+                                set s__baseanim_sGapPos[this]=0
+                                set s__baseanim_sPos[this]=s__baseanim_sPos[this] + 1 // 结束了,且不循环
+                                if ( s__baseanim_sPos[this] > s__baseanim_sMax[this] ) then
+                                    set s__baseanim_sPos[this]=0 //不循环
+                                    if ( not s__baseanim_sLoop[this] ) then
+                                        call DzFrameSetTexture(s__baseanim_ui[this], s__baseanim_sPath[this] + I2S(s__baseanim_sMax[this]) + ".blp", 0)
+                                        set s__baseanim_SList[i]=s__baseanim_SList[s__baseanim_SNum]
+                                        set s__baseanim_sID[s__baseanim_SList[i]]=i
+                                        set s__baseanim_SNum=s__baseanim_SNum - 1
+                                        set i=i - 1
+                                        set s__baseanim_sID[this]=0
+                                    else
+                                        call DzFrameSetTexture(s__baseanim_ui[this], s__baseanim_sPath[this] + "0.blp", 0)
+                                    endif
+                                else //正常绘帧
+                                    call DzFrameSetTexture(s__baseanim_ui[this], s__baseanim_sPath[this] + I2S(s__baseanim_sPos[this]) + ".blp", 0)
+                                endif
+                            endif //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //闪烁组
+                if ( s__baseanim_BNum > 0 ) then
+                    set i=1 //从结论来说i就是aID
+                    loop
+                    exitwhen ( i > s__baseanim_BNum )
+                        set this=s__baseanim_BList[i]
+                        if ( s__baseanim_dID[this] == 0 ) then //变透明
+                            if ( s__baseanim_bOrient[this] ) then
+                                set s__baseanim_bTime[this]=s__baseanim_bTime[this] - 1 //实体化
+                            else
+                                set s__baseanim_bTime[this]=s__baseanim_bTime[this] + 1
+                            endif
+                            if ( s__baseanim_bTime[this] >= R2I(s__baseanim_bPeriod[this] * 0.5) or s__baseanim_bTime[this] <= 0 ) then
+                                set s__baseanim_bOrient[this]=not s__baseanim_bOrient[this]
+                            endif
+                            call DzFrameSetAlpha(s__baseanim_ui[this], R2I(255 * ( I2R(s__baseanim_bTime[this]) / s__baseanim_bPeriod[this] * 2 ))) //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //生命周期[不受延迟组影响]
+                if ( s__baseanim_LNum > 0 ) then
+                    set i=1 //从结论来说i就是dID
+                    loop
+                    exitwhen ( i > s__baseanim_LNum )
+                        set this=s__baseanim_LList[i]
+                        set s__baseanim_lTime[this]=s__baseanim_lTime[this] + 1 //结束了
+                        if ( s__baseanim_lTime[this] >= s__baseanim_lPeriod[this] ) then
+                            call s__baseanim_deallocate(this)
+                            set i=i - 1
+                        endif
+                    set i=i + 1
+                    endloop
+                endif
+                if ( s__baseanim_DNum <= 0 and s__baseanim_MNum <= 0 and s__baseanim_ANum <= 0 and s__baseanim_ZNum <= 0 and s__baseanim_SNum <= 0 and s__baseanim_BNum <= 0 and s__baseanim_LNum <= 0 ) then //这里就删计时器吧
+                    call s__uianim_unreg(s__baseanim_UIA)
+                    call BJDebugMsg("baseanim停止了")
+                endif
+            endfunction  // UI销毁时回调删除基础动画(UI销毁时会自动调用),但是不需要再删ba了,
+            function s__baseanim_anon__1 takes nothing returns nothing
+                local integer ui=s__uiLifeCycle_agrsFrame
+                local integer this
+                if ( HaveSavedInteger(HASH_UI, ui, 1822) ) then
+                    set this=LoadInteger(HASH_UI, ui, 1822)
+                    if ( s__baseanim_isExist(this) ) then
+                        call s__baseanim_deallocate(this)
+                    endif
+                endif
+            endfunction
+        function s__baseanim_onInit takes nothing returns nothing
+            set s__baseanim_UIA=s__uianim_create(function s__baseanim_anon__0)
+            call s__uiLifeCycle_registerDestroy(function s__baseanim_anon__1)
+        endfunction
 
-//library UIBorder ends
+//library BaseAnim ends
 //library UIImage:
         function s__uiImage_isExist takes integer this returns boolean
             return ( this != null and si__uiImage_V[this] == - 1 )
@@ -1082,7 +1635,10 @@ endfunction
             set s__uiImage_id[this]=s__uiId_get()
             set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "IT", 0)
 //#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
+                    call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+                    call BindFrameToUI(s__uiImage_ui[this] , si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类1)
@@ -1091,7 +1647,10 @@ endfunction
             set s__uiImage_id[this]=s__uiId_get()
             set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate", 0)
 //#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
+                    call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+                    call BindFrameToUI(s__uiImage_ui[this] , si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类2)
@@ -1100,7 +1659,10 @@ endfunction
             set s__uiImage_id[this]=s__uiId_get()
             set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate2", 0)
 //#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
+                    call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+                    call BindFrameToUI(s__uiImage_ui[this] , si__uiImage , this)
 //#             endif
             return this
         endfunction
@@ -1109,7 +1671,10 @@ endfunction
                 return
             endif
 //#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onDestroyCB(this,uiImage.typeid,ui)
+                    call s__uiLifeCycle_onDestroyCB(this , si__uiImage , s__uiImage_ui[this])
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+                    call FlushChildHashtable(HASH_UI, s__uiImage_ui[this])
 //#             endif
             call DzDestroyFrame(s__uiImage_ui[this])
             call s__uiId_recycle(s__uiImage_id[this])
@@ -1130,140 +1695,135 @@ function s__uiImage_deallocate takes integer this returns nothing
 endfunction
 
 //library UIImage ends
-//library UIImageBar:
-        function s__uiImageBar_isExist takes integer this returns boolean
-            return ( this != null and si__uiImageBar_V[this] == - 1 )
+//library UTBaseAnim:
+
+        function s__test_isExist takes integer this returns boolean
+            return ( this != null and si__test_V[this] == - 1 )
         endfunction
-        function s__uiImageBar_create takes integer parent returns integer
-            local integer this=s__uiImageBar__allocate()
-            set s__uiImageBar_uiBackground[this]=s__uiImage_texture(s__uiImage_create(parent),"ReplaceableTextures\\TeamColor\\TeamColor15.blp")
-            set s__uiImageBar_uiFill[this]=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setPoint(s__uiImage_create(parent),0 , s__uiImage_ui[s__uiImageBar_uiBackground[this]] , 0 , 0.0 , 0.0),6 , s__uiImage_ui[s__uiImageBar_uiBackground[this]] , 6 , 0.0 , 0.0),"ReplaceableTextures\\TeamColor\\TeamColor02.blp")
-            set s__uiImageBar_border[this]=0 // 默认没有边框
-            return this
-        endfunction  // 设置填充颜色
-        function s__uiImageBar_setFillColor takes integer this,integer playerColor returns integer
-            local integer color
-            if ( not ( s__uiImageBar_isExist(this) ) ) then
-                return this
+        function s__test_create takes nothing returns integer
+            local integer this=s__test__allocate()
+            local integer row=ModuloInteger(this - 1, 10) + 1
+            local integer column=( this - 1 ) / 10 + 1
+            set s__test_img[this]=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(DzGetGameUI()),0.035 , 0.035),4 , DzGetGameUI() , 6 , 0.05 + column * 0.04 , 0.05 + 0.04 * row),"ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp")
+            set s__test_ba[this]=s__baseanim_create(s__uiImage_ui[s__test_img[this]]) //写在create函数里
+            set UTBaseAnim__tFromBA[s__test_ba[this]]=this //这里是初始化时的设置内容,不需要改
+            if ( s__test_uID[this] == 0 ) then
+                set s__test_size=s__test_size + 1
+                set s__test_List[s__test_size]=this
+                set s__test_uID[this]=s__test_size
             endif
-            set color=ModuloInteger(playerColor, 16)
-            if ( color < 10 ) then
-                call s__uiImage_texture(s__uiImageBar_uiFill[this],"ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp")
-            else
-                call s__uiImage_texture(s__uiImageBar_uiFill[this],"ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp")
-            endif
-            return this
-        endfunction  // 设置背景颜色
-        function s__uiImageBar_setBackgroundColor takes integer this,integer playerColor returns integer
-            local integer color
-            if ( not ( s__uiImageBar_isExist(this) ) ) then
-                return this
-            endif
-            set color=ModuloInteger(playerColor, 16)
-            if ( color < 10 ) then
-                call s__uiImage_texture(s__uiImageBar_uiBackground[this],"ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp")
-            else
-                call s__uiImage_texture(s__uiImageBar_uiBackground[this],"ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp")
-            endif
-            return this
-        endfunction  // 设置外边框
-        function s__uiImageBar_setBorder takes integer this,integer borderType returns integer
-            if ( not ( s__uiImageBar_isExist(this) ) ) then
-                return this
-            endif
-            if ( s__uiImageBar_border[this] == 0 ) then
-                set s__uiImageBar_border[this]=s__uiBorder_alignParent(s__uiBorder_create(s__uiImage_ui[s__uiImageBar_uiFill[this]]),s__uiImage_ui[s__uiImageBar_uiBackground[this]])
-            endif
-            return this
-        endfunction  // 获取进度
-        function s__uiImageBar_getProgress takes integer this returns real
-            if ( not ( s__uiImageBar_isExist(this) ) ) then
-                return 0.0
-            endif
-            return DzFrameGetWidth(s__uiImage_ui[s__uiImageBar_uiFill[this]]) / DzFrameGetWidth(s__uiImage_ui[s__uiImageBar_uiBackground[this]])
-        endfunction  // 设置进度(0-1.0)
-        function s__uiImageBar_setProgress takes integer this,real progress returns integer
-            if ( not ( s__uiImageBar_isExist(this) ) ) then // 设置填充图片的宽度为背景宽度 * 进度值
-                return this
-            endif
-            call s__uiImage_setSize(s__uiImageBar_uiFill[this],DzFrameGetWidth(s__uiImage_ui[s__uiImageBar_uiBackground[this]]) * progress , 0.0)
-            return this
-        endfunction  // 设置位置
-        function s__uiImageBar_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiImageBar_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetPoint(s__uiImage_ui[s__uiImageBar_uiBackground[this]], anchor, relative, relativeAnchor, offsetX, offsetY)
-            return this
-        endfunction  // 设置进度条的大小
-        function s__uiImageBar_setSize takes integer this,real width,real height returns integer
-            call s__uiImage_setSize(s__uiImageBar_uiBackground[this],width , height)
             return this
         endfunction
-        function s__uiImageBar_onDestroy takes integer this returns nothing
-            if ( not ( s__uiImageBar_isExist(this) ) ) then
+        function s__test_onDestroy takes integer this returns nothing
+            if ( not ( s__test_isExist(this) ) ) then //写在onDestroy函数里
                 return
             endif
-            if ( s__uiImageBar_border[this] != 0 ) then //注意顺序
-                call s__uiBorder_deallocate(s__uiImageBar_border[this])
+            set UTBaseAnim__tFromBA[s__test_ba[this]]=0
+            if ( s__uiImage_isExist(s__test_img[this]) ) then
+                call s__uiImage_deallocate(s__test_img[this])
             endif
-            call s__uiImage_deallocate(s__uiImageBar_uiFill[this])
-            call s__uiImage_deallocate(s__uiImageBar_uiBackground[this])
+            if ( s__test_uID[this] != 0 ) then //这个其实就是将List的[2]设成5  假设2是删  5是最长
+                set s__test_List[s__test_uID[this]]=s__test_List[s__test_size] //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立) //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+                set s__test_uID[s__test_List[s__test_uID[this]]]=s__test_uID[this]
+                set s__test_size=s__test_size - 1
+                set s__test_uID[this]=0
+            endif
         endfunction
 
-//Generated destructor of uiImageBar
-function s__uiImageBar_deallocate takes integer this returns nothing
+//Generated destructor of test
+function s__test_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImageBar")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: test")
         return
-    elseif (si__uiImageBar_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImageBar")
+    elseif (si__test_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: test")
         return
     endif
-    call s__uiImageBar_onDestroy(this)
-    set si__uiImageBar_V[this]=si__uiImageBar_F
-    set si__uiImageBar_F=this
+    call s__test_onDestroy(this)
+    set si__test_V[this]=si__test_F
+    set si__test_F=this
 endfunction
-
-//library UIImageBar ends
-//library UTUIImageBar:
-
-        function UTUIImageBar__anon__0 takes nothing returns nothing
-            if ( s__uiImageBar_isExist(UTUIImageBar__bar) ) then
-                set UTUIImageBar__progress=UTUIImageBar__progress + 0.01
-                if ( UTUIImageBar__progress >= 1.0 ) then
-                    set UTUIImageBar__progress=0.0
-                endif
-                call s__uiImageBar_setProgress(UTUIImageBar__bar,UTUIImageBar__progress)
-                call BJDebugMsg("getProgress: " + R2S(s__uiImageBar_getProgress(UTUIImageBar__bar)))
-            endif
+        function s__test_destroyAll takes nothing returns nothing
+            local integer this
+            loop
+            exitwhen ( s__test_size <= 0 )
+                set this=s__test_List[s__test_size]
+                call s__test_deallocate(this)
+            endloop
         endfunction
-    function UTUIImageBar__TTestUTUIImageBar1 takes player p returns nothing
-        set UTUIImageBar__bar=s__uiImageBar_setPoint(s__uiImageBar_setFillColor(s__uiImageBar_setBorder(s__uiImageBar_setSize(s__uiImageBar_setProgress(s__uiImageBar_create(DzGetGameUI()),0.5),0.2 , 0.01),1),1),4 , DzGetGameUI() , 4 , 0 , 0)
-        call TimerStart(CreateTimer(), 0.03, true, function UTUIImageBar__anon__0)
+        function UTBaseAnim__anon__0 takes integer ba returns nothing
+            local integer t=UTBaseAnim__tFromBA[ba]
+            call BJDebugMsg("反推实例ba[" + I2S(ba) + "]this:" + I2S(t))
+            call s__test_deallocate(t)
+        endfunction
+    function UTBaseAnim__TTestUTBaseAnim1 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addDelay(s__test_ba[t],100)
+        call s__baseanim_addLife(s__test_ba[t],150 , (1))
+        call BJDebugMsg("测试一下延迟与生命周期(删)")
     endfunction
-    function UTUIImageBar__TTestUTUIImageBar2 takes player p returns nothing
-        if ( s__uiImageBar_isExist(UTUIImageBar__bar) ) then
-            call s__uiImageBar_deallocate(UTUIImageBar__bar)
-        endif
+    function UTBaseAnim__TTestUTBaseAnim2 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addMove(s__test_ba[t],DzGetGameUI() , 0.01 , 0.05 , 60 , UTBaseAnim__testAngle , 4 , 4)
+        call s__baseanim_addLife(s__test_ba[t],60 , 0)
+        set UTBaseAnim__testAngle=UTBaseAnim__testAngle + 8.8
+        call BJDebugMsg("单纯的测试移动: 角度" + R2SW(UTBaseAnim__testAngle, 0, 1) + " 距离" + R2SW(0.05, 0, 1))
     endfunction
-    function UTUIImageBar__TTestUTUIImageBar3 takes player p returns nothing
+    function UTBaseAnim__TTestUTBaseAnim3 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addAlpha(s__test_ba[t],0 , 255 , 30)
+        call s__baseanim_addLife(s__test_ba[t],30 , 0)
+        call BJDebugMsg("测试一下透明度: 透明度" + I2S(0) + "->" + I2S(255))
     endfunction
-    function UTUIImageBar__TTestUTUIImageBar4 takes player p returns nothing
+    function UTBaseAnim__TTestUTBaseAnim4 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addZoom(s__test_ba[t],.07 , .035 , .07 , .035 , 30)
+        call s__baseanim_addLife(s__test_ba[t],30 , 0)
+        call BJDebugMsg("测试一下缩放: 缩放" + R2SW(.07, 0, 1) + "->" + R2SW(.035, 0, 1) + " ,y" + R2SW(.07, 0, 1) + "->" + R2SW(.035, 0, 1))
     endfunction
-    function UTUIImageBar__TTestUTUIImageBar5 takes player p returns nothing
+    function UTBaseAnim__TTestUTBaseAnim5 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addSequ(s__test_ba[t],"ui\\icongrow\\ig1_" , 63 , 2 , true)
+        call BJDebugMsg("测试一下序列帧:循环")
     endfunction
-    function UTUIImageBar__TTestUTUIImageBar6 takes player p returns nothing
+    function UTBaseAnim__TTestUTBaseAnim6 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addSequ(s__test_ba[t],"ui\\icongrow\\ig1_" , 63 , 2 , false)
+        call s__baseanim_addLife(s__test_ba[t],127 , 0)
+        call BJDebugMsg("测试一下序列帧: 不循环")
+    endfunction  //sequence: ui/icongrow/ig1_{0-63}.blp
+    function UTBaseAnim__TTestUTBaseAnim7 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addSequ(s__test_ba[t],"ui\\icongrow\\ig1_" , 63 , 2 , true)
+        call BJDebugMsg("测试一下序列帧，然后马上删除UI") // SaveInteger(HASH_TIMER,GetHandleId(ti),1,t);
+        call s__uiImage_deallocate(s__test_img[t]) // TimerStart(ti,1.2,false,function (){
+    endfunction  // 	timer ti = GetExpiredTimer(); // 	integer id = GetHandleId(ti); // 	test t = LoadInteger(HASH_TIMER,id,1); // 	t.img.destroy(); // 	PauseTimer(ti); // 	FlushChildHashtable(HASH_TIMER,id); // 	DestroyTimer(ti); // 	ti = null; // }); // ti = null;
+    function UTBaseAnim__TTestUTBaseAnim8 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addBlink(s__test_ba[t],0 , 60)
+        call s__baseanim_addLife(s__test_ba[t],180 , 0)
+        call BJDebugMsg("测试一下闪烁: 周期60")
     endfunction
-    function UTUIImageBar__TTestUTUIImageBar7 takes player p returns nothing
+        function UTBaseAnim__anon__1 takes integer ba returns nothing
+            local integer t=UTBaseAnim__tFromBA[ba]
+            call s__test_deallocate(t)
+        endfunction
+    function UTBaseAnim__TTestUTBaseAnim9 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addZoom(s__test_ba[t],.035 , .1 , .035 , .1 , 30)
+        call s__baseanim_addDelay(s__test_ba[t],30)
+        call s__baseanim_addLife(s__test_ba[t],61 , (2))
+        call BJDebugMsg("测试一下混合动画(扩大+透明度)")
     endfunction
-    function UTUIImageBar__TTestUTUIImageBar8 takes player p returns nothing
+    function UTBaseAnim__TTestUTBaseAnim10 takes player p returns nothing
+        local integer t=s__test_create()
+        call s__baseanim_addZoom(s__test_ba[t],0.12 , .035 , .12 , .035 , 30)
+        call s__baseanim_addDelay(s__test_ba[t],30)
+        call s__baseanim_addLife(s__test_ba[t],180 , 0)
+        call s__baseanim_addAlpha(s__test_ba[t],0 , 255 , 30)
+        call BJDebugMsg("测试一下混合动画()")
     endfunction
-    function UTUIImageBar__TTestUTUIImageBar9 takes player p returns nothing
-    endfunction
-    function UTUIImageBar__TTestUTUIImageBar10 takes player p returns nothing
-    endfunction
-    function UTUIImageBar__TTestActUTUIImageBar1 takes string str returns nothing
+    function UTBaseAnim__TTestActUTBaseAnim1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1290,56 +1850,62 @@ endfunction
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
-        if ( paramS[0] == "size" ) then
-            call s__uiImageBar_setSize(UTUIImageBar__bar,paramR[1] , paramR[2])
-        elseif ( paramS[0] == "color" ) then
-            call s__uiImageBar_setFillColor(UTUIImageBar__bar,paramI[1])
+        if ( paramS[0] == "destroy" ) then
+            call s__test_destroyAll()
+            call BJDebugMsg("销毁所有UI用例")
+        elseif ( paramS[0] == "b" ) then
         endif
         set p=null
     endfunction
-        function UTUIImageBar__anon__1 takes nothing returns nothing
-            call BJDebugMsg("[UIImageBar] 单元测试已加载")
+        function UTBaseAnim__anon__2 takes nothing returns nothing
+            call BJDebugMsg("---------------------------------------")
+            call BJDebugMsg("[BaseAnim] 动画系统测试已加载")
+            call BJDebugMsg("输入 s1-s10 测试不同动画效果")
+            call BJDebugMsg("输入 -destroy 清除所有测试实例")
+            call BJDebugMsg("---------------------------------------")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUIImageBar__anon__2 takes nothing returns nothing
+        function UTBaseAnim__anon__3 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUIImageBar__TTestActUTUIImageBar1(SubStringBJ(str, 2, StringLength(str)))
+                call UTBaseAnim__TTestActUTBaseAnim1(SubStringBJ(str, 2, StringLength(str)))
+                return
+            endif
+            if ( GetLocalPlayer() != GetTriggerPlayer() ) then
                 return
             endif
             if ( str == "s1" ) then
-                call UTUIImageBar__TTestUTUIImageBar1(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUIImageBar__TTestUTUIImageBar2(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUIImageBar__TTestUTUIImageBar3(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUIImageBar__TTestUTUIImageBar4(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUIImageBar__TTestUTUIImageBar5(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUIImageBar__TTestUTUIImageBar6(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUIImageBar__TTestUTUIImageBar7(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUIImageBar__TTestUTUIImageBar8(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUIImageBar__TTestUTUIImageBar9(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUIImageBar__TTestUTUIImageBar10(GetTriggerPlayer())
+                call UTBaseAnim__TTestUTBaseAnim10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUIImageBar__onInit takes nothing returns nothing
+    function UTBaseAnim__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUIImageBar__anon__1))
+        call TriggerAddCondition(tr, Condition(function UTBaseAnim__anon__2))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUIImageBar__anon__2)
+        call UnitTestRegisterChatEvent(function UTBaseAnim__anon__3)
     endfunction
 
-//library UTUIImageBar ends
-//控件的共用基本方法
+//library UTBaseAnim ends
 
 // 结构体共用方法定义
 //共享打印方法
@@ -1347,13 +1913,6 @@ endfunction
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -1364,6 +1923,17 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
+//控件的共用基本方法
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
+
+// 0 - 1亿这里用
+// 常用哈希表
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1447,7 +2017,34 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
+//===========================================================================
+// BaseAnim_Test.j
+//===========================================================================
+// 文件描述:
+// BaseAnim动画系统的单元测试文件
+//
+// 测试命令:
+// s1  - 测试延迟与生命周期
+// s2  - 测试移动动画
+// s3  - 测试透明度动画
+// s4  - 测试缩放动画
+// s5  - 测试循环序列帧
+// s6  - 测试非循环序列帧
+// s7  - 测试序列帧中断
+// s8  - 测试闪烁动画
+// s9  - 测试混合动画(扩大+透明度)
+// s10 - 测试混合动画(缩小+透明度)
+//
+// 特殊命令:
+// -destroy - 销毁所有测试实例
+//===========================================================================
 // 用原始地图测试
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -1776,10 +2373,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs40034093")
+call ExecuteFunc("jasshelper__initstructs28920500")
 call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UTUIImageBar__onInit")
+call ExecuteFunc("UITocInit___onInit")
+call ExecuteFunc("UTBaseAnim__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1817,16 +2414,21 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__uiImageBar_onDestroy takes nothing returns boolean
+function sa__test_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiImageBar_isExist(this) ) ) then
+            if ( not ( s__test_isExist(this) ) ) then //写在onDestroy函数里
 return true
             endif
-            if ( s__uiImageBar_border[this] != 0 ) then //注意顺序
-                call s__uiBorder_deallocate(s__uiImageBar_border[this])
+            set UTBaseAnim__tFromBA[s__test_ba[this]]=0
+            if ( s__uiImage_isExist(s__test_img[this]) ) then
+                call s__uiImage_deallocate(s__test_img[this])
             endif
-            call s__uiImage_deallocate(s__uiImageBar_uiFill[this])
-            call s__uiImage_deallocate(s__uiImageBar_uiBackground[this])
+            if ( s__test_uID[this] != 0 ) then //这个其实就是将List的[2]设成5  假设2是删  5是最长
+                set s__test_List[s__test_uID[this]]=s__test_List[s__test_size] //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立) //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+                set s__test_uID[s__test_List[s__test_uID[this]]]=s__test_uID[this]
+                set s__test_size=s__test_size - 1
+                set s__test_uID[this]=0
+            endif
    return true
 endfunction
 function sa__uiImage_onDestroy takes nothing returns boolean
@@ -1834,32 +2436,71 @@ local integer this=f__arg_this
             if ( not ( s__uiImage_isExist(this) ) ) then
 return true
             endif
+                    call s__uiLifeCycle_onDestroyCB(this , si__uiImage , s__uiImage_ui[this])
+                    call FlushChildHashtable(HASH_UI, s__uiImage_ui[this])
             call DzDestroyFrame(s__uiImage_ui[this])
             call s__uiId_recycle(s__uiImage_id[this])
    return true
 endfunction
-function sa__uiBorder_onDestroy takes nothing returns boolean
+function sa__baseanim_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiBorder_isExist(this) ) ) then
+            if ( not ( s__baseanim_isExist(this) ) ) then
 return true
             endif
-            call DzDestroyFrame(s__uiBorder_ui[this])
-            call s__uiId_recycle(s__uiBorder_id[this])
+            call s__baseanim_delDelay(this)
+            call s__baseanim_delMove(this)
+            call s__baseanim_delZoom(this)
+            call s__baseanim_delAlpha(this)
+            call s__baseanim_delSequ(this)
+            call s__baseanim_delBlink(this)
+            call s__baseanim_delLife(this)
+            if ( HaveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822) ) then
+                call RemoveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822)
+            endif
+            set s__baseanim_ui[this]=0 //统计数量--
+            set s__baseanim_size=s__baseanim_size - 1
    return true
 endfunction
+function sa___prototype14_UTBaseAnim__anon__0 takes nothing returns boolean
+ local integer ba=f__arg_integer1
 
-function jasshelper__initstructs40034093 takes nothing returns nothing
-    set st__uiImageBar_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiImageBar_onDestroy,Condition( function sa__uiImageBar_onDestroy))
+            local integer t=UTBaseAnim__tFromBA[ba]
+            call BJDebugMsg("反推实例ba[" + I2S(ba) + "]this:" + I2S(t))
+            call s__test_deallocate(t)
+    return true
+endfunction
+function sa___prototype14_UTBaseAnim__anon__1 takes nothing returns boolean
+ local integer ba=f__arg_integer1
+
+            local integer t=UTBaseAnim__tFromBA[ba]
+            call s__test_deallocate(t)
+    return true
+endfunction
+
+function jasshelper__initstructs28920500 takes nothing returns nothing
+    set st__test_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__test_onDestroy,Condition( function sa__test_onDestroy))
     set st__uiImage_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
-    set st__uiBorder_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiBorder_onDestroy,Condition( function sa__uiBorder_onDestroy))
+    set st__baseanim_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__baseanim_onDestroy,Condition( function sa__baseanim_onDestroy))
+    set st___prototype14[1]=CreateTrigger()
+    call TriggerAddAction(st___prototype14[1],function sa___prototype14_UTBaseAnim__anon__0)
+    call TriggerAddCondition(st___prototype14[1],Condition(function sa___prototype14_UTBaseAnim__anon__0))
+    set st___prototype14[2]=CreateTrigger()
+    call TriggerAddAction(st___prototype14[2],function sa___prototype14_UTBaseAnim__anon__1)
+    call TriggerAddCondition(st___prototype14[2],Condition(function sa___prototype14_UTBaseAnim__anon__1))
 
 
 
 
 
+
+
+
+    call ExecuteFunc("s__uianim_onInit")
     call ExecuteFunc("s__uiId_onInit")
+    call ExecuteFunc("s__uiLifeCycle_onInit")
+    call ExecuteFunc("s__baseanim_onInit")
 endfunction
 

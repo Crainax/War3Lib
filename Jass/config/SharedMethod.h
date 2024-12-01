@@ -32,11 +32,13 @@
 
 // UI组件创建时共享调用
 #define STRUCT_SHARED_UI_ONCREATE(structName) \
-    static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);}
+    static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} CRNL \
+    static if (LIBRARY_UIHashTable) {BindFrameToUI(ui,thistype.typeid,this); }
 
 // UI组件销毁时共享调用
 #define STRUCT_SHARED_UI_ONDESTROY(structName) \
-    static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);}
+    static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);} CRNL \
+    static if (LIBRARY_UIHashTable) { FlushChildHashtable(HASH_UI, ui); }
 
 #endif
 

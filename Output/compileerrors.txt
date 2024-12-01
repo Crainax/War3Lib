@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 39: Unexpected local variable.
+pjass.exe
+Line 1799:  Undeclared variable ti. Maybe you meant t or p
 1
