@@ -14,10 +14,8 @@
 library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
 
     public struct uiBtn {
-        integer ui; //frameID
-        integer id; //可以回收的ID名(为了销毁时ID不重复)
-
-        STRUCT_SHARED_METHODS(uiBtn)
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiBtn)
 
         module uiBaseModule;   // UI控件的共用方法
         module uiEventModule;  // UI事件的共用方法
@@ -28,6 +26,7 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_NORMAL_BUTTON,0); //有高亮无声音的图标
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
             return this;
         }
 
@@ -36,6 +35,7 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_NORMAL_BUTTON,0); //有高亮有声音的图标
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
             return this;
         }
 
@@ -44,6 +44,7 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_TEXT_BUTTON,0); //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
             return this;
         }
 
@@ -53,11 +54,13 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_BLANK_BUTTON,0);
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
             return this;
         }
 
         method onDestroy () {
             if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiBtn)
             DzDestroyFrame(ui);
             uiId.recycle(id);
         }

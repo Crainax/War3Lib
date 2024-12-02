@@ -90,35 +90,39 @@ library UTBaseAnim requires BaseAnim {
 		}
 	}
 
+	//继承自BaseAnim的回调函数
+	function DestroyUIFromBA (baseanim ba) {
+		integer ui = ba.ui;
+		uiImage img = GetUIFromFrame(ui);
+		if (GetTypeIDFromFrame(ui) != uiImage.typeid) return;
+		img.destroy();
+	}
+
 	// 全部都是异步的，不要用随机数
 	function TTestUTBaseAnim1 (player p) {
 		test t = test.create();
 		t.ba.addDelay(100);
-		t.ba.addLife(150,function (baseanim ba){
-			test t = tFromBA[ba]; //写在需要反推的地方
-			BJDebugMsg("反推实例ba[" + I2S(ba) + "]this:" + I2S(t));
-			t.destroy();
-		});
+		t.ba.addLife(150,DestroyUIFromBA);
 		BJDebugMsg("测试一下延迟与生命周期(删)");
 	}
 	real testAngle = 0.0;
 	function TTestUTBaseAnim2 (player p) {
 		test t = test.create();
 		t.ba.addMove(DzGetGameUI(),0.01,0.05,60,testAngle,ANCHOR_CENTER,ANCHOR_CENTER);
-		t.ba.addLife(60,0);
+		t.ba.addLife(60,DestroyUIFromBA);
 		testAngle += 8.8;
 		BJDebugMsg("单纯的测试移动: 角度" + R2SW(testAngle,0,1) + " 距离" + R2SW(0.05,0,1));
 	}
 	function TTestUTBaseAnim3 (player p) {
 		test t = test.create();
 		t.ba.addAlpha(0,255,30);
-		t.ba.addLife(30,0);
+		t.ba.addLife(30,DestroyUIFromBA);
 		BJDebugMsg("测试一下透明度: 透明度" + I2S(0) + "->" + I2S(255));
 	}
 	function TTestUTBaseAnim4 (player p) {
 		test t = test.create();
 		t.ba.addZoom(.07,.035,.07,.035,30);
-		t.ba.addLife(30,0);
+		t.ba.addLife(30,DestroyUIFromBA);
 		BJDebugMsg("测试一下缩放: 缩放" + R2SW(.07,0,1) + "->" + R2SW(.035,0,1) + " ,y" + R2SW(.07,0,1) + "->" + R2SW(.035,0,1));
 	}
 	function TTestUTBaseAnim5 (player p) {
@@ -129,7 +133,7 @@ library UTBaseAnim requires BaseAnim {
 	function TTestUTBaseAnim6 (player p) {
 		test t = test.create();
 		t.ba.addSequ("ui\\icongrow\\ig1_",63,2,false);
-		t.ba.addLife(127,0);
+		t.ba.addLife(127,DestroyUIFromBA);
 		BJDebugMsg("测试一下序列帧: 不循环");
 	}
 
@@ -159,26 +163,23 @@ library UTBaseAnim requires BaseAnim {
 	function TTestUTBaseAnim8 (player p) {
 		test t = test.create();
 		t.ba.addBlink(0,60);
-		t.ba.addLife(180,0);
+		t.ba.addLife(180,DestroyUIFromBA);
 		BJDebugMsg("测试一下闪烁: 周期60");
 	}
 	function TTestUTBaseAnim9 (player p) {
 		test t = test.create();
 		t.ba.addZoom(.035,.1,.035,.1,30);
 		t.ba.addDelay(30);
-		t.ba.addLife(61,function (baseanim ba) {
-			test t = tFromBA[ba];
-			t.destroy();
-		});
+		t.ba.addLife(61,DestroyUIFromBA);
 		BJDebugMsg("测试一下混合动画(扩大+透明度)");
 	}
 	function TTestUTBaseAnim10 (player p) {
 		test t = test.create();
 		t.ba.addZoom(0.12,.035,.12,.035,30);
 		t.ba.addDelay(30);
-		t.ba.addLife(180,0);
+		t.ba.addLife(180,DestroyUIFromBA);
 		t.ba.addAlpha(0,255,30);
-		BJDebugMsg("测试一下混合动画()");
+		BJDebugMsg("测试一下混合动画(缩小+透明度)");
 	}
 	function TTestActUTBaseAnim1 (string str) {
 		player  p	 = GetTriggerPlayer();

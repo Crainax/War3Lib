@@ -18,7 +18,6 @@ library UTUIEventText requires UIEventText {
 				.setText("这是一个测试文本"+I2S(currentText.id)+"\n测试一下事件功能")
 				.onMouseEnter(function (){BJDebugMsg("鼠标进入:"+I2S(DzGetTriggerUIEventFrame()));})
 				.onMouseLeave(function (){BJDebugMsg("鼠标离开:"+I2S(DzGetTriggerUIEventFrame()));})
-				.onMouseUp(function (){BJDebugMsg("鼠标松开:"+I2S(DzGetTriggerUIEventFrame()));})
 				.onMouseClick(function (){BJDebugMsg("鼠标点击:"+I2S(DzGetTriggerUIEventFrame()));})
 				.onMouseWheel(function (){BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()));})
 				.onMouseDoubleClick(function (){BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()));});

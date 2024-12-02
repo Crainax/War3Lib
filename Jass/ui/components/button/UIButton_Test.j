@@ -40,7 +40,6 @@ library UTUIButton requires UIButton {
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 				.onMouseEnter(function() { BJDebugMsg("鼠标进入按钮"); })
 				.onMouseLeave(function() { BJDebugMsg("鼠标离开按钮"); })
-				.onMouseUp(function() { BJDebugMsg("鼠标松开按钮"); })
 				.onMouseClick(function() { BJDebugMsg("点击按钮"); });
 			BJDebugMsg("创建了一个带事件的按钮UI");
 		}
@@ -52,7 +51,6 @@ library UTUIButton requires UIButton {
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 			.onMouseEnter(function() { BJDebugMsg("鼠标进入按钮"); })
 			.onMouseLeave(function() { BJDebugMsg("鼠标离开按钮"); })
-			.onMouseUp(function() { BJDebugMsg("鼠标松开按钮"); })
 			.onMouseClick(function() { BJDebugMsg("点击按钮"); })
 			.onMouseWheel(function (){BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()));})
 			.onMouseDoubleClick(function (){BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()));});
@@ -82,11 +80,13 @@ library UTUIButton requires UIButton {
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 				.onMouseEnter(function() { BJDebugMsg("鼠标进入按钮"); })
 				.onMouseLeave(function() { BJDebugMsg("鼠标离开按钮"); })
-				.onMouseUp(function() { BJDebugMsg("鼠标松开按钮"); })
 				.onMouseClick(function() { BJDebugMsg("点击按钮"); });
 			BJDebugMsg("创建了一个带事件的按钮UI");
 		}
 	}
+
+
+
 	function TTestUTUIButton6 (player p) {}
 	function TTestUTUIButton7 (player p) {}
 	function TTestUTUIButton8 (player p) {}

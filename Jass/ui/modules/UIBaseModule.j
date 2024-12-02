@@ -21,6 +21,13 @@ library UIBaseModule {
             return this;
         }
 
+        //绝对位置
+        method setAbsPoint (integer anchor, real x, real y) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAbsolutePoint(ui,anchor,x,y);
+            return this;
+        }
+
         // 清除所有位置
         method clearPoint () -> thistype {
             if (!this.isExist()) {return this;}
@@ -34,6 +41,8 @@ library UIBaseModule {
             DzFrameSetSize(ui,width,height);
             return this;
         }
+
+        optional module extendResize; //扩展自适应大小方法
     }
 }
 //! endzinc

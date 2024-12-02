@@ -1,4 +1,7 @@
 logs\currentmapscript.j
 pjass.exe
-Line 1799:  Undeclared variable ti. Maybe you meant t or p
-1
+Line 1413:  Cannot convert codereturnsboolean to integer
+Line 1413:  Cannot convert codereturnsboolean to integer
+Line 1413:  Cannot convert codereturnsboolean to integer
+Line 1413:  Cannot convert codereturnsboolean to integer
+4

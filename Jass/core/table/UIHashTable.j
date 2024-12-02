@@ -22,12 +22,12 @@ library UIHashTable {
 
         //由绑定的frame反推UIStruct用
         function GetUIFromFrame (integer frame) -> integer {
-            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_TYPE);
+            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_UI);
         }
 
         //由绑定的frame反推UIStruct用
         function GetTypeIDFromFrame (integer frame) -> integer {
-            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_UI);
+            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_TYPE);
         }
     }
 }

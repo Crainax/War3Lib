@@ -238,6 +238,7 @@ library UTUIText requires UIText {
 		t = null;
 	}
 
+	private uiText anchorTxt = 0;
 	//测试大量ID创建删除
 	function TTestUTUIText5 (player p) {
 		timer t;
@@ -248,6 +249,11 @@ library UTUIText requires UIText {
 			PauseTimer(playerTimers[index]);
 			DestroyTimer(playerTimers[index]);
 		}
+
+		anchorTxt = uiText.create(DzGetGameUI())
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, -0.1)
+			.setAlign(1)
+			.setText("锚点文本");
 
 		// 创建文本UI
 		if (GetLocalPlayer() == p) {
@@ -264,11 +270,13 @@ library UTUIText requires UIText {
 		SaveInteger(HASH_TIMER, GetHandleId(t), 0, 1);
 		// 保存当前X坐标
 		SaveReal(HASH_TIMER, GetHandleId(t), 1, -0.5);
+		SaveInteger(HASH_TIMER, GetHandleId(t), 2, 1);
 
 		TimerStart(t, 0.03, true, function() {
 			timer t = GetExpiredTimer();
 			integer direction = LoadInteger(HASH_TIMER, GetHandleId(t), 0);
 			real currentX = LoadReal(HASH_TIMER, GetHandleId(t), 1);
+			integer anchors = LoadInteger(HASH_TIMER, GetHandleId(t), 2);
 
 			// 更新位置
 			currentX = currentX + 0.01 * direction;
@@ -282,13 +290,23 @@ library UTUIText requires UIText {
 				currentX = -0.5;
 			}
 
+			if (anchors == 1) {
+				SaveInteger(HASH_TIMER, GetHandleId(t), 2, 0);
+			} else {
+				SaveInteger(HASH_TIMER, GetHandleId(t), 2, 1);
+			}
+
 			// 保存新的状态
 			SaveInteger(HASH_TIMER, GetHandleId(t), 0, direction);
 			SaveReal(HASH_TIMER, GetHandleId(t), 1, currentX);
 
 			// 更新文本位置
 			if (currentText != 0) {
-				currentText.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, currentX, 0);
+				if (anchors == 1) {
+					currentText.setPoint(ANCHOR_CENTER, anchorTxt.ui, ANCHOR_CENTER, currentX, 0);
+				} else {
+					currentText.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, currentX, 0);
+				}
 			}
 
 			t = null;

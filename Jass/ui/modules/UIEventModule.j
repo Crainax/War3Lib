@@ -23,12 +23,12 @@ library UIEventModule {
             return this;
         }
         // 鼠标松开事件,和点击一样,基本可以当相同事件
-        method onMouseUp (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_UP,fun,false);
-            return this;
-        }
-        // 鼠标点击事件
+        // method onMouseUp (code fun) -> thistype {
+        //     if (!this.isExist()) {return this;}
+        //     DzFrameSetScriptByCode(ui,FRAME_MOUSE_UP,fun,false);
+        //     return this;
+        // }
+        // 鼠标点击事件(效果和FRAME_MOUSE_UP一样,注释掉上面这个了)
         method onMouseClick (code fun) -> thistype {
             if (!this.isExist()) {return this;}
             DzFrameSetScriptByCode(ui,FRAME_MOUSE_DOWN,fun,false);

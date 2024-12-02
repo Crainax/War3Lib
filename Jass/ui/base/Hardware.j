@@ -12,8 +12,8 @@
 library Hardware requires BzAPI {
 
 	public struct hardware {
-		// 注册一个左键事件
-		static method regLeftClickEvent (code func) {
+		// 注册一个左键抬起事件
+		static method regLeftUpEvent (code func) {
 			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_UP,false,func);
 		}
 		// 注册一个左键按下事件
@@ -21,7 +21,11 @@ library Hardware requires BzAPI {
 			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_PRESSED,false,func);
 		}
 		// 注册一个右键按下事件
-		static method regRightClickEvent (code func) {
+		static method regRightDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_PRESSED,false,func);
+		}
+		// 注册一个右键抬起事件
+		static method regRightUpEvent (code func) {
 			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_UP,false,func);
 		}
 		// 注册一个滚轮事件
