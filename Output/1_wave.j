@@ -107,34 +107,42 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTUIExtendEvent requires UIExtendEvent {
-	function TTestUTUIExtendEvent1 (player p) {
-		uiBtn btn = 0;
-		uiImage img = 0;
+library UTUIExtendResize requires UIExtendResize {
+	uiImage img = 0;
+	function TTestUTUIExtendResize1 (player p) {
 		img = uiImage.create(DzGetGameUI())
-			.setSize(0.035,0.035)
+		// .setSizeFix(0.035,0.035)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
-		btn = uiBtn.create(DzGetGameUI())
-			.setAllPoint(img.ui)
-			.onMouseEnter(function() {BJDebugMsg("enter");})
-			.onMouseLeave(function() {BJDebugMsg("leave");})
-			.onMouseClick(function() {BJDebugMsg("click");})
-			.exLeftDown(function(integer frame) {BJDebugMsg("leftDown");})
-			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");})
-			.exRightDown(function(integer frame) {BJDebugMsg("rightDown");})
-			.exRightUp(function(integer frame) {BJDebugMsg("rightUp");});
+			.exReSize(0.035,0.035) //自适应大小
+.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
 	}
-	function TTestUTUIExtendEvent2 (player p) {}
-	function TTestUTUIExtendEvent3 (player p) {}
-	function TTestUTUIExtendEvent4 (player p) {}
-	function TTestUTUIExtendEvent5 (player p) {}
-	function TTestUTUIExtendEvent6 (player p) {}
-	function TTestUTUIExtendEvent7 (player p) {}
-	function TTestUTUIExtendEvent8 (player p) {}
-	function TTestUTUIExtendEvent9 (player p) {}
-	function TTestUTUIExtendEvent10 (player p) {}
-	function TTestActUTUIExtendEvent1 (string str) {
+	uiImage imgs[];
+	function TTestUTUIExtendResize2 (player p) {
+		uiText txt[];
+		integer i,row,column;
+		for (1 <= i <= 20) {
+			row = ModuloInteger(i - 1,5/*多少个一行*/) + 1;
+			column = (i - 1) / 5 + 1;
+			// row , column
+			imgs[i] = uiImage.create(DzGetGameUI())
+				.exReSize(0.035,0.035)
+				.exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, row * 0.036, column * -0.036)
+				.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+			txt[i] = uiText.create(imgs[i].ui)
+				.setAllPoint(imgs[i].ui)
+				.setAlign(4)
+				.setText(I2S(i)+"号");
+		}
+	}
+	function TTestUTUIExtendResize3 (player p) {}
+	function TTestUTUIExtendResize4 (player p) {}
+	function TTestUTUIExtendResize5 (player p) {}
+	function TTestUTUIExtendResize6 (player p) {}
+	function TTestUTUIExtendResize7 (player p) {}
+	function TTestUTUIExtendResize8 (player p) {}
+	function TTestUTUIExtendResize9 (player p) {}
+	function TTestUTUIExtendResize10 (player p) {}
+	function TTestActUTUIExtendResize1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -156,8 +164,14 @@ for (0 <= i <= len - 1) {
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "a") {
-		} else if (paramS[0] == "b") {
+		if (paramS[0] == "show") {
+			BJDebugMsg("resizer:" + resizer.toString());
+			BJDebugMsg("rePointer:" + rePointer.toString());
+		} else if (paramS[0] == "destroy") {
+			if (img.isExist()) {
+				img.onDestroy();
+				img = 0;
+			}
 		}
 		p = null;
 	}
@@ -166,7 +180,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UIExtendEvent] 单元测试已加载");
+			BJDebugMsg("[UIExtendResize] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -174,19 +188,20 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUIExtendEvent1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUIExtendResize1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUIExtendEvent1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUIExtendEvent2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUIExtendEvent3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUIExtendEvent4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUIExtendEvent5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUIExtendEvent6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUIExtendEvent7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUIExtendEvent8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUIExtendEvent9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUIExtendEvent10(GetTriggerPlayer());
+			if (GetLocalPlayer() != GetTriggerPlayer()) {return;}
+			if (str == "s1") TTestUTUIExtendResize1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUIExtendResize2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUIExtendResize3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUIExtendResize4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUIExtendResize5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUIExtendResize6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUIExtendResize7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUIExtendResize8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUIExtendResize9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUIExtendResize10(GetTriggerPlayer());
 		});
 	}
 }

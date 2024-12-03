@@ -1,70 +1,42 @@
 local runtime = require 'jass.runtime'
 local console = require 'jass.console'
 local log = require 'jass.log'
+local japi = require 'jass.japi'
 
 local base = {}
 
--- 判断是否是发布版本
 -- base.release = not pcall(require, 'lua.currentpath')
 
+-- 判断JAPI环境状态
+base.has_inner_japi = pcall(function()
+    -- 实际尝试调用SetOwner来测试是否可用
+    japi.SetOwner('测试')
+    return true
+end)
+
 -- 版本号
--- base.version = '4.18'
+base.version = '4.18'
 
--- 打开控制台
--- if not base.release then
--- 	console.enable = true
--- end
-
--- 将句柄等级设置为0(地图中所有的句柄均使用table封装)
--- runtime.handle_level = 0
-
--- 关闭等待
--- runtime.sleep = false
-
---- 错误处理函数
---- @param msg any 错误信息，可以是任意类型
+-- 错误处理函数
 function base.error_handle(msg)
 	print("---------------------------------------")
-
-	-- 将错误信息转换为字符串并打印
-	-- tostring() 确保即使是 table 或其他类型也能被正确打印
-	-- \n 添加换行符使输出更易读
 	print(tostring(msg) .. "\n")
-
-	-- 打印调用堆栈信息
-	-- debug.traceback() 会显示:
-	-- 1. 错误发生的具体文件和行号
-	-- 2. 完整的函数调用链（从触发错误的位置一直到调用的起点）
-	-- 3. 每个调用所在的函数名称
 	print(debug.traceback())
-
 	print("---------------------------------------")
 end
 
--- 错误汇报(runtime的报错最终包装成)
+-- 错误汇报
 function runtime.error_handle(msg) base.error_handle(msg) end
 
--- 测试版本和发布版本的脚本路径
--- if base.release then
--- 	print("正式版分包:Crainax")
--- 	package.path = package.path .. [[;Poi\]] .. base.version .. [[\?.lua;scripts\?.lua]]
--- end
-
--- if not base.release then
--- 	-- 调试器端口
--- 	print("测试版分包:Crainax")
--- 	runtime.debugger = 4279
--- end
-
--- 修改日志路径,打印日志到本地
+-- 修改日志路径
 local function split(str, p)
 	local rt = {}
-	local s = string.gsub(str, '[^]' .. p .. ']+', function(w) table.insert(rt, w) end)
+	string.gsub(str, '[^' .. p .. ']+', function(w) table.insert(rt, w) end)
 	return rt
 end
 log.path = 'War3Lib\\日志\\' .. split(log.path, '\\')[2]
 
--- 重载打印函数,全部都输出到日志里
+-- 重载打印函数
 local std_print = print
 function print(...)
 	log.info(...)
@@ -80,9 +52,39 @@ function log.error(...)
 	std_print(trc)
 end
 
-local code = require 'jass.code'
-local oldBJDebugMsg = code.BJDebugMsg -- 保存原始函数引用
-code.BJDebugMsg = function(s)         -- 创建新函数
-	oldBJDebugMsg(s)                  -- 调用原始函数
-	print(s)                          -- 添加新功能
+-- 根据发布状态设置调试选项
+-- if base.release then
+--     -- 正式版环境
+--     console.enable = false
+--     print("当前版本: 正式版")
+--     -- 设置正式版分包路径
+--     package.path = package.path .. [[;Poi\]] .. base.version .. [[\?.lua;scripts\?.lua]]
+-- else
+    -- 测试版环境
+    console.enable = true
+    runtime.debugger = 4279
+    print("当前版本: 测试版")
+-- end
+
+-- 输出JAPI状态
+if base.has_inner_japi then
+    print("JAPI环境: 内置JAPI模式")
+    -- 在内置JAPI环境中重载BJDebugMsg
+    local code = require 'jass.code'
+    local oldBJDebugMsg = code.BJDebugMsg
+    code.BJDebugMsg = function(s)
+        oldBJDebugMsg(s)
+        print(s)
+    end
+else
+    print("JAPI环境: YDLua")
 end
+
+-- 将句柄等级设置为0(地图中所有的句柄均使用table封装)
+runtime.handle_level = 0
+
+-- 关闭等待
+runtime.sleep = false
+
+
+return base

@@ -1,7 +1,5 @@
 logs\currentmapscript.j
 pjass.exe
-Line 1413:  Cannot convert codereturnsboolean to integer
-Line 1413:  Cannot convert codereturnsboolean to integer
-Line 1413:  Cannot convert codereturnsboolean to integer
-Line 1413:  Cannot convert codereturnsboolean to integer
-4
+Line 1918:  Undeclared variable i
+Line 1920:  Symbol i multiply defined
+2

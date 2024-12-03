@@ -4,7 +4,7 @@
 //控件的共用基本方法
 
 //! zinc
-library UIBaseModule {
+library UIBaseModule requires UIUtils {
     // 定义共用的方法结构
     public module uiBaseModule {
         // 设置位置
@@ -39,6 +39,13 @@ library UIBaseModule {
         method setSize (real width, real height) -> thistype {
             if (!this.isExist()) {return this;}
             DzFrameSetSize(ui,width,height);
+            return this;
+        }
+
+        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        method setSizeFix (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width*GetResizeRate(),height);
             return this;
         }
 
