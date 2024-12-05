@@ -107,42 +107,53 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTUIExtendResize requires UIExtendResize {
-	uiImage img = 0;
-	function TTestUTUIExtendResize1 (player p) {
-		img = uiImage.create(DzGetGameUI())
-		// .setSizeFix(0.035,0.035)
-			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.exReSize(0.035,0.035) //自适应大小
-.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+library UTSpellBtns requires SpellBtns {
+	function TTestUTSpellBtns1 (player p) {
+		onSpellBtns func1 = function (integer row,integer column) {
+			BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右压");
+		};
+		onSpellBtns func2 = function (integer row,integer column) {
+			BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右弹");
+		};
+		onSpellBtns func3 = function (integer row,integer column) {
+			BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右按");
+		};
+		SaveInteger(HASH_UI,DzFrameGetCommandBarButton(1,1),HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN,func1);
+		SaveInteger(HASH_UI,DzFrameGetCommandBarButton(1,1),HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP,func2);
+		SaveInteger(HASH_UI,DzFrameGetCommandBarButton(1,1),HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK,func3);
 	}
-	uiImage imgs[];
-	function TTestUTUIExtendResize2 (player p) {
-		uiText txt[];
-		integer i,row,column;
-		for (1 <= i <= 20) {
-			row = ModuloInteger(i - 1,5/*多少个一行*/) + 1;
-			column = (i - 1) / 5 + 1;
-			// row , column
-			imgs[i] = uiImage.create(DzGetGameUI())
-				.exReSize(0.035,0.035)
-				.exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, row * 0.036, column * -0.036)
-				.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
-			txt[i] = uiText.create(imgs[i].ui)
-				.setAllPoint(imgs[i].ui)
-				.setAlign(4)
-				.setText(I2S(i)+"号");
+	function TTestUTSpellBtns2 (player p) {
+	}
+	function TTestUTSpellBtns3 (player p) {
+	}
+	function TTestUTSpellBtns4 (player p) {
+		integer i,j;
+		for (1 <= i <= 3) {
+			for (1 <= j <= 4) {
+				BJDebugMsg("原生第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(DzFrameGetCommandBarButton(i-1,j-1)));
+				BJDebugMsg("CD第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(DzFrameGetCommandBarButtonAutoCastIndicator (DzFrameGetCommandBarButton(i-1,j-1))));
+				BJDebugMsg("扩展第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(spellBtns.grid[i][j]));
+			}
 		}
 	}
-	function TTestUTUIExtendResize3 (player p) {}
-	function TTestUTUIExtendResize4 (player p) {}
-	function TTestUTUIExtendResize5 (player p) {}
-	function TTestUTUIExtendResize6 (player p) {}
-	function TTestUTUIExtendResize7 (player p) {}
-	function TTestUTUIExtendResize8 (player p) {}
-	function TTestUTUIExtendResize9 (player p) {}
-	function TTestUTUIExtendResize10 (player p) {}
-	function TTestActUTUIExtendResize1 (string str) {
+	function TTestUTSpellBtns5 (player p) {
+		uiBtn btn = 0;
+		btn = uiBtn.create(DzGetGameUI())
+			.setSize(0.04,0.04)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+			.onMouseEnter(function() {BJDebugMsg("enter"); })
+			.onMouseLeave(function() {BJDebugMsg("leave"); })
+			.onMouseClick(function() {BJDebugMsg("click"); })
+			.exLeftDown(function(integer frame) {BJDebugMsg("leftDown");})
+			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");})
+			.exRightClick(function(integer frame) {BJDebugMsg("rightClick");});
+	}
+	function TTestUTSpellBtns6 (player p) {}
+	function TTestUTSpellBtns7 (player p) {}
+	function TTestUTSpellBtns8 (player p) {}
+	function TTestUTSpellBtns9 (player p) {}
+	function TTestUTSpellBtns10 (player p) {}
+	function TTestActUTSpellBtns1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -164,14 +175,8 @@ for (0 <= i <= len - 1) {
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "show") {
-			BJDebugMsg("resizer:" + resizer.toString());
-			BJDebugMsg("rePointer:" + rePointer.toString());
-		} else if (paramS[0] == "destroy") {
-			if (img.isExist()) {
-				img.onDestroy();
-				img = 0;
-			}
+		if (paramS[0] == "a") {
+		} else if (paramS[0] == "b") {
 		}
 		p = null;
 	}
@@ -180,7 +185,52 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UIExtendResize] 单元测试已加载");
+			unit hero,building;
+			real x = 0, y = 0;
+			integer i = 0;
+			BJDebugMsg("[SpellBtns] 单元测试已加载");
+			// 为玩家1创建测试英雄
+			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
+SetHeroLevel(hero, 10,true);
+			// 创建一个建筑单位用于测试12个技能
+			building = CreateUnit(Player(0), 'hcas', 400, 0, 270); // 创建人族城堡
+
+			// 为建筑添加12个技能
+			UnitAddAbility(building, 'AHbz'); // 暴风雪
+UnitAddAbility(building, 'AHwe'); // 水元素
+UnitAddAbility(building, 'AHab'); // 闪现
+UnitAddAbility(building, 'AHmt'); // 群体传送
+UnitAddAbility(building, 'AHfs'); // 烈焰风暴
+UnitAddAbility(building, 'AHbn'); // 驱逐魔法
+UnitAddAbility(building, 'AHdr'); // 吸取魔法
+UnitAddAbility(building, 'AHpx'); // 凤凰
+UnitAddAbility(building, 'AHad'); // 奥术光环
+UnitAddAbility(building, 'AHav'); // 化身
+UnitAddAbility(building, 'AHcs'); // 寒冰护甲
+UnitAddAbility(building, 'AHfa'); // 烈焰护甲
+
+			// 添加8个预选的技能
+			UnitAddAbility(hero, 'ACbc'); // 火焰呼吸
+UnitAddAbility(hero, 'ACbf'); // 霜冻闪电
+UnitAddAbility(hero, 'ACpy'); // 变形术
+UnitAddAbility(hero, 'AOhx'); // 妖术
+UnitAddAbility(hero, 'ACdv'); // 吞噬
+UnitAddAbility(hero, 'ACen'); // 诱捕
+UnitAddAbility(hero, 'ANr3'); // 混乱之雨
+UnitAddAbility(hero, 'AOhw'); // 医疗波
+
+			spellBtns.onEnter(function (integer row,integer column) {
+				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入");
+			});
+			spellBtns.onLeave(function (integer row,integer column) {
+				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能离开");
+			});
+			spellBtns.onClick(function (integer row,integer column) {
+				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能点击");
+			});
+			spellBtns.onRightClick(function (integer row,integer column) {
+				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能右键点击");
+			});
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -188,20 +238,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUIExtendResize1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTSpellBtns1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (GetLocalPlayer() != GetTriggerPlayer()) {return;}
-			if (str == "s1") TTestUTUIExtendResize1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUIExtendResize2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUIExtendResize3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUIExtendResize4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUIExtendResize5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUIExtendResize6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUIExtendResize7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUIExtendResize8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUIExtendResize9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUIExtendResize10(GetTriggerPlayer());
+			if (str == "s1") TTestUTSpellBtns1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTSpellBtns2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTSpellBtns3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTSpellBtns4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTSpellBtns5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTSpellBtns6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTSpellBtns7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTSpellBtns8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTSpellBtns9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTSpellBtns10(GetTriggerPlayer());
 		});
 	}
 }

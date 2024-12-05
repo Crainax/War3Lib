@@ -11,11 +11,23 @@
 //自动生成的文件
 library UTYDLua requires YDLua {
 
+	public integer testhaha = 100;
+	public code cccc;
+
 	function TTestUTYDLua1 (player p) {
 		BJDebugMsg("测试YDLua的输出");
 	}
-	function TTestUTYDLua2 (player p) {}
-	function TTestUTYDLua3 (player p) {}
+	function TTestUTYDLua2 (player p) {
+		CreateUnit(Player(0),'uyan',0,0,0);
+	}
+
+	function bbb() {
+		DoNothing();
+	}
+
+	function TTestUTYDLua3 (player p) {
+		TriggerEvaluate(trr);
+	}
 	function TTestUTYDLua4 (player p) {}
 	function TTestUTYDLua5 (player p) {}
 	function TTestUTYDLua6 (player p) {}
@@ -55,11 +67,13 @@ library UTYDLua requires YDLua {
 		p = null;
 	}
 
+	public trigger trr = null;
 	function onInit () {
 		//在游戏开始0.0秒后再调用
 		trigger tr = CreateTrigger();
-		TriggerRegisterTimerEventSingle(tr,0.5);
+		TriggerRegisterTimerEvent(tr,0.5,false);
 		TriggerAddCondition(tr,Condition(function (){
+			Cheat("exec-lua:depends.test");
 			BJDebugMsg("[YDLua] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -84,6 +98,7 @@ library UTYDLua requires YDLua {
 			else if(str == "s9") TTestUTYDLua9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTYDLua10(GetTriggerPlayer());
 		});
+
 
 	}
 

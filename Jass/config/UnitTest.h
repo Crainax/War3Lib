@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/ui/modules/extends/UIExtendResize_Test.j"
+#include "/Users/crainax/War3/Library/War3Lib/Jass/core/event/UnitSelect_Test.j"
 
 
 

@@ -27,6 +27,9 @@ constant boolean LIBRARY_MapBoundsUtils=true
 //globals from MathUtils:
 constant boolean LIBRARY_MathUtils=true
 //endglobals from MathUtils
+//globals from UIEventModule:
+constant boolean LIBRARY_UIEventModule=true
+//endglobals from UIEventModule
 //globals from UIHashTable:
 constant boolean LIBRARY_UIHashTable=true
 hashtable HASH_UI=InitHashtable()
@@ -34,18 +37,9 @@ hashtable HASH_UI=InitHashtable()
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
 //endglobals from UIId
-//globals from UIImageModule:
-constant boolean LIBRARY_UIImageModule=true
-//endglobals from UIImageModule
-//globals from UILifeCycle:
-constant boolean LIBRARY_UILifeCycle=true
-//endglobals from UILifeCycle
-//globals from UITextModule:
-constant boolean LIBRARY_UITextModule=true
-//endglobals from UITextModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
+trigger UnitTestFramwork___TUnitTest=null
 //endglobals from UnitTestFramwork
 //globals from Hardware:
 constant boolean LIBRARY_Hardware=true
@@ -59,20 +53,20 @@ constant boolean LIBRARY_UIUtils=true
 //globals from UIBaseModule:
 constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
-//globals from UIExtendResize:
-constant boolean LIBRARY_UIExtendResize=true
-//endglobals from UIExtendResize
-//globals from UIImage:
-constant boolean LIBRARY_UIImage=true
-//endglobals from UIImage
-//globals from UIText:
-constant boolean LIBRARY_UIText=true
-//endglobals from UIText
-//globals from UTUIExtendResize:
-constant boolean LIBRARY_UTUIExtendResize=true
-integer UTUIExtendResize__img=0
-integer array UTUIExtendResize__imgs
-//endglobals from UTUIExtendResize
+//globals from UIExtendEvent:
+constant boolean LIBRARY_UIExtendEvent=true
+boolean UIExtendEvent___rightClickStartedOnUI=false
+integer UIExtendEvent___rightClickStartUI=0
+//endglobals from UIExtendEvent
+//globals from SpellBtns:
+constant boolean LIBRARY_SpellBtns=true
+//endglobals from SpellBtns
+//globals from UIButton:
+constant boolean LIBRARY_UIButton=true
+//endglobals from UIButton
+//globals from UTSpellBtns:
+constant boolean LIBRARY_UTSpellBtns=true
+//endglobals from UTSpellBtns
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -116,58 +110,33 @@ constant integer si__uiId=3
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__uiLifeCycle=4
-integer s__uiLifeCycle_agrsUI=0
-integer s__uiLifeCycle_agrsTypeID=0
-integer s__uiLifeCycle_agrsFrame=0
-trigger s__uiLifeCycle_trCreate=null
-trigger s__uiLifeCycle_trDestroy=null
-constant integer si__hardware=5
+constant integer si__hardware=4
 integer si__hardware_F=0
 integer si__hardware_I=0
 integer array si__hardware_V
 trigger s__hardware_trWheel=null
 trigger s__hardware_trUpdate=null
 trigger s__hardware_trResize=null
-constant integer si__resizer=6
-integer si__resizer_F=0
-integer si__resizer_I=0
-integer array si__resizer_V
-integer array s__resizer_List
-integer s__resizer_size=0
-integer array s__resizer_frame
-real array s__resizer_width
-real array s__resizer_height
-integer array s__resizer_uID
-constant integer si__rePointer=7
-integer si__rePointer_F=0
-integer si__rePointer_I=0
-integer array si__rePointer_V
-integer array s__rePointer_List
-integer s__rePointer_size=0
-integer array s__rePointer_frame
-integer array s__rePointer_anchor
-integer array s__rePointer_relative
-integer array s__rePointer_relativeAnchor
-real array s__rePointer_offsetX
-real array s__rePointer_offsetY
-integer array s__rePointer_uID
-constant integer si__uiImage=8
-integer si__uiImage_F=0
-integer si__uiImage_I=0
-integer array si__uiImage_V
-integer array s__uiImage_ui
-integer array s__uiImage_id
-constant integer si__uiText=9
-integer si__uiText_F=0
-integer si__uiText_I=0
-integer array si__uiText_V
-integer array s__uiText_ui
-integer array s__uiText_id
-trigger st__resizer_onDestroy
-trigger st__rePointer_onDestroy
-trigger st__uiImage_onDestroy
-trigger st__uiText_onDestroy
+constant integer si__spellBtns=5
+integer si__spellBtns_F=0
+integer si__spellBtns_I=0
+integer array si__spellBtns_V
+integer s__spellBtns_funcEnter=0
+integer s__spellBtns_funcLeave=0
+integer s__spellBtns_funcClick=0
+integer s__spellBtns_funcRightClick=0
+constant integer si__uiBtn=7
+integer si__uiBtn_F=0
+integer si__uiBtn_I=0
+integer array si__uiBtn_V
+integer array s__uiBtn_ui
+integer array s__uiBtn_id
+integer array s__s__spellBtns_grid
+trigger st__uiBtn_onDestroy
+trigger array st___prototype20
+trigger array st___prototype21
+integer f__arg_integer1
+integer f__arg_integer2
 integer f__arg_this
 
 endglobals
@@ -448,160 +417,74 @@ function s__mapBounds_deallocate takes integer this returns nothing
     set si__mapBounds_F=this
 endfunction
 
-//Generated method caller for uiText.onDestroy
-function sc__uiText_onDestroy takes integer this returns nothing
+//Generated method caller for uiBtn.onDestroy
+function sc__uiBtn_onDestroy takes integer this returns nothing
     set f__arg_this=this
-    call TriggerEvaluate(st__uiText_onDestroy)
+    call TriggerEvaluate(st__uiBtn_onDestroy)
 endfunction
 
-//Generated allocator of uiText
-function s__uiText__allocate takes nothing returns integer
- local integer this=si__uiText_F
+//Generated allocator of uiBtn
+function s__uiBtn__allocate takes nothing returns integer
+ local integer this=si__uiBtn_F
     if (this!=0) then
-        set si__uiText_F=si__uiText_V[this]
+        set si__uiBtn_F=si__uiBtn_V[this]
     else
-        set si__uiText_I=si__uiText_I+1
-        set this=si__uiText_I
+        set si__uiBtn_I=si__uiBtn_I+1
+        set this=si__uiBtn_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiText")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiBtn")
         return 0
     endif
 
-    set si__uiText_V[this]=-1
+    set si__uiBtn_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiText
-function sc__uiText_deallocate takes integer this returns nothing
+//Generated destructor of uiBtn
+function sc__uiBtn_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiText")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBtn")
         return
-    elseif (si__uiText_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiText")
+    elseif (si__uiBtn_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBtn")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiText_onDestroy)
-    set si__uiText_V[this]=si__uiText_F
-    set si__uiText_F=this
+    call TriggerEvaluate(st__uiBtn_onDestroy)
+    set si__uiBtn_V[this]=si__uiBtn_F
+    set si__uiBtn_F=this
 endfunction
 
-//Generated method caller for uiImage.onDestroy
-function sc__uiImage_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__uiImage_onDestroy)
-endfunction
-
-//Generated allocator of uiImage
-function s__uiImage__allocate takes nothing returns integer
- local integer this=si__uiImage_F
+//Generated allocator of spellBtns
+function s__spellBtns__allocate takes nothing returns integer
+ local integer this=si__spellBtns_F
     if (this!=0) then
-        set si__uiImage_F=si__uiImage_V[this]
+        set si__spellBtns_F=si__spellBtns_V[this]
     else
-        set si__uiImage_I=si__uiImage_I+1
-        set this=si__uiImage_I
+        set si__spellBtns_I=si__spellBtns_I+1
+        set this=si__spellBtns_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiImage")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: spellBtns")
         return 0
     endif
 
-    set si__uiImage_V[this]=-1
+    set si__spellBtns_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiImage
-function sc__uiImage_deallocate takes integer this returns nothing
+//Generated destructor of spellBtns
+function s__spellBtns_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: spellBtns")
         return
-    elseif (si__uiImage_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
-        return
-    endif
-    set f__arg_this=this
-    call TriggerEvaluate(st__uiImage_onDestroy)
-    set si__uiImage_V[this]=si__uiImage_F
-    set si__uiImage_F=this
-endfunction
-
-//Generated method caller for rePointer.onDestroy
-function sc__rePointer_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__rePointer_onDestroy)
-endfunction
-
-//Generated allocator of rePointer
-function s__rePointer__allocate takes nothing returns integer
- local integer this=si__rePointer_F
-    if (this!=0) then
-        set si__rePointer_F=si__rePointer_V[this]
-    else
-        set si__rePointer_I=si__rePointer_I+1
-        set this=si__rePointer_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: rePointer")
-        return 0
-    endif
-
-    set si__rePointer_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of rePointer
-function sc__rePointer_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: rePointer")
-        return
-    elseif (si__rePointer_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: rePointer")
+    elseif (si__spellBtns_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: spellBtns")
         return
     endif
-    set f__arg_this=this
-    call TriggerEvaluate(st__rePointer_onDestroy)
-    set si__rePointer_V[this]=si__rePointer_F
-    set si__rePointer_F=this
-endfunction
-
-//Generated method caller for resizer.onDestroy
-function sc__resizer_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__resizer_onDestroy)
-endfunction
-
-//Generated allocator of resizer
-function s__resizer__allocate takes nothing returns integer
- local integer this=si__resizer_F
-    if (this!=0) then
-        set si__resizer_F=si__resizer_V[this]
-    else
-        set si__resizer_I=si__resizer_I+1
-        set this=si__resizer_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: resizer")
-        return 0
-    endif
-
-    set si__resizer_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of resizer
-function sc__resizer_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: resizer")
-        return
-    elseif (si__resizer_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: resizer")
-        return
-    endif
-    set f__arg_this=this
-    call TriggerEvaluate(st__resizer_onDestroy)
-    set si__resizer_V[this]=si__resizer_F
-    set si__resizer_F=this
+    set si__spellBtns_V[this]=si__spellBtns_F
+    set si__spellBtns_F=this
 endfunction
 
 //Generated allocator of hardware
@@ -664,6 +547,30 @@ function s__radiationEnd_deallocate takes integer this returns nothing
     endif
     set si__radiationEnd_V[this]=si__radiationEnd_F
     set si__radiationEnd_F=this
+endfunction
+function sc___prototype20_execute takes integer i,integer a1 returns nothing
+    set f__arg_integer1=a1
+
+    call TriggerExecute(st___prototype20[i])
+endfunction
+function sc___prototype20_evaluate takes integer i,integer a1 returns nothing
+    set f__arg_integer1=a1
+
+    call TriggerEvaluate(st___prototype20[i])
+
+endfunction
+function sc___prototype21_execute takes integer i,integer a1,integer a2 returns nothing
+    set f__arg_integer1=a1
+    set f__arg_integer2=a2
+
+    call TriggerExecute(st___prototype21[i])
+endfunction
+function sc___prototype21_evaluate takes integer i,integer a1,integer a2 returns nothing
+    set f__arg_integer1=a1
+    set f__arg_integer2=a2
+
+    call TriggerEvaluate(st___prototype21[i])
+
 endfunction
 
 //library BzAPI:
@@ -1211,6 +1118,9 @@ endfunction
         endfunction
 
 //library MathUtils ends
+//library UIEventModule:
+
+//library UIEventModule ends
 //library UIHashTable:
     //public:  // UI结构哈希表
         function BindFrameToUI takes integer frame,integer typeID,integer ui returns nothing
@@ -1259,44 +1169,12 @@ endfunction
         endfunction
 
 //library UIId ends
-//library UIImageModule:
-
-//library UIImageModule ends
-//library UILifeCycle:
-        //private:
-        function s__uiLifeCycle_registerCreate takes code func returns nothing
-            call TriggerAddCondition(s__uiLifeCycle_trCreate, Condition(func))
-        endfunction  // 注册销毁回调
-        function s__uiLifeCycle_registerDestroy takes code func returns nothing
-            call TriggerAddCondition(s__uiLifeCycle_trDestroy, Condition(func))
-        endfunction
-        function s__uiLifeCycle_onCreateCB takes integer ui,integer typeID,integer frame returns nothing
-            set s__uiLifeCycle_agrsUI=ui
-            set s__uiLifeCycle_agrsTypeID=typeID
-            set s__uiLifeCycle_agrsFrame=frame
-            call TriggerEvaluate(s__uiLifeCycle_trCreate)
-        endfunction
-        function s__uiLifeCycle_onDestroyCB takes integer ui,integer typeID,integer frame returns nothing
-            set s__uiLifeCycle_agrsUI=ui
-            set s__uiLifeCycle_agrsTypeID=typeID
-            set s__uiLifeCycle_agrsFrame=frame
-            call TriggerEvaluate(s__uiLifeCycle_trDestroy)
-        endfunction
-        function s__uiLifeCycle_onInit takes nothing returns nothing
-            set s__uiLifeCycle_trCreate=CreateTrigger()
-            set s__uiLifeCycle_trDestroy=CreateTrigger()
-        endfunction
-
-//library UILifeCycle ends
-//library UITextModule:
-
-//library UITextModule ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -1307,16 +1185,16 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
@@ -1411,538 +1289,684 @@ endfunction
 //library UIBaseModule:
 
 //library UIBaseModule ends
-//library UIExtendResize:
+//library UIExtendEvent:
 
-        function s__resizer_isExist takes integer this returns boolean
-            return ( this != null and si__resizer_V[this] == - 1 )
-        endfunction
-        function s__resizer_create takes integer frame,real width,real height returns integer
-            local integer this=s__resizer__allocate()
-            set s__resizer_frame[this]=frame
-            set s__resizer_width[this]=width
-            set s__resizer_height[this]=height
-            call DzFrameSetSize(frame, width * GetResizeRate(), height) //这里是初始化时的设置内容,不需要改
-            if ( s__resizer_uID[this] == 0 ) then
-                set s__resizer_size=s__resizer_size + 1
-                set s__resizer_List[s__resizer_size]=this
-                set s__resizer_uID[this]=s__resizer_size
+//processed:     function interface uiEvent takes integer arg0 returns nothing  // 添加状态标记
+        function UIExtendEvent___anon__0 takes nothing returns nothing
+            local integer currentUI
+            local integer func
+            if ( not ( DzIsMouseOverUI() ) ) then
+                return
             endif
-            return this
-        endfunction
-        function s__resizer_toString takes nothing returns string
-            local string s=I2S(s__resizer_size) + "个:"
-            local integer i
-            set i=1
-            loop
-            exitwhen ( i > s__resizer_size )
-                set s=s + "[" + I2S(i) + "]|r" + I2S(s__resizer_List[i]) + "->"
-            set i=i + 1
-            endloop
-            set s=s + "/"
-            return s
-        endfunction
-        function s__resizer_onDestroy takes integer this returns nothing
-            set s__resizer_frame[this]=0
-            if ( s__resizer_uID[this] != 0 ) then
-                set s__resizer_List[s__resizer_uID[this]]=s__resizer_List[s__resizer_size]
-                set s__resizer_uID[s__resizer_List[s__resizer_uID[this]]]=s__resizer_uID[this]
-                set s__resizer_size=s__resizer_size - 1
-                set s__resizer_uID[this]=0
+            set currentUI=DzGetMouseFocus()
+            if ( HaveSavedInteger(HASH_UI, currentUI, 1901) ) then
+                set func=LoadInteger(HASH_UI, currentUI, 1901)
+                call sc___prototype20_evaluate(func,currentUI)
             endif
-        endfunction
-
-//Generated destructor of resizer
-function s__resizer_deallocate takes integer this returns nothing
-    if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: resizer")
-        return
-    elseif (si__resizer_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: resizer")
-        return
-    endif
-    call s__resizer_onDestroy(this)
-    set si__resizer_V[this]=si__resizer_F
-    set si__resizer_F=this
-endfunction
-        function s__rePointer_isExist takes integer this returns boolean
-            return ( this != null and si__rePointer_V[this] == - 1 )
-        endfunction
-        function s__rePointer_create takes integer frame,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            local integer this=s__rePointer__allocate()
-            set s__rePointer_frame[this]=frame
-            set s__rePointer_anchor[this]=anchor
-            set s__rePointer_relative[this]=relative
-            set s__rePointer_relativeAnchor[this]=relativeAnchor
-            set s__rePointer_offsetX[this]=offsetX
-            set s__rePointer_offsetY[this]=offsetY
-            call DzFrameSetPoint(frame, anchor, relative, relativeAnchor, offsetX * GetResizeRate(), offsetY) //这里是初始化时的设置内容,不需要改
-            if ( s__rePointer_uID[this] == 0 ) then
-                set s__rePointer_size=s__rePointer_size + 1
-                set s__rePointer_List[s__rePointer_size]=this
-                set s__rePointer_uID[this]=s__rePointer_size
+        endfunction  //注册左键抬起事件,在click事件之前触发
+        function UIExtendEvent___anon__1 takes nothing returns nothing
+            local integer currentUI
+            local integer func
+            if ( not ( DzIsMouseOverUI() ) ) then
+                return
             endif
-            return this
-        endfunction
-        function s__rePointer_toString takes nothing returns string
-            local string s=I2S(s__rePointer_size) + "个:"
-            local integer i
-            set i=1
-            loop
-            exitwhen ( i > s__rePointer_size )
-                set s=s + "[" + I2S(i) + "]|r" + I2S(s__rePointer_List[i]) + "->"
-            set i=i + 1
-            endloop
-            set s=s + "/"
-            return s
-        endfunction
-        function s__rePointer_onDestroy takes integer this returns nothing
-            set s__rePointer_frame[this]=0
-            if ( s__rePointer_uID[this] != 0 ) then
-                set s__rePointer_List[s__rePointer_uID[this]]=s__rePointer_List[s__rePointer_size]
-                set s__rePointer_uID[s__rePointer_List[s__rePointer_uID[this]]]=s__rePointer_uID[this]
-                set s__rePointer_size=s__rePointer_size - 1
-                set s__rePointer_uID[this]=0
+            set currentUI=DzGetMouseFocus()
+            if ( HaveSavedInteger(HASH_UI, currentUI, 1902) ) then
+                set func=LoadInteger(HASH_UI, currentUI, 1902)
+                call sc___prototype20_evaluate(func,currentUI)
             endif
-        endfunction
-
-//Generated destructor of rePointer
-function s__rePointer_deallocate takes integer this returns nothing
-    if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: rePointer")
-        return
-    elseif (si__rePointer_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: rePointer")
-        return
-    endif
-    call s__rePointer_onDestroy(this)
-    set si__rePointer_V[this]=si__rePointer_F
-    set si__rePointer_F=this
-endfunction
-        function UIExtendResize__anon__0 takes nothing returns nothing
-            local real resizeX=GetResizeRate()
-            local integer i
-            local integer ser
-            if ( s__resizer_size > 0 ) then //反向遍历可以删除下面的　i-= 1
-                set i=s__resizer_size //从结论来说i就是.uID
-                loop
-                exitwhen i < 1
-                    set ser=s__resizer_List[i]
-                    call DzFrameSetSize(s__resizer_frame[ser], s__resizer_width[ser] * resizeX, s__resizer_height[ser])
-                set i=i - 1
-                endloop
+        endfunction  //注册右键按下事件
+        function UIExtendEvent___anon__2 takes nothing returns nothing
+            local integer currentUI
+            local integer func
+            call BJDebugMsg("[DEBUG] 触发右键按下事件")
+            if ( not ( DzIsMouseOverUI() ) ) then
+                call BJDebugMsg("[DEBUG] 鼠标不在UI上,退出右键按下事件")
+                return
             endif
-        endfunction  //注册窗口大小变化事件
-        function UIExtendResize__anon__1 takes nothing returns nothing
-            local real resizeX=GetResizeRate()
-            local integer i
-            local integer ptr
-            if ( s__rePointer_size > 0 ) then //反向遍历可以删除下面的　i-= 1
-                set i=s__rePointer_size //从结论来说i就是.uID
-                loop
-                exitwhen i < 1
-                    set ptr=s__rePointer_List[i]
-                    call DzFrameSetPoint(s__rePointer_frame[ptr], s__rePointer_anchor[ptr], s__rePointer_relative[ptr], s__rePointer_relativeAnchor[ptr], s__rePointer_offsetX[ptr] * resizeX, s__rePointer_offsetY[ptr])
-                set i=i - 1
-                endloop
+            set currentUI=DzGetMouseFocus()
+            call BJDebugMsg("[DEBUG] 当前鼠标焦点Frame:" + I2S(currentUI))
+            if ( HaveSavedInteger(HASH_UI, currentUI, 1903) ) then
+                call BJDebugMsg("[DEBUG] 找到右键按下事件回调")
+                set func=LoadInteger(HASH_UI, currentUI, 1903)
+                call sc___prototype20_evaluate(func,currentUI)
+            else
+                call BJDebugMsg("[DEBUG] 未找到右键按下事件回调")
+            endif // 新增的click判断逻辑
+            set UIExtendEvent___rightClickStartedOnUI=true
+            set UIExtendEvent___rightClickStartUI=currentUI
+            call BJDebugMsg("[DEBUG] 记录右键起始Frame:" + I2S(UIExtendEvent___rightClickStartUI))
+        endfunction  //注册右键抬起事件
+        function UIExtendEvent___anon__3 takes nothing returns nothing
+            local integer currentUI
+            local integer func
+            call BJDebugMsg("[DEBUG] 触发右键抬起事件")
+            if ( not ( DzIsMouseOverUI() ) ) then
+                call BJDebugMsg("[DEBUG] 鼠标不在UI上,退出右键抬起事件")
+                return
             endif
-        endfunction  //UI的销毁回调事件
-        function UIExtendResize__anon__2 takes nothing returns nothing
-            local integer frame=s__uiLifeCycle_agrsFrame
-            local integer ser
-            local integer ptr
-            if ( HaveSavedInteger(HASH_UI, frame, 1940) ) then
-                set ser=LoadInteger(HASH_UI, frame, 1940)
-                if ( s__resizer_isExist(ser) ) then
-                    call s__resizer_deallocate(ser)
+            set currentUI=DzGetMouseFocus()
+            call BJDebugMsg("[DEBUG] 当前鼠标焦点Frame:" + I2S(currentUI))
+            if ( HaveSavedInteger(HASH_UI, currentUI, 1904) ) then
+                call BJDebugMsg("[DEBUG] 找到右键抬起事件回调")
+                set func=LoadInteger(HASH_UI, currentUI, 1904)
+                call sc___prototype20_evaluate(func,currentUI)
+            else
+                call BJDebugMsg("[DEBUG] 未找到右键抬起事件回调")
+            endif // 新增的click判断逻辑
+            call BJDebugMsg("[DEBUG] 检查右键点击条件 - 起始状态:" + B2S(UIExtendEvent___rightClickStartedOnUI) + " 起始Frame:" + I2S(UIExtendEvent___rightClickStartUI) + " 当前Frame:" + I2S(currentUI))
+            if ( UIExtendEvent___rightClickStartedOnUI and currentUI == UIExtendEvent___rightClickStartUI ) then
+                if ( HaveSavedInteger(HASH_UI, currentUI, 1905) ) then
+                    call BJDebugMsg("[DEBUG] 找到右键点击事件回调")
+                    set func=LoadInteger(HASH_UI, currentUI, 1905)
+                    call sc___prototype20_evaluate(func,currentUI)
+                else
+                    call BJDebugMsg("[DEBUG] 未找到右键点击事件回调")
                 endif
             endif
-            if ( HaveSavedInteger(HASH_UI, frame, 1941) ) then
-                set ptr=LoadInteger(HASH_UI, frame, 1941)
-                if ( s__rePointer_isExist(ptr) ) then
-                    call s__rePointer_deallocate(ptr)
-                endif
-            endif
+            set UIExtendEvent___rightClickStartedOnUI=false
+            set UIExtendEvent___rightClickStartUI=0
+            call BJDebugMsg("[DEBUG] 重置右键点击状态")
         endfunction
-    function UIExtendResize__onInit takes nothing returns nothing
-        call s__hardware_regResizeEvent(function UIExtendResize__anon__0)
-        call s__hardware_regResizeEvent(function UIExtendResize__anon__1)
-        call s__uiLifeCycle_registerDestroy(function UIExtendResize__anon__2)
+    function UIExtendEvent___onInit takes nothing returns nothing
+        call s__hardware_regLeftDownEvent(function UIExtendEvent___anon__0)
+        call s__hardware_regLeftUpEvent(function UIExtendEvent___anon__1)
+        call s__hardware_regRightDownEvent(function UIExtendEvent___anon__2)
+        call s__hardware_regRightUpEvent(function UIExtendEvent___anon__3)
     endfunction
 
-//library UIExtendResize ends
-//library UIImage:
-        function s__uiImage_isExist takes integer this returns boolean
-            return ( this != null and si__uiImage_V[this] == - 1 )
+//library UIExtendEvent ends
+//library SpellBtns:
+//processed:     function interface onSpellBtns takes integer arg0, integer arg1 returns nothing
+        //private:  //接口保存
+        function s__spellBtns_onEnter takes integer func returns nothing
+            set s__spellBtns_funcEnter=func
+        endfunction  // 注册离开事件
+        function s__spellBtns_onLeave takes integer func returns nothing
+            set s__spellBtns_funcLeave=func
+        endfunction  // 注册点击事件
+        function s__spellBtns_onClick takes integer func returns nothing
+            set s__spellBtns_funcClick=func
+        endfunction  // 注册右键点击事件
+        function s__spellBtns_onRightClick takes integer func returns nothing
+            set s__spellBtns_funcRightClick=func
+        endfunction  // 保存右键点击事件(到哈希表里)
+        function s__spellBtns_saveRightClick takes integer ui,integer func returns nothing
+            call SaveInteger(HASH_UI, ui, 1905, func)
         endfunction
-//Implemented from module uiBaseModule:
-        function s__uiImage_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetPoint(s__uiImage_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
-            return this
-        endfunction  // 大小完全对齐父框架
-        function s__uiImage_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetAllPoints(s__uiImage_ui[this], relative)
-            return this
-        endfunction  //绝对位置
-        function s__uiImage_setAbsPoint takes integer this,integer anchor,real x,real y returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetAbsolutePoint(s__uiImage_ui[this], anchor, x, y)
-            return this
-        endfunction  // 清除所有位置
-        function s__uiImage_clearPoint takes integer this returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameClearAllPoints(s__uiImage_ui[this])
-            return this
-        endfunction  // 设置大小
-        function s__uiImage_setSize takes integer this,real width,real height returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetSize(s__uiImage_ui[this], width, height)
-            return this
-        endfunction  // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
-        function s__uiImage_setSizeFix takes integer this,real width,real height returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetSize(s__uiImage_ui[this], width * GetResizeRate(), height)
-            return this
-        endfunction  //扩展自适应大小方法
-        function s__uiImage_exReSize takes integer this,real width,real height returns integer
-            local integer ser
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return this
-            endif
-            if ( HaveSavedInteger(HASH_UI, s__uiImage_ui[this], 1940) ) then
-                set ser=LoadInteger(HASH_UI, s__uiImage_ui[this], 1940)
-                set s__resizer_frame[ser]=s__uiImage_ui[this]
-                set s__resizer_width[ser]=width
-                set s__resizer_height[ser]=height
-            else
-                set ser=s__resizer_create(s__uiImage_ui[this] , width , height)
-                call SaveInteger(HASH_UI, s__uiImage_ui[this], 1940, ser)
-            endif
-            return this
-        endfunction
-        function s__uiImage_exRePoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            local integer ptr
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return this
-            endif
-            if ( HaveSavedInteger(HASH_UI, s__uiImage_ui[this], 1941) ) then
-                set ptr=LoadInteger(HASH_UI, s__uiImage_ui[this], 1941)
-                set s__rePointer_frame[ptr]=s__uiImage_ui[this]
-                set s__rePointer_anchor[ptr]=anchor
-                set s__rePointer_relative[ptr]=relative
-                set s__rePointer_relativeAnchor[ptr]=relativeAnchor
-                set s__rePointer_offsetX[ptr]=offsetX
-                set s__rePointer_offsetY[ptr]=offsetY
-            else
-                set ptr=s__rePointer_create(s__uiImage_ui[this] , anchor , relative , relativeAnchor , offsetX , offsetY)
-                call SaveInteger(HASH_UI, s__uiImage_ui[this], 1941, ptr)
-            endif
-            return this
-        endfunction
-//Implemented from module uiImageModule:
-        function s__uiImage_texture takes integer this,string path returns integer
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetTexture(s__uiImage_ui[this], path, 0)
-            return this
-        endfunction
-        function s__uiImage_create takes integer parent returns integer
-            local integer this=s__uiImage__allocate()
-            set s__uiImage_id[this]=s__uiId_get()
-            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "IT", 0)
-//#             static if LIBRARY_UILifeCycle then
-                    call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-                    call BindFrameToUI(s__uiImage_ui[this] , si__uiImage , this)
-//#             endif
-            return this
-        endfunction  // 创建工具提示背景图片(种类1)
-        function s__uiImage_createToolTips takes integer parent returns integer
-            local integer this=s__uiImage__allocate()
-            set s__uiImage_id[this]=s__uiId_get()
-            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate", 0)
-//#             static if LIBRARY_UILifeCycle then
-                    call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-                    call BindFrameToUI(s__uiImage_ui[this] , si__uiImage , this)
-//#             endif
-            return this
-        endfunction  // 创建工具提示背景图片(种类2)
-        function s__uiImage_createToolTips2 takes integer parent returns integer
-            local integer this=s__uiImage__allocate()
-            set s__uiImage_id[this]=s__uiId_get()
-            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate2", 0)
-//#             static if LIBRARY_UILifeCycle then
-                    call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-                    call BindFrameToUI(s__uiImage_ui[this] , si__uiImage , this)
-//#             endif
-            return this
-        endfunction
-        function s__uiImage_onDestroy takes integer this returns nothing
-            if ( not ( s__uiImage_isExist(this) ) ) then
-                return
-            endif
-//#             static if LIBRARY_UILifeCycle then
-                    call s__uiLifeCycle_onDestroyCB(this , si__uiImage , s__uiImage_ui[this])
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-                    call FlushChildHashtable(HASH_UI, s__uiImage_ui[this])
-//#             endif
-            call DzDestroyFrame(s__uiImage_ui[this])
-            call s__uiId_recycle(s__uiImage_id[this])
-        endfunction
-
-//Generated destructor of uiImage
-function s__uiImage_deallocate takes integer this returns nothing
-    if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
-        return
-    elseif (si__uiImage_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
-        return
-    endif
-    call s__uiImage_onDestroy(this)
-    set si__uiImage_V[this]=si__uiImage_F
-    set si__uiImage_F=this
-endfunction
-
-//library UIImage ends
-//library UIText:
-        function s__uiText_isExist takes integer this returns boolean
-            return ( this != null and si__uiText_V[this] == - 1 )
-        endfunction
-//Implemented from module uiBaseModule:
-        function s__uiText_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetPoint(s__uiText_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
-            return this
-        endfunction  // 大小完全对齐父框架
-        function s__uiText_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetAllPoints(s__uiText_ui[this], relative)
-            return this
-        endfunction  //绝对位置
-        function s__uiText_setAbsPoint takes integer this,integer anchor,real x,real y returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetAbsolutePoint(s__uiText_ui[this], anchor, x, y)
-            return this
-        endfunction  // 清除所有位置
-        function s__uiText_clearPoint takes integer this returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameClearAllPoints(s__uiText_ui[this])
-            return this
-        endfunction  // 设置大小
-        function s__uiText_setSize takes integer this,real width,real height returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetSize(s__uiText_ui[this], width, height)
-            return this
-        endfunction  // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
-        function s__uiText_setSizeFix takes integer this,real width,real height returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetSize(s__uiText_ui[this], width * GetResizeRate(), height)
-            return this
-        endfunction  //扩展自适应大小方法
-        function s__uiText_exReSize takes integer this,real width,real height returns integer
-            local integer ser
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            if ( HaveSavedInteger(HASH_UI, s__uiText_ui[this], 1940) ) then
-                set ser=LoadInteger(HASH_UI, s__uiText_ui[this], 1940)
-                set s__resizer_frame[ser]=s__uiText_ui[this]
-                set s__resizer_width[ser]=width
-                set s__resizer_height[ser]=height
-            else
-                set ser=s__resizer_create(s__uiText_ui[this] , width , height)
-                call SaveInteger(HASH_UI, s__uiText_ui[this], 1940, ser)
-            endif
-            return this
-        endfunction
-        function s__uiText_exRePoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            local integer ptr
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            if ( HaveSavedInteger(HASH_UI, s__uiText_ui[this], 1941) ) then
-                set ptr=LoadInteger(HASH_UI, s__uiText_ui[this], 1941)
-                set s__rePointer_frame[ptr]=s__uiText_ui[this]
-                set s__rePointer_anchor[ptr]=anchor
-                set s__rePointer_relative[ptr]=relative
-                set s__rePointer_relativeAnchor[ptr]=relativeAnchor
-                set s__rePointer_offsetX[ptr]=offsetX
-                set s__rePointer_offsetY[ptr]=offsetY
-            else
-                set ptr=s__rePointer_create(s__uiText_ui[this] , anchor , relative , relativeAnchor , offsetX , offsetY)
-                call SaveInteger(HASH_UI, s__uiText_ui[this], 1941, ptr)
-            endif
-            return this
-        endfunction
-//Implemented from module uiTextModule:
-        function s__uiText_setFontSize takes integer this,integer size returns integer
-            local real fontSize=0.01
-            if ( not ( s__uiText_isExist(this) ) ) then
-                return this
-            endif
-            if ( size == 1 ) then
-                set fontSize=0.006
-            elseif ( size == 2 ) then
-                set fontSize=0.008
-            elseif ( size == 3 ) then
-                set fontSize=0.009
-            elseif ( size == 4 ) then
-                set fontSize=0.01
-            elseif ( size == 5 ) then
-                set fontSize=0.011
-            elseif ( size == 6 ) then
-                set fontSize=0.012
-            elseif ( size == 7 ) then
-                set fontSize=0.015
-            endif
-            call DzFrameSetFont(s__uiText_ui[this], "fonts\\zt.ttf", fontSize, 0)
-            return this
-        endfunction  // 设置对齐方式(前提要先定好大小,不然无处对齐)
-        function s__uiText_setAlign takes integer this,integer align returns integer
-            local integer finalAlign=align
-            if ( not ( s__uiText_isExist(this) ) ) then // 如果输入0-8,转换为对应的组合值
-                return this
-            endif
-            if ( align >= 0 and align <= 8 ) then
-                if ( align == 0 ) then // 左上
-                    set finalAlign=9
-                elseif ( align == 1 ) then // 顶部居中
-                    set finalAlign=17
-                elseif ( align == 2 ) then // 右上
-                    set finalAlign=33
-                elseif ( align == 3 ) then // 左中
-                    set finalAlign=10
-                elseif ( align == 4 ) then // 居中
-                    set finalAlign=18
-                elseif ( align == 5 ) then // 右中
-                    set finalAlign=34
-                elseif ( align == 6 ) then // 左下
-                    set finalAlign=12
-                elseif ( align == 7 ) then // 底部居中
-                    set finalAlign=20
-                elseif ( align == 8 ) then // 右下
-                    set finalAlign=36
+            function s__spellBtns_anon__0 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,1 , 1)
                 endif
-            endif
-            call DzFrameSetTextAlignment(s__uiText_ui[this], finalAlign)
-            return this
-        endfunction  // 设置文本内容
-        function s__uiText_setText takes integer this,string text returns integer
-            if ( not ( s__uiText_isExist(this) ) ) then
+            endfunction
+            function s__spellBtns_anon__1 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,1 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__2 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,1 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__3 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,1 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__4 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,1 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__5 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,1 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__6 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,1 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__7 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,1 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__8 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,1 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__9 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,1 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__10 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,1 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__11 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,1 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__12 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,1 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__13 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,1 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__14 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,1 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__15 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,1 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__16 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,2 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__17 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,2 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__18 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,2 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__19 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,2 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__20 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,2 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__21 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,2 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__22 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,2 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__23 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,2 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__24 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,2 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__25 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,2 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__26 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,2 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__27 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,2 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__28 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,2 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__29 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,2 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__30 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,2 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__31 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,2 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__32 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,3 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__33 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,3 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__34 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,3 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__35 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,3 , 1)
+                endif
+            endfunction
+            function s__spellBtns_anon__36 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,3 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__37 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,3 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__38 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,3 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__39 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,3 , 2)
+                endif
+            endfunction
+            function s__spellBtns_anon__40 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,3 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__41 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,3 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__42 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,3 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__43 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,3 , 3)
+                endif
+            endfunction
+            function s__spellBtns_anon__44 takes nothing returns nothing
+                if ( s__spellBtns_funcEnter != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcEnter,3 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__45 takes nothing returns nothing
+                if ( s__spellBtns_funcLeave != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcLeave,3 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__46 takes nothing returns nothing
+                if ( s__spellBtns_funcClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcClick,3 , 4)
+                endif
+            endfunction
+            function s__spellBtns_anon__47 takes integer r,integer c returns nothing
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,3 , 4)
+                endif
+            endfunction
+        function s__spellBtns_onInit takes nothing returns nothing
+            local integer row
+            local integer col
+            set row=1
+            loop
+            exitwhen ( row > 3 )
+                set col=1
+                loop
+                exitwhen ( col > 4 )
+                    set s__s__spellBtns_grid[(row)*(4)+col]= DzFrameGetCommandBarButton(row - 1, col - 1)
+                set col=col + 1
+                endloop
+            set row=row + 1
+            endloop
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+1], 2, function s__spellBtns_anon__0, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+1], 3, function s__spellBtns_anon__1, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+1], 1, function s__spellBtns_anon__2, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(1)*(4)+1] , (1))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+2], 2, function s__spellBtns_anon__4, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+2], 3, function s__spellBtns_anon__5, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+2], 1, function s__spellBtns_anon__6, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(1)*(4)+2] , (2))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+3], 2, function s__spellBtns_anon__8, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+3], 3, function s__spellBtns_anon__9, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+3], 1, function s__spellBtns_anon__10, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(1)*(4)+3] , (3))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+4], 2, function s__spellBtns_anon__12, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+4], 3, function s__spellBtns_anon__13, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+4], 1, function s__spellBtns_anon__14, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(1)*(4)+4] , (4))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+1], 2, function s__spellBtns_anon__16, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+1], 3, function s__spellBtns_anon__17, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+1], 1, function s__spellBtns_anon__18, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(2)*(4)+1] , (5))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+2], 2, function s__spellBtns_anon__20, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+2], 3, function s__spellBtns_anon__21, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+2], 1, function s__spellBtns_anon__22, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(2)*(4)+2] , (6))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+3], 2, function s__spellBtns_anon__24, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+3], 3, function s__spellBtns_anon__25, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+3], 1, function s__spellBtns_anon__26, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(2)*(4)+3] , (7))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+4], 2, function s__spellBtns_anon__28, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+4], 3, function s__spellBtns_anon__29, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+4], 1, function s__spellBtns_anon__30, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(2)*(4)+4] , (8))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+1], 2, function s__spellBtns_anon__32, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+1], 3, function s__spellBtns_anon__33, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+1], 1, function s__spellBtns_anon__34, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(3)*(4)+1] , (9))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+2], 2, function s__spellBtns_anon__36, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+2], 3, function s__spellBtns_anon__37, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+2], 1, function s__spellBtns_anon__38, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(3)*(4)+2] , (10))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+3], 2, function s__spellBtns_anon__40, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+3], 3, function s__spellBtns_anon__41, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+3], 1, function s__spellBtns_anon__42, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(3)*(4)+3] , (11))
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+4], 2, function s__spellBtns_anon__44, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+4], 3, function s__spellBtns_anon__45, false)
+            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+4], 1, function s__spellBtns_anon__46, false)
+            call s__spellBtns_saveRightClick(s__s__spellBtns_grid[(3)*(4)+4] , (12))
+        endfunction
+
+//library SpellBtns ends
+//library UIButton:
+        function s__uiBtn_isExist takes integer this returns boolean
+            return ( this != null and si__uiBtn_V[this] == - 1 )
+        endfunction
+//Implemented from module uiBaseModule:
+        function s__uiBtn_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetText(s__uiText_ui[this], text)
+            call DzFrameSetPoint(s__uiBtn_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            return this
+        endfunction  // 大小完全对齐父框架
+        function s__uiBtn_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAllPoints(s__uiBtn_ui[this], relative)
+            return this
+        endfunction  //绝对位置
+        function s__uiBtn_setAbsPoint takes integer this,integer anchor,real x,real y returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAbsolutePoint(s__uiBtn_ui[this], anchor, x, y)
+            return this
+        endfunction  // 清除所有位置
+        function s__uiBtn_clearPoint takes integer this returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameClearAllPoints(s__uiBtn_ui[this])
+            return this
+        endfunction  // 设置大小
+        function s__uiBtn_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiBtn_ui[this], width, height)
+            return this
+        endfunction  // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        function s__uiBtn_setSizeFix takes integer this,real width,real height returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiBtn_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction  //扩展自适应大小方法
+//Implemented from module uiBaseModule:
+//Implemented from module uiEventModule:
+        function s__uiBtn_onMouseEnter takes integer this,code fun returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, fun, false)
+            return this
+        endfunction  // 鼠标离开事件
+        function s__uiBtn_onMouseLeave takes integer this,code fun returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, fun, false)
+            return this
+        endfunction  // 鼠标松开事件,和点击一样,基本可以当相同事件
+        function s__uiBtn_onMouseClick takes integer this,code fun returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, fun, false)
+            return this
+        endfunction  // 鼠标滚轮事件
+        function s__uiBtn_onMouseWheel takes integer this,code fun returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 6, fun, false)
+            return this
+        endfunction  // 鼠标双击事件
+        function s__uiBtn_onMouseDoubleClick takes integer this,code fun returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 12, fun, false)
+            return this
+        endfunction  //扩展事件
+        function s__uiBtn_exLeftDown takes integer this,integer func returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1901, func)
+            return this
+        endfunction  //注册抬起事件
+        function s__uiBtn_exLeftUp takes integer this,integer func returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1902, func)
+            return this
+        endfunction  //注册右键按下事件
+        function s__uiBtn_exRightDown takes integer this,integer func returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1903, func)
+            return this
+        endfunction  //注册右键抬起事件
+        function s__uiBtn_exRightUp takes integer this,integer func returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1904, func)
+            return this
+        endfunction  //注册右键点击事件（精确判断）
+        function s__uiBtn_exRightClick takes integer this,integer func returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1905, func)
             return this
         endfunction
-        function s__uiText_create takes integer parent returns integer
-            local integer this=s__uiText__allocate()
-            set s__uiText_id[this]=s__uiId_get()
-            set s__uiText_ui[this]=DzCreateFrameByTagName("TEXT", "Text" + I2S(s__uiText_id[this]), parent, "T1", 0)
+        function s__uiBtn_create takes integer parent returns integer
+            local integer this=s__uiBtn__allocate()
+            set s__uiBtn_id[this]=s__uiId_get() //有高亮无声音的图标
+            set s__uiBtn_ui[this]=DzCreateFrameByTagName("BUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "BT", 0)
 //#             static if LIBRARY_UILifeCycle then
-                    call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
+//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call BindFrameToUI(s__uiText_ui[this] , si__uiText , this)
+                    call BindFrameToUI(s__uiBtn_ui[this] , si__uiBtn , this)
+//#             endif
+            return this
+        endfunction  //普通带声效系
+        function s__uiBtn_createSound takes integer parent returns integer
+            local integer this=s__uiBtn__allocate()
+            set s__uiBtn_id[this]=s__uiId_get() //有高亮有声音的图标
+            set s__uiBtn_ui[this]=DzCreateFrameByTagName("GLUEBUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "BT", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+                    call BindFrameToUI(s__uiBtn_ui[this] , si__uiBtn , this)
+//#             endif
+            return this
+        endfunction  //右键菜单系
+        function s__uiBtn_createRC takes integer parent returns integer
+            local integer this=s__uiBtn__allocate()
+            set s__uiBtn_id[this]=s__uiId_get() //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
+            set s__uiBtn_ui[this]=DzCreateFrameByTagName("GLUEBUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "TBT", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+                    call BindFrameToUI(s__uiBtn_ui[this] , si__uiBtn , this)
+//#             endif
+            return this
+        endfunction  // 创建空白按钮
+        function s__uiBtn_createBlank takes integer parent returns integer
+            local integer this=s__uiBtn__allocate()
+            set s__uiBtn_id[this]=s__uiId_get()
+            set s__uiBtn_ui[this]=DzCreateFrameByTagName("BUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "BB", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+                    call BindFrameToUI(s__uiBtn_ui[this] , si__uiBtn , this)
 //#             endif
             return this
         endfunction
-        function s__uiText_onDestroy takes integer this returns nothing
-            if ( not ( s__uiText_isExist(this) ) ) then
+        function s__uiBtn_onDestroy takes integer this returns nothing
+            if ( not ( s__uiBtn_isExist(this) ) ) then
                 return
             endif
 //#             static if LIBRARY_UILifeCycle then
-                    call s__uiLifeCycle_onDestroyCB(this , si__uiText , s__uiText_ui[this])
+//#                 call uiLifeCycle.onDestroyCB(this,uiBtn.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call FlushChildHashtable(HASH_UI, s__uiText_ui[this])
+                    call FlushChildHashtable(HASH_UI, s__uiBtn_ui[this])
 //#             endif
-            call DzDestroyFrame(s__uiText_ui[this])
-            call s__uiId_recycle(s__uiText_id[this])
+            call DzDestroyFrame(s__uiBtn_ui[this])
+            call s__uiId_recycle(s__uiBtn_id[this])
         endfunction
 
-//Generated destructor of uiText
-function s__uiText_deallocate takes integer this returns nothing
+//Generated destructor of uiBtn
+function s__uiBtn_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiText")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBtn")
         return
-    elseif (si__uiText_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiText")
+    elseif (si__uiBtn_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBtn")
         return
     endif
-    call s__uiText_onDestroy(this)
-    set si__uiText_V[this]=si__uiText_F
-    set si__uiText_F=this
+    call s__uiBtn_onDestroy(this)
+    set si__uiBtn_V[this]=si__uiBtn_F
+    set si__uiBtn_F=this
 endfunction
 
-//library UIText ends
-//library UTUIExtendResize:
+//library UIButton ends
+//library UTSpellBtns:
 
-    function UTUIExtendResize__TTestUTUIExtendResize1 takes player p returns nothing
-        set UTUIExtendResize__img=s__uiImage_texture(s__uiImage_exReSize(s__uiImage_setPoint(s__uiImage_create(DzGetGameUI()),4 , DzGetGameUI() , 4 , 0.0 , 0.0),0.035 , 0.035),"ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp") // .setSizeFix(0.035,0.035)
-    endfunction  //自适应大小
-    function UTUIExtendResize__TTestUTUIExtendResize2 takes player p returns nothing
-        local integer array txt
-        local integer row=ModuloInteger(i - 1, 5) + 1
-        local integer column=( i - 1 ) / 2 + 1
+        function UTSpellBtns__anon__0 takes integer row,integer column returns nothing
+            call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右压")
+        endfunction
+        function UTSpellBtns__anon__1 takes integer row,integer column returns nothing
+            call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右弹")
+        endfunction
+        function UTSpellBtns__anon__2 takes integer row,integer column returns nothing
+            call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右按")
+        endfunction
+    function UTSpellBtns__TTestUTSpellBtns1 takes player p returns nothing
+        local integer func1=(13)
+        local integer func2=(14)
+        local integer func3=(15)
+        call SaveInteger(HASH_UI, DzFrameGetCommandBarButton(1, 1), 1903, func1)
+        call SaveInteger(HASH_UI, DzFrameGetCommandBarButton(1, 1), 1904, func2)
+        call SaveInteger(HASH_UI, DzFrameGetCommandBarButton(1, 1), 1905, func3)
+    endfunction
+    function UTSpellBtns__TTestUTSpellBtns2 takes player p returns nothing
+    endfunction
+    function UTSpellBtns__TTestUTSpellBtns3 takes player p returns nothing
+    endfunction
+    function UTSpellBtns__TTestUTSpellBtns4 takes player p returns nothing
         local integer i
+        local integer j
         set i=1
         loop
-        exitwhen ( i > 20 )
-            set UTUIExtendResize__imgs[i]=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_exReSize(s__uiImage_create(DzGetGameUI()),0.035 , 0.035),4 , DzGetGameUI() , 4 , row * 0.035 , column * 0.035),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
-            set txt[i]=s__uiText_setText(s__uiText_setAlign(s__uiText_setAllPoint(s__uiText_create(s__uiImage_ui[UTUIExtendResize__imgs[i]]),s__uiImage_ui[UTUIExtendResize__imgs[i]]),4),I2S(i) + "号")
+        exitwhen ( i > 3 )
+            set j=1
+            loop
+            exitwhen ( j > 4 )
+                call BJDebugMsg("原生第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(DzFrameGetCommandBarButton(i - 1, j - 1)))
+                call BJDebugMsg("扩展第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(s__s__spellBtns_grid[(i)*(4)+j]))
+            set j=j + 1
+            endloop
         set i=i + 1
         endloop
     endfunction
-    function UTUIExtendResize__TTestUTUIExtendResize3 takes player p returns nothing
+        function UTSpellBtns__anon__3 takes nothing returns nothing
+            call BJDebugMsg("enter")
+        endfunction
+        function UTSpellBtns__anon__4 takes nothing returns nothing
+            call BJDebugMsg("leave")
+        endfunction
+        function UTSpellBtns__anon__5 takes nothing returns nothing
+            call BJDebugMsg("click")
+        endfunction
+        function UTSpellBtns__anon__6 takes integer frame returns nothing
+            call BJDebugMsg("leftDown")
+        endfunction
+        function UTSpellBtns__anon__7 takes integer frame returns nothing
+            call BJDebugMsg("leftUp")
+        endfunction
+        function UTSpellBtns__anon__8 takes integer frame returns nothing
+            call BJDebugMsg("rightClick")
+        endfunction
+    function UTSpellBtns__TTestUTSpellBtns5 takes player p returns nothing
+        local integer btn=0
+        set btn=s__uiBtn_exRightClick(s__uiBtn_exLeftUp(s__uiBtn_exLeftDown(s__uiBtn_onMouseClick(s__uiBtn_onMouseLeave(s__uiBtn_onMouseEnter(s__uiBtn_setPoint(s__uiBtn_setSize(s__uiBtn_create(DzGetGameUI()),0.04 , 0.04),4 , DzGetGameUI() , 4 , 0.0 , 0.0),function UTSpellBtns__anon__3),function UTSpellBtns__anon__4),function UTSpellBtns__anon__5),(1)),(2)),(3))
     endfunction
-    function UTUIExtendResize__TTestUTUIExtendResize4 takes player p returns nothing
+    function UTSpellBtns__TTestUTSpellBtns6 takes player p returns nothing
     endfunction
-    function UTUIExtendResize__TTestUTUIExtendResize5 takes player p returns nothing
+    function UTSpellBtns__TTestUTSpellBtns7 takes player p returns nothing
     endfunction
-    function UTUIExtendResize__TTestUTUIExtendResize6 takes player p returns nothing
+    function UTSpellBtns__TTestUTSpellBtns8 takes player p returns nothing
     endfunction
-    function UTUIExtendResize__TTestUTUIExtendResize7 takes player p returns nothing
+    function UTSpellBtns__TTestUTSpellBtns9 takes player p returns nothing
     endfunction
-    function UTUIExtendResize__TTestUTUIExtendResize8 takes player p returns nothing
+    function UTSpellBtns__TTestUTSpellBtns10 takes player p returns nothing
     endfunction
-    function UTUIExtendResize__TTestUTUIExtendResize9 takes player p returns nothing
-    endfunction
-    function UTUIExtendResize__TTestUTUIExtendResize10 takes player p returns nothing
-    endfunction
-    function UTUIExtendResize__TTestActUTUIExtendResize1 takes string str returns nothing
+    function UTSpellBtns__TTestActUTSpellBtns1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1969,75 +1993,99 @@ endfunction
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
-        if ( paramS[0] == "show" ) then
-            call BJDebugMsg("resizer:" + s__resizer_toString())
-            call BJDebugMsg("rePointer:" + s__rePointer_toString())
-        elseif ( paramS[0] == "destroy" ) then
-            if ( s__uiImage_isExist(UTUIExtendResize__img) ) then
-                call s__uiImage_onDestroy(UTUIExtendResize__img)
-                set UTUIExtendResize__img=0
-            endif
+        if ( paramS[0] == "a" ) then
+        elseif ( paramS[0] == "b" ) then
         endif
         set p=null
     endfunction
-        function UTUIExtendResize__anon__0 takes nothing returns nothing
-            call BJDebugMsg("[UIExtendResize] 单元测试已加载")
+            function UTSpellBtns__anon__10 takes integer row,integer column returns nothing
+                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入")
+            endfunction
+            function UTSpellBtns__anon__11 takes integer row,integer column returns nothing
+                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能离开")
+            endfunction
+            function UTSpellBtns__anon__12 takes integer row,integer column returns nothing
+                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能点击")
+            endfunction
+            function UTSpellBtns__anon__13 takes integer row,integer column returns nothing
+                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能右键点击")
+            endfunction
+        function UTSpellBtns__anon__9 takes nothing returns nothing
+            local unit hero
+            local unit building
+            local real x=0
+            local real y=0
+            local integer i=0
+            call BJDebugMsg("[SpellBtns] 单元测试已加载")
+            set hero=CreateUnit(Player(0), 'Hamg', 0, 0, 270)
+            call SetHeroLevel(hero, 10, true)
+            set building=CreateUnit(Player(0), 'hcas', 400, 0, 270)
+            call UnitAddAbility(building, 'AHbz')
+            call UnitAddAbility(building, 'AHwe')
+            call UnitAddAbility(building, 'AHab')
+            call UnitAddAbility(building, 'AHmt')
+            call UnitAddAbility(building, 'AHfs')
+            call UnitAddAbility(building, 'AHbn')
+            call UnitAddAbility(building, 'AHdr')
+            call UnitAddAbility(building, 'AHpx')
+            call UnitAddAbility(building, 'AHad')
+            call UnitAddAbility(building, 'AHav')
+            call UnitAddAbility(building, 'AHcs')
+            call UnitAddAbility(building, 'AHfa')
+            call UnitAddAbility(hero, 'ACbc')
+            call UnitAddAbility(hero, 'ACbf')
+            call UnitAddAbility(hero, 'ACpy')
+            call UnitAddAbility(hero, 'AOhx')
+            call UnitAddAbility(hero, 'ACdv')
+            call UnitAddAbility(hero, 'ACen')
+            call UnitAddAbility(hero, 'ANr3')
+            call UnitAddAbility(hero, 'AOhw')
+            call s__spellBtns_onEnter((16))
+            call s__spellBtns_onLeave((17))
+            call s__spellBtns_onClick((18))
+            call s__spellBtns_onRightClick((19))
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUIExtendResize__anon__1 takes nothing returns nothing
+        function UTSpellBtns__anon__14 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUIExtendResize__TTestActUTUIExtendResize1(SubStringBJ(str, 2, StringLength(str)))
+                call UTSpellBtns__TTestActUTSpellBtns1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize1(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize2(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize3(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize4(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize5(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize6(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize7(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize8(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize9(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUIExtendResize__TTestUTUIExtendResize10(GetTriggerPlayer())
+                call UTSpellBtns__TTestUTSpellBtns10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUIExtendResize__onInit takes nothing returns nothing
+    function UTSpellBtns__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUIExtendResize__anon__0))
+        call TriggerAddCondition(tr, Condition(function UTSpellBtns__anon__9))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUIExtendResize__anon__1)
+        call UnitTestRegisterChatEvent(function UTSpellBtns__anon__14)
     endfunction
 
-//library UTUIExtendResize ends
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
+//library UTSpellBtns ends
 
-// 0 - 1亿这里用
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
-
+//控件的共用基本方法
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -2048,8 +2096,14 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 //窗口的大小
-//控件的共用基本方法
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -2462,11 +2516,11 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs22389515")
-call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("jasshelper__initstructs41919484")
+call ExecuteFunc("UnitTestFramwork___onInit")
 call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UIExtendResize__onInit")
-call ExecuteFunc("UTUIExtendResize__onInit")
+call ExecuteFunc("UIExtendEvent___onInit")
+call ExecuteFunc("UTSpellBtns__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -2504,60 +2558,263 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__uiText_onDestroy takes nothing returns boolean
+
+//Functions for BigArrays:
+function sa__uiBtn_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiText_isExist(this) ) ) then
+            if ( not ( s__uiBtn_isExist(this) ) ) then
 return true
             endif
-                    call s__uiLifeCycle_onDestroyCB(this , si__uiText , s__uiText_ui[this])
-                    call FlushChildHashtable(HASH_UI, s__uiText_ui[this])
-            call DzDestroyFrame(s__uiText_ui[this])
-            call s__uiId_recycle(s__uiText_id[this])
+                    call FlushChildHashtable(HASH_UI, s__uiBtn_ui[this])
+            call DzDestroyFrame(s__uiBtn_ui[this])
+            call s__uiId_recycle(s__uiBtn_id[this])
    return true
 endfunction
-function sa__uiImage_onDestroy takes nothing returns boolean
-local integer this=f__arg_this
-            if ( not ( s__uiImage_isExist(this) ) ) then
-return true
-            endif
-                    call s__uiLifeCycle_onDestroyCB(this , si__uiImage , s__uiImage_ui[this])
-                    call FlushChildHashtable(HASH_UI, s__uiImage_ui[this])
-            call DzDestroyFrame(s__uiImage_ui[this])
-            call s__uiId_recycle(s__uiImage_id[this])
-   return true
+function sa___prototype21_UTSpellBtns__anon__0 takes nothing returns boolean
+ local integer row=f__arg_integer1
+ local integer column=f__arg_integer2
+
+            call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右压")
+    return true
 endfunction
-function sa__rePointer_onDestroy takes nothing returns boolean
-local integer this=f__arg_this
-            set s__rePointer_frame[this]=0
-            if ( s__rePointer_uID[this] != 0 ) then
-                set s__rePointer_List[s__rePointer_uID[this]]=s__rePointer_List[s__rePointer_size]
-                set s__rePointer_uID[s__rePointer_List[s__rePointer_uID[this]]]=s__rePointer_uID[this]
-                set s__rePointer_size=s__rePointer_size - 1
-                set s__rePointer_uID[this]=0
-            endif
-   return true
+function sa___prototype21_UTSpellBtns__anon__1 takes nothing returns boolean
+ local integer row=f__arg_integer1
+ local integer column=f__arg_integer2
+
+            call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右弹")
+    return true
 endfunction
-function sa__resizer_onDestroy takes nothing returns boolean
-local integer this=f__arg_this
-            set s__resizer_frame[this]=0
-            if ( s__resizer_uID[this] != 0 ) then
-                set s__resizer_List[s__resizer_uID[this]]=s__resizer_List[s__resizer_size]
-                set s__resizer_uID[s__resizer_List[s__resizer_uID[this]]]=s__resizer_uID[this]
-                set s__resizer_size=s__resizer_size - 1
-                set s__resizer_uID[this]=0
-            endif
-   return true
+function sa___prototype21_UTSpellBtns__anon__2 takes nothing returns boolean
+ local integer row=f__arg_integer1
+ local integer column=f__arg_integer2
+
+            call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右按")
+    return true
+endfunction
+function sa___prototype20_UTSpellBtns__anon__6 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+            call BJDebugMsg("leftDown")
+    return true
+endfunction
+function sa___prototype20_UTSpellBtns__anon__7 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+            call BJDebugMsg("leftUp")
+    return true
+endfunction
+function sa___prototype20_UTSpellBtns__anon__8 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+            call BJDebugMsg("rightClick")
+    return true
+endfunction
+function sa___prototype21_UTSpellBtns__anon__10 takes nothing returns boolean
+ local integer row=f__arg_integer1
+ local integer column=f__arg_integer2
+
+                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入")
+    return true
+endfunction
+function sa___prototype21_UTSpellBtns__anon__11 takes nothing returns boolean
+ local integer row=f__arg_integer1
+ local integer column=f__arg_integer2
+
+                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能离开")
+    return true
+endfunction
+function sa___prototype21_UTSpellBtns__anon__12 takes nothing returns boolean
+ local integer row=f__arg_integer1
+ local integer column=f__arg_integer2
+
+                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能点击")
+    return true
+endfunction
+function sa___prototype21_UTSpellBtns__anon__13 takes nothing returns boolean
+ local integer row=f__arg_integer1
+ local integer column=f__arg_integer2
+
+                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能右键点击")
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__3 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,1 , 1)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__7 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,1 , 2)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__11 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,1 , 3)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__15 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,1 , 4)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__19 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,2 , 1)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__23 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,2 , 2)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__27 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,2 , 3)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__31 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,2 , 4)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__35 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,3 , 1)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__39 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,3 , 2)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__43 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,3 , 3)
+                endif
+    return true
+endfunction
+function sa___prototype21_s__spellBtns_anon__47 takes nothing returns boolean
+ local integer r=f__arg_integer1
+ local integer c=f__arg_integer2
+
+                if ( s__spellBtns_funcRightClick != 0 ) then
+                    call sc___prototype21_evaluate(s__spellBtns_funcRightClick,3 , 4)
+                endif
+    return true
 endfunction
 
-function jasshelper__initstructs22389515 takes nothing returns nothing
-    set st__uiText_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiText_onDestroy,Condition( function sa__uiText_onDestroy))
-    set st__uiImage_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
-    set st__rePointer_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__rePointer_onDestroy,Condition( function sa__rePointer_onDestroy))
-    set st__resizer_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__resizer_onDestroy,Condition( function sa__resizer_onDestroy))
+function jasshelper__initstructs41919484 takes nothing returns nothing
+    set st__uiBtn_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiBtn_onDestroy,Condition( function sa__uiBtn_onDestroy))
+    set st___prototype21[13]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[13],function sa___prototype21_UTSpellBtns__anon__0)
+    call TriggerAddCondition(st___prototype21[13],Condition(function sa___prototype21_UTSpellBtns__anon__0))
+    set st___prototype21[14]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[14],function sa___prototype21_UTSpellBtns__anon__1)
+    call TriggerAddCondition(st___prototype21[14],Condition(function sa___prototype21_UTSpellBtns__anon__1))
+    set st___prototype21[15]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[15],function sa___prototype21_UTSpellBtns__anon__2)
+    call TriggerAddCondition(st___prototype21[15],Condition(function sa___prototype21_UTSpellBtns__anon__2))
+    set st___prototype20[1]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[1],function sa___prototype20_UTSpellBtns__anon__6)
+    call TriggerAddCondition(st___prototype20[1],Condition(function sa___prototype20_UTSpellBtns__anon__6))
+    set st___prototype20[2]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[2],function sa___prototype20_UTSpellBtns__anon__7)
+    call TriggerAddCondition(st___prototype20[2],Condition(function sa___prototype20_UTSpellBtns__anon__7))
+    set st___prototype20[3]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[3],function sa___prototype20_UTSpellBtns__anon__8)
+    call TriggerAddCondition(st___prototype20[3],Condition(function sa___prototype20_UTSpellBtns__anon__8))
+    set st___prototype21[16]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[16],function sa___prototype21_UTSpellBtns__anon__10)
+    call TriggerAddCondition(st___prototype21[16],Condition(function sa___prototype21_UTSpellBtns__anon__10))
+    set st___prototype21[17]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[17],function sa___prototype21_UTSpellBtns__anon__11)
+    call TriggerAddCondition(st___prototype21[17],Condition(function sa___prototype21_UTSpellBtns__anon__11))
+    set st___prototype21[18]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[18],function sa___prototype21_UTSpellBtns__anon__12)
+    call TriggerAddCondition(st___prototype21[18],Condition(function sa___prototype21_UTSpellBtns__anon__12))
+    set st___prototype21[19]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[19],function sa___prototype21_UTSpellBtns__anon__13)
+    call TriggerAddCondition(st___prototype21[19],Condition(function sa___prototype21_UTSpellBtns__anon__13))
+    set st___prototype21[1]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[1],function sa___prototype21_s__spellBtns_anon__3)
+    call TriggerAddCondition(st___prototype21[1],Condition(function sa___prototype21_s__spellBtns_anon__3))
+    set st___prototype21[2]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[2],function sa___prototype21_s__spellBtns_anon__7)
+    call TriggerAddCondition(st___prototype21[2],Condition(function sa___prototype21_s__spellBtns_anon__7))
+    set st___prototype21[3]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[3],function sa___prototype21_s__spellBtns_anon__11)
+    call TriggerAddCondition(st___prototype21[3],Condition(function sa___prototype21_s__spellBtns_anon__11))
+    set st___prototype21[4]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[4],function sa___prototype21_s__spellBtns_anon__15)
+    call TriggerAddCondition(st___prototype21[4],Condition(function sa___prototype21_s__spellBtns_anon__15))
+    set st___prototype21[5]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[5],function sa___prototype21_s__spellBtns_anon__19)
+    call TriggerAddCondition(st___prototype21[5],Condition(function sa___prototype21_s__spellBtns_anon__19))
+    set st___prototype21[6]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[6],function sa___prototype21_s__spellBtns_anon__23)
+    call TriggerAddCondition(st___prototype21[6],Condition(function sa___prototype21_s__spellBtns_anon__23))
+    set st___prototype21[7]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[7],function sa___prototype21_s__spellBtns_anon__27)
+    call TriggerAddCondition(st___prototype21[7],Condition(function sa___prototype21_s__spellBtns_anon__27))
+    set st___prototype21[8]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[8],function sa___prototype21_s__spellBtns_anon__31)
+    call TriggerAddCondition(st___prototype21[8],Condition(function sa___prototype21_s__spellBtns_anon__31))
+    set st___prototype21[9]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[9],function sa___prototype21_s__spellBtns_anon__35)
+    call TriggerAddCondition(st___prototype21[9],Condition(function sa___prototype21_s__spellBtns_anon__35))
+    set st___prototype21[10]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[10],function sa___prototype21_s__spellBtns_anon__39)
+    call TriggerAddCondition(st___prototype21[10],Condition(function sa___prototype21_s__spellBtns_anon__39))
+    set st___prototype21[11]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[11],function sa___prototype21_s__spellBtns_anon__43)
+    call TriggerAddCondition(st___prototype21[11],Condition(function sa___prototype21_s__spellBtns_anon__43))
+    set st___prototype21[12]=CreateTrigger()
+    call TriggerAddAction(st___prototype21[12],function sa___prototype21_s__spellBtns_anon__47)
+    call TriggerAddCondition(st___prototype21[12],Condition(function sa___prototype21_s__spellBtns_anon__47))
 
 
 
@@ -2570,7 +2827,7 @@ function jasshelper__initstructs22389515 takes nothing returns nothing
 
     call ExecuteFunc("s__mapBounds_onInit")
     call ExecuteFunc("s__uiId_onInit")
-    call ExecuteFunc("s__uiLifeCycle_onInit")
     call ExecuteFunc("s__hardware_onInit")
+    call ExecuteFunc("s__spellBtns_onInit")
 endfunction
 

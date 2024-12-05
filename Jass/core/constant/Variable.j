@@ -65,14 +65,6 @@ library Variable requires Constant {
 		}));
 		tr = null;
 
-		//选单位的事件[同步]
-		TrSelect = CreateTrigger();
-		for (1 <= i <= MAX_PLAYER_COUNT) {TriggerRegisterPlayerSelectionEventBJ(TrSelect, ConvertedPlayer(i), true);}
-		TriggerAddCondition(TrSelect, Condition(function (){
-			//单位选择事件[同步]
-			integer index = GetConvertedPlayerId(GetTriggerPlayer());
-			USelected[index] = GetTriggerUnit();
-		}));
 
 	}
 }

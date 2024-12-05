@@ -23,6 +23,7 @@ library UTUIExtendEvent requires UIExtendEvent {
 			.onMouseClick(function() {BJDebugMsg("click");})
 			.exLeftDown(function(integer frame) {BJDebugMsg("leftDown");})
 			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");})
+			.exRightClick(function(integer frame) {BJDebugMsg("rightClick");})
 			.exRightDown(function(integer frame) {BJDebugMsg("rightDown");})
 			.exRightUp(function(integer frame) {BJDebugMsg("rightUp");});
 	}

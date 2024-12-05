@@ -5,6 +5,9 @@
 /*
 原生Lua引擎非内置
 */
+
+// https://create.reckfeng.com/kkapidoc/#/menu_kkapi_japi kkapi的japi文档
+
 library YDLua {
 
 

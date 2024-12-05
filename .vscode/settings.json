@@ -13,5 +13,8 @@
     "War3RootPath": "D:/War3", //在tasks.json中使用${config:War3RootPath}获取
     "WEPath": "D:/WE/KKWE_Plugin", //在tasks.json中使用${config:WEPath}获取
     "War3RootPathMac": "/Users/crainax/War3", //mac端的项目目录
-    "WEPathMac": "/Users/crainax/WE/KKWE_Plugin", //mac端的项目目录
+    "WEPathMac": "/Users/crainax/WE/KKWE_Plugin",
+    "Lua.diagnostics.disable": [
+        "param-type-mismatch"
+    ], //mac端的项目目录
 }

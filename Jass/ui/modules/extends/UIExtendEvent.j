@@ -12,6 +12,9 @@ library UIExtendEvent requires Hardware,UIHashTable {
     //UI的扩充事件回调事件(参数是Frame不是UI结构实例)
     public type uiEvent extends function(integer);
 
+    private boolean rcStartOnUI = false;  // 添加状态标记
+    private integer rcStartUI   = 0;      // 记录按下时的UI
+
     public module extendEvent {
 
         //注册按下事件
@@ -36,6 +39,12 @@ library UIExtendEvent requires Hardware,UIHashTable {
         method exRightUp (uiEvent func)  -> thistype {
             if (!this.isExist()) {return this;}
             SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP,func);
+            return this;
+        }
+        //注册右键点击事件（精确判断）
+        method exRightClick (uiEvent func) -> thistype {
+            if (!this.isExist()) {return this;}
+            SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK,func);
             return this;
         }
     }
@@ -64,22 +73,43 @@ library UIExtendEvent requires Hardware,UIHashTable {
         hardware.regRightDownEvent(function () { //注册右键按下事件
             integer currentUI;
             uiEvent func;
-            if (!DzIsMouseOverUI()) {return;} //如果鼠标不在游戏内，就不响应该事件
+            if (!DzIsMouseOverUI()) {
+                return;
+            }
             currentUI = DzGetMouseFocus();
+
             if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) {
                 func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN);
                 func.evaluate(currentUI);
             }
+
+            // 新增的click判断逻辑
+            rcStartOnUI = true;
+            rcStartUI = currentUI;
         });
         hardware.regRightUpEvent(function () { //注册右键抬起事件
             integer currentUI;
             uiEvent func;
-            if (!DzIsMouseOverUI()) {return;} //如果鼠标不在游戏内，就不响应该事件
+            if (!DzIsMouseOverUI()) {
+                return;
+            }
             currentUI = DzGetMouseFocus();
+
             if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) {
                 func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP);
                 func.evaluate(currentUI);
             }
+
+            // 新增的click判断逻辑
+            if (rcStartOnUI && currentUI == rcStartUI) {
+                if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) {
+                    func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK);
+                    func.evaluate(currentUI);
+                }
+            }
+
+            rcStartOnUI = false;
+            rcStartUI = 0;
         });
     }
 }

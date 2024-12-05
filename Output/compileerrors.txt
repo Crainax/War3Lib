@@ -1,5 +1,4 @@
 logs\currentmapscript.j
 pjass.exe
-Line 1918:  Undeclared variable i
-Line 1920:  Symbol i multiply defined
-2
+Line 1357:  Undeclared function B2S
+1

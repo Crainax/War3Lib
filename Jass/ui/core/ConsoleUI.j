@@ -10,6 +10,8 @@
 #include "edit/Hero/Modules/Attr.j" //[英雄模块]属性
 // #include "edit/UI/UnitLifeUI.j" //这个可直接注释就关闭那个功能
 
+#include "ui/native/NativeItemButton.j"
+#include "ui/native/NativeSpellButton.j"
 
 //宏定义
 //3W进入边界判定
@@ -50,70 +52,8 @@
 */
 library ConsoleUI requires UIBase,DetailUI,OriginUI,optional UnitLifeUI {
 
-	public struct consoleF [] { //全是异步数据
-		static integer itemPos = 0;
-		static integer spellX = 0;
-		static integer spellY = 0;
-		static unit uS = null;
-	}
 
-	public integer UIOrigin[];	//原生UI
 	integer UILogo		= 0;	//[UI]LOGO
-	trigger trItems		= null;	//[接口组]物品图标进入
-	trigger trSpells	= null;	//[接口组]技能图标进入
-	trigger trSelect	= null;	//[接口组]单位选择事件(异步)
-	trigger trUnselect	= null;	//[接口组]单位取消选择事件(异步)
-
-	//注册物品图标进入事件
-	public function RegItemUIEvent (code func) {
-		if (trItems == null) {
-			trItems = CreateTrigger();
-		}
-		TriggerAddCondition(trItems, Condition(func));
-	}
-	//注册技能图标进入事件
-	public function RegSpellUIEvent (code func) {
-		if (trSpells == null) {
-			trSpells = CreateTrigger();
-		}
-		TriggerAddCondition(trSpells, Condition(func));
-	}
-	//注册单位选择事件(异步)
-	public function RegSelectAynsc (code func) {
-		if (trSelect == null) {
-			trSelect = CreateTrigger();
-		}
-		TriggerAddCondition(trSelect, Condition(func));
-	}
-	//注册单位取消选择事件(异步)
-	public function RegUnselectAynsc (code func) {
-		if (trUnselect == null) {
-			trUnselect = CreateTrigger();
-		}
-		TriggerAddCondition(trUnselect, Condition(func));
-	}
-	//鼠标进入物品总事件线
-	public function OnUIItemEnter(integer pos) {
-		consoleF.itemPos = pos;
-		TriggerEvaluate(trItems);
-	}
-	//鼠标离开物品总事件线
-	public function OnUIItemLeave() {
-		consoleF.itemPos = 0;
-		detailF.leave();
-	}
-	//鼠标进入技能总事件线
-	public function OnUISpellEnter (integer row,integer column) {
-		consoleF.spellX = row;
-		consoleF.spellY = column;
-		TriggerEvaluate(trSpells);
-	}
-	//鼠标离开技能总事件线
-	public function OnUISpellLeave () {
-		consoleF.spellX = 0;
-		consoleF.spellY = 0;
-		detailF.leave();
-	}
 
 	// 鼠标进入英雄的3W图标事件
 	boolean BEnter3W = false;
@@ -241,67 +181,8 @@ library ConsoleUI requires UIBase,DetailUI,OriginUI,optional UnitLifeUI {
 			}
 
 		});
-		hardware.regUpdateEvent(function (){ //注册2个事件:选择单位,与不选择事件
-			if (GetRealSelectUnit() != consoleF.uS) {
-				TriggerEvaluate(trUnselect); //事件里用consoleF.uS来指代
-				TriggerEvaluate(trSelect); //事件里用consoleF.uS来指代
-				consoleF.uS = GetRealSelectUnit();
-			}
-		});
 
-		//储存原始UI方便调用
-		for (1 <= i <= 6) {UIOrigin[i]= DzFrameGetItemBarButton(i - 1);}
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_0_0] = DzFrameGetCommandBarButton(0,0);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_0_1] = DzFrameGetCommandBarButton(0,1);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_0_2] = DzFrameGetCommandBarButton(0,2);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_0_3] = DzFrameGetCommandBarButton(0,3);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_1_0] = DzFrameGetCommandBarButton(1,0);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_1_1] = DzFrameGetCommandBarButton(1,1);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_1_2] = DzFrameGetCommandBarButton(1,2);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_1_3] = DzFrameGetCommandBarButton(1,3);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_2_0] = DzFrameGetCommandBarButton(2,0);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_2_1] = DzFrameGetCommandBarButton(2,1);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_2_2] = DzFrameGetCommandBarButton(2,2);
-		UIOrigin[INDEX_ORIGIN_UI_SPELL_2_3] = DzFrameGetCommandBarButton(2,3);
 
-		//6+12个图标的事件
-		DzFrameSetScriptByCode(UIOrigin[1],FRAME_MOUSE_ENTER,function () {OnUIItemEnter(1);},false);
-		DzFrameSetScriptByCode(UIOrigin[1],FRAME_MOUSE_LEAVE,function OnUIItemLeave, false);
-		DzFrameSetScriptByCode(UIOrigin[2],FRAME_MOUSE_ENTER,function () {OnUIItemEnter(2);},false);
-		DzFrameSetScriptByCode(UIOrigin[2],FRAME_MOUSE_LEAVE,function OnUIItemLeave, false);
-		DzFrameSetScriptByCode(UIOrigin[3],FRAME_MOUSE_ENTER,function () {OnUIItemEnter(3);},false);
-		DzFrameSetScriptByCode(UIOrigin[3],FRAME_MOUSE_LEAVE,function OnUIItemLeave, false);
-		DzFrameSetScriptByCode(UIOrigin[4],FRAME_MOUSE_ENTER,function () {OnUIItemEnter(4);},false);
-		DzFrameSetScriptByCode(UIOrigin[4],FRAME_MOUSE_LEAVE,function OnUIItemLeave, false);
-		DzFrameSetScriptByCode(UIOrigin[5],FRAME_MOUSE_ENTER,function () {OnUIItemEnter(5);},false);
-		DzFrameSetScriptByCode(UIOrigin[5],FRAME_MOUSE_LEAVE,function OnUIItemLeave, false);
-		DzFrameSetScriptByCode(UIOrigin[6],FRAME_MOUSE_ENTER,function () {OnUIItemEnter(6);},false);
-		DzFrameSetScriptByCode(UIOrigin[6],FRAME_MOUSE_LEAVE,function OnUIItemLeave, false);
-
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_0_0],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(0,0);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_0_1],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(0,1);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_0_2],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(0,2);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_0_3],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(0,3);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_1_0],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(1,0);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_1_1],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(1,1);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_1_2],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(1,2);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_1_3],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(1,3);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_2_0],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(2,0);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_2_1],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(2,1);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_2_2],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(2,2);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_2_3],FRAME_MOUSE_ENTER,function () {OnUISpellEnter(2,3);},false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_0_0],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_0_1],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_0_2],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_0_3],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_1_0],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_1_1],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_1_2],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_1_3],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_2_0],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_2_1],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_2_2],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
-		DzFrameSetScriptByCode(UIOrigin[INDEX_ORIGIN_UI_SPELL_2_3],FRAME_MOUSE_LEAVE,function OnUISpellLeave,false);
 
 	}
 }

@@ -26,6 +26,7 @@
 #endif
 
 #include "Crainax/config/Log.h" // 输出日志配置
+#include "Crainax/config/config.h"               // 配置
 
 //函数入口
 #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST) // 单元测试
