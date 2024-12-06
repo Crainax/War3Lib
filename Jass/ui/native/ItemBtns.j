@@ -1,7 +1,7 @@
 #ifndef ItemBtnsIncluded
 #define ItemBtnsIncluded
 
-
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 //! zinc
@@ -10,26 +10,32 @@
 // 控制物品栏按钮的进入,离开事件(点击和右键点击事件感觉并不需要)
 library ItemBtns {
 
-    // 物品栏按钮事件,整数代表物品栏位
-    public type onItemBtns extends function(integer);
-
     // 物品栏按钮结构体形式
     public struct itemBtns []{
         static integer slot[]; // 使用slot表示物品栏位的UI,第1个是左上角,第6个是右下角
 
+        static integer argsPos = 0; // 回调参数:触发位置
+
+        // 私有变量
         private {
-            static onItemBtns funcEnter      = 0 ; //接口保存
-            static onItemBtns funcLeave      = 0 ; //接口保存
+            static trigger trEnter = null;
+            static trigger trLeave = null;
         }
 
         // 注册进入事件,就算没有物品,有物品栏的英雄也会触发这个事件
-        static method onEnter (onItemBtns func) {
-            funcEnter = func;
+        static method onEnter (code func) {
+            if (trEnter == null) {
+                trEnter = CreateTrigger();
+            }
+            TriggerAddCondition(trEnter, Condition(func));
         }
 
         // 注册离开事件
-        static method onLeave (onItemBtns func) {
-            funcLeave = func;
+        static method onLeave (code func) {
+            if (trLeave == null) {
+                trLeave = CreateTrigger();
+            }
+            TriggerAddCondition(trLeave, Condition(func));
         }
 
         static method outside (integer pos) {
@@ -51,31 +57,20 @@ library ItemBtns {
                 slot[i] = DzFrameGetItemBarButton(i - 1);
             }
 
-            DzFrameSetScriptByCode(slot[1],FRAME_MOUSE_ENTER
-                ,function () {if (funcEnter != 0) funcEnter.evaluate(1);},false);
-            DzFrameSetScriptByCode(slot[1],FRAME_MOUSE_LEAVE
-                ,function (){if (funcLeave != 0) funcLeave.evaluate(1);}, false);
-            DzFrameSetScriptByCode(slot[2],FRAME_MOUSE_ENTER
-                ,function () {if (funcEnter != 0) funcEnter.evaluate(2);},false);
-            DzFrameSetScriptByCode(slot[2],FRAME_MOUSE_LEAVE
-                ,function (){if (funcLeave != 0) funcLeave.evaluate(2);}, false);
-            DzFrameSetScriptByCode(slot[3],FRAME_MOUSE_ENTER
-                ,function () {if (funcEnter != 0) funcEnter.evaluate(3);},false);
-            DzFrameSetScriptByCode(slot[3],FRAME_MOUSE_LEAVE
-                ,function (){if (funcLeave != 0) funcLeave.evaluate(3);}, false);
-            DzFrameSetScriptByCode(slot[4],FRAME_MOUSE_ENTER
-                ,function () {if (funcEnter != 0) funcEnter.evaluate(4);},false);
-            DzFrameSetScriptByCode(slot[4],FRAME_MOUSE_LEAVE
-                ,function (){if (funcLeave != 0) funcLeave.evaluate(4);}, false);
-            DzFrameSetScriptByCode(slot[5],FRAME_MOUSE_ENTER
-                ,function () {if (funcEnter != 0) funcEnter.evaluate(5);},false);
-            DzFrameSetScriptByCode(slot[5],FRAME_MOUSE_LEAVE
-                ,function (){if (funcLeave != 0) funcLeave.evaluate(5);}, false);
-            DzFrameSetScriptByCode(slot[6],FRAME_MOUSE_ENTER
-                ,function () {if (funcEnter != 0) funcEnter.evaluate(6);},false);
-            DzFrameSetScriptByCode(slot[6],FRAME_MOUSE_LEAVE
-                ,function (){if (funcLeave != 0) funcLeave.evaluate(6);}, false);
+            #define REGISTER_ITEMBTNS_EVENT(pos) \
+            DzFrameSetScriptByCode(slot[pos],FRAME_MOUSE_ENTER CRNL \
+                ,function () {if (trEnter != null) {argsPos = pos;TriggerEvaluate(trEnter);}},false); CRNL \
+            DzFrameSetScriptByCode(slot[pos],FRAME_MOUSE_LEAVE CRNL \
+                ,function () {if (trLeave != null) {argsPos = pos;TriggerEvaluate(trLeave);}},false);
 
+            REGISTER_ITEMBTNS_EVENT(1)
+            REGISTER_ITEMBTNS_EVENT(2)
+            REGISTER_ITEMBTNS_EVENT(3)
+            REGISTER_ITEMBTNS_EVENT(4)
+            REGISTER_ITEMBTNS_EVENT(5)
+            REGISTER_ITEMBTNS_EVENT(6)
+
+            #undef REGISTER_ITEMBTNS_EVENT
         }
 
     }

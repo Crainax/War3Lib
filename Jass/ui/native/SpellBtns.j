@@ -8,45 +8,53 @@
 
 // 原生的技能栏按钮和事件
 // 控制技能栏按钮的进入,离开,点击还有右键点击事件
-library SpellBtns requires hardware{
-
-    // 技能栏按钮事件,整数代表技能格子
-    public type onSpellBtns extends function(integer,integer);
+library SpellBtns requires Hardware{
 
     public struct spellBtns {
         static integer grid [3][4]; // 使用grid表示技能格子
 
+        static integer argsRow = 0; // 回调参数:行
+        static integer argsCol = 0; // 回调参数:列
+
         private {
-            static onSpellBtns funcEnter      = 0 ;     //接口保存
-            static onSpellBtns funcLeave      = 0 ;     //接口保存
-            static onSpellBtns funcClick      = 0 ;     //接口保存
-            static onSpellBtns funcRightClick = 0 ;     //接口保存
-            static integer mousePos           = 0;      //当前鼠标所在的位置
-            static boolean rcStartOnUI        = false;  // 是否开始右键点击
-            static integer rcStartPos         = 0;      // 右键点击开始时的鼠标位置
+            static trigger trEnter      = null;   // 进入事件
+            static trigger trLeave      = null;   // 离开事件
+            static trigger trClick      = null;   // 点击事件
+            static trigger trRightClick = null;   // 右键点击事件
+
+            static integer mousePos     = 0;      //当前鼠标所在的位置
+            static boolean rcStartOnUI  = false;  // 是否开始右键点击
+            static integer rcStartPos   = 0;      // 右键点击开始时的鼠标位置
         }
 
         // 注册进入事件
-        static method onEnter (onSpellBtns func) {
-            funcEnter = func;
+        static method onEnter (code func) {
+            if (trEnter == null) {
+                trEnter = CreateTrigger();
+            }
+            TriggerAddCondition(trEnter, Condition(func));
         }
         // 注册离开事件
-        static method onLeave (onSpellBtns func) {
-            funcLeave = func;
+        static method onLeave (code func) {
+            if (trLeave == null) {
+                trLeave = CreateTrigger();
+            }
+            TriggerAddCondition(trLeave, Condition(func));
         }
         // 注册点击事件
-        static method onClick (onSpellBtns func) {
-            funcClick = func;
+        static method onClick (code func) {
+            if (trClick == null) {
+                trClick = CreateTrigger();
+            }
+            TriggerAddCondition(trClick, Condition(func));
         }
         // 注册右键点击事件
-        static method onRightClick (onSpellBtns func) {
-            funcRightClick = func;
+        static method onRightClick (code func) {
+            if (trRightClick == null) {
+                trRightClick = CreateTrigger();
+            }
+            TriggerAddCondition(trRightClick, Condition(func));
         }
-
-        //判断鼠标是否在按钮里
-        // static method isMouseIn (integer row,integer col) -> boolean {
-        //     return IsMouseInRect(DzGetFrame(FRAME_GAME_UI,0),0,0,1,1);
-        // }
 
         // 把技能按钮移出屏幕外
         static method outside (integer row,integer col) {
@@ -57,7 +65,7 @@ library SpellBtns requires hardware{
         // 把技能按钮移回应有的位置
         static method inside (integer row,integer col) {
             DzFrameClearAllPoints(grid[row][col]);
-            DzFrameSetPoint(grid[row][col], ANCHOR_CENTER, DzGetGameUI(), ANCHOR_RIGHT, - 0.3078 + (0.0398 * row), - 0.165 - (0.0385 * column));
+            DzFrameSetPoint(grid[row][col], ANCHOR_CENTER, DzGetGameUI(), ANCHOR_RIGHT, - 0.3078 + (0.0398 * row), - 0.165 - (0.0385 * col));
         }
 
         static method onInit() {
@@ -70,9 +78,9 @@ library SpellBtns requires hardware{
             }
 
             #define SPELL_BTN_EVENT_MACRO(row,col) \
-            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_ENTER,function () {mousePos = ((row-1)*4)+col;if(funcEnter != 0) funcEnter.evaluate(row,col);},false); CRNL \
-            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_LEAVE,function () {mousePos = 0;if(funcLeave != 0) funcLeave.evaluate(row,col);},false); CRNL \
-            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_DOWN,function () {if(funcClick != 0) funcClick.evaluate(row,col);},false); CRNL \
+            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_ENTER,function () {mousePos = ((row-1)*4)+col;if(trEnter != null) {argsRow = row;argsCol = col;TriggerEvaluate(trEnter);}},false); CRNL \
+            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_LEAVE,function () {mousePos = 0;if(trLeave != null) {argsRow = row;argsCol = col;TriggerEvaluate(trLeave);}},false); CRNL \
+            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_DOWN,function () {if(trClick != null) {argsRow = row;argsCol = col;TriggerEvaluate(trClick);}},false);
 
             SPELL_BTN_EVENT_MACRO(1,1)
             SPELL_BTN_EVENT_MACRO(1,2)
@@ -99,8 +107,10 @@ library SpellBtns requires hardware{
             hardware.regRightUpEvent(function () { //注册右键抬起事件
                 // 新增的click判断逻辑
                 if (rcStartOnUI && mousePos == rcStartPos) {
-                    if (funcRightClick != 0) {
-                        funcRightClick.evaluate(mousePos);
+                    if (trRightClick != null) {
+                        argsRow = (mousePos - 1) / 4 + 1;
+                        argsCol = ModuloInteger(mousePos - 1,4) + 1;
+                        TriggerEvaluate(trRightClick);
                     }
                 }
 

@@ -21,7 +21,7 @@
 *    - 大小: -size w h (推荐值: 小型0.001~0.01, 中型0.01~0.05, 大型0.05~0.1)
 */
 
-//import: ui/model/ping2.mdx
+//# dependency: ui/model/ping2.mdx
 library UTUISprite requires UISprite {
 
     // 存储测试用的sprite实例

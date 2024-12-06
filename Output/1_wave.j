@@ -109,18 +109,6 @@ endfunction
 //自动生成的文件
 library UTSpellBtns requires SpellBtns {
 	function TTestUTSpellBtns1 (player p) {
-		onSpellBtns func1 = function (integer row,integer column) {
-			BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右压");
-		};
-		onSpellBtns func2 = function (integer row,integer column) {
-			BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右弹");
-		};
-		onSpellBtns func3 = function (integer row,integer column) {
-			BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列右按");
-		};
-		SaveInteger(HASH_UI,DzFrameGetCommandBarButton(1,1),HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN,func1);
-		SaveInteger(HASH_UI,DzFrameGetCommandBarButton(1,1),HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP,func2);
-		SaveInteger(HASH_UI,DzFrameGetCommandBarButton(1,1),HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK,func3);
 	}
 	function TTestUTSpellBtns2 (player p) {
 	}
@@ -219,16 +207,24 @@ UnitAddAbility(hero, 'ACen'); // 诱捕
 UnitAddAbility(hero, 'ANr3'); // 混乱之雨
 UnitAddAbility(hero, 'AOhw'); // 医疗波
 
-			spellBtns.onEnter(function (integer row,integer column) {
+			spellBtns.onEnter(function () {
+				integer row = spellBtns.argsRow;
+				integer column = spellBtns.argsCol;
 				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入");
 			});
-			spellBtns.onLeave(function (integer row,integer column) {
+			spellBtns.onLeave(function () {
+				integer row = spellBtns.argsRow;
+				integer column = spellBtns.argsCol;
 				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能离开");
 			});
-			spellBtns.onClick(function (integer row,integer column) {
+			spellBtns.onClick(function () {
+				integer row = spellBtns.argsRow;
+				integer column = spellBtns.argsCol;
 				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能点击");
 			});
-			spellBtns.onRightClick(function (integer row,integer column) {
+			spellBtns.onRightClick(function () {
+				integer row = spellBtns.argsRow;
+				integer column = spellBtns.argsCol;
 				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能右键点击");
 			});
 			DestroyTrigger(GetTriggeringTrigger());

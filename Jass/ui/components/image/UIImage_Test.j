@@ -7,14 +7,14 @@
 //! zinc
 
 /*
- * UIImage组件测试文件
- * 测试命令:
- * s1 - 创建基础图像并测试位置设置
- * s4 - 测试图像销毁功能
- * s5 - 测试工具提示背景图片1
- * s6 - 测试工具提示背景图片2
- * s7 - 测试工具提示背景图片3
- */
+* UIImage组件测试文件
+* 测试命令:
+* s1 - 创建基础图像并测试位置设置
+* s4 - 测试图像销毁功能
+* s5 - 测试工具提示背景图片1
+* s6 - 测试工具提示背景图片2
+* s7 - 测试工具提示背景图片3
+*/
 library UTUIImage requires UIImage {
 
 	uiImage currentImage = 0;
@@ -25,7 +25,7 @@ library UTUIImage requires UIImage {
 			currentImage = uiImage.create(DzGetGameUI())
 				.setSize(0.04, 0.04)
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-				// .texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
+			// .texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
 				.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
 			BJDebugMsg("创建了一个基础图像UI");
 		}

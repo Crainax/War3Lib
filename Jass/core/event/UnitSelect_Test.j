@@ -21,12 +21,12 @@ library UTUnitSelect requires UnitSelect {
 			u = null;
 		});
 		unitSelect.onAsync(function (){ //异步时选中单位调用
-			unit u = unitSelect.argsAsync;
+			unit u = unitSelect.args;
 			BJDebugMsg("[异步单位选择事件]:" + GetUnitName(u));
 			u = null;
 		});
 		unitSelect.onAsyncUn(function (){ //异步时取消选择单位调用
-			unit u = unitSelect.argsAsync;
+			unit u = unitSelect.args;
 			BJDebugMsg("[异步单位取消选择事件]:" + GetUnitName(u));
 			u = null;
 		});
@@ -77,8 +77,30 @@ library UTUnitSelect requires UnitSelect {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
+			unit hero, building, footman1, footman2, archer, priest;
 
 			BJDebugMsg("[UnitSelect] 单元测试已加载");
+
+			// 创建主要测试英雄
+			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 大法师
+
+			// 创建一些测试单位
+			footman1 = CreateUnit(Player(0), 'hfoo', -200, 200, 270); // 步兵1
+			footman2 = CreateUnit(Player(0), 'hfoo', -200, -200, 270); // 步兵2
+			archer = CreateUnit(Player(0), 'earc', 200, 200, 270); // 弓箭手
+			priest = CreateUnit(Player(0), 'hmpr', 200, -200, 270); // 牧师
+
+			// 创建一个建筑
+			building = CreateUnit(Player(0), 'hbar', 400, 0, 270); // 兵营
+
+			// 给单位添加一些状态以便区分
+			SetUnitState(footman1, UNIT_STATE_LIFE, GetUnitState(footman1, UNIT_STATE_MAX_LIFE) * 0.5); // 半血
+			SetUnitState(archer, UNIT_STATE_MANA, 0); // 没蓝
+			UnitAddAbility(priest, 'Ainf'); // 给牧师添加隐身能力
+
+			// 设置英雄等级
+			SetHeroLevel(hero, 5, true);
+
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

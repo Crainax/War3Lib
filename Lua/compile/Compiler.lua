@@ -9,7 +9,7 @@ local compile = {}
 -- todo:学习YDWE的预添加函数
 
 -- 进行Wave的预处理(会)
-function compile:CompileWave( input, args)
+function compile:CompileWave(input, args)
 	lfs.chdir(path.wave)
 	local waveExe = 'Wave.exe'
 	local waveCmdArgs = ''
@@ -36,6 +36,97 @@ function compile:CompileWave( input, args)
 	return os.execute(waveCmd)
 end
 
+-- 遍历Lua文件,添加资源文件
+function compile:CompileLua()
+	-- 第一步：预处理检查块
+	local content = fileUtils.ReadFileContent(path.CompileStep4)
+	if not content then
+		return false, "无法读取文件内容"
+	end
+
+	-- 分析所有的check块并处理内容
+	local processedLines = {}
+	local currentBlock = nil
+	local checkBlocks = {}
+
+	-- 第一遍：收集所有check块和非check块内容
+	for line in content:gmatch("[^\r\n]+") do
+		local checkTarget = line:match("^%s*//# check:%s*(.+)$")
+		if checkTarget then
+			currentBlock = {
+				target = checkTarget,
+				content = {},
+				keep = false
+			}
+			checkBlocks[#checkBlocks + 1] = currentBlock
+		elseif line:match("^%s*//# endcheck%s*$") then
+			currentBlock = nil
+		elseif currentBlock then
+			currentBlock.content[#currentBlock.content + 1] = line
+			processedLines[#processedLines + 1] = line
+		else
+			processedLines[#processedLines + 1] = line
+		end
+	end
+
+	-- 第二遍：检查哪些块需要保留
+	local searchContent = table.concat(processedLines, "\n")
+	for i, block in ipairs(checkBlocks) do
+		local pattern = block.target:gsub("[%-%.%+%[%]%(%)%$%^%%%?%*]", "%%%0")
+
+		if not searchContent:find(pattern) then
+			local newProcessedLines = {}
+			for _, line in ipairs(processedLines) do
+				local isBlockContent = false
+				for _, contentLine in ipairs(block.content) do
+					if line == contentLine then
+						isBlockContent = true
+						break
+					end
+				end
+				if not isBlockContent then
+					newProcessedLines[#newProcessedLines + 1] = line
+				end
+			end
+			processedLines = newProcessedLines
+		end
+	end
+
+	-- 将处理后的内容写回文件
+	local success = fileUtils.WriteOver(path.CompileStep4, table.concat(processedLines, "\n"))
+	if not success then
+		return false, "无法写入处理后的文件内容"
+	end
+
+	-- 第二步：处理文件（现在只需要处理正常的编译逻辑）
+	return fileUtils.ExecuteFile(path.CompileStep4, function(line)
+		-- 依赖项注入(//# dependency:xxx.xxx)
+		local importPath = line:match("^%s*//# dependency:%s*(.+)$")
+		if importPath then
+			 importPath = importPath:gsub("\\", "/")
+			 compileFiles:addResourceFile(importPath)
+			 return line
+		end
+
+		-- 检查序列帧声明(//# sequence:xxx{0-63}.xxx)
+		local basePath, start, stop, ext = line:match("^%s*//# sequence:%s*(.+){(%d+)-(%d+)}%.(%w+)$")
+		if basePath then
+			start = tonumber(start)
+			stop = tonumber(stop)
+			for i = start, stop do
+				local fullPath = string.format("%s%d.%s", basePath, i, ext)
+				compileFiles:addResourceFile(fullPath)
+			end
+			return line
+		end
+
+		-- 原有的处理逻辑
+		line = string.gsub(line, "\\n\t+", "\\n")
+		line = string.gsub(line, "<%?='\\n'%?>", "\n")
+		return line
+	end)
+end
+
 function compile:StartCompile()
 	-- 清理上次编译信息
 	compileFiles:clear()
@@ -45,9 +136,9 @@ function compile:StartCompile()
 	compileFiles:addSourceFile(path.scriptJ)
 	compileFiles:addGeneratedFile(path.CompileStep0)
 
-	print("[即将开始]编译源文件 : " .. path.CompileStep0)
+	print("[即将开始]编译文件 : " .. path.CompileStep0)
 
-	code, msg = self:CompileWave( path.CompileStep0) -- 先预处理一次
+	code, msg = self:CompileWave(path.CompileStep0) -- 先预处理一次
 	if (code) then
 		local waveResult = string.gsub(path.CompileStep0, "%.j", ".i")
 		pcall(os.remove, path.CompileStep1) -- 把老的waveResult删除
@@ -84,7 +175,7 @@ function compile:StartCompile()
 		return false
 	end
 
-	code, msg = self:CompileWave( path.CompileStep2, '--define=USE_BJ_ANTI_LEAK=1 ') -- 再预处理一次(不会影响CompileStep2)
+	code, msg = self:CompileWave(path.CompileStep2, '--define=USE_BJ_ANTI_LEAK=1 ') -- 再预处理一次(不会影响CompileStep2)
 	if (code) then
 		local waveResult = string.gsub(path.CompileStep2, "%.j", ".i")
 		pcall(os.remove, path.CompileStep3) -- 把老的waveResult删除
@@ -101,35 +192,11 @@ function compile:StartCompile()
 
 	-- 复制 path.waveResult 到新路径
 	fileUtils.copyFile(path.CompileStep3, path.CompileStep4)
-	-- 替换CRNL符号,还有各种以\n\t\t++的压缩.
-	if fileUtils.ExecuteFile(path.CompileStep4, function(line)
-			-- 检查是否是 import 行
-			local importPath = line:match("^%s*//import:%s*(.+)$")
-			if importPath then
-				importPath = importPath:gsub("\\", "/")
-				compileFiles:addResourceFile(importPath)
-				return line
-			end
-
-			-- 检查序列帧声明
-			local basePath, start, stop, ext = line:match("^%s*//sequence:%s*(.+){(%d+)-(%d+)}%.(%w+)$")
-			if basePath then
-				start = tonumber(start)
-				stop = tonumber(stop)
-				for i = start, stop do
-					local fullPath = string.format("%s%d.%s", basePath, i, ext)
-					compileFiles:addResourceFile(fullPath)
-				end
-				return line
-			end
-
-			-- 原有的处理逻辑
-			line = string.gsub(line, "\\n\t+", "\\n")
-			return string.gsub(line, "<%?='\\n'%?>", "\n")
-		end) then
-		print("[Lua]换行符替换成功 : " .. path.CompileStep4)
+	code, msg = self:CompileLua()
+	if code then
+		print("[Lua]遍历处理成功 : " .. path.CompileStep4)
 	else
-		print("[Lua]换行符替换失败")
+		print("[Lua]遍历处理失败:" .. msg)
 		return false
 	end
 
@@ -190,7 +257,7 @@ function compile:StartCompile()
 	-- 记录编译完成时间
 	compileFiles.lastBuildTime = os.time()
 
-	-- 打印资源文件
+	-- 打印资源件
 	print("[资源文件]内容: " .. #compileFiles.resourceFiles .. "个")
 	-- if compileFiles.resourceFiles then
 	-- 	for _, value in pairs(compileFiles.resourceFiles) do

@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 1357:  Undeclared function B2S
+JASSHelper - Step 2 (structs)
+Line 92: Identifier redeclared : "i"
 1

@@ -9,8 +9,8 @@
 图片UI组件
 */
 
-//import:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
-//import:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
+//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
+//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
 
 library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
 

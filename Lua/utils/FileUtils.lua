@@ -54,7 +54,10 @@ fu.DeleteFile = function(filepath)
 end
 
 -- 读取一个文件,每行字符串使用func进行处理重写,func参数一个字符串,返回处理后的字符串
-fu.ExecuteFile = function (fileName, func)
+---@param fileName string
+---@param func fun(line:string):string|nil
+---@return boolean,string | nil
+fu.ExecuteFile = function(fileName, func)
 	local fileRead = io.open(fileName)
 	if fileRead then
 		local tab = ReadFile(fileRead)
@@ -63,13 +66,17 @@ fu.ExecuteFile = function (fileName, func)
 		if fileWrite then
 			WriteFile(fileWrite, tab, func)
 			fileWrite:close()
+		else
+			return false, "文件写入失败:" .. fileName
 		end
+	else
+		return false, "文件打开失败:" .. fileName
 	end
-	return true
+	return true, nil
 end
 
 -- 只遍历一遍文件(不进行重写)
-fu.ReadFile = function (fileName, func)
+fu.ReadFile = function(fileName, func)
 	local file = io.open(fileName, "r")
 	if file then
 		local lineCount = 1
@@ -85,7 +92,7 @@ fu.ReadFile = function (fileName, func)
 end
 
 -- 获取一个文件的所有文本内容
-fu.GetContent = function (fileName)
+fu.GetContent = function(fileName)
 	local file = io.open(fileName, "r")
 	if file then
 		local result = file:read("a")
@@ -95,7 +102,7 @@ fu.GetContent = function (fileName)
 end
 
 -- 在文件最后写东西
-fu.WriteLast = function (fileName, content)
+fu.WriteLast = function(fileName, content)
 	local fileWrite = io.open(fileName, "a+")
 	if fileWrite then
 		fileWrite:write(content)
@@ -105,7 +112,7 @@ fu.WriteLast = function (fileName, content)
 end
 
 -- 复制一个文件
-fu.copyFile = function (sourcePath, destPath)
+fu.copyFile = function(sourcePath, destPath)
 	-- 打开源文件
 	local sourceFile, err = io.open(sourcePath, "rb")
 	if not sourceFile then
@@ -131,17 +138,21 @@ fu.copyFile = function (sourcePath, destPath)
 end
 
 -- 覆盖创建一个新文件
-fu.WriteOver = function (fileName, content)
-	local fileWrite = io.open(fileName, "w+")
+---@param fileName string
+---@param content string
+---@return boolean,string|nil
+fu.WriteOver = function(fileName, content)
+	local fileWrite, err = io.open(fileName, "w+")
 	if fileWrite then
 		fileWrite:write(content)
 		fileWrite:close()
 		return true
 	end
+	return false, "文件写入失败:" .. fileName .. " " .. err
 end
 
 -- 遍历文件夹并做出操作[func:文件路径]
-fu.ForDir = function (srcPath, func, isSub)
+fu.ForDir = function(srcPath, func, isSub)
 	for file in lfs.dir((srcPath)) do
 		if file ~= "." and file ~= ".." then -- 遍历过程中会有这两个,本层和上一层,过滤掉
 			local attr = lfs.attributes((srcPath .. "/" .. file))
@@ -158,7 +169,7 @@ fu.ForDir = function (srcPath, func, isSub)
 end
 
 -- 遍历文件夹[仅针对文件夹]
-fu.EachDir = function (srcPath, func)
+fu.EachDir = function(srcPath, func)
 	func(srcPath)
 	for file in lfs.dir((srcPath)) do
 		if file ~= "." and file ~= ".." then -- 遍历过程中会有这两个,本层和上一层,过滤掉
@@ -174,7 +185,7 @@ end
 ---@param str string
 ---@return string
 -- 路径生成:自动在前面与后面加上"(引号)
-fu.PathString = function (str)
+fu.PathString = function(str)
 	-- local str = path:string()
 	if str:sub(-1) == '\\' then
 		return '"' .. str .. ' "'
@@ -184,10 +195,10 @@ fu.PathString = function (str)
 end
 
 -- 截取获取一个全路径文件的文件名与格式
-fu.GetFile = function (filePath) return string.match(filePath, "([^%/\\]+)%.([^%.]+)$") end
+fu.GetFile = function(filePath) return string.match(filePath, "([^%/\\]+)%.([^%.]+)$") end
 
 -- 截取获取一个全路径文件的对应路径
-fu.GetDir = function (filePath)
+fu.GetDir = function(filePath)
 	if fu.GetFile(filePath) then
 		local result = string.gsub(filePath, "[%/\\][^%/\\]+$", "")
 		return result
@@ -196,26 +207,26 @@ fu.GetDir = function (filePath)
 end
 
 -- 给一个文件路径加上后缀(123.png -> 123_1.png)
-fu.Suffix = function (filePath, suffix)
+fu.Suffix = function(filePath, suffix)
 	local dir = fu.GetDir(filePath)
 	local name, type = fu.GetFile(filePath)
 	return dir .. "/" .. name .. suffix .. "." .. type
 end
 
 -- 清空一个文件夹里所有东西(包括子文件夹)[需要传入GBK]
-fu.clearDir = function (path) fu.ForDir(path, function(filePath) os.remove(filePath) end, true) end
+fu.clearDir = function(path) fu.ForDir(path, function(filePath) os.remove(filePath) end, true) end
 
 -- 使用mkdir前可以用这个办法判断文件夹是否存在
-fu.DirExist = function (path)
+fu.DirExist = function(path)
 	local _, _, v = io.open(path, "r")
 	return v ~= 2
 end
 
 -- 判断文件是否存在
-fu.fileExist = function (file) return io.open(file, "r") ~= nil end
+fu.fileExist = function(file) return io.open(file, "r") ~= nil end
 
 -- 使用mkdir来直接创建一个文件夹(无视当前目录)
-fu.createDir = function (path) os.execute('mkdir "' .. path .. '"') end
+fu.createDir = function(path) os.execute('mkdir "' .. path .. '"') end
 
 -- local filePath = "D:/War3/创世UI/Test/equit/battlepass_task_icon_004.png"
 -- local filePath2 = [[D:\War3\创世UI\Test\equit\battlepass_task_icon_004.png]]
@@ -225,5 +236,16 @@ fu.createDir = function (path) os.execute('mkdir "' .. path .. '"') end
 -- print(modules.Suffix(filePath, "_2"))
 -- modules.clearDir("D:/War3/创世UI/Test/gif/rename")
 -- print(modules.FileExist([[D:\War3\Maps\ResearchJass\ResearchJas2s.sublime-project]]))
+
+-- 读取一个文件的全部内容
+---@param filepath string
+---@return string|nil
+fu.ReadFileContent = function(filepath)
+	local file = io.open(filepath, "r")
+	if not file then return nil end
+	local content = file:read("*a")
+	file:close()
+	return content
+end
 
 return fu

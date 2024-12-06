@@ -23,10 +23,12 @@ library UTItemBtns requires ItemBtns {
 		img = uiImage.create(btn.ui)
 			.setAllPoint(btn.ui)
 			.texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
-		itemBtns.onEnter(function (integer pos) {
+		itemBtns.onEnter(function () {
+			integer pos = itemBtns.argsPos;
 			BJDebugMsg("第" + I2S(pos) + "个物品进入");
 		});
-		itemBtns.onLeave(function (integer pos) {
+		itemBtns.onLeave(function () {
+			integer pos = itemBtns.argsPos;
 			BJDebugMsg("第" + I2S(pos) + "个物品离开");
 		});
 	}
@@ -37,8 +39,15 @@ library UTItemBtns requires ItemBtns {
 		}
 		BJDebugMsg("全部物品重定位");
 	}
-	function TTestUTItemBtns3 (player p) {
-
+	function TTestUTItemBtns3 (player p) { //测试双事件
+		itemBtns.onEnter(function () {
+			integer pos = itemBtns.argsPos;
+			BJDebugMsg("第" + I2S(pos) + "个物品进入2");
+		});
+		itemBtns.onLeave(function () {
+			integer pos = itemBtns.argsPos;
+			BJDebugMsg("第" + I2S(pos) + "个物品离开2");
+		});
 	}
 	function TTestUTItemBtns4 (player p) {}
 	function TTestUTItemBtns5 (player p) {}
