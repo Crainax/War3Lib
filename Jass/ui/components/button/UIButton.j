@@ -58,6 +58,17 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             return this;
         }
 
+        // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
+        // parent: 父级框架
+        static method createSimple (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("SIMPLEBUTTON", STRING_BUTTON + I2S(id), parent, "简按模板", 1);
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
+            return this;
+        }
+
+
         method onDestroy () {
             if (!this.isExist()) {return;}
             STRUCT_SHARED_UI_ONDESTROY(uiBtn)

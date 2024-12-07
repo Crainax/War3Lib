@@ -1,20 +1,95 @@
+//===========================================================================
+// UnitPanel_Test.j
+//===========================================================================
+// 文件描述：单位面板测试模块
+// 创建日期：未知
+// 修改记录：
+//   - 实现了单位属性面板的测试功能
+//   - 包含攻击、护甲等属性的显示和交互
+//
+// 主要功能：
+//   - 创建并测试单位属性面板UI
+//   - 提供属性图标和数值显示
+//   - 实现鼠标悬停和点击事件
+//   - 包含单元测试用例
+//===========================================================================
+
 #ifndef UTUnitPanelIncluded
 #define UTUnitPanelIncluded
 
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
+
 //! zinc
 
 //自动生成的文件
 library UTUnitPanel requires UnitPanel {
 
-	function TTestUTUnitPanel1 (player p) {
-		//unitPanel.onAttrBtnEnter();
-		DzFrameGetUnitMessage
+	uiBtn btnAttack = 0,btnArmor = 0;
+	integer valueAttack, valueArmor;
+	integer textAttack, textArmor;
+	integer iconAttack, iconArmor;
+	function Init () {
+		//单位攻击面板（也就是跟随单位攻击1显示） 没有攻击则不显示UI
+		integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0);
+		//三围面板（跟随英雄三围面板，有就显示。普通单位则不显示）可以绑定英雄
+		// integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);  //英雄三围框架
+		integer child = DzCreateFrameByTagName("SIMPLEFRAME", "kuangjia", parent, "框架", 0);
+		// 无响应事件置父
+		DzFrameClearAllPoints( child );
+		DzFrameSetPoint( child, 4, DzGetGameUI(), 4, 0, 0 );
+		// 响应事件置父
+
+		iconAttack = DzSimpleTextureFindByName("攻击图标", 0);
+		DzFrameSetSize( iconAttack, 0.02, 0.02 );
+		DzFrameSetTexture( iconAttack, "ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp",0 );
+		DzFrameSetPoint( iconAttack, ANCHOR_LEFT, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.015, -0.01 );
+		iconArmor = DzSimpleTextureFindByName("护甲图标", 0);
+		DzFrameSetSize( iconArmor, 0.02, 0.02 );
+		DzFrameSetTexture( iconArmor, "ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp",0 );
+		DzFrameSetPoint( iconArmor, ANCHOR_TOP, iconAttack, ANCHOR_BOTTOM, 0, -0.005 );
+
+		btnAttack = uiBtn.createSimple(parent)
+			.setAllPoint(iconAttack)
+			.onMouseEnter(function() {BJDebugMsg("enterAttack"); })
+			.onMouseLeave(function() {BJDebugMsg("leaveAttack"); })
+			.onMouseClick(function() {BJDebugMsg("clickAttack"); });
+		btnArmor = uiBtn.createSimple(parent)
+			.setAllPoint(iconArmor)
+			.onMouseEnter(function() {BJDebugMsg("enterArmor"); })
+			.onMouseLeave(function() {BJDebugMsg("leaveArmor"); })
+			.onMouseClick(function() {BJDebugMsg("clickArmor"); });
+
+		textAttack = DzSimpleFontStringFindByName("攻击", 0);
+		DzFrameClearAllPoints( textAttack );
+		DzFrameSetPoint( textAttack, 0, btnAttack.ui, 2, 0, 0.00 );
+		DzFrameSetText( textAttack, "攻击:" );
+		textArmor = DzSimpleFontStringFindByName("护甲", 0);
+		DzFrameClearAllPoints( textArmor );
+		DzFrameSetPoint( textArmor, 0, btnArmor.ui, 2, 0, 0.00 );
+		DzFrameSetText( textArmor, "防御:" );
+
+		valueAttack = DzSimpleFontStringFindByName("攻击数值", 0);
+		DzFrameClearAllPoints( valueAttack );
+		DzFrameSetPoint( valueAttack, 3, btnAttack.ui, 5, 0, -0.005 );
+		DzFrameSetText( valueAttack, "0" );
+		valueArmor = DzSimpleFontStringFindByName("护甲数值", 0);
+		DzFrameClearAllPoints( valueArmor );
+		DzFrameSetPoint( valueArmor, 3, btnArmor.ui, 5, 0, -0.005 );
+		DzFrameSetText( valueArmor, "2000" );
+
 	}
-	function TTestUTUnitPanel2 (player p) {}
-	function TTestUTUnitPanel3 (player p) {}
+	function TTestUTUnitPanel1 (player p) {
+	}
+	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
+
+	}
+	function TTestUTUnitPanel3 (player p) {
+		//unitPanel.onAttrBtnEnter();
+	}
 	function TTestUTUnitPanel4 (player p) {}
 	function TTestUTUnitPanel5 (player p) {}
 	function TTestUTUnitPanel6 (player p) {}
@@ -94,6 +169,15 @@ library UTUnitPanel requires UnitPanel {
 			UnitAddAbility(hero, 'ANr3'); // 混乱之雨
 			UnitAddAbility(hero, 'AOhw'); // 医疗波
 			BJDebugMsg("[UnitPanel] 单元测试已加载");
+			DestroyTrigger(GetTriggeringTrigger());
+		}));
+
+		//在游戏开始0.1秒后再调用
+		tr = CreateTrigger();
+		TriggerRegisterTimerEventSingle(tr,0.1);
+		TriggerAddCondition(tr,Condition(function (){
+			unitPanel.moveOutAll();
+			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

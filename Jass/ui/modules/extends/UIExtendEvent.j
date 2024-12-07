@@ -17,7 +17,7 @@ library UIExtendEvent requires Hardware,UIHashTable {
 
     public module extendEvent {
 
-        //注册按下事件
+        //注册按下事件,只适用于非Simple类型的
         method exLeftDown (uiEvent func)  -> thistype {
             if (!this.isExist()) {return this;}
             SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_LEFT_DOWN,func);

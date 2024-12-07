@@ -8,7 +8,7 @@
 
 // 原生的技能栏按钮和事件
 // 控制技能栏按钮的进入,离开,点击还有右键点击事件
-library SpellBtns requires Hardware{
+library SpellBtns requires Hardware {
 
     public struct spellBtns {
         static integer grid [3][4]; // 使用grid表示技能格子

@@ -30,43 +30,44 @@ constant boolean LIBRARY_MathUtils=true
 //globals from UIEventModule:
 constant boolean LIBRARY_UIEventModule=true
 //endglobals from UIEventModule
-//globals from UIHashTable:
-constant boolean LIBRARY_UIHashTable=true
-hashtable HASH_UI=InitHashtable()
-//endglobals from UIHashTable
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
 //endglobals from UIId
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork___TUnitTest=null
+trigger UnitTestFramwork__TUnitTest=null
 //endglobals from UnitTestFramwork
-//globals from Hardware:
-constant boolean LIBRARY_Hardware=true
-//endglobals from Hardware
+//globals from YDTriggerSaveLoadSystem:
+constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
+hashtable YDHT
+hashtable YDLOC
+//endglobals from YDTriggerSaveLoadSystem
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
 //globals from UIUtils:
 constant boolean LIBRARY_UIUtils=true
 //endglobals from UIUtils
-//globals from SpellBtns:
-constant boolean LIBRARY_SpellBtns=true
-//endglobals from SpellBtns
 //globals from UIBaseModule:
 constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
-//globals from UIExtendEvent:
-constant boolean LIBRARY_UIExtendEvent=true
-boolean UIExtendEvent___rcStartOnUI=false
-integer UIExtendEvent___rcStartUI=0
-//endglobals from UIExtendEvent
+//globals from UnitPanel:
+constant boolean LIBRARY_UnitPanel=true
+//endglobals from UnitPanel
 //globals from UIButton:
 constant boolean LIBRARY_UIButton=true
 //endglobals from UIButton
-//globals from UTSpellBtns:
-constant boolean LIBRARY_UTSpellBtns=true
-//endglobals from UTSpellBtns
+//globals from UTUnitPanel:
+constant boolean LIBRARY_UTUnitPanel=true
+integer UTUnitPanel__btnAttack=0
+integer UTUnitPanel__btnArmor=0
+integer UTUnitPanel__valueAttack
+integer UTUnitPanel__valueArmor
+integer UTUnitPanel__textAttack
+integer UTUnitPanel__textArmor
+integer UTUnitPanel__iconAttack
+integer UTUnitPanel__iconArmor
+//endglobals from UTUnitPanel
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -110,36 +111,14 @@ constant integer si__uiId=3
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__hardware=4
-integer si__hardware_F=0
-integer si__hardware_I=0
-integer array si__hardware_V
-trigger s__hardware_trWheel=null
-trigger s__hardware_trUpdate=null
-trigger s__hardware_trResize=null
-constant integer si__spellBtns=5
-integer si__spellBtns_F=0
-integer si__spellBtns_I=0
-integer array si__spellBtns_V
-integer s__spellBtns_argsRow=0
-integer s__spellBtns_argsCol=0
-trigger s__spellBtns_trEnter=null
-trigger s__spellBtns_trLeave=null
-trigger s__spellBtns_trClick=null
-trigger s__spellBtns_trRightClick=null
-integer s__spellBtns_mousePos=0
-boolean s__spellBtns_rcStartOnUI=false
-integer s__spellBtns_rcStartPos=0
-constant integer si__uiBtn=7
+constant integer si__unitPanel=4
+constant integer si__uiBtn=5
 integer si__uiBtn_F=0
 integer si__uiBtn_I=0
 integer array si__uiBtn_V
 integer array s__uiBtn_ui
 integer array s__uiBtn_id
-integer array s__s__spellBtns_grid
 trigger st__uiBtn_onDestroy
-trigger array st___prototype20
-integer f__arg_integer1
 integer f__arg_this
 
 endglobals
@@ -459,68 +438,6 @@ function sc__uiBtn_deallocate takes integer this returns nothing
     set si__uiBtn_F=this
 endfunction
 
-//Generated allocator of spellBtns
-function s__spellBtns__allocate takes nothing returns integer
- local integer this=si__spellBtns_F
-    if (this!=0) then
-        set si__spellBtns_F=si__spellBtns_V[this]
-    else
-        set si__spellBtns_I=si__spellBtns_I+1
-        set this=si__spellBtns_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: spellBtns")
-        return 0
-    endif
-
-    set si__spellBtns_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of spellBtns
-function s__spellBtns_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: spellBtns")
-        return
-    elseif (si__spellBtns_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: spellBtns")
-        return
-    endif
-    set si__spellBtns_V[this]=si__spellBtns_F
-    set si__spellBtns_F=this
-endfunction
-
-//Generated allocator of hardware
-function s__hardware__allocate takes nothing returns integer
- local integer this=si__hardware_F
-    if (this!=0) then
-        set si__hardware_F=si__hardware_V[this]
-    else
-        set si__hardware_I=si__hardware_I+1
-        set this=si__hardware_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: hardware")
-        return 0
-    endif
-
-    set si__hardware_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of hardware
-function s__hardware_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: hardware")
-        return
-    elseif (si__hardware_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: hardware")
-        return
-    endif
-    set si__hardware_V[this]=si__hardware_F
-    set si__hardware_F=this
-endfunction
-
 //Generated allocator of radiationEnd
 function s__radiationEnd__allocate takes nothing returns integer
  local integer this=si__radiationEnd_F
@@ -550,17 +467,6 @@ function s__radiationEnd_deallocate takes integer this returns nothing
     endif
     set si__radiationEnd_V[this]=si__radiationEnd_F
     set si__radiationEnd_F=this
-endfunction
-function sc___prototype20_execute takes integer i,integer a1 returns nothing
-    set f__arg_integer1=a1
-
-    call TriggerExecute(st___prototype20[i])
-endfunction
-function sc___prototype20_evaluate takes integer i,integer a1 returns nothing
-    set f__arg_integer1=a1
-
-    call TriggerEvaluate(st___prototype20[i])
-
 endfunction
 
 //library BzAPI:
@@ -1111,20 +1017,6 @@ endfunction
 //library UIEventModule:
 
 //library UIEventModule ends
-//library UIHashTable:
-    //public:  // UI结构哈希表
-        function BindFrameToUI takes integer frame,integer typeID,integer ui returns nothing
-            call SaveInteger(HASH_UI, frame, 1820, typeID)
-            call SaveInteger(HASH_UI, frame, 1821, ui)
-        endfunction  //由绑定的frame反推UIStruct用
-        function GetUIFromFrame takes integer frame returns integer
-            return LoadInteger(HASH_UI, frame, 1821)
-        endfunction  //由绑定的frame反推UIStruct用
-        function GetTypeIDFromFrame takes integer frame returns integer
-            return LoadInteger(HASH_UI, frame, 1820)
-        endfunction
-
-//library UIHashTable ends
 //library UIId:
         function s__uiId_onInit takes nothing returns nothing
             set s__uiId_ht=InitHashtable()
@@ -1162,9 +1054,9 @@ endfunction
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
     endfunction
-        function UnitTestFramwork___anon__0 takes nothing returns nothing
+        function UnitTestFramwork__anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -1175,70 +1067,30 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork___onInit takes nothing returns nothing
+    function UnitTestFramwork__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
         set tr=null
-        set UnitTestFramwork___TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
+        set UnitTestFramwork__TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
-//library Hardware:
-        function s__hardware_regLeftUpEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
-        endfunction  // 注册一个左键按下事件
-        function s__hardware_regLeftDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 1, false, func)
-        endfunction  // 注册一个右键按下事件
-        function s__hardware_regRightDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 2, 1, false, func)
-        endfunction  // 注册一个右键抬起事件
-        function s__hardware_regRightUpEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 2, 0, false, func)
-        endfunction  // 注册一个滚轮事件
-        function s__hardware_regWheelEvent takes code func returns nothing
-            if ( s__hardware_trWheel == null ) then
-                set s__hardware_trWheel=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trWheel, Condition(func))
-        endfunction  // 注册一个绘制事件
-        function s__hardware_regUpdateEvent takes code func returns nothing
-            if ( s__hardware_trUpdate == null ) then
-                set s__hardware_trUpdate=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trUpdate, Condition(func))
-        endfunction  // 注册一个窗口变化事件
-        function s__hardware_regResizeEvent takes code func returns nothing
-            if ( s__hardware_trResize == null ) then
-                set s__hardware_trResize=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trResize, Condition(func))
-        endfunction
-        //private:
-            function s__hardware_anon__0 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trWheel)
-            endfunction  // 帧绘制事件
-            function s__hardware_anon__1 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trUpdate)
-            endfunction  // 窗口大小变化事件
-            function s__hardware_anon__2 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trResize)
-            endfunction
-        function s__hardware_onInit takes nothing returns nothing
-            call DzTriggerRegisterMouseWheelEventByCode(null, false, function s__hardware_anon__0)
-            call DzFrameSetUpdateCallbackByCode(function s__hardware_anon__1)
-            call DzTriggerRegisterWindowResizeEventByCode(null, false, function s__hardware_anon__2)
-        endfunction
+//library YDTriggerSaveLoadSystem:
+//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
+    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
+            set YDHT=InitHashtable()
+        set YDLOC=InitHashtable()
+    endfunction
 
-//library Hardware ends
+//library YDTriggerSaveLoadSystem ends
 //library UITocInit:
 
-    function UITocInit___onInit takes nothing returns nothing
+    function UITocInit__onInit takes nothing returns nothing
         call DzLoadToc("ui\\Crainax.toc")
         call DzFrameEnableClipRect(false)
     endfunction
@@ -1276,460 +1128,41 @@ endfunction
     endfunction
 
 //library UIUtils ends
-//library SpellBtns:
-        //private:  // 进入事件
-        function s__spellBtns_onEnter takes code func returns nothing
-            if ( s__spellBtns_trEnter == null ) then
-                set s__spellBtns_trEnter=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__spellBtns_trEnter, Condition(func))
-        endfunction  // 注册离开事件
-        function s__spellBtns_onLeave takes code func returns nothing
-            if ( s__spellBtns_trLeave == null ) then
-                set s__spellBtns_trLeave=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__spellBtns_trLeave, Condition(func))
-        endfunction  // 注册点击事件
-        function s__spellBtns_onClick takes code func returns nothing
-            if ( s__spellBtns_trClick == null ) then
-                set s__spellBtns_trClick=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__spellBtns_trClick, Condition(func))
-        endfunction  // 注册右键点击事件
-        function s__spellBtns_onRightClick takes code func returns nothing
-            if ( s__spellBtns_trRightClick == null ) then
-                set s__spellBtns_trRightClick=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__spellBtns_trRightClick, Condition(func))
-        endfunction  // 把技能按钮移出屏幕外
-        function s__spellBtns_outside takes integer row,integer col returns nothing
-            call DzFrameClearAllPoints(s__s__spellBtns_grid[(row)*(4)+col])
-            call DzFrameSetAbsolutePoint(s__s__spellBtns_grid[(row)*(4)+col], 6, - 1.0, 0)
-        endfunction  // 把技能按钮移回应有的位置
-        function s__spellBtns_inside takes integer row,integer col returns nothing
-            call DzFrameClearAllPoints(s__s__spellBtns_grid[(row)*(4)+col])
-            call DzFrameSetPoint(s__s__spellBtns_grid[(row)*(4)+col], 4, DzGetGameUI(), 5, - 0.3078 + ( 0.0398 * row ), - 0.165 - ( 0.0385 * col ))
-        endfunction
-            function s__spellBtns_anon__0 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 1 - 1 ) * 4 ) + 1
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=1
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__1 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=1
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__2 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=1
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__3 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 1 - 1 ) * 4 ) + 2
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=2
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__4 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=2
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__5 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=2
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__6 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 1 - 1 ) * 4 ) + 3
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=3
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__7 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=3
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__8 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=3
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__9 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 1 - 1 ) * 4 ) + 4
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=4
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__10 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=4
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__11 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=1
-                    set s__spellBtns_argsCol=4
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__12 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 2 - 1 ) * 4 ) + 1
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=1
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__13 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=1
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__14 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=1
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__15 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 2 - 1 ) * 4 ) + 2
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=2
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__16 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=2
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__17 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=2
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__18 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 2 - 1 ) * 4 ) + 3
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=3
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__19 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=3
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__20 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=3
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__21 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 2 - 1 ) * 4 ) + 4
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=4
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__22 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=4
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__23 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=2
-                    set s__spellBtns_argsCol=4
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__24 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 3 - 1 ) * 4 ) + 1
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=1
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__25 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=1
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__26 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=1
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__27 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 3 - 1 ) * 4 ) + 2
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=2
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__28 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=2
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__29 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=2
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__30 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 3 - 1 ) * 4 ) + 3
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=3
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__31 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=3
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__32 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=3
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__33 takes nothing returns nothing
-                set s__spellBtns_mousePos=( ( 3 - 1 ) * 4 ) + 4
-                if ( s__spellBtns_trEnter != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=4
-                    call TriggerEvaluate(s__spellBtns_trEnter)
-                endif
-            endfunction
-            function s__spellBtns_anon__34 takes nothing returns nothing
-                set s__spellBtns_mousePos=0
-                if ( s__spellBtns_trLeave != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=4
-                    call TriggerEvaluate(s__spellBtns_trLeave)
-                endif
-            endfunction
-            function s__spellBtns_anon__35 takes nothing returns nothing
-                if ( s__spellBtns_trClick != null ) then
-                    set s__spellBtns_argsRow=3
-                    set s__spellBtns_argsCol=4
-                    call TriggerEvaluate(s__spellBtns_trClick)
-                endif
-            endfunction
-            function s__spellBtns_anon__36 takes nothing returns nothing
-                if ( s__spellBtns_mousePos >= 1 and s__spellBtns_mousePos <= 12 ) then
-                    set s__spellBtns_rcStartOnUI=true
-                    set s__spellBtns_rcStartPos=s__spellBtns_mousePos
-                endif // 新增的click判断逻辑
-            endfunction  //注册右键抬起事件
-            function s__spellBtns_anon__37 takes nothing returns nothing
-                if ( s__spellBtns_rcStartOnUI and s__spellBtns_mousePos == s__spellBtns_rcStartPos ) then
-                    if ( s__spellBtns_trRightClick != null ) then
-                        set s__spellBtns_argsRow=( s__spellBtns_mousePos - 1 ) / 4 + 1
-                        set s__spellBtns_argsCol=ModuloInteger(s__spellBtns_mousePos - 1, 4) + 1
-                        call TriggerEvaluate(s__spellBtns_trRightClick)
-                    endif
-                endif
-                set s__spellBtns_rcStartOnUI=false
-                set s__spellBtns_rcStartPos=0
-            endfunction
-        function s__spellBtns_onInit takes nothing returns nothing
-            local integer row
-            local integer col
-            set row=1
-            loop
-            exitwhen ( row > 3 )
-                set col=1
-                loop
-                exitwhen ( col > 4 )
-                    set s__s__spellBtns_grid[(row)*(4)+col]= DzFrameGetCommandBarButton(row - 1, col - 1)
-                set col=col + 1
-                endloop
-            set row=row + 1
-            endloop
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+1], 2, function s__spellBtns_anon__0, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+1], 3, function s__spellBtns_anon__1, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+1], 1, function s__spellBtns_anon__2, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+2], 2, function s__spellBtns_anon__3, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+2], 3, function s__spellBtns_anon__4, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+2], 1, function s__spellBtns_anon__5, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+3], 2, function s__spellBtns_anon__6, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+3], 3, function s__spellBtns_anon__7, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+3], 1, function s__spellBtns_anon__8, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+4], 2, function s__spellBtns_anon__9, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+4], 3, function s__spellBtns_anon__10, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(1)*(4)+4], 1, function s__spellBtns_anon__11, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+1], 2, function s__spellBtns_anon__12, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+1], 3, function s__spellBtns_anon__13, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+1], 1, function s__spellBtns_anon__14, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+2], 2, function s__spellBtns_anon__15, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+2], 3, function s__spellBtns_anon__16, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+2], 1, function s__spellBtns_anon__17, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+3], 2, function s__spellBtns_anon__18, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+3], 3, function s__spellBtns_anon__19, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+3], 1, function s__spellBtns_anon__20, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+4], 2, function s__spellBtns_anon__21, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+4], 3, function s__spellBtns_anon__22, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(2)*(4)+4], 1, function s__spellBtns_anon__23, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+1], 2, function s__spellBtns_anon__24, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+1], 3, function s__spellBtns_anon__25, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+1], 1, function s__spellBtns_anon__26, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+2], 2, function s__spellBtns_anon__27, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+2], 3, function s__spellBtns_anon__28, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+2], 1, function s__spellBtns_anon__29, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+3], 2, function s__spellBtns_anon__30, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+3], 3, function s__spellBtns_anon__31, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+3], 1, function s__spellBtns_anon__32, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+4], 2, function s__spellBtns_anon__33, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+4], 3, function s__spellBtns_anon__34, false)
-            call DzFrameSetScriptByCode(s__s__spellBtns_grid[(3)*(4)+4], 1, function s__spellBtns_anon__35, false)
-            call s__hardware_regRightDownEvent(function s__spellBtns_anon__36)
-            call s__hardware_regRightUpEvent(function s__spellBtns_anon__37)
-        endfunction
-
-//library SpellBtns ends
 //library UIBaseModule:
 
 //library UIBaseModule ends
-//library UIExtendEvent:
-
-//processed:     function interface uiEvent takes integer arg0 returns nothing  // 添加状态标记
-        function UIExtendEvent___anon__0 takes nothing returns nothing
-            local integer currentUI
-            local integer func
-            if ( not ( DzIsMouseOverUI() ) ) then
-                return
-            endif
-            set currentUI=DzGetMouseFocus()
-            if ( HaveSavedInteger(HASH_UI, currentUI, 1901) ) then
-                set func=LoadInteger(HASH_UI, currentUI, 1901)
-                call sc___prototype20_evaluate(func,currentUI)
-            endif
-        endfunction  //注册左键抬起事件,在click事件之前触发
-        function UIExtendEvent___anon__1 takes nothing returns nothing
-            local integer currentUI
-            local integer func
-            if ( not ( DzIsMouseOverUI() ) ) then
-                return
-            endif
-            set currentUI=DzGetMouseFocus()
-            if ( HaveSavedInteger(HASH_UI, currentUI, 1902) ) then
-                set func=LoadInteger(HASH_UI, currentUI, 1902)
-                call sc___prototype20_evaluate(func,currentUI)
-            endif
-        endfunction  //注册右键按下事件
-        function UIExtendEvent___anon__2 takes nothing returns nothing
-            local integer currentUI
-            local integer func
-            if ( not ( DzIsMouseOverUI() ) ) then
-                return
-            endif
-            set currentUI=DzGetMouseFocus()
-            if ( HaveSavedInteger(HASH_UI, currentUI, 1903) ) then
-                set func=LoadInteger(HASH_UI, currentUI, 1903)
-                call sc___prototype20_evaluate(func,currentUI)
-            endif // 新增的click判断逻辑
-            set UIExtendEvent___rcStartOnUI=true
-            set UIExtendEvent___rcStartUI=currentUI
-        endfunction  //注册右键抬起事件
-        function UIExtendEvent___anon__3 takes nothing returns nothing
-            local integer currentUI
-            local integer func
-            if ( not ( DzIsMouseOverUI() ) ) then
-                return
-            endif
-            set currentUI=DzGetMouseFocus()
-            if ( HaveSavedInteger(HASH_UI, currentUI, 1904) ) then
-                set func=LoadInteger(HASH_UI, currentUI, 1904)
-                call sc___prototype20_evaluate(func,currentUI)
-            endif // 新增的click判断逻辑
-            if ( UIExtendEvent___rcStartOnUI and currentUI == UIExtendEvent___rcStartUI ) then
-                if ( HaveSavedInteger(HASH_UI, currentUI, 1905) ) then
-                    set func=LoadInteger(HASH_UI, currentUI, 1905)
-                    call sc___prototype20_evaluate(func,currentUI)
-                endif
-            endif
-            set UIExtendEvent___rcStartOnUI=false
-            set UIExtendEvent___rcStartUI=0
+//library UnitPanel:
+        function s__unitPanel_moveOutAll takes nothing returns nothing
+            local integer ui
+            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 0)
+            call DzFrameSetSize(ui, 0.03, 0.03)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 攻击2
+            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 1)
+            call DzFrameSetSize(ui, 0.03, 0.03)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 护甲
+            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 2)
+            call DzFrameSetSize(ui, 0.001, 0.001)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 食物
+            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 4)
+            call DzFrameSetSize(ui, 0.001, 0.001)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 英雄三围面板
+            set ui=DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6)
+            call DzFrameSetSize(ui, 0.02, 0.02)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetPoint(ui, 4, DzGetGameUI(), 4, 0.80, - 0.60) // 友方建筑单位的金币之类的东西(会频繁重置,需要在选择单位时就重新处理)
+            set ui=DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7)
+            call DzFrameSetSize(ui, 0.02, 0.02)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetPoint(ui, 4, DzGetGameUI(), 4, 0.80, - 0.60)
+        endfunction  // 属性按钮进入事件
+        function s__unitPanel_onAttrBtnEnter takes nothing returns nothing
         endfunction
-    function UIExtendEvent___onInit takes nothing returns nothing
-        call s__hardware_regLeftDownEvent(function UIExtendEvent___anon__0)
-        call s__hardware_regLeftUpEvent(function UIExtendEvent___anon__1)
-        call s__hardware_regRightDownEvent(function UIExtendEvent___anon__2)
-        call s__hardware_regRightUpEvent(function UIExtendEvent___anon__3)
-    endfunction
 
-//library UIExtendEvent ends
+//library UnitPanel ends
 //library UIButton:
         function s__uiBtn_isExist takes integer this returns boolean
             return ( this != null and si__uiBtn_V[this] == - 1 )
@@ -1814,41 +1247,6 @@ endfunction
             call DzFrameSetScriptByCode(s__uiBtn_ui[this], 12, fun, false)
             return this
         endfunction  //扩展事件
-        function s__uiBtn_exLeftDown takes integer this,integer func returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-                return this
-            endif
-            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1901, func)
-            return this
-        endfunction  //注册抬起事件
-        function s__uiBtn_exLeftUp takes integer this,integer func returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-                return this
-            endif
-            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1902, func)
-            return this
-        endfunction  //注册右键按下事件
-        function s__uiBtn_exRightDown takes integer this,integer func returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-                return this
-            endif
-            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1903, func)
-            return this
-        endfunction  //注册右键抬起事件
-        function s__uiBtn_exRightUp takes integer this,integer func returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-                return this
-            endif
-            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1904, func)
-            return this
-        endfunction  //注册右键点击事件（精确判断）
-        function s__uiBtn_exRightClick takes integer this,integer func returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-                return this
-            endif
-            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1905, func)
-            return this
-        endfunction
         function s__uiBtn_create takes integer parent returns integer
             local integer this=s__uiBtn__allocate()
             set s__uiBtn_id[this]=s__uiId_get() //有高亮无声音的图标
@@ -1857,7 +1255,7 @@ endfunction
 //#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call BindFrameToUI(s__uiBtn_ui[this] , si__uiBtn , this)
+//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
 //#             endif
             return this
         endfunction  //普通带声效系
@@ -1869,7 +1267,7 @@ endfunction
 //#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call BindFrameToUI(s__uiBtn_ui[this] , si__uiBtn , this)
+//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
 //#             endif
             return this
         endfunction  //右键菜单系
@@ -1881,7 +1279,7 @@ endfunction
 //#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call BindFrameToUI(s__uiBtn_ui[this] , si__uiBtn , this)
+//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
 //#             endif
             return this
         endfunction  // 创建空白按钮
@@ -1893,7 +1291,19 @@ endfunction
 //#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call BindFrameToUI(s__uiBtn_ui[this] , si__uiBtn , this)
+//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
+//#             endif
+            return this
+        endfunction  // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
+        function s__uiBtn_createSimple takes integer parent returns integer
+            local integer this=s__uiBtn__allocate()
+            set s__uiBtn_id[this]=s__uiId_get()
+            set s__uiBtn_ui[this]=DzCreateFrameByTagName("SIMPLEBUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "简按模板", 1)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
 //#             endif
             return this
         endfunction
@@ -1905,7 +1315,7 @@ endfunction
 //#                 call uiLifeCycle.onDestroyCB(this,uiBtn.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call FlushChildHashtable(HASH_UI, s__uiBtn_ui[this])
+//#                 call FlushChildHashtable(HASH_UI,ui)
 //#             endif
             call DzDestroyFrame(s__uiBtn_ui[this])
             call s__uiId_recycle(s__uiBtn_id[this])
@@ -1926,64 +1336,79 @@ function s__uiBtn_deallocate takes integer this returns nothing
 endfunction
 
 //library UIButton ends
-//library UTSpellBtns:
+//library UTUnitPanel:
 
-    function UTSpellBtns___TTestUTSpellBtns1 takes player p returns nothing
-    endfunction
-    function UTSpellBtns___TTestUTSpellBtns2 takes player p returns nothing
-    endfunction
-    function UTSpellBtns___TTestUTSpellBtns3 takes player p returns nothing
-    endfunction
-    function UTSpellBtns___TTestUTSpellBtns4 takes player p returns nothing
-        local integer i
-        local integer j
-        set i=1
-        loop
-        exitwhen ( i > 3 )
-            set j=1
-            loop
-            exitwhen ( j > 4 )
-                call BJDebugMsg("原生第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(DzFrameGetCommandBarButton(i - 1, j - 1)))
-                call BJDebugMsg("CD第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(DzFrameGetCommandBarButtonAutoCastIndicator(DzFrameGetCommandBarButton(i - 1, j - 1))))
-                call BJDebugMsg("扩展第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(s__s__spellBtns_grid[(i)*(4)+j]))
-            set j=j + 1
-            endloop
-        set i=i + 1
-        endloop
-    endfunction
-        function UTSpellBtns___anon__0 takes nothing returns nothing
-            call BJDebugMsg("enter")
+        function UTUnitPanel__anon__0 takes nothing returns nothing
+            call BJDebugMsg("enterAttack")
         endfunction
-        function UTSpellBtns___anon__1 takes nothing returns nothing
-            call BJDebugMsg("leave")
+        function UTUnitPanel__anon__1 takes nothing returns nothing
+            call BJDebugMsg("leaveAttack")
         endfunction
-        function UTSpellBtns___anon__2 takes nothing returns nothing
-            call BJDebugMsg("click")
+        function UTUnitPanel__anon__2 takes nothing returns nothing
+            call BJDebugMsg("clickAttack")
         endfunction
-        function UTSpellBtns___anon__3 takes integer frame returns nothing
-            call BJDebugMsg("leftDown")
+        function UTUnitPanel__anon__3 takes nothing returns nothing
+            call BJDebugMsg("enterArmor")
         endfunction
-        function UTSpellBtns___anon__4 takes integer frame returns nothing
-            call BJDebugMsg("leftUp")
+        function UTUnitPanel__anon__4 takes nothing returns nothing
+            call BJDebugMsg("leaveArmor")
         endfunction
-        function UTSpellBtns___anon__5 takes integer frame returns nothing
-            call BJDebugMsg("rightClick")
+        function UTUnitPanel__anon__5 takes nothing returns nothing
+            call BJDebugMsg("clickArmor")
         endfunction
-    function UTSpellBtns___TTestUTSpellBtns5 takes player p returns nothing
-        local integer btn=0
-        set btn=s__uiBtn_exRightClick(s__uiBtn_exLeftUp(s__uiBtn_exLeftDown(s__uiBtn_onMouseClick(s__uiBtn_onMouseLeave(s__uiBtn_onMouseEnter(s__uiBtn_setPoint(s__uiBtn_setSize(s__uiBtn_create(DzGetGameUI()),0.04 , 0.04),4 , DzGetGameUI() , 4 , 0.0 , 0.0),function UTSpellBtns___anon__0),function UTSpellBtns___anon__1),function UTSpellBtns___anon__2),(1)),(2)),(3))
+    function UTUnitPanel__Init takes nothing returns nothing
+        local integer parent=DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0)
+        local integer child=DzCreateFrameByTagName("SIMPLEFRAME", "kuangjia", parent, "框架", 0)
+        call DzFrameClearAllPoints(child)
+        call DzFrameSetPoint(child, 4, DzGetGameUI(), 4, 0, 0)
+        set UTUnitPanel__iconAttack=DzSimpleTextureFindByName("攻击图标", 0)
+        call DzFrameSetSize(UTUnitPanel__iconAttack, 0.02, 0.02)
+        call DzFrameSetTexture(UTUnitPanel__iconAttack, "ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp", 0)
+        call DzFrameSetPoint(UTUnitPanel__iconAttack, 3, DzFrameGetPortrait(), 5, 0.015, - 0.01)
+        set UTUnitPanel__iconArmor=DzSimpleTextureFindByName("护甲图标", 0)
+        call DzFrameSetSize(UTUnitPanel__iconArmor, 0.02, 0.02)
+        call DzFrameSetTexture(UTUnitPanel__iconArmor, "ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp", 0)
+        call DzFrameSetPoint(UTUnitPanel__iconArmor, 1, UTUnitPanel__iconAttack, 7, 0, - 0.005)
+        set UTUnitPanel__btnAttack=s__uiBtn_onMouseClick(s__uiBtn_onMouseLeave(s__uiBtn_onMouseEnter(s__uiBtn_setAllPoint(s__uiBtn_createSimple(parent),UTUnitPanel__iconAttack),function UTUnitPanel__anon__0),function UTUnitPanel__anon__1),function UTUnitPanel__anon__2)
+        set UTUnitPanel__btnArmor=s__uiBtn_onMouseClick(s__uiBtn_onMouseLeave(s__uiBtn_onMouseEnter(s__uiBtn_setAllPoint(s__uiBtn_createSimple(parent),UTUnitPanel__iconArmor),function UTUnitPanel__anon__3),function UTUnitPanel__anon__4),function UTUnitPanel__anon__5)
+        set UTUnitPanel__textAttack=DzSimpleFontStringFindByName("攻击", 0)
+        call DzFrameClearAllPoints(UTUnitPanel__textAttack)
+        call DzFrameSetPoint(UTUnitPanel__textAttack, 0, s__uiBtn_ui[UTUnitPanel__btnAttack], 2, 0, 0.00)
+        call DzFrameSetText(UTUnitPanel__textAttack, "攻击:")
+        set UTUnitPanel__textArmor=DzSimpleFontStringFindByName("护甲", 0)
+        call DzFrameClearAllPoints(UTUnitPanel__textArmor)
+        call DzFrameSetPoint(UTUnitPanel__textArmor, 0, s__uiBtn_ui[UTUnitPanel__btnArmor], 2, 0, 0.00)
+        call DzFrameSetText(UTUnitPanel__textArmor, "防御:")
+        set UTUnitPanel__valueAttack=DzSimpleFontStringFindByName("攻击数值", 0)
+        call DzFrameClearAllPoints(UTUnitPanel__valueAttack)
+        call DzFrameSetPoint(UTUnitPanel__valueAttack, 3, s__uiBtn_ui[UTUnitPanel__btnAttack], 5, 0, - 0.005)
+        call DzFrameSetText(UTUnitPanel__valueAttack, "0")
+        set UTUnitPanel__valueArmor=DzSimpleFontStringFindByName("护甲数值", 0)
+        call DzFrameClearAllPoints(UTUnitPanel__valueArmor)
+        call DzFrameSetPoint(UTUnitPanel__valueArmor, 3, s__uiBtn_ui[UTUnitPanel__btnArmor], 5, 0, - 0.005)
+        call DzFrameSetText(UTUnitPanel__valueArmor, "2000")
     endfunction
-    function UTSpellBtns___TTestUTSpellBtns6 takes player p returns nothing
+    function UTUnitPanel__TTestUTUnitPanel1 takes player p returns nothing
+    endfunction  //移除所有原生UI到屏幕外
+    function UTUnitPanel__TTestUTUnitPanel2 takes player p returns nothing
     endfunction
-    function UTSpellBtns___TTestUTSpellBtns7 takes player p returns nothing
+    function UTUnitPanel__TTestUTUnitPanel3 takes player p returns nothing
     endfunction
-    function UTSpellBtns___TTestUTSpellBtns8 takes player p returns nothing
+    function UTUnitPanel__TTestUTUnitPanel4 takes player p returns nothing
     endfunction
-    function UTSpellBtns___TTestUTSpellBtns9 takes player p returns nothing
+    function UTUnitPanel__TTestUTUnitPanel5 takes player p returns nothing
     endfunction
-    function UTSpellBtns___TTestUTSpellBtns10 takes player p returns nothing
+    function UTUnitPanel__TTestUTUnitPanel6 takes player p returns nothing
     endfunction
-    function UTSpellBtns___TTestActUTSpellBtns1 takes string str returns nothing
+    function UTUnitPanel__TTestUTUnitPanel7 takes player p returns nothing
+    endfunction
+    function UTUnitPanel__TTestUTUnitPanel8 takes player p returns nothing
+    endfunction
+    function UTUnitPanel__TTestUTUnitPanel9 takes player p returns nothing
+    endfunction
+    function UTUnitPanel__TTestUTUnitPanel10 takes player p returns nothing
+    endfunction
+    function UTUnitPanel__TTestActUTUnitPanel1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -2015,100 +1440,85 @@ endfunction
         endif
         set p=null
     endfunction
-            function UTSpellBtns___anon__7 takes nothing returns nothing
-                local integer row=s__spellBtns_argsRow
-                local integer column=s__spellBtns_argsCol
-                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入")
-            endfunction
-            function UTSpellBtns___anon__8 takes nothing returns nothing
-                local integer row=s__spellBtns_argsRow
-                local integer column=s__spellBtns_argsCol
-                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能离开")
-            endfunction
-            function UTSpellBtns___anon__9 takes nothing returns nothing
-                local integer row=s__spellBtns_argsRow
-                local integer column=s__spellBtns_argsCol
-                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能点击")
-            endfunction
-            function UTSpellBtns___anon__10 takes nothing returns nothing
-                local integer row=s__spellBtns_argsRow
-                local integer column=s__spellBtns_argsCol
-                call BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能右键点击")
-            endfunction
-        function UTSpellBtns___anon__6 takes nothing returns nothing
+        function UTUnitPanel__anon__6 takes nothing returns nothing
             local unit hero
             local unit building
             local real x=0
             local real y=0
             local integer i=0
-            call BJDebugMsg("[SpellBtns] 单元测试已加载")
-            set hero=CreateUnit(Player(0), 'Hamg', 0, 0, 270)
-            call SetHeroLevel(hero, 10, true)
-            set building=CreateUnit(Player(0), 'hcas', 400, 0, 270)
-            call UnitAddAbility(building, 'AHbz')
-            call UnitAddAbility(building, 'AHwe')
-            call UnitAddAbility(building, 'AHab')
-            call UnitAddAbility(building, 'AHmt')
-            call UnitAddAbility(building, 'AHfs')
-            call UnitAddAbility(building, 'AHbn')
-            call UnitAddAbility(building, 'AHdr')
-            call UnitAddAbility(building, 'AHpx')
-            call UnitAddAbility(building, 'AHad')
-            call UnitAddAbility(building, 'AHav')
-            call UnitAddAbility(building, 'AHcs')
-            call UnitAddAbility(building, 'AHfa')
-            call UnitAddAbility(hero, 'ACbc')
-            call UnitAddAbility(hero, 'ACbf')
-            call UnitAddAbility(hero, 'ACpy')
-            call UnitAddAbility(hero, 'AOhx')
-            call UnitAddAbility(hero, 'ACdv')
-            call UnitAddAbility(hero, 'ACen')
-            call UnitAddAbility(hero, 'ANr3')
+            set hero=CreateUnit(Player(0), 'Hamg', 0, 0, 270) // 创建大法师在坐标(0,0)
+            call SetHeroLevel(hero, 10, true) // 创建一个建筑单位用于测试12个技能
+            set building=CreateUnit(Player(0), 'hcas', 400, 0, 270) // 创建人族城堡 // 为建筑添加12个技能
+            call UnitAddAbility(building, 'AHbz') // 暴风雪 // 水元素
+            call UnitAddAbility(building, 'AHwe') // 闪现
+            call UnitAddAbility(building, 'AHab') // 群体传送
+            call UnitAddAbility(building, 'AHmt') // 烈焰风暴
+            call UnitAddAbility(building, 'AHfs') // 驱逐魔法
+            call UnitAddAbility(building, 'AHbn') // 吸取魔法
+            call UnitAddAbility(building, 'AHdr') // 凤凰
+            call UnitAddAbility(building, 'AHpx') // 奥术光环
+            call UnitAddAbility(building, 'AHad') // 化身
+            call UnitAddAbility(building, 'AHav') // 寒冰护甲
+            call UnitAddAbility(building, 'AHcs') // 烈焰护甲
+            call UnitAddAbility(building, 'AHfa') // 添加8个预选的技能
+            call UnitAddAbility(hero, 'ACbc') // 火焰呼吸 // 霜冻闪电
+            call UnitAddAbility(hero, 'ACbf') // 变形术
+            call UnitAddAbility(hero, 'ACpy') // 妖术
+            call UnitAddAbility(hero, 'AOhx') // 吞噬
+            call UnitAddAbility(hero, 'ACdv') // 诱捕
+            call UnitAddAbility(hero, 'ACen') // 混乱之雨
+            call UnitAddAbility(hero, 'ANr3') // 医疗波
             call UnitAddAbility(hero, 'AOhw')
-            call s__spellBtns_onEnter(function UTSpellBtns___anon__7)
-            call s__spellBtns_onLeave(function UTSpellBtns___anon__8)
-            call s__spellBtns_onClick(function UTSpellBtns___anon__9)
-            call s__spellBtns_onRightClick(function UTSpellBtns___anon__10)
+            call BJDebugMsg("[UnitPanel] 单元测试已加载")
+            call DestroyTrigger(GetTriggeringTrigger())
+        endfunction  //在游戏开始0.1秒后再调用
+        function UTUnitPanel__anon__7 takes nothing returns nothing
+            call s__unitPanel_moveOutAll()
+            call UTUnitPanel__Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTSpellBtns___anon__11 takes nothing returns nothing
+        function UTUnitPanel__anon__8 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTSpellBtns___TTestActUTSpellBtns1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUnitPanel__TTestActUTUnitPanel1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTSpellBtns___TTestUTSpellBtns1(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTSpellBtns___TTestUTSpellBtns2(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTSpellBtns___TTestUTSpellBtns3(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTSpellBtns___TTestUTSpellBtns4(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTSpellBtns___TTestUTSpellBtns5(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTSpellBtns___TTestUTSpellBtns6(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTSpellBtns___TTestUTSpellBtns7(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTSpellBtns___TTestUTSpellBtns8(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTSpellBtns___TTestUTSpellBtns9(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTSpellBtns___TTestUTSpellBtns10(GetTriggerPlayer())
+                call UTUnitPanel__TTestUTUnitPanel10(GetTriggerPlayer())
             endif
         endfunction
-    function UTSpellBtns___onInit takes nothing returns nothing
+    function UTUnitPanel__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTSpellBtns___anon__6))
+        call TriggerAddCondition(tr, Condition(function UTUnitPanel__anon__6))
+        set tr=CreateTrigger()
+        call TriggerRegisterTimerEventSingle(tr, 0.1)
+        call TriggerAddCondition(tr, Condition(function UTUnitPanel__anon__7))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTSpellBtns___anon__11)
+        call UnitTestRegisterChatEvent(function UTUnitPanel__anon__8)
     endfunction
 
-//library UTSpellBtns ends
+//library UTUnitPanel ends
+//控件的共用基本方法
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -2126,15 +1536,14 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
-//窗口的大小
-//控件的共用基本方法
-
 // 结构体共用方法定义
 //共享打印方法
 // UI组件内部共享方法及成员
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
+
+//窗口的大小
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -2218,7 +1627,29 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
+//===========================================================================
+// UnitPanel_Test.j
+//===========================================================================
+// 文件描述：单位面板测试模块
+// 创建日期：未知
+// 修改记录：
+//   - 实现了单位属性面板的测试功能
+//   - 包含攻击、护甲等属性的显示和交互
+//
+// 主要功能：
+//   - 创建并测试单位属性面板UI
+//   - 提供属性图标和数值显示
+//   - 实现鼠标悬停和点击事件
+//   - 包含单元测试用例
+//===========================================================================
 // 用原始地图测试
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -2547,11 +1978,11 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs19701906")
-call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("UITocInit___onInit")
-call ExecuteFunc("UIExtendEvent___onInit")
-call ExecuteFunc("UTSpellBtns___onInit")
+call ExecuteFunc("jasshelper__initstructs48529437")
+call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
+call ExecuteFunc("UITocInit__onInit")
+call ExecuteFunc("UTUnitPanel__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -2589,52 +2020,19 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-
-//Functions for BigArrays:
 function sa__uiBtn_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
             if ( not ( s__uiBtn_isExist(this) ) ) then
 return true
             endif
-                    call FlushChildHashtable(HASH_UI, s__uiBtn_ui[this])
             call DzDestroyFrame(s__uiBtn_ui[this])
             call s__uiId_recycle(s__uiBtn_id[this])
    return true
 endfunction
-function sa___prototype20_UTSpellBtns___anon__3 takes nothing returns boolean
- local integer frame=f__arg_integer1
 
-            call BJDebugMsg("leftDown")
-    return true
-endfunction
-function sa___prototype20_UTSpellBtns___anon__4 takes nothing returns boolean
- local integer frame=f__arg_integer1
-
-            call BJDebugMsg("leftUp")
-    return true
-endfunction
-function sa___prototype20_UTSpellBtns___anon__5 takes nothing returns boolean
- local integer frame=f__arg_integer1
-
-            call BJDebugMsg("rightClick")
-    return true
-endfunction
-
-function jasshelper__initstructs19701906 takes nothing returns nothing
+function jasshelper__initstructs48529437 takes nothing returns nothing
     set st__uiBtn_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiBtn_onDestroy,Condition( function sa__uiBtn_onDestroy))
-    set st___prototype20[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[1],function sa___prototype20_UTSpellBtns___anon__3)
-    call TriggerAddCondition(st___prototype20[1],Condition(function sa___prototype20_UTSpellBtns___anon__3))
-    set st___prototype20[2]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[2],function sa___prototype20_UTSpellBtns___anon__4)
-    call TriggerAddCondition(st___prototype20[2],Condition(function sa___prototype20_UTSpellBtns___anon__4))
-    set st___prototype20[3]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[3],function sa___prototype20_UTSpellBtns___anon__5)
-    call TriggerAddCondition(st___prototype20[3],Condition(function sa___prototype20_UTSpellBtns___anon__5))
-
-
-
 
 
 
@@ -2643,7 +2041,5 @@ function jasshelper__initstructs19701906 takes nothing returns nothing
 
     call ExecuteFunc("s__mapBounds_onInit")
     call ExecuteFunc("s__uiId_onInit")
-    call ExecuteFunc("s__hardware_onInit")
-    call ExecuteFunc("s__spellBtns_onInit")
 endfunction
 

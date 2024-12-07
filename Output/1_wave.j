@@ -13,6 +13,17 @@
 //*  Global Variables
 //*
 //***************************************************************************
+library YDTriggerSaveLoadSystem initializer Init
+//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
+globals
+        hashtable YDHT
+    hashtable YDLOC
+endglobals
+    private function Init takes nothing returns nothing
+            set YDHT = InitHashtable()
+        set YDLOC = InitHashtable()
+    endfunction
+endlibrary
 globals
     // Generated
     rect gg_rct_Wave1 = null
@@ -104,44 +115,97 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
+//===========================================================================
+// UnitPanel_Test.j
+//===========================================================================
+// 文件描述：单位面板测试模块
+// 创建日期：未知
+// 修改记录：
+//   - 实现了单位属性面板的测试功能
+//   - 包含攻击、护甲等属性的显示和交互
+//
+// 主要功能：
+//   - 创建并测试单位属性面板UI
+//   - 提供属性图标和数值显示
+//   - 实现鼠标悬停和点击事件
+//   - 包含单元测试用例
+//===========================================================================
 // 用原始地图测试
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 //! zinc
 //自动生成的文件
-library UTSpellBtns requires SpellBtns {
-	function TTestUTSpellBtns1 (player p) {
+library UTUnitPanel requires UnitPanel {
+	uiBtn btnAttack = 0,btnArmor = 0;
+	integer valueAttack, valueArmor;
+	integer textAttack, textArmor;
+	integer iconAttack, iconArmor;
+	function Init () {
+		//单位攻击面板（也就是跟随单位攻击1显示） 没有攻击则不显示UI
+		integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0);
+		//三围面板（跟随英雄三围面板，有就显示。普通单位则不显示）可以绑定英雄
+		// integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);  //英雄三围框架
+		integer child = DzCreateFrameByTagName("SIMPLEFRAME", "kuangjia", parent, "框架", 0);
+		// 无响应事件置父
+		DzFrameClearAllPoints( child );
+		DzFrameSetPoint( child, 4, DzGetGameUI(), 4, 0, 0 );
+		// 响应事件置父
+		iconAttack = DzSimpleTextureFindByName("攻击图标", 0);
+		DzFrameSetSize( iconAttack, 0.02, 0.02 );
+		DzFrameSetTexture( iconAttack, "ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp",0 );
+		DzFrameSetPoint( iconAttack, 3, DzFrameGetPortrait(), 5, 0.015, -0.01 );
+		iconArmor = DzSimpleTextureFindByName("护甲图标", 0);
+		DzFrameSetSize( iconArmor, 0.02, 0.02 );
+		DzFrameSetTexture( iconArmor, "ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp",0 );
+		DzFrameSetPoint( iconArmor, 1, iconAttack, 7, 0, -0.005 );
+		btnAttack = uiBtn.createSimple(parent)
+			.setAllPoint(iconAttack)
+			.onMouseEnter(function() {BJDebugMsg("enterAttack"); })
+			.onMouseLeave(function() {BJDebugMsg("leaveAttack"); })
+			.onMouseClick(function() {BJDebugMsg("clickAttack"); });
+		btnArmor = uiBtn.createSimple(parent)
+			.setAllPoint(iconArmor)
+			.onMouseEnter(function() {BJDebugMsg("enterArmor"); })
+			.onMouseLeave(function() {BJDebugMsg("leaveArmor"); })
+			.onMouseClick(function() {BJDebugMsg("clickArmor"); });
+		textAttack = DzSimpleFontStringFindByName("攻击", 0);
+		DzFrameClearAllPoints( textAttack );
+		DzFrameSetPoint( textAttack, 0, btnAttack.ui, 2, 0, 0.00 );
+		DzFrameSetText( textAttack, "攻击:" );
+		textArmor = DzSimpleFontStringFindByName("护甲", 0);
+		DzFrameClearAllPoints( textArmor );
+		DzFrameSetPoint( textArmor, 0, btnArmor.ui, 2, 0, 0.00 );
+		DzFrameSetText( textArmor, "防御:" );
+		valueAttack = DzSimpleFontStringFindByName("攻击数值", 0);
+		DzFrameClearAllPoints( valueAttack );
+		DzFrameSetPoint( valueAttack, 3, btnAttack.ui, 5, 0, -0.005 );
+		DzFrameSetText( valueAttack, "0" );
+		valueArmor = DzSimpleFontStringFindByName("护甲数值", 0);
+		DzFrameClearAllPoints( valueArmor );
+		DzFrameSetPoint( valueArmor, 3, btnArmor.ui, 5, 0, -0.005 );
+		DzFrameSetText( valueArmor, "2000" );
 	}
-	function TTestUTSpellBtns2 (player p) {
+	function TTestUTUnitPanel1 (player p) {
 	}
-	function TTestUTSpellBtns3 (player p) {
+	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
+
 	}
-	function TTestUTSpellBtns4 (player p) {
-		integer i,j;
-		for (1 <= i <= 3) {
-			for (1 <= j <= 4) {
-				BJDebugMsg("原生第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(DzFrameGetCommandBarButton(i-1,j-1)));
-				BJDebugMsg("CD第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(DzFrameGetCommandBarButtonAutoCastIndicator (DzFrameGetCommandBarButton(i-1,j-1))));
-				BJDebugMsg("扩展第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(spellBtns.grid[i][j]));
-			}
-		}
+	function TTestUTUnitPanel3 (player p) {
+		//unitPanel.onAttrBtnEnter();
 	}
-	function TTestUTSpellBtns5 (player p) {
-		uiBtn btn = 0;
-		btn = uiBtn.create(DzGetGameUI())
-			.setSize(0.04,0.04)
-			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.onMouseEnter(function() {BJDebugMsg("enter"); })
-			.onMouseLeave(function() {BJDebugMsg("leave"); })
-			.onMouseClick(function() {BJDebugMsg("click"); })
-			.exLeftDown(function(integer frame) {BJDebugMsg("leftDown");})
-			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");})
-			.exRightClick(function(integer frame) {BJDebugMsg("rightClick");});
-	}
-	function TTestUTSpellBtns6 (player p) {}
-	function TTestUTSpellBtns7 (player p) {}
-	function TTestUTSpellBtns8 (player p) {}
-	function TTestUTSpellBtns9 (player p) {}
-	function TTestUTSpellBtns10 (player p) {}
-	function TTestActUTSpellBtns1 (string str) {
+	function TTestUTUnitPanel4 (player p) {}
+	function TTestUTUnitPanel5 (player p) {}
+	function TTestUTUnitPanel6 (player p) {}
+	function TTestUTUnitPanel7 (player p) {}
+	function TTestUTUnitPanel8 (player p) {}
+	function TTestUTUnitPanel9 (player p) {}
+	function TTestUTUnitPanel10 (player p) {}
+	function TTestActUTUnitPanel1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -176,7 +240,6 @@ for (0 <= i <= len - 1) {
 			unit hero,building;
 			real x = 0, y = 0;
 			integer i = 0;
-			BJDebugMsg("[SpellBtns] 单元测试已加载");
 			// 为玩家1创建测试英雄
 			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
 SetHeroLevel(hero, 10,true);
@@ -206,27 +269,15 @@ UnitAddAbility(hero, 'ACdv'); // 吞噬
 UnitAddAbility(hero, 'ACen'); // 诱捕
 UnitAddAbility(hero, 'ANr3'); // 混乱之雨
 UnitAddAbility(hero, 'AOhw'); // 医疗波
-
-			spellBtns.onEnter(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入");
-			});
-			spellBtns.onLeave(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能离开");
-			});
-			spellBtns.onClick(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能点击");
-			});
-			spellBtns.onRightClick(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能右键点击");
-			});
+BJDebugMsg("[UnitPanel] 单元测试已加载");
+			DestroyTrigger(GetTriggeringTrigger());
+		}));
+		//在游戏开始0.1秒后再调用
+		tr = CreateTrigger();
+		TriggerRegisterTimerEventSingle(tr,0.1);
+		TriggerAddCondition(tr,Condition(function (){
+			unitPanel.moveOutAll();
+			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -234,19 +285,19 @@ UnitAddAbility(hero, 'AOhw'); // 医疗波
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTSpellBtns1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUnitPanel1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTSpellBtns1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTSpellBtns2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTSpellBtns3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTSpellBtns4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTSpellBtns5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTSpellBtns6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTSpellBtns7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTSpellBtns8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTSpellBtns9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTSpellBtns10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUnitPanel1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUnitPanel2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUnitPanel3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUnitPanel4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUnitPanel5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUnitPanel6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUnitPanel7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUnitPanel8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUnitPanel9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUnitPanel10(GetTriggerPlayer());
 		});
 	}
 }

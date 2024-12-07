@@ -1,3 +1,117 @@
+#ifndef UIBaseModuleIncluded
+#define UIBaseModuleIncluded
+
+//控件的共用基本方法
+
+//! zinc
+library UIBaseModule requires UIUtils {
+    // 定义共用的方法结构
+    public module uiBaseModule {
+        // 设置位置
+        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
+            return this;
+        }
+
+        // 大小完全对齐父框架
+        method setAllPoint (integer relative) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAllPoints(ui,relative);
+            return this;
+        }
+
+        //绝对位置
+        method setAbsPoint (integer anchor, real x, real y) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAbsolutePoint(ui,anchor,x,y);
+            return this;
+        }
+
+        // 清除所有位置
+        method clearPoint () -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameClearAllPoints(ui);
+            return this;
+        }
+
+        // 设置大小
+        method setSize (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width,height);
+            return this;
+        }
+
+        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        method setSizeFix (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width*GetResizeRate(),height);
+            return this;
+        }
+
+        optional module extendResize; //扩展自适应大小方法
+    }
+}
+//! endzinc
+
+#endif
+
+
+#ifndef UITocInitIncluded
+#define UITocInitIncluded
+
+//! zinc
+/*
+Toc初始化,才能使用UI功能
+*/
+library UITocInit requires BzAPI,LBKKAPI {
+
+  function onInit ()  {
+		DzLoadToc("ui\\Crainax.toc");
+		DzFrameEnableClipRect(false);
+  }
+}
+
+//! endzinc
+#endif
+
+#ifndef MapBoundsUtilsIncluded
+#define MapBoundsUtilsIncluded
+
+//! zinc
+// 地图边界工具库
+library MapBoundsUtils {
+
+    public struct mapBounds {
+        static real maxX = 0.;
+        static real minX = 0.;
+        static real maxY = 0.;
+        static real minY = 0.;
+
+        // 限制X坐标在地图范围内
+        static method X (real x) -> real {
+            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
+        }
+        // 限制Y坐标在地图范围内
+        static method Y (real y) -> real {
+            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
+        }
+
+        // 初始化
+        static method onInit () {
+            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
+            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
+            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
+            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
+        }
+
+    }
+
+}
+//! endzinc
+
+#endif
+
 #ifndef KKAPIINCLUDE 
 #define KKAPIINCLUDE 
 
@@ -294,6 +408,136 @@ library UIEventModule {
 //! endzinc
 #endif
 
+#ifndef UIButtonIncluded
+#define UIButtonIncluded
+
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
+//! zinc
+/*
+文字UI组件
+*/
+
+//# dependency:ui\image\textbutton_highlight.blp
+
+library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
+
+    public struct uiBtn {
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiBtn)
+
+        module uiBaseModule;   // UI控件的共用方法
+        module uiEventModule;  // UI事件的共用方法
+
+        // 创建一个不带声音的
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_NORMAL_BUTTON,0); //有高亮无声音的图标
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
+            return this;
+        }
+
+        //普通带声效系
+        static method createSound (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_NORMAL_BUTTON,0); //有高亮有声音的图标
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
+            return this;
+        }
+
+        //右键菜单系
+        static method createRC (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_TEXT_BUTTON,0); //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
+            return this;
+        }
+
+        // 创建空白按钮
+        // parent: 父级框架
+        static method createBlank (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_BLANK_BUTTON,0);
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
+            return this;
+        }
+
+        // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
+        // parent: 父级框架
+        static method createSimple (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("SIMPLEBUTTON", STRING_BUTTON + I2S(id), parent, "简按模板", 1);
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
+            return this;
+        }
+
+
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiBtn)
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
+    }
+}
+
+
+
+//! endzinc
+#endif
+
+#ifndef UnitTestFramworkIncluded
+#define UnitTestFramworkIncluded
+
+/*
+单元测试框架(注入)
+*/
+
+//! zinc
+library UnitTestFramwork {
+
+	//单元测试总
+	trigger TUnitTest = null;
+
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
+    }
+
+    function onInit ()  {
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
+            }
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+    }
+}
+
+//! endzinc
+#endif
+
+
+
 #ifndef BZAPIINCLUDE
 #define BZAPIINCLUDE
 
@@ -535,43 +779,6 @@ endlibrary
 
 #endif /// YDWEAddAIOrderIncluded
 
-#ifndef MapBoundsUtilsIncluded
-#define MapBoundsUtilsIncluded
-
-//! zinc
-// 地图边界工具库
-library MapBoundsUtils {
-
-    public struct mapBounds {
-        static real maxX = 0.;
-        static real minX = 0.;
-        static real maxY = 0.;
-        static real minY = 0.;
-
-        // 限制X坐标在地图范围内
-        static method X (real x) -> real {
-            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
-        }
-        // 限制Y坐标在地图范围内
-        static method Y (real y) -> real {
-            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
-        }
-
-        // 初始化
-        static method onInit () {
-            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
-            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
-            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
-            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
-        }
-
-    }
-
-}
-//! endzinc
-
-#endif
-
 #ifndef MathUtilsIncluded
 #define MathUtilsIncluded
 
@@ -750,92 +957,6 @@ library MathUtils {
 //! endzinc
 #endif
 
-#ifndef UIHashTableIncluded
-#define UIHashTableIncluded
-
-//! zinc
-/*
-UI哈希表通用函数
-*/
-
-#include "Crainax/core/table/Hash_UIDefine.j"
-
-library UIHashTable {
-
-    public {
-        hashtable HASH_UI = InitHashtable();  // UI结构哈希表
-
-        //frame是UI的父窗口，typeID是UI类型，ui是UI实例
-        //由frame反推UIStruct用
-        function BindFrameToUI (integer frame,integer typeID,integer ui) {
-            SaveInteger(HASH_UI,frame,HASH_KEY_UI_TYPE,typeID);
-            SaveInteger(HASH_UI,frame,HASH_KEY_UI_UI,ui);
-        }
-
-        //由绑定的frame反推UIStruct用
-        function GetUIFromFrame (integer frame) -> integer {
-            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_UI);
-        }
-
-        //由绑定的frame反推UIStruct用
-        function GetTypeIDFromFrame (integer frame) -> integer {
-            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_TYPE);
-        }
-    }
-}
-
-//! endzinc
-#endif
-
-#ifndef UIUtilsIncluded
-#define UIUtilsIncluded
-
-//窗口的大小
-#define WINDOW_PRESENT_WIDTH  0.80
-#define WINDOW_PRESENT_HEIGHT 0.60
-
-//! zinc
-/*
-UI工具库
-*/
-library UIUtils requires BzAPI{
-
-	//获得现在的X / Y比例
-	//主要用于UI缩放
-	public function GetResizeRate () -> real {
-		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
-		else return 1.0;
-	}
-
-	// 获取鼠标位置X(绝对坐标)[修正版]
-	public function GetMouseXEx () -> real {
-		integer width = DzGetClientWidth();
-		if (width > 0) return DzGetMouseXRelative()* WINDOW_PRESENT_WIDTH / width;
-		else return 0.1;
-	}
-
-	// 获取鼠标位置Y(绝对坐标)[修正版]
-	public function GetMouseYEx () -> real {
-		integer height = DzGetClientHeight();
-		if (height > 0) return WINDOW_PRESENT_HEIGHT - DzGetMouseYRelative()* WINDOW_PRESENT_HEIGHT / height;
-		else return 0.1;
-	}
-
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseX (real min,real max) -> real {
-		return RLimit(GetMouseXEx(),min,max);
-	}
-
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseY (real min,real max) -> real {
-		return RLimit(GetMouseYEx(),min,max);
-	}
-
-}
-
-//! endzinc
-#endif
-
 #ifndef UIIdIncluded
 #define UIIdIncluded
 
@@ -915,518 +1036,166 @@ library UIId {
 
 
 
-#ifndef UIBaseModuleIncluded
-#define UIBaseModuleIncluded
+#ifndef UIUtilsIncluded
+#define UIUtilsIncluded
 
-//控件的共用基本方法
-
-//! zinc
-library UIBaseModule requires UIUtils {
-    // 定义共用的方法结构
-    public module uiBaseModule {
-        // 设置位置
-        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
-            return this;
-        }
-
-        // 大小完全对齐父框架
-        method setAllPoint (integer relative) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAllPoints(ui,relative);
-            return this;
-        }
-
-        //绝对位置
-        method setAbsPoint (integer anchor, real x, real y) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAbsolutePoint(ui,anchor,x,y);
-            return this;
-        }
-
-        // 清除所有位置
-        method clearPoint () -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameClearAllPoints(ui);
-            return this;
-        }
-
-        // 设置大小
-        method setSize (real width, real height) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetSize(ui,width,height);
-            return this;
-        }
-
-        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
-        method setSizeFix (real width, real height) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetSize(ui,width*GetResizeRate(),height);
-            return this;
-        }
-
-        optional module extendResize; //扩展自适应大小方法
-    }
-}
-//! endzinc
-
-#endif
-
-
-#ifndef UITocInitIncluded
-#define UITocInitIncluded
+//窗口的大小
+#define WINDOW_PRESENT_WIDTH  0.80
+#define WINDOW_PRESENT_HEIGHT 0.60
 
 //! zinc
 /*
-Toc初始化,才能使用UI功能
+UI工具库
 */
-library UITocInit requires BzAPI,LBKKAPI {
+library UIUtils requires BzAPI{
 
-  function onInit ()  {
-		DzLoadToc("ui\\Crainax.toc");
-		DzFrameEnableClipRect(false);
-  }
-}
-
-//! endzinc
-#endif
-
-#ifndef HardwareIncluded
-#define HardwareIncluded
-
-#include "BlizzardAPI.j"
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-
-//! zinc
-/*
-结构体
-硬件事件(按/滑/帧事件)
-*/
-library Hardware requires BzAPI {
-
-	public struct hardware {
-		// 注册一个左键抬起事件
-		static method regLeftUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_UP,false,func);
-		}
-		// 注册一个左键按下事件
-		static method regLeftDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_PRESSED,false,func);
-		}
-		// 注册一个右键按下事件
-		static method regRightDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_PRESSED,false,func);
-		}
-		// 注册一个右键抬起事件
-		static method regRightUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_UP,false,func);
-		}
-		// 注册一个滚轮事件
-		static method regWheelEvent (code func) {
-			if (trWheel == null) {trWheel = CreateTrigger();}
-			TriggerAddCondition(trWheel, Condition(func));
-		}
-		// 注册一个绘制事件
-		static method regUpdateEvent (code func) {
-			if (trUpdate == null) {trUpdate = CreateTrigger();}
-			TriggerAddCondition(trUpdate, Condition(func));
-		}
-		// 注册一个窗口变化事件
-		static method regResizeEvent (code func) {
-			if (trResize == null) {trResize = CreateTrigger();}
-			TriggerAddCondition(trResize, Condition(func));
-		}
-
-		private {
-			static trigger trWheel = null;
-			static trigger trUpdate = null;
-			static trigger trResize = null;
-		}
-		static method onInit () {
-			// 滚轮事件
-			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
-				TriggerEvaluate(trWheel);
-			});
-			// 帧绘制事件
-			DzFrameSetUpdateCallbackByCode(function (){
-				TriggerEvaluate(trUpdate);
-			});
-			// 窗口大小变化事件
-			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
-				TriggerEvaluate(trResize);
-			});
-		}
+	//获得现在的X / Y比例
+	//主要用于UI缩放
+	public function GetResizeRate () -> real {
+		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
+		else return 1.0;
 	}
+
+	// 获取鼠标位置X(绝对坐标)[修正版]
+	public function GetMouseXEx () -> real {
+		integer width = DzGetClientWidth();
+		if (width > 0) return DzGetMouseXRelative()* WINDOW_PRESENT_WIDTH / width;
+		else return 0.1;
+	}
+
+	// 获取鼠标位置Y(绝对坐标)[修正版]
+	public function GetMouseYEx () -> real {
+		integer height = DzGetClientHeight();
+		if (height > 0) return WINDOW_PRESENT_HEIGHT - DzGetMouseYRelative()* WINDOW_PRESENT_HEIGHT / height;
+		else return 0.1;
+	}
+
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseX (real min,real max) -> real {
+		return RLimit(GetMouseXEx(),min,max);
+	}
+
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseY (real min,real max) -> real {
+		return RLimit(GetMouseYEx(),min,max);
+	}
+
 }
 
 //! endzinc
 #endif
 
-#ifndef UnitTestFramworkIncluded
-#define UnitTestFramworkIncluded
-
-/*
-单元测试框架(注入)
-*/
-
-//! zinc
-library UnitTestFramwork {
-
-	//单元测试总
-	trigger TUnitTest = null;
-
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-
-    function onInit ()  {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
-            }
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
-    }
-}
-
-//! endzinc
-#endif
-
-
-
-#ifndef UIExtendEventIncluded
-#define UIExtendEventIncluded
-
-#include "Crainax/core/table/Hash_UIDefine.j"
+#ifndef UnitPanelIncluded
+#define UnitPanelIncluded
 
 //! zinc
 /*
-扩展按下和右键事件
+单位面板的控制
 */
-library UIExtendEvent requires Hardware,UIHashTable {
 
-    //UI的扩充事件回调事件(参数是Frame不是UI结构实例)
-    public type uiEvent extends function(integer);
+// https://tieba.baidu.com/p/6580193364?pid=131079515410&cid=0&red_tag=2120364315#131079515410
+// https://tieba.baidu.com/p/8067593125?pid=145736219847&cid=145742891494#145742891494
+// http://bbs.mvprpg.com/forum.php?mod=viewthread&tid=493042&extra=
 
-    private boolean rcStartOnUI = false;  // 添加状态标记
-    private integer rcStartUI   = 0;      // 记录按下时的UI
-
-    public module extendEvent {
-
-        //注册按下事件
-        method exLeftDown (uiEvent func)  -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_LEFT_DOWN,func);
-            return this;
-        }
-        //注册抬起事件
-        method exLeftUp (uiEvent func)  -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_LEFT_UP,func);
-            return this;
-        }
-        //注册右键按下事件
-        method exRightDown (uiEvent func)  -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN,func);
-            return this;
-        }
-        //注册右键抬起事件
-        method exRightUp (uiEvent func)  -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP,func);
-            return this;
-        }
-        //注册右键点击事件（精确判断）
-        method exRightClick (uiEvent func) -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK,func);
-            return this;
-        }
-    }
-
-    function onInit () {
-        hardware.regLeftDownEvent(function () { //注册左键按下事件
-            integer currentUI;
-            uiEvent func;
-            if (!DzIsMouseOverUI()) {return;}
-            currentUI = DzGetMouseFocus();
-            if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_LEFT_DOWN)) {
-                func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_LEFT_DOWN);
-                func.evaluate(currentUI);
-            }
-        });
-        hardware.regLeftUpEvent(function () { //注册左键抬起事件,在click事件之前触发
-            integer currentUI;
-            uiEvent func;
-            if (!DzIsMouseOverUI()) {return;} //如果鼠标不在游戏内，就不响应该事件
-            currentUI = DzGetMouseFocus();
-            if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_LEFT_UP)) {
-                func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_LEFT_UP);
-                func.evaluate(currentUI);
-            }
-        });
-        hardware.regRightDownEvent(function () { //注册右键按下事件
-            integer currentUI;
-            uiEvent func;
-            if (!DzIsMouseOverUI()) {
-                return;
-            }
-            currentUI = DzGetMouseFocus();
-
-            if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) {
-                func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN);
-                func.evaluate(currentUI);
-            }
-
-            // 新增的click判断逻辑
-            rcStartOnUI = true;
-            rcStartUI = currentUI;
-        });
-        hardware.regRightUpEvent(function () { //注册右键抬起事件
-            integer currentUI;
-            uiEvent func;
-            if (!DzIsMouseOverUI()) {
-                return;
-            }
-            currentUI = DzGetMouseFocus();
-
-            if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) {
-                func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP);
-                func.evaluate(currentUI);
-            }
-
-            // 新增的click判断逻辑
-            if (rcStartOnUI && currentUI == rcStartUI) {
-                if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) {
-                    func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK);
-                    func.evaluate(currentUI);
-                }
-            }
-
-            rcStartOnUI = false;
-            rcStartUI = 0;
-        });
-    }
-}
-
-//! endzinc
-#endif
-
-#ifndef UIButtonIncluded
-#define UIButtonIncluded
-
-#include "Crainax/config/SharedMethod.h" // 结构体共用方法
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-
-//! zinc
 /*
-文字UI组件
+4，原生框架及 置父类型
+SIMPLEFRAME：框架
+单位面板：SimpleInfoPanelUnitDetail  ID：0
+
+英雄属性：SimpleInfoPanelIconHero  ID：6
+
+攻击：SimpleInfoPanelIconDamage  ID：0
+防御：SimpleInfoPanelIconArmor   ID：2
+
+经验框：SimpleHeroLevelBar  ID：0
+经验条：SimpleProgressIndicator  ID：0
+
+建造页面：SimpleInfoPanelBuildingDetail   ID：1
+建造物名称：SimpleBuildingNameValue  ID：1
+建造列队条：SimpleBuildTimeIndicator   ID：1
+
+
+未知：SimpleInfoPanelIconArmor  ID：2
+
+SimpleFontString：
+单位名称：SimpleNameValue   ID：0
+
+种类即英雄等级：SimpleClassValue   ID：0
+
+建造行动标签：SimpleBuildingActionLabel   ID：1
+
+SimpleTexture：
+建造列队背景：SimpleBuildQueueBackdrop   ID：1
+单位图标：InfoPanelIconBackdrop     ID：0为攻击1，1为攻击2，2为防御
+面板科技等级：InfoPanelIconLevel    ID：0为攻击1，1为攻击2，2为防御
+单位基础数值：InfoPanelIconValue    ID：0为攻击1，1为攻击2，2为防御
+基础数值标签：InfoPanelIconLabel    ID：0为攻击1，1为攻击2，2为防御
+
+注意：原版的面板框架并不支持所有的类型置父
+
+
+能支持的只有
+SIMPLEFRAME
+SIMPLESTATUSBAR
+SIMPLECHECKBOX
+SIMPLEBUTTON
+TEXTAREA
+这些类型。
 */
 
-//# dependency:ui\image\textbutton_highlight.blp
+library UnitPanel requires UITocInit {
 
-library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
 
-    public struct uiBtn {
-        // UI组件内部共享方法及成员
-        STRUCT_SHARED_INNER_UI(uiBtn)
+    public struct unitPanel []{
 
-        module uiBaseModule;   // UI控件的共用方法
-        module uiEventModule;  // UI事件的共用方法
-
-        // 创建一个不带声音的
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_NORMAL_BUTTON,0); //有高亮无声音的图标
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
+        //把所有原生UI移走
+        static method moveOutAll () {
+            integer ui;
+            // 攻击1
+            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 0);
+            DzFrameSetSize( ui, 0.03, 0.03 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+            // 攻击2
+            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 1);
+            DzFrameSetSize( ui, 0.03, 0.03 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+            // 护甲
+            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 2);
+            DzFrameSetSize( ui, 0.001, 0.001 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+            // 食物
+            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 4);
+            DzFrameSetSize( ui, 0.001, 0.001 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+            // 英雄三围面板
+            ui = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);
+            DzFrameSetSize( ui, 0.02, 0.02 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
+            // 友方建筑单位的金币之类的东西(会频繁重置,需要在选择单位时就重新处理)
+            ui = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7);
+            DzFrameSetSize( ui, 0.02, 0.02 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
         }
 
-        //普通带声效系
-        static method createSound (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_NORMAL_BUTTON,0); //有高亮有声音的图标
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
+        // 属性按钮进入事件
+        static method onAttrBtnEnter () {
+
         }
 
-        //右键菜单系
-        static method createRC (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_TEXT_BUTTON,0); //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
-        }
-
-        // 创建空白按钮
-        // parent: 父级框架
-        static method createBlank (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_BLANK_BUTTON,0);
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
-        }
-
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            STRUCT_SHARED_UI_ONDESTROY(uiBtn)
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
     }
+
+
 }
-
-
 
 //! endzinc
 #endif
 
-#ifndef SpellBtnsIncluded
-#define SpellBtnsIncluded
-
-//! zinc
-
-#include "Crainax/config/SharedMethod.h" // 结构体共用方法
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-
-// 原生的技能栏按钮和事件
-// 控制技能栏按钮的进入,离开,点击还有右键点击事件
-library SpellBtns requires Hardware{
-
-    public struct spellBtns {
-        static integer grid [3][4]; // 使用grid表示技能格子
-
-        static integer argsRow = 0; // 回调参数:行
-        static integer argsCol = 0; // 回调参数:列
-
-        private {
-            static trigger trEnter      = null;   // 进入事件
-            static trigger trLeave      = null;   // 离开事件
-            static trigger trClick      = null;   // 点击事件
-            static trigger trRightClick = null;   // 右键点击事件
-
-            static integer mousePos     = 0;      //当前鼠标所在的位置
-            static boolean rcStartOnUI  = false;  // 是否开始右键点击
-            static integer rcStartPos   = 0;      // 右键点击开始时的鼠标位置
-        }
-
-        // 注册进入事件
-        static method onEnter (code func) {
-            if (trEnter == null) {
-                trEnter = CreateTrigger();
-            }
-            TriggerAddCondition(trEnter, Condition(func));
-        }
-        // 注册离开事件
-        static method onLeave (code func) {
-            if (trLeave == null) {
-                trLeave = CreateTrigger();
-            }
-            TriggerAddCondition(trLeave, Condition(func));
-        }
-        // 注册点击事件
-        static method onClick (code func) {
-            if (trClick == null) {
-                trClick = CreateTrigger();
-            }
-            TriggerAddCondition(trClick, Condition(func));
-        }
-        // 注册右键点击事件
-        static method onRightClick (code func) {
-            if (trRightClick == null) {
-                trRightClick = CreateTrigger();
-            }
-            TriggerAddCondition(trRightClick, Condition(func));
-        }
-
-        // 把技能按钮移出屏幕外
-        static method outside (integer row,integer col) {
-            DzFrameClearAllPoints(grid[row][col]);
-            DzFrameSetAbsolutePoint(grid[row][col],ANCHOR_BOTTOMLEFT,-1.0,0);
-        }
-
-        // 把技能按钮移回应有的位置
-        static method inside (integer row,integer col) {
-            DzFrameClearAllPoints(grid[row][col]);
-            DzFrameSetPoint(grid[row][col], ANCHOR_CENTER, DzGetGameUI(), ANCHOR_RIGHT, - 0.3078 + (0.0398 * row), - 0.165 - (0.0385 * col));
-        }
-
-        static method onInit() {
-            integer row;
-            integer col;
-            for(1 <= row <= 3) {
-                for(1 <= col <= 4) {
-                    grid[row][col] = DzFrameGetCommandBarButton(row-1, col-1);
-                }
-            }
-
-            #define SPELL_BTN_EVENT_MACRO(row,col) \
-            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_ENTER,function () {mousePos = ((row-1)*4)+col;if(trEnter != null) {argsRow = row;argsCol = col;TriggerEvaluate(trEnter);}},false); CRNL \
-            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_LEAVE,function () {mousePos = 0;if(trLeave != null) {argsRow = row;argsCol = col;TriggerEvaluate(trLeave);}},false); CRNL \
-            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_DOWN,function () {if(trClick != null) {argsRow = row;argsCol = col;TriggerEvaluate(trClick);}},false);
-
-            SPELL_BTN_EVENT_MACRO(1,1)
-            SPELL_BTN_EVENT_MACRO(1,2)
-            SPELL_BTN_EVENT_MACRO(1,3)
-            SPELL_BTN_EVENT_MACRO(1,4)
-            SPELL_BTN_EVENT_MACRO(2,1)
-            SPELL_BTN_EVENT_MACRO(2,2)
-            SPELL_BTN_EVENT_MACRO(2,3)
-            SPELL_BTN_EVENT_MACRO(2,4)
-            SPELL_BTN_EVENT_MACRO(3,1)
-            SPELL_BTN_EVENT_MACRO(3,2)
-            SPELL_BTN_EVENT_MACRO(3,3)
-            SPELL_BTN_EVENT_MACRO(3,4)
-
-            #undef SPELL_BTN_EVENT_MACRO
-
-            hardware.regRightDownEvent(function () { //注册右键按下事件
-                if (mousePos >= 1 && mousePos <= 12) {
-                    rcStartOnUI = true;
-                    rcStartPos = mousePos;
-                }
-                // 新增的click判断逻辑
-            });
-            hardware.regRightUpEvent(function () { //注册右键抬起事件
-                // 新增的click判断逻辑
-                if (rcStartOnUI && mousePos == rcStartPos) {
-                    if (trRightClick != null) {
-                        argsRow = (mousePos - 1) / 4 + 1;
-                        argsCol = ModuloInteger(mousePos - 1,4) + 1;
-                        TriggerEvaluate(trRightClick);
-                    }
-                }
-
-                rcStartOnUI = false;
-                rcStartPos = 0;
-            });
-        }
-
-    }
-}
-//! endzinc
-
-#endif
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1442,6 +1211,17 @@ library SpellBtns requires Hardware{
 //*  Global Variables
 //*
 //***************************************************************************
+library YDTriggerSaveLoadSystem initializer Init
+//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
+globals
+        hashtable YDHT
+    hashtable YDLOC
+endglobals
+    private function Init takes nothing returns nothing
+            set YDHT = InitHashtable()
+        set YDLOC = InitHashtable()
+    endfunction
+endlibrary
 globals
     // Generated
     rect gg_rct_Wave1 = null
@@ -1533,44 +1313,97 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
+//===========================================================================
+// UnitPanel_Test.j
+//===========================================================================
+// 文件描述：单位面板测试模块
+// 创建日期：未知
+// 修改记录：
+//   - 实现了单位属性面板的测试功能
+//   - 包含攻击、护甲等属性的显示和交互
+//
+// 主要功能：
+//   - 创建并测试单位属性面板UI
+//   - 提供属性图标和数值显示
+//   - 实现鼠标悬停和点击事件
+//   - 包含单元测试用例
+//===========================================================================
 // 用原始地图测试
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 //! zinc
 //自动生成的文件
-library UTSpellBtns requires SpellBtns {
-	function TTestUTSpellBtns1 (player p) {
+library UTUnitPanel requires UnitPanel {
+	uiBtn btnAttack = 0,btnArmor = 0;
+	integer valueAttack, valueArmor;
+	integer textAttack, textArmor;
+	integer iconAttack, iconArmor;
+	function Init () {
+		//单位攻击面板（也就是跟随单位攻击1显示） 没有攻击则不显示UI
+		integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0);
+		//三围面板（跟随英雄三围面板，有就显示。普通单位则不显示）可以绑定英雄
+		// integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);  //英雄三围框架
+		integer child = DzCreateFrameByTagName("SIMPLEFRAME", "kuangjia", parent, "框架", 0);
+		// 无响应事件置父
+		DzFrameClearAllPoints( child );
+		DzFrameSetPoint( child, 4, DzGetGameUI(), 4, 0, 0 );
+		// 响应事件置父
+		iconAttack = DzSimpleTextureFindByName("攻击图标", 0);
+		DzFrameSetSize( iconAttack, 0.02, 0.02 );
+		DzFrameSetTexture( iconAttack, "ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp",0 );
+		DzFrameSetPoint( iconAttack, 3, DzFrameGetPortrait(), 5, 0.015, -0.01 );
+		iconArmor = DzSimpleTextureFindByName("护甲图标", 0);
+		DzFrameSetSize( iconArmor, 0.02, 0.02 );
+		DzFrameSetTexture( iconArmor, "ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp",0 );
+		DzFrameSetPoint( iconArmor, 1, iconAttack, 7, 0, -0.005 );
+		btnAttack = uiBtn.createSimple(parent)
+			.setAllPoint(iconAttack)
+			.onMouseEnter(function() {BJDebugMsg("enterAttack"); })
+			.onMouseLeave(function() {BJDebugMsg("leaveAttack"); })
+			.onMouseClick(function() {BJDebugMsg("clickAttack"); });
+		btnArmor = uiBtn.createSimple(parent)
+			.setAllPoint(iconArmor)
+			.onMouseEnter(function() {BJDebugMsg("enterArmor"); })
+			.onMouseLeave(function() {BJDebugMsg("leaveArmor"); })
+			.onMouseClick(function() {BJDebugMsg("clickArmor"); });
+		textAttack = DzSimpleFontStringFindByName("攻击", 0);
+		DzFrameClearAllPoints( textAttack );
+		DzFrameSetPoint( textAttack, 0, btnAttack.ui, 2, 0, 0.00 );
+		DzFrameSetText( textAttack, "攻击:" );
+		textArmor = DzSimpleFontStringFindByName("护甲", 0);
+		DzFrameClearAllPoints( textArmor );
+		DzFrameSetPoint( textArmor, 0, btnArmor.ui, 2, 0, 0.00 );
+		DzFrameSetText( textArmor, "防御:" );
+		valueAttack = DzSimpleFontStringFindByName("攻击数值", 0);
+		DzFrameClearAllPoints( valueAttack );
+		DzFrameSetPoint( valueAttack, 3, btnAttack.ui, 5, 0, -0.005 );
+		DzFrameSetText( valueAttack, "0" );
+		valueArmor = DzSimpleFontStringFindByName("护甲数值", 0);
+		DzFrameClearAllPoints( valueArmor );
+		DzFrameSetPoint( valueArmor, 3, btnArmor.ui, 5, 0, -0.005 );
+		DzFrameSetText( valueArmor, "2000" );
 	}
-	function TTestUTSpellBtns2 (player p) {
+	function TTestUTUnitPanel1 (player p) {
 	}
-	function TTestUTSpellBtns3 (player p) {
+	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
+
 	}
-	function TTestUTSpellBtns4 (player p) {
-		integer i,j;
-		for (1 <= i <= 3) {
-			for (1 <= j <= 4) {
-				BJDebugMsg("原生第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(DzFrameGetCommandBarButton(i-1,j-1)));
-				BJDebugMsg("CD第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(DzFrameGetCommandBarButtonAutoCastIndicator (DzFrameGetCommandBarButton(i-1,j-1))));
-				BJDebugMsg("扩展第" + I2S(i) + "行,第" + I2S(j) + "列:" + I2S(spellBtns.grid[i][j]));
-			}
-		}
+	function TTestUTUnitPanel3 (player p) {
+		//unitPanel.onAttrBtnEnter();
 	}
-	function TTestUTSpellBtns5 (player p) {
-		uiBtn btn = 0;
-		btn = uiBtn.create(DzGetGameUI())
-			.setSize(0.04,0.04)
-			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.onMouseEnter(function() {BJDebugMsg("enter"); })
-			.onMouseLeave(function() {BJDebugMsg("leave"); })
-			.onMouseClick(function() {BJDebugMsg("click"); })
-			.exLeftDown(function(integer frame) {BJDebugMsg("leftDown");})
-			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");})
-			.exRightClick(function(integer frame) {BJDebugMsg("rightClick");});
-	}
-	function TTestUTSpellBtns6 (player p) {}
-	function TTestUTSpellBtns7 (player p) {}
-	function TTestUTSpellBtns8 (player p) {}
-	function TTestUTSpellBtns9 (player p) {}
-	function TTestUTSpellBtns10 (player p) {}
-	function TTestActUTSpellBtns1 (string str) {
+	function TTestUTUnitPanel4 (player p) {}
+	function TTestUTUnitPanel5 (player p) {}
+	function TTestUTUnitPanel6 (player p) {}
+	function TTestUTUnitPanel7 (player p) {}
+	function TTestUTUnitPanel8 (player p) {}
+	function TTestUTUnitPanel9 (player p) {}
+	function TTestUTUnitPanel10 (player p) {}
+	function TTestActUTUnitPanel1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -1605,7 +1438,6 @@ for (0 <= i <= len - 1) {
 			unit hero,building;
 			real x = 0, y = 0;
 			integer i = 0;
-			BJDebugMsg("[SpellBtns] 单元测试已加载");
 			// 为玩家1创建测试英雄
 			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
 SetHeroLevel(hero, 10,true);
@@ -1635,27 +1467,15 @@ UnitAddAbility(hero, 'ACdv'); // 吞噬
 UnitAddAbility(hero, 'ACen'); // 诱捕
 UnitAddAbility(hero, 'ANr3'); // 混乱之雨
 UnitAddAbility(hero, 'AOhw'); // 医疗波
-
-			spellBtns.onEnter(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入");
-			});
-			spellBtns.onLeave(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能离开");
-			});
-			spellBtns.onClick(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能点击");
-			});
-			spellBtns.onRightClick(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能右键点击");
-			});
+BJDebugMsg("[UnitPanel] 单元测试已加载");
+			DestroyTrigger(GetTriggeringTrigger());
+		}));
+		//在游戏开始0.1秒后再调用
+		tr = CreateTrigger();
+		TriggerRegisterTimerEventSingle(tr,0.1);
+		TriggerAddCondition(tr,Condition(function (){
+			unitPanel.moveOutAll();
+			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -1663,19 +1483,19 @@ UnitAddAbility(hero, 'AOhw'); // 医疗波
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTSpellBtns1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUnitPanel1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTSpellBtns1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTSpellBtns2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTSpellBtns3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTSpellBtns4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTSpellBtns5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTSpellBtns6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTSpellBtns7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTSpellBtns8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTSpellBtns9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTSpellBtns10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUnitPanel1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUnitPanel2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUnitPanel3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUnitPanel4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUnitPanel5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUnitPanel6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUnitPanel7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUnitPanel8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUnitPanel9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUnitPanel10(GetTriggerPlayer());
 		});
 	}
 }

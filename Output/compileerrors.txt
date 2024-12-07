@@ -1,4 +1,5 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 92: Identifier redeclared : "i"
-1
+pjass.exe
+Line 41:  Undefined type uiBtn
+Line 42:  Undefined type uiBtn
+2
