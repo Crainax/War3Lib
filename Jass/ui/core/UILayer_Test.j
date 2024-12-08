@@ -9,12 +9,57 @@
 //自动生成的文件
 library UTUILayer requires UILayer {
 
+	uiImage image1 = 0, image2 = 0;
+	boolean switchLayer = false;
 	function TTestUTUILayer1 (player p) {
-		//uilayer.lv
+		uiText txt = 0;
+		image1 = uiImage.create(uilayer.lv[1])
+			.setSize(0.035,0.035)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.01, 0.0)
+			.texture("ReplaceableTextures\\PassiveButtons\\PASBTNResistantSkin.blp");
+		txt = uiText.create(image1.ui)
+			.setAllPoint(image1.ui)
+			.setAlign(4)
+			.setText("a");
+		image2 = uiImage.create(uilayer.lv[2])
+			.setSize(0.035,0.035)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+			.texture("ReplaceableTextures\\CommandButtons\\BTNStampede.blp");
+		txt = uiText.create(image2.ui)
+			.setAllPoint(image2.ui)
+			.setAlign(4)
+			.setText("b");
 	}
-	function TTestUTUILayer2 (player p) {}
-	function TTestUTUILayer3 (player p) {}
-	function TTestUTUILayer4 (player p) {}
+	function TTestUTUILayer2 (player p) {
+		if (switchLayer) {
+			switchLayer = false;
+			DzFrameSetParent(image1.ui, image2.ui);
+			// DzFrameSetParent(image2.ui, uilayer.lv[2]);
+			BJDebugMsg("切换了层级:1");
+		} else {
+			switchLayer = true;
+			DzFrameSetParent(image2.ui, image1.ui);
+			// DzFrameSetParent(image1.ui, uilayer.lv[2]);
+			// DzFrameSetParent(image2.ui, uilayer.lv[1]);
+			BJDebugMsg("切换了层级:2");
+		}
+		BJDebugMsg("Image1的父:"+I2S(DzFrameGetParent(image1.ui)));
+		BJDebugMsg("Image2的父:"+I2S(DzFrameGetParent(image2.ui)));
+		BJDebugMsg("lv1子数:"+I2S(DzFrameGetChildrenCount(uilayer.lv[1])));
+		BJDebugMsg("lv2子数:"+I2S(DzFrameGetChildrenCount(uilayer.lv[2])));
+	}
+	function TTestUTUILayer3 (player p) {
+		if (uilayer.lv[1] != 0) {
+			DzDestroyFrame(uilayer.lv[1]);
+			uilayer.lv[1] = 0;
+		}
+	}
+	function TTestUTUILayer4 (player p) {
+		DzFrameSetParent(image1.ui,DzGetGameUI());
+		DzDestroyFrame(uilayer.lv[1]);
+		uilayer.lv[1] = 0;
+		BJDebugMsg("测试重置换父");
+	}
 	function TTestUTUILayer5 (player p) {}
 	function TTestUTUILayer6 (player p) {}
 	function TTestUTUILayer7 (player p) {}
@@ -45,9 +90,17 @@ library UTUILayer requires UILayer {
 		num = num + 1;
 
 		if (paramS[0] == "a") {
-
+			DzFrameSetParent(image1.ui, uilayer.lv[paramI[1]]);
+			BJDebugMsg("图片a的层级:"+I2S(paramI[1]));
 		} else if (paramS[0] == "b") {
+			DzFrameSetParent(image2.ui, uilayer.lv[paramI[1]]);
+			BJDebugMsg("图片b的层级:"+I2S(paramI[1]));
+		} else if (paramS[0] == "destroy") {
 
+			DzDestroyFrame(uilayer.lv[paramI[1]]);
+			image1 = 0;
+			image2 = 0;
+			BJDebugMsg("销毁层级:"+I2S(paramI[1]));
 		}
 
 		p = null;

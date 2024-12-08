@@ -1,7 +1,6 @@
 #ifndef HardwareIncluded
 #define HardwareIncluded
 
-#include "BlizzardAPI.j"
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 //! zinc
@@ -28,26 +27,32 @@ library Hardware requires BzAPI {
 		static method regRightUpEvent (code func) {
 			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_UP,false,func);
 		}
-		// 注册一个滚轮事件
+		// 注册一个滚轮事件,不能异步注册
 		static method regWheelEvent (code func) {
 			if (trWheel == null) {trWheel = CreateTrigger();}
 			TriggerAddCondition(trWheel, Condition(func));
 		}
-		// 注册一个绘制事件
+		// 注册一个绘制事件,不能异步注册
 		static method regUpdateEvent (code func) {
 			if (trUpdate == null) {trUpdate = CreateTrigger();}
 			TriggerAddCondition(trUpdate, Condition(func));
 		}
-		// 注册一个窗口变化事件
+		// 注册一个窗口变化事件,不能异步注册
 		static method regResizeEvent (code func) {
 			if (trResize == null) {trResize = CreateTrigger();}
 			TriggerAddCondition(trResize, Condition(func));
+		}
+		// 注册一个鼠标移动事件,不能异步注册
+		static method regMoveEvent (code func) {
+			if (trMove == null) {trMove = CreateTrigger();}
+			TriggerAddCondition(trMove, Condition(func));
 		}
 
 		private {
 			static trigger trWheel = null;
 			static trigger trUpdate = null;
 			static trigger trResize = null;
+			static trigger trMove = null;
 		}
 		static method onInit () {
 			// 滚轮事件
@@ -61,6 +66,10 @@ library Hardware requires BzAPI {
 			// 窗口大小变化事件
 			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
 				TriggerEvaluate(trResize);
+			});
+			// 鼠标移动事件
+			DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
+				TriggerEvaluate(trMove);
 			});
 		}
 	}

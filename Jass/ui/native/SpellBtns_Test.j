@@ -119,7 +119,8 @@ library UTSpellBtns requires SpellBtns {
 			spellBtns.onEnter(function () {
 				integer row = spellBtns.argsRow;
 				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入");
+				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入:" + I2S(spellBtns.grid[row][column]));
+				BJDebugMsg("触发的技能:" + I2S(DzGetTriggerUIEventFrame()));
 			});
 			spellBtns.onLeave(function () {
 				integer row = spellBtns.argsRow;

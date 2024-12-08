@@ -1,5 +1,4 @@
 logs\currentmapscript.j
 pjass.exe
-Line 41:  Undefined type uiBtn
-Line 42:  Undefined type uiBtn
-2
+Line 1307:  Undeclared function DzFrameDestroy
+1

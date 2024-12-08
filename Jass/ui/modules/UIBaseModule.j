@@ -49,6 +49,20 @@ library UIBaseModule requires UIUtils {
             return this;
         }
 
+        // 隐藏控件
+        method hide () -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameShow(ui,false);
+            return this;
+        }
+
+        // 显示控件
+        method show () -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameShow(ui,true);
+            return this;
+        }
+
         optional module extendResize; //扩展自适应大小方法
     }
 }

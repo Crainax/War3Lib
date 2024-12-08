@@ -27,12 +27,15 @@ constant boolean LIBRARY_MapBoundsUtils=true
 //globals from MathUtils:
 constant boolean LIBRARY_MathUtils=true
 //endglobals from MathUtils
-//globals from UIEventModule:
-constant boolean LIBRARY_UIEventModule=true
-//endglobals from UIEventModule
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
 //endglobals from UIId
+//globals from UIImageModule:
+constant boolean LIBRARY_UIImageModule=true
+//endglobals from UIImageModule
+//globals from UITextModule:
+constant boolean LIBRARY_UITextModule=true
+//endglobals from UITextModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork__TUnitTest=null
@@ -51,23 +54,21 @@ constant boolean LIBRARY_UIUtils=true
 //globals from UIBaseModule:
 constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
-//globals from UnitPanel:
-constant boolean LIBRARY_UnitPanel=true
-//endglobals from UnitPanel
-//globals from UIButton:
-constant boolean LIBRARY_UIButton=true
-//endglobals from UIButton
-//globals from UTUnitPanel:
-constant boolean LIBRARY_UTUnitPanel=true
-integer UTUnitPanel__btnAttack=0
-integer UTUnitPanel__btnArmor=0
-integer UTUnitPanel__valueAttack
-integer UTUnitPanel__valueArmor
-integer UTUnitPanel__textAttack
-integer UTUnitPanel__textArmor
-integer UTUnitPanel__iconAttack
-integer UTUnitPanel__iconArmor
-//endglobals from UTUnitPanel
+//globals from UILayer:
+constant boolean LIBRARY_UILayer=true
+//endglobals from UILayer
+//globals from UIImage:
+constant boolean LIBRARY_UIImage=true
+//endglobals from UIImage
+//globals from UIText:
+constant boolean LIBRARY_UIText=true
+//endglobals from UIText
+//globals from UTUILayer:
+constant boolean LIBRARY_UTUILayer=true
+integer UTUILayer__image1=0
+integer UTUILayer__image2=0
+boolean UTUILayer__switchLayer=false
+//endglobals from UTUILayer
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -111,14 +112,22 @@ constant integer si__uiId=3
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__unitPanel=4
-constant integer si__uiBtn=5
-integer si__uiBtn_F=0
-integer si__uiBtn_I=0
-integer array si__uiBtn_V
-integer array s__uiBtn_ui
-integer array s__uiBtn_id
-trigger st__uiBtn_onDestroy
+constant integer si__uilayer=4
+integer array s__uilayer_lv
+constant integer si__uiImage=5
+integer si__uiImage_F=0
+integer si__uiImage_I=0
+integer array si__uiImage_V
+integer array s__uiImage_ui
+integer array s__uiImage_id
+constant integer si__uiText=6
+integer si__uiText_F=0
+integer si__uiText_I=0
+integer array si__uiText_V
+integer array s__uiText_ui
+integer array s__uiText_id
+trigger st__uiImage_onDestroy
+trigger st__uiText_onDestroy
 integer f__arg_this
 
 endglobals
@@ -399,43 +408,82 @@ function s__mapBounds_deallocate takes integer this returns nothing
     set si__mapBounds_F=this
 endfunction
 
-//Generated method caller for uiBtn.onDestroy
-function sc__uiBtn_onDestroy takes integer this returns nothing
+//Generated method caller for uiText.onDestroy
+function sc__uiText_onDestroy takes integer this returns nothing
     set f__arg_this=this
-    call TriggerEvaluate(st__uiBtn_onDestroy)
+    call TriggerEvaluate(st__uiText_onDestroy)
 endfunction
 
-//Generated allocator of uiBtn
-function s__uiBtn__allocate takes nothing returns integer
- local integer this=si__uiBtn_F
+//Generated allocator of uiText
+function s__uiText__allocate takes nothing returns integer
+ local integer this=si__uiText_F
     if (this!=0) then
-        set si__uiBtn_F=si__uiBtn_V[this]
+        set si__uiText_F=si__uiText_V[this]
     else
-        set si__uiBtn_I=si__uiBtn_I+1
-        set this=si__uiBtn_I
+        set si__uiText_I=si__uiText_I+1
+        set this=si__uiText_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiBtn")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiText")
         return 0
     endif
 
-    set si__uiBtn_V[this]=-1
+    set si__uiText_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of uiBtn
-function sc__uiBtn_deallocate takes integer this returns nothing
+//Generated destructor of uiText
+function sc__uiText_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBtn")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiText")
         return
-    elseif (si__uiBtn_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBtn")
+    elseif (si__uiText_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiText")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiBtn_onDestroy)
-    set si__uiBtn_V[this]=si__uiBtn_F
-    set si__uiBtn_F=this
+    call TriggerEvaluate(st__uiText_onDestroy)
+    set si__uiText_V[this]=si__uiText_F
+    set si__uiText_F=this
+endfunction
+
+//Generated method caller for uiImage.onDestroy
+function sc__uiImage_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiImage_onDestroy)
+endfunction
+
+//Generated allocator of uiImage
+function s__uiImage__allocate takes nothing returns integer
+ local integer this=si__uiImage_F
+    if (this!=0) then
+        set si__uiImage_F=si__uiImage_V[this]
+    else
+        set si__uiImage_I=si__uiImage_I+1
+        set this=si__uiImage_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiImage")
+        return 0
+    endif
+
+    set si__uiImage_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of uiImage
+function sc__uiImage_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
+        return
+    elseif (si__uiImage_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiImage_onDestroy)
+    set si__uiImage_V[this]=si__uiImage_F
+    set si__uiImage_F=this
 endfunction
 
 //Generated allocator of radiationEnd
@@ -1014,9 +1062,6 @@ endfunction
         endfunction
 
 //library MathUtils ends
-//library UIEventModule:
-
-//library UIEventModule ends
 //library UIId:
         function s__uiId_onInit takes nothing returns nothing
             set s__uiId_ht=InitHashtable()
@@ -1051,6 +1096,12 @@ endfunction
         endfunction
 
 //library UIId ends
+//library UIImageModule:
+
+//library UIImageModule ends
+//library UITextModule:
+
+//library UITextModule ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
@@ -1131,284 +1182,349 @@ endfunction
 //library UIBaseModule:
 
 //library UIBaseModule ends
-//library UnitPanel:
-        function s__unitPanel_moveOutAll takes nothing returns nothing
-            local integer ui
-            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 0)
-            call DzFrameSetSize(ui, 0.03, 0.03)
-            call DzFrameClearAllPoints(ui)
-            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 攻击2
-            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 1)
-            call DzFrameSetSize(ui, 0.03, 0.03)
-            call DzFrameClearAllPoints(ui)
-            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 护甲
-            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 2)
-            call DzFrameSetSize(ui, 0.001, 0.001)
-            call DzFrameClearAllPoints(ui)
-            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 食物
-            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 4)
-            call DzFrameSetSize(ui, 0.001, 0.001)
-            call DzFrameClearAllPoints(ui)
-            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 英雄三围面板
-            set ui=DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6)
-            call DzFrameSetSize(ui, 0.02, 0.02)
-            call DzFrameClearAllPoints(ui)
-            call DzFrameSetPoint(ui, 4, DzGetGameUI(), 4, 0.80, - 0.60) // 友方建筑单位的金币之类的东西(会频繁重置,需要在选择单位时就重新处理)
-            set ui=DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7)
-            call DzFrameSetSize(ui, 0.02, 0.02)
-            call DzFrameClearAllPoints(ui)
-            call DzFrameSetPoint(ui, 4, DzGetGameUI(), 4, 0.80, - 0.60)
-        endfunction  // 属性按钮进入事件
-        function s__unitPanel_onAttrBtnEnter takes nothing returns nothing
+//library UILayer:
+        function s__uilayer_onInit takes nothing returns nothing
+            set s__uilayer_lv[1]=DzCreateFrameByTagName("BACKDROP", "layer1", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[1], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[1], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[2]=DzCreateFrameByTagName("BACKDROP", "layer2", s__uilayer_lv[1], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[2], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[2], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[3]=DzCreateFrameByTagName("BACKDROP", "layer3", s__uilayer_lv[2], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[3], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[3], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[4]=DzCreateFrameByTagName("BACKDROP", "layer4", s__uilayer_lv[3], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[4], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[4], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[5]=DzCreateFrameByTagName("BACKDROP", "layer5", s__uilayer_lv[4], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[5], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[5], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[6]=DzCreateFrameByTagName("BACKDROP", "layer6", s__uilayer_lv[5], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[6], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[6], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[7]=DzCreateFrameByTagName("BACKDROP", "layer7", s__uilayer_lv[6], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[7], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[7], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
         endfunction
 
-//library UnitPanel ends
-//library UIButton:
-        function s__uiBtn_isExist takes integer this returns boolean
-            return ( this != null and si__uiBtn_V[this] == - 1 )
+//library UILayer ends
+//library UIImage:
+        function s__uiImage_isExist takes integer this returns boolean
+            return ( this != null and si__uiImage_V[this] == - 1 )
         endfunction
 //Implemented from module uiBaseModule:
-        function s__uiBtn_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
+        function s__uiImage_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetPoint(s__uiBtn_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            call DzFrameSetPoint(s__uiImage_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
             return this
         endfunction  // 大小完全对齐父框架
-        function s__uiBtn_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
+        function s__uiImage_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetAllPoints(s__uiBtn_ui[this], relative)
+            call DzFrameSetAllPoints(s__uiImage_ui[this], relative)
             return this
         endfunction  //绝对位置
-        function s__uiBtn_setAbsPoint takes integer this,integer anchor,real x,real y returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
+        function s__uiImage_setAbsPoint takes integer this,integer anchor,real x,real y returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetAbsolutePoint(s__uiBtn_ui[this], anchor, x, y)
+            call DzFrameSetAbsolutePoint(s__uiImage_ui[this], anchor, x, y)
             return this
         endfunction  // 清除所有位置
-        function s__uiBtn_clearPoint takes integer this returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
+        function s__uiImage_clearPoint takes integer this returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameClearAllPoints(s__uiBtn_ui[this])
+            call DzFrameClearAllPoints(s__uiImage_ui[this])
             return this
         endfunction  // 设置大小
-        function s__uiBtn_setSize takes integer this,real width,real height returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
+        function s__uiImage_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetSize(s__uiBtn_ui[this], width, height)
+            call DzFrameSetSize(s__uiImage_ui[this], width, height)
             return this
         endfunction  // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
-        function s__uiBtn_setSizeFix takes integer this,real width,real height returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
+        function s__uiImage_setSizeFix takes integer this,real width,real height returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetSize(s__uiBtn_ui[this], width * GetResizeRate(), height)
+            call DzFrameSetSize(s__uiImage_ui[this], width * GetResizeRate(), height)
             return this
         endfunction  //扩展自适应大小方法
-//Implemented from module uiBaseModule:
-//Implemented from module uiEventModule:
-        function s__uiBtn_onMouseEnter takes integer this,code fun returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
+//Implemented from module uiImageModule:
+        function s__uiImage_texture takes integer this,string path returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return this
             endif
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, fun, false)
+            call DzFrameSetTexture(s__uiImage_ui[this], path, 0)
             return this
-        endfunction  // 鼠标离开事件
-        function s__uiBtn_onMouseLeave takes integer this,code fun returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, fun, false)
-            return this
-        endfunction  // 鼠标松开事件,和点击一样,基本可以当相同事件
-        function s__uiBtn_onMouseClick takes integer this,code fun returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, fun, false)
-            return this
-        endfunction  // 鼠标滚轮事件
-        function s__uiBtn_onMouseWheel takes integer this,code fun returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 6, fun, false)
-            return this
-        endfunction  // 鼠标双击事件
-        function s__uiBtn_onMouseDoubleClick takes integer this,code fun returns integer
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 12, fun, false)
-            return this
-        endfunction  //扩展事件
-        function s__uiBtn_create takes integer parent returns integer
-            local integer this=s__uiBtn__allocate()
-            set s__uiBtn_id[this]=s__uiId_get() //有高亮无声音的图标
-            set s__uiBtn_ui[this]=DzCreateFrameByTagName("BUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "BT", 0)
+        endfunction
+        function s__uiImage_create takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "IT", 0)
 //#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
+//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
+//#                 call BindFrameToUI(ui,uiImage.typeid,this)
 //#             endif
             return this
-        endfunction  //普通带声效系
-        function s__uiBtn_createSound takes integer parent returns integer
-            local integer this=s__uiBtn__allocate()
-            set s__uiBtn_id[this]=s__uiId_get() //有高亮有声音的图标
-            set s__uiBtn_ui[this]=DzCreateFrameByTagName("GLUEBUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "BT", 0)
+        endfunction  // 创建工具提示背景图片(种类1)
+        function s__uiImage_createToolTips takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate", 0)
 //#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
+//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
+//#                 call BindFrameToUI(ui,uiImage.typeid,this)
 //#             endif
             return this
-        endfunction  //右键菜单系
-        function s__uiBtn_createRC takes integer parent returns integer
-            local integer this=s__uiBtn__allocate()
-            set s__uiBtn_id[this]=s__uiId_get() //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
-            set s__uiBtn_ui[this]=DzCreateFrameByTagName("GLUEBUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "TBT", 0)
+        endfunction  // 创建工具提示背景图片(种类2)
+        function s__uiImage_createToolTips2 takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate2", 0)
 //#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
+//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
-//#             endif
-            return this
-        endfunction  // 创建空白按钮
-        function s__uiBtn_createBlank takes integer parent returns integer
-            local integer this=s__uiBtn__allocate()
-            set s__uiBtn_id[this]=s__uiId_get()
-            set s__uiBtn_ui[this]=DzCreateFrameByTagName("BUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "BB", 0)
-//#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
-//#             endif
-            return this
-        endfunction  // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
-        function s__uiBtn_createSimple takes integer parent returns integer
-            local integer this=s__uiBtn__allocate()
-            set s__uiBtn_id[this]=s__uiId_get()
-            set s__uiBtn_ui[this]=DzCreateFrameByTagName("SIMPLEBUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "简按模板", 1)
-//#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiBtn.typeid,ui)
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-//#                 call BindFrameToUI(ui,uiBtn.typeid,this)
+//#                 call BindFrameToUI(ui,uiImage.typeid,this)
 //#             endif
             return this
         endfunction
-        function s__uiBtn_onDestroy takes integer this returns nothing
-            if ( not ( s__uiBtn_isExist(this) ) ) then
+        function s__uiImage_onDestroy takes integer this returns nothing
+            if ( not ( s__uiImage_isExist(this) ) ) then
                 return
             endif
 //#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onDestroyCB(this,uiBtn.typeid,ui)
+//#                 call uiLifeCycle.onDestroyCB(this,uiImage.typeid,ui)
 //#             endif
 //#             static if LIBRARY_UIHashTable then
 //#                 call FlushChildHashtable(HASH_UI,ui)
 //#             endif
-            call DzDestroyFrame(s__uiBtn_ui[this])
-            call s__uiId_recycle(s__uiBtn_id[this])
+            call DzDestroyFrame(s__uiImage_ui[this])
+            call s__uiId_recycle(s__uiImage_id[this])
         endfunction
 
-//Generated destructor of uiBtn
-function s__uiBtn_deallocate takes integer this returns nothing
+//Generated destructor of uiImage
+function s__uiImage_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBtn")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
         return
-    elseif (si__uiBtn_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBtn")
+    elseif (si__uiImage_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
         return
     endif
-    call s__uiBtn_onDestroy(this)
-    set si__uiBtn_V[this]=si__uiBtn_F
-    set si__uiBtn_F=this
+    call s__uiImage_onDestroy(this)
+    set si__uiImage_V[this]=si__uiImage_F
+    set si__uiImage_F=this
 endfunction
 
-//library UIButton ends
-//library UTUnitPanel:
+//library UIImage ends
+//library UIText:
+        function s__uiText_isExist takes integer this returns boolean
+            return ( this != null and si__uiText_V[this] == - 1 )
+        endfunction
+//Implemented from module uiBaseModule:
+        function s__uiText_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetPoint(s__uiText_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            return this
+        endfunction  // 大小完全对齐父框架
+        function s__uiText_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAllPoints(s__uiText_ui[this], relative)
+            return this
+        endfunction  //绝对位置
+        function s__uiText_setAbsPoint takes integer this,integer anchor,real x,real y returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAbsolutePoint(s__uiText_ui[this], anchor, x, y)
+            return this
+        endfunction  // 清除所有位置
+        function s__uiText_clearPoint takes integer this returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameClearAllPoints(s__uiText_ui[this])
+            return this
+        endfunction  // 设置大小
+        function s__uiText_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiText_ui[this], width, height)
+            return this
+        endfunction  // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        function s__uiText_setSizeFix takes integer this,real width,real height returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiText_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction  //扩展自适应大小方法
+//Implemented from module uiTextModule:
+        function s__uiText_setFontSize takes integer this,integer size returns integer
+            local real fontSize=0.01
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            if ( size == 1 ) then
+                set fontSize=0.006
+            elseif ( size == 2 ) then
+                set fontSize=0.008
+            elseif ( size == 3 ) then
+                set fontSize=0.009
+            elseif ( size == 4 ) then
+                set fontSize=0.01
+            elseif ( size == 5 ) then
+                set fontSize=0.011
+            elseif ( size == 6 ) then
+                set fontSize=0.012
+            elseif ( size == 7 ) then
+                set fontSize=0.015
+            endif
+            call DzFrameSetFont(s__uiText_ui[this], "fonts\\zt.ttf", fontSize, 0)
+            return this
+        endfunction  // 设置对齐方式(前提要先定好大小,不然无处对齐)
+        function s__uiText_setAlign takes integer this,integer align returns integer
+            local integer finalAlign=align
+            if ( not ( s__uiText_isExist(this) ) ) then // 如果输入0-8,转换为对应的组合值
+                return this
+            endif
+            if ( align >= 0 and align <= 8 ) then
+                if ( align == 0 ) then // 左上
+                    set finalAlign=9
+                elseif ( align == 1 ) then // 顶部居中
+                    set finalAlign=17
+                elseif ( align == 2 ) then // 右上
+                    set finalAlign=33
+                elseif ( align == 3 ) then // 左中
+                    set finalAlign=10
+                elseif ( align == 4 ) then // 居中
+                    set finalAlign=18
+                elseif ( align == 5 ) then // 右中
+                    set finalAlign=34
+                elseif ( align == 6 ) then // 左下
+                    set finalAlign=12
+                elseif ( align == 7 ) then // 底部居中
+                    set finalAlign=20
+                elseif ( align == 8 ) then // 右下
+                    set finalAlign=36
+                endif
+            endif
+            call DzFrameSetTextAlignment(s__uiText_ui[this], finalAlign)
+            return this
+        endfunction  // 设置文本内容
+        function s__uiText_setText takes integer this,string text returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetText(s__uiText_ui[this], text)
+            return this
+        endfunction
+        function s__uiText_create takes integer parent returns integer
+            local integer this=s__uiText__allocate()
+            set s__uiText_id[this]=s__uiId_get()
+            set s__uiText_ui[this]=DzCreateFrameByTagName("TEXT", "Text" + I2S(s__uiText_id[this]), parent, "T1", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiText.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+//#                 call BindFrameToUI(ui,uiText.typeid,this)
+//#             endif
+            return this
+        endfunction
+        function s__uiText_onDestroy takes integer this returns nothing
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return
+            endif
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onDestroyCB(this,uiText.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+//#                 call FlushChildHashtable(HASH_UI,ui)
+//#             endif
+            call DzDestroyFrame(s__uiText_ui[this])
+            call s__uiId_recycle(s__uiText_id[this])
+        endfunction
 
-        function UTUnitPanel__anon__0 takes nothing returns nothing
-            call BJDebugMsg("enterAttack")
-        endfunction
-        function UTUnitPanel__anon__1 takes nothing returns nothing
-            call BJDebugMsg("leaveAttack")
-        endfunction
-        function UTUnitPanel__anon__2 takes nothing returns nothing
-            call BJDebugMsg("clickAttack")
-        endfunction
-        function UTUnitPanel__anon__3 takes nothing returns nothing
-            call BJDebugMsg("enterArmor")
-        endfunction
-        function UTUnitPanel__anon__4 takes nothing returns nothing
-            call BJDebugMsg("leaveArmor")
-        endfunction
-        function UTUnitPanel__anon__5 takes nothing returns nothing
-            call BJDebugMsg("clickArmor")
-        endfunction
-    function UTUnitPanel__Init takes nothing returns nothing
-        local integer parent=DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0)
-        local integer child=DzCreateFrameByTagName("SIMPLEFRAME", "kuangjia", parent, "框架", 0)
-        call DzFrameClearAllPoints(child)
-        call DzFrameSetPoint(child, 4, DzGetGameUI(), 4, 0, 0)
-        set UTUnitPanel__iconAttack=DzSimpleTextureFindByName("攻击图标", 0)
-        call DzFrameSetSize(UTUnitPanel__iconAttack, 0.02, 0.02)
-        call DzFrameSetTexture(UTUnitPanel__iconAttack, "ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp", 0)
-        call DzFrameSetPoint(UTUnitPanel__iconAttack, 3, DzFrameGetPortrait(), 5, 0.015, - 0.01)
-        set UTUnitPanel__iconArmor=DzSimpleTextureFindByName("护甲图标", 0)
-        call DzFrameSetSize(UTUnitPanel__iconArmor, 0.02, 0.02)
-        call DzFrameSetTexture(UTUnitPanel__iconArmor, "ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp", 0)
-        call DzFrameSetPoint(UTUnitPanel__iconArmor, 1, UTUnitPanel__iconAttack, 7, 0, - 0.005)
-        set UTUnitPanel__btnAttack=s__uiBtn_onMouseClick(s__uiBtn_onMouseLeave(s__uiBtn_onMouseEnter(s__uiBtn_setAllPoint(s__uiBtn_createSimple(parent),UTUnitPanel__iconAttack),function UTUnitPanel__anon__0),function UTUnitPanel__anon__1),function UTUnitPanel__anon__2)
-        set UTUnitPanel__btnArmor=s__uiBtn_onMouseClick(s__uiBtn_onMouseLeave(s__uiBtn_onMouseEnter(s__uiBtn_setAllPoint(s__uiBtn_createSimple(parent),UTUnitPanel__iconArmor),function UTUnitPanel__anon__3),function UTUnitPanel__anon__4),function UTUnitPanel__anon__5)
-        set UTUnitPanel__textAttack=DzSimpleFontStringFindByName("攻击", 0)
-        call DzFrameClearAllPoints(UTUnitPanel__textAttack)
-        call DzFrameSetPoint(UTUnitPanel__textAttack, 0, s__uiBtn_ui[UTUnitPanel__btnAttack], 2, 0, 0.00)
-        call DzFrameSetText(UTUnitPanel__textAttack, "攻击:")
-        set UTUnitPanel__textArmor=DzSimpleFontStringFindByName("护甲", 0)
-        call DzFrameClearAllPoints(UTUnitPanel__textArmor)
-        call DzFrameSetPoint(UTUnitPanel__textArmor, 0, s__uiBtn_ui[UTUnitPanel__btnArmor], 2, 0, 0.00)
-        call DzFrameSetText(UTUnitPanel__textArmor, "防御:")
-        set UTUnitPanel__valueAttack=DzSimpleFontStringFindByName("攻击数值", 0)
-        call DzFrameClearAllPoints(UTUnitPanel__valueAttack)
-        call DzFrameSetPoint(UTUnitPanel__valueAttack, 3, s__uiBtn_ui[UTUnitPanel__btnAttack], 5, 0, - 0.005)
-        call DzFrameSetText(UTUnitPanel__valueAttack, "0")
-        set UTUnitPanel__valueArmor=DzSimpleFontStringFindByName("护甲数值", 0)
-        call DzFrameClearAllPoints(UTUnitPanel__valueArmor)
-        call DzFrameSetPoint(UTUnitPanel__valueArmor, 3, s__uiBtn_ui[UTUnitPanel__btnArmor], 5, 0, - 0.005)
-        call DzFrameSetText(UTUnitPanel__valueArmor, "2000")
+//Generated destructor of uiText
+function s__uiText_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiText")
+        return
+    elseif (si__uiText_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiText")
+        return
+    endif
+    call s__uiText_onDestroy(this)
+    set si__uiText_V[this]=si__uiText_F
+    set si__uiText_F=this
+endfunction
+
+//library UIText ends
+//library UTUILayer:
+
+    function UTUILayer__TTestUTUILayer1 takes player p returns nothing
+        local integer txt=0
+        set UTUILayer__image1=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(s__uilayer_lv[1]),0.035 , 0.035),4 , DzGetGameUI() , 4 , 0.01 , 0.0),"ReplaceableTextures\\PassiveButtons\\PASBTNResistantSkin.blp")
+        set txt=s__uiText_setText(s__uiText_setAlign(s__uiText_setAllPoint(s__uiText_create(s__uiImage_ui[UTUILayer__image1]),s__uiImage_ui[UTUILayer__image1]),4),"a")
+        set UTUILayer__image2=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(s__uilayer_lv[2]),0.035 , 0.035),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNStampede.blp")
+        set txt=s__uiText_setText(s__uiText_setAlign(s__uiText_setAllPoint(s__uiText_create(s__uiImage_ui[UTUILayer__image2]),s__uiImage_ui[UTUILayer__image2]),4),"b")
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel1 takes player p returns nothing
-    endfunction  //移除所有原生UI到屏幕外
-    function UTUnitPanel__TTestUTUnitPanel2 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer2 takes player p returns nothing
+        if ( UTUILayer__switchLayer ) then
+            set UTUILayer__switchLayer=false
+            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image1], s__uiImage_ui[UTUILayer__image2]) // DzFrameSetParent(image2.ui, uilayer.lv[2]);
+            call BJDebugMsg("切换了层级:1")
+        else
+            set UTUILayer__switchLayer=true
+            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image2], s__uiImage_ui[UTUILayer__image1]) // DzFrameSetParent(image1.ui, uilayer.lv[2]);
+            call BJDebugMsg("切换了层级:2") // DzFrameSetParent(image2.ui, uilayer.lv[1]);
+        endif
+        call BJDebugMsg("Image1的父:" + I2S(DzFrameGetParent(s__uiImage_ui[UTUILayer__image1])))
+        call BJDebugMsg("Image2的父:" + I2S(DzFrameGetParent(s__uiImage_ui[UTUILayer__image2])))
+        call BJDebugMsg("lv1子数:" + I2S(DzFrameGetChildrenCount(s__uilayer_lv[1])))
+        call BJDebugMsg("lv2子数:" + I2S(DzFrameGetChildrenCount(s__uilayer_lv[2])))
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel3 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer3 takes player p returns nothing
+        if ( s__uilayer_lv[1] != 0 ) then
+            call DzDestroyFrame(s__uilayer_lv[1])
+            set s__uilayer_lv[1]=0
+        endif
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel4 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer4 takes player p returns nothing
+        call DzFrameSetParent(s__uiImage_ui[UTUILayer__image1], DzGetGameUI())
+        call DzDestroyFrame(s__uilayer_lv[1])
+        set s__uilayer_lv[1]=0
+        call BJDebugMsg("测试重置换父")
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel5 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer5 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel6 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer6 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel7 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer7 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel8 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer8 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel9 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer9 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel10 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer10 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestActUTUnitPanel1 takes string str returns nothing
+    function UTUILayer__TTestActUTUILayer1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1436,89 +1552,68 @@ endfunction
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
         if ( paramS[0] == "a" ) then
+            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image1], s__uilayer_lv[paramI[1]])
+            call BJDebugMsg("图片a的层级:" + I2S(paramI[1]))
         elseif ( paramS[0] == "b" ) then
+            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image2], s__uilayer_lv[paramI[1]])
+            call BJDebugMsg("图片b的层级:" + I2S(paramI[1]))
+        elseif ( paramS[0] == "destroy" ) then
+            call DzDestroyFrame(s__uilayer_lv[paramI[1]])
+            set UTUILayer__image1=0
+            set UTUILayer__image2=0
+            call BJDebugMsg("销毁层级:" + I2S(paramI[1]))
         endif
         set p=null
     endfunction
-        function UTUnitPanel__anon__6 takes nothing returns nothing
-            local unit hero
-            local unit building
-            local real x=0
-            local real y=0
-            local integer i=0
-            set hero=CreateUnit(Player(0), 'Hamg', 0, 0, 270) // 创建大法师在坐标(0,0)
-            call SetHeroLevel(hero, 10, true) // 创建一个建筑单位用于测试12个技能
-            set building=CreateUnit(Player(0), 'hcas', 400, 0, 270) // 创建人族城堡 // 为建筑添加12个技能
-            call UnitAddAbility(building, 'AHbz') // 暴风雪 // 水元素
-            call UnitAddAbility(building, 'AHwe') // 闪现
-            call UnitAddAbility(building, 'AHab') // 群体传送
-            call UnitAddAbility(building, 'AHmt') // 烈焰风暴
-            call UnitAddAbility(building, 'AHfs') // 驱逐魔法
-            call UnitAddAbility(building, 'AHbn') // 吸取魔法
-            call UnitAddAbility(building, 'AHdr') // 凤凰
-            call UnitAddAbility(building, 'AHpx') // 奥术光环
-            call UnitAddAbility(building, 'AHad') // 化身
-            call UnitAddAbility(building, 'AHav') // 寒冰护甲
-            call UnitAddAbility(building, 'AHcs') // 烈焰护甲
-            call UnitAddAbility(building, 'AHfa') // 添加8个预选的技能
-            call UnitAddAbility(hero, 'ACbc') // 火焰呼吸 // 霜冻闪电
-            call UnitAddAbility(hero, 'ACbf') // 变形术
-            call UnitAddAbility(hero, 'ACpy') // 妖术
-            call UnitAddAbility(hero, 'AOhx') // 吞噬
-            call UnitAddAbility(hero, 'ACdv') // 诱捕
-            call UnitAddAbility(hero, 'ACen') // 混乱之雨
-            call UnitAddAbility(hero, 'ANr3') // 医疗波
-            call UnitAddAbility(hero, 'AOhw')
-            call BJDebugMsg("[UnitPanel] 单元测试已加载")
-            call DestroyTrigger(GetTriggeringTrigger())
-        endfunction  //在游戏开始0.1秒后再调用
-        function UTUnitPanel__anon__7 takes nothing returns nothing
-            call s__unitPanel_moveOutAll()
-            call UTUnitPanel__Init()
+        function UTUILayer__anon__0 takes nothing returns nothing
+            call BJDebugMsg("[UILayer] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUnitPanel__anon__8 takes nothing returns nothing
+        function UTUILayer__anon__1 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUnitPanel__TTestActUTUnitPanel1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUILayer__TTestActUTUILayer1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUnitPanel__TTestUTUnitPanel1(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUnitPanel__TTestUTUnitPanel2(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUnitPanel__TTestUTUnitPanel3(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUnitPanel__TTestUTUnitPanel4(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUnitPanel__TTestUTUnitPanel5(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUnitPanel__TTestUTUnitPanel6(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUnitPanel__TTestUTUnitPanel7(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUnitPanel__TTestUTUnitPanel8(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUnitPanel__TTestUTUnitPanel9(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUnitPanel__TTestUTUnitPanel10(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUnitPanel__onInit takes nothing returns nothing
+    function UTUILayer__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUnitPanel__anon__6))
-        set tr=CreateTrigger()
-        call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UTUnitPanel__anon__7))
+        call TriggerAddCondition(tr, Condition(function UTUILayer__anon__0))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUnitPanel__anon__8)
+        call UnitTestRegisterChatEvent(function UTUILayer__anon__1)
     endfunction
 
-//library UTUnitPanel ends
-//控件的共用基本方法
+//library UTUILayer ends
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -1529,13 +1624,6 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
 // 结构体共用方法定义
 //共享打印方法
 // UI组件内部共享方法及成员
@@ -1543,6 +1631,7 @@ endfunction
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
 
+//控件的共用基本方法
 //窗口的大小
 //===========================================================================
 //
@@ -1627,29 +1716,7 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
-//===========================================================================
-// UnitPanel_Test.j
-//===========================================================================
-// 文件描述：单位面板测试模块
-// 创建日期：未知
-// 修改记录：
-//   - 实现了单位属性面板的测试功能
-//   - 包含攻击、护甲等属性的显示和交互
-//
-// 主要功能：
-//   - 创建并测试单位属性面板UI
-//   - 提供属性图标和数值显示
-//   - 实现鼠标悬停和点击事件
-//   - 包含单元测试用例
-//===========================================================================
 // 用原始地图测试
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -1978,11 +2045,11 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs48529437")
+call ExecuteFunc("jasshelper__initstructs66708609")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
 call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UTUnitPanel__onInit")
+call ExecuteFunc("UTUILayer__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -2020,19 +2087,31 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__uiBtn_onDestroy takes nothing returns boolean
+function sa__uiText_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiBtn_isExist(this) ) ) then
+            if ( not ( s__uiText_isExist(this) ) ) then
 return true
             endif
-            call DzDestroyFrame(s__uiBtn_ui[this])
-            call s__uiId_recycle(s__uiBtn_id[this])
+            call DzDestroyFrame(s__uiText_ui[this])
+            call s__uiId_recycle(s__uiText_id[this])
+   return true
+endfunction
+function sa__uiImage_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( not ( s__uiImage_isExist(this) ) ) then
+return true
+            endif
+            call DzDestroyFrame(s__uiImage_ui[this])
+            call s__uiId_recycle(s__uiImage_id[this])
    return true
 endfunction
 
-function jasshelper__initstructs48529437 takes nothing returns nothing
-    set st__uiBtn_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiBtn_onDestroy,Condition( function sa__uiBtn_onDestroy))
+function jasshelper__initstructs66708609 takes nothing returns nothing
+    set st__uiText_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiText_onDestroy,Condition( function sa__uiText_onDestroy))
+    set st__uiImage_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
+
 
 
 
@@ -2041,5 +2120,6 @@ function jasshelper__initstructs48529437 takes nothing returns nothing
 
     call ExecuteFunc("s__mapBounds_onInit")
     call ExecuteFunc("s__uiId_onInit")
+    call ExecuteFunc("s__uilayer_onInit")
 endfunction
 

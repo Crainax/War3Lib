@@ -28,6 +28,9 @@
 //自动生成的文件
 library UTUnitPanel requires UnitPanel {
 
+
+	integer testFrame,testText;
+	integer testFrame2,testText2;
 	uiBtn btnAttack = 0,btnArmor = 0;
 	integer valueAttack, valueArmor;
 	integer textAttack, textArmor;
@@ -62,6 +65,23 @@ library UTUnitPanel requires UnitPanel {
 			.onMouseEnter(function() {BJDebugMsg("enterArmor"); })
 			.onMouseLeave(function() {BJDebugMsg("leaveArmor"); })
 			.onMouseClick(function() {BJDebugMsg("clickArmor"); });
+
+		//可以通过最后一个参数区分是哪个
+		testFrame = DzCreateFrameByTagName("SIMPLEFRAME", "ceshi", child, "testFrame", 0);
+		BJDebugMsg("testFrame:" + I2S(testFrame));
+		// testText = DzFrameGetChild(testFrame, 0); //获取不到
+		testText = DzSimpleFontStringFindByName("ceshinerong", 0);
+		BJDebugMsg("testText:" + I2S(testText));
+		DzFrameSetText(testText, "上内容");
+		DzFrameSetPoint( testText, 0, btnAttack.ui, 2, 0.05, 0.00 );
+
+		testFrame2 = DzCreateFrameByTagName("SIMPLEFRAME", "ceshi", child, "testFrame", 1);
+		BJDebugMsg("testFrame2:" + I2S(testFrame2));
+		testText2 = DzSimpleFontStringFindByName("ceshinerong", 1);
+		BJDebugMsg("testText2:" + I2S(testText2));
+		DzFrameSetText(testText2, "下内容");
+		DzFrameSetPoint( testText2, 1, testText, 5, 0, -0.005 );
+
 
 		textAttack = DzSimpleFontStringFindByName("攻击", 0);
 		DzFrameClearAllPoints( textAttack );

@@ -21,6 +21,18 @@ constant integer DEFENSE_TYPE_HERO= 5
 constant integer DEFENSE_TYPE_DIVINE= 6
 constant integer DEFENSE_TYPE_NONE= 7
 //endglobals from LBKKAPI
+//globals from MapBoundsUtils:
+constant boolean LIBRARY_MapBoundsUtils=true
+//endglobals from MapBoundsUtils
+//globals from MathUtils:
+constant boolean LIBRARY_MathUtils=true
+//endglobals from MathUtils
+//globals from UIId:
+constant boolean LIBRARY_UIId=true
+//endglobals from UIId
+//globals from UIImageModule:
+constant boolean LIBRARY_UIImageModule=true
+//endglobals from UIImageModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork__TUnitTest=null
@@ -33,20 +45,24 @@ hashtable YDLOC
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
-//globals from UnitPanel:
-constant boolean LIBRARY_UnitPanel=true
-//endglobals from UnitPanel
-//globals from UTUnitPanel:
-constant boolean LIBRARY_UTUnitPanel=true
-uiBtn UTUnitPanel__btnAttack=0
-uiBtn UTUnitPanel__btnArmor=0
-integer UTUnitPanel__valueAttack
-integer UTUnitPanel__valueArmor
-integer UTUnitPanel__textAttack
-integer UTUnitPanel__textArmor
-integer UTUnitPanel__iconAttack
-integer UTUnitPanel__iconArmor
-//endglobals from UTUnitPanel
+//globals from UIUtils:
+constant boolean LIBRARY_UIUtils=true
+//endglobals from UIUtils
+//globals from UIBaseModule:
+constant boolean LIBRARY_UIBaseModule=true
+//endglobals from UIBaseModule
+//globals from UILayer:
+constant boolean LIBRARY_UILayer=true
+//endglobals from UILayer
+//globals from UIImage:
+constant boolean LIBRARY_UIImage=true
+//endglobals from UIImage
+//globals from UTUILayer:
+constant boolean LIBRARY_UTUILayer=true
+integer UTUILayer__image1=0
+integer UTUILayer__image2=0
+boolean UTUILayer__switchLayer=false
+//endglobals from UTUILayer
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -72,7 +88,34 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
-constant integer si__unitPanel=1
+constant integer si__mapBounds=1
+integer si__mapBounds_F=0
+integer si__mapBounds_I=0
+integer array si__mapBounds_V
+real s__mapBounds_maxX=0.
+real s__mapBounds_minX=0.
+real s__mapBounds_maxY=0.
+real s__mapBounds_minY=0.
+constant integer si__radiationEnd=2
+integer si__radiationEnd_F=0
+integer si__radiationEnd_I=0
+integer array si__radiationEnd_V
+real s__radiationEnd_x=0
+real s__radiationEnd_y=0
+constant integer si__uiId=3
+hashtable s__uiId_ht
+integer s__uiId_nextId
+integer s__uiId_recycleCount
+constant integer si__uilayer=4
+integer array s__uilayer_lv
+constant integer si__uiImage=5
+integer si__uiImage_F=0
+integer si__uiImage_I=0
+integer array si__uiImage_V
+integer array s__uiImage_ui
+integer array s__uiImage_id
+trigger st__uiImage_onDestroy
+integer f__arg_this
 
 endglobals
     native DzGetMouseTerrainX takes nothing returns real
@@ -320,6 +363,107 @@ endglobals
         native DzItemSetAlpha takes item whichItem, integer color returns nothing
         native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
+
+//Generated allocator of mapBounds
+function s__mapBounds__allocate takes nothing returns integer
+ local integer this=si__mapBounds_F
+    if (this!=0) then
+        set si__mapBounds_F=si__mapBounds_V[this]
+    else
+        set si__mapBounds_I=si__mapBounds_I+1
+        set this=si__mapBounds_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: mapBounds")
+        return 0
+    endif
+
+    set si__mapBounds_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of mapBounds
+function s__mapBounds_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: mapBounds")
+        return
+    elseif (si__mapBounds_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: mapBounds")
+        return
+    endif
+    set si__mapBounds_V[this]=si__mapBounds_F
+    set si__mapBounds_F=this
+endfunction
+
+//Generated method caller for uiImage.onDestroy
+function sc__uiImage_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiImage_onDestroy)
+endfunction
+
+//Generated allocator of uiImage
+function s__uiImage__allocate takes nothing returns integer
+ local integer this=si__uiImage_F
+    if (this!=0) then
+        set si__uiImage_F=si__uiImage_V[this]
+    else
+        set si__uiImage_I=si__uiImage_I+1
+        set this=si__uiImage_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiImage")
+        return 0
+    endif
+
+    set si__uiImage_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of uiImage
+function sc__uiImage_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
+        return
+    elseif (si__uiImage_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiImage_onDestroy)
+    set si__uiImage_V[this]=si__uiImage_F
+    set si__uiImage_F=this
+endfunction
+
+//Generated allocator of radiationEnd
+function s__radiationEnd__allocate takes nothing returns integer
+ local integer this=si__radiationEnd_F
+    if (this!=0) then
+        set si__radiationEnd_F=si__radiationEnd_V[this]
+    else
+        set si__radiationEnd_I=si__radiationEnd_I+1
+        set this=si__radiationEnd_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: radiationEnd")
+        return 0
+    endif
+
+    set si__radiationEnd_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of radiationEnd
+function s__radiationEnd_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: radiationEnd")
+        return
+    elseif (si__radiationEnd_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: radiationEnd")
+        return
+    endif
+    set si__radiationEnd_V[this]=si__radiationEnd_F
+    set si__radiationEnd_F=this
+endfunction
 
 //library BzAPI:
     //hardware
@@ -728,6 +872,181 @@ endglobals
 
 
 //library LBKKAPI ends
+//library MapBoundsUtils:
+        function s__mapBounds_X takes real x returns real
+            return RMinBJ(RMaxBJ(x, s__mapBounds_minX), s__mapBounds_maxX)
+        endfunction  // 限制Y坐标在地图范围内
+        function s__mapBounds_Y takes real y returns real
+            return RMinBJ(RMaxBJ(y, s__mapBounds_minY), s__mapBounds_maxY)
+        endfunction  // 初始化
+        function s__mapBounds_onInit takes nothing returns nothing
+            set s__mapBounds_minX=GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT)
+            set s__mapBounds_minY=GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM)
+            set s__mapBounds_maxX=GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT)
+            set s__mapBounds_maxY=GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP)
+        endfunction
+
+//library MapBoundsUtils ends
+//library MathUtils:
+    function R2IRandom takes real value returns integer
+        if ( GetRandomReal(0, 1.0) <= ModuloReal(value, 1.0) ) then
+            return R2I(value) + 1
+        endif
+        return R2I(value)
+    endfunction  // 进行整数除法，若能整除则结果减1
+    function Divide1 takes integer i1,integer i2 returns integer
+        if ( ModuloInteger(i1, i2) == 0 ) then
+            return i1 / i2 - 1
+        endif
+        return i1 / i2
+    endfunction  // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
+    function RealAdd takes real a1,real a2 returns real
+        if ( RAbsBJ(a2) >= 1.0 ) then
+            return a1
+        endif
+        if ( a2 >= 0 ) then
+            return 1.0 - ( 1.0 - a1 ) * ( 1.0 - a2 )
+        else
+            return 1.0 - ( 1.0 - a1 ) / ( 1.0 + a2 )
+        endif
+    endfunction  // 最小最大值限制
+    function ILimit takes integer target,integer min,integer max returns integer
+        if ( target < min ) then
+            return min
+        elseif ( target > max ) then
+            return max
+        else
+            return target
+        endif
+    endfunction  // 最小最大值限制
+    function RLimit takes real target,real min,real max returns real
+        if ( target < min ) then
+            return min
+        elseif ( target > max ) then
+            return max
+        else
+            return target
+        endif
+    endfunction  // 四舍五入法实数转整数
+    function R2IM takes real r returns integer
+        if ( ModuloReal(r, 1.0) >= 0.5 ) then
+            return R2I(r) + 1
+        else
+            return R2I(r)
+        endif
+    endfunction  // 计算射线与地图边界的交点
+        function s__radiationEnd_cal takes real x1,real y1,real angle returns nothing
+            local real x2=0
+            local real y2=0
+            local real a=ModuloReal(angle, 360)
+            local real tan
+            set s__radiationEnd_x=0
+            set s__radiationEnd_y=0 // 处理特殊角度
+            if ( a == 0 ) then // 正右方
+                set s__radiationEnd_x=s__mapBounds_maxX
+                set s__radiationEnd_y=y1
+                return
+            endif // 正上方
+            if ( a == 90 ) then
+                set s__radiationEnd_x=x1
+                set s__radiationEnd_y=s__mapBounds_maxY
+                return
+            endif // 正左方
+            if ( a == 180 ) then
+                set s__radiationEnd_x=s__mapBounds_minX
+                set s__radiationEnd_y=y1
+                return
+            endif // 正下方
+            if ( a == 270 ) then
+                set s__radiationEnd_x=x1
+                set s__radiationEnd_y=s__mapBounds_minY
+                return
+            endif // 处理一般角度
+            if ( a < 90 ) then //第一象限
+                set tan=TanBJ(a)
+                set x2=( s__mapBounds_maxY - y1 ) / tan + x1
+                set y2=( s__mapBounds_maxX - x1 ) * tan + y1 //取这个
+                if ( x2 <= s__mapBounds_maxX ) then
+                    set s__radiationEnd_x=x2
+                    set s__radiationEnd_y=s__mapBounds_maxY
+                else
+                    set s__radiationEnd_x=s__mapBounds_maxX
+                    set s__radiationEnd_y=y2
+                endif //第二象限
+            elseif ( a < 180 ) then
+                set tan=TanBJ(a)
+                set x2=( s__mapBounds_maxY - y1 ) / tan + x1
+                set y2=( s__mapBounds_minX - x1 ) * tan + y1 //取这个
+                if ( x2 >= s__mapBounds_minX ) then
+                    set s__radiationEnd_x=x2
+                    set s__radiationEnd_y=s__mapBounds_maxY
+                else
+                    set s__radiationEnd_x=s__mapBounds_minX
+                    set s__radiationEnd_y=y2
+                endif //第三象限
+            elseif ( a < 270 ) then
+                set tan=TanBJ(a)
+                set x2=( s__mapBounds_minY - y1 ) / tan + x1
+                set y2=( s__mapBounds_minX - x1 ) * tan + y1 //取这个
+                if ( x2 >= s__mapBounds_minX ) then
+                    set s__radiationEnd_x=x2
+                    set s__radiationEnd_y=s__mapBounds_minY
+                else
+                    set s__radiationEnd_x=s__mapBounds_minX
+                    set s__radiationEnd_y=y2
+                endif //第四象限
+            else
+                set tan=TanBJ(a)
+                set x2=( s__mapBounds_minY - y1 ) / tan + x1
+                set y2=( s__mapBounds_maxX - x1 ) * tan + y1 //取这个
+                if ( x2 <= s__mapBounds_maxX ) then
+                    set s__radiationEnd_x=x2
+                    set s__radiationEnd_y=s__mapBounds_minY
+                else
+                    set s__radiationEnd_x=s__mapBounds_maxX
+                    set s__radiationEnd_y=y2
+                endif
+            endif
+        endfunction
+
+//library MathUtils ends
+//library UIId:
+        function s__uiId_onInit takes nothing returns nothing
+            set s__uiId_ht=InitHashtable()
+            set s__uiId_nextId=1
+            set s__uiId_recycleCount=0
+        endfunction
+        function s__uiId_get takes nothing returns integer
+            local integer id
+            if ( s__uiId_recycleCount > 0 ) then // 获取最后一个回收的ID
+                set id=LoadInteger(s__uiId_ht, 1, s__uiId_recycleCount - 1) // 从回收池中删除这个ID
+                call RemoveSavedInteger(s__uiId_ht, 1, s__uiId_recycleCount - 1) // 从状态表中删除
+                call RemoveSavedBoolean(s__uiId_ht, 2, id)
+                set s__uiId_recycleCount=s__uiId_recycleCount - 1
+                return id
+            endif // 如果没有可复用的ID，返回新的ID
+            set id=s__uiId_nextId
+            set s__uiId_nextId=s__uiId_nextId + 1
+            return id
+        endfunction
+        function s__uiId_recycle takes integer id returns nothing
+            if ( not ( HaveSavedBoolean(s__uiId_ht, 2, id) ) ) then // 将ID存入回收池
+                call SaveInteger(s__uiId_ht, 1, s__uiId_recycleCount, id) // 标记该ID已被回收
+                call SaveBoolean(s__uiId_ht, 2, id, true)
+                set s__uiId_recycleCount=s__uiId_recycleCount + 1
+            endif
+        endfunction  // 获取回收池中ID的数量
+        function s__uiId_getRecycledCount takes nothing returns integer
+            return s__uiId_recycleCount
+        endfunction  // 获取当前正在使用的ID数量
+        function s__uiId_getActiveCount takes nothing returns integer
+            return ( s__uiId_nextId - 1 ) - s__uiId_recycleCount
+        endfunction
+
+//library UIId ends
+//library UIImageModule:
+
+//library UIImageModule ends
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
@@ -773,67 +1092,237 @@ endglobals
     endfunction
 
 //library UITocInit ends
-//library UnitPanel:
-        function s__unitPanel_moveOutAll takes nothing returns nothing
-        endfunction  // 属性按钮进入事件
-        function s__unitPanel_onAttrBtnEnter takes nothing returns nothing
+//library UIUtils:
+    function GetResizeRate takes nothing returns real
+        if ( DzGetWindowWidth() > 0 ) then
+            return DzGetWindowHeight() / 600.0 * 800.0 / DzGetWindowWidth()
+        else
+            return 1.0
+        endif
+    endfunction  // 获取鼠标位置X(绝对坐标)[修正版]
+    function GetMouseXEx takes nothing returns real
+        local integer width=DzGetClientWidth()
+        if ( width > 0 ) then
+            return DzGetMouseXRelative() * 0.80 / width
+        else
+            return 0.1
+        endif
+    endfunction  // 获取鼠标位置Y(绝对坐标)[修正版]
+    function GetMouseYEx takes nothing returns real
+        local integer height=DzGetClientHeight()
+        if ( height > 0 ) then
+            return 0.60 - DzGetMouseYRelative() * 0.60 / height
+        else
+            return 0.1
+        endif
+    endfunction  // 限制一个值是在一定区域内以防UI超出这个区域
+    function GetFixedMouseX takes real min,real max returns real
+        return RLimit(GetMouseXEx() , min , max)
+    endfunction  // 限制一个值是在一定区域内以防UI超出这个区域
+    function GetFixedMouseY takes real min,real max returns real
+        return RLimit(GetMouseYEx() , min , max)
+    endfunction
+
+//library UIUtils ends
+//library UIBaseModule:
+
+//library UIBaseModule ends
+//library UILayer:
+        function s__uilayer_onInit takes nothing returns nothing
+            set s__uilayer_lv[1]=DzCreateFrameByTagName("BACKDROP", "layer1", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[1], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[1], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[2]=DzCreateFrameByTagName("BACKDROP", "layer2", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[2], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[2], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[3]=DzCreateFrameByTagName("BACKDROP", "layer3", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[3], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[3], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[4]=DzCreateFrameByTagName("BACKDROP", "layer4", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[4], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[4], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[5]=DzCreateFrameByTagName("BACKDROP", "layer5", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[5], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[5], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[6]=DzCreateFrameByTagName("BACKDROP", "layer6", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[6], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[6], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[7]=DzCreateFrameByTagName("BACKDROP", "layer7", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[7], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[7], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
         endfunction
 
-//library UnitPanel ends
-//library UTUnitPanel:
+//library UILayer ends
+//library UIImage:
+        function s__uiImage_isExist takes integer this returns boolean
+            return ( this != null and si__uiImage_V[this] == - 1 )
+        endfunction
+//Implemented from module uiBaseModule:
+        function s__uiImage_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetPoint(s__uiImage_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            return this
+        endfunction  // 大小完全对齐父框架
+        function s__uiImage_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAllPoints(s__uiImage_ui[this], relative)
+            return this
+        endfunction  //绝对位置
+        function s__uiImage_setAbsPoint takes integer this,integer anchor,real x,real y returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAbsolutePoint(s__uiImage_ui[this], anchor, x, y)
+            return this
+        endfunction  // 清除所有位置
+        function s__uiImage_clearPoint takes integer this returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameClearAllPoints(s__uiImage_ui[this])
+            return this
+        endfunction  // 设置大小
+        function s__uiImage_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiImage_ui[this], width, height)
+            return this
+        endfunction  // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        function s__uiImage_setSizeFix takes integer this,real width,real height returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiImage_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction  //扩展自适应大小方法
+//Implemented from module uiImageModule:
+        function s__uiImage_texture takes integer this,string path returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetTexture(s__uiImage_ui[this], path, 0)
+            return this
+        endfunction
+        function s__uiImage_create takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "IT", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+//#                 call BindFrameToUI(ui,uiImage.typeid,this)
+//#             endif
+            return this
+        endfunction  // 创建工具提示背景图片(种类1)
+        function s__uiImage_createToolTips takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+//#                 call BindFrameToUI(ui,uiImage.typeid,this)
+//#             endif
+            return this
+        endfunction  // 创建工具提示背景图片(种类2)
+        function s__uiImage_createToolTips2 takes integer parent returns integer
+            local integer this=s__uiImage__allocate()
+            set s__uiImage_id[this]=s__uiId_get()
+            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "ToolTipsTemplate2", 0)
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onCreateCB(this,uiImage.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+//#                 call BindFrameToUI(ui,uiImage.typeid,this)
+//#             endif
+            return this
+        endfunction
+        function s__uiImage_onDestroy takes integer this returns nothing
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return
+            endif
+//#             static if LIBRARY_UILifeCycle then
+//#                 call uiLifeCycle.onDestroyCB(this,uiImage.typeid,ui)
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+//#                 call FlushChildHashtable(HASH_UI,ui)
+//#             endif
+            call DzDestroyFrame(s__uiImage_ui[this])
+            call s__uiId_recycle(s__uiImage_id[this])
+        endfunction
 
-    function UTUnitPanel__Init takes nothing returns nothing
-        local integer parent=DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0)
-        local integer child=DzCreateFrameByTagName("SIMPLEFRAME", "kuangjia", parent, "框架", 0) // integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);  //英雄三围框架 
-        call DzFrameClearAllPoints(child)
-        call DzFrameSetPoint(child, 4, DzGetGameUI(), 4, 0, 0) // 响应事件置父
-        set UTUnitPanel__iconAttack=DzSimpleTextureFindByName("攻击图标", 0)
-        call DzFrameSetSize(UTUnitPanel__iconAttack, 0.02, 0.02)
-        call DzFrameSetTexture(UTUnitPanel__iconAttack, "ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp", 0)
-        call DzFrameSetPoint(UTUnitPanel__iconAttack, 3, DzFrameGetPortrait(), 5, 0.015, - 0.01)
-        set UTUnitPanel__iconArmor=DzSimpleTextureFindByName("护甲图标", 0)
-        call DzFrameSetSize(UTUnitPanel__iconArmor, 0.02, 0.02)
-        call DzFrameSetTexture(UTUnitPanel__iconArmor, "ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp", 0)
-        call DzFrameSetPoint(UTUnitPanel__iconArmor, 1, UTUnitPanel__iconAttack, 7, 0, - 0.005)
-        set UTUnitPanel__textAttack=DzSimpleFontStringFindByName("攻击", 0)
-        call DzFrameClearAllPoints(UTUnitPanel__textAttack)
-        call DzFrameSetPoint(UTUnitPanel__textAttack, 0, UTUnitPanel__btnAttack, 2, 0, 0.00)
-        call DzFrameSetText(UTUnitPanel__textAttack, "攻击:")
-        set UTUnitPanel__textArmor=DzSimpleFontStringFindByName("护甲", 0)
-        call DzFrameClearAllPoints(UTUnitPanel__textArmor)
-        call DzFrameSetPoint(UTUnitPanel__textArmor, 0, UTUnitPanel__btnArmor, 2, 0, 0.00)
-        call DzFrameSetText(UTUnitPanel__textArmor, "防御:")
-        set UTUnitPanel__valueAttack=DzSimpleFontStringFindByName("攻击数值", 0)
-        call DzFrameClearAllPoints(UTUnitPanel__valueAttack)
-        call DzFrameSetPoint(UTUnitPanel__valueAttack, 3, UTUnitPanel__btnAttack, 5, 0, - 0.005)
-        call DzFrameSetText(UTUnitPanel__valueAttack, "0")
-        set UTUnitPanel__valueArmor=DzSimpleFontStringFindByName("护甲数值", 0)
-        call DzFrameClearAllPoints(UTUnitPanel__valueArmor)
-        call DzFrameSetPoint(UTUnitPanel__valueArmor, 3, UTUnitPanel__btnArmor, 5, 0, - 0.005)
-        call DzFrameSetText(UTUnitPanel__valueArmor, "2000")
+//Generated destructor of uiImage
+function s__uiImage_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiImage")
+        return
+    elseif (si__uiImage_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiImage")
+        return
+    endif
+    call s__uiImage_onDestroy(this)
+    set si__uiImage_V[this]=si__uiImage_F
+    set si__uiImage_F=this
+endfunction
+
+//library UIImage ends
+//library UTUILayer:
+
+    function UTUILayer__TTestUTUILayer1 takes player p returns nothing
+        set UTUILayer__image1=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(s__uilayer_lv[1]),0.035 , 0.035),4 , DzGetGameUI() , 4 , 0.01 , 0.0),"ReplaceableTextures\\PassiveButtons\\PASBTNResistantSkin.blp")
+        set UTUILayer__image2=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(s__uilayer_lv[2]),0.035 , 0.035),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNStampede.blp")
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel1 takes player p returns nothing
-    endfunction  //移除所有原生UI到屏幕外
-    function UTUnitPanel__TTestUTUnitPanel2 takes player p returns nothing
-        call s__unitPanel_moveOutAll()
+    function UTUILayer__TTestUTUILayer2 takes player p returns nothing
+        if ( UTUILayer__switchLayer ) then
+            set UTUILayer__switchLayer=false
+            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image1], s__uilayer_lv[1])
+            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image2], s__uilayer_lv[2])
+            call DzFrameShow(s__uilayer_lv[2], false)
+            call DzFrameShow(s__uilayer_lv[1], false)
+            call DzFrameShow(s__uilayer_lv[1], true)
+            call DzFrameShow(s__uilayer_lv[2], true)
+            call BJDebugMsg("切换了层级:1")
+        else
+            set UTUILayer__switchLayer=true
+            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image1], s__uilayer_lv[2])
+            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image2], s__uilayer_lv[1])
+            call DzFrameShow(s__uilayer_lv[1], false)
+            call DzFrameShow(s__uilayer_lv[2], false)
+            call DzFrameShow(s__uilayer_lv[2], true)
+            call DzFrameShow(s__uilayer_lv[1], true)
+            call BJDebugMsg("切换了层级:2")
+        endif
+        call BJDebugMsg("Image1的父:" + I2S(DzFrameGetParent(s__uiImage_ui[UTUILayer__image1])))
+        call BJDebugMsg("Image2的父:" + I2S(DzFrameGetParent(s__uiImage_ui[UTUILayer__image2])))
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel3 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer3 takes player p returns nothing
+        if ( s__uilayer_lv[1] != 0 ) then
+            call DzFrameDestroy(s__uilayer_lv[1])
+            set s__uilayer_lv[1]=0
+        endif
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel4 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer4 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel5 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer5 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel6 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer6 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel7 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer7 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel8 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer8 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel9 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer9 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestUTUnitPanel10 takes player p returns nothing
+    function UTUILayer__TTestUTUILayer10 takes player p returns nothing
     endfunction
-    function UTUnitPanel__TTestActUTUnitPanel1 takes string str returns nothing
+    function UTUILayer__TTestActUTUILayer1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -865,83 +1354,49 @@ endglobals
         endif
         set p=null
     endfunction
-        function UTUnitPanel__anon__0 takes nothing returns nothing
-            local unit hero
-            local unit building
-            local real x=0
-            local real y=0
-            local integer i=0
-            set hero=CreateUnit(Player(0), 'Hamg', 0, 0, 270) // 创建大法师在坐标(0,0)
-            call SetHeroLevel(hero, 10, true) // 创建一个建筑单位用于测试12个技能
-            set building=CreateUnit(Player(0), 'hcas', 400, 0, 270) // 创建人族城堡 // 为建筑添加12个技能
-            call UnitAddAbility(building, 'AHbz') // 暴风雪 // 水元素
-            call UnitAddAbility(building, 'AHwe') // 闪现
-            call UnitAddAbility(building, 'AHab') // 群体传送
-            call UnitAddAbility(building, 'AHmt') // 烈焰风暴
-            call UnitAddAbility(building, 'AHfs') // 驱逐魔法
-            call UnitAddAbility(building, 'AHbn') // 吸取魔法
-            call UnitAddAbility(building, 'AHdr') // 凤凰
-            call UnitAddAbility(building, 'AHpx') // 奥术光环
-            call UnitAddAbility(building, 'AHad') // 化身
-            call UnitAddAbility(building, 'AHav') // 寒冰护甲
-            call UnitAddAbility(building, 'AHcs') // 烈焰护甲
-            call UnitAddAbility(building, 'AHfa') // 添加8个预选的技能
-            call UnitAddAbility(hero, 'ACbc') // 火焰呼吸 // 霜冻闪电
-            call UnitAddAbility(hero, 'ACbf') // 变形术
-            call UnitAddAbility(hero, 'ACpy') // 妖术
-            call UnitAddAbility(hero, 'AOhx') // 吞噬
-            call UnitAddAbility(hero, 'ACdv') // 诱捕
-            call UnitAddAbility(hero, 'ACen') // 混乱之雨
-            call UnitAddAbility(hero, 'ANr3') // 医疗波
-            call UnitAddAbility(hero, 'AOhw')
-            call BJDebugMsg("[UnitPanel] 单元测试已加载")
-            call DestroyTrigger(GetTriggeringTrigger())
-        endfunction  //在游戏开始0.1秒后再调用
-        function UTUnitPanel__anon__1 takes nothing returns nothing
-            call UTUnitPanel__Init()
+        function UTUILayer__anon__0 takes nothing returns nothing
+            call BJDebugMsg("[UILayer] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUnitPanel__anon__2 takes nothing returns nothing
+        function UTUILayer__anon__1 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUnitPanel__TTestActUTUnitPanel1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUILayer__TTestActUTUILayer1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUnitPanel__TTestUTUnitPanel1(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUnitPanel__TTestUTUnitPanel2(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUnitPanel__TTestUTUnitPanel3(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUnitPanel__TTestUTUnitPanel4(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUnitPanel__TTestUTUnitPanel5(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUnitPanel__TTestUTUnitPanel6(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUnitPanel__TTestUTUnitPanel7(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUnitPanel__TTestUTUnitPanel8(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUnitPanel__TTestUTUnitPanel9(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUnitPanel__TTestUTUnitPanel10(GetTriggerPlayer())
+                call UTUILayer__TTestUTUILayer10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUnitPanel__onInit takes nothing returns nothing
+    function UTUILayer__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUnitPanel__anon__0))
-        set tr=CreateTrigger()
-        call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UTUnitPanel__anon__1))
+        call TriggerAddCondition(tr, Condition(function UTUILayer__anon__0))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUnitPanel__anon__2)
+        call UnitTestRegisterChatEvent(function UTUILayer__anon__1)
     endfunction
 
-//library UTUnitPanel ends
+//library UTUILayer ends
+//控件的共用基本方法
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -952,6 +1407,20 @@ endglobals
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
+//窗口的大小
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
 
 //===========================================================================
 //
@@ -1037,13 +1506,6 @@ endfunction
 // 用原始地图测试
 // 用空地图测试
 // 用原始地图测试
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -1372,11 +1834,11 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs43682593")
+call ExecuteFunc("jasshelper__initstructs64347359")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
 call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UTUnitPanel__onInit")
+call ExecuteFunc("UTUILayer__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1414,9 +1876,27 @@ endfunction
 
 
 //Struct method generated initializers/callers:
+function sa__uiImage_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( not ( s__uiImage_isExist(this) ) ) then
+return true
+            endif
+            call DzDestroyFrame(s__uiImage_ui[this])
+            call s__uiId_recycle(s__uiImage_id[this])
+   return true
+endfunction
 
-function jasshelper__initstructs43682593 takes nothing returns nothing
+function jasshelper__initstructs64347359 takes nothing returns nothing
+    set st__uiImage_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
 
 
+
+
+
+
+    call ExecuteFunc("s__mapBounds_onInit")
+    call ExecuteFunc("s__uiId_onInit")
+    call ExecuteFunc("s__uilayer_onInit")
 endfunction
 

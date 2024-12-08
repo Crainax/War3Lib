@@ -63,7 +63,7 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
         static method createSimple (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
-            ui = DzCreateFrameByTagName("SIMPLEBUTTON", STRING_BUTTON + I2S(id), parent, "简按模板", 1);
+            ui = DzCreateFrameByTagName("SIMPLEBUTTON", STRING_BUTTON + I2S(id), parent, "按钮模板", 1);
             STRUCT_SHARED_UI_ONCREATE(uiBtn)
             return this;
         }
