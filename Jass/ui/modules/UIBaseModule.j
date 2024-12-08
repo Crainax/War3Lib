@@ -63,6 +63,13 @@ library UIBaseModule requires UIUtils {
             return this;
         }
 
+        //透明度(0-255)
+        method setAlpha (integer value) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAlpha(ui,value);
+            return this;
+        }
+
         optional module extendResize; //扩展自适应大小方法
     }
 }

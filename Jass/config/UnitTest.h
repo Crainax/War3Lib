@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "/Users/crainax/War3/Library/War3Lib/Jass/input/core/Keyboard_Test.j"
+#include "D:/War3/Library/War3Lib/Jass/test/UnitTestUIRuler_Test.j"
 
 
 

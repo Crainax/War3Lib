@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 1307:  Undeclared function DzFrameDestroy
+JASSHelper - Step 2 (structs)
+Line 1237: s__uiImage_setAlpha(s__uiImage_hide(UnitTestUIRuler___imageRuler[5]),100) is not of a type that allows . syntax
 1

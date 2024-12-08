@@ -38,13 +38,19 @@ constant boolean LIBRARY_UITextModule=true
 //endglobals from UITextModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
+trigger UnitTestFramwork___TUnitTest=null
 //endglobals from UnitTestFramwork
 //globals from YDTriggerSaveLoadSystem:
 constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
 hashtable YDHT
 hashtable YDLOC
 //endglobals from YDTriggerSaveLoadSystem
+//globals from Hardware:
+constant boolean LIBRARY_Hardware=true
+//endglobals from Hardware
+//globals from Keyboard:
+constant boolean LIBRARY_Keyboard=true
+//endglobals from Keyboard
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
@@ -54,21 +60,25 @@ constant boolean LIBRARY_UIUtils=true
 //globals from UIBaseModule:
 constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
-//globals from UILayer:
-constant boolean LIBRARY_UILayer=true
-//endglobals from UILayer
 //globals from UIImage:
 constant boolean LIBRARY_UIImage=true
 //endglobals from UIImage
 //globals from UIText:
 constant boolean LIBRARY_UIText=true
 //endglobals from UIText
-//globals from UTUILayer:
-constant boolean LIBRARY_UTUILayer=true
-integer UTUILayer__image1=0
-integer UTUILayer__image2=0
-boolean UTUILayer__switchLayer=false
-//endglobals from UTUILayer
+//globals from UnitTestUIRuler:
+constant boolean LIBRARY_UnitTestUIRuler=true
+trigger UnitTestUIRuler___TUnitTest=null
+boolean UnitTestUIRuler___isShowRuler=false
+integer UnitTestUIRuler___imageAnchor=0
+real UnitTestUIRuler___anchorPosX=0
+real UnitTestUIRuler___anchorPosY=0
+integer array UnitTestUIRuler___imageRuler
+integer array UnitTestUIRuler___textRuler
+//endglobals from UnitTestUIRuler
+//globals from UTUnitTestUIRuler:
+constant boolean LIBRARY_UTUnitTestUIRuler=true
+//endglobals from UTUnitTestUIRuler
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -112,15 +122,25 @@ constant integer si__uiId=3
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__uilayer=4
-integer array s__uilayer_lv
-constant integer si__uiImage=5
+constant integer si__hardware=4
+integer si__hardware_F=0
+integer si__hardware_I=0
+integer array si__hardware_V
+trigger s__hardware_trWheel=null
+trigger s__hardware_trUpdate=null
+trigger s__hardware_trResize=null
+trigger s__hardware_trMove=null
+constant integer si__keyboard=5
+trigger array s__keyboard_trsDown
+trigger array s__keyboard_trsUp
+boolean array s__keyboard_isDown
+constant integer si__uiImage=6
 integer si__uiImage_F=0
 integer si__uiImage_I=0
 integer array si__uiImage_V
 integer array s__uiImage_ui
 integer array s__uiImage_id
-constant integer si__uiText=6
+constant integer si__uiText=7
 integer si__uiText_F=0
 integer si__uiText_I=0
 integer array si__uiText_V
@@ -484,6 +504,37 @@ function sc__uiImage_deallocate takes integer this returns nothing
     call TriggerEvaluate(st__uiImage_onDestroy)
     set si__uiImage_V[this]=si__uiImage_F
     set si__uiImage_F=this
+endfunction
+
+//Generated allocator of hardware
+function s__hardware__allocate takes nothing returns integer
+ local integer this=si__hardware_F
+    if (this!=0) then
+        set si__hardware_F=si__hardware_V[this]
+    else
+        set si__hardware_I=si__hardware_I+1
+        set this=si__hardware_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: hardware")
+        return 0
+    endif
+
+    set si__hardware_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of hardware
+function s__hardware_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: hardware")
+        return
+    elseif (si__hardware_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: hardware")
+        return
+    endif
+    set si__hardware_V[this]=si__hardware_F
+    set si__hardware_F=this
 endfunction
 
 //Generated allocator of radiationEnd
@@ -1105,9 +1156,9 @@ endfunction
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -1118,30 +1169,118 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
 //library YDTriggerSaveLoadSystem:
 //#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
+    function YDTriggerSaveLoadSystem___Init takes nothing returns nothing
             set YDHT=InitHashtable()
         set YDLOC=InitHashtable()
     endfunction
 
 //library YDTriggerSaveLoadSystem ends
+//library Hardware:
+        function s__hardware_regLeftUpEvent takes code func returns nothing
+            call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
+        endfunction  // 注册一个左键按下事件
+        function s__hardware_regLeftDownEvent takes code func returns nothing
+            call DzTriggerRegisterMouseEventByCode(null, 1, 1, false, func)
+        endfunction  // 注册一个右键按下事件
+        function s__hardware_regRightDownEvent takes code func returns nothing
+            call DzTriggerRegisterMouseEventByCode(null, 2, 1, false, func)
+        endfunction  // 注册一个右键抬起事件
+        function s__hardware_regRightUpEvent takes code func returns nothing
+            call DzTriggerRegisterMouseEventByCode(null, 2, 0, false, func)
+        endfunction  // 注册一个滚轮事件,不能异步注册
+        function s__hardware_regWheelEvent takes code func returns nothing
+            if ( s__hardware_trWheel == null ) then
+                set s__hardware_trWheel=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__hardware_trWheel, Condition(func))
+        endfunction  // 注册一个绘制事件,不能异步注册
+        function s__hardware_regUpdateEvent takes code func returns nothing
+            if ( s__hardware_trUpdate == null ) then
+                set s__hardware_trUpdate=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__hardware_trUpdate, Condition(func))
+        endfunction  // 注册一个窗口变化事件,不能异步注册
+        function s__hardware_regResizeEvent takes code func returns nothing
+            if ( s__hardware_trResize == null ) then
+                set s__hardware_trResize=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__hardware_trResize, Condition(func))
+        endfunction  // 注册一个鼠标移动事件,不能异步注册
+        function s__hardware_regMoveEvent takes code func returns nothing
+            if ( s__hardware_trMove == null ) then
+                set s__hardware_trMove=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__hardware_trMove, Condition(func))
+        endfunction
+        //private:
+            function s__hardware_anon__0 takes nothing returns nothing
+                call TriggerEvaluate(s__hardware_trWheel)
+            endfunction  // 帧绘制事件
+            function s__hardware_anon__1 takes nothing returns nothing
+                call TriggerEvaluate(s__hardware_trUpdate)
+            endfunction  // 窗口大小变化事件
+            function s__hardware_anon__2 takes nothing returns nothing
+                call TriggerEvaluate(s__hardware_trResize)
+            endfunction  // 鼠标移动事件
+            function s__hardware_anon__3 takes nothing returns nothing
+                call TriggerEvaluate(s__hardware_trMove)
+            endfunction
+        function s__hardware_onInit takes nothing returns nothing
+            call DzTriggerRegisterMouseWheelEventByCode(null, false, function s__hardware_anon__0)
+            call DzFrameSetUpdateCallbackByCode(function s__hardware_anon__1)
+            call DzTriggerRegisterWindowResizeEventByCode(null, false, function s__hardware_anon__2)
+            call DzTriggerRegisterMouseMoveEventByCode(null, false, function s__hardware_anon__3)
+        endfunction
+
+//library Hardware ends
+//library Keyboard:
+        //private:  // 按下事件
+            function s__keyboard_anon__0 takes nothing returns nothing
+                local integer triggerKey=DzGetTriggerKey()
+                if ( not ( s__keyboard_isDown[triggerKey] ) ) then
+                    set s__keyboard_isDown[triggerKey]=true
+                    call TriggerEvaluate(s__keyboard_trsDown[triggerKey])
+                endif
+            endfunction
+        function s__keyboard_regKeyDownEvent takes integer keyCode,code func returns nothing
+            if ( s__keyboard_trsDown[keyCode] == null ) then
+                set s__keyboard_trsDown[keyCode]=CreateTrigger()
+                call DzTriggerRegisterKeyEventByCode(null, keyCode, 1, false, function s__keyboard_anon__0)
+            endif
+            call TriggerAddCondition(s__keyboard_trsDown[keyCode], Condition(func))
+        endfunction  // 注册一个键盘事件
+            function s__keyboard_anon__1 takes nothing returns nothing
+                local integer triggerKey=DzGetTriggerKey()
+                set s__keyboard_isDown[triggerKey]=false
+                call TriggerEvaluate(s__keyboard_trsUp[triggerKey])
+            endfunction
+        function s__keyboard_regKeyUpEvent takes integer keyCode,code func returns nothing
+            if ( s__keyboard_trsUp[keyCode] == null ) then
+                set s__keyboard_trsUp[keyCode]=CreateTrigger()
+                call DzTriggerRegisterKeyEventByCode(null, keyCode, 0, false, function s__keyboard_anon__1)
+            endif
+            call TriggerAddCondition(s__keyboard_trsUp[keyCode], Condition(func))
+        endfunction
+
+//library Keyboard ends
 //library UITocInit:
 
-    function UITocInit__onInit takes nothing returns nothing
+    function UITocInit___onInit takes nothing returns nothing
         call DzLoadToc("ui\\Crainax.toc")
         call DzFrameEnableClipRect(false)
     endfunction
@@ -1182,32 +1321,6 @@ endfunction
 //library UIBaseModule:
 
 //library UIBaseModule ends
-//library UILayer:
-        function s__uilayer_onInit takes nothing returns nothing
-            set s__uilayer_lv[1]=DzCreateFrameByTagName("BACKDROP", "layer1", DzGetGameUI(), "IT", 0)
-            call DzFrameSetAllPoints(s__uilayer_lv[1], DzGetGameUI())
-            call DzFrameSetTexture(s__uilayer_lv[1], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
-            set s__uilayer_lv[2]=DzCreateFrameByTagName("BACKDROP", "layer2", s__uilayer_lv[1], "IT", 0)
-            call DzFrameSetAllPoints(s__uilayer_lv[2], DzGetGameUI())
-            call DzFrameSetTexture(s__uilayer_lv[2], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
-            set s__uilayer_lv[3]=DzCreateFrameByTagName("BACKDROP", "layer3", s__uilayer_lv[2], "IT", 0)
-            call DzFrameSetAllPoints(s__uilayer_lv[3], DzGetGameUI())
-            call DzFrameSetTexture(s__uilayer_lv[3], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
-            set s__uilayer_lv[4]=DzCreateFrameByTagName("BACKDROP", "layer4", s__uilayer_lv[3], "IT", 0)
-            call DzFrameSetAllPoints(s__uilayer_lv[4], DzGetGameUI())
-            call DzFrameSetTexture(s__uilayer_lv[4], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
-            set s__uilayer_lv[5]=DzCreateFrameByTagName("BACKDROP", "layer5", s__uilayer_lv[4], "IT", 0)
-            call DzFrameSetAllPoints(s__uilayer_lv[5], DzGetGameUI())
-            call DzFrameSetTexture(s__uilayer_lv[5], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
-            set s__uilayer_lv[6]=DzCreateFrameByTagName("BACKDROP", "layer6", s__uilayer_lv[5], "IT", 0)
-            call DzFrameSetAllPoints(s__uilayer_lv[6], DzGetGameUI())
-            call DzFrameSetTexture(s__uilayer_lv[6], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
-            set s__uilayer_lv[7]=DzCreateFrameByTagName("BACKDROP", "layer7", s__uilayer_lv[6], "IT", 0)
-            call DzFrameSetAllPoints(s__uilayer_lv[7], DzGetGameUI())
-            call DzFrameSetTexture(s__uilayer_lv[7], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
-        endfunction
-
-//library UILayer ends
 //library UIImage:
         function s__uiImage_isExist takes integer this returns boolean
             return ( this != null and si__uiImage_V[this] == - 1 )
@@ -1253,6 +1366,27 @@ endfunction
                 return this
             endif
             call DzFrameSetSize(s__uiImage_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction  // 隐藏控件
+        function s__uiImage_hide takes integer this returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameShow(s__uiImage_ui[this], false)
+            return this
+        endfunction  // 显示控件
+        function s__uiImage_show takes integer this returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameShow(s__uiImage_ui[this], true)
+            return this
+        endfunction  //透明度(0-255)
+        function s__uiImage_setAlpha takes integer this,integer value returns integer
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAlpha(s__uiImage_ui[this], value)
             return this
         endfunction  //扩展自适应大小方法
 //Implemented from module uiImageModule:
@@ -1374,6 +1508,27 @@ endfunction
             endif
             call DzFrameSetSize(s__uiText_ui[this], width * GetResizeRate(), height)
             return this
+        endfunction  // 隐藏控件
+        function s__uiText_hide takes integer this returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameShow(s__uiText_ui[this], false)
+            return this
+        endfunction  // 显示控件
+        function s__uiText_show takes integer this returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameShow(s__uiText_ui[this], true)
+            return this
+        endfunction  //透明度(0-255)
+        function s__uiText_setAlpha takes integer this,integer value returns integer
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAlpha(s__uiText_ui[this], value)
+            return this
         endfunction  //扩展自适应大小方法
 //Implemented from module uiTextModule:
         function s__uiText_setFontSize takes integer this,integer size returns integer
@@ -1476,55 +1631,157 @@ function s__uiText_deallocate takes integer this returns nothing
 endfunction
 
 //library UIText ends
-//library UTUILayer:
+//library UnitTestUIRuler:
 
-    function UTUILayer__TTestUTUILayer1 takes player p returns nothing
-        local integer txt=0
-        set UTUILayer__image1=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(s__uilayer_lv[1]),0.035 , 0.035),4 , DzGetGameUI() , 4 , 0.01 , 0.0),"ReplaceableTextures\\PassiveButtons\\PASBTNResistantSkin.blp")
-        set txt=s__uiText_setText(s__uiText_setAlign(s__uiText_setAllPoint(s__uiText_create(s__uiImage_ui[UTUILayer__image1]),s__uiImage_ui[UTUILayer__image1]),4),"a")
-        set UTUILayer__image2=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(s__uilayer_lv[2]),0.035 , 0.035),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNStampede.blp")
-        set txt=s__uiText_setText(s__uiText_setAlign(s__uiText_setAllPoint(s__uiText_create(s__uiImage_ui[UTUILayer__image2]),s__uiImage_ui[UTUILayer__image2]),4),"b")
+    function InitTestUIRuler takes nothing returns nothing
+        call DoNothing()
     endfunction
-    function UTUILayer__TTestUTUILayer2 takes player p returns nothing
-        if ( UTUILayer__switchLayer ) then
-            set UTUILayer__switchLayer=false
-            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image1], s__uiImage_ui[UTUILayer__image2]) // DzFrameSetParent(image2.ui, uilayer.lv[2]);
-            call BJDebugMsg("切换了层级:1")
-        else
-            set UTUILayer__switchLayer=true
-            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image2], s__uiImage_ui[UTUILayer__image1]) // DzFrameSetParent(image1.ui, uilayer.lv[2]);
-            call BJDebugMsg("切换了层级:2") // DzFrameSetParent(image2.ui, uilayer.lv[1]);
-        endif
-        call BJDebugMsg("Image1的父:" + I2S(DzFrameGetParent(s__uiImage_ui[UTUILayer__image1])))
-        call BJDebugMsg("Image2的父:" + I2S(DzFrameGetParent(s__uiImage_ui[UTUILayer__image2])))
-        call BJDebugMsg("lv1子数:" + I2S(DzFrameGetChildrenCount(s__uilayer_lv[1])))
-        call BJDebugMsg("lv2子数:" + I2S(DzFrameGetChildrenCount(s__uilayer_lv[2])))
+        function UnitTestUIRuler___anon__0 takes nothing returns nothing
+            local integer i
+            set UnitTestUIRuler___isShowRuler=not UnitTestUIRuler___isShowRuler
+            if ( UnitTestUIRuler___isShowRuler ) then
+                call s__uiImage_show(UnitTestUIRuler___imageAnchor)
+                set i=1
+                loop
+                exitwhen ( i > 5 )
+                    call s__uiImage_show(UnitTestUIRuler___imageRuler[i])
+                    call s__uiText_show(UnitTestUIRuler___textRuler[i])
+                set i=i + 1
+                endloop
+            else
+                call s__uiImage_hide(UnitTestUIRuler___imageAnchor)
+                set i=1
+                loop
+                exitwhen ( i > 5 )
+                    call s__uiImage_hide(UnitTestUIRuler___imageRuler[i])
+                    call s__uiText_hide(UnitTestUIRuler___textRuler[i])
+                set i=i + 1
+                endloop
+            endif
+        endfunction  // 添加鼠标点击事件
+        function UnitTestUIRuler___anon__1 takes nothing returns nothing
+            local real mouseX
+            local real mouseY
+            if ( not UnitTestUIRuler___isShowRuler ) then
+                return
+            endif
+            if ( DzIsKeyDown(17) ) then
+                set mouseX=GetMouseXEx()
+                set mouseY=GetMouseYEx()
+                call s__uiImage_setAbsPoint(UnitTestUIRuler___imageAnchor,4 , mouseX , mouseY) // 记录锚点位置
+                set UnitTestUIRuler___anchorPosX=mouseX
+                set UnitTestUIRuler___anchorPosY=mouseY
+                call BJDebugMsg("参考物位置: " + R2SW(mouseX, 7, 3) + " " + R2SW(mouseY, 7, 3))
+            else // 添加打印边距信息
+                set mouseX=GetMouseXEx()
+                set mouseY=GetMouseYEx()
+                call BJDebugMsg("距离边界: " + "左=" + R2SW(mouseX, 7, 3) + " 右=" + R2SW(0.8 - mouseX, 7, 3) + " 上=" + R2SW(0.6 - mouseY, 7, 3) + " 下=" + R2SW(mouseY, 7, 3))
+            endif
+        endfunction  // 鼠标移动事件
+        function UnitTestUIRuler___anon__2 takes nothing returns nothing
+            local real mouseX
+            local real mouseY
+            local real dx
+            local real dy
+            local real width
+            local real height
+            set mouseX=GetMouseXEx()
+            set mouseY=GetMouseYEx()
+            if ( not UnitTestUIRuler___isShowRuler ) then // 更新上尺子
+                return
+            endif
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[1],1 , mouseX , 0.6)
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[1],7 , mouseX , mouseY + 0.005)
+            call s__uiText_setText(UnitTestUIRuler___textRuler[1],R2SW(0.6 - mouseY, 7, 3)) // 更新下尺子
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[2],1 , mouseX , mouseY - 0.005)
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[2],7 , mouseX , 0)
+            call s__uiText_setText(UnitTestUIRuler___textRuler[2],R2SW(mouseY, 7, 3)) // 更新左尺子
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[3],3 , 0 , mouseY)
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[3],5 , mouseX - 0.005 , mouseY)
+            call s__uiText_setText(UnitTestUIRuler___textRuler[3],R2SW(mouseX, 7, 3)) // 更新右尺子
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[4],3 , mouseX + 0.005 , mouseY)
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[4],5 , 0.8 , mouseY)
+            call s__uiText_setText(UnitTestUIRuler___textRuler[4],R2SW(0.8 - mouseX, 7, 3)) // 计算x,y偏移并更新文本
+            set dx=mouseX - UnitTestUIRuler___anchorPosX
+            set dy=mouseY - UnitTestUIRuler___anchorPosY // 计算尺子的宽高(尺子绝对值)
+            set width=I2R(IAbsBJ(R2I(dx * 1000))) / 1000
+            set height=I2R(IAbsBJ(R2I(dy * 1000))) / 1000 // 根据鼠标位置设置锚点和尺寸
+            if ( mouseX >= UnitTestUIRuler___anchorPosX ) then
+                if ( mouseY >= UnitTestUIRuler___anchorPosY ) then // 鼠标在右上
+                    call s__uiImage_setSize(s__uiImage_setAbsPoint(s__uiImage_clearPoint(UnitTestUIRuler___imageRuler[5]),2 , mouseX , mouseY),width , height)
+                else // 鼠标在右下
+                    call s__uiImage_setSize(s__uiImage_setAbsPoint(s__uiImage_clearPoint(UnitTestUIRuler___imageRuler[5]),8 , mouseX , mouseY),width , height)
+                endif
+            elseif ( mouseY >= UnitTestUIRuler___anchorPosY ) then // 鼠标在左上
+                call s__uiImage_setSize(s__uiImage_setAbsPoint(s__uiImage_clearPoint(UnitTestUIRuler___imageRuler[5]),0 , mouseX , mouseY),width , height)
+            else // 鼠标在左下
+                call s__uiImage_setSize(s__uiImage_setAbsPoint(s__uiImage_clearPoint(UnitTestUIRuler___imageRuler[5]),6 , mouseX , mouseY),width , height)
+            endif
+            call s__uiText_setText(UnitTestUIRuler___textRuler[5],"x:" + R2SW(dx, 7, 3) + " y:" + R2SW(dy, 7, 3))
+        endfunction  //在游戏开始0.1秒后再调用
+        function UnitTestUIRuler___anon__3 takes nothing returns nothing
+            call BJDebugMsg("[已注入UI尺子,按下Ctrl+点击设置锚点,按下Esc开启/关闭尺子]")
+            call DestroyTrigger(GetTriggeringTrigger())
+        endfunction
+    function UnitTestUIRuler___onInit takes nothing returns nothing
+        local integer i
+        local trigger tr=CreateTrigger()
+        set UnitTestUIRuler___anchorPosX=0.4
+        set UnitTestUIRuler___anchorPosY=0.3
+        set UnitTestUIRuler___imageAnchor=s__uiImage_texture(s__uiImage_setAbsPoint(s__uiImage_hide(s__uiImage_setSize(s__uiImage_create(DzGetGameUI()),0.01 , 0.01)),4 , UnitTestUIRuler___anchorPosX , UnitTestUIRuler___anchorPosY),"UI\\MiniMap\\minimap-gold.blp")
+        set i=1
+        loop
+        exitwhen ( i > 5 )
+            set UnitTestUIRuler___imageRuler[i]=s__uiImage_create(DzGetGameUI())
+            set UnitTestUIRuler___textRuler[i]=s__uiText_setText(s__uiText_hide(s__uiText_setAlign(s__uiText_create(DzGetGameUI()),4)),"0.000")
+        set i=i + 1
+        endloop
+        set i=1
+        loop
+        exitwhen ( i > 2 )
+            call s__uiImage_texture(s__uiImage_hide(s__uiImage_setSize(s__uiImage_setPoint(s__uiImage_setPoint(UnitTestUIRuler___imageRuler[i],1 , s__uiText_ui[UnitTestUIRuler___textRuler[i]] , 1 , 0 , 0),7 , s__uiText_ui[UnitTestUIRuler___textRuler[i]] , 7 , 0 , 0),0.01 , 0.01)),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+        set i=i + 1
+        endloop
+        set i=3
+        loop
+        exitwhen ( i > 4 )
+            call s__uiImage_texture(s__uiImage_hide(s__uiImage_setAllPoint(UnitTestUIRuler___imageRuler[i],s__uiText_ui[UnitTestUIRuler___textRuler[i]])),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+        set i=i + 1
+        endloop
+        call s__uiImage_texture(s__uiImage_setAlpha(s__uiImage_hide(UnitTestUIRuler___imageRuler[5]),100),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+        call s__uiText_setSize(s__uiText_setPoint(UnitTestUIRuler___textRuler[5],4 , s__uiImage_ui[UnitTestUIRuler___imageRuler[5]] , 4 , 0 , 0),0.1 , 0)
+        call s__keyboard_regKeyUpEvent(27 , function UnitTestUIRuler___anon__0)
+        call s__hardware_regLeftUpEvent(function UnitTestUIRuler___anon__1)
+        call s__hardware_regMoveEvent(function UnitTestUIRuler___anon__2)
+        call TriggerRegisterTimerEventSingle(tr, 0.1)
+        call TriggerAddCondition(tr, Condition(function UnitTestUIRuler___anon__3))
+        set tr=null
     endfunction
-    function UTUILayer__TTestUTUILayer3 takes player p returns nothing
-        if ( s__uilayer_lv[1] != 0 ) then
-            call DzDestroyFrame(s__uilayer_lv[1])
-            set s__uilayer_lv[1]=0
-        endif
+
+//library UnitTestUIRuler ends
+//library UTUnitTestUIRuler:
+
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler1 takes player p returns nothing
     endfunction
-    function UTUILayer__TTestUTUILayer4 takes player p returns nothing
-        call DzFrameSetParent(s__uiImage_ui[UTUILayer__image1], DzGetGameUI())
-        call DzDestroyFrame(s__uilayer_lv[1])
-        set s__uilayer_lv[1]=0
-        call BJDebugMsg("测试重置换父")
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler2 takes player p returns nothing
     endfunction
-    function UTUILayer__TTestUTUILayer5 takes player p returns nothing
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler3 takes player p returns nothing
     endfunction
-    function UTUILayer__TTestUTUILayer6 takes player p returns nothing
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler4 takes player p returns nothing
     endfunction
-    function UTUILayer__TTestUTUILayer7 takes player p returns nothing
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler5 takes player p returns nothing
     endfunction
-    function UTUILayer__TTestUTUILayer8 takes player p returns nothing
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler6 takes player p returns nothing
     endfunction
-    function UTUILayer__TTestUTUILayer9 takes player p returns nothing
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler7 takes player p returns nothing
     endfunction
-    function UTUILayer__TTestUTUILayer10 takes player p returns nothing
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler8 takes player p returns nothing
     endfunction
-    function UTUILayer__TTestActUTUILayer1 takes string str returns nothing
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler9 takes player p returns nothing
+    endfunction
+    function UTUnitTestUIRuler___TTestUTUnitTestUIRuler10 takes player p returns nothing
+    endfunction
+    function UTUnitTestUIRuler___TTestActUTUnitTestUIRuler1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1552,61 +1809,56 @@ endfunction
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
         if ( paramS[0] == "a" ) then
-            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image1], s__uilayer_lv[paramI[1]])
-            call BJDebugMsg("图片a的层级:" + I2S(paramI[1]))
         elseif ( paramS[0] == "b" ) then
-            call DzFrameSetParent(s__uiImage_ui[UTUILayer__image2], s__uilayer_lv[paramI[1]])
-            call BJDebugMsg("图片b的层级:" + I2S(paramI[1]))
-        elseif ( paramS[0] == "destroy" ) then
-            call DzDestroyFrame(s__uilayer_lv[paramI[1]])
-            set UTUILayer__image1=0
-            set UTUILayer__image2=0
-            call BJDebugMsg("销毁层级:" + I2S(paramI[1]))
         endif
         set p=null
     endfunction
-        function UTUILayer__anon__0 takes nothing returns nothing
-            call BJDebugMsg("[UILayer] 单元测试已加载")
+        function UTUnitTestUIRuler___anon__0 takes nothing returns nothing
+            call BJDebugMsg("[UnitTestUIRuler] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUILayer__anon__1 takes nothing returns nothing
+        function UTUnitTestUIRuler___anon__1 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUILayer__TTestActUTUILayer1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUnitTestUIRuler___TTestActUTUnitTestUIRuler1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUILayer__TTestUTUILayer1(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUILayer__TTestUTUILayer2(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUILayer__TTestUTUILayer3(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUILayer__TTestUTUILayer4(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUILayer__TTestUTUILayer5(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUILayer__TTestUTUILayer6(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUILayer__TTestUTUILayer7(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUILayer__TTestUTUILayer8(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUILayer__TTestUTUILayer9(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUILayer__TTestUTUILayer10(GetTriggerPlayer())
+                call UTUnitTestUIRuler___TTestUTUnitTestUIRuler10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUILayer__onInit takes nothing returns nothing
+    function UTUnitTestUIRuler___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUILayer__anon__0))
+        call TriggerAddCondition(tr, Condition(function UTUnitTestUIRuler___anon__0))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUILayer__anon__1)
+        call UnitTestRegisterChatEvent(function UTUnitTestUIRuler___anon__1)
+        call InitTestUIRuler()
     endfunction
 
-//library UTUILayer ends
+//library UTUnitTestUIRuler ends
+// 按键ASCII码
+// 按键事件
+//控件的共用基本方法
 // 锚点常量
 // 事件常量
 //鼠标点击事件
@@ -1614,6 +1866,12 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -1624,15 +1882,9 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
-
-//控件的共用基本方法
 //窗口的大小
+
+
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -2045,11 +2297,12 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs66708609")
-call ExecuteFunc("UnitTestFramwork__onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
-call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UTUILayer__onInit")
+call ExecuteFunc("jasshelper__initstructs18637718")
+call ExecuteFunc("UnitTestFramwork___onInit")
+call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
+call ExecuteFunc("UITocInit___onInit")
+call ExecuteFunc("UnitTestUIRuler___onInit")
+call ExecuteFunc("UTUnitTestUIRuler___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -2106,7 +2359,7 @@ return true
    return true
 endfunction
 
-function jasshelper__initstructs66708609 takes nothing returns nothing
+function jasshelper__initstructs18637718 takes nothing returns nothing
     set st__uiText_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiText_onDestroy,Condition( function sa__uiText_onDestroy))
     set st__uiImage_onDestroy=CreateTrigger()
@@ -2118,8 +2371,9 @@ function jasshelper__initstructs66708609 takes nothing returns nothing
 
 
 
+
     call ExecuteFunc("s__mapBounds_onInit")
     call ExecuteFunc("s__uiId_onInit")
-    call ExecuteFunc("s__uilayer_onInit")
+    call ExecuteFunc("s__hardware_onInit")
 endfunction
 
