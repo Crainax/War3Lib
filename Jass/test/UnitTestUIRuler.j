@@ -21,6 +21,7 @@ library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
     uiImage imageRuler[]; //尺子(4把常规的)+一把锚点尺
     uiText textRuler[]; //尺子上的文字
 
+    //触发UI尺子调用这条就行了
     public function InitTestUIRuler () {
         DoNothing();
     }

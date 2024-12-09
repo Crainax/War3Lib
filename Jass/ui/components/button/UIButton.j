@@ -68,6 +68,14 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             return this;
         }
 
+        //绑定原生的Button成为SimpleButton,注意不能删除哦
+        static method bindSimple (integer frame) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = frame;
+            return this;
+        }
+
 
         method onDestroy () {
             if (!this.isExist()) {return;}

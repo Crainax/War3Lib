@@ -11,7 +11,7 @@
 library SpellBtns requires Hardware {
 
     public struct spellBtns {
-        static integer grid [3][4]; // 使用grid表示技能格子
+        static integer grid [3][4]; // 使用grid表示技能格子Frame
 
         static integer argsRow = 0; // 回调参数:行
         static integer argsCol = 0; // 回调参数:列
