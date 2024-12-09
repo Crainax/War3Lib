@@ -73,6 +73,7 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             thistype this = allocate();
             id = uiId.get();
             ui = frame;
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
             return this;
         }
 

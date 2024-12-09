@@ -8,10 +8,11 @@
 
 // 原生的技能栏按钮和事件
 // 控制技能栏按钮的进入,离开,点击还有右键点击事件
-library SpellBtns requires Hardware {
+library SpellBtns requires Hardware,UIHashTable {
 
     public struct spellBtns {
-        static integer grid [3][4]; // 使用grid表示技能格子Frame
+        static integer grid [3][4];  // 使用grid表示技能格子Frame
+        static uiBtn uis [3][4];     // uibtn成员
 
         static integer argsRow = 0; // 回调参数:行
         static integer argsCol = 0; // 回调参数:列
@@ -74,49 +75,34 @@ library SpellBtns requires Hardware {
             for(1 <= row <= 3) {
                 for(1 <= col <= 4) {
                     grid[row][col] = DzFrameGetCommandBarButton(row-1, col-1);
+                    uis[row][col] = uiBtn.bindSimple(grid[row][col]);
+                    uis[row][col].spEnter(function(integer frame) {
+                        integer data = uiHashTable(frame).eventdata.get();
+                        argsRow = (data - 1) / 4 + 1;
+                        argsCol = ModuloInteger(data - 1,4) + 1;
+                        TriggerEvaluate(trEnter);
+                    });
+                    uis[row][col].spLeave(function(integer frame) {
+                        integer data = uiHashTable(frame).eventdata.get();
+                        argsRow = (data - 1) / 4 + 1;
+                        argsCol = ModuloInteger(data - 1,4) + 1;
+                        TriggerEvaluate(trLeave);
+                    });
+                    uis[row][col].spClick(function(integer frame) {
+                        integer data = uiHashTable(frame).eventdata.get();
+                        argsRow = (data - 1) / 4 + 1;
+                        argsCol = ModuloInteger(data - 1,4) + 1;
+                        TriggerEvaluate(trClick);
+                    });
+                    uis[row][col].spRightClick(function(integer frame) {
+                        integer data = uiHashTable(frame).eventdata.get();
+                        argsRow = (data - 1) / 4 + 1;
+                        argsCol = ModuloInteger(data - 1,4) + 1;
+                        TriggerEvaluate(trRightClick);
+                    });
+                    uiHashTable(grid[row][col]).eventdata.bind(((row-1)*4)+col);
                 }
             }
-
-            #define SPELL_BTN_EVENT_MACRO(row,col) \
-            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_ENTER,function () {mousePos = ((row-1)*4)+col;if(trEnter != null) {argsRow = row;argsCol = col;TriggerEvaluate(trEnter);}},false); CRNL \
-            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_LEAVE,function () {mousePos = 0;if(trLeave != null) {argsRow = row;argsCol = col;TriggerEvaluate(trLeave);}},false); CRNL \
-            DzFrameSetScriptByCode(grid[row][col],FRAME_MOUSE_DOWN,function () {if(trClick != null) {argsRow = row;argsCol = col;TriggerEvaluate(trClick);}},false);
-
-            SPELL_BTN_EVENT_MACRO(1,1)
-            SPELL_BTN_EVENT_MACRO(1,2)
-            SPELL_BTN_EVENT_MACRO(1,3)
-            SPELL_BTN_EVENT_MACRO(1,4)
-            SPELL_BTN_EVENT_MACRO(2,1)
-            SPELL_BTN_EVENT_MACRO(2,2)
-            SPELL_BTN_EVENT_MACRO(2,3)
-            SPELL_BTN_EVENT_MACRO(2,4)
-            SPELL_BTN_EVENT_MACRO(3,1)
-            SPELL_BTN_EVENT_MACRO(3,2)
-            SPELL_BTN_EVENT_MACRO(3,3)
-            SPELL_BTN_EVENT_MACRO(3,4)
-
-            #undef SPELL_BTN_EVENT_MACRO
-
-            hardware.regRightDownEvent(function () { //注册右键按下事件
-                if (mousePos >= 1 && mousePos <= 12) {
-                    rcStartOnUI = true;
-                    rcStartPos = mousePos;
-                }
-                // 新增的click判断逻辑
-            });
-            hardware.regRightUpEvent(function () { //注册右键抬起事件
-                // 新增的click判断逻辑
-                if (rcStartOnUI && mousePos == rcStartPos) {
-                    if (trRightClick != null) {
-                        argsRow = (mousePos - 1) / 4 + 1;
-                        argsCol = ModuloInteger(mousePos - 1,4) + 1;
-                        TriggerEvaluate(trRightClick);
-                    }
-                }
-
-                rcStartOnUI = false;
-                rcStartPos = 0;
-            });
         }
 
     }

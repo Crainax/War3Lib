@@ -28,6 +28,17 @@ library UIText requires STRUCT_SHARED_REQUIRE_UI,UITextModule {
             return this;
         }
 
+        // 绑定原生文本
+        // name: 文本名称(fdf写的text的名字)
+        // index: 文本索引(在外部创建时的填写的ID最后一个参数)
+        static method bindSimple (string name, integer index) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzSimpleFontStringFindByName(name, index);
+            STRUCT_SHARED_UI_ONCREATE(uiText)
+            return this;
+        }
+
         method onDestroy () {
             if (!this.isExist()) {return;}
             STRUCT_SHARED_UI_ONDESTROY(uiText)

@@ -8,11 +8,12 @@
 
 // 原生的物品栏按钮和事件
 // 控制物品栏按钮的进入,离开事件(点击和右键点击事件感觉并不需要)
-library ItemBtns {
+library ItemBtns requires Hardware,UIHashTable {
 
     // 物品栏按钮结构体形式
     public struct itemBtns []{
         static integer slot[]; // 使用slot表示物品栏位的UI,第1个是左上角,第6个是右下角
+        static uiBtn uis [];     // uibtn成员
 
         static integer argsPos = 0; // 回调参数:触发位置
 
@@ -55,22 +56,20 @@ library ItemBtns {
             integer i;
             for(1 <= i <= 6) {
                 slot[i] = DzFrameGetItemBarButton(i - 1);
+                uis[i] = uiBtn.bindSimple(slot[i]);
+                uis[i].onMouseEnter(function() {
+                    integer frame = DzGetTriggerUIEventFrame();
+                    argsPos = uiHashTable(frame).eventdata.get();
+                    TriggerEvaluate(trEnter);
+                });
+                uis[i].onMouseLeave(function() {
+                    integer frame = DzGetTriggerUIEventFrame();
+                    argsPos = uiHashTable(frame).eventdata.get();
+                    TriggerEvaluate(trLeave);
+                });
+                uiHashTable(slot[i]).eventdata.bind(i);
             }
 
-            #define REGISTER_ITEMBTNS_EVENT(pos) \
-            DzFrameSetScriptByCode(slot[pos],FRAME_MOUSE_ENTER CRNL \
-                ,function () {if (trEnter != null) {argsPos = pos;TriggerEvaluate(trEnter);}},false); CRNL \
-            DzFrameSetScriptByCode(slot[pos],FRAME_MOUSE_LEAVE CRNL \
-                ,function () {if (trLeave != null) {argsPos = pos;TriggerEvaluate(trLeave);}},false);
-
-            REGISTER_ITEMBTNS_EVENT(1)
-            REGISTER_ITEMBTNS_EVENT(2)
-            REGISTER_ITEMBTNS_EVENT(3)
-            REGISTER_ITEMBTNS_EVENT(4)
-            REGISTER_ITEMBTNS_EVENT(5)
-            REGISTER_ITEMBTNS_EVENT(6)
-
-            #undef REGISTER_ITEMBTNS_EVENT
         }
 
     }

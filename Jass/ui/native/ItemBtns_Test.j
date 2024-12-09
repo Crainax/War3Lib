@@ -9,6 +9,16 @@
 //自动生成的文件
 library UTItemBtns requires ItemBtns {
 
+	function Init () {
+		itemBtns.onEnter(function () {
+			integer pos = itemBtns.argsPos;
+			BJDebugMsg("第" + I2S(pos) + "个物品进入2");
+		});
+		itemBtns.onLeave(function () {
+			integer pos = itemBtns.argsPos;
+			BJDebugMsg("第" + I2S(pos) + "个物品离开2");
+		});
+	}
 	function TTestUTItemBtns1 (player p) {
 		integer child = 0;
 		uiBtn btn = 0;
@@ -40,14 +50,7 @@ library UTItemBtns requires ItemBtns {
 		BJDebugMsg("全部物品重定位");
 	}
 	function TTestUTItemBtns3 (player p) { //测试双事件
-		itemBtns.onEnter(function () {
-			integer pos = itemBtns.argsPos;
-			BJDebugMsg("第" + I2S(pos) + "个物品进入2");
-		});
-		itemBtns.onLeave(function () {
-			integer pos = itemBtns.argsPos;
-			BJDebugMsg("第" + I2S(pos) + "个物品离开2");
-		});
+
 	}
 	function TTestUTItemBtns4 (player p) {}
 	function TTestUTItemBtns5 (player p) {}
@@ -148,6 +151,8 @@ library UTItemBtns requires ItemBtns {
 			CreateItem('dkfw', -150, 0);    // 雷霆水桶(自动使用型)
 			CreateItem('dphe', 150, 0);     // 雷霆凤凰蛋(自动使用型)
 			CreateItem('thle', 0, 150);     // 雷霆蜥蜴之蛋(自动使用型)
+
+			Init();
 
 			DestroyTrigger(GetTriggeringTrigger());
 		}));

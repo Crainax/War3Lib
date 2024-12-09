@@ -116,175 +116,109 @@ endfunction
 // 用原始地图测试
 // 用空地图测试
 //===========================================================================
-// BaseAnim_Test.j
+// UnitPanel_Test.j
 //===========================================================================
-// 文件描述:
-// BaseAnim动画系统的单元测试文件
+// 文件描述：单位面板测试模块
+// 创建日期：未知
+// 修改记录：
+//   - 实现了单位属性面板的测试功能
+//   - 包含攻击、护甲等属性的显示和交互
 //
-// 测试命令:
-// s1  - 测试延迟与生命周期
-// s2  - 测试移动动画
-// s3  - 测试透明度动画
-// s4  - 测试缩放动画
-// s5  - 测试循环序列帧
-// s6  - 测试非循环序列帧
-// s7  - 测试序列帧中断
-// s8  - 测试闪烁动画
-// s9  - 测试混合动画(扩大+透明度)
-// s10 - 测试混合动画(缩小+透明度)
-//
-// 特殊命令:
-// -destroy - 销毁所有测试实例
+// 主要功能：
+//   - 创建并测试单位属性面板UI
+//   - 提供属性图标和数值显示
+//   - 实现鼠标悬停和点击事件
+//   - 包含单元测试用例
 //===========================================================================
 // 用原始地图测试
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 //! zinc
 //自动生成的文件
-library UTBaseAnim requires BaseAnim {
-	test tFromBA[]; //写在结构体外当全局变量
+library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
+	uiText testText = 0,testText2 = 0;
+	uiBtn btnAttack = 0,btnArmor = 0;
+	integer valueAttack, valueArmor;
+	integer textAttack, textArmor;
+	uiImage iconAttack = 0, iconArmor = 0;
+	function Init () {
+		//单位攻击面板（也就是跟随单位攻击1显示） 没有攻击则不显示UI
+		integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0);
+		//三围面板（跟随英雄三围面板，有就显示。普通单位则不显示）可以绑定英雄
+		// integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);  //英雄三围框架
+		integer child = DzCreateFrameByTagName("SIMPLEFRAME", "kuangjia", parent, "框架", 0);
+		// 无响应事件置父
+		DzFrameClearAllPoints( child );
+		// 响应事件置父
+		iconAttack = uiImage.bindSimple("攻击图标", 0)
+			.setSize(0.028, 0.028)
+			.setPoint(3, DzFrameGetPortrait(), 5, 0.015, -0.01)
+			.texture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
+		iconArmor = uiImage.bindSimple("护甲图标", 0)
+			.setSize(0.028, 0.028)
+			.setPoint(1, iconAttack.ui, 7, 0.0, -0.005)
+			.texture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
+		btnAttack = uiBtn.createSimple(parent)
+			.setAllPoint(iconAttack.ui)
+			.spEnter(function(integer frame) {BJDebugMsg("enterAttack"); })
+			.spLeave(function(integer frame) {BJDebugMsg("leaveAttack"); })
+			.spClick(function(integer frame) {BJDebugMsg("clickAttack"); })
+			.spRightClick(function(integer frame) {BJDebugMsg("rightClickAttack"); });
+		btnArmor = uiBtn.createSimple(parent)
+			.setAllPoint(iconArmor.ui)
+			.spEnter(function(integer frame) {BJDebugMsg("enterArmor"); })
+			.spLeave(function(integer frame) {BJDebugMsg("leaveArmor"); })
+			.spClick(function(integer frame) {BJDebugMsg("clickArmor"); })
+			.spRightClick(function(integer frame) {BJDebugMsg("rightClickArmor"); });
+		DzCreateFrameByTagName("SIMPLEFRAME", "ceshi", child, "testFrame", 0);
+		DzCreateFrameByTagName("SIMPLEFRAME", "ceshi", child, "testFrame", 1);
+		//可以通过最后一个参数区分是哪个
+		testText = uiText.bindSimple("ceshinerong", 0)
+			.setPoint(0, btnAttack.ui, 2, 0.05, 0.0)
+			.setAlign(4)
+			.setText("上内容");
+		testText2 = uiText.bindSimple("ceshinerong", 1)
+			.setPoint(1, testText.ui, 7, 0, -0.005)
+			.setAlign(4)
+			.setText("下内容");
+		textAttack = uiText.bindSimple("攻击", 0)
+			.clearPoint()
+			.setPoint(0, btnAttack.ui, 2, 0, 0.00)
+			.setText("攻击:");
+		textArmor = uiText.bindSimple("护甲", 0)
+			.clearPoint()
+			.setPoint(0, btnArmor.ui, 2, 0, 0.00)
+			.setText("防御:");
+		valueAttack = uiText.bindSimple("攻击数值", 0)
+			.clearPoint()
+			.setPoint(3, btnAttack.ui, 5, 0, -0.005)
+			.setText("0");
+		valueArmor = uiText.bindSimple("护甲数值", 0)
+			.clearPoint()
+			.setPoint(3, btnArmor.ui, 5, 0, -0.005)
+			.setText("2000");
+	}
+	function TTestUTUnitPanel1 (player p) {
+	}
+	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
 
-	public struct test {
-		static thistype List []; //内容列表
-static integer size = 0; //现在有几个东西
-uiImage img;
-		baseanim ba;
-		integer uID = 0;
-		method isExist () -> boolean {return (this != null && si__test_V[this] == -1);}
-		static method create () -> thistype {
-			thistype this = allocate();
-			integer row = ModuloInteger(this - 1,10) + 1;
-			integer column = (this - 1) / 10 + 1;
-			img = uiImage.create(DzGetGameUI())
-				.setSize(0.035,0.035)
-				.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_BOTTOMLEFT,0.05 + column * 0.04,0.05 + 0.04 * row)
-				.texture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
-			ba = baseanim.create(img.ui);
-			tFromBA[ba] = this; //写在create函数里
-if (uID == 0) { //这里是初始化时的设置内容,不需要改
-size += 1;
-				List[size] = this;
-				uID = size;
-			}
-			return this;
-		}
-		method onDestroy () {
-			if (!this.isExist()) {return;}
-			tFromBA[ba] = 0; //写在onDestroy函数里
-if (img.isExist()) {
-				img.destroy();
-			}
-			if (uID != 0) {
-				//这个其实就是将List的[2]设成5  假设2是删  5是最长
-				//然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)
-				//但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
-				List[uID] = List[size];
-				List[uID].uID = uID;
-				size -= 1;
-				uID = 0;
-			}
-		}
-		static method destroyAll () {
-			thistype this;
-			// 从后往前遍历，这样交换位置不会影响到还未遍历的元素
-			while (size > 0) {
-				this = List[size];
-				this.destroy();
-			}
-		}
 	}
-	//继承自BaseAnim的回调函数
-	function DestroyUIFromBA (baseanim ba) {
-		integer ui = ba.ui;
-		uiImage img = uiHashTable(ui).ui.get();
-		if (uiHashTable(ui).ui.getType() != uiImage.typeid) return;
-		img.destroy();
+	function TTestUTUnitPanel3 (player p) {
+		//unitPanel.onAttrBtnEnter();
 	}
-	// 全部都是异步的，不要用随机数
-	function TTestUTBaseAnim1 (player p) {
-		test t = test.create();
-		t.ba.addDelay(100);
-		t.ba.addLife(150,DestroyUIFromBA);
-		BJDebugMsg("测试一下延迟与生命周期(删)");
-	}
-	real testAngle = 0.0;
-	function TTestUTBaseAnim2 (player p) {
-		test t = test.create();
-		t.ba.addMove(DzGetGameUI(),0.01,0.05,60,testAngle,ANCHOR_CENTER,ANCHOR_CENTER);
-		t.ba.addLife(60,DestroyUIFromBA);
-		testAngle += 8.8;
-		BJDebugMsg("单纯的测试移动: 角度" + R2SW(testAngle,0,1) + " 距离" + R2SW(0.05,0,1));
-	}
-	function TTestUTBaseAnim3 (player p) {
-		test t = test.create();
-		t.ba.addAlpha(0,255,30);
-		t.ba.addLife(30,DestroyUIFromBA);
-		BJDebugMsg("测试一下透明度: 透明度" + I2S(0) + "->" + I2S(255));
-	}
-	function TTestUTBaseAnim4 (player p) {
-		test t = test.create();
-		t.ba.addZoom(.07,.035,.07,.035,30);
-		t.ba.addLife(30,DestroyUIFromBA);
-		BJDebugMsg("测试一下缩放: 缩放" + R2SW(.07,0,1) + "->" + R2SW(.035,0,1) + " ,y" + R2SW(.07,0,1) + "->" + R2SW(.035,0,1));
-	}
-	function TTestUTBaseAnim5 (player p) {
-		test t = test.create();
-		t.ba.addSequ("ui\\icongrow\\ig1_",63,2,true); //这里已经从0开始了。
-BJDebugMsg("测试一下序列帧:循环");
-	}
-	function TTestUTBaseAnim6 (player p) {
-		test t = test.create();
-		t.ba.addSequ("ui\\icongrow\\ig1_",63,2,false);
-		t.ba.addLife(127,DestroyUIFromBA);
-		BJDebugMsg("测试一下序列帧: 不循环");
-	}
-	//# sequence: ui/icongrow/ig1_{0-63}.blp
-	// 测试一下放序列帧到一半时，删除能否触发回调
-	function TTestUTBaseAnim7 (player p) {
-		// timer ti = CreateTimer();
-		test t = test.create();
-		t.ba.addSequ("ui\\icongrow\\ig1_",63,2,true); //这里已经从0开始了。
-BJDebugMsg("测试一下序列帧，然后马上删除UI");
-		// SaveInteger(HASH_TIMER,GetHandleId(ti),1,t);
-		t.img.destroy();
-		// TimerStart(ti,1.2,false,function (){
-		// 	timer ti = GetExpiredTimer();
-		// 	integer id = GetHandleId(ti);
-		// 	test t = LoadInteger(HASH_TIMER,id,1);
-		// 	t.img.destroy();
-		// 	PauseTimer(ti);
-		// 	FlushChildHashtable(HASH_TIMER,id);
-		// 	DestroyTimer(ti);
-		// 	ti = null;
-		// });
-		// ti = null;
-	}
-	function TTestUTBaseAnim8 (player p) {
-		test t = test.create();
-		t.ba.addBlink(0,60);
-		t.ba.addLife(180,DestroyUIFromBA);
-		BJDebugMsg("测试一下闪烁: 周期60");
-	}
-	function TTestUTBaseAnim9 (player p) {
-		test t = test.create();
-		t.ba.addZoom(.035,.1,.035,.1,30);
-		t.ba.addDelay(30);
-		t.ba.addLife(61,DestroyUIFromBA);
-		BJDebugMsg("测试一下混合动画(扩大+透明度)");
-	}
-	function TTestUTBaseAnim10 (player p) {
-		test t = test.create();
-		t.ba.addZoom(0.12,.035,.12,.035,30);
-		t.ba.addDelay(30);
-		t.ba.addLife(180,DestroyUIFromBA);
-		t.ba.addAlpha(0,255,30);
-		BJDebugMsg("测试一下混合动画(缩小+透明度)");
-	}
-	function TTestActUTBaseAnim1 (string str) {
+	function TTestUTUnitPanel4 (player p) {}
+	function TTestUTUnitPanel5 (player p) {}
+	function TTestUTUnitPanel6 (player p) {}
+	function TTestUTUnitPanel7 (player p) {}
+	function TTestUTUnitPanel8 (player p) {}
+	function TTestUTUnitPanel9 (player p) {}
+	function TTestUTUnitPanel10 (player p) {}
+	function TTestActUTUnitPanel1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -306,9 +240,7 @@ for (0 <= i <= len - 1) {
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "destroy") {
-			test.destroyAll();
-			BJDebugMsg("销毁所有UI用例");
+		if (paramS[0] == "a") {
 		} else if (paramS[0] == "b") {
 		}
 		p = null;
@@ -318,11 +250,47 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("---------------------------------------");
-			BJDebugMsg("[BaseAnim] 动画系统测试已加载");
-			BJDebugMsg("输入 s1-s10 测试不同动画效果");
-			BJDebugMsg("输入 -destroy 清除所有测试实例");
-			BJDebugMsg("---------------------------------------");
+			unit hero,building;
+			real x = 0, y = 0;
+			integer i = 0;
+			// 为玩家1创建测试英雄
+			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
+SetHeroLevel(hero, 10,true);
+			// 创建一个建筑单位用于测试12个技能
+			building = CreateUnit(Player(0), 'hcas', 400, 0, 270); // 创建人族城堡
+
+			// 为建筑添加12个技能
+			UnitAddAbility(building, 'AHbz'); // 暴风雪
+UnitAddAbility(building, 'AHwe'); // 水元素
+UnitAddAbility(building, 'AHab'); // 闪现
+UnitAddAbility(building, 'AHmt'); // 群体传送
+UnitAddAbility(building, 'AHfs'); // 烈焰风暴
+UnitAddAbility(building, 'AHbn'); // 驱逐魔法
+UnitAddAbility(building, 'AHdr'); // 吸取魔法
+UnitAddAbility(building, 'AHpx'); // 凤凰
+UnitAddAbility(building, 'AHad'); // 奥术光环
+UnitAddAbility(building, 'AHav'); // 化身
+UnitAddAbility(building, 'AHcs'); // 寒冰护甲
+UnitAddAbility(building, 'AHfa'); // 烈焰护甲
+
+			// 添加8个预选的技能
+			UnitAddAbility(hero, 'ACbc'); // 火焰呼吸
+UnitAddAbility(hero, 'ACbf'); // 霜冻闪电
+UnitAddAbility(hero, 'ACpy'); // 变形术
+UnitAddAbility(hero, 'AOhx'); // 妖术
+UnitAddAbility(hero, 'ACdv'); // 吞噬
+UnitAddAbility(hero, 'ACen'); // 诱捕
+UnitAddAbility(hero, 'ANr3'); // 混乱之雨
+UnitAddAbility(hero, 'AOhw'); // 医疗波
+BJDebugMsg("[UnitPanel] 单元测试已加载");
+			DestroyTrigger(GetTriggeringTrigger());
+		}));
+		//在游戏开始0.1秒后再调用
+		tr = CreateTrigger();
+		TriggerRegisterTimerEventSingle(tr,0.1);
+		TriggerAddCondition(tr,Condition(function (){
+			unitPanel.moveOutAll();
+			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -330,21 +298,21 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTBaseAnim1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUnitPanel1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (GetLocalPlayer() != GetTriggerPlayer()) { return; }
-			if (str == "s1") TTestUTBaseAnim1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTBaseAnim2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTBaseAnim3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTBaseAnim4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTBaseAnim5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTBaseAnim6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTBaseAnim7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTBaseAnim8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTBaseAnim9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTBaseAnim10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUnitPanel1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUnitPanel2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUnitPanel3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUnitPanel4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUnitPanel5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUnitPanel6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUnitPanel7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUnitPanel8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUnitPanel9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUnitPanel10(GetTriggerPlayer());
 		});
+		InitTestUIRuler();
 	}
 }
 //! endzinc

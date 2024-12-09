@@ -26,16 +26,6 @@ library UTSpellBtns requires SpellBtns {
 		}
 	}
 	function TTestUTSpellBtns5 (player p) {
-		uiBtn btn = 0;
-		btn = uiBtn.create(DzGetGameUI())
-			.setSize(0.04,0.04)
-			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.onMouseEnter(function() {BJDebugMsg("enter"); })
-			.onMouseLeave(function() {BJDebugMsg("leave"); })
-			.onMouseClick(function() {BJDebugMsg("click"); })
-			.exLeftDown(function(integer frame) {BJDebugMsg("leftDown");})
-			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");})
-			.exRightClick(function(integer frame) {BJDebugMsg("rightClick");});
 	}
 	function TTestUTSpellBtns6 (player p) {}
 	function TTestUTSpellBtns7 (player p) {}
@@ -120,7 +110,7 @@ library UTSpellBtns requires SpellBtns {
 				integer row = spellBtns.argsRow;
 				integer column = spellBtns.argsCol;
 				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入:" + I2S(spellBtns.grid[row][column]));
-				BJDebugMsg("触发的技能:" + I2S(DzGetTriggerUIEventFrame()));
+				BJDebugMsg("触发的UI:" + I2S(DzGetTriggerUIEventFrame()) + " 数据:" + I2S(uiHashTable(DzGetTriggerUIEventFrame()).eventdata.get()));
 			});
 			spellBtns.onLeave(function () {
 				integer row = spellBtns.argsRow;

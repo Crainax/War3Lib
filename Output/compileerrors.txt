@@ -1,9 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 2075:  Undeclared function GetUIFromFrame
-Line 2076:  Undeclared function GetTypeIDFromFrame
-Line 2076:  Comparing two variables of different primitive types (except real and integer) is not allowed
-Line 2788:  Undeclared function GetUIFromFrame
-Line 2789:  Undeclared function GetTypeIDFromFrame
-Line 2789:  Comparing two variables of different primitive types (except real and integer) is not allowed
-6
+JASSHelper - Step 2 (structs)
+Line 1728: clearAllPoints is not a member of uiText
+1

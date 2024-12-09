@@ -10,7 +10,7 @@
 library UTUIHashTable requires UIHashTable {
 
 	function TTestUTUIHashTable1 (player p) {
-		uiHashTable(1).eventdata.bind(1);
+		uiHashTable(43444).eventdata.bind(1);
 	}
 	function TTestUTUIHashTable2 (player p) {}
 	function TTestUTUIHashTable3 (player p) {}
