@@ -33,7 +33,7 @@
 // UI组件创建时共享调用
 #define STRUCT_SHARED_UI_ONCREATE(structName) \
     static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} CRNL \
-    static if (LIBRARY_UIHashTable) {uiHashTable.ui.bind(ui,thistype.typeid,this); }
+    static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
 
 // UI组件销毁时共享调用
 #define STRUCT_SHARED_UI_ONDESTROY(structName) \

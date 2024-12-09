@@ -32,12 +32,13 @@ library UTUIExtendEvent requires UIExtendEvent {
 			.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
 		btn = uiBtn.create(DzGetGameUI())
 			.setAllPoint(img.ui)
-			.spEnter(function(integer frame) {integer data = uiHashTable.eventdata.get(frame);BJDebugMsg("enter:"+I2S(data));})
-			.spLeave(function(integer frame) {integer data = uiHashTable.eventdata.get(frame);BJDebugMsg("leave:"+I2S(data));})
-			.spClick(function(integer frame) {integer data = uiHashTable.eventdata.get(frame);BJDebugMsg("click:"+I2S(data));})
-			.spRightClick(function(integer frame) {integer data = uiHashTable.eventdata.get(frame);BJDebugMsg("RightClick:"+I2S(data));});
-		uiHashTable.eventdata.bind(btn.ui,8174);
+			.spEnter(function(integer frame) {integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("enter:"+I2S(data));})
+			.spLeave(function(integer frame) {integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("leave:"+I2S(data));})
+			.spClick(function(integer frame) {integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("click:"+I2S(data));})
+			.spRightClick(function(integer frame) {integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("RightClick:"+I2S(data));});
+		uiHashTable(btn.ui).eventdata.bind(8174);
 	}
+
 	function TTestUTUIExtendEvent3 (player p) {
 		if (btn.isExist()) {
 			btn.destroy();

@@ -1,11 +1,9 @@
 logs\currentmapscript.j
 pjass.exe
-Line 1388:  Undeclared variable clickStartUI
-Line 1388:  Comparing two variables of different primitive types (except real and integer) is not allowed
-Line 1394:  Undeclared variable clickStartUI
-Line 1394:  Comparing two variables of different primitive types (except real and integer) is not allowed
-Line 1405:  Undeclared variable clickStartUI
-Line 1405:  Comparing two variables of different primitive types (except real and integer) is not allowed
-Line 1542:  Undeclared variable clickStartUI
-Line 1559:  Undeclared variable clickStartUI
-8
+Line 2075:  Undeclared function GetUIFromFrame
+Line 2076:  Undeclared function GetTypeIDFromFrame
+Line 2076:  Comparing two variables of different primitive types (except real and integer) is not allowed
+Line 2788:  Undeclared function GetUIFromFrame
+Line 2789:  Undeclared function GetTypeIDFromFrame
+Line 2789:  Comparing two variables of different primitive types (except real and integer) is not allowed
+6
