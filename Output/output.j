@@ -45,7 +45,7 @@ constant boolean LIBRARY_UILifeCycle=true
 //endglobals from UILifeCycle
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork___TUnitTest=null
+trigger UnitTestFramwork__TUnitTest=null
 //endglobals from UnitTestFramwork
 //globals from YDTriggerSaveLoadSystem:
 constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
@@ -55,11 +55,6 @@ hashtable YDLOC
 //globals from Hardware:
 constant boolean LIBRARY_Hardware=true
 //endglobals from Hardware
-//globals from UISimpleEvent:
-constant boolean LIBRARY_UISimpleEvent=true
-boolean UISimpleEvent___rcStartOnUI=false
-integer UISimpleEvent___clickStartUI=0
-//endglobals from UISimpleEvent
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
@@ -69,17 +64,22 @@ constant boolean LIBRARY_UIUtils=true
 //globals from UIBaseModule:
 constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
-//globals from UTUISimpleEvent:
-constant boolean LIBRARY_UTUISimpleEvent=true
-integer UTUISimpleEvent___btn=0
-integer UTUISimpleEvent___img=0
-//endglobals from UTUISimpleEvent
+//globals from UIExtendEvent:
+constant boolean LIBRARY_UIExtendEvent=true
+boolean UIExtendEvent__rcStartOnUI=false
+integer UIExtendEvent__clickStartUI=0
+//endglobals from UIExtendEvent
 //globals from UIButton:
 constant boolean LIBRARY_UIButton=true
 //endglobals from UIButton
 //globals from UIImage:
 constant boolean LIBRARY_UIImage=true
 //endglobals from UIImage
+//globals from UTUIExtendEvent:
+constant boolean LIBRARY_UTUIExtendEvent=true
+integer UTUIExtendEvent___btn=0
+integer UTUIExtendEvent___img=0
+//endglobals from UTUIExtendEvent
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -122,8 +122,8 @@ real s__radiationEnd_y=0
 constant integer si__uiHashTable=3
 integer s__uiHashTable_eventdata=(0)
 integer s__uiHashTable_ui=(0)
-constant integer si__UIHashTable___uiHTFrame=4
-constant integer si__UIHashTable___uiHTEvent=5
+constant integer si__UIHashTable__uiHTFrame=4
+constant integer si__UIHashTable__uiHTEvent=5
 constant integer si__uiId=6
 hashtable s__uiId_ht
 integer s__uiId_nextId
@@ -154,30 +154,11 @@ integer si__uiImage_I=0
 integer array si__uiImage_V
 integer array s__uiImage_ui
 integer array s__uiImage_id
-trigger st__uiBtn_isExist
-trigger st__uiBtn_setAllPoint
-trigger st__uiBtn_spEnter
-trigger st__uiBtn_spLeave
-trigger st__uiBtn_spClick
-trigger st__uiBtn_spRightClick
-trigger st__uiBtn_create
 trigger st__uiBtn_onDestroy
-trigger st__uiBtn_destroy
-trigger st__uiImage_setPoint
-trigger st__uiImage_setSize
-trigger st__uiImage_texture
-trigger st__uiImage_create
 trigger st__uiImage_onDestroy
-trigger array st___prototype19
+trigger array st___prototype20
 integer f__arg_integer1
-integer f__arg_integer2
-integer f__arg_integer3
-real f__arg_real1
-real f__arg_real2
-string f__arg_string1
 integer f__arg_this
-boolean f__result_boolean
-integer f__result_integer
 
 endglobals
     native DzGetMouseTerrainX takes nothing returns real
@@ -457,42 +438,6 @@ function s__mapBounds_deallocate takes integer this returns nothing
     set si__mapBounds_F=this
 endfunction
 
-//Generated method caller for uiImage.setPoint
-function sc__uiImage_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-    set f__arg_this=this
-    set f__arg_integer1=anchor
-    set f__arg_integer2=relative
-    set f__arg_integer3=relativeAnchor
-    set f__arg_real1=offsetX
-    set f__arg_real2=offsetY
-    call TriggerEvaluate(st__uiImage_setPoint)
- return f__result_integer
-endfunction
-
-//Generated method caller for uiImage.setSize
-function sc__uiImage_setSize takes integer this,real width,real height returns integer
-    set f__arg_this=this
-    set f__arg_real1=width
-    set f__arg_real2=height
-    call TriggerEvaluate(st__uiImage_setSize)
- return f__result_integer
-endfunction
-
-//Generated method caller for uiImage.texture
-function sc__uiImage_texture takes integer this,string path returns integer
-    set f__arg_this=this
-    set f__arg_string1=path
-    call TriggerEvaluate(st__uiImage_texture)
- return f__result_integer
-endfunction
-
-//Generated method caller for uiImage.create
-function sc__uiImage_create takes integer parent returns integer
-    set f__arg_integer1=parent
-    call TriggerEvaluate(st__uiImage_create)
- return f__result_integer
-endfunction
-
 //Generated method caller for uiImage.onDestroy
 function sc__uiImage_onDestroy takes integer this returns nothing
     set f__arg_this=this
@@ -530,60 +475,6 @@ function sc__uiImage_deallocate takes integer this returns nothing
     call TriggerEvaluate(st__uiImage_onDestroy)
     set si__uiImage_V[this]=si__uiImage_F
     set si__uiImage_F=this
-endfunction
-
-//Generated method caller for uiBtn.isExist
-function sc__uiBtn_isExist takes integer this returns boolean
-    set f__arg_this=this
-    call TriggerEvaluate(st__uiBtn_isExist)
- return f__result_boolean
-endfunction
-
-//Generated method caller for uiBtn.setAllPoint
-function sc__uiBtn_setAllPoint takes integer this,integer relative returns integer
-    set f__arg_this=this
-    set f__arg_integer1=relative
-    call TriggerEvaluate(st__uiBtn_setAllPoint)
- return f__result_integer
-endfunction
-
-//Generated method caller for uiBtn.spEnter
-function sc__uiBtn_spEnter takes integer this,integer fun returns integer
-    set f__arg_this=this
-    set f__arg_integer1=fun
-    call TriggerEvaluate(st__uiBtn_spEnter)
- return f__result_integer
-endfunction
-
-//Generated method caller for uiBtn.spLeave
-function sc__uiBtn_spLeave takes integer this,integer fun returns integer
-    set f__arg_this=this
-    set f__arg_integer1=fun
-    call TriggerEvaluate(st__uiBtn_spLeave)
- return f__result_integer
-endfunction
-
-//Generated method caller for uiBtn.spClick
-function sc__uiBtn_spClick takes integer this,integer fun returns integer
-    set f__arg_this=this
-    set f__arg_integer1=fun
-    call TriggerEvaluate(st__uiBtn_spClick)
- return f__result_integer
-endfunction
-
-//Generated method caller for uiBtn.spRightClick
-function sc__uiBtn_spRightClick takes integer this,integer fun returns integer
-    set f__arg_this=this
-    set f__arg_integer1=fun
-    call TriggerEvaluate(st__uiBtn_spRightClick)
- return f__result_integer
-endfunction
-
-//Generated method caller for uiBtn.create
-function sc__uiBtn_create takes integer parent returns integer
-    set f__arg_integer1=parent
-    call TriggerEvaluate(st__uiBtn_create)
- return f__result_integer
 endfunction
 
 //Generated method caller for uiBtn.onDestroy
@@ -686,15 +577,15 @@ function s__radiationEnd_deallocate takes integer this returns nothing
     set si__radiationEnd_V[this]=si__radiationEnd_F
     set si__radiationEnd_F=this
 endfunction
-function sc___prototype19_execute takes integer i,integer a1 returns nothing
+function sc___prototype20_execute takes integer i,integer a1 returns nothing
     set f__arg_integer1=a1
 
-    call TriggerExecute(st___prototype19[i])
+    call TriggerExecute(st___prototype20[i])
 endfunction
-function sc___prototype19_evaluate takes integer i,integer a1 returns nothing
+function sc___prototype20_evaluate takes integer i,integer a1 returns nothing
     set f__arg_integer1=a1
 
-    call TriggerEvaluate(st___prototype19[i])
+    call TriggerEvaluate(st___prototype20[i])
 
 endfunction
 
@@ -1247,20 +1138,20 @@ endfunction
 
 //library UIEventModule ends
 //library UIHashTable:
-        function s__UIHashTable___uiHTFrame_bind takes integer frame,integer typeID,integer ui returns nothing
+        function s__UIHashTable__uiHTFrame_bind takes integer frame,integer typeID,integer ui returns nothing
             call SaveInteger(HASH_UI, frame, 1820, typeID)
             call SaveInteger(HASH_UI, frame, 1821, ui)
         endfunction  // 从frame获取UI实例
-        function s__UIHashTable___uiHTFrame_get takes integer frame returns integer
+        function s__UIHashTable__uiHTFrame_get takes integer frame returns integer
             return LoadInteger(HASH_UI, frame, 1821)
         endfunction  // 从frame获取UI类型
-        function s__UIHashTable___uiHTFrame_getType takes integer frame returns integer
+        function s__UIHashTable__uiHTFrame_getType takes integer frame returns integer
             return LoadInteger(HASH_UI, frame, 1820)
         endfunction
-        function s__UIHashTable___uiHTEvent_bind takes integer this,integer frame,integer value returns nothing
+        function s__UIHashTable__uiHTEvent_bind takes integer this,integer frame,integer value returns nothing
             call SaveInteger(HASH_UI, frame, 1823, value)
         endfunction
-        function s__UIHashTable___uiHTEvent_get takes integer this,integer frame returns integer
+        function s__UIHashTable__uiHTEvent_get takes integer this,integer frame returns integer
             return LoadInteger(HASH_UI, frame, 1823)
         endfunction
 
@@ -1331,9 +1222,9 @@ endfunction
 //library UnitTestFramwork:
 
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
     endfunction
-        function UnitTestFramwork___anon__0 takes nothing returns nothing
+        function UnitTestFramwork__anon__0 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -1344,16 +1235,16 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork___onInit takes nothing returns nothing
+    function UnitTestFramwork__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
         set tr=null
-        set UnitTestFramwork___TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
+        set UnitTestFramwork__TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
@@ -1423,43 +1314,9 @@ endfunction
         endfunction
 
 //library Hardware ends
-//library UISimpleEvent:
-
-//processed:     function interface uiEvent takes integer arg0 returns nothing  // 是否开始右键点击
-        function UISimpleEvent___anon__3 takes nothing returns nothing
-            if ( UISimpleEvent___clickStartUI != 0 ) then
-                set UISimpleEvent___rcStartOnUI=true
-            endif // 新增的click判断逻辑
-        endfunction  //注册右键抬起事件
-        function UISimpleEvent___anon__4 takes nothing returns nothing
-            local integer func
-            if ( UISimpleEvent___rcStartOnUI and UISimpleEvent___clickStartUI != 0 ) then
-                if ( HaveSavedInteger(HASH_UI, UISimpleEvent___clickStartUI, 1913) ) then
-                    set func=LoadInteger(HASH_UI, UISimpleEvent___clickStartUI, 1913)
-                    call sc___prototype19_evaluate(func,UISimpleEvent___clickStartUI)
-                endif
-            endif
-            set UISimpleEvent___rcStartOnUI=false
-        endfunction  // UI销毁时如果鼠标正在上面,则触发一次离开事件
-        function UISimpleEvent___anon__5 takes nothing returns nothing
-            local integer ui=s__uiLifeCycle_agrsFrame
-            local integer func
-            if ( UISimpleEvent___clickStartUI == ui and HaveSavedInteger(HASH_UI, ui, 1911) ) then
-                set func=LoadInteger(HASH_UI, UISimpleEvent___clickStartUI, 1911)
-                call sc___prototype19_evaluate(func,UISimpleEvent___clickStartUI)
-            endif
-            set UISimpleEvent___clickStartUI=0
-        endfunction
-    function UISimpleEvent___onInit takes nothing returns nothing
-        call s__hardware_regRightDownEvent(function UISimpleEvent___anon__3)
-        call s__hardware_regRightUpEvent(function UISimpleEvent___anon__4)
-        call s__uiLifeCycle_registerDestroy(function UISimpleEvent___anon__5)
-    endfunction
-
-//library UISimpleEvent ends
 //library UITocInit:
 
-    function UITocInit___onInit takes nothing returns nothing
+    function UITocInit__onInit takes nothing returns nothing
         call DzLoadToc("ui\\Crainax.toc")
         call DzFrameEnableClipRect(false)
     endfunction
@@ -1500,125 +1357,66 @@ endfunction
 //library UIBaseModule:
 
 //library UIBaseModule ends
-//library UTUISimpleEvent:
+//library UIExtendEvent:
 
-        function UTUISimpleEvent___anon__0 takes integer frame returns nothing
-            local integer data=s__UIHashTable___uiHTEvent_get(s__uiHashTable_eventdata,frame)
-            call BJDebugMsg("enter:" + I2S(data))
-        endfunction
-        function UTUISimpleEvent___anon__1 takes integer frame returns nothing
-            local integer data=s__UIHashTable___uiHTEvent_get(s__uiHashTable_eventdata,frame)
-            call BJDebugMsg("leave:" + I2S(data))
-        endfunction
-        function UTUISimpleEvent___anon__2 takes integer frame returns nothing
-            local integer data=s__UIHashTable___uiHTEvent_get(s__uiHashTable_eventdata,frame)
-            call BJDebugMsg("click:" + I2S(data))
-        endfunction
-        function UTUISimpleEvent___anon__3 takes integer frame returns nothing
-            local integer data=s__UIHashTable___uiHTEvent_get(s__uiHashTable_eventdata,frame)
-            call BJDebugMsg("RightClick:" + I2S(data))
-        endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent1 takes player p returns nothing
-        set UTUISimpleEvent___img=sc__uiImage_texture(sc__uiImage_setPoint(sc__uiImage_setSize(sc__uiImage_create(DzGetGameUI()),0.035 , 0.035),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp")
-        set UTUISimpleEvent___btn=sc__uiBtn_spRightClick(sc__uiBtn_spClick(sc__uiBtn_spLeave(sc__uiBtn_spEnter(sc__uiBtn_setAllPoint(sc__uiBtn_create(DzGetGameUI()),s__uiImage_ui[UTUISimpleEvent___img]),(1)),(2)),(3)),(4))
-        call s__UIHashTable___uiHTEvent_bind(s__uiHashTable_eventdata,s__uiBtn_ui[UTUISimpleEvent___btn] , 8174)
-    endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent2 takes player p returns nothing
-        if ( sc__uiBtn_isExist(UTUISimpleEvent___btn) ) then
-            call sc__uiBtn_deallocate(UTUISimpleEvent___btn)
-            call BJDebugMsg("删除了,方便测试离开事件:" + I2S(s__uiBtn_ui[UTUISimpleEvent___btn]))
-        endif
-    endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent3 takes player p returns nothing
-    endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent4 takes player p returns nothing
-    endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent5 takes player p returns nothing
-    endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent6 takes player p returns nothing
-    endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent7 takes player p returns nothing
-    endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent8 takes player p returns nothing
-    endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent9 takes player p returns nothing
-    endfunction
-    function UTUISimpleEvent___TTestUTUISimpleEvent10 takes player p returns nothing
-    endfunction
-    function UTUISimpleEvent___TTestActUTUISimpleEvent1 takes string str returns nothing
-        local player p=GetTriggerPlayer()
-        local integer index=GetConvertedPlayerId(p)
-        local integer i
-        local integer num=0
-        local integer len=StringLength(str)
-        local string array paramS
-        local integer array paramI
-        local real array paramR
-        set i=0
-        loop
-        exitwhen ( i > len - 1 )
-            if ( SubString(str, i, i + 1) == " " ) then
-                set paramS[num]=SubString(str, 0, i)
-                set paramI[num]=S2I(paramS[num])
-                set paramR[num]=S2R(paramS[num])
-                set num=num + 1
-                set str=SubString(str, i + 1, len)
-                set len=StringLength(str)
-                set i=- 1
-            endif
-        set i=i + 1
-        endloop
-        set paramS[num]=str
-        set paramI[num]=S2I(paramS[num])
-        set paramR[num]=S2R(paramS[num])
-        set num=num + 1
-        if ( paramS[0] == "a" ) then
-        elseif ( paramS[0] == "b" ) then
-        endif
-        set p=null
-    endfunction
-        function UTUISimpleEvent___anon__4 takes nothing returns nothing
-            call BJDebugMsg("[UISimpleEvent] 单元测试已加载")
-            call DestroyTrigger(GetTriggeringTrigger())
-        endfunction
-        function UTUISimpleEvent___anon__5 takes nothing returns nothing
-            local string str=GetEventPlayerChatString()
-            local integer i=1
-            if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUISimpleEvent___TTestActUTUISimpleEvent1(SubStringBJ(str, 2, StringLength(str)))
+//processed:     function interface uiEvent takes integer arg0 returns nothing  // 是否开始右键点击
+        function UIExtendEvent__anon__3 takes nothing returns nothing
+            local integer currentUI
+            local integer func
+            if ( not ( DzIsMouseOverUI() ) ) then
                 return
             endif
-            if ( str == "s1" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent1(GetTriggerPlayer())
-            elseif ( str == "s2" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent2(GetTriggerPlayer())
-            elseif ( str == "s3" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent3(GetTriggerPlayer())
-            elseif ( str == "s4" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent4(GetTriggerPlayer())
-            elseif ( str == "s5" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent5(GetTriggerPlayer())
-            elseif ( str == "s6" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent6(GetTriggerPlayer())
-            elseif ( str == "s7" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent7(GetTriggerPlayer())
-            elseif ( str == "s8" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent8(GetTriggerPlayer())
-            elseif ( str == "s9" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent9(GetTriggerPlayer())
-            elseif ( str == "s10" ) then
-                call UTUISimpleEvent___TTestUTUISimpleEvent10(GetTriggerPlayer())
+            set currentUI=DzGetMouseFocus()
+            if ( HaveSavedInteger(HASH_UI, currentUI, 1901) ) then
+                set func=LoadInteger(HASH_UI, currentUI, 1901)
+                call sc___prototype20_evaluate(func,currentUI)
             endif
-        endfunction
-    function UTUISimpleEvent___onInit takes nothing returns nothing
-        local trigger tr=CreateTrigger()
-        call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUISimpleEvent___anon__4))
-        set tr=null
-        call UnitTestRegisterChatEvent(function UTUISimpleEvent___anon__5)
-    endfunction
+        endfunction  //注册左键抬起事件,在click事件之前触发
+        function UIExtendEvent__anon__4 takes nothing returns nothing
+            local integer currentUI
+            local integer func
+            if ( not ( DzIsMouseOverUI() ) ) then
+                return
+            endif
+            set currentUI=DzGetMouseFocus()
+            if ( HaveSavedInteger(HASH_UI, currentUI, 1902) ) then
+                set func=LoadInteger(HASH_UI, currentUI, 1902)
+                call sc___prototype20_evaluate(func,currentUI)
+            endif
+        endfunction  //注册右键按下事件
+        function UIExtendEvent__anon__5 takes nothing returns nothing
+            if ( UIExtendEvent__clickStartUI != 0 ) then
+                set UIExtendEvent__rcStartOnUI=true
+            endif // 新增的click判断逻辑
+        endfunction  //注册右键抬起事件
+        function UIExtendEvent__anon__6 takes nothing returns nothing
+            local integer func
+            if ( UIExtendEvent__rcStartOnUI and UIExtendEvent__clickStartUI != 0 ) then
+                if ( HaveSavedInteger(HASH_UI, UIExtendEvent__clickStartUI, 1913) ) then
+                    set func=LoadInteger(HASH_UI, UIExtendEvent__clickStartUI, 1913)
+                    call sc___prototype20_evaluate(func,UIExtendEvent__clickStartUI)
+                endif
+            endif
+            set UIExtendEvent__rcStartOnUI=false
+        endfunction  // UI销毁时如果鼠标正在上面,则触发一次离开事件,不然会引进只进不出的错误
+        function UIExtendEvent__anon__7 takes nothing returns nothing
+            local integer ui=s__uiLifeCycle_agrsFrame
+            local integer func
+            if ( UIExtendEvent__clickStartUI == ui and HaveSavedInteger(HASH_UI, ui, 1911) ) then
+                set func=LoadInteger(HASH_UI, UIExtendEvent__clickStartUI, 1911)
+                call sc___prototype20_evaluate(func,UIExtendEvent__clickStartUI)
+            endif
+            set UIExtendEvent__clickStartUI=0
+        endfunction  // hardware.regRightDownEvent(function () { //注册右键按下事件
+    function UIExtendEvent__onInit takes nothing returns nothing
+        call s__hardware_regLeftDownEvent(function UIExtendEvent__anon__3)
+        call s__hardware_regLeftUpEvent(function UIExtendEvent__anon__4)
+        call s__hardware_regRightDownEvent(function UIExtendEvent__anon__5)
+        call s__hardware_regRightUpEvent(function UIExtendEvent__anon__6)
+        call s__uiLifeCycle_registerDestroy(function UIExtendEvent__anon__7)
+    endfunction  //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     rcStartOnUI = true; //     rcStartUI = currentUI; // }); // hardware.regRightUpEvent(function () { //注册右键抬起事件 //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     if (rcStartOnUI && currentUI == rcStartUI) { //         if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) { //             func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK); //             func.evaluate(currentUI); //         } //     } //     rcStartOnUI = false; //     rcStartUI = 0; // });
 
-//library UTUISimpleEvent ends
+//library UIExtendEvent ends
 //library UIButton:
         function s__uiBtn_isExist takes integer this returns boolean
             return ( this != null and si__uiBtn_V[this] == - 1 )
@@ -1724,13 +1522,27 @@ endfunction
             call DzFrameSetScriptByCode(s__uiBtn_ui[this], 12, fun, false)
             return this
         endfunction  //扩展事件
-            function s__uiBtn_simpleEvent__anon__0 takes nothing returns nothing
+        function s__uiBtn_exLeftDown takes integer this,integer func returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1901, func)
+            return this
+        endfunction  //注册抬起事件,只适用于非Simple类型的
+        function s__uiBtn_exLeftUp takes integer this,integer func returns integer
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1902, func)
+            return this
+        endfunction  // 鼠标进入事件(右键前提强化版)
+            function s__uiBtn_extendEvent__anon__0 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
-                set UISimpleEvent___clickStartUI=frame
+                set UIExtendEvent__clickStartUI=frame
                 if ( HaveSavedInteger(HASH_UI, frame, 1910) ) then
                     set func=LoadInteger(HASH_UI, frame, 1910)
-                    call sc___prototype19_evaluate(func,frame)
+                    call sc___prototype20_evaluate(func,frame)
                 endif
             endfunction
         function s__uiBtn_spEnter takes integer this,integer fun returns integer
@@ -1738,16 +1550,16 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1910, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_simpleEvent__anon__0, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_extendEvent__anon__0, false)
             return this
         endfunction  // 鼠标离开事件(右键前提强化版)
-            function s__uiBtn_simpleEvent__anon__1 takes nothing returns nothing
+            function s__uiBtn_extendEvent__anon__1 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
-                set UISimpleEvent___clickStartUI=0
+                set UIExtendEvent__clickStartUI=0
                 if ( HaveSavedInteger(HASH_UI, frame, 1911) ) then
                     set func=LoadInteger(HASH_UI, frame, 1911)
-                    call sc___prototype19_evaluate(func,frame)
+                    call sc___prototype20_evaluate(func,frame)
                 endif
             endfunction
         function s__uiBtn_spLeave takes integer this,integer fun returns integer
@@ -1755,15 +1567,15 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1911, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_simpleEvent__anon__1, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_extendEvent__anon__1, false)
             return this
         endfunction  // 鼠标点击事件,其实这个不是必须项,只是为了统一写法硬加的
-            function s__uiBtn_simpleEvent__anon__2 takes nothing returns nothing
+            function s__uiBtn_extendEvent__anon__2 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 if ( HaveSavedInteger(HASH_UI, frame, 1912) ) then
                     set func=LoadInteger(HASH_UI, frame, 1912)
-                    call sc___prototype19_evaluate(func,frame)
+                    call sc___prototype20_evaluate(func,frame)
                 endif
             endfunction
         function s__uiBtn_spClick takes integer this,integer fun returns integer
@@ -1771,7 +1583,7 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1912, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_simpleEvent__anon__2, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_extendEvent__anon__2, false)
             return this
         endfunction  // 鼠标右键点击事件
         function s__uiBtn_spRightClick takes integer this,integer fun returns integer
@@ -1780,7 +1592,7 @@ endfunction
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1913, fun)
             return this
-        endfunction
+        endfunction  // 下面这批不适用Simple的所以全部删除了
         function s__uiBtn_create takes integer parent returns integer
             local integer this=s__uiBtn__allocate()
             set s__uiBtn_id[this]=s__uiId_get() //有高亮无声音的图标
@@ -1789,7 +1601,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
 //#             endif
             return this
         endfunction  //普通带声效系
@@ -1801,7 +1613,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
 //#             endif
             return this
         endfunction  //右键菜单系
@@ -1813,7 +1625,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建空白按钮
@@ -1825,7 +1637,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
@@ -1837,7 +1649,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
 //#             endif
             return this
         endfunction  //绑定原生的Button成为SimpleButton,注意不能删除哦
@@ -1960,7 +1772,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__uiImage_ui[this] , si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__uiImage_ui[this] , si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类1)
@@ -1972,7 +1784,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__uiImage_ui[this] , si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__uiImage_ui[this] , si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类2)
@@ -1984,7 +1796,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__uiImage_ui[this] , si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__uiImage_ui[this] , si__uiImage , this)
 //#             endif
             return this
         endfunction
@@ -2017,6 +1829,153 @@ function s__uiImage_deallocate takes integer this returns nothing
 endfunction
 
 //library UIImage ends
+//library UTUIExtendEvent:
+
+        function UTUIExtendEvent___anon__0 takes nothing returns nothing
+            call BJDebugMsg("enter")
+        endfunction
+        function UTUIExtendEvent___anon__1 takes nothing returns nothing
+            call BJDebugMsg("leave")
+        endfunction
+        function UTUIExtendEvent___anon__2 takes nothing returns nothing
+            call BJDebugMsg("click")
+        endfunction
+        function UTUIExtendEvent___anon__3 takes integer frame returns nothing
+            call BJDebugMsg("leftDown")
+        endfunction
+        function UTUIExtendEvent___anon__4 takes integer frame returns nothing
+            call BJDebugMsg("leftUp")
+        endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent1 takes player p returns nothing
+        set UTUIExtendEvent___img=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(DzGetGameUI()),0.035 , 0.035),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp")
+        set UTUIExtendEvent___btn=s__uiBtn_exLeftUp(s__uiBtn_exLeftDown(s__uiBtn_onMouseClick(s__uiBtn_onMouseLeave(s__uiBtn_onMouseEnter(s__uiBtn_setAllPoint(s__uiBtn_create(DzGetGameUI()),s__uiImage_ui[UTUIExtendEvent___img]),function UTUIExtendEvent___anon__0),function UTUIExtendEvent___anon__1),function UTUIExtendEvent___anon__2),(1)),(2))
+    endfunction
+        function UTUIExtendEvent___anon__5 takes integer frame returns nothing
+            local integer data=s__UIHashTable__uiHTEvent_get(s__uiHashTable_eventdata,frame)
+            call BJDebugMsg("enter:" + I2S(data))
+        endfunction
+        function UTUIExtendEvent___anon__6 takes integer frame returns nothing
+            local integer data=s__UIHashTable__uiHTEvent_get(s__uiHashTable_eventdata,frame)
+            call BJDebugMsg("leave:" + I2S(data))
+        endfunction
+        function UTUIExtendEvent___anon__7 takes integer frame returns nothing
+            local integer data=s__UIHashTable__uiHTEvent_get(s__uiHashTable_eventdata,frame)
+            call BJDebugMsg("click:" + I2S(data))
+        endfunction
+        function UTUIExtendEvent___anon__8 takes integer frame returns nothing
+            local integer data=s__UIHashTable__uiHTEvent_get(s__uiHashTable_eventdata,frame)
+            call BJDebugMsg("RightClick:" + I2S(data))
+        endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent2 takes player p returns nothing
+        set UTUIExtendEvent___img=s__uiImage_texture(s__uiImage_setPoint(s__uiImage_setSize(s__uiImage_create(DzGetGameUI()),0.035 , 0.035),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp")
+        set UTUIExtendEvent___btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__uiBtn_setAllPoint(s__uiBtn_create(DzGetGameUI()),s__uiImage_ui[UTUIExtendEvent___img]),(3)),(4)),(5)),(6))
+        call s__UIHashTable__uiHTEvent_bind(s__uiHashTable_eventdata,s__uiBtn_ui[UTUIExtendEvent___btn] , 8174)
+    endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent3 takes player p returns nothing
+        if ( s__uiBtn_isExist(UTUIExtendEvent___btn) ) then
+            call s__uiBtn_deallocate(UTUIExtendEvent___btn)
+            call BJDebugMsg("删除了,方便测试离开事件:" + I2S(s__uiBtn_ui[UTUIExtendEvent___btn]))
+        endif
+    endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent4 takes player p returns nothing
+    endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent5 takes player p returns nothing
+    endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent6 takes player p returns nothing
+    endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent7 takes player p returns nothing
+    endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent8 takes player p returns nothing
+    endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent9 takes player p returns nothing
+    endfunction
+    function UTUIExtendEvent___TTestUTUIExtendEvent10 takes player p returns nothing
+    endfunction
+    function UTUIExtendEvent___TTestActUTUIExtendEvent1 takes string str returns nothing
+        local player p=GetTriggerPlayer()
+        local integer index=GetConvertedPlayerId(p)
+        local integer i
+        local integer num=0
+        local integer len=StringLength(str)
+        local string array paramS
+        local integer array paramI
+        local real array paramR
+        set i=0
+        loop
+        exitwhen ( i > len - 1 )
+            if ( SubString(str, i, i + 1) == " " ) then
+                set paramS[num]=SubString(str, 0, i)
+                set paramI[num]=S2I(paramS[num])
+                set paramR[num]=S2R(paramS[num])
+                set num=num + 1
+                set str=SubString(str, i + 1, len)
+                set len=StringLength(str)
+                set i=- 1
+            endif
+        set i=i + 1
+        endloop
+        set paramS[num]=str
+        set paramI[num]=S2I(paramS[num])
+        set paramR[num]=S2R(paramS[num])
+        set num=num + 1
+        if ( paramS[0] == "a" ) then
+        elseif ( paramS[0] == "b" ) then
+        endif
+        set p=null
+    endfunction
+        function UTUIExtendEvent___anon__9 takes nothing returns nothing
+            call BJDebugMsg("[UIExtendEvent] 单元测试已加载")
+            call DestroyTrigger(GetTriggeringTrigger())
+        endfunction
+        function UTUIExtendEvent___anon__10 takes nothing returns nothing
+            local string str=GetEventPlayerChatString()
+            local integer i=1
+            if ( SubStringBJ(str, 1, 1) == "-" ) then
+                call UTUIExtendEvent___TTestActUTUIExtendEvent1(SubStringBJ(str, 2, StringLength(str)))
+                return
+            endif
+            if ( str == "s1" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent1(GetTriggerPlayer())
+            elseif ( str == "s2" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent2(GetTriggerPlayer())
+            elseif ( str == "s3" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent3(GetTriggerPlayer())
+            elseif ( str == "s4" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent4(GetTriggerPlayer())
+            elseif ( str == "s5" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent5(GetTriggerPlayer())
+            elseif ( str == "s6" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent6(GetTriggerPlayer())
+            elseif ( str == "s7" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent7(GetTriggerPlayer())
+            elseif ( str == "s8" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent8(GetTriggerPlayer())
+            elseif ( str == "s9" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent9(GetTriggerPlayer())
+            elseif ( str == "s10" ) then
+                call UTUIExtendEvent___TTestUTUIExtendEvent10(GetTriggerPlayer())
+            endif
+        endfunction
+    function UTUIExtendEvent___onInit takes nothing returns nothing
+        local trigger tr=CreateTrigger()
+        call TriggerRegisterTimerEventSingle(tr, 0.5)
+        call TriggerAddCondition(tr, Condition(function UTUIExtendEvent___anon__9))
+        set tr=null
+        call UnitTestRegisterChatEvent(function UTUIExtendEvent___anon__10)
+    endfunction
+
+//library UTUIExtendEvent ends
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
+
 // 锚点常量
 // 事件常量
 //鼠标点击事件
@@ -2030,20 +1989,9 @@ endfunction
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
+//窗口的大小
 
 // 0 - 1亿这里用
-//窗口的大小
-// [DzSetUnitMoveType]  
-// title = "设置单位移动类型[NEW]"  
-// description = "设置 ${单位} 的移动类型：${movetype} "  
-// comment = ""  
-// category = TC_KKPRE  
-// [[.args]]  
-// type = unit  
-// [[.args]]  
-// type = MoveTypeName  
-// default = MoveTypeName01  
-
 //控件的共用基本方法
 //===========================================================================
 //
@@ -2457,12 +2405,12 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs1382390")
-call ExecuteFunc("UnitTestFramwork___onInit")
+call ExecuteFunc("jasshelper__initstructs3622609")
+call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
-call ExecuteFunc("UISimpleEvent___onInit")
-call ExecuteFunc("UITocInit___onInit")
-call ExecuteFunc("UTUISimpleEvent___onInit")
+call ExecuteFunc("UITocInit__onInit")
+call ExecuteFunc("UIExtendEvent__onInit")
+call ExecuteFunc("UTUIExtendEvent___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -2500,54 +2448,6 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__uiImage_setPoint takes nothing returns boolean
-local integer this=f__arg_this
-local integer anchor=f__arg_integer1
-local integer relative=f__arg_integer2
-local integer relativeAnchor=f__arg_integer3
-local real offsetX=f__arg_real1
-local real offsetY=f__arg_real2
-            if ( not ( s__uiImage_isExist(this) ) ) then
-set f__result_integer= this
-return true
-            endif
-            call DzFrameSetPoint(s__uiImage_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
-set f__result_integer= this
-   return true
-endfunction
-function sa__uiImage_setSize takes nothing returns boolean
-local integer this=f__arg_this
-local real width=f__arg_real1
-local real height=f__arg_real2
-            if ( not ( s__uiImage_isExist(this) ) ) then
-set f__result_integer= this
-return true
-            endif
-            call DzFrameSetSize(s__uiImage_ui[this], width, height)
-set f__result_integer= this
-   return true
-endfunction
-function sa__uiImage_texture takes nothing returns boolean
-local integer this=f__arg_this
-local string path=f__arg_string1
-            if ( not ( s__uiImage_isExist(this) ) ) then
-set f__result_integer= this
-return true
-            endif
-            call DzFrameSetTexture(s__uiImage_ui[this], path, 0)
-set f__result_integer= this
-   return true
-endfunction
-function sa__uiImage_create takes nothing returns boolean
-local integer parent=f__arg_integer1
-            local integer this=s__uiImage__allocate()
-            set s__uiImage_id[this]=s__uiId_get()
-            set s__uiImage_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiImage_id[this]), parent, "IT", 0)
-                    call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
-                    call s__UIHashTable___uiHTFrame_bind(s__uiImage_ui[this] , si__uiImage , this)
-set f__result_integer= this
-   return true
-endfunction
 function sa__uiImage_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
             if ( not ( s__uiImage_isExist(this) ) ) then
@@ -2557,79 +2457,6 @@ return true
                     call FlushChildHashtable(HASH_UI, s__uiImage_ui[this])
             call DzDestroyFrame(s__uiImage_ui[this])
             call s__uiId_recycle(s__uiImage_id[this])
-   return true
-endfunction
-function sa__uiBtn_isExist takes nothing returns boolean
-local integer this=f__arg_this
-set f__result_boolean= ( this != null and si__uiBtn_V[this] == - 1 )
-   return true
-endfunction
-function sa__uiBtn_setAllPoint takes nothing returns boolean
-local integer this=f__arg_this
-local integer relative=f__arg_integer1
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-set f__result_integer= this
-return true
-            endif
-            call DzFrameSetAllPoints(s__uiBtn_ui[this], relative)
-set f__result_integer= this
-   return true
-endfunction
-function sa__uiBtn_spEnter takes nothing returns boolean
-local integer this=f__arg_this
-local integer fun=f__arg_integer1
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-set f__result_integer= this
-return true
-            endif
-            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1910, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_simpleEvent__anon__0, false)
-set f__result_integer= this
-   return true
-endfunction
-function sa__uiBtn_spLeave takes nothing returns boolean
-local integer this=f__arg_this
-local integer fun=f__arg_integer1
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-set f__result_integer= this
-return true
-            endif
-            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1911, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_simpleEvent__anon__1, false)
-set f__result_integer= this
-   return true
-endfunction
-function sa__uiBtn_spClick takes nothing returns boolean
-local integer this=f__arg_this
-local integer fun=f__arg_integer1
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-set f__result_integer= this
-return true
-            endif
-            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1912, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_simpleEvent__anon__2, false)
-set f__result_integer= this
-   return true
-endfunction
-function sa__uiBtn_spRightClick takes nothing returns boolean
-local integer this=f__arg_this
-local integer fun=f__arg_integer1
-            if ( not ( s__uiBtn_isExist(this) ) ) then
-set f__result_integer= this
-return true
-            endif
-            call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1913, fun)
-set f__result_integer= this
-   return true
-endfunction
-function sa__uiBtn_create takes nothing returns boolean
-local integer parent=f__arg_integer1
-            local integer this=s__uiBtn__allocate()
-            set s__uiBtn_id[this]=s__uiId_get() //有高亮无声音的图标
-            set s__uiBtn_ui[this]=DzCreateFrameByTagName("BUTTON", "Btn" + I2S(s__uiBtn_id[this]), parent, "BT", 0)
-                    call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
-                    call s__UIHashTable___uiHTFrame_bind(s__uiBtn_ui[this] , si__uiBtn , this)
-set f__result_integer= this
    return true
 endfunction
 function sa__uiBtn_onDestroy takes nothing returns boolean
@@ -2643,74 +2470,70 @@ return true
             call s__uiId_recycle(s__uiBtn_id[this])
    return true
 endfunction
-function sa___prototype19_UTUISimpleEvent___anon__0 takes nothing returns boolean
+function sa___prototype20_UTUIExtendEvent___anon__3 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable___uiHTEvent_get(s__uiHashTable_eventdata,frame)
+            call BJDebugMsg("leftDown")
+    return true
+endfunction
+function sa___prototype20_UTUIExtendEvent___anon__4 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+            call BJDebugMsg("leftUp")
+    return true
+endfunction
+function sa___prototype20_UTUIExtendEvent___anon__5 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+            local integer data=s__UIHashTable__uiHTEvent_get(s__uiHashTable_eventdata,frame)
             call BJDebugMsg("enter:" + I2S(data))
     return true
 endfunction
-function sa___prototype19_UTUISimpleEvent___anon__1 takes nothing returns boolean
+function sa___prototype20_UTUIExtendEvent___anon__6 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable___uiHTEvent_get(s__uiHashTable_eventdata,frame)
+            local integer data=s__UIHashTable__uiHTEvent_get(s__uiHashTable_eventdata,frame)
             call BJDebugMsg("leave:" + I2S(data))
     return true
 endfunction
-function sa___prototype19_UTUISimpleEvent___anon__2 takes nothing returns boolean
+function sa___prototype20_UTUIExtendEvent___anon__7 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable___uiHTEvent_get(s__uiHashTable_eventdata,frame)
+            local integer data=s__UIHashTable__uiHTEvent_get(s__uiHashTable_eventdata,frame)
             call BJDebugMsg("click:" + I2S(data))
     return true
 endfunction
-function sa___prototype19_UTUISimpleEvent___anon__3 takes nothing returns boolean
+function sa___prototype20_UTUIExtendEvent___anon__8 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable___uiHTEvent_get(s__uiHashTable_eventdata,frame)
+            local integer data=s__UIHashTable__uiHTEvent_get(s__uiHashTable_eventdata,frame)
             call BJDebugMsg("RightClick:" + I2S(data))
     return true
 endfunction
 
-function jasshelper__initstructs1382390 takes nothing returns nothing
-    set st__uiImage_setPoint=CreateTrigger()
-    call TriggerAddCondition(st__uiImage_setPoint,Condition( function sa__uiImage_setPoint))
-    set st__uiImage_setSize=CreateTrigger()
-    call TriggerAddCondition(st__uiImage_setSize,Condition( function sa__uiImage_setSize))
-    set st__uiImage_texture=CreateTrigger()
-    call TriggerAddCondition(st__uiImage_texture,Condition( function sa__uiImage_texture))
-    set st__uiImage_create=CreateTrigger()
-    call TriggerAddCondition(st__uiImage_create,Condition( function sa__uiImage_create))
+function jasshelper__initstructs3622609 takes nothing returns nothing
     set st__uiImage_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
-    set st__uiBtn_isExist=CreateTrigger()
-    call TriggerAddCondition(st__uiBtn_isExist,Condition( function sa__uiBtn_isExist))
-    set st__uiBtn_setAllPoint=CreateTrigger()
-    call TriggerAddCondition(st__uiBtn_setAllPoint,Condition( function sa__uiBtn_setAllPoint))
-    set st__uiBtn_spEnter=CreateTrigger()
-    call TriggerAddCondition(st__uiBtn_spEnter,Condition( function sa__uiBtn_spEnter))
-    set st__uiBtn_spLeave=CreateTrigger()
-    call TriggerAddCondition(st__uiBtn_spLeave,Condition( function sa__uiBtn_spLeave))
-    set st__uiBtn_spClick=CreateTrigger()
-    call TriggerAddCondition(st__uiBtn_spClick,Condition( function sa__uiBtn_spClick))
-    set st__uiBtn_spRightClick=CreateTrigger()
-    call TriggerAddCondition(st__uiBtn_spRightClick,Condition( function sa__uiBtn_spRightClick))
-    set st__uiBtn_create=CreateTrigger()
-    call TriggerAddCondition(st__uiBtn_create,Condition( function sa__uiBtn_create))
     set st__uiBtn_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiBtn_onDestroy,Condition( function sa__uiBtn_onDestroy))
-    set st___prototype19[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype19[1],function sa___prototype19_UTUISimpleEvent___anon__0)
-    call TriggerAddCondition(st___prototype19[1],Condition(function sa___prototype19_UTUISimpleEvent___anon__0))
-    set st___prototype19[2]=CreateTrigger()
-    call TriggerAddAction(st___prototype19[2],function sa___prototype19_UTUISimpleEvent___anon__1)
-    call TriggerAddCondition(st___prototype19[2],Condition(function sa___prototype19_UTUISimpleEvent___anon__1))
-    set st___prototype19[3]=CreateTrigger()
-    call TriggerAddAction(st___prototype19[3],function sa___prototype19_UTUISimpleEvent___anon__2)
-    call TriggerAddCondition(st___prototype19[3],Condition(function sa___prototype19_UTUISimpleEvent___anon__2))
-    set st___prototype19[4]=CreateTrigger()
-    call TriggerAddAction(st___prototype19[4],function sa___prototype19_UTUISimpleEvent___anon__3)
-    call TriggerAddCondition(st___prototype19[4],Condition(function sa___prototype19_UTUISimpleEvent___anon__3))
+    set st___prototype20[1]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[1],function sa___prototype20_UTUIExtendEvent___anon__3)
+    call TriggerAddCondition(st___prototype20[1],Condition(function sa___prototype20_UTUIExtendEvent___anon__3))
+    set st___prototype20[2]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[2],function sa___prototype20_UTUIExtendEvent___anon__4)
+    call TriggerAddCondition(st___prototype20[2],Condition(function sa___prototype20_UTUIExtendEvent___anon__4))
+    set st___prototype20[3]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[3],function sa___prototype20_UTUIExtendEvent___anon__5)
+    call TriggerAddCondition(st___prototype20[3],Condition(function sa___prototype20_UTUIExtendEvent___anon__5))
+    set st___prototype20[4]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[4],function sa___prototype20_UTUIExtendEvent___anon__6)
+    call TriggerAddCondition(st___prototype20[4],Condition(function sa___prototype20_UTUIExtendEvent___anon__6))
+    set st___prototype20[5]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[5],function sa___prototype20_UTUIExtendEvent___anon__7)
+    call TriggerAddCondition(st___prototype20[5],Condition(function sa___prototype20_UTUIExtendEvent___anon__7))
+    set st___prototype20[6]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[6],function sa___prototype20_UTUIExtendEvent___anon__8)
+    call TriggerAddCondition(st___prototype20[6],Condition(function sa___prototype20_UTUIExtendEvent___anon__8))
 
 
 

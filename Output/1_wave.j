@@ -118,10 +118,23 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTUISimpleEvent requires UISimpleEvent {
+library UTUIExtendEvent requires UIExtendEvent {
 	uiBtn btn = 0;
 	uiImage img = 0;
-	function TTestUTUISimpleEvent1 (player p) {
+	function TTestUTUIExtendEvent1 (player p) {
+		img = uiImage.create(DzGetGameUI())
+			.setSize(0.035,0.035)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+			.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+		btn = uiBtn.create(DzGetGameUI())
+			.setAllPoint(img.ui)
+			.onMouseEnter(function() {BJDebugMsg("enter");})
+			.onMouseLeave(function() {BJDebugMsg("leave");})
+			.onMouseClick(function() {BJDebugMsg("click");})
+			.exLeftDown(function(integer frame) {BJDebugMsg("leftDown");})
+			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");});
+	}
+	function TTestUTUIExtendEvent2 (player p) {
 		img = uiImage.create(DzGetGameUI())
 			.setSize(0.035,0.035)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
@@ -134,21 +147,20 @@ library UTUISimpleEvent requires UISimpleEvent {
 			.spRightClick(function(integer frame) {integer data = uiHashTable.eventdata.get(frame);BJDebugMsg("RightClick:"+I2S(data));});
 		uiHashTable.eventdata.bind(btn.ui,8174);
 	}
-	function TTestUTUISimpleEvent2 (player p) {
+	function TTestUTUIExtendEvent3 (player p) {
 		if (btn.isExist()) {
 			btn.destroy();
 			BJDebugMsg("删除了,方便测试离开事件:"+I2S(btn.ui));
 		}
 	}
-	function TTestUTUISimpleEvent3 (player p) {}
-	function TTestUTUISimpleEvent4 (player p) {}
-	function TTestUTUISimpleEvent5 (player p) {}
-	function TTestUTUISimpleEvent6 (player p) {}
-	function TTestUTUISimpleEvent7 (player p) {}
-	function TTestUTUISimpleEvent8 (player p) {}
-	function TTestUTUISimpleEvent9 (player p) {}
-	function TTestUTUISimpleEvent10 (player p) {}
-	function TTestActUTUISimpleEvent1 (string str) {
+	function TTestUTUIExtendEvent4 (player p) {}
+	function TTestUTUIExtendEvent5 (player p) {}
+	function TTestUTUIExtendEvent6 (player p) {}
+	function TTestUTUIExtendEvent7 (player p) {}
+	function TTestUTUIExtendEvent8 (player p) {}
+	function TTestUTUIExtendEvent9 (player p) {}
+	function TTestUTUIExtendEvent10 (player p) {}
+	function TTestActUTUIExtendEvent1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -180,7 +192,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UISimpleEvent] 单元测试已加载");
+			BJDebugMsg("[UIExtendEvent] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -188,19 +200,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUISimpleEvent1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUIExtendEvent1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUISimpleEvent1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUISimpleEvent2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUISimpleEvent3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUISimpleEvent4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUISimpleEvent5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUISimpleEvent6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUISimpleEvent7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUISimpleEvent8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUISimpleEvent9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUISimpleEvent10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUIExtendEvent1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUIExtendEvent2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUIExtendEvent3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUIExtendEvent4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUIExtendEvent5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUIExtendEvent6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUIExtendEvent7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUIExtendEvent8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUIExtendEvent9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUIExtendEvent10(GetTriggerPlayer());
 		});
 	}
 }

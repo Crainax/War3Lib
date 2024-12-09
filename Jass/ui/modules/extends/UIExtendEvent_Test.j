@@ -9,9 +9,9 @@
 //自动生成的文件
 library UTUIExtendEvent requires UIExtendEvent {
 
+	uiBtn btn = 0;
+	uiImage img = 0;
 	function TTestUTUIExtendEvent1 (player p) {
-		uiBtn btn = 0;
-		uiImage img = 0;
 		img = uiImage.create(DzGetGameUI())
 			.setSize(0.035,0.035)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
@@ -22,14 +22,28 @@ library UTUIExtendEvent requires UIExtendEvent {
 			.onMouseLeave(function() {BJDebugMsg("leave");})
 			.onMouseClick(function() {BJDebugMsg("click");})
 			.exLeftDown(function(integer frame) {BJDebugMsg("leftDown");})
-			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");})
-			.exRightClick(function(integer frame) {BJDebugMsg("rightClick");})
-			.exRightDown(function(integer frame) {BJDebugMsg("rightDown");})
-			.exRightUp(function(integer frame) {BJDebugMsg("rightUp");});
+			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");});
 	}
 
-	function TTestUTUIExtendEvent2 (player p) {}
-	function TTestUTUIExtendEvent3 (player p) {}
+	function TTestUTUIExtendEvent2 (player p) {
+		img = uiImage.create(DzGetGameUI())
+			.setSize(0.035,0.035)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+			.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+		btn = uiBtn.create(DzGetGameUI())
+			.setAllPoint(img.ui)
+			.spEnter(function(integer frame) {integer data = uiHashTable.eventdata.get(frame);BJDebugMsg("enter:"+I2S(data));})
+			.spLeave(function(integer frame) {integer data = uiHashTable.eventdata.get(frame);BJDebugMsg("leave:"+I2S(data));})
+			.spClick(function(integer frame) {integer data = uiHashTable.eventdata.get(frame);BJDebugMsg("click:"+I2S(data));})
+			.spRightClick(function(integer frame) {integer data = uiHashTable.eventdata.get(frame);BJDebugMsg("RightClick:"+I2S(data));});
+		uiHashTable.eventdata.bind(btn.ui,8174);
+	}
+	function TTestUTUIExtendEvent3 (player p) {
+		if (btn.isExist()) {
+			btn.destroy();
+			BJDebugMsg("删除了,方便测试离开事件:"+I2S(btn.ui));
+		}
+	}
 	function TTestUTUIExtendEvent4 (player p) {}
 	function TTestUTUIExtendEvent5 (player p) {}
 	function TTestUTUIExtendEvent6 (player p) {}
