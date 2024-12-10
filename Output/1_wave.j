@@ -153,8 +153,9 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		// integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);  //英雄三围框架
 		integer child = DzCreateFrameByTagName("SIMPLEFRAME", "kuangjia", parent, "框架", 0);
 		// 无响应事件置父
-		DzFrameClearAllPoints( child );
-		// 响应事件置父
+		DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
+// 响应事件置父
+
 		iconAttack = uiImage.bindSimple("攻击图标", 0)
 			.setSize(0.028, 0.028)
 			.setPoint(3, DzFrameGetPortrait(), 5, 0.015, -0.01)
@@ -203,13 +204,17 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 			.setPoint(3, btnArmor.ui, 5, 0, -0.005)
 			.setText("2000");
 	}
+	function Init2 () {
+		unitPanel.on/**/Attack/**/Enter(function () {BJDebugMsg("Attack" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Attack/**/Leave(function () {BJDebugMsg("Attack" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Attack/**/Click(function () {BJDebugMsg("Attack" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Attack/**/RightClick(function () {BJDebugMsg("Attack" + " " + "RightClick");}); <?='\n'?>
+		unitPanel.on/**/Armor/**/Enter(function () {BJDebugMsg("Armor" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Armor/**/Leave(function () {BJDebugMsg("Armor" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Armor/**/Click(function () {BJDebugMsg("Armor" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Armor/**/RightClick(function () {BJDebugMsg("Armor" + " " + "RightClick");}); <?='\n'?>
+		unitPanel.on/**/Hero/**/Enter(function () {BJDebugMsg("Hero" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Hero/**/Leave(function () {BJDebugMsg("Hero" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Hero/**/Click(function () {BJDebugMsg("Hero" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Hero/**/RightClick(function () {BJDebugMsg("Hero" + " " + "RightClick");}); <?='\n'?>
+	}
 	function TTestUTUnitPanel1 (player p) {
 	}
 	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
 
 	}
 	function TTestUTUnitPanel3 (player p) {
-		//unitPanel.onAttrBtnEnter();
 	}
 	function TTestUTUnitPanel4 (player p) {}
 	function TTestUTUnitPanel5 (player p) {}
@@ -283,14 +288,14 @@ UnitAddAbility(hero, 'ACen'); // 诱捕
 UnitAddAbility(hero, 'ANr3'); // 混乱之雨
 UnitAddAbility(hero, 'AOhw'); // 医疗波
 BJDebugMsg("[UnitPanel] 单元测试已加载");
+			// Init();
+			Init2();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		//在游戏开始0.1秒后再调用
 		tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.1);
 		TriggerAddCondition(tr,Condition(function (){
-			unitPanel.moveOutAll();
-			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

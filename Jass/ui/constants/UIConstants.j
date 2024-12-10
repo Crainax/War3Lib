@@ -72,6 +72,12 @@
 #define TEMPLATE_EDITBOX           "EB"
 #define TEMPLATE_BORDER1           "Border1"
 
+#define TEMPLATE_SIMPLE_BUTTON      "简单按钮"
+#define TEMPLATE_SIMPLE_TEXT        "简单文字"
+#define TEMPLATE_SIMPLE_TEXT_CHILD  "简单文字内容"
+#define TEMPLATE_SIMPLE_IMAGE       "简单图片"
+#define TEMPLATE_SIMPLE_IMAGE_CHILD "简单图片内容"
+
 //TEXT对齐常量:(uiText.setAlign)
 #define TEXT_ALIGN_TOPLEFT      9  // TOP + LEFT
 #define TEXT_ALIGN_TOPCENTER    17 // TOP + CENTER

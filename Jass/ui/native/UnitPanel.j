@@ -56,10 +56,155 @@ TEXTAREA
 这些类型。
 */
 
-library UnitPanel requires UITocInit {
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
+library UnitPanel requires UIButton,UIText,UIImage {
 
 
     public struct unitPanel []{
+
+        static uiBtn btnAttack         = 0; static uiText  textAttack   = 0;  //攻击相关
+        static uiText  textAttackValue = 0; static uiImage imgAttack    = 0;  //攻击相关
+        static uiBtn btnArmor          = 0; static uiText  textArmor    = 0;  //防御相关
+        static uiText  textArmorValue  = 0; static uiImage imgArmor     = 0;  //防御相关
+        static uiBtn  btnHero          = 0; static uiImage imgHero      = 0;  //英雄三围
+        static uiText textStr          = 0; static uiText  textStrValue = 0;  //力量
+        static uiText textAgi          = 0; static uiText  textAgiValue = 0;  //敏捷
+        static uiText textInt          = 0; static uiText  textIntValue = 0;  //智力
+
+        // 事件触发器
+        private {
+            static trigger trAttackEnter = null; static trigger trAttackLeave      = null;
+            static trigger trAttackClick = null; static trigger trAttackRightClick = null;
+            static trigger trArmorEnter  = null; static trigger trArmorLeave       = null;
+            static trigger trArmorClick  = null; static trigger trArmorRightClick  = null;
+            static trigger trHeroEnter   = null; static trigger trHeroLeave        = null;
+            static trigger trHeroClick   = null; static trigger trHeroRightClick   = null;
+        }
+
+        #define onUnitPanelTrigger(name,evt) \
+        static method on##name##evt (code func) { \
+        if (tr##name##evt == null) tr##name##evt = CreateTrigger(); \
+        TriggerAddCondition(tr##name##evt, Condition(func)); }
+
+        #define onUnitPanelAllEvents(name) \
+        onUnitPanelTrigger(name,Enter) CRNL \
+        onUnitPanelTrigger(name,Leave) CRNL \
+        onUnitPanelTrigger(name,Click) CRNL \
+        onUnitPanelTrigger(name,RightClick) CRNL
+
+        // 使用新的宏一次性生成每个部分的所有事件
+        onUnitPanelAllEvents(Attack)
+        onUnitPanelAllEvents(Armor)
+        onUnitPanelAllEvents(Hero)
+
+        #undef onUnitPanelTrigger
+        #undef onUnitPanelAllEvents
+
+        // 地图初始化
+        private static method mapInit () {
+            integer parent,child;
+
+            //攻击小框架相关
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0); //攻击的父框架
+            child = DzCreateFrameByTagName("SIMPLEFRAME", "upAttack", parent, "单位面板框架", 0);
+            DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
+            imgAttack = uiImage.bindSimple("单位面板图标", 0)
+                .setSize(0.027, 0.027)
+                .setPoint(ANCHOR_LEFT, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.016, -0.006)
+                .texture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
+            btnAttack = uiBtn.createSimple(parent)
+                .setAllPoint(imgAttack.ui)
+                .spEnter(function(integer frame) {if (trAttackEnter != null) TriggerEvaluate(trAttackEnter);})
+                .spLeave(function(integer frame) {if (trAttackLeave != null) TriggerEvaluate(trAttackLeave);})
+                .spClick(function(integer frame) {if (trAttackClick != null) TriggerEvaluate(trAttackClick);})
+                .spRightClick(function(integer frame) {if (trAttackRightClick != null) TriggerEvaluate(trAttackRightClick);});
+            textAttack = uiText.bindSimple("单位面板属性名", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, imgAttack.ui, ANCHOR_TOPRIGHT, 0.003, -0.003)
+                .setText("攻击:");
+            textAttackValue = uiText.bindSimple("单位面板数值", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_BOTTOMLEFT, imgAttack.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
+                .setText("0");
+
+            //防御小框架相关
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2); //防御的父框架
+            child = DzCreateFrameByTagName("SIMPLEFRAME", "upArmor", parent, "单位面板框架", 1);
+            DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
+            imgArmor = uiImage.bindSimple("单位面板图标", 1)
+                .setSize(0.027, 0.027)
+                .setPoint(ANCHOR_LEFT, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.016, -0.037)
+                .texture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
+            btnArmor = uiBtn.createSimple(parent)
+                .setAllPoint(imgArmor.ui)
+                .spEnter(function(integer frame) {if (trArmorEnter != null) TriggerEvaluate(trArmorEnter);})
+                .spLeave(function(integer frame) {if (trArmorLeave != null) TriggerEvaluate(trArmorLeave);})
+                .spClick(function(integer frame) {if (trArmorClick != null) TriggerEvaluate(trArmorClick);})
+                .spRightClick(function(integer frame) {if (trArmorRightClick != null) TriggerEvaluate(trArmorRightClick);});
+            textArmor = uiText.bindSimple("单位面板属性名", 1)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, imgArmor.ui, ANCHOR_TOPRIGHT, 0.003, -0.003)
+                .setText("防御:");
+            textArmorValue = uiText.bindSimple("单位面板数值", 1)
+                .clearPoint()
+                .setPoint(ANCHOR_BOTTOMLEFT, imgArmor.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
+                .setText("20");
+
+            //英雄属性三围
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6); //英雄属性的父框架
+            child = DzCreateFrameByTagName("SIMPLEFRAME", "upHero", parent, "英雄三围框架", 0);
+            DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
+
+            // 英雄三围图标
+            imgHero = uiImage.bindSimple("英雄三围图标", 0)
+                .setSize(0.027, 0.027)
+                .setPoint(ANCHOR_LEFT, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.11, -0.02)
+                .texture("ReplaceableTextures\\CommandButtons\\BTNJanggo.blp");
+            btnHero = uiBtn.createSimple(parent)
+                .setAllPoint(imgHero.ui)
+                .spEnter(function(integer frame) {if (trHeroEnter != null) TriggerEvaluate(trHeroEnter);})
+                .spLeave(function(integer frame) {if (trHeroLeave != null) TriggerEvaluate(trHeroLeave);})
+                .spClick(function(integer frame) {if (trHeroClick != null) TriggerEvaluate(trHeroClick);})
+                .spRightClick(function(integer frame) {if (trHeroRightClick != null) TriggerEvaluate(trHeroRightClick);});
+
+            //力量
+            textStr = uiText.bindSimple("英雄力量名", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, imgHero.ui, ANCHOR_CENTER, 0.017, 0.027)
+                .setText("力量:");
+            textStrValue = uiText.bindSimple("英雄力量值", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, textStr.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
+                .setText("10");
+
+            //敏捷
+            textAgi = uiText.bindSimple("英雄敏捷名", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, imgHero.ui, ANCHOR_CENTER, 0.017, 0.006)
+                .setText("敏捷:");
+            textAgiValue = uiText.bindSimple("英雄敏捷值", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, textAgi.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
+                .setText("20");
+
+            //智力
+            textInt = uiText.bindSimple("英雄智力名", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, imgHero.ui, ANCHOR_CENTER, 0.017, -0.015)
+                .setText("智力:");
+            textIntValue = uiText.bindSimple("英雄智力值", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, textInt.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
+                .setText("30");
+
+        }
+
+        public static method function_name () {
+            integer parent,child;
+
+        }
 
         //把所有原生UI移走
         static method moveOutAll () {
@@ -96,10 +241,19 @@ library UnitPanel requires UITocInit {
             DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
         }
 
-        // 属性按钮进入事件
-        static method onAttrBtnEnter () {
-
+        //初始化单位按钮面板
+        private static method onInit () {
+            //在游戏开始0.0秒后再调用
+            trigger tr = CreateTrigger();
+            TriggerRegisterTimerEventSingle(tr,0.0);
+            TriggerAddCondition(tr,Condition(function (){
+                moveOutAll(); // 把所有原生UI移走
+                mapInit(); // 初始化单位按钮面板
+                DestroyTrigger(GetTriggeringTrigger());
+            }));
+            tr = null;
         }
+
 
     }
 

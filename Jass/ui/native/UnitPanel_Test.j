@@ -100,13 +100,25 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 			.setText("2000");
 
 	}
+	function Init2 () {
+		#define testInit2(name,evt) unitPanel.on/**/name/**/evt(function () {BJDebugMsg(#name + " " + #evt);});
+
+		#define testInit2In(name) \
+		testInit2(name,Enter) CRNL \
+		testInit2(name,Leave) CRNL \
+		testInit2(name,Click) CRNL \
+		testInit2(name,RightClick) CRNL
+
+		testInit2In(Attack)
+		testInit2In(Armor)
+		testInit2In(Hero)
+	}
 	function TTestUTUnitPanel1 (player p) {
 	}
 	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
 
 	}
 	function TTestUTUnitPanel3 (player p) {
-		//unitPanel.onAttrBtnEnter();
 	}
 	function TTestUTUnitPanel4 (player p) {}
 	function TTestUTUnitPanel5 (player p) {}
@@ -187,6 +199,10 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 			UnitAddAbility(hero, 'ANr3'); // 混乱之雨
 			UnitAddAbility(hero, 'AOhw'); // 医疗波
 			BJDebugMsg("[UnitPanel] 单元测试已加载");
+
+			// Init();
+			Init2();
+
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 
@@ -194,8 +210,6 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.1);
 		TriggerAddCondition(tr,Condition(function (){
-			unitPanel.moveOutAll();
-			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

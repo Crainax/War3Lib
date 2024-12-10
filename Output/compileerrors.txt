@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 1728: clearAllPoints is not a member of uiText
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 2069: Syntax Error (Unexpected: ""Enter""?
 1

@@ -50,6 +50,17 @@ library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
             return this;
         }
 
+        // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
+        // parent: 父级框架
+        static method createSimple (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            DzCreateFrameByTagName("SIMPLEFRAME", STRING_IMAGE + I2S(id), parent, TEMPLATE_SIMPLE_IMAGE, id);
+            ui = DzSimpleTextureFindByName(TEMPLATE_SIMPLE_IMAGE_CHILD, id);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
         // 绑定原生图片
         // name: 图片名称(fdf写的image的名字)
         // index: 图片索引(在外部创建时的填写的ID最后一个参数)

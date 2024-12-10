@@ -35,7 +35,7 @@ library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
         anchorPosY = 0.3;
 
         imageAnchor = uiImage.create(DzGetGameUI()) //锚点钉
-            .setSize(0.01,0.01)
+            .setSize(0.005,0.005)
             .hide()
             .setAbsPoint(ANCHOR_CENTER, anchorPosX, anchorPosY) // 设置初始位置
             .texture("UI\\MiniMap\\minimap-gold.blp");
