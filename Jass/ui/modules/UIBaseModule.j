@@ -49,17 +49,11 @@ library UIBaseModule requires UIUtils {
             return this;
         }
 
-        // 隐藏控件
-        method hide () -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameShow(ui,false);
-            return this;
-        }
-
         // 显示控件
-        method show () -> thistype {
+        // 参数: boolean flag 是否显示
+        method show (boolean flag) -> thistype {
             if (!this.isExist()) {return this;}
-            DzFrameShow(ui,true);
+            DzFrameShow(ui,flag);
             return this;
         }
 

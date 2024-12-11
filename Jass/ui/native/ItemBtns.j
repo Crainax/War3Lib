@@ -56,7 +56,7 @@ library ItemBtns requires Hardware,UIHashTable {
             integer i;
             for(1 <= i <= 6) {
                 slot[i] = DzFrameGetItemBarButton(i - 1);
-                uis[i] = uiBtn.bindSimple(slot[i]);
+                uis[i] = uiBtn.bindCreated(slot[i]);
                 uis[i].onMouseEnter(function() {
                     integer frame = DzGetTriggerUIEventFrame();
                     argsPos = uiHashTable(frame).eventdata.get();

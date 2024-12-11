@@ -75,7 +75,7 @@ library SpellBtns requires Hardware,UIHashTable {
             for(1 <= row <= 3) {
                 for(1 <= col <= 4) {
                     grid[row][col] = DzFrameGetCommandBarButton(row-1, col-1);
-                    uis[row][col] = uiBtn.bindSimple(grid[row][col]);
+                    uis[row][col] = uiBtn.bindCreated(grid[row][col]);
                     uis[row][col].spEnter(function(integer frame) {
                         integer data = uiHashTable(frame).eventdata.get();
                         argsRow = (data - 1) / 4 + 1;

@@ -28,79 +28,8 @@
 //自动生成的文件
 library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 
-	uiText testText = 0,testText2 = 0;
-	uiBtn btnAttack = 0,btnArmor = 0;
-	integer valueAttack, valueArmor;
-	integer textAttack, textArmor;
-	uiImage iconAttack = 0, iconArmor = 0;
+	// 初始化测试内容
 	function Init () {
-		//单位攻击面板（也就是跟随单位攻击1显示） 没有攻击则不显示UI
-		integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0);
-		//三围面板（跟随英雄三围面板，有就显示。普通单位则不显示）可以绑定英雄
-		// integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);  //英雄三围框架
-		integer child = DzCreateFrameByTagName("SIMPLEFRAME", "kuangjia", parent, "框架", 0);
-		// 无响应事件置父
-		DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
-		// 响应事件置父
-
-		iconAttack = uiImage.bindSimple("攻击图标", 0)
-			.setSize(0.028, 0.028)
-			.setPoint(ANCHOR_LEFT, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.015, -0.01)
-			.texture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
-
-		iconArmor = uiImage.bindSimple("护甲图标", 0)
-			.setSize(0.028, 0.028)
-			.setPoint(ANCHOR_TOP, iconAttack.ui, ANCHOR_BOTTOM, 0.0, -0.005)
-			.texture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
-
-		btnAttack = uiBtn.createSimple(parent)
-			.setAllPoint(iconAttack.ui)
-			.spEnter(function(integer frame) {BJDebugMsg("enterAttack"); })
-			.spLeave(function(integer frame) {BJDebugMsg("leaveAttack"); })
-			.spClick(function(integer frame) {BJDebugMsg("clickAttack"); })
-			.spRightClick(function(integer frame) {BJDebugMsg("rightClickAttack"); });
-		btnArmor = uiBtn.createSimple(parent)
-			.setAllPoint(iconArmor.ui)
-			.spEnter(function(integer frame) {BJDebugMsg("enterArmor"); })
-			.spLeave(function(integer frame) {BJDebugMsg("leaveArmor"); })
-			.spClick(function(integer frame) {BJDebugMsg("clickArmor"); })
-			.spRightClick(function(integer frame) {BJDebugMsg("rightClickArmor"); });
-
-
-		DzCreateFrameByTagName("SIMPLEFRAME", "ceshi", child, "testFrame", 0);
-		DzCreateFrameByTagName("SIMPLEFRAME", "ceshi", child, "testFrame", 1);
-		//可以通过最后一个参数区分是哪个
-		testText = uiText.bindSimple("ceshinerong", 0)
-			.setPoint(ANCHOR_TOPLEFT, btnAttack.ui, ANCHOR_TOPRIGHT, 0.05, 0.0)
-			.setAlign(4)
-			.setText("上内容");
-		testText2 = uiText.bindSimple("ceshinerong", 1)
-			.setPoint(ANCHOR_TOP, testText.ui, ANCHOR_BOTTOM, 0, -0.005)
-			.setAlign(4)
-			.setText("下内容");
-
-		textAttack = uiText.bindSimple("攻击", 0)
-			.clearPoint()
-			.setPoint(0, btnAttack.ui, 2, 0, 0.00)
-			.setText("攻击:");
-
-		textArmor = uiText.bindSimple("护甲", 0)
-			.clearPoint()
-			.setPoint(0, btnArmor.ui, 2, 0, 0.00)
-			.setText("防御:");
-
-		valueAttack = uiText.bindSimple("攻击数值", 0)
-			.clearPoint()
-			.setPoint(3, btnAttack.ui, 5, 0, -0.005)
-			.setText("0");
-
-		valueArmor = uiText.bindSimple("护甲数值", 0)
-			.clearPoint()
-			.setPoint(3, btnArmor.ui, 5, 0, -0.005)
-			.setText("2000");
-
-	}
-	function Init2 () {
 		#define testInit2(name,evt) unitPanel.on/**/name/**/evt(function () {BJDebugMsg(#name + " " + #evt);});
 
 		#define testInit2In(name) \
@@ -200,8 +129,7 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 			UnitAddAbility(hero, 'AOhw'); // 医疗波
 			BJDebugMsg("[UnitPanel] 单元测试已加载");
 
-			// Init();
-			Init2();
+			Init();
 
 			DestroyTrigger(GetTriggeringTrigger());
 		}));

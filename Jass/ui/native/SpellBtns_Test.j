@@ -6,14 +6,79 @@
 
 //! zinc
 
+/*
+* SpellBtns_Test.j
+* ===========================================================================
+* 技能按钮单元测试模块
+* ---------------------------------------------------------------------------
+* 功能:
+*   - 测试技能按钮的创建和显示
+*   - 测试技能按钮的事件响应
+*   - 测试技能按钮的遮罩效果
+* ---------------------------------------------------------------------------
+* 测试命令:
+*   s1: 测试技能按钮遮罩
+*   s2: 切换遮罩显示/隐藏
+*   s3: 测试创建原生按钮
+*   s4: 显示技能按钮框架信息
+* ===========================================================================
+*/
+
 //自动生成的文件
 library UTSpellBtns requires SpellBtns {
 
-	function TTestUTSpellBtns1 (player p) {
+
+	uiBtn shade = 0;
+	uiImage shadeImg = 0;
+	boolean shadeVisible = false;
+	function TTestUTSpellBtns1 (player p) { //试试simpleButton能不能用,能用是能用
+		shadeImg = uiImage.create(DzGetGameUI())
+			.setSize(0.2,0.2)
+			.setPoint(ANCHOR_TOPLEFT, spellBtns.grid[1][1], ANCHOR_TOPLEFT, 0.0, 0.0)
+			.setPoint(ANCHOR_BOTTOMRIGHT, spellBtns.grid[3][4], ANCHOR_BOTTOMRIGHT, 0.0, 0.0)
+			.texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+			.show(true);
+		shade = uiBtn.createSimple(DzFrameGetParent(spellBtns.grid[3][4])) //这样也没用,全都挡不住,但是全能hover
+			// .clearPoint() 这条好像不能写  写了子的位置就不准了
+			.setSize(0.2,0.2)
+			.setPoint(ANCHOR_CENTER, spellBtns.grid[3][4], ANCHOR_CENTER, 0.0, 0.0)
+			.onMouseEnter(function() {integer frame = DzGetTriggerUIEventFrame();integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("enter"); })
+			.onMouseLeave(function() {integer frame = DzGetTriggerUIEventFrame();integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("leave"); })
+			.onMouseClick(function() {integer frame = DzGetTriggerUIEventFrame();integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("click"); })
+			.show(false); //不弄这条的话隐藏再显示好像会有问题
+		uiHashTable(shade.ui).eventdata.bind(8174);
+		shadeVisible = true;
+		// DzFrameSetParent(btn.ui, spellBtns.grid[3][4]);
+		SetPlayerAbilityAvailable(p,'AHbz',false); //随便用一个技能也可以
+		SetPlayerAbilityAvailable(p,'AHbz',true);
+		BJDebugMsg("测试了一下遮挡SpellBtns的按钮");
 	}
 	function TTestUTSpellBtns2 (player p) {
+		if (shade != 0) {
+			if (shadeVisible) {
+				shade.show(true);
+				shadeImg.show(false);
+				shadeVisible = false;
+				BJDebugMsg("隐藏遮罩");
+			} else {
+				shade.show(false);
+				shadeImg.show(true);
+				shadeVisible = true;
+				BJDebugMsg("显示遮罩");
+			}
+		}
+		SetPlayerAbilityAvailable(p,'AHbz',false);
+		SetPlayerAbilityAvailable(p,'AHbz',true);
 	}
-	function TTestUTSpellBtns3 (player p) {
+	function TTestUTSpellBtns3 (player p) { //尝试创建一下带反馈的按钮,实际行不通(从)
+		// uiBtn btnAttack;
+		// integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0); //攻击的父框架
+		// integer child = DzCreateFrameByTagName("SIMPLEFRAME", "upAttack", parent, "TestButtonBarFrame", 0);
+		// DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
+		// btnAttack = uiBtn.bindSimple("TestButtonBarQuestsButton", 0)
+		// 	.setSize(0.027, 0.027)
+		// 	.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, 0);
+		// BJDebugMsg("创建了一个原生按钮");
 	}
 	function TTestUTSpellBtns4 (player p) {
 		integer i,j;
@@ -25,7 +90,23 @@ library UTSpellBtns requires SpellBtns {
 			}
 		}
 	}
-	function TTestUTSpellBtns5 (player p) {
+	uiBtn shade2 = 0;
+	uiImage shadeImg2 = 0;
+	function TTestUTSpellBtns5 (player p) { //给原生遮罩里再创个按钮
+		if (shade.isExist()) {
+			shade2 = uiBtn.createSimple(shade.ui) //这样也没用,全都挡不住,但是全能hover
+				.clearPoint()
+				.setSize(0.035,0.035)
+				.setPoint(ANCHOR_CENTER, shade.ui, ANCHOR_CENTER, 0.0, 0.0)
+				.onMouseEnter(function() {integer frame = DzGetTriggerUIEventFrame();integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("小enter"); })
+				.onMouseLeave(function() {integer frame = DzGetTriggerUIEventFrame();integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("小leave"); })
+				.onMouseClick(function() {integer frame = DzGetTriggerUIEventFrame();integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("小click"); });
+			shadeImg2 = uiImage.create(DzGetGameUI())
+				.setSize(0.03,0.035)
+				.setAllPoint(shade2.ui)
+				.texture("ReplaceableTextures\\CommandButtons\\BTNRepairOn.blp");
+			BJDebugMsg("创建了一个子按钮");
+		}
 	}
 	function TTestUTSpellBtns6 (player p) {}
 	function TTestUTSpellBtns7 (player p) {}
@@ -73,7 +154,12 @@ library UTSpellBtns requires SpellBtns {
 			real x = 0, y = 0;
 			integer i = 0;
 
-			BJDebugMsg("[SpellBtns] 单元测试已加载");
+			BJDebugMsg("|cff00ff00[SpellBtns测试]|r 单元测试已加载");
+			BJDebugMsg("|cff00ff00[SpellBtns测试]|r 可用命令:");
+			BJDebugMsg("|cffffcc00s1|r - 测试技能按钮遮罩");
+			BJDebugMsg("|cffffcc00s2|r - 切换遮罩显示/隐藏");
+			BJDebugMsg("|cffffcc00s3|r - 测试创建原生按钮");
+			BJDebugMsg("|cffffcc00s4|r - 显示技能按钮框架信息");
 
 			// 为玩家1创建测试英雄
 			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
@@ -110,7 +196,7 @@ library UTSpellBtns requires SpellBtns {
 				integer row = spellBtns.argsRow;
 				integer column = spellBtns.argsCol;
 				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入:" + I2S(spellBtns.grid[row][column]));
-				BJDebugMsg("触发的UI:" + I2S(DzGetTriggerUIEventFrame()) + " 数据:" + I2S(uiHashTable(DzGetTriggerUIEventFrame()).eventdata.get()));
+				// BJDebugMsg("触发的UI:" + I2S(DzGetTriggerUIEventFrame()) + " 数据:" + I2S(uiHashTable(DzGetTriggerUIEventFrame()).eventdata.get()));
 			});
 			spellBtns.onLeave(function () {
 				integer row = spellBtns.argsRow;

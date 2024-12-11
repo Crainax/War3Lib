@@ -17,7 +17,6 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
         // UI组件内部共享方法及成员
         STRUCT_SHARED_INNER_UI(uiBtn)
 
-        module uiBaseModule;   // UI控件的共用方法
         module uiEventModule;  // UI事件的共用方法
 
         // 创建一个不带声音的
@@ -68,8 +67,10 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             return this;
         }
 
+
         //绑定原生的Button成为SimpleButton,注意不能删除哦
-        static method bindSimple (integer frame) -> thistype {
+        // 不能用bindSimple,因为没有dzfindSimpleButton函数,只能用这个
+        static method bindCreated (integer frame) -> thistype {
             thistype this = allocate();
             id = uiId.get();
             ui = frame;

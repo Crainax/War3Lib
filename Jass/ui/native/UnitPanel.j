@@ -112,7 +112,7 @@ library UnitPanel requires UIButton,UIText,UIImage {
             DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
             imgAttack = uiImage.bindSimple("单位面板图标", 0)
                 .setSize(0.027, 0.027)
-                .setPoint(ANCHOR_LEFT, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.016, -0.006)
+                .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.006)
                 .texture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
             btnAttack = uiBtn.createSimple(parent)
                 .setAllPoint(imgAttack.ui)
@@ -135,7 +135,7 @@ library UnitPanel requires UIButton,UIText,UIImage {
             DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
             imgArmor = uiImage.bindSimple("单位面板图标", 1)
                 .setSize(0.027, 0.027)
-                .setPoint(ANCHOR_LEFT, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.016, -0.037)
+                .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.037)
                 .texture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
             btnArmor = uiBtn.createSimple(parent)
                 .setAllPoint(imgArmor.ui)
@@ -160,7 +160,7 @@ library UnitPanel requires UIButton,UIText,UIImage {
             // 英雄三围图标
             imgHero = uiImage.bindSimple("英雄三围图标", 0)
                 .setSize(0.027, 0.027)
-                .setPoint(ANCHOR_LEFT, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.11, -0.02)
+                .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.1235, -0.02)
                 .texture("ReplaceableTextures\\CommandButtons\\BTNJanggo.blp");
             btnHero = uiBtn.createSimple(parent)
                 .setAllPoint(imgHero.ui)

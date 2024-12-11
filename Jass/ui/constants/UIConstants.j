@@ -54,25 +54,26 @@
 #define UI_STRING_PATH_BLANK "UI\\Widgets\\EscMenu\\Human\\blank-background.blp"
 
 //模板名
-#define TEMPLATE_NORMAL_BUTTON     "BT"                       //无声,有高亮
-#define TEMPLATE_TEXT_BUTTON       "TBT"
-#define TEMPLATE_IMAGE             "IT"
-#define TEMPLATE_BLANK_BUTTON      "BB"
-#define TEMPLATE_IMAGE_TOOLTIPS    "ToolTipsTemplate"
-#define TEMPLATE_IMAGE_TOOLTIPS2   "ToolTipsTemplate2"
-#define TEMPLATE_SPRITE            "SpriteTemplate"
-#define TEMPLATE_TEXT              "T1"                       // 标准文字模板(无事件)
-#define TEMPLATE_TEXT_EVENT        "T2"                       // 标准文字模板(有事件)
-#define TEMPLATE_SLIDER            "SB1V"                     // 竖滑条(异度风格)
-#define TEMPLATE_SLIDER_HORIZONTAL "SB1H"                     // 横滑条(异度风格)
-#define TEMPLATE_SLIDER_WAR3       "Base1SB1V"        // 竖滑条(魔兽风格)
-#define TEMPLATE_SLIDER_WAR3_H     "Base1SB1H" // 横滑条(魔兽风格)
-#define TEMPLATE_CHECKBOX          "CBTemplate"
-#define TEMPLATE_CHECKBOX_RADIO    "RBTemplate"
-#define TEMPLATE_EDITBOX           "EB"
-#define TEMPLATE_BORDER1           "Border1"
+#define TEMPLATE_NORMAL_BUTTON       "BT"                //无声,有高亮
+#define TEMPLATE_TEXT_BUTTON         "TBT"
+#define TEMPLATE_IMAGE               "IT"
+#define TEMPLATE_BLANK_BUTTON        "BB"
+#define TEMPLATE_IMAGE_TOOLTIPS      "ToolTipsTemplate"
+#define TEMPLATE_IMAGE_TOOLTIPS2     "ToolTipsTemplate2"
+#define TEMPLATE_IMAGE_CORNER_BORDER "CornerBorder"
+#define TEMPLATE_SPRITE              "SpriteTemplate"
+#define TEMPLATE_TEXT                "T1"                // 标准文字模板(无事件)
+#define TEMPLATE_TEXT_EVENT          "T2"                // 标准文字模板(有事件)
+#define TEMPLATE_SLIDER              "SB1V"              // 竖滑条(异度风格)
+#define TEMPLATE_SLIDER_HORIZONTAL   "SB1H"              // 横滑条(异度风格)
+#define TEMPLATE_SLIDER_WAR3         "Base1SB1V"         // 竖滑条(魔兽风格)
+#define TEMPLATE_SLIDER_WAR3_H       "Base1SB1H"         // 横滑条(魔兽风格)
+#define TEMPLATE_CHECKBOX            "CBTemplate"
+#define TEMPLATE_CHECKBOX_RADIO      "RBTemplate"
+#define TEMPLATE_EDITBOX             "EB"
+#define TEMPLATE_BORDER1             "Border1"
 
-#define TEMPLATE_SIMPLE_BUTTON      "简单按钮"
+#define TEMPLATE_SIMPLE_BUTTON      "简单按钮"   //fdf不写都行
 #define TEMPLATE_SIMPLE_TEXT        "简单文字"
 #define TEMPLATE_SIMPLE_TEXT_CHILD  "简单文字内容"
 #define TEMPLATE_SIMPLE_IMAGE       "简单图片"

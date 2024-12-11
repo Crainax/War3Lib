@@ -8,16 +8,12 @@
 /*
 模型UI组件
 */
-library UISprite requires UIId,UITocInit,UIBaseModule {
+library UISprite requires STRUCT_SHARED_REQUIRE_UI {
 
 
     public struct uiSprite {
-        integer ui; //frameID
-        integer id; //可以回收的ID名(为了销毁时ID不重复)
-
-        STRUCT_SHARED_METHODS(uiSprite)
-
-        module uiBaseModule; // UI控件的共用方法
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiSprite)
 
         // 创建模型
         // parent: 父级框架
@@ -25,6 +21,7 @@ library UISprite requires UIId,UITocInit,UIBaseModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("SPRITE",STRING_SPRITE + I2S(id),parent,TEMPLATE_SPRITE,0);
+            STRUCT_SHARED_UI_ONCREATE(uiSprite)
             return this;
         }
 
@@ -55,8 +52,16 @@ library UISprite requires UIId,UITocInit,UIBaseModule {
             return this;
         }
 
+        // 设置进度
+        method setProgress(real progress) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAnimateOffset(ui,progress);
+            return this;
+        }
+
         method onDestroy () {
             if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiSprite)
             DzDestroyFrame(ui);
             uiId.recycle(id);
         }

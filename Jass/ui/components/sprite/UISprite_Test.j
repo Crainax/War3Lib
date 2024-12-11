@@ -52,18 +52,42 @@ library UTUISprite requires UISprite {
         BJDebugMsg("创建步兵模型UI (0.05 x 0.05)");
     }
 
-    function TTestUTUISprite3(player p) {
-        // 创建主框架
-        integer FootmanDisplay =  DzCreateFrame("FootmanDisplay",DzGetGameUI(),0);
-        // 获取Sprite框架句柄
-        integer FootmanSprite =  DzFrameFindByName("FootmanSprite", 0);
-        BJDebugMsg("FootmanDisplay:"+I2S(FootmanDisplay));
-        BJDebugMsg("FootmanSprite:"+I2S(FootmanSprite));
-        DzFrameShow(FootmanDisplay,true);
-        DzFrameSetPoint(FootmanDisplay
-            ,ANCHOR_CENTER
-            ,DzGetGameUI(),ANCHOR_CENTER,0,0);
-        DzFrameSetScale(FootmanSprite,1.0);
+    function TTestUTUISprite3(player p) { //创建个模型
+        timer t;
+        real progress = 0;
+        testSprite = uiSprite.create(DzGetGameUI())
+            .setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0)
+            .setSize(0.001,0.001)
+            .setModel("UI\\Feedback\\Cooldown\\UI-Cooldown-Indicator.mdx",0,0)
+            .setAnimate(0,false);
+
+        t = CreateTimer();
+        SaveReal(HASH_TIMER, GetHandleId(t), 0, 0.0); // 保存进度值
+        SaveInteger(HASH_TIMER, GetHandleId(t), 1, 0); // 保存计数器
+
+        TimerStart(t, 0.1, true, function() {
+            timer t = GetExpiredTimer();
+            integer id = GetHandleId(t);
+            real progress = LoadReal(HASH_TIMER, id, 0);
+            integer counter = LoadInteger(HASH_TIMER, id, 1);
+
+            progress = progress + 0.01;
+            if (progress >= 1.0) {
+                progress = 0.0;
+            }
+
+            counter = counter + 1;
+            if (counter >= 10) {
+                BJDebugMsg("当前进度: " + R2S(progress));
+                counter = 0;
+            }
+
+            SaveReal(HASH_TIMER, id, 0, progress);
+            SaveInteger(HASH_TIMER, id, 1, counter);
+            testSprite.setProgress(progress);
+        });
+        t = null;
+        BJDebugMsg("创建CD的模型成功");
     }
 
     // 测试设置大小

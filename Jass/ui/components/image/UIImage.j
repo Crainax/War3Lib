@@ -50,6 +50,16 @@ library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
             return this;
         }
 
+        // 创建边角(图标系的)
+        // parent: 父级框架
+        static method createCornerBorder (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_CORNER_BORDER,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
         // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
         // parent: 父级框架
         static method createSimple (integer parent) -> thistype {

@@ -1,4 +1,4 @@
 logs\currentmapscript.j
 JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 2069: Syntax Error (Unexpected: ""Enter""?
+Line 1653: Syntax Error (Unexpected: "BJDebugMsg"?
 1

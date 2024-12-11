@@ -36,7 +36,7 @@ library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
 
         imageAnchor = uiImage.create(DzGetGameUI()) //锚点钉
             .setSize(0.005,0.005)
-            .hide()
+            .show(false)
             .setAbsPoint(ANCHOR_CENTER, anchorPosX, anchorPosY) // 设置初始位置
             .texture("UI\\MiniMap\\minimap-gold.blp");
 
@@ -44,7 +44,7 @@ library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
             imageRuler[i] = uiImage.create(DzGetGameUI());
             textRuler[i] = uiText.create(DzGetGameUI()) //上
                 .setAlign(4)
-                .hide()
+                .show(false)
                 .setText("0.000");
         }
 
@@ -53,19 +53,19 @@ library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
             imageRuler[i].setPoint(ANCHOR_TOP, textRuler[i].ui, ANCHOR_TOP, 0, 0)
                 .setPoint(ANCHOR_BOTTOM, textRuler[i].ui, ANCHOR_BOTTOM, 0, 0)
                 .setSize(0.01, 0.01)
-                .hide()
+                .show(false)
                 .texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
         }
 
         // 创建尺子图像
         for (3 <= i <= 4) { //左右
             imageRuler[i].setAllPoint(textRuler[i].ui)
-                .hide()
+                .show(false)
                 .texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
         }
 
         // 创建锚点到鼠标的尺子
-        imageRuler[5].hide()
+        imageRuler[5].show(false)
             .setAlpha(100)
             .texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
         textRuler[5].setPoint(ANCHOR_CENTER, imageRuler[5].ui, ANCHOR_CENTER, 0, 0)
@@ -77,16 +77,16 @@ library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
             integer i;
             isShowRuler = !isShowRuler;
             if (isShowRuler) {
-                imageAnchor.show();
+                imageAnchor.show(true);
                 for (1 <= i <= 5) {
-                    imageRuler[i].show();
-                    textRuler[i].show();
+                    imageRuler[i].show(true);
+                    textRuler[i].show(true);
                 }
             } else {
-                imageAnchor.hide();
+                imageAnchor.show(false);
                 for (1 <= i <= 5) {
-                    imageRuler[i].hide();
-                    textRuler[i].hide();
+                    imageRuler[i].show(false);
+                    textRuler[i].show(false);
                 }
             }
         });
