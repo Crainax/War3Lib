@@ -4,14 +4,14 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include
-
 //! zinc
 
 //自动生成的文件
 library UTIcon requires Icon {
 
-	function TTestUTIcon1 (player p) {}
+	function TTestUTIcon1 (player p) {
+		//icon.create
+	}
 	function TTestUTIcon2 (player p) {}
 	function TTestUTIcon3 (player p) {}
 	function TTestUTIcon4 (player p) {}

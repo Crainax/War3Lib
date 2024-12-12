@@ -17,7 +17,8 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
         // UI组件内部共享方法及成员
         STRUCT_SHARED_INNER_UI(uiBtn)
 
-        module uiEventModule;  // UI事件的共用方法
+        module   uiEventModule;      // UI事件的共用方法
+        optional module extendDrag;  //扩展拖动(只有button能用,其他就不放进去了)
 
         // 创建一个不带声音的
         // parent: 父级框架

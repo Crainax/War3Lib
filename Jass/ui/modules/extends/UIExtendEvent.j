@@ -84,6 +84,7 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
             return this;
         }
 
+
         // 下面这批不适用Simple的所以全部删除了
         // //注册右键按下事件
         // method exRightDown (uiEvent func)  -> thistype {

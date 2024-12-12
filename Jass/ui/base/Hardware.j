@@ -48,6 +48,20 @@ library Hardware requires BzAPI {
 			TriggerAddCondition(trMove, Condition(func));
 		}
 
+		// 获取鼠标的实数坐标X(0-0.8)
+		static method getMouseX ()  -> real {
+			integer width = DzGetClientWidth();
+			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
+			else return 0.1;
+		}
+
+		// 获取鼠标的实数坐标Y(0-0.6)
+		static method getMouseY ()  -> real {
+			integer height = DzGetClientHeight();
+			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
+			else return 0.1; // 防止除以0
+		}
+
 		private {
 			static trigger trWheel = null;
 			static trigger trUpdate = null;

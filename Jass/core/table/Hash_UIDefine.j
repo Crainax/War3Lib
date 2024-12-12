@@ -25,6 +25,8 @@ UI哈希表定义
 
 #define HASH_KEY_UI_EXTEND_RESIZER            1940 //储存的扩展自适应器实例
 #define HASH_KEY_UI_EXTEND_REPOINTER          1941 //储存的扩展位置重组器实例
-
+#define HASH_KEY_UI_DRAG_X                    1942 //储存拖拽X坐标
+#define HASH_KEY_UI_DRAG_Y                    1943 //储存拖拽Y坐标
+#define HASH_KEY_UI_EXTEND_DRAGGER           1944 //储存的扩展拖拽器实例
 
 #endif

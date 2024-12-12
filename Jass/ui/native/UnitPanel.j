@@ -201,11 +201,6 @@ library UnitPanel requires UIButton,UIText,UIImage {
 
         }
 
-        public static method function_name () {
-            integer parent,child;
-
-        }
-
         //把所有原生UI移走
         static method moveOutAll () {
             integer ui;

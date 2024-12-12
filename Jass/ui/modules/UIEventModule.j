@@ -47,8 +47,7 @@ library UIEventModule {
             return this;
         }
 
-        optional module extendEvent; //扩展事件
-        // optional module simpleEvent; //原生UI的事件
+        optional module extendEvent;  //扩展事件
     }
 
 }
