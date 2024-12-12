@@ -1,6 +1,9 @@
 #ifndef IconIncluded
 #define IconIncluded
 
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
+
+
 //===========================================================================
 // Icon.j
 //===========================================================================
@@ -33,7 +36,7 @@
 /*
 [按钮]整合到了一起
 */
-library Icon requires UIBase, UIAnim, GrowData, UIText, UIImage, UIButton,UISprite {
+library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
 
     public struct icon {
         // UI组件
@@ -42,7 +45,7 @@ library Icon requires UIBase, UIAnim, GrowData, UIText, UIImage, UIButton,UISpri
         uiImage cornerShade;    // 角落文字背景
         uiImage glowImage;      // 流光特效图片
         uiText cornerText;      // 角落文字
-        uiButton clickBtn;      // 点击按钮
+        uiBtn clickBtn;      // 点击按钮
         uiSprite cdSprite;      // CD显示精灵
 
         // 动画相关
@@ -52,27 +55,29 @@ library Icon requires UIBase, UIAnim, GrowData, UIText, UIImage, UIButton,UISpri
         // 尺寸
         real sizeX;
         real sizeY;
-        boolean isReSize;
+        boolean isResize;
+
+        STRUCT_SHARED_METHODS(icon)
 
         // 私有的初始化方法
         private method init() {
             // 初始化所有成员为0
-            mainImage = 0;
+            mainImage   = 0;
             shadowImage = 0;
             cornerShade = 0;
-            cornerText = 0;
-            clickBtn = 0;
-            glowImage = 0;
-            cdSprite = 0;
+            cornerText  = 0;
+            clickBtn    = 0;
+            glowImage   = 0;
+            cdSprite    = 0;
 
             // 动画相关
             glowAnim = 0;
-            gd = 0;
+            gd       = 0;
 
             // 尺寸初始化为0
-            sizeX = 0;
-            sizeY = 0;
-            isReSize = false;
+            sizeX    = 0;
+            sizeY    = 0;
+            isResize = false;
         }
 
         // 普通创建方法
@@ -99,8 +104,8 @@ library Icon requires UIBase, UIAnim, GrowData, UIText, UIImage, UIButton,UISpri
             // 绑定现有图片
             mainImage = existingImage;
             if (mainImage.isExist()) {
-                sizeX = mainImage.getWidth();
-                sizeY = mainImage.getHeight();
+                sizeX = DzFrameGetWidth(mainImage.ui);
+                sizeY = DzFrameGetHeight(mainImage.ui);
             }
 
             return this;
@@ -157,12 +162,12 @@ library Icon requires UIBase, UIAnim, GrowData, UIText, UIImage, UIButton,UISpri
             if (!cornerText.isExist()) {
                 cornerShade = uiImage.createCornerBorder(mainImage.ui);
                 cornerText = uiText.create(cornerShade.ui)
-                    .setFontSize(2);
-                cornerText.setPoint(ANCHOR_CENTER, cornerShade.ui, ANCHOR_CENTER, 0, 0);
+                    .setFontSize(2)
+                    .setPoint(ANCHOR_BOTTOMRIGHT, mainImage.ui, ANCHOR_BOTTOMRIGHT, -0.003,0.003);
                 // 自动调整背景大小以适应文本
                 padding = 0.003;
-                cornerShade.setPoint(ANCHOR_TOPLEFT, cornerText.ui, ANCHOR_TOPLEFT, -padding, padding);
-                cornerShade.setPoint(ANCHOR_BOTTOMRIGHT, cornerText.ui, ANCHOR_BOTTOMRIGHT, padding, -padding);
+                cornerShade.setPoint(ANCHOR_TOPLEFT, cornerText.ui, ANCHOR_TOPLEFT, -padding, padding)
+                    .setPoint(ANCHOR_BOTTOMRIGHT, cornerText.ui, ANCHOR_BOTTOMRIGHT, padding, -padding);
             }
 
             cornerText.setText(value);
@@ -184,8 +189,7 @@ library Icon requires UIBase, UIAnim, GrowData, UIText, UIImage, UIButton,UISpri
             if (!shadowImage.isExist() && flag) {
                 shadowImage = uiImage.create(mainImage.ui)
                     .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
-                    .setAlpha(160)
-                    .setAllPoints(mainImage.ui)
+                    .setAllPoint(mainImage.ui);
             }
             if (shadowImage.isExist()) {
                 shadowImage.show(flag);
@@ -205,11 +209,11 @@ library Icon requires UIBase, UIAnim, GrowData, UIText, UIImage, UIButton,UISpri
         }
 
         // 获取按钮,然后再在外面设按钮相关的事件
-        method getClickBtn() -> uiButton {
-            if (!this.isExist()) {return;}
+        method getClickBtn() -> uiBtn {
+            if (!this.isExist()) {return 0;}
             if (!clickBtn.isExist()) {
-                clickBtn = uiButton.create(mainImage.ui)
-                    .setAllPoints(mainImage.ui);
+                clickBtn = uiBtn.create(mainImage.ui)
+                    .setAllPoint(mainImage.ui);
             }
             return clickBtn;
         }

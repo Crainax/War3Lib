@@ -12,7 +12,7 @@
 * 测试功能:
 * 1. 创建模型UI (s1) - 创建默认大小 0.001 x 0.001
 * 2. 设置模型路径 (s2) - 创建步兵模型 0.2 x 0.2
-* 3. 设置位置 (s3)
+* 3. 测试CD模型
 * 4. 设置大小 (s4) - 创建大尺寸 0.04 x 0.04
 * 5. 销毁模型UI (s5)
 * 6. 批量创建测试 (s6)
@@ -171,7 +171,7 @@ library UTUISprite requires UISprite {
             BJDebugMsg("测试指令:");
             BJDebugMsg("s1: 创建默认模型UI (0.001 x 0.001)");
             BJDebugMsg("s2: 设置模型");
-            BJDebugMsg("s3: 设置位置");
+            BJDebugMsg("s3: 测试CD模型");
             BJDebugMsg("s4: 创建大尺寸模型UI (0.04 x 0.04)");
             BJDebugMsg("s5: 销毁模型UI");
             BJDebugMsg("s6: 批量创建测试");

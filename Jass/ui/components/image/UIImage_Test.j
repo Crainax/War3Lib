@@ -25,8 +25,8 @@ library UTUIImage requires UIImage {
 			currentImage = uiImage.create(DzGetGameUI())
 				.setSize(0.04, 0.04)
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			// .texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
-				.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+			// .setTexture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
+				.setTexture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
 			BJDebugMsg("创建了一个基础图像UI");
 		}
 	}

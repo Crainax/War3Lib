@@ -1,4 +1,4 @@
 logs\currentmapscript.j
 JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 1254: Syntax Error (Unexpected: "}"?
+Line 2148: Syntax Error (Unexpected: "static"?
 1

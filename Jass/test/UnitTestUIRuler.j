@@ -38,7 +38,7 @@ library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
             .setSize(0.005,0.005)
             .show(false)
             .setAbsPoint(ANCHOR_CENTER, anchorPosX, anchorPosY) // 设置初始位置
-            .texture("UI\\MiniMap\\minimap-gold.blp");
+            .setTexture("UI\\MiniMap\\minimap-gold.blp");
 
         for (1 <= i <= 5) {
             imageRuler[i] = uiImage.create(DzGetGameUI());
@@ -54,20 +54,20 @@ library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
                 .setPoint(ANCHOR_BOTTOM, textRuler[i].ui, ANCHOR_BOTTOM, 0, 0)
                 .setSize(0.01, 0.01)
                 .show(false)
-                .texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+                .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
         }
 
         // 创建尺子图像
         for (3 <= i <= 4) { //左右
             imageRuler[i].setAllPoint(textRuler[i].ui)
                 .show(false)
-                .texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+                .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
         }
 
         // 创建锚点到鼠标的尺子
         imageRuler[5].show(false)
             .setAlpha(100)
-            .texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+            .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
         textRuler[5].setPoint(ANCHOR_CENTER, imageRuler[5].ui, ANCHOR_CENTER, 0, 0)
             .setSize(0.1, 0);
 

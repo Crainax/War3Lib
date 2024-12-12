@@ -15,7 +15,7 @@ library UTUIExtendEvent requires UIExtendEvent {
 		img = uiImage.create(DzGetGameUI())
 			.setSize(0.035,0.035)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
 		btn = uiBtn.create(DzGetGameUI())
 			.setAllPoint(img.ui)
 			.onMouseEnter(function() {BJDebugMsg("enter");})
@@ -29,7 +29,7 @@ library UTUIExtendEvent requires UIExtendEvent {
 		img = uiImage.create(DzGetGameUI())
 			.setSize(0.035,0.035)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
 		btn = uiBtn.create(DzGetGameUI())
 			.setAllPoint(img.ui)
 			.spEnter(function(integer frame) {integer data = uiHashTable(frame).eventdata.get();BJDebugMsg("enter:"+I2S(data));})

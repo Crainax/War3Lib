@@ -32,7 +32,7 @@ library UTItemBtns requires ItemBtns {
 			.onMouseClick(function() {BJDebugMsg("click"); });
 		img = uiImage.create(btn.ui)
 			.setAllPoint(btn.ui)
-			.texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+			.setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
 		itemBtns.onEnter(function () {
 			integer pos = itemBtns.argsPos;
 			BJDebugMsg("第" + I2S(pos) + "个物品进入");

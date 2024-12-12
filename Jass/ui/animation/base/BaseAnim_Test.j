@@ -52,7 +52,7 @@ library UTBaseAnim requires BaseAnim {
 			img = uiImage.create(DzGetGameUI())
 				.setSize(0.035,0.035)
 				.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_BOTTOMLEFT,0.05 + column * 0.04,0.05 + 0.04 * row)
-				.texture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
+				.setTexture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
 			ba = baseanim.create(img.ui);
 			tFromBA[ba] = this; //写在create函数里
 			if (uID == 0) { //这里是初始化时的设置内容,不需要改

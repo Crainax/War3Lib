@@ -12,7 +12,7 @@ library UIImageModule {
     // 定义共用的方法结构
     public module uiImageModule {
         // 设置图片路径
-        method texture (string path) -> thistype {
+        method setTexture (string path) -> thistype {
             if (!this.isExist()) {return this;}
             DzFrameSetTexture(this.ui,path,0);
             return this;

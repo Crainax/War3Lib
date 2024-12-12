@@ -29,11 +29,11 @@ library UIImageBar requires UIImage {
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             uiBackground = uiImage.create(parent)
-                .texture(DEFAULT_COLOR_BACKGROUND);
+                .setTexture(DEFAULT_COLOR_BACKGROUND);
             uiFill = uiImage.create(parent)
                 .setPoint(ANCHOR_TOPLEFT, uiBackground.ui , ANCHOR_TOPLEFT, 0.0, 0.0)
                 .setPoint(ANCHOR_BOTTOMLEFT, uiBackground.ui , ANCHOR_BOTTOMLEFT, 0.0, 0.0)
-                .texture(DEFAULT_COLOR_FILL);
+                .setTexture(DEFAULT_COLOR_FILL);
             border = 0; // 默认没有边框
             return this;
         }
@@ -44,9 +44,9 @@ library UIImageBar requires UIImage {
             if (!this.isExist()) {return this;}
             color = ModuloInteger(playerColor, 16);
             if (color < 10) {
-                uiFill.texture("ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp");
+                uiFill.setTexture("ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp");
             } else {
-                uiFill.texture("ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp");
+                uiFill.setTexture("ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp");
             }
             return this;
         }
@@ -57,9 +57,9 @@ library UIImageBar requires UIImage {
             if (!this.isExist()) {return this;}
             color = ModuloInteger(playerColor, 16);
             if (color < 10) {
-                uiBackground.texture("ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp");
+                uiBackground.setTexture("ReplaceableTextures\\TeamColor\\TeamColor0" + I2S(color) + ".blp");
             } else {
-                uiBackground.texture("ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp");
+                uiBackground.setTexture("ReplaceableTextures\\TeamColor\\TeamColor" + I2S(color) + ".blp");
             }
             return this;
         }

@@ -24,7 +24,7 @@ library UTUIButton requires UIButton {
 		uiImage img;
 		if (GetLocalPlayer() == p) {
 			img = uiImage.create(DzGetGameUI()).setSize(0.04,0.04)
-				.texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp")
+				.setTexture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp")
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
 			currentBtn = uiBtn.create(DzGetGameUI())
 				.setAllPoint(img.ui);
@@ -55,7 +55,7 @@ library UTUIButton requires UIButton {
 			.onMouseWheel(function (){BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()));})
 			.onMouseDoubleClick(function (){BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()));});
 		uiImage img = uiImage.create(DzGetGameUI())
-			.texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp")
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp")
 			.setAllPoint(blankBtn.ui);
 		BJDebugMsg("创建了空白按钮UI");
 	}

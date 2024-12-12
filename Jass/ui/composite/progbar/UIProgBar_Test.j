@@ -30,7 +30,7 @@ library UTUIProgBar requires UIProgBar {
 		uiImage currentImage = uiImage.create(DzGetGameUI())
 			.setSize(0.2,0.01)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.texture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
 	}
 	function TTestUTUIProgBar3 (player p) {
 

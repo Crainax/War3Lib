@@ -16,7 +16,7 @@ library UTUILayer requires UILayer {
 		image1 = uiImage.create(uilayer.lv[1])
 			.setSize(0.035,0.035)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.01, 0.0)
-			.texture("ReplaceableTextures\\PassiveButtons\\PASBTNResistantSkin.blp");
+			.setTexture("ReplaceableTextures\\PassiveButtons\\PASBTNResistantSkin.blp");
 		txt = uiText.create(image1.ui)
 			.setAllPoint(image1.ui)
 			.setAlign(4)
@@ -24,7 +24,7 @@ library UTUILayer requires UILayer {
 		image2 = uiImage.create(uilayer.lv[2])
 			.setSize(0.035,0.035)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.texture("ReplaceableTextures\\CommandButtons\\BTNStampede.blp");
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNStampede.blp");
 		txt = uiText.create(image2.ui)
 			.setAllPoint(image2.ui)
 			.setAlign(4)

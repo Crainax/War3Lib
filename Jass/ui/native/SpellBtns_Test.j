@@ -36,7 +36,7 @@ library UTSpellBtns requires SpellBtns {
 			.setSize(0.2,0.2)
 			.setPoint(ANCHOR_TOPLEFT, spellBtns.grid[1][1], ANCHOR_TOPLEFT, 0.0, 0.0)
 			.setPoint(ANCHOR_BOTTOMRIGHT, spellBtns.grid[3][4], ANCHOR_BOTTOMRIGHT, 0.0, 0.0)
-			.texture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+			.setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
 			.show(true);
 		shade = uiBtn.createSimple(DzFrameGetParent(spellBtns.grid[3][4])) //这样也没用,全都挡不住,但是全能hover
 			// .clearPoint() 这条好像不能写  写了子的位置就不准了
@@ -104,7 +104,7 @@ library UTSpellBtns requires SpellBtns {
 			shadeImg2 = uiImage.create(DzGetGameUI())
 				.setSize(0.03,0.035)
 				.setAllPoint(shade2.ui)
-				.texture("ReplaceableTextures\\CommandButtons\\BTNRepairOn.blp");
+				.setTexture("ReplaceableTextures\\CommandButtons\\BTNRepairOn.blp");
 			BJDebugMsg("创建了一个子按钮");
 		}
 	}

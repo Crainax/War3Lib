@@ -113,7 +113,7 @@ library UnitPanel requires UIButton,UIText,UIImage {
             imgAttack = uiImage.bindSimple("单位面板图标", 0)
                 .setSize(0.027, 0.027)
                 .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.006)
-                .texture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
             btnAttack = uiBtn.createSimple(parent)
                 .setAllPoint(imgAttack.ui)
                 .spEnter(function(integer frame) {if (trAttackEnter != null) TriggerEvaluate(trAttackEnter);})
@@ -136,7 +136,7 @@ library UnitPanel requires UIButton,UIText,UIImage {
             imgArmor = uiImage.bindSimple("单位面板图标", 1)
                 .setSize(0.027, 0.027)
                 .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.037)
-                .texture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
             btnArmor = uiBtn.createSimple(parent)
                 .setAllPoint(imgArmor.ui)
                 .spEnter(function(integer frame) {if (trArmorEnter != null) TriggerEvaluate(trArmorEnter);})
@@ -161,7 +161,7 @@ library UnitPanel requires UIButton,UIText,UIImage {
             imgHero = uiImage.bindSimple("英雄三围图标", 0)
                 .setSize(0.027, 0.027)
                 .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.1235, -0.02)
-                .texture("ReplaceableTextures\\CommandButtons\\BTNJanggo.blp");
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNJanggo.blp");
             btnHero = uiBtn.createSimple(parent)
                 .setAllPoint(imgHero.ui)
                 .spEnter(function(integer frame) {if (trHeroEnter != null) TriggerEvaluate(trHeroEnter);})

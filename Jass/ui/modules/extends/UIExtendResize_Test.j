@@ -15,7 +15,7 @@ library UTUIExtendResize requires UIExtendResize {
 		// .setSizeFix(0.035,0.035)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 			.exReSize(0.035,0.035) //自适应大小
-			.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
 	}
 	uiImage imgs[];
 	function TTestUTUIExtendResize2 (player p) {
@@ -28,7 +28,7 @@ library UTUIExtendResize requires UIExtendResize {
 			imgs[i] = uiImage.create(DzGetGameUI())
 				.exReSize(0.035,0.035)
 				.exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, row * 0.036, column * -0.036)
-				.texture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+				.setTexture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
 			txt[i] = uiText.create(imgs[i].ui)
 				.setAllPoint(imgs[i].ui)
 				.setAlign(4)
