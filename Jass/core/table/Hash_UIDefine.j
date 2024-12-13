@@ -23,8 +23,9 @@ UI哈希表定义
 #define HASH_KEY_UI_SIMPLE_EVENT_CLICK       1912 //储存的简单事件:鼠标点击
 #define HASH_KEY_UI_SIMPLE_EVENT_RIGHT_CLICK 1913 //储存的简单事件:鼠标右键点击
 
-#define HASH_KEY_UI_EXTEND_RESIZER            1940 //储存的扩展自适应器实例
-#define HASH_KEY_UI_EXTEND_REPOINTER          1941 //储存的扩展位置重组器实例
-#define HASH_KEY_UI_EXTEND_DRAGGER           1944 //储存的扩展拖拽器实例
+#define HASH_KEY_UI_EXTEND_RESIZER   1940 //储存的扩展自适应器实例
+#define HASH_KEY_UI_EXTEND_REPOINTER 1941 //储存的扩展位置重组器实例
+#define HASH_KEY_UI_EXTEND_DRAGGER   1944 //储存的扩展拖拽器实例
+#define HASH_KEY_UI_PROGRESS_ANIM    1945 //储存的进度动画实例
 
 #endif

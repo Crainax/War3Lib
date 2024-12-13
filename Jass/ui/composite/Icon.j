@@ -111,81 +111,102 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
             return this;
         }
 
-        // 加入流光效果
-        method grow(integer parent, growdata gd) {
-            if (!glowImage.isExist()) {
-                glowImage = uiImage.create(parent)
-                    .setPoint(ANCHOR_CENTER, mainImage.ui, ANCHOR_CENTER, 0, 0);
-                glowAnim = baseanim.create(glowImage.ui);
-                glowImage.setSize(sizeX * gd.scale, sizeY * gd.scale);
-                glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
-                this.gd = gd;
-            } else {
-                if (gd != this.gd) { //如果流光数据不一样，则更新流光数据,如果一样则不更新,怕影响初始帧
-                    glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
+
+        // 更新流光尺寸
+        private method updateGlowSize () {
+            if (glowImage.isExist()) {
+                if (isResize) {
+                    glowImage.exReSize(sizeX * gd.scale, sizeY * gd.scale);
+                } else {
                     glowImage.setSize(sizeX * gd.scale, sizeY * gd.scale);
-                    this.gd = gd;
                 }
             }
         }
 
+        // 加入流光效果
+        method grow(integer parent, growdata gd) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (!glowImage.isExist()) {
+                glowImage = uiImage.create(parent)
+                    .setPoint(ANCHOR_CENTER, mainImage.ui, ANCHOR_CENTER, 0, 0);
+                glowAnim = baseanim.create(glowImage.ui);
+                glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
+                this.updateGlowSize();
+                this.gd = gd;
+            } else {
+                if (gd != this.gd) {
+                    glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
+                    this.updateGlowSize();
+                    this.gd = gd;
+                }
+            }
+            return this;
+        }
+
         // 取消流光
-        method unGrow() {
+        method unGrow() -> thistype {
+            if (!this.isExist()) {return this;}
             if (glowImage.isExist()) {
                 glowImage.destroy();
                 glowImage = 0;
                 glowAnim.destroy();
                 glowAnim = 0;
             }
+            return this;
         }
 
         // 设置尺寸
-        method setSize(real x, real y) {
-            if (!this.isExist()) {return;}
-            mainImage.setSize(x, y);
-            if (glowImage.isExist()) {
-                glowImage.setSize(x * gd.scale, y * gd.scale);
+        method setSize(real x, real y) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (sizeX <= 0 || sizeY <= 0) {return this;}
+            if (isResize) {
+                mainImage.exReSize(x, y);
+            } else {
+                mainImage.setSize(x, y);
             }
+            this.updateGlowSize();
             sizeX = x;
             sizeY = y;
+            return this;
         }
 
-        //todo:设置自适应尺寸
-        method setReSize() {
-            isResize = true; //这个不可逆
+        method enableReSize() -> thistype {
+            if (!this.isExist()) {return this;}
+            isResize = true;
+            setSize(sizeX, sizeY);
+            return this;
         }
 
         // 设置数字
-        method setCornerText(string value) {
+        method setCornerText(string value) -> thistype {
             real padding;
-            if (!this.isExist()) {return;}
+            if (!this.isExist()) {return this;}
             if (!cornerText.isExist()) {
                 cornerShade = uiImage.createCornerBorder(mainImage.ui);
                 cornerText = uiText.create(cornerShade.ui)
                     .setFontSize(2)
                     .setPoint(ANCHOR_BOTTOMRIGHT, mainImage.ui, ANCHOR_BOTTOMRIGHT, -0.003,0.003);
-                // 自动调整背景大小以适应文本
                 padding = 0.003;
                 cornerShade.setPoint(ANCHOR_TOPLEFT, cornerText.ui, ANCHOR_TOPLEFT, -padding, padding)
                     .setPoint(ANCHOR_BOTTOMRIGHT, cornerText.ui, ANCHOR_BOTTOMRIGHT, padding, -padding);
             }
-
             cornerText.setText(value);
-
+            return this;
         }
 
         // 显示/隐藏数字
-        method showCornerText(boolean flag) {
-            if (!this.isExist()) {return;}
+        method showCornerText(boolean flag) -> thistype {
+            if (!this.isExist()) {return this;}
             if (cornerText.isExist()) {
                 cornerText.show(flag);
                 cornerShade.show(flag);
             }
+            return this;
         }
 
         // 设置图标暗遮罩
-        method setShadow(boolean flag) {
-            if (!this.isExist()) {return;}
+        method setShadow(boolean flag) -> thistype {
+            if (!this.isExist()) {return this;}
             if (!shadowImage.isExist() && flag) {
                 shadowImage = uiImage.create(mainImage.ui)
                     .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
@@ -194,18 +215,20 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
             if (shadowImage.isExist()) {
                 shadowImage.show(flag);
             }
+            return this;
         }
 
         // CD显示相关方法
-        method startCooldown(real duration) {
-            if (!this.isExist()) {return;}
+        method startCooldown(real duration) -> thistype {
+            if (!this.isExist()) {return this;}
             if (!cdSprite.isExist()) {
                 cdSprite = uiSprite.create(mainImage.ui)
                     .setPoint(ANCHOR_CENTER,mainImage.ui,ANCHOR_CENTER,0,0)
-                    .setSize(0.001,0.001)  //测试过无论设置成什么都不影响ping的大小
-                    .setModel("ui\\model\\ping2.mdx",0,0);
+                    .setSize(0.001,0.001)
+                    .setModel("UI\\Feedback\\Cooldown\\UI-Cooldown-Indicator.mdx",0,0)
+                    .setAnimate(0,false);
             }
-            //todo: 完成CD动画
+            return this;
         }
 
         // 获取按钮,然后再在外面设按钮相关的事件
@@ -219,15 +242,17 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
         }
 
         // 设置图标贴图
-        method setTexture(string path) {
-            if (!this.isExist()) {return;}
+        method setTexture(string path) -> thistype {
+            if (!this.isExist()) {return this;}
             mainImage.setTexture(path);
+            return this;
         }
 
         // 显示/隐藏整个图标
-        method show(boolean flag) {
-            if (!this.isExist()) {return;}
+        method show(boolean flag) -> thistype {
+            if (!this.isExist()) {return this;}
             mainImage.show(flag);
+            return this;
         }
 
         method onDestroy() {

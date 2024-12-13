@@ -1,6 +1,9 @@
 #ifndef UIConstantsIncluded
 #define UIConstantsIncluded
 
+#include "Crainax/core/table/Hash_UIDefine.j"
+
+
 // 锚点常量
 #define ANCHOR_TOPLEFT 0
 #define ANCHOR_TOP_LEFT 0

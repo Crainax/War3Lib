@@ -118,97 +118,46 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTIcon requires Icon {
-	private icon testIcon1 = 0;
-	private boolean isTest1Active = false;
-	private boolean isTest3Active = false;
-	private boolean isTest4Active = false;
-	// 基础图标创建和显示测试
-	function TTestUTIcon1 (player p) {
-		if (!isTest1Active) {
-			testIcon1 = icon.create(DzGetGameUI());
-			testIcon1.mainImage.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, 0);
-			testIcon1.setTexture("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp");
-			testIcon1.setSize(0.04, 0.04);
-			testIcon1.show(true);
-			isTest1Active = true;
-			BJDebugMsg("基础图标已创建 - 输入s1可关闭");
-		} else {
-			testIcon1.destroy();
-			testIcon1 = 0;
-			isTest1Active = false;
-			BJDebugMsg("基础图标已关闭");
+library UTProgressAnim requires ProgressAnim {
+	uiSprite testSprite = 0;
+	uiImage img = 0;
+	function TTestUTProgressAnim1 (player p) {
+		if (img.isExist()) {
+			img.destroy();
 		}
+		if (testSprite.isExist()) {
+			testSprite.destroy();
+		}
+		img = uiImage.create(DzGetGameUI())
+			.setSize(0.035,0.035)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+			.setClip(true)
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNHealOn.blp");
+		testSprite = uiSprite.create(img.ui)
+			.setPoint(ANCHOR_CENTER,img.ui,ANCHOR_BOTTOM_LEFT,0,0)
+			.setSize(0.001,0.001)
+			.setModel("UI\\Feedback\\Cooldown\\UI-Cooldown-Indicator.mdx",0,0)
+			// .setScale(3.0)
+			.setAnimate(0,false)
+			.progAnimate(0,1,5.0,function(uiSprite sprite) {
+				integer i = uiHashTable(sprite).eventdata.get();
+				BJDebugMsg("进度动画结束:"+I2S(i)); //line1
+sprite.destroy();
+			});
+		uiHashTable(testSprite).eventdata.bind(6665);
 	}
-	// 角落文字测试
-	function TTestUTIcon2 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		testIcon1.setCornerText(I2S(GetRandomInt(1, 99)));
-		testIcon1.showCornerText(true);
-		BJDebugMsg("已更新角落文字 - 再次输入s2随机新数字");
+	function TTestUTProgressAnim2 (player p) {
 	}
-	// 流光效果测试
-	function TTestUTIcon3 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest3Active) {
-			testIcon1.grow(DzGetGameUI(), growdata[ICONGROW_2]);
-			isTest3Active = true;
-			BJDebugMsg("流光效果已开启 - 输入s3可关闭");
-		} else {
-			testIcon1.unGrow();
-			isTest3Active = false;
-			BJDebugMsg("流光效果已关闭");
-		}
+	function TTestUTProgressAnim3 (player p) {
 	}
-	// 暗遮罩测试
-	function TTestUTIcon4 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest4Active) {
-			testIcon1.setShadow(true);
-			isTest4Active = true;
-			BJDebugMsg("暗遮罩已开启 - 输入s4可关闭");
-		} else {
-			testIcon1.setShadow(false);
-			isTest4Active = false;
-			BJDebugMsg("暗遮罩已关闭");
-		}
-	}
-	// 点击事件测试
-	function TTestUTIcon5 (player p) {
-		uiBtn btn;
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		btn = testIcon1.getClickBtn();
-		btn.onMouseClick(function(){
-			BJDebugMsg("图标被点击!");
-		});
-		BJDebugMsg("点击事件已绑定 - 请点击图标测试");
-	}
-	// CD显示测试
-	function TTestUTIcon6 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		testIcon1.startCooldown(10.0);
-		BJDebugMsg("CD显示已开始 - 持续10秒");
-	}
-	function TTestUTIcon7 (player p) {}
-	function TTestUTIcon8 (player p) {}
-	function TTestUTIcon9 (player p) {}
-	function TTestUTIcon10 (player p) {}
-	function TTestActUTIcon1 (string str) {
+	function TTestUTProgressAnim4 (player p) {}
+	function TTestUTProgressAnim5 (player p) {}
+	function TTestUTProgressAnim6 (player p) {}
+	function TTestUTProgressAnim7 (player p) {}
+	function TTestUTProgressAnim8 (player p) {}
+	function TTestUTProgressAnim9 (player p) {}
+	function TTestUTProgressAnim10 (player p) {}
+	function TTestActUTProgressAnim1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -240,7 +189,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[Icon] 单元测试已加载");
+			BJDebugMsg("[ProgressAnim] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -248,19 +197,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTIcon1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTProgressAnim1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTIcon1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTIcon2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTIcon3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTIcon4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTIcon5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTIcon6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTIcon7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTIcon8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTIcon9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTIcon10(GetTriggerPlayer());
+			if (str == "s1") TTestUTProgressAnim1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTProgressAnim2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTProgressAnim3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTProgressAnim4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTProgressAnim5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTProgressAnim6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTProgressAnim7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTProgressAnim8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTProgressAnim9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTProgressAnim10(GetTriggerPlayer());
 		});
 	}
 }

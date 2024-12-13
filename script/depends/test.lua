@@ -34,8 +34,8 @@ end
 
 
 local tr = jass.CreateTrigger()
-jass.TriggerRegisterTimerEvent(tr, 0.5,false)
-jass.TriggerAddCondition(tr,jass.Condition(function ()
+jass.TriggerRegisterTimerEvent(tr, 0.5, false)
+jass.TriggerAddCondition(tr, jass.Condition(function()
     print("1111")
 end))
 print("tr: " .. tr)
@@ -49,7 +49,5 @@ end))
 print("g.trr: " .. g.trr)
 print("g.trr's type: " .. type(g.trr))
 
-print(table.unpack(dbg.functiondef(jass.GetUnitX)))  -- 打印 R H
+print(table.unpack(dbg.functiondef(jass.GetUnitX))) -- 打印 R H
 -- print(table.unpack(dbg.globaldef(g.testhaha))) -- 直接报错
-
-

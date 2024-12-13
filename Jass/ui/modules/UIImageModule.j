@@ -18,6 +18,14 @@ library UIImageModule {
             return this;
         }
 
+        // 设置图片控件视口,防止模型超出范围
+        method setClip (boolean clip) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetClip(this.ui,clip);
+            return this;
+        }
+
+
     }
 
 }

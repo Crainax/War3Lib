@@ -1,92 +1,119 @@
-#ifndef MapBoundsUtilsIncluded
-#define MapBoundsUtilsIncluded
+#ifndef UnitTestFramworkIncluded
+#define UnitTestFramworkIncluded
+
+/*
+单元测试框架(注入)
+*/
 
 //! zinc
-// 地图边界工具库
-library MapBoundsUtils {
+library UnitTestFramwork {
 
-    public struct mapBounds {
-        static real maxX = 0.;
-        static real minX = 0.;
-        static real maxY = 0.;
-        static real minY = 0.;
+	//单元测试总
+	trigger TUnitTest = null;
 
-        // 限制X坐标在地图范围内
-        static method X (real x) -> real {
-            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
-        }
-        // 限制Y坐标在地图范围内
-        static method Y (real y) -> real {
-            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
-        }
-
-        // 初始化
-        static method onInit () {
-            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
-            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
-            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
-            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
-        }
-
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
     }
 
-}
-//! endzinc
+    function onInit ()  {
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
+            }
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
 
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+    }
+}
+
+//! endzinc
 #endif
 
-#ifndef UIEventModuleIncluded
-#define UIEventModuleIncluded
 
+
+#ifndef UISpriteIncluded
+#define UISpriteIncluded
+
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 //! zinc
 /*
-UI事件的共用方法
+模型UI组件
 */
-library UIEventModule {
-    // 定义共用的方法结构
-    public module uiEventModule {
-        // 鼠标进入事件
-        method onMouseEnter (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_ENTER,fun,false);
-            return this;
-        }
-        // 鼠标离开事件
-        method onMouseLeave (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_LEAVE,fun,false);
-            return this;
-        }
-        // 鼠标松开事件,和点击一样,基本可以当相同事件
-        // method onMouseUp (code fun) -> thistype {
-        //     if (!this.isExist()) {return this;}
-        //     DzFrameSetScriptByCode(ui,FRAME_MOUSE_UP,fun,false);
-        //     return this;
-        // }
-        // 鼠标点击事件(效果和FRAME_MOUSE_UP一样,注释掉上面这个了)
-        method onMouseClick (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_DOWN,fun,false);
-            return this;
-        }
-        // 鼠标滚轮事件
-        method onMouseWheel (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_WHEEL,fun,false);
-            return this;
-        }
-        // 鼠标双击事件
-        method onMouseDoubleClick (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,FRAME_MOUSE_DOUBLECLICK,fun,false);
+library UISprite requires STRUCT_SHARED_REQUIRE_UI {
+
+
+    public struct uiSprite {
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiSprite)
+
+        // 可选引入进度动画模块
+        optional module panimable;
+
+        // 创建模型
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("SPRITE",STRING_SPRITE + I2S(id),parent,TEMPLATE_SPRITE,0);
+            STRUCT_SHARED_UI_ONCREATE(uiSprite)
             return this;
         }
 
-        optional module extendEvent;  //扩展事件
+        // 设置模型(目前只做平面型就行了,后面2个0固定了)
+        // @param path: 模型路径
+        // @param modelType: 模型类型(0 = SPRITE（精灵/图标）,1 = MODEL（3D模型）,2 = STATUSBAR（状态条）)
+        // @param flag: 标志(0 = 普通显示,1 = 允许选择模型,2 = 使用鼠标移动模型,4 = 添加模型动画控制器),要位运算
+        method setModel(string path,integer modelType,integer flag) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetModel(ui,path,modelType,flag);
+            return this;
+        }
+
+        // 设置缩放
+        // @param scale: 缩放比例
+        method setScale (real scale) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScale(ui,scale);
+            return this;
+        }
+
+        // 设置动画
+        // @param animate: 动画ID,一般为0
+        // @param auto: 是否自动播放
+        method setAnimate(integer animate,boolean auto) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAnimate(ui,animate,auto);
+            return this;
+        }
+
+        // 设置进度
+        method setProgress(real progress) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAnimateOffset(ui,progress);
+            return this;
+        }
+
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiSprite)
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
     }
-
 }
 
 //! endzinc
@@ -112,6 +139,14 @@ library UIImageModule {
             return this;
         }
 
+        // 设置图片控件视口,防止模型超出范围
+        method setClip (boolean clip) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetClip(this.ui,clip);
+            return this;
+        }
+
+
     }
 
 }
@@ -119,6 +154,179 @@ library UIImageModule {
 
 //! endzinc
 #endif
+
+#ifndef UIImageIncluded
+#define UIImageIncluded
+
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
+//! zinc
+/*
+图片UI组件
+*/
+
+//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
+//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
+
+library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
+
+    public struct uiImage {
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiImage)
+
+        module uiImageModule;  // UI图片的共用方法
+
+        // 创建图片
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
+        // 创建工具提示背景图片(种类1)
+        // parent: 父级框架
+        static method createToolTips (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
+        // 创建工具提示背景图片(种类2)
+        // parent: 父级框架
+        static method createToolTips2 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS2,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
+        // 创建边角(图标系的)
+        // parent: 父级框架
+        static method createCornerBorder (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_CORNER_BORDER,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
+        // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
+        // parent: 父级框架
+        static method createSimple (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            DzCreateFrameByTagName("SIMPLEFRAME", STRING_IMAGE + I2S(id), parent, TEMPLATE_SIMPLE_IMAGE, id);
+            ui = DzSimpleTextureFindByName(TEMPLATE_SIMPLE_IMAGE_CHILD, id);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
+        // 绑定原生图片
+        // name: 图片名称(fdf写的image的名字)
+        // index: 图片索引(在外部创建时的填写的ID最后一个参数)
+        static method bindSimple (string name, integer index) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzSimpleTextureFindByName(name, index);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
+
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiImage)
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
+    }
+}
+
+
+
+//! endzinc
+#endif
+
+#ifndef UIBaseModuleIncluded
+#define UIBaseModuleIncluded
+
+//控件的共用基本方法
+
+//! zinc
+library UIBaseModule requires UIUtils {
+    // 定义共用的方法结构
+    public module uiBaseModule {
+        // 设置位置
+        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
+            return this;
+        }
+
+        // 大小完全对齐父框架
+        method setAllPoint (integer relative) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAllPoints(ui,relative);
+            return this;
+        }
+
+        //绝对位置
+        method setAbsPoint (integer anchor, real x, real y) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAbsolutePoint(ui,anchor,x,y);
+            return this;
+        }
+
+        // 清除所有位置
+        method clearPoint () -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameClearAllPoints(ui);
+            return this;
+        }
+
+        // 设置大小
+        method setSize (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width,height);
+            return this;
+        }
+
+        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        method setSizeFix (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width*GetResizeRate(),height);
+            return this;
+        }
+
+        // 显示控件
+        // 参数: boolean flag 是否显示
+        method show (boolean flag) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameShow(ui,flag);
+            return this;
+        }
+
+        //透明度(0-255)
+        method setAlpha (integer value) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAlpha(ui,value);
+            return this;
+        }
+
+        optional module extendResize; //扩展自适应大小方法
+    }
+}
+//! endzinc
+
+#endif
+
 
 #ifndef MathUtilsIncluded
 #define MathUtilsIncluded
@@ -298,187 +506,42 @@ library MathUtils {
 //! endzinc
 #endif
 
-#ifndef UISpriteIncluded
-#define UISpriteIncluded
-
-#include "Crainax/config/SharedMethod.h" // 结构体共用方法
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
+#ifndef MapBoundsUtilsIncluded
+#define MapBoundsUtilsIncluded
 
 //! zinc
-/*
-模型UI组件
-*/
-library UISprite requires STRUCT_SHARED_REQUIRE_UI {
+// 地图边界工具库
+library MapBoundsUtils {
 
+    public struct mapBounds {
+        static real maxX = 0.;
+        static real minX = 0.;
+        static real maxY = 0.;
+        static real minY = 0.;
 
-    public struct uiSprite {
-        // UI组件内部共享方法及成员
-        STRUCT_SHARED_INNER_UI(uiSprite)
-
-        // 创建模型
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("SPRITE",STRING_SPRITE + I2S(id),parent,TEMPLATE_SPRITE,0);
-            STRUCT_SHARED_UI_ONCREATE(uiSprite)
-            return this;
+        // 限制X坐标在地图范围内
+        static method X (real x) -> real {
+            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
+        }
+        // 限制Y坐标在地图范围内
+        static method Y (real y) -> real {
+            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
         }
 
-        // 设置模型(目前只做平面型就行了,后面2个0固定了)
-        // @param path: 模型路径
-        // @param modelType: 模型类型(0 = SPRITE（精灵/图标）,1 = MODEL（3D模型）,2 = STATUSBAR（状态条）)
-        // @param flag: 标志(0 = 普通显示,1 = 允许选择模型,2 = 使用鼠标移动模型,4 = 添加模型动画控制器),要位运算
-        method setModel(string path,integer modelType,integer flag) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetModel(ui,path,modelType,flag);
-            return this;
+        // 初始化
+        static method onInit () {
+            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
+            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
+            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
+            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
         }
 
-        // 设置缩放
-        // @param scale: 缩放比例
-        method setScale (real scale) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScale(ui,scale);
-            return this;
-        }
-
-        // 设置动画
-        // @param animate: 动画ID,一般为0
-        // @param auto: 是否自动播放
-        method setAnimate(integer animate,boolean auto) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAnimate(ui,animate,auto);
-            return this;
-        }
-
-        // 设置进度
-        method setProgress(real progress) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAnimateOffset(ui,progress);
-            return this;
-        }
-
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            STRUCT_SHARED_UI_ONDESTROY(uiSprite)
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
     }
+
 }
-
 //! endzinc
+
 #endif
-
-#ifndef UITextIncluded
-#define UITextIncluded
-
-#include "Crainax/config/SharedMethod.h" // 结构体共用方法
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-
-//! zinc
-/*
-文字UI组件
-*/
-library UIText requires STRUCT_SHARED_REQUIRE_UI,UITextModule {
-
-
-    public struct uiText {
-        // UI组件内部共享方法及成员
-        STRUCT_SHARED_INNER_UI(uiText)
-
-        // UI控件的共用方法
-        module uiTextModule;   // UI文本的共用方法
-
-        // 创建文本
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("TEXT",STRING_TEXT + I2S(id),parent,TEMPLATE_TEXT,0);
-            STRUCT_SHARED_UI_ONCREATE(uiText)
-            return this;
-        }
-
-        // 创建一个用在原生Frame里的文本,这种文本是不能destroy的!
-        // parent: 父级框架
-        static method createSimple (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            DzCreateFrameByTagName("SIMPLEFRAME", STRING_TEXT + I2S(id), parent, TEMPLATE_SIMPLE_TEXT, id);
-            ui = DzSimpleFontStringFindByName(TEMPLATE_SIMPLE_TEXT_CHILD, id);
-            STRUCT_SHARED_UI_ONCREATE(uiText)
-            return this;
-        }
-
-        // 绑定原生文本
-        // name: 文本名称(fdf写的text的名字)
-        // index: 文本索引(在外部创建时的填写的ID最后一个参数)
-        static method bindSimple (string name, integer index) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzSimpleFontStringFindByName(name, index);
-            STRUCT_SHARED_UI_ONCREATE(uiText)
-            return this;
-        }
-
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            STRUCT_SHARED_UI_ONDESTROY(uiText)
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
-    }
-}
-
-//! endzinc
-#endif
-
-#ifndef UnitTestFramworkIncluded
-#define UnitTestFramworkIncluded
-
-/*
-单元测试框架(注入)
-*/
-
-//! zinc
-library UnitTestFramwork {
-
-	//单元测试总
-	trigger TUnitTest = null;
-
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-
-    function onInit ()  {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
-            }
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
-    }
-}
-
-//! endzinc
-#endif
-
-
 
 #ifndef UILifeCycleIncluded
 #define UILifeCycleIncluded
@@ -534,494 +597,188 @@ library UILifeCycle {
 //! endzinc
 #endif
 
-#ifndef BZAPIINCLUDE
-#define BZAPIINCLUDE
-
-library BzAPI
-    //hardware
-    native DzGetMouseTerrainX takes nothing returns real
-    native DzGetMouseTerrainY takes nothing returns real
-    native DzGetMouseTerrainZ takes nothing returns real
-    native DzIsMouseOverUI takes nothing returns boolean
-    native DzGetMouseX takes nothing returns integer
-    native DzGetMouseY takes nothing returns integer
-    native DzGetMouseXRelative takes nothing returns integer
-    native DzGetMouseYRelative takes nothing returns integer
-    native DzSetMousePos takes integer x, integer y returns nothing
-    native DzTriggerRegisterMouseEvent takes trigger trig, integer btn, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseEventByCode takes trigger trig, integer btn, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterKeyEvent takes trigger trig, integer key, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterKeyEventByCode takes trigger trig, integer key, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseWheelEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseWheelEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseMoveEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseMoveEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzGetTriggerKey takes nothing returns integer
-    native DzGetWheelDelta takes nothing returns integer
-    native DzIsKeyDown takes integer iKey returns boolean
-    native DzGetTriggerKeyPlayer takes nothing returns player
-    native DzGetWindowWidth takes nothing returns integer
-    native DzGetWindowHeight takes nothing returns integer
-    native DzGetWindowX takes nothing returns integer
-    native DzGetWindowY takes nothing returns integer
-    native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzIsWindowActive takes nothing returns boolean
-    //plus
-    native DzDestructablePosition takes destructable d, real x, real y returns nothing
-    native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
-    native DzExecuteFunc takes string funcName returns nothing
-    native DzGetUnitUnderMouse takes nothing returns unit
-    native DzSetUnitTexture takes unit whichUnit, string path, integer texId returns nothing
-    native DzSetMemory takes integer address, real value returns nothing
-    native DzSetUnitID takes unit whichUnit, integer id returns nothing
-    native DzSetUnitModel takes unit whichUnit, string path returns nothing
-    native DzSetWar3MapMap takes string map returns nothing
-    native DzGetLocale takes nothing returns string
-    native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
-    //sync
-    native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
-    native DzSyncData takes string prefix, string data returns nothing
-    native DzGetTriggerSyncPrefix takes nothing returns string
-    native DzGetTriggerSyncData takes nothing returns string
-    native DzGetTriggerSyncPlayer takes nothing returns player
-    native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
-    //native DzGetPushContext takes nothing returns string
-    native DzSyncDataImmediately takes string prefix, string data returns nothing   
-    //gui
-    native DzFrameHideInterface takes nothing returns nothing
-    native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
-    native DzFrameGetPortrait takes nothing returns integer
-    native DzFrameGetMinimap takes nothing returns integer
-    native DzFrameGetCommandBarButton takes integer row, integer column returns integer
-    native DzFrameGetHeroBarButton takes integer buttonId returns integer
-    native DzFrameGetHeroHPBar takes integer buttonId returns integer
-    native DzFrameGetHeroManaBar takes integer buttonId returns integer
-    native DzFrameGetItemBarButton takes integer buttonId returns integer
-    native DzFrameGetMinimapButton takes integer buttonId returns integer
-    native DzFrameGetUpperButtonBarButton takes integer buttonId returns integer
-    native DzFrameGetTooltip takes nothing returns integer
-    native DzFrameGetChatMessage takes nothing returns integer
-    native DzFrameGetUnitMessage takes nothing returns integer
-    native DzFrameGetTopMessage takes nothing returns integer
-    native DzGetColor takes integer r, integer g, integer b, integer a returns integer
-    native DzFrameSetUpdateCallback takes string func returns nothing
-    native DzFrameSetUpdateCallbackByCode takes code funcHandle returns nothing
-    native DzFrameShow takes integer frame, boolean enable returns nothing
-    native DzCreateFrame takes string frame, integer parent, integer id returns integer
-    native DzCreateSimpleFrame takes string frame, integer parent, integer id returns integer
-    native DzDestroyFrame takes integer frame returns nothing
-    native DzLoadToc takes string fileName returns nothing
-    native DzFrameSetPoint takes integer frame, integer point, integer relativeFrame, integer relativePoint, real x, real y returns nothing
-    native DzFrameSetAbsolutePoint takes integer frame, integer point, real x, real y returns nothing
-    native DzFrameClearAllPoints takes integer frame returns nothing
-    native DzFrameSetEnable takes integer name, boolean enable returns nothing
-    native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
-    native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
-    native DzGetTriggerUIEventPlayer takes nothing returns player
-    native DzGetTriggerUIEventFrame takes nothing returns integer
-    native DzFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFontStringFindByName takes string name, integer id returns integer
-    native DzSimpleTextureFindByName takes string name, integer id returns integer
-    native DzGetGameUI takes nothing returns integer
-    native DzClickFrame takes integer frame returns nothing
-    native DzSetCustomFovFix takes real value returns nothing
-    native DzEnableWideScreen takes boolean enable returns nothing
-    native DzFrameSetText takes integer frame, string text returns nothing
-    native DzFrameGetText takes integer frame returns string
-    native DzFrameSetTextSizeLimit takes integer frame, integer size returns nothing
-    native DzFrameGetTextSizeLimit takes integer frame returns integer
-    native DzFrameSetTextColor takes integer frame, integer color returns nothing
-    native DzGetMouseFocus takes nothing returns integer
-    native DzFrameSetAllPoints takes integer frame, integer relativeFrame returns boolean
-    native DzFrameSetFocus takes integer frame, boolean enable returns boolean
-    native DzFrameSetModel takes integer frame, string modelFile, integer modelType, integer flag returns nothing
-    native DzFrameGetEnable takes integer frame returns boolean
-    native DzFrameSetAlpha takes integer frame, integer alpha returns nothing
-    native DzFrameGetAlpha takes integer frame returns integer
-    native DzFrameSetAnimate takes integer frame, integer animId, boolean autocast returns nothing
-    native DzFrameSetAnimateOffset takes integer frame, real offset returns nothing
-    native DzFrameSetTexture takes integer frame, string texture, integer flag returns nothing
-    native DzFrameSetScale takes integer frame, real scale returns nothing
-    native DzFrameSetTooltip takes integer frame, integer tooltip returns nothing
-    native DzFrameCageMouse takes integer frame, boolean enable returns nothing
-    native DzFrameGetValue takes integer frame returns real
-    native DzFrameSetMinMaxValue takes integer frame, real minValue, real maxValue returns nothing
-    native DzFrameSetStepValue takes integer frame, real step returns nothing
-    native DzFrameSetValue takes integer frame, real value returns nothing
-    native DzFrameSetSize takes integer frame, real w, real h returns nothing
-    native DzCreateFrameByTagName takes string frameType, string name, integer parent, string template, integer id returns integer
-    native DzFrameSetVertexColor takes integer frame, integer color returns nothing
-    native DzOriginalUIAutoResetPoint takes boolean enable returns nothing
-    native DzFrameSetPriority takes integer frame, integer priority returns nothing
-    native DzFrameSetParent takes integer frame, integer parent returns nothing
-    native DzFrameGetHeight takes integer frame returns real
-    native DzFrameSetFont takes integer frame, string fileName, real height, integer flag returns nothing
-    native DzFrameGetParent takes integer frame returns integer
-    native DzFrameSetTextAlignment takes integer frame, integer align returns nothing
-    native DzFrameGetName takes integer frame returns string
-    native DzGetClientWidth takes nothing returns integer
-    native DzGetClientHeight takes nothing returns integer
-    native DzFrameIsVisible takes integer frame returns boolean
-        //显示/隐藏SimpleFrame
-    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
-    // 追加文字（支持TextArea）
-    native DzFrameAddText takes integer frame, string text returns nothing
-    // 沉默单位-禁用技能
-    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
-    // 禁用攻击
-    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
-    // 禁用道具
-    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
-    // 刷新小地图
-    native DzUpdateMinimap takes nothing returns nothing
-    // 修改单位alpha
-    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
-    // 设置单位是否可以选中
-    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
-    // 修改单位是否可以被设置为目标
-    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
-    // 保存内存数据
-    native DzSaveMemoryCache takes string cache returns nothing
-    // 读取内存数据
-    native DzGetMemoryCache takes nothing returns string
-    // 设置加速倍率
-    native DzSetSpeed takes real ratio returns nothing
-    // 转换世界坐标为屏幕坐标-异步
-    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
-    // 转换世界坐标为屏幕坐标-获取转换后的X坐标
-    native DzGetConvertWorldPositionX takes nothing returns real
-    // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
-    native DzGetConvertWorldPositionY takes nothing returns real
-    // 创建command button
-    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
-    function DzTriggerRegisterMouseEventTrg takes trigger trg, integer status, integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
-    endfunction
-
-    function DzTriggerRegisterKeyEventTrg takes trigger trg, integer status, integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterKeyEvent(trg, btn, status, true, null)
-    endfunction
-
-    function DzTriggerRegisterMouseMoveEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseMoveEvent(trg, true, null)
-    endfunction
-
-    function DzTriggerRegisterMouseWheelEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseWheelEvent(trg, true, null)
-    endfunction
-
-    function DzTriggerRegisterWindowResizeEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterWindowResizeEvent(trg, true, null)
-    endfunction
-
-    function DzF2I takes integer i returns integer
-        return i
-    endfunction
-
-    function DzI2F takes integer i returns integer
-        return i
-    endfunction
-
-    function DzK2I takes integer i returns integer
-        return i
-    endfunction
-
-    function DzI2K takes integer i returns integer
-        return i
-    endfunction
-
-    function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMIA", true)
-    endfunction
-
-    //玩家消耗/使用商城道具事件
-    function DzTriggerRegisterMallItemConsumeEvent takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMIC", true)
-    endfunction
-
-    //玩家删除商城道具事件
-    function DzTriggerRegisterMallItemRemoveEvent takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMID", true)
-    endfunction
-
-    function DzGetTriggerMallItemPlayer takes nothing returns player
-        return DzGetTriggerSyncPlayer()
-    endfunction
-
-    function DzGetTriggerMallItem takes nothing returns string
-        return DzGetTriggerSyncData()
-    endfunction
-
-    
-
-endlibrary
-
-#endif /// YDWEAddAIOrderIncluded
-
-#ifndef IconIncluded
-#define IconIncluded
-
-#include "Crainax/config/SharedMethod.h" // 结构体共用方法
-
-
-//===========================================================================
-// Icon.j
-//===========================================================================
-//
-// 模块描述：
-//   实现了魔兽争霸3中通用的图标UI组件，支持图标显示、数字标记、
-//   按钮功能、流光特效等特性。
-//
-// 作者：[你的名字]
-// 创建日期：[创建日期]
-// 最后修改：[最后修改日期]
-//
-// 依赖项：
-//   - UIBase
-//   - UIAnim
-//   - GrowData
-//   - UIText
-//   - UIImage
-//   - UIButton
-//   - UISprite
-//
-// 使用示例：
-//   icon myIcon = icon.create(parentFrame, true, true);
-//   myIcon.size(0.04, 0.04);
-//
-//===========================================================================
-
+#ifndef UITocInitIncluded
+#define UITocInitIncluded
 
 //! zinc
 /*
-[按钮]整合到了一起
+Toc初始化,才能使用UI功能
 */
-library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
+library UITocInit requires BzAPI,LBKKAPI {
 
-    public struct icon {
-        // UI组件
-        uiImage mainImage;      // 主图标图片
-        uiImage shadowImage;    // 图标暗遮罩
-        uiImage cornerShade;    // 角落文字背景
-        uiImage glowImage;      // 流光特效图片
-        uiText cornerText;      // 角落文字
-        uiBtn clickBtn;      // 点击按钮
-        uiSprite cdSprite;      // CD显示精灵
-
-        // 动画相关
-        baseanim glowAnim;    // 流光动画
-        growdata gd;          // 流光数据
-
-        // 尺寸
-        real sizeX;
-        real sizeY;
-        boolean isResize;
-
-        STRUCT_SHARED_METHODS(icon)
-
-        // 私有的初始化方法
-        private method init() {
-            // 初始化所有成员为0
-            mainImage   = 0;
-            shadowImage = 0;
-            cornerShade = 0;
-            cornerText  = 0;
-            clickBtn    = 0;
-            glowImage   = 0;
-            cdSprite    = 0;
-
-            // 动画相关
-            glowAnim = 0;
-            gd       = 0;
-
-            // 尺寸初始化为0
-            sizeX    = 0;
-            sizeY    = 0;
-            isResize = false;
-        }
-
-        // 普通创建方法
-        static method create(integer parent) -> thistype {
-            thistype this = allocate();
-            this.init();
-
-            // 设置默认尺寸
-            sizeX = 0.04;
-            sizeY = 0.04;
-
-            // 创建必需组件
-            mainImage = uiImage.create(parent);
-            mainImage.show(false);
-
-            return this;
-        }
-
-        // 从现有UI创建图标
-        static method fromExistingUI(uiImage existingImage) -> thistype {
-            thistype this = allocate();
-            this.init();
-
-            // 绑定现有图片
-            mainImage = existingImage;
-            if (mainImage.isExist()) {
-                sizeX = DzFrameGetWidth(mainImage.ui);
-                sizeY = DzFrameGetHeight(mainImage.ui);
-            }
-
-            return this;
-        }
-
-        // 加入流光效果
-        method grow(integer parent, growdata gd) {
-            if (!glowImage.isExist()) {
-                glowImage = uiImage.create(parent)
-                    .setPoint(ANCHOR_CENTER, mainImage.ui, ANCHOR_CENTER, 0, 0);
-                glowAnim = baseanim.create(glowImage.ui);
-                glowImage.setSize(sizeX * gd.scale, sizeY * gd.scale);
-                glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
-                this.gd = gd;
-            } else {
-                if (gd != this.gd) { //如果流光数据不一样，则更新流光数据,如果一样则不更新,怕影响初始帧
-                    glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
-                    glowImage.setSize(sizeX * gd.scale, sizeY * gd.scale);
-                    this.gd = gd;
-                }
-            }
-        }
-
-        // 取消流光
-        method unGrow() {
-            if (glowImage.isExist()) {
-                glowImage.destroy();
-                glowImage = 0;
-                glowAnim.destroy();
-                glowAnim = 0;
-            }
-        }
-
-        // 设置尺寸
-        method setSize(real x, real y) {
-            if (!this.isExist()) {return;}
-            mainImage.setSize(x, y);
-            if (glowImage.isExist()) {
-                glowImage.setSize(x * gd.scale, y * gd.scale);
-            }
-            sizeX = x;
-            sizeY = y;
-        }
-
-        //todo:设置自适应尺寸
-        method setReSize() {
-            isResize = true; //这个不可逆
-        }
-
-        // 设置数字
-        method setCornerText(string value) {
-            real padding;
-            if (!this.isExist()) {return;}
-            if (!cornerText.isExist()) {
-                cornerShade = uiImage.createCornerBorder(mainImage.ui);
-                cornerText = uiText.create(cornerShade.ui)
-                    .setFontSize(2)
-                    .setPoint(ANCHOR_BOTTOMRIGHT, mainImage.ui, ANCHOR_BOTTOMRIGHT, -0.003,0.003);
-                // 自动调整背景大小以适应文本
-                padding = 0.003;
-                cornerShade.setPoint(ANCHOR_TOPLEFT, cornerText.ui, ANCHOR_TOPLEFT, -padding, padding)
-                    .setPoint(ANCHOR_BOTTOMRIGHT, cornerText.ui, ANCHOR_BOTTOMRIGHT, padding, -padding);
-            }
-
-            cornerText.setText(value);
-
-        }
-
-        // 显示/隐藏数字
-        method showCornerText(boolean flag) {
-            if (!this.isExist()) {return;}
-            if (cornerText.isExist()) {
-                cornerText.show(flag);
-                cornerShade.show(flag);
-            }
-        }
-
-        // 设置图标暗遮罩
-        method setShadow(boolean flag) {
-            if (!this.isExist()) {return;}
-            if (!shadowImage.isExist() && flag) {
-                shadowImage = uiImage.create(mainImage.ui)
-                    .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
-                    .setAllPoint(mainImage.ui);
-            }
-            if (shadowImage.isExist()) {
-                shadowImage.show(flag);
-            }
-        }
-
-        // CD显示相关方法
-        method startCooldown(real duration) {
-            if (!this.isExist()) {return;}
-            if (!cdSprite.isExist()) {
-                cdSprite = uiSprite.create(mainImage.ui)
-                    .setPoint(ANCHOR_CENTER,mainImage.ui,ANCHOR_CENTER,0,0)
-                    .setSize(0.001,0.001)  //测试过无论设置成什么都不影响ping的大小
-                    .setModel("ui\\model\\ping2.mdx",0,0);
-            }
-            //todo: 完成CD动画
-        }
-
-        // 获取按钮,然后再在外面设按钮相关的事件
-        method getClickBtn() -> uiBtn {
-            if (!this.isExist()) {return 0;}
-            if (!clickBtn.isExist()) {
-                clickBtn = uiBtn.create(mainImage.ui)
-                    .setAllPoint(mainImage.ui);
-            }
-            return clickBtn;
-        }
-
-        // 设置图标贴图
-        method setTexture(string path) {
-            if (!this.isExist()) {return;}
-            mainImage.setTexture(path);
-        }
-
-        // 显示/隐藏整个图标
-        method show(boolean flag) {
-            if (!this.isExist()) {return;}
-            mainImage.show(flag);
-        }
-
-        method onDestroy() {
-            if (mainImage.isExist()) { mainImage.destroy(); mainImage = 0; }
-            if (shadowImage.isExist()) { shadowImage.destroy(); shadowImage = 0; }
-            if (cornerShade.isExist()) { cornerShade.destroy(); cornerShade = 0; }
-            if (cornerText.isExist()) { cornerText.destroy(); cornerText = 0; }
-            if (clickBtn.isExist()) { clickBtn.destroy(); clickBtn = 0; }
-            if (glowImage.isExist()) { glowImage.destroy(); glowImage = 0; }
-            if (glowAnim.isExist()) { glowAnim.destroy(); glowAnim = 0; }
-            if (cdSprite.isExist()) { cdSprite.destroy(); cdSprite = 0; }
-        }
-    }
+  function onInit ()  {
+		DzLoadToc("ui\\Crainax.toc");
+		DzFrameEnableClipRect(false);
+  }
 }
 
 //! endzinc
 #endif
+
+#ifndef ProgressAnimIncluded
+#define ProgressAnimIncluded
+
+/*
+* 进度动画库
+*
+* 用于UISprite的进度动画控制,提供从一个值到另一个值的平滑过渡效果
+*
+* 使用方式:
+* 1. 在UISprite中引入panimable模块
+* 2. 调用animate方法创建动画
+*
+* 示例:
+* sprite.animate(0, 1, 2.0, function(uiSprite sprite) { /*动画结束回调*/ });
+*
+* @requires UILifeCycle 生命周期管理
+* @requires UIAnimTimer 动画计时器
+* @requires UIHashTable 哈希表
+* @requires UISprite 精灵组件
+*
+* @author 作者名
+* @version 1.0.0
+*/
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
+//! zinc
+
+library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
+
+	public type onProgressEnd extends function(uiSprite);
+
+	/*
+	进度动画效果
+	*/
+	private struct progAnim {
+		static thistype  List [];      // 内容列表
+		static integer size = 0;         // 现在有几个东西
+		static uianim UIA = 0;          // 动画实例
+
+		uiSprite sprite;                // [成员]绑定的sprite
+		real from;                      // [成员]起始值
+		real to;                        // [成员]目标值
+		integer time;                   // [成员]持续时间
+		integer now;                    // [成员]当前时间
+		integer id;                     // [成员]绑定的ID
+		onProgressEnd cb;               // [成员]结束回调
+
+		// 创建进度动画
+		static method create (uiSprite sprite, real from, real to, integer time, onProgressEnd cb) -> thistype {
+			thistype this = allocate();
+			// 数据设置都放这
+			this.sprite = sprite;
+			this.from = from;
+			this.to = to;
+			this.time = time;
+			this.now = 0;
+			this.cb = cb;
+
+			// 这里是初始化时的设置内容,不需要改
+			if (this.id == 0) {
+				size += 1;
+				List[size] = this;
+				this.id = size;
+			}
+
+			UIA.reg();
+			return this;
+		}
+
+		method onDestroy() {
+			// 数据解除都放这里
+			if (sprite != 0 && HaveSavedInteger(HASH_UI, sprite, HASH_KEY_UI_PROGRESS_ANIM)) {
+				RemoveSavedInteger(HASH_UI, sprite, HASH_KEY_UI_PROGRESS_ANIM);
+			}
+			sprite = 0;
+			cb = 0;
+
+			if (id != 0) {
+				List[id] = List[size];
+				List[id].id = id;
+				size -= 1;
+				id = 0;
+			}
+
+			if(size <= 0) {
+				UIA.unreg(); // 这里就删计时器
+				BJDebugMsg("progAnim计时器已停止"); // 添加调试输出
+			}
+		}
+
+		static method onInit() {
+			// 初始化动画计时器
+			UIA = uianim.create(function() {
+				integer i;
+				thistype this;
+				real progress;
+
+				if (size > 0) {
+					for (1 <= i <= size) {
+						this = List[i]; // 从结论来说i就是.id
+						this.now += 1;
+
+						if(this.now >= this.time) { // 删除的条件
+							this.sprite.setProgress(this.to);
+							if(this.cb != 0) {
+								RemoveSavedInteger(HASH_UI,this.sprite,HASH_KEY_UI_PROGRESS_ANIM); //因为会自动排泄,防止在回调删UI的时候继续再调用一次
+								this.cb.evaluate(this.sprite);
+							}
+							this.destroy();
+							i -= 1; // 正向遍历必须要保留这条
+						} else {
+							progress = this.from + (this.to - this.from) * (I2R(this.now) / this.time);
+							this.sprite.setProgress(progress);
+						}
+					}
+				}
+			});
+
+			// UI销毁时回调删除进度动画
+			uiLifeCycle.registerDestroy(function() {
+				integer ui = uiLifeCycle.agrsFrame;
+				thistype this;
+				if (HaveSavedInteger(HASH_UI, ui, HASH_KEY_UI_PROGRESS_ANIM)) {
+					this = LoadInteger(HASH_UI, ui, HASH_KEY_UI_PROGRESS_ANIM);
+					if (this.id != 0) { // 检查实例是否存在
+						this.destroy();
+					}
+				}
+			});
+		}
+	}
+
+	// 进度动画模块
+	public module panimable {
+		method progAnimate(real from, real to, real duration, onProgressEnd cb) -> thistype {
+			progAnim anim;
+			if (!this.isExist()) { return this; }
+
+			// 检查是否已存在progAnim实例
+			if (HaveSavedInteger(HASH_UI, this, HASH_KEY_UI_PROGRESS_ANIM)) {
+				anim = LoadInteger(HASH_UI, this, HASH_KEY_UI_PROGRESS_ANIM);
+				// 更新动画参数
+				anim.sprite = this;
+				anim.from = from;
+				anim.to = to;
+				anim.time = R2I(duration * 50);
+				anim.now = 0;
+				anim.cb = cb;
+			} else {
+				// 创建新实例
+				anim = progAnim.create(this, from, to, R2I(duration * 50), cb);
+				SaveInteger(HASH_UI, this, HASH_KEY_UI_PROGRESS_ANIM, anim);
+			}
+
+			return this;
+		}
+	}
+}
+
+//! endzinc
+
+#endif
+
 
 #ifndef UIAnimTimerIncluded
 #define UIAnimTimerIncluded
@@ -1097,164 +854,6 @@ library UIAnimTimer {
 	}
 
 }
-
-//! endzinc
-#endif
-
-#ifndef UIHashTableIncluded
-#define UIHashTableIncluded
-
-//! zinc
-/*
-UI哈希表通用函数
-*/
-
-#include "Crainax/core/table/Hash_UIDefine.j"
-
-library UIHashTable {
-
-    public hashtable HASH_UI = InitHashtable();  // UI结构哈希表
-    integer frame = 0;
-
-    //对外接口,方便链式调用
-    public function uiHashTable (integer f) -> uiHT {
-        frame = f;
-        return uiHT[0];
-    }
-
-    //私有
-    struct uiHT [] {
-        uiHTEvent eventdata;  //方便链式调用  uiHashTable(frame).eventdata.bind(8174);
-        uiHTFrame ui       ;  //方便链式调用  uiHashTable(frame).ui.bind(8174);
-    }
-
-    // 子结构体函数
-    struct uiHTFrame [] {
-        // 绑定UI实例到frame
-        method bind (integer typeID,integer ui) {
-            SaveInteger(HASH_UI,frame,HASH_KEY_UI_TYPE,typeID);
-            SaveInteger(HASH_UI,frame,HASH_KEY_UI_UI,ui);
-        }
-
-        // 从frame获取UI实例
-        method get () -> integer {
-            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_UI);
-        }
-
-        // 从frame获取UI类型
-        method getType () -> integer {
-            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_TYPE);
-        }
-    }
-
-    // 子结构体函数
-    struct uiHTEvent [] {
-        method bind (integer value) {
-            SaveInteger(HASH_UI,frame,HASH_KEY_UI_EVENT_DATA,value);
-        }
-
-        method get () -> integer {
-            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_EVENT_DATA);
-        }
-    }
-
-}
-
-//! endzinc
-#endif
-
-#ifndef UIButtonIncluded
-#define UIButtonIncluded
-
-#include "Crainax/config/SharedMethod.h" // 结构体共用方法
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-
-//! zinc
-/*
-文字UI组件
-*/
-
-//# dependency:ui\image\textbutton_highlight.blp
-
-library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
-
-    public struct uiBtn {
-        // UI组件内部共享方法及成员
-        STRUCT_SHARED_INNER_UI(uiBtn)
-
-        module   uiEventModule;      // UI事件的共用方法
-        optional module extendDrag;  //扩展拖动(只有button能用,其他就不放进去了)
-
-        // 创建一个不带声音的
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_NORMAL_BUTTON,0); //有高亮无声音的图标
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
-        }
-
-        //普通带声效系
-        static method createSound (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_NORMAL_BUTTON,0); //有高亮有声音的图标
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
-        }
-
-        //右键菜单系
-        static method createRC (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_TEXT_BUTTON,0); //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
-        }
-
-        // 创建空白按钮
-        // parent: 父级框架
-        static method createBlank (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_BLANK_BUTTON,0);
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
-        }
-
-        // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
-        // parent: 父级框架
-        static method createSimple (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("SIMPLEBUTTON", STRING_BUTTON + I2S(id), parent, TEMPLATE_SIMPLE_BUTTON, id);
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
-        }
-
-
-        //绑定原生的Button成为SimpleButton,注意不能删除哦
-        // 不能用bindSimple,因为没有dzfindSimpleButton函数,只能用这个
-        static method bindCreated (integer frame) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = frame;
-            STRUCT_SHARED_UI_ONCREATE(uiBtn)
-            return this;
-        }
-
-
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            STRUCT_SHARED_UI_ONDESTROY(uiBtn)
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
-    }
-}
-
-
 
 //! endzinc
 #endif
@@ -1498,551 +1097,357 @@ endlibrary
 #endif 
 
 
-#ifndef BaseAnimIncluded
-#define BaseAnimIncluded
+#ifndef BZAPIINCLUDE
+#define BZAPIINCLUDE
 
-#include "Crainax/config/SharedMethod.h" // 结构体共用方法
-#include "Crainax/core/table/Hash_UIDefine.j" // UI哈希表键值定义
+library BzAPI
+    //hardware
+    native DzGetMouseTerrainX takes nothing returns real
+    native DzGetMouseTerrainY takes nothing returns real
+    native DzGetMouseTerrainZ takes nothing returns real
+    native DzIsMouseOverUI takes nothing returns boolean
+    native DzGetMouseX takes nothing returns integer
+    native DzGetMouseY takes nothing returns integer
+    native DzGetMouseXRelative takes nothing returns integer
+    native DzGetMouseYRelative takes nothing returns integer
+    native DzSetMousePos takes integer x, integer y returns nothing
+    native DzTriggerRegisterMouseEvent takes trigger trig, integer btn, integer status, boolean sync, string func returns nothing
+    native DzTriggerRegisterMouseEventByCode takes trigger trig, integer btn, integer status, boolean sync, code funcHandle returns nothing
+    native DzTriggerRegisterKeyEvent takes trigger trig, integer key, integer status, boolean sync, string func returns nothing
+    native DzTriggerRegisterKeyEventByCode takes trigger trig, integer key, integer status, boolean sync, code funcHandle returns nothing
+    native DzTriggerRegisterMouseWheelEvent takes trigger trig, boolean sync, string func returns nothing
+    native DzTriggerRegisterMouseWheelEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
+    native DzTriggerRegisterMouseMoveEvent takes trigger trig, boolean sync, string func returns nothing
+    native DzTriggerRegisterMouseMoveEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
+    native DzGetTriggerKey takes nothing returns integer
+    native DzGetWheelDelta takes nothing returns integer
+    native DzIsKeyDown takes integer iKey returns boolean
+    native DzGetTriggerKeyPlayer takes nothing returns player
+    native DzGetWindowWidth takes nothing returns integer
+    native DzGetWindowHeight takes nothing returns integer
+    native DzGetWindowX takes nothing returns integer
+    native DzGetWindowY takes nothing returns integer
+    native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
+    native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
+    native DzIsWindowActive takes nothing returns boolean
+    //plus
+    native DzDestructablePosition takes destructable d, real x, real y returns nothing
+    native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
+    native DzExecuteFunc takes string funcName returns nothing
+    native DzGetUnitUnderMouse takes nothing returns unit
+    native DzSetUnitTexture takes unit whichUnit, string path, integer texId returns nothing
+    native DzSetMemory takes integer address, real value returns nothing
+    native DzSetUnitID takes unit whichUnit, integer id returns nothing
+    native DzSetUnitModel takes unit whichUnit, string path returns nothing
+    native DzSetWar3MapMap takes string map returns nothing
+    native DzGetLocale takes nothing returns string
+    native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
+    //sync
+    native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
+    native DzSyncData takes string prefix, string data returns nothing
+    native DzGetTriggerSyncPrefix takes nothing returns string
+    native DzGetTriggerSyncData takes nothing returns string
+    native DzGetTriggerSyncPlayer takes nothing returns player
+    native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
+    //native DzGetPushContext takes nothing returns string
+    native DzSyncDataImmediately takes string prefix, string data returns nothing   
+    //gui
+    native DzFrameHideInterface takes nothing returns nothing
+    native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
+    native DzFrameGetPortrait takes nothing returns integer
+    native DzFrameGetMinimap takes nothing returns integer
+    native DzFrameGetCommandBarButton takes integer row, integer column returns integer
+    native DzFrameGetHeroBarButton takes integer buttonId returns integer
+    native DzFrameGetHeroHPBar takes integer buttonId returns integer
+    native DzFrameGetHeroManaBar takes integer buttonId returns integer
+    native DzFrameGetItemBarButton takes integer buttonId returns integer
+    native DzFrameGetMinimapButton takes integer buttonId returns integer
+    native DzFrameGetUpperButtonBarButton takes integer buttonId returns integer
+    native DzFrameGetTooltip takes nothing returns integer
+    native DzFrameGetChatMessage takes nothing returns integer
+    native DzFrameGetUnitMessage takes nothing returns integer
+    native DzFrameGetTopMessage takes nothing returns integer
+    native DzGetColor takes integer r, integer g, integer b, integer a returns integer
+    native DzFrameSetUpdateCallback takes string func returns nothing
+    native DzFrameSetUpdateCallbackByCode takes code funcHandle returns nothing
+    native DzFrameShow takes integer frame, boolean enable returns nothing
+    native DzCreateFrame takes string frame, integer parent, integer id returns integer
+    native DzCreateSimpleFrame takes string frame, integer parent, integer id returns integer
+    native DzDestroyFrame takes integer frame returns nothing
+    native DzLoadToc takes string fileName returns nothing
+    native DzFrameSetPoint takes integer frame, integer point, integer relativeFrame, integer relativePoint, real x, real y returns nothing
+    native DzFrameSetAbsolutePoint takes integer frame, integer point, real x, real y returns nothing
+    native DzFrameClearAllPoints takes integer frame returns nothing
+    native DzFrameSetEnable takes integer name, boolean enable returns nothing
+    native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
+    native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
+    native DzGetTriggerUIEventPlayer takes nothing returns player
+    native DzGetTriggerUIEventFrame takes nothing returns integer
+    native DzFrameFindByName takes string name, integer id returns integer
+    native DzSimpleFrameFindByName takes string name, integer id returns integer
+    native DzSimpleFontStringFindByName takes string name, integer id returns integer
+    native DzSimpleTextureFindByName takes string name, integer id returns integer
+    native DzGetGameUI takes nothing returns integer
+    native DzClickFrame takes integer frame returns nothing
+    native DzSetCustomFovFix takes real value returns nothing
+    native DzEnableWideScreen takes boolean enable returns nothing
+    native DzFrameSetText takes integer frame, string text returns nothing
+    native DzFrameGetText takes integer frame returns string
+    native DzFrameSetTextSizeLimit takes integer frame, integer size returns nothing
+    native DzFrameGetTextSizeLimit takes integer frame returns integer
+    native DzFrameSetTextColor takes integer frame, integer color returns nothing
+    native DzGetMouseFocus takes nothing returns integer
+    native DzFrameSetAllPoints takes integer frame, integer relativeFrame returns boolean
+    native DzFrameSetFocus takes integer frame, boolean enable returns boolean
+    native DzFrameSetModel takes integer frame, string modelFile, integer modelType, integer flag returns nothing
+    native DzFrameGetEnable takes integer frame returns boolean
+    native DzFrameSetAlpha takes integer frame, integer alpha returns nothing
+    native DzFrameGetAlpha takes integer frame returns integer
+    native DzFrameSetAnimate takes integer frame, integer animId, boolean autocast returns nothing
+    native DzFrameSetAnimateOffset takes integer frame, real offset returns nothing
+    native DzFrameSetTexture takes integer frame, string texture, integer flag returns nothing
+    native DzFrameSetScale takes integer frame, real scale returns nothing
+    native DzFrameSetTooltip takes integer frame, integer tooltip returns nothing
+    native DzFrameCageMouse takes integer frame, boolean enable returns nothing
+    native DzFrameGetValue takes integer frame returns real
+    native DzFrameSetMinMaxValue takes integer frame, real minValue, real maxValue returns nothing
+    native DzFrameSetStepValue takes integer frame, real step returns nothing
+    native DzFrameSetValue takes integer frame, real value returns nothing
+    native DzFrameSetSize takes integer frame, real w, real h returns nothing
+    native DzCreateFrameByTagName takes string frameType, string name, integer parent, string template, integer id returns integer
+    native DzFrameSetVertexColor takes integer frame, integer color returns nothing
+    native DzOriginalUIAutoResetPoint takes boolean enable returns nothing
+    native DzFrameSetPriority takes integer frame, integer priority returns nothing
+    native DzFrameSetParent takes integer frame, integer parent returns nothing
+    native DzFrameGetHeight takes integer frame returns real
+    native DzFrameSetFont takes integer frame, string fileName, real height, integer flag returns nothing
+    native DzFrameGetParent takes integer frame returns integer
+    native DzFrameSetTextAlignment takes integer frame, integer align returns nothing
+    native DzFrameGetName takes integer frame returns string
+    native DzGetClientWidth takes nothing returns integer
+    native DzGetClientHeight takes nothing returns integer
+    native DzFrameIsVisible takes integer frame returns boolean
+        //显示/隐藏SimpleFrame
+    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
+    // 追加文字（支持TextArea）
+    native DzFrameAddText takes integer frame, string text returns nothing
+    // 沉默单位-禁用技能
+    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
+    // 禁用攻击
+    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
+    // 禁用道具
+    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
+    // 刷新小地图
+    native DzUpdateMinimap takes nothing returns nothing
+    // 修改单位alpha
+    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
+    // 设置单位是否可以选中
+    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
+    // 修改单位是否可以被设置为目标
+    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
+    // 保存内存数据
+    native DzSaveMemoryCache takes string cache returns nothing
+    // 读取内存数据
+    native DzGetMemoryCache takes nothing returns string
+    // 设置加速倍率
+    native DzSetSpeed takes real ratio returns nothing
+    // 转换世界坐标为屏幕坐标-异步
+    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
+    // 转换世界坐标为屏幕坐标-获取转换后的X坐标
+    native DzGetConvertWorldPositionX takes nothing returns real
+    // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
+    native DzGetConvertWorldPositionY takes nothing returns real
+    // 创建command button
+    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
+    function DzTriggerRegisterMouseEventTrg takes trigger trg, integer status, integer btn returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
+    endfunction
+
+    function DzTriggerRegisterKeyEventTrg takes trigger trg, integer status, integer btn returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterKeyEvent(trg, btn, status, true, null)
+    endfunction
+
+    function DzTriggerRegisterMouseMoveEventTrg takes trigger trg returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterMouseMoveEvent(trg, true, null)
+    endfunction
+
+    function DzTriggerRegisterMouseWheelEventTrg takes trigger trg returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterMouseWheelEvent(trg, true, null)
+    endfunction
+
+    function DzTriggerRegisterWindowResizeEventTrg takes trigger trg returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterWindowResizeEvent(trg, true, null)
+    endfunction
+
+    function DzF2I takes integer i returns integer
+        return i
+    endfunction
+
+    function DzI2F takes integer i returns integer
+        return i
+    endfunction
+
+    function DzK2I takes integer i returns integer
+        return i
+    endfunction
+
+    function DzI2K takes integer i returns integer
+        return i
+    endfunction
+
+    function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMIA", true)
+    endfunction
+
+    //玩家消耗/使用商城道具事件
+    function DzTriggerRegisterMallItemConsumeEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMIC", true)
+    endfunction
+
+    //玩家删除商城道具事件
+    function DzTriggerRegisterMallItemRemoveEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMID", true)
+    endfunction
+
+    function DzGetTriggerMallItemPlayer takes nothing returns player
+        return DzGetTriggerSyncPlayer()
+    endfunction
+
+    function DzGetTriggerMallItem takes nothing returns string
+        return DzGetTriggerSyncData()
+    endfunction
+
+    
+
+endlibrary
+
+#endif /// YDWEAddAIOrderIncluded
+
+#ifndef UIHashTableIncluded
+#define UIHashTableIncluded
 
 //! zinc
 /*
-基础的UI动画效果
+UI哈希表通用函数
 */
-library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 
-	// 生命周期结束时调用
-	public type onLifeEnd extends function(baseanim);
+#include "Crainax/core/table/Hash_UIDefine.j"
 
-	/*
-	常用的动画效果
-	整合到这里
-	这里的动画不负责创建与删除,自行解决
-	算了还是不用UI为键了，哈希表式的还没做
-	*/
-	public struct baseanim {
+library UIHashTable {
 
+    public hashtable HASH_UI = InitHashtable();  // UI结构哈希表
+    integer frame = 0;
 
-		static thistype DList[] , MList[] , AList[] , ZList[] , SList[] , BList[] , LList[];
-		static integer DNum = 0 , MNum = 0 , ANum = 0 , ZNum = 0 , SNum = 0 , BNum = 0 , LNum = 0;
-		static uianim UIA = 0; //利用上述创建的uianim特定个例
-		static integer size = 0; //统计数量
+    //对外接口,方便链式调用
+    public function uiHashTable (integer f) -> uiHT {
+        frame = f;
+        return uiHT[0];
+    }
 
-		integer ui; //结构成员
+    //私有
+    struct uiHT [] {
+        uiHTEvent eventdata;  //方便链式调用  uiHashTable(frame).eventdata.bind(8174);
+        uiHTFrame ui       ;  //方便链式调用  uiHashTable(frame).ui.bind(8174);
+    }
 
-		STRUCT_SHARED_METHODS(baseanim)
+    // 子结构体函数
+    struct uiHTFrame [] {
+        // 绑定UI实例到frame
+        method bind (integer typeID,integer ui) {
+            SaveInteger(HASH_UI,frame,HASH_KEY_UI_TYPE,typeID);
+            SaveInteger(HASH_UI,frame,HASH_KEY_UI_UI,ui);
+        }
 
-		//创建与删除
-		static method create (integer ui) -> thistype {
-			thistype this = allocate();
-			this.ui = ui;
-			SaveInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM,this);
-			size += 1; //统计数量++
-			return this;
-		}
+        // 从frame获取UI实例
+        method get () -> integer {
+            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_UI);
+        }
 
-		integer dID,dTime,dNow; //延迟组
-		//动画延迟
-		method addDelay (integer time) {
-			if (time <= 0 || !(isExist())) {return;}
-			//数据设置都放这
-			this.dTime = time;
-			this.dNow = 0;
-			if (dID == 0) { //这里是初始化时的设置内容,不需要改
-				DNum        = DNum + 1;
-				DList[DNum] = this;
-				dID         = DNum;
-			}
-			UIA.reg(); //Add了后就调用了这个自动开始
-		}
-		private method delDelay () {
-			//数据解除都放这里
-			if (dID != 0) {
-				DList[dID]      = DList[DNum];
-				DList[dID].dID  = dID;
-				DNum           -= 1;
-				dID             = 0;
-			}
-		}
+        // 从frame获取UI类型
+        method getType () -> integer {
+            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_TYPE);
+        }
+    }
 
-		integer align,mTime,mNow,anchor1,anchor2,mID; //移动组
-		real dist,off,angle; //移动组
-		//线性移动
-		// @param align 需要对齐的UI
-		// @param off 初始的对应anchor的偏移
-		// @param dist 距离（加上面的off)
-		// @param time 时间(0.02为一帧)
-		// @param angle 角度
-		// @param anchor1 本体的锚点
-		// @param anchor2 需要对齐的UI的锚点
-		method addMove (integer align,real off,real dist,integer time,real angle,integer anchor1,integer anchor2) {
-			if (dist <= 0. || !(isExist())) {return;}
-			//数据设置都放这
-			this.align   = align;
-			this.dist    = dist;
-			this.off     = off;
-			this.mTime   = time;
-			this.mNow    = 0;
-			this.angle   = angle;
-			this.anchor1 = anchor1;
-			this.anchor2 = anchor2;
-			if (mID == 0) { //这里是初始化时的设置内容,不需要改
-				MNum = MNum + 1;
-				MList[MNum]= this;
-				mID = MNum;
-			}
-			DzFrameSetPoint(ui,anchor1,align,anchor2,CosBJ(angle)*off,SinBJ(angle)*off);
-			UIA.reg(); //Add了后就调用了这个自动开始
-		}
-		private method delMove () {
-			//数据解除都放这里
-			if (mID != 0) {
-				MList[mID]= MList[MNum];
-				MList[mID].mID =mID;
-				MNum = MNum - 1;
-				mID = 0;
-			}
-		}
+    // 子结构体函数
+    struct uiHTEvent [] {
+        method bind (integer value) {
+            SaveInteger(HASH_UI,frame,HASH_KEY_UI_EVENT_DATA,value);
+        }
 
-		//透明组
-		integer aID,aStart,aTar,aTime,aNow;
-		//透明度(0-255)
-		// @param start 开始透明度
-		// @param tar 目标透明度
-		// @param time 时间(0.02为一帧)
-		method addAlpha (integer start,integer tar,integer time) {
-			if (time <= 0 || !(isExist())) {return;}
-			//数据设置都放这
-			this.aStart = start;
-			this.aTar   = tar;
-			this.aTime  = time;
-			this.aNow   = 0;
-			if (aID == 0) { //这里是初始化时的设置内容,不需要改
-				ANum        = ANum + 1;
-				AList[ANum] = this;
-				aID         = ANum;
-			}
-			DzFrameSetAlpha(ui,start); //这个不能设置的原因是有可能有2个一起设置，存在延迟;
-			UIA.reg(); //Add了后就调用了这个自动开始
-		}
-		private method delAlpha () {
-			if (aID != 0) {
-				AList[aID]      = AList[ANum];
-				AList[aID].aID  = aID;
-				ANum           -= 1;
-				aID             = 0;
-			}
-		}
+        method get () -> integer {
+            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_EVENT_DATA);
+        }
+    }
 
-		//放大组[垃圾scale还是用size香]
-		integer zID,zTime,zNow;
-		real zStartX,zTarX,zStartY,zTarY;
-		//放大
-		// @param startX 开始X
-		// @param tarX 目标X
-		// @param startY 开始Y
-		// @param tarY 目标Y
-		// @param time 时间(0.02为一帧)
-		method addZoom (real startX,real tarX,real startY,real tarY,integer time) {
-			if (time <= 0 || !(isExist())) {return;}
-			//数据设置都放这
-			this.zStartX = startX;
-			this.zTarX   = tarX;
-			this.zStartY = startY;
-			this.zTarY   = tarY;
-			this.zTime   = time;
-			this.zNow    = 0;
-			if (zID == 0) { //这里是初始化时的设置内容,不需要改
-				ZNum        = ZNum + 1;
-				ZList[ZNum] = this;
-				zID         = ZNum;
-			}
-			DzFrameSetSize(ui,startX,startY);
-			UIA.reg(); //Add了后就调用了这个自动开始
-		}
-		private method delZoom () {
-			//数据解除都放这里
-			if (zID != 0) {
-				ZList[zID]      = ZList[ZNum];
-				ZList[zID].zID  = zID;
-				ZNum           -= 1;
-				zID             = 0;
-			}
-		}
+}
 
-		//序列组(永恒序列/一次性序列)
-		string sPath;    //路径
-		integer sID;     //ID
-		integer sMax;    //最大帧数
-		integer sPos;    //当前帧
-		integer sGap;    //帧间隔
-		integer sGapPos; //帧间隔指针
-		boolean sLoop;   //是否循环
+//! endzinc
+#endif
 
-		//序列帧已经自动从0开始了。
-		// @param path 路径 (帧图片取名要这种格式: xxx_0.blp)
-		// @param maxFrame 最大帧数
-		// @param interval 帧间隔
-		// @param isL 是否循环
-		method addSequ (string path,integer maxFrame,integer interval,boolean isL) {
-			if (maxFrame <= 0 || !(isExist())) {return;}
-			//数据设置都放这
-			this.sPath   = path;      //路径;
-			this.sMax    = maxFrame;  //最大帧数;
-			this.sPos    = 0;         //当前帧;
-			this.sGap    = interval;  //帧间隔;
-			this.sGapPos = 0;         //帧间隔;
-			this.sLoop   = isL;       //是否循环;
-			if (sID == 0) { //这里是初始化时的设置内容,不需要改
-				SNum        = SNum + 1;
-				SList[SNum] = this;
-				sID         = SNum;
-			}
-			DzFrameSetTexture(ui,sPath + "0.blp",0);
-			UIA.reg(); //Add了后就调用了这个自动开始
-		}
-		private method delSequ () {
-			//数据解除都放这里
-			sPath = null;
-			if (sID != 0) {
-				SList[sID]      = SList[SNum];
-				SList[sID].sID  = sID;
-				SNum           -= 1;
-				sID             = 0;
-			}
-		}
+#ifndef UIUtilsIncluded
+#define UIUtilsIncluded
 
-		//闪烁组
-		integer bID,bPeriod,bTime,bStart;
-		boolean bOrient;
-		//闪烁组,Time是周期，取消后记得在外面设置Alpha回255
-		// @param start 开始透明度
-		// @param period 周期(0.02为一帧)
-		method addBlink (integer start,integer period) {
-			if (period <= 0 || !(isExist())) {return;}
-			//数据设置都放这
-			this.bStart  = start;
-			this.bOrient = false;
-			this.bPeriod = period;
-			this.bTime   = 0;
-			if (bID == 0) { //这里是初始化时的设置内容,不需要改
-				BNum        = BNum + 1;
-				BList[BNum] = this;
-				bID         = BNum;
-			}
-			DzFrameSetAlpha(ui,start);
-			UIA.reg(); //Add了后就调用了这个自动开始
-		}
-		private method delBlink () {
-			//数据解除都放这里
-			if (bID != 0) {
-				BList[bID]      = BList[BNum];
-				BList[bID].bID  = bID;
-				BNum           -= 1;
-				bID             = 0;
-			}
-		}
-		//生命周期组
-		integer lID,lPeriod,lTime;
-		onLifeEnd lCB;
-		// @param period 生命周期时长(0.02为一帧)
-		// @param lCB 生命周期结束时调用,设成0则不调用,自动排泄ba
-		method addLife (integer period,onLifeEnd lCB) {
-			if (period <= 0 || !(isExist())) {return;}
-			//数据设置都放这
-			this.lPeriod = period;
-			this.lTime   = 0;
-			this.lCB     = lCB;
-			//这里是初始化时的设置内容,不需要改
-			if (lID == 0) {
-				LNum        = LNum + 1;
-				LList[LNum] = this;
-				lID         = LNum;
-			}
-			UIA.reg(); //Add了后就调用了这个自动开始
-		}
-		private method delLife () {
-			//数据解除都放这里
-			lTime = 0;
-			if (lID != 0) {
-				//这里开始删ui
-				if (ui != 0 && lCB != 0) {
-					RemoveSavedInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM); //因为会自动排泄,防止在回调删UI的时候继续再调用一次
-					lCB.evaluate(this);
-				}
-				LList[lID]      = LList[LNum];
-				LList[lID].lID  = lID;
-				LNum           -= 1;
-				lID             = 0;
-			}
-		}
+//窗口的大小
+#define WINDOW_PRESENT_WIDTH  0.80
+#define WINDOW_PRESENT_HEIGHT 0.60
 
-		//析构,手动调用或者生命周期结束时自动调用
-		method onDestroy () {
-			if (!isExist()) {return;}
-			delDelay();
-			delMove();
-			delZoom();
-			delAlpha();
-			delSequ();
-			delBlink();
-			delLife();
-			if (HaveSavedInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM)) {
-				RemoveSavedInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM);
-			}
-			ui = 0;
-			size -= 1; //统计数量--
-		}
+//! zinc
+/*
+UI工具库
+*/
+library UIUtils requires BzAPI{
 
-		//查看当前的东西
-		static method toString () -> string {
-			string s = "";
-			s +="[DNum]" + I2S(DNum) + "->";
-			s +="[MNum]" + I2S(MNum) + "->";
-			s +="[ANum]" + I2S(ANum) + "->";
-			s +="[ZNum]" + I2S(ZNum) + "->";
-			s +="[SNum]" + I2S(SNum) + "->";
-			s +="[BNum]" + I2S(BNum) + "->";
-			s +="[LNum]" + I2S(LNum);
-			return s;
-		}
+	//获得现在的X / Y比例
+	//主要用于UI缩放
+	public function GetResizeRate () -> real {
+		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
+		else return 1.0;
+	}
 
-		static method onInit () {
-			UIA = uianim.create(function (){
-				integer i ,this;
-				real r;
-				if ( DNum > 0 ){ //延迟组先行动
-					for (1 <= i <= DNum) {
-						//从结论来说i就是dID
-						this = DList[i];
-						dNow = dNow + 1;
-						if (dNow >= dTime) { //结束了
-							DList[i]     = DList[DNum];
-							DList[i].dID = i;
-							DNum         = DNum - 1;
-							dID          = 0;
-							i            = i - 1;
-						}
-					}
-				}
-				if ( MNum > 0 ) { //移动
-					for (1 <= i <= MNum) {
-						//从结论来说i就是mID
-						this = MList[i];
-						if (dID == 0) {
-							if (mNow >= mTime) { //结束了
-								DzFrameClearAllPoints(ui);
-								DzFrameSetPoint(ui,anchor1,align,anchor2,CosBJ(angle)*(off +dist),SinBJ(angle)*(off +dist));
-								MList[i]     = MList[MNum];
-								MList[i].mID = i;
-								MNum         = MNum - 1;
-								i            = i - 1;
-								mID         = 0;
-							} else {
-								mNow = mNow + 1;
-								DzFrameClearAllPoints(ui);
-								DzFrameSetPoint(ui,anchor1,align,anchor2,CosBJ(angle)*(off +dist * mNow / mTime),SinBJ(angle)*(off +dist * mNow / mTime));
-							}
-						} //还在延迟中不进行操作
-					}
-				}
-				if ( ANum > 0 ) { //透明度
-					for (1 <= i <= ANum) {
-						//从结论来说i就是aID
-						this = AList[i];
-						if (dID == 0) { // 结束了
-							if (aNow >= aTime) {
-								DzFrameSetAlpha(ui,aTar);
-								if (aTar <= 0) {DzFrameShow(ui,false);}
-								AList[i]     = AList[ANum];
-								AList[i].aID = i;
-								ANum         = ANum - 1;
-								i            = i - 1;
-								aID          = 0;
-							} else {
-								aNow = aNow + 1;
-								DzFrameSetAlpha(ui,R2I(aStart + (aTar - aStart) * (I2R(aNow)/ aTime)));
-							}
-						} //还在延迟中不进行操作
-					}
-				}
-				if ( ZNum > 0 ){ //放大组
-					for (1 <= i <= ZNum) {
-						//从结论来说i就是aID
-						this = ZList[i];
-						if (dID == 0) { // 结束了
-							if (zNow >= zTime) {
-								//DzFrameSetScale(ui,zTar);
-								DzFrameSetSize(ui,zTarX,zTarY);
-								ZList[i]     = ZList[ZNum];
-								ZList[i].zID = i;
-								ZNum         = ZNum - 1;
-								i            = i - 1;
-								zID          = 0;
-							} else {
-								zNow = zNow + 1;
-								DzFrameSetSize(ui,zStartX + (zTarX -zStartX) * (I2R(zNow)/ zTime),zStartY + (zTarY -zStartY) * (I2R(zNow)/ zTime));
-							}
-						} //还在延迟中不进行操作
-					}
-				}
+	// 获取鼠标位置X(绝对坐标)[修正版]
+	public function GetMouseXEx () -> real {
+		integer width = DzGetClientWidth();
+		if (width > 0) return DzGetMouseXRelative()* WINDOW_PRESENT_WIDTH / width;
+		else return 0.1;
+	}
 
-				if ( SNum > 0 ){ //序列帧
-					for (1 <= i <= SNum) {
-						//从结论来说i就是sID
-						this = SList[i];
-						if (dID == 0) {
-							sGapPos = sGapPos + 1;
-							if (sGapPos >= sGap) { //几帧一绘
-								sGapPos  = 0;
-								sPos    +=  1;
-								if (sPos > sMax) { // 结束了,且不循环
-									sPos = 0;
-									if (!sLoop) { //不循环
-										DzFrameSetTexture(ui,sPath + I2S(sMax)+ ".blp",0);
-										SList[i]     = SList[SNum];
-										SList[i].sID = i;
-										SNum         = SNum - 1;
-										i            = i - 1;
-										sID          = 0;
-									} else {
-										DzFrameSetTexture(ui,sPath + "0.blp",0);
-									}
-								} else {
-									DzFrameSetTexture(ui,sPath + I2S(sPos)+ ".blp",0); //正常绘帧
-								}
-							}
-						}//还在延迟中不进行操作
-					}
-				}
+	// 获取鼠标位置Y(绝对坐标)[修正版]
+	public function GetMouseYEx () -> real {
+		integer height = DzGetClientHeight();
+		if (height > 0) return WINDOW_PRESENT_HEIGHT - DzGetMouseYRelative()* WINDOW_PRESENT_HEIGHT / height;
+		else return 0.1;
+	}
 
-				if ( BNum > 0 ){ //闪烁组
-					for (1 <= i <= BNum) {
-						//从结论来说i就是aID
-						this = BList[i];
-						if (dID == 0) {
-							if (bOrient) { //变透明
-								bTime -= 1;
-							} else { //实体化
-								bTime += 1;
-							}
-							if (bTime >= R2I(bPeriod * 0.5) || bTime <= 0) {
-								bOrient = !bOrient;
-							}
-							DzFrameSetAlpha(ui,R2I(255 * (I2R(bTime)/ bPeriod * 2)));
-						}//还在延迟中不进行操作
-					}
-				}
-				if ( LNum > 0 ) { //生命周期[不受延迟组影响]
-					for (1 <= i <= LNum) {
-						//从结论来说i就是dID
-						this   = LList[i];
-						lTime += 1;
-						//结束了
-						if (lTime >= lPeriod) {
-							destroy();
-							i -= 1;
-						}
-					}
-				}
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseX (real min,real max) -> real {
+		return RLimit(GetMouseXEx(),min,max);
+	}
 
-				if (DNum <= 0 && MNum <= 0 && ANum <= 0 && ZNum <= 0 && SNum <= 0 && BNum <= 0 && LNum <= 0 ) {
-					UIA.unreg(); //这里就删计时器吧
-					BJDebugMsg("baseanim停止了");
-				}
-			});
-			// UI销毁时回调删除基础动画(UI销毁时会自动调用),但是不需要再删ba了,
-			uiLifeCycle.registerDestroy(function (){
-				integer ui = uiLifeCycle.agrsFrame;
-				thistype this;
-				if (HaveSavedInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM)) {
-					this = LoadInteger(HASH_UI,ui,HASH_KEY_UI_BASEANIM);
-					if (this.isExist()) {
-						this.destroy();
-					}
-				}
-			});
-		}
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseY (real min,real max) -> real {
+		return RLimit(GetMouseYEx(),min,max);
 	}
 
 }
 
 //! endzinc
 #endif
-
-
-#ifndef UIBaseModuleIncluded
-#define UIBaseModuleIncluded
-
-//控件的共用基本方法
-
-//! zinc
-library UIBaseModule requires UIUtils {
-    // 定义共用的方法结构
-    public module uiBaseModule {
-        // 设置位置
-        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
-            return this;
-        }
-
-        // 大小完全对齐父框架
-        method setAllPoint (integer relative) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAllPoints(ui,relative);
-            return this;
-        }
-
-        //绝对位置
-        method setAbsPoint (integer anchor, real x, real y) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAbsolutePoint(ui,anchor,x,y);
-            return this;
-        }
-
-        // 清除所有位置
-        method clearPoint () -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameClearAllPoints(ui);
-            return this;
-        }
-
-        // 设置大小
-        method setSize (real width, real height) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetSize(ui,width,height);
-            return this;
-        }
-
-        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
-        method setSizeFix (real width, real height) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetSize(ui,width*GetResizeRate(),height);
-            return this;
-        }
-
-        // 显示控件
-        // 参数: boolean flag 是否显示
-        method show (boolean flag) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameShow(ui,flag);
-            return this;
-        }
-
-        //透明度(0-255)
-        method setAlpha (integer value) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAlpha(ui,value);
-            return this;
-        }
-
-        optional module extendResize; //扩展自适应大小方法
-    }
-}
-//! endzinc
-
-#endif
-
 
 #ifndef UIIdIncluded
 #define UIIdIncluded
@@ -2122,492 +1527,6 @@ library UIId {
 #endif
 
 
-
-#ifndef UIImageIncluded
-#define UIImageIncluded
-
-#include "Crainax/config/SharedMethod.h" // 结构体共用方法
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-
-//! zinc
-/*
-图片UI组件
-*/
-
-//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
-//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
-
-library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
-
-    public struct uiImage {
-        // UI组件内部共享方法及成员
-        STRUCT_SHARED_INNER_UI(uiImage)
-
-        module uiImageModule;  // UI图片的共用方法
-
-        // 创建图片
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE,0);
-            STRUCT_SHARED_UI_ONCREATE(uiImage)
-            return this;
-        }
-
-        // 创建工具提示背景图片(种类1)
-        // parent: 父级框架
-        static method createToolTips (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS,0);
-            STRUCT_SHARED_UI_ONCREATE(uiImage)
-            return this;
-        }
-
-        // 创建工具提示背景图片(种类2)
-        // parent: 父级框架
-        static method createToolTips2 (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS2,0);
-            STRUCT_SHARED_UI_ONCREATE(uiImage)
-            return this;
-        }
-
-        // 创建边角(图标系的)
-        // parent: 父级框架
-        static method createCornerBorder (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_CORNER_BORDER,0);
-            STRUCT_SHARED_UI_ONCREATE(uiImage)
-            return this;
-        }
-
-        // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
-        // parent: 父级框架
-        static method createSimple (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            DzCreateFrameByTagName("SIMPLEFRAME", STRING_IMAGE + I2S(id), parent, TEMPLATE_SIMPLE_IMAGE, id);
-            ui = DzSimpleTextureFindByName(TEMPLATE_SIMPLE_IMAGE_CHILD, id);
-            STRUCT_SHARED_UI_ONCREATE(uiImage)
-            return this;
-        }
-
-        // 绑定原生图片
-        // name: 图片名称(fdf写的image的名字)
-        // index: 图片索引(在外部创建时的填写的ID最后一个参数)
-        static method bindSimple (string name, integer index) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzSimpleTextureFindByName(name, index);
-            STRUCT_SHARED_UI_ONCREATE(uiImage)
-            return this;
-        }
-
-
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            STRUCT_SHARED_UI_ONDESTROY(uiImage)
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
-    }
-}
-
-
-
-//! endzinc
-#endif
-
-#ifndef GrowDataIncluded
-#define GrowDataIncluded
-
-//! zinc
-/*
-图标流光的数据
-*/
-#define ICONGROW_1       1  //蓝光长时等待型
-#define ICONGROW_2       2  //双火环绕型
-#define ICONGROW_3       3  //闪电流光型
-#define ICONGROW_4       4  //紫抛光
-#define ICONGROW_5       5  //辰龙流光
-#define ICONGROW_6       6  //泛绿光
-#define ICONGROW_7       7  //品质-白
-#define ICONGROW_8       8  //品质-绿
-#define ICONGROW_9       9  //品质-蓝
-#define ICONGROW_10      10 //偏折组-1红光
-#define ICONGROW_11      11 //品质-紫
-#define ICONGROW_12      12 //品质-橙
-#define ICONGROW_13      13 //品质-红
-#define ICONGROW_14      14 //[IG新2]光彩组-1红
-#define ICONGROW_15      15 //[IG新2]偏折组-2黄光
-#define ICONGROW_16      16 //[IG新2]偏折组-3紫光
-#define ICONGROW_17      17 //[IG新2]偏折组-4蓝光
-#define ICONGROW_18      18 //[IG新2]光彩组-2蓝
-#define ICONGROW_BTN     19 //[IG新2]光彩按钮
-#define ICONGROW_20      20 //[IG新2]光彩组-3绿
-#define ICONGROW_21      21 //[IG新2]光彩组-4橙
-#define GIF_UPGRADE      22 //异度下的强化成功
-#define GIF_SHAKEWAVE1   23 //异度下的小型冲击波
-#define GIF_STAR         24 //异度下的星星获得
-#define SEQ_LOADING      25 //Loading圖
-#define GIF_BUFF         26 //BUFF:提高
-#define GIF_ICON_FLASH   27 //最常用的那个刷新动画
-#define GIF_ICON_FLASH_2 28 //第二常用的刷新动画
-#define GIF_ICON_CLICK   29 //点击动画
-#define GIF_ICON_LEVELUP 30 //升级动画
-
-library GrowData {
-
-    public struct growdata [] {
-
-        public {
-            integer max;//帧数周期
-            integer gap;//播放间隔
-            real scale; //UI放大的倍数
-            string path;//文件路径
-        }
-        static method onInit () {
-
-            #define GROWDATA_DEFINE(index, maxValue, gapValue, scaleValue, pathValue) \
-                thistype[index].max = maxValue; \
-                thistype[index].gap = gapValue; \
-                thistype[index].scale = scaleValue; \
-                thistype[index].path = pathValue;
-
-            //# check: growdata[1]
-            //# sequence: ui/icongrow/ig1_{0-63}.blp
-            GROWDATA_DEFINE(ICONGROW_1, 63, 2, 2.65, "ui\\icongrow\\ig1_")
-            //# endcheck
-
-            //# check: growdata[2]
-            //# sequence: ui/icongrow/ig2_{0-11}.blp
-            GROWDATA_DEFINE(ICONGROW_2, 11, 3, 1.4, "ui\\icongrow\\ig2_")
-            //# endcheck
-
-            //# check: growdata[3]
-            //# sequence: ui/icongrow/ig3_{0-13}.blp
-            GROWDATA_DEFINE(ICONGROW_3, 13, 3, 1.48, "ui\\icongrow\\ig3_")
-            //# endcheck
-
-            //# check: growdata[4]
-            //# sequence: ui/icongrow/ig4_{0-14}.blp
-            GROWDATA_DEFINE(ICONGROW_4, 14, 3, 1.25, "ui\\icongrow\\ig4_")
-            //# endcheck
-
-            //# check: growdata[5]
-            //# sequence: ui/icongrow/ig5_{0-15}.blp
-            GROWDATA_DEFINE(ICONGROW_5, 15, 4, 1.66, "ui\\icongrow\\ig5_")
-            //# endcheck
-
-            //# check: growdata[6]
-            //# sequence: ui/icongrow/ig6_{0-23}.blp
-            GROWDATA_DEFINE(ICONGROW_6, 23, 3, 1.8, "ui\\icongrow\\ig6_")
-            //# endcheck
-
-            //# check: growdata[7]
-            //# sequence: ui/icongrow/ig7_{0-11}.blp
-            GROWDATA_DEFINE(ICONGROW_7, 11, 4, 2.0, "ui\\icongrow\\ig7_")
-            //# endcheck
-
-            //# check: growdata[8]
-            //# sequence: ui/icongrow/ig8_{0-11}.blp
-            GROWDATA_DEFINE(ICONGROW_8, 11, 4, 2.0, "ui\\icongrow\\ig8_")
-            //# endcheck
-
-            //# check: growdata[9]
-            //# sequence: ui/icongrow/ig9_{0-11}.blp
-            GROWDATA_DEFINE(ICONGROW_9, 11, 4, 2.0, "ui\\icongrow\\ig9_")
-            //# endcheck
-
-            //# check: growdata[10]
-            //# sequence: ui/icongrow/ig10_{0-15}.blp
-            GROWDATA_DEFINE(ICONGROW_10, 15, 3, 1.22, "ui\\icongrow\\ig10_")
-            //# endcheck
-
-            //# check: growdata[11]
-            //# sequence: ui/icongrow/ig11_{0-11}.blp
-            GROWDATA_DEFINE(ICONGROW_11, 11, 4, 2.0, "ui\\icongrow\\ig11_")
-            //# endcheck
-
-            //# check: growdata[12]
-            //# sequence: ui/icongrow/ig12_{0-11}.blp
-            GROWDATA_DEFINE(ICONGROW_12, 11, 4, 2.0, "ui\\icongrow\\ig12_")
-            //# endcheck
-
-            //# check: growdata[13]
-            //# sequence: ui/icongrow/ig13_{0-11}.blp
-            GROWDATA_DEFINE(ICONGROW_13, 11, 4, 2.0, "ui\\icongrow\\ig13_")
-            //# endcheck
-
-            //# check: growdata[15]
-            //# sequence: ui/efx/ig104_{0-15}.blp
-            GROWDATA_DEFINE(ICONGROW_15, 15, 3, 1.22, "ui\\efx\\ig104_")
-            //# endcheck
-
-            //# check: growdata[16]
-            //# sequence: ui/efx/ig107_{0-15}.blp
-            GROWDATA_DEFINE(ICONGROW_16, 15, 3, 1.22, "ui\\efx\\ig107_")
-            //# endcheck
-
-            //# check: growdata[17]
-            //# sequence: ui/efx/ig103_{0-15}.blp
-            GROWDATA_DEFINE(ICONGROW_17, 15, 3, 1.22, "ui\\efx\\ig103_")
-            //# endcheck
-
-            //# check: growdata[19]
-            //# sequence: ui/efx/ig102_{0-11}.blp
-            GROWDATA_DEFINE(ICONGROW_BTN, 11, 3, 1.3, "ui\\efx\\ig102_")
-            //# endcheck
-
-            //# check: growdata[14]
-            //# sequence: ui/efx/ig101_{0-9}.blp
-            GROWDATA_DEFINE(ICONGROW_14, 9, 3, 1.49, "ui\\efx\\ig101_")
-            //# endcheck
-
-            //# check: growdata[18]
-            //# sequence: ui/efx/ig100_{0-9}.blp
-            GROWDATA_DEFINE(ICONGROW_18, 9, 3, 1.38, "ui\\efx\\ig100_")
-            //# endcheck
-
-            //# check: growdata[20]
-            //# sequence: ui/efx/ig105_{0-9}.blp
-            GROWDATA_DEFINE(ICONGROW_20, 9, 3, 1.49, "ui\\efx\\ig105_")
-            //# endcheck
-
-            //# check: growdata[21]
-            //# sequence: ui/efx/ig106_{0-9}.blp
-            GROWDATA_DEFINE(ICONGROW_21, 9, 3, 1.49, "ui\\efx\\ig106_")
-            //# endcheck
-
-            //# check: growdata[22]
-            //# sequence: ui/gif/gif1_{0-16}.blp
-            GROWDATA_DEFINE(GIF_UPGRADE, 16, 3, 3.5, "ui\\gif\\gif1_")
-            //# endcheck
-
-            //# check: growdata[23]
-            //# sequence: ui/gif/gif2_{0-14}.blp
-            GROWDATA_DEFINE(GIF_SHAKEWAVE1, 14, 2, 2.5, "ui\\gif\\gif2_")
-            //# endcheck
-
-            //# check: growdata[24]
-            //# sequence: ui/gif/gif3_{0-17}.blp
-            GROWDATA_DEFINE(GIF_STAR, 17, 2, 3.5, "ui\\gif\\gif3_")
-            //# endcheck
-
-            //# check: growdata[25]
-            //# sequence: ui/efx/ig109_{0-23}.blp
-            GROWDATA_DEFINE(SEQ_LOADING, 23, 3, 3.5, "ui\\efx\\ig109_")
-            //# endcheck
-
-            //# check: growdata[26]
-            //# sequence: ui/efx/ig108_{0-41}.blp
-            GROWDATA_DEFINE(GIF_BUFF, 41, 1, 3.0, "ui\\efx\\ig108_")
-            //# endcheck
-
-            //# check: growdata[27]
-            //# sequence: ui/efx/ig110_{0-15}.blp
-            GROWDATA_DEFINE(GIF_ICON_FLASH, 15, 3, 1.38, "ui\\efx\\ig110_")
-            //# endcheck
-
-            //# check: growdata[28]
-            //# sequence: ui/efx/ig111_{0-10}.blp
-            GROWDATA_DEFINE(GIF_ICON_FLASH_2, 10, 3, 1.8, "ui\\efx\\ig111_")
-            //# endcheck
-
-            //# check: growdata[29]
-            //# sequence: ui/efx/ig112_{0-13}.blp
-            GROWDATA_DEFINE(GIF_ICON_CLICK, 13, 1, 1.7, "ui\\efx\\ig112_")
-            //# endcheck
-
-            //# check: growdata[30]
-            //# sequence: ui/efx/ig113_{0-16}.blp
-            GROWDATA_DEFINE(GIF_ICON_LEVELUP, 16, 3, 2.1, "ui\\efx\\ig113_")
-            //# endcheck
-        }
-    }
-}
-
-//! endzinc
-#endif
-#ifndef UIUtilsIncluded
-#define UIUtilsIncluded
-
-//窗口的大小
-#define WINDOW_PRESENT_WIDTH  0.80
-#define WINDOW_PRESENT_HEIGHT 0.60
-
-//! zinc
-/*
-UI工具库
-*/
-library UIUtils requires BzAPI{
-
-	//获得现在的X / Y比例
-	//主要用于UI缩放
-	public function GetResizeRate () -> real {
-		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
-		else return 1.0;
-	}
-
-	// 获取鼠标位置X(绝对坐标)[修正版]
-	public function GetMouseXEx () -> real {
-		integer width = DzGetClientWidth();
-		if (width > 0) return DzGetMouseXRelative()* WINDOW_PRESENT_WIDTH / width;
-		else return 0.1;
-	}
-
-	// 获取鼠标位置Y(绝对坐标)[修正版]
-	public function GetMouseYEx () -> real {
-		integer height = DzGetClientHeight();
-		if (height > 0) return WINDOW_PRESENT_HEIGHT - DzGetMouseYRelative()* WINDOW_PRESENT_HEIGHT / height;
-		else return 0.1;
-	}
-
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseX (real min,real max) -> real {
-		return RLimit(GetMouseXEx(),min,max);
-	}
-
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseY (real min,real max) -> real {
-		return RLimit(GetMouseYEx(),min,max);
-	}
-
-}
-
-//! endzinc
-#endif
-
-#ifndef UITextModuleIncluded
-#define UITextModuleIncluded
-
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-
-//! zinc
-/*
-UI文本的共用方法
-*/
-
-#define FONT_SIZE_HUGE   0.015 // 特大号
-#define FONT_SIZE_LARGE  0.012 // 大号
-#define FONT_SIZE_MEDIUM 0.011 // 中号
-#define FONT_SIZE_NORMAL 0.01  // 标准
-#define FONT_SIZE_SMALL  0.009 // 小号
-#define FONT_SIZE_TINY   0.008 // 特小号
-#define FONT_SIZE_MINI   0.006 // 迷你号
-
-
-library UITextModule {
-    // 定义共用的方法结构
-    public module uiTextModule {
-
-        // 设置标准字体大小
-        // size: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
-        method setFontSize (integer size) -> thistype {
-            real fontSize = FONT_SIZE_NORMAL;
-            if (!this.isExist()) {return this;}
-
-            if (size == 1) {
-                fontSize = FONT_SIZE_MINI;
-            } else if (size == 2) {
-                fontSize = FONT_SIZE_TINY;
-            } else if (size == 3) {
-                fontSize = FONT_SIZE_SMALL;
-            } else if (size == 4) {
-                fontSize = FONT_SIZE_NORMAL;
-            } else if (size == 5) {
-                fontSize = FONT_SIZE_MEDIUM;
-            } else if (size == 6) {
-                fontSize = FONT_SIZE_LARGE;
-            } else if (size == 7) {
-                fontSize = FONT_SIZE_HUGE;
-            }
-
-            DzFrameSetFont(ui, "fonts\\zt.ttf", fontSize, 0);
-            return this;
-        }
-
-        // 设置对齐方式(前提要先定好大小,不然无处对齐)
-        // align: 可以使用0-8的简单数字,或TEXT_ALIGN_*常量
-        // 0=左上, 1=顶部居中, 2=右上
-        // 3=左中, 4=居中, 5=右中
-        // 6=左下, 7=底部居中, 8=右下
-        method setAlign (integer align) -> thistype {
-            integer finalAlign = align;
-
-            if (!this.isExist()) {return this;}
-
-            // 如果输入0-8,转换为对应的组合值
-            if (align >= 0 && align <= 8) {
-                if (align == 0) {
-                    finalAlign = 9;       // 左上
-                } else if (align == 1) {
-                    finalAlign = 17;      // 顶部居中
-                } else if (align == 2) {
-                    finalAlign = 33;      // 右上
-                } else if (align == 3) {
-                    finalAlign = 10;      // 左中
-                } else if (align == 4) {
-                    finalAlign = 18;      // 居中
-                } else if (align == 5) {
-                    finalAlign = 34;      // 右中
-                } else if (align == 6) {
-                    finalAlign = 12;      // 左下
-                } else if (align == 7) {
-                    finalAlign = 20;      // 底部居中
-                } else if (align == 8) {
-                    finalAlign = 36;      // 右下
-                }
-            }
-
-            DzFrameSetTextAlignment(ui, finalAlign);
-            return this;
-        }
-
-        // 设置文本内容
-        method setText (string text) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetText(ui,text);
-            return this;
-        }
-
-    }
-
-}
-
-#undef FONT_SIZE_HUGE
-#undef FONT_SIZE_LARGE
-#undef FONT_SIZE_MEDIUM
-#undef FONT_SIZE_NORMAL
-#undef FONT_SIZE_SMALL
-#undef FONT_SIZE_TINY
-#undef FONT_SIZE_MINI
-
-
-//! endzinc
-#endif
-
-#ifndef UITocInitIncluded
-#define UITocInitIncluded
-
-//! zinc
-/*
-Toc初始化,才能使用UI功能
-*/
-library UITocInit requires BzAPI,LBKKAPI {
-
-  function onInit ()  {
-		DzLoadToc("ui\\Crainax.toc");
-		DzFrameEnableClipRect(false);
-  }
-}
-
-//! endzinc
-#endif
 
 //===========================================================================
 //
@@ -2729,97 +1648,46 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTIcon requires Icon {
-	private icon testIcon1 = 0;
-	private boolean isTest1Active = false;
-	private boolean isTest3Active = false;
-	private boolean isTest4Active = false;
-	// 基础图标创建和显示测试
-	function TTestUTIcon1 (player p) {
-		if (!isTest1Active) {
-			testIcon1 = icon.create(DzGetGameUI());
-			testIcon1.mainImage.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, 0);
-			testIcon1.setTexture("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp");
-			testIcon1.setSize(0.04, 0.04);
-			testIcon1.show(true);
-			isTest1Active = true;
-			BJDebugMsg("基础图标已创建 - 输入s1可关闭");
-		} else {
-			testIcon1.destroy();
-			testIcon1 = 0;
-			isTest1Active = false;
-			BJDebugMsg("基础图标已关闭");
+library UTProgressAnim requires ProgressAnim {
+	uiSprite testSprite = 0;
+	uiImage img = 0;
+	function TTestUTProgressAnim1 (player p) {
+		if (img.isExist()) {
+			img.destroy();
 		}
+		if (testSprite.isExist()) {
+			testSprite.destroy();
+		}
+		img = uiImage.create(DzGetGameUI())
+			.setSize(0.035,0.035)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+			.setClip(true)
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNHealOn.blp");
+		testSprite = uiSprite.create(img.ui)
+			.setPoint(ANCHOR_CENTER,img.ui,ANCHOR_BOTTOM_LEFT,0,0)
+			.setSize(0.001,0.001)
+			.setModel("UI\\Feedback\\Cooldown\\UI-Cooldown-Indicator.mdx",0,0)
+			// .setScale(3.0)
+			.setAnimate(0,false)
+			.progAnimate(0,1,5.0,function(uiSprite sprite) {
+				integer i = uiHashTable(sprite).eventdata.get();
+				BJDebugMsg("进度动画结束:"+I2S(i)); //line1
+sprite.destroy();
+			});
+		uiHashTable(testSprite).eventdata.bind(6665);
 	}
-	// 角落文字测试
-	function TTestUTIcon2 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		testIcon1.setCornerText(I2S(GetRandomInt(1, 99)));
-		testIcon1.showCornerText(true);
-		BJDebugMsg("已更新角落文字 - 再次输入s2随机新数字");
+	function TTestUTProgressAnim2 (player p) {
 	}
-	// 流光效果测试
-	function TTestUTIcon3 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest3Active) {
-			testIcon1.grow(DzGetGameUI(), growdata[ICONGROW_2]);
-			isTest3Active = true;
-			BJDebugMsg("流光效果已开启 - 输入s3可关闭");
-		} else {
-			testIcon1.unGrow();
-			isTest3Active = false;
-			BJDebugMsg("流光效果已关闭");
-		}
+	function TTestUTProgressAnim3 (player p) {
 	}
-	// 暗遮罩测试
-	function TTestUTIcon4 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest4Active) {
-			testIcon1.setShadow(true);
-			isTest4Active = true;
-			BJDebugMsg("暗遮罩已开启 - 输入s4可关闭");
-		} else {
-			testIcon1.setShadow(false);
-			isTest4Active = false;
-			BJDebugMsg("暗遮罩已关闭");
-		}
-	}
-	// 点击事件测试
-	function TTestUTIcon5 (player p) {
-		uiBtn btn;
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		btn = testIcon1.getClickBtn();
-		btn.onMouseClick(function(){
-			BJDebugMsg("图标被点击!");
-		});
-		BJDebugMsg("点击事件已绑定 - 请点击图标测试");
-	}
-	// CD显示测试
-	function TTestUTIcon6 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		testIcon1.startCooldown(10.0);
-		BJDebugMsg("CD显示已开始 - 持续10秒");
-	}
-	function TTestUTIcon7 (player p) {}
-	function TTestUTIcon8 (player p) {}
-	function TTestUTIcon9 (player p) {}
-	function TTestUTIcon10 (player p) {}
-	function TTestActUTIcon1 (string str) {
+	function TTestUTProgressAnim4 (player p) {}
+	function TTestUTProgressAnim5 (player p) {}
+	function TTestUTProgressAnim6 (player p) {}
+	function TTestUTProgressAnim7 (player p) {}
+	function TTestUTProgressAnim8 (player p) {}
+	function TTestUTProgressAnim9 (player p) {}
+	function TTestUTProgressAnim10 (player p) {}
+	function TTestActUTProgressAnim1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -2851,7 +1719,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[Icon] 单元测试已加载");
+			BJDebugMsg("[ProgressAnim] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -2859,19 +1727,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTIcon1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTProgressAnim1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTIcon1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTIcon2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTIcon3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTIcon4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTIcon5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTIcon6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTIcon7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTIcon8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTIcon9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTIcon10(GetTriggerPlayer());
+			if (str == "s1") TTestUTProgressAnim1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTProgressAnim2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTProgressAnim3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTProgressAnim4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTProgressAnim5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTProgressAnim6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTProgressAnim7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTProgressAnim8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTProgressAnim9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTProgressAnim10(GetTriggerPlayer());
 		});
 	}
 }

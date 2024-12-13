@@ -15,6 +15,9 @@ library UISprite requires STRUCT_SHARED_REQUIRE_UI {
         // UI组件内部共享方法及成员
         STRUCT_SHARED_INNER_UI(uiSprite)
 
+        // 可选引入进度动画模块
+        optional module panimable;
+
         // 创建模型
         // parent: 父级框架
         static method create (integer parent) -> thistype {

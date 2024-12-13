@@ -24,6 +24,7 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
                 ser = resizer.create(ui,width,height);
                 SaveInteger(HASH_UI,ui,HASH_KEY_UI_EXTEND_RESIZER,ser);
             }
+            DzFrameSetSize(ui,width*GetResizeRate(),height);
             return this;
         }
 
@@ -42,12 +43,13 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
                 ptr = rePointer.create(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
                 SaveInteger(HASH_UI,ui,HASH_KEY_UI_EXTEND_REPOINTER,ptr);
             }
+            DzFrameSetPoint(frame,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY);
             return this;
         }
     }
 
     //大小重组器
-    public struct resizer {
+    private struct resizer {
         static  thistype List [];  //内容列表
         static  integer size = 0;  //现在有几个东西
         integer frame;             //[成员]绑定的内容
@@ -63,7 +65,6 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
             this.frame = frame;
             this.width = width;
             this.height = height;
-            DzFrameSetSize(frame,width*GetResizeRate(),height);
 
             if (uID == 0) { //这里是初始化时的设置内容,不需要改
                 size       += 1;
@@ -89,7 +90,7 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
     }
 
     //位置重组器
-    public struct rePointer {
+    private struct rePointer {
         static  thistype List [];  //内容列表
         static  integer size = 0;  //现在有几个东西
         integer frame;             //[成员]绑定的内容
@@ -112,7 +113,6 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
             this.relativeAnchor = relativeAnchor;
             this.offsetX = offsetX;
             this.offsetY = offsetY;
-            DzFrameSetPoint(frame,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY);
 
             if (uID == 0) { //这里是初始化时的设置内容,不需要改
                 size       += 1;
