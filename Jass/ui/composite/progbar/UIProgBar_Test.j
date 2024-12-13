@@ -6,18 +6,18 @@
 
 //! zinc
 /*
- * 进度条组件单元测试
- *
- * @作者: 你的名字
- * @时间: 2024-03-xx
- * @版本: 1.0.0
- *
- * 测试命令:
- * s1 - 创建一个基础进度条
- * s2 - 创建一个测试图像
- * -a [参数] - 执行特定测试动作
- * -b [参数] - 执行特定测试动作
- */
+* 进度条组件单元测试
+*
+* @作者: 你的名字
+* @时间: 2024-03-xx
+* @版本: 1.0.0
+*
+* 测试命令:
+* s1 - 创建一个基础进度条
+* s2 - 创建一个测试图像
+* -a [参数] - 执行特定测试动作
+* -b [参数] - 执行特定测试动作
+*/
 library UTUIProgBar requires UIProgBar {
 
 	uiProgBar progBar = 0;
@@ -25,6 +25,7 @@ library UTUIProgBar requires UIProgBar {
 		progBar = uiProgBar.create(DzGetGameUI())
 			.setScale(2)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+		progBar.uiShade.progAnimate(0,1,3.0,0); // 进度条动画
 	}
 	function TTestUTUIProgBar2 (player p) {
 		uiImage currentImage = uiImage.create(DzGetGameUI())
@@ -105,14 +106,6 @@ library UTUIProgBar requires UIProgBar {
 			else if(str == "s8") TTestUTUIProgBar8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTUIProgBar9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTUIProgBar10(GetTriggerPlayer());
-		});
-
-		TimerStart(CreateTimer(),0.1,true,function (){
-			string str;
-			progress = progress + 0.01;
-			if (progress >= 1.0) progress = 0.0;
-			progBar.setProgress(progress);
-			BJDebugMsg("进度:"+R2S(progress));
 		});
 
 	}

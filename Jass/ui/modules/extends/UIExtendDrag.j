@@ -2,7 +2,8 @@
 #define UIExtendDragIncluded
 
 #include "Crainax/config/SharedMethod.h"
-#include "Crainax/core/table/Hash_UIDefine.j"
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
 
 //! zinc
 
@@ -15,42 +16,46 @@ library UIExtendDrag requires UIExtendEvent {
 
     // UI拖拽处理器结构体
     public struct uiDragger {
-        static thistype List [];           //内容列表
+        static thistype List [];
+        static integer size          = 0;
+        static integer draggingFrame = 0;
+        static real startX           = 0.0;
+        static real startY           = 0.0;
 
-        static integer size          = 0;    //现在有几个东西
-        static integer draggingFrame = 0;    //当前正在拖拽的frame
-        static real startX           = 0.0;  //开始拖拽时鼠标X坐标
-        static real startY           = 0.0;  //开始拖拽时鼠标Y坐标
-        static real CENTER_X         = 0.4;  //活动范围的中心X坐标
-        static real CENTER_Y         = 0.3;  //活动范围的中心Y坐标
+        integer frame;
+        integer mover;
+        real xPos;
+        real yPos;
+        // 改用四边界限制
+        real leftLimit;
+        real rightLimit;
+        real topLimit;
+        real bottomLimit;
+        integer uID;
 
-        integer frame;                      //[成员]已注册的frame
-        real xPos;                         //[成员]当前的X位置(锚点中心)
-        real yPos;                         //[成员]当前的Y位置(锚点中心)
-        real limitWidth;                   //[成员]活动范围宽度的一半
-        real limitHeight;                  //[成员]活动范围高度的一半
-        integer uID;                       //[成员]绑定的ID
-
-        // 设置位置（带范围限制）
+        // 修改位置限制逻辑
         method setPosition(real newX, real newY) -> nothing {
-            // 限制在活动范围内
-            newX = RLimit(newX, CENTER_X - this.limitWidth, CENTER_X + this.limitWidth);
-            newY = RLimit(newY, CENTER_Y - this.limitHeight, CENTER_Y + this.limitHeight);
+            // 使用四边界进行限制
+            newX = RLimit(newX, this.leftLimit, this.rightLimit);
+            newY = RLimit(newY, this.bottomLimit, this.topLimit);
 
             this.xPos = newX;
             this.yPos = newY;
-            DzFrameSetAbsolutePoint(this.frame, FRAMEPOINT_CENTER, newX, newY);
+            DzFrameSetAbsolutePoint(this.mover, ANCHOR_CENTER, newX, newY);
         }
 
-        static method create(integer frame, real width, real height) -> thistype {
+        static method create(integer frame, integer mover, real left, real right, real top, real bottom) -> thistype {
             thistype this = allocate();
             this.frame = frame;
-            // 存储活动范围（使用一半的宽高值）
-            this.limitWidth = width * 0.5;
-            this.limitHeight = height * 0.5;
+            this.mover = mover;
+            // 存储四边界限制
+            this.leftLimit = left;
+            this.rightLimit = right;
+            this.topLimit = top;
+            this.bottomLimit = bottom;
 
-            // 设置初始位置在中心点
-            this.setPosition(CENTER_X, CENTER_Y);
+            // 设置初始位置（使用中心点）
+            this.setPosition((left + right) * 0.5, (top + bottom) * 0.5);
 
             if (this.uID == 0) {
                 this.size += 1;
@@ -82,27 +87,30 @@ library UIExtendDrag requires UIExtendEvent {
         static method onInit() {
             // 注册鼠标移动事件
             hardware.regMoveEvent(function() {
+                thistype this;
+                real dx,dy;
                 integer frame = thistype.draggingFrame;
+                integer currentFocus;
                 if (frame != 0) {
-                    // 检查frame是否还存在（如果UI被删除，DzGetMouseFocus会返回0）
-                    if (DzGetMouseFocus() == frame) {
+                    currentFocus = DzGetMouseFocus();
+
+                    // 检查frame是否还存在（当焦点不是当前拖拽frame时才停止）
+                    if (currentFocus != frame) {
                         thistype.draggingFrame = 0;
                         return;
                     }
 
-                    real dx = hardware.getMouseX() - thistype.startX;
-                    real dy = hardware.getMouseY() - thistype.startY;
+                    dx = hardware.getMouseX() - thistype.startX;
+                    dy = hardware.getMouseY() - thistype.startY;
 
                     // 获取dragger实例
-                    thistype this = LoadInteger(HASH_UI, frame, HASH_KEY_UI_EXTEND_DRAGGER);
+                    this = LoadInteger(HASH_UI, frame, HASH_KEY_UI_EXTEND_DRAGGER);
                     if (this != 0) {
                         this.setPosition(this.xPos + dx, this.yPos + dy);
                     } else {
-                        // 如果找不到dragger实例，也停止拖拽
                         thistype.draggingFrame = 0;
                     }
 
-                    // 更新鼠标起始位置，避免累积误差
                     thistype.startX = hardware.getMouseX();
                     thistype.startY = hardware.getMouseY();
                 }
@@ -126,20 +134,24 @@ library UIExtendDrag requires UIExtendEvent {
 
     //放到 uiBtn里面的模块
     public module extendDrag {
-        method enableDrag(real width, real height) -> nothing {
-            if (!this.isExist()) { return; }
-
+        // 修改方法签名，使用四边界参数
+        method enableDrag(integer mover, real left, real right, real bottom, real top) -> thistype {
             uiDragger dragger;
+            if (!this.isExist()) { return this; }
+
             // 检查是否已存在dragger实例
-            if (HaveSavedInteger(HASH_UI, this, HASH_KEY_UI_EXTEND_DRAGGER)) {
-                dragger = LoadInteger(HASH_UI, this, HASH_KEY_UI_EXTEND_DRAGGER);
-                dragger.frame = this;
-                // 更新活动范围
-                dragger.limitWidth = width * 0.5;
-                dragger.limitHeight = height * 0.5;
+            if (HaveSavedInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER)) {
+                dragger = LoadInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER);
+                dragger.frame = ui;
+                dragger.mover = mover;
+                // 更新四边界限制
+                dragger.leftLimit = left;
+                dragger.rightLimit = right;
+                dragger.topLimit = top;
+                dragger.bottomLimit = bottom;
             } else {
-                dragger = uiDragger.create(this, width, height);
-                SaveInteger(HASH_UI, this, HASH_KEY_UI_EXTEND_DRAGGER, dragger);
+                dragger = uiDragger.create(ui, mover, left, right, top, bottom);
+                SaveInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER, dragger);
             }
 
             // 注册鼠标事件
@@ -154,6 +166,8 @@ library UIExtendDrag requires UIExtendEvent {
                     uiDragger.draggingFrame = 0;
                 }
             });
+
+            return this;
         }
     }
 }

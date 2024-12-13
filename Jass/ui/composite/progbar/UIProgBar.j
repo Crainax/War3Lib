@@ -12,9 +12,9 @@
 
 //# dependency: ui/bar/grow_yellow.mdx
 //# dependency: ui/bar/grow_mp.mdx
+//# dependency: ui/bar/grow_hp.mdx
 //# dependency: ui/bar/shade_yellow.mdx
 //# dependency: ui/bar/shade_hmp.mdx
-//# dependency: ui/bar/grow_hp.mdx
 //# dependency: ui/bar/hpbar_glow.blp
 
 library UIProgBar requires UISprite {
@@ -31,11 +31,11 @@ library UIProgBar requires UISprite {
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             uiGlow = uiSprite.create(parent)
-                .setModel("ui\\bar\\grow_yellow.mdx",0,0)
+                .setModel("ui\\bar\\grow_hp.mdx",0,0)
                 .setSize(0.001,0.001)
                 .setAnimate(0,true);
             uiShade = uiSprite.create(parent)
-                .setModel("ui\\bar\\shade_yellow.mdx",0,0)
+                .setModel("ui\\bar\\shade_hmp.mdx",0,0)
                 .setSize(0.001,0.001)
                 .setAnimate(0,false)
                 .setAllPoint(uiGlow.ui);

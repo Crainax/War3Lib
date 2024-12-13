@@ -12,6 +12,7 @@ library UTProgressAnim requires ProgressAnim {
 	uiSprite testSprite = 0;
 	uiImage img = 0;
 	function TTestUTProgressAnim1 (player p) {
+		if (GetLocalPlayer() != p) {return;}
 		if (img.isExist()) {
 			img.destroy();
 		}

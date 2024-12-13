@@ -1,4 +1,4 @@
 logs\currentmapscript.j
 pjass.exe
-Line 1858:  Undeclared variable ANCHOR_LEFT_BOTTOM
+Line 2079:  Cannot convert nothing to integer
 1

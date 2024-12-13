@@ -9,13 +9,18 @@
 //自动生成的文件
 library UTUIExtendDrag requires UIExtendDrag {
 
+	uiBtn btn = 0;
+	uiImage img = 0;
+
 	function TTestUTUIExtendDrag1 (player p) {
-		uiBtn btn = 0;
-		btn = uiBtn.create(DzGetGameUI())
-			// .setSize(0.04,0.04)
-			// .enableDrag(0.35,0.25)
-			.setAllPoint(txt.ui);
-			// .setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+		img = uiImage.create(DzGetGameUI())
+			.setSize(0.1,0.1)
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNHealOn.blp");
+		btn = uiBtn.create(img.ui)
+			.setAllPoint(img.ui)
+			.enableDrag(img.ui,0.1, 0.7, 0.2, 0.5);
+		// .setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
 		uiHashTable(btn.ui).eventdata.bind(8174);
 	}
 	function TTestUTUIExtendDrag2 (player p) {}
