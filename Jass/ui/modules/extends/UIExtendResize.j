@@ -43,13 +43,13 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
                 ptr = rePointer.create(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
                 SaveInteger(HASH_UI,ui,HASH_KEY_UI_EXTEND_REPOINTER,ptr);
             }
-            DzFrameSetPoint(frame,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY);
+            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY);
             return this;
         }
     }
 
     //大小重组器
-    private struct resizer {
+    public struct resizer {
         static  thistype List [];  //内容列表
         static  integer size = 0;  //现在有几个东西
         integer frame;             //[成员]绑定的内容
@@ -90,7 +90,7 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
     }
 
     //位置重组器
-    private struct rePointer {
+    public struct rePointer {
         static  thistype List [];  //内容列表
         static  integer size = 0;  //现在有几个东西
         integer frame;             //[成员]绑定的内容

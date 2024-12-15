@@ -73,6 +73,14 @@ library UnitPanel requires UIButton,UIText,UIImage {
         static uiText textAgi          = 0; static uiText  textAgiValue = 0;  //敏捷
         static uiText textInt          = 0; static uiText  textIntValue = 0;  //智力
 
+        static uiBtn btnBuilding       = 0; static uiText  textBuilding = 0;    //建筑相关
+        static uiText textBuildingValue= 0; static uiImage imgBuilding  = 0;    //建筑相关
+
+        static uiBtn btnMonster        = 0; static uiImage imgMonster   = 0;    //怪物属性
+        static uiText textGold         = 0; static uiText  textGoldValue= 0;    //金币
+        static uiText textExp          = 0; static uiText  textExpValue = 0;    //经验
+        static uiText textScore        = 0; static uiText  textScoreValue= 0;   //积分
+
         // 事件触发器
         private {
             static trigger trAttackEnter = null; static trigger trAttackLeave      = null;
@@ -81,6 +89,10 @@ library UnitPanel requires UIButton,UIText,UIImage {
             static trigger trArmorClick  = null; static trigger trArmorRightClick  = null;
             static trigger trHeroEnter   = null; static trigger trHeroLeave        = null;
             static trigger trHeroClick   = null; static trigger trHeroRightClick   = null;
+            static trigger trBuildingEnter = null; static trigger trBuildingLeave     = null;
+            static trigger trBuildingClick = null; static trigger trBuildingRightClick= null;
+            static trigger trMonsterEnter  = null; static trigger trMonsterLeave      = null;
+            static trigger trMonsterClick  = null; static trigger trMonsterRightClick = null;
         }
 
         #define onUnitPanelTrigger(name,evt) \
@@ -98,6 +110,8 @@ library UnitPanel requires UIButton,UIText,UIImage {
         onUnitPanelAllEvents(Attack)
         onUnitPanelAllEvents(Armor)
         onUnitPanelAllEvents(Hero)
+        onUnitPanelAllEvents(Building)
+        onUnitPanelAllEvents(Monster)
 
         #undef onUnitPanelTrigger
         #undef onUnitPanelAllEvents
@@ -199,6 +213,75 @@ library UnitPanel requires UIButton,UIText,UIImage {
                 .setPoint(ANCHOR_TOPLEFT, textInt.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("30");
 
+            //建筑小框架相关
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7); //建筑的父框架
+            child = DzCreateFrameByTagName("SIMPLEFRAME", "upBuilding", parent, "单位面板框架", 2);
+            DzFrameClearAllPoints(child);
+            imgBuilding = uiImage.bindSimple("单位面板图标", 2)
+                .setSize(0.027, 0.027)
+                .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.068)
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNTownHall.blp");
+            btnBuilding = uiBtn.createSimple(parent)
+                .setAllPoint(imgBuilding.ui)
+                .spEnter(function(integer frame) {if (trBuildingEnter != null) TriggerEvaluate(trBuildingEnter);})
+                .spLeave(function(integer frame) {if (trBuildingLeave != null) TriggerEvaluate(trBuildingLeave);})
+                .spClick(function(integer frame) {if (trBuildingClick != null) TriggerEvaluate(trBuildingClick);})
+                .spRightClick(function(integer frame) {if (trBuildingRightClick != null) TriggerEvaluate(trBuildingRightClick);});
+            textBuilding = uiText.bindSimple("单位面板属性名", 2)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, imgBuilding.ui, ANCHOR_TOPRIGHT, 0.003, -0.003)
+                .setText("防护罩:");
+            textBuildingValue = uiText.bindSimple("单位面板数值", 2)
+                .clearPoint()
+                .setPoint(ANCHOR_BOTTOMLEFT, imgBuilding.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
+                .setText("1");
+
+            //怪物属性框架
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 7); //怪物属性的父框架
+            child = DzCreateFrameByTagName("SIMPLEFRAME", "upMonster", parent, "怪物属性框架", 0);
+            DzFrameClearAllPoints(child);
+
+            // 怪物属性图标
+            imgMonster = uiImage.bindSimple("怪物属性图标", 0)
+                .setSize(0.027, 0.027)
+                .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.1235, -0.09)
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNSkeleton.blp");
+            btnMonster = uiBtn.createSimple(parent)
+                .setAllPoint(imgMonster.ui)
+                .spEnter(function(integer frame) {if (trMonsterEnter != null) TriggerEvaluate(trMonsterEnter);})
+                .spLeave(function(integer frame) {if (trMonsterLeave != null) TriggerEvaluate(trMonsterLeave);})
+                .spClick(function(integer frame) {if (trMonsterClick != null) TriggerEvaluate(trMonsterClick);})
+                .spRightClick(function(integer frame) {if (trMonsterRightClick != null) TriggerEvaluate(trMonsterRightClick);});
+
+            //金币
+            textGold = uiText.bindSimple("怪物金币名", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, imgMonster.ui, ANCHOR_CENTER, 0.017, 0.027)
+                .setText("金币:");
+            textGoldValue = uiText.bindSimple("怪物金币值", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, textGold.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
+                .setText("100");
+
+            //经验
+            textExp = uiText.bindSimple("怪物经验名", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, imgMonster.ui, ANCHOR_CENTER, 0.017, 0.006)
+                .setText("经验:");
+            textExpValue = uiText.bindSimple("怪物经验值", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, textExp.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
+                .setText("50");
+
+            //积分
+            textScore = uiText.bindSimple("怪物积分名", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, imgMonster.ui, ANCHOR_CENTER, 0.017, -0.015)
+                .setText("积分:");
+            textScoreValue = uiText.bindSimple("怪物积分值", 0)
+                .clearPoint()
+                .setPoint(ANCHOR_TOPLEFT, textScore.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
+                .setText("10");
         }
 
         //把所有原生UI移走

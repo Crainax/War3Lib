@@ -1,6 +1,31 @@
 #ifndef UTIconIncluded
 #define UTIconIncluded
 
+/*===========================================================================
+ * Icon组件单元测试
+ *
+ * 功能说明:
+ * - 测试Icon组件的基本功能
+ * - 包括创建、显示、角落文字、流光效果、暗遮罩等
+ * - 提供交互式的测试命令
+ *
+ * 测试指令:
+ * s1 - 创建/销毁基础图标
+ * s2 - 更新角落文字
+ * s3 - 开启/关闭流光效果
+ * s4 - 开启/关闭暗遮罩
+ * s5 - 测试点击事件
+ * s6 - 测试CD显示(10秒)
+ * s7 - 显示/隐藏图标
+ * s8 - 开启自动尺寸
+ * -destroy - 销毁图标
+ *
+ * 使用方法:
+ * 1. 首先使用s1创建基础图标
+ * 2. 然后可以使用其他指令测试各项功能
+ * 3. 完成后使用s1或-destroy销毁图标
+ *===========================================================================*/
+
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
@@ -13,6 +38,7 @@ library UTIcon requires Icon {
 	private boolean isTest1Active = false;
 	private boolean isTest3Active = false;
 	private boolean isTest4Active = false;
+	private boolean isTest7Active = false;
 
 	// 基础图标创建和显示测试
 	function TTestUTIcon1 (player p) {
@@ -101,12 +127,39 @@ library UTIcon requires Icon {
 			return;
 		}
 
-		testIcon1.startCooldown(10.0);
+		testIcon1.startCooldown(10.0,0);
 		BJDebugMsg("CD显示已开始 - 持续10秒");
 	}
 
-	function TTestUTIcon7 (player p) {}
-	function TTestUTIcon8 (player p) {}
+	// 显示/隐藏测试
+	function TTestUTIcon7 (player p) {
+		if (!testIcon1.isExist()) {
+			BJDebugMsg("请先使用s1创建基础图标");
+			return;
+		}
+
+		if (!isTest7Active) {
+			testIcon1.show(false);
+			isTest7Active = true;
+			BJDebugMsg("图标已隐藏 - 输入s7可显示");
+		} else {
+			testIcon1.show(true);
+			isTest7Active = false;
+			BJDebugMsg("图标已显示");
+		}
+	}
+
+	// 大小调整测试
+	function TTestUTIcon8 (player p) {
+		if (!testIcon1.isExist()) {
+			BJDebugMsg("请先使用s1创建基础图标");
+			return;
+		}
+
+		testIcon1.enableResize();
+		BJDebugMsg("大小调整已开启");
+	}
+
 	function TTestUTIcon9 (player p) {}
 	function TTestUTIcon10 (player p) {}
 	function TTestActUTIcon1 (string str) {
@@ -116,6 +169,21 @@ library UTIcon requires Icon {
 		string  paramS [];							   //所有参数S
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
+
+		// 处理destroy命令
+		if (str == "destroy") {
+			if (testIcon1.isExist()) {
+				testIcon1.destroy();
+				testIcon1 = 0;
+				isTest1Active = false;
+				BJDebugMsg("图标已销毁");
+			} else {
+				BJDebugMsg("没有可销毁的图标");
+			}
+			p = null;
+			return;
+		}
+
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -147,6 +215,16 @@ library UTIcon requires Icon {
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
 			BJDebugMsg("[Icon] 单元测试已加载");
+			BJDebugMsg("测试指令:");
+			BJDebugMsg("s1 - 创建/销毁基础图标");
+			BJDebugMsg("s2 - 更新角落文字");
+			BJDebugMsg("s3 - 开启/关闭流光效果");
+			BJDebugMsg("s4 - 开启/关闭暗遮罩");
+			BJDebugMsg("s5 - 测试点击事件");
+			BJDebugMsg("s6 - 测试CD显示(10秒)");
+			BJDebugMsg("s7 - 显示/隐藏图标");
+			BJDebugMsg("s8 - 开启自动尺寸");
+			BJDebugMsg("-destroy - 销毁图标");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

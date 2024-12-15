@@ -14,7 +14,7 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
     public type uiEvent extends function(integer);
 
     boolean rcStartOnUI = false;  // 是否开始右键点击
-    integer clickStartUI   = 0;      // 右键点击开始时的UI
+    integer clickStartUI   = 0;      // 点击开始时的UI(判断是否进入过UI)
 
     public module extendEvent {
 

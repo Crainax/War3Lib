@@ -33,7 +33,7 @@ library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
 	/*
 	进度动画效果
 	*/
-	private struct progAnim {
+	public struct progAnim {
 		static thistype  List [];      // 内容列表
 		static integer size = 0;         // 现在有几个东西
 		static uianim UIA = 0;          // 动画实例
@@ -45,6 +45,8 @@ library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
 		integer now;                    // [成员]当前时间
 		integer id;                     // [成员]绑定的ID
 		onProgressEnd cb;               // [成员]结束回调
+
+		STRUCT_SHARED_METHODS(progAnim)
 
 		// 创建进度动画
 		static method create (uiSprite sprite, real from, real to, integer time, onProgressEnd cb) -> thistype {
@@ -70,8 +72,8 @@ library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
 
 		method onDestroy() {
 			// 数据解除都放这里
-			if (sprite != 0 && HaveSavedInteger(HASH_UI, sprite, HASH_KEY_UI_PROGRESS_ANIM)) {
-				RemoveSavedInteger(HASH_UI, sprite, HASH_KEY_UI_PROGRESS_ANIM);
+			if (sprite.isExist() && HaveSavedInteger(HASH_UI, sprite.ui, HASH_KEY_UI_PROGRESS_ANIM)) {
+				RemoveSavedInteger(HASH_UI, sprite.ui, HASH_KEY_UI_PROGRESS_ANIM);
 			}
 			sprite = 0;
 			cb = 0;
@@ -104,7 +106,7 @@ library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
 						if(this.now >= this.time) { // 删除的条件
 							this.sprite.setProgress(this.to);
 							if(this.cb != 0) {
-								RemoveSavedInteger(HASH_UI,this.sprite,HASH_KEY_UI_PROGRESS_ANIM); //因为会自动排泄,防止在回调删UI的时候继续再调用一次
+								RemoveSavedInteger(HASH_UI,this.sprite.ui,HASH_KEY_UI_PROGRESS_ANIM); //因为会自动排泄,防止在回调删UI的时候继续再调用一次
 								this.cb.evaluate(this.sprite);
 							}
 							this.destroy();
@@ -123,7 +125,7 @@ library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
 				thistype this;
 				if (HaveSavedInteger(HASH_UI, ui, HASH_KEY_UI_PROGRESS_ANIM)) {
 					this = LoadInteger(HASH_UI, ui, HASH_KEY_UI_PROGRESS_ANIM);
-					if (this.id != 0) { // 检查实例是否存在
+					if (this.isExist()) { // 检查实例是否存在
 						this.destroy();
 					}
 				}
@@ -138,8 +140,8 @@ library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
 			if (!this.isExist()) { return this; }
 
 			// 检查是否已存在progAnim实例
-			if (HaveSavedInteger(HASH_UI, this, HASH_KEY_UI_PROGRESS_ANIM)) {
-				anim = LoadInteger(HASH_UI, this, HASH_KEY_UI_PROGRESS_ANIM);
+			if (HaveSavedInteger(HASH_UI, ui, HASH_KEY_UI_PROGRESS_ANIM)) {
+				anim = LoadInteger(HASH_UI, ui, HASH_KEY_UI_PROGRESS_ANIM);
 				// 更新动画参数
 				anim.sprite = this;
 				anim.from = from;
@@ -150,7 +152,7 @@ library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
 			} else {
 				// 创建新实例
 				anim = progAnim.create(this, from, to, R2I(duration * 50), cb);
-				SaveInteger(HASH_UI, this, HASH_KEY_UI_PROGRESS_ANIM, anim);
+				SaveInteger(HASH_UI, ui, HASH_KEY_UI_PROGRESS_ANIM, anim);
 			}
 
 			return this;

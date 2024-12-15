@@ -90,7 +90,7 @@ library UTBaseAnim requires BaseAnim {
 		}
 	}
 
-	//继承自BaseAnim的回调函数
+	//继承自BaseAnim的回调函数x
 	function DestroyUIFromBA (baseanim ba) {
 		integer ui = ba.ui;
 		uiImage img = uiHashTable(ui).ui.get();

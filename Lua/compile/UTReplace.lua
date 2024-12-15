@@ -113,24 +113,6 @@ utr.RemoveTable = function()
 	-- end)
 end
 
--- 替代特效与图标
-utr.ReplaceMapJ = function()
-	local block = true
-	fu.ExecuteFile(path.ut.mapJ, function(line)
-		if line:match("//blpend") then
-			block = true
-		elseif line:match("//blp") then
-			block = false
-		end
-		if block then
-			local result = line:match('[,=]%s*(".*%.blp")')
-			if result then line = line:gsub('".*%.blp"', reBLP) end
-			if line:match('[,=]%s*(".*%.tga")') then line = line:gsub('".*%.tga"', reBLP) end
-		end
-		return line
-	end)
-end
-
 -- 移所有LUA过去
 utr.MoveLuaFile = function()
 	fu.ForDir(path.project .. '/OriginMap/map', function(fileName)
@@ -213,9 +195,6 @@ end
 -- 以下是单独测试的
 -- 替换物编
 -- utr.ReplaceTable()
-
--- 替代特效与图标
--- utr.ReplaceMapJ()
 
 -- 清除临时物编
 -- utr.RemoveTable()

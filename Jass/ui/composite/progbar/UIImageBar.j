@@ -24,6 +24,9 @@ library UIImageBar requires UIImage {
 
         STRUCT_SHARED_METHODS(uiImageBar)
 
+        optional module ibanimable; // 进度条动画
+
+
         // 原理是用uiFill来挡住uiBackground，通过设置uiFill的偏移来实现进度条的效果
         //uiFill进度前进时,uiBackground的前端被挡住部分就更少了
         static method create (integer parent) -> thistype {
@@ -107,6 +110,7 @@ library UIImageBar requires UIImage {
             uiFill.destroy(); //注意顺序
             uiBackground.destroy();
         }
+
 
     }
 

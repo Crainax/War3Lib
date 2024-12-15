@@ -9,6 +9,7 @@
 //自动生成的文件
 library UTProgressAnim requires ProgressAnim {
 
+	//# dependency:ui/model/cooldown_center.mdx
 	uiSprite testSprite = 0;
 	uiImage img = 0;
 	function TTestUTProgressAnim1 (player p) {
@@ -25,10 +26,10 @@ library UTProgressAnim requires ProgressAnim {
 			.setClip(true)
 			.setTexture("ReplaceableTextures\\CommandButtons\\BTNHealOn.blp");
 		testSprite = uiSprite.create(img.ui)
-			.setPoint(ANCHOR_CENTER,img.ui,ANCHOR_BOTTOM_LEFT,0,0) //需要用中点放在控件的左下角
+			.setPoint(ANCHOR_CENTER,img.ui,ANCHOR_CENTER,0,0) //需要用中点放在控件的左下角
 			.setSize(0.001,0.001)
-			.setModel("UI\\Feedback\\Cooldown\\UI-Cooldown-Indicator.mdx",0,0)
-			// .setScale(3.0)
+			.setModel("ui\\model\\cooldown_center.mdx",0,0)
+			.setScale(2.0)
 			.setAnimate(0,false)
 			.progAnimate(0,1,5.0,function(uiSprite sprite) {
 				integer i = uiHashTable(sprite).eventdata.get();

@@ -27,5 +27,6 @@ UI哈希表定义
 #define HASH_KEY_UI_EXTEND_REPOINTER 1941 //储存的扩展位置重组器实例
 #define HASH_KEY_UI_EXTEND_DRAGGER   1944 //储存的扩展拖拽器实例
 #define HASH_KEY_UI_PROGRESS_ANIM    1945 //储存的进度动画实例
+#define HASH_KEY_UI_IMAGEBAR_ANIM    1946 //储存的进度条(ImageBar)动画实例
 
 #endif

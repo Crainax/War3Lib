@@ -1,7 +1,9 @@
 #ifndef IconIncluded
 #define IconIncluded
 
+
 #include "Crainax/config/SharedMethod.h" // 结构体共用方法
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 
 //===========================================================================
@@ -31,12 +33,14 @@
 //
 //===========================================================================
 
+//# dependency:ui/model/cooldown_center.mdx
+
 
 //! zinc
 /*
 [按钮]整合到了一起
 */
-library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
+library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim,UIExtendResize,UIHashTable {
 
     public struct icon {
         // UI组件
@@ -90,7 +94,8 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
             sizeY = 0.04;
 
             // 创建必需组件
-            mainImage = uiImage.create(parent);
+            mainImage = uiImage.create(parent)
+                .setClip(true);
             mainImage.show(false);
 
             return this;
@@ -127,19 +132,21 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
         method grow(integer parent, growdata gd) -> thistype {
             if (!this.isExist()) {return this;}
             if (!glowImage.isExist()) {
+                BJDebugMsg("创建新的流光");
                 glowImage = uiImage.create(parent)
                     .setPoint(ANCHOR_CENTER, mainImage.ui, ANCHOR_CENTER, 0, 0);
+
+                this.updateGlowSize();
+            }
+            glowImage.show(true); // 显示流光
+            if (gd != this.gd) {
+                this.gd = gd;
+            }
+            if (!glowAnim.isExist()) {
                 glowAnim = baseanim.create(glowImage.ui);
                 glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
-                this.updateGlowSize();
-                this.gd = gd;
-            } else {
-                if (gd != this.gd) {
-                    glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
-                    this.updateGlowSize();
-                    this.gd = gd;
-                }
             }
+            this.updateGlowSize();
             return this;
         }
 
@@ -147,8 +154,10 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
         method unGrow() -> thistype {
             if (!this.isExist()) {return this;}
             if (glowImage.isExist()) {
-                glowImage.destroy();
-                glowImage = 0;
+                BJDebugMsg("销毁流光");
+                glowImage.show(false);
+            }
+            if (glowAnim.isExist()) {
                 glowAnim.destroy();
                 glowAnim = 0;
             }
@@ -170,7 +179,7 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
             return this;
         }
 
-        method enableReSize() -> thistype {
+        method enableResize() -> thistype {
             if (!this.isExist()) {return this;}
             isResize = true;
             setSize(sizeX, sizeY);
@@ -219,15 +228,19 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
         }
 
         // CD显示相关方法
-        method startCooldown(real duration) -> thistype {
+        // func回调函数中的eventdata.get时是返回这个icon本体
+        method startCooldown(real duration,onProgressEnd func) -> thistype {
             if (!this.isExist()) {return this;}
             if (!cdSprite.isExist()) {
                 cdSprite = uiSprite.create(mainImage.ui)
                     .setPoint(ANCHOR_CENTER,mainImage.ui,ANCHOR_CENTER,0,0)
                     .setSize(0.001,0.001)
-                    .setModel("UI\\Feedback\\Cooldown\\UI-Cooldown-Indicator.mdx",0,0)
+                    .setModel("ui\\model\\cooldown_center.mdx",0,0)
                     .setAnimate(0,false);
+                uiHashTable(cdSprite).eventdata.bind(this);
             }
+            cdSprite.progAnimate(0,1,duration,func);
+            cdSprite.setScale(sizeY / 0.038);
             return this;
         }
 
@@ -252,18 +265,21 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite {
         method show(boolean flag) -> thistype {
             if (!this.isExist()) {return this;}
             mainImage.show(flag);
+            if (glowImage.isExist()) {
+                glowImage.show(flag);
+            }
             return this;
         }
 
         method onDestroy() {
-            if (mainImage.isExist()) { mainImage.destroy(); mainImage = 0; }
+            if (glowAnim.isExist()) { glowAnim.destroy(); glowAnim = 0; }
+            if (cdSprite.isExist()) { cdSprite.destroy(); cdSprite = 0; }
             if (shadowImage.isExist()) { shadowImage.destroy(); shadowImage = 0; }
             if (cornerShade.isExist()) { cornerShade.destroy(); cornerShade = 0; }
             if (cornerText.isExist()) { cornerText.destroy(); cornerText = 0; }
             if (clickBtn.isExist()) { clickBtn.destroy(); clickBtn = 0; }
             if (glowImage.isExist()) { glowImage.destroy(); glowImage = 0; }
-            if (glowAnim.isExist()) { glowAnim.destroy(); glowAnim = 0; }
-            if (cdSprite.isExist()) { cdSprite.destroy(); cdSprite = 0; }
+            if (mainImage.isExist()) { mainImage.destroy(); mainImage = 0; }
         }
     }
 }
