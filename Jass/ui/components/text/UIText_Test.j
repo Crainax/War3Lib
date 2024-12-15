@@ -99,8 +99,8 @@ library UTUIText requires UIText {
 
 		// 创建文本并设置位置和大小
 		currentText = uiText.create(DzGetGameUI())
-		.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, 0)
-		.setText("测试字体大小\n当前大小: 标准(4)\n每秒切换一次大小");
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, 0)
+			.setText("测试字体大小\n当前大小: 标准(4)\n每秒切换一次大小");
 
 		// 创建计时器循环切换字体大小
 		t = CreateTimer();
@@ -318,8 +318,13 @@ library UTUIText requires UIText {
 		t = null;
 	}
 
-	// 保留空函数以维持原有架构
-	function TTestUTUIText6 (player p) {}
+	// 创建一下普通的
+	function TTestUTUIText6 (player p) {
+		integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2); //防御的父框架
+		uiText textArmor = uiText.createSimple(parent)
+			.setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.037)
+			.setText("防御123:");
+	}
 	function TTestUTUIText7 (player p) {}
 	function TTestUTUIText8 (player p) {}
 	function TTestUTUIText9 (player p) {}
@@ -356,7 +361,7 @@ library UTUIText requires UIText {
 		if (paramS[0] == "align") {
 			if (currentText != 0) {
 				currentText.setAlign(paramI[0])
-				.setText("当前对齐: " + paramS[0]);
+					.setText("当前对齐: " + paramS[0]);
 				BJDebugMsg("设置对齐方式为: " + paramS[0]);
 			}
 		} else if (paramS[0] == "text") {

@@ -59,7 +59,7 @@ TEXTAREA
 #include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
-library UnitPanel requires UIButton,UIText,UIImage {
+library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent {
 
 
     public struct unitPanel []{
@@ -135,11 +135,9 @@ library UnitPanel requires UIButton,UIText,UIImage {
                 .spClick(function(integer frame) {if (trAttackClick != null) TriggerEvaluate(trAttackClick);})
                 .spRightClick(function(integer frame) {if (trAttackRightClick != null) TriggerEvaluate(trAttackRightClick);});
             textAttack = uiText.bindSimple("单位面板属性名", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, imgAttack.ui, ANCHOR_TOPRIGHT, 0.003, -0.003)
                 .setText("攻击:");
             textAttackValue = uiText.bindSimple("单位面板数值", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_BOTTOMLEFT, imgAttack.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
                 .setText("0");
 
@@ -158,11 +156,9 @@ library UnitPanel requires UIButton,UIText,UIImage {
                 .spClick(function(integer frame) {if (trArmorClick != null) TriggerEvaluate(trArmorClick);})
                 .spRightClick(function(integer frame) {if (trArmorRightClick != null) TriggerEvaluate(trArmorRightClick);});
             textArmor = uiText.bindSimple("单位面板属性名", 1)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, imgArmor.ui, ANCHOR_TOPRIGHT, 0.003, -0.003)
                 .setText("防御:");
             textArmorValue = uiText.bindSimple("单位面板数值", 1)
-                .clearPoint()
                 .setPoint(ANCHOR_BOTTOMLEFT, imgArmor.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
                 .setText("20");
 
@@ -185,33 +181,31 @@ library UnitPanel requires UIButton,UIText,UIImage {
 
             //力量
             textStr = uiText.bindSimple("英雄力量名", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, imgHero.ui, ANCHOR_CENTER, 0.017, 0.027)
                 .setText("力量:");
             textStrValue = uiText.bindSimple("英雄力量值", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, textStr.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("10");
 
             //敏捷
             textAgi = uiText.bindSimple("英雄敏捷名", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, imgHero.ui, ANCHOR_CENTER, 0.017, 0.006)
                 .setText("敏捷:");
             textAgiValue = uiText.bindSimple("英雄敏捷值", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, textAgi.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("20");
 
             //智力
             textInt = uiText.bindSimple("英雄智力名", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, imgHero.ui, ANCHOR_CENTER, 0.017, -0.015)
                 .setText("智力:");
             textIntValue = uiText.bindSimple("英雄智力值", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, textInt.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("30");
+        }
+
+        public static method function_name ()  {
+            integer parent,child;
 
             //建筑小框架相关
             parent = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7); //建筑的父框架
@@ -228,11 +222,9 @@ library UnitPanel requires UIButton,UIText,UIImage {
                 .spClick(function(integer frame) {if (trBuildingClick != null) TriggerEvaluate(trBuildingClick);})
                 .spRightClick(function(integer frame) {if (trBuildingRightClick != null) TriggerEvaluate(trBuildingRightClick);});
             textBuilding = uiText.bindSimple("单位面板属性名", 2)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, imgBuilding.ui, ANCHOR_TOPRIGHT, 0.003, -0.003)
                 .setText("防护罩:");
             textBuildingValue = uiText.bindSimple("单位面板数值", 2)
-                .clearPoint()
                 .setPoint(ANCHOR_BOTTOMLEFT, imgBuilding.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
                 .setText("1");
 
@@ -255,31 +247,25 @@ library UnitPanel requires UIButton,UIText,UIImage {
 
             //金币
             textGold = uiText.bindSimple("怪物金币名", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, imgMonster.ui, ANCHOR_CENTER, 0.017, 0.027)
                 .setText("金币:");
             textGoldValue = uiText.bindSimple("怪物金币值", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, textGold.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("100");
 
             //经验
             textExp = uiText.bindSimple("怪物经验名", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, imgMonster.ui, ANCHOR_CENTER, 0.017, 0.006)
                 .setText("经验:");
             textExpValue = uiText.bindSimple("怪物经验值", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, textExp.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("50");
 
             //积分
             textScore = uiText.bindSimple("怪物积分名", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, imgMonster.ui, ANCHOR_CENTER, 0.017, -0.015)
                 .setText("积分:");
             textScoreValue = uiText.bindSimple("怪物积分值", 0)
-                .clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, textScore.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("10");
         }

@@ -67,6 +67,7 @@ library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
             id = uiId.get();
             DzCreateFrameByTagName("SIMPLEFRAME", STRING_IMAGE + I2S(id), parent, TEMPLATE_SIMPLE_IMAGE, id);
             ui = DzSimpleTextureFindByName(TEMPLATE_SIMPLE_IMAGE_CHILD, id);
+            DzFrameClearAllPoints(ui);
             STRUCT_SHARED_UI_ONCREATE(uiImage)
             return this;
         }

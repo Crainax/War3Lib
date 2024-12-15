@@ -35,6 +35,7 @@ library UIText requires STRUCT_SHARED_REQUIRE_UI,UITextModule {
             id = uiId.get();
             DzCreateFrameByTagName("SIMPLEFRAME", STRING_TEXT + I2S(id), parent, TEMPLATE_SIMPLE_TEXT, id);
             ui = DzSimpleFontStringFindByName(TEMPLATE_SIMPLE_TEXT_CHILD, id);
+            DzFrameClearAllPoints(ui);
             STRUCT_SHARED_UI_ONCREATE(uiText)
             return this;
         }
@@ -46,6 +47,7 @@ library UIText requires STRUCT_SHARED_REQUIRE_UI,UITextModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzSimpleFontStringFindByName(name, index);
+            DzFrameClearAllPoints(ui);
             STRUCT_SHARED_UI_ONCREATE(uiText)
             return this;
         }

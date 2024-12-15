@@ -72,7 +72,14 @@ library UTUIImage requires UIImage {
 		}
 	}
 
+	// 创建一个原生的
 	function TTestUTUIImage7 (player p) {
+		uiImage imgArmor = 0;
+		integer parent = DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2); //防御的父框架
+		imgArmor = uiImage.createSimple(parent)
+			.setSize(0.027, 0.027)
+			.setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.037)
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
 	}
 
 	// 将TTestUTUIImage8-10保持为空函数

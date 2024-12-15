@@ -61,6 +61,14 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         real sizeY;
         boolean isResize;
 
+        // 是否是原生
+        boolean isSimple;
+        integer spAnchor;
+        integer spRelative;
+        integer spRelativeAnchor;
+        real spOffsetX;
+        real spOffsetY;
+        integer spParent;
         STRUCT_SHARED_METHODS(icon)
 
         // 私有的初始化方法
@@ -79,19 +87,15 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
             gd       = 0;
 
             // 尺寸初始化为0
-            sizeX    = 0;
-            sizeY    = 0;
-            isResize = false;
+            sizeX    = 0.04;
+            sizeY    = 0.04;
         }
 
         // 普通创建方法
         static method create(integer parent) -> thistype {
             thistype this = allocate();
             this.init();
-
-            // 设置默认尺寸
-            sizeX = 0.04;
-            sizeY = 0.04;
+            isSimple = false;
 
             // 创建必需组件
             mainImage = uiImage.create(parent)
@@ -101,21 +105,28 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
             return this;
         }
 
-        // 从现有UI创建图标
-        static method fromExistingUI(uiImage existingImage) -> thistype {
+        // 从现有UI创建图标(parent是后面创建东西的parent)
+        static method fromExistingUI(uiImage existingImage,integer parent) -> thistype {
             thistype this = allocate();
             this.init();
+            isSimple         = true;
+            spAnchor         = 0;
+            spRelative       = 0;
+            spRelativeAnchor = 0;
+            spOffsetX        = 0;
+            spOffsetY        = 0;
+            spParent         = parent;
 
             // 绑定现有图片
             mainImage = existingImage;
-            if (mainImage.isExist()) {
-                sizeX = DzFrameGetWidth(mainImage.ui);
-                sizeY = DzFrameGetHeight(mainImage.ui);
-            }
 
             return this;
         }
 
+        // 从现有UI创建图标(parent是后面创建东西的parent)
+        static method createSimple(integer parent) -> thistype {
+            return fromExistingUI(uiImage.createSimple(parent),parent);
+        }
 
         // 更新流光尺寸
         private method updateGlowSize () {
@@ -132,10 +143,8 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         method grow(integer parent, growdata gd) -> thistype {
             if (!this.isExist()) {return this;}
             if (!glowImage.isExist()) {
-                BJDebugMsg("创建新的流光");
                 glowImage = uiImage.create(parent)
                     .setPoint(ANCHOR_CENTER, mainImage.ui, ANCHOR_CENTER, 0, 0);
-
                 this.updateGlowSize();
             }
             glowImage.show(true); // 显示流光
@@ -154,7 +163,6 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         method unGrow() -> thistype {
             if (!this.isExist()) {return this;}
             if (glowImage.isExist()) {
-                BJDebugMsg("销毁流光");
                 glowImage.show(false);
             }
             if (glowAnim.isExist()) {
@@ -173,9 +181,9 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
             } else {
                 mainImage.setSize(x, y);
             }
-            this.updateGlowSize();
             sizeX = x;
             sizeY = y;
+            this.updateGlowSize();
             return this;
         }
 
@@ -248,8 +256,17 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         method getClickBtn() -> uiBtn {
             if (!this.isExist()) {return 0;}
             if (!clickBtn.isExist()) {
-                clickBtn = uiBtn.create(mainImage.ui)
-                    .setAllPoint(mainImage.ui);
+                if (isSimple) { //原生
+                    if (spParent != 0) {
+                        clickBtn = uiBtn.createSimple(spParent)
+                            .setAllPoint(mainImage.ui);
+                    } else {
+                        BJDebugMsg("spParent is 0");
+                    }
+                } else { //非原生
+                    clickBtn = uiBtn.create(mainImage.ui)
+                        .setAllPoint(mainImage.ui);
+                }
             }
             return clickBtn;
         }
@@ -261,12 +278,41 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
             return this;
         }
 
-        // 显示/隐藏整个图标
+        // 设置位置(顺便存位置)
+        // 原生的话1个点就行, 不要设太多点
+        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (isSimple) {
+                mainImage.clearPoint()
+                    .setPoint(anchor,relative,relativeAnchor,offsetX,offsetY);
+                this.spAnchor         = anchor;
+                this.spRelative       = relative;
+                this.spRelativeAnchor = relativeAnchor;
+                this.spOffsetX        = offsetX;
+                this.spOffsetY        = offsetY;
+            } else {
+                mainImage.setPoint(anchor,relative,relativeAnchor,offsetX,offsetY);
+
+            }
+            return this;
+        }
+
+        // 显示/隐藏整个图标(Simple无效)
         method show(boolean flag) -> thistype {
             if (!this.isExist()) {return this;}
-            mainImage.show(flag);
-            if (glowImage.isExist()) {
-                glowImage.show(flag);
+            if (isSimple) { //原生就移到屏幕外
+                if (flag) { //显示
+                    mainImage.clearPoint()
+                        .setPoint(spAnchor,spRelative,spRelativeAnchor,spOffsetX,spOffsetY);
+                } else { //隐藏
+                    mainImage.clearPoint()
+                        .setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, -0.8, 0.0);
+                }
+            } else { //非原生才能用这个函数
+                mainImage.show(flag);
+                if (glowImage.isExist()) {
+                    glowImage.show(flag);
+                }
             }
             return this;
         }

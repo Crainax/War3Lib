@@ -85,6 +85,9 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
                 size          -= 1;
                 uID            = 0;
             }
+
+            if (size <= 0) {BJDebugMsg("UIExtendResize: 大小重组器已销毁");}
+
         }
 
     }
@@ -133,6 +136,7 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
                 size          -= 1;
                 uID            = 0;
             }
+
         }
 
     }

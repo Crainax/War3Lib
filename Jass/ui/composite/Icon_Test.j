@@ -2,29 +2,31 @@
 #define UTIconIncluded
 
 /*===========================================================================
- * Icon组件单元测试
- *
- * 功能说明:
- * - 测试Icon组件的基本功能
- * - 包括创建、显示、角落文字、流光效果、暗遮罩等
- * - 提供交互式的测试命令
- *
- * 测试指令:
- * s1 - 创建/销毁基础图标
- * s2 - 更新角落文字
- * s3 - 开启/关闭流光效果
- * s4 - 开启/关闭暗遮罩
- * s5 - 测试点击事件
- * s6 - 测试CD显示(10秒)
- * s7 - 显示/隐藏图标
- * s8 - 开启自动尺寸
- * -destroy - 销毁图标
- *
- * 使用方法:
- * 1. 首先使用s1创建基础图标
- * 2. 然后可以使用其他指令测试各项功能
- * 3. 完成后使用s1或-destroy销毁图标
- *===========================================================================*/
+* Icon组件单元测试
+*
+* 功能说明:
+* - 测试Icon组件的基本功能
+* - 包括创建、显示、角落文字、流光效果、暗遮罩等
+* - 提供交互式的测试命令
+*
+* 测试指令:
+* s1 - 创建/销毁基础图标
+*  s1a - 从现有UI创建图标
+* s2 - 更新角落文字
+* s3 - 开启/关闭流光效果
+* s4 - 开启/关闭暗遮罩
+* s5 - 测试点击事件
+* s6 - 测试CD显示(10秒)
+* s7 - 显示/隐藏图标
+* s8 - 开启自动尺寸
+* -destroy - 销毁图标
+* -size(x,y) - 设置图标大小,如: -size 0.04 0.04
+*
+* 使用方法:
+* 1. 首先使用s1创建基础图标
+* 2. 然后可以使用其他指令测试各项功能
+* 3. 完成后使用s1或-destroy销毁图标
+*===========================================================================*/
 
 // 用原始地图测试
 #undef OriginMapUnitTestMode
@@ -43,18 +45,39 @@ library UTIcon requires Icon {
 	// 基础图标创建和显示测试
 	function TTestUTIcon1 (player p) {
 		if (!isTest1Active) {
-			testIcon1 = icon.create(DzGetGameUI());
-			testIcon1.mainImage.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, 0);
-			testIcon1.setTexture("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp");
-			testIcon1.setSize(0.04, 0.04);
-			testIcon1.show(true);
-			isTest1Active = true;
+			testIcon1 = icon.create(DzGetGameUI())
+				.setSize(0.07, 0.07) //这
+				.setTexture("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp")
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, 0)
+				.show(true);
+
 			BJDebugMsg("基础图标已创建 - 输入s1可关闭");
+			isTest1Active = true;
 		} else {
 			testIcon1.destroy();
 			testIcon1 = 0;
 			isTest1Active = false;
 			BJDebugMsg("基础图标已关闭");
+		}
+	}
+
+	// 添加新的测试函数
+	function TTestUTIcon1a (player p) {
+		uiImage img = 0;
+		if (!isTest1Active) {
+			// 从现有UI创建icon
+			testIcon1 = icon.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
+				.setSize(0.08,0.08)
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+				.setTexture("ReplaceableTextures\\CommandButtons\\BTNSorceress.blp");
+
+			isTest1Active = true;
+			BJDebugMsg("已从现有UI创建图标 - 输入s1a可关闭");
+		} else {
+			testIcon1.destroy();
+			testIcon1 = 0;
+			isTest1Active = false;
+			BJDebugMsg("从现有UI创建的图标已关闭");
 		}
 	}
 
@@ -113,11 +136,25 @@ library UTIcon requires Icon {
 			return;
 		}
 
-		btn = testIcon1.getClickBtn();
-		btn.onMouseClick(function(){
-			BJDebugMsg("图标被点击!");
-		});
-		BJDebugMsg("点击事件已绑定 - 请点击图标测试");
+		btn = testIcon1.getClickBtn()
+			.spEnter(function(integer frame) {
+				integer data = uiHashTable(frame).eventdata.get();
+				BJDebugMsg("enter:"+I2S(data));
+			})
+			.spLeave(function(integer frame) {
+				integer data = uiHashTable(frame).eventdata.get();
+				BJDebugMsg("leave:"+I2S(data));
+			})
+			.spClick(function(integer frame) {
+				integer data = uiHashTable(frame).eventdata.get();
+				BJDebugMsg("click:"+I2S(data));
+			})
+			.spRightClick(function(integer frame) {
+				integer data = uiHashTable(frame).eventdata.get();
+				BJDebugMsg("RightClick:"+I2S(data));
+			});
+		uiHashTable(btn.ui).eventdata.bind(8174);
+		BJDebugMsg("事件已绑定 - 请点击图标测试");
 	}
 
 	// CD显示测试
@@ -131,7 +168,7 @@ library UTIcon requires Icon {
 		BJDebugMsg("CD显示已开始 - 持续10秒");
 	}
 
-	// 显示/隐藏测试
+	// 显示/隐藏测试(both生效)
 	function TTestUTIcon7 (player p) {
 		if (!testIcon1.isExist()) {
 			BJDebugMsg("请先使用s1创建基础图标");
@@ -149,7 +186,7 @@ library UTIcon requires Icon {
 		}
 	}
 
-	// 大小调整测试
+	// 大小调整测试(both生效)
 	function TTestUTIcon8 (player p) {
 		if (!testIcon1.isExist()) {
 			BJDebugMsg("请先使用s1创建基础图标");
@@ -184,6 +221,7 @@ library UTIcon requires Icon {
 			return;
 		}
 
+		// 解析参数
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -199,6 +237,27 @@ library UTIcon requires Icon {
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
+
+		// 处理size命令
+		if (paramS[0] == "size") {
+			if (!testIcon1.isExist()) {
+				BJDebugMsg("请先使用s1创建基础图标");
+				p = null;
+				return;
+			}
+
+			if (num < 3) {
+				BJDebugMsg("参数不足,请使用格式: -size x y");
+				BJDebugMsg("例如: -size 0.04 0.04");
+				p = null;
+				return;
+			}
+
+			testIcon1.setSize(paramR[1], paramR[2]);
+			BJDebugMsg("图标大小已设置为: " + R2S(paramR[1]) + " x " + R2S(paramR[2]));
+			p = null;
+			return;
+		}
 
 		if (paramS[0] == "a") {
 
@@ -217,6 +276,7 @@ library UTIcon requires Icon {
 			BJDebugMsg("[Icon] 单元测试已加载");
 			BJDebugMsg("测试指令:");
 			BJDebugMsg("s1 - 创建/销毁基础图标");
+			BJDebugMsg(" s1a - 从现有UI创建图标");
 			BJDebugMsg("s2 - 更新角落文字");
 			BJDebugMsg("s3 - 开启/关闭流光效果");
 			BJDebugMsg("s4 - 开启/关闭暗遮罩");
@@ -225,19 +285,20 @@ library UTIcon requires Icon {
 			BJDebugMsg("s7 - 显示/隐藏图标");
 			BJDebugMsg("s8 - 开启自动尺寸");
 			BJDebugMsg("-destroy - 销毁图标");
+			BJDebugMsg("-size(x,y) - 设置图标大小,如: -size 0.04 0.04");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
 
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
-			integer i = 1;
 
 			if (SubStringBJ(str,1,1) == "-") {
 				TTestActUTIcon1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
 			if (str == "s1") TTestUTIcon1(GetTriggerPlayer());
+			else if(str == "s1a") TTestUTIcon1a(GetTriggerPlayer());
 			else if(str == "s2") TTestUTIcon2(GetTriggerPlayer());
 			else if(str == "s3") TTestUTIcon3(GetTriggerPlayer());
 			else if(str == "s4") TTestUTIcon4(GetTriggerPlayer());
