@@ -28,6 +28,17 @@
 //自动生成的文件
 library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 
+	public function Init2 () {
+		hardware.regUpdateEvent(function () {
+			if (IsUnitAlly(DzGetSelectedLeaderUnit(), GetLocalPlayer()) && GetOwningPlayer(DzGetSelectedLeaderUnit()) != GetLocalPlayer() && IsUnitType(DzGetSelectedLeaderUnit(), UNIT_TYPE_STRUCTURE)) {
+				unitPanel.moveOutBuilding();
+			} else if (GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hsor' || GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hmpr') {
+				unitPanel.moveOutMonster();
+			}
+		});
+
+	}
+
 	// 初始化测试内容
 	function Init () {
 		#define testInit2(name,evt) unitPanel.on/**/name/**/evt(function () {BJDebugMsg(#name + " " + #evt);});
@@ -41,16 +52,31 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		testInit2In(Attack)
 		testInit2In(Armor)
 		testInit2In(Hero)
+		testInit2In(Building)
+		testInit2In(Monster)
+
+		Init2();
 	}
-	function TTestUTUnitPanel1 (player p) {
+	function TTestUTUnitPanel1 (player p) { //给两个图标加一下grow看看效果
+		unitPanel.iconAttack.grow(growdata[ICONGROW_14]);
+		unitPanel.iconArmor.grow(growdata[ICONGROW_18]);
 	}
 	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
-
+		unitPanel.iconAttack.setCornerText("Lv.1");
+		unitPanel.iconArmor.setCornerText("1级");
 	}
 	function TTestUTUnitPanel3 (player p) {
+		unitPanel.iconAttack.startCooldown(3.0,0);
+		unitPanel.iconArmor.startCooldown(5.0,0);
 	}
-	function TTestUTUnitPanel4 (player p) {}
-	function TTestUTUnitPanel5 (player p) {}
+	function TTestUTUnitPanel4 (player p) {
+		unitPanel.iconArmor.startCooldown(0,0);
+	}
+	function TTestUTUnitPanel5 (player p) {
+		unitPanel.moveOutBuilding();
+		unitPanel.moveOutMonster();
+		BJDebugMsg("移走");
+	}
 	function TTestUTUnitPanel6 (player p) {}
 	function TTestUTUnitPanel7 (player p) {}
 	function TTestUTUnitPanel8 (player p) {}
@@ -93,13 +119,21 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			unit hero,building;
+			unit hero,building,witch1,priest1,witch2,priest2;
 			real x = 0, y = 0;
 			integer i = 0;
 
 			// 为玩家1创建测试英雄
 			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
 			SetHeroLevel(hero, 10,true);
+
+			// 为玩家1创建女巫和牧师
+			witch1 = CreateUnit(Player(0), 'hsor', 200, 200, 270);  // 创建女巫
+			priest1 = CreateUnit(Player(0), 'hmpr', 200, -200, 270); // 创建牧师
+
+			// 在地图远角创建玩家2的女巫和牧师
+			witch2 = CreateUnit(Player(11), 'hsor', 5000, 5000, 270);  // 创建玩家12的女巫
+			priest2 = CreateUnit(Player(11), 'hmpr', 5000, -5000, 270); // 创建玩家12的牧师
 
 			// 创建一个建筑单位用于测试12个技能
 			building = CreateUnit(Player(0), 'hcas', 400, 0, 270); // 创建人族城堡

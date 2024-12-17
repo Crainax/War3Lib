@@ -1,563 +1,3 @@
-//! zinc
-
-library GrowData {
-    public struct growdata [] {
-        public {
-            integer max;//帧数周期
-            integer gap;//播放间隔
-            real scale; //UI放大的倍数
-string path;//文件路径
-        }
-        static method onInit () {
-            //# sequence: ui/icongrow/ig2_{0-11}.blp
-            thistype[2].max = 11; thistype[2].gap = 3; thistype[2].scale = 1.4; thistype[2].path = "ui\\icongrow\\ig2_";
-        }
-    }
-}
-//! endzinc
-
-// 0 - 1亿这里用
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
-//! zinc
-
-library UITextModule {
-    // 定义共用的方法结构
-    public module uiTextModule {
-        // 设置标准字体大小
-        // size: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
-        method setFontSize (integer size) -> thistype {
-            real fontSize = 0.01;
-            if (!this.isExist()) {return this;}
-            if (size == 1) {
-                fontSize = 0.006;
-            } else if (size == 2) {
-                fontSize = 0.008;
-            } else if (size == 3) {
-                fontSize = 0.009;
-            } else if (size == 4) {
-                fontSize = 0.01;
-            } else if (size == 5) {
-                fontSize = 0.011;
-            } else if (size == 6) {
-                fontSize = 0.012;
-            } else if (size == 7) {
-                fontSize = 0.015;
-            }
-            DzFrameSetFont(ui, "fonts\\zt.ttf", fontSize, 0);
-            return this;
-        }
-        // 设置对齐方式(前提要先定好大小,不然无处对齐)
-        // align: 可以使用0-8的简单数字,或TEXT_ALIGN_*常量
-        // 0=左上, 1=顶部居中, 2=右上
-        // 3=左中, 4=居中, 5=右中
-        // 6=左下, 7=底部居中, 8=右下
-        method setAlign (integer align) -> thistype {
-            integer finalAlign = align;
-            if (!this.isExist()) {return this;}
-            // 如果输入0-8,转换为对应的组合值
-            if (align >= 0 && align <= 8) {
-                if (align == 0) {
-                    finalAlign = 9; // 左上
-} else if (align == 1) {
-                    finalAlign = 17; // 顶部居中
-} else if (align == 2) {
-                    finalAlign = 33; // 右上
-} else if (align == 3) {
-                    finalAlign = 10; // 左中
-} else if (align == 4) {
-                    finalAlign = 18; // 居中
-} else if (align == 5) {
-                    finalAlign = 34; // 右中
-} else if (align == 6) {
-                    finalAlign = 12; // 左下
-} else if (align == 7) {
-                    finalAlign = 20; // 底部居中
-} else if (align == 8) {
-                    finalAlign = 36; // 右下
-}
-            }
-            DzFrameSetTextAlignment(ui, finalAlign);
-            return this;
-        }
-        // 设置文本内容
-        method setText (string text) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetText(ui,text);
-            return this;
-        }
-    }
-}
-//! endzinc
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
-//! zinc
-
-//# dependency:ui\image\textbutton_highlight.blp
-library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
-    public struct uiBtn {
-        // UI组件内部共享方法及成员
-        integer ui; 
- integer id; 
- method isExist () -> boolean {return (this != null && si__uiBtn_V[this] == -1);} 
- optional module uiLifeCycle; 
- module uiBaseModule;
-        module uiEventModule; // UI事件的共用方法
-optional module extendDrag; //扩展拖动(只有button能用,其他就不放进去了)
-        // 创建一个不带声音的
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BUTTON","Btn" + I2S(id),parent,"BT",0); //有高亮无声音的图标
-static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        //普通带声效系
-        static method createSound (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("GLUEBUTTON","Btn" + I2S(id),parent,"BT",0); //有高亮有声音的图标
-static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        //右键菜单系
-        static method createRC (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("GLUEBUTTON","Btn" + I2S(id),parent,"TBT",0); //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
-static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 创建空白按钮
-        // parent: 父级框架
-        static method createBlank (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BUTTON","Btn" + I2S(id),parent,"BB",0);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
-        // parent: 父级框架
-        static method createSimple (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("SIMPLEBUTTON", "Btn" + I2S(id), parent, "简单按钮", id);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        //绑定原生的Button成为SimpleButton,注意不能删除哦
-        // 不能用bindSimple,因为没有dzfindSimpleButton函数,只能用这个
-        static method bindCreated (integer frame) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = frame;
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) { FlushChildHashtable(HASH_UI, ui); }
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
-    }
-}
-//! endzinc
-//! zinc
-
-library UITocInit requires BzAPI,LBKKAPI {
-  function onInit () {
-		DzLoadToc("ui\\Crainax.toc");
-		DzFrameEnableClipRect(false);
-  }
-}
-//! endzinc
-library LBKKAPI 
-        globals 
-                string MOVE_TYPE_NONE = "none" //没有（无视碰撞）  
-string MOVE_TYPE_FOOT = "foot" //步行  
-string MOVE_TYPE_HORSE = "horse" //骑马  
-string MOVE_TYPE_FLY = "fly" //飞行（还具有空中视野，也可以设置飞行高度）  
-string MOVE_TYPE_HOVER = "hover" //浮空（不会踩中地雷）  
-string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）  
-string MOVE_TYPE_AMPH = "amph" //两栖  
-string MOVE_TYPE_UNBUILD = "unbuild" //不可建造  
-constant integer DEFENSE_TYPE_LIGHT = 0 
-		constant integer DEFENSE_TYPE_MEDIUM = 1 
-		constant integer DEFENSE_TYPE_LARGE = 2 
-		constant integer DEFENSE_TYPE_FORT = 3 
-		constant integer DEFENSE_TYPE_NORMAL = 4 
-		constant integer DEFENSE_TYPE_HERO = 5 
-		constant integer DEFENSE_TYPE_DIVINE = 6 
-		constant integer DEFENSE_TYPE_NONE = 7 
-        endglobals 
-        native DzGetSelectedLeaderUnit takes nothing returns unit 
-        native DzIsChatBoxOpen takes nothing returns boolean 
-        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
-        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
-        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
-        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
-        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
-        native DzSetEffectModel takes effect whichEffect, string model returns nothing
-        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
-        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
-        native DzChangeWindowSize takes integer width, integer height returns boolean 
-        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
-        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
-        native DzUnbindEffect takes effect whichEffect returns nothing 
-        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
-        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
-        native DzGetEffectVertexColor takes effect whichEffect returns integer 
-        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
-        native DzGetItemAbility takes item whichEffect, integer index returns ability 
-        native DzFrameGetChildrenCount takes integer whichframe returns integer 
-        native DzFrameGetChild takes integer whichframe, integer index returns integer 
-        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
-        native DzGetActivePatron takes unit store, player p returns unit 
-        native DzGetLocalSelectUnitCount takes nothing returns integer 
-        native DzGetLocalSelectUnit takes integer index returns unit 
-        native DzGetJassStringTableCount takes nothing returns integer 
-        native DzModelRemoveFromCache takes string path returns nothing 
-        native DzModelRemoveAllFromCache takes nothing returns nothing 
-        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
-        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
-        native DzFrameGetPeonBar takes nothing returns integer 
-        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
-        native DzToggleFPS takes boolean show returns nothing 
-        native DzGetFPS takes nothing returns integer 
-        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
-        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
-        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
-        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
-        native DzFrameGetWorldFrameMessage takes nothing returns integer 
-        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
-        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
-        //转换屏幕坐标到世界坐标  
-        native DzConvertScreenPositionX takes real x, real y returns real 
-        native DzConvertScreenPositionY takes real x, real y returns real 
-        //监听建筑选位置  
-        native DzRegisterOnBuildLocal takes code func returns nothing 
-        //等于0时是结束事件  
-        native DzGetOnBuildOrderId takes nothing returns integer 
-        native DzGetOnBuildOrderType takes nothing returns integer 
-        native DzGetOnBuildAgent takes nothing returns widget 
-        //监听技能选目标  
-        native DzRegisterOnTargetLocal takes code func returns nothing 
-        //等于0时是结束事件  
-        native DzGetOnTargetAbilId takes nothing returns integer 
-        native DzGetOnTargetOrderId takes nothing returns integer 
-        native DzGetOnTargetOrderType takes nothing returns integer 
-        native DzGetOnTargetAgent takes nothing returns widget 
-        native DzGetOnTargetInstantTarget takes nothing returns widget 
-        // 打开QQ群链接  
-        native DzOpenQQGroupUrl takes string url returns boolean 
-        native DzFrameEnableClipRect takes boolean enable returns nothing 
-        native DzSetUnitName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
-        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
-        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
-        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
-        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
-        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
-        native DzGetAttackAbility takes unit whichUnit returns ability 
-        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
-        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
-        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
-        function DzSetHeroTypeProperName takes integer uid, string name returns nothing 
-                call EXSetUnitArrayString(uid, 61, 0, name) 
-                call EXSetUnitInteger(uid, 61, 1) 
-        endfunction 
-        function DzSetUnitTypeName takes integer uid, string name returns nothing 
-                call EXSetUnitArrayString(uid, 10, 0, name) 
-                call EXSetUnitInteger(uid, 10, 1) 
-        endfunction 
-        function DzIsUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns boolean 
-                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType 
-        endfunction 
-        function DzSetUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns nothing 
-                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType)) 
-        endfunction 
-        function DzIsUnitDefenseType takes unit whichUnit, integer defenseType returns boolean 
-                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType 
-        endfunction 
-        function DzSetUnitDefenseType takes unit whichUnit, integer defenseType returns nothing 
-                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType) 
-        endfunction 
-        // 地形装饰物
-        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
-        native DzDoodadGetTypeId takes integer doodad returns integer 
-        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
-        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
-        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
-        native DzDoodadGetX takes integer doodad returns real 
-        native DzDoodadGetY takes integer doodad returns real 
-        native DzDoodadGetZ takes integer doodad returns real 
-        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
-        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
-        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
-        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
-        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
-        native DzDoodadGetTimeScale takes integer doodad returns real 
-        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
-        native DzDoodadGetAnimationCount takes integer doodad returns integer 
-        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
-        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
-        // 解锁JASS字节码限制
-        native DzUnlockOpCodeLimit takes boolean enable returns nothing
-        // 设置剪切板内容
-        native DzSetClipboard takes string content returns boolean
-        //删除装饰物
-        native DzDoodadRemove takes integer doodad returns nothing
-        //移除科技等级
-        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
-        
-        // 查找单位技能
-        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
-        // 修改技能数据-字符串
-        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
-                
-        // 启用/禁用技能
-        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
-        // 设置单位移动类型
-        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
-        // 获取控件宽度
-        native DzFrameGetWidth takes integer frame returns real
-        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
-        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
-        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
-        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
-                call DzSetUnitDataCacheInteger( uid, id, 0, v)
-        endfunction
-        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 94, id, v)
-        endfunction
-        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 100, id, v)
-        endfunction
-        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 112, id, v)
-        endfunction
-        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 106, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 118, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 124, id, v)
-        endfunction
-        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 130, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 172, id, v)
-        endfunction
-         // 设置道具模型
-        native DzItemSetModel takes item whichItem, string file returns nothing
-        // 设置道具颜色
-        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
-        // 设置道具透明度
-        native DzItemSetAlpha takes item whichItem, integer color returns nothing
-        // 设置道具头像
-        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
-endlibrary
-// [DzSetUnitMoveType]  
-// title = "设置单位移动类型[NEW]"  
-// description = "设置 ${单位} 的移动类型：${movetype} "  
-// comment = ""  
-// category = TC_KKPRE  
-// [[.args]]  
-// type = unit  
-// [[.args]]  
-// type = MoveTypeName  
-// default = MoveTypeName01  
-//! zinc
-
-library MathUtils {
-    // 实转整 带概率进1的
-    // 将实数转换为整数，若小数部分大于随机数则进1
-    public function R2IRandom (real value) -> integer {
-        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
-            return R2I(value) + 1;
-        }
-        return R2I(value);
-    }
-    // 进行整数除法，若能整除则结果减1
-    public function Divide1 (integer i1,integer i2) -> integer {
-        if (ModuloInteger(i1,i2) == 0) {
-            return i1/i2 - 1;
-        }
-        return i1/i2;
-    }
-    // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
-    // 该函数可以避免简单线性相加导致的数值溢出，保证叠加后的效果符合递减收益原则
-    //
-    // 特点：
-    // - 正数叠加时使用概率学公式：1-(1-a1)*(1-a2)
-    // - 负数叠加时使用衰减公式：1-(1-a1)/(1+a2)
-    // - 当第二个参数绝对值>=1.0时，直接返回第一个参数
-    //
-    // 适用场景：
-    // - 技能冷却缩减叠加（CDR）
-    // - 暴击率、闪避率等概率性属性叠加
-    // - 移速加成等需要控制上限的属性叠加
-    //
-    // 参数说明：
-    // a1: 第一个数值，通常表示当前已有的加成效果
-    // a2: 第二个数值，表示要叠加的新加成效果
-    // 返回值: 叠加后的最终效果值
-    //
-    // 使用示例：
-    // real currentCDR = 0.4;    // 当前40%冷却缩减
-    // real newCDR = 0.5;        // 新装备50%冷却缩减
-    // real finalCDR = RealAdd(currentCDR, newCDR);  // 结果约为0.7，即70%冷却缩减
-    //
-    // 注意事项：
-    // 1. 虽然函数支持任意实数输入，但建议输入值在[-1.0, 1.0]范围内
-    // 2. 当|a2| >= 1.0时，函数会直接返回a1值
-    // 3. 该函数满足结合律，但不满足交换律，建议将已有效果作为第一个参数
-    // 4. 已测试过可以在用负数叠加后,使用负数的绝对值进行恢复
-    public function RealAdd ( real a1,real a2 ) -> real {
-        if (RAbsBJ(a2) >= 1.0) {return a1;}
-        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
-        else {return 1.0-(1.0-a1)/(1.0+a2);}
-    }
-    // 最小最大值限制
-    // 限制整数在[min, max]范围内
-    public function ILimit ( integer target,integer min,integer max ) -> integer {
-        if (target < min) {return min;}
-        else if (target > max) {return max;}
-        else {return target;}
-    }
-    // 最小最大值限制
-    // 限制实数在[min, max]范围内
-    public function RLimit ( real target,real min,real max ) -> real {
-        if (target < min) {return min;}
-        else if (target > max) {return max;}
-        else {return target;}
-    }
-    // 四舍五入法实数转整数
-    // 将实数四舍五入为整数
-    public function R2IM (real r) -> integer {
-        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
-        else return R2I(r);
-    }
-    // 计算射线与地图边界的交点
-    // 计算从给定点出发的射线与地图边界的交点
-    public struct radiationEnd {
-        static real x = 0,y = 0;
-        // 一个坐标沿着某个方向的边缘值
-        // 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
-        static method cal (real x1,real y1,real angle) {
-            real x2 = 0; //相交点
-real y2 = 0; //相交点
-real a = ModuloReal(angle,360); //求余数
-real tan;
-            x = 0;
-            y = 0;
-            // 处理特殊角度
-            if (a == 0) { // 正右方
-x = mapBounds.maxX;
-                y = y1;
-                return;
-            }
-            if (a == 90) { // 正上方
-x = x1;
-                y = mapBounds.maxY;
-                return;
-            }
-            if (a == 180) { // 正左方
-x = mapBounds.minX;
-                y = y1;
-                return;
-            }
-            if (a == 270) { // 正下方
-x = x1;
-                y = mapBounds.minY;
-                return;
-            }
-            // 处理一般角度
-            if (a < 90) { //第一象限
-tan = TanBJ(a);
-                x2 = (mapBounds.maxY - y1) / tan + x1;
-                y2 = (mapBounds.maxX - x1) * tan + y1;
-                if (x2 <= mapBounds.maxX) { //取这个
-x = x2;
-                    y = mapBounds.maxY;
-                } else {
-                    x = mapBounds.maxX;
-                    y = y2;
-                }
-            } else if(a < 180) { //第二象限
-tan = TanBJ(a);
-                x2 = (mapBounds.maxY - y1) / tan + x1;
-                y2 = (mapBounds.minX - x1) * tan + y1;
-                if (x2 >= mapBounds.minX) { //取这个
-x = x2;
-                    y = mapBounds.maxY;
-                } else {
-                    x = mapBounds.minX;
-                    y = y2;
-                }
-            } else if(a < 270) { //第三象限
-tan = TanBJ(a);
-                x2 = (mapBounds.minY - y1) / tan + x1;
-                y2 = (mapBounds.minX - x1) * tan + y1;
-                if (x2 >= mapBounds.minX) { //取这个
-x = x2;
-                    y = mapBounds.minY;
-                } else {
-                    x = mapBounds.minX;
-                    y = y2;
-                }
-            } else { //第四象限
-tan = TanBJ(a);
-                x2 = (mapBounds.minY - y1) / tan + x1;
-                y2 = (mapBounds.maxX - x1) * tan + y1;
-                if (x2 <= mapBounds.maxX) { //取这个
-x = x2;
-                    y = mapBounds.minY;
-                } else {
-                    x = mapBounds.maxX;
-                    y = y2;
-                }
-            }
-        }
-    }
-}
-//! endzinc
 //控件的共用基本方法
 //! zinc
 library UIBaseModule requires UIUtils {
@@ -616,50 +56,298 @@ library UIBaseModule requires UIUtils {
 }
 }
 //! endzinc
+
+// 0 - 1亿这里用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 //! zinc
 
-library UIText requires UIId, UITocInit, UIBaseModule, optional UILifeCycle,UITextModule {
-    public struct uiText {
+library UIImageModule {
+    // 定义共用的方法结构
+    public module uiImageModule {
+        // 设置图片路径
+        method setTexture (string path) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetTexture(this.ui,path,0);
+            return this;
+        }
+        // 设置图片控件视口,防止模型超出范围
+        method setClip (boolean clip) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetClip(this.ui,clip);
+            return this;
+        }
+    }
+}
+//! endzinc
+//! zinc
+
+library UIEventModule {
+    // 定义共用的方法结构
+    public module uiEventModule {
+        // 鼠标进入事件
+        method onMouseEnter (code fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScriptByCode(ui,2,fun,false);
+            return this;
+        }
+        // 鼠标离开事件
+        method onMouseLeave (code fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScriptByCode(ui,3,fun,false);
+            return this;
+        }
+        // 鼠标松开事件,和点击一样,基本可以当相同事件
+        // method onMouseUp (code fun) -> thistype {
+        //     if (!this.isExist()) {return this;}
+        //     DzFrameSetScriptByCode(ui,FRAME_MOUSE_UP,fun,false);
+        //     return this;
+        // }
+        // 鼠标点击事件(效果和FRAME_MOUSE_UP一样,注释掉上面这个了)
+        method onMouseClick (code fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScriptByCode(ui,1,fun,false);
+            return this;
+        }
+        // 鼠标滚轮事件
+        method onMouseWheel (code fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScriptByCode(ui,6,fun,false);
+            return this;
+        }
+        // 鼠标双击事件
+        method onMouseDoubleClick (code fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScriptByCode(ui,12,fun,false);
+            return this;
+        }
+        optional module extendEvent; //扩展事件
+}
+}
+//! endzinc
+
+// 按键ASCII码
+// 按键事件
+//! zinc
+library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
+	//单元测试总
+	trigger TUnitTest = null;
+    boolean isShowRuler = false; //是否显示尺子
+uiImage imageAnchor = 0; //锚点,按下Ctrl再点击鼠标左键定锚
+real anchorPosX = 0; //锚点X坐标
+real anchorPosY = 0; //锚点Y坐标
+uiImage imageRuler[]; //尺子(4把常规的)+一把锚点尺
+uiText textRuler[]; //尺子上的文字
+    //触发UI尺子调用这条就行了
+    public function InitTestUIRuler () {
+        DoNothing();
+    }
+    function onInit () {
+        integer i;
+        trigger tr = CreateTrigger();
+        // 初始化锚点在地图中心
+        anchorPosX = 0.4;
+        anchorPosY = 0.3;
+        imageAnchor = uiImage.create(DzGetGameUI()) //锚点钉
+.setSize(0.005,0.005)
+            .show(false)
+            .setAbsPoint(4, anchorPosX, anchorPosY) // 设置初始位置
+.setTexture("UI\\MiniMap\\minimap-gold.blp");
+        for (1 <= i <= 5) {
+            imageRuler[i] = uiImage.create(DzGetGameUI());
+            textRuler[i] = uiText.create(DzGetGameUI()) //上
+.setAlign(4)
+                .show(false)
+                .setText("0.000");
+        }
+        // 创建尺子图像
+        for (1 <= i <= 2) { //上下
+imageRuler[i].setPoint(1, textRuler[i].ui, 1, 0, 0)
+                .setPoint(7, textRuler[i].ui, 7, 0, 0)
+                .setSize(0.01, 0.01)
+                .show(false)
+                .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+        }
+        // 创建尺子图像
+        for (3 <= i <= 4) { //左右
+imageRuler[i].setAllPoint(textRuler[i].ui)
+                .show(false)
+                .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+        }
+        // 创建锚点到鼠标的尺子
+        imageRuler[5].show(false)
+            .setAlpha(100)
+            .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+        textRuler[5].setPoint(4, imageRuler[5].ui, 4, 0, 0)
+            .setSize(0.1, 0);
+        // ESC键切换显示/隐藏
+        keyboard.regKeyUpEvent(27, function (){
+            integer i;
+            isShowRuler = !isShowRuler;
+            if (isShowRuler) {
+                imageAnchor.show(true);
+                for (1 <= i <= 5) {
+                    imageRuler[i].show(true);
+                    textRuler[i].show(true);
+                }
+            } else {
+                imageAnchor.show(false);
+                for (1 <= i <= 5) {
+                    imageRuler[i].show(false);
+                    textRuler[i].show(false);
+                }
+            }
+        });
+        // 添加鼠标点击事件
+        hardware.regLeftUpEvent(function() {
+            real mouseX;
+            real mouseY;
+            if (!isShowRuler) return;
+            if (DzIsKeyDown(17)) {
+                mouseX = GetMouseXEx();
+                mouseY = GetMouseYEx();
+                imageAnchor.setAbsPoint(4, mouseX, mouseY);
+                anchorPosX = mouseX; // 记录锚点位置
+anchorPosY = mouseY;
+                BJDebugMsg("参考物位置: " + R2SW(mouseX, 7, 3) + " " + R2SW(mouseY, 7, 3));
+            } else {
+                // 添加打印边距信息
+                mouseX = GetMouseXEx();
+                mouseY = GetMouseYEx();
+                BJDebugMsg("距离边界: " +
+                "左=" + R2SW(mouseX, 7, 3) +
+                " 右=" + R2SW(0.8 - mouseX, 7, 3) +
+                " 上=" + R2SW(0.6 - mouseY, 7, 3) +
+                " 下=" + R2SW(mouseY, 7, 3));
+            }
+        });
+        // 鼠标移动事件
+        hardware.regMoveEvent(function (){
+            real mouseX, mouseY, dx, dy, width, height;
+            mouseX = GetMouseXEx();
+            mouseY = GetMouseYEx();
+            if (!isShowRuler) return;
+            // 更新上尺子
+            textRuler[1].setAbsPoint(1, mouseX, 0.6);
+            textRuler[1].setAbsPoint(7, mouseX, mouseY + 0.005);
+            textRuler[1].setText(R2SW(0.6 - mouseY, 7, 3));
+            // 更新下尺子
+            textRuler[2].setAbsPoint(1, mouseX, mouseY - 0.005);
+            textRuler[2].setAbsPoint(7, mouseX, 0);
+            textRuler[2].setText(R2SW(mouseY, 7, 3));
+            // 更新左尺子
+            textRuler[3].setAbsPoint(3, 0, mouseY);
+            textRuler[3].setAbsPoint(5, mouseX - 0.005, mouseY);
+            textRuler[3].setText(R2SW(mouseX, 7, 3));
+            // 更新右尺子
+            textRuler[4].setAbsPoint(3, mouseX + 0.005, mouseY);
+            textRuler[4].setAbsPoint(5, 0.8, mouseY);
+            textRuler[4].setText(R2SW(0.8 - mouseX, 7, 3));
+            // 计算x,y偏移并更新文本
+            dx = mouseX - anchorPosX;
+            dy = mouseY - anchorPosY;
+            // 计算尺子的宽高(尺子绝对值)
+            width = I2R(IAbsBJ(R2I(dx * 1000))) / 1000;
+            height = I2R(IAbsBJ(R2I(dy * 1000))) / 1000;
+            // 根据鼠标位置设置锚点和尺寸
+            if (mouseX >= anchorPosX) {
+                if (mouseY >= anchorPosY) {
+                    // 鼠标在右上
+                    imageRuler[5].clearPoint()
+                        .setAbsPoint(2, mouseX, mouseY)
+                        .setSize(width, height);
+                } else {
+                    // 鼠标在右下
+                    imageRuler[5].clearPoint()
+                        .setAbsPoint(8, mouseX, mouseY)
+                        .setSize(width, height);
+                }
+            } else {
+                if (mouseY >= anchorPosY) {
+                    // 鼠标在左上
+                    imageRuler[5].clearPoint()
+                        .setAbsPoint(0, mouseX, mouseY)
+                        .setSize(width, height);
+                } else {
+                    // 鼠标在左下
+                    imageRuler[5].clearPoint()
+                        .setAbsPoint(6, mouseX, mouseY)
+                        .setSize(width, height);
+                }
+            }
+            textRuler[5].setText("x:" + R2SW(dx, 7, 3) + " y:" + R2SW(dy, 7, 3));
+        });
+        //在游戏开始0.1秒后再调用
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
+            BJDebugMsg("[已注入UI尺子,按下Ctrl+点击设置锚点,按下Esc开启/关闭尺子]");
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+    }
+}
+//! endzinc
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
+//! zinc
+
+library UISprite requires UIId, UITocInit, UIBaseModule, optional UILifeCycle {
+    public struct uiSprite {
         // UI组件内部共享方法及成员
         integer ui; 
  integer id; 
- method isExist () -> boolean {return (this != null && si__uiText_V[this] == -1);} 
+ method isExist () -> boolean {return (this != null && si__uiSprite_V[this] == -1);} 
  optional module uiLifeCycle; 
  module uiBaseModule;
-        // UI控件的共用方法
-        module uiTextModule; // UI文本的共用方法
-        // 创建文本
+        // 可选引入进度动画模块
+        optional module panimable;
+        // 创建模型
         // parent: 父级框架
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
-            ui = DzCreateFrameByTagName("TEXT","Text" + I2S(id),parent,"T1",0);
+            ui = DzCreateFrameByTagName("SPRITE","Sprite" + I2S(id),parent,"SpriteTemplate",0);
             static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
  static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
             return this;
         }
-        // 创建一个用在原生Frame里的文本,这种文本是不能destroy的!
-        // parent: 父级框架
-        static method createSimple (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            DzCreateFrameByTagName("SIMPLEFRAME", "Text" + I2S(id), parent, "简单文字", id);
-            ui = DzSimpleFontStringFindByName("简单文字内容", id);
-            DzFrameClearAllPoints(ui);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+        // 设置模型(目前只做平面型就行了,后面2个0固定了)
+        // @param path: 模型路径
+        // @param modelType: 模型类型(0 = SPRITE（精灵/图标）,1 = MODEL（3D模型）,2 = STATUSBAR（状态条）)
+        // @param flag: 标志(0 = 普通显示,1 = 允许选择模型,2 = 使用鼠标移动模型,4 = 添加模型动画控制器),要位运算
+        method setModel(string path,integer modelType,integer flag) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetModel(ui,path,modelType,flag);
             return this;
         }
-        // 绑定原生文本
-        // name: 文本名称(fdf写的text的名字)
-        // index: 文本索引(在外部创建时的填写的ID最后一个参数)
-        static method bindSimple (string name, integer index) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzSimpleFontStringFindByName(name, index);
-            DzFrameClearAllPoints(ui);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+        // 设置缩放
+        // @param scale: 缩放比例
+        method setScale (real scale) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetScale(ui,scale);
+            return this;
+        }
+        // 设置动画
+        // @param animate: 动画ID,一般为0
+        // @param auto: 是否自动播放
+        method setAnimate(integer animate,boolean auto) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAnimate(ui,animate,auto);
+            return this;
+        }
+        // 设置进度
+        method setProgress(real progress) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAnimateOffset(ui,progress);
             return this;
         }
         method onDestroy () {
@@ -670,6 +358,323 @@ library UIText requires UIId, UITocInit, UIBaseModule, optional UILifeCycle,UITe
             uiId.recycle(id);
         }
     }
+}
+//! endzinc
+//! zinc
+
+library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
+    //UI的扩充事件回调事件(参数是Frame不是UI结构实例)
+    public type uiEvent extends function(integer);
+    public struct uiEventState []{
+        static boolean rcStart = false; // 是否开始右键点击
+static integer uiId = 0; // 点击开始时的UI(判断是否进入过UI)
+}
+    public module extendEvent {
+        //注册按下事件,只适用于非Simple类型的
+        method exLeftDown (uiEvent func) -> thistype {
+            if (!this.isExist()) {return this;}
+            SaveInteger(HASH_UI,this.ui,1901,func);
+            return this;
+        }
+        //注册抬起事件,只适用于非Simple类型的
+        method exLeftUp (uiEvent func) -> thistype {
+            if (!this.isExist()) {return this;}
+            SaveInteger(HASH_UI,this.ui,1902,func);
+            return this;
+        }
+        // 鼠标进入事件(右键前提强化版)
+        method spEnter (uiEvent fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            SaveInteger(HASH_UI,this.ui,1910,fun);
+            DzFrameSetScriptByCode(ui,2,function () {
+                integer frame = DzGetTriggerUIEventFrame();
+                uiEvent func;
+                uiEventState.uiId = frame; //修改为使用结构体的静态成员
+if (HaveSavedInteger(HASH_UI,frame,1910)) {
+                    func = LoadInteger(HASH_UI,frame,1910);
+                    func.evaluate(frame);
+                }
+            },false);
+            return this;
+        }
+        // 鼠标离开事件(右键前提强化版)
+        method spLeave (uiEvent fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            SaveInteger(HASH_UI,this.ui,1911,fun);
+            DzFrameSetScriptByCode(ui,3,function () {
+                integer frame = DzGetTriggerUIEventFrame();
+                uiEvent func;
+                uiEventState.uiId = 0; //修改为使用结构体的静态成员
+if (HaveSavedInteger(HASH_UI,frame,1911)) {
+                    func = LoadInteger(HASH_UI,frame,1911);
+                    func.evaluate(frame);
+                }
+            },false);
+            return this;
+        }
+        // 鼠标点击事件,其实这个不是必须项,只是为了统一写法硬加的
+        method spClick (uiEvent fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            SaveInteger(HASH_UI,this.ui,1912,fun);
+            DzFrameSetScriptByCode(ui,1,function () {
+                integer frame = DzGetTriggerUIEventFrame();
+                uiEvent func;
+                if (HaveSavedInteger(HASH_UI,frame,1912)) {
+                    func = LoadInteger(HASH_UI,frame,1912);
+                    func.evaluate(frame);
+                }
+            },false);
+            return this;
+        }
+        // 鼠标右键点击事件
+        method spRightClick (uiEvent fun) -> thistype {
+            if (!this.isExist()) {return this;}
+            SaveInteger(HASH_UI,this.ui,1913,fun);
+            return this;
+        }
+        // 下面这批不适Simple的所以全部删除了
+        // //注册右键按下事件
+        // method exRightDown (uiEvent func)  -> thistype {
+        //     if (!this.isExist()) {return this;}
+        //     SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN,func);
+        //     return this;
+        // }
+        // //注册右键抬起事件
+        // method exRightUp (uiEvent func)  -> thistype {
+        //     if (!this.isExist()) {return this;}
+        //     SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP,func);
+        //     return this;
+        // }
+        // //注册右键点击事件（精确判断）
+        // method exRightClick (uiEvent func) -> thistype {
+        //     if (!this.isExist()) {return this;}
+        //     SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK,func);
+        //     return this;
+        // }
+    }
+    function onInit () {
+        hardware.regLeftDownEvent(function () { //注册左键按下事件
+integer currentUI;
+            uiEvent func;
+            if (!DzIsMouseOverUI()) {return;}
+            currentUI = DzGetMouseFocus();
+            if (HaveSavedInteger(HASH_UI,currentUI,1901)) {
+                func = LoadInteger(HASH_UI,currentUI,1901);
+                func.evaluate(currentUI);
+            }
+        });
+        hardware.regLeftUpEvent(function () { //注册左键抬起事件,在click事件之前触发
+integer currentUI;
+            uiEvent func;
+            if (!DzIsMouseOverUI()) {return;} //如果鼠标不在游戏内，就不响应该事件
+currentUI = DzGetMouseFocus();
+            if (HaveSavedInteger(HASH_UI,currentUI,1902)) {
+                func = LoadInteger(HASH_UI,currentUI,1902);
+                func.evaluate(currentUI);
+            }
+        });
+        hardware.regRightDownEvent(function () {
+            if (uiEventState.uiId != 0) {
+                uiEventState.rcStart = true;
+            }
+        });
+        hardware.regRightUpEvent(function () {
+            uiEvent func;
+            if (uiEventState.rcStart && uiEventState.uiId != 0) {
+                if (HaveSavedInteger(HASH_UI,uiEventState.uiId,1913)) {
+                    func = LoadInteger(HASH_UI,uiEventState.uiId,1913);
+                    func.evaluate(uiEventState.uiId);
+                }
+            }
+            uiEventState.rcStart = false;
+        });
+        // UI销毁时如果鼠标正在上面,则触发一次离开事件,不然会引进只进不出的错误
+        uiLifeCycle.registerDestroy(function (){
+            integer ui = uiLifeCycle.agrsFrame;
+            uiEvent func;
+            if (uiEventState.uiId == ui && HaveSavedInteger(HASH_UI,ui,1911)) {
+                func = LoadInteger(HASH_UI,uiEventState.uiId,1911);
+                func.evaluate(uiEventState.uiId);
+            }
+            uiEventState.uiId = 0;
+        });
+        // hardware.regRightDownEvent(function () { //注册右键按下事件
+        //     integer currentUI;
+        //     uiEvent func;
+        //     if (!DzIsMouseOverUI()) {
+        //         return;
+        //     }
+        //     currentUI = DzGetMouseFocus();
+        //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) {
+        //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN);
+        //         func.evaluate(currentUI);
+        //     }
+        //     // 新增的click判断逻辑
+        //     rcStartOnUI = true;
+        //     rcStartUI = currentUI;
+        // });
+        // hardware.regRightUpEvent(function () { //注册右键抬起事件
+        //     integer currentUI;
+        //     uiEvent func;
+        //     if (!DzIsMouseOverUI()) {
+        //         return;
+        //     }
+        //     currentUI = DzGetMouseFocus();
+        //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) {
+        //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP);
+        //         func.evaluate(currentUI);
+        //     }
+        //     // 新增的click判断逻辑
+        //     if (rcStartOnUI && currentUI == rcStartUI) {
+        //         if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) {
+        //             func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK);
+        //             func.evaluate(currentUI);
+        //         }
+        //     }
+        //     rcStartOnUI = false;
+        //     rcStartUI = 0;
+        // });
+    }
+}
+//! endzinc
+//! zinc
+
+library UIHashTable {
+    public hashtable HASH_UI = InitHashtable(); // UI结构哈希表
+integer frame = 0;
+    //对外接口,方便链式调用
+    public function uiHashTable (integer f) -> uiHT {
+        frame = f;
+        return uiHT[0];
+    }
+    //私有
+    struct uiHT [] {
+        uiHTEvent eventdata; //方便链式调用  uiHashTable(frame).eventdata.bind(8174);
+uiHTFrame ui ; //方便链式调用  uiHashTable(frame).ui.bind(8174);
+}
+    // 子结构体函数
+    struct uiHTFrame [] {
+        // 绑定UI实例到frame
+        method bind (integer typeID,integer ui) {
+            SaveInteger(HASH_UI,frame,1820,typeID);
+            SaveInteger(HASH_UI,frame,1821,ui);
+        }
+        // 从frame获取UI实例
+        method get () -> integer {
+            return LoadInteger(HASH_UI,frame,1821);
+        }
+        // 从frame获取UI类型
+        method getType () -> integer {
+            return LoadInteger(HASH_UI,frame,1820);
+        }
+    }
+    // 子结构体函数
+    struct uiHTEvent [] {
+        method bind (integer value) {
+            SaveInteger(HASH_UI,frame,1823,value);
+        }
+        method get () -> integer {
+            return LoadInteger(HASH_UI,frame,1823);
+        }
+    }
+}
+//! endzinc
+//! zinc
+
+library Keyboard requires BzAPI{
+    public struct keyboard[] {
+        private {
+            static trigger trsDown[]; // 按下事件
+static trigger trsUp[]; // 抬起事件
+static boolean isDown[]; // 是否按下
+}
+        // 注册一个键盘事件
+        static method regKeyDownEvent (integer keyCode, code func) {
+            if (trsDown[keyCode] == null) {
+                trsDown[keyCode] = CreateTrigger();
+                DzTriggerRegisterKeyEventByCode(null,keyCode,1,false,function () {
+                    integer triggerKey = DzGetTriggerKey();
+                    if (!isDown[triggerKey]) {
+                        isDown[triggerKey] = true;
+                        TriggerEvaluate(trsDown[triggerKey]);
+                    }
+                });
+            }
+            TriggerAddCondition(trsDown[keyCode], Condition(func));
+        }
+        // 注册一个键盘事件
+        static method regKeyUpEvent (integer keyCode, code func) {
+            if (trsUp[keyCode] == null) {
+                trsUp[keyCode] = CreateTrigger();
+                DzTriggerRegisterKeyEventByCode(null,keyCode,0,false,function () {
+                    integer triggerKey = DzGetTriggerKey();
+                    isDown[triggerKey] = false;
+                    TriggerEvaluate(trsUp[triggerKey]);
+                });
+            }
+            TriggerAddCondition(trsUp[keyCode], Condition(func));
+        }
+    }
+}
+//! endzinc
+//! zinc
+
+library GrowData {
+    public struct growdata [] {
+        public {
+            integer max;//帧数周期
+            integer gap;//播放间隔
+            real scale; //UI放大的倍数
+string path;//文件路径
+        }
+        static method onInit () {
+            //# sequence: ui/efx/ig101_{0-9}.blp
+            thistype[14].max = 9; thistype[14].gap = 3; thistype[14].scale = 1.49; thistype[14].path = "ui\\efx\\ig101_";
+            //# sequence: ui/efx/ig100_{0-9}.blp
+            thistype[18].max = 9; thistype[18].gap = 3; thistype[18].scale = 1.38; thistype[18].path = "ui\\efx\\ig100_";
+        }
+    }
+}
+//! endzinc
+//窗口的大小
+//! zinc
+
+library UIUtils requires BzAPI{
+	//获得现在的X / Y比例
+	//主要用于UI缩放
+	public function GetResizeRate () -> real {
+		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
+		else return 1.0;
+	}
+	// 获取鼠标位置X(绝对坐标)[修正版]
+	public function GetMouseXEx () -> real {
+		integer width = DzGetClientWidth();
+		if (width > 0) return DzGetMouseXRelative()* 0.80 / width;
+		else return 0.1;
+	}
+	// 获取鼠标位置Y(绝对坐标)[修正版]
+	public function GetMouseYEx () -> real {
+		integer height = DzGetClientHeight();
+		if (height > 0) return 0.60 - DzGetMouseYRelative()* 0.60 / height;
+		else return 0.1;
+	}
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseX (real min,real max) -> real {
+		return RLimit(GetMouseXEx(),min,max);
+	}
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseY (real min,real max) -> real {
+		return RLimit(GetMouseYEx(),min,max);
+	}
+}
+//! endzinc
+//! zinc
+
+library UITocInit requires BzAPI,LBKKAPI {
+  function onInit () {
+		DzLoadToc("ui\\Crainax.toc");
+		DzFrameEnableClipRect(false);
+  }
 }
 //! endzinc
 //! zinc
@@ -1106,258 +1111,610 @@ BJDebugMsg("baseanim停止了");
 	}
 }
 //! endzinc
+
 //! zinc
-//UI层级
-library UILayer requires UITocInit {
-	public struct uilayer [] {
-		static integer lv [];
-		static method onInit () {
-			uilayer.lv[1] = DzCreateFrameByTagName("BACKDROP","layer1",DzGetGameUI(),"IT",0);
-			DzFrameSetAllPoints(uilayer.lv[1],DzGetGameUI());
-			DzFrameSetTexture(uilayer.lv[1],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
-			uilayer.lv[2] = DzCreateFrameByTagName("BACKDROP","layer2",uilayer.lv[1],"IT",0);
-			DzFrameSetAllPoints(uilayer.lv[2],DzGetGameUI());
-			DzFrameSetTexture(uilayer.lv[2],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
-			uilayer.lv[3] = DzCreateFrameByTagName("BACKDROP","layer3",uilayer.lv[2],"IT",0);
-			DzFrameSetAllPoints(uilayer.lv[3],DzGetGameUI());
-			DzFrameSetTexture(uilayer.lv[3],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
-			uilayer.lv[4] = DzCreateFrameByTagName("BACKDROP","layer4",uilayer.lv[3],"IT",0);
-			DzFrameSetAllPoints(uilayer.lv[4],DzGetGameUI());
-			DzFrameSetTexture(uilayer.lv[4],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
-			uilayer.lv[5] = DzCreateFrameByTagName("BACKDROP","layer5",uilayer.lv[4],"IT",0);
-			DzFrameSetAllPoints(uilayer.lv[5],DzGetGameUI());
-			DzFrameSetTexture(uilayer.lv[5],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
-			uilayer.lv[6] = DzCreateFrameByTagName("BACKDROP","layer6",uilayer.lv[5],"IT",0);
-			DzFrameSetAllPoints(uilayer.lv[6],DzGetGameUI());
-			DzFrameSetTexture(uilayer.lv[6],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
-			uilayer.lv[7] = DzCreateFrameByTagName("BACKDROP","layer7",uilayer.lv[6],"IT",0);
-			DzFrameSetAllPoints(uilayer.lv[7],DzGetGameUI());
-			DzFrameSetTexture(uilayer.lv[7],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
+library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
+	public type onProgressEnd extends function(uiSprite);
+	
+	public struct progAnim {
+		static thistype List []; // 内容列表
+static integer size = 0; // 现在有几个东西
+static uianim UIA = 0; // 动画实例
+		uiSprite sprite; // [成员]绑定的sprite
+real from; // [成员]起始值
+real to; // [成员]目标值
+integer time; // [成员]持续时间
+integer now; // [成员]当前时间
+integer id; // [成员]绑定的ID
+onProgressEnd cb; // [成员]结束回调
+		method isExist () -> boolean {return (this != null && si__progAnim_V[this] == -1);}
+		// 创建进度动画
+		static method create (uiSprite sprite, real from, real to, integer time, onProgressEnd cb) -> thistype {
+			thistype this = allocate();
+			// 数据设置都放这
+			this.sprite = sprite;
+			this.from = from;
+			this.to = to;
+			this.time = time;
+			this.now = 0;
+			this.cb = cb;
+			// 这里是初始化时的设置内容,不需要改
+			if (this.id == 0) {
+				size += 1;
+				List[size] = this;
+				this.id = size;
+			}
+			UIA.reg();
+			return this;
 		}
-    }
+		method onDestroy() {
+			// 数据解除都放这里
+			if (sprite.isExist() && HaveSavedInteger(HASH_UI, sprite.ui, 1945)) {
+				RemoveSavedInteger(HASH_UI, sprite.ui, 1945);
+			}
+			sprite = 0;
+			cb = 0;
+			if (id != 0) {
+				List[id] = List[size];
+				List[id].id = id;
+				size -= 1;
+				id = 0;
+			}
+			if(size <= 0) {
+				UIA.unreg(); // 这里就删计时器
+BJDebugMsg("progAnim计时器已停止"); // 添加调试输出
+}
+		}
+		static method onInit() {
+			// 初始化动画计时器
+			UIA = uianim.create(function() {
+				integer i;
+				thistype this;
+				real progress;
+				if (size > 0) {
+					for (1 <= i <= size) {
+						this = List[i]; // 从结论来说i就是.id
+this.now += 1;
+						if(this.now >= this.time) { // 删除的条件
+this.sprite.setProgress(this.to);
+							if(this.cb != 0) {
+								RemoveSavedInteger(HASH_UI,this.sprite.ui,1945); //因为会自动排泄,防止在回调删UI的时候继续再调用一次
+this.cb.evaluate(this.sprite);
+							}
+							this.destroy();
+							i -= 1; // 正向遍历必须要保留这条
+} else {
+							progress = this.from + (this.to - this.from) * (I2R(this.now) / this.time);
+							this.sprite.setProgress(progress);
+						}
+					}
+				}
+			});
+			// UI销毁时回调删除进度动画
+			uiLifeCycle.registerDestroy(function() {
+				integer ui = uiLifeCycle.agrsFrame;
+				thistype this;
+				if (HaveSavedInteger(HASH_UI, ui, 1945)) {
+					this = LoadInteger(HASH_UI, ui, 1945);
+					if (this.isExist()) { // 检查实例是否存在
+this.destroy();
+					}
+				}
+			});
+		}
+	}
+	// 进度动画模块
+	public module panimable {
+		method progAnimate(real from, real to, real duration, onProgressEnd cb) -> thistype {
+			progAnim anim;
+			if (!this.isExist()) { return this; }
+			// 检查是否已存在progAnim实例
+			if (HaveSavedInteger(HASH_UI, ui, 1945)) {
+				anim = LoadInteger(HASH_UI, ui, 1945);
+				// 更新动画参数
+				anim.sprite = this;
+				anim.from = from;
+				anim.to = to;
+				anim.time = R2I(duration * 50);
+				anim.now = 0;
+				anim.cb = cb;
+			} else {
+				// 创建新实例
+				anim = progAnim.create(this, from, to, R2I(duration * 50), cb);
+				SaveInteger(HASH_UI, ui, 1945, anim);
+			}
+			return this;
+		}
+	}
 }
 //! endzinc
-//! zinc
 
-library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
-    public module extendResize {
-        //注册一个大小重组器
-        method exReSize (real width,real height) -> thistype {
-            resizer ser;
-            if (!this.isExist()) {return this;}
-            if (HaveSavedInteger(HASH_UI,ui,1940)) {
-                ser = LoadInteger(HASH_UI,ui,1940);
-                ser.frame = ui;
-                ser.width = width;
-                ser.height = height;
-            } else {
-                ser = resizer.create(ui,width,height);
-                SaveInteger(HASH_UI,ui,1940,ser);
-            }
-            DzFrameSetSize(ui,width*GetResizeRate(),height);
-            return this;
-        }
-        method exRePoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
-            rePointer ptr;
-            if (!this.isExist()) {return this;}
-            if (HaveSavedInteger(HASH_UI,ui,1941)) {
-                ptr = LoadInteger(HASH_UI,ui,1941);
-                ptr.frame = ui;
-                ptr.anchor = anchor;
-                ptr.relative = relative;
-                ptr.relativeAnchor = relativeAnchor;
-                ptr.offsetX = offsetX;
-                ptr.offsetY = offsetY;
-            } else {
-                ptr = rePointer.create(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
-                SaveInteger(HASH_UI,ui,1941,ptr);
-            }
-            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY);
-            return this;
-        }
-    }
-    //大小重组器
-    public struct resizer {
-        static thistype List []; //内容列表
-static integer size = 0; //现在有几个东西
-integer frame; //[成员]绑定的内容
-real width; //[成员]注册宽度
-real height; //[成员]注册高度
-integer uID; //[成员]绑定的ID
-        method isExist () -> boolean {return (this != null && si__resizer_V[this] == -1);}
-        //注册一个对象进池里
-        static method create (integer frame,real width,real height) -> thistype {
-            thistype this = allocate();
-            this.frame = frame;
-            this.width = width;
-            this.height = height;
-            if (uID == 0) { //这里是初始化时的设置内容,不需要改
-size += 1;
-                List[size] = this;
-                uID = size;
-            }
-            return this;
-        }
-        static method toString () -> string { 
- string s = I2S(size) + "个:"; 
- integer i; 
- for (1 <= i <= size) { 
- s += "[" + I2S(i) + "]|r" + I2S(List[i]) + "->"; 
- } 
- s += "/"; 
- return s; 
- }
-        method onDestroy () {
-            frame = 0; //数据解除都放这里
-            if (uID != 0) {
-                List[uID] = List[size];
-                List[uID].uID = uID;
-                size -= 1;
-                uID = 0;
-            }
-            if (size <= 0) {BJDebugMsg("UIExtendResize: 大小重组器已销毁");}
-        }
-    }
-    //位置重组器
-    public struct rePointer {
-        static thistype List []; //内容列表
-static integer size = 0; //现在有几个东西
-integer frame; //[成员]绑定的内容
-integer anchor; //[成员]锚点
-integer relative; //[成员]相对锚点
-integer relativeAnchor; //[成员]相对锚点
-real offsetX; //[成员]偏移X
-real offsetY; //[成员]偏移Y
-integer uID; //[成员]绑定的ID
-        method isExist () -> boolean {return (this != null && si__rePointer_V[this] == -1);}
-        //注册一个对象进池里
-        static method create (integer frame,integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
-            thistype this = allocate();
-            this.frame = frame;
-            this.anchor = anchor;
-            this.relative = relative;
-            this.relativeAnchor = relativeAnchor;
-            this.offsetX = offsetX;
-            this.offsetY = offsetY;
-            if (uID == 0) { //这里是初始化时的设置内容,不需要改
-size += 1;
-                List[size] = this;
-                uID = size;
-            }
-            return this;
-        }
-        static method toString () -> string { 
- string s = I2S(size) + "个:"; 
- integer i; 
- for (1 <= i <= size) { 
- s += "[" + I2S(i) + "]|r" + I2S(List[i]) + "->"; 
- } 
- s += "/"; 
- return s; 
- }
-        method onDestroy () {
-            frame = 0; //数据解除都放这里
-            if (uID != 0) {
-                List[uID] = List[size];
-                List[uID].uID = uID;
-                size -= 1;
-                uID = 0;
-            }
-        }
+//! zinc
+library UnitTestFramwork {
+	//单元测试总
+	trigger TUnitTest = null;
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
     }
     function onInit () {
-        hardware.regResizeEvent(function () { //注册窗口大小变化事件
-real resizeX = GetResizeRate();
-            integer i ;
-            resizer ser;
-            if (resizer.size > 0) {
-                for (i = resizer.size; i >= 1; i -= 1) { //反向遍历可以删除下面的　i-= 1
-ser = resizer.List[i]; //从结论来说i就是.uID
-DzFrameSetSize(ser.frame,ser.width*resizeX,ser.height);
-                }
-            }
-        });
-        hardware.regResizeEvent(function () { //注册窗口大小变化事件
-real resizeX = GetResizeRate();
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
             integer i;
-            rePointer ptr;
-            if (rePointer.size > 0) {
-                for (i = rePointer.size; i >= 1; i -= 1) { //反向遍历可以删除下面的　i-= 1
-ptr = rePointer.List[i]; //从结论来说i就是.uID
-DzFrameSetPoint(ptr.frame,ptr.anchor,ptr.relative,ptr.relativeAnchor,ptr.offsetX*resizeX,ptr.offsetY);
-                }
-            }
-        });
-        uiLifeCycle.registerDestroy(function () { //UI的销毁回调事件
-integer frame = uiLifeCycle.agrsFrame;
-            resizer ser;
-            rePointer ptr;
-            if (HaveSavedInteger(HASH_UI,frame,1940)) {
-                ser = LoadInteger(HASH_UI,frame,1940);
-                if (ser.isExist()) {
-                    ser.destroy();
-                }
-            }
-            if (HaveSavedInteger(HASH_UI,frame,1941)) {
-                ptr = LoadInteger(HASH_UI,frame,1941);
-                if (ptr.isExist()) {
-                    ptr.destroy();
-                }
-            }
-        });
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
+}
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
     }
 }
 //! endzinc
 //! zinc
 
-library UISprite requires UIId, UITocInit, UIBaseModule, optional UILifeCycle {
-    public struct uiSprite {
+library UITextModule {
+    // 定义共用的方法结构
+    public module uiTextModule {
+        // 设置标准字体大小
+        // size: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
+        method setFontSize (integer size) -> thistype {
+            real fontSize = 0.01;
+            if (!this.isExist()) {return this;}
+            if (size == 1) {
+                fontSize = 0.006;
+            } else if (size == 2) {
+                fontSize = 0.008;
+            } else if (size == 3) {
+                fontSize = 0.009;
+            } else if (size == 4) {
+                fontSize = 0.01;
+            } else if (size == 5) {
+                fontSize = 0.011;
+            } else if (size == 6) {
+                fontSize = 0.012;
+            } else if (size == 7) {
+                fontSize = 0.015;
+            }
+            DzFrameSetFont(ui, "fonts\\zt.ttf", fontSize, 0);
+            return this;
+        }
+        // 设置对齐方式(前提要先定好大小,不然无处对齐)
+        // align: 可以使用0-8的简单数字,或TEXT_ALIGN_*常量
+        // 0=左上, 1=顶部居中, 2=右上
+        // 3=左中, 4=居中, 5=右中
+        // 6=左下, 7=底部居中, 8=右下
+        method setAlign (integer align) -> thistype {
+            integer finalAlign = align;
+            if (!this.isExist()) {return this;}
+            // 如果输入0-8,转换为对应的组合值
+            if (align >= 0 && align <= 8) {
+                if (align == 0) {
+                    finalAlign = 9; // 左上
+} else if (align == 1) {
+                    finalAlign = 17; // 顶部居中
+} else if (align == 2) {
+                    finalAlign = 33; // 右上
+} else if (align == 3) {
+                    finalAlign = 10; // 左中
+} else if (align == 4) {
+                    finalAlign = 18; // 居中
+} else if (align == 5) {
+                    finalAlign = 34; // 右中
+} else if (align == 6) {
+                    finalAlign = 12; // 左下
+} else if (align == 7) {
+                    finalAlign = 20; // 底部居中
+} else if (align == 8) {
+                    finalAlign = 36; // 右下
+}
+            }
+            DzFrameSetTextAlignment(ui, finalAlign);
+            return this;
+        }
+        // 设置文本内容
+        method setText (string text) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetText(ui,text);
+            return this;
+        }
+    }
+}
+//! endzinc
+//===========================================================================
+// Icon.j
+//===========================================================================
+//
+// 模块描述：
+//   实现了魔兽争霸3中通用的图标UI组件，支持图标显示、数字标记、
+//   按钮功能、流光特效等特性。
+//
+// 作者：[你的名字]
+// 创建日期：[创建日期]
+// 最后修改：[最后修改日期]
+//
+// 依赖项：
+//   - UIBase
+//   - UIAnim
+//   - GrowData
+//   - UIText
+//   - UIImage
+//   - UIButton
+//   - UISprite
+//
+// 使用示例：
+//   icon myIcon = icon.create(parentFrame, true, true);
+//   myIcon.size(0.04, 0.04);
+//
+//===========================================================================
+//# dependency:ui/model/cooldown_center.mdx
+//! zinc
+
+library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim,UIExtendResize,UILayer{
+    public struct icon {
+        // UI组件
+        uiImage mainImage; // 主图标图片
+uiImage shadowImage; // 图标暗遮罩
+uiImage cornerShade; // 角落文字背景
+uiImage glowImage; // 流光特效图片
+uiText cornerText; // 角落文字
+uiBtn clickBtn; // 点击按钮
+uiSprite cdSprite; // CD显示精灵
+integer parent; // 父级UI()
+        // 动画相关
+        baseanim glowAnim; // 流光动画
+growdata gd; // 流光数据
+        // 尺寸
+        real sizeX;
+        real sizeY;
+        boolean isResize;
+        // 是否是原生
+        boolean isSimple;
+        integer spAnchor;
+        integer spRelative;
+        integer spRelativeAnchor;
+        real spOffsetX;
+        real spOffsetY;
+        uiImage cdSpriteImage; // 用于CD显示的辅助图片
+method isExist () -> boolean {return (this != null && si__icon_V[this] == -1);}
+        // 私有的初始化方法
+        private method init() {
+            // 初始化所有成员为0
+            mainImage = 0;
+            shadowImage = 0;
+            cornerShade = 0;
+            cornerText = 0;
+            clickBtn = 0;
+            glowImage = 0;
+            cdSprite = 0;
+            cdSpriteImage = 0;
+            // 动画相关
+            glowAnim = 0;
+            gd = 0;
+            // 尺寸初始化为0
+            sizeX = 0.04;
+            sizeY = 0.04;
+        }
+        // 普通创建方法
+        static method create(integer parent) -> thistype {
+            thistype this = allocate();
+            this.init();
+            this.parent = parent;
+            isSimple = false;
+            // 创建必需组件
+            mainImage = uiImage.create(parent)
+                .setClip(true);
+            mainImage.show(false);
+            return this;
+        }
+        // 从现有UI创建图标(parent是后面创建东西的parent)
+        static method fromExistingUI(uiImage existingImage,integer parent) -> thistype {
+            thistype this = allocate();
+            this.init();
+            this.parent = parent;
+            isSimple = true;
+            spAnchor = 0;
+            spRelative = 0;
+            spRelativeAnchor = 0;
+            spOffsetX = 0;
+            spOffsetY = 0;
+            // 绑定现有图片
+            mainImage = existingImage;
+            return this;
+        }
+        // 从现有UI创建图标(parent是后面创建东西的parent)
+        static method createSimple(integer parent) -> thistype {
+            return fromExistingUI(uiImage.createSimple(parent),parent);
+        }
+        // 更新流光尺寸
+        private method updateGlowSize () {
+            if (glowImage.isExist()) {
+                if (isResize) {
+                    glowImage.exReSize(sizeX * gd.scale, sizeY * gd.scale);
+                } else {
+                    glowImage.setSize(sizeX * gd.scale, sizeY * gd.scale);
+                }
+            }
+        }
+        // 加入流光效果
+        method grow(growdata gd) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (!glowImage.isExist()) {
+                if (isSimple) {
+                    glowImage = uiImage.create(uilayer.lv[1]); // 创建流光图片 -> 到最底层
+} else {
+                    glowImage = uiImage.create(this.parent);
+                }
+                glowImage.setPoint(4, mainImage.ui, 4, 0, 0);
+                this.updateGlowSize();
+            }
+            glowImage.show(true); // 显示流光
+if (gd != this.gd) {
+                this.gd = gd;
+            }
+            if (!glowAnim.isExist()) {
+                glowAnim = baseanim.create(glowImage.ui);
+                glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
+            }
+            this.updateGlowSize();
+            return this;
+        }
+        // 取消流光
+        method unGrow() -> thistype {
+            if (!this.isExist()) {return this;}
+            if (glowImage.isExist()) { //
+glowImage.destroy();
+                glowImage = 0;
+            }
+            if (glowAnim.isExist()) {
+                glowAnim.destroy();
+                glowAnim = 0;
+            }
+            return this;
+        }
+        // 设置尺寸
+        method setSize(real x, real y) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (sizeX <= 0 || sizeY <= 0) {return this;}
+            if (isResize) {
+                mainImage.exReSize(x, y);
+            } else {
+                mainImage.setSize(x, y);
+            }
+            sizeX = x;
+            sizeY = y;
+            this.updateGlowSize();
+            return this;
+        }
+        method enableResize() -> thistype {
+            if (!this.isExist()) {return this;}
+            isResize = true;
+            setSize(sizeX, sizeY);
+            return this;
+        }
+        // 设置数字
+        method setCornerText(string value) -> thistype {
+            real padding;
+            if (!this.isExist()) {return this;}
+            // 如果value为null,隐藏cornerText和cornerShade
+            if (value == null) {
+                if (cornerText.isExist()) {
+                    cornerText.show(false);
+                    cornerShade.show(false);
+                }
+                return this;
+            }
+            // 创建或更新cornerText
+            if (!cornerText.isExist()) {
+                if (isSimple) {
+                    cornerShade = uiImage.createCornerBorder(uilayer.lv[1]);
+                    cornerText = uiText.create(cornerShade.ui);
+                } else {
+                    cornerShade = uiImage.createCornerBorder(this.parent);
+                    cornerText = uiText.create(cornerShade.ui);
+                }
+                cornerText.setFontSize(2)
+                    .setPoint(8, mainImage.ui, 8, -0.003,0.003);
+                padding = 0.003;
+                cornerShade.setPoint(0, cornerText.ui, 0, -padding, padding)
+                    .setPoint(8, cornerText.ui, 8, padding, -padding);
+            }
+            cornerText.setText(value);
+            cornerText.show(true);
+            cornerShade.show(true);
+            return this;
+        }
+        // 设置图标暗遮罩
+        method setShadow(boolean flag) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (!shadowImage.isExist() && flag) {
+                if (isSimple) {
+                    shadowImage = uiImage.create(uilayer.lv[1]);
+                } else {
+                    shadowImage = uiImage.create(mainImage.ui);
+                }
+                shadowImage.setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+                    .setAllPoint(mainImage.ui);
+            }
+            if (shadowImage.isExist()) {
+                shadowImage.show(flag);
+            }
+            return this;
+        }
+        // CD显示相关方法
+        // func回调函数中的eventdata.get时是返回这个icon本体
+        method startCooldown(real duration,onProgressEnd func) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (!cdSprite.isExist()) {
+                if (isSimple) {
+                    cdSpriteImage = uiImage.create(uilayer.lv[1])
+                        .setTexture("UI\\Widgets\\EscMenu\\Human\\blank-background.blp")
+                        .setAllPoint(mainImage.ui)
+                        .setClip(true);
+                    cdSprite = uiSprite.create(cdSpriteImage.ui);
+                } else {
+                    cdSprite = uiSprite.create(mainImage.ui);
+                }
+                cdSprite.setPoint(4,mainImage.ui,4,0,0)
+                    .setSize(0.001,0.001)
+                    .setModel("ui\\model\\cooldown_center.mdx",0,0)
+                    .setAnimate(0,false);
+                uiHashTable(cdSprite).eventdata.bind(this);
+            }
+            cdSprite.progAnimate(0,1,duration,func);
+            cdSprite.setScale(sizeY / 0.038);
+            return this;
+        }
+        // 获取按钮,然后再在外面设按钮相关的事件
+        method getClickBtn() -> uiBtn {
+            if (!this.isExist()) {return 0;}
+            if (!clickBtn.isExist()) {
+                if (isSimple) { //原生
+if (parent != 0) {
+                        clickBtn = uiBtn.createSimple(parent)
+                            .setAllPoint(mainImage.ui);
+                    } else {
+                        BJDebugMsg("parent is 0");
+                    }
+                } else { //非原生
+clickBtn = uiBtn.create(mainImage.ui)
+                        .setAllPoint(mainImage.ui);
+                }
+            }
+            return clickBtn;
+        }
+        // 设置图标贴图
+        method setTexture(string path) -> thistype {
+            if (!this.isExist()) {return this;}
+            mainImage.setTexture(path);
+            return this;
+        }
+        // 设置位置(顺便存位置)
+        // 原生的话1个点就行, 不要设太多点
+        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (isSimple) {
+                mainImage.clearPoint()
+                    .setPoint(anchor,relative,relativeAnchor,offsetX,offsetY);
+                this.spAnchor = anchor;
+                this.spRelative = relative;
+                this.spRelativeAnchor = relativeAnchor;
+                this.spOffsetX = offsetX;
+                this.spOffsetY = offsetY;
+            } else {
+                mainImage.setPoint(anchor,relative,relativeAnchor,offsetX,offsetY);
+            }
+            return this;
+        }
+        // 显示/隐藏整个图标(Simple无效)
+        method show(boolean flag) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (isSimple) { //原生就移到屏幕外
+if (flag) { //显示
+mainImage.clearPoint()
+                        .setPoint(spAnchor,spRelative,spRelativeAnchor,spOffsetX,spOffsetY);
+                } else { //隐藏
+mainImage.clearPoint()
+                        .setPoint(4, DzGetGameUI(), 4, -0.8, 0.0);
+                }
+            } else { //非原生才能用这个函数
+mainImage.show(flag);
+                if (glowImage.isExist()) {
+                    glowImage.show(flag);
+                }
+            }
+            return this;
+        }
+        method onDestroy() {
+            if (glowAnim.isExist()) { glowAnim.destroy(); glowAnim = 0; }
+            if (cdSprite.isExist()) { cdSprite.destroy(); cdSprite = 0; }
+            if (cdSpriteImage.isExist()) { cdSpriteImage.destroy(); cdSpriteImage = 0; }
+            if (shadowImage.isExist()) { shadowImage.destroy(); shadowImage = 0; }
+            if (cornerShade.isExist()) { cornerShade.destroy(); cornerShade = 0; }
+            if (cornerText.isExist()) { cornerText.destroy(); cornerText = 0; }
+            if (clickBtn.isExist()) { clickBtn.destroy(); clickBtn = 0; }
+            if (glowImage.isExist()) { glowImage.destroy(); glowImage = 0; }
+            if (mainImage.isExist()) { mainImage.destroy(); mainImage = 0; }
+        }
+    }
+}
+//! endzinc
+//! zinc
+
+//# dependency:ui\image\textbutton_highlight.blp
+library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
+    public struct uiBtn {
         // UI组件内部共享方法及成员
         integer ui; 
  integer id; 
- method isExist () -> boolean {return (this != null && si__uiSprite_V[this] == -1);} 
+ method isExist () -> boolean {return (this != null && si__uiBtn_V[this] == -1);} 
  optional module uiLifeCycle; 
  module uiBaseModule;
-        // 可选引入进度动画模块
-        optional module panimable;
-        // 创建模型
+        module uiEventModule; // UI事件的共用方法
+optional module extendDrag; //扩展拖动(只有button能用,其他就不放进去了)
+        // 创建一个不带声音的
         // parent: 父级框架
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
-            ui = DzCreateFrameByTagName("SPRITE","Sprite" + I2S(id),parent,"SpriteTemplate",0);
+            ui = DzCreateFrameByTagName("BUTTON","Btn" + I2S(id),parent,"BT",0); //有高亮无声音的图标
+static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        //普通带声效系
+        static method createSound (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("GLUEBUTTON","Btn" + I2S(id),parent,"BT",0); //有高亮有声音的图标
+static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        //右键菜单系
+        static method createRC (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("GLUEBUTTON","Btn" + I2S(id),parent,"TBT",0); //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
+static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 创建空白按钮
+        // parent: 父级框架
+        static method createBlank (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BUTTON","Btn" + I2S(id),parent,"BB",0);
             static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
  static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
             return this;
         }
-        // 设置模型(目前只做平面型就行了,后面2个0固定了)
-        // @param path: 模型路径
-        // @param modelType: 模型类型(0 = SPRITE（精灵/图标）,1 = MODEL（3D模型）,2 = STATUSBAR（状态条）)
-        // @param flag: 标志(0 = 普通显示,1 = 允许选择模型,2 = 使用鼠标移动模型,4 = 添加模型动画控制器),要位运算
-        method setModel(string path,integer modelType,integer flag) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetModel(ui,path,modelType,flag);
+        // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
+        // parent: 父级框架
+        static method createSimple (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("SIMPLEBUTTON", "Btn" + I2S(id), parent, "简单按钮", id);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
             return this;
         }
-        // 设置缩放
-        // @param scale: 缩放比例
-        method setScale (real scale) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScale(ui,scale);
-            return this;
-        }
-        // 设置动画
-        // @param animate: 动画ID,一般为0
-        // @param auto: 是否自动播放
-        method setAnimate(integer animate,boolean auto) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAnimate(ui,animate,auto);
-            return this;
-        }
-        // 设置进度
-        method setProgress(real progress) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAnimateOffset(ui,progress);
+        //绑定原生的Button成为SimpleButton,注意不能删除哦
+        // 不能用bindSimple,因为没有dzfindSimpleButton函数,只能用这个
+        static method bindCreated (integer frame) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = frame;
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
             return this;
         }
         method onDestroy () {
@@ -1368,80 +1725,6 @@ library UISprite requires UIId, UITocInit, UIBaseModule, optional UILifeCycle {
             uiId.recycle(id);
         }
     }
-}
-//! endzinc
-//! zinc
-
-library UIHashTable {
-    public hashtable HASH_UI = InitHashtable(); // UI结构哈希表
-integer frame = 0;
-    //对外接口,方便链式调用
-    public function uiHashTable (integer f) -> uiHT {
-        frame = f;
-        return uiHT[0];
-    }
-    //私有
-    struct uiHT [] {
-        uiHTEvent eventdata; //方便链式调用  uiHashTable(frame).eventdata.bind(8174);
-uiHTFrame ui ; //方便链式调用  uiHashTable(frame).ui.bind(8174);
-}
-    // 子结构体函数
-    struct uiHTFrame [] {
-        // 绑定UI实例到frame
-        method bind (integer typeID,integer ui) {
-            SaveInteger(HASH_UI,frame,1820,typeID);
-            SaveInteger(HASH_UI,frame,1821,ui);
-        }
-        // 从frame获取UI实例
-        method get () -> integer {
-            return LoadInteger(HASH_UI,frame,1821);
-        }
-        // 从frame获取UI类型
-        method getType () -> integer {
-            return LoadInteger(HASH_UI,frame,1820);
-        }
-    }
-    // 子结构体函数
-    struct uiHTEvent [] {
-        method bind (integer value) {
-            SaveInteger(HASH_UI,frame,1823,value);
-        }
-        method get () -> integer {
-            return LoadInteger(HASH_UI,frame,1823);
-        }
-    }
-}
-//! endzinc
-//窗口的大小
-//! zinc
-
-library UIUtils requires BzAPI{
-	//获得现在的X / Y比例
-	//主要用于UI缩放
-	public function GetResizeRate () -> real {
-		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
-		else return 1.0;
-	}
-	// 获取鼠标位置X(绝对坐标)[修正版]
-	public function GetMouseXEx () -> real {
-		integer width = DzGetClientWidth();
-		if (width > 0) return DzGetMouseXRelative()* 0.80 / width;
-		else return 0.1;
-	}
-	// 获取鼠标位置Y(绝对坐标)[修正版]
-	public function GetMouseYEx () -> real {
-		integer height = DzGetClientHeight();
-		if (height > 0) return 0.60 - DzGetMouseYRelative()* 0.60 / height;
-		else return 0.1;
-	}
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseX (real min,real max) -> real {
-		return RLimit(GetMouseXEx(),min,max);
-	}
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseY (real min,real max) -> real {
-		return RLimit(GetMouseYEx(),min,max);
-	}
 }
 //! endzinc
 //! zinc
@@ -1511,36 +1794,729 @@ integer i , this;
 	}
 }
 //! endzinc
-
 //! zinc
-library UnitTestFramwork {
-	//单元测试总
-	trigger TUnitTest = null;
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-    function onInit () {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
-}
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+
+library UIText requires UIId, UITocInit, UIBaseModule, optional UILifeCycle,UITextModule {
+    public struct uiText {
+        // UI组件内部共享方法及成员
+        integer ui; 
+ integer id; 
+ method isExist () -> boolean {return (this != null && si__uiText_V[this] == -1);} 
+ optional module uiLifeCycle; 
+ module uiBaseModule;
+        // UI控件的共用方法
+        module uiTextModule; // UI文本的共用方法
+        // 创建文本
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("TEXT","Text" + I2S(id),parent,"T1",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 创建一个用在原生Frame里的文本,这种文本是不能destroy的!
+        // parent: 父级框架
+        static method createSimple (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            DzCreateFrameByTagName("SIMPLEFRAME", "Text" + I2S(id), parent, "简单文字", id);
+            ui = DzSimpleFontStringFindByName("简单文字内容", id);
+            DzFrameClearAllPoints(ui);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 绑定原生文本
+        // name: 文本名称(fdf写的text的名字)
+        // index: 文本索引(在外部创建时的填写的ID最后一个参数)
+        static method bindSimple (string name, integer index) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzSimpleFontStringFindByName(name, index);
+            DzFrameClearAllPoints(ui);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) { FlushChildHashtable(HASH_UI, ui); }
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
     }
 }
 //! endzinc
+//! zinc
+//UI层级
+library UILayer requires UITocInit {
+	public struct uilayer [] {
+		static integer lv [];
+		static method onInit () {
+			uilayer.lv[1] = DzCreateFrameByTagName("BACKDROP","layer1",DzGetGameUI(),"IT",0);
+			DzFrameSetAllPoints(uilayer.lv[1],DzGetGameUI());
+			DzFrameSetTexture(uilayer.lv[1],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
+			uilayer.lv[2] = DzCreateFrameByTagName("BACKDROP","layer2",uilayer.lv[1],"IT",0);
+			DzFrameSetAllPoints(uilayer.lv[2],DzGetGameUI());
+			DzFrameSetTexture(uilayer.lv[2],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
+			uilayer.lv[3] = DzCreateFrameByTagName("BACKDROP","layer3",uilayer.lv[2],"IT",0);
+			DzFrameSetAllPoints(uilayer.lv[3],DzGetGameUI());
+			DzFrameSetTexture(uilayer.lv[3],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
+			uilayer.lv[4] = DzCreateFrameByTagName("BACKDROP","layer4",uilayer.lv[3],"IT",0);
+			DzFrameSetAllPoints(uilayer.lv[4],DzGetGameUI());
+			DzFrameSetTexture(uilayer.lv[4],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
+			uilayer.lv[5] = DzCreateFrameByTagName("BACKDROP","layer5",uilayer.lv[4],"IT",0);
+			DzFrameSetAllPoints(uilayer.lv[5],DzGetGameUI());
+			DzFrameSetTexture(uilayer.lv[5],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
+			uilayer.lv[6] = DzCreateFrameByTagName("BACKDROP","layer6",uilayer.lv[5],"IT",0);
+			DzFrameSetAllPoints(uilayer.lv[6],DzGetGameUI());
+			DzFrameSetTexture(uilayer.lv[6],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
+			uilayer.lv[7] = DzCreateFrameByTagName("BACKDROP","layer7",uilayer.lv[6],"IT",0);
+			DzFrameSetAllPoints(uilayer.lv[7],DzGetGameUI());
+			DzFrameSetTexture(uilayer.lv[7],"UI\\Widgets\\EscMenu\\Human\\blank-background.blp",0);
+		}
+    }
+}
+//! endzinc
+//! zinc
+
+// https://tieba.baidu.com/p/6580193364?pid=131079515410&cid=0&red_tag=2120364315#131079515410
+// https://tieba.baidu.com/p/8067593125?pid=145736219847&cid=145742891494#145742891494
+// http://bbs.mvprpg.com/forum.php?mod=viewthread&tid=493042&extra=
+
+library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon {
+    public struct unitPanel []{
+        static icon iconAttack = 0; static icon iconArmor = 0;
+        static icon iconHero = 0; static icon iconBuilding = 0;
+        static icon iconMonster = 0;
+        static uiText textAttack = 0; static uiText textAttackValue = 0; //攻击相关
+static uiText textArmor = 0; static uiText textArmorValue = 0; //防御相关
+static uiText textStr = 0; static uiText textStrValue = 0; //力量
+static uiText textAgi = 0; static uiText textAgiValue = 0; //敏捷
+static uiText textInt = 0; static uiText textIntValue = 0; //智力
+static uiText textBuilding = 0; static uiText textBuildingValue = 0;
+        // 事件触发器
+        private {
+            static trigger trAttackEnter = null; static trigger trAttackLeave = null;
+            static trigger trAttackClick = null; static trigger trAttackRightClick = null;
+            static trigger trArmorEnter = null; static trigger trArmorLeave = null;
+            static trigger trArmorClick = null; static trigger trArmorRightClick = null;
+            static trigger trHeroEnter = null; static trigger trHeroLeave = null;
+            static trigger trHeroClick = null; static trigger trHeroRightClick = null;
+            static trigger trBuildingEnter = null; static trigger trBuildingLeave = null;
+            static trigger trBuildingClick = null; static trigger trBuildingRightClick = null;
+            static trigger trMonsterEnter = null; static trigger trMonsterLeave = null;
+            static trigger trMonsterClick = null; static trigger trMonsterRightClick = null;
+        }
+        // 使用新的宏一次性生成每个部分的所有事件
+        static method onAttackEnter (code func) { if (trAttackEnter == null) trAttackEnter = CreateTrigger(); TriggerAddCondition(trAttackEnter, Condition(func)); } 
+ static method onAttackLeave (code func) { if (trAttackLeave == null) trAttackLeave = CreateTrigger(); TriggerAddCondition(trAttackLeave, Condition(func)); } 
+ static method onAttackClick (code func) { if (trAttackClick == null) trAttackClick = CreateTrigger(); TriggerAddCondition(trAttackClick, Condition(func)); } 
+ static method onAttackRightClick (code func) { if (trAttackRightClick == null) trAttackRightClick = CreateTrigger(); TriggerAddCondition(trAttackRightClick, Condition(func)); } 
+
+        static method onArmorEnter (code func) { if (trArmorEnter == null) trArmorEnter = CreateTrigger(); TriggerAddCondition(trArmorEnter, Condition(func)); } 
+ static method onArmorLeave (code func) { if (trArmorLeave == null) trArmorLeave = CreateTrigger(); TriggerAddCondition(trArmorLeave, Condition(func)); } 
+ static method onArmorClick (code func) { if (trArmorClick == null) trArmorClick = CreateTrigger(); TriggerAddCondition(trArmorClick, Condition(func)); } 
+ static method onArmorRightClick (code func) { if (trArmorRightClick == null) trArmorRightClick = CreateTrigger(); TriggerAddCondition(trArmorRightClick, Condition(func)); } 
+
+        static method onHeroEnter (code func) { if (trHeroEnter == null) trHeroEnter = CreateTrigger(); TriggerAddCondition(trHeroEnter, Condition(func)); } 
+ static method onHeroLeave (code func) { if (trHeroLeave == null) trHeroLeave = CreateTrigger(); TriggerAddCondition(trHeroLeave, Condition(func)); } 
+ static method onHeroClick (code func) { if (trHeroClick == null) trHeroClick = CreateTrigger(); TriggerAddCondition(trHeroClick, Condition(func)); } 
+ static method onHeroRightClick (code func) { if (trHeroRightClick == null) trHeroRightClick = CreateTrigger(); TriggerAddCondition(trHeroRightClick, Condition(func)); } 
+
+        static method onBuildingEnter (code func) { if (trBuildingEnter == null) trBuildingEnter = CreateTrigger(); TriggerAddCondition(trBuildingEnter, Condition(func)); } 
+ static method onBuildingLeave (code func) { if (trBuildingLeave == null) trBuildingLeave = CreateTrigger(); TriggerAddCondition(trBuildingLeave, Condition(func)); } 
+ static method onBuildingClick (code func) { if (trBuildingClick == null) trBuildingClick = CreateTrigger(); TriggerAddCondition(trBuildingClick, Condition(func)); } 
+ static method onBuildingRightClick (code func) { if (trBuildingRightClick == null) trBuildingRightClick = CreateTrigger(); TriggerAddCondition(trBuildingRightClick, Condition(func)); } 
+
+        static method onMonsterEnter (code func) { if (trMonsterEnter == null) trMonsterEnter = CreateTrigger(); TriggerAddCondition(trMonsterEnter, Condition(func)); } 
+ static method onMonsterLeave (code func) { if (trMonsterLeave == null) trMonsterLeave = CreateTrigger(); TriggerAddCondition(trMonsterLeave, Condition(func)); } 
+ static method onMonsterClick (code func) { if (trMonsterClick == null) trMonsterClick = CreateTrigger(); TriggerAddCondition(trMonsterClick, Condition(func)); } 
+ static method onMonsterRightClick (code func) { if (trMonsterRightClick == null) trMonsterRightClick = CreateTrigger(); TriggerAddCondition(trMonsterRightClick, Condition(func)); } 
+
+        // 地图初始化
+        private static method mapInit () {
+            integer parent,child;
+            uiBtn btn;
+            //攻击小框架相关
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2); //防御的父框架
+child = DzCreateFrameByTagName("SIMPLEFRAME", "upAttack", parent, "单位面板框架", 0);
+            DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
+iconAttack = icon.fromExistingUI(uiImage.bindSimple("单位面板图标", 0), parent)
+                .setSize(0.027, 0.027)
+                .setPoint(4, DzFrameGetPortrait(), 5, 0.0295, -0.006)
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
+            btn = iconAttack.getClickBtn()
+                .spEnter(function(integer frame) {if (trAttackEnter != null) TriggerEvaluate(trAttackEnter);})
+                .spLeave(function(integer frame) {if (trAttackLeave != null) TriggerEvaluate(trAttackLeave);})
+                .spClick(function(integer frame) {if (trAttackClick != null) TriggerEvaluate(trAttackClick);})
+                .spRightClick(function(integer frame) {if (trAttackRightClick != null) TriggerEvaluate(trAttackRightClick);});
+            textAttack = uiText.bindSimple("单位面板属性名", 0)
+                .setPoint(0, iconAttack.mainImage.ui, 2, 0.003, -0.003)
+                .setText("攻击:");
+            textAttackValue = uiText.bindSimple("单位面板数值", 0)
+                .setPoint(6, iconAttack.mainImage.ui, 8, 0.008, 0.003)
+                .setText("0");
+            //防御小框架相关
+            child = DzCreateFrameByTagName("SIMPLEFRAME", "upArmor", parent, "单位面板框架", 1);
+            DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
+iconArmor = icon.fromExistingUI(uiImage.bindSimple("单位面板图标", 1), parent)
+                .setSize(0.027, 0.027)
+                .setPoint(4, DzFrameGetPortrait(), 5, 0.0295, -0.037)
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
+            btn = iconArmor.getClickBtn()
+                .spEnter(function(integer frame) {if (trArmorEnter != null) TriggerEvaluate(trArmorEnter);})
+                .spLeave(function(integer frame) {if (trArmorLeave != null) TriggerEvaluate(trArmorLeave);})
+                .spClick(function(integer frame) {if (trArmorClick != null) TriggerEvaluate(trArmorClick);})
+                .spRightClick(function(integer frame) {if (trArmorRightClick != null) TriggerEvaluate(trArmorRightClick);});
+            textArmor = uiText.bindSimple("单位面板属性名", 1)
+                .setPoint(0, iconArmor.mainImage.ui, 2, 0.003, -0.003)
+                .setText("防御:");
+            textArmorValue = uiText.bindSimple("单位面板数值", 1)
+                .setPoint(6, iconArmor.mainImage.ui, 8, 0.008, 0.003)
+                .setText("20");
+            //英雄属性三围
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6); //英雄属性的父框架
+child = DzCreateFrameByTagName("SIMPLEFRAME", "upHero", parent, "英雄三围框架", 0);
+            DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
+iconHero = icon.fromExistingUI(uiImage.bindSimple("英雄三围图标", 0), parent)
+                .setSize(0.027, 0.027)
+                .setPoint(4, DzFrameGetPortrait(), 5, 0.1235, -0.02)
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNJanggo.blp");
+            btn = iconHero.getClickBtn()
+                .spEnter(function(integer frame) {if (trHeroEnter != null) TriggerEvaluate(trHeroEnter);})
+                .spLeave(function(integer frame) {if (trHeroLeave != null) TriggerEvaluate(trHeroLeave);})
+                .spClick(function(integer frame) {if (trHeroClick != null) TriggerEvaluate(trHeroClick);})
+                .spRightClick(function(integer frame) {if (trHeroRightClick != null) TriggerEvaluate(trHeroRightClick);});
+            //力量
+            textStr = uiText.bindSimple("英雄力量名", 0)
+                .setPoint(0, iconHero.mainImage.ui, 4, 0.017, 0.027)
+                .setText("力量:");
+            textStrValue = uiText.bindSimple("英雄力量值", 0)
+                .setPoint(0, textStr.ui, 6, 0.005, -0.001)
+                .setText("10");
+            //敏捷
+            textAgi = uiText.bindSimple("英雄敏捷名", 0)
+                .setPoint(0, iconHero.mainImage.ui, 4, 0.017, 0.006)
+                .setText("敏捷:");
+            textAgiValue = uiText.bindSimple("英雄敏捷值", 0)
+                .setPoint(0, textAgi.ui, 6, 0.005, -0.001)
+                .setText("20");
+            //智力
+            textInt = uiText.bindSimple("英雄智力名", 0)
+                .setPoint(0, iconHero.mainImage.ui, 4, 0.017, -0.015)
+                .setText("智力:");
+            textIntValue = uiText.bindSimple("英雄智力值", 0)
+                .setPoint(0, textInt.ui, 6, 0.005, -0.001)
+                .setText("30");
+            //建筑小框架相关
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7); //建筑的父框架
+child = DzCreateFrameByTagName("SIMPLEFRAME", "upBuilding", parent, "单位面板框架", 2);
+            DzFrameClearAllPoints(child);
+            iconBuilding = icon.fromExistingUI(uiImage.bindSimple("单位面板图标", 2), parent)
+                .setSize(0.027, 0.027)
+                .setPoint(4, DzFrameGetPortrait(), 5, 0.1235, -0.02)
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNTownHall.blp");
+            btn = iconBuilding.getClickBtn()
+                .spEnter(function(integer frame) {if (trBuildingEnter != null) TriggerEvaluate(trBuildingEnter);})
+                .spLeave(function(integer frame) {if (trBuildingLeave != null) TriggerEvaluate(trBuildingLeave);})
+                .spClick(function(integer frame) {if (trBuildingClick != null) TriggerEvaluate(trBuildingClick);})
+                .spRightClick(function(integer frame) {if (trBuildingRightClick != null) TriggerEvaluate(trBuildingRightClick);});
+            textBuilding = uiText.bindSimple("单位面板属性名", 2)
+                .setPoint(0, iconBuilding.mainImage.ui, 2, 0.003, -0.003)
+                .setText("防护罩:");
+            textBuildingValue = uiText.bindSimple("单位面板数值", 2)
+                .setPoint(6, iconBuilding.mainImage.ui, 8, 0.008, 0.003)
+                .setText("1");
+            //怪物属性框架
+            iconMonster = icon.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconRank", 3))
+                .setSize(0.027, 0.027)
+            // .setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0,0)
+                .setPoint(4, DzFrameGetPortrait(), 5, 0.1235, -0.02)
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNSkeletonArcher.blp");
+            btn = iconMonster.getClickBtn()
+                .spEnter(function(integer frame) {if (trMonsterEnter != null) TriggerEvaluate(trMonsterEnter);})
+                .spLeave(function(integer frame) {if (trMonsterLeave != null) TriggerEvaluate(trMonsterLeave);})
+                .spClick(function(integer frame) {if (trMonsterClick != null) TriggerEvaluate(trMonsterClick);})
+                .spRightClick(function(integer frame) {if (trMonsterRightClick != null) TriggerEvaluate(trMonsterRightClick);});
+        }
+        // 友方建筑单位的金币之类的东西(会频繁重置,需要在选择单位时就重新处理)
+        static method moveOutBuilding (){
+            integer ui = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7);
+            DzFrameSetSize( ui, 0.02, 0.02 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
+        }
+        // 怪物的科技原生面板(会频繁重置,需要在选择单位时就重新处理)
+        static method moveOutMonster () {
+            integer ui = DzSimpleFrameFindByName("SimpleInfoPanelIconRank", 3);
+            DzFrameSetSize( ui, 0.02, 0.02 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
+        }
+        //把所有原生UI移走
+        static method moveOutAll () {
+            integer ui;
+            // 攻击1
+            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 0);
+            DzFrameSetSize( ui, 0.03, 0.03 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+            // 攻击2
+            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 1);
+            DzFrameSetSize( ui, 0.03, 0.03 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+            // 护甲
+            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 2);
+            DzFrameSetSize( ui, 0.001, 0.001 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+            // 食物
+            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 4);
+            DzFrameSetSize( ui, 0.001, 0.001 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+            // 英雄三围面板
+            ui = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);
+            DzFrameSetSize( ui, 0.02, 0.02 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
+        }
+        //初始化单位按钮面板
+        private static method onInit () {
+            //在游戏开始0.0秒后再调用
+            trigger tr = CreateTrigger();
+            TriggerRegisterTimerEventSingle(tr,0.0);
+            TriggerAddCondition(tr,Condition(function (){
+                moveOutAll(); // 把所有原生UI移走
+mapInit(); // 初始化单位按钮面板
+DestroyTrigger(GetTriggeringTrigger());
+            }));
+            tr = null;
+        }
+    }
+}
+//! endzinc
+//! zinc
+
+library Hardware requires BzAPI {
+	public struct hardware []{
+		// 注册一个左键抬起事件
+		static method regLeftUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,1,0,false,func);
+		}
+		// 注册一个左键按下事件
+		static method regLeftDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,1,1,false,func);
+		}
+		// 注册一个右键按下事件
+		static method regRightDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,2,1,false,func);
+		}
+		// 注册一个右键抬起事件
+		static method regRightUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,2,0,false,func);
+		}
+		// 注册一个滚轮事件,不能异步注册
+		static method regWheelEvent (code func) {
+			if (trWheel == null) {trWheel = CreateTrigger();}
+			TriggerAddCondition(trWheel, Condition(func));
+		}
+		// 注册一个绘制事件,不能异步注册
+		static method regUpdateEvent (code func) {
+			if (trUpdate == null) {trUpdate = CreateTrigger();}
+			TriggerAddCondition(trUpdate, Condition(func));
+		}
+		// 注册一个窗口变化事件,不能异步注册
+		static method regResizeEvent (code func) {
+			if (trResize == null) {trResize = CreateTrigger();}
+			TriggerAddCondition(trResize, Condition(func));
+		}
+		// 注册一个鼠标移动事件,不能异步注册
+		static method regMoveEvent (code func) {
+			if (trMove == null) {trMove = CreateTrigger();}
+			TriggerAddCondition(trMove, Condition(func));
+		}
+		// 获取鼠标的实数坐标X(0-0.8)
+		static method getMouseX () -> real {
+			integer width = DzGetClientWidth();
+			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
+			else return 0.1;
+		}
+		// 获取鼠标的实数坐标Y(0-0.6)
+		static method getMouseY () -> real {
+			integer height = DzGetClientHeight();
+			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
+			else return 0.1; // 防止除以0
+}
+		private {
+			static trigger trWheel = null;
+			static trigger trUpdate = null;
+			static trigger trResize = null;
+			static trigger trMove = null;
+		}
+		static method onInit () {
+			// 滚轮事件
+			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
+				TriggerEvaluate(trWheel);
+			});
+			// 帧绘制事件
+			DzFrameSetUpdateCallbackByCode(function (){
+				TriggerEvaluate(trUpdate);
+			});
+			// 窗口大小变化事件
+			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
+				 TriggerEvaluate(trResize);
+			});
+			// 鼠标移动事件
+			DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
+				 TriggerEvaluate(trMove);
+			});
+		}
+	}
+}
+//! endzinc
+//! zinc
+
+library UILifeCycle {
+    public struct uiLifeCycle [] {
+        static integer agrsUI = 0;
+        static integer agrsTypeID = 0;
+        static integer agrsFrame = 0;
+        private {
+            static trigger trCreate = null;
+            static trigger trDestroy = null;
+        }
+        // 注册创建回调
+        static method registerCreate(code func) {
+            TriggerAddCondition(trCreate, Condition(func));
+        }
+        // 注册销毁回调
+        static method registerDestroy(code func) {
+            TriggerAddCondition(trDestroy, Condition(func));
+        }
+        static method onCreateCB(integer ui,integer typeID,integer frame) {
+            agrsUI = ui;
+            agrsTypeID = typeID;
+            agrsFrame = frame;
+            TriggerEvaluate(trCreate);
+        }
+        static method onDestroyCB(integer ui,integer typeID,integer frame) {
+            agrsUI = ui;
+            agrsTypeID = typeID;
+            agrsFrame = frame;
+            TriggerEvaluate(trDestroy);
+        }
+        static method onInit () {
+            trCreate = CreateTrigger();
+            trDestroy = CreateTrigger();
+        }
+    }
+}
+//! endzinc
+//! zinc
+
+//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
+//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
+library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
+    public struct uiImage {
+        // UI组件内部共享方法及成员
+        integer ui; 
+ integer id; 
+ method isExist () -> boolean {return (this != null && si__uiImage_V[this] == -1);} 
+ optional module uiLifeCycle; 
+ module uiBaseModule;
+        module uiImageModule; // UI图片的共用方法
+        // 创建图片
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"IT",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 创建工具提示背景图片(种类1)
+        // parent: 父级框架
+        static method createToolTips (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"ToolTipsTemplate",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 创建工具提示背景图片(种类2)
+        // parent: 父级框架
+        static method createToolTips2 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"ToolTipsTemplate2",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 创建边角(图标系的)
+        // parent: 父级框架
+        static method createCornerBorder (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"CornerBorder",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
+        // parent: 父级框架
+        static method createSimple (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            DzCreateFrameByTagName("SIMPLEFRAME", "Img" + I2S(id), parent, "简单图片", id);
+            ui = DzSimpleTextureFindByName("简单图片内容", id);
+            DzFrameClearAllPoints(ui);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 绑定原生图片
+        // name: 图片名称(fdf写的image的名字)
+        // index: 图片索引(在外部创建时的填写的ID最后一个参数)
+        static method bindSimple (string name, integer index) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzSimpleTextureFindByName(name, index);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);} 
+ static if (LIBRARY_UIHashTable) { FlushChildHashtable(HASH_UI, ui); }
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
+    }
+}
+//! endzinc
+library LBKKAPI 
+        globals 
+                string MOVE_TYPE_NONE = "none" //没有（无视碰撞）  
+string MOVE_TYPE_FOOT = "foot" //步行  
+string MOVE_TYPE_HORSE = "horse" //骑马  
+string MOVE_TYPE_FLY = "fly" //飞行（还具有空中视野，也可以设置飞行高度）  
+string MOVE_TYPE_HOVER = "hover" //浮空（不会踩中地雷）  
+string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）  
+string MOVE_TYPE_AMPH = "amph" //两栖  
+string MOVE_TYPE_UNBUILD = "unbuild" //不可建造  
+constant integer DEFENSE_TYPE_LIGHT = 0 
+		constant integer DEFENSE_TYPE_MEDIUM = 1 
+		constant integer DEFENSE_TYPE_LARGE = 2 
+		constant integer DEFENSE_TYPE_FORT = 3 
+		constant integer DEFENSE_TYPE_NORMAL = 4 
+		constant integer DEFENSE_TYPE_HERO = 5 
+		constant integer DEFENSE_TYPE_DIVINE = 6 
+		constant integer DEFENSE_TYPE_NONE = 7 
+        endglobals 
+        native DzGetSelectedLeaderUnit takes nothing returns unit 
+        native DzIsChatBoxOpen takes nothing returns boolean 
+        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
+        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
+        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
+        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
+        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
+        native DzSetEffectModel takes effect whichEffect, string model returns nothing
+        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
+        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
+        native DzChangeWindowSize takes integer width, integer height returns boolean 
+        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
+        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
+        native DzUnbindEffect takes effect whichEffect returns nothing 
+        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
+        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
+        native DzGetEffectVertexColor takes effect whichEffect returns integer 
+        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
+        native DzGetItemAbility takes item whichEffect, integer index returns ability 
+        native DzFrameGetChildrenCount takes integer whichframe returns integer 
+        native DzFrameGetChild takes integer whichframe, integer index returns integer 
+        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
+        native DzGetActivePatron takes unit store, player p returns unit 
+        native DzGetLocalSelectUnitCount takes nothing returns integer 
+        native DzGetLocalSelectUnit takes integer index returns unit 
+        native DzGetJassStringTableCount takes nothing returns integer 
+        native DzModelRemoveFromCache takes string path returns nothing 
+        native DzModelRemoveAllFromCache takes nothing returns nothing 
+        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
+        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
+        native DzFrameGetPeonBar takes nothing returns integer 
+        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
+        native DzToggleFPS takes boolean show returns nothing 
+        native DzGetFPS takes nothing returns integer 
+        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
+        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
+        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
+        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
+        native DzFrameGetWorldFrameMessage takes nothing returns integer 
+        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
+        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
+        //转换屏幕坐标到世界坐标  
+        native DzConvertScreenPositionX takes real x, real y returns real 
+        native DzConvertScreenPositionY takes real x, real y returns real 
+        //监听建筑选位置  
+        native DzRegisterOnBuildLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnBuildOrderId takes nothing returns integer 
+        native DzGetOnBuildOrderType takes nothing returns integer 
+        native DzGetOnBuildAgent takes nothing returns widget 
+        //监听技能选目标  
+        native DzRegisterOnTargetLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnTargetAbilId takes nothing returns integer 
+        native DzGetOnTargetOrderId takes nothing returns integer 
+        native DzGetOnTargetOrderType takes nothing returns integer 
+        native DzGetOnTargetAgent takes nothing returns widget 
+        native DzGetOnTargetInstantTarget takes nothing returns widget 
+        // 打开QQ群链接  
+        native DzOpenQQGroupUrl takes string url returns boolean 
+        native DzFrameEnableClipRect takes boolean enable returns nothing 
+        native DzSetUnitName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
+        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
+        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
+        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
+        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
+        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
+        native DzGetAttackAbility takes unit whichUnit returns ability 
+        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
+        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
+        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
+        function DzSetHeroTypeProperName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 61, 0, name) 
+                call EXSetUnitInteger(uid, 61, 1) 
+        endfunction 
+        function DzSetUnitTypeName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 10, 0, name) 
+                call EXSetUnitInteger(uid, 10, 1) 
+        endfunction 
+        function DzIsUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns boolean 
+                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType 
+        endfunction 
+        function DzSetUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType)) 
+        endfunction 
+        function DzIsUnitDefenseType takes unit whichUnit, integer defenseType returns boolean 
+                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType 
+        endfunction 
+        function DzSetUnitDefenseType takes unit whichUnit, integer defenseType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType) 
+        endfunction 
+        // 地形装饰物
+        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
+        native DzDoodadGetTypeId takes integer doodad returns integer 
+        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
+        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
+        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
+        native DzDoodadGetX takes integer doodad returns real 
+        native DzDoodadGetY takes integer doodad returns real 
+        native DzDoodadGetZ takes integer doodad returns real 
+        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
+        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
+        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
+        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
+        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
+        native DzDoodadGetTimeScale takes integer doodad returns real 
+        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
+        native DzDoodadGetAnimationCount takes integer doodad returns integer 
+        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
+        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
+        // 解锁JASS字节码限制
+        native DzUnlockOpCodeLimit takes boolean enable returns nothing
+        // 设置剪切板内容
+        native DzSetClipboard takes string content returns boolean
+        //删除装饰物
+        native DzDoodadRemove takes integer doodad returns nothing
+        //移除科技等级
+        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
+        
+        // 查找单位技能
+        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
+        // 修改技能数据-字符串
+        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
+                
+        // 启用/禁用技能
+        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
+        // 设置单位移动类型
+        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
+        // 获取控件宽度
+        native DzFrameGetWidth takes integer frame returns real
+        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
+        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
+        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
+        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
+                call DzSetUnitDataCacheInteger( uid, id, 0, v)
+        endfunction
+        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 94, id, v)
+        endfunction
+        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 100, id, v)
+        endfunction
+        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 112, id, v)
+        endfunction
+        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 106, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 118, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 124, id, v)
+        endfunction
+        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 130, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 172, id, v)
+        endfunction
+         // 设置道具模型
+        native DzItemSetModel takes item whichItem, string file returns nothing
+        // 设置道具颜色
+        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
+        // 设置道具透明度
+        native DzItemSetAlpha takes item whichItem, integer color returns nothing
+        // 设置道具头像
+        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
+endlibrary
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
 library BzAPI
     //hardware
     native DzGetMouseTerrainX takes nothing returns real
@@ -1763,811 +2739,172 @@ library BzAPI
 endlibrary
 //! zinc
 
-library UIImageModule {
-    // 定义共用的方法结构
-    public module uiImageModule {
-        // 设置图片路径
-        method setTexture (string path) -> thistype {
+library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
+    public module extendResize {
+        //注册一个大小重组器
+        method exReSize (real width,real height) -> thistype {
+            resizer ser;
             if (!this.isExist()) {return this;}
-            DzFrameSetTexture(this.ui,path,0);
+            if (HaveSavedInteger(HASH_UI,ui,1940)) {
+                ser = LoadInteger(HASH_UI,ui,1940);
+                ser.frame = ui;
+                ser.width = width;
+                ser.height = height;
+            } else {
+                ser = resizer.create(ui,width,height);
+                SaveInteger(HASH_UI,ui,1940,ser);
+            }
+            DzFrameSetSize(ui,width*GetResizeRate(),height);
             return this;
         }
-        // 设置图片控件视口,防止模型超出范围
-        method setClip (boolean clip) -> thistype {
+        method exRePoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            rePointer ptr;
             if (!this.isExist()) {return this;}
-            DzFrameSetClip(this.ui,clip);
+            if (HaveSavedInteger(HASH_UI,ui,1941)) {
+                ptr = LoadInteger(HASH_UI,ui,1941);
+                ptr.frame = ui;
+                ptr.anchor = anchor;
+                ptr.relative = relative;
+                ptr.relativeAnchor = relativeAnchor;
+                ptr.offsetX = offsetX;
+                ptr.offsetY = offsetY;
+            } else {
+                ptr = rePointer.create(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
+                SaveInteger(HASH_UI,ui,1941,ptr);
+            }
+            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY);
             return this;
         }
     }
-}
-//! endzinc
-//===========================================================================
-// Icon.j
-//===========================================================================
-//
-// 模块描述：
-//   实现了魔兽争霸3中通用的图标UI组件，支持图标显示、数字标记、
-//   按钮功能、流光特效等特性。
-//
-// 作者：[你的名字]
-// 创建日期：[创建日期]
-// 最后修改：[最后修改日期]
-//
-// 依赖项：
-//   - UIBase
-//   - UIAnim
-//   - GrowData
-//   - UIText
-//   - UIImage
-//   - UIButton
-//   - UISprite
-//
-// 使用示例：
-//   icon myIcon = icon.create(parentFrame, true, true);
-//   myIcon.size(0.04, 0.04);
-//
-//===========================================================================
-//# dependency:ui/model/cooldown_center.mdx
-//! zinc
-
-library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim,UIExtendResize,UILayer{
-    public struct icon {
-        // UI组件
-        uiImage mainImage; // 主图标图片
-uiImage shadowImage; // 图标暗遮罩
-uiImage cornerShade; // 角落文字背景
-uiImage glowImage; // 流光特效图片
-uiText cornerText; // 角落文字
-uiBtn clickBtn; // 点击按钮
-uiSprite cdSprite; // CD显示精灵
-integer parent; // 父级UI()
-        // 动画相关
-        baseanim glowAnim; // 流光动画
-growdata gd; // 流光数据
-        // 尺寸
-        real sizeX;
-        real sizeY;
-        boolean isResize;
-        // 是否是原生
-        boolean isSimple;
-        integer spAnchor;
-        integer spRelative;
-        integer spRelativeAnchor;
-        real spOffsetX;
-        real spOffsetY;
-        method isExist () -> boolean {return (this != null && si__icon_V[this] == -1);}
-        // 私有的初始化方法
-        private method init() {
-            // 初始化所有成员为0
-            mainImage = 0;
-            shadowImage = 0;
-            cornerShade = 0;
-            cornerText = 0;
-            clickBtn = 0;
-            glowImage = 0;
-            cdSprite = 0;
-            // 动画相关
-            glowAnim = 0;
-            gd = 0;
-            // 尺寸初始化为0
-            sizeX = 0.04;
-            sizeY = 0.04;
-        }
-        // 普通创建方法
-        static method create(integer parent) -> thistype {
+    //大小重组器
+    public struct resizer {
+        static thistype List []; //内容列表
+static integer size = 0; //现在有几个东西
+integer frame; //[成员]绑定的内容
+real width; //[成员]注册宽度
+real height; //[成员]注册高度
+integer uID; //[成员]绑定的ID
+        method isExist () -> boolean {return (this != null && si__resizer_V[this] == -1);}
+        //注册一个对象进池里
+        static method create (integer frame,real width,real height) -> thistype {
             thistype this = allocate();
-            this.init();
-            this.parent = parent;
-            isSimple = false;
-            // 创建必需组件
-            mainImage = uiImage.create(parent)
-                .setClip(true);
-            mainImage.show(false);
-            return this;
-        }
-        // 从现有UI创建图标(parent是后面创建东西的parent)
-        static method fromExistingUI(uiImage existingImage,integer parent) -> thistype {
-            thistype this = allocate();
-            this.init();
-            this.parent = parent;
-            isSimple = true;
-            spAnchor = 0;
-            spRelative = 0;
-            spRelativeAnchor = 0;
-            spOffsetX = 0;
-            spOffsetY = 0;
-            // 绑定现有图片
-            mainImage = existingImage;
-            return this;
-        }
-        // 从现有UI创建图标(parent是后面创建东西的parent)
-        static method createSimple(integer parent) -> thistype {
-            return fromExistingUI(uiImage.createSimple(parent),parent);
-        }
-        // 更新流光尺寸
-        private method updateGlowSize () {
-            if (glowImage.isExist()) {
-                if (isResize) {
-                    glowImage.exReSize(sizeX * gd.scale, sizeY * gd.scale);
-                } else {
-                    glowImage.setSize(sizeX * gd.scale, sizeY * gd.scale);
-                }
-            }
-        }
-        // 加入流光效果
-        method grow(growdata gd) -> thistype {
-            if (!this.isExist()) {return this;}
-            if (!glowImage.isExist()) {
-                if (isSimple) {
-                    glowImage = uiImage.create(uilayer.lv[1]); // 创建流光图片 -> 到最底层
-} else {
-                    glowImage = uiImage.create(this.parent);
-                }
-                glowImage.setPoint(4, mainImage.ui, 4, 0, 0);
-                this.updateGlowSize();
-            }
-            glowImage.show(true); // 显示流光
-if (gd != this.gd) {
-                this.gd = gd;
-            }
-            if (!glowAnim.isExist()) {
-                glowAnim = baseanim.create(glowImage.ui);
-                glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
-            }
-            this.updateGlowSize();
-            return this;
-        }
-        // 取消流光
-        method unGrow() -> thistype {
-            if (!this.isExist()) {return this;}
-            if (glowImage.isExist()) { //
-glowImage.destroy();
-                glowImage = 0;
-            }
-            if (glowAnim.isExist()) {
-                glowAnim.destroy();
-                glowAnim = 0;
+            this.frame = frame;
+            this.width = width;
+            this.height = height;
+            if (uID == 0) { //这里是初始化时的设置内容,不需要改
+size += 1;
+                List[size] = this;
+                uID = size;
             }
             return this;
         }
-        // 设置尺寸
-        method setSize(real x, real y) -> thistype {
-            if (!this.isExist()) {return this;}
-            if (sizeX <= 0 || sizeY <= 0) {return this;}
-            if (isResize) {
-                mainImage.exReSize(x, y);
-            } else {
-                mainImage.setSize(x, y);
+        static method toString () -> string { 
+ string s = I2S(size) + "个:"; 
+ integer i; 
+ for (1 <= i <= size) { 
+ s += "[" + I2S(i) + "]|r" + I2S(List[i]) + "->"; 
+ } 
+ s += "/"; 
+ return s; 
+ }
+        method onDestroy () {
+            frame = 0; //数据解除都放这里
+            if (uID != 0) {
+                List[uID] = List[size];
+                List[uID].uID = uID;
+                size -= 1;
+                uID = 0;
             }
-            sizeX = x;
-            sizeY = y;
-            this.updateGlowSize();
-            return this;
-        }
-        method enableResize() -> thistype {
-            if (!this.isExist()) {return this;}
-            isResize = true;
-            setSize(sizeX, sizeY);
-            return this;
-        }
-        // 设置数字
-        method setCornerText(string value) -> thistype {
-            real padding;
-            if (!this.isExist()) {return this;}
-            if (!cornerText.isExist()) {
-                if (isSimple) {
-                    cornerShade = uiImage.createCornerBorder(uilayer.lv[1]);
-                    cornerText = uiText.create(cornerShade.ui);
-                } else {
-                    cornerShade = uiImage.createCornerBorder(this.parent);
-                    cornerText = uiText.create(cornerShade.ui);
-                }
-                cornerText.setFontSize(2)
-                    .setPoint(8, mainImage.ui, 8, -0.003,0.003);
-                padding = 0.003;
-                cornerShade.setPoint(0, cornerText.ui, 0, -padding, padding)
-                    .setPoint(8, cornerText.ui, 8, padding, -padding);
-            }
-            cornerText.setText(value);
-            return this;
-        }
-        // 显示/隐藏数字
-        method showCornerText(boolean flag) -> thistype {
-            if (!this.isExist()) {return this;}
-            if (cornerText.isExist()) {
-                cornerText.show(flag);
-                cornerShade.show(flag);
-            }
-            return this;
-        }
-        // 设置图标暗遮罩
-        method setShadow(boolean flag) -> thistype {
-            if (!this.isExist()) {return this;}
-            if (!shadowImage.isExist() && flag) {
-                shadowImage = uiImage.create(mainImage.ui)
-                    .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
-                    .setAllPoint(mainImage.ui);
-            }
-            if (shadowImage.isExist()) {
-                shadowImage.show(flag);
-            }
-            return this;
-        }
-        // CD显示相关方法
-        // func回调函数中的eventdata.get时是返回这个icon本体
-        method startCooldown(real duration,onProgressEnd func) -> thistype {
-            if (!this.isExist()) {return this;}
-            if (!cdSprite.isExist()) {
-                cdSprite = uiSprite.create(mainImage.ui)
-                    .setPoint(4,mainImage.ui,4,0,0)
-                    .setSize(0.001,0.001)
-                    .setModel("ui\\model\\cooldown_center.mdx",0,0)
-                    .setAnimate(0,false);
-                uiHashTable(cdSprite).eventdata.bind(this);
-            }
-            cdSprite.progAnimate(0,1,duration,func);
-            cdSprite.setScale(sizeY / 0.038);
-            return this;
-        }
-        // 获取按钮,然后再在外面设按钮相关的事件
-        method getClickBtn() -> uiBtn {
-            if (!this.isExist()) {return 0;}
-            if (!clickBtn.isExist()) {
-                if (isSimple) { //原生
-if (parent != 0) {
-                        clickBtn = uiBtn.createSimple(parent)
-                            .setAllPoint(mainImage.ui);
-                    } else {
-                        BJDebugMsg("parent is 0");
-                    }
-                } else { //非原生
-clickBtn = uiBtn.create(mainImage.ui)
-                        .setAllPoint(mainImage.ui);
-                }
-            }
-            return clickBtn;
-        }
-        // 设置图标贴图
-        method setTexture(string path) -> thistype {
-            if (!this.isExist()) {return this;}
-            mainImage.setTexture(path);
-            return this;
-        }
-        // 设置位置(顺便存位置)
-        // 原生的话1个点就行, 不要设太多点
-        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
-            if (!this.isExist()) {return this;}
-            if (isSimple) {
-                mainImage.clearPoint()
-                    .setPoint(anchor,relative,relativeAnchor,offsetX,offsetY);
-                this.spAnchor = anchor;
-                this.spRelative = relative;
-                this.spRelativeAnchor = relativeAnchor;
-                this.spOffsetX = offsetX;
-                this.spOffsetY = offsetY;
-            } else {
-                mainImage.setPoint(anchor,relative,relativeAnchor,offsetX,offsetY);
-            }
-            return this;
-        }
-        // 显示/隐藏整个图标(Simple无效)
-        method show(boolean flag) -> thistype {
-            if (!this.isExist()) {return this;}
-            if (isSimple) { //原生就移到屏幕外
-if (flag) { //显示
-mainImage.clearPoint()
-                        .setPoint(spAnchor,spRelative,spRelativeAnchor,spOffsetX,spOffsetY);
-                } else { //隐藏
-mainImage.clearPoint()
-                        .setPoint(4, DzGetGameUI(), 4, -0.8, 0.0);
-                }
-            } else { //非原生才能用这个函数
-mainImage.show(flag);
-                if (glowImage.isExist()) {
-                    glowImage.show(flag);
-                }
-            }
-            return this;
-        }
-        method onDestroy() {
-            if (glowAnim.isExist()) { glowAnim.destroy(); glowAnim = 0; }
-            if (cdSprite.isExist()) { cdSprite.destroy(); cdSprite = 0; }
-            if (shadowImage.isExist()) { shadowImage.destroy(); shadowImage = 0; }
-            if (cornerShade.isExist()) { cornerShade.destroy(); cornerShade = 0; }
-            if (cornerText.isExist()) { cornerText.destroy(); cornerText = 0; }
-            if (clickBtn.isExist()) { clickBtn.destroy(); clickBtn = 0; }
-            if (glowImage.isExist()) { glowImage.destroy(); glowImage = 0; }
-            if (mainImage.isExist()) { mainImage.destroy(); mainImage = 0; }
+            if (size <= 0) {BJDebugMsg("UIExtendResize: 大小重组器已销毁");}
         }
     }
-}
-//! endzinc
-
-//! zinc
-library ProgressAnim requires UILifeCycle , UIAnimTimer,UIHashTable,UISprite {
-	public type onProgressEnd extends function(uiSprite);
-	
-	public struct progAnim {
-		static thistype List []; // 内容列表
-static integer size = 0; // 现在有几个东西
-static uianim UIA = 0; // 动画实例
-		uiSprite sprite; // [成员]绑定的sprite
-real from; // [成员]起始值
-real to; // [成员]目标值
-integer time; // [成员]持续时间
-integer now; // [成员]当前时间
-integer id; // [成员]绑定的ID
-onProgressEnd cb; // [成员]结束回调
-		method isExist () -> boolean {return (this != null && si__progAnim_V[this] == -1);}
-		// 创建进度动画
-		static method create (uiSprite sprite, real from, real to, integer time, onProgressEnd cb) -> thistype {
-			thistype this = allocate();
-			// 数据设置都放这
-			this.sprite = sprite;
-			this.from = from;
-			this.to = to;
-			this.time = time;
-			this.now = 0;
-			this.cb = cb;
-			// 这里是初始化时的设置内容,不需要改
-			if (this.id == 0) {
-				size += 1;
-				List[size] = this;
-				this.id = size;
-			}
-			UIA.reg();
-			return this;
-		}
-		method onDestroy() {
-			// 数据解除都放这里
-			if (sprite.isExist() && HaveSavedInteger(HASH_UI, sprite.ui, 1945)) {
-				RemoveSavedInteger(HASH_UI, sprite.ui, 1945);
-			}
-			sprite = 0;
-			cb = 0;
-			if (id != 0) {
-				List[id] = List[size];
-				List[id].id = id;
-				size -= 1;
-				id = 0;
-			}
-			if(size <= 0) {
-				UIA.unreg(); // 这里就删计时器
-BJDebugMsg("progAnim计时器已停止"); // 添加调试输出
-}
-		}
-		static method onInit() {
-			// 初始化动画计时器
-			UIA = uianim.create(function() {
-				integer i;
-				thistype this;
-				real progress;
-				if (size > 0) {
-					for (1 <= i <= size) {
-						this = List[i]; // 从结论来说i就是.id
-this.now += 1;
-						if(this.now >= this.time) { // 删除的条件
-this.sprite.setProgress(this.to);
-							if(this.cb != 0) {
-								RemoveSavedInteger(HASH_UI,this.sprite.ui,1945); //因为会自动排泄,防止在回调删UI的时候继续再调用一次
-this.cb.evaluate(this.sprite);
-							}
-							this.destroy();
-							i -= 1; // 正向遍历必须要保留这条
-} else {
-							progress = this.from + (this.to - this.from) * (I2R(this.now) / this.time);
-							this.sprite.setProgress(progress);
-						}
-					}
-				}
-			});
-			// UI销毁时回调删除进度动画
-			uiLifeCycle.registerDestroy(function() {
-				integer ui = uiLifeCycle.agrsFrame;
-				thistype this;
-				if (HaveSavedInteger(HASH_UI, ui, 1945)) {
-					this = LoadInteger(HASH_UI, ui, 1945);
-					if (this.isExist()) { // 检查实例是否存在
-this.destroy();
-					}
-				}
-			});
-		}
-	}
-	// 进度动画模块
-	public module panimable {
-		method progAnimate(real from, real to, real duration, onProgressEnd cb) -> thistype {
-			progAnim anim;
-			if (!this.isExist()) { return this; }
-			// 检查是否已存在progAnim实例
-			if (HaveSavedInteger(HASH_UI, ui, 1945)) {
-				anim = LoadInteger(HASH_UI, ui, 1945);
-				// 更新动画参数
-				anim.sprite = this;
-				anim.from = from;
-				anim.to = to;
-				anim.time = R2I(duration * 50);
-				anim.now = 0;
-				anim.cb = cb;
-			} else {
-				// 创建新实例
-				anim = progAnim.create(this, from, to, R2I(duration * 50), cb);
-				SaveInteger(HASH_UI, ui, 1945, anim);
-			}
-			return this;
-		}
-	}
-}
-//! endzinc
-//! zinc
-
-library UIEventModule {
-    // 定义共用的方法结构
-    public module uiEventModule {
-        // 鼠标进入事件
-        method onMouseEnter (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,2,fun,false);
+    //位置重组器
+    public struct rePointer {
+        static thistype List []; //内容列表
+static integer size = 0; //现在有几个东西
+integer frame; //[成员]绑定的内容
+integer anchor; //[成员]锚点
+integer relative; //[成员]相对锚点
+integer relativeAnchor; //[成员]相对锚点
+real offsetX; //[成员]偏移X
+real offsetY; //[成员]偏移Y
+integer uID; //[成员]绑定的ID
+        method isExist () -> boolean {return (this != null && si__rePointer_V[this] == -1);}
+        //注册一个对象进池里
+        static method create (integer frame,integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            thistype this = allocate();
+            this.frame = frame;
+            this.anchor = anchor;
+            this.relative = relative;
+            this.relativeAnchor = relativeAnchor;
+            this.offsetX = offsetX;
+            this.offsetY = offsetY;
+            if (uID == 0) { //这里是初始化时的设置内容,不需要改
+size += 1;
+                List[size] = this;
+                uID = size;
+            }
             return this;
         }
-        // 鼠标离开事件
-        method onMouseLeave (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,3,fun,false);
-            return this;
+        static method toString () -> string { 
+ string s = I2S(size) + "个:"; 
+ integer i; 
+ for (1 <= i <= size) { 
+ s += "[" + I2S(i) + "]|r" + I2S(List[i]) + "->"; 
+ } 
+ s += "/"; 
+ return s; 
+ }
+        method onDestroy () {
+            frame = 0; //数据解除都放这里
+            if (uID != 0) {
+                List[uID] = List[size];
+                List[uID].uID = uID;
+                size -= 1;
+                uID = 0;
+            }
         }
-        // 鼠标松开事件,和点击一样,基本可以当相同事件
-        // method onMouseUp (code fun) -> thistype {
-        //     if (!this.isExist()) {return this;}
-        //     DzFrameSetScriptByCode(ui,FRAME_MOUSE_UP,fun,false);
-        //     return this;
-        // }
-        // 鼠标点击事件(效果和FRAME_MOUSE_UP一样,注释掉上面这个了)
-        method onMouseClick (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,1,fun,false);
-            return this;
-        }
-        // 鼠标滚轮事件
-        method onMouseWheel (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,6,fun,false);
-            return this;
-        }
-        // 鼠标双击事件
-        method onMouseDoubleClick (code fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetScriptByCode(ui,12,fun,false);
-            return this;
-        }
-        optional module extendEvent; //扩展事件
-}
-}
-//! endzinc
-//! zinc
-
-library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
-    //UI的扩充事件回调事件(参数是Frame不是UI结构实例)
-    public type uiEvent extends function(integer);
-    public struct uiEventState []{
-        static boolean rcStart = false; // 是否开始右键点击
-static integer uiId = 0; // 点击开始时的UI(判断是否进入过UI)
-}
-    public module extendEvent {
-        //注册按下事件,只适用于非Simple类型的
-        method exLeftDown (uiEvent func) -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,1901,func);
-            return this;
-        }
-        //注册抬起事件,只适用于非Simple类型的
-        method exLeftUp (uiEvent func) -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,1902,func);
-            return this;
-        }
-        // 鼠标进入事件(右键前提强化版)
-        method spEnter (uiEvent fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,1910,fun);
-            DzFrameSetScriptByCode(ui,2,function () {
-                integer frame = DzGetTriggerUIEventFrame();
-                uiEvent func;
-                uiEventState.uiId = frame; //修改为使用结构体的静态成员
-if (HaveSavedInteger(HASH_UI,frame,1910)) {
-                    func = LoadInteger(HASH_UI,frame,1910);
-                    func.evaluate(frame);
-                }
-            },false);
-            return this;
-        }
-        // 鼠标离开事件(右键前提强化版)
-        method spLeave (uiEvent fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,1911,fun);
-            DzFrameSetScriptByCode(ui,3,function () {
-                integer frame = DzGetTriggerUIEventFrame();
-                uiEvent func;
-                uiEventState.uiId = 0; //修改为使用结构体的静态成员
-if (HaveSavedInteger(HASH_UI,frame,1911)) {
-                    func = LoadInteger(HASH_UI,frame,1911);
-                    func.evaluate(frame);
-                }
-            },false);
-            return this;
-        }
-        // 鼠标点击事件,其实这个不是必须项,只是为了统一写法硬加的
-        method spClick (uiEvent fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,1912,fun);
-            DzFrameSetScriptByCode(ui,1,function () {
-                integer frame = DzGetTriggerUIEventFrame();
-                uiEvent func;
-                if (HaveSavedInteger(HASH_UI,frame,1912)) {
-                    func = LoadInteger(HASH_UI,frame,1912);
-                    func.evaluate(frame);
-                }
-            },false);
-            return this;
-        }
-        // 鼠标右键点击事件
-        method spRightClick (uiEvent fun) -> thistype {
-            if (!this.isExist()) {return this;}
-            SaveInteger(HASH_UI,this.ui,1913,fun);
-            return this;
-        }
-        // 下面这批不适Simple的所以全部删除了
-        // //注册右键按下事件
-        // method exRightDown (uiEvent func)  -> thistype {
-        //     if (!this.isExist()) {return this;}
-        //     SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN,func);
-        //     return this;
-        // }
-        // //注册右键抬起事件
-        // method exRightUp (uiEvent func)  -> thistype {
-        //     if (!this.isExist()) {return this;}
-        //     SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP,func);
-        //     return this;
-        // }
-        // //注册右键点击事件（精确判断）
-        // method exRightClick (uiEvent func) -> thistype {
-        //     if (!this.isExist()) {return this;}
-        //     SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK,func);
-        //     return this;
-        // }
     }
     function onInit () {
-        hardware.regLeftDownEvent(function () { //注册左键按下事件
-integer currentUI;
-            uiEvent func;
-            if (!DzIsMouseOverUI()) {return;}
-            currentUI = DzGetMouseFocus();
-            if (HaveSavedInteger(HASH_UI,currentUI,1901)) {
-                func = LoadInteger(HASH_UI,currentUI,1901);
-                func.evaluate(currentUI);
-            }
-        });
-        hardware.regLeftUpEvent(function () { //注册左键抬起事件,在click事件之前触发
-integer currentUI;
-            uiEvent func;
-            if (!DzIsMouseOverUI()) {return;} //如果鼠标不在游戏内，就不响应该事件
-currentUI = DzGetMouseFocus();
-            if (HaveSavedInteger(HASH_UI,currentUI,1902)) {
-                func = LoadInteger(HASH_UI,currentUI,1902);
-                func.evaluate(currentUI);
-            }
-        });
-        hardware.regRightDownEvent(function () {
-            if (uiEventState.uiId != 0) {
-                uiEventState.rcStart = true;
-            }
-        });
-        hardware.regRightUpEvent(function () {
-            uiEvent func;
-            if (uiEventState.rcStart && uiEventState.uiId != 0) {
-                if (HaveSavedInteger(HASH_UI,uiEventState.uiId,1913)) {
-                    func = LoadInteger(HASH_UI,uiEventState.uiId,1913);
-                    func.evaluate(uiEventState.uiId);
+        hardware.regResizeEvent(function () { //注册窗口大小变化事件
+real resizeX = GetResizeRate();
+            integer i ;
+            resizer ser;
+            if (resizer.size > 0) {
+                for (i = resizer.size; i >= 1; i -= 1) { //反向遍历可以删除下面的　i-= 1
+ser = resizer.List[i]; //从结论来说i就是.uID
+DzFrameSetSize(ser.frame,ser.width*resizeX,ser.height);
                 }
             }
-            uiEventState.rcStart = false;
         });
-        // UI销毁时如果鼠标正在上面,则触发一次离开事件,不然会引进只进不出的错误
-        uiLifeCycle.registerDestroy(function (){
-            integer ui = uiLifeCycle.agrsFrame;
-            uiEvent func;
-            if (uiEventState.uiId == ui && HaveSavedInteger(HASH_UI,ui,1911)) {
-                func = LoadInteger(HASH_UI,uiEventState.uiId,1911);
-                func.evaluate(uiEventState.uiId);
+        hardware.regResizeEvent(function () { //注册窗口大小变化事件
+real resizeX = GetResizeRate();
+            integer i;
+            rePointer ptr;
+            if (rePointer.size > 0) {
+                for (i = rePointer.size; i >= 1; i -= 1) { //反向遍历可以删除下面的　i-= 1
+ptr = rePointer.List[i]; //从结论来说i就是.uID
+DzFrameSetPoint(ptr.frame,ptr.anchor,ptr.relative,ptr.relativeAnchor,ptr.offsetX*resizeX,ptr.offsetY);
+                }
             }
-            uiEventState.uiId = 0;
         });
-        // hardware.regRightDownEvent(function () { //注册右键按下事件
-        //     integer currentUI;
-        //     uiEvent func;
-        //     if (!DzIsMouseOverUI()) {
-        //         return;
-        //     }
-        //     currentUI = DzGetMouseFocus();
-        //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) {
-        //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN);
-        //         func.evaluate(currentUI);
-        //     }
-        //     // 新增的click判断逻辑
-        //     rcStartOnUI = true;
-        //     rcStartUI = currentUI;
-        // });
-        // hardware.regRightUpEvent(function () { //注册右键抬起事件
-        //     integer currentUI;
-        //     uiEvent func;
-        //     if (!DzIsMouseOverUI()) {
-        //         return;
-        //     }
-        //     currentUI = DzGetMouseFocus();
-        //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) {
-        //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP);
-        //         func.evaluate(currentUI);
-        //     }
-        //     // 新增的click判断逻辑
-        //     if (rcStartOnUI && currentUI == rcStartUI) {
-        //         if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) {
-        //             func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK);
-        //             func.evaluate(currentUI);
-        //         }
-        //     }
-        //     rcStartOnUI = false;
-        //     rcStartUI = 0;
-        // });
-    }
-}
-//! endzinc
-//! zinc
-
-//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
-//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
-library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
-    public struct uiImage {
-        // UI组件内部共享方法及成员
-        integer ui; 
- integer id; 
- method isExist () -> boolean {return (this != null && si__uiImage_V[this] == -1);} 
- optional module uiLifeCycle; 
- module uiBaseModule;
-        module uiImageModule; // UI图片的共用方法
-        // 创建图片
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"IT",0);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 创建工具提示背景图片(种类1)
-        // parent: 父级框架
-        static method createToolTips (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"ToolTipsTemplate",0);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 创建工具提示背景图片(种类2)
-        // parent: 父级框架
-        static method createToolTips2 (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"ToolTipsTemplate2",0);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 创建边角(图标系的)
-        // parent: 父级框架
-        static method createCornerBorder (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"CornerBorder",0);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
-        // parent: 父级框架
-        static method createSimple (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            DzCreateFrameByTagName("SIMPLEFRAME", "Img" + I2S(id), parent, "简单图片", id);
-            ui = DzSimpleTextureFindByName("简单图片内容", id);
-            DzFrameClearAllPoints(ui);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 绑定原生图片
-        // name: 图片名称(fdf写的image的名字)
-        // index: 图片索引(在外部创建时的填写的ID最后一个参数)
-        static method bindSimple (string name, integer index) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzSimpleTextureFindByName(name, index);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) { FlushChildHashtable(HASH_UI, ui); }
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
-    }
-}
-//! endzinc
-//! zinc
-// 地图边界工具库
-library MapBoundsUtils {
-    public struct mapBounds {
-        static real maxX = 0.;
-        static real minX = 0.;
-        static real maxY = 0.;
-        static real minY = 0.;
-        // 限制X坐标在地图范围内
-        static method X (real x) -> real {
-            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
-        }
-        // 限制Y坐标在地图范围内
-        static method Y (real y) -> real {
-            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
-        }
-        // 初始化
-        static method onInit () {
-            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
-            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
-            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
-            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
-        }
-    }
-}
-//! endzinc
-//! zinc
-
-library UILifeCycle {
-    public struct uiLifeCycle [] {
-        static integer agrsUI = 0;
-        static integer agrsTypeID = 0;
-        static integer agrsFrame = 0;
-        private {
-            static trigger trCreate = null;
-            static trigger trDestroy = null;
-        }
-        // 注册创建回调
-        static method registerCreate(code func) {
-            TriggerAddCondition(trCreate, Condition(func));
-        }
-        // 注册销毁回调
-        static method registerDestroy(code func) {
-            TriggerAddCondition(trDestroy, Condition(func));
-        }
-        static method onCreateCB(integer ui,integer typeID,integer frame) {
-            agrsUI = ui;
-            agrsTypeID = typeID;
-            agrsFrame = frame;
-            TriggerEvaluate(trCreate);
-        }
-        static method onDestroyCB(integer ui,integer typeID,integer frame) {
-            agrsUI = ui;
-            agrsTypeID = typeID;
-            agrsFrame = frame;
-            TriggerEvaluate(trDestroy);
-        }
-        static method onInit () {
-            trCreate = CreateTrigger();
-            trDestroy = CreateTrigger();
-        }
+        uiLifeCycle.registerDestroy(function () { //UI的销毁回调事件
+integer frame = uiLifeCycle.agrsFrame;
+            resizer ser;
+            rePointer ptr;
+            if (HaveSavedInteger(HASH_UI,frame,1940)) {
+                ser = LoadInteger(HASH_UI,frame,1940);
+                if (ser.isExist()) {
+                    ser.destroy();
+                }
+            }
+            if (HaveSavedInteger(HASH_UI,frame,1941)) {
+                ptr = LoadInteger(HASH_UI,frame,1941);
+                if (ptr.isExist()) {
+                    ptr.destroy();
+                }
+            }
+        });
     }
 }
 //! endzinc
@@ -2626,81 +2963,183 @@ library UIId {
 //! endzinc
 //! zinc
 
-library Hardware requires BzAPI {
-	public struct hardware {
-		// 注册一个左键抬起事件
-		static method regLeftUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,1,0,false,func);
-		}
-		// 注册一个左键按下事件
-		static method regLeftDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,1,1,false,func);
-		}
-		// 注册一个右键按下事件
-		static method regRightDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,2,1,false,func);
-		}
-		// 注册一个右键抬起事件
-		static method regRightUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,2,0,false,func);
-		}
-		// 注册一个滚轮事件,不能异步注册
-		static method regWheelEvent (code func) {
-			if (trWheel == null) {trWheel = CreateTrigger();}
-			TriggerAddCondition(trWheel, Condition(func));
-		}
-		// 注册一个绘制事件,不能异步注册
-		static method regUpdateEvent (code func) {
-			if (trUpdate == null) {trUpdate = CreateTrigger();}
-			TriggerAddCondition(trUpdate, Condition(func));
-		}
-		// 注册一个窗口变化事件,不能异步注册
-		static method regResizeEvent (code func) {
-			if (trResize == null) {trResize = CreateTrigger();}
-			TriggerAddCondition(trResize, Condition(func));
-		}
-		// 注册一个鼠标移动事件,不能异步注册
-		static method regMoveEvent (code func) {
-			if (trMove == null) {trMove = CreateTrigger();}
-			TriggerAddCondition(trMove, Condition(func));
-		}
-		// 获取鼠标的实数坐标X(0-0.8)
-		static method getMouseX () -> real {
-			integer width = DzGetClientWidth();
-			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
-			else return 0.1;
-		}
-		// 获取鼠标的实数坐标Y(0-0.6)
-		static method getMouseY () -> real {
-			integer height = DzGetClientHeight();
-			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
-			else return 0.1; // 防止除以0
+library MathUtils {
+    // 实转整 带概率进1的
+    // 将实数转换为整数，若小数部分大于随机数则进1
+    public function R2IRandom (real value) -> integer {
+        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
+            return R2I(value) + 1;
+        }
+        return R2I(value);
+    }
+    // 进行整数除法，若能整除则结果减1
+    public function Divide1 (integer i1,integer i2) -> integer {
+        if (ModuloInteger(i1,i2) == 0) {
+            return i1/i2 - 1;
+        }
+        return i1/i2;
+    }
+    // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
+    // 该函数可以避免简单线性相加导致的数值溢出，保证叠加后的效果符合递减收益原则
+    //
+    // 特点：
+    // - 正数叠加时使用概率学公式：1-(1-a1)*(1-a2)
+    // - 负数叠加时使用衰减公式：1-(1-a1)/(1+a2)
+    // - 当第二个参数绝对值>=1.0时，直接返回第一个参数
+    //
+    // 适用场景：
+    // - 技能冷却缩减叠加（CDR）
+    // - 暴击率、闪避率等概率性属性叠加
+    // - 移速加成等需要控制上限的属性叠加
+    //
+    // 参数说明：
+    // a1: 第一个数值，通常表示当前已有的加成效果
+    // a2: 第二个数值，表示要叠加的新加成效果
+    // 返回值: 叠加后的最终效果值
+    //
+    // 使用示例：
+    // real currentCDR = 0.4;    // 当前40%冷却缩减
+    // real newCDR = 0.5;        // 新装备50%冷却缩减
+    // real finalCDR = RealAdd(currentCDR, newCDR);  // 结果约为0.7，即70%冷却缩减
+    //
+    // 注意事项：
+    // 1. 虽然函数支持任意实数输入，但建议输入值在[-1.0, 1.0]范围内
+    // 2. 当|a2| >= 1.0时，函数会直接返回a1值
+    // 3. 该函数满足结合律，但不满足交换律，建议将已有效果作为第一个参数
+    // 4. 已测试过可以在用负数叠加后,使用负数的绝对值进行恢复
+    public function RealAdd ( real a1,real a2 ) -> real {
+        if (RAbsBJ(a2) >= 1.0) {return a1;}
+        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
+        else {return 1.0-(1.0-a1)/(1.0+a2);}
+    }
+    // 最小最大值限制
+    // 限制整数在[min, max]范围内
+    public function ILimit ( integer target,integer min,integer max ) -> integer {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    // 最小最大值限制
+    // 限制实数在[min, max]范围内
+    public function RLimit ( real target,real min,real max ) -> real {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    // 四舍五入法实数转整数
+    // 将实数四舍五入为整数
+    public function R2IM (real r) -> integer {
+        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
+        else return R2I(r);
+    }
+    // 计算射线与地图边界的交点
+    // 计算从给定点出发的射线与地图边界的交点
+    public struct radiationEnd {
+        static real x = 0,y = 0;
+        // 一个坐标沿着某个方向的边缘值
+        // 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
+        static method cal (real x1,real y1,real angle) {
+            real x2 = 0; //相交点
+real y2 = 0; //相交点
+real a = ModuloReal(angle,360); //求余数
+real tan;
+            x = 0;
+            y = 0;
+            // 处理特殊角度
+            if (a == 0) { // 正右方
+x = mapBounds.maxX;
+                y = y1;
+                return;
+            }
+            if (a == 90) { // 正上方
+x = x1;
+                y = mapBounds.maxY;
+                return;
+            }
+            if (a == 180) { // 正左方
+x = mapBounds.minX;
+                y = y1;
+                return;
+            }
+            if (a == 270) { // 正下方
+x = x1;
+                y = mapBounds.minY;
+                return;
+            }
+            // 处理一般角度
+            if (a < 90) { //第一象限
+tan = TanBJ(a);
+                x2 = (mapBounds.maxY - y1) / tan + x1;
+                y2 = (mapBounds.maxX - x1) * tan + y1;
+                if (x2 <= mapBounds.maxX) { //取这个
+x = x2;
+                    y = mapBounds.maxY;
+                } else {
+                    x = mapBounds.maxX;
+                    y = y2;
+                }
+            } else if(a < 180) { //第二象限
+tan = TanBJ(a);
+                x2 = (mapBounds.maxY - y1) / tan + x1;
+                y2 = (mapBounds.minX - x1) * tan + y1;
+                if (x2 >= mapBounds.minX) { //取这个
+x = x2;
+                    y = mapBounds.maxY;
+                } else {
+                    x = mapBounds.minX;
+                    y = y2;
+                }
+            } else if(a < 270) { //第三象限
+tan = TanBJ(a);
+                x2 = (mapBounds.minY - y1) / tan + x1;
+                y2 = (mapBounds.minX - x1) * tan + y1;
+                if (x2 >= mapBounds.minX) { //取这个
+x = x2;
+                    y = mapBounds.minY;
+                } else {
+                    x = mapBounds.minX;
+                    y = y2;
+                }
+            } else { //第四象限
+tan = TanBJ(a);
+                x2 = (mapBounds.minY - y1) / tan + x1;
+                y2 = (mapBounds.maxX - x1) * tan + y1;
+                if (x2 <= mapBounds.maxX) { //取这个
+x = x2;
+                    y = mapBounds.minY;
+                } else {
+                    x = mapBounds.maxX;
+                    y = y2;
+                }
+            }
+        }
+    }
 }
-		private {
-			static trigger trWheel = null;
-			static trigger trUpdate = null;
-			static trigger trResize = null;
-			static trigger trMove = null;
-		}
-		static method onInit () {
-			// 滚轮事件
-			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
-				TriggerEvaluate(trWheel);
-			});
-			// 帧绘制事件
-			DzFrameSetUpdateCallbackByCode(function (){
-				TriggerEvaluate(trUpdate);
-			});
-			// 窗口大小变化事件
-			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
-				TriggerEvaluate(trResize);
-			});
-			// 鼠标移动事件
-			DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
-				TriggerEvaluate(trMove);
-			});
-		}
-	}
+//! endzinc
+//! zinc
+// 地图边界工具库
+library MapBoundsUtils {
+    public struct mapBounds {
+        static real maxX = 0.;
+        static real minX = 0.;
+        static real maxY = 0.;
+        static real minY = 0.;
+        // 限制X坐标在地图范围内
+        static method X (real x) -> real {
+            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
+        }
+        // 限制Y坐标在地图范围内
+        static method Y (real y) -> real {
+            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
+        }
+        // 初始化
+        static method onInit () {
+            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
+            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
+            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
+            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
+        }
+    }
 }
 //! endzinc
 //===========================================================================
@@ -2718,17 +3157,6 @@ library Hardware requires BzAPI {
 //*  Global Variables
 //*
 //***************************************************************************
-library YDTriggerSaveLoadSystem initializer Init
-//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-globals
-        hashtable YDHT
-    hashtable YDLOC
-endglobals
-    private function Init takes nothing returns nothing
-            set YDHT = InitHashtable()
-        set YDLOC = InitHashtable()
-    endfunction
-endlibrary
 globals
     // Generated
     rect gg_rct_Wave1 = null
@@ -2820,193 +3248,105 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
-
+//===========================================================================
+// UnitPanel_Test.j
+//===========================================================================
+// 文件描述：单位面板测试模块
+// 创建日期：未知
+// 修改记录：
+//   - 实现了单位属性面板的测试功能
+//   - 包含攻击、护甲等属性的显示和交互
+//
+// 主要功能：
+//   - 创建并测试单位属性面板UI
+//   - 提供属性图标和数值显示
+//   - 实现鼠标悬停和点击事件
+//   - 包含单元测试用例
+//===========================================================================
 // 用原始地图测试
+
+// 0 - 1亿这里用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 //! zinc
 //自动生成的文件
-library UTIcon requires Icon {
-	private icon testIcon1 = 0;
-	private boolean isTest1Active = false;
-	private boolean isTest3Active = false;
-	private boolean isTest4Active = false;
-	private boolean isTest7Active = false;
-	// 基础图标创建和显示测试
-	function TTestUTIcon1 (player p) {
-		if (!isTest1Active) {
-			testIcon1 = icon.create(DzGetGameUI())
-				.setSize(0.07, 0.07) //这
-.setTexture("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp")
-				.setPoint(4, DzGetGameUI(), 4, 0, 0)
-				.show(true);
-			BJDebugMsg("基础图标已创建 - 输入s1可关闭");
-			isTest1Active = true;
-		} else {
-			testIcon1.destroy();
-			testIcon1 = 0;
-			isTest1Active = false;
-			BJDebugMsg("基础图标已关闭");
-		}
+library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
+	public function Init2 () {
+		hardware.regUpdateEvent(function () {
+			if (IsUnitAlly(DzGetSelectedLeaderUnit(), GetLocalPlayer()) && GetOwningPlayer(DzGetSelectedLeaderUnit()) != GetLocalPlayer() && IsUnitType(DzGetSelectedLeaderUnit(), UNIT_TYPE_STRUCTURE)) {
+				unitPanel.moveOutBuilding();
+			else if (GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hsor' || GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hmpr') {
+				unitPanel.moveOutMonster();
+			}
+		});
 	}
-	// 添加新的测试函数
-	function TTestUTIcon1a (player p) {
-		uiImage img = 0;
-		if (!isTest1Active) {
-			// 从现有UI创建icon
-			testIcon1 = icon.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
-				.setSize(0.08,0.08)
-				.setPoint(4, DzGetGameUI(), 4, 0.0, 0.0)
-				.setTexture("ReplaceableTextures\\CommandButtons\\BTNSorceress.blp");
-			isTest1Active = true;
-			BJDebugMsg("已从现有UI创建图标 - 输入s1a可关闭");
-		} else {
-			testIcon1.destroy();
-			testIcon1 = 0;
-			isTest1Active = false;
-			BJDebugMsg("从现有UI创建的图标已关闭");
-		}
+	// 初始化测试内容
+	function Init () {
+		unitPanel.onAttackEnter(function () {BJDebugMsg("Attack" + " " + "Enter");}); 
+ unitPanel.onAttackLeave(function () {BJDebugMsg("Attack" + " " + "Leave");}); 
+ unitPanel.onAttackClick(function () {BJDebugMsg("Attack" + " " + "Click");}); 
+ unitPanel.onAttackRightClick(function () {BJDebugMsg("Attack" + " " + "RightClick");}); 
+
+		unitPanel.onArmorEnter(function () {BJDebugMsg("Armor" + " " + "Enter");}); 
+ unitPanel.onArmorLeave(function () {BJDebugMsg("Armor" + " " + "Leave");}); 
+ unitPanel.onArmorClick(function () {BJDebugMsg("Armor" + " " + "Click");}); 
+ unitPanel.onArmorRightClick(function () {BJDebugMsg("Armor" + " " + "RightClick");}); 
+
+		unitPanel.onHeroEnter(function () {BJDebugMsg("Hero" + " " + "Enter");}); 
+ unitPanel.onHeroLeave(function () {BJDebugMsg("Hero" + " " + "Leave");}); 
+ unitPanel.onHeroClick(function () {BJDebugMsg("Hero" + " " + "Click");}); 
+ unitPanel.onHeroRightClick(function () {BJDebugMsg("Hero" + " " + "RightClick");}); 
+
+		unitPanel.onBuildingEnter(function () {BJDebugMsg("Building" + " " + "Enter");}); 
+ unitPanel.onBuildingLeave(function () {BJDebugMsg("Building" + " " + "Leave");}); 
+ unitPanel.onBuildingClick(function () {BJDebugMsg("Building" + " " + "Click");}); 
+ unitPanel.onBuildingRightClick(function () {BJDebugMsg("Building" + " " + "RightClick");}); 
+
+		unitPanel.onMonsterEnter(function () {BJDebugMsg("Monster" + " " + "Enter");}); 
+ unitPanel.onMonsterLeave(function () {BJDebugMsg("Monster" + " " + "Leave");}); 
+ unitPanel.onMonsterClick(function () {BJDebugMsg("Monster" + " " + "Click");}); 
+ unitPanel.onMonsterRightClick(function () {BJDebugMsg("Monster" + " " + "RightClick");}); 
+
+		Init2();
 	}
-	// 流光效果测试
-	function TTestUTIcon3 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest3Active) {
-			testIcon1.grow( growdata[2]);
-			isTest3Active = true;
-			BJDebugMsg("流光效果已开启 - 输入s3可关闭");
-		} else {
-			testIcon1.unGrow();
-			isTest3Active = false;
-			BJDebugMsg("流光效果已关闭");
-		}
+	function TTestUTUnitPanel1 (player p) { //给两个图标加一下grow看看效果
+unitPanel.iconAttack.grow(growdata[14]);
+		unitPanel.iconArmor.grow(growdata[18]);
 	}
-	// 暗遮罩测试
-	function TTestUTIcon4 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest4Active) {
-			testIcon1.setShadow(true);
-			isTest4Active = true;
-			BJDebugMsg("暗遮罩已开启 - 输入s4可关闭");
-		} else {
-			testIcon1.setShadow(false);
-			isTest4Active = false;
-			BJDebugMsg("暗遮罩已关闭");
-		}
+	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
+unitPanel.iconAttack.setCornerText("Lv.1");
+		unitPanel.iconArmor.setCornerText("1级");
 	}
-	// 点击事件测试
-	function TTestUTIcon5 (player p) {
-		uiBtn btn;
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		btn = testIcon1.getClickBtn()
-			.spEnter(function(integer frame) {
-				integer data = uiHashTable(frame).eventdata.get();
-				BJDebugMsg("enter:"+I2S(data));
-			})
-			.spLeave(function(integer frame) {
-				integer data = uiHashTable(frame).eventdata.get();
-				BJDebugMsg("leave:"+I2S(data));
-			})
-			.spClick(function(integer frame) {
-				integer data = uiHashTable(frame).eventdata.get();
-				BJDebugMsg("click:"+I2S(data));
-			})
-			.spRightClick(function(integer frame) {
-				integer data = uiHashTable(frame).eventdata.get();
-				BJDebugMsg("RightClick:"+I2S(data));
-			});
-		uiHashTable(btn.ui).eventdata.bind(8174);
-		BJDebugMsg("事件已绑定 - 请点击图标测试");
+	function TTestUTUnitPanel3 (player p) {
+		unitPanel.iconAttack.startCooldown(3.0,0);
+		unitPanel.iconArmor.startCooldown(5.0,0);
 	}
-	// CD显示测试
-	function TTestUTIcon6 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		testIcon1.startCooldown(10.0,0);
-		BJDebugMsg("CD显示已开始 - 持续10秒");
+	function TTestUTUnitPanel4 (player p) {
+		unitPanel.iconArmor.startCooldown(0,0);
 	}
-	// 显示/隐藏测试(both生效)
-	function TTestUTIcon7 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest7Active) {
-			testIcon1.show(false);
-			isTest7Active = true;
-			BJDebugMsg("图标已隐藏 - 输入s7可显示");
-		} else {
-			testIcon1.show(true);
-			isTest7Active = false;
-			BJDebugMsg("图标已显示");
-		}
+	function TTestUTUnitPanel5 (player p) {
+		unitPanel.moveOutBuilding();
+		unitPanel.moveOutMonster();
+		BJDebugMsg("移走");
 	}
-	// 大小调整测试(both生效)
-	function TTestUTIcon8 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		testIcon1.enableResize();
-		BJDebugMsg("大小调整已开启");
-	}
-	function TTestUTIcon9 (player p) {}
-	function TTestUTIcon10 (player p) {}
-	function TTestActUTIcon1 (string str) {
+	function TTestUTUnitPanel6 (player p) {}
+	function TTestUTUnitPanel7 (player p) {}
+	function TTestUTUnitPanel8 (player p) {}
+	function TTestUTUnitPanel9 (player p) {}
+	function TTestUTUnitPanel10 (player p) {}
+	function TTestActUTUnitPanel1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
 string paramS []; //所有参数S
 integer paramI []; //所有参数I
 real	paramR []; //所有参数R
-		// 处理destroy命令
-		if (str == "destroy") {
-			if (testIcon1.isExist()) {
-				testIcon1.destroy();
-				testIcon1 = 0;
-				isTest1Active = false;
-				BJDebugMsg("图标已销毁");
-			} else {
-				BJDebugMsg("没有可销毁的图标");
-			}
-			p = null;
-			return;
-		}
-		// 处理text命令
-		if (paramS[0] == "text") {
-			if (!testIcon1.isExist()) {
-				BJDebugMsg("请先使用s1创建基础图标");
-				p = null;
-				return;
-			}
-			if (num < 2) {
-				BJDebugMsg("参数不足,请使用格式: -text <string>");
-				BJDebugMsg("例如: -text 测试");
-				p = null;
-				return;
-			}
-			// 获取完整的文本内容(支持空格)
-			string text = "";
-			for (1 <= i < num) {
-				if (i > 1) text = text + " ";
-				text = text + paramS[i];
-			}
-			testIcon1.setCornerText(text);
-			testIcon1.showCornerText(true);
-			BJDebugMsg("角落文字已设置为: " + text);
-			p = null;
-			return;
-		}
-		// 解析参数
-		for (0 <= i <= len - 1) {
+for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
 				paramI[num]= S2I(paramS[num]);
@@ -3021,24 +3361,6 @@ real	paramR []; //所有参数R
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		// 处理size命令
-		if (paramS[0] == "size") {
-			if (!testIcon1.isExist()) {
-				BJDebugMsg("请先使用s1创建基础图标");
-				p = null;
-				return;
-			}
-			if (num < 3) {
-				BJDebugMsg("参数不足,请使用格式: -size x y");
-				BJDebugMsg("例如: -size 0.04 0.04");
-				p = null;
-				return;
-			}
-			testIcon1.setSize(paramR[1], paramR[2]);
-			BJDebugMsg("图标大小已设置为: " + R2S(paramR[1]) + " x " + R2S(paramR[2]));
-			p = null;
-			return;
-		}
 		if (paramS[0] == "a") {
 		} else if (paramS[0] == "b") {
 		}
@@ -3049,39 +3371,72 @@ real	paramR []; //所有参数R
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[Icon] 单元测试已加载");
-			BJDebugMsg("测试指令:");
-			BJDebugMsg("s1 - 创建/销毁基础图标");
-			BJDebugMsg(" s1a - 从现有UI创建图标");
-			BJDebugMsg("-text <string> - 设置角落文字,如: -text 测试");
-			BJDebugMsg("s3 - 开启/关闭流光效果");
-			BJDebugMsg("s4 - 开启/关闭暗遮罩");
-			BJDebugMsg("s5 - 测试点击事件");
-			BJDebugMsg("s6 - 测试CD显示(10秒)");
-			BJDebugMsg("s7 - 显示/隐藏图标");
-			BJDebugMsg("s8 - 开启自动尺寸");
-			BJDebugMsg("-destroy - 销毁图标");
-			BJDebugMsg("-size(x,y) - 设置图标大小,如: -size 0.04 0.04");
+			unit hero,building,witch1,priest1,witch2,priest2;
+			real x = 0, y = 0;
+			integer i = 0;
+			// 为玩家1创建测试英雄
+			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
+SetHeroLevel(hero, 10,true);
+			// 为玩家1创建女巫和牧师
+			witch1 = CreateUnit(Player(0), 'hsor', 200, 200, 270); // 创建女巫
+priest1 = CreateUnit(Player(0), 'hmpr', 200, -200, 270); // 创建牧师
+			// 在地图远角创建玩家2的女巫和牧师
+			witch2 = CreateUnit(Player(11), 'hsor', 5000, 5000, 270); // 创建玩家12的女巫
+priest2 = CreateUnit(Player(11), 'hmpr', 5000, -5000, 270); // 创建玩家12的牧师
+			// 创建一个建筑单位用于测试12个技能
+			building = CreateUnit(Player(0), 'hcas', 400, 0, 270); // 创建人族城堡
+			// 为建筑添加12个技能
+			UnitAddAbility(building, 'AHbz'); // 暴风雪
+UnitAddAbility(building, 'AHwe'); // 水元素
+UnitAddAbility(building, 'AHab'); // 闪现
+UnitAddAbility(building, 'AHmt'); // 群体传送
+UnitAddAbility(building, 'AHfs'); // 烈焰风暴
+UnitAddAbility(building, 'AHbn'); // 驱逐魔法
+UnitAddAbility(building, 'AHdr'); // 吸取魔法
+UnitAddAbility(building, 'AHpx'); // 凤凰
+UnitAddAbility(building, 'AHad'); // 奥术光环
+UnitAddAbility(building, 'AHav'); // 化身
+UnitAddAbility(building, 'AHcs'); // 寒冰护甲
+UnitAddAbility(building, 'AHfa'); // 烈焰护甲
+			// 添加8个预选的技能
+			UnitAddAbility(hero, 'ACbc'); // 火焰呼吸
+UnitAddAbility(hero, 'ACbf'); // 霜冻闪电
+UnitAddAbility(hero, 'ACpy'); // 变形术
+UnitAddAbility(hero, 'AOhx'); // 妖术
+UnitAddAbility(hero, 'ACdv'); // 吞噬
+UnitAddAbility(hero, 'ACen'); // 诱捕
+UnitAddAbility(hero, 'ANr3'); // 混乱之雨
+UnitAddAbility(hero, 'AOhw'); // 医疗波
+BJDebugMsg("[UnitPanel] 单元测试已加载");
+			Init();
+			DestroyTrigger(GetTriggeringTrigger());
+		}));
+		//在游戏开始0.1秒后再调用
+		tr = CreateTrigger();
+		TriggerRegisterTimerEventSingle(tr,0.1);
+		TriggerAddCondition(tr,Condition(function (){
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
+			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTIcon1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUnitPanel1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTIcon1(GetTriggerPlayer());
-			else if(str == "s1a") TTestUTIcon1a(GetTriggerPlayer());
-			else if(str == "s3") TTestUTIcon3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTIcon4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTIcon5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTIcon6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTIcon7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTIcon8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTIcon9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTIcon10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUnitPanel1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUnitPanel2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUnitPanel3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUnitPanel4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUnitPanel5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUnitPanel6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUnitPanel7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUnitPanel8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUnitPanel9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUnitPanel10(GetTriggerPlayer());
 		});
+		InitTestUIRuler();
 	}
 }
 //! endzinc

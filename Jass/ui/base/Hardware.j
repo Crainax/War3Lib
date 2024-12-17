@@ -10,7 +10,7 @@
 */
 library Hardware requires BzAPI {
 
-	public struct hardware {
+	public struct hardware []{
 		// 注册一个左键抬起事件
 		static method regLeftUpEvent (code func) {
 			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_UP,false,func);
@@ -68,6 +68,7 @@ library Hardware requires BzAPI {
 			static trigger trResize = null;
 			static trigger trMove = null;
 		}
+
 		static method onInit () {
 			// 滚轮事件
 			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
@@ -79,11 +80,11 @@ library Hardware requires BzAPI {
 			});
 			// 窗口大小变化事件
 			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
-				TriggerEvaluate(trResize);
+				 TriggerEvaluate(trResize);
 			});
 			// 鼠标移动事件
 			DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
-				TriggerEvaluate(trMove);
+				 TriggerEvaluate(trMove);
 			});
 		}
 	}

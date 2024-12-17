@@ -57,14 +57,12 @@ constant boolean LIBRARY_UITextModule=true
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork___TUnitTest=null
 //endglobals from UnitTestFramwork
-//globals from YDTriggerSaveLoadSystem:
-constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
-hashtable YDHT
-hashtable YDLOC
-//endglobals from YDTriggerSaveLoadSystem
 //globals from Hardware:
 constant boolean LIBRARY_Hardware=true
 //endglobals from Hardware
+//globals from Keyboard:
+constant boolean LIBRARY_Keyboard=true
+//endglobals from Keyboard
 //globals from UITocInit:
 constant boolean LIBRARY_UITocInit=true
 //endglobals from UITocInit
@@ -101,17 +99,25 @@ constant boolean LIBRARY_UIText=true
 //globals from ProgressAnim:
 constant boolean LIBRARY_ProgressAnim=true
 //endglobals from ProgressAnim
+//globals from UnitTestUIRuler:
+constant boolean LIBRARY_UnitTestUIRuler=true
+trigger UnitTestUIRuler___TUnitTest=null
+boolean UnitTestUIRuler___isShowRuler=false
+integer UnitTestUIRuler___imageAnchor=0
+real UnitTestUIRuler___anchorPosX=0
+real UnitTestUIRuler___anchorPosY=0
+integer array UnitTestUIRuler___imageRuler
+integer array UnitTestUIRuler___textRuler
+//endglobals from UnitTestUIRuler
 //globals from Icon:
 constant boolean LIBRARY_Icon=true
 //endglobals from Icon
-//globals from UTIcon:
-constant boolean LIBRARY_UTIcon=true
-integer UTIcon__testIcon1=0
-boolean UTIcon__isTest1Active=false
-boolean UTIcon__isTest3Active=false
-boolean UTIcon__isTest4Active=false
-boolean UTIcon__isTest7Active=false
-//endglobals from UTIcon
+//globals from UnitPanel:
+constant boolean LIBRARY_UnitPanel=true
+//endglobals from UnitPanel
+//globals from UTUnitPanel:
+constant boolean LIBRARY_UTUnitPanel=true
+//endglobals from UTUnitPanel
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -180,14 +186,15 @@ integer s__uiLifeCycle_agrsFrame=0
 trigger s__uiLifeCycle_trCreate=null
 trigger s__uiLifeCycle_trDestroy=null
 constant integer si__hardware=10
-integer si__hardware_F=0
-integer si__hardware_I=0
-integer array si__hardware_V
 trigger s__hardware_trWheel=null
 trigger s__hardware_trUpdate=null
 trigger s__hardware_trResize=null
 trigger s__hardware_trMove=null
-constant integer si__baseanim=11
+constant integer si__keyboard=11
+trigger array s__keyboard_trsDown
+trigger array s__keyboard_trsUp
+boolean array s__keyboard_isDown
+constant integer si__baseanim=12
 integer si__baseanim_F=0
 integer si__baseanim_I=0
 integer array si__baseanim_V
@@ -248,10 +255,10 @@ integer array s__baseanim_lID
 integer array s__baseanim_lPeriod
 integer array s__baseanim_lTime
 integer array s__baseanim_lCB
-constant integer si__uiEventState=12
+constant integer si__uiEventState=13
 boolean s__uiEventState_rcStart=false
 integer s__uiEventState_uiId=0
-constant integer si__resizer=13
+constant integer si__resizer=14
 integer si__resizer_F=0
 integer si__resizer_I=0
 integer array si__resizer_V
@@ -261,7 +268,7 @@ integer array s__resizer_frame
 real array s__resizer_width
 real array s__resizer_height
 integer array s__resizer_uID
-constant integer si__rePointer=14
+constant integer si__rePointer=15
 integer si__rePointer_F=0
 integer si__rePointer_I=0
 integer array si__rePointer_V
@@ -274,33 +281,33 @@ integer array s__rePointer_relativeAnchor
 real array s__rePointer_offsetX
 real array s__rePointer_offsetY
 integer array s__rePointer_uID
-constant integer si__uilayer=15
+constant integer si__uilayer=16
 integer array s__uilayer_lv
-constant integer si__uiBtn=16
+constant integer si__uiBtn=17
 integer si__uiBtn_F=0
 integer si__uiBtn_I=0
 integer array si__uiBtn_V
 integer array s__uiBtn_ui
 integer array s__uiBtn_id
-constant integer si__uiImage=17
+constant integer si__uiImage=18
 integer si__uiImage_F=0
 integer si__uiImage_I=0
 integer array si__uiImage_V
 integer array s__uiImage_ui
 integer array s__uiImage_id
-constant integer si__uiSprite=18
+constant integer si__uiSprite=19
 integer si__uiSprite_F=0
 integer si__uiSprite_I=0
 integer array si__uiSprite_V
 integer array s__uiSprite_ui
 integer array s__uiSprite_id
-constant integer si__uiText=19
+constant integer si__uiText=20
 integer si__uiText_F=0
 integer si__uiText_I=0
 integer array si__uiText_V
 integer array s__uiText_ui
 integer array s__uiText_id
-constant integer si__progAnim=20
+constant integer si__progAnim=21
 integer si__progAnim_F=0
 integer si__progAnim_I=0
 integer array si__progAnim_V
@@ -314,7 +321,7 @@ integer array s__progAnim_time
 integer array s__progAnim_now
 integer array s__progAnim_id
 integer array s__progAnim_cb
-constant integer si__icon=21
+constant integer si__icon=22
 integer si__icon_F=0
 integer si__icon_I=0
 integer array si__icon_V
@@ -338,6 +345,44 @@ integer array s__icon_spRelativeAnchor
 real array s__icon_spOffsetX
 real array s__icon_spOffsetY
 integer array s__icon_cdSpriteImage
+constant integer si__unitPanel=23
+integer s__unitPanel_iconAttack=0
+integer s__unitPanel_iconArmor=0
+integer s__unitPanel_iconHero=0
+integer s__unitPanel_iconBuilding=0
+integer s__unitPanel_iconMonster=0
+integer s__unitPanel_textAttack=0
+integer s__unitPanel_textAttackValue=0
+integer s__unitPanel_textArmor=0
+integer s__unitPanel_textArmorValue=0
+integer s__unitPanel_textStr=0
+integer s__unitPanel_textStrValue=0
+integer s__unitPanel_textAgi=0
+integer s__unitPanel_textAgiValue=0
+integer s__unitPanel_textInt=0
+integer s__unitPanel_textIntValue=0
+integer s__unitPanel_textBuilding=0
+integer s__unitPanel_textBuildingValue=0
+trigger s__unitPanel_trAttackEnter=null
+trigger s__unitPanel_trAttackLeave=null
+trigger s__unitPanel_trAttackClick=null
+trigger s__unitPanel_trAttackRightClick=null
+trigger s__unitPanel_trArmorEnter=null
+trigger s__unitPanel_trArmorLeave=null
+trigger s__unitPanel_trArmorClick=null
+trigger s__unitPanel_trArmorRightClick=null
+trigger s__unitPanel_trHeroEnter=null
+trigger s__unitPanel_trHeroLeave=null
+trigger s__unitPanel_trHeroClick=null
+trigger s__unitPanel_trHeroRightClick=null
+trigger s__unitPanel_trBuildingEnter=null
+trigger s__unitPanel_trBuildingLeave=null
+trigger s__unitPanel_trBuildingClick=null
+trigger s__unitPanel_trBuildingRightClick=null
+trigger s__unitPanel_trMonsterEnter=null
+trigger s__unitPanel_trMonsterLeave=null
+trigger s__unitPanel_trMonsterClick=null
+trigger s__unitPanel_trMonsterRightClick=null
 trigger st__baseanim_onDestroy
 trigger st__resizer_onDestroy
 trigger st__rePointer_onDestroy
@@ -966,37 +1011,6 @@ function sc__baseanim_deallocate takes integer this returns nothing
     set si__baseanim_F=this
 endfunction
 
-//Generated allocator of hardware
-function s__hardware__allocate takes nothing returns integer
- local integer this=si__hardware_F
-    if (this!=0) then
-        set si__hardware_F=si__hardware_V[this]
-    else
-        set si__hardware_I=si__hardware_I+1
-        set this=si__hardware_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: hardware")
-        return 0
-    endif
-
-    set si__hardware_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of hardware
-function s__hardware_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: hardware")
-        return
-    elseif (si__hardware_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: hardware")
-        return
-    endif
-    set si__hardware_V[this]=si__hardware_F
-    set si__hardware_F=this
-endfunction
-
 //Generated allocator of uianim
 function s__uianim__allocate takes nothing returns integer
  local integer this=si__uianim_F
@@ -1325,10 +1339,14 @@ endfunction
 //library GrowData:
         //public:  //帧数周期
         function s__growdata_onInit takes nothing returns nothing
-            set s__growdata_max[(2)]=11
-            set s__growdata_gap[(2)]=3
-            set s__growdata_scale[(2)]=1.4
-            set s__growdata_path[(2)]="ui\\icongrow\\ig2_"
+            set s__growdata_max[(14)]=9 //# sequence: ui/efx/ig100_{0-9}.blp
+            set s__growdata_gap[(14)]=3
+            set s__growdata_scale[(14)]=1.49
+            set s__growdata_path[(14)]="ui\\efx\\ig101_"
+            set s__growdata_max[(18)]=9
+            set s__growdata_gap[(18)]=3
+            set s__growdata_scale[(18)]=1.38
+            set s__growdata_path[(18)]="ui\\efx\\ig100_"
         endfunction
 
 //library GrowData ends
@@ -1837,14 +1855,6 @@ endfunction
     endfunction
 
 //library UnitTestFramwork ends
-//library YDTriggerSaveLoadSystem:
-//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
-            set YDHT=InitHashtable()
-        set YDLOC=InitHashtable()
-    endfunction
-
-//library YDTriggerSaveLoadSystem ends
 //library Hardware:
         function s__hardware_regLeftUpEvent takes code func returns nothing
             call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
@@ -1919,6 +1929,36 @@ endfunction
         endfunction
 
 //library Hardware ends
+//library Keyboard:
+        //private:  // 按下事件
+            function s__keyboard_anon__0 takes nothing returns nothing
+                local integer triggerKey=DzGetTriggerKey()
+                if ( not ( s__keyboard_isDown[triggerKey] ) ) then
+                    set s__keyboard_isDown[triggerKey]=true
+                    call TriggerEvaluate(s__keyboard_trsDown[triggerKey])
+                endif
+            endfunction
+        function s__keyboard_regKeyDownEvent takes integer keyCode,code func returns nothing
+            if ( s__keyboard_trsDown[keyCode] == null ) then
+                set s__keyboard_trsDown[keyCode]=CreateTrigger()
+                call DzTriggerRegisterKeyEventByCode(null, keyCode, 1, false, function s__keyboard_anon__0)
+            endif
+            call TriggerAddCondition(s__keyboard_trsDown[keyCode], Condition(func))
+        endfunction  // 注册一个键盘事件
+            function s__keyboard_anon__1 takes nothing returns nothing
+                local integer triggerKey=DzGetTriggerKey()
+                set s__keyboard_isDown[triggerKey]=false
+                call TriggerEvaluate(s__keyboard_trsUp[triggerKey])
+            endfunction
+        function s__keyboard_regKeyUpEvent takes integer keyCode,code func returns nothing
+            if ( s__keyboard_trsUp[keyCode] == null ) then
+                set s__keyboard_trsUp[keyCode]=CreateTrigger()
+                call DzTriggerRegisterKeyEventByCode(null, keyCode, 0, false, function s__keyboard_anon__1)
+            endif
+            call TriggerAddCondition(s__keyboard_trsUp[keyCode], Condition(func))
+        endfunction
+
+//library Keyboard ends
 //library UITocInit:
 
     function UITocInit__onInit takes nothing returns nothing
@@ -2367,7 +2407,7 @@ endfunction
 //library UIExtendEvent:
 
 //processed:     function interface uiEvent takes integer arg0 returns nothing
-        function UIExtendEvent___anon__3 takes nothing returns nothing
+        function UIExtendEvent__anon__3 takes nothing returns nothing
             local integer currentUI
             local integer func
             if ( not ( DzIsMouseOverUI() ) ) then
@@ -2379,7 +2419,7 @@ endfunction
                 call sc___prototype20_evaluate(func,currentUI)
             endif
         endfunction  //注册左键抬起事件,在click事件之前触发
-        function UIExtendEvent___anon__4 takes nothing returns nothing
+        function UIExtendEvent__anon__4 takes nothing returns nothing
             local integer currentUI
             local integer func
             if ( not ( DzIsMouseOverUI() ) ) then
@@ -2391,12 +2431,12 @@ endfunction
                 call sc___prototype20_evaluate(func,currentUI)
             endif
         endfunction
-        function UIExtendEvent___anon__5 takes nothing returns nothing
+        function UIExtendEvent__anon__5 takes nothing returns nothing
             if ( s__uiEventState_uiId != 0 ) then
                 set s__uiEventState_rcStart=true
             endif
         endfunction
-        function UIExtendEvent___anon__6 takes nothing returns nothing
+        function UIExtendEvent__anon__6 takes nothing returns nothing
             local integer func
             if ( s__uiEventState_rcStart and s__uiEventState_uiId != 0 ) then
                 if ( HaveSavedInteger(HASH_UI, s__uiEventState_uiId, 1913) ) then
@@ -2406,7 +2446,7 @@ endfunction
             endif
             set s__uiEventState_rcStart=false
         endfunction  // UI销毁时如果鼠标正在上面,则触发一次离开事件,不然会引进只进不出的错误
-        function UIExtendEvent___anon__7 takes nothing returns nothing
+        function UIExtendEvent__anon__7 takes nothing returns nothing
             local integer ui=s__uiLifeCycle_agrsFrame
             local integer func
             if ( s__uiEventState_uiId == ui and HaveSavedInteger(HASH_UI, ui, 1911) ) then
@@ -2415,12 +2455,12 @@ endfunction
             endif
             set s__uiEventState_uiId=0
         endfunction  // hardware.regRightDownEvent(function () { //注册右键按下事件
-    function UIExtendEvent___onInit takes nothing returns nothing
-        call s__hardware_regLeftDownEvent(function UIExtendEvent___anon__3)
-        call s__hardware_regLeftUpEvent(function UIExtendEvent___anon__4)
-        call s__hardware_regRightDownEvent(function UIExtendEvent___anon__5)
-        call s__hardware_regRightUpEvent(function UIExtendEvent___anon__6)
-        call s__uiLifeCycle_registerDestroy(function UIExtendEvent___anon__7)
+    function UIExtendEvent__onInit takes nothing returns nothing
+        call s__hardware_regLeftDownEvent(function UIExtendEvent__anon__3)
+        call s__hardware_regLeftUpEvent(function UIExtendEvent__anon__4)
+        call s__hardware_regRightDownEvent(function UIExtendEvent__anon__5)
+        call s__hardware_regRightUpEvent(function UIExtendEvent__anon__6)
+        call s__uiLifeCycle_registerDestroy(function UIExtendEvent__anon__7)
     endfunction  //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     rcStartOnUI = true; //     rcStartUI = currentUI; // }); // hardware.regRightUpEvent(function () { //注册右键抬起事件 //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     if (rcStartOnUI && currentUI == rcStartUI) { //         if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) { //             func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK); //             func.evaluate(currentUI); //         } //     } //     rcStartOnUI = false; //     rcStartUI = 0; // });
 
 //library UIExtendEvent ends
@@ -2532,7 +2572,7 @@ function s__rePointer_deallocate takes integer this returns nothing
     set si__rePointer_V[this]=si__rePointer_F
     set si__rePointer_F=this
 endfunction
-        function UIExtendResize___anon__0 takes nothing returns nothing
+        function UIExtendResize__anon__0 takes nothing returns nothing
             local real resizeX=GetResizeRate()
             local integer i
             local integer ser
@@ -2546,7 +2586,7 @@ endfunction
                 endloop
             endif
         endfunction  //注册窗口大小变化事件
-        function UIExtendResize___anon__1 takes nothing returns nothing
+        function UIExtendResize__anon__1 takes nothing returns nothing
             local real resizeX=GetResizeRate()
             local integer i
             local integer ptr
@@ -2560,7 +2600,7 @@ endfunction
                 endloop
             endif
         endfunction  //UI的销毁回调事件
-        function UIExtendResize___anon__2 takes nothing returns nothing
+        function UIExtendResize__anon__2 takes nothing returns nothing
             local integer frame=s__uiLifeCycle_agrsFrame
             local integer ser
             local integer ptr
@@ -2577,10 +2617,10 @@ endfunction
                 endif
             endif
         endfunction
-    function UIExtendResize___onInit takes nothing returns nothing
-        call s__hardware_regResizeEvent(function UIExtendResize___anon__0)
-        call s__hardware_regResizeEvent(function UIExtendResize___anon__1)
-        call s__uiLifeCycle_registerDestroy(function UIExtendResize___anon__2)
+    function UIExtendResize__onInit takes nothing returns nothing
+        call s__hardware_regResizeEvent(function UIExtendResize__anon__0)
+        call s__hardware_regResizeEvent(function UIExtendResize__anon__1)
+        call s__uiLifeCycle_registerDestroy(function UIExtendResize__anon__2)
     endfunction
 
 //library UIExtendResize ends
@@ -2758,7 +2798,7 @@ endfunction
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1902, func)
             return this
         endfunction  // 鼠标进入事件(右键前提强化版)
-            function s__uiBtn_extendEvent___anon__0 takes nothing returns nothing
+            function s__uiBtn_extendEvent__anon__0 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 set s__uiEventState_uiId=frame
@@ -2772,10 +2812,10 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1910, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_extendEvent___anon__0, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_extendEvent__anon__0, false)
             return this
         endfunction  // 鼠标离开事件(右键前提强化版)
-            function s__uiBtn_extendEvent___anon__1 takes nothing returns nothing
+            function s__uiBtn_extendEvent__anon__1 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 set s__uiEventState_uiId=0
@@ -2789,10 +2829,10 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1911, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_extendEvent___anon__1, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_extendEvent__anon__1, false)
             return this
         endfunction  // 鼠标点击事件,其实这个不是必须项,只是为了统一写法硬加的
-            function s__uiBtn_extendEvent___anon__2 takes nothing returns nothing
+            function s__uiBtn_extendEvent__anon__2 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 if ( HaveSavedInteger(HASH_UI, frame, 1912) ) then
@@ -2805,7 +2845,7 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1912, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_extendEvent___anon__2, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_extendEvent__anon__2, false)
             return this
         endfunction  // 鼠标右键点击事件
         function s__uiBtn_spRightClick takes integer this,integer fun returns integer
@@ -3639,6 +3679,134 @@ endfunction
         endfunction
 
 //library ProgressAnim ends
+//library UnitTestUIRuler:
+
+    function InitTestUIRuler takes nothing returns nothing
+        call DoNothing()
+    endfunction
+        function UnitTestUIRuler___anon__0 takes nothing returns nothing
+            local integer i
+            set UnitTestUIRuler___isShowRuler=not UnitTestUIRuler___isShowRuler
+            if ( UnitTestUIRuler___isShowRuler ) then
+                call s__uiImage_show(UnitTestUIRuler___imageAnchor,true)
+                set i=1
+                loop
+                exitwhen ( i > 5 )
+                    call s__uiImage_show(UnitTestUIRuler___imageRuler[i],true)
+                    call s__uiText_show(UnitTestUIRuler___textRuler[i],true)
+                set i=i + 1
+                endloop
+            else
+                call s__uiImage_show(UnitTestUIRuler___imageAnchor,false)
+                set i=1
+                loop
+                exitwhen ( i > 5 )
+                    call s__uiImage_show(UnitTestUIRuler___imageRuler[i],false)
+                    call s__uiText_show(UnitTestUIRuler___textRuler[i],false)
+                set i=i + 1
+                endloop
+            endif
+        endfunction  // 添加鼠标点击事件
+        function UnitTestUIRuler___anon__1 takes nothing returns nothing
+            local real mouseX
+            local real mouseY
+            if ( not UnitTestUIRuler___isShowRuler ) then
+                return
+            endif
+            if ( DzIsKeyDown(17) ) then
+                set mouseX=GetMouseXEx()
+                set mouseY=GetMouseYEx()
+                call s__uiImage_setAbsPoint(UnitTestUIRuler___imageAnchor,4 , mouseX , mouseY) // 记录锚点位置
+                set UnitTestUIRuler___anchorPosX=mouseX
+                set UnitTestUIRuler___anchorPosY=mouseY
+                call BJDebugMsg("参考物位置: " + R2SW(mouseX, 7, 3) + " " + R2SW(mouseY, 7, 3))
+            else // 添加打印边距信息
+                set mouseX=GetMouseXEx()
+                set mouseY=GetMouseYEx()
+                call BJDebugMsg("距离边界: " + "左=" + R2SW(mouseX, 7, 3) + " 右=" + R2SW(0.8 - mouseX, 7, 3) + " 上=" + R2SW(0.6 - mouseY, 7, 3) + " 下=" + R2SW(mouseY, 7, 3))
+            endif
+        endfunction  // 鼠标移动事件
+        function UnitTestUIRuler___anon__2 takes nothing returns nothing
+            local real mouseX
+            local real mouseY
+            local real dx
+            local real dy
+            local real width
+            local real height
+            set mouseX=GetMouseXEx()
+            set mouseY=GetMouseYEx()
+            if ( not UnitTestUIRuler___isShowRuler ) then // 更新上尺子
+                return
+            endif
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[1],1 , mouseX , 0.6)
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[1],7 , mouseX , mouseY + 0.005)
+            call s__uiText_setText(UnitTestUIRuler___textRuler[1],R2SW(0.6 - mouseY, 7, 3)) // 更新下尺子
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[2],1 , mouseX , mouseY - 0.005)
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[2],7 , mouseX , 0)
+            call s__uiText_setText(UnitTestUIRuler___textRuler[2],R2SW(mouseY, 7, 3)) // 更新左尺子
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[3],3 , 0 , mouseY)
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[3],5 , mouseX - 0.005 , mouseY)
+            call s__uiText_setText(UnitTestUIRuler___textRuler[3],R2SW(mouseX, 7, 3)) // 更新右尺子
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[4],3 , mouseX + 0.005 , mouseY)
+            call s__uiText_setAbsPoint(UnitTestUIRuler___textRuler[4],5 , 0.8 , mouseY)
+            call s__uiText_setText(UnitTestUIRuler___textRuler[4],R2SW(0.8 - mouseX, 7, 3)) // 计算x,y偏移并更新文本
+            set dx=mouseX - UnitTestUIRuler___anchorPosX
+            set dy=mouseY - UnitTestUIRuler___anchorPosY // 计算尺子的宽高(尺子绝对值)
+            set width=I2R(IAbsBJ(R2I(dx * 1000))) / 1000
+            set height=I2R(IAbsBJ(R2I(dy * 1000))) / 1000 // 根据鼠标位置设置锚点和尺寸
+            if ( mouseX >= UnitTestUIRuler___anchorPosX ) then
+                if ( mouseY >= UnitTestUIRuler___anchorPosY ) then // 鼠标在右上
+                    call s__uiImage_setSize(s__uiImage_setAbsPoint(s__uiImage_clearPoint(UnitTestUIRuler___imageRuler[5]),2 , mouseX , mouseY),width , height)
+                else // 鼠标在右下
+                    call s__uiImage_setSize(s__uiImage_setAbsPoint(s__uiImage_clearPoint(UnitTestUIRuler___imageRuler[5]),8 , mouseX , mouseY),width , height)
+                endif
+            elseif ( mouseY >= UnitTestUIRuler___anchorPosY ) then // 鼠标在左上
+                call s__uiImage_setSize(s__uiImage_setAbsPoint(s__uiImage_clearPoint(UnitTestUIRuler___imageRuler[5]),0 , mouseX , mouseY),width , height)
+            else // 鼠标在左下
+                call s__uiImage_setSize(s__uiImage_setAbsPoint(s__uiImage_clearPoint(UnitTestUIRuler___imageRuler[5]),6 , mouseX , mouseY),width , height)
+            endif
+            call s__uiText_setText(UnitTestUIRuler___textRuler[5],"x:" + R2SW(dx, 7, 3) + " y:" + R2SW(dy, 7, 3))
+        endfunction  //在游戏开始0.1秒后再调用
+        function UnitTestUIRuler___anon__3 takes nothing returns nothing
+            call BJDebugMsg("[已注入UI尺子,按下Ctrl+点击设置锚点,按下Esc开启/关闭尺子]")
+            call DestroyTrigger(GetTriggeringTrigger())
+        endfunction
+    function UnitTestUIRuler___onInit takes nothing returns nothing
+        local integer i
+        local trigger tr=CreateTrigger()
+        set UnitTestUIRuler___anchorPosX=0.4
+        set UnitTestUIRuler___anchorPosY=0.3
+        set UnitTestUIRuler___imageAnchor=s__uiImage_setTexture(s__uiImage_setAbsPoint(s__uiImage_show(s__uiImage_setSize(s__uiImage_create(DzGetGameUI()),0.005 , 0.005),false),4 , UnitTestUIRuler___anchorPosX , UnitTestUIRuler___anchorPosY),"UI\\MiniMap\\minimap-gold.blp")
+        set i=1
+        loop
+        exitwhen ( i > 5 )
+            set UnitTestUIRuler___imageRuler[i]=s__uiImage_create(DzGetGameUI())
+            set UnitTestUIRuler___textRuler[i]=s__uiText_setText(s__uiText_show(s__uiText_setAlign(s__uiText_create(DzGetGameUI()),4),false),"0.000")
+        set i=i + 1
+        endloop
+        set i=1
+        loop
+        exitwhen ( i > 2 )
+            call s__uiImage_setTexture(s__uiImage_show(s__uiImage_setSize(s__uiImage_setPoint(s__uiImage_setPoint(UnitTestUIRuler___imageRuler[i],1 , s__uiText_ui[UnitTestUIRuler___textRuler[i]] , 1 , 0 , 0),7 , s__uiText_ui[UnitTestUIRuler___textRuler[i]] , 7 , 0 , 0),0.01 , 0.01),false),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+        set i=i + 1
+        endloop
+        set i=3
+        loop
+        exitwhen ( i > 4 )
+            call s__uiImage_setTexture(s__uiImage_show(s__uiImage_setAllPoint(UnitTestUIRuler___imageRuler[i],s__uiText_ui[UnitTestUIRuler___textRuler[i]]),false),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+        set i=i + 1
+        endloop
+        call s__uiImage_setTexture(s__uiImage_setAlpha(s__uiImage_show(UnitTestUIRuler___imageRuler[5],false),100),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+        call s__uiText_setSize(s__uiText_setPoint(UnitTestUIRuler___textRuler[5],4 , s__uiImage_ui[UnitTestUIRuler___imageRuler[5]] , 4 , 0 , 0),0.1 , 0)
+        call s__keyboard_regKeyUpEvent(27 , function UnitTestUIRuler___anon__0)
+        call s__hardware_regLeftUpEvent(function UnitTestUIRuler___anon__1)
+        call s__hardware_regMoveEvent(function UnitTestUIRuler___anon__2)
+        call TriggerRegisterTimerEventSingle(tr, 0.1)
+        call TriggerAddCondition(tr, Condition(function UnitTestUIRuler___anon__3))
+        set tr=null
+    endfunction
+
+//library UnitTestUIRuler ends
 //library Icon:
         function s__icon_isExist takes integer this returns boolean
             return ( this != null and si__icon_V[this] == - 1 )
@@ -3930,125 +4098,440 @@ function s__icon_deallocate takes integer this returns nothing
 endfunction
 
 //library Icon ends
-//library UTIcon:
+//library UnitPanel:
+        //private:
+        function s__unitPanel_onAttackEnter takes code func returns nothing
+            if ( s__unitPanel_trAttackEnter == null ) then
+                set s__unitPanel_trAttackEnter=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trAttackEnter, Condition(func))
+        endfunction
+        function s__unitPanel_onAttackLeave takes code func returns nothing
+            if ( s__unitPanel_trAttackLeave == null ) then
+                set s__unitPanel_trAttackLeave=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trAttackLeave, Condition(func))
+        endfunction
+        function s__unitPanel_onAttackClick takes code func returns nothing
+            if ( s__unitPanel_trAttackClick == null ) then
+                set s__unitPanel_trAttackClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trAttackClick, Condition(func))
+        endfunction
+        function s__unitPanel_onAttackRightClick takes code func returns nothing
+            if ( s__unitPanel_trAttackRightClick == null ) then
+                set s__unitPanel_trAttackRightClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trAttackRightClick, Condition(func))
+        endfunction
+        function s__unitPanel_onArmorEnter takes code func returns nothing
+            if ( s__unitPanel_trArmorEnter == null ) then
+                set s__unitPanel_trArmorEnter=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trArmorEnter, Condition(func))
+        endfunction
+        function s__unitPanel_onArmorLeave takes code func returns nothing
+            if ( s__unitPanel_trArmorLeave == null ) then
+                set s__unitPanel_trArmorLeave=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trArmorLeave, Condition(func))
+        endfunction
+        function s__unitPanel_onArmorClick takes code func returns nothing
+            if ( s__unitPanel_trArmorClick == null ) then
+                set s__unitPanel_trArmorClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trArmorClick, Condition(func))
+        endfunction
+        function s__unitPanel_onArmorRightClick takes code func returns nothing
+            if ( s__unitPanel_trArmorRightClick == null ) then
+                set s__unitPanel_trArmorRightClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trArmorRightClick, Condition(func))
+        endfunction
+        function s__unitPanel_onHeroEnter takes code func returns nothing
+            if ( s__unitPanel_trHeroEnter == null ) then
+                set s__unitPanel_trHeroEnter=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trHeroEnter, Condition(func))
+        endfunction
+        function s__unitPanel_onHeroLeave takes code func returns nothing
+            if ( s__unitPanel_trHeroLeave == null ) then
+                set s__unitPanel_trHeroLeave=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trHeroLeave, Condition(func))
+        endfunction
+        function s__unitPanel_onHeroClick takes code func returns nothing
+            if ( s__unitPanel_trHeroClick == null ) then
+                set s__unitPanel_trHeroClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trHeroClick, Condition(func))
+        endfunction
+        function s__unitPanel_onHeroRightClick takes code func returns nothing
+            if ( s__unitPanel_trHeroRightClick == null ) then
+                set s__unitPanel_trHeroRightClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trHeroRightClick, Condition(func))
+        endfunction
+        function s__unitPanel_onBuildingEnter takes code func returns nothing
+            if ( s__unitPanel_trBuildingEnter == null ) then
+                set s__unitPanel_trBuildingEnter=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trBuildingEnter, Condition(func))
+        endfunction
+        function s__unitPanel_onBuildingLeave takes code func returns nothing
+            if ( s__unitPanel_trBuildingLeave == null ) then
+                set s__unitPanel_trBuildingLeave=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trBuildingLeave, Condition(func))
+        endfunction
+        function s__unitPanel_onBuildingClick takes code func returns nothing
+            if ( s__unitPanel_trBuildingClick == null ) then
+                set s__unitPanel_trBuildingClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trBuildingClick, Condition(func))
+        endfunction
+        function s__unitPanel_onBuildingRightClick takes code func returns nothing
+            if ( s__unitPanel_trBuildingRightClick == null ) then
+                set s__unitPanel_trBuildingRightClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trBuildingRightClick, Condition(func))
+        endfunction
+        function s__unitPanel_onMonsterEnter takes code func returns nothing
+            if ( s__unitPanel_trMonsterEnter == null ) then
+                set s__unitPanel_trMonsterEnter=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trMonsterEnter, Condition(func))
+        endfunction
+        function s__unitPanel_onMonsterLeave takes code func returns nothing
+            if ( s__unitPanel_trMonsterLeave == null ) then
+                set s__unitPanel_trMonsterLeave=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trMonsterLeave, Condition(func))
+        endfunction
+        function s__unitPanel_onMonsterClick takes code func returns nothing
+            if ( s__unitPanel_trMonsterClick == null ) then
+                set s__unitPanel_trMonsterClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trMonsterClick, Condition(func))
+        endfunction
+        function s__unitPanel_onMonsterRightClick takes code func returns nothing
+            if ( s__unitPanel_trMonsterRightClick == null ) then
+                set s__unitPanel_trMonsterRightClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__unitPanel_trMonsterRightClick, Condition(func))
+        endfunction
+            function s__unitPanel_anon__0 takes integer frame returns nothing
+                if ( s__unitPanel_trAttackEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trAttackEnter)
+                endif
+            endfunction
+            function s__unitPanel_anon__1 takes integer frame returns nothing
+                if ( s__unitPanel_trAttackLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trAttackLeave)
+                endif
+            endfunction
+            function s__unitPanel_anon__2 takes integer frame returns nothing
+                if ( s__unitPanel_trAttackClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trAttackClick)
+                endif
+            endfunction
+            function s__unitPanel_anon__3 takes integer frame returns nothing
+                if ( s__unitPanel_trAttackRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trAttackRightClick)
+                endif
+            endfunction
+            function s__unitPanel_anon__4 takes integer frame returns nothing
+                if ( s__unitPanel_trArmorEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trArmorEnter)
+                endif
+            endfunction
+            function s__unitPanel_anon__5 takes integer frame returns nothing
+                if ( s__unitPanel_trArmorLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trArmorLeave)
+                endif
+            endfunction
+            function s__unitPanel_anon__6 takes integer frame returns nothing
+                if ( s__unitPanel_trArmorClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trArmorClick)
+                endif
+            endfunction
+            function s__unitPanel_anon__7 takes integer frame returns nothing
+                if ( s__unitPanel_trArmorRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trArmorRightClick)
+                endif
+            endfunction
+            function s__unitPanel_anon__8 takes integer frame returns nothing
+                if ( s__unitPanel_trHeroEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trHeroEnter)
+                endif
+            endfunction
+            function s__unitPanel_anon__9 takes integer frame returns nothing
+                if ( s__unitPanel_trHeroLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trHeroLeave)
+                endif
+            endfunction
+            function s__unitPanel_anon__10 takes integer frame returns nothing
+                if ( s__unitPanel_trHeroClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trHeroClick)
+                endif
+            endfunction
+            function s__unitPanel_anon__11 takes integer frame returns nothing
+                if ( s__unitPanel_trHeroRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trHeroRightClick)
+                endif
+            endfunction
+            function s__unitPanel_anon__12 takes integer frame returns nothing
+                if ( s__unitPanel_trBuildingEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trBuildingEnter)
+                endif
+            endfunction
+            function s__unitPanel_anon__13 takes integer frame returns nothing
+                if ( s__unitPanel_trBuildingLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trBuildingLeave)
+                endif
+            endfunction
+            function s__unitPanel_anon__14 takes integer frame returns nothing
+                if ( s__unitPanel_trBuildingClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trBuildingClick)
+                endif
+            endfunction
+            function s__unitPanel_anon__15 takes integer frame returns nothing
+                if ( s__unitPanel_trBuildingRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trBuildingRightClick)
+                endif
+            endfunction
+            function s__unitPanel_anon__16 takes integer frame returns nothing
+                if ( s__unitPanel_trMonsterEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trMonsterEnter)
+                endif
+            endfunction
+            function s__unitPanel_anon__17 takes integer frame returns nothing
+                if ( s__unitPanel_trMonsterLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trMonsterLeave)
+                endif
+            endfunction
+            function s__unitPanel_anon__18 takes integer frame returns nothing
+                if ( s__unitPanel_trMonsterClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trMonsterClick)
+                endif
+            endfunction
+            function s__unitPanel_anon__19 takes integer frame returns nothing
+                if ( s__unitPanel_trMonsterRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trMonsterRightClick)
+                endif
+            endfunction
+        function s__unitPanel_mapInit takes nothing returns nothing
+            local integer parent
+            local integer child
+            local integer btn
+            set parent=DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2)
+            set child=DzCreateFrameByTagName("SIMPLEFRAME", "upAttack", parent, "单位面板框架", 0)
+            call DzFrameClearAllPoints(child)
+            set s__unitPanel_iconAttack=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("单位面板图标" , 0) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.0295 , - 0.006),"ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp")
+            set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(s__unitPanel_iconAttack),(1)),(2)),(3)),(4))
+            set s__unitPanel_textAttack=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板属性名" , 0),0 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconAttack]] , 2 , 0.003 , - 0.003),"攻击:")
+            set s__unitPanel_textAttackValue=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板数值" , 0),6 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconAttack]] , 8 , 0.008 , 0.003),"0")
+            set child=DzCreateFrameByTagName("SIMPLEFRAME", "upArmor", parent, "单位面板框架", 1)
+            call DzFrameClearAllPoints(child)
+            set s__unitPanel_iconArmor=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("单位面板图标" , 1) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.0295 , - 0.037),"ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp")
+            set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(s__unitPanel_iconArmor),(5)),(6)),(7)),(8))
+            set s__unitPanel_textArmor=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板属性名" , 1),0 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconArmor]] , 2 , 0.003 , - 0.003),"防御:")
+            set s__unitPanel_textArmorValue=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板数值" , 1),6 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconArmor]] , 8 , 0.008 , 0.003),"20")
+            set parent=DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6)
+            set child=DzCreateFrameByTagName("SIMPLEFRAME", "upHero", parent, "英雄三围框架", 0)
+            call DzFrameClearAllPoints(child)
+            set s__unitPanel_iconHero=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("英雄三围图标" , 0) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.1235 , - 0.02),"ReplaceableTextures\\CommandButtons\\BTNJanggo.blp")
+            set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(s__unitPanel_iconHero),(9)),(10)),(11)),(12))
+            set s__unitPanel_textStr=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("英雄力量名" , 0),0 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconHero]] , 4 , 0.017 , 0.027),"力量:")
+            set s__unitPanel_textStrValue=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("英雄力量值" , 0),0 , s__uiText_ui[s__unitPanel_textStr] , 6 , 0.005 , - 0.001),"10")
+            set s__unitPanel_textAgi=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("英雄敏捷名" , 0),0 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconHero]] , 4 , 0.017 , 0.006),"敏捷:")
+            set s__unitPanel_textAgiValue=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("英雄敏捷值" , 0),0 , s__uiText_ui[s__unitPanel_textAgi] , 6 , 0.005 , - 0.001),"20")
+            set s__unitPanel_textInt=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("英雄智力名" , 0),0 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconHero]] , 4 , 0.017 , - 0.015),"智力:")
+            set s__unitPanel_textIntValue=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("英雄智力值" , 0),0 , s__uiText_ui[s__unitPanel_textInt] , 6 , 0.005 , - 0.001),"30")
+            set parent=DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7)
+            set child=DzCreateFrameByTagName("SIMPLEFRAME", "upBuilding", parent, "单位面板框架", 2)
+            call DzFrameClearAllPoints(child)
+            set s__unitPanel_iconBuilding=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("单位面板图标" , 2) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.1235 , - 0.02),"ReplaceableTextures\\CommandButtons\\BTNTownHall.blp")
+            set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(s__unitPanel_iconBuilding),(13)),(14)),(15)),(16))
+            set s__unitPanel_textBuilding=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板属性名" , 2),0 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconBuilding]] , 2 , 0.003 , - 0.003),"防护罩:")
+            set s__unitPanel_textBuildingValue=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板数值" , 2),6 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconBuilding]] , 8 , 0.008 , 0.003),"1")
+            set s__unitPanel_iconMonster=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconRank", 3)),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.1235 , - 0.02),"ReplaceableTextures\\CommandButtons\\BTNSkeletonArcher.blp")
+            set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(s__unitPanel_iconMonster),(17)),(18)),(19)),(20))
+        endfunction  // 友方建筑单位的金币之类的东西(会频繁重置,需要在选择单位时就重新处理)
+        function s__unitPanel_moveOutBuilding takes nothing returns nothing
+            local integer ui=DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7)
+            call DzFrameSetSize(ui, 0.02, 0.02)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetPoint(ui, 4, DzGetGameUI(), 4, 0.80, - 0.60)
+        endfunction  // 怪物的科技原生面板(会频繁重置,需要在选择单位时就重新处理)
+        function s__unitPanel_moveOutMonster takes nothing returns nothing
+            local integer ui=DzSimpleFrameFindByName("SimpleInfoPanelIconRank", 3)
+            call DzFrameSetSize(ui, 0.02, 0.02)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetPoint(ui, 4, DzGetGameUI(), 4, 0.80, - 0.60)
+        endfunction  //把所有原生UI移走
+        function s__unitPanel_moveOutAll takes nothing returns nothing
+            local integer ui
+            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 0)
+            call DzFrameSetSize(ui, 0.03, 0.03)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 攻击2
+            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 1)
+            call DzFrameSetSize(ui, 0.03, 0.03)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 护甲
+            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 2)
+            call DzFrameSetSize(ui, 0.001, 0.001)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 食物
+            set ui=DzSimpleTextureFindByName("InfoPanelIconBackdrop", 4)
+            call DzFrameSetSize(ui, 0.001, 0.001)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetAbsolutePoint(ui, 4, 0.80, - 0.60) // 英雄三围面板
+            set ui=DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6)
+            call DzFrameSetSize(ui, 0.02, 0.02)
+            call DzFrameClearAllPoints(ui)
+            call DzFrameSetPoint(ui, 4, DzGetGameUI(), 4, 0.80, - 0.60)
+        endfunction  //初始化单位按钮面板
+            function s__unitPanel_anon__20 takes nothing returns nothing
+                call s__unitPanel_moveOutAll() // 初始化单位按钮面板
+                call s__unitPanel_mapInit()
+                call DestroyTrigger(GetTriggeringTrigger())
+            endfunction
+        function s__unitPanel_onInit takes nothing returns nothing
+            local trigger tr=CreateTrigger()
+            call TriggerRegisterTimerEventSingle(tr, 0.0)
+            call TriggerAddCondition(tr, Condition(function s__unitPanel_anon__20))
+            set tr=null
+        endfunction
 
-    function UTIcon__TTestUTIcon1 takes player p returns nothing
-        if ( not UTIcon__isTest1Active ) then
-            set UTIcon__testIcon1=s__icon_show(s__icon_setPoint(s__icon_setTexture(s__icon_setSize(s__icon_create(DzGetGameUI()),0.07 , 0.07),"ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp"),4 , DzGetGameUI() , 4 , 0 , 0),true) //这
-            call BJDebugMsg("基础图标已创建 - 输入s1可关闭")
-            set UTIcon__isTest1Active=true
-        else
-            call s__icon_deallocate(UTIcon__testIcon1)
-            set UTIcon__testIcon1=0
-            set UTIcon__isTest1Active=false
-            call BJDebugMsg("基础图标已关闭")
-        endif
-    endfunction  // 添加新的测试函数
-    function UTIcon__TTestUTIcon1a takes player p returns nothing
-        local integer img=0
-        if ( not UTIcon__isTest1Active ) then // 从现有UI创建icon
-            set UTIcon__testIcon1=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2)),0.08 , 0.08),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNSorceress.blp")
-            set UTIcon__isTest1Active=true
-            call BJDebugMsg("已从现有UI创建图标 - 输入s1a可关闭")
-        else
-            call s__icon_deallocate(UTIcon__testIcon1)
-            set UTIcon__testIcon1=0
-            set UTIcon__isTest1Active=false
-            call BJDebugMsg("从现有UI创建的图标已关闭")
-        endif
-    endfunction  // 流光效果测试
-    function UTIcon__TTestUTIcon3 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
-            call BJDebugMsg("请先使用s1创建基础图标")
-            return
-        endif
-        if ( not UTIcon__isTest3Active ) then
-            call s__icon_grow(UTIcon__testIcon1,(2))
-            set UTIcon__isTest3Active=true
-            call BJDebugMsg("流光效果已开启 - 输入s3可关闭")
-        else
-            call s__icon_unGrow(UTIcon__testIcon1)
-            set UTIcon__isTest3Active=false
-            call BJDebugMsg("流光效果已关闭")
-        endif
-    endfunction  // 暗遮罩测试
-    function UTIcon__TTestUTIcon4 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
-            call BJDebugMsg("请先使用s1创建基础图标")
-            return
-        endif
-        if ( not UTIcon__isTest4Active ) then
-            call s__icon_setShadow(UTIcon__testIcon1,true)
-            set UTIcon__isTest4Active=true
-            call BJDebugMsg("暗遮罩已开启 - 输入s4可关闭")
-        else
-            call s__icon_setShadow(UTIcon__testIcon1,false)
-            set UTIcon__isTest4Active=false
-            call BJDebugMsg("暗遮罩已关闭")
-        endif
-    endfunction  // 点击事件测试
-        function UTIcon__anon__0 takes integer frame returns nothing
-            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-            call BJDebugMsg("enter:" + I2S(data))
+//library UnitPanel ends
+//library UTUnitPanel:
+
+        function UTUnitPanel___anon__0 takes nothing returns nothing
+            if ( IsUnitAlly(DzGetSelectedLeaderUnit(), GetLocalPlayer()) and GetOwningPlayer(DzGetSelectedLeaderUnit()) != GetLocalPlayer() and IsUnitType(DzGetSelectedLeaderUnit(), UNIT_TYPE_STRUCTURE) ) then
+                call s__unitPanel_moveOutBuilding()
+            elseif ( GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hsor' or GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hmpr' ) then
+                call s__unitPanel_moveOutMonster()
+            endif
         endfunction
-        function UTIcon__anon__1 takes integer frame returns nothing
-            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-            call BJDebugMsg("leave:" + I2S(data))
+    function Init2 takes nothing returns nothing
+        call s__hardware_regUpdateEvent(function UTUnitPanel___anon__0)
+    endfunction  // 初始化测试内容
+        function UTUnitPanel___anon__1 takes nothing returns nothing
+            call BJDebugMsg("Attack Enter")
         endfunction
-        function UTIcon__anon__2 takes integer frame returns nothing
-            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-            call BJDebugMsg("click:" + I2S(data))
+        function UTUnitPanel___anon__2 takes nothing returns nothing
+            call BJDebugMsg("Attack Leave")
         endfunction
-        function UTIcon__anon__3 takes integer frame returns nothing
-            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-            call BJDebugMsg("RightClick:" + I2S(data))
+        function UTUnitPanel___anon__3 takes nothing returns nothing
+            call BJDebugMsg("Attack Click")
         endfunction
-    function UTIcon__TTestUTIcon5 takes player p returns nothing
-        local integer btn
-        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
-            call BJDebugMsg("请先使用s1创建基础图标")
-            return
-        endif
-        set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(UTIcon__testIcon1),(1)),(2)),(3)),(4))
-        call s__UIHashTable__uiHTEvent_bind(s__UIHashTable__uiHT_eventdata[uiHashTable(s__uiBtn_ui[btn])],8174)
-        call BJDebugMsg("事件已绑定 - 请点击图标测试")
-    endfunction  // CD显示测试
-    function UTIcon__TTestUTIcon6 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
-            call BJDebugMsg("请先使用s1创建基础图标")
-            return
-        endif
-        call s__icon_startCooldown(UTIcon__testIcon1,10.0 , 0)
-        call BJDebugMsg("CD显示已开始 - 持续10秒")
-    endfunction  // 显示/隐藏测试(both生效)
-    function UTIcon__TTestUTIcon7 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
-            call BJDebugMsg("请先使用s1创建基础图标")
-            return
-        endif
-        if ( not UTIcon__isTest7Active ) then
-            call s__icon_show(UTIcon__testIcon1,false)
-            set UTIcon__isTest7Active=true
-            call BJDebugMsg("图标已隐藏 - 输入s7可显示")
-        else
-            call s__icon_show(UTIcon__testIcon1,true)
-            set UTIcon__isTest7Active=false
-            call BJDebugMsg("图标已显示")
-        endif
-    endfunction  // 大小调整测试(both生效)
-    function UTIcon__TTestUTIcon8 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
-            call BJDebugMsg("请先使用s1创建基础图标")
-            return
-        endif
-        call s__icon_enableResize(UTIcon__testIcon1)
-        call BJDebugMsg("大小调整已开启")
+        function UTUnitPanel___anon__4 takes nothing returns nothing
+            call BJDebugMsg("Attack RightClick")
+        endfunction
+        function UTUnitPanel___anon__5 takes nothing returns nothing
+            call BJDebugMsg("Armor Enter")
+        endfunction
+        function UTUnitPanel___anon__6 takes nothing returns nothing
+            call BJDebugMsg("Armor Leave")
+        endfunction
+        function UTUnitPanel___anon__7 takes nothing returns nothing
+            call BJDebugMsg("Armor Click")
+        endfunction
+        function UTUnitPanel___anon__8 takes nothing returns nothing
+            call BJDebugMsg("Armor RightClick")
+        endfunction
+        function UTUnitPanel___anon__9 takes nothing returns nothing
+            call BJDebugMsg("Hero Enter")
+        endfunction
+        function UTUnitPanel___anon__10 takes nothing returns nothing
+            call BJDebugMsg("Hero Leave")
+        endfunction
+        function UTUnitPanel___anon__11 takes nothing returns nothing
+            call BJDebugMsg("Hero Click")
+        endfunction
+        function UTUnitPanel___anon__12 takes nothing returns nothing
+            call BJDebugMsg("Hero RightClick")
+        endfunction
+        function UTUnitPanel___anon__13 takes nothing returns nothing
+            call BJDebugMsg("Building Enter")
+        endfunction
+        function UTUnitPanel___anon__14 takes nothing returns nothing
+            call BJDebugMsg("Building Leave")
+        endfunction
+        function UTUnitPanel___anon__15 takes nothing returns nothing
+            call BJDebugMsg("Building Click")
+        endfunction
+        function UTUnitPanel___anon__16 takes nothing returns nothing
+            call BJDebugMsg("Building RightClick")
+        endfunction
+        function UTUnitPanel___anon__17 takes nothing returns nothing
+            call BJDebugMsg("Monster Enter")
+        endfunction
+        function UTUnitPanel___anon__18 takes nothing returns nothing
+            call BJDebugMsg("Monster Leave")
+        endfunction
+        function UTUnitPanel___anon__19 takes nothing returns nothing
+            call BJDebugMsg("Monster Click")
+        endfunction
+        function UTUnitPanel___anon__20 takes nothing returns nothing
+            call BJDebugMsg("Monster RightClick")
+        endfunction
+    function UTUnitPanel___Init takes nothing returns nothing
+        call s__unitPanel_onAttackEnter(function UTUnitPanel___anon__1)
+        call s__unitPanel_onAttackLeave(function UTUnitPanel___anon__2)
+        call s__unitPanel_onAttackClick(function UTUnitPanel___anon__3)
+        call s__unitPanel_onAttackRightClick(function UTUnitPanel___anon__4)
+        call s__unitPanel_onArmorEnter(function UTUnitPanel___anon__5)
+        call s__unitPanel_onArmorLeave(function UTUnitPanel___anon__6)
+        call s__unitPanel_onArmorClick(function UTUnitPanel___anon__7)
+        call s__unitPanel_onArmorRightClick(function UTUnitPanel___anon__8)
+        call s__unitPanel_onHeroEnter(function UTUnitPanel___anon__9)
+        call s__unitPanel_onHeroLeave(function UTUnitPanel___anon__10)
+        call s__unitPanel_onHeroClick(function UTUnitPanel___anon__11)
+        call s__unitPanel_onHeroRightClick(function UTUnitPanel___anon__12)
+        call s__unitPanel_onBuildingEnter(function UTUnitPanel___anon__13)
+        call s__unitPanel_onBuildingLeave(function UTUnitPanel___anon__14)
+        call s__unitPanel_onBuildingClick(function UTUnitPanel___anon__15)
+        call s__unitPanel_onBuildingRightClick(function UTUnitPanel___anon__16)
+        call s__unitPanel_onMonsterEnter(function UTUnitPanel___anon__17)
+        call s__unitPanel_onMonsterLeave(function UTUnitPanel___anon__18)
+        call s__unitPanel_onMonsterClick(function UTUnitPanel___anon__19)
+        call s__unitPanel_onMonsterRightClick(function UTUnitPanel___anon__20)
+        call Init2()
+    endfunction  //给两个图标加一下grow看看效果
+    function UTUnitPanel___TTestUTUnitPanel1 takes player p returns nothing
+        call s__icon_grow(s__unitPanel_iconAttack,(14))
+        call s__icon_grow(s__unitPanel_iconArmor,(18))
+    endfunction  //移除所有原生UI到屏幕外
+    function UTUnitPanel___TTestUTUnitPanel2 takes player p returns nothing
+        call s__icon_setCornerText(s__unitPanel_iconAttack,"Lv.1")
+        call s__icon_setCornerText(s__unitPanel_iconArmor,"1级")
     endfunction
-    function UTIcon__TTestUTIcon9 takes player p returns nothing
+    function UTUnitPanel___TTestUTUnitPanel3 takes player p returns nothing
+        call s__icon_startCooldown(s__unitPanel_iconAttack,3.0 , 0)
+        call s__icon_startCooldown(s__unitPanel_iconArmor,5.0 , 0)
     endfunction
-    function UTIcon__TTestUTIcon10 takes player p returns nothing
+    function UTUnitPanel___TTestUTUnitPanel4 takes player p returns nothing
+        call s__icon_startCooldown(s__unitPanel_iconArmor,0 , 0)
     endfunction
-    function UTIcon__TTestActUTIcon1 takes string str returns nothing
+    function UTUnitPanel___TTestUTUnitPanel5 takes player p returns nothing
+        call s__unitPanel_moveOutBuilding()
+        call s__unitPanel_moveOutMonster()
+        call BJDebugMsg("移走")
+    endfunction
+    function UTUnitPanel___TTestUTUnitPanel6 takes player p returns nothing
+    endfunction
+    function UTUnitPanel___TTestUTUnitPanel7 takes player p returns nothing
+    endfunction
+    function UTUnitPanel___TTestUTUnitPanel8 takes player p returns nothing
+    endfunction
+    function UTUnitPanel___TTestUTUnitPanel9 takes player p returns nothing
+    endfunction
+    function UTUnitPanel___TTestUTUnitPanel10 takes player p returns nothing
+    endfunction
+    function UTUnitPanel___TTestActUTUnitPanel1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -4057,18 +4540,6 @@ endfunction
         local string array paramS
         local integer array paramI
         local real array paramR
-        if ( str == "destroy" ) then
-            if ( s__icon_isExist(UTIcon__testIcon1) ) then
-                call s__icon_deallocate(UTIcon__testIcon1)
-                set UTIcon__testIcon1=0
-                set UTIcon__isTest1Active=false
-                call BJDebugMsg("图标已销毁")
-            else
-                call BJDebugMsg("没有可销毁的图标")
-            endif
-            set p=null
-            return
-        endif // 解析参数
         set i=0
         loop
         exitwhen ( i > len - 1 )
@@ -4086,101 +4557,104 @@ endfunction
         set paramS[num]=str
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
-        set num=num + 1 // 处理size命令
-        if ( paramS[0] == "size" ) then
-            if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
-                call BJDebugMsg("请先使用s1创建基础图标")
-                set p=null
-                return
-            endif
-            if ( num < 3 ) then
-                call BJDebugMsg("参数不足,请使用格式: -size x y")
-                call BJDebugMsg("例如: -size 0.04 0.04")
-                set p=null
-                return
-            endif
-            call s__icon_setSize(UTIcon__testIcon1,paramR[1] , paramR[2])
-            call BJDebugMsg("图标大小已设置为: " + R2S(paramR[1]) + " x " + R2S(paramR[2]))
-            set p=null
-            return
-        endif // 处理text命令
-        if ( paramS[0] == "text" ) then
-            if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
-                call BJDebugMsg("请先使用s1创建基础图标")
-                set p=null
-                return
-            endif
-            if ( num < 2 ) then
-                call BJDebugMsg("参数不足,请使用格式: -text <string>")
-                call BJDebugMsg("例如: -text 测试 或 -text null删除文字")
-                set p=null
-                return
-            endif
-            if ( paramS[1] == "null" ) then
-                call s__icon_setCornerText(UTIcon__testIcon1,null)
-                call BJDebugMsg("角落文字已删除")
-            else
-                call s__icon_setCornerText(UTIcon__testIcon1,paramS[1])
-                call BJDebugMsg("角落文字已设置为: " + paramS[1])
-            endif
-            set p=null
-            return
+        set num=num + 1
+        if ( paramS[0] == "a" ) then
+        elseif ( paramS[0] == "b" ) then
         endif
         set p=null
     endfunction
-        function UTIcon__anon__4 takes nothing returns nothing
-            call BJDebugMsg("[Icon] 单元测试已加载")
-            call BJDebugMsg("测试指令:")
-            call BJDebugMsg("s1 - 创建/销毁基础图标")
-            call BJDebugMsg(" s1a - 从现有UI创建图标")
-            call BJDebugMsg("-text <string> - 设置角落文字,如: -text 测试")
-            call BJDebugMsg("s3 - 开启/关闭流光效果")
-            call BJDebugMsg("s4 - 开启/关闭暗遮罩")
-            call BJDebugMsg("s5 - 测试点击事件")
-            call BJDebugMsg("s6 - 测试CD显示(10秒)")
-            call BJDebugMsg("s7 - 显示/隐藏图标")
-            call BJDebugMsg("s8 - 开启自动尺寸")
-            call BJDebugMsg("-destroy - 销毁图标")
-            call BJDebugMsg("-size(x,y) - 设置图标大小,如: -size 0.04 0.04")
+        function UTUnitPanel___anon__21 takes nothing returns nothing
+            local unit hero
+            local unit building
+            local unit witch1
+            local unit priest1
+            local unit witch2
+            local unit priest2
+            local real x=0
+            local real y=0
+            local integer i=0
+            set hero=CreateUnit(Player(0), 'Hamg', 0, 0, 270) // 创建大法师在坐标(0,0)
+            call SetHeroLevel(hero, 10, true) // 为玩家1创建女巫和牧师
+            set witch1=CreateUnit(Player(0), 'hsor', 200, 200, 270) // 创建女巫 // 创建牧师
+            set priest1=CreateUnit(Player(0), 'hmpr', 200, - 200, 270) // 在地图远角创建玩家2的女巫和牧师
+            set witch2=CreateUnit(Player(11), 'hsor', 5000, 5000, 270) // 创建玩家12的女巫 // 创建玩家12的牧师
+            set priest2=CreateUnit(Player(11), 'hmpr', 5000, - 5000, 270) // 创建一个建筑单位用于测试12个技能
+            set building=CreateUnit(Player(0), 'hcas', 400, 0, 270) // 创建人族城堡 // 为建筑添加12个技能
+            call UnitAddAbility(building, 'AHbz') // 暴风雪 // 水元素
+            call UnitAddAbility(building, 'AHwe') // 闪现
+            call UnitAddAbility(building, 'AHab') // 群体传送
+            call UnitAddAbility(building, 'AHmt') // 烈焰风暴
+            call UnitAddAbility(building, 'AHfs') // 驱逐魔法
+            call UnitAddAbility(building, 'AHbn') // 吸取魔法
+            call UnitAddAbility(building, 'AHdr') // 凤凰
+            call UnitAddAbility(building, 'AHpx') // 奥术光环
+            call UnitAddAbility(building, 'AHad') // 化身
+            call UnitAddAbility(building, 'AHav') // 寒冰护甲
+            call UnitAddAbility(building, 'AHcs') // 烈焰护甲
+            call UnitAddAbility(building, 'AHfa') // 添加8个预选的技能
+            call UnitAddAbility(hero, 'ACbc') // 火焰呼吸 // 霜冻闪电
+            call UnitAddAbility(hero, 'ACbf') // 变形术
+            call UnitAddAbility(hero, 'ACpy') // 妖术
+            call UnitAddAbility(hero, 'AOhx') // 吞噬
+            call UnitAddAbility(hero, 'ACdv') // 诱捕
+            call UnitAddAbility(hero, 'ACen') // 混乱之雨
+            call UnitAddAbility(hero, 'ANr3') // 医疗波
+            call UnitAddAbility(hero, 'AOhw')
+            call BJDebugMsg("[UnitPanel] 单元测试已加载")
+            call UTUnitPanel___Init()
+            call DestroyTrigger(GetTriggeringTrigger())
+        endfunction  //在游戏开始0.1秒后再调用
+        function UTUnitPanel___anon__22 takes nothing returns nothing
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTIcon__anon__5 takes nothing returns nothing
+        function UTUnitPanel___anon__23 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
+            local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTIcon__TTestActUTIcon1(SubStringBJ(str, 2, StringLength(str)))
+                call UTUnitPanel___TTestActUTUnitPanel1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTIcon__TTestUTIcon1(GetTriggerPlayer())
-            elseif ( str == "s1a" ) then
-                call UTIcon__TTestUTIcon1a(GetTriggerPlayer())
+                call UTUnitPanel___TTestUTUnitPanel1(GetTriggerPlayer())
+            elseif ( str == "s2" ) then
+                call UTUnitPanel___TTestUTUnitPanel2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTIcon__TTestUTIcon3(GetTriggerPlayer())
+                call UTUnitPanel___TTestUTUnitPanel3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTIcon__TTestUTIcon4(GetTriggerPlayer())
+                call UTUnitPanel___TTestUTUnitPanel4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTIcon__TTestUTIcon5(GetTriggerPlayer())
+                call UTUnitPanel___TTestUTUnitPanel5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTIcon__TTestUTIcon6(GetTriggerPlayer())
+                call UTUnitPanel___TTestUTUnitPanel6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTIcon__TTestUTIcon7(GetTriggerPlayer())
+                call UTUnitPanel___TTestUTUnitPanel7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTIcon__TTestUTIcon8(GetTriggerPlayer())
+                call UTUnitPanel___TTestUTUnitPanel8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTIcon__TTestUTIcon9(GetTriggerPlayer())
+                call UTUnitPanel___TTestUTUnitPanel9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTIcon__TTestUTIcon10(GetTriggerPlayer())
+                call UTUnitPanel___TTestUTUnitPanel10(GetTriggerPlayer())
             endif
         endfunction
-    function UTIcon__onInit takes nothing returns nothing
+    function UTUnitPanel___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTIcon__anon__4))
+        call TriggerAddCondition(tr, Condition(function UTUnitPanel___anon__21))
+        set tr=CreateTrigger()
+        call TriggerRegisterTimerEventSingle(tr, 0.1)
+        call TriggerAddCondition(tr, Condition(function UTUnitPanel___anon__22))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTIcon__anon__5)
+        call UnitTestRegisterChatEvent(function UTUnitPanel___anon__23)
+        call InitTestUIRuler()
     endfunction
 
-//library UTIcon ends
+//library UTUnitPanel ends
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
 
 // 0 - 1亿这里用
 // 锚点常量
@@ -4190,25 +4664,8 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
+//窗口的大小
 
-// [DzSetUnitMoveType]  
-// title = "设置单位移动类型[NEW]"  
-// description = "设置 ${单位} 的移动类型：${movetype} "  
-// comment = ""  
-// category = TC_KKPRE  
-// [[.args]]  
-// type = unit  
-// [[.args]]  
-// type = MoveTypeName  
-// default = MoveTypeName01  
-
-//控件的共用基本方法
 //===========================================================================
 // Icon.j
 //===========================================================================
@@ -4236,7 +4693,21 @@ endfunction
 //
 //===========================================================================
 //# dependency:ui/model/cooldown_center.mdx
-//窗口的大小
+//控件的共用基本方法
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
+
+
+// 按键ASCII码
+// 按键事件
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -4320,8 +4791,31 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
-
+//===========================================================================
+// UnitPanel_Test.j
+//===========================================================================
+// 文件描述：单位面板测试模块
+// 创建日期：未知
+// 修改记录：
+//   - 实现了单位属性面板的测试功能
+//   - 包含攻击、护甲等属性的显示和交互
+//
+// 主要功能：
+//   - 创建并测试单位属性面板UI
+//   - 提供属性图标和数值显示
+//   - 实现鼠标悬停和点击事件
+//   - 包含单元测试用例
+//===========================================================================
 // 用原始地图测试
+
+// 0 - 1亿这里用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -4650,13 +5144,13 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs11979421")
+call ExecuteFunc("jasshelper__initstructs30604625")
 call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
 call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UIExtendEvent___onInit")
-call ExecuteFunc("UIExtendResize___onInit")
-call ExecuteFunc("UTIcon__onInit")
+call ExecuteFunc("UIExtendEvent__onInit")
+call ExecuteFunc("UIExtendResize__onInit")
+call ExecuteFunc("UnitTestUIRuler___onInit")
+call ExecuteFunc("UTUnitPanel___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -4863,36 +5357,168 @@ return true
             set s__baseanim_size=s__baseanim_size - 1
    return true
 endfunction
-function sa___prototype20_UTIcon__anon__0 takes nothing returns boolean
+function sa___prototype20_s__unitPanel_anon__0 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-            call BJDebugMsg("enter:" + I2S(data))
+                if ( s__unitPanel_trAttackEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trAttackEnter)
+                endif
     return true
 endfunction
-function sa___prototype20_UTIcon__anon__1 takes nothing returns boolean
+function sa___prototype20_s__unitPanel_anon__1 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-            call BJDebugMsg("leave:" + I2S(data))
+                if ( s__unitPanel_trAttackLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trAttackLeave)
+                endif
     return true
 endfunction
-function sa___prototype20_UTIcon__anon__2 takes nothing returns boolean
+function sa___prototype20_s__unitPanel_anon__2 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-            call BJDebugMsg("click:" + I2S(data))
+                if ( s__unitPanel_trAttackClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trAttackClick)
+                endif
     return true
 endfunction
-function sa___prototype20_UTIcon__anon__3 takes nothing returns boolean
+function sa___prototype20_s__unitPanel_anon__3 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-            call BJDebugMsg("RightClick:" + I2S(data))
+                if ( s__unitPanel_trAttackRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trAttackRightClick)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__4 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trArmorEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trArmorEnter)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__5 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trArmorLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trArmorLeave)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__6 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trArmorClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trArmorClick)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__7 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trArmorRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trArmorRightClick)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__8 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trHeroEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trHeroEnter)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__9 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trHeroLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trHeroLeave)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__10 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trHeroClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trHeroClick)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__11 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trHeroRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trHeroRightClick)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__12 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trBuildingEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trBuildingEnter)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__13 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trBuildingLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trBuildingLeave)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__14 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trBuildingClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trBuildingClick)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__15 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trBuildingRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trBuildingRightClick)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__16 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trMonsterEnter != null ) then
+                    call TriggerEvaluate(s__unitPanel_trMonsterEnter)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__17 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trMonsterLeave != null ) then
+                    call TriggerEvaluate(s__unitPanel_trMonsterLeave)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__18 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trMonsterClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trMonsterClick)
+                endif
+    return true
+endfunction
+function sa___prototype20_s__unitPanel_anon__19 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                if ( s__unitPanel_trMonsterRightClick != null ) then
+                    call TriggerEvaluate(s__unitPanel_trMonsterRightClick)
+                endif
     return true
 endfunction
 
-function jasshelper__initstructs11979421 takes nothing returns nothing
+function jasshelper__initstructs30604625 takes nothing returns nothing
     set st__icon_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__icon_onDestroy,Condition( function sa__icon_onDestroy))
     set st__progAnim_create=CreateTrigger()
@@ -4914,17 +5540,67 @@ function jasshelper__initstructs11979421 takes nothing returns nothing
     set st__baseanim_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__baseanim_onDestroy,Condition( function sa__baseanim_onDestroy))
     set st___prototype20[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[1],function sa___prototype20_UTIcon__anon__0)
-    call TriggerAddCondition(st___prototype20[1],Condition(function sa___prototype20_UTIcon__anon__0))
+    call TriggerAddAction(st___prototype20[1],function sa___prototype20_s__unitPanel_anon__0)
+    call TriggerAddCondition(st___prototype20[1],Condition(function sa___prototype20_s__unitPanel_anon__0))
     set st___prototype20[2]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[2],function sa___prototype20_UTIcon__anon__1)
-    call TriggerAddCondition(st___prototype20[2],Condition(function sa___prototype20_UTIcon__anon__1))
+    call TriggerAddAction(st___prototype20[2],function sa___prototype20_s__unitPanel_anon__1)
+    call TriggerAddCondition(st___prototype20[2],Condition(function sa___prototype20_s__unitPanel_anon__1))
     set st___prototype20[3]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[3],function sa___prototype20_UTIcon__anon__2)
-    call TriggerAddCondition(st___prototype20[3],Condition(function sa___prototype20_UTIcon__anon__2))
+    call TriggerAddAction(st___prototype20[3],function sa___prototype20_s__unitPanel_anon__2)
+    call TriggerAddCondition(st___prototype20[3],Condition(function sa___prototype20_s__unitPanel_anon__2))
     set st___prototype20[4]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[4],function sa___prototype20_UTIcon__anon__3)
-    call TriggerAddCondition(st___prototype20[4],Condition(function sa___prototype20_UTIcon__anon__3))
+    call TriggerAddAction(st___prototype20[4],function sa___prototype20_s__unitPanel_anon__3)
+    call TriggerAddCondition(st___prototype20[4],Condition(function sa___prototype20_s__unitPanel_anon__3))
+    set st___prototype20[5]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[5],function sa___prototype20_s__unitPanel_anon__4)
+    call TriggerAddCondition(st___prototype20[5],Condition(function sa___prototype20_s__unitPanel_anon__4))
+    set st___prototype20[6]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[6],function sa___prototype20_s__unitPanel_anon__5)
+    call TriggerAddCondition(st___prototype20[6],Condition(function sa___prototype20_s__unitPanel_anon__5))
+    set st___prototype20[7]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[7],function sa___prototype20_s__unitPanel_anon__6)
+    call TriggerAddCondition(st___prototype20[7],Condition(function sa___prototype20_s__unitPanel_anon__6))
+    set st___prototype20[8]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[8],function sa___prototype20_s__unitPanel_anon__7)
+    call TriggerAddCondition(st___prototype20[8],Condition(function sa___prototype20_s__unitPanel_anon__7))
+    set st___prototype20[9]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[9],function sa___prototype20_s__unitPanel_anon__8)
+    call TriggerAddCondition(st___prototype20[9],Condition(function sa___prototype20_s__unitPanel_anon__8))
+    set st___prototype20[10]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[10],function sa___prototype20_s__unitPanel_anon__9)
+    call TriggerAddCondition(st___prototype20[10],Condition(function sa___prototype20_s__unitPanel_anon__9))
+    set st___prototype20[11]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[11],function sa___prototype20_s__unitPanel_anon__10)
+    call TriggerAddCondition(st___prototype20[11],Condition(function sa___prototype20_s__unitPanel_anon__10))
+    set st___prototype20[12]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[12],function sa___prototype20_s__unitPanel_anon__11)
+    call TriggerAddCondition(st___prototype20[12],Condition(function sa___prototype20_s__unitPanel_anon__11))
+    set st___prototype20[13]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[13],function sa___prototype20_s__unitPanel_anon__12)
+    call TriggerAddCondition(st___prototype20[13],Condition(function sa___prototype20_s__unitPanel_anon__12))
+    set st___prototype20[14]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[14],function sa___prototype20_s__unitPanel_anon__13)
+    call TriggerAddCondition(st___prototype20[14],Condition(function sa___prototype20_s__unitPanel_anon__13))
+    set st___prototype20[15]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[15],function sa___prototype20_s__unitPanel_anon__14)
+    call TriggerAddCondition(st___prototype20[15],Condition(function sa___prototype20_s__unitPanel_anon__14))
+    set st___prototype20[16]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[16],function sa___prototype20_s__unitPanel_anon__15)
+    call TriggerAddCondition(st___prototype20[16],Condition(function sa___prototype20_s__unitPanel_anon__15))
+    set st___prototype20[17]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[17],function sa___prototype20_s__unitPanel_anon__16)
+    call TriggerAddCondition(st___prototype20[17],Condition(function sa___prototype20_s__unitPanel_anon__16))
+    set st___prototype20[18]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[18],function sa___prototype20_s__unitPanel_anon__17)
+    call TriggerAddCondition(st___prototype20[18],Condition(function sa___prototype20_s__unitPanel_anon__17))
+    set st___prototype20[19]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[19],function sa___prototype20_s__unitPanel_anon__18)
+    call TriggerAddCondition(st___prototype20[19],Condition(function sa___prototype20_s__unitPanel_anon__18))
+    set st___prototype20[20]=CreateTrigger()
+    call TriggerAddAction(st___prototype20[20],function sa___prototype20_s__unitPanel_anon__19)
+    call TriggerAddCondition(st___prototype20[20],Condition(function sa___prototype20_s__unitPanel_anon__19))
+
+
 
 
 
@@ -4959,5 +5635,6 @@ function jasshelper__initstructs11979421 takes nothing returns nothing
     call ExecuteFunc("s__baseanim_onInit")
     call ExecuteFunc("s__uilayer_onInit")
     call ExecuteFunc("s__progAnim_onInit")
+    call ExecuteFunc("s__unitPanel_onInit")
 endfunction
 

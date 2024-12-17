@@ -13,17 +13,6 @@
 //*  Global Variables
 //*
 //***************************************************************************
-library YDTriggerSaveLoadSystem initializer Init
-//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-globals
-        hashtable YDHT
-    hashtable YDLOC
-endglobals
-    private function Init takes nothing returns nothing
-            set YDHT = InitHashtable()
-        set YDLOC = InitHashtable()
-    endfunction
-endlibrary
 globals
     // Generated
     rect gg_rct_Wave1 = null
@@ -115,194 +104,87 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
-/*===========================================================================
-* Icon组件单元测试
-*
-* 功能说明:
-* - 测试Icon组件的基本功能
-* - 包括创建、显示、角落文字、流光效果、暗遮罩等
-* - 提供交互式的测试命令
-*
-* 测试指令:
-* s1 - 创建/销毁基础图标
-*  s1a - 从现有UI创建图标
-* -text <string> - 设置角落文字,如: -text 测试
-* s3 - 开启/关闭流光效果
-* s4 - 开启/关闭暗遮罩
-* s5 - 测试点击事件
-* s6 - 测试CD显示(10秒)
-* s7 - 显示/隐藏图标
-* s8 - 开启自动尺寸
-* -destroy - 销毁图标
-* -size(x,y) - 设置图标大小,如: -size 0.04 0.04
-*
-* 使用方法:
-* 1. 首先使用s1创建基础图标
-* 2. 然后可以使用其他指令测试各项功能
-* 3. 完成后使用s1或-destroy销毁图标
-*===========================================================================*/
+//===========================================================================
+// UnitPanel_Test.j
+//===========================================================================
+// 文件描述：单位面板测试模块
+// 创建日期：未知
+// 修改记录：
+//   - 实现了单位属性面板的测试功能
+//   - 包含攻击、护甲等属性的显示和交互
+//
+// 主要功能：
+//   - 创建并测试单位属性面板UI
+//   - 提供属性图标和数值显示
+//   - 实现鼠标悬停和点击事件
+//   - 包含单元测试用例
+//===========================================================================
 // 用原始地图测试
+/*
+UI哈希表定义
+*/
+// 0 - 1亿这里用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 //! zinc
 //自动生成的文件
-library UTIcon requires Icon {
-	private icon testIcon1 = 0;
-	private boolean isTest1Active = false;
-	private boolean isTest3Active = false;
-	private boolean isTest4Active = false;
-	private boolean isTest7Active = false;
-	// 基础图标创建和显示测试
-	function TTestUTIcon1 (player p) {
-		if (!isTest1Active) {
-			testIcon1 = icon.create(DzGetGameUI())
-				.setSize(0.07, 0.07) //这
-.setTexture("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp")
-				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, 0)
-				.show(true);
-			BJDebugMsg("基础图标已创建 - 输入s1可关闭");
-			isTest1Active = true;
-		} else {
-			testIcon1.destroy();
-			testIcon1 = 0;
-			isTest1Active = false;
-			BJDebugMsg("基础图标已关闭");
-		}
+library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
+	public function Init2 () {
+		hardware.regUpdateEvent(function () {
+			if (IsUnitAlly(DzGetSelectedLeaderUnit(), GetLocalPlayer()) && GetOwningPlayer(DzGetSelectedLeaderUnit()) != GetLocalPlayer() && IsUnitType(DzGetSelectedLeaderUnit(), UNIT_TYPE_STRUCTURE)) {
+				unitPanel.moveOutBuilding();
+			} else if (GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hsor' || GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hmpr') {
+				unitPanel.moveOutMonster();
+			}
+		});
 	}
-	// 添加新的测试函数
-	function TTestUTIcon1a (player p) {
-		uiImage img = 0;
-		if (!isTest1Active) {
-			// 从现有UI创建icon
-			testIcon1 = icon.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
-				.setSize(0.08,0.08)
-				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-				.setTexture("ReplaceableTextures\\CommandButtons\\BTNSorceress.blp");
-			isTest1Active = true;
-			BJDebugMsg("已从现有UI创建图标 - 输入s1a可关闭");
-		} else {
-			testIcon1.destroy();
-			testIcon1 = 0;
-			isTest1Active = false;
-			BJDebugMsg("从现有UI创建的图标已关闭");
-		}
+	// 初始化测试内容
+	function Init () {
+		unitPanel.on/**/Attack/**/Enter(function () {BJDebugMsg("Attack" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Attack/**/Leave(function () {BJDebugMsg("Attack" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Attack/**/Click(function () {BJDebugMsg("Attack" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Attack/**/RightClick(function () {BJDebugMsg("Attack" + " " + "RightClick");}); <?='\n'?>
+		unitPanel.on/**/Armor/**/Enter(function () {BJDebugMsg("Armor" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Armor/**/Leave(function () {BJDebugMsg("Armor" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Armor/**/Click(function () {BJDebugMsg("Armor" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Armor/**/RightClick(function () {BJDebugMsg("Armor" + " " + "RightClick");}); <?='\n'?>
+		unitPanel.on/**/Hero/**/Enter(function () {BJDebugMsg("Hero" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Hero/**/Leave(function () {BJDebugMsg("Hero" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Hero/**/Click(function () {BJDebugMsg("Hero" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Hero/**/RightClick(function () {BJDebugMsg("Hero" + " " + "RightClick");}); <?='\n'?>
+		unitPanel.on/**/Building/**/Enter(function () {BJDebugMsg("Building" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Building/**/Leave(function () {BJDebugMsg("Building" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Building/**/Click(function () {BJDebugMsg("Building" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Building/**/RightClick(function () {BJDebugMsg("Building" + " " + "RightClick");}); <?='\n'?>
+		unitPanel.on/**/Monster/**/Enter(function () {BJDebugMsg("Monster" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Monster/**/Leave(function () {BJDebugMsg("Monster" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Monster/**/Click(function () {BJDebugMsg("Monster" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Monster/**/RightClick(function () {BJDebugMsg("Monster" + " " + "RightClick");}); <?='\n'?>
+		Init2();
 	}
-	// 流光效果测试
-	function TTestUTIcon3 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest3Active) {
-			testIcon1.grow( growdata[ICONGROW_2]);
-			isTest3Active = true;
-			BJDebugMsg("流光效果已开启 - 输入s3可关闭");
-		} else {
-			testIcon1.unGrow();
-			isTest3Active = false;
-			BJDebugMsg("流光效果已关闭");
-		}
+	function TTestUTUnitPanel1 (player p) { //给两个图标加一下grow看看效果
+unitPanel.iconAttack.grow(growdata[ICONGROW_14]);
+		unitPanel.iconArmor.grow(growdata[ICONGROW_18]);
 	}
-	// 暗遮罩测试
-	function TTestUTIcon4 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest4Active) {
-			testIcon1.setShadow(true);
-			isTest4Active = true;
-			BJDebugMsg("暗遮罩已开启 - 输入s4可关闭");
-		} else {
-			testIcon1.setShadow(false);
-			isTest4Active = false;
-			BJDebugMsg("暗遮罩已关闭");
-		}
+	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
+unitPanel.iconAttack.setCornerText("Lv.1");
+		unitPanel.iconArmor.setCornerText("1级");
 	}
-	// 点击事件测试
-	function TTestUTIcon5 (player p) {
-		uiBtn btn;
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		btn = testIcon1.getClickBtn()
-			.spEnter(function(integer frame) {
-				integer data = uiHashTable(frame).eventdata.get();
-				BJDebugMsg("enter:"+I2S(data));
-			})
-			.spLeave(function(integer frame) {
-				integer data = uiHashTable(frame).eventdata.get();
-				BJDebugMsg("leave:"+I2S(data));
-			})
-			.spClick(function(integer frame) {
-				integer data = uiHashTable(frame).eventdata.get();
-				BJDebugMsg("click:"+I2S(data));
-			})
-			.spRightClick(function(integer frame) {
-				integer data = uiHashTable(frame).eventdata.get();
-				BJDebugMsg("RightClick:"+I2S(data));
-			});
-		uiHashTable(btn.ui).eventdata.bind(8174);
-		BJDebugMsg("事件已绑定 - 请点击图标测试");
+	function TTestUTUnitPanel3 (player p) {
+		unitPanel.iconAttack.startCooldown(3.0,0);
+		unitPanel.iconArmor.startCooldown(5.0,0);
 	}
-	// CD显示测试
-	function TTestUTIcon6 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		testIcon1.startCooldown(10.0,0);
-		BJDebugMsg("CD显示已开始 - 持续10秒");
+	function TTestUTUnitPanel4 (player p) {
+		unitPanel.iconArmor.startCooldown(0,0);
 	}
-	// 显示/隐藏测试(both生效)
-	function TTestUTIcon7 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		if (!isTest7Active) {
-			testIcon1.show(false);
-			isTest7Active = true;
-			BJDebugMsg("图标已隐藏 - 输入s7可显示");
-		} else {
-			testIcon1.show(true);
-			isTest7Active = false;
-			BJDebugMsg("图标已显示");
-		}
+	function TTestUTUnitPanel5 (player p) {
+		unitPanel.moveOutBuilding();
+		unitPanel.moveOutMonster();
+		BJDebugMsg("移走");
 	}
-	// 大小调整测试(both生效)
-	function TTestUTIcon8 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		testIcon1.enableResize();
-		BJDebugMsg("大小调整已开启");
-	}
-	function TTestUTIcon9 (player p) {}
-	function TTestUTIcon10 (player p) {}
-	function TTestActUTIcon1 (string str) {
+	function TTestUTUnitPanel6 (player p) {}
+	function TTestUTUnitPanel7 (player p) {}
+	function TTestUTUnitPanel8 (player p) {}
+	function TTestUTUnitPanel9 (player p) {}
+	function TTestUTUnitPanel10 (player p) {}
+	function TTestActUTUnitPanel1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
 string paramS []; //所有参数S
 integer paramI []; //所有参数I
 real	paramR []; //所有参数R
-
-		// 处理destroy命令
-		if (str == "destroy") {
-			if (testIcon1.isExist()) {
-				testIcon1.destroy();
-				testIcon1 = 0;
-				isTest1Active = false;
-				BJDebugMsg("图标已销毁");
-			} else {
-				BJDebugMsg("没有可销毁的图标");
-			}
-			p = null;
-			return;
-		}
-		// 解析参数
-		for (0 <= i <= len - 1) {
+for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
 				paramI[num]= S2I(paramS[num]);
@@ -317,46 +199,8 @@ real	paramR []; //所有参数R
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		// 处理size命令
-		if (paramS[0] == "size") {
-			if (!testIcon1.isExist()) {
-				BJDebugMsg("请先使用s1创建基础图标");
-				p = null;
-				return;
-			}
-			if (num < 3) {
-				BJDebugMsg("参数不足,请使用格式: -size x y");
-				BJDebugMsg("例如: -size 0.04 0.04");
-				p = null;
-				return;
-			}
-			testIcon1.setSize(paramR[1], paramR[2]);
-			BJDebugMsg("图标大小已设置为: " + R2S(paramR[1]) + " x " + R2S(paramR[2]));
-			p = null;
-			return;
-		}
-		// 处理text命令
-		if (paramS[0] == "text") {
-			if (!testIcon1.isExist()) {
-				BJDebugMsg("请先使用s1创建基础图标");
-				p = null;
-				return;
-			}
-			if (num < 2) {
-				BJDebugMsg("参数不足,请使用格式: -text <string>");
-				BJDebugMsg("例如: -text 测试 或 -text null删除文字");
-				p = null;
-				return;
-			}
-			if (paramS[1] == "null") {
-				testIcon1.setCornerText(null);
-				BJDebugMsg("角落文字已删除");
-			} else {
-				testIcon1.setCornerText(paramS[1]);
-				BJDebugMsg("角落文字已设置为: " + paramS[1]);
-			}
-			p = null;
-			return;
+		if (paramS[0] == "a") {
+		} else if (paramS[0] == "b") {
 		}
 		p = null;
 	}
@@ -365,39 +209,76 @@ real	paramR []; //所有参数R
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[Icon] 单元测试已加载");
-			BJDebugMsg("测试指令:");
-			BJDebugMsg("s1 - 创建/销毁基础图标");
-			BJDebugMsg(" s1a - 从现有UI创建图标");
-			BJDebugMsg("-text <string> - 设置角落文字,如: -text 测试");
-			BJDebugMsg("s3 - 开启/关闭流光效果");
-			BJDebugMsg("s4 - 开启/关闭暗遮罩");
-			BJDebugMsg("s5 - 测试点击事件");
-			BJDebugMsg("s6 - 测试CD显示(10秒)");
-			BJDebugMsg("s7 - 显示/隐藏图标");
-			BJDebugMsg("s8 - 开启自动尺寸");
-			BJDebugMsg("-destroy - 销毁图标");
-			BJDebugMsg("-size(x,y) - 设置图标大小,如: -size 0.04 0.04");
+			unit hero,building,witch1,priest1,witch2,priest2;
+			real x = 0, y = 0;
+			integer i = 0;
+			// 为玩家1创建测试英雄
+			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
+SetHeroLevel(hero, 10,true);
+			// 为玩家1创建女巫和牧师
+			witch1 = CreateUnit(Player(0), 'hsor', 200, 200, 270); // 创建女巫
+priest1 = CreateUnit(Player(0), 'hmpr', 200, -200, 270); // 创建牧师
+
+			// 在地图远角创建玩家2的女巫和牧师
+			witch2 = CreateUnit(Player(11), 'hsor', 5000, 5000, 270); // 创建玩家12的女巫
+priest2 = CreateUnit(Player(11), 'hmpr', 5000, -5000, 270); // 创建玩家12的牧师
+
+			// 创建一个建筑单位用于测试12个技能
+			building = CreateUnit(Player(0), 'hcas', 400, 0, 270); // 创建人族城堡
+
+			// 为建筑添加12个技能
+			UnitAddAbility(building, 'AHbz'); // 暴风雪
+UnitAddAbility(building, 'AHwe'); // 水元素
+UnitAddAbility(building, 'AHab'); // 闪现
+UnitAddAbility(building, 'AHmt'); // 群体传送
+UnitAddAbility(building, 'AHfs'); // 烈焰风暴
+UnitAddAbility(building, 'AHbn'); // 驱逐魔法
+UnitAddAbility(building, 'AHdr'); // 吸取魔法
+UnitAddAbility(building, 'AHpx'); // 凤凰
+UnitAddAbility(building, 'AHad'); // 奥术光环
+UnitAddAbility(building, 'AHav'); // 化身
+UnitAddAbility(building, 'AHcs'); // 寒冰护甲
+UnitAddAbility(building, 'AHfa'); // 烈焰护甲
+
+			// 添加8个预选的技能
+			UnitAddAbility(hero, 'ACbc'); // 火焰呼吸
+UnitAddAbility(hero, 'ACbf'); // 霜冻闪电
+UnitAddAbility(hero, 'ACpy'); // 变形术
+UnitAddAbility(hero, 'AOhx'); // 妖术
+UnitAddAbility(hero, 'ACdv'); // 吞噬
+UnitAddAbility(hero, 'ACen'); // 诱捕
+UnitAddAbility(hero, 'ANr3'); // 混乱之雨
+UnitAddAbility(hero, 'AOhw'); // 医疗波
+BJDebugMsg("[UnitPanel] 单元测试已加载");
+			Init();
+			DestroyTrigger(GetTriggeringTrigger());
+		}));
+		//在游戏开始0.1秒后再调用
+		tr = CreateTrigger();
+		TriggerRegisterTimerEventSingle(tr,0.1);
+		TriggerAddCondition(tr,Condition(function (){
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
+			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTIcon1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUnitPanel1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTIcon1(GetTriggerPlayer());
-			else if(str == "s1a") TTestUTIcon1a(GetTriggerPlayer());
-			else if(str == "s3") TTestUTIcon3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTIcon4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTIcon5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTIcon6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTIcon7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTIcon8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTIcon9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTIcon10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUnitPanel1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUnitPanel2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUnitPanel3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUnitPanel4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUnitPanel5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUnitPanel6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUnitPanel7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUnitPanel8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUnitPanel9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUnitPanel10(GetTriggerPlayer());
 		});
+		InitTestUIRuler();
 	}
 }
 //! endzinc
