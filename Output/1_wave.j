@@ -126,7 +126,7 @@ endfunction
 * 测试指令:
 * s1 - 创建/销毁基础图标
 *  s1a - 从现有UI创建图标
-* s2 - 更新角落文字
+* -text <string> - 设置角落文字,如: -text 测试
 * s3 - 开启/关闭流光效果
 * s4 - 开启/关闭暗遮罩
 * s5 - 测试点击事件
@@ -184,16 +184,6 @@ library UTIcon requires Icon {
 			isTest1Active = false;
 			BJDebugMsg("从现有UI创建的图标已关闭");
 		}
-	}
-	// 角落文字测试
-	function TTestUTIcon2 (player p) {
-		if (!testIcon1.isExist()) {
-			BJDebugMsg("请先使用s1创建基础图标");
-			return;
-		}
-		testIcon1.setCornerText(I2S(GetRandomInt(1, 99)));
-		testIcon1.showCornerText(true);
-		BJDebugMsg("已更新角落文字 - 再次输入s2随机新数字");
 	}
 	// 流光效果测试
 	function TTestUTIcon3 (player p) {
@@ -345,8 +335,28 @@ real	paramR []; //所有参数R
 			p = null;
 			return;
 		}
-		if (paramS[0] == "a") {
-		} else if (paramS[0] == "b") {
+		// 处理text命令
+		if (paramS[0] == "text") {
+			if (!testIcon1.isExist()) {
+				BJDebugMsg("请先使用s1创建基础图标");
+				p = null;
+				return;
+			}
+			if (num < 2) {
+				BJDebugMsg("参数不足,请使用格式: -text <string>");
+				BJDebugMsg("例如: -text 测试 或 -text null删除文字");
+				p = null;
+				return;
+			}
+			if (paramS[1] == "null") {
+				testIcon1.setCornerText(null);
+				BJDebugMsg("角落文字已删除");
+			} else {
+				testIcon1.setCornerText(paramS[1]);
+				BJDebugMsg("角落文字已设置为: " + paramS[1]);
+			}
+			p = null;
+			return;
 		}
 		p = null;
 	}
@@ -359,7 +369,7 @@ real	paramR []; //所有参数R
 			BJDebugMsg("测试指令:");
 			BJDebugMsg("s1 - 创建/销毁基础图标");
 			BJDebugMsg(" s1a - 从现有UI创建图标");
-			BJDebugMsg("s2 - 更新角落文字");
+			BJDebugMsg("-text <string> - 设置角落文字,如: -text 测试");
 			BJDebugMsg("s3 - 开启/关闭流光效果");
 			BJDebugMsg("s4 - 开启/关闭暗遮罩");
 			BJDebugMsg("s5 - 测试点击事件");
@@ -379,7 +389,6 @@ real	paramR []; //所有参数R
 			}
 			if (str == "s1") TTestUTIcon1(GetTriggerPlayer());
 			else if(str == "s1a") TTestUTIcon1a(GetTriggerPlayer());
-			else if(str == "s2") TTestUTIcon2(GetTriggerPlayer());
 			else if(str == "s3") TTestUTIcon3(GetTriggerPlayer());
 			else if(str == "s4") TTestUTIcon4(GetTriggerPlayer());
 			else if(str == "s5") TTestUTIcon5(GetTriggerPlayer());

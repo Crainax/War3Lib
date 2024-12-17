@@ -39,7 +39,7 @@ constant boolean LIBRARY_UIEventModule=true
 //globals from UIHashTable:
 constant boolean LIBRARY_UIHashTable=true
 hashtable HASH_UI=InitHashtable()
-integer UIHashTable___frame=0
+integer UIHashTable__frame=0
 //endglobals from UIHashTable
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
@@ -79,12 +79,13 @@ constant boolean LIBRARY_UIBaseModule=true
 //endglobals from UIBaseModule
 //globals from UIExtendEvent:
 constant boolean LIBRARY_UIExtendEvent=true
-boolean UIExtendEvent___rcStartOnUI=false
-integer UIExtendEvent___clickStartUI=0
 //endglobals from UIExtendEvent
 //globals from UIExtendResize:
 constant boolean LIBRARY_UIExtendResize=true
 //endglobals from UIExtendResize
+//globals from UILayer:
+constant boolean LIBRARY_UILayer=true
+//endglobals from UILayer
 //globals from UIButton:
 constant boolean LIBRARY_UIButton=true
 //endglobals from UIButton
@@ -105,11 +106,11 @@ constant boolean LIBRARY_Icon=true
 //endglobals from Icon
 //globals from UTIcon:
 constant boolean LIBRARY_UTIcon=true
-integer UTIcon___testIcon1=0
-boolean UTIcon___isTest1Active=false
-boolean UTIcon___isTest3Active=false
-boolean UTIcon___isTest4Active=false
-boolean UTIcon___isTest7Active=false
+integer UTIcon__testIcon1=0
+boolean UTIcon__isTest1Active=false
+boolean UTIcon__isTest3Active=false
+boolean UTIcon__isTest4Active=false
+boolean UTIcon__isTest7Active=false
 //endglobals from UTIcon
     // Generated
 rect gg_rct_Wave1= null
@@ -163,11 +164,11 @@ integer array s__uianim_UIAList
 integer s__uianim_size=0
 trigger array s__uianim_trig
 integer array s__uianim_trID
-constant integer si__UIHashTable___uiHT=5
-integer array s__UIHashTable___uiHT_eventdata
-integer array s__UIHashTable___uiHT_ui
-constant integer si__UIHashTable___uiHTFrame=6
-constant integer si__UIHashTable___uiHTEvent=7
+constant integer si__UIHashTable__uiHT=5
+integer array s__UIHashTable__uiHT_eventdata
+integer array s__UIHashTable__uiHT_ui
+constant integer si__UIHashTable__uiHTFrame=6
+constant integer si__UIHashTable__uiHTEvent=7
 constant integer si__uiId=8
 hashtable s__uiId_ht
 integer s__uiId_nextId
@@ -247,7 +248,10 @@ integer array s__baseanim_lID
 integer array s__baseanim_lPeriod
 integer array s__baseanim_lTime
 integer array s__baseanim_lCB
-constant integer si__resizer=12
+constant integer si__uiEventState=12
+boolean s__uiEventState_rcStart=false
+integer s__uiEventState_uiId=0
+constant integer si__resizer=13
 integer si__resizer_F=0
 integer si__resizer_I=0
 integer array si__resizer_V
@@ -257,7 +261,7 @@ integer array s__resizer_frame
 real array s__resizer_width
 real array s__resizer_height
 integer array s__resizer_uID
-constant integer si__rePointer=13
+constant integer si__rePointer=14
 integer si__rePointer_F=0
 integer si__rePointer_I=0
 integer array si__rePointer_V
@@ -270,31 +274,33 @@ integer array s__rePointer_relativeAnchor
 real array s__rePointer_offsetX
 real array s__rePointer_offsetY
 integer array s__rePointer_uID
-constant integer si__uiBtn=14
+constant integer si__uilayer=15
+integer array s__uilayer_lv
+constant integer si__uiBtn=16
 integer si__uiBtn_F=0
 integer si__uiBtn_I=0
 integer array si__uiBtn_V
 integer array s__uiBtn_ui
 integer array s__uiBtn_id
-constant integer si__uiImage=15
+constant integer si__uiImage=17
 integer si__uiImage_F=0
 integer si__uiImage_I=0
 integer array si__uiImage_V
 integer array s__uiImage_ui
 integer array s__uiImage_id
-constant integer si__uiSprite=16
+constant integer si__uiSprite=18
 integer si__uiSprite_F=0
 integer si__uiSprite_I=0
 integer array si__uiSprite_V
 integer array s__uiSprite_ui
 integer array s__uiSprite_id
-constant integer si__uiText=17
+constant integer si__uiText=19
 integer si__uiText_F=0
 integer si__uiText_I=0
 integer array si__uiText_V
 integer array s__uiText_ui
 integer array s__uiText_id
-constant integer si__progAnim=18
+constant integer si__progAnim=20
 integer si__progAnim_F=0
 integer si__progAnim_I=0
 integer array si__progAnim_V
@@ -308,7 +314,7 @@ integer array s__progAnim_time
 integer array s__progAnim_now
 integer array s__progAnim_id
 integer array s__progAnim_cb
-constant integer si__icon=19
+constant integer si__icon=21
 integer si__icon_F=0
 integer si__icon_I=0
 integer array si__icon_V
@@ -331,6 +337,7 @@ integer array s__icon_spRelative
 integer array s__icon_spRelativeAnchor
 real array s__icon_spOffsetX
 real array s__icon_spOffsetY
+integer array s__icon_cdSpriteImage
 trigger st__baseanim_onDestroy
 trigger st__resizer_onDestroy
 trigger st__rePointer_onDestroy
@@ -1714,24 +1721,24 @@ endfunction
 //library UIEventModule ends
 //library UIHashTable:
     function uiHashTable takes integer f returns integer
-        set UIHashTable___frame=f
+        set UIHashTable__frame=f
         return (0)
     endfunction  //私有
-        function s__UIHashTable___uiHTFrame_bind takes integer this,integer typeID,integer ui returns nothing
-            call SaveInteger(HASH_UI, UIHashTable___frame, 1820, typeID)
-            call SaveInteger(HASH_UI, UIHashTable___frame, 1821, ui)
+        function s__UIHashTable__uiHTFrame_bind takes integer this,integer typeID,integer ui returns nothing
+            call SaveInteger(HASH_UI, UIHashTable__frame, 1820, typeID)
+            call SaveInteger(HASH_UI, UIHashTable__frame, 1821, ui)
         endfunction  // 从frame获取UI实例
-        function s__UIHashTable___uiHTFrame_get takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable___frame, 1821)
+        function s__UIHashTable__uiHTFrame_get takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable__frame, 1821)
         endfunction  // 从frame获取UI类型
-        function s__UIHashTable___uiHTFrame_getType takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable___frame, 1820)
+        function s__UIHashTable__uiHTFrame_getType takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable__frame, 1820)
         endfunction
-        function s__UIHashTable___uiHTEvent_bind takes integer this,integer value returns nothing
-            call SaveInteger(HASH_UI, UIHashTable___frame, 1823, value)
+        function s__UIHashTable__uiHTEvent_bind takes integer this,integer value returns nothing
+            call SaveInteger(HASH_UI, UIHashTable__frame, 1823, value)
         endfunction
-        function s__UIHashTable___uiHTEvent_get takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable___frame, 1823)
+        function s__UIHashTable__uiHTEvent_get takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable__frame, 1823)
         endfunction
 
 //library UIHashTable ends
@@ -1832,7 +1839,7 @@ endfunction
 //library UnitTestFramwork ends
 //library YDTriggerSaveLoadSystem:
 //#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem___Init takes nothing returns nothing
+    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
             set YDHT=InitHashtable()
         set YDLOC=InitHashtable()
     endfunction
@@ -1914,7 +1921,7 @@ endfunction
 //library Hardware ends
 //library UITocInit:
 
-    function UITocInit___onInit takes nothing returns nothing
+    function UITocInit__onInit takes nothing returns nothing
         call DzLoadToc("ui\\Crainax.toc")
         call DzFrameEnableClipRect(false)
     endfunction
@@ -2359,7 +2366,7 @@ endfunction
 //library UIBaseModule ends
 //library UIExtendEvent:
 
-//processed:     function interface uiEvent takes integer arg0 returns nothing  // 是否开始右键点击
+//processed:     function interface uiEvent takes integer arg0 returns nothing
         function UIExtendEvent___anon__3 takes nothing returns nothing
             local integer currentUI
             local integer func
@@ -2383,30 +2390,30 @@ endfunction
                 set func=LoadInteger(HASH_UI, currentUI, 1902)
                 call sc___prototype20_evaluate(func,currentUI)
             endif
-        endfunction  //注册右键按下事件
+        endfunction
         function UIExtendEvent___anon__5 takes nothing returns nothing
-            if ( UIExtendEvent___clickStartUI != 0 ) then
-                set UIExtendEvent___rcStartOnUI=true
-            endif // 新增的click判断逻辑
-        endfunction  //注册右键抬起事件
+            if ( s__uiEventState_uiId != 0 ) then
+                set s__uiEventState_rcStart=true
+            endif
+        endfunction
         function UIExtendEvent___anon__6 takes nothing returns nothing
             local integer func
-            if ( UIExtendEvent___rcStartOnUI and UIExtendEvent___clickStartUI != 0 ) then
-                if ( HaveSavedInteger(HASH_UI, UIExtendEvent___clickStartUI, 1913) ) then
-                    set func=LoadInteger(HASH_UI, UIExtendEvent___clickStartUI, 1913)
-                    call sc___prototype20_evaluate(func,UIExtendEvent___clickStartUI)
+            if ( s__uiEventState_rcStart and s__uiEventState_uiId != 0 ) then
+                if ( HaveSavedInteger(HASH_UI, s__uiEventState_uiId, 1913) ) then
+                    set func=LoadInteger(HASH_UI, s__uiEventState_uiId, 1913)
+                    call sc___prototype20_evaluate(func,s__uiEventState_uiId)
                 endif
             endif
-            set UIExtendEvent___rcStartOnUI=false
+            set s__uiEventState_rcStart=false
         endfunction  // UI销毁时如果鼠标正在上面,则触发一次离开事件,不然会引进只进不出的错误
         function UIExtendEvent___anon__7 takes nothing returns nothing
             local integer ui=s__uiLifeCycle_agrsFrame
             local integer func
-            if ( UIExtendEvent___clickStartUI == ui and HaveSavedInteger(HASH_UI, ui, 1911) ) then
-                set func=LoadInteger(HASH_UI, UIExtendEvent___clickStartUI, 1911)
-                call sc___prototype20_evaluate(func,UIExtendEvent___clickStartUI)
+            if ( s__uiEventState_uiId == ui and HaveSavedInteger(HASH_UI, ui, 1911) ) then
+                set func=LoadInteger(HASH_UI, s__uiEventState_uiId, 1911)
+                call sc___prototype20_evaluate(func,s__uiEventState_uiId)
             endif
-            set UIExtendEvent___clickStartUI=0
+            set s__uiEventState_uiId=0
         endfunction  // hardware.regRightDownEvent(function () { //注册右键按下事件
     function UIExtendEvent___onInit takes nothing returns nothing
         call s__hardware_regLeftDownEvent(function UIExtendEvent___anon__3)
@@ -2577,6 +2584,32 @@ endfunction
     endfunction
 
 //library UIExtendResize ends
+//library UILayer:
+        function s__uilayer_onInit takes nothing returns nothing
+            set s__uilayer_lv[1]=DzCreateFrameByTagName("BACKDROP", "layer1", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[1], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[1], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[2]=DzCreateFrameByTagName("BACKDROP", "layer2", s__uilayer_lv[1], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[2], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[2], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[3]=DzCreateFrameByTagName("BACKDROP", "layer3", s__uilayer_lv[2], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[3], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[3], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[4]=DzCreateFrameByTagName("BACKDROP", "layer4", s__uilayer_lv[3], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[4], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[4], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[5]=DzCreateFrameByTagName("BACKDROP", "layer5", s__uilayer_lv[4], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[5], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[5], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[6]=DzCreateFrameByTagName("BACKDROP", "layer6", s__uilayer_lv[5], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[6], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[6], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[7]=DzCreateFrameByTagName("BACKDROP", "layer7", s__uilayer_lv[6], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[7], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[7], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+        endfunction
+
+//library UILayer ends
 //library UIButton:
         function s__uiBtn_isExist takes integer this returns boolean
             return ( this != null and si__uiBtn_V[this] == - 1 )
@@ -2728,7 +2761,7 @@ endfunction
             function s__uiBtn_extendEvent___anon__0 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
-                set UIExtendEvent___clickStartUI=frame
+                set s__uiEventState_uiId=frame
                 if ( HaveSavedInteger(HASH_UI, frame, 1910) ) then
                     set func=LoadInteger(HASH_UI, frame, 1910)
                     call sc___prototype20_evaluate(func,frame)
@@ -2745,7 +2778,7 @@ endfunction
             function s__uiBtn_extendEvent___anon__1 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
-                set UIExtendEvent___clickStartUI=0
+                set s__uiEventState_uiId=0
                 if ( HaveSavedInteger(HASH_UI, frame, 1911) ) then
                     set func=LoadInteger(HASH_UI, frame, 1911)
                     call sc___prototype20_evaluate(func,frame)
@@ -2781,7 +2814,7 @@ endfunction
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1913, fun)
             return this
-        endfunction  // 下面这批不适用Simple的所以全部删除了
+        endfunction  // 下面这批不适Simple的所以全部删除了
         function s__uiBtn_create takes integer parent returns integer
             local integer this=s__uiBtn__allocate()
             set s__uiBtn_id[this]=s__uiId_get() //有高亮无声音的图标
@@ -2790,7 +2823,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //普通带声效系
@@ -2802,7 +2835,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //右键菜单系
@@ -2814,7 +2847,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建空白按钮
@@ -2826,7 +2859,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
@@ -2838,7 +2871,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //绑定原生的Button成为SimpleButton,注意不能删除哦
@@ -2850,7 +2883,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction
@@ -3004,7 +3037,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类1)
@@ -3016,7 +3049,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类2)
@@ -3028,7 +3061,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建边角(图标系的)
@@ -3040,7 +3073,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
@@ -3054,7 +3087,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 绑定原生图片
@@ -3066,7 +3099,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction
@@ -3225,7 +3258,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiSprite , s__uiSprite_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiSprite_ui[this])],si__uiSprite , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiSprite_ui[this])],si__uiSprite , this)
 //#             endif
             return this
         endfunction  // 设置模型(目前只做平面型就行了,后面2个0固定了)
@@ -3452,7 +3485,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的文本,这种文本是不能destroy的!
@@ -3466,7 +3499,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction  // 绑定原生文本
@@ -3479,7 +3512,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction
@@ -3617,7 +3650,8 @@ endfunction
             set s__icon_cornerText[this]=0
             set s__icon_clickBtn[this]=0
             set s__icon_glowImage[this]=0
-            set s__icon_cdSprite[this]=0 // 动画相关
+            set s__icon_cdSprite[this]=0
+            set s__icon_cdSpriteImage[this]=0 // 动画相关
             set s__icon_glowAnim[this]=0
             set s__icon_gd[this]=0 // 尺寸初始化为0
             set s__icon_sizeX[this]=0.04
@@ -3662,11 +3696,12 @@ endfunction
                 return this
             endif
             if ( not ( s__uiImage_isExist(s__icon_glowImage[this]) ) ) then
-                if ( s__icon_isSimple[this] ) then
-                    set s__icon_glowImage[this]=s__uiImage_setPoint(s__uiImage_createSimple(s__icon_parent[this]),4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0)
+                if ( s__icon_isSimple[this] ) then // 创建流光图片 -> 到最底层
+                    set s__icon_glowImage[this]=s__uiImage_create(s__uilayer_lv[1])
                 else
-                    set s__icon_glowImage[this]=s__uiImage_setPoint(s__uiImage_create(s__icon_parent[this]),4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0)
+                    set s__icon_glowImage[this]=s__uiImage_create(s__icon_parent[this])
                 endif
+                call s__uiImage_setPoint(s__icon_glowImage[this],4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0)
                 call s__icon_updateGlowSize(this)
             endif // 显示流光
             call s__uiImage_show(s__icon_glowImage[this],true)
@@ -3685,7 +3720,8 @@ endfunction
                 return this
             endif
             if ( s__uiImage_isExist(s__icon_glowImage[this]) ) then
-                call s__uiImage_show(s__icon_glowImage[this],false)
+                call s__uiImage_deallocate(s__icon_glowImage[this])
+                set s__icon_glowImage[this]=0
             endif
             if ( s__baseanim_isExist(s__icon_glowAnim[this]) ) then
                 call s__baseanim_deallocate(s__icon_glowAnim[this])
@@ -3720,26 +3756,31 @@ endfunction
         endfunction  // 设置数字
         function s__icon_setCornerText takes integer this,string value returns integer
             local real padding
-            if ( not ( s__icon_isExist(this) ) ) then
+            if ( not ( s__icon_isExist(this) ) ) then // 如果value为null,隐藏cornerText和cornerShade
                 return this
             endif
+            if ( value == null ) then
+                if ( s__uiText_isExist(s__icon_cornerText[this]) ) then
+                    call s__uiText_show(s__icon_cornerText[this],false)
+                    call s__uiImage_show(s__icon_cornerShade[this],false)
+                endif
+                return this
+            endif // 创建或更新cornerText
             if ( not ( s__uiText_isExist(s__icon_cornerText[this]) ) ) then
-                set s__icon_cornerShade[this]=s__uiImage_createCornerBorder(s__uiImage_ui[s__icon_mainImage[this]])
-                set s__icon_cornerText[this]=s__uiText_setPoint(s__uiText_setFontSize(s__uiText_create(s__uiImage_ui[s__icon_cornerShade[this]]),2),8 , s__uiImage_ui[s__icon_mainImage[this]] , 8 , - 0.003 , 0.003)
+                if ( s__icon_isSimple[this] ) then
+                    set s__icon_cornerShade[this]=s__uiImage_createCornerBorder(s__uilayer_lv[1])
+                    set s__icon_cornerText[this]=s__uiText_create(s__uiImage_ui[s__icon_cornerShade[this]])
+                else
+                    set s__icon_cornerShade[this]=s__uiImage_createCornerBorder(s__icon_parent[this])
+                    set s__icon_cornerText[this]=s__uiText_create(s__uiImage_ui[s__icon_cornerShade[this]])
+                endif
+                call s__uiText_setPoint(s__uiText_setFontSize(s__icon_cornerText[this],2),8 , s__uiImage_ui[s__icon_mainImage[this]] , 8 , - 0.003 , 0.003)
                 set padding=0.003
                 call s__uiImage_setPoint(s__uiImage_setPoint(s__icon_cornerShade[this],0 , s__uiText_ui[s__icon_cornerText[this]] , 0 , - padding , padding),8 , s__uiText_ui[s__icon_cornerText[this]] , 8 , padding , - padding)
             endif
             call s__uiText_setText(s__icon_cornerText[this],value)
-            return this
-        endfunction  // 显示/隐藏数字
-        function s__icon_showCornerText takes integer this,boolean flag returns integer
-            if ( not ( s__icon_isExist(this) ) ) then
-                return this
-            endif
-            if ( s__uiText_isExist(s__icon_cornerText[this]) ) then
-                call s__uiText_show(s__icon_cornerText[this],flag)
-                call s__uiImage_show(s__icon_cornerShade[this],flag)
-            endif
+            call s__uiText_show(s__icon_cornerText[this],true)
+            call s__uiImage_show(s__icon_cornerShade[this],true)
             return this
         endfunction  // 设置图标暗遮罩
         function s__icon_setShadow takes integer this,boolean flag returns integer
@@ -3747,7 +3788,12 @@ endfunction
                 return this
             endif
             if ( not ( s__uiImage_isExist(s__icon_shadowImage[this]) ) and flag ) then
-                set s__icon_shadowImage[this]=s__uiImage_setAllPoint(s__uiImage_setTexture(s__uiImage_create(s__uiImage_ui[s__icon_mainImage[this]]),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp"),s__uiImage_ui[s__icon_mainImage[this]])
+                if ( s__icon_isSimple[this] ) then
+                    set s__icon_shadowImage[this]=s__uiImage_create(s__uilayer_lv[1])
+                else
+                    set s__icon_shadowImage[this]=s__uiImage_create(s__uiImage_ui[s__icon_mainImage[this]])
+                endif
+                call s__uiImage_setAllPoint(s__uiImage_setTexture(s__icon_shadowImage[this],"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp"),s__uiImage_ui[s__icon_mainImage[this]])
             endif
             if ( s__uiImage_isExist(s__icon_shadowImage[this]) ) then
                 call s__uiImage_show(s__icon_shadowImage[this],flag)
@@ -3759,8 +3805,14 @@ endfunction
                 return this
             endif
             if ( not ( s__uiSprite_isExist(s__icon_cdSprite[this]) ) ) then
-                set s__icon_cdSprite[this]=s__uiSprite_setAnimate(s__uiSprite_setModel(s__uiSprite_setSize(s__uiSprite_setPoint(s__uiSprite_create(s__uiImage_ui[s__icon_mainImage[this]]),4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0),0.001 , 0.001),"ui\\model\\cooldown_center.mdx" , 0 , 0),0 , false)
-                call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__icon_cdSprite[this])],this)
+                if ( s__icon_isSimple[this] ) then
+                    set s__icon_cdSpriteImage[this]=s__uiImage_setClip(s__uiImage_setAllPoint(s__uiImage_setTexture(s__uiImage_create(s__uilayer_lv[1]),"UI\\Widgets\\EscMenu\\Human\\blank-background.blp"),s__uiImage_ui[s__icon_mainImage[this]]),true)
+                    set s__icon_cdSprite[this]=s__uiSprite_create(s__uiImage_ui[s__icon_cdSpriteImage[this]])
+                else
+                    set s__icon_cdSprite[this]=s__uiSprite_create(s__uiImage_ui[s__icon_mainImage[this]])
+                endif
+                call s__uiSprite_setAnimate(s__uiSprite_setModel(s__uiSprite_setSize(s__uiSprite_setPoint(s__icon_cdSprite[this],4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0),0.001 , 0.001),"ui\\model\\cooldown_center.mdx" , 0 , 0),0 , false)
+                call s__UIHashTable__uiHTEvent_bind(s__UIHashTable__uiHT_eventdata[uiHashTable(s__icon_cdSprite[this])],this)
             endif
             call s__uiSprite_progAnimate(s__icon_cdSprite[this],0 , 1 , duration , func)
             call s__uiSprite_setScale(s__icon_cdSprite[this],s__icon_sizeY[this] / 0.038)
@@ -3833,6 +3885,10 @@ endfunction
                 call s__uiSprite_deallocate(s__icon_cdSprite[this])
                 set s__icon_cdSprite[this]=0
             endif
+            if ( s__uiImage_isExist(s__icon_cdSpriteImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_cdSpriteImage[this])
+                set s__icon_cdSpriteImage[this]=0
+            endif
             if ( s__uiImage_isExist(s__icon_shadowImage[this]) ) then
                 call s__uiImage_deallocate(s__icon_shadowImage[this])
                 set s__icon_shadowImage[this]=0
@@ -3876,132 +3932,123 @@ endfunction
 //library Icon ends
 //library UTIcon:
 
-    function UTIcon___TTestUTIcon1 takes player p returns nothing
-        if ( not UTIcon___isTest1Active ) then
-            set UTIcon___testIcon1=s__icon_show(s__icon_setPoint(s__icon_setTexture(s__icon_setSize(s__icon_create(DzGetGameUI()),0.07 , 0.07),"ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp"),4 , DzGetGameUI() , 4 , 0 , 0),true) //这
+    function UTIcon__TTestUTIcon1 takes player p returns nothing
+        if ( not UTIcon__isTest1Active ) then
+            set UTIcon__testIcon1=s__icon_show(s__icon_setPoint(s__icon_setTexture(s__icon_setSize(s__icon_create(DzGetGameUI()),0.07 , 0.07),"ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp"),4 , DzGetGameUI() , 4 , 0 , 0),true) //这
             call BJDebugMsg("基础图标已创建 - 输入s1可关闭")
-            set UTIcon___isTest1Active=true
+            set UTIcon__isTest1Active=true
         else
-            call s__icon_deallocate(UTIcon___testIcon1)
-            set UTIcon___testIcon1=0
-            set UTIcon___isTest1Active=false
+            call s__icon_deallocate(UTIcon__testIcon1)
+            set UTIcon__testIcon1=0
+            set UTIcon__isTest1Active=false
             call BJDebugMsg("基础图标已关闭")
         endif
     endfunction  // 添加新的测试函数
-    function UTIcon___TTestUTIcon1a takes player p returns nothing
+    function UTIcon__TTestUTIcon1a takes player p returns nothing
         local integer img=0
-        if ( not UTIcon___isTest1Active ) then // 从现有UI创建icon
-            set UTIcon___testIcon1=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2)),0.08 , 0.08),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNSorceress.blp")
-            set UTIcon___isTest1Active=true
+        if ( not UTIcon__isTest1Active ) then // 从现有UI创建icon
+            set UTIcon__testIcon1=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2)),0.08 , 0.08),4 , DzGetGameUI() , 4 , 0.0 , 0.0),"ReplaceableTextures\\CommandButtons\\BTNSorceress.blp")
+            set UTIcon__isTest1Active=true
             call BJDebugMsg("已从现有UI创建图标 - 输入s1a可关闭")
         else
-            call s__icon_deallocate(UTIcon___testIcon1)
-            set UTIcon___testIcon1=0
-            set UTIcon___isTest1Active=false
+            call s__icon_deallocate(UTIcon__testIcon1)
+            set UTIcon__testIcon1=0
+            set UTIcon__isTest1Active=false
             call BJDebugMsg("从现有UI创建的图标已关闭")
         endif
-    endfunction  // 角落文字测试
-    function UTIcon___TTestUTIcon2 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon___testIcon1) ) ) then
-            call BJDebugMsg("请先使用s1创建基础图标")
-            return
-        endif
-        call s__icon_setCornerText(UTIcon___testIcon1,I2S(GetRandomInt(1, 99)))
-        call s__icon_showCornerText(UTIcon___testIcon1,true)
-        call BJDebugMsg("已更新角落文字 - 再次输入s2随机新数字")
     endfunction  // 流光效果测试
-    function UTIcon___TTestUTIcon3 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon___testIcon1) ) ) then
+    function UTIcon__TTestUTIcon3 takes player p returns nothing
+        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
             call BJDebugMsg("请先使用s1创建基础图标")
             return
         endif
-        if ( not UTIcon___isTest3Active ) then
-            call s__icon_grow(UTIcon___testIcon1,(2))
-            set UTIcon___isTest3Active=true
+        if ( not UTIcon__isTest3Active ) then
+            call s__icon_grow(UTIcon__testIcon1,(2))
+            set UTIcon__isTest3Active=true
             call BJDebugMsg("流光效果已开启 - 输入s3可关闭")
         else
-            call s__icon_unGrow(UTIcon___testIcon1)
-            set UTIcon___isTest3Active=false
+            call s__icon_unGrow(UTIcon__testIcon1)
+            set UTIcon__isTest3Active=false
             call BJDebugMsg("流光效果已关闭")
         endif
     endfunction  // 暗遮罩测试
-    function UTIcon___TTestUTIcon4 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon___testIcon1) ) ) then
+    function UTIcon__TTestUTIcon4 takes player p returns nothing
+        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
             call BJDebugMsg("请先使用s1创建基础图标")
             return
         endif
-        if ( not UTIcon___isTest4Active ) then
-            call s__icon_setShadow(UTIcon___testIcon1,true)
-            set UTIcon___isTest4Active=true
+        if ( not UTIcon__isTest4Active ) then
+            call s__icon_setShadow(UTIcon__testIcon1,true)
+            set UTIcon__isTest4Active=true
             call BJDebugMsg("暗遮罩已开启 - 输入s4可关闭")
         else
-            call s__icon_setShadow(UTIcon___testIcon1,false)
-            set UTIcon___isTest4Active=false
+            call s__icon_setShadow(UTIcon__testIcon1,false)
+            set UTIcon__isTest4Active=false
             call BJDebugMsg("暗遮罩已关闭")
         endif
     endfunction  // 点击事件测试
-        function UTIcon___anon__0 takes integer frame returns nothing
-            local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+        function UTIcon__anon__0 takes integer frame returns nothing
+            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
             call BJDebugMsg("enter:" + I2S(data))
         endfunction
-        function UTIcon___anon__1 takes integer frame returns nothing
-            local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+        function UTIcon__anon__1 takes integer frame returns nothing
+            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
             call BJDebugMsg("leave:" + I2S(data))
         endfunction
-        function UTIcon___anon__2 takes integer frame returns nothing
-            local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+        function UTIcon__anon__2 takes integer frame returns nothing
+            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
             call BJDebugMsg("click:" + I2S(data))
         endfunction
-        function UTIcon___anon__3 takes integer frame returns nothing
-            local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+        function UTIcon__anon__3 takes integer frame returns nothing
+            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
             call BJDebugMsg("RightClick:" + I2S(data))
         endfunction
-    function UTIcon___TTestUTIcon5 takes player p returns nothing
+    function UTIcon__TTestUTIcon5 takes player p returns nothing
         local integer btn
-        if ( not ( s__icon_isExist(UTIcon___testIcon1) ) ) then
+        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
             call BJDebugMsg("请先使用s1创建基础图标")
             return
         endif
-        set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(UTIcon___testIcon1),(1)),(2)),(3)),(4))
-        call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__uiBtn_ui[btn])],8174)
+        set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(UTIcon__testIcon1),(1)),(2)),(3)),(4))
+        call s__UIHashTable__uiHTEvent_bind(s__UIHashTable__uiHT_eventdata[uiHashTable(s__uiBtn_ui[btn])],8174)
         call BJDebugMsg("事件已绑定 - 请点击图标测试")
     endfunction  // CD显示测试
-    function UTIcon___TTestUTIcon6 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon___testIcon1) ) ) then
+    function UTIcon__TTestUTIcon6 takes player p returns nothing
+        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
             call BJDebugMsg("请先使用s1创建基础图标")
             return
         endif
-        call s__icon_startCooldown(UTIcon___testIcon1,10.0 , 0)
+        call s__icon_startCooldown(UTIcon__testIcon1,10.0 , 0)
         call BJDebugMsg("CD显示已开始 - 持续10秒")
     endfunction  // 显示/隐藏测试(both生效)
-    function UTIcon___TTestUTIcon7 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon___testIcon1) ) ) then
+    function UTIcon__TTestUTIcon7 takes player p returns nothing
+        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
             call BJDebugMsg("请先使用s1创建基础图标")
             return
         endif
-        if ( not UTIcon___isTest7Active ) then
-            call s__icon_show(UTIcon___testIcon1,false)
-            set UTIcon___isTest7Active=true
+        if ( not UTIcon__isTest7Active ) then
+            call s__icon_show(UTIcon__testIcon1,false)
+            set UTIcon__isTest7Active=true
             call BJDebugMsg("图标已隐藏 - 输入s7可显示")
         else
-            call s__icon_show(UTIcon___testIcon1,true)
-            set UTIcon___isTest7Active=false
+            call s__icon_show(UTIcon__testIcon1,true)
+            set UTIcon__isTest7Active=false
             call BJDebugMsg("图标已显示")
         endif
     endfunction  // 大小调整测试(both生效)
-    function UTIcon___TTestUTIcon8 takes player p returns nothing
-        if ( not ( s__icon_isExist(UTIcon___testIcon1) ) ) then
+    function UTIcon__TTestUTIcon8 takes player p returns nothing
+        if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
             call BJDebugMsg("请先使用s1创建基础图标")
             return
         endif
-        call s__icon_enableResize(UTIcon___testIcon1)
+        call s__icon_enableResize(UTIcon__testIcon1)
         call BJDebugMsg("大小调整已开启")
     endfunction
-    function UTIcon___TTestUTIcon9 takes player p returns nothing
+    function UTIcon__TTestUTIcon9 takes player p returns nothing
     endfunction
-    function UTIcon___TTestUTIcon10 takes player p returns nothing
+    function UTIcon__TTestUTIcon10 takes player p returns nothing
     endfunction
-    function UTIcon___TTestActUTIcon1 takes string str returns nothing
+    function UTIcon__TTestActUTIcon1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -4011,10 +4058,10 @@ endfunction
         local integer array paramI
         local real array paramR
         if ( str == "destroy" ) then
-            if ( s__icon_isExist(UTIcon___testIcon1) ) then
-                call s__icon_deallocate(UTIcon___testIcon1)
-                set UTIcon___testIcon1=0
-                set UTIcon___isTest1Active=false
+            if ( s__icon_isExist(UTIcon__testIcon1) ) then
+                call s__icon_deallocate(UTIcon__testIcon1)
+                set UTIcon__testIcon1=0
+                set UTIcon__isTest1Active=false
                 call BJDebugMsg("图标已销毁")
             else
                 call BJDebugMsg("没有可销毁的图标")
@@ -4041,7 +4088,7 @@ endfunction
         set paramR[num]=S2R(paramS[num])
         set num=num + 1 // 处理size命令
         if ( paramS[0] == "size" ) then
-            if ( not ( s__icon_isExist(UTIcon___testIcon1) ) ) then
+            if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
                 call BJDebugMsg("请先使用s1创建基础图标")
                 set p=null
                 return
@@ -4052,22 +4099,41 @@ endfunction
                 set p=null
                 return
             endif
-            call s__icon_setSize(UTIcon___testIcon1,paramR[1] , paramR[2])
+            call s__icon_setSize(UTIcon__testIcon1,paramR[1] , paramR[2])
             call BJDebugMsg("图标大小已设置为: " + R2S(paramR[1]) + " x " + R2S(paramR[2]))
             set p=null
             return
-        endif
-        if ( paramS[0] == "a" ) then
-        elseif ( paramS[0] == "b" ) then
+        endif // 处理text命令
+        if ( paramS[0] == "text" ) then
+            if ( not ( s__icon_isExist(UTIcon__testIcon1) ) ) then
+                call BJDebugMsg("请先使用s1创建基础图标")
+                set p=null
+                return
+            endif
+            if ( num < 2 ) then
+                call BJDebugMsg("参数不足,请使用格式: -text <string>")
+                call BJDebugMsg("例如: -text 测试 或 -text null删除文字")
+                set p=null
+                return
+            endif
+            if ( paramS[1] == "null" ) then
+                call s__icon_setCornerText(UTIcon__testIcon1,null)
+                call BJDebugMsg("角落文字已删除")
+            else
+                call s__icon_setCornerText(UTIcon__testIcon1,paramS[1])
+                call BJDebugMsg("角落文字已设置为: " + paramS[1])
+            endif
+            set p=null
+            return
         endif
         set p=null
     endfunction
-        function UTIcon___anon__4 takes nothing returns nothing
+        function UTIcon__anon__4 takes nothing returns nothing
             call BJDebugMsg("[Icon] 单元测试已加载")
             call BJDebugMsg("测试指令:")
             call BJDebugMsg("s1 - 创建/销毁基础图标")
             call BJDebugMsg(" s1a - 从现有UI创建图标")
-            call BJDebugMsg("s2 - 更新角落文字")
+            call BJDebugMsg("-text <string> - 设置角落文字,如: -text 测试")
             call BJDebugMsg("s3 - 开启/关闭流光效果")
             call BJDebugMsg("s4 - 开启/关闭暗遮罩")
             call BJDebugMsg("s5 - 测试点击事件")
@@ -4078,52 +4144,43 @@ endfunction
             call BJDebugMsg("-size(x,y) - 设置图标大小,如: -size 0.04 0.04")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTIcon___anon__5 takes nothing returns nothing
+        function UTIcon__anon__5 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTIcon___TTestActUTIcon1(SubStringBJ(str, 2, StringLength(str)))
+                call UTIcon__TTestActUTIcon1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTIcon___TTestUTIcon1(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon1(GetTriggerPlayer())
             elseif ( str == "s1a" ) then
-                call UTIcon___TTestUTIcon1a(GetTriggerPlayer())
-            elseif ( str == "s2" ) then
-                call UTIcon___TTestUTIcon2(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon1a(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTIcon___TTestUTIcon3(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTIcon___TTestUTIcon4(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTIcon___TTestUTIcon5(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTIcon___TTestUTIcon6(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTIcon___TTestUTIcon7(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTIcon___TTestUTIcon8(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTIcon___TTestUTIcon9(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTIcon___TTestUTIcon10(GetTriggerPlayer())
+                call UTIcon__TTestUTIcon10(GetTriggerPlayer())
             endif
         endfunction
-    function UTIcon___onInit takes nothing returns nothing
+    function UTIcon__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTIcon___anon__4))
+        call TriggerAddCondition(tr, Condition(function UTIcon__anon__4))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTIcon___anon__5)
+        call UnitTestRegisterChatEvent(function UTIcon__anon__5)
     endfunction
 
 //library UTIcon ends
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
-
 
 // 0 - 1亿这里用
 // 锚点常量
@@ -4133,6 +4190,12 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
 
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
@@ -4144,8 +4207,8 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
+
 //控件的共用基本方法
-//窗口的大小
 //===========================================================================
 // Icon.j
 //===========================================================================
@@ -4173,6 +4236,7 @@ endfunction
 //
 //===========================================================================
 //# dependency:ui/model/cooldown_center.mdx
+//窗口的大小
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -4586,13 +4650,13 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs33192140")
+call ExecuteFunc("jasshelper__initstructs11979421")
 call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
-call ExecuteFunc("UITocInit___onInit")
+call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
+call ExecuteFunc("UITocInit__onInit")
 call ExecuteFunc("UIExtendEvent___onInit")
 call ExecuteFunc("UIExtendResize___onInit")
-call ExecuteFunc("UTIcon___onInit")
+call ExecuteFunc("UTIcon__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -4639,6 +4703,10 @@ local integer this=f__arg_this
             if ( s__uiSprite_isExist(s__icon_cdSprite[this]) ) then
                 call s__uiSprite_deallocate(s__icon_cdSprite[this])
                 set s__icon_cdSprite[this]=0
+            endif
+            if ( s__uiImage_isExist(s__icon_cdSpriteImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_cdSpriteImage[this])
+                set s__icon_cdSpriteImage[this]=0
             endif
             if ( s__uiImage_isExist(s__icon_shadowImage[this]) ) then
                 call s__uiImage_deallocate(s__icon_shadowImage[this])
@@ -4795,36 +4863,36 @@ return true
             set s__baseanim_size=s__baseanim_size - 1
    return true
 endfunction
-function sa___prototype20_UTIcon___anon__0 takes nothing returns boolean
+function sa___prototype20_UTIcon__anon__0 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
             call BJDebugMsg("enter:" + I2S(data))
     return true
 endfunction
-function sa___prototype20_UTIcon___anon__1 takes nothing returns boolean
+function sa___prototype20_UTIcon__anon__1 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
             call BJDebugMsg("leave:" + I2S(data))
     return true
 endfunction
-function sa___prototype20_UTIcon___anon__2 takes nothing returns boolean
+function sa___prototype20_UTIcon__anon__2 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
             call BJDebugMsg("click:" + I2S(data))
     return true
 endfunction
-function sa___prototype20_UTIcon___anon__3 takes nothing returns boolean
+function sa___prototype20_UTIcon__anon__3 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-            local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+            local integer data=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
             call BJDebugMsg("RightClick:" + I2S(data))
     return true
 endfunction
 
-function jasshelper__initstructs33192140 takes nothing returns nothing
+function jasshelper__initstructs11979421 takes nothing returns nothing
     set st__icon_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__icon_onDestroy,Condition( function sa__icon_onDestroy))
     set st__progAnim_create=CreateTrigger()
@@ -4846,17 +4914,19 @@ function jasshelper__initstructs33192140 takes nothing returns nothing
     set st__baseanim_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__baseanim_onDestroy,Condition( function sa__baseanim_onDestroy))
     set st___prototype20[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[1],function sa___prototype20_UTIcon___anon__0)
-    call TriggerAddCondition(st___prototype20[1],Condition(function sa___prototype20_UTIcon___anon__0))
+    call TriggerAddAction(st___prototype20[1],function sa___prototype20_UTIcon__anon__0)
+    call TriggerAddCondition(st___prototype20[1],Condition(function sa___prototype20_UTIcon__anon__0))
     set st___prototype20[2]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[2],function sa___prototype20_UTIcon___anon__1)
-    call TriggerAddCondition(st___prototype20[2],Condition(function sa___prototype20_UTIcon___anon__1))
+    call TriggerAddAction(st___prototype20[2],function sa___prototype20_UTIcon__anon__1)
+    call TriggerAddCondition(st___prototype20[2],Condition(function sa___prototype20_UTIcon__anon__1))
     set st___prototype20[3]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[3],function sa___prototype20_UTIcon___anon__2)
-    call TriggerAddCondition(st___prototype20[3],Condition(function sa___prototype20_UTIcon___anon__2))
+    call TriggerAddAction(st___prototype20[3],function sa___prototype20_UTIcon__anon__2)
+    call TriggerAddCondition(st___prototype20[3],Condition(function sa___prototype20_UTIcon__anon__2))
     set st___prototype20[4]=CreateTrigger()
-    call TriggerAddAction(st___prototype20[4],function sa___prototype20_UTIcon___anon__3)
-    call TriggerAddCondition(st___prototype20[4],Condition(function sa___prototype20_UTIcon___anon__3))
+    call TriggerAddAction(st___prototype20[4],function sa___prototype20_UTIcon__anon__3)
+    call TriggerAddCondition(st___prototype20[4],Condition(function sa___prototype20_UTIcon__anon__3))
+
+
 
 
 
@@ -4887,6 +4957,7 @@ function jasshelper__initstructs33192140 takes nothing returns nothing
     call ExecuteFunc("s__uiLifeCycle_onInit")
     call ExecuteFunc("s__hardware_onInit")
     call ExecuteFunc("s__baseanim_onInit")
+    call ExecuteFunc("s__uilayer_onInit")
     call ExecuteFunc("s__progAnim_onInit")
 endfunction
 

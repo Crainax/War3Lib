@@ -40,7 +40,7 @@
 /*
 [按钮]整合到了一起
 */
-library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim,UIExtendResize,UILayer{
+library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim,UIExtendResize,UILayer{
 
     public struct icon {
         // UI组件
@@ -51,7 +51,7 @@ library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim
         uiText cornerText;      // 角落文字
         uiBtn clickBtn;      // 点击按钮
         uiSprite cdSprite;      // CD显示精灵
-        integer parent; // 父级
+        integer parent; // 父级UI()
 
         // 动画相关
         baseanim glowAnim;    // 流光动画
@@ -69,18 +69,20 @@ library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim
         integer spRelativeAnchor;
         real spOffsetX;
         real spOffsetY;
+        uiImage cdSpriteImage; // 用于CD显示的辅助图片
         STRUCT_SHARED_METHODS(icon)
 
         // 私有的初始化方法
         private method init() {
             // 初始化所有成员为0
-            mainImage   = 0;
-            shadowImage = 0;
-            cornerShade = 0;
-            cornerText  = 0;
-            clickBtn    = 0;
-            glowImage   = 0;
-            cdSprite    = 0;
+            mainImage     = 0;
+            shadowImage   = 0;
+            cornerShade   = 0;
+            cornerText    = 0;
+            clickBtn      = 0;
+            glowImage     = 0;
+            cdSprite      = 0;
+            cdSpriteImage = 0;
 
             // 动画相关
             glowAnim = 0;
@@ -141,11 +143,11 @@ library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim
         }
 
         // 加入流光效果
-        method grow( growdata gd) -> thistype {
+        method grow(growdata gd) -> thistype {
             if (!this.isExist()) {return this;}
             if (!glowImage.isExist()) {
                 if (isSimple) {
-                    glowImage = uiImage.createSimple(this.parent);
+                    glowImage = uiImage.create(uilayer.lv[1]); // 创建流光图片 -> 到最底层
                 } else {
                     glowImage = uiImage.create(this.parent);
                 }
@@ -169,7 +171,8 @@ library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim
         method unGrow() -> thistype {
             if (!this.isExist()) {return this;}
             if (glowImage.isExist()) { //
-                glowImage.show(false);
+                glowImage.destroy();
+                glowImage = 0;
             }
             if (glowAnim.isExist()) {
                 glowAnim.destroy();
@@ -204,9 +207,21 @@ library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim
         method setCornerText(string value) -> thistype {
             real padding;
             if (!this.isExist()) {return this;}
+
+            // 如果value为null,隐藏cornerText和cornerShade
+            if (value == null) {
+                if (cornerText.isExist()) {
+                    cornerText.show(false);
+                    cornerShade.show(false);
+                }
+                return this;
+            }
+
+            // 创建或更新cornerText
             if (!cornerText.isExist()) {
                 if (isSimple) {
-                    cornerShade = uiImage.createCornerBorder(mainImage.ui);
+                    cornerShade = uiImage.createCornerBorder(uilayer.lv[1]);
+                    cornerText = uiText.create(cornerShade.ui);
                 } else {
                     cornerShade = uiImage.createCornerBorder(this.parent);
                     cornerText = uiText.create(cornerShade.ui);
@@ -218,16 +233,8 @@ library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim
                     .setPoint(ANCHOR_BOTTOMRIGHT, cornerText.ui, ANCHOR_BOTTOMRIGHT, padding, -padding);
             }
             cornerText.setText(value);
-            return this;
-        }
-
-        // 显示/隐藏数字
-        method showCornerText(boolean flag) -> thistype {
-            if (!this.isExist()) {return this;}
-            if (cornerText.isExist()) {
-                cornerText.show(flag);
-                cornerShade.show(flag);
-            }
+            cornerText.show(true);
+            cornerShade.show(true);
             return this;
         }
 
@@ -235,8 +242,12 @@ library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim
         method setShadow(boolean flag) -> thistype {
             if (!this.isExist()) {return this;}
             if (!shadowImage.isExist() && flag) {
-                shadowImage = uiImage.create(mainImage.ui)
-                    .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+                if (isSimple) {
+                    shadowImage = uiImage.create(uilayer.lv[1]);
+                } else {
+                    shadowImage = uiImage.create(mainImage.ui);
+                }
+                shadowImage.setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
                     .setAllPoint(mainImage.ui);
             }
             if (shadowImage.isExist()) {
@@ -250,8 +261,16 @@ library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim
         method startCooldown(real duration,onProgressEnd func) -> thistype {
             if (!this.isExist()) {return this;}
             if (!cdSprite.isExist()) {
-                cdSprite = uiSprite.create(mainImage.ui)
-                    .setPoint(ANCHOR_CENTER,mainImage.ui,ANCHOR_CENTER,0,0)
+                if (isSimple) {
+                    cdSpriteImage = uiImage.create(uilayer.lv[1])
+                        .setTexture(UI_STRING_PATH_BLANK)
+                        .setAllPoint(mainImage.ui)
+                        .setClip(true);
+                    cdSprite = uiSprite.create(cdSpriteImage.ui);
+                } else {
+                    cdSprite = uiSprite.create(mainImage.ui);
+                }
+                cdSprite.setPoint(ANCHOR_CENTER,mainImage.ui,ANCHOR_CENTER,0,0)
                     .setSize(0.001,0.001)
                     .setModel("ui\\model\\cooldown_center.mdx",0,0)
                     .setAnimate(0,false);
@@ -330,6 +349,7 @@ library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim
         method onDestroy() {
             if (glowAnim.isExist()) { glowAnim.destroy(); glowAnim = 0; }
             if (cdSprite.isExist()) { cdSprite.destroy(); cdSprite = 0; }
+            if (cdSpriteImage.isExist()) { cdSpriteImage.destroy(); cdSpriteImage = 0; }
             if (shadowImage.isExist()) { shadowImage.destroy(); shadowImage = 0; }
             if (cornerShade.isExist()) { cornerShade.destroy(); cornerShade = 0; }
             if (cornerText.isExist()) { cornerText.destroy(); cornerText = 0; }
