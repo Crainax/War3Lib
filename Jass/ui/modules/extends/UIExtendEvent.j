@@ -13,8 +13,10 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
     //UI的扩充事件回调事件(参数是Frame不是UI结构实例)
     public type uiEvent extends function(integer);
 
-    boolean rcStartOnUI = false;  // 是否开始右键点击
-    integer clickStartUI   = 0;      // 点击开始时的UI(判断是否进入过UI)
+    public struct uiEventState []{
+        static boolean rcStart = false;   // 是否开始右键点击
+        static integer uiId = 0;         // 点击开始时的UI(判断是否进入过UI)
+    }
 
     public module extendEvent {
 
@@ -38,7 +40,7 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
             DzFrameSetScriptByCode(ui,FRAME_MOUSE_ENTER,function () {
                 integer frame = DzGetTriggerUIEventFrame();
                 uiEvent func;
-                clickStartUI = frame; //用于记录右键信息
+                uiEventState.uiId = frame; //修改为使用结构体的静态成员
                 if (HaveSavedInteger(HASH_UI,frame,HASH_KEY_UI_SIMPLE_EVENT_ENTER)) {
                     func = LoadInteger(HASH_UI,frame,HASH_KEY_UI_SIMPLE_EVENT_ENTER);
                     func.evaluate(frame);
@@ -53,7 +55,7 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
             DzFrameSetScriptByCode(ui,FRAME_MOUSE_LEAVE,function () {
                 integer frame = DzGetTriggerUIEventFrame();
                 uiEvent func;
-                clickStartUI = 0; //用于记录右键信息
+                uiEventState.uiId = 0; //修改为使用结构体的静态成员
                 if (HaveSavedInteger(HASH_UI,frame,HASH_KEY_UI_SIMPLE_EVENT_LEAVE)) {
                     func = LoadInteger(HASH_UI,frame,HASH_KEY_UI_SIMPLE_EVENT_LEAVE);
                     func.evaluate(frame);
@@ -85,7 +87,7 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
         }
 
 
-        // 下面这批不适用Simple的所以全部删除了
+        // 下面这批不适Simple的所以全部删除了
         // //注册右键按下事件
         // method exRightDown (uiEvent func)  -> thistype {
         //     if (!this.isExist()) {return this;}
@@ -127,33 +129,30 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
                 func.evaluate(currentUI);
             }
         });
-        hardware.regRightDownEvent(function () { //注册右键按下事件
-            if (clickStartUI != 0) {
-                rcStartOnUI = true;
+        hardware.regRightDownEvent(function () {
+            if (uiEventState.uiId != 0) {
+                uiEventState.rcStart = true;
             }
-            // 新增的click判断逻辑
         });
-        hardware.regRightUpEvent(function () { //注册右键抬起事件
+        hardware.regRightUpEvent(function () {
             uiEvent func;
-            // 新增的click判断逻辑
-            if (rcStartOnUI && clickStartUI != 0) {
-                if (HaveSavedInteger(HASH_UI,clickStartUI,HASH_KEY_UI_SIMPLE_EVENT_RIGHT_CLICK)) {
-                    func = LoadInteger(HASH_UI,clickStartUI,HASH_KEY_UI_SIMPLE_EVENT_RIGHT_CLICK);
-                    func.evaluate(clickStartUI);
+            if (uiEventState.rcStart && uiEventState.uiId != 0) {
+                if (HaveSavedInteger(HASH_UI,uiEventState.uiId,HASH_KEY_UI_SIMPLE_EVENT_RIGHT_CLICK)) {
+                    func = LoadInteger(HASH_UI,uiEventState.uiId,HASH_KEY_UI_SIMPLE_EVENT_RIGHT_CLICK);
+                    func.evaluate(uiEventState.uiId);
                 }
             }
-
-            rcStartOnUI = false;
+            uiEventState.rcStart = false;
         });
         // UI销毁时如果鼠标正在上面,则触发一次离开事件,不然会引进只进不出的错误
         uiLifeCycle.registerDestroy(function (){
             integer ui = uiLifeCycle.agrsFrame;
             uiEvent func;
-            if (clickStartUI == ui && HaveSavedInteger(HASH_UI,ui,HASH_KEY_UI_SIMPLE_EVENT_LEAVE)) {
-                func = LoadInteger(HASH_UI,clickStartUI,HASH_KEY_UI_SIMPLE_EVENT_LEAVE);
-                func.evaluate(clickStartUI);
+            if (uiEventState.uiId == ui && HaveSavedInteger(HASH_UI,ui,HASH_KEY_UI_SIMPLE_EVENT_LEAVE)) {
+                func = LoadInteger(HASH_UI,uiEventState.uiId,HASH_KEY_UI_SIMPLE_EVENT_LEAVE);
+                func.evaluate(uiEventState.uiId);
             }
-            clickStartUI = 0;
+            uiEventState.uiId = 0;
         });
         // hardware.regRightDownEvent(function () { //注册右键按下事件
         //     integer currentUI;

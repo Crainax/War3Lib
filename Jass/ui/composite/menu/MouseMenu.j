@@ -4,44 +4,124 @@
 #define MOUSE_MENU_WIDTH 0.06
 #define MOUSE_MENU_HEIGHT 0.03
 #define MOUSE_MENU_MAX_ITEMS 20
+#include "Crainax/config/SharedMethod.h"
 
-library MouseMenu requires UIButton, UIImage, UIText,UIExtendEvent {
+library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent {
 
-    // 合并为单个函数类型接口
-    public type MenuEventFunc extends function(integer);
+    public type menuEventFunc extends function(integer);
+
+    private struct menuItem {
+        private {
+            uiText text = 0;
+            uiImage background = 0;
+            uiImage highlight = 0;
+            uiBtn btn = 0;
+            integer index = 0;
+            mouseMenu parent = 0;
+        }
+
+        STRUCT_SHARED_METHODS(menuItem)
+
+
+        method onDestroy () {
+            if (text != 0) {
+                text.destroy();
+                text = 0;
+            }
+            if (btn != 0) {
+                btn.destroy();
+                btn = 0;
+            }
+            if (highlight != 0) {
+                highlight.destroy();
+                highlight = 0;
+            }
+            if (background != 0) {
+                background.destroy();
+                background = 0;
+            }
+            parent = 0;
+        }
+
+        public method showHighlight(boolean show) {
+            if (highlight != 0) {
+                highlight.show(show);
+            }
+        }
+
+        public static method create(mouseMenu parent, string title, integer index, integer parentFrame) -> thistype {
+            thistype this = thistype.allocate();
+            this.parent = parent;
+            this.index = index;
+
+            background = uiImage.create(parentFrame)
+                .setSizeFix(MOUSE_MENU_WIDTH, MOUSE_MENU_HEIGHT)
+                .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+
+            highlight = uiImage.create(parentFrame)
+                .setSizeFix(MOUSE_MENU_WIDTH, MOUSE_MENU_HEIGHT)
+                .setTexture("UI\\Widgets\\EscMenu\\Human\\alliance-background-hover.blp")
+                .setAllPoint(background.ui)
+                .hide();
+
+            text = uiText.create(parentFrame)
+                .setAlign(TEXT_ALIGN_CENTER)
+                .setText(title);
+
+            btn = uiBtn.create(parentFrame)
+                .setAllPoint(background.ui);
+
+            return this;
+        }
+    }
 
     public struct mouseMenu {
-        private integer menuFrame = 0;
-        private integer uiButton[MOUSE_MENU_MAX_ITEMS];
-        private integer uiText[MOUSE_MENU_MAX_ITEMS];
-        private integer uiImage[MOUSE_MENU_MAX_ITEMS];
-        private integer itemCount = 0;
+        private {
+            uiImage menuFrame = 0;
+            menuItem items[MOUSE_MENU_MAX_ITEMS];
+            integer itemCount = 0;
+            boolean isUpward = false;
 
-        private MenuEventFunc onClickCallback = null;
-        private MenuEventFunc onEnterCallback = null;
-        private MenuEventFunc onLeaveCallback = null;
+            menuEventFunc onClickFunc = null;
+            menuEventFunc onEnterFunc = null;
+            menuEventFunc onLeaveFunc = null;
 
-        // 链式调用方法
-        public method setClickCallback(MenuEventFunc callback) -> thistype {
-            this.onClickCallback = callback;
+            static mouseMenu currentMenu = 0;      // 当前显示的菜单实例
+        }
+
+        STRUCT_SHARED_METHODS(mouseMenu)
+
+        private method getFirstItem() -> menuItem {
+            if (items[1] == 0) {
+                items[1] = menuItem.create(this, "", 1, menuFrame.ui);
+                itemCount = 1;
+            }
+            return items[1];
+        }
+
+        method onClick(menuEventFunc func) -> thistype {
+            if (!this.isExist()) { return this; }
+            onClickFunc = func;
             return this;
         }
 
-        public method setEnterCallback(MenuEventFunc callback) -> thistype {
-            this.onEnterCallback = callback;
+        method onEnter(menuEventFunc func) -> thistype {
+            if (!this.isExist()) { return this; }
+            onEnterFunc = func;
             return this;
         }
 
-        public method setLeaveCallback(MenuEventFunc callback) -> thistype {
-            this.onLeaveCallback = callback;
+        method onLeave(menuEventFunc func) -> thistype {
+            if (!this.isExist()) { return this; }
+            onLeaveFunc = func;
             return this;
         }
 
-        // 检查鼠标是否在菜单内
-        public method IsMouseInMenu(integer mouseUI) -> boolean {
+        method isInMenu(integer checkUI) -> boolean {
+            if (!this.isExist()) { return false; }
             integer i = 1;
-            while (i <= this.itemCount) {
-                if (mouseUI == this.uiButton[i]) {
+            while (i <= itemCount) {
+                if (items[i].isExist() && checkUI == items[i].btn.ui) {
                     return true;
                 }
                 i += 1;
@@ -49,132 +129,117 @@ library MouseMenu requires UIButton, UIImage, UIText,UIExtendEvent {
             return false;
         }
 
-        private method onDestroy() {
+        static method isMouseIn() -> boolean {
+            return currentMenu.isExist() && currentMenu.isInMenu(uiEventState.uiId);
+        }
+
+        method onDestroy() {
             integer i = 1;
-            if (this.menuFrame == 0) {
+            if (!this.isExist()) { return false; }
+            if (menuFrame == 0) {
                 return;
             }
 
-            while (i <= this.itemCount) {
-                if (this.uiButton[i] != 0) {
-                    DzFrameSetScriptByCode(this.uiButton[i], FRAME_MOUSE_UP, null, false);
-                    DzFrameSetScriptByCode(this.uiButton[i], FRAME_MOUSE_ENTER, null, false);
-                    DzFrameSetScriptByCode(this.uiButton[i], FRAME_MOUSE_LEAVE, null, false);
-                    this.uiButton[i] = 0;
-                }
-                if (this.uiText[i] != 0) {
-                    this.uiText[i] = 0;
-                }
-                if (this.uiImage[i] != 0) {
-                    this.uiImage[i] = 0;
+            if (currentMenu == this) {
+                currentMenu = 0;
+            }
+
+            while (i <= itemCount) {
+                if (items[i] != 0) {
+                    items[i].destroy();
+                    items[i] = 0;
                 }
                 i += 1;
             }
-            DzDestroyFrame(this.menuFrame);
-            this.itemCount = 0;
-            this.menuFrame = 0;
-            this.onClickCallback = null;
-            this.onEnterCallback = null;
-            this.onLeaveCallback = null;
+            menuFrame.destroy();
+            menuFrame   = 0;
+            itemCount   = 0;
+            onClickFunc = 0;
+            onEnterFunc = 0;
+            onLeaveFunc = 0;
         }
 
-        // 添加菜单项
         public method AddMenuItem(string title, real width) -> thistype {
-            integer divider;
+            if (!this.isExist()) { return this; }
+            integer anchorPoint;
+            integer relativePoint;
+            real offsetY;
             thistype this = this;
-            this.itemCount += 1;
 
-            if (this.itemCount >= MOUSE_MENU_MAX_ITEMS) {
+            if (itemCount == 0) {
+                getFirstItem();
+            }
+
+            itemCount += 1;
+            if (itemCount >= MOUSE_MENU_MAX_ITEMS) {
                 return this;
             }
 
-            // 创建分割线
-            divider = CreateBackDrop(this.menuFrame);
-            DzFrameSetTexture(divider, "White.blp", 0);
-            DzFrameSetSize(divider, width * GetResizeRate() * 0.9, 0.0005);
-            DzFrameSetPoint(divider, FRAME_ANCHOR_TOP, this.uiButton[this.itemCount - 1], FRAME_ANCHOR_BOTTOM, 0, 0);
+            if (isUpward) {
+                anchorPoint = ANCHOR_BOTTOM;
+                relativePoint = ANCHOR_TOP;
+                offsetY = 0;
+            } else {
+                anchorPoint = ANCHOR_TOP;
+                relativePoint = ANCHOR_BOTTOM;
+                offsetY = 0;
+            }
 
-            // 创建菜单项并设置事件
-            this.uiButton[this.itemCount] = CreateTextButton(this.menuFrame)
-                .setText(title)
-                .setSize(width * GetResizeRate(), MOUSE_MENU_HEIGHT)
-                .setPoint(FRAME_ANCHOR_TOP, this.uiButton[this.itemCount - 1], FRAME_ANCHOR_BOTTOM, 0, 0)
-                .onMouseUp(function() {
-                    thistype menu = DzGetTriggerUIUserData();
-                    integer index = GetTriggerUI();
-                    if (menu.onClickCallback != null) {
-                        menu.onClickCallback.evaluate(index);
-                    }
-                })
-                .onMouseEnter(function() {
-                    thistype menu = DzGetTriggerUIUserData();
-                    integer index = GetTriggerUI();
-                    if (menu.onEnterCallback != null) {
-                        menu.onEnterCallback.evaluate(index);
-                    }
-                })
-                .onMouseLeave(function() {
-                    thistype menu = DzGetTriggerUIUserData();
-                    integer index = GetTriggerUI();
-                    if (menu.onLeaveCallback != null) {
-                        menu.onLeaveCallback.evaluate(index);
-                    }
-                });
+            items[itemCount] = menuItem.create(this, title, itemCount, menuFrame.ui);
 
-            DzFrameSetUserData(this.uiButton[this.itemCount], integer(this));
+            uiHashTable(items[itemCount].btn.ui).eventdata.bind(itemCount);
 
-            // 更新菜单大小
-            DzFrameSetSize(this.menuFrame, width * GetResizeRate(), this.itemCount * MOUSE_MENU_HEIGHT);
+            items[itemCount].btn.spEnter(function(integer frame) {
+                integer index = uiHashTable(frame).eventdata.get();
+                if (onEnterFunc != null) {
+                    items[index].showHighlight(true);
+                    onEnterFunc.evaluate(index);
+                }
+            })
+                .spLeave(function(integer frame) {
+                    integer index = uiHashTable(frame).eventdata.get();
+                    if (onLeaveFunc != null) {
+                        items[index].showHighlight(false);
+                        onLeaveFunc.evaluate(index);
+                    }
+            })
+                .spClick(function(integer frame) {
+                    integer index = uiHashTable(frame).eventdata.get();
+                    if (onClickFunc != null) {
+                        onClickFunc.evaluate(index);
+                    }
+            });
+
+            if (itemCount == 1) {
+                // 第一个菜单项的两个anchor是一样的
+                items[itemCount].background.setPoint(anchorPoint, menuFrame.ui, anchorPoint, 0, 0);
+            } else {
+                items[itemCount].background.setPoint(anchorPoint,
+                items[itemCount - 1].background.ui,
+                relativePoint, 0, offsetY);
+            }
+
+            menuFrame.setSizeFix(width, itemCount * MOUSE_MENU_HEIGHT);
 
             return this;
         }
 
-        // 创建菜单
-        public static method create(integer parent, string title, real width) -> thistype {
+        public static method create(integer parent, boolean isUpward) -> thistype {
             thistype this = thistype.allocate();
-            thistype self = this;
+            isUpward = isUpward;
 
-            this.itemCount = 1;
-
-            // 创建菜单背景
-            this.menuFrame = CreateBackDrop(parent)
-                .setTexture("ui\\menu\\rightclickmenu.blp", 0)
-                .setSize(width * GetResizeRate(), MOUSE_MENU_HEIGHT);
-
-            // 创建第一个菜单项
-            this.uiButton[1] = CreateTextButton(this.menuFrame)
-                .setText(title)
-                .setSize(width * GetResizeRate(), MOUSE_MENU_HEIGHT)
-                .setPoint(FRAME_ANCHOR_CENTER, this.menuFrame, FRAME_ANCHOR_TOP, 0, -0.55 * MOUSE_MENU_HEIGHT)
-                .onMouseUp(function() {
-                    thistype menu = DzGetTriggerUIUserData();
-                    if (menu.onClickCallback != null) {
-                        menu.onClickCallback.evaluate(1);
-                    }
-                })
-                .onMouseEnter(function() {
-                    thistype menu = DzGetTriggerUIUserData();
-                    if (menu.onEnterCallback != null) {
-                        menu.onEnterCallback.evaluate(1);
-                    }
-                })
-                .onMouseLeave(function() {
-                    thistype menu = DzGetTriggerUIUserData();
-                    if (menu.onLeaveCallback != null) {
-                        menu.onLeaveCallback.evaluate(1);
-                    }
-                });
-
-            DzFrameSetUserData(this.uiButton[1], integer(this));
+            menuFrame = uiImage.create(parent)
+                .setTexture(UI_STRING_PATH_BLANK)
+                .setSizeFix(MOUSE_MENU_WIDTH, MOUSE_MENU_HEIGHT)
+                .hide();
 
             return this;
         }
 
-        // 初始化
         static method onInit() {
             hardware.regLeftUpEvent(function() {
                 mouseMenu menu = DzGetTriggerUIUserData();
-                if (menu != 0 && !menu.IsMouseInMenu(GetTriggerUI())) {
+                if (menu != 0 && !menu.isInMenu(GetTriggerUI())) {
                     menu.destroy();
                 }
             });
@@ -185,6 +250,59 @@ library MouseMenu requires UIButton, UIImage, UIText,UIExtendEvent {
                     menu.destroy();
                 }
             });
+        }
+
+        /**
+         * 显示或隐藏菜单
+         *
+         * @param flag true显示,false隐藏
+         * @return thistype 返回自身以支持链式调用
+         *
+         * 显示逻辑:
+         * 1. 如果要显示且不是当前显示的菜单:
+         *    - 会先隐藏当前显示的菜单(如果存在)
+         *    - 将自己设置为当前显示的菜单
+         *    - 显示自己
+         *
+         * 2. 如果要显示且已是当前菜单:
+         *    - 直接显示自己
+         *    - 不改变currentMenu引用
+         *
+         * 隐藏逻辑:
+         * 1. 如果要隐藏且是当前显示的菜单:
+         *    - 清除currentMenu引用
+         *    - 隐藏自己
+         *
+         * 2. 如果要隐藏且不是当前菜单:
+         *    - 直接隐藏自己
+         *    - 不改变currentMenu引用
+         *
+         * 该实现确保了:
+         * 1. 同时只能显示一个菜单
+         * 2. 显示新菜单时会自动隐藏旧菜单
+         * 3. 正确管理currentMenu引用
+         */
+        public method show(boolean flag) -> thistype {
+            if (!this.isExist()) { return this; }
+
+            // 显示新菜单时,需要处理当前显示的菜单
+            if (flag && this != currentMenu) {
+                // 如果已有显示的菜单,先隐藏它
+                if (currentMenu.isExist()) {
+                    currentMenu.show(false);
+                }
+                // 将自己设为当前显示的菜单
+                currentMenu = this;
+            }
+
+            // 隐藏当前菜单时,需要清除引用
+            if (!flag && this == currentMenu) {
+                currentMenu = 0;
+            }
+
+            // 设置实际的显示/隐藏状态
+            menuFrame.show(flag);
+            return this;
         }
     }
 }

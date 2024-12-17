@@ -1,4 +1,4 @@
 logs\currentmapscript.j
 pjass.exe
-Line 3647:  Undeclared function B2S
+Line 3919:  Too many arguments passed to function
 1

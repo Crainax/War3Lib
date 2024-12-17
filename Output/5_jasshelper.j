@@ -319,6 +319,7 @@ integer array s__icon_glowImage
 integer array s__icon_cornerText
 integer array s__icon_clickBtn
 integer array s__icon_cdSprite
+integer array s__icon_parent
 integer array s__icon_glowAnim
 integer array s__icon_gd
 real array s__icon_sizeX
@@ -330,7 +331,6 @@ integer array s__icon_spRelative
 integer array s__icon_spRelativeAnchor
 real array s__icon_spOffsetX
 real array s__icon_spOffsetY
-integer array s__icon_spParent
 trigger st__baseanim_onDestroy
 trigger st__resizer_onDestroy
 trigger st__rePointer_onDestroy
@@ -3626,6 +3626,7 @@ endfunction
         function s__icon_create takes integer parent returns integer
             local integer this=s__icon__allocate()
             call s__icon_init(this)
+            set s__icon_parent[this]=parent
             set s__icon_isSimple[this]=false // 创建必需组件
             set s__icon_mainImage[this]=s__uiImage_setClip(s__uiImage_create(parent),true)
             call s__uiImage_show(s__icon_mainImage[this],false)
@@ -3634,13 +3635,13 @@ endfunction
         function s__icon_fromExistingUI takes integer existingImage,integer parent returns integer
             local integer this=s__icon__allocate()
             call s__icon_init(this)
+            set s__icon_parent[this]=parent
             set s__icon_isSimple[this]=true
             set s__icon_spAnchor[this]=0
             set s__icon_spRelative[this]=0
             set s__icon_spRelativeAnchor[this]=0
             set s__icon_spOffsetX[this]=0
-            set s__icon_spOffsetY[this]=0
-            set s__icon_spParent[this]=parent // 绑定现有图片
+            set s__icon_spOffsetY[this]=0 // 绑定现有图片
             set s__icon_mainImage[this]=existingImage
             return this
         endfunction  // 从现有UI创建图标(parent是后面创建东西的parent)
@@ -3656,12 +3657,16 @@ endfunction
                 endif
             endif
         endfunction  // 加入流光效果
-        function s__icon_grow takes integer this,integer parent,integer gd returns integer
+        function s__icon_grow takes integer this,integer gd returns integer
             if ( not ( s__icon_isExist(this) ) ) then
                 return this
             endif
             if ( not ( s__uiImage_isExist(s__icon_glowImage[this]) ) ) then
-                set s__icon_glowImage[this]=s__uiImage_setPoint(s__uiImage_create(parent),4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0)
+                if ( s__icon_isSimple[this] ) then
+                    set s__icon_glowImage[this]=s__uiImage_setPoint(s__uiImage_createSimple(s__icon_parent[this]),4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0)
+                else
+                    set s__icon_glowImage[this]=s__uiImage_setPoint(s__uiImage_create(s__icon_parent[this]),4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0)
+                endif
                 call s__icon_updateGlowSize(this)
             endif // 显示流光
             call s__uiImage_show(s__icon_glowImage[this],true)
@@ -3676,7 +3681,7 @@ endfunction
             return this
         endfunction  // 取消流光
         function s__icon_unGrow takes integer this returns integer
-            if ( not ( s__icon_isExist(this) ) ) then
+            if ( not ( s__icon_isExist(this) ) ) then //
                 return this
             endif
             if ( s__uiImage_isExist(s__icon_glowImage[this]) ) then
@@ -3767,10 +3772,10 @@ endfunction
             endif
             if ( not ( s__uiBtn_isExist(s__icon_clickBtn[this]) ) ) then //原生
                 if ( s__icon_isSimple[this] ) then
-                    if ( s__icon_spParent[this] != 0 ) then
-                        set s__icon_clickBtn[this]=s__uiBtn_setAllPoint(s__uiBtn_createSimple(s__icon_spParent[this]),s__uiImage_ui[s__icon_mainImage[this]])
+                    if ( s__icon_parent[this] != 0 ) then
+                        set s__icon_clickBtn[this]=s__uiBtn_setAllPoint(s__uiBtn_createSimple(s__icon_parent[this]),s__uiImage_ui[s__icon_mainImage[this]])
                     else
-                        call BJDebugMsg("spParent is 0")
+                        call BJDebugMsg("parent is 0")
                     endif //非原生
                 else
                     set s__icon_clickBtn[this]=s__uiBtn_setAllPoint(s__uiBtn_create(s__uiImage_ui[s__icon_mainImage[this]]),s__uiImage_ui[s__icon_mainImage[this]])
@@ -3911,7 +3916,7 @@ endfunction
             return
         endif
         if ( not UTIcon___isTest3Active ) then
-            call s__icon_grow(UTIcon___testIcon1,DzGetGameUI() , (2))
+            call s__icon_grow(UTIcon___testIcon1,(2))
             set UTIcon___isTest3Active=true
             call BJDebugMsg("流光效果已开启 - 输入s3可关闭")
         else
@@ -4112,6 +4117,13 @@ endfunction
     endfunction
 
 //library UTIcon ends
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
+
 
 // 0 - 1亿这里用
 // 锚点常量
@@ -4121,12 +4133,19 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
+
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
+//控件的共用基本方法
+//窗口的大小
 //===========================================================================
 // Icon.j
 //===========================================================================
@@ -4154,20 +4173,6 @@ endfunction
 //
 //===========================================================================
 //# dependency:ui/model/cooldown_center.mdx
-
-// [DzSetUnitMoveType]  
-// title = "设置单位移动类型[NEW]"  
-// description = "设置 ${单位} 的移动类型：${movetype} "  
-// comment = ""  
-// category = TC_KKPRE  
-// [[.args]]  
-// type = unit  
-// [[.args]]  
-// type = MoveTypeName  
-// default = MoveTypeName01  
-
-//控件的共用基本方法
-//窗口的大小
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -4581,7 +4586,7 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs122297734")
+call ExecuteFunc("jasshelper__initstructs33192140")
 call ExecuteFunc("UnitTestFramwork___onInit")
 call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
 call ExecuteFunc("UITocInit___onInit")
@@ -4819,7 +4824,7 @@ function sa___prototype20_UTIcon___anon__3 takes nothing returns boolean
     return true
 endfunction
 
-function jasshelper__initstructs122297734 takes nothing returns nothing
+function jasshelper__initstructs33192140 takes nothing returns nothing
     set st__icon_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__icon_onDestroy,Condition( function sa__icon_onDestroy))
     set st__progAnim_create=CreateTrigger()

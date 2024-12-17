@@ -100,7 +100,7 @@ library UTIcon requires Icon {
 		}
 
 		if (!isTest3Active) {
-			testIcon1.grow(DzGetGameUI(), growdata[ICONGROW_2]);
+			testIcon1.grow( growdata[ICONGROW_2]);
 			isTest3Active = true;
 			BJDebugMsg("流光效果已开启 - 输入s3可关闭");
 		} else {

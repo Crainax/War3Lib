@@ -40,7 +40,7 @@
 /*
 [按钮]整合到了一起
 */
-library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim,UIExtendResize,UIHashTable {
+library Icon requires  GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim,UIExtendResize,UILayer{
 
     public struct icon {
         // UI组件
@@ -51,6 +51,7 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         uiText cornerText;      // 角落文字
         uiBtn clickBtn;      // 点击按钮
         uiSprite cdSprite;      // CD显示精灵
+        integer parent; // 父级
 
         // 动画相关
         baseanim glowAnim;    // 流光动画
@@ -68,7 +69,6 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         integer spRelativeAnchor;
         real spOffsetX;
         real spOffsetY;
-        integer spParent;
         STRUCT_SHARED_METHODS(icon)
 
         // 私有的初始化方法
@@ -95,7 +95,8 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         static method create(integer parent) -> thistype {
             thistype this = allocate();
             this.init();
-            isSimple = false;
+            this.parent = parent;
+            isSimple    = false;
 
             // 创建必需组件
             mainImage = uiImage.create(parent)
@@ -109,13 +110,13 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         static method fromExistingUI(uiImage existingImage,integer parent) -> thistype {
             thistype this = allocate();
             this.init();
+            this.parent      = parent;
             isSimple         = true;
             spAnchor         = 0;
             spRelative       = 0;
             spRelativeAnchor = 0;
             spOffsetX        = 0;
             spOffsetY        = 0;
-            spParent         = parent;
 
             // 绑定现有图片
             mainImage = existingImage;
@@ -140,11 +141,16 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         }
 
         // 加入流光效果
-        method grow(integer parent, growdata gd) -> thistype {
+        method grow( growdata gd) -> thistype {
             if (!this.isExist()) {return this;}
             if (!glowImage.isExist()) {
-                glowImage = uiImage.create(parent)
-                    .setPoint(ANCHOR_CENTER, mainImage.ui, ANCHOR_CENTER, 0, 0);
+                if (isSimple) {
+                    glowImage = uiImage.createSimple(this.parent);
+                } else {
+                    glowImage = uiImage.create(this.parent);
+                }
+                glowImage.setPoint(ANCHOR_CENTER, mainImage.ui, ANCHOR_CENTER, 0, 0);
+
                 this.updateGlowSize();
             }
             glowImage.show(true); // 显示流光
@@ -162,7 +168,7 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
         // 取消流光
         method unGrow() -> thistype {
             if (!this.isExist()) {return this;}
-            if (glowImage.isExist()) {
+            if (glowImage.isExist()) { //
                 glowImage.show(false);
             }
             if (glowAnim.isExist()) {
@@ -199,9 +205,13 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
             real padding;
             if (!this.isExist()) {return this;}
             if (!cornerText.isExist()) {
-                cornerShade = uiImage.createCornerBorder(mainImage.ui);
-                cornerText = uiText.create(cornerShade.ui)
-                    .setFontSize(2)
+                if (isSimple) {
+                    cornerShade = uiImage.createCornerBorder(mainImage.ui);
+                } else {
+                    cornerShade = uiImage.createCornerBorder(this.parent);
+                    cornerText = uiText.create(cornerShade.ui);
+                }
+                cornerText.setFontSize(2)
                     .setPoint(ANCHOR_BOTTOMRIGHT, mainImage.ui, ANCHOR_BOTTOMRIGHT, -0.003,0.003);
                 padding = 0.003;
                 cornerShade.setPoint(ANCHOR_TOPLEFT, cornerText.ui, ANCHOR_TOPLEFT, -padding, padding)
@@ -257,11 +267,11 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
             if (!this.isExist()) {return 0;}
             if (!clickBtn.isExist()) {
                 if (isSimple) { //原生
-                    if (spParent != 0) {
-                        clickBtn = uiBtn.createSimple(spParent)
+                    if (parent != 0) {
+                        clickBtn = uiBtn.createSimple(parent)
                             .setAllPoint(mainImage.ui);
                     } else {
-                        BJDebugMsg("spParent is 0");
+                        BJDebugMsg("parent is 0");
                     }
                 } else { //非原生
                     clickBtn = uiBtn.create(mainImage.ui)
