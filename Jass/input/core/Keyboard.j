@@ -19,7 +19,7 @@ library Keyboard requires BzAPI{
         static method regKeyDownEvent (integer keyCode, code func) {
             if (trsDown[keyCode] == null) {
                 trsDown[keyCode] = CreateTrigger();
-                DzTriggerRegisterKeyEventByCode(null,keyCode,KEYBORAD_PRESSED,false,function () {
+                DzTriggerRegisterKeyEventByCode(null, keyCode, KEYBORAD_PRESSED, false, function() {
                     integer triggerKey = DzGetTriggerKey();
                     if (!isDown[triggerKey]) {
                         isDown[triggerKey] = true;
@@ -33,7 +33,7 @@ library Keyboard requires BzAPI{
         static method regKeyUpEvent (integer keyCode, code func) {
             if (trsUp[keyCode] == null) {
                 trsUp[keyCode] = CreateTrigger();
-                DzTriggerRegisterKeyEventByCode(null,keyCode,KEYBORAD_UP,false,function () {
+                DzTriggerRegisterKeyEventByCode(null, keyCode, KEYBORAD_UP, false, function() {
                     integer triggerKey = DzGetTriggerKey();
                     isDown[triggerKey] = false;
                     TriggerEvaluate(trsUp[triggerKey]);

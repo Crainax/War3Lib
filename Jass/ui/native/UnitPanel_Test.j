@@ -29,14 +29,18 @@
 library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 
 	public function Init2 () {
-		hardware.regUpdateEvent(function () {
-			if (IsUnitAlly(DzGetSelectedLeaderUnit(), GetLocalPlayer()) && GetOwningPlayer(DzGetSelectedLeaderUnit()) != GetLocalPlayer() && IsUnitType(DzGetSelectedLeaderUnit(), UNIT_TYPE_STRUCTURE)) {
-				unitPanel.moveOutBuilding();
-			} else if (GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hsor' || GetUnitTypeId(DzGetSelectedLeaderUnit()) == 'hmpr') {
-				unitPanel.moveOutMonster();
+		unitPanel.registerBuilding(); //注册建筑单位的单位面板刷新机制
+
+		unitSelect.onAsync(function () {
+			if (GetUnitTypeId(unitSelect.args) == 'hsor' || GetUnitTypeId(unitSelect.args) == 'hmpr') {
+				unitPanel.iconMonster.show(true);
 			}
 		});
-
+		unitSelect.onAsyncUn(function () {
+			if (GetUnitTypeId(unitSelect.args) == 'hsor' || GetUnitTypeId(unitSelect.args) == 'hmpr') {
+				unitPanel.iconMonster.show(false);
+			}
+		});
 	}
 
 	// 初始化测试内容

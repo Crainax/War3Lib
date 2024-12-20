@@ -31,7 +31,14 @@ library UTKeyboard requires Keyboard {
 			BJDebugMsg("[Keyboard] 抬起Ctrl键2");
 		});
 	}
-	function TTestUTKeyboard3 (player p) {}
+	function TTestUTKeyboard3 (player p) {
+		keyboard.regKeyDownEvent(KEY_ESC, function (){
+			BJDebugMsg("[Keyboard] 按下ESC键");
+		});
+		keyboard.regKeyUpEvent(KEY_ESC, function (){
+			BJDebugMsg("[Keyboard] 抬起ESC键");
+		});
+	}
 	function TTestUTKeyboard4 (player p) {}
 	function TTestUTKeyboard5 (player p) {}
 	function TTestUTKeyboard6 (player p) {}

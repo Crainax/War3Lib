@@ -59,7 +59,7 @@ TEXTAREA
 #include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
-library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon {
+library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect {
 
 
     public struct unitPanel []{
@@ -193,7 +193,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon {
                 .setText("30");
 
             //建筑小框架相关
-            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7); //建筑的父框架
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7); //建筑的父框架(放弃了因为频繁拉回来的原因)
             child = DzCreateFrameByTagName("SIMPLEFRAME", "upBuilding", parent, "单位面板框架", 2);
             DzFrameClearAllPoints(child);
             iconBuilding = icon.fromExistingUI(uiImage.bindSimple("单位面板图标", 2), parent)
@@ -213,11 +213,12 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon {
                 .setText("1");
 
             //怪物属性框架
-            iconMonster = icon.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconRank", 3))
+            iconMonster = icon.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
                 .setSize(0.027, 0.027)
             // .setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0,0)
                 .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.1235, -0.02)
-                .setTexture("ReplaceableTextures\\CommandButtons\\BTNSkeletonArcher.blp");
+                .setTexture("ReplaceableTextures\\CommandButtons\\BTNSkeletonArcher.blp")
+                .show(false);
             btn = iconMonster.getClickBtn()
                 .spEnter(function(integer frame) {if (trMonsterEnter != null) TriggerEvaluate(trMonsterEnter);})
                 .spLeave(function(integer frame) {if (trMonsterLeave != null) TriggerEvaluate(trMonsterLeave);})
@@ -239,6 +240,26 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon {
             DzFrameSetSize( ui, 0.02, 0.02 );
             DzFrameClearAllPoints( ui );
             DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
+        }
+
+        private static boolean isBuildingSelected = false;
+        // 注册建筑单位的单位面板刷新机制
+        static method registerBuilding () {
+            hardware.regUpdateEvent(function () {
+                if (isBuildingSelected) {
+                    unitPanel.moveOutBuilding();
+                }
+            });
+            unitSelect.onAsync(function () {
+                if (IsUnitAlly(unitSelect.args, GetLocalPlayer()) && GetOwningPlayer(unitSelect.args) != GetLocalPlayer() && IsUnitType(unitSelect.args, UNIT_TYPE_STRUCTURE)) {
+                    isBuildingSelected = true;
+                }
+            });
+            unitSelect.onAsyncUn(function () {
+                if (IsUnitAlly(unitSelect.args, GetLocalPlayer()) && GetOwningPlayer(unitSelect.args) != GetLocalPlayer() && IsUnitType(unitSelect.args, UNIT_TYPE_STRUCTURE)) {
+                    isBuildingSelected = false;
+                }
+            });
         }
 
         //把所有原生UI移走

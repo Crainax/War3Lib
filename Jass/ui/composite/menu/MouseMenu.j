@@ -86,7 +86,8 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent {
             menuEventFunc onEnterFunc = null;
             menuEventFunc onLeaveFunc = null;
 
-            static mouseMenu currentMenu = 0;      // 当前显示的菜单实例
+            static mouseMenu currentMenu = 0;
+            static integer escStackId = 0;
         }
 
         STRUCT_SHARED_METHODS(mouseMenu)
@@ -208,10 +209,11 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent {
                     if (onClickFunc != null) {
                         onClickFunc.evaluate(index);
                     }
+                    currentMenu.show(false);
             });
 
             if (itemCount == 1) {
-                // 第一个菜单项的两个anchor是一样的
+                // ��一个菜单项的两个anchor是一样的
                 items[itemCount].background.setPoint(anchorPoint, menuFrame.ui, anchorPoint, 0, 0);
             } else {
                 items[itemCount].background.setPoint(anchorPoint,
@@ -238,9 +240,8 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent {
 
         static method onInit() {
             hardware.regLeftUpEvent(function() {
-                mouseMenu menu = DzGetTriggerUIUserData();
-                if (menu != 0 && !menu.isInMenu(GetTriggerUI())) {
-                    menu.destroy();
+                if (currentMenu.isExist() && !currentMenu.isInMenu(GetTriggerUI())) {
+                    currentMenu.show(false);
                 }
             });
 
@@ -293,11 +294,18 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent {
                 }
                 // 将自己设为当前显示的菜单
                 currentMenu = this;
+                thistype.escStackId = escStack.push(function(player p) {
+                    currentMenu.show(false);
+                }, GetLocalPlayer());
             }
 
             // 隐藏当前菜单时,需要清除引用
             if (!flag && this == currentMenu) {
                 currentMenu = 0;
+                if (thistype.escStackId != 0) {
+                    escStack.remove(thistype.escStackId);
+                    thistype.escStackId = 0;
+                }
             }
 
             // 设置实际的显示/隐藏状态

@@ -153,14 +153,37 @@ function compile:StartCompile()
 		return false
 	end
 
+	-- 重置标记
+	path.hasRelease = false
+	path.hasUnitTest = false
+
 	fileUtils.ReadFile(path.CompileStep1, function(line)
 		-- 捕获lua_print后面的内容
 		local capture = string.match(line, "^%s*//% *lua_print:%s*(.+)$")
 		if capture then
 			path.buildString = path.buildString .. '[' .. capture .. ']-'
+
+			if capture:find("正式地图", 1, true) then
+				path.hasRelease = true
+			end
+			if capture:find("单元测试", 1, true) then
+				path.hasUnitTest = true
+			end
+			return
+		end
+
+		-- 捕获library名称
+		local libName = string.match(line, "^%s*library%s+UT(%w+)%s*requires?.*$")
+		if libName then
+			path.buildString = path.buildString .. '[' .. libName .. ']-'
 			return
 		end
 	end)
+
+	-- 在读取完整个文件后检查标记
+	if path.hasRelease and path.hasUnitTest then
+		path.setMapName("OriginMap")  -- 使用正式地图的单元测试
+	end
 
 	code, msg = fileUtils.copyFile(path.CompileStep1, path.CompileStep2)
 	if not (code) then
@@ -226,7 +249,7 @@ function compile:StartCompile()
 			print("复制编译文件失败: " .. tostring(errMsg))
 		end
 		print("[jasshelper]编译失败 : " .. mapScriptDest) -- 踩过的坑:如果换了WE,记得把StormLib.dll丢进jasshelper目录里
-		print("[jasshelper]失败内容: ")
+		print("[jasshelper]失败内: ")
 		fileUtils.ReadFile(errorLogDest, function(line)
 			print(line)
 		end)

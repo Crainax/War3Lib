@@ -6,9 +6,9 @@
 
 //! zinc
 
-//自动生成的文件
-library UTItemBtns requires ItemBtns {
+library UTItemBtns requires ItemBtns,UnitTestUIRuler {
 
+	// 初始化就调用
 	function Init () {
 		itemBtns.onEnter(function () {
 			integer pos = itemBtns.argsPos;
@@ -19,40 +19,36 @@ library UTItemBtns requires ItemBtns {
 			BJDebugMsg("第" + I2S(pos) + "个物品离开2");
 		});
 	}
+	// 测试1: 测试全部隐藏和全部显示的
 	function TTestUTItemBtns1 (player p) {
-		integer child = 0;
-		uiBtn btn = 0;
-		uiImage img = 0;
-
-		btn = uiBtn.create(DzGetGameUI())
-			.setSize(0.032,0.032)
-			.setPoint(ANCHOR_CENTER,itemBtns.slot[1],ANCHOR_CENTER,0,0)
-			.onMouseEnter(function() {BJDebugMsg("enter"); })
-			.onMouseLeave(function() {BJDebugMsg("leave"); })
-			.onMouseClick(function() {BJDebugMsg("click"); });
-		img = uiImage.create(btn.ui)
-			.setAllPoint(btn.ui)
-			.setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
-		itemBtns.onEnter(function () {
-			integer pos = itemBtns.argsPos;
-			BJDebugMsg("第" + I2S(pos) + "个物品进入");
-		});
-		itemBtns.onLeave(function () {
-			integer pos = itemBtns.argsPos;
-			BJDebugMsg("第" + I2S(pos) + "个物品离开");
-		});
+		integer i;
+		for (1 <= i <= 6) {
+			itemBtns.outside(i);
+		}
+		BJDebugMsg("全部物品隐藏");
 	}
 	function TTestUTItemBtns2 (player p) {
 		integer i;
 		for (1 <= i <= 6) {
 			itemBtns.inside(i);
 		}
-		BJDebugMsg("全部物品重定位");
+		BJDebugMsg("全部物品显示");
 	}
-	function TTestUTItemBtns3 (player p) { //测试双事件
-
+	function TTestUTItemBtns3 (player p) { //测试流光
+		itemBtns.icons[1].grow(growdata[ICONGROW_13]);
+		itemBtns.icons[2].grow(growdata[ICONGROW_14]);
+		itemBtns.icons[3].grow(growdata[ICONGROW_15]);
+		itemBtns.icons[4].grow(growdata[ICONGROW_16]);
+		itemBtns.icons[5].grow(growdata[ICONGROW_17]);
+		itemBtns.icons[6].grow(growdata[ICONGROW_18]);
 	}
-	function TTestUTItemBtns4 (player p) {}
+	boolean isShadeShown = false;
+	function TTestUTItemBtns4 (player p) {
+		integer i;
+		isShadeShown = !isShadeShown;
+		itemBtns.showShade(isShadeShown);
+		BJDebugMsg("全部物品暗遮罩");
+	}
 	function TTestUTItemBtns5 (player p) {}
 	function TTestUTItemBtns6 (player p) {}
 	function TTestUTItemBtns7 (player p) {}
@@ -88,6 +84,9 @@ library UTItemBtns requires ItemBtns {
 		} else if (paramS[0] == "inside") {
 			itemBtns.inside(paramI[1]);
 			BJDebugMsg("inside:"+I2S(paramI[1]));
+		} else if (paramS[0] == "ungrow") {
+			itemBtns.icons[paramI[1]].unGrow();
+			BJDebugMsg("停止流光:"+I2S(paramI[1]));
 		}
 
 		p = null;
@@ -177,7 +176,7 @@ library UTItemBtns requires ItemBtns {
 			else if(str == "s9") TTestUTItemBtns9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTItemBtns10(GetTriggerPlayer());
 		});
-
+		InitTestUIRuler();
 	}
 
 }

@@ -36,7 +36,7 @@ function w3xlni:Start(func)
 			print("[Lua" .. path.buildVersion .. "]脚本打包进地图失败:" .. msg)
 		end
 	end
-	if path.buildVersion == "单元测试" then -- todo:根据正式或单元测试,创建lua.currentpath的require来分包控制.
+	if path.buildVersion == "单元测试" and path.mapName ~= "OriginMap" then -- todo:根据正式或单元测试,创建lua.currentpath的require来分包控制.
 		-- 判断是否是单元测试,进行物编转移/特效的
 		-- utr.ReplaceTable()
 		-- utr.ReplaceMapJ()
@@ -46,7 +46,7 @@ function w3xlni:Start(func)
 	end
 	local result = table.pack(func())
 	if fu.fileExist(path.mapJ) then fu.WriteOver(path.mapJ, "") end --覆盖一下war3map.j为空
-	if path.buildVersion == "单元测试" then
+	if path.buildVersion == "单元测试" and path.mapName ~= "OriginMap" then
 		utr.RemoveTable() -- 删除单元测试的物编
 		utr.removeResourceFiles()                                -- 删除资源文件(blp,mdx这些)
 		print("[Lua" .. path.buildVersion .. "]清除临时物编(不含Lua文件).")
