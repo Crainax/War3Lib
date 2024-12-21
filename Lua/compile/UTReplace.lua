@@ -121,11 +121,13 @@ utr.MoveLuaFile = function()
 	end)
 end
 
--- 复制资源文件到单元测试地图
--- 功能：将编译过程中使用的资源文件从原始地图复制到单元测试地图
+-- 复制资源文件到地图里
+-- 功能：将编译过程中使用的资源文件从原始地图复制到地图
+--      测试地图只打印数量
+--      正式地图会打印成功的文件名
 -- 参数说明：
 -- path.assets: 原始地图资源根目录
--- path.resource: 单元测试地图资源根目录
+-- path.resource: 地图资源根目录
 -- compileFiles.resourceFiles: 记录的是相对于资源根目录的路径
 utr.copyResourceFiles = function()
 	local createdFiles = {}
@@ -150,7 +152,15 @@ utr.copyResourceFiles = function()
 		end
 	end
 
-	print(string.format("    [临时资源] 成功: %d, 失败: %d", successCount, #failedFiles))
+	if path.mapName ~= "OriginMap" then
+		print(string.format("    [临时资源] 成功: %d, 失败: %d", successCount, #failedFiles))
+	else
+		print(string.format("    [临时资源] 成功: %d, 失败: %d", successCount, #failedFiles))
+		print("    [临时资源] 成功文件列表:")
+		for _, file in ipairs(createdFiles) do
+			print(string.format("        %s", file))
+		end
+	end
 	if #failedFiles > 0 then
 		print("    [临时资源] 失败文件列表:")
 		for _, fail in ipairs(failedFiles) do

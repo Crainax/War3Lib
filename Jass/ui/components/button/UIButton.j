@@ -43,7 +43,7 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
         static method createRC (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
-            ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_TEXT_BUTTON,0); //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
+            ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,"TEMPLATE_TEXT_BUTTON",0); //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
             STRUCT_SHARED_UI_ONCREATE(uiBtn)
             return this;
         }
@@ -54,6 +54,16 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("BUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_BLANK_BUTTON,0);
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
+            return this;
+        }
+
+        // 创建菜单系按钮
+        // parent: 父级框架
+        static method createMenu (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("TEXTBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_MENU_BUTTON,0);
             STRUCT_SHARED_UI_ONCREATE(uiBtn)
             return this;
         }

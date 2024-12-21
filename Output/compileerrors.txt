@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 3014: ungrow is not a member of icon
+pjass.exe
+Line 130:  Undeclared function UnitTestRegisterChatEvent
 1

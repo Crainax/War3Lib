@@ -82,8 +82,9 @@ library UTUIImage requires UIImage {
 			.setTexture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
 	}
 
-	// 将TTestUTUIImage8-10保持为空函数
-	function TTestUTUIImage8 (player p) {}
+	//
+	function TTestUTUIImage8 (player p) {
+	}
 	function TTestUTUIImage9 (player p) {}
 	function TTestUTUIImage10 (player p) {}
 

@@ -44,6 +44,7 @@ library Hardware requires BzAPI {
 		}
 		// 注册一个鼠标移动事件,不能异步注册
 		static method regMoveEvent (code func) {
+			BJDebugMsg("注册鼠标移动事件");
 			if (trMove == null) {trMove = CreateTrigger();}
 			TriggerAddCondition(trMove, Condition(func));
 		}

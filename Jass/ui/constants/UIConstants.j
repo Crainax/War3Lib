@@ -61,6 +61,7 @@
 #define TEMPLATE_TEXT_BUTTON         "TBT"
 #define TEMPLATE_IMAGE               "IT"
 #define TEMPLATE_BLANK_BUTTON        "BB"
+#define TEMPLATE_MENU_BUTTON        "TestButton1"
 #define TEMPLATE_IMAGE_TOOLTIPS      "ToolTipsTemplate"
 #define TEMPLATE_IMAGE_TOOLTIPS2     "ToolTipsTemplate2"
 #define TEMPLATE_IMAGE_CORNER_BORDER "CornerBorder"
@@ -75,6 +76,8 @@
 #define TEMPLATE_CHECKBOX_RADIO      "RBTemplate"
 #define TEMPLATE_EDITBOX             "EB"
 #define TEMPLATE_BORDER1             "Border1"
+#define TEMPLATE_BORDER2             "Border2"
+#define TEMPLATE_BORDER3             "Border3"
 
 #define TEMPLATE_SIMPLE_BUTTON      "简单按钮"   //fdf不写都行
 #define TEMPLATE_SIMPLE_TEXT        "简单文字"

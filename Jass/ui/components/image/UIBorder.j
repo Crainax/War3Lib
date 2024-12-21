@@ -17,12 +17,32 @@ library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
 
         module uiImageModule;  // UI图片的共用方法
 
-        // 创建文本
+        // 创建边框种类1
         // parent: 父级框架
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_BORDER1,0);
+            STRUCT_SHARED_UI_ONCREATE(uiBorder)
+            return this;
+        }
+
+        // 创建边框种类2:适用于按钮系
+        // parent: 父级框架
+        static method createType2 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_BORDER2,0);
+            STRUCT_SHARED_UI_ONCREATE(uiBorder)
+            return this;
+        }
+
+        // 创建边框种类2:适用于大面板通知消息系
+        // parent: 父级框架
+        static method createType3 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_BORDER3,0);
             STRUCT_SHARED_UI_ONCREATE(uiBorder)
             return this;
         }
