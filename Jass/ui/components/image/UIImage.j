@@ -9,9 +9,6 @@
 图片UI组件
 */
 
-//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
-//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
-
 library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
 
     public struct uiImage {
@@ -26,36 +23,6 @@ library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE,0);
-            STRUCT_SHARED_UI_ONCREATE(uiImage)
-            return this;
-        }
-
-        // 创建工具提示背景图片(种类1)
-        // parent: 父级框架
-        static method createToolTips (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS,0);
-            STRUCT_SHARED_UI_ONCREATE(uiImage)
-            return this;
-        }
-
-        // 创建工具提示背景图片(种类2)
-        // parent: 父级框架
-        static method createToolTips2 (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS2,0);
-            STRUCT_SHARED_UI_ONCREATE(uiImage)
-            return this;
-        }
-
-        // 创建边角(图标系的)
-        // parent: 父级框架
-        static method createCornerBorder (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_CORNER_BORDER,0);
             STRUCT_SHARED_UI_ONCREATE(uiImage)
             return this;
         }

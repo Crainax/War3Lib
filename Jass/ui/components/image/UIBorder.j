@@ -9,6 +9,8 @@
 边框图片UI组件
 */
 
+//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
+
 library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
 
     public struct uiBorder {
@@ -47,10 +49,50 @@ library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
             return this;
         }
 
-        method alignParent(integer ui) -> thistype {
+        // 创建边框种类2:适用于大面板通知消息系
+        // parent: 父级框架
+        static method createType4 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_BORDER4,0);
+            STRUCT_SHARED_UI_ONCREATE(uiBorder)
+            return this;
+        }
+
+        // 创建工具提示背景图片(种类1)
+        // parent: 父级框架
+        static method createToolTips (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
+        // 创建工具提示背景图片(种类2)
+        // parent: 父级框架
+        static method createToolTips2 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_TOOLTIPS2,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
+        // 创建边角(图标系的)
+        // parent: 父级框架
+        static method createCornerBorder (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_IMAGE_CORNER_BORDER,0);
+            STRUCT_SHARED_UI_ONCREATE(uiImage)
+            return this;
+        }
+
+        method alignParent(integer ui,real padding) -> thistype {
             if (!this.isExist()) {return this;}
-            this.setPoint(ANCHOR_TOPLEFT, ui, ANCHOR_TOPLEFT, -0.005, 0.005);
-            this.setPoint(ANCHOR_BOTTOMRIGHT, ui, ANCHOR_BOTTOMRIGHT, 0.005, -0.005);
+            this.setPoint(ANCHOR_TOPLEFT, ui, ANCHOR_TOPLEFT, -1 * padding, padding);
+            this.setPoint(ANCHOR_BOTTOMRIGHT, ui, ANCHOR_BOTTOMRIGHT, padding, -1 * padding);
             return this;
         }
 

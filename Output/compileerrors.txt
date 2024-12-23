@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 130:  Undeclared function UnitTestRegisterChatEvent
+JASSHelper - Step 2 (structs)
+Line 605: bn is not of a type that allows . syntax
 1

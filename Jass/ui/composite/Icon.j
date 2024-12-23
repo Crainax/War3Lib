@@ -40,13 +40,13 @@
 /*
 [按钮]整合到了一起
 */
-library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,ProgressAnim,UIExtendResize,UILayer{
+library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UISprite,ProgressAnim,UIExtendResize,UILayer{
 
     public struct icon {
         // UI组件
         uiImage mainImage;      // 主图标图片
         uiImage shadowImage;    // 图标暗遮罩
-        uiImage cornerShade;    // 角落文字背景
+        uiBorder cornerShade;    // 角落文字背景
         uiImage glowImage;      // 流光特效图片
         uiText cornerText;      // 角落文字
         uiBtn clickBtn;      // 点击按钮
@@ -220,10 +220,10 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage, UIButton,UISprite,Pro
             // 创建或更新cornerText
             if (!cornerText.isExist()) {
                 if (isSimple) {
-                    cornerShade = uiImage.createCornerBorder(uilayer.lv[1]);
+                    cornerShade = uiBorder.createCornerBorder(uilayer.lv[1]);
                     cornerText = uiText.create(cornerShade.ui);
                 } else {
-                    cornerShade = uiImage.createCornerBorder(this.parent);
+                    cornerShade = uiBorder.createCornerBorder(this.parent);
                     cornerText = uiText.create(cornerShade.ui);
                 }
                 cornerText.setFontSize(2)

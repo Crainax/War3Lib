@@ -78,6 +78,7 @@
 #define TEMPLATE_BORDER1             "Border1"
 #define TEMPLATE_BORDER2             "Border2"
 #define TEMPLATE_BORDER3             "Border3"
+#define TEMPLATE_BORDER4             "Border4"
 
 #define TEMPLATE_SIMPLE_BUTTON      "简单按钮"   //fdf不写都行
 #define TEMPLATE_SIMPLE_TEXT        "简单文字"

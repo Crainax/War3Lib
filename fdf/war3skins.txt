@@ -704,7 +704,7 @@ MinimapCreepCampTexture=UI\Minimap\MinimapIcon\MinimapIconCreepLoc.blp
 MinimapToughCreepCampTexture=UI\Minimap\MinimapIcon\MinimapIconCreepLoc2.blp
 
 UndiscoveredQuestIcon=UI\Widgets\EscMenu\Human\quest-unknown.blp
-UnitTipBackground=UI\Widgets\ToolTips\Human\human-tooltip-background2.blp
+UnitTipBackground=UI\Widgets\ToolTips\Human\human-tooltip-background.blp
 
 MultiboardBorder=UI\Widgets\EscMenu\Human\editbox-border.blp
 MultiboardBackground=UI\Widgets\EscMenu\Human\editbox-background.blp

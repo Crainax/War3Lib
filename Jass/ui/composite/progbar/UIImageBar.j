@@ -72,7 +72,7 @@ library UIImageBar requires UIImage {
             if (!this.isExist()) {return this;}
             if (border == 0) {
                 border = uiBorder.create(uiFill.ui)
-                    .alignParent(uiBackground.ui);
+                    .alignParent(uiBackground.ui,0.005);
             }
             return this;
         }

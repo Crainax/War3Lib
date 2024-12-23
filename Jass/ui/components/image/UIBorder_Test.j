@@ -35,9 +35,39 @@ library UTUIBorder requires UIBorder {
 			BJDebugMsg("创建了一个基础边框UI:种类3");
 		}
 	}
-	function TTestUTUIBorder4 (player p) {}
-	function TTestUTUIBorder5 (player p) {}
-	function TTestUTUIBorder6 (player p) {}
+	function TTestUTUIBorder4 (player p) {
+		if (GetLocalPlayer() == p) {
+			if (currentBorder != 0) {
+				currentBorder.destroy();
+				currentBorder = 0;
+			}
+			currentBorder = uiBorder.createToolTips(DzGetGameUI())
+				.setSize(0.3, 0.4)
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+			BJDebugMsg("创建了工具提示背景图片(种类1)");
+		}
+	}
+	function TTestUTUIBorder5 (player p) {
+		if (GetLocalPlayer() == p) {
+			if (currentBorder != 0) {
+				currentBorder.destroy();
+				currentBorder = 0;
+			}
+			currentBorder = uiBorder.createToolTips2(DzGetGameUI())
+				.setSize(0.3, 0.4)
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+			BJDebugMsg("创建了工具提示背景图片(种类2)");
+		}
+
+	}
+	function TTestUTUIBorder6 (player p) {
+		if (GetLocalPlayer() == p) {
+			currentBorder = uiBorder.createType4(DzGetGameUI())
+				.setSize(0.1,0.1)
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+			BJDebugMsg("创建了一个基础边框UI:种类4");
+		}
+	}
 	function TTestUTUIBorder7 (player p) {}
 	function TTestUTUIBorder8 (player p) {}
 	function TTestUTUIBorder9 (player p) {}

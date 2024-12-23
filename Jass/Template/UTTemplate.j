@@ -11,6 +11,17 @@
 //自动生成的文件
 library {UnitTest} requires LibraryName {
 
+	function Init () {
+		UnitTestAutoTimer(1.0, 2.0, function() {
+			//start
+			}, function() {
+			//end
+		});
+		UnitTestAutoTimer(1.0, 2.0, function() {
+			//assert.Boolean(true, "测试1");
+		},null);
+	}
+
 	function TTest{UnitTest}1 (player p) {}
 	function TTest{UnitTest}2 (player p) {}
 	function TTest{UnitTest}3 (player p) {}
@@ -59,6 +70,7 @@ library {UnitTest} requires LibraryName {
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
 			BJDebugMsg("[LibraryName] 单元测试已加载");
+			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

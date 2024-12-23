@@ -49,6 +49,13 @@ library UIBaseModule requires UIUtils {
             return this;
         }
 
+        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        method setSizeFixVertical (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width,height/GetResizeRate());
+            return this;
+        }
+
         // 显示控件
         // 参数: boolean flag 是否显示
         method show (boolean flag) -> thistype {

@@ -1,58 +1,18 @@
 globals
-//globals from BzAPI:
-constant boolean LIBRARY_BzAPI=true
-//endglobals from BzAPI
-//globals from LBKKAPI:
-constant boolean LIBRARY_LBKKAPI=true
-string MOVE_TYPE_NONE= "none"
-string MOVE_TYPE_FOOT= "foot"
-string MOVE_TYPE_HORSE= "horse"
-string MOVE_TYPE_FLY= "fly"
-string MOVE_TYPE_HOVER= "hover"
-string MOVE_TYPE_FLOAT= "float"
-string MOVE_TYPE_AMPH= "amph"
-string MOVE_TYPE_UNBUILD= "unbuild"
-constant integer DEFENSE_TYPE_LIGHT= 0
-constant integer DEFENSE_TYPE_MEDIUM= 1
-constant integer DEFENSE_TYPE_LARGE= 2
-constant integer DEFENSE_TYPE_FORT= 3
-constant integer DEFENSE_TYPE_NORMAL= 4
-constant integer DEFENSE_TYPE_HERO= 5
-constant integer DEFENSE_TYPE_DIVINE= 6
-constant integer DEFENSE_TYPE_NONE= 7
-//endglobals from LBKKAPI
-//globals from MapBoundsUtils:
-constant boolean LIBRARY_MapBoundsUtils=true
-//endglobals from MapBoundsUtils
-//globals from MathUtils:
-constant boolean LIBRARY_MathUtils=true
-//endglobals from MathUtils
-//globals from UIId:
-constant boolean LIBRARY_UIId=true
-//endglobals from UIId
-//globals from UIImageModule:
-constant boolean LIBRARY_UIImageModule=true
-//endglobals from UIImageModule
+//globals from ConversionUtils:
+constant boolean LIBRARY_ConversionUtils=true
+//endglobals from ConversionUtils
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork___TUnitTest=null
+hashtable UnitTestFramwork___HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
-//globals from UITocInit:
-constant boolean LIBRARY_UITocInit=true
-//endglobals from UITocInit
-//globals from UIUtils:
-constant boolean LIBRARY_UIUtils=true
-//endglobals from UIUtils
-//globals from UIBaseModule:
-constant boolean LIBRARY_UIBaseModule=true
-//endglobals from UIBaseModule
-//globals from UIBorder:
-constant boolean LIBRARY_UIBorder=true
-//endglobals from UIBorder
-//globals from UTUIBorder:
-constant boolean LIBRARY_UTUIBorder=true
-integer UTUIBorder___currentBorder=0
-//endglobals from UTUIBorder
+//globals from BigNumber:
+constant boolean LIBRARY_BigNumber=true
+//endglobals from BigNumber
+//globals from UTBigNumber:
+constant boolean LIBRARY_UTBigNumber=true
+//endglobals from UTBigNumber
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -78,969 +38,172 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
-constant integer si__mapBounds=1
-integer si__mapBounds_F=0
-integer si__mapBounds_I=0
-integer array si__mapBounds_V
-real s__mapBounds_maxX=0.
-real s__mapBounds_minX=0.
-real s__mapBounds_maxY=0.
-real s__mapBounds_minY=0.
-constant integer si__radiationEnd=2
-integer si__radiationEnd_F=0
-integer si__radiationEnd_I=0
-integer array si__radiationEnd_V
-real s__radiationEnd_x=0
-real s__radiationEnd_y=0
-constant integer si__uiId=3
-hashtable s__uiId_ht
-integer s__uiId_nextId
-integer s__uiId_recycleCount
-constant integer si__uiBorder=4
-integer si__uiBorder_F=0
-integer si__uiBorder_I=0
-integer array si__uiBorder_V
-integer array s__uiBorder_ui
-integer array s__uiBorder_id
-trigger st__uiBorder_onDestroy
+constant integer si__assert=1
+constant integer si__bigNumber=2
+integer si__bigNumber_F=0
+integer si__bigNumber_I=0
+integer array si__bigNumber_V
+integer array s__bigNumber_low
+integer array s__bigNumber_high
+trigger st__bigNumber_onDestroy
+trigger st__bigNumber_destroy
 integer f__arg_this
 
 endglobals
-    native DzGetMouseTerrainX takes nothing returns real
-    native DzGetMouseTerrainY takes nothing returns real
-    native DzGetMouseTerrainZ takes nothing returns real
-    native DzIsMouseOverUI takes nothing returns boolean
-    native DzGetMouseX takes nothing returns integer
-    native DzGetMouseY takes nothing returns integer
-    native DzGetMouseXRelative takes nothing returns integer
-    native DzGetMouseYRelative takes nothing returns integer
-    native DzSetMousePos takes integer x, integer y returns nothing
-    native DzTriggerRegisterMouseEvent takes trigger trig, integer btn, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseEventByCode takes trigger trig, integer btn, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterKeyEvent takes trigger trig, integer key, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterKeyEventByCode takes trigger trig, integer key, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseWheelEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseWheelEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseMoveEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseMoveEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzGetTriggerKey takes nothing returns integer
-    native DzGetWheelDelta takes nothing returns integer
-    native DzIsKeyDown takes integer iKey returns boolean
-    native DzGetTriggerKeyPlayer takes nothing returns player
-    native DzGetWindowWidth takes nothing returns integer
-    native DzGetWindowHeight takes nothing returns integer
-    native DzGetWindowX takes nothing returns integer
-    native DzGetWindowY takes nothing returns integer
-    native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzIsWindowActive takes nothing returns boolean
-    native DzDestructablePosition takes destructable d, real x, real y returns nothing
-    native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
-    native DzExecuteFunc takes string funcName returns nothing
-    native DzGetUnitUnderMouse takes nothing returns unit
-    native DzSetUnitTexture takes unit whichUnit, string path, integer texId returns nothing
-    native DzSetMemory takes integer address, real value returns nothing
-    native DzSetUnitID takes unit whichUnit, integer id returns nothing
-    native DzSetUnitModel takes unit whichUnit, string path returns nothing
-    native DzSetWar3MapMap takes string map returns nothing
-    native DzGetLocale takes nothing returns string
-    native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
-    native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
-    native DzSyncData takes string prefix, string data returns nothing
-    native DzGetTriggerSyncPrefix takes nothing returns string
-    native DzGetTriggerSyncData takes nothing returns string
-    native DzGetTriggerSyncPlayer takes nothing returns player
-    native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
-    native DzSyncDataImmediately takes string prefix, string data returns nothing 
-    native DzFrameHideInterface takes nothing returns nothing
-    native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
-    native DzFrameGetPortrait takes nothing returns integer
-    native DzFrameGetMinimap takes nothing returns integer
-    native DzFrameGetCommandBarButton takes integer row, integer column returns integer
-    native DzFrameGetHeroBarButton takes integer buttonId returns integer
-    native DzFrameGetHeroHPBar takes integer buttonId returns integer
-    native DzFrameGetHeroManaBar takes integer buttonId returns integer
-    native DzFrameGetItemBarButton takes integer buttonId returns integer
-    native DzFrameGetMinimapButton takes integer buttonId returns integer
-    native DzFrameGetUpperButtonBarButton takes integer buttonId returns integer
-    native DzFrameGetTooltip takes nothing returns integer
-    native DzFrameGetChatMessage takes nothing returns integer
-    native DzFrameGetUnitMessage takes nothing returns integer
-    native DzFrameGetTopMessage takes nothing returns integer
-    native DzGetColor takes integer r, integer g, integer b, integer a returns integer
-    native DzFrameSetUpdateCallback takes string func returns nothing
-    native DzFrameSetUpdateCallbackByCode takes code funcHandle returns nothing
-    native DzFrameShow takes integer frame, boolean enable returns nothing
-    native DzCreateFrame takes string frame, integer parent, integer id returns integer
-    native DzCreateSimpleFrame takes string frame, integer parent, integer id returns integer
-    native DzDestroyFrame takes integer frame returns nothing
-    native DzLoadToc takes string fileName returns nothing
-    native DzFrameSetPoint takes integer frame, integer point, integer relativeFrame, integer relativePoint, real x, real y returns nothing
-    native DzFrameSetAbsolutePoint takes integer frame, integer point, real x, real y returns nothing
-    native DzFrameClearAllPoints takes integer frame returns nothing
-    native DzFrameSetEnable takes integer name, boolean enable returns nothing
-    native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
-    native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
-    native DzGetTriggerUIEventPlayer takes nothing returns player
-    native DzGetTriggerUIEventFrame takes nothing returns integer
-    native DzFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFontStringFindByName takes string name, integer id returns integer
-    native DzSimpleTextureFindByName takes string name, integer id returns integer
-    native DzGetGameUI takes nothing returns integer
-    native DzClickFrame takes integer frame returns nothing
-    native DzSetCustomFovFix takes real value returns nothing
-    native DzEnableWideScreen takes boolean enable returns nothing
-    native DzFrameSetText takes integer frame, string text returns nothing
-    native DzFrameGetText takes integer frame returns string
-    native DzFrameSetTextSizeLimit takes integer frame, integer size returns nothing
-    native DzFrameGetTextSizeLimit takes integer frame returns integer
-    native DzFrameSetTextColor takes integer frame, integer color returns nothing
-    native DzGetMouseFocus takes nothing returns integer
-    native DzFrameSetAllPoints takes integer frame, integer relativeFrame returns boolean
-    native DzFrameSetFocus takes integer frame, boolean enable returns boolean
-    native DzFrameSetModel takes integer frame, string modelFile, integer modelType, integer flag returns nothing
-    native DzFrameGetEnable takes integer frame returns boolean
-    native DzFrameSetAlpha takes integer frame, integer alpha returns nothing
-    native DzFrameGetAlpha takes integer frame returns integer
-    native DzFrameSetAnimate takes integer frame, integer animId, boolean autocast returns nothing
-    native DzFrameSetAnimateOffset takes integer frame, real offset returns nothing
-    native DzFrameSetTexture takes integer frame, string texture, integer flag returns nothing
-    native DzFrameSetScale takes integer frame, real scale returns nothing
-    native DzFrameSetTooltip takes integer frame, integer tooltip returns nothing
-    native DzFrameCageMouse takes integer frame, boolean enable returns nothing
-    native DzFrameGetValue takes integer frame returns real
-    native DzFrameSetMinMaxValue takes integer frame, real minValue, real maxValue returns nothing
-    native DzFrameSetStepValue takes integer frame, real step returns nothing
-    native DzFrameSetValue takes integer frame, real value returns nothing
-    native DzFrameSetSize takes integer frame, real w, real h returns nothing
-    native DzCreateFrameByTagName takes string frameType, string name, integer parent, string template, integer id returns integer
-    native DzFrameSetVertexColor takes integer frame, integer color returns nothing
-    native DzOriginalUIAutoResetPoint takes boolean enable returns nothing
-    native DzFrameSetPriority takes integer frame, integer priority returns nothing
-    native DzFrameSetParent takes integer frame, integer parent returns nothing
-    native DzFrameGetHeight takes integer frame returns real
-    native DzFrameSetFont takes integer frame, string fileName, real height, integer flag returns nothing
-    native DzFrameGetParent takes integer frame returns integer
-    native DzFrameSetTextAlignment takes integer frame, integer align returns nothing
-    native DzFrameGetName takes integer frame returns string
-    native DzGetClientWidth takes nothing returns integer
-    native DzGetClientHeight takes nothing returns integer
-    native DzFrameIsVisible takes integer frame returns boolean
-    native DzFrameAddText takes integer frame, string text returns nothing
-    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
-    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
-    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
-    native DzUpdateMinimap takes nothing returns nothing
-    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
-    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
-    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
-    native DzSaveMemoryCache takes string cache returns nothing
-    native DzGetMemoryCache takes nothing returns string
-    native DzSetSpeed takes real ratio returns nothing
-    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
-    native DzGetConvertWorldPositionX takes nothing returns real
-    native DzGetConvertWorldPositionY takes nothing returns real
-    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
-        native DzGetSelectedLeaderUnit takes nothing returns unit 
-        native DzIsChatBoxOpen takes nothing returns boolean 
-        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
-        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
-        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
-        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
-        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
-        native DzSetEffectModel takes effect whichEffect, string model returns nothing
-        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
-        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
-        native DzChangeWindowSize takes integer width, integer height returns boolean 
-        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
-        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
-        native DzUnbindEffect takes effect whichEffect returns nothing 
-        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
-        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
-        native DzGetEffectVertexColor takes effect whichEffect returns integer 
-        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
-        native DzGetItemAbility takes item whichEffect, integer index returns ability 
-        native DzFrameGetChildrenCount takes integer whichframe returns integer 
-        native DzFrameGetChild takes integer whichframe, integer index returns integer 
-        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
-        native DzGetActivePatron takes unit store, player p returns unit 
-        native DzGetLocalSelectUnitCount takes nothing returns integer 
-        native DzGetLocalSelectUnit takes integer index returns unit 
-        native DzGetJassStringTableCount takes nothing returns integer 
-        native DzModelRemoveFromCache takes string path returns nothing 
-        native DzModelRemoveAllFromCache takes nothing returns nothing 
-        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
-        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
-        native DzFrameGetPeonBar takes nothing returns integer 
-        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
-        native DzToggleFPS takes boolean show returns nothing 
-        native DzGetFPS takes nothing returns integer 
-        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
-        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
-        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
-        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
-        native DzFrameGetWorldFrameMessage takes nothing returns integer 
-        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
-        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
-        native DzConvertScreenPositionX takes real x, real y returns real 
-        native DzConvertScreenPositionY takes real x, real y returns real 
-        native DzRegisterOnBuildLocal takes code func returns nothing 
-        native DzGetOnBuildOrderId takes nothing returns integer 
-        native DzGetOnBuildOrderType takes nothing returns integer 
-        native DzGetOnBuildAgent takes nothing returns widget 
-        native DzRegisterOnTargetLocal takes code func returns nothing 
-        native DzGetOnTargetAbilId takes nothing returns integer 
-        native DzGetOnTargetOrderId takes nothing returns integer 
-        native DzGetOnTargetOrderType takes nothing returns integer 
-        native DzGetOnTargetAgent takes nothing returns widget 
-        native DzGetOnTargetInstantTarget takes nothing returns widget 
-        native DzOpenQQGroupUrl takes string url returns boolean 
-        native DzFrameEnableClipRect takes boolean enable returns nothing 
-        native DzSetUnitName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
-        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
-        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
-        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
-        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
-        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
-        native DzGetAttackAbility takes unit whichUnit returns ability 
-        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
-        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
-        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
-        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
-        native DzDoodadGetTypeId takes integer doodad returns integer 
-        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
-        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
-        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
-        native DzDoodadGetX takes integer doodad returns real 
-        native DzDoodadGetY takes integer doodad returns real 
-        native DzDoodadGetZ takes integer doodad returns real 
-        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
-        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
-        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
-        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
-        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
-        native DzDoodadGetTimeScale takes integer doodad returns real 
-        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
-        native DzDoodadGetAnimationCount takes integer doodad returns integer 
-        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
-        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
-        native DzUnlockOpCodeLimit takes boolean enable returns nothing
-        native DzSetClipboard takes string content returns boolean
-        native DzDoodadRemove takes integer doodad returns nothing
-        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
-        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
-        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
-        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
-        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
-        native DzFrameGetWidth takes integer frame returns real
-        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
-        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
-        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
-        native DzItemSetModel takes item whichItem, string file returns nothing
-        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
-        native DzItemSetAlpha takes item whichItem, integer color returns nothing
-        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
 
-//Generated allocator of mapBounds
-function s__mapBounds__allocate takes nothing returns integer
- local integer this=si__mapBounds_F
+//Generated method caller for bigNumber.onDestroy
+function sc__bigNumber_onDestroy takes integer this returns nothing
+            set s__bigNumber_low[this]=0
+            set s__bigNumber_high[this]=0
+endfunction
+
+//Generated allocator of bigNumber
+function s__bigNumber__allocate takes nothing returns integer
+ local integer this=si__bigNumber_F
     if (this!=0) then
-        set si__mapBounds_F=si__mapBounds_V[this]
+        set si__bigNumber_F=si__bigNumber_V[this]
     else
-        set si__mapBounds_I=si__mapBounds_I+1
-        set this=si__mapBounds_I
+        set si__bigNumber_I=si__bigNumber_I+1
+        set this=si__bigNumber_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: mapBounds")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: bigNumber")
         return 0
     endif
 
-    set si__mapBounds_V[this]=-1
+    set si__bigNumber_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of mapBounds
-function s__mapBounds_deallocate takes integer this returns nothing
+//Generated destructor of bigNumber
+function sc__bigNumber_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: mapBounds")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: bigNumber")
         return
-    elseif (si__mapBounds_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: mapBounds")
-        return
-    endif
-    set si__mapBounds_V[this]=si__mapBounds_F
-    set si__mapBounds_F=this
-endfunction
-
-//Generated method caller for uiBorder.onDestroy
-function sc__uiBorder_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__uiBorder_onDestroy)
-endfunction
-
-//Generated allocator of uiBorder
-function s__uiBorder__allocate takes nothing returns integer
- local integer this=si__uiBorder_F
-    if (this!=0) then
-        set si__uiBorder_F=si__uiBorder_V[this]
-    else
-        set si__uiBorder_I=si__uiBorder_I+1
-        set this=si__uiBorder_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiBorder")
-        return 0
-    endif
-
-    set si__uiBorder_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of uiBorder
-function sc__uiBorder_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBorder")
-        return
-    elseif (si__uiBorder_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBorder")
+    elseif (si__bigNumber_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: bigNumber")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__uiBorder_onDestroy)
-    set si__uiBorder_V[this]=si__uiBorder_F
-    set si__uiBorder_F=this
+    call TriggerEvaluate(st__bigNumber_onDestroy)
+    set si__bigNumber_V[this]=si__bigNumber_F
+    set si__bigNumber_F=this
 endfunction
 
-//Generated allocator of radiationEnd
-function s__radiationEnd__allocate takes nothing returns integer
- local integer this=si__radiationEnd_F
-    if (this!=0) then
-        set si__radiationEnd_F=si__radiationEnd_V[this]
-    else
-        set si__radiationEnd_I=si__radiationEnd_I+1
-        set this=si__radiationEnd_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: radiationEnd")
-        return 0
-    endif
-
-    set si__radiationEnd_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of radiationEnd
-function s__radiationEnd_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: radiationEnd")
-        return
-    elseif (si__radiationEnd_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: radiationEnd")
-        return
-    endif
-    set si__radiationEnd_V[this]=si__radiationEnd_F
-    set si__radiationEnd_F=this
-endfunction
-
-//library BzAPI:
-    //hardware
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //plus
-
-
-
-
-
-
-
-
-
-
-
-    //sync
-
-
-
-
-
-
-    //native DzGetPushContext takes nothing returns string
-
-    //gui
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //显示/隐藏SimpleFrame
-    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
-    // 追加文字（支持TextArea）
-
-    // 沉默单位-禁用技能
-
-    // 禁用攻击
-
-    // 禁用道具
-
-    // 刷新小地图
-
-    // 修改单位alpha
-
-    // 设置单位是否可以选中
-
-    // 修改单位是否可以被设置为目标
-
-    // 保存内存数据
-
-    // 读取内存数据
-
-    // 设置加速倍率
-
-    // 转换世界坐标为屏幕坐标-异步
-
-    // 转换世界坐标为屏幕坐标-获取转换后的X坐标
-
-    // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
-
-    // 创建command button
-
-    function DzTriggerRegisterMouseEventTrg takes trigger trg,integer status,integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
-    endfunction
-    function DzTriggerRegisterKeyEventTrg takes trigger trg,integer status,integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterKeyEvent(trg, btn, status, true, null)
-    endfunction
-    function DzTriggerRegisterMouseMoveEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseMoveEvent(trg, true, null)
-    endfunction
-    function DzTriggerRegisterMouseWheelEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseWheelEvent(trg, true, null)
-    endfunction
-    function DzTriggerRegisterWindowResizeEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterWindowResizeEvent(trg, true, null)
-    endfunction
-    function DzF2I takes integer i returns integer
-        return i
-    endfunction
-    function DzI2F takes integer i returns integer
-        return i
-    endfunction
-    function DzK2I takes integer i returns integer
-        return i
-    endfunction
-    function DzI2K takes integer i returns integer
-        return i
-    endfunction
-    function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMIA", true)
-    endfunction
-    //玩家消耗/使用商城道具事件
-    function DzTriggerRegisterMallItemConsumeEvent takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMIC", true)
-    endfunction
-    //玩家删除商城道具事件
-    function DzTriggerRegisterMallItemRemoveEvent takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMID", true)
-    endfunction
-    function DzGetTriggerMallItemPlayer takes nothing returns player
-        return DzGetTriggerSyncPlayer()
-    endfunction
-    function DzGetTriggerMallItem takes nothing returns string
-        return DzGetTriggerSyncData()
-    endfunction
-    
-
-//library BzAPI ends
-//library LBKKAPI:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //转换屏幕坐标到世界坐标  
-
-
-        //监听建筑选位置  
-
-        //等于0时是结束事件  
-
-
-
-        //监听技能选目标  
-
-        //等于0时是结束事件  
-
-
-
-
-
-        // 打开QQ群链接  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        function DzSetHeroTypeProperName takes integer uid,string name returns nothing
-                call EXSetUnitArrayString(uid, 61, 0, name)
-                call EXSetUnitInteger(uid, 61, 1)
-        endfunction 
-        function DzSetUnitTypeName takes integer uid,string name returns nothing
-                call EXSetUnitArrayString(uid, 10, 0, name)
-                call EXSetUnitInteger(uid, 10, 1)
-        endfunction 
-        function DzIsUnitAttackType takes unit whichUnit,integer index,attacktype attackType returns boolean
-                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType
-        endfunction 
-        function DzSetUnitAttackType takes unit whichUnit,integer index,attacktype attackType returns nothing
-                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType))
-        endfunction 
-        function DzIsUnitDefenseType takes unit whichUnit,integer defenseType returns boolean
-                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType
-        endfunction 
-        function DzSetUnitDefenseType takes unit whichUnit,integer defenseType returns nothing
-                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType)
-        endfunction 
-        // 地形装饰物
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // 解锁JASS字节码限制
-
-        // 设置剪切板内容
-
-        //删除装饰物
-
-        //移除科技等级
-
-        
-        // 查找单位技能
-
-        // 修改技能数据-字符串
-
-                
-        // 启用/禁用技能
-
-        // 设置单位移动类型
-
-        // 获取控件宽度
-
-
-
-
-        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
-                call DzSetUnitDataCacheInteger(uid, id, 0, v)
-        endfunction
-        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 94, id, v)
-        endfunction
-        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 100, id, v)
-        endfunction
-        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 112, id, v)
-        endfunction
-        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 106, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 118, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 124, id, v)
-        endfunction
-        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 130, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 172, id, v)
-        endfunction
-         // 设置道具模型
-
-        // 设置道具颜色
-
-        // 设置道具透明度
-
-        // 设置道具头像
-
-
-//library LBKKAPI ends
-//library MapBoundsUtils:
-        function s__mapBounds_X takes real x returns real
-            return RMinBJ(RMaxBJ(x, s__mapBounds_minX), s__mapBounds_maxX)
-        endfunction  // 限制Y坐标在地图范围内
-        function s__mapBounds_Y takes real y returns real
-            return RMinBJ(RMaxBJ(y, s__mapBounds_minY), s__mapBounds_maxY)
-        endfunction  // 初始化
-        function s__mapBounds_onInit takes nothing returns nothing
-            set s__mapBounds_minX=GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT)
-            set s__mapBounds_minY=GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM)
-            set s__mapBounds_maxX=GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT)
-            set s__mapBounds_maxY=GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP)
-        endfunction
-
-//library MapBoundsUtils ends
-//library MathUtils:
-    function R2IRandom takes real value returns integer
-        if ( GetRandomReal(0, 1.0) <= ModuloReal(value, 1.0) ) then
-            return R2I(value) + 1
-        endif
-        return R2I(value)
-    endfunction  // 进行整数除法，若能整除则结果减1
-    function Divide1 takes integer i1,integer i2 returns integer
-        if ( ModuloInteger(i1, i2) == 0 ) then
-            return i1 / i2 - 1
-        endif
-        return i1 / i2
-    endfunction  // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
-    function RealAdd takes real a1,real a2 returns real
-        if ( RAbsBJ(a2) >= 1.0 ) then
-            return a1
-        endif
-        if ( a2 >= 0 ) then
-            return 1.0 - ( 1.0 - a1 ) * ( 1.0 - a2 )
+//library ConversionUtils:
+    function B2S takes boolean b returns string
+        if ( b ) then
+            return "true"
         else
-            return 1.0 - ( 1.0 - a1 ) / ( 1.0 + a2 )
+            return "false"
         endif
-    endfunction  // 最小最大值限制
-    function ILimit takes integer target,integer min,integer max returns integer
-        if ( target < min ) then
-            return min
-        elseif ( target > max ) then
-            return max
+    endfunction  //三目运算符
+    function S3 takes boolean b,string s1,string s2 returns string
+        if ( b ) then
+            return s1
         else
-            return target
+            return s2
         endif
-    endfunction  // 最小最大值限制
-    function RLimit takes real target,real min,real max returns real
-        if ( target < min ) then
-            return min
-        elseif ( target > max ) then
-            return max
+    endfunction  //三目运算符
+    function I3 takes boolean b,integer i1,integer i2 returns integer
+        if ( b ) then
+            return i1
         else
-            return target
+            return i2
         endif
-    endfunction  // 四舍五入法实数转整数
-    function R2IM takes real r returns integer
-        if ( ModuloReal(r, 1.0) >= 0.5 ) then
-            return R2I(r) + 1
+    endfunction  //三目运算符
+    function R3 takes boolean b,real r1,real r2 returns real
+        if ( b ) then
+            return r1
         else
-            return R2I(r)
+            return r2
         endif
-    endfunction  // 计算射线与地图边界的交点
-        function s__radiationEnd_cal takes real x1,real y1,real angle returns nothing
-            local real x2=0
-            local real y2=0
-            local real a=ModuloReal(angle, 360)
-            local real tan
-            set s__radiationEnd_x=0
-            set s__radiationEnd_y=0 // 处理特殊角度
-            if ( a == 0 ) then // 正右方
-                set s__radiationEnd_x=s__mapBounds_maxX
-                set s__radiationEnd_y=y1
-                return
-            endif // 正上方
-            if ( a == 90 ) then
-                set s__radiationEnd_x=x1
-                set s__radiationEnd_y=s__mapBounds_maxY
-                return
-            endif // 正左方
-            if ( a == 180 ) then
-                set s__radiationEnd_x=s__mapBounds_minX
-                set s__radiationEnd_y=y1
-                return
-            endif // 正下方
-            if ( a == 270 ) then
-                set s__radiationEnd_x=x1
-                set s__radiationEnd_y=s__mapBounds_minY
-                return
-            endif // 处理一般角度
-            if ( a < 90 ) then //第一象限
-                set tan=TanBJ(a)
-                set x2=( s__mapBounds_maxY - y1 ) / tan + x1
-                set y2=( s__mapBounds_maxX - x1 ) * tan + y1 //取这个
-                if ( x2 <= s__mapBounds_maxX ) then
-                    set s__radiationEnd_x=x2
-                    set s__radiationEnd_y=s__mapBounds_maxY
-                else
-                    set s__radiationEnd_x=s__mapBounds_maxX
-                    set s__radiationEnd_y=y2
-                endif //第二象限
-            elseif ( a < 180 ) then
-                set tan=TanBJ(a)
-                set x2=( s__mapBounds_maxY - y1 ) / tan + x1
-                set y2=( s__mapBounds_minX - x1 ) * tan + y1 //取这个
-                if ( x2 >= s__mapBounds_minX ) then
-                    set s__radiationEnd_x=x2
-                    set s__radiationEnd_y=s__mapBounds_maxY
-                else
-                    set s__radiationEnd_x=s__mapBounds_minX
-                    set s__radiationEnd_y=y2
-                endif //第三象限
-            elseif ( a < 270 ) then
-                set tan=TanBJ(a)
-                set x2=( s__mapBounds_minY - y1 ) / tan + x1
-                set y2=( s__mapBounds_minX - x1 ) * tan + y1 //取这个
-                if ( x2 >= s__mapBounds_minX ) then
-                    set s__radiationEnd_x=x2
-                    set s__radiationEnd_y=s__mapBounds_minY
-                else
-                    set s__radiationEnd_x=s__mapBounds_minX
-                    set s__radiationEnd_y=y2
-                endif //第四象限
-            else
-                set tan=TanBJ(a)
-                set x2=( s__mapBounds_minY - y1 ) / tan + x1
-                set y2=( s__mapBounds_maxX - x1 ) * tan + y1 //取这个
-                if ( x2 <= s__mapBounds_maxX ) then
-                    set s__radiationEnd_x=x2
-                    set s__radiationEnd_y=s__mapBounds_minY
-                else
-                    set s__radiationEnd_x=s__mapBounds_maxX
-                    set s__radiationEnd_y=y2
-                endif
-            endif
-        endfunction
+    endfunction  // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    function GetIDSymbol takes integer pos returns integer
+        local integer bit=pos / 36
+        set pos=ModuloInteger(pos, 36)
+        if ( pos < 10 ) then
+            return pos + bit * 256
+        else
+            return '000a' - '0000' + pos - 10 + bit * 256
+        endif
+    endfunction  // 将魔兽的四字符ID转换回对应数字
+    function GetSymbolID takes integer s returns integer
+        local integer i1=s / 256
+        local integer i2=ModuloInteger(s, 256)
+        if ( i2 < 10 ) then
+            return i1 * 36 + i2
+        else
+            return i2 - '000a' + '0000' + 10 + i1 * 36
+        endif
+    endfunction
 
-//library MathUtils ends
-//library UIId:
-        function s__uiId_onInit takes nothing returns nothing
-            set s__uiId_ht=InitHashtable()
-            set s__uiId_nextId=1
-            set s__uiId_recycleCount=0
-        endfunction
-        function s__uiId_get takes nothing returns integer
-            local integer id
-            if ( s__uiId_recycleCount > 0 ) then // 获取最后一个回收的ID
-                set id=LoadInteger(s__uiId_ht, 1, s__uiId_recycleCount - 1) // 从回收池中删除这个ID
-                call RemoveSavedInteger(s__uiId_ht, 1, s__uiId_recycleCount - 1) // 从状态表中删除
-                call RemoveSavedBoolean(s__uiId_ht, 2, id)
-                set s__uiId_recycleCount=s__uiId_recycleCount - 1
-                return id
-            endif // 如果没有可复用的ID，返回新的ID
-            set id=s__uiId_nextId
-            set s__uiId_nextId=s__uiId_nextId + 1
-            return id
-        endfunction
-        function s__uiId_recycle takes integer id returns nothing
-            if ( not ( HaveSavedBoolean(s__uiId_ht, 2, id) ) ) then // 将ID存入回收池
-                call SaveInteger(s__uiId_ht, 1, s__uiId_recycleCount, id) // 标记该ID已被回收
-                call SaveBoolean(s__uiId_ht, 2, id, true)
-                set s__uiId_recycleCount=s__uiId_recycleCount + 1
-            endif
-        endfunction  // 获取回收池中ID的数量
-        function s__uiId_getRecycledCount takes nothing returns integer
-            return s__uiId_recycleCount
-        endfunction  // 获取当前正在使用的ID数量
-        function s__uiId_getActiveCount takes nothing returns integer
-            return ( s__uiId_nextId - 1 ) - s__uiId_recycleCount
-        endfunction
-
-//library UIId ends
-//library UIImageModule:
-
-//library UIImageModule ends
+//library ConversionUtils ends
 //library UnitTestFramwork:
 
+        function s__assert_Boolean takes boolean condition,string name returns nothing
+            if ( not condition ) then
+                call BJDebugMsg("FAIL: " + name)
+            else
+                call BJDebugMsg("PASS: " + name)
+            endif
+        endfunction  //断言字符串相等
+        function s__assert_String takes string actual,string expected,string name returns nothing
+            if ( actual != expected ) then
+                call BJDebugMsg("FAIL: " + name)
+                call BJDebugMsg("  Expected: " + expected)
+                call BJDebugMsg("  Actual: " + actual)
+            else
+                call BJDebugMsg("PASS: " + name)
+            endif
+        endfunction
     function UnitTestRegisterChatEvent takes code func returns nothing
         call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
-    endfunction
+    endfunction  //指定开始时间与持续时间的定时器
         function UnitTestFramwork___anon__0 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+            call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]开始------")
+            call TriggerEvaluate(tr)
+            call DestroyTrigger(tr)
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call DestroyTrigger(GetTriggeringTrigger())
+            set tr=null
+        endfunction
+        function UnitTestFramwork___anon__1 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+            call TriggerEvaluate(tr)
+            call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]结束------")
+            call DestroyTrigger(tr)
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call DestroyTrigger(GetTriggeringTrigger())
+            set tr=null
+        endfunction
+    function UnitTestAutoTimer takes real time,real duration,code start,code end returns nothing
+        local trigger t=CreateTrigger()
+        local trigger tr=CreateTrigger()
+        call TriggerAddCondition(t, Condition(start))
+        call TriggerRegisterTimerEventSingle(tr, time)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
+        set t=CreateTrigger()
+        set tr=CreateTrigger()
+        call TriggerAddCondition(t, Condition(end))
+        call TriggerRegisterTimerEventSingle(tr, time + duration)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__1))
+        set tr=null
+        set t=null
+    endfunction
+        function UnitTestFramwork___anon__2 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -1054,7 +217,7 @@ endfunction
     function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.1)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__2))
         set tr=null
         set UnitTestFramwork___TUnitTest=CreateTrigger()
         call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
@@ -1064,233 +227,639 @@ endfunction
     endfunction
 
 //library UnitTestFramwork ends
-//library UITocInit:
-
-    function UITocInit___onInit takes nothing returns nothing
-        call DzLoadToc("ui\\Crainax.toc")
-        call DzFrameEnableClipRect(false)
-    endfunction
-
-//library UITocInit ends
-//library UIUtils:
-    function GetResizeRate takes nothing returns real
-        if ( DzGetWindowWidth() > 0 ) then
-            return DzGetWindowHeight() / 600.0 * 800.0 / DzGetWindowWidth()
-        else
-            return 1.0
-        endif
-    endfunction  // 获取鼠标位置X(绝对坐标)[修正版]
-    function GetMouseXEx takes nothing returns real
-        local integer width=DzGetClientWidth()
-        if ( width > 0 ) then
-            return DzGetMouseXRelative() * 0.80 / width
-        else
-            return 0.1
-        endif
-    endfunction  // 获取鼠标位置Y(绝对坐标)[修正版]
-    function GetMouseYEx takes nothing returns real
-        local integer height=DzGetClientHeight()
-        if ( height > 0 ) then
-            return 0.60 - DzGetMouseYRelative() * 0.60 / height
-        else
-            return 0.1
-        endif
-    endfunction  // 限制一个值是在一定区域内以防UI超出这个区域
-    function GetFixedMouseX takes real min,real max returns real
-        return RLimit(GetMouseXEx() , min , max)
-    endfunction  // 限制一个值是在一定区域内以防UI超出这个区域
-    function GetFixedMouseY takes real min,real max returns real
-        return RLimit(GetMouseYEx() , min , max)
-    endfunction
-
-//library UIUtils ends
-//library UIBaseModule:
-
-//library UIBaseModule ends
-//library UIBorder:
-        function s__uiBorder_isExist takes integer this returns boolean
-            return ( this != null and si__uiBorder_V[this] == - 1 )
+//library BigNumber:
+        function s__bigNumber_isExist takes integer this returns boolean
+            return ( this != null and si__bigNumber_V[this] == - 1 )
         endfunction
-//Implemented from module uiBaseModule:
-        function s__uiBorder_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
+        function s__bigNumber_create takes nothing returns integer
+            local integer this=s__bigNumber__allocate()
+            set s__bigNumber_low[this]=0
+            set s__bigNumber_high[this]=0
+            return this
+        endfunction  //==============================
+        function s__bigNumber_isNegative takes integer this returns boolean
+            if ( s__bigNumber_high[this] < 0 ) then
+                return true
+            elseif ( s__bigNumber_high[this] == 0 and s__bigNumber_low[this] < 0 ) then
+                return true
             endif
-            call DzFrameSetPoint(s__uiBorder_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
-            return this
-        endfunction  // 大小完全对齐父框架
-        function s__uiBorder_setAllPoint takes integer this,integer relative returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
+            return false
+        endfunction  //==============================
+        function s__bigNumber_negate takes integer this returns nothing
+            set s__bigNumber_high[this]=- s__bigNumber_high[this]
+            set s__bigNumber_low[this]=- s__bigNumber_low[this] // 当反号后，low、high 不在预期区间时，做一次借位或退位修正
+            if ( s__bigNumber_low[this] < 0 and s__bigNumber_high[this] > 0 ) then
+                set s__bigNumber_low[this]=s__bigNumber_low[this] + 1000000000
+                set s__bigNumber_high[this]=s__bigNumber_high[this] - 1
+            elseif ( s__bigNumber_low[this] > 0 and s__bigNumber_high[this] < 0 ) then
+                set s__bigNumber_low[this]=s__bigNumber_low[this] - 1000000000
+                set s__bigNumber_high[this]=s__bigNumber_high[this] + 1
+            endif // 防止溢出
+            if ( s__bigNumber_high[this] > 2100000000 ) then
+                set s__bigNumber_high[this]=2100000000
+                set s__bigNumber_low[this]=999999999
+            elseif ( s__bigNumber_high[this] < - 2100000000 ) then
+                set s__bigNumber_high[this]=- 2100000000
+                set s__bigNumber_low[this]=- 999999999
             endif
-            call DzFrameSetAllPoints(s__uiBorder_ui[this], relative)
-            return this
-        endfunction  //绝对位置
-        function s__uiBorder_setAbsPoint takes integer this,integer anchor,real x,real y returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
+        endfunction  //==============================
+        function s__bigNumber_makePositive takes integer this returns nothing
+            if ( s__bigNumber_isNegative(this) ) then
+                call s__bigNumber_negate(this)
             endif
-            call DzFrameSetAbsolutePoint(s__uiBorder_ui[this], anchor, x, y)
-            return this
-        endfunction  // 清除所有位置
-        function s__uiBorder_clearPoint takes integer this returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
+        endfunction  //==============================
+        function s__bigNumber_add takes integer this,integer highPart,integer lowPart returns nothing
+            set s__bigNumber_low[this]=s__bigNumber_low[this] + lowPart // 处理低位进位/借位
+            if ( s__bigNumber_low[this] >= 1000000000 ) then
+                set s__bigNumber_high[this]=s__bigNumber_high[this] + ( s__bigNumber_low[this] / 1000000000 )
+                set s__bigNumber_low[this]=ModuloInteger(s__bigNumber_low[this], 1000000000)
+            elseif ( s__bigNumber_low[this] <= - 1000000000 ) then
+                set s__bigNumber_high[this]=s__bigNumber_high[this] + ( s__bigNumber_low[this] / 1000000000 )
+                set s__bigNumber_low[this]=- ModuloInteger(IAbsBJ(s__bigNumber_low[this]), 1000000000)
+            elseif ( s__bigNumber_low[this] < 0 and s__bigNumber_high[this] > 0 ) then
+                set s__bigNumber_low[this]=s__bigNumber_low[this] + 1000000000
+                set s__bigNumber_high[this]=s__bigNumber_high[this] - 1
+            elseif ( s__bigNumber_low[this] > 0 and s__bigNumber_high[this] < 0 ) then
+                set s__bigNumber_low[this]=s__bigNumber_low[this] - 1000000000
+                set s__bigNumber_high[this]=s__bigNumber_high[this] + 1
+            endif // 加到高位
+            set s__bigNumber_high[this]=s__bigNumber_high[this] + highPart // 防止溢出
+            if ( s__bigNumber_high[this] > 2100000000 ) then
+                set s__bigNumber_high[this]=2100000000
+                set s__bigNumber_low[this]=999999999
+            elseif ( s__bigNumber_high[this] < - 2100000000 ) then
+                set s__bigNumber_high[this]=- 2100000000
+                set s__bigNumber_low[this]=- 999999999
             endif
-            call DzFrameClearAllPoints(s__uiBorder_ui[this])
-            return this
-        endfunction  // 设置大小
-        function s__uiBorder_setSize takes integer this,real width,real height returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
+        endfunction  //==============================
+        function s__bigNumber_addReal takes integer this,real value returns nothing
+            local integer highValue=0
+            local integer lowValue=0
+            local real tempHigh=0.0
+            if ( value >= 1000000000.0 ) then // 先计算除以10亿后的值
+                set tempHigh=value / 1000000000.0 // 检查是否会溢出
+                if ( tempHigh > 2100000000.0 ) then
+                    set highValue=2100000000
+                    set lowValue=999999999
+                else
+                    set highValue=R2I(tempHigh)
+                    set lowValue=R2I(ModuloReal(value, 1000000000.0))
+                endif
+            elseif ( value <= - 1000000000.0 ) then // 处理负数，先取绝对值计算
+                set tempHigh=RAbsBJ(value) / 1000000000.0 // 检查是否会溢出
+                if ( tempHigh > 2100000000.0 ) then
+                    set highValue=- 2100000000
+                    set lowValue=- 999999999
+                else
+                    set highValue=- R2I(tempHigh)
+                    set lowValue=- R2I(ModuloReal(RAbsBJ(value), 1000000000.0))
+                endif
+            else
+                set lowValue=R2I(value)
             endif
-            call DzFrameSetSize(s__uiBorder_ui[this], width, height)
-            return this
-        endfunction  // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
-        function s__uiBorder_setSizeFix takes integer this,real width,real height returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetSize(s__uiBorder_ui[this], width * GetResizeRate(), height)
-            return this
-        endfunction  // 显示控件
-        function s__uiBorder_show takes integer this,boolean flag returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameShow(s__uiBorder_ui[this], flag)
-            return this
-        endfunction  //透明度(0-255)
-        function s__uiBorder_setAlpha takes integer this,integer value returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetAlpha(s__uiBorder_ui[this], value)
-            return this
-        endfunction  //扩展自适应大小方法
-//Implemented from module uiImageModule:
-        function s__uiBorder_setTexture takes integer this,string path returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetTexture(s__uiBorder_ui[this], path, 0)
-            return this
-        endfunction  // 设置图片控件视口,防止模型超出范围
-        function s__uiBorder_setClip takes integer this,boolean clip returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call DzFrameSetClip(s__uiBorder_ui[this], clip)
-            return this
-        endfunction
-        function s__uiBorder_create takes integer parent returns integer
-            local integer this=s__uiBorder__allocate()
-            set s__uiBorder_id[this]=s__uiId_get()
-            set s__uiBorder_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiBorder_id[this]), parent, "Border1", 0)
-//#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiBorder.typeid,ui)
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-//#                 call uiHashTable(ui).ui.bind(uiBorder.typeid,this)
-//#             endif
-            return this
-        endfunction  // 创建边框种类2:适用于按钮系
-        function s__uiBorder_createType2 takes integer parent returns integer
-            local integer this=s__uiBorder__allocate()
-            set s__uiBorder_id[this]=s__uiId_get()
-            set s__uiBorder_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiBorder_id[this]), parent, "Border2", 0)
-//#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiBorder.typeid,ui)
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-//#                 call uiHashTable(ui).ui.bind(uiBorder.typeid,this)
-//#             endif
-            return this
-        endfunction  // 创建边框种类2:适用于按钮系
-        function s__uiBorder_createType3 takes integer parent returns integer
-            local integer this=s__uiBorder__allocate()
-            set s__uiBorder_id[this]=s__uiId_get()
-            set s__uiBorder_ui[this]=DzCreateFrameByTagName("BACKDROP", "Img" + I2S(s__uiBorder_id[this]), parent, "Border3", 0)
-//#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onCreateCB(this,uiBorder.typeid,ui)
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-//#                 call uiHashTable(ui).ui.bind(uiBorder.typeid,this)
-//#             endif
-            return this
-        endfunction
-        function s__uiBorder_alignParent takes integer this,integer ui returns integer
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-                return this
-            endif
-            call s__uiBorder_setPoint(this,0 , ui , 0 , - 0.005 , 0.005)
-            call s__uiBorder_setPoint(this,8 , ui , 8 , 0.005 , - 0.005)
-            return this
-        endfunction
-        function s__uiBorder_onDestroy takes integer this returns nothing
-            if ( not ( s__uiBorder_isExist(this) ) ) then
+            call s__bigNumber_add(this,highValue , lowValue)
+        endfunction  //==============================
+        function s__bigNumber_clone takes integer this returns integer
+            local integer tmp=s__bigNumber__allocate()
+            set s__bigNumber_high[tmp]=s__bigNumber_high[this]
+            set s__bigNumber_low[tmp]=s__bigNumber_low[this]
+            return tmp
+        endfunction  //==============================
+        function s__bigNumber_addBigNumber takes integer this,integer other returns nothing
+            call s__bigNumber_add(this,s__bigNumber_high[other] , s__bigNumber_low[other])
+        endfunction  //==============================
+        function s__bigNumber_doubleBN takes integer this returns nothing
+            call s__bigNumber_add(this,s__bigNumber_high[this] , s__bigNumber_low[this])
+        endfunction  //==============================
+        function s__bigNumber_multiplyInteger takes integer this,integer val returns nothing
+            local integer sign=1
+            local integer tmpVal=val
+            local integer result=s__bigNumber_create()
+            local integer temp=s__bigNumber_clone(this)
+            local real tempValue
+            set tempValue=( I2R(s__bigNumber_high[this]) * 1000000000 ) * I2R(tmpVal) // 210京
+            if ( tempValue >= 2.1 * Pow(10.0, 18) ) then // 正向溢出
+                set s__bigNumber_high[this]=2100000000
+                set s__bigNumber_low[this]=999999999
+                return // -210京
+            elseif ( tempValue <= - 2.1 * Pow(10.0, 18) ) then // 负向溢出
+                set s__bigNumber_high[this]=- 2100000000
+                set s__bigNumber_low[this]=- 999999999
                 return
+            endif // 1. 符号处理
+            if ( tmpVal < 0 ) then
+                set tmpVal=- tmpVal
+                set sign=- sign
             endif
-//#             static if LIBRARY_UILifeCycle then
-//#                 call uiLifeCycle.onDestroyCB(this,uiBorder.typeid,ui)
-//#             endif
-//#             static if LIBRARY_UIHashTable then
-//#                 call FlushChildHashtable(HASH_UI,ui)
-//#             endif
-            call DzDestroyFrame(s__uiBorder_ui[this])
-            call s__uiId_recycle(s__uiBorder_id[this])
+            if ( s__bigNumber_isNegative(this) ) then
+                call s__bigNumber_negate(temp)
+                set sign=- sign
+            endif // 2. 二进制拆分乘法
+            loop // 如果当前位是1，就把temp加到结果中
+            exitwhen ( tmpVal <= 0 )
+                if ( ModuloInteger(tmpVal, 2) == 1 ) then
+                    call s__bigNumber_addBigNumber(result,temp)
+                endif // temp翻倍（相当于左移一位）
+                call s__bigNumber_doubleBN(temp) // tmpVal右移一位
+                set tmpVal=tmpVal / 2
+            endloop // 3. 恢复符号
+            if ( sign < 0 ) then
+                call s__bigNumber_negate(result)
+            endif // 4. 将 result 写回当前
+            set s__bigNumber_high[this]=s__bigNumber_high[result]
+            set s__bigNumber_low[this]=s__bigNumber_low[result] // 5. 释放临时对象
+            call sc__bigNumber_deallocate(result)
+            call sc__bigNumber_deallocate(temp)
+        endfunction  //==============================
+        function s__bigNumber_multiplyReal takes integer this,real rVal returns nothing
+            local real highProduct
+            local real lowProduct
+            local integer newHigh
+            local integer newLow
+            set highProduct=I2R(s__bigNumber_high[this]) * rVal
+            set lowProduct=I2R(s__bigNumber_low[this]) * rVal // 处理高位部分
+            set newHigh=R2I(highProduct * 1000000000.0)
+            set newLow=R2I(lowProduct) // 清零后重新加入结果
+            set s__bigNumber_high[this]=0
+            set s__bigNumber_low[this]=0
+            call s__bigNumber_add(this,newHigh , newLow)
+        endfunction  //==============================
+        function s__bigNumber_compareBigNumber takes integer this,integer other returns integer
+            if ( s__bigNumber_high[this] > s__bigNumber_high[other] ) then
+                return 1
+            elseif ( s__bigNumber_high[this] < s__bigNumber_high[other] ) then
+                return - 1
+            elseif ( s__bigNumber_low[this] > s__bigNumber_low[other] ) then
+                return 1
+            elseif ( s__bigNumber_low[this] < s__bigNumber_low[other] ) then
+                return - 1
+            else
+                return 0
+            endif
+        endfunction  //==============================
+        function s__bigNumber_compareInteger takes integer this,integer val returns integer
+            if ( s__bigNumber_high[this] > 0 ) then
+                return 1
+            elseif ( s__bigNumber_high[this] < 0 ) then
+                return - 1
+            endif // high 为 0 时，直接比较 low 与 val
+            if ( s__bigNumber_low[this] > val ) then
+                return 1
+            elseif ( s__bigNumber_low[this] < val ) then
+                return - 1
+            endif
+            return 0
+        endfunction  //==============================
+        function s__bigNumber_compareReal takes integer this,real val returns integer
+            local integer highPart
+            local real lowPart
+            local real absVal
+            if ( val >= 1000000000.0 ) then
+                set highPart=R2I(val / 1000000000.0)
+                set lowPart=ModuloReal(val, 1000000000.0) // 先较高位
+                if ( s__bigNumber_high[this] > highPart ) then
+                    return 1
+                elseif ( s__bigNumber_high[this] < highPart ) then
+                    return - 1
+                endif // 高位相等，比较低位
+                if ( I2R(s__bigNumber_low[this]) > lowPart ) then
+                    return 1
+                elseif ( I2R(s__bigNumber_low[this]) < lowPart ) then
+                    return - 1
+                endif
+                return 0
+            elseif ( val <= - 1000000000.0 ) then
+                set absVal=RAbsBJ(val)
+                set highPart=- R2I(absVal / 1000000000.0)
+                set lowPart=- ModuloReal(absVal, 1000000000.0)
+                if ( s__bigNumber_high[this] > highPart ) then
+                    return 1
+                elseif ( s__bigNumber_high[this] < highPart ) then
+                    return - 1
+                endif
+                if ( I2R(s__bigNumber_low[this]) > lowPart ) then
+                    return 1
+                elseif ( I2R(s__bigNumber_low[this]) < lowPart ) then
+                    return - 1
+                endif
+                return 0
+            else // val 在 (-10亿, 10亿) 范围内
+                if ( s__bigNumber_high[this] > 0 ) then
+                    return 1
+                elseif ( s__bigNumber_high[this] < 0 ) then
+                    return - 1
+                endif
+                if ( I2R(s__bigNumber_low[this]) > val ) then
+                    return 1
+                elseif ( I2R(s__bigNumber_low[this]) < val ) then
+                    return - 1
+                endif
+                return 0
+            endif
         endfunction
+        function s__bigNumber_onDestroy takes integer this returns nothing
+            set s__bigNumber_low[this]=0
+            set s__bigNumber_high[this]=0
+        endfunction  //==============================
 
-//Generated destructor of uiBorder
-function s__uiBorder_deallocate takes integer this returns nothing
+//Generated destructor of bigNumber
+function s__bigNumber_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiBorder")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: bigNumber")
         return
-    elseif (si__uiBorder_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiBorder")
+    elseif (si__bigNumber_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: bigNumber")
         return
     endif
-    call s__uiBorder_onDestroy(this)
-    set si__uiBorder_V[this]=si__uiBorder_F
-    set si__uiBorder_F=this
+    call s__bigNumber_onDestroy(this)
+    set si__bigNumber_V[this]=si__bigNumber_F
+    set si__bigNumber_F=this
 endfunction
+        function s__bigNumber_toStringWithCommas takes integer this returns string
+            local string result=""
+            local integer currentLow=s__bigNumber_low[this]
+            local integer currentHigh=s__bigNumber_high[this]
+            local boolean isNegative=s__bigNumber_isNegative(this)
+            local string highStr=""
+            local integer tempHigh
+            local integer currentDigits
+            if ( isNegative ) then
+                if ( currentHigh < 0 ) then
+                    set currentHigh=- currentHigh
+                endif
+                if ( currentLow < 0 ) then
+                    set currentLow=- currentLow
+                endif
+            endif // 处理低位的后3位
+            set result=I2S(ModuloInteger(currentLow, 1000)) // 补齐3位
+            if ( currentLow >= 1000 ) then
+                if ( ModuloInteger(currentLow, 1000) < 10 ) then
+                    set result="00" + result
+                elseif ( ModuloInteger(currentLow, 1000) < 100 ) then
+                    set result="0" + result
+                endif
+            endif // 处理低位的中间3位
+            set currentLow=currentLow / 1000
+            if ( currentLow > 0 ) then
+                set result=I2S(ModuloInteger(currentLow, 1000)) + "," + result // 补齐3位
+                if ( currentLow >= 1000 ) then
+                    if ( ModuloInteger(currentLow, 1000) < 10 ) then
+                        set result="00" + result
+                    elseif ( ModuloInteger(currentLow, 1000) < 100 ) then
+                        set result="0" + result
+                    endif
+                endif
+            endif // 处理低的前3位
+            set currentLow=currentLow / 1000
+            if ( currentLow > 0 ) then
+                set result=I2S(currentLow) + "," + result
+            endif // 处理高位部分（如果有）
+            if ( currentHigh > 0 ) then // 补齐低位到9位
+                if ( result != "" ) then // 9位数字加2位逗号
+                    loop
+                    exitwhen ( StringLength(result) >= 11 )
+                        set result="0" + result
+                    endloop
+                    set result="," + result
+                endif // 处理高位的每3位
+                set tempHigh=currentHigh
+                set highStr=I2S(ModuloInteger(tempHigh, 1000)) // 补齐末三位
+                if ( tempHigh >= 1000 ) then
+                    if ( ModuloInteger(tempHigh, 1000) < 10 ) then
+                        set highStr="00" + highStr
+                    elseif ( ModuloInteger(tempHigh, 1000) < 100 ) then
+                        set highStr="0" + highStr
+                    endif
+                endif
+                set tempHigh=tempHigh / 1000 // 如果还有更高位
+                loop
+                exitwhen ( tempHigh <= 0 )
+                    set currentDigits=ModuloInteger(tempHigh, 1000)
+                    set highStr=I2S(currentDigits) + "," + highStr // 补齐当前3位
+                    if ( tempHigh >= 1000 ) then
+                        if ( currentDigits < 10 ) then
+                            set highStr="00" + highStr
+                        elseif ( currentDigits < 100 ) then
+                            set highStr="0" + highStr
+                        endif
+                    endif
+                    set tempHigh=tempHigh / 1000
+                endloop
+                set result=highStr + result
+            endif // 添加负号
+            if ( isNegative ) then
+                set result="-" + result
+            endif
+            return result
+        endfunction  //==============================
+        function s__bigNumber_toStringWithUnit takes integer this returns string
+            local string result=""
+            local integer currentHigh=s__bigNumber_high[this]
+            local integer currentLow=s__bigNumber_low[this]
+            local boolean isNegative=s__bigNumber_isNegative(this)
+            local real value=0.0
+            local real highPart=0.0
+            local real lowPart=0.0
+            local integer unitLevel=0
+            local string units=""
+            if ( isNegative ) then
+                if ( currentHigh < 0 ) then
+                    set currentHigh=- 1 * currentHigh
+                endif
+                if ( currentLow < 0 ) then
+                    set currentLow=- 1 * currentLow
+                endif
+            endif // 分别计算高位和低位部分
+            set highPart=I2R(currentHigh) * 1000000000
+            set lowPart=I2R(currentLow)
+            set value=highPart + lowPart // 1000万以下直接显示
+            if ( value < 10000000.0 ) then
+                set result=I2S(R2I(value))
+            else // 循环除以10000直到小于10000
+                loop
+                exitwhen ( value < 10000.0 )
+                    set value=value / 10000.0
+                    set unitLevel=unitLevel + 1
+                endloop // 根据unitLevel确定单位
+                if ( unitLevel == 1 ) then
+                    set units="万"
+                elseif ( unitLevel == 2 ) then
+                    set units="亿"
+                elseif ( unitLevel == 3 ) then
+                    set units="兆"
+                elseif ( unitLevel >= 4 ) then // 格式化数值并加上单位
+                    set units="京"
+                endif
+                set result=R2SW(value, 0, 1) + units
+            endif
+            if ( isNegative ) then
+                set result="-" + result
+            endif
+            return result
+        endfunction
 
-//library UIBorder ends
-//library UTUIBorder:
+//library BigNumber ends
+//library UTBigNumber:
 
-    function UTUIBorder___TTestUTUIBorder1 takes player p returns nothing
-        if ( GetLocalPlayer() == p ) then
-            set UTUIBorder___currentBorder=s__uiBorder_setPoint(s__uiBorder_setSize(s__uiBorder_create(DzGetGameUI()),0.2 , 0.05),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
-            call BJDebugMsg("创建了一个基础边框UI")
-        endif
+    function UTBigNumber___Test_Create takes nothing returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__assert_Boolean(s__bigNumber_high[bn] == 0 and s__bigNumber_low[bn] == 0 , "Test_Create: 新建 BigNumber 应当为 (0, 0)")
+    endfunction  //==============================
+    function UTBigNumber___Test_Add takes nothing returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 0)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 0 and s__bigNumber_low[bn] == 0 , "Test_Add(0, 0)") // 2.2 正常范围 + 正常范围
+        call s__bigNumber_add(bn,1 , 2) // => (1,2)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 1 and s__bigNumber_low[bn] == 2 , "Test_Add(1, 2)") // 2.3 再加一个负数 => (1,2) + (-1,-2) => (0,0)
+        call s__bigNumber_add(bn,- 1 , - 2)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 0 and s__bigNumber_low[bn] == 0 , "Test_Add(-1, -2)") // 2.4 测试进位：低位超过 10亿
+        set bn=s__bigNumber_create() //     先重置为(0,0)，再加(0, 999999999)，再加(0, 10)
+        call s__bigNumber_add(bn,0 , 999999999) // => 999999999 + 10 = 1000000009，需要向 high 进位
+        call s__bigNumber_add(bn,0 , 10) // 进位后：bn.low 应该是 9，bn.high = 1
+        call s__assert_Boolean(s__bigNumber_high[bn] == 1 and s__bigNumber_low[bn] == 9 , "Test_Add 进位检查") // 2.5 测试溢出: 连续叠加到超过 high 正上限
+        set bn=s__bigNumber_create() //     BigNumber 中 high 上限为 2100000000 //     这里模拟一下极大值加法，引发溢出 // 先加到极限
+        call s__bigNumber_add(bn,2100000000 , 999999999) // 再加一点，应该被截断到 (2100000000, 999999999)
+        call s__bigNumber_add(bn,0 , 1)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 2100000000 and s__bigNumber_low[bn] == 999999999 , "Test_Add 溢出正上限检查") // 2.6 测试溢出: 负方向
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,- 2100000000 , - 999999999) // 再继续减一点以测试负方向溢出
+        call s__bigNumber_add(bn,0 , - 1)
+        call s__assert_Boolean(s__bigNumber_high[bn] == - 2100000000 and s__bigNumber_low[bn] == - 999999999 , "Test_Add 溢出负上限检查")
+    endfunction  //==============================
+    function UTBigNumber___Test_AddReal takes nothing returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__bigNumber_addReal(bn,123.0) // => (0, 123)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 0 and s__bigNumber_low[bn] == 123 , "Test_AddReal(123.0)") // 3.2 再加大实数 => 超过 10亿，会拆分到 high
+        call s__bigNumber_addReal(bn,2000000000.0) // => 2000000000 = 2 * 10^9 => high=2, low=0 // 现在累计 BN => high=2, low=123
+        call s__assert_Boolean(s__bigNumber_high[bn] == 2 and s__bigNumber_low[bn] == 123 , "Test_AddReal(2000000000.0)") // 3.3 加负实数
+        call s__bigNumber_addReal(bn,- 2000000000.0) //这里得拆着写 //这里得拆着写
+        call s__bigNumber_addReal(bn,- 50.0) // => 原本 (2, 123) + (-2, -50)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 0 and s__bigNumber_low[bn] == 73 , "Test_AddReal(-2000000000.0再-50.0)") // => (0, 73) // 3.4 超过上限(-∞或+∞)截断测试
+        set bn=s__bigNumber_create() // 超大正数测试
+        call s__bigNumber_addReal(bn,Pow(10.0, 20))
+        call s__assert_Boolean(s__bigNumber_high[bn] == 2100000000 and s__bigNumber_low[bn] == 999999999 , "Test_AddReal 超大正数溢出测试")
+        set bn=s__bigNumber_create() // 超大负数测试
+        call s__bigNumber_addReal(bn,- 1 * Pow(10.0, 20))
+        call s__assert_Boolean(s__bigNumber_high[bn] == - 2100000000 and s__bigNumber_low[bn] == - 999999999 , "Test_AddReal 超大负数溢出测试")
+    endfunction  //==============================
+    function UTBigNumber___Test_MultiplyInteger takes nothing returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 10) // 先令 bn = (0, 10) // => (0, 20)
+        call s__bigNumber_multiplyInteger(bn,2)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 0 and s__bigNumber_low[bn] == 20 , "Test_MultiplyInteger(10×2)") // 4.2 乘以负数 & 检查符号
+        set bn=s__bigNumber_create() // => (0,10)
+        call s__bigNumber_add(bn,0 , 10) // => (0, -30)
+        call s__bigNumber_multiplyInteger(bn,- 3)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 0 and s__bigNumber_low[bn] == - 30 , "Test_MultiplyInteger 符号检查") // 4.3 测试进位: 9.9亿 × 2 = 19.8亿
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 990000000)
+        call s__bigNumber_multiplyInteger(bn,2)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 1 and s__bigNumber_low[bn] == 980000000 , "Test_MultiplyInteger 进位测试1") // 4.4 测试进位: 5亿 × 20 = 100亿
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 500000000)
+        call s__bigNumber_multiplyInteger(bn,20)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 10 and s__bigNumber_low[bn] == 0 , "Test_MultiplyInteger 进位测试2") // 4.5 测试大数乘法: 210亿 × 10 = 2100亿(溢出到最大值)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,7652 , 8236578)
+        call s__bigNumber_multiplyInteger(bn,15)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 114780 and s__bigNumber_low[bn] == 123548670 , "Test_MultiplyInteger 大数乘法测试") // 4.6 测试负数大数乘法: -210亿 × 10 = -2100亿(溢出到最小值)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,- 210 , - 846726348)
+        call s__bigNumber_multiplyInteger(bn,18)
+        call s__assert_Boolean(s__bigNumber_high[bn] == - 3795 and s__bigNumber_low[bn] == - 241074264 , "Test_MultiplyInteger 负数大数乘法测试") // 4.7 较大数相乘是否正常截断(如超越2,100,000,000)
+        set bn=s__bigNumber_create() // => (1000000000, 0)
+        call s__bigNumber_add(bn,1000000000 , 0) // => 5,000,000,000 => 应该溢出到 (2100000000, 999999999)
+        call s__bigNumber_multiplyInteger(bn,5)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 2100000000 and s__bigNumber_low[bn] == 999999999 , "Test_MultiplyInteger 溢出正上限检查") // 4.8 负方向溢出
+        set bn=s__bigNumber_create() // => (-1000000000, 0)
+        call s__bigNumber_add(bn,- 1000000000 , 0) // => -5,000,000,000 => 应该溢出到 (-2100000000, -999999999)
+        call s__bigNumber_multiplyInteger(bn,5)
+        call s__assert_Boolean(s__bigNumber_high[bn] == - 2100000000 and s__bigNumber_low[bn] == - 999999999 , "Test_MultiplyInteger 溢出负上限检查") // 4.9 接近210京时
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,111111111 , 111111111) //结果应该为 1,999,999,999,999,999,998
+        call s__bigNumber_multiplyInteger(bn,18)
+        call s__assert_Boolean(s__bigNumber_high[bn] == 1999999999 and s__bigNumber_low[bn] == 999999998 , "Test_MultiplyInteger 精确数值200京检查")
+    endfunction  //==============================
+    function UTBigNumber___Test_ToString takes nothing returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 5)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "5" , "Test_ToString: 个位数显示") // 测试万位数 (12345 = 1.2万)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 12345)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "12345" , "Test_ToString: 万位数显示") // 测试百万 (1234567 = 123.5万)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 1234567)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "1234567" , "Test_ToString: 百万显示") // 测试亿位 (123456789 = 1.2亿)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 123456789)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "1.2亿" , "Test_ToString: 亿位显示") // 测试百亿 (12345678901 = 123.5亿)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,12 , 345678901)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "123.5亿" , "Test_ToString: 百亿显示") // 测试兆位 (1234567890123 = 1.2兆)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,1234 , 567890123)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "1.2兆" , "Test_ToString: 兆位显示") // 测试千兆 (1234567890123456 = 1234.6兆)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,1234567 , 890123456)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "1234.6兆" , "Test_ToString: 千兆显示") // 测试京位 (123456789123456789 = 12.3京)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,123456789 , 123456789)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "12.3京" , "Test_ToString: 京位显示") // 测试最大值 (21000000000999999999 = 21.0京)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,2100000000 , 999999999)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "210.0京" , "Test_ToString: 最大值显示") // 测试负数显示 (-123456789 = -1.2亿)
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , - 123456789)
+        call s__assert_Boolean(s__bigNumber_toStringWithUnit(bn) == "-1.2亿" , "Test_ToString: 负数显示")
+    endfunction  //==============================
+    function UTBigNumber___Test_ToStringWithCommas takes nothing returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 5)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "5" , "Test_ToStringWithCommas: 1位数") // 2位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 42)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "42" , "Test_ToStringWithCommas: 2位数") // 3位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 123)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "123" , "Test_ToStringWithCommas: 3位数") // 4位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 1234)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "1,234" , "Test_ToStringWithCommas: 4位数") // 5位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 12345)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "12,345" , "Test_ToStringWithCommas: 5位数") // 6位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 123456)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "123,456" , "Test_ToStringWithCommas: 6位数") // 7位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 1234567)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "1,234,567" , "Test_ToStringWithCommas: 7位数") // 8位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 12345678)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "12,345,678" , "Test_ToStringWithCommas: 8位数") // 9位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 123456789)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "123,456,789" , "Test_ToStringWithCommas: 9位数") // 10位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,1 , 234567890)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "1,234,567,890" , "Test_ToStringWithCommas: 10位数") // 11位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,12 , 345678901)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "12,345,678,901" , "Test_ToStringWithCommas: 11位数") // 12位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,123 , 456789012)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "123,456,789,012" , "Test_ToStringWithCommas: 12位数") // 13位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,1234 , 567890123)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "1,234,567,890,123" , "Test_ToStringWithCommas: 13位数") // 14位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,12345 , 678901234)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "12,345,678,901,234" , "Test_ToStringWithCommas: 14位数") // 15位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,123456 , 789012345)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "123,456,789,012,345" , "Test_ToStringWithCommas: 15位数") // 16位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,1234567 , 890123456)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "1,234,567,890,123,456" , "Test_ToStringWithCommas: 16位数") // 17位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,12300000 , 901234567)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "12,300,000,901,234,567" , "Test_ToStringWithCommas: 17位数") // 18位数
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,123456789 , 12345678)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "123,456,789,012,345,678" , "Test_ToStringWithCommas: 18位数") // 负数测试
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,- 123 , 456789012)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "-123,456,789,012" , "Test_ToStringWithCommas: 负数") // 最大值测试
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,2100000000 , 999999999)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "2,100,000,000,999,999,999" , "Test_ToStringWithCommas: 最大值") // 最小值测试
+        set bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,- 2100000000 , - 999999999)
+        call s__assert_String(s__bigNumber_toStringWithCommas(bn) , "-2,100,000,000,999,999,999" , "Test_ToStringWithCommas: 最小值")
     endfunction
-    function UTUIBorder___TTestUTUIBorder2 takes player p returns nothing
-        if ( GetLocalPlayer() == p ) then
-            set UTUIBorder___currentBorder=s__uiBorder_setPoint(s__uiBorder_setSize(s__uiBorder_createType2(DzGetGameUI()),0.1 , 0.1),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
-            call BJDebugMsg("创建了一个基础边框UI:种类2")
-        endif
-    endfunction
-    function UTUIBorder___TTestUTUIBorder3 takes player p returns nothing
-        if ( GetLocalPlayer() == p ) then
-            set UTUIBorder___currentBorder=s__uiBorder_setPoint(s__uiBorder_setSize(s__uiBorder_createType3(DzGetGameUI()),0.1 , 0.1),4 , DzGetGameUI() , 4 , 0.0 , 0.0)
-            call BJDebugMsg("创建了一个基础边框UI:种类3")
-        endif
-    endfunction
-    function UTUIBorder___TTestUTUIBorder4 takes player p returns nothing
-    endfunction
-    function UTUIBorder___TTestUTUIBorder5 takes player p returns nothing
-    endfunction
-    function UTUIBorder___TTestUTUIBorder6 takes player p returns nothing
-    endfunction
-    function UTUIBorder___TTestUTUIBorder7 takes player p returns nothing
-    endfunction
-    function UTUIBorder___TTestUTUIBorder8 takes player p returns nothing
-    endfunction
-    function UTUIBorder___TTestUTUIBorder9 takes player p returns nothing
-    endfunction
-    function UTUIBorder___TTestUTUIBorder10 takes player p returns nothing
-    endfunction
-    function UTUIBorder___TTestActUTUIBorder1 takes string str returns nothing
+        function UTBigNumber___anon__0 takes nothing returns nothing
+            call BJDebugMsg("测试")
+            call UTBigNumber___Test_Create()
+        endfunction
+        function UTBigNumber___anon__1 takes nothing returns nothing
+            call BJDebugMsg("测试加法")
+            call UTBigNumber___Test_Add()
+        endfunction
+        function UTBigNumber___anon__2 takes nothing returns nothing
+            call BJDebugMsg("测试加实数")
+            call UTBigNumber___Test_AddReal()
+        endfunction
+        function UTBigNumber___anon__3 takes nothing returns nothing
+            call BJDebugMsg("测试乘法")
+            call UTBigNumber___Test_MultiplyInteger()
+        endfunction
+        function UTBigNumber___anon__4 takes nothing returns nothing
+            call BJDebugMsg("测试输出")
+            call UTBigNumber___Test_ToString()
+        endfunction
+        function UTBigNumber___anon__5 takes nothing returns nothing
+            call BJDebugMsg("测试带逗号显示")
+            call UTBigNumber___Test_ToStringWithCommas()
+        endfunction
+    function UTBigNumber___Init takes nothing returns nothing
+        call UnitTestAutoTimer(1.0 , 1.0 , function UTBigNumber___anon__0 , null)
+        call UnitTestAutoTimer(2.0 , 1.0 , function UTBigNumber___anon__1 , null)
+        call UnitTestAutoTimer(3.0 , 1.0 , function UTBigNumber___anon__2 , null)
+        call UnitTestAutoTimer(4.0 , 1.0 , function UTBigNumber___anon__3 , null)
+        call UnitTestAutoTimer(5.0 , 1.0 , function UTBigNumber___anon__4 , null)
+        call UnitTestAutoTimer(6.0 , 1.0 , function UTBigNumber___anon__5 , null)
+    endfunction  // 测试基本创建和销毁
+    function UTBigNumber___TTestUTBigNumber1 takes player p returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,- 210 , - 846726348)
+        call s__bigNumber_multiplyInteger(bn,18)
+        call BJDebugMsg("乘法结果: " + s__bigNumber_toStringWithCommas(bn))
+        call BJDebugMsg("high=" + I2S(s__bigNumber_high[bn]) + ", low=" + I2S(s__bigNumber_low[bn]))
+        set bn=s__bigNumber_create() // => (-1000000000, 0)
+        call s__bigNumber_add(bn,- 1000000000 , 0) // => -5,000,000,000 => 应该��出到 (-2100000000, -999999999)
+        call s__bigNumber_multiplyInteger(bn,5)
+        call BJDebugMsg("乘法结果: " + s__bigNumber_toStringWithCommas(bn))
+        call BJDebugMsg("high=" + I2S(s__bigNumber_high[bn]) + ", low=" + I2S(s__bigNumber_low[bn]))
+        call s__bigNumber_deallocate(bn)
+        call BJDebugMsg("BigNumber已销毁")
+    endfunction  // 测试加法运算
+    function UTBigNumber___TTestUTBigNumber2 takes player p returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,1 , 500000000)
+        call BJDebugMsg("加法测试1: " + s__bigNumber_toStringWithCommas(bn)) // 添加20亿
+        call s__bigNumber_addReal(bn,2000000000.0)
+        call BJDebugMsg("加法测试2: " + s__bigNumber_toStringWithCommas(bn))
+        call s__bigNumber_deallocate(bn)
+    endfunction  // 测试乘法运算
+    function UTBigNumber___TTestUTBigNumber3 takes player p returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,0 , 123456789)
+        call BJDebugMsg("初始值: " + s__bigNumber_toStringWithCommas(bn) + " (" + s__bigNumber_toStringWithUnit(bn) + ")") // 乘以2
+        call s__bigNumber_multiplyInteger(bn,2)
+        call BJDebugMsg("乘以2后: " + s__bigNumber_toStringWithCommas(bn) + " (" + s__bigNumber_toStringWithUnit(bn) + ")")
+        call BJDebugMsg("high=" + I2S(s__bigNumber_high[bn]) + ", low=" + I2S(s__bigNumber_low[bn])) // 再乘以1.5
+        call s__bigNumber_multiplyReal(bn,1.5)
+        call BJDebugMsg("乘以1.5后: " + s__bigNumber_toStringWithCommas(bn) + " (" + s__bigNumber_toStringWithUnit(bn) + ")")
+        call BJDebugMsg("high=" + I2S(s__bigNumber_high[bn]) + ", low=" + I2S(s__bigNumber_low[bn]))
+        call s__bigNumber_deallocate(bn)
+    endfunction  // 测试比较运算
+    function UTBigNumber___TTestUTBigNumber4 takes player p returns nothing
+        local integer bn1=s__bigNumber_create()
+        local integer bn2=s__bigNumber_create()
+        call s__bigNumber_add(bn1,1 , 0) // 5亿
+        call s__bigNumber_add(bn2,0 , 500000000)
+        call BJDebugMsg("比较测试: " + I2S(s__bigNumber_compareBigNumber(bn1,bn2)))
+        call s__bigNumber_deallocate(bn1)
+        call s__bigNumber_deallocate(bn2)
+    endfunction  // 测试字符串转换
+    function UTBigNumber___TTestUTBigNumber5 takes player p returns nothing
+        local integer bn=s__bigNumber_create()
+        call s__bigNumber_add(bn,2 , 123456789)
+        call BJDebugMsg("数字显示测试1(带逗号): " + s__bigNumber_toStringWithCommas(bn))
+        call BJDebugMsg("数字显示测试2(带单位): " + s__bigNumber_toStringWithUnit(bn))
+        call s__bigNumber_deallocate(bn)
+    endfunction  // 处理带参数的测试命令
+    function UTBigNumber___TTestActUTBigNumber1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1299,6 +868,9 @@ endfunction
         local string array paramS
         local integer array paramI
         local real array paramR
+        local integer bn
+        local integer bn1
+        local integer bn2
         set i=0
         loop
         exitwhen ( i > len - 1 )
@@ -1316,83 +888,65 @@ endfunction
         set paramS[num]=str
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
-        set num=num + 1
-        if ( paramS[0] == "size" ) then
-            call s__uiBorder_setSize(UTUIBorder___currentBorder,paramR[1] , paramR[2])
-        elseif ( paramS[0] == "point" ) then
+        set num=num + 1 // 加法测试
+        if ( paramS[0] == "a" ) then
+            set bn=s__bigNumber_create()
+            call s__bigNumber_addReal(bn,paramR[1])
+            call s__bigNumber_addReal(bn,paramR[2])
+            call BJDebugMsg("加法结果: " + s__bigNumber_toStringWithCommas(bn))
+            call s__bigNumber_deallocate(bn) // 乘法测试
+        elseif ( paramS[0] == "m" ) then
+            set bn=s__bigNumber_create()
+            call s__bigNumber_addReal(bn,paramR[1])
+            call s__bigNumber_multiplyReal(bn,paramR[2])
+            call BJDebugMsg("乘法结果: " + s__bigNumber_toStringWithCommas(bn))
+            call s__bigNumber_deallocate(bn) // 比较测试
+        elseif ( paramS[0] == "c" ) then
+            set bn1=s__bigNumber_create()
+            set bn2=s__bigNumber_create()
+            call s__bigNumber_addReal(bn1,paramR[1])
+            call s__bigNumber_addReal(bn2,paramR[2])
+            call BJDebugMsg("比较结果: " + I2S(s__bigNumber_compareBigNumber(bn1,bn2)))
+            call s__bigNumber_deallocate(bn1)
+            call s__bigNumber_deallocate(bn2)
         endif
         set p=null
     endfunction
-        function UTUIBorder___anon__0 takes nothing returns nothing
-            call BJDebugMsg("[UIBorder] 单元测试已加载")
+        function UTBigNumber___anon__6 takes nothing returns nothing
+            call BJDebugMsg("[BigNumber] 单元测试已加载")
+            call BJDebugMsg("使用s1-s5测试基本功能")
+            call BJDebugMsg("使用-a/-m/-c [参数]测试具体数值")
+            call UTBigNumber___Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUIBorder___anon__1 takes nothing returns nothing
+        function UTBigNumber___anon__7 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
-            local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
-                call UTUIBorder___TTestActUTUIBorder1(SubStringBJ(str, 2, StringLength(str)))
+                call UTBigNumber___TTestActUTBigNumber1(SubStringBJ(str, 2, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUIBorder___TTestUTUIBorder1(GetTriggerPlayer())
+                call UTBigNumber___TTestUTBigNumber1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUIBorder___TTestUTUIBorder2(GetTriggerPlayer())
+                call UTBigNumber___TTestUTBigNumber2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUIBorder___TTestUTUIBorder3(GetTriggerPlayer())
+                call UTBigNumber___TTestUTBigNumber3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUIBorder___TTestUTUIBorder4(GetTriggerPlayer())
+                call UTBigNumber___TTestUTBigNumber4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUIBorder___TTestUTUIBorder5(GetTriggerPlayer())
-            elseif ( str == "s6" ) then
-                call UTUIBorder___TTestUTUIBorder6(GetTriggerPlayer())
-            elseif ( str == "s7" ) then
-                call UTUIBorder___TTestUTUIBorder7(GetTriggerPlayer())
-            elseif ( str == "s8" ) then
-                call UTUIBorder___TTestUTUIBorder8(GetTriggerPlayer())
-            elseif ( str == "s9" ) then
-                call UTUIBorder___TTestUTUIBorder9(GetTriggerPlayer())
-            elseif ( str == "s10" ) then
-                call UTUIBorder___TTestUTUIBorder10(GetTriggerPlayer())
+                call UTBigNumber___TTestUTBigNumber5(GetTriggerPlayer())
             endif
         endfunction
-    function UTUIBorder___onInit takes nothing returns nothing
+    function UTBigNumber___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTUIBorder___anon__0))
+        call TriggerAddCondition(tr, Condition(function UTBigNumber___anon__6))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUIBorder___anon__1)
+        call UnitTestRegisterChatEvent(function UTBigNumber___anon__7)
     endfunction
 
-//library UTUIBorder ends
+//library UTBigNumber ends
 
-// 0 - 1亿这里用
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
-//窗口的大小
-
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
-// [DzSetUnitMoveType]  
-// title = "设置单位移动类型[NEW]"  
-// description = "设置 ${单位} 的移动类型：${movetype} "  
-// comment = ""  
-// category = TC_KKPRE  
-// [[.args]]  
-// type = unit  
-// [[.args]]  
-// type = MoveTypeName  
-// default = MoveTypeName01  
-//控件的共用基本方法
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1806,10 +1360,9 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs31312312")
+call ExecuteFunc("jasshelper__initstructs35925640")
 call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("UITocInit___onInit")
-call ExecuteFunc("UTUIBorder___onInit")
+call ExecuteFunc("UTBigNumber___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1847,25 +1400,18 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__uiBorder_onDestroy takes nothing returns boolean
+function sa__bigNumber_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__uiBorder_isExist(this) ) ) then
-return true
-            endif
-            call DzDestroyFrame(s__uiBorder_ui[this])
-            call s__uiId_recycle(s__uiBorder_id[this])
+            set s__bigNumber_low[this]=0
+            set s__bigNumber_high[this]=0
    return true
 endfunction
 
-function jasshelper__initstructs31312312 takes nothing returns nothing
-    set st__uiBorder_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__uiBorder_onDestroy,Condition( function sa__uiBorder_onDestroy))
+function jasshelper__initstructs35925640 takes nothing returns nothing
+    set st__bigNumber_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__bigNumber_onDestroy,Condition( function sa__bigNumber_onDestroy))
 
 
 
-
-
-    call ExecuteFunc("s__mapBounds_onInit")
-    call ExecuteFunc("s__uiId_onInit")
 endfunction
 
