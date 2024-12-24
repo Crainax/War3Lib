@@ -5,6 +5,10 @@
 
 // 弹框
 
+#include "Crainax/config/SharedMethod.h"
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
+
 //# dependency:ui/image/BG_PopUI.blp
 library ToastPop requires UIImage,UIText,UIAnimTimer,Hardware,EasingUtils {
 
@@ -84,7 +88,7 @@ library ToastPop requires UIImage,UIText,UIAnimTimer,Hardware,EasingUtils {
             thistype this = 0;
             real resizeX = GetResizeRate();
 
-            this = thistype.initBase(p);
+            this = this.initBase(p);
             if (this == 0) { return 0; }
 
             // 创建图标
@@ -109,7 +113,7 @@ library ToastPop requires UIImage,UIText,UIAnimTimer,Hardware,EasingUtils {
             thistype this = 0;
             real resizeX = GetResizeRate();
 
-            this = thistype.initBase(p);
+            this = this.initBase(p);
             if (this == 0) { return 0; }
 
             // 创建标题文本

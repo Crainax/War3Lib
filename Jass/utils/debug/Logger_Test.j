@@ -40,7 +40,9 @@ library UTLogger requires Logger {
 	}
 
 	// 其他测试函数预留
-	function TTestUTLogger3(player p) {}
+	function TTestUTLogger3(player p) {
+		TriggerEvaluate(logger_tr);
+	}
 	function TTestUTLogger4(player p) {}
 	function TTestUTLogger5(player p) {}
 	function TTestUTLogger6(player p) {}

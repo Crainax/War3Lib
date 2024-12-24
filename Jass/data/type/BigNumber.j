@@ -13,7 +13,7 @@ high: 存储-2100000000到2100000000
 #define UNIT_TEN_YI 1000000000  // 10亿，作为进位基数
 #define MAX_HIGH    2100000000  // high的最大值：21亿
 
-library BigNumber requires ConversionUtils{
+library BigNumber {
 
     public struct bigNumber {
 

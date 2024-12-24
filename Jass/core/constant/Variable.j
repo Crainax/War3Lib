@@ -30,26 +30,9 @@ library Variable requires Constant {
 	public unit H[];
 	public unit USelected[]; //正在选择的单位[同步]
 
-	//选择事件
-	public trigger TrSelect = null;
-
-	//[结构体创建事件]类型
-	public integer StType = 0;
-	//[结构体创建事件]指针
-	public integer StThis = 0;
-	//[结构体创建事件]触发器
-	public trigger TrStruct = null;
-
 	//几个矩形区域
 	public rect RHome[];
 	public rect RFuben[];
-	public function OnStructCreate (integer typeid,integer stthis) {
-		StType = typeid;
-		StThis = stthis;
-		if (TrStruct != null) {
-			TriggerEvaluate(TrStruct);
-		}
-	}
 
 	function onInit ()  {
 		//在游戏开始0.1秒后再调用

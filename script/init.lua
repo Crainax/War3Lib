@@ -78,6 +78,14 @@ if base.has_inner_japi then
     end
 else
     print("JAPI环境: YDLua")
+    local hook = require 'jass.hook'
+    local jass = require 'jass.common'
+    function hook.DisplayTimedTextToPlayer(toPlayer, x, y, duration, message)
+        -- 当jass内调用CreateUnit时，就会被执行
+        if toPlayer == jass.GetLocalPlayer() then
+            print(message)
+        end
+    end
 end
 
 -- 将句柄等级设置为0(地图中所有的句柄均使用table封装)

@@ -1,459 +1,1417 @@
 //! zinc
-/*
-资源:金币
-处理范围：0 到 21万亿（21,000,000,000,000）
-low: 存储-999999999到999999999
-high: 存储-2100000000到2100000000
-*/
+// 弹框
 // 结构体共用方法定义
 //共享打印方法
 // UI组件内部共享方法及成员
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
-library BigNumber requires ConversionUtils{
-    public struct bigNumber {
-        method isExist () -> boolean {return (this != null && si__bigNumber_V[this] == -1);}
-        integer low; // 低位，存储-999999999到999999999
-integer high; // 高位，存储-2100000000到2100000000
+/*
+UI哈希表定义
+*/
+// 0 - 1亿这里用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
+//# dependency:ui/image/BG_PopUI.blp
+library ToastPop requires UIImage,UIText,UIAnimTimer,Hardware,EasingUtils {
+    public struct toastPop {
+        static thistype List[]; // 弹窗列表
+static integer size = 0; // 当前数量
+static uianim UIA = 0; // 动画实例
 
-        static method create() -> thistype {
-            thistype this = thistype.allocate();
-            this.low = 0;
-            this.high = 0;
+        // 成员变量
+        uiImage bg = 0; // 背景框
+uiImage icon = 0; // 图标
+uiText title = 0; // 标题文本
+uiText content = 0; // 内容文本
+integer cd; // 剩余时间
+integer totalTime; // 总时长
+real length; // 框架长度
+integer id; // 实例ID
+
+        method onDestroy() {
+            // 清理UI
+            if (bg != 0) { bg.destroy(); }
+            if (icon != 0) { icon.destroy(); }
+            if (title != 0) { title.destroy(); }
+            if (content != 0) { content.destroy(); }
+            bg = 0;
+            icon = 0;
+            title = 0;
+            content = 0;
+            cd = 0;
+            totalTime = 0;
+            length = 0;
+            // 从列表移除
+            if (id != 0) {
+                List[id] = List[size];
+                List[id].id = id;
+                size -= 1;
+                id = 0;
+            }
+            // 停止动画
+            if (size <= 0) {
+                UIA.unreg();
+                BJDebugMsg("停止ToastPop");
+            }
+        }
+        // 初始化基础UI框架(内部方法)
+        private method initBase(player p) -> thistype {
+            real resizeX;
+            if (GetLocalPlayer() != p) { return 0; }
+            this = thistype.allocate();
+            resizeX = GetResizeRate();
+            // 创建背景框
+            this.bg = uiImage.create(DzGetGameUI())
+                .setTexture("ui\\image\\BG_PopUI.blp")
+                .setSize(0.3, 0.3 / resizeX * 0.29032)
+                .setAbsPoint(7, .4, .1375);
             return this;
         }
-        //==============================
-        // 辅助: 判断自身是否为负数
-        //==============================
-        private method isNegative() -> boolean {
-            if (this.high < 0) {
-                return true;
-            } else if (this.high == 0 && this.low < 0) {
-                return true;
-            }
-            return false;
+        // 创建带图标的弹窗
+        static method createWithIcon(player p, string iconPath, string contentText) -> thistype {
+            thistype this = 0;
+            real resizeX = GetResizeRate();
+            this = this.initBase(p);
+            if (this == 0) { return 0; }
+            // 创建图标
+            this.icon = uiImage.create(this.bg.ui)
+                .setTexture(iconPath)
+                .setSize(0.03, 0.03 / resizeX)
+                .setPoint(1, this.bg.ui, 1, 0, -0.012 / resizeX);
+            // 创建内容文本
+            this.content = uiText.create(this.bg.ui)
+                .setPoint(1, this.icon.ui, 7, 0, -0.007 / resizeX)
+                .setPoint(7, this.bg.ui, 7, 0, 0.005)
+                .setPoint(3, this.bg.ui, 3, 0.01, 0)
+                .setPoint(5, this.bg.ui, 5, -0.01, 0)
+                .setText(contentText);
+            return this.initAnimation(0.3, 5.0);
         }
-        //==============================
-        // 辅助: 取自身反号
-        //==============================
-        private method negate() {
-            this.high = -this.high;
-            this.low = -this.low;
-            // 当反号后，low、high 不在预期区间时，做一次借位或退位修正
-            if (this.low < 0 && this.high > 0) {
-                this.low = this.low + 1000000000;
-                this.high = this.high - 1;
-            } else if (this.low > 0 && this.high < 0) {
-                this.low = this.low - 1000000000;
-                this.high = this.high + 1;
-            }
-            // 防止溢出
-            if (this.high > 2100000000) {
-                this.high = 2100000000;
-                this.low = 999999999;
-            } else if (this.high < -2100000000) {
-                this.high = -2100000000;
-                this.low = -999999999;
-            }
+        // 创建带标题的弹窗
+        static method createWithTitle(player p, string titleText, string contentText) -> thistype {
+            thistype this = 0;
+            real resizeX = GetResizeRate();
+            this = this.initBase(p);
+            if (this == 0) { return 0; }
+            // 创建标题文本
+            this.title = uiText.create(this.bg.ui)
+                .setText(titleText)
+                .setPoint(1, this.bg.ui, 1, 0, -0.018 / resizeX);
+            // 创建内容文本
+            this.content = uiText.create(this.bg.ui)
+                .setPoint(1, this.title.ui, 7, 0, -0.007 / resizeX)
+                .setPoint(7, this.bg.ui, 7, 0, 0.005)
+                .setPoint(3, this.bg.ui, 3, 0.01, 0)
+                .setPoint(5, this.bg.ui, 5, -0.01, 0)
+                .setText(contentText);
+            return this.initAnimation(0.3, 5.0);
         }
-        //==============================
-        // 辅助: 若自身为负，就改为正
-        //==============================
-        private method makePositive() {
-            if (this.isNegative()) {
-                this.negate();
-            }
+        // 初始化动画相关参数(内部方法)
+        private method initAnimation(real length, real time) -> thistype {
+            // 初始化动画相关参数
+            this.totalTime = IMaxBJ(R2I(time * 50), 40 + 100 + 40);
+            this.cd = this.totalTime;
+            this.length = length;
+            // 设置初始状态
+            this.content.setAlpha(0);
+            if (this.title != 0) { this.title.setAlpha(0); }
+            if (this.icon != 0) { this.icon.setAlpha(0); }
+            this.bg.setSize(0, 0);
+            // 加入列表并启动动画
+            size += 1;
+            List[size] = this;
+            this.id = size;
+            UIA.reg();
+            return this;
         }
-        //==============================
-        // 加法: (highPart, lowPart) 加到自身
-        //==============================
-        method add(integer highPart, integer lowPart) {
-            // 加到低位
-            this.low += lowPart;
-            // 处理低位进位/借位
-            if (this.low >= 1000000000) {
-                this.high += (this.low / 1000000000);
-                this.low = ModuloInteger(this.low, 1000000000);
-            } else if (this.low <= -1000000000) {
-                this.high += (this.low / 1000000000);
-                this.low = -ModuloInteger(IAbsBJ(this.low), 1000000000);
-            } else if (this.low < 0 && this.high > 0) {
-                this.low = this.low + 1000000000;
-                this.high = this.high - 1;
-            } else if (this.low > 0 && this.high < 0) {
-                this.low = this.low - 1000000000;
-                this.high = this.high + 1;
-            }
-            // 加到高位
-            this.high += highPart;
-            // 防止溢出
-            if (this.high > 2100000000) {
-                this.high = 2100000000;
-                this.low = 999999999;
-            } else if (this.high < -2100000000) {
-                this.high = -2100000000;
-                this.low = -999999999;
-            }
-        }
-        //==============================
-        // 加实数
-        //==============================
-        method addReal(real value) {
-            integer highValue = 0;
-            integer lowValue = 0;
-            real tempHigh = 0.0;
-            if (value >= 1000000000.0) {
-                // 先计算除以10亿后的值
-                tempHigh = value / 1000000000.0;
-                // 检查是否会溢出
-                if (tempHigh > 2100000000.0) {
-                    highValue = 2100000000;
-                    lowValue = 999999999;
-                } else {
-                    highValue = R2I(tempHigh);
-                    lowValue = R2I(ModuloReal(value, 1000000000.0));
-                }
-            } else if (value <= -1000000000.0) {
-                // 处理负数，先取绝对值计算
-                tempHigh = RAbsBJ(value) / 1000000000.0;
-                // 检查是否会溢出
-                if (tempHigh > 2100000000.0) {
-                    highValue = -2100000000;
-                    lowValue = -999999999;
-                } else {
-                    highValue = -R2I(tempHigh);
-                    lowValue = -R2I(ModuloReal(RAbsBJ(value), 1000000000.0));
-                }
-            } else {
-                lowValue = R2I(value);
-            }
-            this.add(highValue, lowValue);
-        }
-        //==============================
-        // 克隆自身
-        //==============================
-        private method clone() -> thistype {
-            thistype tmp = thistype.allocate();
-            tmp.high = this.high;
-            tmp.low = this.low;
-            return tmp;
-        }
-        //==============================
-        // 把另一个 bigNumber 加到自身
-        //==============================
-        private method addBigNumber(bigNumber other) {
-            this.add(other.high, other.low);
-        }
-        //==============================
-        // 翻倍 (×2)
-        //==============================
-        private method doubleBN() {
-            // doubleBN = self + self
-            this.add(this.high, this.low);
-        }
-        //==============================
-        // 乘法: 与 32 位整数相乘(无 64 位)
-        //==============================
-        method multiplyInteger(integer val) {
-            integer sign = 1;
-            integer tmpVal = val;
-            bigNumber result = thistype.create();
-            bigNumber temp = this.clone();
-            real tempValue;
-            // 0. 提前检查是否会溢出
-            tempValue = (I2R(this.high) * 1000000000) * I2R(tmpVal);
-            if (tempValue >= 2.1 * Pow(10.0, 18)) { // 210京
-// 正向溢出
-this.high = 2100000000;
-                this.low = 999999999;
-                return;
-            } else if (tempValue <= -2.1 * Pow(10.0, 18)) { // -210京
-// 负向溢出
-this.high = -2100000000;
-                this.low = -999999999;
-                return;
-            }
-            // 1. 符号处理
-            if (tmpVal < 0) {
-                tmpVal = -tmpVal;
-                sign = -sign;
-            }
-            if (this.isNegative()) {
-                temp.negate();
-                sign = -sign;
-            }
-            // 2. 二进制拆分乘法
-            while (tmpVal > 0) {
-                // 如果当前位是1，就把temp加到结果中
-                if (ModuloInteger(tmpVal, 2) == 1) {
-                    result.addBigNumber(temp);
-                }
-                // temp翻倍（相当于左移一位）
-                temp.doubleBN();
-                // tmpVal右移一位
-                tmpVal = tmpVal / 2;
-            }
-            // 3. 恢复符号
-            if (sign < 0) {
-                result.negate();
-            }
-            // 4. 将 result 写回当前
-            this.high = result.high;
-            this.low = result.low;
-            // 5. 释放临时对象
-            result.destroy();
-            temp.destroy();
-        }
-        //==============================
-        // 乘法: 与实数相乘(有精度损失)
-        //==============================
-        method multiplyReal(real rVal) {
-            real highProduct;
-            real lowProduct;
-            integer newHigh;
-            integer newLow;
-            // 分别计算高和低位 rVal 的乘积
-            highProduct = I2R(this.high) * rVal;
-            lowProduct = I2R(this.low) * rVal;
-            // 处理高位部分
-            newHigh = R2I(highProduct * 1000000000.0);
-            newLow = R2I(lowProduct);
-            // 清零后重新加入结果
-            this.high = 0;
-            this.low = 0;
-            this.add(newHigh, newLow);
-        }
-        //==============================
-        // 比较: 与另一个 bigNumber
-        // 返回 1(大于)/0(等于)/-1(小于)
-        //==============================
-        method compareBigNumber(bigNumber other) -> integer {
-            if (this.high > other.high) {
-                return 1;
-            } else if (this.high < other.high) {
-                return -1;
-            } else {
-                if (this.low > other.low) {
-                    return 1;
-                } else if (this.low < other.low) {
-                    return -1;
-                } else {
-                    return 0;
-                }
-            }
-        }
-        //==============================
-        // 比较: 与 32 位整数
-        //==============================
-        method compareInteger(integer val) -> integer {
-            // 如果 high 不 0，么结果由 high 的符号决定
-            if (this.high > 0) {
-                return 1;
-            } else if (this.high < 0) {
-                return -1;
-            }
-            // high 为 0 时，直接比较 low 与 val
-            if (this.low > val) {
-                return 1;
-            } else if (this.low < val) {
-                return -1;
-            }
-            return 0;
-        }
-        //==============================
-        // 比较: 与实数(浮点会有误差)
-        //==============================
-        method compareReal(real val) -> integer {
-            integer highPart;
-            real lowPart,absVal;
-            // 处理 val 的范围
-            if (val >= 1000000000.0) {
-                highPart = R2I(val / 1000000000.0);
-                lowPart = ModuloReal(val, 1000000000.0);
-                // 先较高位
-                if (this.high > highPart) {
-                    return 1;
-                } else if (this.high < highPart) {
-                    return -1;
-                }
-                // 高位相等，比较低位
-                if (I2R(this.low) > lowPart) {
-                    return 1;
-                } else if (I2R(this.low) < lowPart) {
-                    return -1;
-                }
-                return 0;
-            } else if (val <= -1000000000.0) {
-                absVal = RAbsBJ(val);
-                highPart = -R2I(absVal / 1000000000.0);
-                lowPart = -ModuloReal(absVal, 1000000000.0);
-                if (this.high > highPart) {
-                    return 1;
-                } else if (this.high < highPart) {
-                    return -1;
-                }
-                if (I2R(this.low) > lowPart) {
-                    return 1;
-                } else if (I2R(this.low) < lowPart) {
-                    return -1;
-                }
-                return 0;
-            } else {
-                // val 在 (-10亿, 10亿) 范围内
-                if (this.high > 0) {
-                    return 1;
-                } else if (this.high < 0) {
-                    return -1;
-                }
-                if (I2R(this.low) > val) {
-                    return 1;
-                } else if (I2R(this.low) < val) {
-                    return -1;
-                }
-                return 0;
-            }
-        }
-        method onDestroy() {
-            this.low = 0;
-            this.high = 0;
-        }
-        //==============================
-        // 转字符串: 带号分隔
-        // 例如: 123,456,789,012
-        //==============================
-        method toStringWithCommas() -> string {
-            string result = "";
-            integer currentLow = this.low;
-            integer currentHigh = this.high;
-            boolean isNegative = this.isNegative();
-            string highStr = "";
-            integer tempHigh;
-            integer currentDigits;
-            // 处理负数
-            if (isNegative) {
-                if (currentHigh < 0) currentHigh = -currentHigh;
-                if (currentLow < 0) currentLow = -currentLow;
-            }
-            // 处理低位的后3位
-            result = I2S(ModuloInteger(currentLow, 1000));
-            // 补齐3位
-            if (currentLow >= 1000) {
-                if (ModuloInteger(currentLow, 1000) < 10) {
-                    result = "00" + result;
-                } else if (ModuloInteger(currentLow, 1000) < 100) {
-                    result = "0" + result;
-                }
-            }
-            // 处理低位的中间3位
-            currentLow = currentLow / 1000;
-            if (currentLow > 0) {
-                result = I2S(ModuloInteger(currentLow, 1000)) + "," + result;
-                // 补齐3位
-                if (currentLow >= 1000) {
-                    if (ModuloInteger(currentLow, 1000) < 10) {
-                        result = "00" + result;
-                    } else if (ModuloInteger(currentLow, 1000) < 100) {
-                        result = "0" + result;
+        static method onInit() {
+            UIA = uianim.create(function() {
+                real r, l, resizeX = GetResizeRate();
+                integer i;
+                thistype this;
+                for (1 <= i <= size) {
+                    this = List[i];
+                    this.cd -= 1;
+                    // 阶段1: 弹出动画
+                    if (this.cd >= (this.totalTime - 40)) {
+                        r = (I2R(this.totalTime - this.cd)) / 40;
+                        l = EaseOutBack(r) * this.length;
+                        this.bg.setSize(l, l / resizeX * 0.29032);
+                        if (this.title != 0) { this.title.setAlpha(R2I(255 * EaseInExpo(r))); }
+                        if (this.icon != 0) { this.icon.setAlpha(R2I(255 * EaseInExpo(r))); }
+                        if (this.content != 0) { this.content.setAlpha(R2I(255 * EaseInExpo(r))); }
+                    }
+                    // 阶段3: 消失动画
+                    if (this.cd <= 40) {
+                        l = (1.0 - EaseInBack(1.0 - (I2R(this.cd) / 40))) * this.length;
+                        this.bg.setSize(l, l / resizeX * 0.29032);
+                        if (this.title != 0) { this.title.setAlpha(255 - R2I(255 * EaseOutExpo(1.0 - I2R(this.cd) / 40))); }
+                        if (this.icon != 0) { this.icon.setAlpha(255 - R2I(255 * EaseOutExpo(1.0 - I2R(this.cd) / 40))); }
+                        if (this.content != 0) { this.content.setAlpha(255 - R2I(255 * EaseOutExpo(1.0 - I2R(this.cd) / 40))); }
+                    }
+                    // 检查是否结束
+                    if (this.cd <= 0) {
+                        this.destroy();
+                        i -= 1;
                     }
                 }
-            }
-            // 处理低的前3位
-            currentLow = currentLow / 1000;
-            if (currentLow > 0) {
-                result = I2S(currentLow) + "," + result;
-            }
-            // 处理高位部分（如果有）
-            if (currentHigh > 0) {
-                // 补齐低位到9位
-                if (result != "") {
-                    while (StringLength(result) < 11) { // 9位数字加2位逗号
-result = "0" + result;
-                    }
-                    result = "," + result;
-                }
-                // 处理高位的每3位
-                tempHigh = currentHigh;
-                highStr = I2S(ModuloInteger(tempHigh, 1000));
-                // 补齐末三位
-                if (tempHigh >= 1000) {
-                    if (ModuloInteger(tempHigh, 1000) < 10) {
-                        highStr = "00" + highStr;
-                    } else if (ModuloInteger(tempHigh, 1000) < 100) {
-                        highStr = "0" + highStr;
-                    }
-                }
-                tempHigh = tempHigh / 1000;
-                // 如果还有更高位
-                while (tempHigh > 0) {
-                    currentDigits = ModuloInteger(tempHigh, 1000);
-                    highStr = I2S(currentDigits) + "," + highStr;
-                    // 补齐当前3位
-                    if (tempHigh >= 1000) {
-                        if (currentDigits < 10) {
-                            highStr = "00" + highStr;
-                        } else if (currentDigits < 100) {
-                            highStr = "0" + highStr;
-                        }
-                    }
-                    tempHigh = tempHigh / 1000;
-                }
-                result = highStr + result;
-            }
-            // 添加负号
-            if (isNegative) {
-                result = "-" + result;
-            }
-            return result;
-        }
-        //==============================
-        // 转字符串: 带单位(万、亿、兆、京)
-        // 例如: 123456789、1.2亿、3.4兆
-        //==============================
-        method toStringWithUnit() -> string {
-            string result = "";
-            integer currentHigh = this.high;
-            integer currentLow = this.low;
-            boolean isNegative = this.isNegative();
-            real value = 0.0;
-            real highPart = 0.0;
-            real lowPart = 0.0;
-            integer unitLevel = 0; // 0=无单位, 1=万, 2=亿, 3=兆, 4=京
-string units = ""; // 单位字符串
-
-            if (isNegative) {
-                if (currentHigh < 0) currentHigh = -1* currentHigh;
-                if (currentLow < 0) currentLow = -1* currentLow;
-            }
-            // 分别计算高位和低位部分
-            highPart = I2R(currentHigh) * 1000000000;
-            lowPart = I2R(currentLow);
-            value = highPart + lowPart;
-            // 1000万以下直接显示
-            if (value < 10000000.0) {
-                result = I2S(R2I(value));
-            } else {
-                // 循环除以10000直到小于10000
-                while (value >= 10000.0) {
-                    value = value / 10000.0;
-                    unitLevel = unitLevel + 1;
-                }
-                // 根据unitLevel确定单位
-                if (unitLevel == 1) units = "万";
-                else if (unitLevel == 2) units = "亿";
-                else if (unitLevel == 3) units = "兆";
-                else if (unitLevel >= 4) units = "京";
-                // 格式化数值并加上单位
-                result = R2SW(value, 0, 1) + units;
-            }
-            if (isNegative) {
-                result = "-" + result;
-            }
-            return result;
+            });
         }
     }
 }
 //! endzinc
+//! zinc
+/*
+缓动函数库 (Easing Functions)
+用于实现平滑的动画效果，所有函数输入值域为[0,1]，输出值域为[0,1]
+*/
+// 地址:https://easings.net/zh-cn
+library EasingUtils {
+	/*
+	EaseOutBack: 急速冲过头然后回头
+	特点：移动超过目标位置后再回弹到目标位置
+	*/
+	public function EaseOutBack ( real x ) -> real {
+		return 1 + 2.70158 * Pow(x - 1, 3) + 1.70158 * Pow(x - 1, 2);
+	}
+	/*
+	EaseOutBack2: EaseOutBack的速率可调版本
+	参数:
+		x: 动画进度 [0,1]
+		rate: 速率系数，>1.0时加快到达目标
+	*/
+	public function EaseOutBack2 (real x,real rate) -> real {
+		real nx = x * rate;
+		if (nx >= 1.0) return 1.0;
+		else return EaseOutBack(nx);
+	}
+	/*
+	EaseInBack: 先回头然后再急速冲
+	特点：先往反方向移动一小段，然后加速向目标移动
+	*/
+	public function EaseInBack ( real x ) -> real {
+		return 2.70158 * x * x * x - 1.70158 * x * x;
+	}
+	/*
+	EaseInOutBack: 两端回弹的综合效果
+	特点：开始和结束都有回弹效果
+	*/
+	public function EaseInOutBack ( real x ) -> real {
+		if (x < 0.5) {return (Pow(2 * x, 2) * ((2.5949095 + 1) * 2 * x - 2.5949095)) / 2;}
+		else {return (Pow(2 * x - 2, 2) * ((2.5949095 + 1) * (x * 2 - 2) + 2.5949095) + 2) / 2;}
+	}
+	/*
+	EaseInOutCirc: 基于圆形曲线的缓动
+	特点：两端缓慢，中间快速
+	*/
+	public function EaseInOutCirc ( real x ) -> real {
+		if (x < 0.5) {return (1 - SquareRoot(1 - Pow(2 * x, 2))) / 2;}
+		else {return (SquareRoot(1 - Pow(- 2 * x + 2, 2)) + 1) / 2;}
+	}
+	/*
+	EaseOutExpo: 指数式减速
+	特点：开始时快速，接近终点时减速
+	*/
+	public function EaseOutExpo ( real x ) -> real {
+		if (x >= 1.) {return 1.;}
+		else {return 1 - Pow(2, - 10 * x);}
+	}
+	/*
+	EaseInExpo: 指数式加速
+	特点：开始时慢速，后期快速
+	*/
+	public function EaseInExpo ( real x ) -> real {
+		if (x <= 0.) {return 0.;}
+		else {return Pow(2, 10 * x - 10);}
+	}
+	/*
+	EaseOutCubic: 三次方减速
+	特点：平滑的减速效果
+	*/
+	public function EaseOutCubic ( real x ) -> real {
+		return 1 - Pow(1 - x, 3);
+	}
+	/*
+	EaseOutBounce: 弹跳效果
+	特点：模拟物体落地弹跳，逐渐减少弹跳高度
+	*/
+	public function EaseOutBounce ( real x ) -> real {
+		if (x < 1 / 2.75) {return 7.5625 * x * x;}
+		else if (x < 2 / 2.75) {return 7.5625 * (x - 1.5 / 2.75) * (x - 1.5 / 2.75) + 0.75;}
+		else if (x < 2.5 / 2.75) {return 7.5625 * (x - 2.25 / 2.75) * (x - 2.25 / 2.75) + 0.9375;}
+		else {return 7.5625 * (x - 2.625 / 2.75) * (x - 2.625 / 2.75) + 0.984375;}
+	}
+	/*
+	EaseParabolic: 完整抛物线
+	特点：对称的抛物线效果，适合跳跃动画
+	*/
+	public function EaseParabolic ( real x ) -> real {
+		return - 4 * x * x + 4 * x;
+	}
+	/*
+	EasePartialParabolic: 局部抛物线
+	特点：只在0.25-0.75范围内形成抛物线，适合局部跳跃效果
+	*/
+	public function EasePartialParabolic ( real x ) -> real {
+		if (x < 0.5 && x > 0.) {return - 16 * x * x + 8 * x;}
+		return 0.;
+	}
+	/*
+	EaseTriangle: 三角形曲线
+	特点：线性上升后线性下降，形成尖峰效果
+	*/
+	public function EaseTriangle ( real x ) -> real {
+		if (x <= 0.5) {return 2 * x;}
+		else {return 2 - 2 * x;}
+	}
+	/*
+	EaseSineWave: 正弦波效果
+	特点：完整的正弦周期，平滑的波浪形式
+	*/
+	public function EaseSineWave ( real x ) -> real {
+		return Sin(x * bj_PI);
+	}
+	/*
+	EaseInQuart: 四次方加速
+	特点：开始时非常缓慢，后期剧烈加速
+	*/
+	public function EaseInQuart(real x) -> real {
+		return x * x * x * x;
+	}
+	/*
+	EaseOutQuart: 四次方减速
+	特点：开始时剧烈加速，后期非常缓慢
+	*/
+	public function EaseOutQuart(real x) -> real {
+		return 1 - Pow(1 - x, 4);
+	}
+	/*
+	EaseInOutQuart: 四次方加减速
+	特点：两端非常缓慢，中间剧烈变化
+	*/
+	public function EaseInOutQuart(real x) -> real {
+		if (x < 0.5) {
+			return 8 * x * x * x * x;
+		}
+		return 1 - Pow(-2 * x + 2, 4) / 2;
+	}
+	/*
+	EaseInCubic: 三次方加速
+	特点：开始时缓慢，后期加速
+	*/
+	public function EaseInCubic(real x) -> real {
+		return x * x * x;
+	}
+	/*
+	EaseInOutCubic: 三次方加减速
+	特点：两端缓慢，中间加速
+	*/
+	public function EaseInOutCubic(real x) -> real {
+		if (x < 0.5) {
+			return 4 * x * x * x;
+		}
+		return 1 - Pow(-2 * x + 2, 3) / 2;
+	}
+	/*
+	EaseInQuad: 二次方加速
+	特点：较为平滑的加速效果
+	*/
+	public function EaseInQuad(real x) -> real {
+		return x * x;
+	}
+	/*
+	EaseOutQuad: 二次方减速
+	特点：较为平滑的减速效果
+	*/
+	public function EaseOutQuad(real x) -> real {
+		return 1 - (1 - x) * (1 - x);
+	}
+	/*
+	EaseInOutQuad: 二次方加减速
+	特点：平滑的加减速效果
+	*/
+	public function EaseInOutQuad(real x) -> real {
+		if (x < 0.5) {
+			return 2 * x * x;
+		}
+		return 1 - Pow(-2 * x + 2, 2) / 2;
+	}
+	/*
+	EaseInSine: 正弦加速
+	特点：比较柔和的加速效果
+	*/
+	public function EaseInSine(real x) -> real {
+		return 1 - Cos((x * bj_PI) / 2);
+	}
+	/*
+	EaseOutSine: 正弦减速
+	特点：比较柔和的减速效果
+	*/
+	public function EaseOutSine(real x) -> real {
+		return Sin((x * bj_PI) / 2);
+	}
+	/*
+	EaseInOutSine: 正弦加减速
+	特点：非常平滑的加减速效果
+	*/
+	public function EaseInOutSine(real x) -> real {
+		return -(Cos(bj_PI * x) - 1) / 2;
+	}
+}
+//! endzinc
+//! zinc
+/*
+UI动画核心(计时器部分)
+*/
+library UIAnimTimer {
+	//动画计时器事件
+	//随便建,但是要reg与unreg才会生效[建只占用个int]影响不大
+    //不需要destroy
+	public struct uianim {
+		//静态成员[trigNum]
+		static thistype UIAList[];
+		static integer size = 0;
+		trigger trig;
+		integer trID; //这个是动画在列表中的ID
+
+        method isExist () -> boolean {return (this != null && si__uianim_V[this] == -1);}
+        //这个只能同步创建,不能异步创建
+		static method create (code fun) -> thistype {
+			thistype this = allocate();
+            trig = CreateTrigger();
+            TriggerAddCondition(trig, Condition(fun));
+			return this;
+        }
+		//动画启动,可重复调用
+		method reg () {
+            if (!this.isExist()) {return;}
+			if (trID == 0) {
+				size = size + 1;
+				UIAList[size]= this;
+				trID = size;
+			}
+		}
+		//关
+		method unreg () {
+			if (trID != 0) {
+				//这个其实就是将List的[2]设成5  假设2是删  5是最长
+				//然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)
+				//但是实例[2]本身的内容已经被清除 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+				UIAList[trID]= UIAList[size];
+				UIAList[trID].trID =trID;
+				size = size - 1;
+				trID = 0;
+			}
+		}
+        //共享打印方法
+        static method toString () -> string { <?='\n'?> string s = I2S(size) + "个:"; <?='\n'?> integer i; <?='\n'?> for (1 <= i <= size) { <?='\n'?> s += "[" + I2S(i) + "]|r" + I2S(UIAList[i]) + "->"; <?='\n'?> } <?='\n'?> s += "/"; <?='\n'?> return s; <?='\n'?> }
+		static method onInit (){
+			timer t = CreateTimer();
+			TimerStart(t,0.02,true,function () { //计时器运行中
+integer i , this;
+				if (size > 0) {
+					for (1 <= i <= size) {
+						this = UIAList[i];
+						TriggerEvaluate(trig); //这里可以设置一个静态成员来传参获得是第几个uia
+}
+				}
+			});
+			t = null;
+		}
+	}
+}
+//! endzinc
+//! zinc
+/*
+* 数学工具库
+* 作者：AI Assistant
+*
+* 提供了一些常用的数学函数，包括实数到整数的转换、除法、实数相加、值限制、四舍五入以及射线与地图边界的交点计算。
+*/
+library MathUtils {
+    // 实转整 带概率进1的
+    // 将实数转换为整数，若小数部分大于随机数则进1
+    public function R2IRandom (real value) -> integer {
+        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
+            return R2I(value) + 1;
+        }
+        return R2I(value);
+    }
+    // 进行整数除法，若能整除则结果减1
+    public function Divide1 (integer i1,integer i2) -> integer {
+        if (ModuloInteger(i1,i2) == 0) {
+            return i1/i2 - 1;
+        }
+        return i1/i2;
+    }
+    // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
+    // 该函数可以避免简单线性相加导致的数值溢出，保证叠加后的效果符合递减收益原则
+    //
+    // 特点：
+    // - 正数叠加时使用概率学公式：1-(1-a1)*(1-a2)
+    // - 负数叠加时使用衰减公式：1-(1-a1)/(1+a2)
+    // - 当第二个参数绝对值>=1.0时，直接返回第一个参数
+    //
+    // 适用场景：
+    // - 技能冷却缩减叠加（CDR）
+    // - 暴击率、闪避率等概率性属性叠加
+    // - 移速加成等需要控制上限的属性叠加
+    //
+    // 参数说明：
+    // a1: 第一个数值，通常表示当前已有的加成效果
+    // a2: 第二个数值，表示要叠加的新加成效果
+    // 返回值: 叠加后的最终效果值
+    //
+    // 使用示例：
+    // real currentCDR = 0.4;    // 当前40%冷却缩减
+    // real newCDR = 0.5;        // 新装备50%冷却缩减
+    // real finalCDR = RealAdd(currentCDR, newCDR);  // 结果约为0.7，即70%冷却缩减
+    //
+    // 注意事项：
+    // 1. 虽然函数支持任意实数输入，但建议输入值在[-1.0, 1.0]范围内
+    // 2. 当|a2| >= 1.0时，函数会直接返回a1值
+    // 3. 该函数满足结合律，但不满足交换律，建议将已有效果作为第一个参数
+    // 4. 已测试过可以在用负数叠加后,使用负数的绝对值进行恢复
+    public function RealAdd ( real a1,real a2 ) -> real {
+        if (RAbsBJ(a2) >= 1.0) {return a1;}
+        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
+        else {return 1.0-(1.0-a1)/(1.0+a2);}
+    }
+    // 最小最大值限制
+    // 限制整数在[min, max]范围内
+    public function ILimit ( integer target,integer min,integer max ) -> integer {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    // 最小最大值限制
+    // 限制实数在[min, max]范围内
+    public function RLimit ( real target,real min,real max ) -> real {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+    // 四舍五入法实数转整数
+    // 将实数四舍五入为整数
+    public function R2IM (real r) -> integer {
+        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
+        else return R2I(r);
+    }
+    // 计算射线与地图边界的交点
+    // 计算从给定点出发的射线与地图边界的交点
+    public struct radiationEnd {
+        static real x = 0,y = 0;
+        // 一个坐标沿着某个方向的边缘值
+        // 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
+        static method cal (real x1,real y1,real angle) {
+            real x2 = 0; //相交点
+real y2 = 0; //相交点
+real a = ModuloReal(angle,360); //求余数
+real tan;
+            x = 0;
+            y = 0;
+            // 处理特殊角度
+            if (a == 0) { // 正右方
+x = mapBounds.maxX;
+                y = y1;
+                return;
+            }
+            if (a == 90) { // 正上方
+x = x1;
+                y = mapBounds.maxY;
+                return;
+            }
+            if (a == 180) { // 正左方
+x = mapBounds.minX;
+                y = y1;
+                return;
+            }
+            if (a == 270) { // 正下方
+x = x1;
+                y = mapBounds.minY;
+                return;
+            }
+            // 处理一般角度
+            if (a < 90) { //第一象限
+tan = TanBJ(a);
+                x2 = (mapBounds.maxY - y1) / tan + x1;
+                y2 = (mapBounds.maxX - x1) * tan + y1;
+                if (x2 <= mapBounds.maxX) { //取这个
+x = x2;
+                    y = mapBounds.maxY;
+                } else {
+                    x = mapBounds.maxX;
+                    y = y2;
+                }
+            } else if(a < 180) { //第二象限
+tan = TanBJ(a);
+                x2 = (mapBounds.maxY - y1) / tan + x1;
+                y2 = (mapBounds.minX - x1) * tan + y1;
+                if (x2 >= mapBounds.minX) { //取这个
+x = x2;
+                    y = mapBounds.maxY;
+                } else {
+                    x = mapBounds.minX;
+                    y = y2;
+                }
+            } else if(a < 270) { //第三象限
+tan = TanBJ(a);
+                x2 = (mapBounds.minY - y1) / tan + x1;
+                y2 = (mapBounds.minX - x1) * tan + y1;
+                if (x2 >= mapBounds.minX) { //取这个
+x = x2;
+                    y = mapBounds.minY;
+                } else {
+                    x = mapBounds.minX;
+                    y = y2;
+                }
+            } else { //第四象限
+tan = TanBJ(a);
+                x2 = (mapBounds.minY - y1) / tan + x1;
+                y2 = (mapBounds.maxX - x1) * tan + y1;
+                if (x2 <= mapBounds.maxX) { //取这个
+x = x2;
+                    y = mapBounds.minY;
+                } else {
+                    x = mapBounds.maxX;
+                    y = y2;
+                }
+            }
+        }
+    }
+}
+//! endzinc
+//控件的共用基本方法
+//! zinc
+library UIBaseModule requires UIUtils {
+    // 定义共用的方法结构
+    public module uiBaseModule {
+        // 设置位置
+        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
+            return this;
+        }
+        // 大小完全对齐父框架
+        method setAllPoint (integer relative) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAllPoints(ui,relative);
+            return this;
+        }
+        //绝对位置
+        method setAbsPoint (integer anchor, real x, real y) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAbsolutePoint(ui,anchor,x,y);
+            return this;
+        }
+        // 清除所有位置
+        method clearPoint () -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameClearAllPoints(ui);
+            return this;
+        }
+        // 设置大小
+        method setSize (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width,height);
+            return this;
+        }
+        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        method setSizeFix (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width*GetResizeRate(),height);
+            return this;
+        }
+        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        method setSizeFixVertical (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetSize(ui,width,height/GetResizeRate());
+            return this;
+        }
+        // 显示控件
+        // 参数: boolean flag 是否显示
+        method show (boolean flag) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameShow(ui,flag);
+            return this;
+        }
+        //透明度(0-255)
+        method setAlpha (integer value) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetAlpha(ui,value);
+            return this;
+        }
+        optional module extendResize; //扩展自适应大小方法
+}
+}
+//! endzinc
+//! zinc
+/*
+Toc初始化,才能使用UI功能
+*/
+library UITocInit requires BzAPI,LBKKAPI {
+  function onInit () {
+		DzLoadToc("ui\\Crainax.toc");
+		DzFrameEnableClipRect(false);
+  }
+}
+//! endzinc
+//! zinc
+/*
+ID复用器
+*/
+// 使用常量定义父键，使代码更清晰
+library UIId {
+    public struct uiId []{
+        static hashtable ht;
+        static integer nextId;
+        static integer recycleCount;
+        static method onInit () {
+            thistype.ht = InitHashtable();
+            thistype.nextId = 1;
+            thistype.recycleCount = 0;
+        }
+        static method get () -> integer {
+            integer id;
+            // 如果有已回收的ID，优先使用
+            if (recycleCount > 0) {
+                // 获取最后一个回收的ID
+                id = LoadInteger(ht, 1, recycleCount - 1);
+                // 从回收池中删除这个ID
+                RemoveSavedInteger(ht, 1, recycleCount - 1);
+                // 从状态表中删除
+                RemoveSavedBoolean(ht, 2, id);
+                recycleCount = recycleCount - 1;
+                return id;
+            }
+            // 如果没有可复用的ID，返回新的ID
+            id = nextId;
+            nextId = nextId + 1;
+            return id;
+        }
+        static method recycle (integer id) {
+            // 快速检查ID是否已经在回收池中
+            if (!HaveSavedBoolean(ht, 2, id)) {
+                // 将ID存入回收池
+                SaveInteger(ht, 1, recycleCount, id);
+                // 标记该ID已被回收
+                SaveBoolean(ht, 2, id, true);
+                recycleCount = recycleCount + 1;
+            }
+        }
+        // 获取回收池中ID的数量
+        static method getRecycledCount() -> integer {
+            return recycleCount;
+        }
+        // 获取当前正在使用的ID数量
+        static method getActiveCount() -> integer {
+            // 最大ID减去已回收的ID数量
+            return (nextId - 1) - recycleCount;
+        }
+    }
+}
+//! endzinc
+//窗口的大小
+//! zinc
+/*
+UI工具库
+*/
+library UIUtils requires BzAPI{
+	//获得现在的X / Y比例
+	//主要用于UI缩放
+	public function GetResizeRate () -> real {
+		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
+		else return 1.0;
+	}
+	// 获取鼠标位置X(绝对坐标)[修正版]
+	public function GetMouseXEx () -> real {
+		integer width = DzGetClientWidth();
+		if (width > 0) return DzGetMouseXRelative()* 0.80 / width;
+		else return 0.1;
+	}
+	// 获取鼠标位置Y(绝对坐标)[修正版]
+	public function GetMouseYEx () -> real {
+		integer height = DzGetClientHeight();
+		if (height > 0) return 0.60 - DzGetMouseYRelative()* 0.60 / height;
+		else return 0.1;
+	}
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseX (real min,real max) -> real {
+		return RLimit(GetMouseXEx(),min,max);
+	}
+	// 限制一个值是在一定区域内以防UI超出这个区域
+	public function GetFixedMouseY (real min,real max) -> real {
+		return RLimit(GetMouseYEx(),min,max);
+	}
+}
+//! endzinc
+//! zinc
+/*
+UI图片的共用方法
+*/
+library UIImageModule {
+    // 定义共用的方法结构
+    public module uiImageModule {
+        // 设置图片路径
+        method setTexture (string path) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetTexture(this.ui,path,0);
+            return this;
+        }
+        // 设置图片控件视口,防止模型超出范围
+        method setClip (boolean clip) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetClip(this.ui,clip);
+            return this;
+        }
+    }
+}
+//! endzinc
+//! zinc
+/*
+文字UI组件
+*/
+library UIText requires UIId, UITocInit, UIBaseModule, optional UILifeCycle,UITextModule {
+    public struct uiText {
+        // UI组件内部共享方法及成员
+        integer ui; <?='\n'?> integer id; <?='\n'?> method isExist () -> boolean {return (this != null && si__uiText_V[this] == -1);} <?='\n'?> optional module uiLifeCycle; <?='\n'?> module uiBaseModule;
+        // UI控件的共用方法
+        module uiTextModule; // UI文本的共用方法
+
+        // 创建文本
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("TEXT","Text" + I2S(id),parent,"T1",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} <?='\n'?> static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 创建一个用在原生Frame里的文本,这种文本是不能destroy的!
+        // parent: 父级框架
+        static method createSimple (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            DzCreateFrameByTagName("SIMPLEFRAME", "Text" + I2S(id), parent, "简单文字", id);
+            ui = DzSimpleFontStringFindByName("简单文字内容", id);
+            DzFrameClearAllPoints(ui);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} <?='\n'?> static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 绑定原生文本
+        // name: 文本名称(fdf写的text的名字)
+        // index: 文本索引(在外部创建时的填写的ID最后一个参数)
+        static method bindSimple (string name, integer index) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzSimpleFontStringFindByName(name, index);
+            DzFrameClearAllPoints(ui);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} <?='\n'?> static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);} <?='\n'?> static if (LIBRARY_UIHashTable) { FlushChildHashtable(HASH_UI, ui); }
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
+    }
+}
+//! endzinc
+library LBKKAPI 
+        globals 
+                string MOVE_TYPE_NONE = "none" //没有（无视碰撞）  
+string MOVE_TYPE_FOOT = "foot" //步行  
+string MOVE_TYPE_HORSE = "horse" //骑马  
+string MOVE_TYPE_FLY = "fly" //飞行（还具有空中视野，也可以设置飞行高度）  
+string MOVE_TYPE_HOVER = "hover" //浮空（不会踩中地雷）  
+string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）  
+string MOVE_TYPE_AMPH = "amph" //两栖  
+string MOVE_TYPE_UNBUILD = "unbuild" //不可建造  
+constant integer DEFENSE_TYPE_LIGHT = 0 
+		constant integer DEFENSE_TYPE_MEDIUM = 1 
+		constant integer DEFENSE_TYPE_LARGE = 2 
+		constant integer DEFENSE_TYPE_FORT = 3 
+		constant integer DEFENSE_TYPE_NORMAL = 4 
+		constant integer DEFENSE_TYPE_HERO = 5 
+		constant integer DEFENSE_TYPE_DIVINE = 6 
+		constant integer DEFENSE_TYPE_NONE = 7 
+        endglobals 
+        native DzGetSelectedLeaderUnit takes nothing returns unit 
+        native DzIsChatBoxOpen takes nothing returns boolean 
+        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
+        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
+        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
+        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
+        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
+        native DzSetEffectModel takes effect whichEffect, string model returns nothing
+        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
+        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
+        native DzChangeWindowSize takes integer width, integer height returns boolean 
+        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
+        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
+        native DzUnbindEffect takes effect whichEffect returns nothing 
+        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
+        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
+        native DzGetEffectVertexColor takes effect whichEffect returns integer 
+        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
+        native DzGetItemAbility takes item whichEffect, integer index returns ability 
+        native DzFrameGetChildrenCount takes integer whichframe returns integer 
+        native DzFrameGetChild takes integer whichframe, integer index returns integer 
+        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
+        native DzGetActivePatron takes unit store, player p returns unit 
+        native DzGetLocalSelectUnitCount takes nothing returns integer 
+        native DzGetLocalSelectUnit takes integer index returns unit 
+        native DzGetJassStringTableCount takes nothing returns integer 
+        native DzModelRemoveFromCache takes string path returns nothing 
+        native DzModelRemoveAllFromCache takes nothing returns nothing 
+        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
+        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
+        native DzFrameGetPeonBar takes nothing returns integer 
+        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
+        native DzToggleFPS takes boolean show returns nothing 
+        native DzGetFPS takes nothing returns integer 
+        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
+        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
+        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
+        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
+        native DzFrameGetWorldFrameMessage takes nothing returns integer 
+        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
+        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
+        //转换屏幕坐标到世界坐标  
+        native DzConvertScreenPositionX takes real x, real y returns real 
+        native DzConvertScreenPositionY takes real x, real y returns real 
+        //监听建筑选位置  
+        native DzRegisterOnBuildLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnBuildOrderId takes nothing returns integer 
+        native DzGetOnBuildOrderType takes nothing returns integer 
+        native DzGetOnBuildAgent takes nothing returns widget 
+        //监听技能选目标  
+        native DzRegisterOnTargetLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnTargetAbilId takes nothing returns integer 
+        native DzGetOnTargetOrderId takes nothing returns integer 
+        native DzGetOnTargetOrderType takes nothing returns integer 
+        native DzGetOnTargetAgent takes nothing returns widget 
+        native DzGetOnTargetInstantTarget takes nothing returns widget 
+        // 打开QQ群链接  
+        native DzOpenQQGroupUrl takes string url returns boolean 
+        native DzFrameEnableClipRect takes boolean enable returns nothing 
+        native DzSetUnitName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
+        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
+        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
+        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
+        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
+        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
+        native DzGetAttackAbility takes unit whichUnit returns ability 
+        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
+        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
+        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
+        function DzSetHeroTypeProperName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 61, 0, name) 
+                call EXSetUnitInteger(uid, 61, 1) 
+        endfunction 
+        function DzSetUnitTypeName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 10, 0, name) 
+                call EXSetUnitInteger(uid, 10, 1) 
+        endfunction 
+        function DzIsUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns boolean 
+                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType 
+        endfunction 
+        function DzSetUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType)) 
+        endfunction 
+        function DzIsUnitDefenseType takes unit whichUnit, integer defenseType returns boolean 
+                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType 
+        endfunction 
+        function DzSetUnitDefenseType takes unit whichUnit, integer defenseType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType) 
+        endfunction 
+        // 地形装饰物
+        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
+        native DzDoodadGetTypeId takes integer doodad returns integer 
+        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
+        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
+        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
+        native DzDoodadGetX takes integer doodad returns real 
+        native DzDoodadGetY takes integer doodad returns real 
+        native DzDoodadGetZ takes integer doodad returns real 
+        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
+        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
+        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
+        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
+        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
+        native DzDoodadGetTimeScale takes integer doodad returns real 
+        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
+        native DzDoodadGetAnimationCount takes integer doodad returns integer 
+        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
+        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
+        // 解锁JASS字节码限制
+        native DzUnlockOpCodeLimit takes boolean enable returns nothing
+        // 设置剪切板内容
+        native DzSetClipboard takes string content returns boolean
+        //删除装饰物
+        native DzDoodadRemove takes integer doodad returns nothing
+        //移除科技等级
+        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
+        
+        // 查找单位技能
+        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
+        // 修改技能数据-字符串
+        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
+                
+        // 启用/禁用技能
+        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
+        // 设置单位移动类型
+        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
+        // 获取控件宽度
+        native DzFrameGetWidth takes integer frame returns real
+        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
+        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
+        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
+        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
+                call DzSetUnitDataCacheInteger( uid, id, 0, v)
+        endfunction
+        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 94, id, v)
+        endfunction
+        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 100, id, v)
+        endfunction
+        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 112, id, v)
+        endfunction
+        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 106, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 118, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 124, id, v)
+        endfunction
+        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 130, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 172, id, v)
+        endfunction
+         // 设置道具模型
+        native DzItemSetModel takes item whichItem, string file returns nothing
+        // 设置道具颜色
+        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
+        // 设置道具透明度
+        native DzItemSetAlpha takes item whichItem, integer color returns nothing
+        // 设置道具头像
+        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
+endlibrary
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
+//! zinc
+/*
+UI文本的共用方法
+*/
+library UITextModule {
+    // 定义共用的方法结构
+    public module uiTextModule {
+        // 设置标准字体大小
+        // size: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
+        method setFontSize (integer size) -> thistype {
+            real fontSize = 0.01;
+            if (!this.isExist()) {return this;}
+            if (size == 1) {
+                fontSize = 0.006;
+            } else if (size == 2) {
+                fontSize = 0.008;
+            } else if (size == 3) {
+                fontSize = 0.009;
+            } else if (size == 4) {
+                fontSize = 0.01;
+            } else if (size == 5) {
+                fontSize = 0.011;
+            } else if (size == 6) {
+                fontSize = 0.012;
+            } else if (size == 7) {
+                fontSize = 0.015;
+            }
+            DzFrameSetFont(ui, "fonts\\zt.ttf", fontSize, 0);
+            return this;
+        }
+        // 设置对齐方式(前提要先定好大小,不然无处对齐)
+        // align: 可以使用0-8的简单数字,或TEXT_ALIGN_*常量
+        // 0=左上, 1=顶部居中, 2=右上
+        // 3=左中, 4=居中, 5=右中
+        // 6=左下, 7=底部居中, 8=右下
+        method setAlign (integer align) -> thistype {
+            integer finalAlign = align;
+            if (!this.isExist()) {return this;}
+            // 如果输入0-8,转换为对应的组合值
+            if (align >= 0 && align <= 8) {
+                if (align == 0) {
+                    finalAlign = 9; // 左上
+} else if (align == 1) {
+                    finalAlign = 17; // 顶部居中
+} else if (align == 2) {
+                    finalAlign = 33; // 右上
+} else if (align == 3) {
+                    finalAlign = 10; // 左中
+} else if (align == 4) {
+                    finalAlign = 18; // 居中
+} else if (align == 5) {
+                    finalAlign = 34; // 右中
+} else if (align == 6) {
+                    finalAlign = 12; // 左下
+} else if (align == 7) {
+                    finalAlign = 20; // 底部居中
+} else if (align == 8) {
+                    finalAlign = 36; // 右下
+}
+            }
+            DzFrameSetTextAlignment(ui, finalAlign);
+            return this;
+        }
+        // 设置文本内容
+        method setText (string text) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetText(ui,text);
+            return this;
+        }
+    }
+}
+//! endzinc
+//! zinc
+/*
+结构体
+硬件事件(按/滑/帧事件)
+*/
+library Hardware requires BzAPI {
+	public struct hardware []{
+		// 注册一个左键抬起事件
+		static method regLeftUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,1,0,false,func);
+		}
+		// 注册一个左键按下事件
+		static method regLeftDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,1,1,false,func);
+		}
+		// 注册一个右键按下事件
+		static method regRightDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,2,1,false,func);
+		}
+		// 注册一个右键抬起事件
+		static method regRightUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,2,0,false,func);
+		}
+		// 注册一个滚轮事件,不能异步注册
+		static method regWheelEvent (code func) {
+			if (trWheel == null) {trWheel = CreateTrigger();}
+			TriggerAddCondition(trWheel, Condition(func));
+		}
+		// 注册一个绘制事件,不能异步注册
+		static method regUpdateEvent (code func) {
+			if (trUpdate == null) {trUpdate = CreateTrigger();}
+			TriggerAddCondition(trUpdate, Condition(func));
+		}
+		// 注册一个窗口变化事件,不能异步注册
+		static method regResizeEvent (code func) {
+			if (trResize == null) {trResize = CreateTrigger();}
+			TriggerAddCondition(trResize, Condition(func));
+		}
+		// 注册一个鼠标移动事件,不能异步注册
+		static method regMoveEvent (code func) {
+			BJDebugMsg("注册鼠标移动事件");
+			if (trMove == null) {trMove = CreateTrigger();}
+			TriggerAddCondition(trMove, Condition(func));
+		}
+		// 获取鼠标的实数坐标X(0-0.8)
+		static method getMouseX () -> real {
+			integer width = DzGetClientWidth();
+			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
+			else return 0.1;
+		}
+		// 获取鼠标的实数坐标Y(0-0.6)
+		static method getMouseY () -> real {
+			integer height = DzGetClientHeight();
+			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
+			else return 0.1; // 防止除以0
+}
+		private {
+			static trigger trWheel = null;
+			static trigger trUpdate = null;
+			static trigger trResize = null;
+			static trigger trMove = null;
+		}
+		static method onInit () {
+			// 滚轮事件
+			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
+				TriggerEvaluate(trWheel);
+			});
+			// 帧绘制事件
+			DzFrameSetUpdateCallbackByCode(function (){
+				TriggerEvaluate(trUpdate);
+			});
+			// 窗口大小变化事件
+			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
+				 TriggerEvaluate(trResize);
+			});
+			// 鼠标移动事件
+			DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
+				 TriggerEvaluate(trMove);
+			});
+		}
+	}
+}
+//! endzinc
+library BzAPI
+    //hardware
+    native DzGetMouseTerrainX takes nothing returns real
+    native DzGetMouseTerrainY takes nothing returns real
+    native DzGetMouseTerrainZ takes nothing returns real
+    native DzIsMouseOverUI takes nothing returns boolean
+    native DzGetMouseX takes nothing returns integer
+    native DzGetMouseY takes nothing returns integer
+    native DzGetMouseXRelative takes nothing returns integer
+    native DzGetMouseYRelative takes nothing returns integer
+    native DzSetMousePos takes integer x, integer y returns nothing
+    native DzTriggerRegisterMouseEvent takes trigger trig, integer btn, integer status, boolean sync, string func returns nothing
+    native DzTriggerRegisterMouseEventByCode takes trigger trig, integer btn, integer status, boolean sync, code funcHandle returns nothing
+    native DzTriggerRegisterKeyEvent takes trigger trig, integer key, integer status, boolean sync, string func returns nothing
+    native DzTriggerRegisterKeyEventByCode takes trigger trig, integer key, integer status, boolean sync, code funcHandle returns nothing
+    native DzTriggerRegisterMouseWheelEvent takes trigger trig, boolean sync, string func returns nothing
+    native DzTriggerRegisterMouseWheelEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
+    native DzTriggerRegisterMouseMoveEvent takes trigger trig, boolean sync, string func returns nothing
+    native DzTriggerRegisterMouseMoveEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
+    native DzGetTriggerKey takes nothing returns integer
+    native DzGetWheelDelta takes nothing returns integer
+    native DzIsKeyDown takes integer iKey returns boolean
+    native DzGetTriggerKeyPlayer takes nothing returns player
+    native DzGetWindowWidth takes nothing returns integer
+    native DzGetWindowHeight takes nothing returns integer
+    native DzGetWindowX takes nothing returns integer
+    native DzGetWindowY takes nothing returns integer
+    native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
+    native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
+    native DzIsWindowActive takes nothing returns boolean
+    //plus
+    native DzDestructablePosition takes destructable d, real x, real y returns nothing
+    native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
+    native DzExecuteFunc takes string funcName returns nothing
+    native DzGetUnitUnderMouse takes nothing returns unit
+    native DzSetUnitTexture takes unit whichUnit, string path, integer texId returns nothing
+    native DzSetMemory takes integer address, real value returns nothing
+    native DzSetUnitID takes unit whichUnit, integer id returns nothing
+    native DzSetUnitModel takes unit whichUnit, string path returns nothing
+    native DzSetWar3MapMap takes string map returns nothing
+    native DzGetLocale takes nothing returns string
+    native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
+    //sync
+    native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
+    native DzSyncData takes string prefix, string data returns nothing
+    native DzGetTriggerSyncPrefix takes nothing returns string
+    native DzGetTriggerSyncData takes nothing returns string
+    native DzGetTriggerSyncPlayer takes nothing returns player
+    native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
+    //native DzGetPushContext takes nothing returns string
+    native DzSyncDataImmediately takes string prefix, string data returns nothing 
+    //gui
+    native DzFrameHideInterface takes nothing returns nothing
+    native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
+    native DzFrameGetPortrait takes nothing returns integer
+    native DzFrameGetMinimap takes nothing returns integer
+    native DzFrameGetCommandBarButton takes integer row, integer column returns integer
+    native DzFrameGetHeroBarButton takes integer buttonId returns integer
+    native DzFrameGetHeroHPBar takes integer buttonId returns integer
+    native DzFrameGetHeroManaBar takes integer buttonId returns integer
+    native DzFrameGetItemBarButton takes integer buttonId returns integer
+    native DzFrameGetMinimapButton takes integer buttonId returns integer
+    native DzFrameGetUpperButtonBarButton takes integer buttonId returns integer
+    native DzFrameGetTooltip takes nothing returns integer
+    native DzFrameGetChatMessage takes nothing returns integer
+    native DzFrameGetUnitMessage takes nothing returns integer
+    native DzFrameGetTopMessage takes nothing returns integer
+    native DzGetColor takes integer r, integer g, integer b, integer a returns integer
+    native DzFrameSetUpdateCallback takes string func returns nothing
+    native DzFrameSetUpdateCallbackByCode takes code funcHandle returns nothing
+    native DzFrameShow takes integer frame, boolean enable returns nothing
+    native DzCreateFrame takes string frame, integer parent, integer id returns integer
+    native DzCreateSimpleFrame takes string frame, integer parent, integer id returns integer
+    native DzDestroyFrame takes integer frame returns nothing
+    native DzLoadToc takes string fileName returns nothing
+    native DzFrameSetPoint takes integer frame, integer point, integer relativeFrame, integer relativePoint, real x, real y returns nothing
+    native DzFrameSetAbsolutePoint takes integer frame, integer point, real x, real y returns nothing
+    native DzFrameClearAllPoints takes integer frame returns nothing
+    native DzFrameSetEnable takes integer name, boolean enable returns nothing
+    native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
+    native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
+    native DzGetTriggerUIEventPlayer takes nothing returns player
+    native DzGetTriggerUIEventFrame takes nothing returns integer
+    native DzFrameFindByName takes string name, integer id returns integer
+    native DzSimpleFrameFindByName takes string name, integer id returns integer
+    native DzSimpleFontStringFindByName takes string name, integer id returns integer
+    native DzSimpleTextureFindByName takes string name, integer id returns integer
+    native DzGetGameUI takes nothing returns integer
+    native DzClickFrame takes integer frame returns nothing
+    native DzSetCustomFovFix takes real value returns nothing
+    native DzEnableWideScreen takes boolean enable returns nothing
+    native DzFrameSetText takes integer frame, string text returns nothing
+    native DzFrameGetText takes integer frame returns string
+    native DzFrameSetTextSizeLimit takes integer frame, integer size returns nothing
+    native DzFrameGetTextSizeLimit takes integer frame returns integer
+    native DzFrameSetTextColor takes integer frame, integer color returns nothing
+    native DzGetMouseFocus takes nothing returns integer
+    native DzFrameSetAllPoints takes integer frame, integer relativeFrame returns boolean
+    native DzFrameSetFocus takes integer frame, boolean enable returns boolean
+    native DzFrameSetModel takes integer frame, string modelFile, integer modelType, integer flag returns nothing
+    native DzFrameGetEnable takes integer frame returns boolean
+    native DzFrameSetAlpha takes integer frame, integer alpha returns nothing
+    native DzFrameGetAlpha takes integer frame returns integer
+    native DzFrameSetAnimate takes integer frame, integer animId, boolean autocast returns nothing
+    native DzFrameSetAnimateOffset takes integer frame, real offset returns nothing
+    native DzFrameSetTexture takes integer frame, string texture, integer flag returns nothing
+    native DzFrameSetScale takes integer frame, real scale returns nothing
+    native DzFrameSetTooltip takes integer frame, integer tooltip returns nothing
+    native DzFrameCageMouse takes integer frame, boolean enable returns nothing
+    native DzFrameGetValue takes integer frame returns real
+    native DzFrameSetMinMaxValue takes integer frame, real minValue, real maxValue returns nothing
+    native DzFrameSetStepValue takes integer frame, real step returns nothing
+    native DzFrameSetValue takes integer frame, real value returns nothing
+    native DzFrameSetSize takes integer frame, real w, real h returns nothing
+    native DzCreateFrameByTagName takes string frameType, string name, integer parent, string template, integer id returns integer
+    native DzFrameSetVertexColor takes integer frame, integer color returns nothing
+    native DzOriginalUIAutoResetPoint takes boolean enable returns nothing
+    native DzFrameSetPriority takes integer frame, integer priority returns nothing
+    native DzFrameSetParent takes integer frame, integer parent returns nothing
+    native DzFrameGetHeight takes integer frame returns real
+    native DzFrameSetFont takes integer frame, string fileName, real height, integer flag returns nothing
+    native DzFrameGetParent takes integer frame returns integer
+    native DzFrameSetTextAlignment takes integer frame, integer align returns nothing
+    native DzFrameGetName takes integer frame returns string
+    native DzGetClientWidth takes nothing returns integer
+    native DzGetClientHeight takes nothing returns integer
+    native DzFrameIsVisible takes integer frame returns boolean
+        //显示/隐藏SimpleFrame
+    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
+    // 追加文字（支持TextArea）
+    native DzFrameAddText takes integer frame, string text returns nothing
+    // 沉默单位-禁用技能
+    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
+    // 禁用攻击
+    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
+    // 禁用道具
+    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
+    // 刷新小地图
+    native DzUpdateMinimap takes nothing returns nothing
+    // 修改单位alpha
+    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
+    // 设置单位是否可以选中
+    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
+    // 修改单位是否可以被设置为目标
+    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
+    // 保存内存数据
+    native DzSaveMemoryCache takes string cache returns nothing
+    // 读取内存数据
+    native DzGetMemoryCache takes nothing returns string
+    // 设置加速倍率
+    native DzSetSpeed takes real ratio returns nothing
+    // 转换世界坐标为屏幕坐标-异步
+    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
+    // 转换世界坐标为屏幕坐标-获取转换后的X坐标
+    native DzGetConvertWorldPositionX takes nothing returns real
+    // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
+    native DzGetConvertWorldPositionY takes nothing returns real
+    // 创建command button
+    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
+    function DzTriggerRegisterMouseEventTrg takes trigger trg, integer status, integer btn returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
+    endfunction
+    function DzTriggerRegisterKeyEventTrg takes trigger trg, integer status, integer btn returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterKeyEvent(trg, btn, status, true, null)
+    endfunction
+    function DzTriggerRegisterMouseMoveEventTrg takes trigger trg returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterMouseMoveEvent(trg, true, null)
+    endfunction
+    function DzTriggerRegisterMouseWheelEventTrg takes trigger trg returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterMouseWheelEvent(trg, true, null)
+    endfunction
+    function DzTriggerRegisterWindowResizeEventTrg takes trigger trg returns nothing
+        if trg == null then
+            return
+        endif
+        call DzTriggerRegisterWindowResizeEvent(trg, true, null)
+    endfunction
+    function DzF2I takes integer i returns integer
+        return i
+    endfunction
+    function DzI2F takes integer i returns integer
+        return i
+    endfunction
+    function DzK2I takes integer i returns integer
+        return i
+    endfunction
+    function DzI2K takes integer i returns integer
+        return i
+    endfunction
+    function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMIA", true)
+    endfunction
+    //玩家消耗/使用商城道具事件
+    function DzTriggerRegisterMallItemConsumeEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMIC", true)
+    endfunction
+    //玩家删除商城道具事件
+    function DzTriggerRegisterMallItemRemoveEvent takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZMID", true)
+    endfunction
+    function DzGetTriggerMallItemPlayer takes nothing returns player
+        return DzGetTriggerSyncPlayer()
+    endfunction
+    function DzGetTriggerMallItem takes nothing returns string
+        return DzGetTriggerSyncData()
+    endfunction
+    
+endlibrary
 /*
 单元测试框架(注入)
 */
@@ -552,46 +1510,76 @@ library UnitTestFramwork {
 //! endzinc
 //! zinc
 /*
-转换工具
+图片UI组件
 */
-library ConversionUtils {
-    //补充函数
-    public function B2S(boolean b) -> string {
-        if (b) {return "true";}
-        else {return "false";}
+library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
+    public struct uiImage {
+        // UI组件内部共享方法及成员
+        integer ui; <?='\n'?> integer id; <?='\n'?> method isExist () -> boolean {return (this != null && si__uiImage_V[this] == -1);} <?='\n'?> optional module uiLifeCycle; <?='\n'?> module uiBaseModule;
+        module uiImageModule; // UI图片的共用方法
+
+        // 创建图片
+        // parent: 父级框架
+        static method create (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"IT",0);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} <?='\n'?> static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
+        // parent: 父级框架
+        static method createSimple (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            DzCreateFrameByTagName("SIMPLEFRAME", "Img" + I2S(id), parent, "简单图片", id);
+            ui = DzSimpleTextureFindByName("简单图片内容", id);
+            DzFrameClearAllPoints(ui);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} <?='\n'?> static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        // 绑定原生图片
+        // name: 图片名称(fdf写的image的名字)
+        // index: 图片索引(在外部创建时的填写的ID最后一个参数)
+        static method bindSimple (string name, integer index) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzSimpleTextureFindByName(name, index);
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} <?='\n'?> static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
+            return this;
+        }
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);} <?='\n'?> static if (LIBRARY_UIHashTable) { FlushChildHashtable(HASH_UI, ui); }
+            DzDestroyFrame(ui);
+            uiId.recycle(id);
+        }
     }
-    //三目运算符
-    public function S3 (boolean b,string s1,string s2) -> string {
-        if (b) {return s1;}
-        else {return s2;}
-    }
-    //三目运算符
-    public function I3 (boolean b,integer i1,integer i2) -> integer {
-        if (b) {return i1;}
-        else {return i2;}
-    }
-    //三目运算符
-    public function R3 (boolean b,real r1,real r2) -> real {
-        if (b) {return r1;}
-        else {return r2;}
-    }
-    // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
-    // pos为输入数字,每36个数字进一位,每位用0-9和a-z表示(共36个字符)
-    // 示例:0->'0000', 35->'000z', 36->'0010'(进位), 37->'0011'
-    public function GetIDSymbol ( integer pos ) -> integer {
-        integer bit = pos/36;
-        pos = ModuloInteger(pos,36);
-        if (pos < 10) {return pos + bit * 256;}
-        else {return '000a' - '0000' + pos - 10 + bit * 256;}
-    }
-    // 将魔兽的四字符ID转换回对应数字
-    // s为输入的四字符ID,将其还原为原始数字
-    // 示例:'0000'->0, '000z'->35, '0010'->36, '0011'->37
-    public function GetSymbolID ( integer s ) -> integer {
-        integer i1 = s/256;
-        integer i2 = ModuloInteger(s,256);
-        if (i2 < 10) {return i1 * 36 + i2;}
-        else {return i2 - '000a' + '0000' + 10 + i1 * 36;}
+}
+//! endzinc
+//! zinc
+// 地图边界工具库
+library MapBoundsUtils {
+    public struct mapBounds {
+        static real maxX = 0.;
+        static real minX = 0.;
+        static real maxY = 0.;
+        static real minY = 0.;
+        // 限制X坐标在地图范围内
+        static method X (real x) -> real {
+            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
+        }
+        // 限制Y坐标在地图范围内
+        static method Y (real y) -> real {
+            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
+        }
+        // 初始化
+        static method onInit () {
+            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
+            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
+            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
+            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
+        }
     }
 }
 //! endzinc
@@ -704,430 +1692,76 @@ endfunction
 // 用空地图测试
 // 用原始地图测试
 //! zinc
-/*
-* BigNumber单元测试
-*
-* 测试命令:
-* s1 - 测试基本创建和销毁
-* s2 - 测试加法运算
-* s3 - 测试乘法运算
-* s4 - 测试比较运算
-* s5 - 测试字符串转换
-* -a [num1] [num2] - 测试两数相加
-* -m [num] [factor] - 测试数字与因子相乘
-* -c [num1] [num2] - 比较两个数字大小
-*/
-//B2S
-library UTBigNumber requires BigNumber {
-	//==============================
-	// 1. 测试 create
-	//==============================
-	private function Test_Create() {
-		bigNumber bn = bigNumber.create();
-		assert.Boolean(bn.high == 0 && bn.low == 0, "Test_Create: 新建 BigNumber 应当为 (0, 0)");
+//自动生成的文件
+library UTToastPop requires ToastPop {
+	function TTestUTToastPop1 (player p) {
+		//toastPop
+		toastPop th = toastPop.createWithTitle(p, "这是一个测试提示","这是一个测试内容");
 	}
-	//==============================
-	// 2. 测试加法
-	//==============================
-	private function Test_Add() {
-		bigNumber bn = bigNumber.create();
-		// 2.1 初始值(0,0) + (0,0)
-		bn.add(0, 0);
-		assert.Boolean(bn.high == 0 && bn.low == 0, "Test_Add(0, 0)");
-		// 2.2 正常范围 + 正常范围
-		bn.add(1, 2); // => (1,2)
-assert.Boolean(bn.high == 1 && bn.low == 2, "Test_Add(1, 2)");
-		// 2.3 再加一个负数 => (1,2) + (-1,-2) => (0,0)
-		bn.add(-1, -2);
-		assert.Boolean(bn.high == 0 && bn.low == 0, "Test_Add(-1, -2)");
-		// 2.4 测试进位：低位超过 10亿
-		//     先重置为(0,0)，再加(0, 999999999)，再加(0, 10)
-		bn = bigNumber.create();
-		bn.add(0, 999999999);
-		bn.add(0, 10); // => 999999999 + 10 = 1000000009，需要向 high 进位
-// 进位后：bn.low 应该是 9，bn.high = 1
-assert.Boolean(bn.high == 1 && bn.low == 9, "Test_Add 进位检查");
-		// 2.5 测试溢出: 连续叠加到超过 high 正上限
-		//     BigNumber 中 high 上限为 2100000000
-		//     这里模拟一下极大值加法，引发溢出
-		bn = bigNumber.create();
-		// 先加到极限
-		bn.add(2100000000, 999999999);
-		// 再加一点，应该被截断到 (2100000000, 999999999)
-		bn.add(0, 1);
-		assert.Boolean(bn.high == 2100000000 && bn.low == 999999999, "Test_Add 溢出正上限检查");
-		// 2.6 测试溢出: 负方向
-		bn = bigNumber.create();
-		bn.add(-2100000000, -999999999);
-		// 再继续减一点以测试负方向溢出
-		bn.add(0, -1);
-		assert.Boolean(bn.high == -2100000000 && bn.low == -999999999, "Test_Add 溢出负上限检查");
+	function TTestUTToastPop2 (player p) {
+		toastPop th = toastPop.createWithIcon(p, "ReplaceableTextures\\CommandButtons\\BTNRingPurple.blp","这是一个测试内容这是一个测试内容这是一个测试内容这是一个测试内容\n\t\t\theheheheheninini");
 	}
-	//==============================
-	// 3. 测试加实数
-	//==============================
-	private function Test_AddReal() {
-		bigNumber bn = bigNumber.create();
-		// 3.1 加一个小实数
-		bn.addReal(123.0); // => (0, 123)
-assert.Boolean(bn.high == 0 && bn.low == 123, "Test_AddReal(123.0)");
-		// 3.2 再加大实数 => 超过 10亿，会拆分到 high
-		bn.addReal(2000000000.0); // => 2000000000 = 2 * 10^9 => high=2, low=0
-// 现在累计 BN => high=2, low=123
-assert.Boolean(bn.high == 2 && bn.low == 123, "Test_AddReal(2000000000.0)");
-		// 3.3 加负实数
-		bn.addReal(-2000000000.0); //这里得拆着写
-bn.addReal(-50.0); //这里得拆着写
-// => 原本 (2, 123) + (-2, -50)
-// => (0, 73)
-assert.Boolean(bn.high == 0 && bn.low == 73, "Test_AddReal(-2000000000.0再-50.0)");
-		// 3.4 超过上限(-∞或+∞)截断测试
-		bn = bigNumber.create();
-		bn.addReal(Pow(10.0,20)); // 超大正数测试
-assert.Boolean(bn.high == 2100000000 && bn.low == 999999999, "Test_AddReal 超大正数溢出测试");
-		bn = bigNumber.create();
-		bn.addReal(-1*Pow(10.0,20)); // 超大负数测试
-assert.Boolean(bn.high == -2100000000 && bn.low == -999999999, "Test_AddReal 超大负数溢出测试");
-	}
-	//==============================
-	// 4. 测试乘法
-	//==============================
-	private function Test_MultiplyInteger() {
-		bigNumber bn = bigNumber.create();
-		// 4.1 基础乘以正数
-		bn.add(0, 10); // 先令 bn = (0, 10)
-bn.multiplyInteger(2); // => (0, 20)
-assert.Boolean(bn.high == 0 && bn.low == 20, "Test_MultiplyInteger(10×2)");
-		// 4.2 乘以负数 & 检查符号
-		bn = bigNumber.create();
-		bn.add(0, 10); // => (0,10)
-bn.multiplyInteger(-3); // => (0, -30)
-assert.Boolean(bn.high == 0 && bn.low == -30, "Test_MultiplyInteger 符号检查");
-		// 4.3 测试进位: 9.9亿 × 2 = 19.8亿
-		bn = bigNumber.create();
-		bn.add(0, 990000000);
-		bn.multiplyInteger(2);
-		assert.Boolean(bn.high == 1 && bn.low == 980000000, "Test_MultiplyInteger 进位测试1");
-		// 4.4 测试进位: 5亿 × 20 = 100亿
-		bn = bigNumber.create();
-		bn.add(0, 500000000);
-		bn.multiplyInteger(20);
-		assert.Boolean(bn.high == 10 && bn.low == 0, "Test_MultiplyInteger 进位测试2");
-		// 4.5 测试大数乘法: 210亿 × 10 = 2100亿(溢出到最大值)
-		bn = bigNumber.create();
-		bn.add(7652, 8236578);
-		bn.multiplyInteger(15);
-		assert.Boolean(bn.high == 114780 && bn.low == 123548670, "Test_MultiplyInteger 大数乘法测试");
-		// 4.6 测试负数大数乘法: -210亿 × 10 = -2100亿(溢出到最小值)
-		bn = bigNumber.create();
-		bn.add(-210, -846726348);
-		bn.multiplyInteger(18);
-		assert.Boolean(bn.high == -3795 && bn.low == -241074264, "Test_MultiplyInteger 负数大数乘法测试");
-		// 4.7 较大数相乘是否正常截断(如超越2,100,000,000)
-		bn = bigNumber.create();
-		bn.add(1000000000, 0); // => (1000000000, 0)
-bn.multiplyInteger(5); // => 5,000,000,000 => 应该溢出到 (2100000000, 999999999)
-assert.Boolean(bn.high == 2100000000 && bn.low == 999999999, "Test_MultiplyInteger 溢出正上限检查");
-		// 4.8 负方向溢出
-		bn = bigNumber.create();
-		bn.add(-1000000000, 0); // => (-1000000000, 0)
-bn.multiplyInteger(5); // => -5,000,000,000 => 应该溢出到 (-2100000000, -999999999)
-assert.Boolean(bn.high == -2100000000 && bn.low == -999999999, "Test_MultiplyInteger 溢出负上限检查");
-		// 4.9 接近210京时
-		bn = bigNumber.create();
-		bn.add(111111111, 111111111);
-		bn.multiplyInteger(18); //结果应该为 1,999,999,999,999,999,998
-assert.Boolean(bn.high == 1999999999 && bn.low == 999999998, "Test_MultiplyInteger 精确数值200京检查");
-	}
-	//==============================
-	// 5. 测试输出
-	//==============================
-	private function Test_ToString() {
-		bigNumber bn = bigNumber.create();
-		// 测试个位数
-		bn.add(0, 5);
-		assert.Boolean(bn.toStringWithUnit() == "5", "Test_ToString: 个位数显示");
-		// 测试万位数 (12345 = 1.2万)
-		bn = bigNumber.create();
-		bn.add(0, 12345);
-		assert.Boolean(bn.toStringWithUnit() == "12345", "Test_ToString: 万位数显示");
-		// 测试百万 (1234567 = 123.5万)
-		bn = bigNumber.create();
-		bn.add(0, 1234567);
-		assert.Boolean(bn.toStringWithUnit() == "1234567", "Test_ToString: 百万显示");
-		// 测试亿位 (123456789 = 1.2亿)
-		bn = bigNumber.create();
-		bn.add(0, 123456789);
-		assert.Boolean(bn.toStringWithUnit() == "1.2亿", "Test_ToString: 亿位显示");
-		// 测试百亿 (12345678901 = 123.5亿)
-		bn = bigNumber.create();
-		bn.add(12, 345678901);
-		assert.Boolean(bn.toStringWithUnit() == "123.5亿", "Test_ToString: 百亿显示");
-		// 测试兆位 (1234567890123 = 1.2兆)
-		bn = bigNumber.create();
-		bn.add(1234, 567890123);
-		assert.Boolean(bn.toStringWithUnit() == "1.2兆", "Test_ToString: 兆位显示");
-		// 测试千兆 (1234567890123456 = 1234.6兆)
-		bn = bigNumber.create();
-		bn.add(1234567, 890123456);
-		assert.Boolean(bn.toStringWithUnit() == "1234.6兆", "Test_ToString: 千兆显示");
-		// 测试京位 (123456789123456789 = 12.3京)
-		bn = bigNumber.create();
-		bn.add(123456789, 123456789);
-		assert.Boolean(bn.toStringWithUnit() == "12.3京", "Test_ToString: 京位显示");
-		// 测试最大值 (21000000000999999999 = 21.0京)
-		bn = bigNumber.create();
-		bn.add(2100000000, 999999999);
-		assert.Boolean(bn.toStringWithUnit() == "210.0京", "Test_ToString: 最大值显示");
-		// 测试负数显示 (-123456789 = -1.2亿)
-		bn = bigNumber.create();
-		bn.add(0, -123456789);
-		assert.Boolean(bn.toStringWithUnit() == "-1.2亿", "Test_ToString: 负数显示");
-	}
-	//==============================
-	// 6. 测试带逗号显示
-	//==============================
-	private function Test_ToStringWithCommas() {
-		bigNumber bn = bigNumber.create();
-		// 1位数
-		bn.add(0, 5);
-		assert.String(bn.toStringWithCommas(), "5", "Test_ToStringWithCommas: 1位数");
-		// 2位数
-		bn = bigNumber.create();
-		bn.add(0, 42);
-		assert.String(bn.toStringWithCommas(), "42", "Test_ToStringWithCommas: 2位数");
-		// 3位数
-		bn = bigNumber.create();
-		bn.add(0, 123);
-		assert.String(bn.toStringWithCommas(), "123", "Test_ToStringWithCommas: 3位数");
-		// 4位数
-		bn = bigNumber.create();
-		bn.add(0, 1234);
-		assert.String(bn.toStringWithCommas(), "1,234", "Test_ToStringWithCommas: 4位数");
-		// 5位数
-		bn = bigNumber.create();
-		bn.add(0, 12345);
-		assert.String(bn.toStringWithCommas(), "12,345", "Test_ToStringWithCommas: 5位数");
-		// 6位数
-		bn = bigNumber.create();
-		bn.add(0, 123456);
-		assert.String(bn.toStringWithCommas(), "123,456", "Test_ToStringWithCommas: 6位数");
-		// 7位数
-		bn = bigNumber.create();
-		bn.add(0, 1234567);
-		assert.String(bn.toStringWithCommas(), "1,234,567", "Test_ToStringWithCommas: 7位数");
-		// 8位数
-		bn = bigNumber.create();
-		bn.add(0, 12345678);
-		assert.String(bn.toStringWithCommas(), "12,345,678", "Test_ToStringWithCommas: 8位数");
-		// 9位数
-		bn = bigNumber.create();
-		bn.add(0, 123456789);
-		assert.String(bn.toStringWithCommas(), "123,456,789", "Test_ToStringWithCommas: 9位数");
-		// 10位数
-		bn = bigNumber.create();
-		bn.add(1, 234567890);
-		assert.String(bn.toStringWithCommas(), "1,234,567,890", "Test_ToStringWithCommas: 10位数");
-		// 11位数
-		bn = bigNumber.create();
-		bn.add(12, 345678901);
-		assert.String(bn.toStringWithCommas(), "12,345,678,901", "Test_ToStringWithCommas: 11位数");
-		// 12位数
-		bn = bigNumber.create();
-		bn.add(123, 456789012);
-		assert.String(bn.toStringWithCommas(), "123,456,789,012", "Test_ToStringWithCommas: 12位数");
-		// 13位数
-		bn = bigNumber.create();
-		bn.add(1234, 567890123);
-		assert.String(bn.toStringWithCommas(), "1,234,567,890,123", "Test_ToStringWithCommas: 13位数");
-		// 14位数
-		bn = bigNumber.create();
-		bn.add(12345, 678901234);
-		assert.String(bn.toStringWithCommas(), "12,345,678,901,234", "Test_ToStringWithCommas: 14位数");
-		// 15位数
-		bn = bigNumber.create();
-		bn.add(123456, 789012345);
-		assert.String(bn.toStringWithCommas(), "123,456,789,012,345", "Test_ToStringWithCommas: 15位数");
-		// 16位数
-		bn = bigNumber.create();
-		bn.add(1234567, 890123456);
-		assert.String(bn.toStringWithCommas(), "1,234,567,890,123,456", "Test_ToStringWithCommas: 16位数");
-		// 17位数
-		bn = bigNumber.create();
-		bn.add(12300000, 901234567);
-		assert.String(bn.toStringWithCommas(), "12,300,000,901,234,567", "Test_ToStringWithCommas: 17位数");
-		// 18位数
-		bn = bigNumber.create();
-		bn.add(123456789, 12345678);
-		assert.String(bn.toStringWithCommas(), "123,456,789,012,345,678", "Test_ToStringWithCommas: 18位数");
-		// 负数测试
-		bn = bigNumber.create();
-		bn.add(-123, 456789012);
-		assert.String(bn.toStringWithCommas(), "-123,456,789,012", "Test_ToStringWithCommas: 负数");
-		// 最大值测试
-		bn = bigNumber.create();
-		bn.add(2100000000, 999999999);
-		assert.String(bn.toStringWithCommas(), "2,100,000,000,999,999,999", "Test_ToStringWithCommas: 最大值");
-		// 最小值测试
-		bn = bigNumber.create();
-		bn.add(-2100000000, -999999999);
-		assert.String(bn.toStringWithCommas(), "-2,100,000,000,999,999,999", "Test_ToStringWithCommas: 最小值");
-	}
-	function Init () {
-		UnitTestAutoTimer(1.0, 1.0, function() {
-			BJDebugMsg("测试");
-			Test_Create();
-		},null);
-		UnitTestAutoTimer(2.0, 1.0, function() {
-			BJDebugMsg("测试加法");
-			Test_Add();
-		},null);
-		UnitTestAutoTimer(3.0, 1.0, function() {
-			BJDebugMsg("测试加实数");
-			Test_AddReal();
-		},null);
-		UnitTestAutoTimer(4.0, 1.0, function() {
-			BJDebugMsg("测试乘法");
-			Test_MultiplyInteger();
-		},null);
-		UnitTestAutoTimer(5.0, 1.0, function() {
-			BJDebugMsg("测试输出");
-			Test_ToString();
-		},null);
-		UnitTestAutoTimer(6.0, 1.0, function() {
-			BJDebugMsg("测试带逗号显示");
-			Test_ToStringWithCommas();
-		},null);
-	}
-	// 测试基本创建和销毁
-	function TTestUTBigNumber1(player p) {
-		bigNumber bn = bigNumber.create();
-		bn.add(-210, -846726348);
-		bn.multiplyInteger(18);
-		BJDebugMsg("乘法结果: " + bn.toStringWithCommas());
-		BJDebugMsg("high=" + I2S(bn.high) + ", low=" + I2S(bn.low));
-		bn = bigNumber.create();
-		bn.add(-1000000000, 0); // => (-1000000000, 0)
-bn.multiplyInteger(5); // => -5,000,000,000 => 应该��出到 (-2100000000, -999999999)
-
-		BJDebugMsg("乘法结果: " + bn.toStringWithCommas());
-		BJDebugMsg("high=" + I2S(bn.high) + ", low=" + I2S(bn.low));
-		bn.destroy();
-		BJDebugMsg("BigNumber已销毁");
-	}
-	// 测试加法运算
-	function TTestUTBigNumber2(player p) {
-		bigNumber bn = bigNumber.create();
-		bn.add(1, 500000000); // 添加15亿
-BJDebugMsg("加法测试1: " + bn.toStringWithCommas());
-		bn.addReal(2000000000.0); // 添加20亿
-BJDebugMsg("加法测试2: " + bn.toStringWithCommas());
-		bn.destroy();
-	}
-	// 测试乘法运算
-	function TTestUTBigNumber3(player p) {
-		bigNumber bn = bigNumber.create();
-		bn.add(0, 123456789); // 设置初始值为1.23亿
-BJDebugMsg("初始值: " + bn.toStringWithCommas() + " (" + bn.toStringWithUnit() + ")");
-		bn.multiplyInteger(2); // 乘以2
-BJDebugMsg("乘以2后: " + bn.toStringWithCommas() + " (" + bn.toStringWithUnit() + ")");
-		BJDebugMsg("high=" + I2S(bn.high) + ", low=" + I2S(bn.low));
-		bn.multiplyReal(1.5); // 再乘以1.5
-BJDebugMsg("乘以1.5后: " + bn.toStringWithCommas() + " (" + bn.toStringWithUnit() + ")");
-		BJDebugMsg("high=" + I2S(bn.high) + ", low=" + I2S(bn.low));
-		bn.destroy();
-	}
-	// 测试比较运算
-	function TTestUTBigNumber4(player p) {
-		bigNumber bn1 = bigNumber.create();
-		bigNumber bn2 = bigNumber.create();
-		bn1.add(1, 0); // 10亿
-bn2.add(0, 500000000); // 5亿
-
-		BJDebugMsg("比较测试: " + I2S(bn1.compareBigNumber(bn2)));
-		bn1.destroy();
-		bn2.destroy();
-	}
-	// 测试字符串转换
-	function TTestUTBigNumber5(player p) {
-		bigNumber bn = bigNumber.create();
-		bn.add(2, 123456789);
-		BJDebugMsg("数字显示测试1(带逗号): " + bn.toStringWithCommas());
-		BJDebugMsg("数字显示测试2(带单位): " + bn.toStringWithUnit());
-		bn.destroy();
-	}
-	// 处理带参数的测试命令
-	function TTestActUTBigNumber1(string str) {
+	function TTestUTToastPop3 (player p) {}
+	function TTestUTToastPop4 (player p) {}
+	function TTestUTToastPop5 (player p) {}
+	function TTestUTToastPop6 (player p) {}
+	function TTestUTToastPop7 (player p) {}
+	function TTestUTToastPop8 (player p) {}
+	function TTestUTToastPop9 (player p) {}
+	function TTestUTToastPop10 (player p) {}
+	function TTestActUTToastPop1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str);
-		string paramS[];
-		integer paramI[];
-		real paramR[];
-		bigNumber bn ;
-		bigNumber bn1;
-		bigNumber bn2;
-		// 解析参数
-		for (0 <= i <= len - 1) {
+		integer i, num = 0, len = StringLength(str); //获取范围式数字
+string paramS []; //所有参数S
+integer paramI []; //所有参数I
+real	paramR []; //所有参数R
+for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
-				paramS[num] = SubString(str,0,i);
-				paramI[num] = S2I(paramS[num]);
-				paramR[num] = S2R(paramS[num]);
+				paramS[num]= SubString(str,0,i);
+				paramI[num]= S2I(paramS[num]);
+				paramR[num]= S2R(paramS[num]);
 				num = num + 1;
 				str = SubString(str,i + 1,len);
 				len = StringLength(str);
 				i = -1;
 			}
 		}
-		paramS[num] = str;
-		paramI[num] = S2I(paramS[num]);
-		paramR[num] = S2R(paramS[num]);
+		paramS[num]= str;
+		paramI[num]= S2I(paramS[num]);
+		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "a") { // 加法测试
-bn = bigNumber.create();
-			bn.addReal(paramR[1]);
-			bn.addReal(paramR[2]);
-			BJDebugMsg("加法结果: " + bn.toStringWithCommas());
-			bn.destroy();
-		} else if (paramS[0] == "m") { // 乘法测试
-bn = bigNumber.create();
-			bn.addReal(paramR[1]);
-			bn.multiplyReal(paramR[2]);
-			BJDebugMsg("乘法结果: " + bn.toStringWithCommas());
-			bn.destroy();
-		} else if (paramS[0] == "c") { // 比较测试
-bn1 = bigNumber.create();
-			bn2 = bigNumber.create();
-			bn1.addReal(paramR[1]);
-			bn2.addReal(paramR[2]);
-			BJDebugMsg("比较结果: " + I2S(bn1.compareBigNumber(bn2)));
-			bn1.destroy();
-			bn2.destroy();
+		if (paramS[0] == "a") {
+		} else if (paramS[0] == "b") {
 		}
 		p = null;
 	}
-	function onInit() {
+	function onInit () {
+		//在游戏开始0.0秒后再调用
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
-		TriggerAddCondition(tr,Condition(function() {
-			BJDebugMsg("[BigNumber] 单元测试已加载");
-			BJDebugMsg("使用s1-s5测试基本功能");
-			BJDebugMsg("使用-a/-m/-c [参数]测试具体数值");
-			Init();
+		TriggerAddCondition(tr,Condition(function (){
+			BJDebugMsg("[ToastPop] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
-		UnitTestRegisterChatEvent(function() {
+		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
+			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTBigNumber1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTToastPop1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTBigNumber1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTBigNumber2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTBigNumber3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTBigNumber4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTBigNumber5(GetTriggerPlayer());
+			if (str == "s1") TTestUTToastPop1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTToastPop2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTToastPop3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTToastPop4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTToastPop5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTToastPop6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTToastPop7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTToastPop8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTToastPop9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTToastPop10(GetTriggerPlayer());
 		});
 	}
 }

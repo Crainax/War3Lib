@@ -12,25 +12,55 @@ library NumberFormatter {
     #define UNIT_ZHAO 1000000000000.0     //兆
     #define UNIT_JING 10000000000000000.0 //京
 
+    private string temp = ""; // 临时变量
+
     //旧函数名:FormatReal
     //将实数转换为带单位的字符串(万、亿、兆、京)
     //最完整的数字格式化，支持到京为止
     //示例: 12345 -> "1.2万", 123456789 -> "1.23亿"
     public function FormatNumber (real r) -> string {
-        real wan = r / UNIT_WAN;
-        real yi = r / UNIT_YI;
-        real zhao = r / UNIT_ZHAO;
-        real jing = r / UNIT_JING;
+        string result = "";
+        real value = r;
+        integer unitLevel = 0;  // 0=无单位, 1=万, 2=亿, 3=兆, 4=京
+        string units = "";      // 单位字符串
 
-        if (r < UNIT_WAN) return I2S(R2I(r));
-        if (yi < 0.1) return R2SW(wan,0,1) + "万";  //千万以下都有小数点
-        if (yi < 1.0) return I2S(R2I(wan)) + "万";  //千万没有小数点
-        if (yi < 10.0) return R2SW(yi,0,2) + "亿";
-        if (zhao < 1.0) return R2SW(yi,0,1) + "亿";
-        if (zhao < 10.0) return I2S(R2I(yi)) + "亿";
-        if (zhao < 100.0) return R2SW(zhao,0,2) + "兆";
-        if (jing < 1.0) return R2SW(zhao,0,1) + "兆";
-        return R2SW(jing,0,1) + "京";
+        // 处理负数
+        boolean isNegative = (value < 0);
+        if (isNegative) {
+            value = -value;
+        }
+
+        // 循环除以10000直到小于10000
+        while (value >= 10000.0) {
+            value = value / 10000.0;
+            unitLevel = unitLevel + 1;
+        }
+
+        // 根据unitLevel确定单位
+        if (unitLevel == 1) units = "万";
+        else if (unitLevel == 2) units = "亿";
+        else if (unitLevel == 3) units = "兆";
+        else if (unitLevel >= 4) units = "京";
+
+        // 根据数值范围决定小数位数
+        if (value < 10.0) {
+            result = R2SW(value, 0, 2) + units;  // 小于10显示2位小数
+        } else if (value < 100.0) {
+            result = R2SW(value, 0, 1) + units;  // 小于100显示1位小数
+        } else {
+            result = I2S(R2I(value)) + units;    // 大于等于100显示整数
+        }
+
+        // 添加负号
+        if (isNegative) {
+            result = "-" + result;
+        }
+
+        temp = result;
+        result = null;
+        units = null;
+
+        return temp;
     }
 
     //旧函数名:FormatReal2

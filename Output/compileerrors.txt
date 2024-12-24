@@ -1,4 +1,12 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 605: bn is not of a type that allows . syntax
-1
+pjass.exe
+Line 2006:  Undeclared variable ANCHOR_BOTTOM
+Line 2016:  Undeclared variable ANCHOR_TOP
+Line 2017:  Undeclared variable ANCHOR_BOTTOM
+Line 2017:  Undeclared variable ANCHOR_LEFT
+Line 2017:  Undeclared variable ANCHOR_RIGHT
+Line 2027:  Undeclared variable ANCHOR_TOP
+Line 2028:  Undeclared variable ANCHOR_BOTTOM
+Line 2028:  Undeclared variable ANCHOR_LEFT
+Line 2028:  Undeclared variable ANCHOR_RIGHT
+9

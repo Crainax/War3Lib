@@ -25,7 +25,7 @@ local wantPrintInGame = true
 local dbg = require 'jass.debug'
 local jass = require 'jass.common'
 local con = require 'jass.console'
-local code = require 'jass.code'
+local g = require "jass.globals"
 local type_list = {
 	['+loc'] = '点',
 	['+EIP'] = '特效I',
@@ -80,7 +80,7 @@ local mt = {}
 
 local saved = nil
 local delta = {}
-function code.MemoryLeakShow()
+mt.display = function()
 	-- 统计句柄数量
 	local count = {}
 	local sum = 0
@@ -113,9 +113,9 @@ function code.MemoryLeakShow()
 		echo('--------------start------------')
 		local msg = ''
 		local step = 0
-		local green = {r = 40, g = 255, b = 10}
-		local yellow = {r = 255, g = 220, b = 20}
-		local red = {r = 255, g = 30, b = 25}
+		local green = { r = 40, g = 255, b = 10 }
+		local yellow = { r = 255, g = 220, b = 20 }
+		local red = { r = 255, g = 30, b = 25 }
 		for k, v in pairs(count) do
 			v = v or 0
 			if string.len(msg) > 0 then msg = msg .. ', ' end
@@ -156,7 +156,7 @@ function code.MemoryLeakShow()
 		-- 尾部数据(数量不满X, 多出来的)
 		if step > 0 then echo(msg) end
 		echo('统计数量: ' .. sum .. ', 底层获取数量: ' .. dbg.handlecount())
-		echo('历史最大句柄: '.. dbg.handlemax())
+		echo('历史最大句柄: ' .. dbg.handlemax())
 		echo('--------------end------------')
 	else
 		print('--------------start------------')
@@ -167,9 +167,11 @@ function code.MemoryLeakShow()
 	end
 end
 
-
-
 print("[内存泄露]初始化成功.")
 
-mt.display = code.MemoryLeakShow
+g.trMemoryLeak = jass.CreateTrigger();
+jass.TriggerAddCondition(g.trMemoryLeak, jass.Condition(function()
+	mt.display()
+end));
+
 return mt

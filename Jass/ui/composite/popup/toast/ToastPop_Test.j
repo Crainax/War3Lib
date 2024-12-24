@@ -4,15 +4,18 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include
-
 //! zinc
 
 //自动生成的文件
 library UTToastPop requires ToastPop {
 
-	function TTestUTToastPop1 (player p) {}
-	function TTestUTToastPop2 (player p) {}
+	function TTestUTToastPop1 (player p) {
+		//toastPop
+		toastPop th = toastPop.createWithTitle(p, "这是一个测试提示","这是一个测试内容");
+	}
+	function TTestUTToastPop2 (player p) {
+		toastPop th = toastPop.createWithIcon(p, "ReplaceableTextures\\CommandButtons\\BTNRingPurple.blp","这是一个测试内容这是一个测试内容这是一个测试内容这是一个测试内容\n\t\t\theheheheheninini");
+	}
 	function TTestUTToastPop3 (player p) {}
 	function TTestUTToastPop4 (player p) {}
 	function TTestUTToastPop5 (player p) {}

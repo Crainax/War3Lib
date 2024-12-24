@@ -1,3 +1,5 @@
+#define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
+
 #ifndef YDLuaIncluded
 #define YDLuaIncluded
 
@@ -9,7 +11,6 @@
 // https://create.reckfeng.com/kkapidoc/#/menu_kkapi_japi kkapi的japi文档
 
 library YDLua {
-
 
     #define SetCameraBounds(a,b,c,d,e,f,g,h) initializeLua() CRNL call SetCameraBounds(a,b,c,d,e,f,g,h)
 

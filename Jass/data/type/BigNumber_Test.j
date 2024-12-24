@@ -337,28 +337,28 @@ library UTBigNumber requires BigNumber {
 	}
 
 	function Init () {
-		UnitTestAutoTimer(1.0, 1.0, function() {
-			BJDebugMsg("测试");
+		UnitTestAutoTimer(0.1, 0.1, function() {
+			Trace("测试");
 			Test_Create();
 		},null);
-		UnitTestAutoTimer(2.0, 1.0, function() {
-			BJDebugMsg("测试加法");
+		UnitTestAutoTimer(0.2, 0.1, function() {
+			Trace("测试加法");
 			Test_Add();
 		},null);
-		UnitTestAutoTimer(3.0, 1.0, function() {
-			BJDebugMsg("测试加实数");
+		UnitTestAutoTimer(0.3, 0.1, function() {
+			Trace("测试加实数");
 			Test_AddReal();
 		},null);
-		UnitTestAutoTimer(4.0, 1.0, function() {
-			BJDebugMsg("测试乘法");
+		UnitTestAutoTimer(0.4, 0.1, function() {
+			Trace("测试乘法");
 			Test_MultiplyInteger();
 		},null);
-		UnitTestAutoTimer(5.0, 1.0, function() {
-			BJDebugMsg("测试输出");
+		UnitTestAutoTimer(0.5, 0.1, function() {
+			Trace("测试输出");
 			Test_ToString();
 		},null);
-		UnitTestAutoTimer(6.0, 1.0, function() {
-			BJDebugMsg("测试带逗号显示");
+		UnitTestAutoTimer(0.6, 0.1, function() {
+			Trace("测试带逗号显示");
 			Test_ToStringWithCommas();
 		},null);
 	}
