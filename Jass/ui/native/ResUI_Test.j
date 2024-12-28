@@ -67,9 +67,11 @@ library UTResUI requires ResUI,UnitTestUIRuler{
 
 			resUI.onEnter(1, function() {
 				BJDebugMsg("1.onEnter");
+				DzFrameSetAbsolutePoint(DzFrameGetTooltip(),ANCHOR_BOTTOMRIGHT,0,0);
 			});
 			resUI.onLeave(1, function() {
 				BJDebugMsg("1.onLeave");
+				DzFrameSetAbsolutePoint(DzFrameGetTooltip(),ANCHOR_BOTTOMRIGHT,.8,.1625);
 			});
 			resUI.onEnter(2, function() {
 				BJDebugMsg("2.onEnter");

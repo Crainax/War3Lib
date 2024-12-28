@@ -11,7 +11,8 @@ UI文本的共用方法
 #define FONT_SIZE_HUGE   0.015 // 特大号
 #define FONT_SIZE_LARGE  0.012 // 大号
 #define FONT_SIZE_MEDIUM 0.011 // 中号
-#define FONT_SIZE_NORMAL 0.01  // 标准
+#define FONT_SIZE_NORMAL 0.01 // 标准 (调整为更大)
+#define FONT_SIZE_MODERATE 0.0095 // 适中 (新增)
 #define FONT_SIZE_SMALL  0.009 // 小号
 #define FONT_SIZE_TINY   0.008 // 特小号
 #define FONT_SIZE_MINI   0.006 // 迷你号
@@ -24,7 +25,7 @@ library UITextModule {
         // 设置标准字体大小
         // size: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
         method setFontSize (integer size) -> thistype {
-            real fontSize = FONT_SIZE_NORMAL;
+            real fontSize = FONT_SIZE_MODERATE; // 修改默认值
             if (!this.isExist()) {return this;}
 
             if (size == 1) {
@@ -34,12 +35,14 @@ library UITextModule {
             } else if (size == 3) {
                 fontSize = FONT_SIZE_SMALL;
             } else if (size == 4) {
-                fontSize = FONT_SIZE_NORMAL;
+                fontSize = FONT_SIZE_MODERATE; // 新的适中尺寸
             } else if (size == 5) {
-                fontSize = FONT_SIZE_MEDIUM;
+                fontSize = FONT_SIZE_NORMAL;
             } else if (size == 6) {
-                fontSize = FONT_SIZE_LARGE;
+                fontSize = FONT_SIZE_MEDIUM;
             } else if (size == 7) {
+                fontSize = FONT_SIZE_LARGE;
+            } else if (size == 8) {
                 fontSize = FONT_SIZE_HUGE;
             }
 

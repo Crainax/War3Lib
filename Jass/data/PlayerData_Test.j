@@ -1,15 +1,13 @@
-#ifndef {UnitTest}Included
-#define {UnitTest}Included
+#ifndef UTPlayerDataIncluded
+#define UTPlayerDataIncluded
 
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include
-
 //! zinc
 
 //自动生成的文件
-library {UnitTest} requires LibraryName {
+library UTPlayerData requires PlayerData {
 
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
@@ -19,20 +17,21 @@ library {UnitTest} requires LibraryName {
 		});
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//assert.Boolean(true, "测试1");
+			//playerData
 		},null);
 	}
 
-	function TTest{UnitTest}1 (player p) {}
-	function TTest{UnitTest}2 (player p) {}
-	function TTest{UnitTest}3 (player p) {}
-	function TTest{UnitTest}4 (player p) {}
-	function TTest{UnitTest}5 (player p) {}
-	function TTest{UnitTest}6 (player p) {}
-	function TTest{UnitTest}7 (player p) {}
-	function TTest{UnitTest}8 (player p) {}
-	function TTest{UnitTest}9 (player p) {}
-	function TTest{UnitTest}10 (player p) {}
-	function TTestAct{UnitTest}1 (string str) {
+	function TTestUTPlayerData1 (player p) {}
+	function TTestUTPlayerData2 (player p) {}
+	function TTestUTPlayerData3 (player p) {}
+	function TTestUTPlayerData4 (player p) {}
+	function TTestUTPlayerData5 (player p) {}
+	function TTestUTPlayerData6 (player p) {}
+	function TTestUTPlayerData7 (player p) {}
+	function TTestUTPlayerData8 (player p) {}
+	function TTestUTPlayerData9 (player p) {}
+	function TTestUTPlayerData10 (player p) {}
+	function TTestActUTPlayerData1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i,	 num = 0, len = StringLength(str); //获取范围式数字
@@ -69,7 +68,7 @@ library {UnitTest} requires LibraryName {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[LibraryName] 单元测试已加载");
+			BJDebugMsg("[PlayerData] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -80,19 +79,19 @@ library {UnitTest} requires LibraryName {
 			integer i = 1;
 
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestAct{UnitTest}1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTPlayerData1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTest{UnitTest}1(GetTriggerPlayer());
-			else if(str == "s2") TTest{UnitTest}2(GetTriggerPlayer());
-			else if(str == "s3") TTest{UnitTest}3(GetTriggerPlayer());
-			else if(str == "s4") TTest{UnitTest}4(GetTriggerPlayer());
-			else if(str == "s5") TTest{UnitTest}5(GetTriggerPlayer());
-			else if(str == "s6") TTest{UnitTest}6(GetTriggerPlayer());
-			else if(str == "s7") TTest{UnitTest}7(GetTriggerPlayer());
-			else if(str == "s8") TTest{UnitTest}8(GetTriggerPlayer());
-			else if(str == "s9") TTest{UnitTest}9(GetTriggerPlayer());
-			else if(str == "s10") TTest{UnitTest}10(GetTriggerPlayer());
+			if (str == "s1") TTestUTPlayerData1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTPlayerData2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTPlayerData3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTPlayerData4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTPlayerData5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTPlayerData6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTPlayerData7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTPlayerData8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTPlayerData9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTPlayerData10(GetTriggerPlayer());
 		});
 
 	}

@@ -1,31 +1,31 @@
-#ifndef ObsBigNumberIncluded
-#define ObsBigNumberIncluded
+#ifndef ObsIntegerIncluded
+#define ObsIntegerIncluded
 
 //! zinc
 /*
-观察者模式下的大数容器
+观察者模式下的整数容器
 */
 
 #include "Crainax/config/SharedMethod.h" // 结构体共用方法
 
-library ObsBigNumber requires BigNumber{
+library ObsInteger {
 
     // 主要数据结构
-    public struct obsBigNumber {
+    public struct obsInteger {
 
         static thistype ethis = 0; // 当前正在运行的实例引用
         private {
-            bigNumber     value;    // 存储的数值
-            trigger       callback; // 回调函数
+            integer     value;    // 存储的数值
+            trigger     callback; // 回调函数
         }
 
-        STRUCT_SHARED_METHODS(obsBigNumber)
+        STRUCT_SHARED_METHODS(obsInteger)
         module innerHT; // 内部哈希表
 
         // 构造函数
         public static method create() -> thistype {
             thistype this = thistype.allocate();
-            this.value = bigNumber.create();
+            this.value = 0;
             this.callback = CreateTrigger();
             return this;
         }
@@ -36,31 +36,19 @@ library ObsBigNumber requires BigNumber{
             TriggerEvaluate(this.callback);
         }
 
-        public method get() -> bigNumber {
+        public method get() -> integer {
             return this.value;
         }
 
-        public method add(integer highPart, integer lowPart) {
+        public method add(integer val) {
             if (!this.isExist()) {return;}
-            value.add(highPart, lowPart);
+            this.value += val;
             notify();
         }
 
-        public method addReal (real r)  {
+        public method setValue(integer val) {
             if (!this.isExist()) {return;}
-            value.addReal(r);
-            notify();
-        }
-
-        public method multiplyInteger (integer val) {
-            if (!this.isExist()) {return;}
-            value.multiplyInteger(val);
-            notify();
-        }
-
-        public method multiplyReal (real val) {
-            if (!this.isExist()) {return;}
-            value.multiplyReal(val);
+            this.value = val;
             notify();
         }
 
@@ -70,15 +58,8 @@ library ObsBigNumber requires BigNumber{
             return TriggerAddCondition(this.callback, Condition(func));
         }
 
-        // 可选：移除回调函数
-        // public method removeCallback(triggercondition tc) {
-        //     if (!this.isExist()) {return;}
-        //     TriggerRemoveCondition(this.callback, tc); //todo: 需要测试这样能不能实现一个新建的
-        // }
-
         method onDestroy () {
             if (!this.isExist()) {return;}
-            if (this.value.isExist()) { this.value.destroy(); }
             if (this.callback != null) { DestroyTrigger(this.callback); }
             this.value = 0;
             this.callback = null;

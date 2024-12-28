@@ -25,9 +25,7 @@ library AC {
         static thistype List [];                   // 任务列表
         static integer size   = 0;                 // 当前任务数量
 
-        private static hashtable table = InitHashtable();  // 存储绑定数据的哈希表
-        private static timer t        = null;              // 主计时器
-        private static real lastTick = 0;                  // 上次计时器触发的时间
+        private static timer t         = null;             // 主计时器
 
         integer uID;                       // 任务唯一ID
         trigger tr;                        // 绑定的触发器
@@ -36,6 +34,7 @@ library AC {
         boolean cycle;                     // 是否循环
 
         STRUCT_SHARED_METHODS(ac)
+        module innerHT; // 内部哈希表
 
         // 实例销毁时的清理工作
         method onDestroy () {
@@ -133,20 +132,6 @@ library AC {
                 });
             }
             return this;
-        }
-
-        // 保存整数数据
-        // @param key   键
-        // @param value 值
-        method saveInt (integer key,integer value) -> nothing {
-            SaveInteger(table, this, key, value);
-        }
-
-        // 获取整数数据
-        // @param key 键
-        // @return integer 值
-        method getInt (integer key) -> integer {
-            return LoadInteger(table, this, key);
         }
 
     }

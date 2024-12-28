@@ -189,7 +189,7 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize {
 				real y = hardware.getMouseY();
 				// 检查Res1
 				if (x >= RES1_X && x <= RES1_X + RES_WIDTH &&
-				y >= RES_Y) {
+				y >= (RES_Y-0.004)) {
 					// 添加调试输出
 					if (!isInRes1) {
 						isInRes1 = true;
@@ -208,7 +208,7 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize {
 
 				// 检查Res2
 				if (x >= RES2_X && x <= RES2_X + RES_WIDTH &&
-				y >= RES_Y) {
+				y >= (RES_Y-0.004)) {
 					if (!isInRes2) {
 						isInRes2 = true;
 						if (trEnter2 != null) {
@@ -227,7 +227,7 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize {
 				// 检查Res3
 				static if (!RES_UI_HIDE_3) {
 					if (x >= RES3_X && x <= RES3_X + RES_WIDTH &&
-					y >= RES_Y) {
+					y >= (RES_Y-0.004)) {
 						if (!isInRes3) {
 							isInRes3 = true;
 							if (trEnter3 != null) {

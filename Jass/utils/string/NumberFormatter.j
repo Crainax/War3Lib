@@ -109,7 +109,6 @@ library NumberFormatter {
     #undef UNIT_ZHAO
     #undef UNIT_JING
 
-    string temp = null;
     //原函数名:FormatNumber
     //格式化成带逗号的格式如123,456,789
     public function FormatWithCommas (integer num)  -> string {
@@ -120,7 +119,9 @@ library NumberFormatter {
             temp = SubStringBJ(result,IMaxBJ(1,i-2),i) + temp;
             if (i > 3) {temp = "," + temp;}
         }
-        temp = S3(num < 0,"-","") + temp;
+        if (num <0 ) {
+            temp = "-" + temp;
+        }
         result = null;
         return temp;
     }

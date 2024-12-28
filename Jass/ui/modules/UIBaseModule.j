@@ -14,6 +14,13 @@ library UIBaseModule requires UIUtils {
             return this;
         }
 
+        // 设置位置
+        method setPointFix (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY);
+            return this;
+        }
+
         // 大小完全对齐父框架
         method setAllPoint (integer relative) -> thistype {
             if (!this.isExist()) {return this;}
@@ -46,13 +53,6 @@ library UIBaseModule requires UIUtils {
         method setSizeFix (real width, real height) -> thistype {
             if (!this.isExist()) {return this;}
             DzFrameSetSize(ui,width*GetResizeRate(),height);
-            return this;
-        }
-
-        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
-        method setSizeFixVertical (real width, real height) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetSize(ui,width,height/GetResizeRate());
             return this;
         }
 
