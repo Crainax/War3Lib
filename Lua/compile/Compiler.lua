@@ -100,7 +100,7 @@ function compile:CompileLua()
 
 	-- 第二步：处理文件（现在只需要处理正常的编译逻辑）
 	return fileUtils.ExecuteFile(path.CompileStep4, function(line)
-		-- 依赖项注入(//# dependency:xxx.xxx)
+		-- 依赖项注入(//# dependency:resource/xxx.xxx)
 		local importPath = line:match("^%s*//# dependency:%s*(.+)$")
 		if importPath then
 			 importPath = importPath:gsub("\\", "/")

@@ -9,7 +9,7 @@
 //自动生成的文件
 library UTProgressAnim requires ProgressAnim {
 
-	//# dependency:ui/model/cooldown_center.mdx
+	//# dependency:resource/ui/model/cooldown_center.mdx
 	uiSprite testSprite = 0;
 	uiImage img = 0;
 	function TTestUTProgressAnim1 (player p) {

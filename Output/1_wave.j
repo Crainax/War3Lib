@@ -108,7 +108,7 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTObsInteger requires ObsInteger {
+library UTMouseMenu requires MouseMenu {
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start
@@ -117,21 +117,39 @@ library UTObsInteger requires ObsInteger {
 		});
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//assert.Boolean(true, "测试1");
-			obsInteger oi = obsInteger.create();
-			oi.setValue(123);
+			//menuItem.create
 		},null);
 	}
-	function TTestUTObsInteger1 (player p) {}
-	function TTestUTObsInteger2 (player p) {}
-	function TTestUTObsInteger3 (player p) {}
-	function TTestUTObsInteger4 (player p) {}
-	function TTestUTObsInteger5 (player p) {}
-	function TTestUTObsInteger6 (player p) {}
-	function TTestUTObsInteger7 (player p) {}
-	function TTestUTObsInteger8 (player p) {}
-	function TTestUTObsInteger9 (player p) {}
-	function TTestUTObsInteger10 (player p) {}
-	function TTestActUTObsInteger1 (string str) {
+	mouseMenu menu = 0;
+	function TTestUTMouseMenu1 (player p) {
+		menu = mouseMenu.create(DzGetGameUI(),true,0.1);
+		menu.onEnter(function(integer index) {
+			BJDebugMsg("[进入事件] "+I2S(index));
+		});
+		menu.onClick(function(integer index) {
+			BJDebugMsg("[点击事件] "+I2S(index));
+		});
+		menu.onLeave(function(integer index) {
+			BJDebugMsg("[离开事件] "+I2S(index));
+		});
+		menu.AddMenuItem("测试1");
+		menu.AddMenuItem("测试2");
+		menu.AddMenuItem("测试3");
+		menu.AddMenuItem("测试4");
+		menu.AddMenuItem("测试5");
+		menu.menuFrame.setAbsPoint(ANCHOR_CENTER,0.4,0.3);
+		menu.show(true);
+	}
+	function TTestUTMouseMenu2 (player p) {}
+	function TTestUTMouseMenu3 (player p) {}
+	function TTestUTMouseMenu4 (player p) {}
+	function TTestUTMouseMenu5 (player p) {}
+	function TTestUTMouseMenu6 (player p) {}
+	function TTestUTMouseMenu7 (player p) {}
+	function TTestUTMouseMenu8 (player p) {}
+	function TTestUTMouseMenu9 (player p) {}
+	function TTestUTMouseMenu10 (player p) {}
+	function TTestActUTMouseMenu1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -163,7 +181,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[ObsInteger] 单元测试已加载");
+			BJDebugMsg("[MouseMenu] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -172,19 +190,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTObsInteger1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTMouseMenu1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTObsInteger1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTObsInteger2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTObsInteger3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTObsInteger4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTObsInteger5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTObsInteger6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTObsInteger7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTObsInteger8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTObsInteger9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTObsInteger10(GetTriggerPlayer());
+			if (str == "s1") TTestUTMouseMenu1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTMouseMenu2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTMouseMenu3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTMouseMenu4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTMouseMenu5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTMouseMenu6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTMouseMenu7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTMouseMenu8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTMouseMenu9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTMouseMenu10(GetTriggerPlayer());
 		});
 	}
 }

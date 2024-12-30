@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 214: Syntax Error, unexpected: "set"?
+pjass.exe
+Line 2936:  Undeclared variable KEY_ESC
 1

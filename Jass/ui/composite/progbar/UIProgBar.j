@@ -10,12 +10,12 @@
 组合式UI
 */
 
-//# dependency: ui/bar/grow_yellow.mdx
-//# dependency: ui/bar/grow_mp.mdx
-//# dependency: ui/bar/grow_hp.mdx
-//# dependency: ui/bar/shade_yellow.mdx
-//# dependency: ui/bar/shade_hmp.mdx
-//# dependency: ui/bar/hpbar_glow.blp
+//# dependency:resource/ui/bar/grow_yellow.mdx
+//# dependency:resource/ui/bar/grow_mp.mdx
+//# dependency:resource/ui/bar/grow_hp.mdx
+//# dependency:resource/ui/bar/shade_yellow.mdx
+//# dependency:resource/ui/bar/shade_hmp.mdx
+//# dependency:resource/ui/bar/hpbar_glow.blp
 
 library UIProgBar requires UISprite {
 

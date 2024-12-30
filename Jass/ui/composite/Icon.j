@@ -33,7 +33,7 @@
 //
 //===========================================================================
 
-//# dependency:ui/model/cooldown_center.mdx
+//# dependency:resource/ui/model/cooldown_center.mdx
 
 
 //! zinc

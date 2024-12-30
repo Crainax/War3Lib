@@ -9,7 +9,7 @@
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 
-//# dependency:ui/image/BG_PopUI.blp
+//# dependency:resource/ui/image/BG_PopUI.blp
 library ToastPop requires UIImage,UIText,UIAnimTimer,Hardware,EasingUtils {
 
     #define POP_ICON_SIZE          0.03        // 图标大小

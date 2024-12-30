@@ -9,7 +9,7 @@
 文字UI组件
 */
 
-//# dependency:ui\image\textbutton_highlight.blp
+//# dependency:resource/ui/image/textbutton_highlight.blp
 
 library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
 

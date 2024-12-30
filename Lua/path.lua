@@ -104,10 +104,11 @@ end
 --- 更新地图名字,同时更新编译涉及的文件路径
 path.setMapName	= function(name)
     path.mapName			= name
-    path.mapJ				= path.project .. "/" .. path.mapName .. "/map/war3map.j"     -- 正式地图的War3mapJ文件
-    path.resource			= path.project .. "/" .. path.mapName .. "/resource"          -- 地图资源
-    path.table.root			= path.project .. "/" .. path.mapName .. "/table"             -- 物编的根目录
-    path.backup.resource	= path.project .. "/" .. path.mapName .. "/table"             -- 需要备份的路径
+    path.package 			= path.project .. "/" .. path.mapName  -- 地图包
+    path.mapJ				= path.package .. "/map/war3map.j"     -- 正式地图的War3mapJ文件
+    path.resource			= path.package .. "/resource"          -- 地图资源
+    path.table.root			= path.package .. "/table"             -- 物编的根目录
+    path.backup.resource	= path.package .. "/table"             -- 需要备份的路径
 end
 
 --- 设置当前版本为内测版本

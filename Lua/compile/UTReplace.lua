@@ -136,7 +136,7 @@ utr.copyResourceFiles = function()
 
 	for _, relativePath in ipairs(compileFiles.resourceFiles) do
 		local sourcePath = path.assets .. '/' .. relativePath
-		local targetPath = path.resource .. '/' .. relativePath
+		local targetPath = path.package .. '/' .. relativePath
 
 		local targetDir = targetPath:match("(.*)[/\\]")
 		if targetDir and not fu.DirExist(targetDir) then

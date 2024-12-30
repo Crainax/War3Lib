@@ -53,6 +53,15 @@ library UIHashTable {
         method get () -> integer {
             return LoadInteger(HASH_UI,frame,HASH_KEY_UI_EVENT_DATA);
         }
+
+        method bind2 (integer value) {
+            SaveInteger(HASH_UI,frame,HASH_KEY_UI_EVENT_DATA2,value);
+        }
+
+        method get2 () -> integer {
+            return LoadInteger(HASH_UI,frame,HASH_KEY_UI_EVENT_DATA2);
+        }
+
     }
 
 }

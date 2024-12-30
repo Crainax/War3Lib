@@ -9,8 +9,9 @@ UI哈希表定义
 #define HASH_KEY_UI_TYPE  1820 //反推UI类型
 #define HASH_KEY_UI_UI    1821 //反推UI实例
 
-#define HASH_KEY_UI_BASEANIM 1822    //储存的基础动画实例
-#define HASH_KEY_UI_EVENT_DATA 1823  //储存的事件数据
+#define HASH_KEY_UI_BASEANIM    1822 //储存的基础动画实例
+#define HASH_KEY_UI_EVENT_DATA  1823 //储存的事件数据
+#define HASH_KEY_UI_EVENT_DATA2 1824 //储存的事件数据2
 
 #define HASH_KEY_UI_EXTEND_EVENT_LEFT_DOWN   1901 //储存的扩展事件:左键按下
 #define HASH_KEY_UI_EXTEND_EVENT_LEFT_UP     1902 //储存的扩展事件:左键抬起

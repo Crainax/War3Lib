@@ -9,10 +9,10 @@
 滑块组件
 */
 
-//# dependency: ui/slider/slider_background.blp
-//# dependency: ui/slider/slider_handle.blp
-//# dependency: ui/slider/nandu_slider_bg.blp
-//# dependency: ui/slider/nandu_slider_button.blp
+//# dependency:resource/ui/slider/slider_background.blp
+//# dependency:resource/ui/slider/slider_handle.blp
+//# dependency:resource/ui/slider/nandu_slider_bg.blp
+//# dependency:resource/ui/slider/nandu_slider_button.blp
 
 //todo: 那个按钮看下要不要onResize
 

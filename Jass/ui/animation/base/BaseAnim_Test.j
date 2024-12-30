@@ -136,7 +136,7 @@ library UTBaseAnim requires BaseAnim {
 		t.ba.addLife(127,DestroyUIFromBA);
 		BJDebugMsg("测试一下序列帧: 不循环");
 	}
-	//# sequence: ui/icongrow/ig1_{0-63}.blp
+	//# sequence: resource/ui/icongrow/ig1_{0-63}.blp
 
 
 	// 测试一下放序列帧到一半时，删除能否触发回调

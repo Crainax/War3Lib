@@ -9,7 +9,7 @@
 边框图片UI组件
 */
 
-//# dependency:UI\Widgets\ToolTips\Human\human-tooltip-border2.blp
+//# dependency:resource/UI/Widgets/ToolTips/Human/human-tooltip-border2.blp
 
 library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
 

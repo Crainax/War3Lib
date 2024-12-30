@@ -56,12 +56,23 @@ library Tooltip requires Icon {
 
 
         //固定长度(个人感觉只需要锚住最下面一条内容就行了)
-        method setWidth (real width) {
+        method exWidth (real width) {
             integer i;
             if (!this.isExist()) {return;}
             for (1 <= i <= textCount) {
                 if (alignWidth[i]) {
                     text[i].exReSize(width,0);
+                }
+            }
+        }
+
+        //一次性长度
+        method setWidth (real width) {
+            integer i;
+            if (!this.isExist()) {return;}
+            for (1 <= i <= textCount) {
+                if (alignWidth[i]) {
+                    text[i].setSize(width,0);
                 }
             }
         }

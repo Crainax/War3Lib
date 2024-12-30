@@ -5,8 +5,8 @@
 
 // 隐藏时钟模型
 
-//# dependency:ui/console/human/humanui-timeindicator.mdx
-//# dependency:ui/console/human/humanuitile-timeindicatorframe.blp
+//# dependency:resource/ui/console/human/humanui-timeindicator.mdx
+//# dependency:resource/ui/console/human/humanuitile-timeindicatorframe.blp
 
 //! endzinc
 #endif
