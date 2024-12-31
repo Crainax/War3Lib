@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 2936:  Undeclared variable KEY_ESC
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 744: Syntax Error (Unexpected: "123"?
 1

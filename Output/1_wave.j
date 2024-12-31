@@ -122,25 +122,30 @@ library UTMouseMenu requires MouseMenu {
 	}
 	mouseMenu menu = 0;
 	function TTestUTMouseMenu1 (player p) {
-		menu = mouseMenu.create(DzGetGameUI(),true,0.1);
-		menu.onEnter(function(integer index) {
-			BJDebugMsg("[进入事件] "+I2S(index));
-		});
-		menu.onClick(function(integer index) {
-			BJDebugMsg("[点击事件] "+I2S(index));
-		});
-		menu.onLeave(function(integer index) {
-			BJDebugMsg("[离开事件] "+I2S(index));
-		});
-		menu.AddMenuItem("测试1");
-		menu.AddMenuItem("测试2");
-		menu.AddMenuItem("测试3");
-		menu.AddMenuItem("测试4");
-		menu.AddMenuItem("测试5");
-		menu.menuFrame.setAbsPoint(ANCHOR_CENTER,0.4,0.3);
+		if (!menu.isExist()) {
+			menu = mouseMenu.create(DzGetGameUI(),true,0.08);
+			menu.onEnter(function(integer index) {
+				BJDebugMsg("[进入事件] "+I2S(index));
+			});
+			menu.onClick(function(integer index) {
+				BJDebugMsg("[点击事件] "+I2S(index));
+			});
+			menu.onLeave(function(integer index) {
+				BJDebugMsg("[离开事件] "+I2S(index));
+			});
+			menu.AddMenuItem("测试1");
+			menu.AddMenuItem("测试2");
+			menu.AddMenuItem("测试3");
+			menu.AddMenuItem("测试4");
+			menu.AddMenuItem("测试5");
+			menu.menuFrame.setAbsPoint(ANCHOR_CENTER,0.4,0.3);
+			BJDebugMsg("创建菜单");
+		}
 		menu.show(true);
 	}
-	function TTestUTMouseMenu2 (player p) {}
+	function TTestUTMouseMenu2 (player p) {
+		uiBorder.createType2(DzGetGameUI()).setSizeFix(0.2, 0.05).setAbsPoint(ANCHOR_CENTER,0.4,0.3);
+	}
 	function TTestUTMouseMenu3 (player p) {}
 	function TTestUTMouseMenu4 (player p) {}
 	function TTestUTMouseMenu5 (player p) {}

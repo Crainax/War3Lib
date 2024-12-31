@@ -1,7 +1,6 @@
 #ifndef MouseMenuIncluded
 #define MouseMenuIncluded
 
-#define MOUSE_MENU_WIDTH 0.06
 #define MOUSE_MENU_HEIGHT 0.03
 #define MOUSE_MENU_MAX_ITEMS 20
 
@@ -12,6 +11,7 @@
 
 //! zinc
 
+//# dependency:resource/ui/image/buttongrow.blp
 
 library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,EscStack {
 
@@ -58,20 +58,18 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
             this.parent = parent;
             this.index = index;
 
-            background = uiBorder.createType2(parentFrame);
+            background = uiBorder.createType2(parentFrame)
+                .setSizeFix(parent.menuWidth, MOUSE_MENU_HEIGHT);
 
             text = uiText.create(parentFrame)
-                .setSizeFix(MOUSE_MENU_WIDTH, MOUSE_MENU_HEIGHT)
-                .setAlign(3)
+                .setAlign(4)
+                .setPoint(ANCHOR_LEFT,background.ui,ANCHOR_LEFT,0.01,0)
                 .setText(title);
 
-            background.setAllPoint(text.ui);
-
             highlight = uiImage.create(parentFrame)
-                .setTexture("UI\\Widgets\\BattleNet\\bnet-button01-highlight-mouse.blp")
+                .setTexture("ui\\image\\buttongrow.blp")
                 .setAllPoint(background.ui)
                 .show(false);
-
 
             btn = uiBtn.create(parentFrame)
                 .setAllPoint(background.ui);
@@ -82,11 +80,11 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
 
     public struct mouseMenu {
         uiImage menuFrame;
+        real menuWidth;
         private {
             menuItem items[MOUSE_MENU_MAX_ITEMS];
             integer itemCount;
             boolean isUpward;
-            real menuWidth;
 
             menuEventFunc onClickFunc;
             menuEventFunc onEnterFunc;
@@ -100,7 +98,7 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
 
         private method getFirstItem() -> menuItem {
             if (items[1] == 0) {
-                items[1] = menuItem.create(this, "", 1, menuFrame.ui);
+                items[1] = menuItem.create(this, null, 1, menuFrame.ui);
                 itemCount = 1;
             }
             return items[1];
@@ -172,10 +170,6 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
             real offsetY;
             if (!this.isExist()) { return this; }
 
-            if (itemCount == 0) {
-                getFirstItem();
-            }
-
             itemCount += 1;
             if (itemCount >= MOUSE_MENU_MAX_ITEMS) {
                 return this;
@@ -193,6 +187,23 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
 
             items[itemCount] = menuItem.create(this, title, itemCount, menuFrame.ui);
 
+            if (itemCount == 1) {
+                if (isUpward) {
+                    items[itemCount].background.setPoint(ANCHOR_BOTTOM, menuFrame.ui, ANCHOR_BOTTOM, 0, 0);
+                } else {
+                    items[itemCount].background.setPoint(ANCHOR_TOP, menuFrame.ui, ANCHOR_TOP, 0, 0);
+                }
+            } else {
+                if (isUpward) {
+                    items[itemCount].background.setPoint(ANCHOR_BOTTOM,
+                    items[itemCount - 1].background.ui,
+                    ANCHOR_TOP, 0, 0);
+                } else {
+                    items[itemCount].background.setPoint(ANCHOR_TOP,
+                    items[itemCount - 1].background.ui,
+                    ANCHOR_BOTTOM, 0, 0);
+                }
+            }
 
             items[itemCount].btn.spEnter(function(integer frame) {
                 thistype this = uiHashTable(frame).eventdata.get2();
@@ -221,16 +232,6 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
             uiHashTable(items[itemCount].btn.ui).eventdata.bind(itemCount);
             uiHashTable(items[itemCount].btn.ui).eventdata.bind2(this);
 
-
-            if (itemCount == 1) {
-                // 同一个菜单项的两个anchor是一样的
-                items[itemCount].background.setPoint(anchorPoint, menuFrame.ui, anchorPoint, 0, 0);
-            } else {
-                items[itemCount].background.setPoint(anchorPoint,
-                items[itemCount - 1].background.ui,
-                relativePoint, 0, offsetY);
-            }
-
             menuFrame.setSizeFix(menuWidth, itemCount * MOUSE_MENU_HEIGHT);
 
             return this;
@@ -240,6 +241,7 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
             thistype this = thistype.allocate();
             this.isUpward = isUpward;
             this.menuWidth = width;
+
 
             menuFrame = uiImage.create(parent)
                 .setTexture(UI_STRING_PATH_BLANK)
@@ -252,12 +254,6 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
         static method onInit() {
             hardware.regLeftUpEvent(function() {
                 if (currentMenu.isExist() && !currentMenu.isInMenu(uiEventState.uiId)) {
-                    currentMenu.show(false);
-                }
-            });
-
-            keyboard.regKeyDownEvent(KEY_ESC, function() {
-                if (currentMenu.isExist()) {
                     currentMenu.show(false);
                 }
             });

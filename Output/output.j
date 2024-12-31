@@ -33,7 +33,7 @@ constant boolean LIBRARY_UIEventModule=true
 //globals from UIHashTable:
 constant boolean LIBRARY_UIHashTable=true
 hashtable HASH_UI=InitHashtable()
-integer UIHashTable__frame=0
+integer UIHashTable___frame=0
 //endglobals from UIHashTable
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
@@ -131,11 +131,11 @@ integer si__radiationEnd_I=0
 integer array si__radiationEnd_V
 real s__radiationEnd_x=0
 real s__radiationEnd_y=0
-constant integer si__UIHashTable__uiHT=3
-integer array s__UIHashTable__uiHT_eventdata
-integer array s__UIHashTable__uiHT_ui
-constant integer si__UIHashTable__uiHTFrame=4
-constant integer si__UIHashTable__uiHTEvent=5
+constant integer si__UIHashTable___uiHT=3
+integer array s__UIHashTable___uiHT_eventdata
+integer array s__UIHashTable___uiHT_ui
+constant integer si__UIHashTable___uiHTFrame=4
+constant integer si__UIHashTable___uiHTEvent=5
 constant integer si__uiId=6
 hashtable s__uiId_ht
 integer s__uiId_nextId
@@ -156,13 +156,13 @@ constant integer si__keyboard=10
 trigger array s__keyboard_trsDown
 trigger array s__keyboard_trsUp
 boolean array s__keyboard_isDown
-constant integer si__EscStack__EscStackData=11
-integer si__EscStack__EscStackData_F=0
-integer si__EscStack__EscStackData_I=0
-integer array si__EscStack__EscStackData_V
-integer array s__EscStack__EscStackData_func
-integer array s__EscStack__EscStackData_prev
-integer array s__EscStack__EscStackData_id
+constant integer si__EscStack___EscStackData=11
+integer si__EscStack___EscStackData_F=0
+integer si__EscStack___EscStackData_I=0
+integer array si__EscStack___EscStackData_V
+integer array s__EscStack___EscStackData_func
+integer array s__EscStack___EscStackData_prev
+integer array s__EscStack___EscStackData_id
 constant integer si__escStack=12
 integer si__escStack_F=0
 integer si__escStack_I=0
@@ -212,12 +212,12 @@ integer si__mouseMenu_F=0
 integer si__mouseMenu_I=0
 integer array si__mouseMenu_V
 integer array s__mouseMenu_menuFrame
+real array s__mouseMenu_menuWidth
 integer array s___mouseMenu_items
 constant integer s___mouseMenu_items_size=20
 integer array s__mouseMenu_items
 integer array s__mouseMenu_itemCount
 boolean array s__mouseMenu_isUpward
-real array s__mouseMenu_menuWidth
 integer array s__mouseMenu_onClickFunc
 integer array s__mouseMenu_onEnterFunc
 integer array s__mouseMenu_onLeaveFunc
@@ -789,35 +789,35 @@ function s__escStack_deallocate takes integer this returns nothing
     set si__escStack_F=this
 endfunction
 
-//Generated allocator of EscStack__EscStackData
-function s__EscStack__EscStackData__allocate takes nothing returns integer
- local integer this=si__EscStack__EscStackData_F
+//Generated allocator of EscStack___EscStackData
+function s__EscStack___EscStackData__allocate takes nothing returns integer
+ local integer this=si__EscStack___EscStackData_F
     if (this!=0) then
-        set si__EscStack__EscStackData_F=si__EscStack__EscStackData_V[this]
+        set si__EscStack___EscStackData_F=si__EscStack___EscStackData_V[this]
     else
-        set si__EscStack__EscStackData_I=si__EscStack__EscStackData_I+1
-        set this=si__EscStack__EscStackData_I
+        set si__EscStack___EscStackData_I=si__EscStack___EscStackData_I+1
+        set this=si__EscStack___EscStackData_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: EscStack__EscStackData")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: EscStack___EscStackData")
         return 0
     endif
 
-    set si__EscStack__EscStackData_V[this]=-1
+    set si__EscStack___EscStackData_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of EscStack__EscStackData
-function s__EscStack__EscStackData_deallocate takes integer this returns nothing
+//Generated destructor of EscStack___EscStackData
+function s__EscStack___EscStackData_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: EscStack__EscStackData")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: EscStack___EscStackData")
         return
-    elseif (si__EscStack__EscStackData_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: EscStack__EscStackData")
+    elseif (si__EscStack___EscStackData_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: EscStack___EscStackData")
         return
     endif
-    set si__EscStack__EscStackData_V[this]=si__EscStack__EscStackData_F
-    set si__EscStack__EscStackData_F=this
+    set si__EscStack___EscStackData_V[this]=si__EscStack___EscStackData_F
+    set si__EscStack___EscStackData_F=this
 endfunction
 
 //Generated allocator of radiationEnd
@@ -1423,30 +1423,30 @@ endfunction
 //library UIEventModule ends
 //library UIHashTable:
     function uiHashTable takes integer f returns integer
-        set UIHashTable__frame=f
+        set UIHashTable___frame=f
         return (0)
     endfunction  //私有
-        function s__UIHashTable__uiHTFrame_bind takes integer this,integer typeID,integer ui returns nothing
-            call SaveInteger(HASH_UI, UIHashTable__frame, 1820, typeID)
-            call SaveInteger(HASH_UI, UIHashTable__frame, 1821, ui)
+        function s__UIHashTable___uiHTFrame_bind takes integer this,integer typeID,integer ui returns nothing
+            call SaveInteger(HASH_UI, UIHashTable___frame, 1820, typeID)
+            call SaveInteger(HASH_UI, UIHashTable___frame, 1821, ui)
         endfunction  // 从frame获取UI实例
-        function s__UIHashTable__uiHTFrame_get takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable__frame, 1821)
+        function s__UIHashTable___uiHTFrame_get takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable___frame, 1821)
         endfunction  // 从frame获取UI类型
-        function s__UIHashTable__uiHTFrame_getType takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable__frame, 1820)
+        function s__UIHashTable___uiHTFrame_getType takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable___frame, 1820)
         endfunction
-        function s__UIHashTable__uiHTEvent_bind takes integer this,integer value returns nothing
-            call SaveInteger(HASH_UI, UIHashTable__frame, 1823, value)
+        function s__UIHashTable___uiHTEvent_bind takes integer this,integer value returns nothing
+            call SaveInteger(HASH_UI, UIHashTable___frame, 1823, value)
         endfunction
-        function s__UIHashTable__uiHTEvent_get takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable__frame, 1823)
+        function s__UIHashTable___uiHTEvent_get takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable___frame, 1823)
         endfunction
-        function s__UIHashTable__uiHTEvent_bind2 takes integer this,integer value returns nothing
-            call SaveInteger(HASH_UI, UIHashTable__frame, 1824, value)
+        function s__UIHashTable___uiHTEvent_bind2 takes integer this,integer value returns nothing
+            call SaveInteger(HASH_UI, UIHashTable___frame, 1824, value)
         endfunction
-        function s__UIHashTable__uiHTEvent_get2 takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable__frame, 1824)
+        function s__UIHashTable___uiHTEvent_get2 takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable___frame, 1824)
         endfunction
 
 //library UIHashTable ends
@@ -1710,7 +1710,7 @@ endfunction
 //library Keyboard ends
 //library UITocInit:
 
-    function UITocInit__onInit takes nothing returns nothing
+    function UITocInit___onInit takes nothing returns nothing
         call DzLoadToc("ui\\Crainax.toc")
         call DzFrameEnableClipRect(false)
     endfunction
@@ -1751,14 +1751,14 @@ endfunction
 //library EscStack:
 //processed:     function interface escStackFunc takes player arg0 returns nothing
         function s__escStack_push takes integer func returns integer
-            local integer data=s__EscStack__EscStackData__allocate()
-            set s__EscStack__EscStackData_func[data]=func
-            set s__EscStack__EscStackData_prev[data]=s__escStack_top
-            set s__EscStack__EscStackData_id[data]=s__escStack_nextId
+            local integer data=s__EscStack___EscStackData__allocate()
+            set s__EscStack___EscStackData_func[data]=func
+            set s__EscStack___EscStackData_prev[data]=s__escStack_top
+            set s__EscStack___EscStackData_id[data]=s__escStack_nextId
             set s__escStack_nextId=s__escStack_nextId + 1
             set s__escStack_top=data
             set s__escStack_size=s__escStack_size + 1
-            return s__EscStack__EscStackData_id[data]
+            return s__EscStack___EscStackData_id[data]
         endfunction  // 弹出并执行栈顶的函数
         function s__escStack_pop takes nothing returns boolean
             local integer data
@@ -1766,10 +1766,10 @@ endfunction
                 return false
             endif
             set data=s__escStack_top
-            set s__escStack_top=s__EscStack__EscStackData_prev[data]
+            set s__escStack_top=s__EscStack___EscStackData_prev[data]
             set s__escStack_size=s__escStack_size - 1 // 执行函数
-            call sc___prototype21_evaluate(s__EscStack__EscStackData_func[data],GetLocalPlayer())
-            call s__EscStack__EscStackData_deallocate(data)
+            call sc___prototype21_evaluate(s__EscStack___EscStackData_func[data],GetLocalPlayer())
+            call s__EscStack___EscStackData_deallocate(data)
             return true
         endfunction  // 根据ID移除特定的函数（不执行）
         function s__escStack_remove takes integer id returns boolean
@@ -1777,18 +1777,18 @@ endfunction
             local integer prev=0
             loop
             exitwhen ( curr == 0 )
-                if ( s__EscStack__EscStackData_id[curr] == id ) then // 如果是栈顶元素
+                if ( s__EscStack___EscStackData_id[curr] == id ) then // 如果是栈顶元素
                     if ( prev == 0 ) then
-                        set s__escStack_top=s__EscStack__EscStackData_prev[curr]
+                        set s__escStack_top=s__EscStack___EscStackData_prev[curr]
                     else
-                        set s__EscStack__EscStackData_prev[prev]=s__EscStack__EscStackData_prev[curr]
+                        set s__EscStack___EscStackData_prev[prev]=s__EscStack___EscStackData_prev[curr]
                     endif
                     set s__escStack_size=s__escStack_size - 1
-                    call s__EscStack__EscStackData_deallocate(curr)
+                    call s__EscStack___EscStackData_deallocate(curr)
                     return true
                 endif
                 set prev=curr
-                set curr=s__EscStack__EscStackData_prev[curr]
+                set curr=s__EscStack___EscStackData_prev[curr]
             endloop
             return false
         endfunction  // 获取当前栈大小
@@ -1963,7 +1963,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边框种类2:适用于按钮系
@@ -1975,7 +1975,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边框种类2:适用于大面板通知消息系
@@ -1987,7 +1987,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边框种类2:适用于大面板通知消息系
@@ -1999,7 +1999,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类1)
@@ -2011,7 +2011,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类2)
@@ -2023,7 +2023,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边角(图标系的)
@@ -2035,7 +2035,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction
@@ -2194,7 +2194,7 @@ endfunction
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1902, func)
             return this
         endfunction  // 鼠标进入事件(右键前提强化版)
-            function s__uiBtn_extendEvent__anon__0 takes nothing returns nothing
+            function s__uiBtn_extendEvent___anon__0 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 set s__uiEventState_uiId=frame
@@ -2208,10 +2208,10 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1910, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_extendEvent__anon__0, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_extendEvent___anon__0, false)
             return this
         endfunction  // 鼠标离开事件(右键前提强化版)
-            function s__uiBtn_extendEvent__anon__1 takes nothing returns nothing
+            function s__uiBtn_extendEvent___anon__1 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 set s__uiEventState_uiId=0
@@ -2225,10 +2225,10 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1911, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_extendEvent__anon__1, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_extendEvent___anon__1, false)
             return this
         endfunction  // 鼠标点击事件,其实这个不是必须项,只是为了统一写法硬加的
-            function s__uiBtn_extendEvent__anon__2 takes nothing returns nothing
+            function s__uiBtn_extendEvent___anon__2 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 if ( HaveSavedInteger(HASH_UI, frame, 1912) ) then
@@ -2241,7 +2241,7 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1912, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_extendEvent__anon__2, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_extendEvent___anon__2, false)
             return this
         endfunction  // 鼠标右键点击事件
         function s__uiBtn_spRightClick takes integer this,integer fun returns integer
@@ -2259,7 +2259,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //普通带声效系
@@ -2271,7 +2271,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //右键菜单系
@@ -2283,7 +2283,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建空白按钮
@@ -2295,7 +2295,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建菜单系按钮
@@ -2307,7 +2307,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
@@ -2319,7 +2319,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //绑定原生的Button成为SimpleButton,注意不能删除哦
@@ -2331,7 +2331,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction
@@ -2455,7 +2455,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
@@ -2469,7 +2469,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 绑定原生图片
@@ -2481,7 +2481,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction
@@ -2652,7 +2652,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的文本,这种文本是不能destroy的!
@@ -2666,7 +2666,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction  // 绑定原生文本
@@ -2679,7 +2679,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction
@@ -2759,10 +2759,9 @@ endfunction
             local integer this=s__menuItem__allocate()
             set s__menuItem_parent[this]=parent
             set s__menuItem_index[this]=index
-            set s__menuItem_background[this]=s__uiBorder_createType2(parentFrame)
-            set s__menuItem_text[this]=s__uiText_setText(s__uiText_setAlign(s__uiText_setSizeFix(s__uiText_create(parentFrame),0.06 , 0.03),3),title)
-            call s__uiBorder_setAllPoint(s__menuItem_background[this],s__uiText_ui[s__menuItem_text[this]])
-            set s__menuItem_highlight[this]=s__uiImage_show(s__uiImage_setAllPoint(s__uiImage_setTexture(s__uiImage_create(parentFrame),"UI\\Widgets\\BattleNet\\bnet-button01-highlight-mouse.blp"),s__uiBorder_ui[s__menuItem_background[this]]),false)
+            set s__menuItem_background[this]=s__uiBorder_setSizeFix(s__uiBorder_createType2(parentFrame),s__mouseMenu_menuWidth[parent] , 0.03)
+            set s__menuItem_text[this]=s__uiText_setText(s__uiText_setPoint(s__uiText_setAlign(s__uiText_create(parentFrame),4),3 , s__uiBorder_ui[s__menuItem_background[this]] , 3 , 0.01 , 0),title)
+            set s__menuItem_highlight[this]=s__uiImage_show(s__uiImage_setAllPoint(s__uiImage_setTexture(s__uiImage_create(parentFrame),"ui\\image\\buttongrow.blp"),s__uiBorder_ui[s__menuItem_background[this]]),false)
             set s__menuItem_btn[this]=s__uiBtn_setAllPoint(s__uiBtn_create(parentFrame),s__uiBorder_ui[s__menuItem_background[this]])
             return this
         endfunction
@@ -2772,7 +2771,7 @@ endfunction
         endfunction
         function s__mouseMenu_getFirstItem takes integer this returns integer
             if ( s___mouseMenu_items[s__mouseMenu_items[this]+1] == 0 ) then
-                set s___mouseMenu_items[s__mouseMenu_items[this]+1]=s__menuItem_create(this , "" , 1 , s__uiImage_ui[s__mouseMenu_menuFrame[this]])
+                set s___mouseMenu_items[s__mouseMenu_items[this]+1]=s__menuItem_create(this , null , 1 , s__uiImage_ui[s__mouseMenu_menuFrame[this]])
                 set s__mouseMenu_itemCount[this]=1
             endif
             return s___mouseMenu_items[s__mouseMenu_items[this]+1]
@@ -2856,24 +2855,24 @@ function s__mouseMenu_deallocate takes integer this returns nothing
     set si__mouseMenu_F=this
 endfunction
             function s__mouseMenu_anon__0 takes integer frame returns nothing
-                local integer this=s__UIHashTable__uiHTEvent_get2(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
                 if ( s__mouseMenu_onEnterFunc[this] != null ) then
                     call s__menuItem_showHighlight(s___mouseMenu_items[s__mouseMenu_items[this]+index],true)
                     call sc___prototype22_evaluate(s__mouseMenu_onEnterFunc[this],index)
                 endif
             endfunction
             function s__mouseMenu_anon__1 takes integer frame returns nothing
-                local integer this=s__UIHashTable__uiHTEvent_get2(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
                 if ( s__mouseMenu_onLeaveFunc[this] != null ) then
                     call s__menuItem_showHighlight(s___mouseMenu_items[s__mouseMenu_items[this]+index],false)
                     call sc___prototype22_evaluate(s__mouseMenu_onLeaveFunc[this],index)
                 endif
             endfunction
             function s__mouseMenu_anon__2 takes integer frame returns nothing
-                local integer this=s__UIHashTable__uiHTEvent_get2(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
                 if ( s__mouseMenu_onClickFunc[this] != null ) then
                     call sc___prototype22_evaluate(s__mouseMenu_onClickFunc[this],index)
                 endif
@@ -2885,9 +2884,6 @@ endfunction
             local real offsetY
             if ( not ( s__mouseMenu_isExist(this) ) ) then
                 return this
-            endif
-            if ( s__mouseMenu_itemCount[this] == 0 ) then
-                call s__mouseMenu_getFirstItem(this)
             endif
             set s__mouseMenu_itemCount[this]=s__mouseMenu_itemCount[this] + 1
             if ( s__mouseMenu_itemCount[this] >= 20 ) then
@@ -2903,14 +2899,20 @@ endfunction
                 set offsetY=0
             endif
             set s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]=s__menuItem_create(this , title , s__mouseMenu_itemCount[this] , s__uiImage_ui[s__mouseMenu_menuFrame[this]])
-            call s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],(1)),(2)),(3))
-            call s__UIHashTable__uiHTEvent_bind(s__UIHashTable__uiHT_eventdata[uiHashTable(s__uiBtn_ui[s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]])],s__mouseMenu_itemCount[this])
-            call s__UIHashTable__uiHTEvent_bind2(s__UIHashTable__uiHT_eventdata[uiHashTable(s__uiBtn_ui[s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]])],this)
-            if ( s__mouseMenu_itemCount[this] == 1 ) then // 同一个菜单项的两个anchor是一样的
-                call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],anchorPoint , s__uiImage_ui[s__mouseMenu_menuFrame[this]] , anchorPoint , 0 , 0)
+            if ( s__mouseMenu_itemCount[this] == 1 ) then
+                if ( s__mouseMenu_isUpward[this] ) then
+                    call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],7 , s__uiImage_ui[s__mouseMenu_menuFrame[this]] , 7 , 0 , 0)
+                else
+                    call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],1 , s__uiImage_ui[s__mouseMenu_menuFrame[this]] , 1 , 0 , 0)
+                endif
+            elseif ( s__mouseMenu_isUpward[this] ) then
+                call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],7 , s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this] - 1]]] , 1 , 0 , 0)
             else
-                call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],anchorPoint , s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this] - 1]]] , relativePoint , 0 , offsetY)
+                call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],1 , s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this] - 1]]] , 7 , 0 , 0)
             endif
+            call s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],(1)),(2)),(3))
+            call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__uiBtn_ui[s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]])],s__mouseMenu_itemCount[this])
+            call s__UIHashTable___uiHTEvent_bind2(s__UIHashTable___uiHT_eventdata[uiHashTable(s__uiBtn_ui[s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]])],this)
             call s__uiImage_setSizeFix(s__mouseMenu_menuFrame[this],s__mouseMenu_menuWidth[this] , s__mouseMenu_itemCount[this] * 0.03)
             return this
         endfunction
@@ -2926,16 +2928,10 @@ endfunction
                     call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
                 endif
             endfunction
-            function s__mouseMenu_anon__4 takes nothing returns nothing
-                if ( s__mouseMenu_isExist(s__mouseMenu_currentMenu) ) then
-                    call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
-                endif
-            endfunction
         function s__mouseMenu_onInit takes nothing returns nothing
             call s__hardware_regLeftUpEvent(function s__mouseMenu_anon__3)
-            call s__keyboard_regKeyDownEvent(27 , function s__mouseMenu_anon__4)
         endfunction
-            function s__mouseMenu_anon__5 takes player p returns nothing
+            function s__mouseMenu_anon__4 takes player p returns nothing
                 call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
             endfunction
         function s__mouseMenu_show takes integer this,boolean flag returns integer
@@ -2983,19 +2979,23 @@ endfunction
             call BJDebugMsg("[离开事件] " + I2S(index))
         endfunction
     function UTMouseMenu___TTestUTMouseMenu1 takes player p returns nothing
-        set UTMouseMenu___menu=s__mouseMenu_create(DzGetGameUI() , true , 0.1)
-        call s__mouseMenu_onEnter(UTMouseMenu___menu,(4))
-        call s__mouseMenu_onClick(UTMouseMenu___menu,(5))
-        call s__mouseMenu_onLeave(UTMouseMenu___menu,(6))
-        call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试1")
-        call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试2")
-        call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试3")
-        call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试4")
-        call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试5")
-        call s__uiImage_setAbsPoint(s__mouseMenu_menuFrame[UTMouseMenu___menu],4 , 0.4 , 0.3)
+        if ( not ( s__mouseMenu_isExist(UTMouseMenu___menu) ) ) then
+            set UTMouseMenu___menu=s__mouseMenu_create(DzGetGameUI() , true , 0.08)
+            call s__mouseMenu_onEnter(UTMouseMenu___menu,(4))
+            call s__mouseMenu_onClick(UTMouseMenu___menu,(5))
+            call s__mouseMenu_onLeave(UTMouseMenu___menu,(6))
+            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试1")
+            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试2")
+            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试3")
+            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试4")
+            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试5")
+            call s__uiImage_setAbsPoint(s__mouseMenu_menuFrame[UTMouseMenu___menu],4 , 0.4 , 0.3)
+            call BJDebugMsg("创建菜单")
+        endif
         call s__mouseMenu_show(UTMouseMenu___menu,true)
     endfunction
     function UTMouseMenu___TTestUTMouseMenu2 takes player p returns nothing
+        call s__uiBorder_setAbsPoint(s__uiBorder_setSizeFix(s__uiBorder_createType2(DzGetGameUI()),0.2 , 0.05),4 , 0.4 , 0.3)
     endfunction
     function UTMouseMenu___TTestUTMouseMenu3 takes player p returns nothing
     endfunction
@@ -3097,15 +3097,17 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
-//控件的共用基本方法
+
 // 结构体共用方法定义
 //共享打印方法
 // UI组件内部共享方法及成员
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
+//控件的共用基本方法
 // 按键ASCII码
 // 按键事件
+//窗口的大小
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -3116,8 +3118,6 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
-
-//窗口的大小
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -3531,9 +3531,9 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs30517125")
+call ExecuteFunc("jasshelper__initstructs33147718")
 call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("UITocInit__onInit")
+call ExecuteFunc("UITocInit___onInit")
 call ExecuteFunc("UIExtendEvent___onInit")
 call ExecuteFunc("UTMouseMenu___onInit")
 
@@ -3712,8 +3712,8 @@ endfunction
 function sa___prototype22_s__mouseMenu_anon__0 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-                local integer this=s__UIHashTable__uiHTEvent_get2(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
                 if ( s__mouseMenu_onEnterFunc[this] != null ) then
                     call s__menuItem_showHighlight(s___mouseMenu_items[s__mouseMenu_items[this]+index],true)
                     call sc___prototype22_evaluate(s__mouseMenu_onEnterFunc[this],index)
@@ -3723,8 +3723,8 @@ endfunction
 function sa___prototype22_s__mouseMenu_anon__1 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-                local integer this=s__UIHashTable__uiHTEvent_get2(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
                 if ( s__mouseMenu_onLeaveFunc[this] != null ) then
                     call s__menuItem_showHighlight(s___mouseMenu_items[s__mouseMenu_items[this]+index],false)
                     call sc___prototype22_evaluate(s__mouseMenu_onLeaveFunc[this],index)
@@ -3734,22 +3734,22 @@ endfunction
 function sa___prototype22_s__mouseMenu_anon__2 takes nothing returns boolean
  local integer frame=f__arg_integer1
 
-                local integer this=s__UIHashTable__uiHTEvent_get2(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable__uiHTEvent_get(s__UIHashTable__uiHT_eventdata[uiHashTable(frame)])
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
                 if ( s__mouseMenu_onClickFunc[this] != null ) then
                     call sc___prototype22_evaluate(s__mouseMenu_onClickFunc[this],index)
                 endif
                 call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
     return true
 endfunction
-function sa___prototype21_s__mouseMenu_anon__5 takes nothing returns boolean
+function sa___prototype21_s__mouseMenu_anon__4 takes nothing returns boolean
  local player p=f__arg_player1
 
                 call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
     return true
 endfunction
 
-function jasshelper__initstructs30517125 takes nothing returns nothing
+function jasshelper__initstructs33147718 takes nothing returns nothing
     set st__mouseMenu_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__mouseMenu_onDestroy,Condition( function sa__mouseMenu_onDestroy))
     set st__mouseMenu_show=CreateTrigger()
@@ -3783,8 +3783,8 @@ function jasshelper__initstructs30517125 takes nothing returns nothing
     call TriggerAddAction(st___prototype22[3],function sa___prototype22_s__mouseMenu_anon__2)
     call TriggerAddCondition(st___prototype22[3],Condition(function sa___prototype22_s__mouseMenu_anon__2))
     set st___prototype21[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype21[1],function sa___prototype21_s__mouseMenu_anon__5)
-    call TriggerAddCondition(st___prototype21[1],Condition(function sa___prototype21_s__mouseMenu_anon__5))
+    call TriggerAddAction(st___prototype21[1],function sa___prototype21_s__mouseMenu_anon__4)
+    call TriggerAddCondition(st___prototype21[1],Condition(function sa___prototype21_s__mouseMenu_anon__4))
 
 
 
