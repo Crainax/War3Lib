@@ -113,12 +113,7 @@ library UTMouseMenu requires MouseMenu {
 		unit hero,building;
 		real x = 0, y = 0;
 		integer i = 0;
-		BJDebugMsg("|cff00ff00[技能按钮测试]|r 单元测试已加载");
-		BJDebugMsg("|cff00ff00[技能按钮测试]|r 可用命令:");
-		BJDebugMsg("|cffffcc00s1|r - 切换遮罩显示/隐藏");
-		BJDebugMsg("|cffffcc00s2|r - 切换技能按钮显示/隐藏");
-		BJDebugMsg("|cffffcc00s3|r - 测试技能按钮高亮效果");
-		BJDebugMsg("|cffffcc00s4|r - 显示技能按钮框架信息");
+		BJDebugMsg("|cff00ff00[菜单测试]|r 单元测试已加载");
 		// 为玩家1创建测试英雄
 		hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
 SetHeroLevel(hero, 10,true);
@@ -168,8 +163,12 @@ CreateItem('dphe', 150, 0); // 雷霆凤凰蛋(自动使用型)
 CreateItem('thle', 0, 150); // 雷霆蜥蜴之蛋(自动使用型)
 }
 	mouseMenu menu = 0;
-	boolean isUpward = true; // 添加方向控制变量
-boolean isAutoDestroy = true; // 添加方向控制变量
+	mouseMenu spellMenu = 0;
+	mouseMenu itemMenu = 0;
+	boolean isUpward = true;
+	boolean isAutoDestroy = true;
+	integer currentMenuType = 0; // 0: 普通菜单, 1: 技能菜单, 2: 物品菜单
+integer menuItemCount = 3; // 默认菜单项数量
 
 	function TTestUTMouseMenu1 (player p) { // 测试菜单方向切换
 isUpward = !isUpward; // 切换方向
@@ -187,46 +186,22 @@ isAutoDestroy = !isAutoDestroy;
 			BJDebugMsg("当前自动销毁: 关闭");
 		}
 	}
-	mouseMenu simpleMenu = 0;
-	function TTestUTMouseMenu3 (player p) { // 测试 SimpleMenuItem
-real x = hardware.getMouseX();
-		real y = hardware.getMouseY();
-		real menuHeight = 3 * MOUSE_MENU_HEIGHT + 2 * MOUSE_MENU_ITEM_GAP;
-		if (!simpleMenu.isExist()) {
-			simpleMenu = mouseMenu.createSimple(DzFrameGetParent(spellBtns.grid[3][4]), isUpward, 0.13)
-				.setAutoDestroy(isAutoDestroy);
-		} else {
-			simpleMenu.show(false);
-		}
-		simpleMenu.onEnter(function(integer index) {
-			BJDebugMsg("[Simple菜单-进入] "+I2S(index));
-		});
-		simpleMenu.onClick(function(integer index) {
-			BJDebugMsg("[Simple菜单-点击] "+I2S(index));
-		});
-		simpleMenu.onLeave(function(integer index) {
-			BJDebugMsg("[Simple菜单-离开] "+I2S(index));
-		});
-		// 添加Simple菜单项
-		simpleMenu.AddMenuSimpleItem("Simple菜单项1");
-		simpleMenu.AddMenuSimpleItem("Simple菜单项2");
-		simpleMenu.AddMenuSimpleItem("Simple菜单项3");
-		// 根据方向调整Y坐标
-		if (!isUpward) {
-			y -= menuHeight;
-		}
-		simpleMenu.menuFrame.setAbsPoint(ANCHOR_BOTTOMLEFT, x, y);
-		simpleMenu.show(true);
-		BJDebugMsg("在鼠标位置("+R2S(x)+","+R2S(y)+")创建" + S3(isUpward , "向上" , "向下") + " Simple菜单" + "(自动销毁: " + S3(isAutoDestroy, "开启", "关闭") + ")");
+	function TTestUTMouseMenu3 (player p) {
 	}
 	function TTestUTMouseMenu4 (player p) {
 	}
-	function TTestUTMouseMenu5 (player p) {}
-	function TTestUTMouseMenu6 (player p) {}
-	function TTestUTMouseMenu7 (player p) {}
-	function TTestUTMouseMenu8 (player p) {}
-	function TTestUTMouseMenu9 (player p) {}
-	function TTestUTMouseMenu10 (player p) {}
+	function TTestUTMouseMenu5 (player p) {
+	}
+	function TTestUTMouseMenu6 (player p) {
+	}
+	function TTestUTMouseMenu7 (player p) {
+	}
+	function TTestUTMouseMenu8 (player p) {
+	}
+	function TTestUTMouseMenu9 (player p) {
+	}
+	function TTestUTMouseMenu10 (player p) {
+	}
 	function TTestActUTMouseMenu1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -264,17 +239,112 @@ for (0 <= i <= len - 1) {
 			} else {
 				BJDebugMsg("菜单不存在");
 			}
+		} else if (paramS[0] == "count") {
+			if (num > 1) {
+				paramI[1] = ILimit(paramI[1], 1, MOUSE_MENU_MAX_ITEMS);
+				if (paramI[1] != menuItemCount) {
+					menuItemCount = paramI[1];
+					BJDebugMsg("菜单项数量已设置为: " + I2S(menuItemCount));
+				}
+			} else {
+				BJDebugMsg("当前菜单项数量: " + I2S(menuItemCount));
+			}
 		} else if (paramS[0] == "a") {
 		} else if (paramS[0] == "b") {
 		}
 		p = null;
+	}
+	function createNormalMenu(real x, real y) -> mouseMenu {
+		integer i = 1;
+		if (menu.isExist()) {
+			menu.destroy();
+		}
+		menu = mouseMenu.create(DzGetGameUI(), isUpward, 0.13)
+			.setAutoDestroy(isAutoDestroy);
+		menu.onEnter(function(integer index) {
+			BJDebugMsg("[普通菜单-进入] "+I2S(index));
+		});
+		menu.onClick(function(integer index) {
+			BJDebugMsg("[普通菜单-点击] "+I2S(index));
+		});
+		menu.onLeave(function(integer index) {
+			BJDebugMsg("[普通菜单-离开] "+I2S(index));
+		});
+		menu.listenDestroy(function(integer index) {
+			BJDebugMsg("监控到删除事件");
+			menu = 0;
+		});
+		// 根据menuItemCount创建菜单项
+		while (i <= menuItemCount) {
+			menu.AddMenuItem("普通菜单项" + I2S(i));
+			i += 1;
+		}
+		return menu;
+	}
+	function createSpellMenu(real x, real y) -> mouseMenu {
+		integer i = 1;
+		if (!spellMenu.isExist()) {
+				spellMenu = mouseMenu.createSimple(DzFrameGetParent(spellBtns.grid[3][4]), isUpward, 0.13)
+					.setAutoDestroy(isAutoDestroy);
+				spellMenu.onEnter(function(integer index) {
+					BJDebugMsg("[技能菜单-进入] "+I2S(index));
+				});
+				spellMenu.onClick(function(integer index) {
+					BJDebugMsg("[技能菜单-点击] "+I2S(index));
+				});
+				spellMenu.onLeave(function(integer index) {
+					BJDebugMsg("[技能菜单-离开] "+I2S(index));
+				});
+		} else {
+			spellMenu.show(false);
+		}
+		BJDebugMsg("技能菜单已创建");
+		// 根据menuItemCount创建菜单项
+		while (i <= menuItemCount) {
+			spellMenu.AddMenuSimpleItem("技能菜单项" + I2S(i));
+			i += 1;
+		}
+		return spellMenu;
+	}
+	function createItemMenu(real x, real y) -> mouseMenu {
+		integer i = 1;
+		if (!itemMenu.isExist()) {
+			itemMenu = mouseMenu.createSimple(itemBtns.slot[1], isUpward, 0.13)
+				.setAutoDestroy(isAutoDestroy);
+			itemMenu.onEnter(function(integer index) {
+				BJDebugMsg("[物品菜单-进入] "+I2S(index));
+			});
+			itemMenu.onClick(function(integer index) {
+				BJDebugMsg("[物品菜单-点击] "+I2S(index));
+			});
+			itemMenu.onLeave(function(integer index) {
+				BJDebugMsg("[物品菜单-离开] "+I2S(index));
+			});
+		} else {
+			itemMenu.show(false);
+		}
+		BJDebugMsg("物品菜单已创建");
+		// 根据menuItemCount创建菜单项
+		while (i <= menuItemCount) {
+			itemMenu.AddMenuSimpleItem("物品菜单项" + I2S(i));
+			i += 1;
+		}
+		return itemMenu;
 	}
 	function onInit () {
 		//在游戏开始0.0秒后再调用
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[MouseMenu] 单元测试已加载");
+			BJDebugMsg("|cff00ff00[MouseMenu]|r 单元测试已加载");
+			BJDebugMsg("|cff00ff00[MouseMenu]|r 可用命令:");
+			BJDebugMsg("|cffffcc00s1|r - 切换菜单方向（当前: " + S3(isUpward, "向上", "向下") + "）");
+			BJDebugMsg("|cffffcc00s2|r - 切换自动销毁（当前: " + S3(isAutoDestroy, "开启", "关闭") + "）");
+			BJDebugMsg("|cffffcc00-destroy|r - 销毁当前菜单");
+			BJDebugMsg("|cffffcc00-autodestroy|r - 切换自动销毁状态");
+			BJDebugMsg("|cffffcc00-count x|r - 设置菜单项数量(1-20)，当前: " + I2S(menuItemCount));
+			BJDebugMsg("|cffffcc00Tab键|r - 切换菜单类型（普通/技能/物品）");
+			BJDebugMsg("右键点击 - 在鼠标位置创建菜单");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -300,42 +370,40 @@ for (0 <= i <= len - 1) {
 		hardware.regRightUpEvent(function() {
 			real x = hardware.getMouseX();
 			real y = hardware.getMouseY();
-			real finalY = y; // 最终的Y坐标
-real menuHeight = 3 * MOUSE_MENU_HEIGHT + 2 * MOUSE_MENU_ITEM_GAP; // 3个项目的总高度
-
-			// 在右键位置创建菜单
-			if (menu.isExist()) {
-				menu.destroy();
+			real menuHeight = 3 * MOUSE_MENU_HEIGHT + 2 * MOUSE_MENU_ITEM_GAP;
+			mouseMenu currentMenu = 0;
+			// 根据当前菜单类型创建对应菜单
+			if (currentMenuType == 0) {
+				// 普通菜单
+				if (!isUpward) {
+					y -= menuHeight;
+				}
+				currentMenu = createNormalMenu(x, y);
+				// 普通菜单使用 0.165 作为下限
+				currentMenu.menuFrame.setAbsPoint(ANCHOR_BOTTOMLEFT, x, RLimit(y,0.165,y));
+			} else {
+				// Simple菜单（技能/物品）
+				if (currentMenuType == 1) {
+					currentMenu = createSpellMenu(x, y);
+				} else {
+					currentMenu = createItemMenu(x, y);
+				}
+				// Simple菜单使用原始坐标
+				currentMenu.menuFrame.setAbsPoint(ANCHOR_BOTTOMLEFT, x, y);
 			}
-			menu = mouseMenu.create(DzGetGameUI(), isUpward, 0.13)
-				.setAutoDestroy(isAutoDestroy);
-			menu.onEnter(function(integer index) {
-				BJDebugMsg("[右键菜单-进入] "+I2S(index));
-			});
-			menu.onClick(function(integer index) {
-				BJDebugMsg("[右键菜单-点击] "+I2S(index));
-			});
-			menu.onLeave(function(integer index) {
-				BJDebugMsg("[右键菜单-离开] "+I2S(index));
-			});
-			menu.AddMenuItem("右键菜单项1");
-			menu.AddMenuItem("右键菜单项2");
-			menu.AddMenuItem("右键菜单项3");
-			// 计算菜单总高度
-			// 根据方向调整Y坐标
-			if (!isUpward) {
-				// 向下生长时，确保顶部坐标加上菜单高度不超过0.8
-				y -= menuHeight;
-			}
-			menu.menuFrame.setAbsPoint(ANCHOR_BOTTOMLEFT, x, RLimit(y,0.165,y));
-			menu.show(true);
-			// 显示实际位置信息
-			if (finalY != y) {
-				BJDebugMsg("菜单Y坐标已调整: " + R2S(y) + " -> " + R2S(finalY));
-			}
-			BJDebugMsg("在位置("+R2S(x)+","+R2S(finalY)+")创建" +
-			S3(isUpward , "向上" , "向下") + "菜单");
+			currentMenu.show(true);
+			BJDebugMsg("在位置("+R2S(x)+","+R2S(y)+")创建" +
+			S3(currentMenuType == 0, "普通", S3(currentMenuType == 1, "技能", "物品")) +
+			"菜单 (" + S3(isUpward, "向上", "向下") +
+			", 自动销毁: " + S3(isAutoDestroy, "开启", "关闭") + ")");
 		});
+		keyboard.regKeyUpEvent(9, function() { // tab键切换菜单类型
+currentMenuType = ModuloInteger(currentMenuType + 1, 3);
+			BJDebugMsg("当前菜单类型: " +
+			S3(currentMenuType == 0, "普通菜单",
+			S3(currentMenuType == 1, "技能菜单", "物品菜单")));
+		});
+		keyboard.regKeyDownEvent(9, null);
 	}
 }
 //! endzinc

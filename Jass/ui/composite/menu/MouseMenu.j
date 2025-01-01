@@ -14,6 +14,7 @@
 //! zinc
 
 //# dependency:resource/ui/image/buttongrow.blp
+//# dependency:resource/ui/image/buttongrow_light.blp
 
 library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,EscStack {
 
@@ -77,6 +78,7 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
             btn = uiBtn.createSimple(simpleParent)
                 .setAllPoint(background.ui);
 
+
             return this;
         }
 
@@ -95,6 +97,7 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
             menuEventFunc onClickFunc;
             menuEventFunc onEnterFunc;
             menuEventFunc onLeaveFunc;
+            menuEventFunc onDestroyFunc;
 
             static mouseMenu currentMenu = 0;
             static integer escStackId = 0;
@@ -123,6 +126,13 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
             return this;
         }
 
+        // 整个菜单销毁时调用
+        method listenDestroy (menuEventFunc func)  -> thistype {
+            if (!this.isExist()) { return this; }
+            onDestroyFunc = func;
+            return this;
+        }
+
         method isInMenu(integer checkUI) -> boolean {
             integer i = 1;
             if (!this.isExist()) { return false; }
@@ -142,9 +152,6 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
         method onDestroy() {
             integer i = 1;
             if (!this.isExist()) { return; }
-            if (menuFrame == 0) {
-                return;
-            }
 
             if (currentMenu == this) {
                 currentMenu = 0;
@@ -163,14 +170,19 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
                 highlight = 0;
             }
 
+            if (onDestroyFunc != 0) {
+                onDestroyFunc.evaluate(0);
+            }
+
             menuFrame.destroy();
-            menuFrame    = 0;
-            itemCount    = 0;
-            onClickFunc  = 0;
-            onEnterFunc  = 0;
-            onLeaveFunc  = 0;
-            simpleParent = 0;
-            autoDestroy  = false;
+            menuFrame     = 0;
+            itemCount     = 0;
+            onClickFunc   = 0;
+            onEnterFunc   = 0;
+            onLeaveFunc   = 0;
+            onDestroyFunc = 0;
+            simpleParent  = 0;
+            autoDestroy   = false;
         }
 
         // 显示高亮UI
@@ -391,7 +403,7 @@ library MouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEvent,Esc
                 .show(false);
 
             highlight = uiImage.create(DzGetGameUI())
-                .setTexture("ui\\image\\buttongrow.blp")
+                .setTexture("ui\\image\\buttongrow_light.blp")
                 .show(false);
 
             return this;

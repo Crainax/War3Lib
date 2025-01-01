@@ -118,10 +118,16 @@ constant boolean LIBRARY_Icon=true
 //globals from UTMouseMenu:
 constant boolean LIBRARY_UTMouseMenu=true
 integer UTMouseMenu___menu=0
+integer UTMouseMenu___spellMenu=0
+integer UTMouseMenu___itemMenu=0
 boolean UTMouseMenu___isUpward=true
 boolean UTMouseMenu___isAutoDestroy=true
-integer UTMouseMenu___simpleMenu=0
+integer UTMouseMenu___currentMenuType=0
+integer UTMouseMenu___menuItemCount=3
 //endglobals from UTMouseMenu
+//globals from ItemBtns:
+constant boolean LIBRARY_ItemBtns=true
+//endglobals from ItemBtns
 //globals from SpellBtns:
 constant boolean LIBRARY_SpellBtns=true
 //endglobals from SpellBtns
@@ -359,6 +365,7 @@ real array s__mouseMenu_menuWidth
 integer array s__mouseMenu_onClickFunc
 integer array s__mouseMenu_onEnterFunc
 integer array s__mouseMenu_onLeaveFunc
+integer array s__mouseMenu_onDestroyFunc
 integer s__mouseMenu_currentMenu=0
 integer s__mouseMenu_escStackId=0
 integer array s__mouseMenu_simpleParent
@@ -400,7 +407,15 @@ integer array s__icon_spRelativeAnchor
 real array s__icon_spOffsetX
 real array s__icon_spOffsetY
 integer array s__icon_cdSpriteImage
-constant integer si__spellBtns=30
+constant integer si__itemBtns=30
+integer array s__itemBtns_slot
+integer array s__itemBtns_icons
+integer s__itemBtns_argsPos=0
+integer s__itemBtns_shadeImg=0
+integer s__itemBtns_shadeBtn=0
+trigger s__itemBtns_trEnter=null
+trigger s__itemBtns_trLeave=null
+constant integer si__spellBtns=31
 integer si__spellBtns_F=0
 integer si__spellBtns_I=0
 integer array si__spellBtns_V
@@ -4345,6 +4360,13 @@ endfunction
             endif
             set s__mouseMenu_onLeaveFunc[this]=func
             return this
+        endfunction  // 整个菜单销毁时调用
+        function s__mouseMenu_listenDestroy takes integer this,integer func returns integer
+            if ( not ( s__mouseMenu_isExist(this) ) ) then
+                return this
+            endif
+            set s__mouseMenu_onDestroyFunc[this]=func
+            return this
         endfunction
         function s__mouseMenu_isInMenu takes integer this,integer checkUI returns boolean
             local integer i=1
@@ -4368,9 +4390,6 @@ endfunction
             if ( not ( s__mouseMenu_isExist(this) ) ) then
                 return
             endif
-            if ( s__mouseMenu_menuFrame[this] == 0 ) then
-                return
-            endif
             if ( s__mouseMenu_currentMenu == this ) then
                 set s__mouseMenu_currentMenu=0
             endif
@@ -4386,12 +4405,18 @@ endfunction
                 call s__uiImage_deallocate(s__mouseMenu_highlight[this])
                 set s__mouseMenu_highlight[this]=0
             endif
+            if ( s__mouseMenu_onDestroyFunc[this] != 0 ) then
+                call sc___prototype25_evaluate(s__mouseMenu_onDestroyFunc[this],0)
+            endif
             call s__uiImage_deallocate(s__mouseMenu_menuFrame[this])
             set s__mouseMenu_menuFrame[this]=0
             set s__mouseMenu_itemCount[this]=0
             set s__mouseMenu_onClickFunc[this]=0
             set s__mouseMenu_onEnterFunc[this]=0
             set s__mouseMenu_onLeaveFunc[this]=0
+            set s__mouseMenu_onDestroyFunc[this]=0
+            set s__mouseMenu_simpleParent[this]=0
+            set s__mouseMenu_autoDestroy[this]=false
         endfunction  // 显示高亮UI
 
 //Generated destructor of mouseMenu
@@ -4458,9 +4483,6 @@ endfunction
                     call s__mouseMenu_deallocate(this)
                     return this
                 endif
-            endif
-            if ( falg and s__mouseMenu_highlight[this] == 0 ) then
-                set s__mouseMenu_highlight[this]=s__uiImage_show(s__uiImage_setTexture(s__uiImage_create(DzGetGameUI()),"ui\\image\\buttongrow.blp"),false)
             endif // 设置实际的显示/隐藏状态
             call s__uiImage_show(s__mouseMenu_menuFrame[this],flag)
             return this
@@ -4547,7 +4569,8 @@ endfunction
             set s__mouseMenu_itemCount[this]=0
             set s__mouseMenu_highlight[this]=0
             set s__mouseMenu_menuFrame[this]=s__uiImage_show(s__uiImage_exReSize(s__uiImage_setTexture(s__uiImage_create(s__uilayer_lv[2]),"UI\\Widgets\\EscMenu\\Human\\blank-background.blp"),width , 0.03),false)
-            return this // highlight = uiImage.create(DzGetGameUI()) //     .setTexture("ui\\image\\buttongrow.blp") //     .show(false);
+            set s__mouseMenu_highlight[this]=s__uiImage_show(s__uiImage_setTexture(s__uiImage_create(DzGetGameUI()),"ui\\image\\buttongrow_light.blp"),false)
+            return this
         endfunction
             function s__mouseMenu_anon__4 takes nothing returns nothing
                 if ( s__mouseMenu_isExist(s__mouseMenu_currentMenu) and not ( s__mouseMenu_isInMenu(s__mouseMenu_currentMenu,s__uiEventState_uiId) ) ) then
@@ -4558,9 +4581,6 @@ endfunction
             call s__hardware_regLeftUpEvent(function s__mouseMenu_anon__4)
         endfunction  // 设置是否自动销毁
         function s__mouseMenu_setAutoDestroy takes integer this,boolean flag returns integer
-            if ( s__mouseMenu_simpleParent[this] != 0 ) then
-                set flag=false
-            endif
             set s__mouseMenu_autoDestroy[this]=flag
             return this
         endfunction
@@ -5027,12 +5047,7 @@ endfunction
         local real x=0
         local real y=0
         local integer i=0
-        call BJDebugMsg("|cff00ff00[技能按钮测试]|r 单元测试已加载")
-        call BJDebugMsg("|cff00ff00[技能按钮测试]|r 可用命令:")
-        call BJDebugMsg("|cffffcc00s1|r - 切换遮罩显示/隐藏")
-        call BJDebugMsg("|cffffcc00s2|r - 切换技能按钮显示/隐藏")
-        call BJDebugMsg("|cffffcc00s3|r - 测试技能按钮高亮效果")
-        call BJDebugMsg("|cffffcc00s4|r - 显示技能按钮框架信息") // 为玩家1创建测试英雄
+        call BJDebugMsg("|cff00ff00[菜单测试]|r 单元测试已加载") // 为玩家1创建测试英雄
         set hero=CreateUnit(Player(0), 'Hamg', 0, 0, 270) // 创建大法师在坐标(0,0)
         call SetHeroLevel(hero, 10, true) // 创建一个建筑单位用于测试12个技能
         set building=CreateUnit(Player(0), 'hcas', 400, 0, 270) // 创建人族城堡 // 为建筑添加12个技能
@@ -5086,34 +5101,7 @@ endfunction
             call BJDebugMsg("当前自动销毁: 关闭")
         endif
     endfunction
-        function UTMouseMenu___anon__0 takes integer index returns nothing
-            call BJDebugMsg("[Simple菜单-进入] " + I2S(index))
-        endfunction
-        function UTMouseMenu___anon__1 takes integer index returns nothing
-            call BJDebugMsg("[Simple菜单-点击] " + I2S(index))
-        endfunction
-        function UTMouseMenu___anon__2 takes integer index returns nothing
-            call BJDebugMsg("[Simple菜单-离开] " + I2S(index))
-        endfunction  // 添加Simple菜单项
     function UTMouseMenu___TTestUTMouseMenu3 takes player p returns nothing
-        local real x=s__hardware_getMouseX()
-        local real y=s__hardware_getMouseY()
-        local real menuHeight=3 * 0.03 + 2 * - 0.003
-        if ( not ( s__mouseMenu_isExist(UTMouseMenu___simpleMenu) ) ) then
-            set UTMouseMenu___simpleMenu=s__mouseMenu_setAutoDestroy(s__mouseMenu_createSimple(DzFrameGetParent(s__s__spellBtns_grid[(3)*(4)+4]) , UTMouseMenu___isUpward , 0.13),UTMouseMenu___isAutoDestroy)
-        endif
-        call s__mouseMenu_onEnter(UTMouseMenu___simpleMenu,(7))
-        call s__mouseMenu_onClick(UTMouseMenu___simpleMenu,(8))
-        call s__mouseMenu_onLeave(UTMouseMenu___simpleMenu,(9))
-        call s__mouseMenu_AddMenuSimpleItem(UTMouseMenu___simpleMenu,"Simple菜单项1")
-        call s__mouseMenu_AddMenuSimpleItem(UTMouseMenu___simpleMenu,"Simple菜单项2")
-        call s__mouseMenu_AddMenuSimpleItem(UTMouseMenu___simpleMenu,"Simple菜单项3") // 根据方向调整Y坐标
-        if ( not UTMouseMenu___isUpward ) then
-            set y=y - menuHeight
-        endif
-        call s__uiImage_setAbsPoint(s__mouseMenu_menuFrame[UTMouseMenu___simpleMenu],6 , x , y)
-        call s__mouseMenu_show(UTMouseMenu___simpleMenu,true)
-        call BJDebugMsg("在鼠标位置(" + R2S(x) + "," + R2S(y) + ")创建" + S3(UTMouseMenu___isUpward , "向上" , "向下") + " Simple菜单(自动销毁: " + S3(UTMouseMenu___isAutoDestroy , "开启" , "关闭") + ")")
     endfunction
     function UTMouseMenu___TTestUTMouseMenu4 takes player p returns nothing
     endfunction
@@ -5171,17 +5159,119 @@ endfunction
             else
                 call BJDebugMsg("菜单不存在")
             endif
+        elseif ( paramS[0] == "count" ) then
+            if ( num > 1 ) then
+                set paramI[1]=ILimit(paramI[1] , 1 , 20)
+                if ( paramI[1] != UTMouseMenu___menuItemCount ) then
+                    set UTMouseMenu___menuItemCount=paramI[1]
+                    call BJDebugMsg("菜单项数量已设置为: " + I2S(UTMouseMenu___menuItemCount))
+                endif
+            else
+                call BJDebugMsg("当前菜单项数量: " + I2S(UTMouseMenu___menuItemCount))
+            endif
         elseif ( paramS[0] == "a" ) then
         elseif ( paramS[0] == "b" ) then
         endif
         set p=null
     endfunction
-        function UTMouseMenu___anon__3 takes nothing returns nothing
-            call BJDebugMsg("[MouseMenu] 单元测试已加载")
+        function UTMouseMenu___anon__0 takes integer index returns nothing
+            call BJDebugMsg("[普通菜单-进入] " + I2S(index))
+        endfunction
+        function UTMouseMenu___anon__1 takes integer index returns nothing
+            call BJDebugMsg("[普通菜单-点击] " + I2S(index))
+        endfunction
+        function UTMouseMenu___anon__2 takes integer index returns nothing
+            call BJDebugMsg("[普通菜单-离开] " + I2S(index))
+        endfunction
+        function UTMouseMenu___anon__3 takes integer index returns nothing
+            call BJDebugMsg("监控到删除事件")
+            set UTMouseMenu___menu=0
+        endfunction  // 根据menuItemCount创建菜单项
+    function UTMouseMenu___createNormalMenu takes real x,real y returns integer
+        local integer i
+        if ( s__mouseMenu_isExist(UTMouseMenu___menu) ) then
+            call s__mouseMenu_deallocate(UTMouseMenu___menu)
+        endif
+        set UTMouseMenu___menu=s__mouseMenu_setAutoDestroy(s__mouseMenu_create(DzGetGameUI() , UTMouseMenu___isUpward , 0.13),UTMouseMenu___isAutoDestroy)
+        call s__mouseMenu_onEnter(UTMouseMenu___menu,(7))
+        call s__mouseMenu_onClick(UTMouseMenu___menu,(8))
+        call s__mouseMenu_onLeave(UTMouseMenu___menu,(9))
+        call s__mouseMenu_listenDestroy(UTMouseMenu___menu,(10))
+        loop
+        exitwhen ( i > UTMouseMenu___menuItemCount )
+            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"普通菜单项" + I2S(i))
+            set i=i + 1
+        endloop
+        return UTMouseMenu___menu
+    endfunction
+        function UTMouseMenu___anon__4 takes integer index returns nothing
+            call BJDebugMsg("[技能菜单-进入] " + I2S(index))
+        endfunction
+        function UTMouseMenu___anon__5 takes integer index returns nothing
+            call BJDebugMsg("[技能菜单-点击] " + I2S(index))
+        endfunction
+        function UTMouseMenu___anon__6 takes integer index returns nothing
+            call BJDebugMsg("[技能菜单-离开] " + I2S(index))
+        endfunction
+    function UTMouseMenu___createSpellMenu takes real x,real y returns integer
+        local integer i
+        if ( not ( s__mouseMenu_isExist(UTMouseMenu___spellMenu) ) ) then
+            set UTMouseMenu___spellMenu=s__mouseMenu_setAutoDestroy(s__mouseMenu_createSimple(DzFrameGetParent(s__s__spellBtns_grid[(3)*(4)+4]) , UTMouseMenu___isUpward , 0.13),UTMouseMenu___isAutoDestroy)
+            call s__mouseMenu_onEnter(UTMouseMenu___spellMenu,(11))
+            call s__mouseMenu_onClick(UTMouseMenu___spellMenu,(12))
+            call s__mouseMenu_onLeave(UTMouseMenu___spellMenu,(13))
+        else
+            call s__mouseMenu_show(UTMouseMenu___spellMenu,false)
+        endif
+        call BJDebugMsg("技能菜单已创建") // 根据menuItemCount创建菜单项
+        loop
+        exitwhen ( i > UTMouseMenu___menuItemCount )
+            call s__mouseMenu_AddMenuSimpleItem(UTMouseMenu___spellMenu,"技能菜单项" + I2S(i))
+            set i=i + 1
+        endloop
+        return UTMouseMenu___spellMenu
+    endfunction
+        function UTMouseMenu___anon__7 takes integer index returns nothing
+            call BJDebugMsg("[物品菜单-进入] " + I2S(index))
+        endfunction
+        function UTMouseMenu___anon__8 takes integer index returns nothing
+            call BJDebugMsg("[物品菜单-点击] " + I2S(index))
+        endfunction
+        function UTMouseMenu___anon__9 takes integer index returns nothing
+            call BJDebugMsg("[物品菜单-离开] " + I2S(index))
+        endfunction
+    function UTMouseMenu___createItemMenu takes real x,real y returns integer
+        local integer i
+        if ( not ( s__mouseMenu_isExist(UTMouseMenu___itemMenu) ) ) then
+            set UTMouseMenu___itemMenu=s__mouseMenu_setAutoDestroy(s__mouseMenu_createSimple(s__itemBtns_slot[1] , UTMouseMenu___isUpward , 0.13),UTMouseMenu___isAutoDestroy)
+            call s__mouseMenu_onEnter(UTMouseMenu___itemMenu,(14))
+            call s__mouseMenu_onClick(UTMouseMenu___itemMenu,(15))
+            call s__mouseMenu_onLeave(UTMouseMenu___itemMenu,(16))
+        else
+            call s__mouseMenu_show(UTMouseMenu___itemMenu,false)
+        endif
+        call BJDebugMsg("物品菜单已创建") // 根据menuItemCount创建菜单项
+        loop
+        exitwhen ( i > UTMouseMenu___menuItemCount )
+            call s__mouseMenu_AddMenuSimpleItem(UTMouseMenu___itemMenu,"物品菜单项" + I2S(i))
+            set i=i + 1
+        endloop
+        return UTMouseMenu___itemMenu
+    endfunction
+        function UTMouseMenu___anon__10 takes nothing returns nothing
+            call BJDebugMsg("|cff00ff00[MouseMenu]|r 单元测试已加载")
+            call BJDebugMsg("|cff00ff00[MouseMenu]|r 可用命令:")
+            call BJDebugMsg("|cffffcc00s1|r - 切换菜单方向（当前: " + S3(UTMouseMenu___isUpward , "向上" , "向下") + "）")
+            call BJDebugMsg("|cffffcc00s2|r - 切换自动销毁（当前: " + S3(UTMouseMenu___isAutoDestroy , "开启" , "关闭") + "）")
+            call BJDebugMsg("|cffffcc00-destroy|r - 销毁当前菜单")
+            call BJDebugMsg("|cffffcc00-autodestroy|r - 切换自动销毁状态")
+            call BJDebugMsg("|cffffcc00-count x|r - 设置菜单项数量(1-20)，当前: " + I2S(UTMouseMenu___menuItemCount))
+            call BJDebugMsg("|cffffcc00Tab键|r - 切换菜单类型（普通/技能/物品）")
+            call BJDebugMsg("右键点击 - 在鼠标位置创建菜单")
             call UTMouseMenu___Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTMouseMenu___anon__4 takes nothing returns nothing
+        function UTMouseMenu___anon__11 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
@@ -5210,50 +5300,112 @@ endfunction
                 call UTMouseMenu___TTestUTMouseMenu10(GetTriggerPlayer())
             endif
         endfunction
-            function UTMouseMenu___anon__6 takes integer index returns nothing
-                call BJDebugMsg("[右键菜单-进入] " + I2S(index))
-            endfunction
-            function UTMouseMenu___anon__7 takes integer index returns nothing
-                call BJDebugMsg("[右键菜单-点击] " + I2S(index))
-            endfunction
-            function UTMouseMenu___anon__8 takes integer index returns nothing
-                call BJDebugMsg("[右键菜单-离开] " + I2S(index))
-            endfunction
-        function UTMouseMenu___anon__5 takes nothing returns nothing
+        function UTMouseMenu___anon__12 takes nothing returns nothing
             local real x=s__hardware_getMouseX()
             local real y=s__hardware_getMouseY()
-            local real finalY=y
             local real menuHeight=3 * 0.03 + 2 * - 0.003
-            if ( s__mouseMenu_isExist(UTMouseMenu___menu) ) then
-                call s__mouseMenu_deallocate(UTMouseMenu___menu)
+            local integer currentMenu=0
+            if ( UTMouseMenu___currentMenuType == 0 ) then // 普通菜单
+                if ( not UTMouseMenu___isUpward ) then
+                    set y=y - menuHeight
+                endif
+                set currentMenu=UTMouseMenu___createNormalMenu(x , y) // 普通菜单使用 0.165 作为下限
+                call s__uiImage_setAbsPoint(s__mouseMenu_menuFrame[currentMenu],6 , x , RLimit(y , 0.165 , y))
+            else // Simple菜单（技能/物品）
+                if ( UTMouseMenu___currentMenuType == 1 ) then
+                    set currentMenu=UTMouseMenu___createSpellMenu(x , y)
+                else
+                    set currentMenu=UTMouseMenu___createItemMenu(x , y)
+                endif // Simple菜单使用原始坐标
+                call s__uiImage_setAbsPoint(s__mouseMenu_menuFrame[currentMenu],6 , x , y)
             endif
-            set UTMouseMenu___menu=s__mouseMenu_setAutoDestroy(s__mouseMenu_create(DzGetGameUI() , UTMouseMenu___isUpward , 0.13),UTMouseMenu___isAutoDestroy)
-            call s__mouseMenu_onEnter(UTMouseMenu___menu,(10))
-            call s__mouseMenu_onClick(UTMouseMenu___menu,(11))
-            call s__mouseMenu_onLeave(UTMouseMenu___menu,(12))
-            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"右键菜单项1")
-            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"右键菜单项2")
-            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"右键菜单项3") // 计算菜单总高度
-            if ( not UTMouseMenu___isUpward ) then // 根据方向调整Y坐标 // 向下生长时，确保顶部坐标加上菜单高度不超过0.8
-                set y=y - menuHeight
-            endif
-            call s__uiImage_setAbsPoint(s__mouseMenu_menuFrame[UTMouseMenu___menu],6 , x , RLimit(y , 0.165 , y))
-            call s__mouseMenu_show(UTMouseMenu___menu,true) // 显示实际位置信息
-            if ( finalY != y ) then
-                call BJDebugMsg("菜单Y坐标已调整: " + R2S(y) + " -> " + R2S(finalY))
-            endif
-            call BJDebugMsg("在位置(" + R2S(x) + "," + R2S(finalY) + ")创建" + S3(UTMouseMenu___isUpward , "向上" , "向下") + "菜单")
+            call s__mouseMenu_show(currentMenu,true)
+            call BJDebugMsg("在位置(" + R2S(x) + "," + R2S(y) + ")创建" + S3(UTMouseMenu___currentMenuType == 0 , "普通" , S3(UTMouseMenu___currentMenuType == 1 , "技能" , "物品")) + "菜单 (" + S3(UTMouseMenu___isUpward , "向上" , "向下") + ", 自动销毁: " + S3(UTMouseMenu___isAutoDestroy , "开启" , "关闭") + ")")
+        endfunction  // tab键切换菜单类型
+        function UTMouseMenu___anon__13 takes nothing returns nothing
+            set UTMouseMenu___currentMenuType=ModuloInteger(UTMouseMenu___currentMenuType + 1, 3)
+            call BJDebugMsg("当前菜单类型: " + S3(UTMouseMenu___currentMenuType == 0 , "普通菜单" , S3(UTMouseMenu___currentMenuType == 1 , "技能菜单" , "物品菜单")))
         endfunction
     function UTMouseMenu___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTMouseMenu___anon__3))
+        call TriggerAddCondition(tr, Condition(function UTMouseMenu___anon__10))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTMouseMenu___anon__4)
-        call s__hardware_regRightUpEvent(function UTMouseMenu___anon__5)
+        call UnitTestRegisterChatEvent(function UTMouseMenu___anon__11)
+        call s__hardware_regRightUpEvent(function UTMouseMenu___anon__12)
+        call s__keyboard_regKeyUpEvent(9 , function UTMouseMenu___anon__13)
+        call s__keyboard_regKeyDownEvent(9 , null)
     endfunction
 
 //library UTMouseMenu ends
+//library ItemBtns:
+        //private:  //物品栏大暗遮罩,用于右键表示
+        function s__itemBtns_onEnter takes code func returns nothing
+            if ( s__itemBtns_trEnter == null ) then
+                set s__itemBtns_trEnter=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__itemBtns_trEnter, Condition(func))
+        endfunction  // 注册离开事件
+        function s__itemBtns_onLeave takes code func returns nothing
+            if ( s__itemBtns_trLeave == null ) then
+                set s__itemBtns_trLeave=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__itemBtns_trLeave, Condition(func))
+        endfunction
+        function s__itemBtns_outside takes integer pos returns nothing
+            call DzFrameClearAllPoints(s__itemBtns_slot[pos])
+            call DzFrameSetAbsolutePoint(s__itemBtns_slot[pos], 6, - 1.0, 0)
+        endfunction
+        function s__itemBtns_inside takes integer pos returns nothing
+            local integer row
+            local integer column
+            set row=( pos - 1 ) / 2 + 1
+            set column=ModuloInteger(pos - 1, 2) + 1
+            call DzFrameClearAllPoints(s__itemBtns_slot[pos])
+            call DzFrameSetSize(s__itemBtns_slot[pos], 0.032, 0.032)
+            call DzFrameSetPoint(s__itemBtns_slot[pos], 4, DzGetGameUI(), 5, - 0.3108 + ( 0.04134 * column ), - 0.165 - ( 0.0385 * row ))
+        endfunction  // 显示或隐藏遮罩
+        function s__itemBtns_showShade takes boolean show returns nothing
+            if ( not ( s__uiImage_isExist(s__itemBtns_shadeImg) ) ) then
+                set s__itemBtns_shadeImg=s__uiImage_setTexture(s__uiImage_setSize(s__uiImage_create(s__uilayer_lv[1]),0.02 , 0.02),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+            endif
+            if ( not ( s__uiBtn_isExist(s__itemBtns_shadeBtn) ) ) then //这样也没用,全都挡不住,但是全能hover
+                set s__itemBtns_shadeBtn=s__uiBtn_setPoint(s__uiBtn_setPoint(s__uiBtn_createSimple(s__itemBtns_slot[1]),0 , s__uiImage_ui[s__itemBtns_shadeImg] , 0 , 0.0 , 0.0),8 , s__uiImage_ui[s__itemBtns_shadeImg] , 8 , 0.0 , 0.0)
+            endif
+            if ( show ) then
+                call s__uiImage_setPoint(s__uiImage_setPoint(s__uiImage_clearPoint(s__itemBtns_shadeImg),0 , s__itemBtns_slot[1] , 0 , 0.0 , 0.0),8 , s__itemBtns_slot[6] , 8 , 0.0 , 0.0)
+            else
+                call s__uiImage_setPoint(s__uiImage_clearPoint(s__itemBtns_shadeImg),4 , DzGetGameUI() , 4 , - 0.8 , 0.6)
+            endif
+        endfunction
+            function s__itemBtns_anon__0 takes nothing returns nothing
+                local integer frame=DzGetTriggerUIEventFrame()
+                set s__itemBtns_argsPos=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                call TriggerEvaluate(s__itemBtns_trEnter)
+            endfunction
+            function s__itemBtns_anon__1 takes nothing returns nothing
+                local integer frame=DzGetTriggerUIEventFrame()
+                set s__itemBtns_argsPos=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                call TriggerEvaluate(s__itemBtns_trLeave)
+            endfunction
+        function s__itemBtns_onInit takes nothing returns nothing
+            local integer i
+            local integer btn
+            set i=1
+            loop
+            exitwhen ( i > 6 )
+                set s__itemBtns_slot[i]=DzFrameGetItemBarButton(i - 1)
+                set btn=s__uiBtn_bindCreated(s__itemBtns_slot[i])
+                call s__uiBtn_onMouseEnter(btn,function s__itemBtns_anon__0)
+                call s__uiBtn_onMouseLeave(btn,function s__itemBtns_anon__1)
+                call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__itemBtns_slot[i])],i)
+                set s__itemBtns_icons[i]=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_create(s__uilayer_lv[1]),0.032 , 0.032),4 , s__itemBtns_slot[i] , 4 , 0.0 , 0.0),"UI\\Widgets\\EscMenu\\Human\\blank-background.blp")
+                set s__icon_clickBtn[s__itemBtns_icons[i]]=btn
+            set i=i + 1
+            endloop
+        endfunction
+
+//library ItemBtns ends
 //library SpellBtns:
         //private:  //技能栏大暗遮罩,用于右键表示
         function s__spellBtns_onEnter takes code func returns nothing
@@ -5352,10 +5504,10 @@ endfunction
                 exitwhen ( col > 4 )
                     set s__s__spellBtns_grid[(row)*(4)+col]= DzFrameGetCommandBarButton(row - 1, col - 1)
                     set btn=s__uiBtn_bindCreated(s__s__spellBtns_grid[(row)*(4)+col])
-                    call s__uiBtn_spEnter(btn,(13))
-                    call s__uiBtn_spLeave(btn,(14))
-                    call s__uiBtn_spClick(btn,(15))
-                    call s__uiBtn_spRightClick(btn,(16))
+                    call s__uiBtn_spEnter(btn,(17))
+                    call s__uiBtn_spLeave(btn,(18))
+                    call s__uiBtn_spClick(btn,(19))
+                    call s__uiBtn_spRightClick(btn,(20))
                     set s__s__spellBtns_icons[(row)*(4)+col]= s__icon_create(s__uilayer_lv[1]) // 自定义技能栏按钮大小
 //#                     static if LIBRARY_DIYBtnsSize then
 //#                         call icons[row][col].setSize(DIY_BTN_SPELL_SIZE,DIY_BTN_SPELL_SIZE)
@@ -5372,8 +5524,25 @@ endfunction
         endfunction
 
 //library SpellBtns ends
+
+// 0 - 1亿这里用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
 // 按键ASCII码
 // 按键事件
+// 原生UI的大小
+
 
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
@@ -5386,6 +5555,7 @@ endfunction
 // type = MoveTypeName  
 // default = MoveTypeName01  
 //控件的共用基本方法
+//窗口的大小
 //===========================================================================
 // Icon.j
 //===========================================================================
@@ -5413,8 +5583,6 @@ endfunction
 //
 //===========================================================================
 //# dependency:resource/ui/model/cooldown_center.mdx
-//窗口的大小
-
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -5828,7 +5996,7 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs24849890")
+call ExecuteFunc("jasshelper__initstructs37307812")
 call ExecuteFunc("UnitTestFramwork___onInit")
 call ExecuteFunc("UITocInit___onInit")
 call ExecuteFunc("UIExtendEvent___onInit")
@@ -5960,9 +6128,6 @@ local integer this=f__arg_this
             if ( not ( s__mouseMenu_isExist(this) ) ) then
 return true
             endif
-            if ( s__mouseMenu_menuFrame[this] == 0 ) then
-return true
-            endif
             if ( s__mouseMenu_currentMenu == this ) then
                 set s__mouseMenu_currentMenu=0
             endif
@@ -5978,12 +6143,18 @@ return true
                 call s__uiImage_deallocate(s__mouseMenu_highlight[this])
                 set s__mouseMenu_highlight[this]=0
             endif
+            if ( s__mouseMenu_onDestroyFunc[this] != 0 ) then
+                call sc___prototype25_evaluate(s__mouseMenu_onDestroyFunc[this],0)
+            endif
             call s__uiImage_deallocate(s__mouseMenu_menuFrame[this])
             set s__mouseMenu_menuFrame[this]=0
             set s__mouseMenu_itemCount[this]=0
             set s__mouseMenu_onClickFunc[this]=0
             set s__mouseMenu_onEnterFunc[this]=0
             set s__mouseMenu_onLeaveFunc[this]=0
+            set s__mouseMenu_onDestroyFunc[this]=0
+            set s__mouseMenu_simpleParent[this]=0
+            set s__mouseMenu_autoDestroy[this]=false
    return true
 endfunction
 function sa__mouseMenu_show takes nothing returns boolean
@@ -6013,9 +6184,6 @@ return true
 set f__result_integer= this
 return true
                 endif
-            endif
-            if ( falg and s__mouseMenu_highlight[this] == 0 ) then
-                set s__mouseMenu_highlight[this]=s__uiImage_show(s__uiImage_setTexture(s__uiImage_create(DzGetGameUI()),"ui\\image\\buttongrow.blp"),false)
             endif // 设置实际的显示/隐藏状态
             call s__uiImage_show(s__mouseMenu_menuFrame[this],flag)
 set f__result_integer= this
@@ -6142,37 +6310,62 @@ endfunction
 function sa___prototype25_UTMouseMenu___anon__0 takes nothing returns boolean
  local integer index=f__arg_integer1
 
-            call BJDebugMsg("[Simple菜单-进入] " + I2S(index))
+            call BJDebugMsg("[普通菜单-进入] " + I2S(index))
     return true
 endfunction
 function sa___prototype25_UTMouseMenu___anon__1 takes nothing returns boolean
  local integer index=f__arg_integer1
 
-            call BJDebugMsg("[Simple菜单-点击] " + I2S(index))
+            call BJDebugMsg("[普通菜单-点击] " + I2S(index))
     return true
 endfunction
 function sa___prototype25_UTMouseMenu___anon__2 takes nothing returns boolean
  local integer index=f__arg_integer1
 
-            call BJDebugMsg("[Simple菜单-离开] " + I2S(index))
+            call BJDebugMsg("[普通菜单-离开] " + I2S(index))
+    return true
+endfunction
+function sa___prototype25_UTMouseMenu___anon__3 takes nothing returns boolean
+ local integer index=f__arg_integer1
+
+            call BJDebugMsg("监控到删除事件")
+            set UTMouseMenu___menu=0
+    return true
+endfunction
+function sa___prototype25_UTMouseMenu___anon__4 takes nothing returns boolean
+ local integer index=f__arg_integer1
+
+            call BJDebugMsg("[技能菜单-进入] " + I2S(index))
+    return true
+endfunction
+function sa___prototype25_UTMouseMenu___anon__5 takes nothing returns boolean
+ local integer index=f__arg_integer1
+
+            call BJDebugMsg("[技能菜单-点击] " + I2S(index))
     return true
 endfunction
 function sa___prototype25_UTMouseMenu___anon__6 takes nothing returns boolean
  local integer index=f__arg_integer1
 
-                call BJDebugMsg("[右键菜单-进入] " + I2S(index))
+            call BJDebugMsg("[技能菜单-离开] " + I2S(index))
     return true
 endfunction
 function sa___prototype25_UTMouseMenu___anon__7 takes nothing returns boolean
  local integer index=f__arg_integer1
 
-                call BJDebugMsg("[右键菜单-点击] " + I2S(index))
+            call BJDebugMsg("[物品菜单-进入] " + I2S(index))
     return true
 endfunction
 function sa___prototype25_UTMouseMenu___anon__8 takes nothing returns boolean
  local integer index=f__arg_integer1
 
-                call BJDebugMsg("[右键菜单-离开] " + I2S(index))
+            call BJDebugMsg("[物品菜单-点击] " + I2S(index))
+    return true
+endfunction
+function sa___prototype25_UTMouseMenu___anon__9 takes nothing returns boolean
+ local integer index=f__arg_integer1
+
+            call BJDebugMsg("[物品菜单-离开] " + I2S(index))
     return true
 endfunction
 function sa___prototype26_s__mouseMenu_anon__0 takes nothing returns boolean
@@ -6284,7 +6477,7 @@ function sa___prototype25_s__spellBtns_anon__6 takes nothing returns boolean
     return true
 endfunction
 
-function jasshelper__initstructs24849890 takes nothing returns nothing
+function jasshelper__initstructs37307812 takes nothing returns nothing
     set st__icon_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__icon_onDestroy,Condition( function sa__icon_onDestroy))
     set st__progAnim_create=CreateTrigger()
@@ -6323,14 +6516,26 @@ function jasshelper__initstructs24849890 takes nothing returns nothing
     call TriggerAddAction(st___prototype25[9],function sa___prototype25_UTMouseMenu___anon__2)
     call TriggerAddCondition(st___prototype25[9],Condition(function sa___prototype25_UTMouseMenu___anon__2))
     set st___prototype25[10]=CreateTrigger()
-    call TriggerAddAction(st___prototype25[10],function sa___prototype25_UTMouseMenu___anon__6)
-    call TriggerAddCondition(st___prototype25[10],Condition(function sa___prototype25_UTMouseMenu___anon__6))
+    call TriggerAddAction(st___prototype25[10],function sa___prototype25_UTMouseMenu___anon__3)
+    call TriggerAddCondition(st___prototype25[10],Condition(function sa___prototype25_UTMouseMenu___anon__3))
     set st___prototype25[11]=CreateTrigger()
-    call TriggerAddAction(st___prototype25[11],function sa___prototype25_UTMouseMenu___anon__7)
-    call TriggerAddCondition(st___prototype25[11],Condition(function sa___prototype25_UTMouseMenu___anon__7))
+    call TriggerAddAction(st___prototype25[11],function sa___prototype25_UTMouseMenu___anon__4)
+    call TriggerAddCondition(st___prototype25[11],Condition(function sa___prototype25_UTMouseMenu___anon__4))
     set st___prototype25[12]=CreateTrigger()
-    call TriggerAddAction(st___prototype25[12],function sa___prototype25_UTMouseMenu___anon__8)
-    call TriggerAddCondition(st___prototype25[12],Condition(function sa___prototype25_UTMouseMenu___anon__8))
+    call TriggerAddAction(st___prototype25[12],function sa___prototype25_UTMouseMenu___anon__5)
+    call TriggerAddCondition(st___prototype25[12],Condition(function sa___prototype25_UTMouseMenu___anon__5))
+    set st___prototype25[13]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[13],function sa___prototype25_UTMouseMenu___anon__6)
+    call TriggerAddCondition(st___prototype25[13],Condition(function sa___prototype25_UTMouseMenu___anon__6))
+    set st___prototype25[14]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[14],function sa___prototype25_UTMouseMenu___anon__7)
+    call TriggerAddCondition(st___prototype25[14],Condition(function sa___prototype25_UTMouseMenu___anon__7))
+    set st___prototype25[15]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[15],function sa___prototype25_UTMouseMenu___anon__8)
+    call TriggerAddCondition(st___prototype25[15],Condition(function sa___prototype25_UTMouseMenu___anon__8))
+    set st___prototype25[16]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[16],function sa___prototype25_UTMouseMenu___anon__9)
+    call TriggerAddCondition(st___prototype25[16],Condition(function sa___prototype25_UTMouseMenu___anon__9))
     set st___prototype26[1]=CreateTrigger()
     call TriggerAddAction(st___prototype26[1],function sa___prototype26_s__mouseMenu_anon__0)
     call TriggerAddCondition(st___prototype26[1],Condition(function sa___prototype26_s__mouseMenu_anon__0))
@@ -6352,18 +6557,19 @@ function jasshelper__initstructs24849890 takes nothing returns nothing
     set st___prototype25[6]=CreateTrigger()
     call TriggerAddAction(st___prototype25[6],function sa___prototype25_s__mouseMenu_anon__7)
     call TriggerAddCondition(st___prototype25[6],Condition(function sa___prototype25_s__mouseMenu_anon__7))
-    set st___prototype25[13]=CreateTrigger()
-    call TriggerAddAction(st___prototype25[13],function sa___prototype25_s__spellBtns_anon__3)
-    call TriggerAddCondition(st___prototype25[13],Condition(function sa___prototype25_s__spellBtns_anon__3))
-    set st___prototype25[14]=CreateTrigger()
-    call TriggerAddAction(st___prototype25[14],function sa___prototype25_s__spellBtns_anon__4)
-    call TriggerAddCondition(st___prototype25[14],Condition(function sa___prototype25_s__spellBtns_anon__4))
-    set st___prototype25[15]=CreateTrigger()
-    call TriggerAddAction(st___prototype25[15],function sa___prototype25_s__spellBtns_anon__5)
-    call TriggerAddCondition(st___prototype25[15],Condition(function sa___prototype25_s__spellBtns_anon__5))
-    set st___prototype25[16]=CreateTrigger()
-    call TriggerAddAction(st___prototype25[16],function sa___prototype25_s__spellBtns_anon__6)
-    call TriggerAddCondition(st___prototype25[16],Condition(function sa___prototype25_s__spellBtns_anon__6))
+    set st___prototype25[17]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[17],function sa___prototype25_s__spellBtns_anon__3)
+    call TriggerAddCondition(st___prototype25[17],Condition(function sa___prototype25_s__spellBtns_anon__3))
+    set st___prototype25[18]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[18],function sa___prototype25_s__spellBtns_anon__4)
+    call TriggerAddCondition(st___prototype25[18],Condition(function sa___prototype25_s__spellBtns_anon__4))
+    set st___prototype25[19]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[19],function sa___prototype25_s__spellBtns_anon__5)
+    call TriggerAddCondition(st___prototype25[19],Condition(function sa___prototype25_s__spellBtns_anon__5))
+    set st___prototype25[20]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[20],function sa___prototype25_s__spellBtns_anon__6)
+    call TriggerAddCondition(st___prototype25[20],Condition(function sa___prototype25_s__spellBtns_anon__6))
+
 
 
 
@@ -6413,6 +6619,7 @@ function jasshelper__initstructs24849890 takes nothing returns nothing
     call ExecuteFunc("s__uilayer_onInit")
     call ExecuteFunc("s__mouseMenu_onInit")
     call ExecuteFunc("s__progAnim_onInit")
+    call ExecuteFunc("s__itemBtns_onInit")
     call ExecuteFunc("s__spellBtns_onInit")
 endfunction
 
