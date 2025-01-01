@@ -137,6 +137,8 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
                 uID            = 0;
             }
 
+            if (size <= 0) {BJDebugMsg("UIExtendResize: 位置重组器已销毁");}
+
         }
 
     }

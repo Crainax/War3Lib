@@ -2,6 +2,12 @@ globals
 //globals from BzAPI:
 constant boolean LIBRARY_BzAPI=true
 //endglobals from BzAPI
+//globals from ConversionUtils:
+constant boolean LIBRARY_ConversionUtils=true
+//endglobals from ConversionUtils
+//globals from GrowData:
+constant boolean LIBRARY_GrowData=true
+//endglobals from GrowData
 //globals from LBKKAPI:
 constant boolean LIBRARY_LBKKAPI=true
 string MOVE_TYPE_NONE= "none"
@@ -27,6 +33,9 @@ constant boolean LIBRARY_MapBoundsUtils=true
 //globals from MathUtils:
 constant boolean LIBRARY_MathUtils=true
 //endglobals from MathUtils
+//globals from UIAnimTimer:
+constant boolean LIBRARY_UIAnimTimer=true
+//endglobals from UIAnimTimer
 //globals from UIEventModule:
 constant boolean LIBRARY_UIEventModule=true
 //endglobals from UIEventModule
@@ -64,6 +73,9 @@ constant boolean LIBRARY_UITocInit=true
 //globals from UIUtils:
 constant boolean LIBRARY_UIUtils=true
 //endglobals from UIUtils
+//globals from BaseAnim:
+constant boolean LIBRARY_BaseAnim=true
+//endglobals from BaseAnim
 //globals from EscStack:
 constant boolean LIBRARY_EscStack=true
 //endglobals from EscStack
@@ -73,6 +85,12 @@ constant boolean LIBRARY_UIBaseModule=true
 //globals from UIExtendEvent:
 constant boolean LIBRARY_UIExtendEvent=true
 //endglobals from UIExtendEvent
+//globals from UIExtendResize:
+constant boolean LIBRARY_UIExtendResize=true
+//endglobals from UIExtendResize
+//globals from UILayer:
+constant boolean LIBRARY_UILayer=true
+//endglobals from UILayer
 //globals from UIBorder:
 constant boolean LIBRARY_UIBorder=true
 //endglobals from UIBorder
@@ -82,16 +100,31 @@ constant boolean LIBRARY_UIButton=true
 //globals from UIImage:
 constant boolean LIBRARY_UIImage=true
 //endglobals from UIImage
+//globals from UISprite:
+constant boolean LIBRARY_UISprite=true
+//endglobals from UISprite
 //globals from UIText:
 constant boolean LIBRARY_UIText=true
 //endglobals from UIText
 //globals from MouseMenu:
 constant boolean LIBRARY_MouseMenu=true
 //endglobals from MouseMenu
+//globals from ProgressAnim:
+constant boolean LIBRARY_ProgressAnim=true
+//endglobals from ProgressAnim
+//globals from Icon:
+constant boolean LIBRARY_Icon=true
+//endglobals from Icon
 //globals from UTMouseMenu:
 constant boolean LIBRARY_UTMouseMenu=true
 integer UTMouseMenu___menu=0
+boolean UTMouseMenu___isUpward=true
+boolean UTMouseMenu___isAutoDestroy=true
+integer UTMouseMenu___simpleMenu=0
 //endglobals from UTMouseMenu
+//globals from SpellBtns:
+constant boolean LIBRARY_SpellBtns=true
+//endglobals from SpellBtns
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -117,7 +150,12 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
-constant integer si__mapBounds=1
+constant integer si__growdata=1
+integer array s__growdata_max
+integer array s__growdata_gap
+real array s__growdata_scale
+string array s__growdata_path
+constant integer si__mapBounds=2
 integer si__mapBounds_F=0
 integer si__mapBounds_I=0
 integer array si__mapBounds_V
@@ -125,116 +163,283 @@ real s__mapBounds_maxX=0.
 real s__mapBounds_minX=0.
 real s__mapBounds_maxY=0.
 real s__mapBounds_minY=0.
-constant integer si__radiationEnd=2
+constant integer si__radiationEnd=3
 integer si__radiationEnd_F=0
 integer si__radiationEnd_I=0
 integer array si__radiationEnd_V
 real s__radiationEnd_x=0
 real s__radiationEnd_y=0
-constant integer si__UIHashTable___uiHT=3
+constant integer si__uianim=4
+integer si__uianim_F=0
+integer si__uianim_I=0
+integer array si__uianim_V
+integer array s__uianim_UIAList
+integer s__uianim_size=0
+trigger array s__uianim_trig
+integer array s__uianim_trID
+constant integer si__UIHashTable___uiHT=5
 integer array s__UIHashTable___uiHT_eventdata
 integer array s__UIHashTable___uiHT_ui
-constant integer si__UIHashTable___uiHTFrame=4
-constant integer si__UIHashTable___uiHTEvent=5
-constant integer si__uiId=6
+constant integer si__UIHashTable___uiHTFrame=6
+constant integer si__UIHashTable___uiHTEvent=7
+constant integer si__uiId=8
 hashtable s__uiId_ht
 integer s__uiId_nextId
 integer s__uiId_recycleCount
-constant integer si__uiLifeCycle=7
+constant integer si__uiLifeCycle=9
 integer s__uiLifeCycle_agrsUI=0
 integer s__uiLifeCycle_agrsTypeID=0
 integer s__uiLifeCycle_agrsFrame=0
 trigger s__uiLifeCycle_trCreate=null
 trigger s__uiLifeCycle_trDestroy=null
-constant integer si__assert=8
-constant integer si__hardware=9
+constant integer si__assert=10
+constant integer si__hardware=11
 trigger s__hardware_trWheel=null
 trigger s__hardware_trUpdate=null
 trigger s__hardware_trResize=null
 trigger s__hardware_trMove=null
-constant integer si__keyboard=10
+constant integer si__keyboard=12
 trigger array s__keyboard_trsDown
 trigger array s__keyboard_trsUp
 boolean array s__keyboard_isDown
-constant integer si__EscStack___EscStackData=11
+constant integer si__baseanim=13
+integer si__baseanim_F=0
+integer si__baseanim_I=0
+integer array si__baseanim_V
+integer array s__baseanim_DList
+integer array s__baseanim_MList
+integer array s__baseanim_AList
+integer array s__baseanim_ZList
+integer array s__baseanim_SList
+integer array s__baseanim_BList
+integer array s__baseanim_LList
+integer s__baseanim_DNum=0
+integer s__baseanim_MNum=0
+integer s__baseanim_ANum=0
+integer s__baseanim_ZNum=0
+integer s__baseanim_SNum=0
+integer s__baseanim_BNum=0
+integer s__baseanim_LNum=0
+integer s__baseanim_UIA=0
+integer s__baseanim_size=0
+integer array s__baseanim_ui
+integer array s__baseanim_dID
+integer array s__baseanim_dTime
+integer array s__baseanim_dNow
+integer array s__baseanim_align
+integer array s__baseanim_mTime
+integer array s__baseanim_mNow
+integer array s__baseanim_anchor1
+integer array s__baseanim_anchor2
+integer array s__baseanim_mID
+real array s__baseanim_dist
+real array s__baseanim_off
+real array s__baseanim_angle
+integer array s__baseanim_aID
+integer array s__baseanim_aStart
+integer array s__baseanim_aTar
+integer array s__baseanim_aTime
+integer array s__baseanim_aNow
+integer array s__baseanim_zID
+integer array s__baseanim_zTime
+integer array s__baseanim_zNow
+real array s__baseanim_zStartX
+real array s__baseanim_zTarX
+real array s__baseanim_zStartY
+real array s__baseanim_zTarY
+string array s__baseanim_sPath
+integer array s__baseanim_sID
+integer array s__baseanim_sMax
+integer array s__baseanim_sPos
+integer array s__baseanim_sGap
+integer array s__baseanim_sGapPos
+boolean array s__baseanim_sLoop
+integer array s__baseanim_bID
+integer array s__baseanim_bPeriod
+integer array s__baseanim_bTime
+integer array s__baseanim_bStart
+boolean array s__baseanim_bOrient
+integer array s__baseanim_lID
+integer array s__baseanim_lPeriod
+integer array s__baseanim_lTime
+integer array s__baseanim_lCB
+constant integer si__EscStack___EscStackData=14
 integer si__EscStack___EscStackData_F=0
 integer si__EscStack___EscStackData_I=0
 integer array si__EscStack___EscStackData_V
 integer array s__EscStack___EscStackData_func
 integer array s__EscStack___EscStackData_prev
 integer array s__EscStack___EscStackData_id
-constant integer si__escStack=12
+constant integer si__escStack=15
 integer si__escStack_F=0
 integer si__escStack_I=0
 integer array si__escStack_V
 integer s__escStack_top=0
 integer s__escStack_size=0
 integer s__escStack_nextId=1
-constant integer si__uiEventState=13
+constant integer si__uiEventState=16
 boolean s__uiEventState_rcStart=false
 integer s__uiEventState_uiId=0
-constant integer si__uiBorder=14
+constant integer si__resizer=17
+integer si__resizer_F=0
+integer si__resizer_I=0
+integer array si__resizer_V
+integer array s__resizer_List
+integer s__resizer_size=0
+integer array s__resizer_frame
+real array s__resizer_width
+real array s__resizer_height
+integer array s__resizer_uID
+constant integer si__rePointer=18
+integer si__rePointer_F=0
+integer si__rePointer_I=0
+integer array si__rePointer_V
+integer array s__rePointer_List
+integer s__rePointer_size=0
+integer array s__rePointer_frame
+integer array s__rePointer_anchor
+integer array s__rePointer_relative
+integer array s__rePointer_relativeAnchor
+real array s__rePointer_offsetX
+real array s__rePointer_offsetY
+integer array s__rePointer_uID
+constant integer si__uilayer=19
+integer array s__uilayer_lv
+constant integer si__uiBorder=20
 integer si__uiBorder_F=0
 integer si__uiBorder_I=0
 integer array si__uiBorder_V
 integer array s__uiBorder_ui
 integer array s__uiBorder_id
-constant integer si__uiBtn=15
+constant integer si__uiBtn=21
 integer si__uiBtn_F=0
 integer si__uiBtn_I=0
 integer array si__uiBtn_V
 integer array s__uiBtn_ui
 integer array s__uiBtn_id
-constant integer si__uiImage=16
+constant integer si__uiImage=22
 integer si__uiImage_F=0
 integer si__uiImage_I=0
 integer array si__uiImage_V
 integer array s__uiImage_ui
 integer array s__uiImage_id
-constant integer si__uiText=17
+constant integer si__uiSprite=23
+integer si__uiSprite_F=0
+integer si__uiSprite_I=0
+integer array si__uiSprite_V
+integer array s__uiSprite_ui
+integer array s__uiSprite_id
+constant integer si__uiText=24
 integer si__uiText_F=0
 integer si__uiText_I=0
 integer array si__uiText_V
 integer array s__uiText_ui
 integer array s__uiText_id
-constant integer si__menuItem=18
+constant integer si__menuItem=25
 integer si__menuItem_F=0
 integer si__menuItem_I=0
 integer array si__menuItem_V
 integer array s__menuItem_btn
 integer array s__menuItem_text
 integer array s__menuItem_background
-integer array s__menuItem_highlight
 integer array s__menuItem_index
-integer array s__menuItem_parent
-constant integer si__mouseMenu=19
+constant integer si__mouseMenu=26
 integer si__mouseMenu_F=0
 integer si__mouseMenu_I=0
 integer array si__mouseMenu_V
 integer array s__mouseMenu_menuFrame
-real array s__mouseMenu_menuWidth
+boolean array s__mouseMenu_autoDestroy
 integer array s___mouseMenu_items
 constant integer s___mouseMenu_items_size=20
 integer array s__mouseMenu_items
 integer array s__mouseMenu_itemCount
 boolean array s__mouseMenu_isUpward
+integer array s__mouseMenu_highlight
+real array s__mouseMenu_menuWidth
 integer array s__mouseMenu_onClickFunc
 integer array s__mouseMenu_onEnterFunc
 integer array s__mouseMenu_onLeaveFunc
 integer s__mouseMenu_currentMenu=0
 integer s__mouseMenu_escStackId=0
+integer array s__mouseMenu_simpleParent
+constant integer si__progAnim=28
+integer si__progAnim_F=0
+integer si__progAnim_I=0
+integer array si__progAnim_V
+integer array s__progAnim_List
+integer s__progAnim_size=0
+integer s__progAnim_UIA=0
+integer array s__progAnim_sprite
+real array s__progAnim_from
+real array s__progAnim_to
+integer array s__progAnim_time
+integer array s__progAnim_now
+integer array s__progAnim_id
+integer array s__progAnim_cb
+constant integer si__icon=29
+integer si__icon_F=0
+integer si__icon_I=0
+integer array si__icon_V
+integer array s__icon_mainImage
+integer array s__icon_shadowImage
+integer array s__icon_cornerShade
+integer array s__icon_glowImage
+integer array s__icon_cornerText
+integer array s__icon_clickBtn
+integer array s__icon_cdSprite
+integer array s__icon_parent
+integer array s__icon_glowAnim
+integer array s__icon_gd
+real array s__icon_sizeX
+real array s__icon_sizeY
+boolean array s__icon_isResize
+boolean array s__icon_isSimple
+integer array s__icon_spAnchor
+integer array s__icon_spRelative
+integer array s__icon_spRelativeAnchor
+real array s__icon_spOffsetX
+real array s__icon_spOffsetY
+integer array s__icon_cdSpriteImage
+constant integer si__spellBtns=30
+integer si__spellBtns_F=0
+integer si__spellBtns_I=0
+integer array si__spellBtns_V
+integer s__spellBtns_argsRow=0
+integer s__spellBtns_argsCol=0
+integer s__spellBtns_shadeImg=0
+integer s__spellBtns_shadeBtn=0
+trigger s__spellBtns_trEnter=null
+trigger s__spellBtns_trLeave=null
+trigger s__spellBtns_trClick=null
+trigger s__spellBtns_trRightClick=null
+integer s__spellBtns_mousePos=0
+boolean s__spellBtns_rcStartOnUI=false
+integer s__spellBtns_rcStartPos=0
+integer array s__s__spellBtns_grid
+integer array s__s__spellBtns_icons
+trigger st__baseanim_onDestroy
+trigger st__resizer_onDestroy
+trigger st__rePointer_onDestroy
 trigger st__uiBorder_onDestroy
 trigger st__uiBtn_onDestroy
 trigger st__uiImage_onDestroy
+trigger st__uiSprite_onDestroy
 trigger st__uiText_onDestroy
 trigger st__menuItem_onDestroy
 trigger st__mouseMenu_onDestroy
 trigger st__mouseMenu_show
-trigger array st___prototype21
-trigger array st___prototype22
+trigger st__progAnim_create
+trigger st__progAnim_onDestroy
+trigger st__icon_onDestroy
+trigger array st___prototype25
+trigger array st___prototype26
 boolean f__arg_boolean1
-player f__arg_player1
 integer f__arg_integer1
+integer f__arg_integer2
+integer f__arg_integer3
+real f__arg_real1
+real f__arg_real2
+player f__arg_player1
 integer f__arg_this
 integer f__result_integer
 
@@ -485,35 +690,124 @@ endglobals
         native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
 
-//Generated allocator of mapBounds
-function s__mapBounds__allocate takes nothing returns integer
- local integer this=si__mapBounds_F
+//Generated allocator of spellBtns
+function s__spellBtns__allocate takes nothing returns integer
+ local integer this=si__spellBtns_F
     if (this!=0) then
-        set si__mapBounds_F=si__mapBounds_V[this]
+        set si__spellBtns_F=si__spellBtns_V[this]
     else
-        set si__mapBounds_I=si__mapBounds_I+1
-        set this=si__mapBounds_I
+        set si__spellBtns_I=si__spellBtns_I+1
+        set this=si__spellBtns_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: mapBounds")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: spellBtns")
         return 0
     endif
 
-    set si__mapBounds_V[this]=-1
+    set si__spellBtns_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of mapBounds
-function s__mapBounds_deallocate takes integer this returns nothing
+//Generated destructor of spellBtns
+function s__spellBtns_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: mapBounds")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: spellBtns")
         return
-    elseif (si__mapBounds_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: mapBounds")
+    elseif (si__spellBtns_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: spellBtns")
         return
     endif
-    set si__mapBounds_V[this]=si__mapBounds_F
-    set si__mapBounds_F=this
+    set si__spellBtns_V[this]=si__spellBtns_F
+    set si__spellBtns_F=this
+endfunction
+
+//Generated method caller for icon.onDestroy
+function sc__icon_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__icon_onDestroy)
+endfunction
+
+//Generated allocator of icon
+function s__icon__allocate takes nothing returns integer
+ local integer this=si__icon_F
+    if (this!=0) then
+        set si__icon_F=si__icon_V[this]
+    else
+        set si__icon_I=si__icon_I+1
+        set this=si__icon_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: icon")
+        return 0
+    endif
+
+    set si__icon_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of icon
+function sc__icon_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: icon")
+        return
+    elseif (si__icon_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: icon")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__icon_onDestroy)
+    set si__icon_V[this]=si__icon_F
+    set si__icon_F=this
+endfunction
+
+//Generated method caller for progAnim.create
+function sc__progAnim_create takes integer sprite,real from,real to,integer time,integer cb returns integer
+    set f__arg_integer1=sprite
+    set f__arg_real1=from
+    set f__arg_real2=to
+    set f__arg_integer2=time
+    set f__arg_integer3=cb
+    call TriggerEvaluate(st__progAnim_create)
+ return f__result_integer
+endfunction
+
+//Generated method caller for progAnim.onDestroy
+function sc__progAnim_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__progAnim_onDestroy)
+endfunction
+
+//Generated allocator of progAnim
+function s__progAnim__allocate takes nothing returns integer
+ local integer this=si__progAnim_F
+    if (this!=0) then
+        set si__progAnim_F=si__progAnim_V[this]
+    else
+        set si__progAnim_I=si__progAnim_I+1
+        set this=si__progAnim_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: progAnim")
+        return 0
+    endif
+
+    set si__progAnim_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of progAnim
+function sc__progAnim_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: progAnim")
+        return
+    elseif (si__progAnim_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: progAnim")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__progAnim_onDestroy)
+    set si__progAnim_V[this]=si__progAnim_F
+    set si__progAnim_F=this
 endfunction
 
 //Generated method caller for mouseMenu.onDestroy
@@ -641,6 +935,45 @@ function sc__uiText_deallocate takes integer this returns nothing
     set si__uiText_F=this
 endfunction
 
+//Generated method caller for uiSprite.onDestroy
+function sc__uiSprite_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiSprite_onDestroy)
+endfunction
+
+//Generated allocator of uiSprite
+function s__uiSprite__allocate takes nothing returns integer
+ local integer this=si__uiSprite_F
+    if (this!=0) then
+        set si__uiSprite_F=si__uiSprite_V[this]
+    else
+        set si__uiSprite_I=si__uiSprite_I+1
+        set this=si__uiSprite_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uiSprite")
+        return 0
+    endif
+
+    set si__uiSprite_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of uiSprite
+function sc__uiSprite_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSprite")
+        return
+    elseif (si__uiSprite_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSprite")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__uiSprite_onDestroy)
+    set si__uiSprite_V[this]=si__uiSprite_F
+    set si__uiSprite_F=this
+endfunction
+
 //Generated method caller for uiImage.onDestroy
 function sc__uiImage_onDestroy takes integer this returns nothing
     set f__arg_this=this
@@ -758,6 +1091,84 @@ function sc__uiBorder_deallocate takes integer this returns nothing
     set si__uiBorder_F=this
 endfunction
 
+//Generated method caller for rePointer.onDestroy
+function sc__rePointer_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__rePointer_onDestroy)
+endfunction
+
+//Generated allocator of rePointer
+function s__rePointer__allocate takes nothing returns integer
+ local integer this=si__rePointer_F
+    if (this!=0) then
+        set si__rePointer_F=si__rePointer_V[this]
+    else
+        set si__rePointer_I=si__rePointer_I+1
+        set this=si__rePointer_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: rePointer")
+        return 0
+    endif
+
+    set si__rePointer_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of rePointer
+function sc__rePointer_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: rePointer")
+        return
+    elseif (si__rePointer_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: rePointer")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__rePointer_onDestroy)
+    set si__rePointer_V[this]=si__rePointer_F
+    set si__rePointer_F=this
+endfunction
+
+//Generated method caller for resizer.onDestroy
+function sc__resizer_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__resizer_onDestroy)
+endfunction
+
+//Generated allocator of resizer
+function s__resizer__allocate takes nothing returns integer
+ local integer this=si__resizer_F
+    if (this!=0) then
+        set si__resizer_F=si__resizer_V[this]
+    else
+        set si__resizer_I=si__resizer_I+1
+        set this=si__resizer_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: resizer")
+        return 0
+    endif
+
+    set si__resizer_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of resizer
+function sc__resizer_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: resizer")
+        return
+    elseif (si__resizer_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: resizer")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__resizer_onDestroy)
+    set si__resizer_V[this]=si__resizer_F
+    set si__resizer_F=this
+endfunction
+
 //Generated allocator of escStack
 function s__escStack__allocate takes nothing returns integer
  local integer this=si__escStack_F
@@ -820,6 +1231,76 @@ function s__EscStack___EscStackData_deallocate takes integer this returns nothin
     set si__EscStack___EscStackData_F=this
 endfunction
 
+//Generated method caller for baseanim.onDestroy
+function sc__baseanim_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__baseanim_onDestroy)
+endfunction
+
+//Generated allocator of baseanim
+function s__baseanim__allocate takes nothing returns integer
+ local integer this=si__baseanim_F
+    if (this!=0) then
+        set si__baseanim_F=si__baseanim_V[this]
+    else
+        set si__baseanim_I=si__baseanim_I+1
+        set this=si__baseanim_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: baseanim")
+        return 0
+    endif
+
+    set si__baseanim_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of baseanim
+function sc__baseanim_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: baseanim")
+        return
+    elseif (si__baseanim_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: baseanim")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__baseanim_onDestroy)
+    set si__baseanim_V[this]=si__baseanim_F
+    set si__baseanim_F=this
+endfunction
+
+//Generated allocator of uianim
+function s__uianim__allocate takes nothing returns integer
+ local integer this=si__uianim_F
+    if (this!=0) then
+        set si__uianim_F=si__uianim_V[this]
+    else
+        set si__uianim_I=si__uianim_I+1
+        set this=si__uianim_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: uianim")
+        return 0
+    endif
+
+    set si__uianim_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of uianim
+function s__uianim_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uianim")
+        return
+    elseif (si__uianim_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uianim")
+        return
+    endif
+    set si__uianim_V[this]=si__uianim_F
+    set si__uianim_F=this
+endfunction
+
 //Generated allocator of radiationEnd
 function s__radiationEnd__allocate takes nothing returns integer
  local integer this=si__radiationEnd_F
@@ -850,26 +1331,57 @@ function s__radiationEnd_deallocate takes integer this returns nothing
     set si__radiationEnd_V[this]=si__radiationEnd_F
     set si__radiationEnd_F=this
 endfunction
-function sc___prototype21_execute takes integer i,player a1 returns nothing
-    set f__arg_player1=a1
 
-    call TriggerExecute(st___prototype21[i])
+//Generated allocator of mapBounds
+function s__mapBounds__allocate takes nothing returns integer
+ local integer this=si__mapBounds_F
+    if (this!=0) then
+        set si__mapBounds_F=si__mapBounds_V[this]
+    else
+        set si__mapBounds_I=si__mapBounds_I+1
+        set this=si__mapBounds_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: mapBounds")
+        return 0
+    endif
+
+    set si__mapBounds_V[this]=-1
+ return this
 endfunction
-function sc___prototype21_evaluate takes integer i,player a1 returns nothing
-    set f__arg_player1=a1
 
-    call TriggerEvaluate(st___prototype21[i])
-
+//Generated destructor of mapBounds
+function s__mapBounds_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: mapBounds")
+        return
+    elseif (si__mapBounds_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: mapBounds")
+        return
+    endif
+    set si__mapBounds_V[this]=si__mapBounds_F
+    set si__mapBounds_F=this
 endfunction
-function sc___prototype22_execute takes integer i,integer a1 returns nothing
+function sc___prototype25_execute takes integer i,integer a1 returns nothing
     set f__arg_integer1=a1
 
-    call TriggerExecute(st___prototype22[i])
+    call TriggerExecute(st___prototype25[i])
 endfunction
-function sc___prototype22_evaluate takes integer i,integer a1 returns nothing
+function sc___prototype25_evaluate takes integer i,integer a1 returns nothing
     set f__arg_integer1=a1
 
-    call TriggerEvaluate(st___prototype22[i])
+    call TriggerEvaluate(st___prototype25[i])
+
+endfunction
+function sc___prototype26_execute takes integer i,player a1 returns nothing
+    set f__arg_player1=a1
+
+    call TriggerExecute(st___prototype26[i])
+endfunction
+function sc___prototype26_evaluate takes integer i,player a1 returns nothing
+    set f__arg_player1=a1
+
+    call TriggerEvaluate(st___prototype26[i])
 
 endfunction
 
@@ -1094,6 +1606,61 @@ endfunction
     
 
 //library BzAPI ends
+//library ConversionUtils:
+    function B2S takes boolean b returns string
+        if ( b ) then
+            return "true"
+        else
+            return "false"
+        endif
+    endfunction  //三目运算符
+    function S3 takes boolean b,string s1,string s2 returns string
+        if ( b ) then
+            return s1
+        else
+            return s2
+        endif
+    endfunction  //三目运算符
+    function I3 takes boolean b,integer i1,integer i2 returns integer
+        if ( b ) then
+            return i1
+        else
+            return i2
+        endif
+    endfunction  //三目运算符
+    function R3 takes boolean b,real r1,real r2 returns real
+        if ( b ) then
+            return r1
+        else
+            return r2
+        endif
+    endfunction  // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    function GetIDSymbol takes integer pos returns integer
+        local integer bit=pos / 36
+        set pos=ModuloInteger(pos, 36)
+        if ( pos < 10 ) then
+            return pos + bit * 256
+        else
+            return '000a' - '0000' + pos - 10 + bit * 256
+        endif
+    endfunction  // 将魔兽的四字符ID转换回对应数字
+    function GetSymbolID takes integer s returns integer
+        local integer i1=s / 256
+        local integer i2=ModuloInteger(s, 256)
+        if ( i2 < 10 ) then
+            return i1 * 36 + i2
+        else
+            return i2 - '000a' + '0000' + 10 + i1 * 36
+        endif
+    endfunction
+
+//library ConversionUtils ends
+//library GrowData:
+        //public:  //帧数周期
+        function s__growdata_onInit takes nothing returns nothing
+        endfunction
+
+//library GrowData ends
 //library LBKKAPI:
 
 
@@ -1418,6 +1985,66 @@ endfunction
         endfunction
 
 //library MathUtils ends
+//library UIAnimTimer:
+        function s__uianim_isExist takes integer this returns boolean
+            return ( this != null and si__uianim_V[this] == - 1 )
+        endfunction
+        function s__uianim_create takes code fun returns integer
+            local integer this=s__uianim__allocate()
+            set s__uianim_trig[this]=CreateTrigger()
+            call TriggerAddCondition(s__uianim_trig[this], Condition(fun))
+            return this
+        endfunction  //动画启动,可重复调用
+        function s__uianim_reg takes integer this returns nothing
+            if ( not ( s__uianim_isExist(this) ) ) then
+                return
+            endif
+            if ( s__uianim_trID[this] == 0 ) then
+                set s__uianim_size=s__uianim_size + 1
+                set s__uianim_UIAList[s__uianim_size]=this
+                set s__uianim_trID[this]=s__uianim_size
+            endif
+        endfunction  //关
+        function s__uianim_unreg takes integer this returns nothing
+            if ( s__uianim_trID[this] != 0 ) then //这个其实就是将List的[2]设成5  假设2是删  5是最长
+                set s__uianim_UIAList[s__uianim_trID[this]]=s__uianim_UIAList[s__uianim_size] //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立) //但是实例[2]本身的内容已经被清除 循环读的是List不受影响(虽然List[5]还是5但是无影响)
+                set s__uianim_trID[s__uianim_UIAList[s__uianim_trID[this]]]=s__uianim_trID[this]
+                set s__uianim_size=s__uianim_size - 1
+                set s__uianim_trID[this]=0
+            endif
+        endfunction  //共享打印方法
+        function s__uianim_toString takes nothing returns string
+            local string s=I2S(s__uianim_size) + "个:"
+            local integer i
+            set i=1
+            loop
+            exitwhen ( i > s__uianim_size )
+                set s=s + "[" + I2S(i) + "]|r" + I2S(s__uianim_UIAList[i]) + "->"
+            set i=i + 1
+            endloop
+            set s=s + "/"
+            return s
+        endfunction
+            function s__uianim_anon__0 takes nothing returns nothing
+                local integer i
+                local integer this
+                if ( s__uianim_size > 0 ) then
+                    set i=1
+                    loop
+                    exitwhen ( i > s__uianim_size )
+                        set this=s__uianim_UIAList[i] //这里可以设置一个静态成员来传参获得是第几个uia
+                        call TriggerEvaluate(s__uianim_trig[this])
+                    set i=i + 1
+                    endloop
+                endif
+            endfunction
+        function s__uianim_onInit takes nothing returns nothing
+            local timer t=CreateTimer()
+            call TimerStart(t, 0.02, true, function s__uianim_anon__0)
+            set t=null
+        endfunction
+
+//library UIAnimTimer ends
 //library UIEventModule:
 
 //library UIEventModule ends
@@ -1748,6 +2375,408 @@ endfunction
     endfunction
 
 //library UIUtils ends
+//library BaseAnim:
+//processed:     function interface onLifeEnd takes baseanim arg0 returns nothing
+        function s__baseanim_isExist takes integer this returns boolean
+            return ( this != null and si__baseanim_V[this] == - 1 )
+        endfunction
+        function s__baseanim_create takes integer ui returns integer
+            local integer this=s__baseanim__allocate()
+            set s__baseanim_ui[this]=ui
+            call SaveInteger(HASH_UI, ui, 1822, this) //统计数量++
+            set s__baseanim_size=s__baseanim_size + 1
+            return this
+        endfunction  //延迟组
+        function s__baseanim_addDelay takes integer this,integer time returns nothing
+            if ( time <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_dTime[this]=time
+            set s__baseanim_dNow[this]=0 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_dID[this] == 0 ) then
+                set s__baseanim_DNum=s__baseanim_DNum + 1
+                set s__baseanim_DList[s__baseanim_DNum]=this
+                set s__baseanim_dID[this]=s__baseanim_DNum
+            endif //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delDelay takes integer this returns nothing
+            if ( s__baseanim_dID[this] != 0 ) then
+                set s__baseanim_DList[s__baseanim_dID[this]]=s__baseanim_DList[s__baseanim_DNum]
+                set s__baseanim_dID[s__baseanim_DList[s__baseanim_dID[this]]]=s__baseanim_dID[this]
+                set s__baseanim_DNum=s__baseanim_DNum - 1
+                set s__baseanim_dID[this]=0
+            endif
+        endfunction  //移动组
+        function s__baseanim_addMove takes integer this,integer align,real off,real dist,integer time,real angle,integer anchor1,integer anchor2 returns nothing
+            if ( dist <= 0. or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_align[this]=align
+            set s__baseanim_dist[this]=dist
+            set s__baseanim_off[this]=off
+            set s__baseanim_mTime[this]=time
+            set s__baseanim_mNow[this]=0
+            set s__baseanim_angle[this]=angle
+            set s__baseanim_anchor1[this]=anchor1
+            set s__baseanim_anchor2[this]=anchor2 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_mID[this] == 0 ) then
+                set s__baseanim_MNum=s__baseanim_MNum + 1
+                set s__baseanim_MList[s__baseanim_MNum]=this
+                set s__baseanim_mID[this]=s__baseanim_MNum
+            endif
+            call DzFrameSetPoint(s__baseanim_ui[this], anchor1, align, anchor2, CosBJ(angle) * off, SinBJ(angle) * off) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delMove takes integer this returns nothing
+            if ( s__baseanim_mID[this] != 0 ) then
+                set s__baseanim_MList[s__baseanim_mID[this]]=s__baseanim_MList[s__baseanim_MNum]
+                set s__baseanim_mID[s__baseanim_MList[s__baseanim_mID[this]]]=s__baseanim_mID[this]
+                set s__baseanim_MNum=s__baseanim_MNum - 1
+                set s__baseanim_mID[this]=0
+            endif
+        endfunction  //透明组
+        function s__baseanim_addAlpha takes integer this,integer start,integer tar,integer time returns nothing
+            if ( time <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_aStart[this]=start
+            set s__baseanim_aTar[this]=tar
+            set s__baseanim_aTime[this]=time
+            set s__baseanim_aNow[this]=0 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_aID[this] == 0 ) then
+                set s__baseanim_ANum=s__baseanim_ANum + 1
+                set s__baseanim_AList[s__baseanim_ANum]=this
+                set s__baseanim_aID[this]=s__baseanim_ANum
+            endif //这个不能设置的原因是有可能有2个一起设置，存在延迟;
+            call DzFrameSetAlpha(s__baseanim_ui[this], start) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delAlpha takes integer this returns nothing
+            if ( s__baseanim_aID[this] != 0 ) then
+                set s__baseanim_AList[s__baseanim_aID[this]]=s__baseanim_AList[s__baseanim_ANum]
+                set s__baseanim_aID[s__baseanim_AList[s__baseanim_aID[this]]]=s__baseanim_aID[this]
+                set s__baseanim_ANum=s__baseanim_ANum - 1
+                set s__baseanim_aID[this]=0
+            endif
+        endfunction  //放大组[垃圾scale还是用size香]
+        function s__baseanim_addZoom takes integer this,real startX,real tarX,real startY,real tarY,integer time returns nothing
+            if ( time <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_zStartX[this]=startX
+            set s__baseanim_zTarX[this]=tarX
+            set s__baseanim_zStartY[this]=startY
+            set s__baseanim_zTarY[this]=tarY
+            set s__baseanim_zTime[this]=time
+            set s__baseanim_zNow[this]=0 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_zID[this] == 0 ) then
+                set s__baseanim_ZNum=s__baseanim_ZNum + 1
+                set s__baseanim_ZList[s__baseanim_ZNum]=this
+                set s__baseanim_zID[this]=s__baseanim_ZNum
+            endif
+            call DzFrameSetSize(s__baseanim_ui[this], startX, startY) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delZoom takes integer this returns nothing
+            if ( s__baseanim_zID[this] != 0 ) then
+                set s__baseanim_ZList[s__baseanim_zID[this]]=s__baseanim_ZList[s__baseanim_ZNum]
+                set s__baseanim_zID[s__baseanim_ZList[s__baseanim_zID[this]]]=s__baseanim_zID[this]
+                set s__baseanim_ZNum=s__baseanim_ZNum - 1
+                set s__baseanim_zID[this]=0
+            endif
+        endfunction  //序列组(永恒序列/一次性序列)
+        function s__baseanim_addSequ takes integer this,string path,integer maxFrame,integer interval,boolean isL returns nothing
+            if ( maxFrame <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_sPath[this]=path //路径; //最大帧数;
+            set s__baseanim_sMax[this]=maxFrame //当前帧;
+            set s__baseanim_sPos[this]=0 //帧间隔;
+            set s__baseanim_sGap[this]=interval //帧间隔;
+            set s__baseanim_sGapPos[this]=0 //是否循环;
+            set s__baseanim_sLoop[this]=isL //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_sID[this] == 0 ) then
+                set s__baseanim_SNum=s__baseanim_SNum + 1
+                set s__baseanim_SList[s__baseanim_SNum]=this
+                set s__baseanim_sID[this]=s__baseanim_SNum
+            endif
+            call DzFrameSetTexture(s__baseanim_ui[this], s__baseanim_sPath[this] + "0.blp", 0) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delSequ takes integer this returns nothing
+            set s__baseanim_sPath[this]=null
+            if ( s__baseanim_sID[this] != 0 ) then
+                set s__baseanim_SList[s__baseanim_sID[this]]=s__baseanim_SList[s__baseanim_SNum]
+                set s__baseanim_sID[s__baseanim_SList[s__baseanim_sID[this]]]=s__baseanim_sID[this]
+                set s__baseanim_SNum=s__baseanim_SNum - 1
+                set s__baseanim_sID[this]=0
+            endif
+        endfunction  //闪烁组
+        function s__baseanim_addBlink takes integer this,integer start,integer period returns nothing
+            if ( period <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_bStart[this]=start
+            set s__baseanim_bOrient[this]=false
+            set s__baseanim_bPeriod[this]=period
+            set s__baseanim_bTime[this]=0 //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_bID[this] == 0 ) then
+                set s__baseanim_BNum=s__baseanim_BNum + 1
+                set s__baseanim_BList[s__baseanim_BNum]=this
+                set s__baseanim_bID[this]=s__baseanim_BNum
+            endif
+            call DzFrameSetAlpha(s__baseanim_ui[this], start) //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delBlink takes integer this returns nothing
+            if ( s__baseanim_bID[this] != 0 ) then
+                set s__baseanim_BList[s__baseanim_bID[this]]=s__baseanim_BList[s__baseanim_BNum]
+                set s__baseanim_bID[s__baseanim_BList[s__baseanim_bID[this]]]=s__baseanim_bID[this]
+                set s__baseanim_BNum=s__baseanim_BNum - 1
+                set s__baseanim_bID[this]=0
+            endif
+        endfunction  //生命周期组
+        function s__baseanim_addLife takes integer this,integer period,integer lCB returns nothing
+            if ( period <= 0 or ( not ( s__baseanim_isExist(this) ) ) ) then //数据设置都放这
+                return
+            endif
+            set s__baseanim_lPeriod[this]=period
+            set s__baseanim_lTime[this]=0
+            set s__baseanim_lCB[this]=lCB //这里是初始化时的设置内容,不需要改
+            if ( s__baseanim_lID[this] == 0 ) then
+                set s__baseanim_LNum=s__baseanim_LNum + 1
+                set s__baseanim_LList[s__baseanim_LNum]=this
+                set s__baseanim_lID[this]=s__baseanim_LNum
+            endif //Add了后就调用了这个自动开始
+            call s__uianim_reg(s__baseanim_UIA)
+        endfunction
+        function s__baseanim_delLife takes integer this returns nothing
+            set s__baseanim_lTime[this]=0
+            if ( s__baseanim_lID[this] != 0 ) then //这里开始删ui
+                if ( s__baseanim_ui[this] != 0 and s__baseanim_lCB[this] != 0 ) then //因为会自动排泄,防止在回调删UI的时候继续再调用一次
+                    call RemoveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822)
+                    call sc___prototype25_evaluate(s__baseanim_lCB[this],this)
+                endif
+                set s__baseanim_LList[s__baseanim_lID[this]]=s__baseanim_LList[s__baseanim_LNum]
+                set s__baseanim_lID[s__baseanim_LList[s__baseanim_lID[this]]]=s__baseanim_lID[this]
+                set s__baseanim_LNum=s__baseanim_LNum - 1
+                set s__baseanim_lID[this]=0
+            endif
+        endfunction  //析构,手动调用或者生命周期结束时自动调用
+        function s__baseanim_onDestroy takes integer this returns nothing
+            if ( not ( s__baseanim_isExist(this) ) ) then
+                return
+            endif
+            call s__baseanim_delDelay(this)
+            call s__baseanim_delMove(this)
+            call s__baseanim_delZoom(this)
+            call s__baseanim_delAlpha(this)
+            call s__baseanim_delSequ(this)
+            call s__baseanim_delBlink(this)
+            call s__baseanim_delLife(this)
+            if ( HaveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822) ) then
+                call RemoveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822)
+            endif
+            set s__baseanim_ui[this]=0 //统计数量--
+            set s__baseanim_size=s__baseanim_size - 1
+        endfunction  //查看当前的东西
+
+//Generated destructor of baseanim
+function s__baseanim_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: baseanim")
+        return
+    elseif (si__baseanim_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: baseanim")
+        return
+    endif
+    call s__baseanim_onDestroy(this)
+    set si__baseanim_V[this]=si__baseanim_F
+    set si__baseanim_F=this
+endfunction
+        function s__baseanim_toString takes nothing returns string
+            local string s=""
+            set s=s + "[DNum]" + I2S(s__baseanim_DNum) + "->"
+            set s=s + "[MNum]" + I2S(s__baseanim_MNum) + "->"
+            set s=s + "[ANum]" + I2S(s__baseanim_ANum) + "->"
+            set s=s + "[ZNum]" + I2S(s__baseanim_ZNum) + "->"
+            set s=s + "[SNum]" + I2S(s__baseanim_SNum) + "->"
+            set s=s + "[BNum]" + I2S(s__baseanim_BNum) + "->"
+            set s=s + "[LNum]" + I2S(s__baseanim_LNum)
+            return s
+        endfunction
+            function s__baseanim_anon__0 takes nothing returns nothing
+                local integer i
+                local integer this
+                local real r
+                if ( s__baseanim_DNum > 0 ) then
+                    set i=1 //从结论来说i就是dID
+                    loop
+                    exitwhen ( i > s__baseanim_DNum )
+                        set this=s__baseanim_DList[i]
+                        set s__baseanim_dNow[this]=s__baseanim_dNow[this] + 1 //结束了
+                        if ( s__baseanim_dNow[this] >= s__baseanim_dTime[this] ) then
+                            set s__baseanim_DList[i]=s__baseanim_DList[s__baseanim_DNum]
+                            set s__baseanim_dID[s__baseanim_DList[i]]=i
+                            set s__baseanim_DNum=s__baseanim_DNum - 1
+                            set s__baseanim_dID[this]=0
+                            set i=i - 1
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //移动
+                if ( s__baseanim_MNum > 0 ) then
+                    set i=1 //从结论来说i就是mID
+                    loop
+                    exitwhen ( i > s__baseanim_MNum )
+                        set this=s__baseanim_MList[i]
+                        if ( s__baseanim_dID[this] == 0 ) then //结束了
+                            if ( s__baseanim_mNow[this] >= s__baseanim_mTime[this] ) then
+                                call DzFrameClearAllPoints(s__baseanim_ui[this])
+                                call DzFrameSetPoint(s__baseanim_ui[this], s__baseanim_anchor1[this], s__baseanim_align[this], s__baseanim_anchor2[this], CosBJ(s__baseanim_angle[this]) * ( s__baseanim_off[this] + s__baseanim_dist[this] ), SinBJ(s__baseanim_angle[this]) * ( s__baseanim_off[this] + s__baseanim_dist[this] ))
+                                set s__baseanim_MList[i]=s__baseanim_MList[s__baseanim_MNum]
+                                set s__baseanim_mID[s__baseanim_MList[i]]=i
+                                set s__baseanim_MNum=s__baseanim_MNum - 1
+                                set i=i - 1
+                                set s__baseanim_mID[this]=0
+                            else
+                                set s__baseanim_mNow[this]=s__baseanim_mNow[this] + 1
+                                call DzFrameClearAllPoints(s__baseanim_ui[this])
+                                call DzFrameSetPoint(s__baseanim_ui[this], s__baseanim_anchor1[this], s__baseanim_align[this], s__baseanim_anchor2[this], CosBJ(s__baseanim_angle[this]) * ( s__baseanim_off[this] + s__baseanim_dist[this] * s__baseanim_mNow[this] / s__baseanim_mTime[this] ), SinBJ(s__baseanim_angle[this]) * ( s__baseanim_off[this] + s__baseanim_dist[this] * s__baseanim_mNow[this] / s__baseanim_mTime[this] ))
+                            endif //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //透明度
+                if ( s__baseanim_ANum > 0 ) then
+                    set i=1 //从结论来说i就是aID
+                    loop
+                    exitwhen ( i > s__baseanim_ANum )
+                        set this=s__baseanim_AList[i] // 结束了
+                        if ( s__baseanim_dID[this] == 0 ) then
+                            if ( s__baseanim_aNow[this] >= s__baseanim_aTime[this] ) then
+                                call DzFrameSetAlpha(s__baseanim_ui[this], s__baseanim_aTar[this])
+                                if ( s__baseanim_aTar[this] <= 0 ) then
+                                    call DzFrameShow(s__baseanim_ui[this], false)
+                                endif
+                                set s__baseanim_AList[i]=s__baseanim_AList[s__baseanim_ANum]
+                                set s__baseanim_aID[s__baseanim_AList[i]]=i
+                                set s__baseanim_ANum=s__baseanim_ANum - 1
+                                set i=i - 1
+                                set s__baseanim_aID[this]=0
+                            else
+                                set s__baseanim_aNow[this]=s__baseanim_aNow[this] + 1
+                                call DzFrameSetAlpha(s__baseanim_ui[this], R2I(s__baseanim_aStart[this] + ( s__baseanim_aTar[this] - s__baseanim_aStart[this] ) * ( I2R(s__baseanim_aNow[this]) / s__baseanim_aTime[this] )))
+                            endif //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //放大组
+                if ( s__baseanim_ZNum > 0 ) then
+                    set i=1 //从结论来说i就是aID
+                    loop
+                    exitwhen ( i > s__baseanim_ZNum )
+                        set this=s__baseanim_ZList[i] // 结束了
+                        if ( s__baseanim_dID[this] == 0 ) then
+                            if ( s__baseanim_zNow[this] >= s__baseanim_zTime[this] ) then //DzFrameSetScale(ui,zTar);
+                                call DzFrameSetSize(s__baseanim_ui[this], s__baseanim_zTarX[this], s__baseanim_zTarY[this])
+                                set s__baseanim_ZList[i]=s__baseanim_ZList[s__baseanim_ZNum]
+                                set s__baseanim_zID[s__baseanim_ZList[i]]=i
+                                set s__baseanim_ZNum=s__baseanim_ZNum - 1
+                                set i=i - 1
+                                set s__baseanim_zID[this]=0
+                            else
+                                set s__baseanim_zNow[this]=s__baseanim_zNow[this] + 1
+                                call DzFrameSetSize(s__baseanim_ui[this], s__baseanim_zStartX[this] + ( s__baseanim_zTarX[this] - s__baseanim_zStartX[this] ) * ( I2R(s__baseanim_zNow[this]) / s__baseanim_zTime[this] ), s__baseanim_zStartY[this] + ( s__baseanim_zTarY[this] - s__baseanim_zStartY[this] ) * ( I2R(s__baseanim_zNow[this]) / s__baseanim_zTime[this] ))
+                            endif //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //序列帧
+                if ( s__baseanim_SNum > 0 ) then
+                    set i=1 //从结论来说i就是sID
+                    loop
+                    exitwhen ( i > s__baseanim_SNum )
+                        set this=s__baseanim_SList[i]
+                        if ( s__baseanim_dID[this] == 0 ) then
+                            set s__baseanim_sGapPos[this]=s__baseanim_sGapPos[this] + 1 //几帧一绘
+                            if ( s__baseanim_sGapPos[this] >= s__baseanim_sGap[this] ) then
+                                set s__baseanim_sGapPos[this]=0
+                                set s__baseanim_sPos[this]=s__baseanim_sPos[this] + 1 // 结束了,且不循环
+                                if ( s__baseanim_sPos[this] > s__baseanim_sMax[this] ) then
+                                    set s__baseanim_sPos[this]=0 //不循环
+                                    if ( not s__baseanim_sLoop[this] ) then
+                                        call DzFrameSetTexture(s__baseanim_ui[this], s__baseanim_sPath[this] + I2S(s__baseanim_sMax[this]) + ".blp", 0)
+                                        set s__baseanim_SList[i]=s__baseanim_SList[s__baseanim_SNum]
+                                        set s__baseanim_sID[s__baseanim_SList[i]]=i
+                                        set s__baseanim_SNum=s__baseanim_SNum - 1
+                                        set i=i - 1
+                                        set s__baseanim_sID[this]=0
+                                    else
+                                        call DzFrameSetTexture(s__baseanim_ui[this], s__baseanim_sPath[this] + "0.blp", 0)
+                                    endif
+                                else //正常绘帧
+                                    call DzFrameSetTexture(s__baseanim_ui[this], s__baseanim_sPath[this] + I2S(s__baseanim_sPos[this]) + ".blp", 0)
+                                endif
+                            endif //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //闪烁组
+                if ( s__baseanim_BNum > 0 ) then
+                    set i=1 //从结论来说i就是aID
+                    loop
+                    exitwhen ( i > s__baseanim_BNum )
+                        set this=s__baseanim_BList[i]
+                        if ( s__baseanim_dID[this] == 0 ) then //变透明
+                            if ( s__baseanim_bOrient[this] ) then
+                                set s__baseanim_bTime[this]=s__baseanim_bTime[this] - 1 //实体化
+                            else
+                                set s__baseanim_bTime[this]=s__baseanim_bTime[this] + 1
+                            endif
+                            if ( s__baseanim_bTime[this] >= R2I(s__baseanim_bPeriod[this] * 0.5) or s__baseanim_bTime[this] <= 0 ) then
+                                set s__baseanim_bOrient[this]=not s__baseanim_bOrient[this]
+                            endif
+                            call DzFrameSetAlpha(s__baseanim_ui[this], R2I(255 * ( I2R(s__baseanim_bTime[this]) / s__baseanim_bPeriod[this] * 2 ))) //还在延迟中不进行操作
+                        endif
+                    set i=i + 1
+                    endloop
+                endif //生命周期[不受延迟组影响]
+                if ( s__baseanim_LNum > 0 ) then
+                    set i=1 //从结论来说i就是dID
+                    loop
+                    exitwhen ( i > s__baseanim_LNum )
+                        set this=s__baseanim_LList[i]
+                        set s__baseanim_lTime[this]=s__baseanim_lTime[this] + 1 //结束了
+                        if ( s__baseanim_lTime[this] >= s__baseanim_lPeriod[this] ) then
+                            call s__baseanim_deallocate(this)
+                            set i=i - 1
+                        endif
+                    set i=i + 1
+                    endloop
+                endif
+                if ( s__baseanim_DNum <= 0 and s__baseanim_MNum <= 0 and s__baseanim_ANum <= 0 and s__baseanim_ZNum <= 0 and s__baseanim_SNum <= 0 and s__baseanim_BNum <= 0 and s__baseanim_LNum <= 0 ) then //这里就删计时器吧
+                    call s__uianim_unreg(s__baseanim_UIA)
+                    call BJDebugMsg("baseanim停止了")
+                endif
+            endfunction  // UI销毁时回调删除基础动画(UI销毁时会自动调用),但是不需要再删ba了,
+            function s__baseanim_anon__1 takes nothing returns nothing
+                local integer ui=s__uiLifeCycle_agrsFrame
+                local integer this
+                if ( HaveSavedInteger(HASH_UI, ui, 1822) ) then
+                    set this=LoadInteger(HASH_UI, ui, 1822)
+                    if ( s__baseanim_isExist(this) ) then
+                        call s__baseanim_deallocate(this)
+                    endif
+                endif
+            endfunction
+        function s__baseanim_onInit takes nothing returns nothing
+            set s__baseanim_UIA=s__uianim_create(function s__baseanim_anon__0)
+            call s__uiLifeCycle_registerDestroy(function s__baseanim_anon__1)
+        endfunction
+
+//library BaseAnim ends
 //library EscStack:
 //processed:     function interface escStackFunc takes player arg0 returns nothing
         function s__escStack_push takes integer func returns integer
@@ -1768,7 +2797,7 @@ endfunction
             set data=s__escStack_top
             set s__escStack_top=s__EscStack___EscStackData_prev[data]
             set s__escStack_size=s__escStack_size - 1 // 执行函数
-            call sc___prototype21_evaluate(s__EscStack___EscStackData_func[data],GetLocalPlayer())
+            call sc___prototype26_evaluate(s__EscStack___EscStackData_func[data],GetLocalPlayer())
             call s__EscStack___EscStackData_deallocate(data)
             return true
         endfunction  // 根据ID移除特定的函数（不执行）
@@ -1824,7 +2853,7 @@ endfunction
             set currentUI=DzGetMouseFocus()
             if ( HaveSavedInteger(HASH_UI, currentUI, 1901) ) then
                 set func=LoadInteger(HASH_UI, currentUI, 1901)
-                call sc___prototype22_evaluate(func,currentUI)
+                call sc___prototype25_evaluate(func,currentUI)
             endif
         endfunction  //注册左键抬起事件,在click事件之前触发
         function UIExtendEvent___anon__4 takes nothing returns nothing
@@ -1836,7 +2865,7 @@ endfunction
             set currentUI=DzGetMouseFocus()
             if ( HaveSavedInteger(HASH_UI, currentUI, 1902) ) then
                 set func=LoadInteger(HASH_UI, currentUI, 1902)
-                call sc___prototype22_evaluate(func,currentUI)
+                call sc___prototype25_evaluate(func,currentUI)
             endif
         endfunction
         function UIExtendEvent___anon__5 takes nothing returns nothing
@@ -1849,7 +2878,7 @@ endfunction
             if ( s__uiEventState_rcStart and s__uiEventState_uiId != 0 ) then
                 if ( HaveSavedInteger(HASH_UI, s__uiEventState_uiId, 1913) ) then
                     set func=LoadInteger(HASH_UI, s__uiEventState_uiId, 1913)
-                    call sc___prototype22_evaluate(func,s__uiEventState_uiId)
+                    call sc___prototype25_evaluate(func,s__uiEventState_uiId)
                 endif
             endif
             set s__uiEventState_rcStart=false
@@ -1859,7 +2888,7 @@ endfunction
             local integer func
             if ( s__uiEventState_uiId == ui and HaveSavedInteger(HASH_UI, ui, 1911) ) then
                 set func=LoadInteger(HASH_UI, s__uiEventState_uiId, 1911)
-                call sc___prototype22_evaluate(func,s__uiEventState_uiId)
+                call sc___prototype25_evaluate(func,s__uiEventState_uiId)
             endif
             set s__uiEventState_uiId=0
         endfunction  // hardware.regRightDownEvent(function () { //注册右键按下事件
@@ -1872,6 +2901,195 @@ endfunction
     endfunction  //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     rcStartOnUI = true; //     rcStartUI = currentUI; // }); // hardware.regRightUpEvent(function () { //注册右键抬起事件 //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     if (rcStartOnUI && currentUI == rcStartUI) { //         if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) { //             func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK); //             func.evaluate(currentUI); //         } //     } //     rcStartOnUI = false; //     rcStartUI = 0; // });
 
 //library UIExtendEvent ends
+//library UIExtendResize:
+
+        function s__resizer_isExist takes integer this returns boolean
+            return ( this != null and si__resizer_V[this] == - 1 )
+        endfunction
+        function s__resizer_create takes integer frame,real width,real height returns integer
+            local integer this=s__resizer__allocate()
+            set s__resizer_frame[this]=frame
+            set s__resizer_width[this]=width
+            set s__resizer_height[this]=height //这里是初始化时的设置内容,不需要改
+            if ( s__resizer_uID[this] == 0 ) then
+                set s__resizer_size=s__resizer_size + 1
+                set s__resizer_List[s__resizer_size]=this
+                set s__resizer_uID[this]=s__resizer_size
+            endif
+            return this
+        endfunction
+        function s__resizer_toString takes nothing returns string
+            local string s=I2S(s__resizer_size) + "个:"
+            local integer i
+            set i=1
+            loop
+            exitwhen ( i > s__resizer_size )
+                set s=s + "[" + I2S(i) + "]|r" + I2S(s__resizer_List[i]) + "->"
+            set i=i + 1
+            endloop
+            set s=s + "/"
+            return s
+        endfunction
+        function s__resizer_onDestroy takes integer this returns nothing
+            set s__resizer_frame[this]=0
+            if ( s__resizer_uID[this] != 0 ) then
+                set s__resizer_List[s__resizer_uID[this]]=s__resizer_List[s__resizer_size]
+                set s__resizer_uID[s__resizer_List[s__resizer_uID[this]]]=s__resizer_uID[this]
+                set s__resizer_size=s__resizer_size - 1
+                set s__resizer_uID[this]=0
+            endif
+            if ( s__resizer_size <= 0 ) then
+                call BJDebugMsg("UIExtendResize: 大小重组器已销毁")
+            endif
+        endfunction
+
+//Generated destructor of resizer
+function s__resizer_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: resizer")
+        return
+    elseif (si__resizer_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: resizer")
+        return
+    endif
+    call s__resizer_onDestroy(this)
+    set si__resizer_V[this]=si__resizer_F
+    set si__resizer_F=this
+endfunction
+        function s__rePointer_isExist takes integer this returns boolean
+            return ( this != null and si__rePointer_V[this] == - 1 )
+        endfunction
+        function s__rePointer_create takes integer frame,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            local integer this=s__rePointer__allocate()
+            set s__rePointer_frame[this]=frame
+            set s__rePointer_anchor[this]=anchor
+            set s__rePointer_relative[this]=relative
+            set s__rePointer_relativeAnchor[this]=relativeAnchor
+            set s__rePointer_offsetX[this]=offsetX
+            set s__rePointer_offsetY[this]=offsetY //这里是初始化时的设置内容,不需要改
+            if ( s__rePointer_uID[this] == 0 ) then
+                set s__rePointer_size=s__rePointer_size + 1
+                set s__rePointer_List[s__rePointer_size]=this
+                set s__rePointer_uID[this]=s__rePointer_size
+            endif
+            return this
+        endfunction
+        function s__rePointer_toString takes nothing returns string
+            local string s=I2S(s__rePointer_size) + "个:"
+            local integer i
+            set i=1
+            loop
+            exitwhen ( i > s__rePointer_size )
+                set s=s + "[" + I2S(i) + "]|r" + I2S(s__rePointer_List[i]) + "->"
+            set i=i + 1
+            endloop
+            set s=s + "/"
+            return s
+        endfunction
+        function s__rePointer_onDestroy takes integer this returns nothing
+            set s__rePointer_frame[this]=0
+            if ( s__rePointer_uID[this] != 0 ) then
+                set s__rePointer_List[s__rePointer_uID[this]]=s__rePointer_List[s__rePointer_size]
+                set s__rePointer_uID[s__rePointer_List[s__rePointer_uID[this]]]=s__rePointer_uID[this]
+                set s__rePointer_size=s__rePointer_size - 1
+                set s__rePointer_uID[this]=0
+            endif
+            if ( s__rePointer_size <= 0 ) then
+                call BJDebugMsg("UIExtendResize: 位置重组器已销毁")
+            endif
+        endfunction
+
+//Generated destructor of rePointer
+function s__rePointer_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: rePointer")
+        return
+    elseif (si__rePointer_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: rePointer")
+        return
+    endif
+    call s__rePointer_onDestroy(this)
+    set si__rePointer_V[this]=si__rePointer_F
+    set si__rePointer_F=this
+endfunction
+        function UIExtendResize___anon__0 takes nothing returns nothing
+            local real resizeX=GetResizeRate()
+            local integer i
+            local integer ser
+            if ( s__resizer_size > 0 ) then //反向遍历可以删除下面的　i-= 1
+                set i=s__resizer_size //从结论来说i就是.uID
+                loop
+                exitwhen i < 1
+                    set ser=s__resizer_List[i]
+                    call DzFrameSetSize(s__resizer_frame[ser], s__resizer_width[ser] * resizeX, s__resizer_height[ser])
+                set i=i - 1
+                endloop
+            endif
+        endfunction  //注册窗口大小变化事件
+        function UIExtendResize___anon__1 takes nothing returns nothing
+            local real resizeX=GetResizeRate()
+            local integer i
+            local integer ptr
+            if ( s__rePointer_size > 0 ) then //反向遍历可以删除下面的　i-= 1
+                set i=s__rePointer_size //从结论来说i就是.uID
+                loop
+                exitwhen i < 1
+                    set ptr=s__rePointer_List[i]
+                    call DzFrameSetPoint(s__rePointer_frame[ptr], s__rePointer_anchor[ptr], s__rePointer_relative[ptr], s__rePointer_relativeAnchor[ptr], s__rePointer_offsetX[ptr] * resizeX, s__rePointer_offsetY[ptr])
+                set i=i - 1
+                endloop
+            endif
+        endfunction  //UI的销毁回调事件
+        function UIExtendResize___anon__2 takes nothing returns nothing
+            local integer frame=s__uiLifeCycle_agrsFrame
+            local integer ser
+            local integer ptr
+            if ( HaveSavedInteger(HASH_UI, frame, 1940) ) then
+                set ser=LoadInteger(HASH_UI, frame, 1940)
+                if ( s__resizer_isExist(ser) ) then
+                    call s__resizer_deallocate(ser)
+                endif
+            endif
+            if ( HaveSavedInteger(HASH_UI, frame, 1941) ) then
+                set ptr=LoadInteger(HASH_UI, frame, 1941)
+                if ( s__rePointer_isExist(ptr) ) then
+                    call s__rePointer_deallocate(ptr)
+                endif
+            endif
+        endfunction
+    function UIExtendResize___onInit takes nothing returns nothing
+        call s__hardware_regResizeEvent(function UIExtendResize___anon__0)
+        call s__hardware_regResizeEvent(function UIExtendResize___anon__1)
+        call s__uiLifeCycle_registerDestroy(function UIExtendResize___anon__2)
+    endfunction
+
+//library UIExtendResize ends
+//library UILayer:
+        function s__uilayer_onInit takes nothing returns nothing
+            set s__uilayer_lv[1]=DzCreateFrameByTagName("BACKDROP", "layer1", DzGetGameUI(), "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[1], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[1], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[2]=DzCreateFrameByTagName("BACKDROP", "layer2", s__uilayer_lv[1], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[2], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[2], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[3]=DzCreateFrameByTagName("BACKDROP", "layer3", s__uilayer_lv[2], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[3], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[3], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[4]=DzCreateFrameByTagName("BACKDROP", "layer4", s__uilayer_lv[3], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[4], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[4], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[5]=DzCreateFrameByTagName("BACKDROP", "layer5", s__uilayer_lv[4], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[5], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[5], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[6]=DzCreateFrameByTagName("BACKDROP", "layer6", s__uilayer_lv[5], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[6], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[6], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+            set s__uilayer_lv[7]=DzCreateFrameByTagName("BACKDROP", "layer7", s__uilayer_lv[6], "IT", 0)
+            call DzFrameSetAllPoints(s__uilayer_lv[7], DzGetGameUI())
+            call DzFrameSetTexture(s__uilayer_lv[7], "UI\\Widgets\\EscMenu\\Human\\blank-background.blp", 0)
+        endfunction
+
+//library UILayer ends
 //library UIBorder:
         function s__uiBorder_isExist takes integer this returns boolean
             return ( this != null and si__uiBorder_V[this] == - 1 )
@@ -1940,6 +3158,43 @@ endfunction
             call DzFrameSetAlpha(s__uiBorder_ui[this], value)
             return this
         endfunction  //扩展自适应大小方法
+        function s__uiBorder_exReSize takes integer this,real width,real height returns integer
+            local integer ser
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiBorder_ui[this], 1940) ) then
+                set ser=LoadInteger(HASH_UI, s__uiBorder_ui[this], 1940)
+                set s__resizer_frame[ser]=s__uiBorder_ui[this]
+                set s__resizer_width[ser]=width
+                set s__resizer_height[ser]=height
+            else
+                set ser=s__resizer_create(s__uiBorder_ui[this] , width , height)
+                call SaveInteger(HASH_UI, s__uiBorder_ui[this], 1940, ser)
+            endif
+            call DzFrameSetSize(s__uiBorder_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction
+        function s__uiBorder_exRePoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            local integer ptr
+            if ( not ( s__uiBorder_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiBorder_ui[this], 1941) ) then
+                set ptr=LoadInteger(HASH_UI, s__uiBorder_ui[this], 1941)
+                set s__rePointer_frame[ptr]=s__uiBorder_ui[this]
+                set s__rePointer_anchor[ptr]=anchor
+                set s__rePointer_relative[ptr]=relative
+                set s__rePointer_relativeAnchor[ptr]=relativeAnchor
+                set s__rePointer_offsetX[ptr]=offsetX
+                set s__rePointer_offsetY[ptr]=offsetY
+            else
+                set ptr=s__rePointer_create(s__uiBorder_ui[this] , anchor , relative , relativeAnchor , offsetX , offsetY)
+                call SaveInteger(HASH_UI, s__uiBorder_ui[this], 1941, ptr)
+            endif
+            call DzFrameSetPoint(s__uiBorder_ui[this], anchor, relative, relativeAnchor, offsetX * GetResizeRate(), offsetY)
+            return this
+        endfunction
 //Implemented from module uiImageModule:
         function s__uiBorder_setTexture takes integer this,string path returns integer
             if ( not ( s__uiBorder_isExist(this) ) ) then
@@ -2144,6 +3399,43 @@ endfunction
             call DzFrameSetAlpha(s__uiBtn_ui[this], value)
             return this
         endfunction  //扩展自适应大小方法
+        function s__uiBtn_exReSize takes integer this,real width,real height returns integer
+            local integer ser
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiBtn_ui[this], 1940) ) then
+                set ser=LoadInteger(HASH_UI, s__uiBtn_ui[this], 1940)
+                set s__resizer_frame[ser]=s__uiBtn_ui[this]
+                set s__resizer_width[ser]=width
+                set s__resizer_height[ser]=height
+            else
+                set ser=s__resizer_create(s__uiBtn_ui[this] , width , height)
+                call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1940, ser)
+            endif
+            call DzFrameSetSize(s__uiBtn_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction
+        function s__uiBtn_exRePoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            local integer ptr
+            if ( not ( s__uiBtn_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiBtn_ui[this], 1941) ) then
+                set ptr=LoadInteger(HASH_UI, s__uiBtn_ui[this], 1941)
+                set s__rePointer_frame[ptr]=s__uiBtn_ui[this]
+                set s__rePointer_anchor[ptr]=anchor
+                set s__rePointer_relative[ptr]=relative
+                set s__rePointer_relativeAnchor[ptr]=relativeAnchor
+                set s__rePointer_offsetX[ptr]=offsetX
+                set s__rePointer_offsetY[ptr]=offsetY
+            else
+                set ptr=s__rePointer_create(s__uiBtn_ui[this] , anchor , relative , relativeAnchor , offsetX , offsetY)
+                call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1941, ptr)
+            endif
+            call DzFrameSetPoint(s__uiBtn_ui[this], anchor, relative, relativeAnchor, offsetX * GetResizeRate(), offsetY)
+            return this
+        endfunction
 //Implemented from module uiEventModule:
         function s__uiBtn_onMouseEnter takes integer this,code fun returns integer
             if ( not ( s__uiBtn_isExist(this) ) ) then
@@ -2200,7 +3492,7 @@ endfunction
                 set s__uiEventState_uiId=frame
                 if ( HaveSavedInteger(HASH_UI, frame, 1910) ) then
                     set func=LoadInteger(HASH_UI, frame, 1910)
-                    call sc___prototype22_evaluate(func,frame)
+                    call sc___prototype25_evaluate(func,frame)
                 endif
             endfunction
         function s__uiBtn_spEnter takes integer this,integer fun returns integer
@@ -2217,7 +3509,7 @@ endfunction
                 set s__uiEventState_uiId=0
                 if ( HaveSavedInteger(HASH_UI, frame, 1911) ) then
                     set func=LoadInteger(HASH_UI, frame, 1911)
-                    call sc___prototype22_evaluate(func,frame)
+                    call sc___prototype25_evaluate(func,frame)
                 endif
             endfunction
         function s__uiBtn_spLeave takes integer this,integer fun returns integer
@@ -2233,7 +3525,7 @@ endfunction
                 local integer func
                 if ( HaveSavedInteger(HASH_UI, frame, 1912) ) then
                     set func=LoadInteger(HASH_UI, frame, 1912)
-                    call sc___prototype22_evaluate(func,frame)
+                    call sc___prototype25_evaluate(func,frame)
                 endif
             endfunction
         function s__uiBtn_spClick takes integer this,integer fun returns integer
@@ -2432,6 +3724,43 @@ endfunction
             call DzFrameSetAlpha(s__uiImage_ui[this], value)
             return this
         endfunction  //扩展自适应大小方法
+        function s__uiImage_exReSize takes integer this,real width,real height returns integer
+            local integer ser
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiImage_ui[this], 1940) ) then
+                set ser=LoadInteger(HASH_UI, s__uiImage_ui[this], 1940)
+                set s__resizer_frame[ser]=s__uiImage_ui[this]
+                set s__resizer_width[ser]=width
+                set s__resizer_height[ser]=height
+            else
+                set ser=s__resizer_create(s__uiImage_ui[this] , width , height)
+                call SaveInteger(HASH_UI, s__uiImage_ui[this], 1940, ser)
+            endif
+            call DzFrameSetSize(s__uiImage_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction
+        function s__uiImage_exRePoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            local integer ptr
+            if ( not ( s__uiImage_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiImage_ui[this], 1941) ) then
+                set ptr=LoadInteger(HASH_UI, s__uiImage_ui[this], 1941)
+                set s__rePointer_frame[ptr]=s__uiImage_ui[this]
+                set s__rePointer_anchor[ptr]=anchor
+                set s__rePointer_relative[ptr]=relative
+                set s__rePointer_relativeAnchor[ptr]=relativeAnchor
+                set s__rePointer_offsetX[ptr]=offsetX
+                set s__rePointer_offsetY[ptr]=offsetY
+            else
+                set ptr=s__rePointer_create(s__uiImage_ui[this] , anchor , relative , relativeAnchor , offsetX , offsetY)
+                call SaveInteger(HASH_UI, s__uiImage_ui[this], 1941, ptr)
+            endif
+            call DzFrameSetPoint(s__uiImage_ui[this], anchor, relative, relativeAnchor, offsetX * GetResizeRate(), offsetY)
+            return this
+        endfunction
 //Implemented from module uiImageModule:
         function s__uiImage_setTexture takes integer this,string path returns integer
             if ( not ( s__uiImage_isExist(this) ) ) then
@@ -2514,6 +3843,200 @@ function s__uiImage_deallocate takes integer this returns nothing
 endfunction
 
 //library UIImage ends
+//library UISprite:
+        function s__uiSprite_isExist takes integer this returns boolean
+            return ( this != null and si__uiSprite_V[this] == - 1 )
+        endfunction
+//Implemented from module uiBaseModule:
+        function s__uiSprite_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetPoint(s__uiSprite_ui[this], anchor, relative, relativeAnchor, offsetX, offsetY)
+            return this
+        endfunction  // 设置位置
+        function s__uiSprite_setPointFix takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetPoint(s__uiSprite_ui[this], anchor, relative, relativeAnchor, offsetX * GetResizeRate(), offsetY)
+            return this
+        endfunction  // 大小完全对齐父框架
+        function s__uiSprite_setAllPoint takes integer this,integer relative returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAllPoints(s__uiSprite_ui[this], relative)
+            return this
+        endfunction  //绝对位置
+        function s__uiSprite_setAbsPoint takes integer this,integer anchor,real x,real y returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAbsolutePoint(s__uiSprite_ui[this], anchor, x, y)
+            return this
+        endfunction  // 清除所有位置
+        function s__uiSprite_clearPoint takes integer this returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameClearAllPoints(s__uiSprite_ui[this])
+            return this
+        endfunction  // 设置大小
+        function s__uiSprite_setSize takes integer this,real width,real height returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiSprite_ui[this], width, height)
+            return this
+        endfunction  // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        function s__uiSprite_setSizeFix takes integer this,real width,real height returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetSize(s__uiSprite_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction  // 显示控件
+        function s__uiSprite_show takes integer this,boolean flag returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameShow(s__uiSprite_ui[this], flag)
+            return this
+        endfunction  //透明度(0-255)
+        function s__uiSprite_setAlpha takes integer this,integer value returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAlpha(s__uiSprite_ui[this], value)
+            return this
+        endfunction  //扩展自适应大小方法
+        function s__uiSprite_exReSize takes integer this,real width,real height returns integer
+            local integer ser
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiSprite_ui[this], 1940) ) then
+                set ser=LoadInteger(HASH_UI, s__uiSprite_ui[this], 1940)
+                set s__resizer_frame[ser]=s__uiSprite_ui[this]
+                set s__resizer_width[ser]=width
+                set s__resizer_height[ser]=height
+            else
+                set ser=s__resizer_create(s__uiSprite_ui[this] , width , height)
+                call SaveInteger(HASH_UI, s__uiSprite_ui[this], 1940, ser)
+            endif
+            call DzFrameSetSize(s__uiSprite_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction
+        function s__uiSprite_exRePoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            local integer ptr
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiSprite_ui[this], 1941) ) then
+                set ptr=LoadInteger(HASH_UI, s__uiSprite_ui[this], 1941)
+                set s__rePointer_frame[ptr]=s__uiSprite_ui[this]
+                set s__rePointer_anchor[ptr]=anchor
+                set s__rePointer_relative[ptr]=relative
+                set s__rePointer_relativeAnchor[ptr]=relativeAnchor
+                set s__rePointer_offsetX[ptr]=offsetX
+                set s__rePointer_offsetY[ptr]=offsetY
+            else
+                set ptr=s__rePointer_create(s__uiSprite_ui[this] , anchor , relative , relativeAnchor , offsetX , offsetY)
+                call SaveInteger(HASH_UI, s__uiSprite_ui[this], 1941, ptr)
+            endif
+            call DzFrameSetPoint(s__uiSprite_ui[this], anchor, relative, relativeAnchor, offsetX * GetResizeRate(), offsetY)
+            return this
+        endfunction
+//Implemented from module panimable:
+        function s__uiSprite_progAnimate takes integer this,real from,real to,real duration,integer cb returns integer
+            local integer anim
+            if ( not ( s__uiSprite_isExist(this) ) ) then // 检查是否已存在progAnim实例
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiSprite_ui[this], 1945) ) then
+                set anim=LoadInteger(HASH_UI, s__uiSprite_ui[this], 1945) // 更新动画参数
+                set s__progAnim_sprite[anim]=this
+                set s__progAnim_from[anim]=from
+                set s__progAnim_to[anim]=to
+                set s__progAnim_time[anim]=R2I(duration * 50)
+                set s__progAnim_now[anim]=0
+                set s__progAnim_cb[anim]=cb
+            else // 创建新实例
+                set anim=sc__progAnim_create(this , from , to , R2I(duration * 50) , cb)
+                call SaveInteger(HASH_UI, s__uiSprite_ui[this], 1945, anim)
+            endif
+            return this
+        endfunction
+        function s__uiSprite_create takes integer parent returns integer
+            local integer this=s__uiSprite__allocate()
+            set s__uiSprite_id[this]=s__uiId_get()
+            set s__uiSprite_ui[this]=DzCreateFrameByTagName("SPRITE", "Sprite" + I2S(s__uiSprite_id[this]), parent, "SpriteTemplate", 0)
+//#             static if LIBRARY_UILifeCycle then
+                    call s__uiLifeCycle_onCreateCB(this , si__uiSprite , s__uiSprite_ui[this])
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiSprite_ui[this])],si__uiSprite , this)
+//#             endif
+            return this
+        endfunction  // 设置模型(目前只做平面型就行了,后面2个0固定了)
+        function s__uiSprite_setModel takes integer this,string path,integer modelType,integer flag returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetModel(s__uiSprite_ui[this], path, modelType, flag)
+            return this
+        endfunction  // 设置缩放
+        function s__uiSprite_setScale takes integer this,real scale returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetScale(s__uiSprite_ui[this], scale)
+            return this
+        endfunction  // 设置动画
+        function s__uiSprite_setAnimate takes integer this,integer animate,boolean auto returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAnimate(s__uiSprite_ui[this], animate, auto)
+            return this
+        endfunction  // 设置进度
+        function s__uiSprite_setProgress takes integer this,real progress returns integer
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return this
+            endif
+            call DzFrameSetAnimateOffset(s__uiSprite_ui[this], progress)
+            return this
+        endfunction
+        function s__uiSprite_onDestroy takes integer this returns nothing
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+                return
+            endif
+//#             static if LIBRARY_UILifeCycle then
+                    call s__uiLifeCycle_onDestroyCB(this , si__uiSprite , s__uiSprite_ui[this])
+//#             endif
+//#             static if LIBRARY_UIHashTable then
+                    call FlushChildHashtable(HASH_UI, s__uiSprite_ui[this])
+//#             endif
+            call DzDestroyFrame(s__uiSprite_ui[this])
+            call s__uiId_recycle(s__uiSprite_id[this])
+        endfunction
+
+//Generated destructor of uiSprite
+function s__uiSprite_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: uiSprite")
+        return
+    elseif (si__uiSprite_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: uiSprite")
+        return
+    endif
+    call s__uiSprite_onDestroy(this)
+    set si__uiSprite_V[this]=si__uiSprite_F
+    set si__uiSprite_F=this
+endfunction
+
+//library UISprite ends
 //library UIText:
         function s__uiText_isExist takes integer this returns boolean
             return ( this != null and si__uiText_V[this] == - 1 )
@@ -2582,6 +4105,43 @@ endfunction
             call DzFrameSetAlpha(s__uiText_ui[this], value)
             return this
         endfunction  //扩展自适应大小方法
+        function s__uiText_exReSize takes integer this,real width,real height returns integer
+            local integer ser
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiText_ui[this], 1940) ) then
+                set ser=LoadInteger(HASH_UI, s__uiText_ui[this], 1940)
+                set s__resizer_frame[ser]=s__uiText_ui[this]
+                set s__resizer_width[ser]=width
+                set s__resizer_height[ser]=height
+            else
+                set ser=s__resizer_create(s__uiText_ui[this] , width , height)
+                call SaveInteger(HASH_UI, s__uiText_ui[this], 1940, ser)
+            endif
+            call DzFrameSetSize(s__uiText_ui[this], width * GetResizeRate(), height)
+            return this
+        endfunction
+        function s__uiText_exRePoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            local integer ptr
+            if ( not ( s__uiText_isExist(this) ) ) then
+                return this
+            endif
+            if ( HaveSavedInteger(HASH_UI, s__uiText_ui[this], 1941) ) then
+                set ptr=LoadInteger(HASH_UI, s__uiText_ui[this], 1941)
+                set s__rePointer_frame[ptr]=s__uiText_ui[this]
+                set s__rePointer_anchor[ptr]=anchor
+                set s__rePointer_relative[ptr]=relative
+                set s__rePointer_relativeAnchor[ptr]=relativeAnchor
+                set s__rePointer_offsetX[ptr]=offsetX
+                set s__rePointer_offsetY[ptr]=offsetY
+            else
+                set ptr=s__rePointer_create(s__uiText_ui[this] , anchor , relative , relativeAnchor , offsetX , offsetY)
+                call SaveInteger(HASH_UI, s__uiText_ui[this], 1941, ptr)
+            endif
+            call DzFrameSetPoint(s__uiText_ui[this], anchor, relative, relativeAnchor, offsetX * GetResizeRate(), offsetY)
+            return this
+        endfunction
 //Implemented from module uiTextModule:
         function s__uiText_setFontSize takes integer this,integer size returns integer
             local real fontSize=0.0095
@@ -2726,16 +4286,11 @@ endfunction
                 call s__uiBtn_deallocate(s__menuItem_btn[this])
                 set s__menuItem_btn[this]=0
             endif
-            if ( s__menuItem_highlight[this] != 0 ) then
-                call s__uiImage_deallocate(s__menuItem_highlight[this])
-                set s__menuItem_highlight[this]=0
-            endif
             if ( s__menuItem_background[this] != 0 ) then
                 call s__uiBorder_deallocate(s__menuItem_background[this])
                 set s__menuItem_background[this]=0
             endif
-            set s__menuItem_parent[this]=0
-        endfunction
+        endfunction  // 非原生菜单项
 
 //Generated destructor of menuItem
 function s__menuItem_deallocate takes integer this returns nothing
@@ -2750,31 +4305,25 @@ function s__menuItem_deallocate takes integer this returns nothing
     set si__menuItem_V[this]=si__menuItem_F
     set si__menuItem_F=this
 endfunction
-        function s__menuItem_showHighlight takes integer this,boolean show returns nothing
-            if ( s__menuItem_highlight[this] != 0 ) then
-                call s__uiImage_show(s__menuItem_highlight[this],show)
-            endif
-        endfunction
-        function s__menuItem_create takes integer parent,string title,integer index,integer parentFrame returns integer
+        function s__menuItem_create takes real width,string title,integer index,integer parentFrame returns integer
             local integer this=s__menuItem__allocate()
-            set s__menuItem_parent[this]=parent
             set s__menuItem_index[this]=index
-            set s__menuItem_background[this]=s__uiBorder_setSizeFix(s__uiBorder_createType2(parentFrame),s__mouseMenu_menuWidth[parent] , 0.03)
-            set s__menuItem_text[this]=s__uiText_setText(s__uiText_setPoint(s__uiText_setAlign(s__uiText_create(parentFrame),4),3 , s__uiBorder_ui[s__menuItem_background[this]] , 3 , 0.01 , 0),title)
-            set s__menuItem_highlight[this]=s__uiImage_show(s__uiImage_setAllPoint(s__uiImage_setTexture(s__uiImage_create(parentFrame),"ui\\image\\buttongrow.blp"),s__uiBorder_ui[s__menuItem_background[this]]),false)
+            set s__menuItem_background[this]=s__uiBorder_exReSize(s__uiBorder_createType2(parentFrame),width , 0.03)
+            set s__menuItem_text[this]=s__uiText_setText(s__uiText_exRePoint(s__uiText_setAlign(s__uiText_create(parentFrame),4),3 , s__uiBorder_ui[s__menuItem_background[this]] , 3 , 0.015 , 0),title)
             set s__menuItem_btn[this]=s__uiBtn_setAllPoint(s__uiBtn_create(parentFrame),s__uiBorder_ui[s__menuItem_background[this]])
+            return this
+        endfunction  // 原生菜单项
+        function s__menuItem_createSimple takes real width,string title,integer index,integer simpleParent,integer parentFrame returns integer
+            local integer this=s__menuItem__allocate()
+            set s__menuItem_index[this]=index
+            set s__menuItem_background[this]=s__uiBorder_exReSize(s__uiBorder_createType2(parentFrame),width , 0.03) // 这个不动态
+            set s__menuItem_text[this]=s__uiText_setText(s__uiText_exRePoint(s__uiText_setAlign(s__uiText_create(parentFrame),4),3 , s__uiBorder_ui[s__menuItem_background[this]] , 3 , 0.015 , 0),title)
+            set s__menuItem_btn[this]=s__uiBtn_setAllPoint(s__uiBtn_createSimple(simpleParent),s__uiBorder_ui[s__menuItem_background[this]])
             return this
         endfunction
         //private:
         function s__mouseMenu_isExist takes integer this returns boolean
             return ( this != null and si__mouseMenu_V[this] == - 1 )
-        endfunction
-        function s__mouseMenu_getFirstItem takes integer this returns integer
-            if ( s___mouseMenu_items[s__mouseMenu_items[this]+1] == 0 ) then
-                set s___mouseMenu_items[s__mouseMenu_items[this]+1]=s__menuItem_create(this , null , 1 , s__uiImage_ui[s__mouseMenu_menuFrame[this]])
-                set s__mouseMenu_itemCount[this]=1
-            endif
-            return s___mouseMenu_items[s__mouseMenu_items[this]+1]
         endfunction
         function s__mouseMenu_onClick takes integer this,integer func returns integer
             if ( not ( s__mouseMenu_isExist(this) ) ) then
@@ -2826,20 +4375,26 @@ endfunction
                 set s__mouseMenu_currentMenu=0
             endif
             loop
-            exitwhen ( i > s__mouseMenu_itemCount[this] )
-                if ( s___mouseMenu_items[s__mouseMenu_items[this]+i] != 0 ) then
+            exitwhen ( i > 20 )
+                if ( s__menuItem_isExist(s___mouseMenu_items[s__mouseMenu_items[this]+i]) ) then
                     call s__menuItem_deallocate(s___mouseMenu_items[s__mouseMenu_items[this]+i])
                     set s___mouseMenu_items[s__mouseMenu_items[this]+i]=0
                 endif
                 set i=i + 1
             endloop
+            if ( s__mouseMenu_highlight[this] != 0 ) then
+                call s__uiImage_deallocate(s__mouseMenu_highlight[this])
+                set s__mouseMenu_highlight[this]=0
+            endif
             call s__uiImage_deallocate(s__mouseMenu_menuFrame[this])
             set s__mouseMenu_menuFrame[this]=0
             set s__mouseMenu_itemCount[this]=0
             set s__mouseMenu_onClickFunc[this]=0
             set s__mouseMenu_onEnterFunc[this]=0
             set s__mouseMenu_onLeaveFunc[this]=0
-        endfunction
+            set s__mouseMenu_simpleParent[this]=0
+            set s__mouseMenu_autoDestroy[this]=false
+        endfunction  // 显示高亮UI
 
 //Generated destructor of mouseMenu
 function s__mouseMenu_deallocate takes integer this returns nothing
@@ -2854,29 +4409,84 @@ function s__mouseMenu_deallocate takes integer this returns nothing
     set si__mouseMenu_V[this]=si__mouseMenu_F
     set si__mouseMenu_F=this
 endfunction
-            function s__mouseMenu_anon__0 takes integer frame returns nothing
-                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                if ( s__mouseMenu_onEnterFunc[this] != null ) then
-                    call s__menuItem_showHighlight(s___mouseMenu_items[s__mouseMenu_items[this]+index],true)
-                    call sc___prototype22_evaluate(s__mouseMenu_onEnterFunc[this],index)
+        function s__mouseMenu_showHighlight takes integer this,integer index returns nothing
+            if ( s__uiImage_isExist(s__mouseMenu_highlight[this]) ) then
+                if ( index > 0 and index <= s__mouseMenu_itemCount[this] ) then
+                    call s__uiImage_show(s__uiImage_setAllPoint(s__uiImage_clearPoint(s__mouseMenu_highlight[this]),s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+index]]]),true)
+                else
+                    call s__uiImage_show(s__mouseMenu_highlight[this],false)
                 endif
+            endif
+        endfunction  // 清除Simple菜单
+        function s__mouseMenu_clear takes integer this returns integer
+            local integer i=1
+            if ( not ( s__mouseMenu_isExist(this) ) ) then // 将所有已创建的菜单项移到屏幕外
+                return this
+            endif
+            loop
+            exitwhen ( i > 20 )
+                if ( s__menuItem_isExist(s___mouseMenu_items[s__mouseMenu_items[this]+i]) ) then
+                    call s__uiBorder_setPoint(s__uiBorder_clearPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+i]]),0 , DzGetGameUI() , 0 , - 0.8 , - 0.6)
+                endif
+                set i=i + 1
+            endloop // 重置计数但不销毁items
+            set s__mouseMenu_itemCount[this]=0 // 重置菜单框大小
+            call s__uiImage_exReSize(s__mouseMenu_menuFrame[this],s__mouseMenu_menuWidth[this] , 0.03)
+            return this
+        endfunction
+            function s__mouseMenu_anon__0 takes player p returns nothing
+                call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
             endfunction
+        function s__mouseMenu_show takes integer this,boolean flag returns integer
+            if ( not ( s__mouseMenu_isExist(this) ) ) then
+                return this
+            endif
+            if ( flag and this != s__mouseMenu_currentMenu ) then
+                if ( s__mouseMenu_isExist(s__mouseMenu_currentMenu) ) then
+                    call s__mouseMenu_show(s__mouseMenu_currentMenu,false)
+                endif
+                set s__mouseMenu_currentMenu=this
+                set s__mouseMenu_escStackId=s__escStack_push((1))
+            endif // 隐藏当前菜单时的处理
+            if ( not flag and this == s__mouseMenu_currentMenu ) then
+                set s__mouseMenu_currentMenu=0
+                if ( s__mouseMenu_escStackId != 0 ) then
+                    call s__escStack_remove(s__mouseMenu_escStackId)
+                    set s__mouseMenu_escStackId=0
+                endif // 如果是Simple菜单，则执行clear操作
+                if ( s__mouseMenu_simpleParent[this] != 0 ) then
+                    call s__mouseMenu_clear(this)
+                elseif ( s__mouseMenu_autoDestroy[this] ) then // 如果设置了自动销毁，则销毁菜单
+                    call s__mouseMenu_deallocate(this)
+                    return this
+                endif
+            endif // 设置实际的显示/隐藏状态
+            call s__uiImage_show(s__mouseMenu_menuFrame[this],flag)
+            return this
+        endfunction
             function s__mouseMenu_anon__1 takes integer frame returns nothing
                 local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
                 local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                if ( s__mouseMenu_onLeaveFunc[this] != null ) then
-                    call s__menuItem_showHighlight(s___mouseMenu_items[s__mouseMenu_items[this]+index],false)
-                    call sc___prototype22_evaluate(s__mouseMenu_onLeaveFunc[this],index)
+                if ( s__mouseMenu_onEnterFunc[this] != null ) then
+                    call s__mouseMenu_showHighlight(this,index)
+                    call sc___prototype25_evaluate(s__mouseMenu_onEnterFunc[this],index)
                 endif
             endfunction
             function s__mouseMenu_anon__2 takes integer frame returns nothing
                 local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
                 local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                if ( s__mouseMenu_onClickFunc[this] != null ) then
-                    call sc___prototype22_evaluate(s__mouseMenu_onClickFunc[this],index)
+                if ( s__mouseMenu_onLeaveFunc[this] != null ) then
+                    call s__mouseMenu_showHighlight(this,0)
+                    call sc___prototype25_evaluate(s__mouseMenu_onLeaveFunc[this],index)
                 endif
-                call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
+            endfunction
+            function s__mouseMenu_anon__3 takes integer frame returns nothing
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onClickFunc[this] != null ) then
+                    call sc___prototype25_evaluate(s__mouseMenu_onClickFunc[this],index)
+                endif
+                call s__mouseMenu_show(s__mouseMenu_currentMenu,false)
             endfunction
         function s__mouseMenu_AddMenuItem takes integer this,string title returns integer
             local integer anchorPoint
@@ -2898,7 +4508,7 @@ endfunction
                 set relativePoint=7
                 set offsetY=0
             endif
-            set s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]=s__menuItem_create(this , title , s__mouseMenu_itemCount[this] , s__uiImage_ui[s__mouseMenu_menuFrame[this]])
+            set s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]=s__menuItem_create(s__mouseMenu_menuWidth[this] , title , s__mouseMenu_itemCount[this] , s__uiImage_ui[s__mouseMenu_menuFrame[this]])
             if ( s__mouseMenu_itemCount[this] == 1 ) then
                 if ( s__mouseMenu_isUpward[this] ) then
                     call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],7 , s__uiImage_ui[s__mouseMenu_menuFrame[this]] , 7 , 0 , 0)
@@ -2906,98 +4516,603 @@ endfunction
                     call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],1 , s__uiImage_ui[s__mouseMenu_menuFrame[this]] , 1 , 0 , 0)
                 endif
             elseif ( s__mouseMenu_isUpward[this] ) then
-                call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],7 , s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this] - 1]]] , 1 , 0 , 0)
+                call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],7 , s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this] - 1]]] , 1 , 0 , - 0.003)
             else
-                call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],1 , s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this] - 1]]] , 7 , 0 , 0)
+                call s__uiBorder_setPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],1 , s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this] - 1]]] , 7 , 0 , - - 0.003)
             endif
             call s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],(1)),(2)),(3))
             call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__uiBtn_ui[s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]])],s__mouseMenu_itemCount[this])
             call s__UIHashTable___uiHTEvent_bind2(s__UIHashTable___uiHT_eventdata[uiHashTable(s__uiBtn_ui[s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]])],this)
-            call s__uiImage_setSizeFix(s__mouseMenu_menuFrame[this],s__mouseMenu_menuWidth[this] , s__mouseMenu_itemCount[this] * 0.03)
+            call s__uiImage_exReSize(s__mouseMenu_menuFrame[this],s__mouseMenu_menuWidth[this] , s__mouseMenu_itemCount[this] * 0.03 + ( s__mouseMenu_itemCount[this] - 1 ) * - 0.003)
             return this
         endfunction
         function s__mouseMenu_create takes integer parent,boolean isUpward,real width returns integer
             local integer this=s__mouseMenu__allocate()
             set s__mouseMenu_isUpward[this]=isUpward
             set s__mouseMenu_menuWidth[this]=width
-            set s__mouseMenu_menuFrame[this]=s__uiImage_show(s__uiImage_setSizeFix(s__uiImage_setTexture(s__uiImage_create(parent),"UI\\Widgets\\EscMenu\\Human\\blank-background.blp"),width , 0.03),false)
+            set s__mouseMenu_autoDestroy[this]=false
+            set s__mouseMenu_itemCount[this]=0
+            set s__mouseMenu_simpleParent[this]=0
+            set s__mouseMenu_menuFrame[this]=s__uiImage_show(s__uiImage_exReSize(s__uiImage_setTexture(s__uiImage_create(parent),"UI\\Widgets\\EscMenu\\Human\\blank-background.blp"),width , 0.03),false)
+            set s__mouseMenu_highlight[this]=s__uiImage_show(s__uiImage_setTexture(s__uiImage_create(parent),"ui\\image\\buttongrow.blp"),false)
+            return this
+        endfunction  // 原生菜单
+        function s__mouseMenu_createSimple takes integer simpleParent,boolean isUpward,real width returns integer
+            local integer this=s__mouseMenu__allocate()
+            set s__mouseMenu_isUpward[this]=isUpward
+            set s__mouseMenu_menuWidth[this]=width
+            set s__mouseMenu_autoDestroy[this]=false
+            set s__mouseMenu_simpleParent[this]=simpleParent
+            set s__mouseMenu_itemCount[this]=0
+            set s__mouseMenu_highlight[this]=0
+            set s__mouseMenu_menuFrame[this]=s__uiImage_show(s__uiImage_exReSize(s__uiImage_setTexture(s__uiImage_create(s__uilayer_lv[2]),"UI\\Widgets\\EscMenu\\Human\\blank-background.blp"),width , 0.03),false)
+            set s__mouseMenu_highlight[this]=s__uiImage_show(s__uiImage_setTexture(s__uiImage_create(DzGetGameUI()),"ui\\image\\buttongrow.blp"),false)
             return this
         endfunction
-            function s__mouseMenu_anon__3 takes nothing returns nothing
+            function s__mouseMenu_anon__4 takes nothing returns nothing
                 if ( s__mouseMenu_isExist(s__mouseMenu_currentMenu) and not ( s__mouseMenu_isInMenu(s__mouseMenu_currentMenu,s__uiEventState_uiId) ) ) then
-                    call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
+                    call s__mouseMenu_show(s__mouseMenu_currentMenu,false)
                 endif
             endfunction
         function s__mouseMenu_onInit takes nothing returns nothing
-            call s__hardware_regLeftUpEvent(function s__mouseMenu_anon__3)
+            call s__hardware_regLeftUpEvent(function s__mouseMenu_anon__4)
+        endfunction  // 设置是否自动销毁
+        function s__mouseMenu_setAutoDestroy takes integer this,boolean flag returns integer
+            set s__mouseMenu_autoDestroy[this]=flag
+            return this
         endfunction
-            function s__mouseMenu_anon__4 takes player p returns nothing
-                call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
+            function s__mouseMenu_anon__5 takes integer frame returns nothing
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onEnterFunc[this] != null ) then
+                    call s__mouseMenu_showHighlight(this,index)
+                    call sc___prototype25_evaluate(s__mouseMenu_onEnterFunc[this],index)
+                endif
             endfunction
-        function s__mouseMenu_show takes integer this,boolean flag returns integer
+            function s__mouseMenu_anon__6 takes integer frame returns nothing
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onLeaveFunc[this] != null ) then
+                    call s__mouseMenu_showHighlight(this,0)
+                    call sc___prototype25_evaluate(s__mouseMenu_onLeaveFunc[this],index)
+                endif
+            endfunction
+            function s__mouseMenu_anon__7 takes integer frame returns nothing
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onClickFunc[this] != null ) then
+                    call sc___prototype25_evaluate(s__mouseMenu_onClickFunc[this],index)
+                endif // Simple菜单点击后使用show(false)，会自动调用clear
+                call s__mouseMenu_show(s__mouseMenu_currentMenu,false)
+            endfunction
+        function s__mouseMenu_AddMenuSimpleItem takes integer this,string title returns integer
+            local integer anchorPoint
+            local integer relativePoint
+            local real offsetY
             if ( not ( s__mouseMenu_isExist(this) ) ) then
                 return this
             endif
-            if ( flag and this != s__mouseMenu_currentMenu ) then
-                if ( s__mouseMenu_isExist(s__mouseMenu_currentMenu) ) then
-                    call s__mouseMenu_show(s__mouseMenu_currentMenu,false)
+            set s__mouseMenu_itemCount[this]=s__mouseMenu_itemCount[this] + 1
+            if ( s__mouseMenu_itemCount[this] >= 20 ) then
+                return this
+            endif
+            if ( s__mouseMenu_isUpward[this] ) then
+                set anchorPoint=7
+                set relativePoint=1
+                set offsetY=0
+            else
+                set anchorPoint=1
+                set relativePoint=7
+                set offsetY=0
+            endif
+            if ( not ( s__menuItem_isExist(s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]) ) ) then
+                set s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]=s__menuItem_createSimple(s__mouseMenu_menuWidth[this] , title , s__mouseMenu_itemCount[this] , s__mouseMenu_simpleParent[this] , s__uiImage_ui[s__mouseMenu_menuFrame[this]])
+            else
+                call s__uiText_setText(s__menuItem_text[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],title)
+            endif
+            if ( s__mouseMenu_itemCount[this] == 1 ) then
+                if ( s__mouseMenu_isUpward[this] ) then
+                    call s__uiBorder_setPoint(s__uiBorder_clearPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]),7 , s__uiImage_ui[s__mouseMenu_menuFrame[this]] , 7 , 0 , 0)
+                else
+                    call s__uiBorder_setPoint(s__uiBorder_clearPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]),1 , s__uiImage_ui[s__mouseMenu_menuFrame[this]] , 1 , 0 , 0)
                 endif
-                set s__mouseMenu_currentMenu=this
-                set s__mouseMenu_escStackId=s__escStack_push((1))
-            endif // 隐藏当前菜单时,需要清除引用
-            if ( not flag and this == s__mouseMenu_currentMenu ) then
-                set s__mouseMenu_currentMenu=0
-                if ( s__mouseMenu_escStackId != 0 ) then
-                    call s__escStack_remove(s__mouseMenu_escStackId)
-                    set s__mouseMenu_escStackId=0
-                endif
-            endif // 设置实际的显示/隐藏状态
-            call s__uiImage_show(s__mouseMenu_menuFrame[this],flag)
+            elseif ( s__mouseMenu_isUpward[this] ) then
+                call s__uiBorder_setPoint(s__uiBorder_clearPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]),7 , s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this] - 1]]] , 1 , 0 , - 0.003)
+            else
+                call s__uiBorder_setPoint(s__uiBorder_clearPoint(s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]),1 , s__uiBorder_ui[s__menuItem_background[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this] - 1]]] , 7 , 0 , - - 0.003)
+            endif
+            if ( s__uiBtn_ui[s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]] != 0 ) then
+                call s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]],(4)),(5)),(6))
+                call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__uiBtn_ui[s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]])],s__mouseMenu_itemCount[this])
+                call s__UIHashTable___uiHTEvent_bind2(s__UIHashTable___uiHT_eventdata[uiHashTable(s__uiBtn_ui[s__menuItem_btn[s___mouseMenu_items[s__mouseMenu_items[this]+s__mouseMenu_itemCount[this]]]])],this)
+            endif
+            call s__uiImage_exReSize(s__mouseMenu_menuFrame[this],s__mouseMenu_menuWidth[this] , s__mouseMenu_itemCount[this] * 0.03 + ( s__mouseMenu_itemCount[this] - 1 ) * - 0.003)
             return this
         endfunction
 
 //library MouseMenu ends
+//library ProgressAnim:
+//processed:     function interface onProgressEnd takes uiSprite arg0 returns nothing
+        function s__progAnim_isExist takes integer this returns boolean
+            return ( this != null and si__progAnim_V[this] == - 1 )
+        endfunction
+        function s__progAnim_create takes integer sprite,real from,real to,integer time,integer cb returns integer
+            local integer this=s__progAnim__allocate()
+            set s__progAnim_sprite[this]=sprite
+            set s__progAnim_from[this]=from
+            set s__progAnim_to[this]=to
+            set s__progAnim_time[this]=time
+            set s__progAnim_now[this]=0
+            set s__progAnim_cb[this]=cb // 这里是初始化时的设置内容,不需要改
+            if ( s__progAnim_id[this] == 0 ) then
+                set s__progAnim_size=s__progAnim_size + 1
+                set s__progAnim_List[s__progAnim_size]=this
+                set s__progAnim_id[this]=s__progAnim_size
+            endif
+            call s__uianim_reg(s__progAnim_UIA)
+            return this
+        endfunction
+        function s__progAnim_onDestroy takes integer this returns nothing
+            if ( s__uiSprite_isExist(s__progAnim_sprite[this]) and HaveSavedInteger(HASH_UI, s__uiSprite_ui[s__progAnim_sprite[this]], 1945) ) then
+                call RemoveSavedInteger(HASH_UI, s__uiSprite_ui[s__progAnim_sprite[this]], 1945)
+            endif
+            set s__progAnim_sprite[this]=0
+            set s__progAnim_cb[this]=0
+            if ( s__progAnim_id[this] != 0 ) then
+                set s__progAnim_List[s__progAnim_id[this]]=s__progAnim_List[s__progAnim_size]
+                set s__progAnim_id[s__progAnim_List[s__progAnim_id[this]]]=s__progAnim_id[this]
+                set s__progAnim_size=s__progAnim_size - 1
+                set s__progAnim_id[this]=0
+            endif
+            if ( s__progAnim_size <= 0 ) then // 这里就删计时器
+                call s__uianim_unreg(s__progAnim_UIA) // 添加调试输出
+                call BJDebugMsg("progAnim计时器已停止")
+            endif
+        endfunction
+
+//Generated destructor of progAnim
+function s__progAnim_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: progAnim")
+        return
+    elseif (si__progAnim_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: progAnim")
+        return
+    endif
+    call s__progAnim_onDestroy(this)
+    set si__progAnim_V[this]=si__progAnim_F
+    set si__progAnim_F=this
+endfunction
+            function s__progAnim_anon__0 takes nothing returns nothing
+                local integer i
+                local integer this
+                local real progress
+                if ( s__progAnim_size > 0 ) then
+                    set i=1 // 从结论来说i就是.id
+                    loop
+                    exitwhen ( i > s__progAnim_size )
+                        set this=s__progAnim_List[i]
+                        set s__progAnim_now[this]=s__progAnim_now[this] + 1 // 删除的条件
+                        if ( s__progAnim_now[this] >= s__progAnim_time[this] ) then
+                            call s__uiSprite_setProgress(s__progAnim_sprite[this],s__progAnim_to[this])
+                            if ( s__progAnim_cb[this] != 0 ) then //因为会自动排泄,防止在回调删UI的时候继续再调用一次
+                                call RemoveSavedInteger(HASH_UI, s__uiSprite_ui[s__progAnim_sprite[this]], 1945)
+                                call sc___prototype25_evaluate(s__progAnim_cb[this],s__progAnim_sprite[this])
+                            endif
+                            call s__progAnim_deallocate(this) // 正向遍历必须要保留这条
+                            set i=i - 1
+                        else
+                            set progress=s__progAnim_from[this] + ( s__progAnim_to[this] - s__progAnim_from[this] ) * ( I2R(s__progAnim_now[this]) / s__progAnim_time[this] )
+                            call s__uiSprite_setProgress(s__progAnim_sprite[this],progress)
+                        endif
+                    set i=i + 1
+                    endloop
+                endif
+            endfunction  // UI销毁时回调删除进度动画
+            function s__progAnim_anon__1 takes nothing returns nothing
+                local integer ui=s__uiLifeCycle_agrsFrame
+                local integer this
+                if ( HaveSavedInteger(HASH_UI, ui, 1945) ) then
+                    set this=LoadInteger(HASH_UI, ui, 1945) // 检查实例是否存在
+                    if ( s__progAnim_isExist(this) ) then
+                        call s__progAnim_deallocate(this)
+                    endif
+                endif
+            endfunction
+        function s__progAnim_onInit takes nothing returns nothing
+            set s__progAnim_UIA=s__uianim_create(function s__progAnim_anon__0)
+            call s__uiLifeCycle_registerDestroy(function s__progAnim_anon__1)
+        endfunction
+
+//library ProgressAnim ends
+//library Icon:
+        function s__icon_isExist takes integer this returns boolean
+            return ( this != null and si__icon_V[this] == - 1 )
+        endfunction
+        function s__icon_init takes integer this returns nothing
+            set s__icon_mainImage[this]=0
+            set s__icon_shadowImage[this]=0
+            set s__icon_cornerShade[this]=0
+            set s__icon_cornerText[this]=0
+            set s__icon_clickBtn[this]=0
+            set s__icon_glowImage[this]=0
+            set s__icon_cdSprite[this]=0
+            set s__icon_cdSpriteImage[this]=0 // 动画相关
+            set s__icon_glowAnim[this]=0
+            set s__icon_gd[this]=0 // 尺寸初始化为0
+            set s__icon_sizeX[this]=0.04
+            set s__icon_sizeY[this]=0.04
+        endfunction  // 普通创建方法
+        function s__icon_create takes integer parent returns integer
+            local integer this=s__icon__allocate()
+            call s__icon_init(this)
+            set s__icon_parent[this]=parent
+            set s__icon_isSimple[this]=false // 创建必需组件
+            set s__icon_mainImage[this]=s__uiImage_setClip(s__uiImage_create(parent),true)
+            call s__uiImage_show(s__icon_mainImage[this],false)
+            return this
+        endfunction  // 从现有UI创建图标(parent是后面创建东西的parent)
+        function s__icon_fromExistingUI takes integer existingImage,integer parent returns integer
+            local integer this=s__icon__allocate()
+            call s__icon_init(this)
+            set s__icon_parent[this]=parent
+            set s__icon_isSimple[this]=true
+            set s__icon_spAnchor[this]=0
+            set s__icon_spRelative[this]=0
+            set s__icon_spRelativeAnchor[this]=0
+            set s__icon_spOffsetX[this]=0
+            set s__icon_spOffsetY[this]=0 // 绑定现有图片
+            set s__icon_mainImage[this]=existingImage
+            return this
+        endfunction  // 从现有UI创建图标(parent是后面创建东西的parent)
+        function s__icon_createSimple takes integer parent returns integer
+            return s__icon_fromExistingUI(s__uiImage_createSimple(parent) , parent)
+        endfunction  // 更新流光尺寸
+        function s__icon_updateGlowSize takes integer this returns nothing
+            if ( s__uiImage_isExist(s__icon_glowImage[this]) ) then
+                if ( s__icon_isResize[this] ) then
+                    call s__uiImage_exReSize(s__icon_glowImage[this],s__icon_sizeX[this] * s__growdata_scale[s__icon_gd[this]] , s__icon_sizeY[this] * s__growdata_scale[s__icon_gd[this]])
+                else
+                    call s__uiImage_setSize(s__icon_glowImage[this],s__icon_sizeX[this] * s__growdata_scale[s__icon_gd[this]] , s__icon_sizeY[this] * s__growdata_scale[s__icon_gd[this]])
+                endif
+            endif
+        endfunction  // 加入流光效果
+        function s__icon_grow takes integer this,integer gd returns integer
+            if ( not ( s__icon_isExist(this) ) ) then
+                return this
+            endif
+            if ( not ( s__uiImage_isExist(s__icon_glowImage[this]) ) ) then
+                if ( s__icon_isSimple[this] ) then // 创建流光图片 -> 到最底层
+                    set s__icon_glowImage[this]=s__uiImage_create(s__uilayer_lv[1])
+                else
+                    set s__icon_glowImage[this]=s__uiImage_create(s__icon_parent[this])
+                endif
+                call s__uiImage_setPoint(s__icon_glowImage[this],4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0)
+                call s__icon_updateGlowSize(this)
+            endif // 显示流光
+            call s__uiImage_show(s__icon_glowImage[this],true)
+            if ( gd != s__icon_gd[this] ) then
+                set s__icon_gd[this]=gd
+            endif
+            if ( not ( s__baseanim_isExist(s__icon_glowAnim[this]) ) ) then
+                set s__icon_glowAnim[this]=s__baseanim_create(s__uiImage_ui[s__icon_glowImage[this]])
+                call s__baseanim_addSequ(s__icon_glowAnim[this],s__growdata_path[gd] , s__growdata_max[gd] , s__growdata_gap[gd] , true)
+            endif
+            call s__icon_updateGlowSize(this)
+            return this
+        endfunction  // 取消流光
+        function s__icon_unGrow takes integer this returns integer
+            if ( not ( s__icon_isExist(this) ) ) then //
+                return this
+            endif
+            if ( s__uiImage_isExist(s__icon_glowImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_glowImage[this])
+                set s__icon_glowImage[this]=0
+            endif
+            if ( s__baseanim_isExist(s__icon_glowAnim[this]) ) then
+                call s__baseanim_deallocate(s__icon_glowAnim[this])
+                set s__icon_glowAnim[this]=0
+            endif
+            return this
+        endfunction  // 设置尺寸
+        function s__icon_setSize takes integer this,real x,real y returns integer
+            if ( not ( s__icon_isExist(this) ) ) then
+                return this
+            endif
+            if ( s__icon_sizeX[this] <= 0 or s__icon_sizeY[this] <= 0 ) then
+                return this
+            endif
+            if ( s__icon_isResize[this] ) then
+                call s__uiImage_exReSize(s__icon_mainImage[this],x , y)
+            else
+                call s__uiImage_setSize(s__icon_mainImage[this],x , y)
+            endif
+            set s__icon_sizeX[this]=x
+            set s__icon_sizeY[this]=y
+            call s__icon_updateGlowSize(this)
+            return this
+        endfunction
+        function s__icon_enableResize takes integer this returns integer
+            if ( not ( s__icon_isExist(this) ) ) then
+                return this
+            endif
+            set s__icon_isResize[this]=true
+            call s__icon_setSize(this,s__icon_sizeX[this] , s__icon_sizeY[this])
+            return this
+        endfunction  // 设置数字
+        function s__icon_setCornerText takes integer this,string value returns integer
+            local real padding
+            if ( not ( s__icon_isExist(this) ) ) then // 如果value为null,隐藏cornerText和cornerShade
+                return this
+            endif
+            if ( value == null ) then
+                if ( s__uiText_isExist(s__icon_cornerText[this]) ) then
+                    call s__uiText_show(s__icon_cornerText[this],false)
+                    call s__uiBorder_show(s__icon_cornerShade[this],false)
+                endif
+                return this
+            endif // 创建或更新cornerText
+            if ( not ( s__uiText_isExist(s__icon_cornerText[this]) ) ) then
+                if ( s__icon_isSimple[this] ) then
+                    set s__icon_cornerShade[this]=s__uiBorder_createCornerBorder(s__uilayer_lv[1])
+                    set s__icon_cornerText[this]=s__uiText_create(s__uiBorder_ui[s__icon_cornerShade[this]])
+                else
+                    set s__icon_cornerShade[this]=s__uiBorder_createCornerBorder(s__icon_parent[this])
+                    set s__icon_cornerText[this]=s__uiText_create(s__uiBorder_ui[s__icon_cornerShade[this]])
+                endif
+                call s__uiText_setPoint(s__uiText_setFontSize(s__icon_cornerText[this],2),8 , s__uiImage_ui[s__icon_mainImage[this]] , 8 , - 0.003 , 0.003)
+                set padding=0.003
+                call s__uiBorder_setPoint(s__uiBorder_setPoint(s__icon_cornerShade[this],0 , s__uiText_ui[s__icon_cornerText[this]] , 0 , - padding , padding),8 , s__uiText_ui[s__icon_cornerText[this]] , 8 , padding , - padding)
+            endif
+            call s__uiText_setText(s__icon_cornerText[this],value)
+            call s__uiText_show(s__icon_cornerText[this],true)
+            call s__uiBorder_show(s__icon_cornerShade[this],true)
+            return this
+        endfunction  // 设置图标暗遮罩
+        function s__icon_setShadow takes integer this,boolean flag returns integer
+            if ( not ( s__icon_isExist(this) ) ) then
+                return this
+            endif
+            if ( not ( s__uiImage_isExist(s__icon_shadowImage[this]) ) and flag ) then
+                if ( s__icon_isSimple[this] ) then
+                    set s__icon_shadowImage[this]=s__uiImage_create(s__uilayer_lv[1])
+                else
+                    set s__icon_shadowImage[this]=s__uiImage_create(s__uiImage_ui[s__icon_mainImage[this]])
+                endif
+                call s__uiImage_setAllPoint(s__uiImage_setTexture(s__icon_shadowImage[this],"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp"),s__uiImage_ui[s__icon_mainImage[this]])
+            endif
+            if ( s__uiImage_isExist(s__icon_shadowImage[this]) ) then
+                call s__uiImage_show(s__icon_shadowImage[this],flag)
+            endif
+            return this
+        endfunction  // CD显示相关方法
+        function s__icon_startCooldown takes integer this,real duration,integer func returns integer
+            if ( not ( s__icon_isExist(this) ) ) then
+                return this
+            endif
+            if ( not ( s__uiSprite_isExist(s__icon_cdSprite[this]) ) ) then
+                if ( s__icon_isSimple[this] ) then
+                    set s__icon_cdSpriteImage[this]=s__uiImage_setClip(s__uiImage_setAllPoint(s__uiImage_setTexture(s__uiImage_create(s__uilayer_lv[1]),"UI\\Widgets\\EscMenu\\Human\\blank-background.blp"),s__uiImage_ui[s__icon_mainImage[this]]),true)
+                    set s__icon_cdSprite[this]=s__uiSprite_create(s__uiImage_ui[s__icon_cdSpriteImage[this]])
+                else
+                    set s__icon_cdSprite[this]=s__uiSprite_create(s__uiImage_ui[s__icon_mainImage[this]])
+                endif
+                call s__uiSprite_setAnimate(s__uiSprite_setModel(s__uiSprite_setSize(s__uiSprite_setPoint(s__icon_cdSprite[this],4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0),0.001 , 0.001),"ui\\model\\cooldown_center.mdx" , 0 , 0),0 , false)
+                call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__icon_cdSprite[this])],this)
+            endif
+            call s__uiSprite_progAnimate(s__icon_cdSprite[this],0 , 1 , duration , func)
+            call s__uiSprite_setScale(s__icon_cdSprite[this],s__icon_sizeY[this] / 0.038)
+            return this
+        endfunction  // 获取按钮,然后再在外面设按钮相关的事件
+        function s__icon_getClickBtn takes integer this returns integer
+            if ( not ( s__icon_isExist(this) ) ) then
+                return 0
+            endif
+            if ( not ( s__uiBtn_isExist(s__icon_clickBtn[this]) ) ) then //原生
+                if ( s__icon_isSimple[this] ) then
+                    if ( s__icon_parent[this] != 0 ) then
+                        set s__icon_clickBtn[this]=s__uiBtn_setAllPoint(s__uiBtn_createSimple(s__icon_parent[this]),s__uiImage_ui[s__icon_mainImage[this]])
+                    else
+                        call BJDebugMsg("parent is 0")
+                    endif //非原生
+                else
+                    set s__icon_clickBtn[this]=s__uiBtn_setAllPoint(s__uiBtn_create(s__uiImage_ui[s__icon_mainImage[this]]),s__uiImage_ui[s__icon_mainImage[this]])
+                endif
+            endif
+            return s__icon_clickBtn[this]
+        endfunction  // 设置图标贴图
+        function s__icon_setTexture takes integer this,string path returns integer
+            if ( not ( s__icon_isExist(this) ) ) then
+                return this
+            endif
+            call s__uiImage_setTexture(s__icon_mainImage[this],path)
+            return this
+        endfunction  // 设置位置(顺便存位置)
+        function s__icon_setPoint takes integer this,integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns integer
+            if ( not ( s__icon_isExist(this) ) ) then
+                return this
+            endif
+            if ( s__icon_isSimple[this] ) then
+                call s__uiImage_setPoint(s__uiImage_clearPoint(s__icon_mainImage[this]),anchor , relative , relativeAnchor , offsetX , offsetY)
+                set s__icon_spAnchor[this]=anchor
+                set s__icon_spRelative[this]=relative
+                set s__icon_spRelativeAnchor[this]=relativeAnchor
+                set s__icon_spOffsetX[this]=offsetX
+                set s__icon_spOffsetY[this]=offsetY
+            else
+                call s__uiImage_setPoint(s__icon_mainImage[this],anchor , relative , relativeAnchor , offsetX , offsetY)
+            endif
+            return this
+        endfunction  // 显示/隐藏整个图标(Simple无效)
+        function s__icon_show takes integer this,boolean flag returns integer
+            if ( not ( s__icon_isExist(this) ) ) then //原生就移到屏幕外
+                return this
+            endif
+            if ( s__icon_isSimple[this] ) then //显示
+                if ( flag ) then
+                    call s__uiImage_setPoint(s__uiImage_clearPoint(s__icon_mainImage[this]),s__icon_spAnchor[this] , s__icon_spRelative[this] , s__icon_spRelativeAnchor[this] , s__icon_spOffsetX[this] , s__icon_spOffsetY[this])
+                else //隐藏
+                    call s__uiImage_setPoint(s__uiImage_clearPoint(s__icon_mainImage[this]),4 , DzGetGameUI() , 4 , - 0.8 , 0.0)
+                endif //非原生才能用这个函数
+            else
+                call s__uiImage_show(s__icon_mainImage[this],flag)
+                if ( s__uiImage_isExist(s__icon_glowImage[this]) ) then
+                    call s__uiImage_show(s__icon_glowImage[this],flag)
+                endif
+            endif
+            return this
+        endfunction
+        function s__icon_onDestroy takes integer this returns nothing
+            if ( s__baseanim_isExist(s__icon_glowAnim[this]) ) then
+                call s__baseanim_deallocate(s__icon_glowAnim[this])
+                set s__icon_glowAnim[this]=0
+            endif
+            if ( s__uiSprite_isExist(s__icon_cdSprite[this]) ) then
+                call s__uiSprite_deallocate(s__icon_cdSprite[this])
+                set s__icon_cdSprite[this]=0
+            endif
+            if ( s__uiImage_isExist(s__icon_cdSpriteImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_cdSpriteImage[this])
+                set s__icon_cdSpriteImage[this]=0
+            endif
+            if ( s__uiImage_isExist(s__icon_shadowImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_shadowImage[this])
+                set s__icon_shadowImage[this]=0
+            endif
+            if ( s__uiBorder_isExist(s__icon_cornerShade[this]) ) then
+                call s__uiBorder_deallocate(s__icon_cornerShade[this])
+                set s__icon_cornerShade[this]=0
+            endif
+            if ( s__uiText_isExist(s__icon_cornerText[this]) ) then
+                call s__uiText_deallocate(s__icon_cornerText[this])
+                set s__icon_cornerText[this]=0
+            endif
+            if ( s__uiBtn_isExist(s__icon_clickBtn[this]) ) then
+                call s__uiBtn_deallocate(s__icon_clickBtn[this])
+                set s__icon_clickBtn[this]=0
+            endif
+            if ( s__uiImage_isExist(s__icon_glowImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_glowImage[this])
+                set s__icon_glowImage[this]=0
+            endif
+            if ( s__uiImage_isExist(s__icon_mainImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_mainImage[this])
+                set s__icon_mainImage[this]=0
+            endif
+        endfunction
+
+//Generated destructor of icon
+function s__icon_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: icon")
+        return
+    elseif (si__icon_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: icon")
+        return
+    endif
+    call s__icon_onDestroy(this)
+    set si__icon_V[this]=si__icon_F
+    set si__icon_F=this
+endfunction
+
+//library Icon ends
 //library UTMouseMenu:
 
-        function UTMouseMenu___anon__0 takes nothing returns nothing
-        endfunction  //end
-        function UTMouseMenu___anon__1 takes nothing returns nothing
-        endfunction
-        function UTMouseMenu___anon__2 takes nothing returns nothing
-        endfunction  //menuItem.create
     function UTMouseMenu___Init takes nothing returns nothing
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTMouseMenu___anon__0 , function UTMouseMenu___anon__1)
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTMouseMenu___anon__2 , null)
+        local unit hero
+        local unit building
+        local real x=0
+        local real y=0
+        local integer i=0
+        call BJDebugMsg("|cff00ff00[技能按钮测试]|r 单元测试已加载")
+        call BJDebugMsg("|cff00ff00[技能按钮测试]|r 可用命令:")
+        call BJDebugMsg("|cffffcc00s1|r - 切换遮罩显示/隐藏")
+        call BJDebugMsg("|cffffcc00s2|r - 切换技能按钮显示/隐藏")
+        call BJDebugMsg("|cffffcc00s3|r - 测试技能按钮高亮效果")
+        call BJDebugMsg("|cffffcc00s4|r - 显示技能按钮框架信息") // 为玩家1创建测试英雄
+        set hero=CreateUnit(Player(0), 'Hamg', 0, 0, 270) // 创建大法师在坐标(0,0)
+        call SetHeroLevel(hero, 10, true) // 创建一个建筑单位用于测试12个技能
+        set building=CreateUnit(Player(0), 'hcas', 400, 0, 270) // 创建人族城堡 // 为建筑添加12个技能
+        call UnitAddAbility(building, 'AHbz') // 暴风雪 // 水元素
+        call UnitAddAbility(building, 'AHwe') // 闪现
+        call UnitAddAbility(building, 'AHab') // 群体传送
+        call UnitAddAbility(building, 'AHmt') // 烈焰风暴
+        call UnitAddAbility(building, 'AHfs') // 驱逐魔法
+        call UnitAddAbility(building, 'AHbn') // 吸取魔法
+        call UnitAddAbility(building, 'AHdr') // 凤凰
+        call UnitAddAbility(building, 'AHpx') // 奥术光环
+        call UnitAddAbility(building, 'AHad') // 化身
+        call UnitAddAbility(building, 'AHav') // 寒冰护甲
+        call UnitAddAbility(building, 'AHcs') // 烈焰护甲
+        call UnitAddAbility(building, 'AHfa') // 添加8个预选的技能
+        call UnitAddAbility(hero, 'ACbc') // 火焰呼吸 // 霜冻闪电
+        call UnitAddAbility(hero, 'ACbf') // 变形术
+        call UnitAddAbility(hero, 'ACpy') // 妖术
+        call UnitAddAbility(hero, 'AOhx') // 吞噬
+        call UnitAddAbility(hero, 'ACdv') // 诱捕
+        call UnitAddAbility(hero, 'ACen') // 混乱之雨
+        call UnitAddAbility(hero, 'ANr3') // 医疗波
+        call UnitAddAbility(hero, 'AOhw') // 在英雄周围随机放置物品
+        call CreateItem('rag1', - 200, 100) // 敏捷便鞋 +3 // 大魔法师指环
+        call CreateItem('ram1', - 100, 100) // 大魔法师指环 +2
+        call CreateItem('ram2', 0, 100) // 影子之球 +2
+        call CreateItem('sor2', 100, 100) // 影子之球 +3
+        call CreateItem('sor3', 200, 100) // 恢复卷轴
+        call CreateItem('sreg', - 200, - 100) // 魔法护盾护身符
+        call CreateItem('spsh', - 100, - 100) // 灼热之刀
+        call CreateItem('srbd', 0, - 100) // 雷霆蜥蜴钻石
+        call CreateItem('thdm', 100, - 100) // 智力之书 +2
+        call CreateItem('tin2', 200, - 100) // 放置一些特殊物品
+        call CreateItem('dkfw', - 150, 0) // 雷霆水桶(自动使用型) // 雷霆凤凰蛋(自动使用型)
+        call CreateItem('dphe', 150, 0) // 雷霆蜥蜴之蛋(自动使用型)
+        call CreateItem('thle', 0, 150)
     endfunction
-        function UTMouseMenu___anon__3 takes integer index returns nothing
-            call BJDebugMsg("[进入事件] " + I2S(index))
-        endfunction
-        function UTMouseMenu___anon__4 takes integer index returns nothing
-            call BJDebugMsg("[点击事件] " + I2S(index))
-        endfunction
-        function UTMouseMenu___anon__5 takes integer index returns nothing
-            call BJDebugMsg("[离开事件] " + I2S(index))
-        endfunction
     function UTMouseMenu___TTestUTMouseMenu1 takes player p returns nothing
-        if ( not ( s__mouseMenu_isExist(UTMouseMenu___menu) ) ) then
-            set UTMouseMenu___menu=s__mouseMenu_create(DzGetGameUI() , true , 0.08)
-            call s__mouseMenu_onEnter(UTMouseMenu___menu,(4))
-            call s__mouseMenu_onClick(UTMouseMenu___menu,(5))
-            call s__mouseMenu_onLeave(UTMouseMenu___menu,(6))
-            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试1")
-            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试2")
-            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试3")
-            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试4")
-            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"测试5")
-            call s__uiImage_setAbsPoint(s__mouseMenu_menuFrame[UTMouseMenu___menu],4 , 0.4 , 0.3)
-            call BJDebugMsg("创建菜单")
+        set UTMouseMenu___isUpward=not UTMouseMenu___isUpward
+        if ( UTMouseMenu___isUpward ) then
+            call BJDebugMsg("当前方向: 向上")
+        else
+            call BJDebugMsg("当前方向: 向下")
         endif
-        call s__mouseMenu_show(UTMouseMenu___menu,true)
-    endfunction
+    endfunction  // 测试自动销毁切换
     function UTMouseMenu___TTestUTMouseMenu2 takes player p returns nothing
-        call s__uiBorder_setAbsPoint(s__uiBorder_setSizeFix(s__uiBorder_createType2(DzGetGameUI()),0.2 , 0.05),4 , 0.4 , 0.3)
+        set UTMouseMenu___isAutoDestroy=not UTMouseMenu___isAutoDestroy
+        if ( UTMouseMenu___isAutoDestroy ) then
+            call BJDebugMsg("当前自动销毁: 开启")
+        else
+            call BJDebugMsg("当前自动销毁: 关闭")
+        endif
     endfunction
+        function UTMouseMenu___anon__0 takes integer index returns nothing
+            call BJDebugMsg("[Simple菜单-进入] " + I2S(index))
+        endfunction
+        function UTMouseMenu___anon__1 takes integer index returns nothing
+            call BJDebugMsg("[Simple菜单-点击] " + I2S(index))
+        endfunction
+        function UTMouseMenu___anon__2 takes integer index returns nothing
+            call BJDebugMsg("[Simple菜单-离开] " + I2S(index))
+        endfunction  // 添加Simple菜单项
     function UTMouseMenu___TTestUTMouseMenu3 takes player p returns nothing
+        local real x=s__hardware_getMouseX()
+        local real y=s__hardware_getMouseY()
+        local real menuHeight=3 * 0.03 + 2 * - 0.003
+        if ( not ( s__mouseMenu_isExist(UTMouseMenu___simpleMenu) ) ) then
+            set UTMouseMenu___simpleMenu=s__mouseMenu_setAutoDestroy(s__mouseMenu_createSimple(DzFrameGetParent(s__s__spellBtns_grid[(3)*(4)+4]) , UTMouseMenu___isUpward , 0.13),UTMouseMenu___isAutoDestroy)
+        else
+            call s__mouseMenu_show(UTMouseMenu___simpleMenu,false)
+        endif
+        call s__mouseMenu_onEnter(UTMouseMenu___simpleMenu,(7))
+        call s__mouseMenu_onClick(UTMouseMenu___simpleMenu,(8))
+        call s__mouseMenu_onLeave(UTMouseMenu___simpleMenu,(9))
+        call s__mouseMenu_AddMenuSimpleItem(UTMouseMenu___simpleMenu,"Simple菜单项1")
+        call s__mouseMenu_AddMenuSimpleItem(UTMouseMenu___simpleMenu,"Simple菜单项2")
+        call s__mouseMenu_AddMenuSimpleItem(UTMouseMenu___simpleMenu,"Simple菜单项3") // 根据方向调整Y坐标
+        if ( not UTMouseMenu___isUpward ) then
+            set y=y - menuHeight
+        endif
+        call s__uiImage_setAbsPoint(s__mouseMenu_menuFrame[UTMouseMenu___simpleMenu],6 , x , y)
+        call s__mouseMenu_show(UTMouseMenu___simpleMenu,true)
+        call BJDebugMsg("在鼠标位置(" + R2S(x) + "," + R2S(y) + ")创建" + S3(UTMouseMenu___isUpward , "向上" , "向下") + " Simple菜单(自动销毁: " + S3(UTMouseMenu___isAutoDestroy , "开启" , "关闭") + ")")
     endfunction
     function UTMouseMenu___TTestUTMouseMenu4 takes player p returns nothing
     endfunction
@@ -3040,17 +5155,32 @@ endfunction
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
-        if ( paramS[0] == "a" ) then
+        if ( paramS[0] == "destroy" ) then
+            if ( s__mouseMenu_isExist(UTMouseMenu___menu) ) then
+                call s__mouseMenu_deallocate(UTMouseMenu___menu)
+                set UTMouseMenu___menu=0
+                call BJDebugMsg("菜单已销毁")
+            else
+                call BJDebugMsg("菜单不存在")
+            endif
+        elseif ( paramS[0] == "autodestroy" ) then
+            if ( s__mouseMenu_isExist(UTMouseMenu___menu) ) then
+                call s__mouseMenu_setAutoDestroy(UTMouseMenu___menu,not ( s__mouseMenu_autoDestroy[UTMouseMenu___menu] ))
+                call BJDebugMsg("菜单自动销毁已" + S3(s__mouseMenu_autoDestroy[UTMouseMenu___menu] , "开启" , "关闭"))
+            else
+                call BJDebugMsg("菜单不存在")
+            endif
+        elseif ( paramS[0] == "a" ) then
         elseif ( paramS[0] == "b" ) then
         endif
         set p=null
     endfunction
-        function UTMouseMenu___anon__6 takes nothing returns nothing
+        function UTMouseMenu___anon__3 takes nothing returns nothing
             call BJDebugMsg("[MouseMenu] 单元测试已加载")
             call UTMouseMenu___Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTMouseMenu___anon__7 takes nothing returns nothing
+        function UTMouseMenu___anon__4 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubStringBJ(str, 1, 1) == "-" ) then
@@ -3079,15 +5209,168 @@ endfunction
                 call UTMouseMenu___TTestUTMouseMenu10(GetTriggerPlayer())
             endif
         endfunction
+            function UTMouseMenu___anon__6 takes integer index returns nothing
+                call BJDebugMsg("[右键菜单-进入] " + I2S(index))
+            endfunction
+            function UTMouseMenu___anon__7 takes integer index returns nothing
+                call BJDebugMsg("[右键菜单-点击] " + I2S(index))
+            endfunction
+            function UTMouseMenu___anon__8 takes integer index returns nothing
+                call BJDebugMsg("[右键菜单-离开] " + I2S(index))
+            endfunction
+        function UTMouseMenu___anon__5 takes nothing returns nothing
+            local real x=s__hardware_getMouseX()
+            local real y=s__hardware_getMouseY()
+            local real finalY=y
+            local real menuHeight=3 * 0.03 + 2 * - 0.003
+            if ( s__mouseMenu_isExist(UTMouseMenu___menu) ) then
+                call s__mouseMenu_deallocate(UTMouseMenu___menu)
+            endif
+            set UTMouseMenu___menu=s__mouseMenu_setAutoDestroy(s__mouseMenu_create(DzGetGameUI() , UTMouseMenu___isUpward , 0.13),UTMouseMenu___isAutoDestroy)
+            call s__mouseMenu_onEnter(UTMouseMenu___menu,(10))
+            call s__mouseMenu_onClick(UTMouseMenu___menu,(11))
+            call s__mouseMenu_onLeave(UTMouseMenu___menu,(12))
+            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"右键菜单项1")
+            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"右键菜单项2")
+            call s__mouseMenu_AddMenuItem(UTMouseMenu___menu,"右键菜单项3") // 计算菜单总高度
+            if ( not UTMouseMenu___isUpward ) then // 根据方向调整Y坐标 // 向下生长时，确保顶部坐标加上菜单高度不超过0.8
+                set y=y - menuHeight
+            endif
+            call s__uiImage_setAbsPoint(s__mouseMenu_menuFrame[UTMouseMenu___menu],6 , x , RLimit(y , 0.165 , y))
+            call s__mouseMenu_show(UTMouseMenu___menu,true) // 显示实际位置信息
+            if ( finalY != y ) then
+                call BJDebugMsg("菜单Y坐标已调整: " + R2S(y) + " -> " + R2S(finalY))
+            endif
+            call BJDebugMsg("在位置(" + R2S(x) + "," + R2S(finalY) + ")创建" + S3(UTMouseMenu___isUpward , "向上" , "向下") + "菜单")
+        endfunction
     function UTMouseMenu___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEventSingle(tr, 0.5)
-        call TriggerAddCondition(tr, Condition(function UTMouseMenu___anon__6))
+        call TriggerAddCondition(tr, Condition(function UTMouseMenu___anon__3))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTMouseMenu___anon__7)
+        call UnitTestRegisterChatEvent(function UTMouseMenu___anon__4)
+        call s__hardware_regRightUpEvent(function UTMouseMenu___anon__5)
     endfunction
 
 //library UTMouseMenu ends
+//library SpellBtns:
+        //private:  //技能栏大暗遮罩,用于右键表示
+        function s__spellBtns_onEnter takes code func returns nothing
+            if ( s__spellBtns_trEnter == null ) then
+                set s__spellBtns_trEnter=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__spellBtns_trEnter, Condition(func))
+        endfunction  // 注册离开事件
+        function s__spellBtns_onLeave takes code func returns nothing
+            if ( s__spellBtns_trLeave == null ) then
+                set s__spellBtns_trLeave=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__spellBtns_trLeave, Condition(func))
+        endfunction  // 注册点击事件
+        function s__spellBtns_onClick takes code func returns nothing
+            if ( s__spellBtns_trClick == null ) then
+                set s__spellBtns_trClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__spellBtns_trClick, Condition(func))
+        endfunction  // 注册右键点击事件
+        function s__spellBtns_onRightClick takes code func returns nothing
+            if ( s__spellBtns_trRightClick == null ) then
+                set s__spellBtns_trRightClick=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__spellBtns_trRightClick, Condition(func))
+        endfunction  // 把技能按钮移出屏幕外
+        function s__spellBtns_outside takes integer row,integer col returns nothing
+            call DzFrameClearAllPoints(s__s__spellBtns_grid[(row)*(4)+col])
+            call DzFrameSetAbsolutePoint(s__s__spellBtns_grid[(row)*(4)+col], 6, - 1.0, 0)
+        endfunction  // 把技能按钮移回应有的位置
+        function s__spellBtns_inside takes integer row,integer col returns nothing
+            call DzFrameClearAllPoints(s__s__spellBtns_grid[(row)*(4)+col]) // 自定义技能栏按钮大小
+//#             static if LIBRARY_DIYBtnsSize then
+//#                 call DzFrameSetPoint(grid[row][col],4,DzGetGameUI(),4,DIY_BTN_SPELL_PIVOT_X1+(DIY_BTN_SPELL_PIVOT_X2*col),DIY_BTN_SPELL_PIVOT_Y1-(DIY_BTN_SPELL_PIVOT_Y2*row))
+//#             else
+                    call DzFrameSetPoint(s__s__spellBtns_grid[(row)*(4)+col], 4, DzGetGameUI(), 4, 0.1935 + ( 0.0435 * col ), - 0.142 - ( 0.044 * row ))
+//#             endif
+        endfunction  // 显示或隐藏遮罩
+            function s__spellBtns_anon__0 takes nothing returns nothing
+                call BJDebugMsg("enter")
+            endfunction
+            function s__spellBtns_anon__1 takes nothing returns nothing
+                call BJDebugMsg("leave")
+            endfunction
+            function s__spellBtns_anon__2 takes nothing returns nothing
+                call BJDebugMsg("click")
+            endfunction
+        function s__spellBtns_showShade takes boolean show returns nothing
+            if ( not ( s__uiImage_isExist(s__spellBtns_shadeImg) ) ) then
+                set s__spellBtns_shadeImg=s__uiImage_setTexture(s__uiImage_setSize(s__uiImage_create(s__uilayer_lv[1]),0.02 , 0.02),"UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+            endif
+            if ( not ( s__uiBtn_isExist(s__spellBtns_shadeBtn) ) ) then
+                set s__spellBtns_shadeBtn=s__uiBtn_onMouseClick(s__uiBtn_onMouseLeave(s__uiBtn_onMouseEnter(s__uiBtn_setPoint(s__uiBtn_setPoint(s__uiBtn_createSimple(DzFrameGetParent(s__s__spellBtns_grid[(3)*(4)+4])),0 , s__uiImage_ui[s__spellBtns_shadeImg] , 0 , 0.0 , 0.0),8 , s__uiImage_ui[s__spellBtns_shadeImg] , 8 , 0.0 , 0.0),function s__spellBtns_anon__0),function s__spellBtns_anon__1),function s__spellBtns_anon__2)
+            endif
+            if ( show ) then
+                call s__uiImage_setPoint(s__uiImage_setPoint(s__uiImage_clearPoint(s__spellBtns_shadeImg),0 , s__s__spellBtns_grid[(1)*(4)+1] , 0 , 0.0 , 0.0),8 , s__s__spellBtns_grid[(3)*(4)+4] , 8 , 0.0 , 0.0)
+            else
+                call s__uiImage_setPoint(s__uiImage_clearPoint(s__spellBtns_shadeImg),4 , DzGetGameUI() , 4 , - 0.8 , 0.6)
+            endif //随便用一个技能也可以,刷新一下
+            call SetPlayerAbilityAvailable(GetLocalPlayer(), 'AHbz', false)
+            call SetPlayerAbilityAvailable(GetLocalPlayer(), 'AHbz', true)
+        endfunction  // 初始化
+            function s__spellBtns_anon__3 takes integer frame returns nothing
+                local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                set s__spellBtns_argsRow=( data - 1 ) / 4 + 1
+                set s__spellBtns_argsCol=ModuloInteger(data - 1, 4) + 1
+                call TriggerEvaluate(s__spellBtns_trEnter)
+            endfunction
+            function s__spellBtns_anon__4 takes integer frame returns nothing
+                local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                set s__spellBtns_argsRow=( data - 1 ) / 4 + 1
+                set s__spellBtns_argsCol=ModuloInteger(data - 1, 4) + 1
+                call TriggerEvaluate(s__spellBtns_trLeave)
+            endfunction
+            function s__spellBtns_anon__5 takes integer frame returns nothing
+                local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                set s__spellBtns_argsRow=( data - 1 ) / 4 + 1
+                set s__spellBtns_argsCol=ModuloInteger(data - 1, 4) + 1
+                call TriggerEvaluate(s__spellBtns_trClick)
+            endfunction
+            function s__spellBtns_anon__6 takes integer frame returns nothing
+                local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                set s__spellBtns_argsRow=( data - 1 ) / 4 + 1
+                set s__spellBtns_argsCol=ModuloInteger(data - 1, 4) + 1
+                call TriggerEvaluate(s__spellBtns_trRightClick)
+            endfunction
+        function s__spellBtns_onInit takes nothing returns nothing
+            local integer row
+            local integer col
+            local integer btn
+            set row=1
+            loop
+            exitwhen ( row > 3 )
+                set col=1
+                loop
+                exitwhen ( col > 4 )
+                    set s__s__spellBtns_grid[(row)*(4)+col]= DzFrameGetCommandBarButton(row - 1, col - 1)
+                    set btn=s__uiBtn_bindCreated(s__s__spellBtns_grid[(row)*(4)+col])
+                    call s__uiBtn_spEnter(btn,(13))
+                    call s__uiBtn_spLeave(btn,(14))
+                    call s__uiBtn_spClick(btn,(15))
+                    call s__uiBtn_spRightClick(btn,(16))
+                    set s__s__spellBtns_icons[(row)*(4)+col]= s__icon_create(s__uilayer_lv[1]) // 自定义技能栏按钮大小
+//#                     static if LIBRARY_DIYBtnsSize then
+//#                         call icons[row][col].setSize(DIY_BTN_SPELL_SIZE,DIY_BTN_SPELL_SIZE)
+//#                     else
+                            call s__icon_setSize(s__s__spellBtns_icons[(row)*(4)+col],0.038 , 0.038)
+//#                     endif
+                    call s__icon_setTexture(s__icon_setPoint(s__s__spellBtns_icons[(row)*(4)+col],4 , s__s__spellBtns_grid[(row)*(4)+col] , 4 , 0.0 , 0.0),"UI\\Widgets\\EscMenu\\Human\\blank-background.blp")
+                    set s__icon_clickBtn[s__s__spellBtns_icons[(row)*(4)+col]]=btn
+                    call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__s__spellBtns_grid[(row)*(4)+col])],( ( row - 1 ) * 4 ) + col)
+                set col=col + 1
+                endloop
+            set row=row + 1
+            endloop
+        endfunction
+
+//library SpellBtns ends
 
 // 0 - 1亿这里用
 // 锚点常量
@@ -3097,6 +5380,7 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
+//控件的共用基本方法
 
 // 结构体共用方法定义
 //共享打印方法
@@ -3104,9 +5388,9 @@ endfunction
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
-//控件的共用基本方法
 // 按键ASCII码
 // 按键事件
+
 //窗口的大小
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
@@ -3118,6 +5402,33 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
+//===========================================================================
+// Icon.j
+//===========================================================================
+//
+// 模块描述：
+//   实现了魔兽争霸3中通用的图标UI组件，支持图标显示、数字标记、
+//   按钮功能、流光特效等特性。
+//
+// 作者：[你的名字]
+// 创建日期：[创建日期]
+// 最后修改：[最后修改日期]
+//
+// 依赖项：
+//   - UIBase
+//   - UIAnim
+//   - GrowData
+//   - UIText
+//   - UIImage
+//   - UIButton
+//   - UISprite
+//
+// 使用示例：
+//   icon myIcon = icon.create(parentFrame, true, true);
+//   myIcon.size(0.04, 0.04);
+//
+//===========================================================================
+//# dependency:resource/ui/model/cooldown_center.mdx
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -3531,10 +5842,11 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs33147718")
+call ExecuteFunc("jasshelper__initstructs25456156")
 call ExecuteFunc("UnitTestFramwork___onInit")
 call ExecuteFunc("UITocInit___onInit")
 call ExecuteFunc("UIExtendEvent___onInit")
+call ExecuteFunc("UIExtendResize___onInit")
 call ExecuteFunc("UTMouseMenu___onInit")
 
     call InitGlobals()
@@ -3573,6 +5885,89 @@ endfunction
 
 
 //Struct method generated initializers/callers:
+
+//Functions for BigArrays:
+function sa__icon_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( s__baseanim_isExist(s__icon_glowAnim[this]) ) then
+                call s__baseanim_deallocate(s__icon_glowAnim[this])
+                set s__icon_glowAnim[this]=0
+            endif
+            if ( s__uiSprite_isExist(s__icon_cdSprite[this]) ) then
+                call s__uiSprite_deallocate(s__icon_cdSprite[this])
+                set s__icon_cdSprite[this]=0
+            endif
+            if ( s__uiImage_isExist(s__icon_cdSpriteImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_cdSpriteImage[this])
+                set s__icon_cdSpriteImage[this]=0
+            endif
+            if ( s__uiImage_isExist(s__icon_shadowImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_shadowImage[this])
+                set s__icon_shadowImage[this]=0
+            endif
+            if ( s__uiBorder_isExist(s__icon_cornerShade[this]) ) then
+                call s__uiBorder_deallocate(s__icon_cornerShade[this])
+                set s__icon_cornerShade[this]=0
+            endif
+            if ( s__uiText_isExist(s__icon_cornerText[this]) ) then
+                call s__uiText_deallocate(s__icon_cornerText[this])
+                set s__icon_cornerText[this]=0
+            endif
+            if ( s__uiBtn_isExist(s__icon_clickBtn[this]) ) then
+                call s__uiBtn_deallocate(s__icon_clickBtn[this])
+                set s__icon_clickBtn[this]=0
+            endif
+            if ( s__uiImage_isExist(s__icon_glowImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_glowImage[this])
+                set s__icon_glowImage[this]=0
+            endif
+            if ( s__uiImage_isExist(s__icon_mainImage[this]) ) then
+                call s__uiImage_deallocate(s__icon_mainImage[this])
+                set s__icon_mainImage[this]=0
+            endif
+   return true
+endfunction
+function sa__progAnim_create takes nothing returns boolean
+local integer sprite=f__arg_integer1
+local real from=f__arg_real1
+local real to=f__arg_real2
+local integer time=f__arg_integer2
+local integer cb=f__arg_integer3
+            local integer this=s__progAnim__allocate()
+            set s__progAnim_sprite[this]=sprite
+            set s__progAnim_from[this]=from
+            set s__progAnim_to[this]=to
+            set s__progAnim_time[this]=time
+            set s__progAnim_now[this]=0
+            set s__progAnim_cb[this]=cb // 这里是初始化时的设置内容,不需要改
+            if ( s__progAnim_id[this] == 0 ) then
+                set s__progAnim_size=s__progAnim_size + 1
+                set s__progAnim_List[s__progAnim_size]=this
+                set s__progAnim_id[this]=s__progAnim_size
+            endif
+            call s__uianim_reg(s__progAnim_UIA)
+set f__result_integer= this
+   return true
+endfunction
+function sa__progAnim_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( s__uiSprite_isExist(s__progAnim_sprite[this]) and HaveSavedInteger(HASH_UI, s__uiSprite_ui[s__progAnim_sprite[this]], 1945) ) then
+                call RemoveSavedInteger(HASH_UI, s__uiSprite_ui[s__progAnim_sprite[this]], 1945)
+            endif
+            set s__progAnim_sprite[this]=0
+            set s__progAnim_cb[this]=0
+            if ( s__progAnim_id[this] != 0 ) then
+                set s__progAnim_List[s__progAnim_id[this]]=s__progAnim_List[s__progAnim_size]
+                set s__progAnim_id[s__progAnim_List[s__progAnim_id[this]]]=s__progAnim_id[this]
+                set s__progAnim_size=s__progAnim_size - 1
+                set s__progAnim_id[this]=0
+            endif
+            if ( s__progAnim_size <= 0 ) then // 这里就删计时器
+                call s__uianim_unreg(s__progAnim_UIA) // 添加调试输出
+                call BJDebugMsg("progAnim计时器已停止")
+            endif
+   return true
+endfunction
 function sa__mouseMenu_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
             local integer i=1
@@ -3586,19 +5981,25 @@ return true
                 set s__mouseMenu_currentMenu=0
             endif
             loop
-            exitwhen ( i > s__mouseMenu_itemCount[this] )
-                if ( s___mouseMenu_items[s__mouseMenu_items[this]+i] != 0 ) then
+            exitwhen ( i > 20 )
+                if ( s__menuItem_isExist(s___mouseMenu_items[s__mouseMenu_items[this]+i]) ) then
                     call s__menuItem_deallocate(s___mouseMenu_items[s__mouseMenu_items[this]+i])
                     set s___mouseMenu_items[s__mouseMenu_items[this]+i]=0
                 endif
                 set i=i + 1
             endloop
+            if ( s__mouseMenu_highlight[this] != 0 ) then
+                call s__uiImage_deallocate(s__mouseMenu_highlight[this])
+                set s__mouseMenu_highlight[this]=0
+            endif
             call s__uiImage_deallocate(s__mouseMenu_menuFrame[this])
             set s__mouseMenu_menuFrame[this]=0
             set s__mouseMenu_itemCount[this]=0
             set s__mouseMenu_onClickFunc[this]=0
             set s__mouseMenu_onEnterFunc[this]=0
             set s__mouseMenu_onLeaveFunc[this]=0
+            set s__mouseMenu_simpleParent[this]=0
+            set s__mouseMenu_autoDestroy[this]=false
    return true
 endfunction
 function sa__mouseMenu_show takes nothing returns boolean
@@ -3614,12 +6015,19 @@ return true
                 endif
                 set s__mouseMenu_currentMenu=this
                 set s__mouseMenu_escStackId=s__escStack_push((1))
-            endif // 隐藏当前菜单时,需要清除引用
+            endif // 隐藏当前菜单时的处理
             if ( not flag and this == s__mouseMenu_currentMenu ) then
                 set s__mouseMenu_currentMenu=0
                 if ( s__mouseMenu_escStackId != 0 ) then
                     call s__escStack_remove(s__mouseMenu_escStackId)
                     set s__mouseMenu_escStackId=0
+                endif // 如果是Simple菜单，则执行clear操作
+                if ( s__mouseMenu_simpleParent[this] != 0 ) then
+                    call s__mouseMenu_clear(this)
+                elseif ( s__mouseMenu_autoDestroy[this] ) then // 如果设置了自动销毁，则销毁菜单
+                    call s__mouseMenu_deallocate(this)
+set f__result_integer= this
+return true
                 endif
             endif // 设置实际的显示/隐藏状态
             call s__uiImage_show(s__mouseMenu_menuFrame[this],flag)
@@ -3636,15 +6044,10 @@ local integer this=f__arg_this
                 call s__uiBtn_deallocate(s__menuItem_btn[this])
                 set s__menuItem_btn[this]=0
             endif
-            if ( s__menuItem_highlight[this] != 0 ) then
-                call s__uiImage_deallocate(s__menuItem_highlight[this])
-                set s__menuItem_highlight[this]=0
-            endif
             if ( s__menuItem_background[this] != 0 ) then
                 call s__uiBorder_deallocate(s__menuItem_background[this])
                 set s__menuItem_background[this]=0
             endif
-            set s__menuItem_parent[this]=0
    return true
 endfunction
 function sa__uiText_onDestroy takes nothing returns boolean
@@ -3656,6 +6059,17 @@ return true
                     call FlushChildHashtable(HASH_UI, s__uiText_ui[this])
             call DzDestroyFrame(s__uiText_ui[this])
             call s__uiId_recycle(s__uiText_id[this])
+   return true
+endfunction
+function sa__uiSprite_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( not ( s__uiSprite_isExist(this) ) ) then
+return true
+            endif
+                    call s__uiLifeCycle_onDestroyCB(this , si__uiSprite , s__uiSprite_ui[this])
+                    call FlushChildHashtable(HASH_UI, s__uiSprite_ui[this])
+            call DzDestroyFrame(s__uiSprite_ui[this])
+            call s__uiId_recycle(s__uiSprite_id[this])
    return true
 endfunction
 function sa__uiImage_onDestroy takes nothing returns boolean
@@ -3691,65 +6105,205 @@ return true
             call s__uiId_recycle(s__uiBorder_id[this])
    return true
 endfunction
-function sa___prototype22_UTMouseMenu___anon__3 takes nothing returns boolean
+function sa__rePointer_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            set s__rePointer_frame[this]=0
+            if ( s__rePointer_uID[this] != 0 ) then
+                set s__rePointer_List[s__rePointer_uID[this]]=s__rePointer_List[s__rePointer_size]
+                set s__rePointer_uID[s__rePointer_List[s__rePointer_uID[this]]]=s__rePointer_uID[this]
+                set s__rePointer_size=s__rePointer_size - 1
+                set s__rePointer_uID[this]=0
+            endif
+            if ( s__rePointer_size <= 0 ) then
+                call BJDebugMsg("UIExtendResize: 位置重组器已销毁")
+            endif
+   return true
+endfunction
+function sa__resizer_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            set s__resizer_frame[this]=0
+            if ( s__resizer_uID[this] != 0 ) then
+                set s__resizer_List[s__resizer_uID[this]]=s__resizer_List[s__resizer_size]
+                set s__resizer_uID[s__resizer_List[s__resizer_uID[this]]]=s__resizer_uID[this]
+                set s__resizer_size=s__resizer_size - 1
+                set s__resizer_uID[this]=0
+            endif
+            if ( s__resizer_size <= 0 ) then
+                call BJDebugMsg("UIExtendResize: 大小重组器已销毁")
+            endif
+   return true
+endfunction
+function sa__baseanim_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( not ( s__baseanim_isExist(this) ) ) then
+return true
+            endif
+            call s__baseanim_delDelay(this)
+            call s__baseanim_delMove(this)
+            call s__baseanim_delZoom(this)
+            call s__baseanim_delAlpha(this)
+            call s__baseanim_delSequ(this)
+            call s__baseanim_delBlink(this)
+            call s__baseanim_delLife(this)
+            if ( HaveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822) ) then
+                call RemoveSavedInteger(HASH_UI, s__baseanim_ui[this], 1822)
+            endif
+            set s__baseanim_ui[this]=0 //统计数量--
+            set s__baseanim_size=s__baseanim_size - 1
+   return true
+endfunction
+function sa___prototype25_UTMouseMenu___anon__0 takes nothing returns boolean
  local integer index=f__arg_integer1
 
-            call BJDebugMsg("[进入事件] " + I2S(index))
+            call BJDebugMsg("[Simple菜单-进入] " + I2S(index))
     return true
 endfunction
-function sa___prototype22_UTMouseMenu___anon__4 takes nothing returns boolean
+function sa___prototype25_UTMouseMenu___anon__1 takes nothing returns boolean
  local integer index=f__arg_integer1
 
-            call BJDebugMsg("[点击事件] " + I2S(index))
+            call BJDebugMsg("[Simple菜单-点击] " + I2S(index))
     return true
 endfunction
-function sa___prototype22_UTMouseMenu___anon__5 takes nothing returns boolean
+function sa___prototype25_UTMouseMenu___anon__2 takes nothing returns boolean
  local integer index=f__arg_integer1
 
-            call BJDebugMsg("[离开事件] " + I2S(index))
+            call BJDebugMsg("[Simple菜单-离开] " + I2S(index))
     return true
 endfunction
-function sa___prototype22_s__mouseMenu_anon__0 takes nothing returns boolean
- local integer frame=f__arg_integer1
+function sa___prototype25_UTMouseMenu___anon__6 takes nothing returns boolean
+ local integer index=f__arg_integer1
 
-                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                if ( s__mouseMenu_onEnterFunc[this] != null ) then
-                    call s__menuItem_showHighlight(s___mouseMenu_items[s__mouseMenu_items[this]+index],true)
-                    call sc___prototype22_evaluate(s__mouseMenu_onEnterFunc[this],index)
-                endif
+                call BJDebugMsg("[右键菜单-进入] " + I2S(index))
     return true
 endfunction
-function sa___prototype22_s__mouseMenu_anon__1 takes nothing returns boolean
- local integer frame=f__arg_integer1
+function sa___prototype25_UTMouseMenu___anon__7 takes nothing returns boolean
+ local integer index=f__arg_integer1
 
-                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                if ( s__mouseMenu_onLeaveFunc[this] != null ) then
-                    call s__menuItem_showHighlight(s___mouseMenu_items[s__mouseMenu_items[this]+index],false)
-                    call sc___prototype22_evaluate(s__mouseMenu_onLeaveFunc[this],index)
-                endif
+                call BJDebugMsg("[右键菜单-点击] " + I2S(index))
     return true
 endfunction
-function sa___prototype22_s__mouseMenu_anon__2 takes nothing returns boolean
- local integer frame=f__arg_integer1
+function sa___prototype25_UTMouseMenu___anon__8 takes nothing returns boolean
+ local integer index=f__arg_integer1
 
-                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
-                if ( s__mouseMenu_onClickFunc[this] != null ) then
-                    call sc___prototype22_evaluate(s__mouseMenu_onClickFunc[this],index)
-                endif
-                call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
+                call BJDebugMsg("[右键菜单-离开] " + I2S(index))
     return true
 endfunction
-function sa___prototype21_s__mouseMenu_anon__4 takes nothing returns boolean
+function sa___prototype26_s__mouseMenu_anon__0 takes nothing returns boolean
  local player p=f__arg_player1
 
                 call sc__mouseMenu_show(s__mouseMenu_currentMenu,false)
     return true
 endfunction
+function sa___prototype25_s__mouseMenu_anon__1 takes nothing returns boolean
+ local integer frame=f__arg_integer1
 
-function jasshelper__initstructs33147718 takes nothing returns nothing
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onEnterFunc[this] != null ) then
+                    call s__mouseMenu_showHighlight(this,index)
+                    call sc___prototype25_evaluate(s__mouseMenu_onEnterFunc[this],index)
+                endif
+    return true
+endfunction
+function sa___prototype25_s__mouseMenu_anon__2 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onLeaveFunc[this] != null ) then
+                    call s__mouseMenu_showHighlight(this,0)
+                    call sc___prototype25_evaluate(s__mouseMenu_onLeaveFunc[this],index)
+                endif
+    return true
+endfunction
+function sa___prototype25_s__mouseMenu_anon__3 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onClickFunc[this] != null ) then
+                    call sc___prototype25_evaluate(s__mouseMenu_onClickFunc[this],index)
+                endif
+                call s__mouseMenu_show(s__mouseMenu_currentMenu,false)
+    return true
+endfunction
+function sa___prototype25_s__mouseMenu_anon__5 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onEnterFunc[this] != null ) then
+                    call s__mouseMenu_showHighlight(this,index)
+                    call sc___prototype25_evaluate(s__mouseMenu_onEnterFunc[this],index)
+                endif
+    return true
+endfunction
+function sa___prototype25_s__mouseMenu_anon__6 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onLeaveFunc[this] != null ) then
+                    call s__mouseMenu_showHighlight(this,0)
+                    call sc___prototype25_evaluate(s__mouseMenu_onLeaveFunc[this],index)
+                endif
+    return true
+endfunction
+function sa___prototype25_s__mouseMenu_anon__7 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                local integer this=s__UIHashTable___uiHTEvent_get2(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                local integer index=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                if ( s__mouseMenu_onClickFunc[this] != null ) then
+                    call sc___prototype25_evaluate(s__mouseMenu_onClickFunc[this],index)
+                endif // Simple菜单点击后使用show(false)，会自动调用clear
+                call s__mouseMenu_show(s__mouseMenu_currentMenu,false)
+    return true
+endfunction
+function sa___prototype25_s__spellBtns_anon__3 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                set s__spellBtns_argsRow=( data - 1 ) / 4 + 1
+                set s__spellBtns_argsCol=ModuloInteger(data - 1, 4) + 1
+                call TriggerEvaluate(s__spellBtns_trEnter)
+    return true
+endfunction
+function sa___prototype25_s__spellBtns_anon__4 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                set s__spellBtns_argsRow=( data - 1 ) / 4 + 1
+                set s__spellBtns_argsCol=ModuloInteger(data - 1, 4) + 1
+                call TriggerEvaluate(s__spellBtns_trLeave)
+    return true
+endfunction
+function sa___prototype25_s__spellBtns_anon__5 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                set s__spellBtns_argsRow=( data - 1 ) / 4 + 1
+                set s__spellBtns_argsCol=ModuloInteger(data - 1, 4) + 1
+                call TriggerEvaluate(s__spellBtns_trClick)
+    return true
+endfunction
+function sa___prototype25_s__spellBtns_anon__6 takes nothing returns boolean
+ local integer frame=f__arg_integer1
+
+                local integer data=s__UIHashTable___uiHTEvent_get(s__UIHashTable___uiHT_eventdata[uiHashTable(frame)])
+                set s__spellBtns_argsRow=( data - 1 ) / 4 + 1
+                set s__spellBtns_argsCol=ModuloInteger(data - 1, 4) + 1
+                call TriggerEvaluate(s__spellBtns_trRightClick)
+    return true
+endfunction
+
+function jasshelper__initstructs25456156 takes nothing returns nothing
+    set st__icon_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__icon_onDestroy,Condition( function sa__icon_onDestroy))
+    set st__progAnim_create=CreateTrigger()
+    call TriggerAddCondition(st__progAnim_create,Condition( function sa__progAnim_create))
+    set st__progAnim_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__progAnim_onDestroy,Condition( function sa__progAnim_onDestroy))
     set st__mouseMenu_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__mouseMenu_onDestroy,Condition( function sa__mouseMenu_onDestroy))
     set st__mouseMenu_show=CreateTrigger()
@@ -3758,33 +6312,71 @@ function jasshelper__initstructs33147718 takes nothing returns nothing
     call TriggerAddCondition(st__menuItem_onDestroy,Condition( function sa__menuItem_onDestroy))
     set st__uiText_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiText_onDestroy,Condition( function sa__uiText_onDestroy))
+    set st__uiSprite_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__uiSprite_onDestroy,Condition( function sa__uiSprite_onDestroy))
     set st__uiImage_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiImage_onDestroy,Condition( function sa__uiImage_onDestroy))
     set st__uiBtn_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiBtn_onDestroy,Condition( function sa__uiBtn_onDestroy))
     set st__uiBorder_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__uiBorder_onDestroy,Condition( function sa__uiBorder_onDestroy))
-    set st___prototype22[4]=CreateTrigger()
-    call TriggerAddAction(st___prototype22[4],function sa___prototype22_UTMouseMenu___anon__3)
-    call TriggerAddCondition(st___prototype22[4],Condition(function sa___prototype22_UTMouseMenu___anon__3))
-    set st___prototype22[5]=CreateTrigger()
-    call TriggerAddAction(st___prototype22[5],function sa___prototype22_UTMouseMenu___anon__4)
-    call TriggerAddCondition(st___prototype22[5],Condition(function sa___prototype22_UTMouseMenu___anon__4))
-    set st___prototype22[6]=CreateTrigger()
-    call TriggerAddAction(st___prototype22[6],function sa___prototype22_UTMouseMenu___anon__5)
-    call TriggerAddCondition(st___prototype22[6],Condition(function sa___prototype22_UTMouseMenu___anon__5))
-    set st___prototype22[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype22[1],function sa___prototype22_s__mouseMenu_anon__0)
-    call TriggerAddCondition(st___prototype22[1],Condition(function sa___prototype22_s__mouseMenu_anon__0))
-    set st___prototype22[2]=CreateTrigger()
-    call TriggerAddAction(st___prototype22[2],function sa___prototype22_s__mouseMenu_anon__1)
-    call TriggerAddCondition(st___prototype22[2],Condition(function sa___prototype22_s__mouseMenu_anon__1))
-    set st___prototype22[3]=CreateTrigger()
-    call TriggerAddAction(st___prototype22[3],function sa___prototype22_s__mouseMenu_anon__2)
-    call TriggerAddCondition(st___prototype22[3],Condition(function sa___prototype22_s__mouseMenu_anon__2))
-    set st___prototype21[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype21[1],function sa___prototype21_s__mouseMenu_anon__4)
-    call TriggerAddCondition(st___prototype21[1],Condition(function sa___prototype21_s__mouseMenu_anon__4))
+    set st__rePointer_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__rePointer_onDestroy,Condition( function sa__rePointer_onDestroy))
+    set st__resizer_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__resizer_onDestroy,Condition( function sa__resizer_onDestroy))
+    set st__baseanim_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__baseanim_onDestroy,Condition( function sa__baseanim_onDestroy))
+    set st___prototype25[7]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[7],function sa___prototype25_UTMouseMenu___anon__0)
+    call TriggerAddCondition(st___prototype25[7],Condition(function sa___prototype25_UTMouseMenu___anon__0))
+    set st___prototype25[8]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[8],function sa___prototype25_UTMouseMenu___anon__1)
+    call TriggerAddCondition(st___prototype25[8],Condition(function sa___prototype25_UTMouseMenu___anon__1))
+    set st___prototype25[9]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[9],function sa___prototype25_UTMouseMenu___anon__2)
+    call TriggerAddCondition(st___prototype25[9],Condition(function sa___prototype25_UTMouseMenu___anon__2))
+    set st___prototype25[10]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[10],function sa___prototype25_UTMouseMenu___anon__6)
+    call TriggerAddCondition(st___prototype25[10],Condition(function sa___prototype25_UTMouseMenu___anon__6))
+    set st___prototype25[11]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[11],function sa___prototype25_UTMouseMenu___anon__7)
+    call TriggerAddCondition(st___prototype25[11],Condition(function sa___prototype25_UTMouseMenu___anon__7))
+    set st___prototype25[12]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[12],function sa___prototype25_UTMouseMenu___anon__8)
+    call TriggerAddCondition(st___prototype25[12],Condition(function sa___prototype25_UTMouseMenu___anon__8))
+    set st___prototype26[1]=CreateTrigger()
+    call TriggerAddAction(st___prototype26[1],function sa___prototype26_s__mouseMenu_anon__0)
+    call TriggerAddCondition(st___prototype26[1],Condition(function sa___prototype26_s__mouseMenu_anon__0))
+    set st___prototype25[1]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[1],function sa___prototype25_s__mouseMenu_anon__1)
+    call TriggerAddCondition(st___prototype25[1],Condition(function sa___prototype25_s__mouseMenu_anon__1))
+    set st___prototype25[2]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[2],function sa___prototype25_s__mouseMenu_anon__2)
+    call TriggerAddCondition(st___prototype25[2],Condition(function sa___prototype25_s__mouseMenu_anon__2))
+    set st___prototype25[3]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[3],function sa___prototype25_s__mouseMenu_anon__3)
+    call TriggerAddCondition(st___prototype25[3],Condition(function sa___prototype25_s__mouseMenu_anon__3))
+    set st___prototype25[4]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[4],function sa___prototype25_s__mouseMenu_anon__5)
+    call TriggerAddCondition(st___prototype25[4],Condition(function sa___prototype25_s__mouseMenu_anon__5))
+    set st___prototype25[5]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[5],function sa___prototype25_s__mouseMenu_anon__6)
+    call TriggerAddCondition(st___prototype25[5],Condition(function sa___prototype25_s__mouseMenu_anon__6))
+    set st___prototype25[6]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[6],function sa___prototype25_s__mouseMenu_anon__7)
+    call TriggerAddCondition(st___prototype25[6],Condition(function sa___prototype25_s__mouseMenu_anon__7))
+    set st___prototype25[13]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[13],function sa___prototype25_s__spellBtns_anon__3)
+    call TriggerAddCondition(st___prototype25[13],Condition(function sa___prototype25_s__spellBtns_anon__3))
+    set st___prototype25[14]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[14],function sa___prototype25_s__spellBtns_anon__4)
+    call TriggerAddCondition(st___prototype25[14],Condition(function sa___prototype25_s__spellBtns_anon__4))
+    set st___prototype25[15]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[15],function sa___prototype25_s__spellBtns_anon__5)
+    call TriggerAddCondition(st___prototype25[15],Condition(function sa___prototype25_s__spellBtns_anon__5))
+    set st___prototype25[16]=CreateTrigger()
+    call TriggerAddAction(st___prototype25[16],function sa___prototype25_s__spellBtns_anon__6)
+    call TriggerAddCondition(st___prototype25[16],Condition(function sa___prototype25_s__spellBtns_anon__6))
 
 
 
@@ -3809,11 +6401,31 @@ function jasshelper__initstructs33147718 takes nothing returns nothing
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    call ExecuteFunc("s__growdata_onInit")
     call ExecuteFunc("s__mapBounds_onInit")
+    call ExecuteFunc("s__uianim_onInit")
     call ExecuteFunc("s__uiId_onInit")
     call ExecuteFunc("s__uiLifeCycle_onInit")
     call ExecuteFunc("s__hardware_onInit")
+    call ExecuteFunc("s__baseanim_onInit")
     call ExecuteFunc("s__escStack_onInit")
+    call ExecuteFunc("s__uilayer_onInit")
     call ExecuteFunc("s__mouseMenu_onInit")
+    call ExecuteFunc("s__progAnim_onInit")
+    call ExecuteFunc("s__spellBtns_onInit")
 endfunction
 

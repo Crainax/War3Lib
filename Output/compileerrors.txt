@@ -1,4 +1,5 @@
 logs\currentmapscript.j
-JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 744: Syntax Error (Unexpected: "123"?
-1
+pjass.exe
+Line 4462:  Undeclared variable falg
+Line 6017:  Undeclared variable falg
+2
