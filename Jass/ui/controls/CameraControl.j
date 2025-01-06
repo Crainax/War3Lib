@@ -1,7 +1,6 @@
 #ifndef CameraIncluded
 #define CameraIncluded
 
-#include "Crainax/ui/base/Hardware.j"
 //! zinc
 /*
 鼠标滚轮控制视距
@@ -38,7 +37,7 @@ library CameraControl requires Hardware{
             X_ANGLE = Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK)); //记录滚动前的镜头角度
         });
         //注册每帧渲染事件
-        hardware.RegUpdateEvent(function (){
+        hardware.regUpdateEvent(function (){
             if (ResetCam) {//重设镜头角度和高度
                 SetCameraField( CAMERA_FIELD_ANGLE_OF_ATTACK, X_ANGLE, 0 );
                 SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, ViewLevel*200, WheelSpeed);

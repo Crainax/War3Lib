@@ -1,12 +1,4 @@
 logs\currentmapscript.j
 pjass.exe
-Line 5200:  Variable i is uninitialized
-Line 5201:  Variable i is uninitialized
-Line 5202:  Variable i is uninitialized
-Line 5227:  Variable i is uninitialized
-Line 5228:  Variable i is uninitialized
-Line 5229:  Variable i is uninitialized
-Line 5254:  Variable i is uninitialized
-Line 5255:  Variable i is uninitialized
-Line 5256:  Variable i is uninitialized
-9
+Line 1198:  Undeclared function DamageArea
+1

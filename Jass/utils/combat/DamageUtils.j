@@ -11,14 +11,20 @@ library DamageUtils requires UnitFilter,GroupUtils {
 
     //旧名替换:DamageSingle
     //单体伤害:物理
-    public function ApplyPhysicalDamage (unit u,unit target,real dmg,boolean bj) {
+    public function ApplyPhysicalDamage (unit u,unit target,real dmg) {
         static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
         UnitDamageTarget( u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
     }
-    //单体伤害:真实
-    public function ApplyPureDamage (unit u,unit target,real dmg,boolean bj) {
+
+    //单体伤害:魔法
+    public function ApplyMagicDamage (unit u,unit target,real dmg) {
         static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
-        UnitDamageTarget( u, target, dmg, false, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
+        UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS );
+    }
+    //单体伤害:真实
+    public function ApplyPureDamage (unit u,unit target,real dmg) {
+        static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
+        UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
     }
 
     //模拟普攻(最后一个参数代表额外的终伤,0)
@@ -31,7 +37,6 @@ library DamageUtils requires UnitFilter,GroupUtils {
         unit    source;  //伤害来源
         string  eft;     //特效
         real    damage;  //伤害值
-        boolean isBj;    //是否暴击
 
         method destroy() {
             this.source = null;
@@ -66,20 +71,47 @@ library DamageUtils requires UnitFilter,GroupUtils {
     }
 
     //范围普通伤害
-    public function DamageArea (unit u,real x,real y,real radius,real damage,boolean bj,string efx) {
+    public function DamageAreaPhysical (unit u,real x,real y,real radius,real damage,string efx) {
         group g = CreateGroup();
         DmgP params = DmgP.create();
         params.source = u;
         params.eft = efx;
         params.damage = damage;
-        params.isBj = bj;
 
         DmgS.push(params);
 
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
             if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
-                ApplyPhysicalDamage(current.source,GetFilterUnit(),current.damage,current.isBj);
+                ApplyPhysicalDamage(current.source,GetFilterUnit(),current.damage);
+                if (current.eft != null) {
+                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
+                }
+                return true;
+            }
+            return false;
+        }));
+
+        params = DmgS.pop();
+        params.destroy();
+        DestroyGroup(g);
+        g = null;
+    }
+
+    //范围魔法伤害
+    public function DamageAreaMagic (unit u,real x,real y,real radius,real damage,string efx) {
+        group g = CreateGroup();
+        DmgP params = DmgP.create();
+        params.source = u;
+        params.eft = efx;
+        params.damage = damage;
+
+        DmgS.push(params);
+
+        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
+            DmgP current = DmgS.current();
+            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
+                ApplyMagicDamage(current.source,GetFilterUnit(),current.damage);
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
                 }
@@ -95,20 +127,19 @@ library DamageUtils requires UnitFilter,GroupUtils {
     }
 
     //范围真实伤害
-    public function DamageAreaPure (unit u,real x,real y,real radius,real damage,boolean bj,string efx) {
+    public function DamageAreaPure (unit u,real x,real y,real radius,real damage,string efx) {
         group g = CreateGroup();
         DmgP params = DmgP.create();
         params.source = u;
         params.eft = efx;
         params.damage = damage;
-        params.isBj = bj;
 
         DmgS.push(params);
 
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
             if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
-                ApplyPureDamage(current.source,GetFilterUnit(),current.damage,current.isBj);
+                ApplyPureDamage(current.source,GetFilterUnit(),current.damage);
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
                 }

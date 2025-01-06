@@ -9,7 +9,7 @@ local compile = {}
 -- todo:学习YDWE的预添加函数
 
 -- 进行Wave的预处理(会)
-function compile:CompileWave(input, args)
+function compile:CompileWave(input)
 	lfs.chdir(path.wave)
 	local waveExe = 'Wave.exe'
 	local waveCmdArgs = ''
@@ -22,9 +22,6 @@ function compile:CompileWave(input, args)
 	waveCmdArgs = waveCmdArgs .. string.format('--define=WARCRAFT_VERSION=%d ', 127)
 	waveCmdArgs = waveCmdArgs .. string.format('--define=YDWE_VERSION_STRING=/"%s/" ', "0.0.0.0")
 	-- waveCmdArgs = waveCmdArgs .. '--define=USE_BJ_OPTIMIZATION=1 ' -- 这条暂时禁用了
-	if args ~= nil and args ~= "" then
-		waveCmdArgs = waveCmdArgs .. args
-	end
 	waveCmdArgs = waveCmdArgs .. '--define=DEBUG=1 '
 	waveCmdArgs = waveCmdArgs .. "--define=SCRIPT_INJECTION=1 "
 	waveCmdArgs = waveCmdArgs .. "--undef=CompileTestLibraryIncluced " -- 编译引用额外[关,这是打包地图]
@@ -36,6 +33,18 @@ function compile:CompileWave(input, args)
 	return os.execute(waveCmd)
 end
 
+-- 进行代码块及代码头的注入(第二次Wave前)
+function compile:InjectCodeBlock()
+	injecter:initialize() -- 初始化注入器
+	if injecter:compile(path, path.CompileStep2) >= 0 then
+		print("[代码注入]成功 : " .. path.CompileStep2)
+	else
+		print("[代码注入]失败")
+		return false
+	end
+
+	injecter:injectMacro(path.CompileStep2) -- 注入宏到文件开头
+end
 -- 遍历Lua文件,添加资源文件
 function compile:CompileLua()
 	-- 第一步：预处理检查块
@@ -99,6 +108,37 @@ function compile:CompileLua()
 	end
 
 	-- 第二步：处理文件（现在只需要处理正常的编译逻辑）
+	local bit32 = require("bit32")
+	local function StringHash(s)
+		if not s then
+			return 0
+		end
+
+		local seed1 = 0x7FED7FED
+		local seed2 = 0xEEEEEEEE
+
+		-- 魔兽原生中会将输入转成大写
+		s = string.upper(s)
+
+		for i = 1, #s do
+			local c = string.byte(s, i)
+
+			-- 注意确保中间结果都在 32 位范围内
+			seed1 = bit32.band(seed1, 0xFFFFFFFF)
+			seed2 = bit32.band(seed2, 0xFFFFFFFF)
+
+			local temp = bit32.bxor(seed1, c)
+			seed1 = temp + bit32.lshift(seed1, 26) + bit32.lshift(seed1, 16) - seed1
+			seed1 = bit32.band(seed1 + seed2, 0xFFFFFFFF)
+
+			seed2 = c + bit32.bxor(seed2, bit32.rshift(seed1, 5) + bit32.lshift(seed1, 2))
+			seed2 = bit32.band(seed2, 0xFFFFFFFF)
+		end
+
+		-- 函数最后会返回有符号整型，但往往直接取 31 位无符号即可
+		return bit32.band(seed1, 0x7FFFFFFF)
+	end
+
 	return fileUtils.ExecuteFile(path.CompileStep4, function(line)
 		-- 依赖项注入(//# dependency:resource/xxx.xxx)
 		local importPath = line:match("^%s*//# dependency:%s*(.+)$")
@@ -123,6 +163,12 @@ function compile:CompileLua()
 		-- 原有的处理逻辑
 		line = string.gsub(line, "\\n\t+", "\\n")
 		line = string.gsub(line, "<%?='\\n'%?>", "\n")
+
+		-- 添加 StringHash 处理
+		line = string.gsub(line, "<%?=StringHash%(%s*\"([^\"]+)\"%s*%)%?>", function(str)
+			return tostring(StringHash(str))
+		end)
+
 		return line
 	end)
 end
@@ -190,15 +236,10 @@ function compile:StartCompile()
 		print("[编译移动]复制CompileStep2失败:" .. msg)
 		return false
 	end
-	injecter:initialize() -- 初始化注入器
-	if injecter:compile(path, path.CompileStep2) >= 0 then
-		print("[代码注入]成功 : " .. path.CompileStep2)
-	else
-		print("[代码注入]失败")
-		return false
-	end
 
-	code, msg = self:CompileWave(path.CompileStep2, '--define=USE_BJ_ANTI_LEAK=1 ') -- 再预处理一次(不会影响CompileStep2)
+	self:InjectCodeBlock() -- 进行代码块及代码头的注入(第二次Wave前)
+
+	code, msg = self:CompileWave(path.CompileStep2) -- 再预处理一次(不会影响CompileStep2)
 	if (code) then
 		local waveResult = string.gsub(path.CompileStep2, "%.j", ".i")
 		pcall(os.remove, path.CompileStep3) -- 把老的waveResult删除

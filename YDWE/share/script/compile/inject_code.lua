@@ -121,12 +121,19 @@ function inject_code:do_inject(op, tbl)
 		-- 打开文件供写入（读写模式）
 		local map_script_file, e = io.open(op.output, "w+b")
 		if map_script_file then
-			-- 先写入需要注入的代码
+			-- 首先写入宏定义
+			map_script_file:write("#define USE_BJ_ANTI_LEAK\n")
+			map_script_file:write("#define USE_BJ_OPTIMIZATION\n")
+			map_script_file:write("#include <YDTrigger/Import.h>\n")
+			map_script_file:write("#include <YDTrigger/YDTrigger.h>\n")
+			map_script_file:write("\n")  -- 添加一个空行分隔
+
+			-- 然后写入需要注入的代码
 			for path in pairs(tbl) do
 				log.trace("Injecting " .. path:string())
 				local code_content, e = io.load(path)
 				if code_content then
-					-- 插入代码到文件开头
+					-- 插入代码到文件
 					map_script_file:write(code_content)
 					-- 写入换行符
 					map_script_file:write("\r\n")
@@ -138,11 +145,13 @@ function inject_code:do_inject(op, tbl)
 				end
 			end
 
-			-- 写入原始内容
+			-- 最后写入原始内容
 			map_script_file:write(original_content)
 
 			-- 关闭文件
 			map_script_file:close()
+
+			log.trace("Macro headers and code injection completed")
 		else
 			result = -1
 			log.error("Error occurred when writing code to map script")

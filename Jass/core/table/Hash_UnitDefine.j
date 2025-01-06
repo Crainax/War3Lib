@@ -5,6 +5,6 @@
 单位哈希表定义
 */
 
-#define HASH_KEY_UNIT_HERO    1726 //储存的英雄结构体
+#define HASH_KEY_UNIT_UNITATTR    1726 //储存的单位属性结构体
 
 #endif

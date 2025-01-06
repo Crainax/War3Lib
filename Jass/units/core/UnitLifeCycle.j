@@ -10,9 +10,7 @@ library UnitLifeCycle {
 
     public struct unitLifeCycle [] {
 
-        static integer agrsUnit     = 0;
-        static integer agrsTypeID = 0;
-        static integer agrsFrame  = 0;
+        static unit agrsUnit     = null;
         private {
             static trigger trCreate = null;
             static trigger trDestroy = null;
@@ -28,17 +26,13 @@ library UnitLifeCycle {
             TriggerAddCondition(trDestroy, Condition(func));
         }
 
-        static method onCreateCB(integer ui,integer typeID,integer frame) {
-            agrsUI = ui;
-            agrsTypeID = typeID;
-            agrsFrame = frame;
+        static method onCreateCB(unit u,integer typeID,integer frame) {
+            agrsUnit = u;
             TriggerEvaluate(trCreate);
         }
 
-        static method onDestroyCB(integer ui,integer typeID,integer frame) {
-            agrsUI = ui;
-            agrsTypeID = typeID;
-            agrsFrame = frame;
+        static method onDestroyCB(unit u,integer typeID,integer frame) {
+            agrsUnit = u;
             TriggerEvaluate(trDestroy);
         }
 
@@ -50,4 +44,36 @@ library UnitLifeCycle {
     }
 }
 //! endzinc
+
+/*
+VJ实现Hook
+*/
+library UnitLCHook
+
+    function NewCreateUnit takes player id, integer unitid, real x, real y, real face returns unit
+        // 在原函数执行前的代码
+        call BJDebugMsg("NewCreateUnit") //在创建前
+        call BJDebugMsg(R2S(bj_PI))
+        return null
+    endfunction
+
+    function NewRemoveUnit takes unit u returns nothing
+        // 在原函数执行前的代码
+        call BJDebugMsg("NewRemoveUnit")
+
+    endfunction
+
+    function NewRemoveUnit2 takes unit u returns nothing
+        // 在原函数执行前的代码
+        call BJDebugMsg("NewRemoveUnit2")
+
+    endfunction
+
+
+endlibrary
+
+hook CreateUnit NewCreateUnit
+hook RemoveUnit NewRemoveUnit
+hook RemoveUnit NewRemoveUnit2
+
 #endif

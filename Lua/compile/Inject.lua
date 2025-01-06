@@ -152,6 +152,36 @@ function inject_code:compile(path, injectPath)
     return self:do_inject(path, self:detect(path))
 end
 
+-- 注入宏头(最后调用)
+function inject_code:injectMacro(injectPath)
+    -- 首先读取原文件内容
+    local original_content = read_file(injectPath)
+    if not original_content then
+        print("Error reading original file content")
+        return
+    end
+
+    -- 打开文件供写入（覆盖模式）
+    local file, err = io.open(injectPath, "w")
+    if not file then
+        print("Error opening file for writing:", err)
+        return
+    end
+
+    -- 先写入宏定义
+    file:write("#define USE_BJ_ANTI_LEAK\n")
+    file:write("#define USE_BJ_OPTIMIZATION\n")
+    file:write("#include <YDTrigger/Import.h>\n")
+    file:write("#include <YDTrigger/YDTrigger.h>\n")
+    file:write("\n")  -- 添加一个空行分隔
+
+    -- 写入原始内容
+    file:write(original_content)
+
+    -- 关闭文件
+    file:close()
+end
+
 -- 扫描注入代码
 -- config_dir - 需要扫描的路径
 -- 返回值无，修改全局变量inject_code_table_new以及inject_code_table_old
@@ -290,6 +320,7 @@ function inject_code:scan(config_dir)
     end
     return counter
 end
+
 
 -- 扫描后表就变成了:  self.new_table[函数名] = 文件路径
 -- 例子:

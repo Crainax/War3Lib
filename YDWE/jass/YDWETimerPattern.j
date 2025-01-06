@@ -6,9 +6,9 @@
 library_once YDWETimerPattern initializer Init requires YDWEBase
 
 //***************************************************
-//* ¡Æ - Matrix ÍòÄÜÄ£°åº¯Êı
+//* âˆ‘ - Matrix ä¸‡èƒ½æ¨¡æ¿å‡½æ•°
 //*--------------------
-//* ×÷Õß£ºWarft_TigerCN  ´úÂëÓÅ»¯£ºFetrix_sai
+//* ä½œè€…ï¼šWarft_TigerCN  ä»£ç ä¼˜åŒ–ï¼šFetrix_sai
 //***************************************************
 
     #define TIMER_PATTERN_RADIUS 120.0
@@ -418,7 +418,7 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
             set .vel.x = Cos(angle)
             set .vel.y = Sin(angle)
             set .dist  = distance * interval / time
-            //step¸Ä³ÉÁËÔÈËÙÔË¶¯
+            //stepæ”¹æˆäº†åŒ€é€Ÿè¿åŠ¨
             set .step  = time / interval
             set .pos.x = GetUnitX(object)
             set .pos.y = GetUnitY(object)
@@ -478,7 +478,7 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
     endfunction
 
     private function Rebound takes Thread t,real nx,real ny returns nothing
-        
+
         if not (IsTerrainPathable(nx, t.pos.y, PATHING_TYPE_WALKABILITY)) then
             set t.vel.y = -1 * t.vel.y
         elseif not (IsTerrainPathable(t.pos.x, ny, PATHING_TYPE_WALKABILITY)) then
@@ -491,7 +491,7 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
         call SetUnitFacing(t.obj,Atan2BJ(t.vel.y,t.vel.x))
     endfunction
     /*
-        lasttime³ÖĞøÊ±¼ä,timeoutË¢ĞÂÊ±¼ä,cycle²»¼ÆËãÅö×²,pathÎŞÊÓµØĞÎ,×îºóÒ»¸öfÊÇÅö×²Ê±ºòµ÷ÓÃµÄº¯Êı½Ó¿Ú,Ïëµ÷ÓÃ±ØĞë°ÑµØĞÎÉèFALSE,×îºóÒ»¸ö×°µ½ÈËÊ±µÄÌØĞ§
+        lasttimeæŒç»­æ—¶é—´,timeoutåˆ·æ–°æ—¶é—´,cycleä¸è®¡ç®—ç¢°æ’,pathæ— è§†åœ°å½¢,æœ€åä¸€ä¸ªfæ˜¯ç¢°æ’æ—¶å€™è°ƒç”¨çš„å‡½æ•°æ¥å£,æƒ³è°ƒç”¨å¿…é¡»æŠŠåœ°å½¢è®¾FALSE,æœ€åä¸€ä¸ªè£…åˆ°äººæ—¶çš„ç‰¹æ•ˆ
     */
     function DIYRushSlide takes unit u, real face, real dis, real lasttime, real timeout, real damage, real radius, boolean killtrees, boolean cycle, boolean path, string part, string gsfx, string wsfx returns nothing
          local AfterCollied rebound = AfterCollied.Rebound

@@ -19,6 +19,11 @@ library ConversionUtils {
         else {return s2;}
     }
     //三目运算符
+    public function U3 (boolean b,unit u1,unit u2)  -> unit {
+        if (b) {return u1;}
+        else {return u2;}
+    }
+    //三目运算符
     public function I3 (boolean b,integer i1,integer i2)  -> integer  {
         if (b) {return i1;}
         else {return i2;}

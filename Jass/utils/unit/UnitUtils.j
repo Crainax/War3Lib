@@ -11,44 +11,75 @@
 library UnitUtils {
 
     //获取单位的攻击力/防御/生命/魔法值
-    #define GetUnitAttack(u) R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)))
-    #define GetUnitDefense(u) R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR)))
-    #define GetUnitHP(u) GetUnitState(u,UNIT_STATE_MAX_LIFE)
-    #define GetUnitMP(u) GetUnitState(u,UNIT_STATE_MAX_MANA)
+    public function GetUnitAttack(unit u) -> integer {
+        return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
+    }
+
+    public function GetUnitDefense(unit u) -> integer {
+        return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR)));
+    }
+
+    public function GetUnitHP(unit u) -> real {
+        return GetUnitState(u,UNIT_STATE_MAX_LIFE);
+    }
+
+    public function GetUnitMP(unit u) -> real {
+        return GetUnitState(u,UNIT_STATE_MAX_MANA);
+    }
 
     //设置攻击力
-    #define SetUnitAttack(u,attack) SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE),attack)
+    public function SetUnitAttack(unit u, real attack) -> nothing {
+        SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE),attack);
+    }
     //增加攻击力
-    #define AddUnitAttack(u,attack) SetUnitAttack(u,GetUnitAttack(u) + attack)
+    public function AddUnitAttack(unit u, real attack) -> nothing {
+        SetUnitAttack(u,GetUnitAttack(u) + attack);
+    }
 
     //设置防御
-	#define SetUnitDefense(u,defense) SetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR),defense)
+    public function SetUnitDefense(unit u, real defense) -> nothing {
+        SetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR),defense);
+    }
     //增加防御
-	#define AddUnitDefense(u,defense) SetUnitDefense(u,GetUnitDefense(u)+defense)
+    public function AddUnitDefense(unit u, real defense) -> nothing {
+        SetUnitDefense(u,GetUnitDefense(u)+defense);
+    }
 
     //修改生命最大值
-    #define SetUnitHP(u,hp) SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,5.0))
+    public function SetUnitHP(unit u, real hp) -> nothing {
+        SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,2.0));
+    }
     //增加生命最大值
-	public function AddUnitHP(unit u,real hp ) {
-		SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
-		if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
-	}
+    public function AddUnitHP(unit u,real hp ) {
+        SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
+        if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
+    }
     //回血(定值)
-    #define RegenUnitHP(u,volume) SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+volume)
+    public function RegenUnitHP(unit u, real volume) -> nothing {
+        SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+volume);
+    }
     //回蓝(百分比)
-    #define RegenUnitHPPercent(u,rate) SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate)
+    public function RegenUnitHPPercent(unit u, real rate) -> nothing {
+        SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate);
+    }
 
     //设置魔法最大值
-    #define SetUnitMP(u,mp) SetUnitState(u,UNIT_STATE_MAX_MANA,mp)
+    public function SetUnitMP(unit u, real mp) -> nothing {
+        SetUnitState(u,UNIT_STATE_MAX_MANA,mp);
+    }
     //增加魔法最大值
-	public function AddUnitMP(unit u,real mp ) {
-		SetUnitMP(u,GetUnitMP(u)+mp);
-		if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
-	}
+    public function AddUnitMP(unit u,real mp ) {
+        SetUnitMP(u,GetUnitMP(u)+mp);
+        if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
+    }
     //回蓝(定值)
-    #define RegenUnitMP(u,volume) SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+volume)
+    public function RegenUnitMP(unit u, real volume) -> nothing {
+        SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+volume);
+    }
     //回蓝(百分比)
-    #define RegenUnitMPPercent(u,rate) SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate)
+    public function RegenUnitMPPercent(unit u, real rate) -> nothing {
+        SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate);
+    }
 
     // 获取移速
     public function GetUnitSpeed (unit u)  -> integer {
@@ -74,7 +105,9 @@ library UnitUtils {
     }
 
     //射程(还会+警戒范围)
-    #define GetUnitAttackRange(u) GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE))
+    public function GetUnitAttackRange(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE));
+    }
     //设置射程(还会设置警戒范围)
     public function SetUnitAttackRange (unit u,real range) {
 		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),range);
@@ -87,13 +120,17 @@ library UnitUtils {
     }
 
     // 获取攻速
-    #define GetUnitAttackSpeed(u) GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE))
+    public function GetUnitAttackSpeed(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE));
+    }
     // 增加攻速
 	public function AddUnitAttackSpeed (unit u,real speed) {
 		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE)) + speed);
 	}
 
-    #define GetUnitInterval(u) GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL))
+    public function GetUnitInterval(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL));
+    }
     // 攻击间隔(虽然写着加,但是实际是减)
 	public function AddAttackInterval (unit u,real value) {
         SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL),GetUnitInterval(u) - value);

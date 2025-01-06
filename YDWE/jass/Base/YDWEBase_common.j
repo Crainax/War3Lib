@@ -240,18 +240,6 @@ function YDWEVersion_Init takes nothing returns nothing
 endfunction
 
 function InitializeYD takes nothing returns nothing
-#if WARCRAFT_VERSION >= 124
-#  ifndef YDWE_HASH_INITVAR
-#  define YDWE_HASH_INITVAR
-     set YDHT=InitHashtable()
-#  endif
-#else
-#  ifndef YDWE_HASH_INITVAR
-#  define YDWE_HASH_INITVAR
-     call FlushGameCache(InitGameCache("YDWE.wav"))
-     set YDGC=InitGameCache("YDWE.wav")
-#  endif
-#endif
 
 	//=================设置变量=====================
 	set yd_MapMinX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT)

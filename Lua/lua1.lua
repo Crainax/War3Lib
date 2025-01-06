@@ -1,81 +1,34 @@
-local function I3(a, b, c)
-	if (a) then
-		return b
-	else
-		return c
+local bit32 = require("bit32")
+
+local function StringHash(s)
+	if not s then
+		return 0
 	end
+
+	local seed1 = 0x7FED7FED
+	local seed2 = 0xEEEEEEEE
+
+	-- 魔兽原生中会将输入转成大写
+	s = string.upper(s)
+
+	for i = 1, #s do
+		local c = string.byte(s, i)
+
+		-- 注意确保中间结果都在 32 位范围内
+		seed1 = bit32.band(seed1, 0xFFFFFFFF)
+		seed2 = bit32.band(seed2, 0xFFFFFFFF)
+
+		local temp = bit32.bxor(seed1, c)
+		seed1 = temp + bit32.lshift(seed1, 26) + bit32.lshift(seed1, 16) - seed1
+		seed1 = bit32.band(seed1 + seed2, 0xFFFFFFFF)
+
+		seed2 = c + bit32.bxor(seed2, bit32.rshift(seed1, 5) + bit32.lshift(seed1, 2))
+		seed2 = bit32.band(seed2, 0xFFFFFFFF)
+	end
+
+	-- 函数最后会返回有符号整型，但往往直接取 31 位无符号即可
+	return bit32.band(seed1, 0x7FFFFFFF)
 end
 
-local function Fact(n)
-	if (n > 10) then
-		return n
-	elseif (n < 3) then
-		return n * 2
-	else
-		return n * 3
-	end
-end
-
-
--- local function mainX() print("lua1.main") end
-
--- s = "D:/War3/Maps/PhantomOrbit/edit/output.j"
--- s2 = string.gsub(s,"%.j",".i")
--- print(s2)
-
--- print(utf8.len("你大爷"))
--- print(string.sub("1231你大爷",2,7))
--- print(Fact(1))
-
--- local a , b , c , ret
--- a = true
--- b = 20.0
--- c = 10
--- ret = I3(a,b,c)
--- print("ret:" .. tostring(ret))
-
--- Account = { balance = 0,
--- 	withdraw = function (self,v)
--- 				self.balance = selef.balance - v
--- 			end
-
--- }
-
--- function Account:deposit( v )
--- 	self.balance = self.balance  + v
--- end
-
--- Account.deposit(Account,200)
-
--- -- 元类
--- Rectangle = {area = 0, length = 0, breadth = 0}
-
--- -- 派生类的方法 new
--- function Rectangle:new (o,length,breadth)
---   o = o or {}
---   setmetatable(o, self)
---   self.__index = self
---   self.length = length or 0
---   self.breadth = breadth or 0
---   self.area = length*breadth;
---   return o
--- end
-
--- -- 派生类的方法 printArea
--- function Rectangle:printArea ()
---   print("矩形面积为 ",self.area)
--- end
-
--- r = Rectangle:new(nil,10,20)
--- print (r.length)
--- r:printArea()
-
--- i = type(0):sub(-1):rep(4)
--- print(i)
--- print(i)
--- print("hehe",i)
--- print(type(0):sub(-1):rep(4))
-
--- b = "nimabz"
--- print(b:sub(-1))
-
+-- 测试
+print(StringHash("GJ")) -- 1345957883

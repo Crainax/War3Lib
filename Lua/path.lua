@@ -71,7 +71,7 @@ function path.init(root, project, we)
     path.assets           = "D:/War3Asset/Import"                                          -- 原始地图资源根目录
 
     path.backup              = {}                                                -- 数据备份
-    path.backup.root         = path.root .. "/Backup/PhantomOrbit"               -- 备份根目录
+    path.backup.root         = path.root .. "/Backup/" .. string.match(project, ".+/(.+)$")  -- 备份根目录
     path.backup.resource     = path.project .. "/".. path.mapName .. "/table"    -- 需要备份的路径
 
     path.image               = {}                                                -- 图片处理

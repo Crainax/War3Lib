@@ -82,14 +82,14 @@ library UTDamageUtils requires DamageUtils {
 	function TTestUTDamageUtils1(player p) {
 		CreateTestEnv(p);
 		Trace("测试物理伤害: " + R2S(testDamage));
-		ApplyPhysicalDamage(testSource, testDummy, testDamage, true);
+		ApplyPhysicalDamage(testSource, testDummy, testDamage);
 	}
 
 	// 测试真实伤害
 	function TTestUTDamageUtils2(player p) {
 		CreateTestEnv(p);
 		Trace("测试真实伤害: " + R2S(testDamage));
-		ApplyPureDamage(testSource, testDummy, testDamage, true);
+		ApplyPureDamage(testSource, testDummy, testDamage);
 	}
 
 	// 测试模拟普攻
@@ -105,8 +105,8 @@ library UTDamageUtils requires DamageUtils {
 		Trace("测试范围物理伤害: " + R2S(testDamage) + " 范围: " + R2S(testRadius));
 		Trace("中心点有1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
 		Trace("范围内的假人都会受到伤害和特效");
-		DamageArea(testSource, GetUnitX(testSource), GetUnitY(testSource),
-		testRadius, testDamage, true, testEffect);
+		DamageAreaPhysical(testSource, GetUnitX(testSource), GetUnitY(testSource),
+		testRadius, testDamage, testEffect);
 	}
 
 	// 测试范围真实伤害
@@ -116,7 +116,7 @@ library UTDamageUtils requires DamageUtils {
 		Trace("中心点有1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
 		Trace("范围内的假人都会受到伤害和特效");
 		DamageAreaPure(testSource, GetUnitX(testSource), GetUnitY(testSource),
-		testRadius, testDamage, true, testEffect);
+		testRadius, testDamage,  testEffect);
 	}
 
 	// 测试伤害显示开关
@@ -221,7 +221,7 @@ library UTDamageUtils requires DamageUtils {
 				Trace("第 " + I2S(reflectCount) + " 次反伤");
 
 				// 造成反伤
-				DamageArea(target, GetUnitX(target),GetUnitY(target), 100, damage * 0.5, true, I2S(DmgS.getTop()));
+				DamageAreaPhysical(target, GetUnitX(target),GetUnitY(target), 100, damage * 0.5, I2S(DmgS.getTop()));
 
 				if(reflectCount >= 5) {
 					Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(DmgS.getTop()));
