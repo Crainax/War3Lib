@@ -15,11 +15,12 @@ library UTMusic requires Music {
 			}, function() {
 			//end
 		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
+		UnitTestAutoTimer(bj_PI, 2.0, function() {
 			//assert.Boolean(true, "测试1");
 			//music[1001]
 			//music[13]
 		},null);
+		// YDUserDataSet(itemcode, 'esaz', "LL", integer, 23000);
 	}
 
 	function TTestUTMusic1 (player p) {}

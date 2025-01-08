@@ -1,24 +1,20 @@
 globals
-//globals from UnitLCHook:
-constant boolean LIBRARY_UnitLCHook=true
-//endglobals from UnitLCHook
-//globals from UnitLifeCycle:
-constant boolean LIBRARY_UnitLifeCycle=true
-//endglobals from UnitLifeCycle
+//globals from Music:
+constant boolean LIBRARY_Music=true
+//endglobals from Music
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
-hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
+trigger UnitTestFramwork___TUnitTest=null
+hashtable UnitTestFramwork___HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
 //globals from YDTriggerSaveLoadSystem:
 constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
 hashtable YDHT
 hashtable YDLOC
 //endglobals from YDTriggerSaveLoadSystem
-//globals from UTUnitLifeCycle:
-constant boolean LIBRARY_UTUnitLifeCycle=true
-unit UTUnitLifeCycle__u=null
-//endglobals from UTUnitLifeCycle
+//globals from UTMusic:
+constant boolean LIBRARY_UTMusic=true
+//endglobals from UTMusic
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -44,105 +40,34 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
-constant integer si__unitLifeCycle=1
-unit s__unitLifeCycle_agrsUnit=null
-trigger s__unitLifeCycle_trCreate=null
-trigger s__unitLifeCycle_trDestroy=null
+constant integer si__music=1
+sound array s__music_snd
 constant integer si__assert=2
-trigger array st___prototype1
-unit f__result_unit
-trigger array st___prototype2
-player f__arg_player1
-integer f__arg_integer1
-real f__arg_real1
-real f__arg_real2
-real f__arg_real3
-unit f__arg_unit1
 
 endglobals
 
-function sc___prototype1_execute takes integer i,player a1,integer a2,real a3,real a4,real a5 returns nothing
-    set f__arg_player1=a1
-    set f__arg_integer1=a2
-    set f__arg_real1=a3
-    set f__arg_real2=a4
-    set f__arg_real3=a5
 
-    call TriggerExecute(st___prototype1[i])
-endfunction
-function sc___prototype1_evaluate takes integer i,player a1,integer a2,real a3,real a4,real a5 returns unit
-    set f__arg_player1=a1
-    set f__arg_integer1=a2
-    set f__arg_real1=a3
-    set f__arg_real2=a4
-    set f__arg_real3=a5
-
-    call TriggerEvaluate(st___prototype1[i])
- return f__result_unit
-endfunction
-function sc___prototype2_execute takes integer i,unit a1 returns nothing
-    set f__arg_unit1=a1
-
-    call TriggerExecute(st___prototype2[i])
-endfunction
-function sc___prototype2_evaluate takes integer i,unit a1 returns nothing
-    set f__arg_unit1=a1
-
-    call TriggerEvaluate(st___prototype2[i])
-
-endfunction
-function h__CreateUnit takes player a0, integer a1, real a2, real a3, real a4 returns unit
-    //hook: NewCreateUnit
-    call sc___prototype1_evaluate(1,a0,a1,a2,a3,a4)
-return CreateUnit(a0,a1,a2,a3,a4)
-endfunction
-function h__RemoveUnit takes unit a0 returns nothing
-    //hook: NewRemoveUnit
-    call sc___prototype2_evaluate(1,a0)
-    //hook: NewRemoveUnit2
-    call sc___prototype2_evaluate(2,a0)
-call RemoveUnit(a0)
-endfunction
-
-//library UnitLCHook:
-    function NewCreateUnit takes player id,integer unitid,real x,real y,real face returns unit
-        // 在原函数执行前的代码
-        call BJDebugMsg("NewCreateUnit") //在创建前
-call BJDebugMsg(R2S(3.14159))
-        return null
-    endfunction
-    function NewRemoveUnit takes unit u returns nothing
-        // 在原函数执行前的代码
-        call BJDebugMsg("NewRemoveUnit")
-    endfunction
-    function NewRemoveUnit2 takes unit u returns nothing
-        // 在原函数执行前的代码
-        call BJDebugMsg("NewRemoveUnit2")
-    endfunction
-
-//library UnitLCHook ends
-//library UnitLifeCycle:
-        //private:
-        function s__unitLifeCycle_registerCreate takes code func returns nothing
-            call TriggerAddCondition(s__unitLifeCycle_trCreate, Condition(func))
-        endfunction  // 注册销毁回调
-        function s__unitLifeCycle_registerDestroy takes code func returns nothing
-            call TriggerAddCondition(s__unitLifeCycle_trDestroy, Condition(func))
+//library Music:
+        function s__music_playFor takes integer this,player p returns nothing
+            if ( GetLocalPlayer() == p ) then
+                call StartSound(s__music_snd[this])
+            endif
+        endfunction  //播放音效
+        function s__music_play takes integer this returns nothing
+            call StartSound(s__music_snd[this])
         endfunction
-        function s__unitLifeCycle_onCreateCB takes unit u,integer typeID,integer frame returns nothing
-            set s__unitLifeCycle_agrsUnit=u
-            call TriggerEvaluate(s__unitLifeCycle_trCreate)
-        endfunction
-        function s__unitLifeCycle_onDestroyCB takes unit u,integer typeID,integer frame returns nothing
-            set s__unitLifeCycle_agrsUnit=u
-            call TriggerEvaluate(s__unitLifeCycle_trDestroy)
-        endfunction
-        function s__unitLifeCycle_onInit takes nothing returns nothing
-            set s__unitLifeCycle_trCreate=CreateTrigger()
-            set s__unitLifeCycle_trDestroy=CreateTrigger()
+        function s__music_onInit takes nothing returns nothing
+            local sound snd=null
+            set snd=CreateSound("sound\\btn_down_01.wav", false, false, false, 10, 10, "")
+            call SetSoundDuration(snd, 131)
+            set s__music_snd[(1001)]=snd
+            set snd=CreateSound("Sound\\Interface\\SecretFound.wav", false, false, false, 10, 10, "")
+            call SetSoundDuration(snd, 2525)
+            set s__music_snd[(13)]=snd
+            set snd=null
         endfunction
 
-//library UnitLifeCycle ends
+//library Music ends
 //library UnitTestFramwork:
 
         function s__assert_Boolean takes boolean condition,string name returns nothing
@@ -162,27 +87,27 @@ call BJDebugMsg(R2S(3.14159))
             endif
         endfunction
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction  //指定开始时间与持续时间的定时器
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]开始------")
             call TriggerEvaluate(tr)
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
-        function UnitTestFramwork__anon__1 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__1 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call TriggerEvaluate(tr)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]结束------")
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
@@ -191,22 +116,22 @@ call BJDebugMsg(R2S(3.14159))
         local trigger tr=CreateTrigger()
         call TriggerAddCondition(t, Condition(start))
         call TriggerRegisterTimerEvent(tr, time, false)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-        call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         set t=CreateTrigger()
         set tr=CreateTrigger()
         call TriggerAddCondition(t, Condition(end))
         call TriggerRegisterTimerEvent(tr, time + duration, false)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-        call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__1))
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__1))
         set tr=null
         set t=null
     endfunction
-        function UnitTestFramwork__anon__2 takes nothing returns nothing
+        function UnitTestFramwork___anon__2 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -217,62 +142,60 @@ call BJDebugMsg(R2S(3.14159))
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.1, false)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__2))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__2))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
 //library YDTriggerSaveLoadSystem:
 //#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
+    function YDTriggerSaveLoadSystem___Init takes nothing returns nothing
             set YDHT=InitHashtable()
         set YDLOC=InitHashtable()
     endfunction
 
 //library YDTriggerSaveLoadSystem ends
-//library UTUnitLifeCycle:
+//library UTMusic:
 
-        function UTUnitLifeCycle__anon__0 takes nothing returns nothing
+        function UTMusic___anon__0 takes nothing returns nothing
         endfunction  //end
-        function UTUnitLifeCycle__anon__1 takes nothing returns nothing
+        function UTMusic___anon__1 takes nothing returns nothing
         endfunction
-        function UTUnitLifeCycle__anon__2 takes nothing returns nothing
-        endfunction  //unitLifeCycle
-    function UTUnitLifeCycle__Init takes nothing returns nothing
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTUnitLifeCycle__anon__0 , function UTUnitLifeCycle__anon__1)
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTUnitLifeCycle__anon__2 , null)
+        function UTMusic___anon__2 takes nothing returns nothing
+        endfunction  //music[1001] //music[13] // YDUserDataSet(itemcode, 'esaz', "LL", integer, 23000);
+    function UTMusic___Init takes nothing returns nothing
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTMusic___anon__0 , function UTMusic___anon__1)
+        call UnitTestAutoTimer(3.14159 , 2.0 , function UTMusic___anon__2 , null)
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle1 takes player p returns nothing
-        set UTUnitLifeCycle__u=h__CreateUnit(GetOwningPlayer(GetSpellAbilityUnit()), 'uyan', GetUnitX(GetSpellAbilityUnit()), GetUnitY(GetSpellAbilityUnit()), 0)
+    function UTMusic___TTestUTMusic1 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle2 takes player p returns nothing
-        call h__RemoveUnit(UTUnitLifeCycle__u)
+    function UTMusic___TTestUTMusic2 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle3 takes player p returns nothing
+    function UTMusic___TTestUTMusic3 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle4 takes player p returns nothing
+    function UTMusic___TTestUTMusic4 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle5 takes player p returns nothing
+    function UTMusic___TTestUTMusic5 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle6 takes player p returns nothing
+    function UTMusic___TTestUTMusic6 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle7 takes player p returns nothing
+    function UTMusic___TTestUTMusic7 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle8 takes player p returns nothing
+    function UTMusic___TTestUTMusic8 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle9 takes player p returns nothing
+    function UTMusic___TTestUTMusic9 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestUTUnitLifeCycle10 takes player p returns nothing
+    function UTMusic___TTestUTMusic10 takes player p returns nothing
     endfunction
-    function UTUnitLifeCycle__TTestActUTUnitLifeCycle1 takes string str returns nothing
+    function UTMusic___TTestActUTMusic1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -304,49 +227,49 @@ call BJDebugMsg(R2S(3.14159))
         endif
         set p=null
     endfunction
-        function UTUnitLifeCycle__anon__3 takes nothing returns nothing
-            call BJDebugMsg("[UnitLifeCycle] 单元测试已加载")
-            call UTUnitLifeCycle__Init()
+        function UTMusic___anon__3 takes nothing returns nothing
+            call BJDebugMsg("[Music] 单元测试已加载")
+            call UTMusic___Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUnitLifeCycle__anon__4 takes nothing returns nothing
+        function UTMusic___anon__4 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
-                call UTUnitLifeCycle__TTestActUTUnitLifeCycle1(SubString(str, ( 2 ) - 1, StringLength(str)))
+                call UTMusic___TTestActUTMusic1(SubString(str, ( 2 ) - 1, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle1(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle2(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle3(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle4(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle5(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle6(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle7(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle8(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle9(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTUnitLifeCycle__TTestUTUnitLifeCycle10(GetTriggerPlayer())
+                call UTMusic___TTestUTMusic10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUnitLifeCycle__onInit takes nothing returns nothing
+    function UTMusic___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTUnitLifeCycle__anon__3))
+        call TriggerAddCondition(tr, Condition(function UTMusic___anon__3))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUnitLifeCycle__anon__4)
+        call UnitTestRegisterChatEvent(function UTMusic___anon__4)
     endfunction
 
-//library UTUnitLifeCycle ends
+//library UTMusic ends
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
 //#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
@@ -356,9 +279,6 @@ call BJDebugMsg(R2S(3.14159))
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
 
-//processed hook: hook CreateUnit NewCreateUnit
-//processed hook: hook RemoveUnit NewRemoveUnit
-//processed hook: hook RemoveUnit NewRemoveUnit2
 
 //===========================================================================
 //
@@ -375,7 +295,6 @@ call BJDebugMsg(R2S(3.14159))
 //*  Global Variables
 //*
 //***************************************************************************
-// redeclaration of library YDTriggerSaveLoadSystem skipped
 function InitGlobals takes nothing returns nothing
 endfunction
 //***************************************************************************
@@ -390,7 +309,7 @@ function CreateBuildingsForPlayer8 takes nothing returns nothing
     local integer unitID
     local trigger t
     local real life
-    set gg_unit_hcas_0011=h__CreateUnit(p, 'hcas', - 64.0, - 1984.0, 270.000)
+    set gg_unit_hcas_0011=CreateUnit(p, 'hcas', - 64.0, - 1984.0, 270.000)
 endfunction
 //===========================================================================
 function CreatePlayerBuildings takes nothing returns nothing
@@ -441,6 +360,7 @@ endfunction
 // 当前的平台分包
     // 单元测试
     // lua_print: 单元测试
+//这两条是用到YDWE函数就要导入的,没用到就不用导入
 // 原生UI的大小
 //函数入口
 // 用原始地图测试
@@ -774,10 +694,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs32111921")
-call ExecuteFunc("UnitTestFramwork__onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
-call ExecuteFunc("UTUnitLifeCycle__onInit")
+call ExecuteFunc("jasshelper__initstructs22212734")
+call ExecuteFunc("UnitTestFramwork___onInit")
+call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
+call ExecuteFunc("UTMusic___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -815,40 +735,11 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa___prototype1_NewCreateUnit takes nothing returns boolean
- local player id=f__arg_player1
- local integer unitid=f__arg_integer1
- local real x=f__arg_real1
- local real y=f__arg_real2
- local real face=f__arg_real3
 
-        call BJDebugMsg("NewCreateUnit") //在创建前
-call BJDebugMsg(R2S(3.14159))
-    set f__result_unit= null
-    return true
-endfunction
-function sa___prototype2_NewRemoveUnit takes nothing returns boolean
-    call NewRemoveUnit(f__arg_unit1)
-    return true
-endfunction
-function sa___prototype2_NewRemoveUnit2 takes nothing returns boolean
-    call NewRemoveUnit2(f__arg_unit1)
-    return true
-endfunction
-
-function jasshelper__initstructs32111921 takes nothing returns nothing
-    set st___prototype1[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype1[1],function sa___prototype1_NewCreateUnit)
-    call TriggerAddCondition(st___prototype1[1],Condition(function sa___prototype1_NewCreateUnit))
-    set st___prototype2[1]=CreateTrigger()
-    call TriggerAddAction(st___prototype2[1],function sa___prototype2_NewRemoveUnit)
-    call TriggerAddCondition(st___prototype2[1],Condition(function sa___prototype2_NewRemoveUnit))
-    set st___prototype2[2]=CreateTrigger()
-    call TriggerAddAction(st___prototype2[2],function sa___prototype2_NewRemoveUnit2)
-    call TriggerAddCondition(st___prototype2[2],Condition(function sa___prototype2_NewRemoveUnit2))
+function jasshelper__initstructs22212734 takes nothing returns nothing
 
 
 
-    call ExecuteFunc("s__unitLifeCycle_onInit")
+    call ExecuteFunc("s__music_onInit")
 endfunction
 

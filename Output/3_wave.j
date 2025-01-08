@@ -1,14 +1,3 @@
-library_once YDTriggerSaveLoadSystem initializer Init
-//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-globals
-        hashtable YDHT
-    hashtable YDLOC
-endglobals
-    private function Init takes nothing returns nothing
-            set YDHT = InitHashtable()
-        set YDLOC = InitHashtable()
-    endfunction
-endlibrary
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
 //#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
@@ -17,63 +6,6 @@ endlibrary
 //#  define TriggerRegisterPlayerEventLeave(trig, player)                    TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_LEAVE)
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
-//! zinc
-/*
-Unit生命周期管理器
-负责管理Unit组件的创建和销毁事件
-*/
-library UnitLifeCycle {
-    public struct unitLifeCycle [] {
-        static unit agrsUnit = null;
-        private {
-            static trigger trCreate = null;
-            static trigger trDestroy = null;
-        }
-        // 注册创建回调
-        static method registerCreate(code func) {
-            TriggerAddCondition(trCreate, Condition(func));
-        }
-        // 注册销毁回调
-        static method registerDestroy(code func) {
-            TriggerAddCondition(trDestroy, Condition(func));
-        }
-        static method onCreateCB(unit u,integer typeID,integer frame) {
-            agrsUnit = u;
-            TriggerEvaluate(trCreate);
-        }
-        static method onDestroyCB(unit u,integer typeID,integer frame) {
-            agrsUnit = u;
-            TriggerEvaluate(trDestroy);
-        }
-        static method onInit () {
-            trCreate = CreateTrigger();
-            trDestroy = CreateTrigger();
-        }
-    }
-}
-//! endzinc
-/*
-VJ实现Hook
-*/
-library UnitLCHook
-    function NewCreateUnit takes player id, integer unitid, real x, real y, real face returns unit
-        // 在原函数执行前的代码
-        call BJDebugMsg("NewCreateUnit") //在创建前
-call BJDebugMsg(R2S(3.14159))
-        return null
-    endfunction
-    function NewRemoveUnit takes unit u returns nothing
-        // 在原函数执行前的代码
-        call BJDebugMsg("NewRemoveUnit")
-    endfunction
-    function NewRemoveUnit2 takes unit u returns nothing
-        // 在原函数执行前的代码
-        call BJDebugMsg("NewRemoveUnit2")
-    endfunction
-endlibrary
-hook CreateUnit NewCreateUnit
-hook RemoveUnit NewRemoveUnit
-hook RemoveUnit NewRemoveUnit2
 /*
 单元测试框架(注入)
 */
@@ -170,6 +102,102 @@ library UnitTestFramwork {
     }
 }
 //! endzinc
+/*
+声音的初始化
+及一些常用的声音API
+*/
+//! zinc
+library Music {
+	public struct music []{
+		private sound snd;
+		//只给某个玩家播放
+		method playFor (player p) {
+			if (GetLocalPlayer() == p) {
+				StartSound(snd);
+			}
+		}
+		//播放音效
+		method play () {
+			StartSound(snd);
+		}
+		static method onInit () {
+			sound snd = null;
+			//# check: music[1001]
+			//# dependency:sound/sound/btn_down_01.wav
+			snd = CreateSound("sound\\btn_down_01.wav", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 131);
+			SetSoundChannel(snd, 0);
+			SetSoundVolume(snd, 127);
+			SetSoundPitch(snd, 1.0);
+			thistype[1001].snd = snd;
+			//# endcheck
+			//# check: music[1002]
+			//# dependency:sound/sound/btn_over_01.wav
+			snd = CreateSound("sound\\btn_over_01.wav", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 56);
+			SetSoundChannel(snd, 0);
+			SetSoundVolume(snd, 127);
+			SetSoundPitch(snd, 1.0);
+			thistype[1002].snd = snd;
+			//# endcheck
+			//# check: music[1003]
+			//# dependency:sound/sound/btn_over_02.wav
+			snd = CreateSound("sound\\btn_over_02.wav", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 60);
+			SetSoundChannel(snd, 0);
+			SetSoundVolume(snd, 127);
+			SetSoundPitch(snd, 1.0);
+			thistype[1003].snd = snd;
+			//# endcheck
+			//# check: music[1004]
+			//# dependency:sound/sound/btn_up_01.wav
+			snd = CreateSound("sound\\btn_up_01.wav", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 54);
+			SetSoundChannel(snd, 0);
+			SetSoundVolume(snd, 127);
+			SetSoundPitch(snd, 1.0);
+			thistype[1004].snd = snd;
+			//# endcheck
+			//# check: music[7]
+			snd = CreateSound("Sound\\Interface\\Warning\\Human\\KnightNoGold1.wav", false, false, false, 10, 10, "DefaultEAXON");
+			SetSoundDuration(snd, 1486);
+			thistype[7].snd = snd;
+			//# endcheck
+			//# check: music[8]
+			snd = CreateSound("Sound\\Interface\\Error.wav", false, false, false, 10, 10, "DefaultEAXON");
+			SetSoundDuration(snd, 614);
+			thistype[8].snd = snd;
+			//# endcheck
+			//# check: music[9]
+			snd = CreateSound("Abilities\\Spells\\Items\\ResourceItems\\ReceiveGold.wav", false, false, false, 10, 10, "SpellsEAX");
+			SetSoundDuration(snd, 589);
+			thistype[9].snd = snd;
+			//# endcheck
+			//# check: music[10]
+			snd = CreateSound("Abilities\\Spells\\Items\\AIam\\Tomes.wav", false, false, false, 10, 10, "SpellsEAX");
+			SetSoundDuration(snd, 1770);
+			thistype[10].snd = snd;
+			//# endcheck
+			//# check: music[11]
+			snd = CreateSound("Sound\\Interface\\ItemReceived.wav", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 1483);
+			thistype[11].snd = snd;
+			//# endcheck
+			//# check: music[12]
+			snd = CreateSound("Sound\\Interface\\MouseClick1.wav", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 239);
+			thistype[12].snd = snd;
+			//# endcheck
+			//# check: music[13]
+			snd = CreateSound("Sound\\Interface\\SecretFound.wav", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 2525);
+			thistype[13].snd = snd;
+			//# endcheck
+			snd = null;
+		}
+	}
+}
+//! endzinc
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -185,17 +213,6 @@ library UnitTestFramwork {
 //*  Global Variables
 //*
 //***************************************************************************
-library_once YDTriggerSaveLoadSystem initializer Init
-//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-globals
-        hashtable YDHT
-    hashtable YDLOC
-endglobals
-    private function Init takes nothing returns nothing
-            set YDHT = InitHashtable()
-        set YDLOC = InitHashtable()
-    endfunction
-endlibrary
 globals
     // Generated
     rect gg_rct_Wave1 = null
@@ -284,6 +301,18 @@ endfunction
 // 当前的平台分包
     // 单元测试
     // lua_print: 单元测试
+//这两条是用到YDWE函数就要导入的,没用到就不用导入
+library_once YDTriggerSaveLoadSystem initializer Init
+//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
+globals
+        hashtable YDHT
+    hashtable YDLOC
+endglobals
+    private function Init takes nothing returns nothing
+            set YDHT = InitHashtable()
+        set YDLOC = InitHashtable()
+    endfunction
+endlibrary
 // 原生UI的大小
 //函数入口
 // 用原始地图测试
@@ -291,34 +320,31 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTUnitLifeCycle requires UnitLifeCycle {
+library UTMusic requires Music {
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start
 			}, function() {
 			//end
 		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
+		UnitTestAutoTimer(3.14159, 2.0, function() {
 			//assert.Boolean(true, "测试1");
-			//unitLifeCycle
+			//music[1001]
+			//music[13]
 		},null);
+		// YDUserDataSet(itemcode, 'esaz', "LL", integer, 23000);
 	}
-	unit u = null;
-	function TTestUTUnitLifeCycle1 (player p) {
-		u = CreateUnit(GetOwningPlayer(GetSpellAbilityUnit()),'uyan',GetUnitX(GetSpellAbilityUnit()),GetUnitY(GetSpellAbilityUnit()),0);
-	}
-	function TTestUTUnitLifeCycle2 (player p) {
-		RemoveUnit(u);
-	}
-	function TTestUTUnitLifeCycle3 (player p) {}
-	function TTestUTUnitLifeCycle4 (player p) {}
-	function TTestUTUnitLifeCycle5 (player p) {}
-	function TTestUTUnitLifeCycle6 (player p) {}
-	function TTestUTUnitLifeCycle7 (player p) {}
-	function TTestUTUnitLifeCycle8 (player p) {}
-	function TTestUTUnitLifeCycle9 (player p) {}
-	function TTestUTUnitLifeCycle10 (player p) {}
-	function TTestActUTUnitLifeCycle1 (string str) {
+	function TTestUTMusic1 (player p) {}
+	function TTestUTMusic2 (player p) {}
+	function TTestUTMusic3 (player p) {}
+	function TTestUTMusic4 (player p) {}
+	function TTestUTMusic5 (player p) {}
+	function TTestUTMusic6 (player p) {}
+	function TTestUTMusic7 (player p) {}
+	function TTestUTMusic8 (player p) {}
+	function TTestUTMusic9 (player p) {}
+	function TTestUTMusic10 (player p) {}
+	function TTestActUTMusic1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -350,7 +376,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEvent(tr, 0.5, false);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UnitLifeCycle] 单元测试已加载");
+			BJDebugMsg("[Music] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -359,19 +385,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubString(str, (1)-1, 1) == "-") {
-				TTestActUTUnitLifeCycle1(SubString(str, (2)-1, StringLength(str)));
+				TTestActUTMusic1(SubString(str, (2)-1, StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUnitLifeCycle1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUnitLifeCycle2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUnitLifeCycle3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUnitLifeCycle4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUnitLifeCycle5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUnitLifeCycle6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUnitLifeCycle7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUnitLifeCycle8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUnitLifeCycle9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUnitLifeCycle10(GetTriggerPlayer());
+			if (str == "s1") TTestUTMusic1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTMusic2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTMusic3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTMusic4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTMusic5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTMusic6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTMusic7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTMusic8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTMusic9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTMusic10(GetTriggerPlayer());
 		});
 	}
 }

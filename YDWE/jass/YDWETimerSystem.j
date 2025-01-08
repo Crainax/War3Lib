@@ -5,6 +5,9 @@
 //系统-TimerSystem
 //===========================================================================
 
+#include <YDTrigger/ImportSaveLoadSystem.h>
+#include <YDTrigger/Hash.h>
+
 library YDWETimerSystem initializer Init requires YDTriggerSaveLoadSystem
 
 globals

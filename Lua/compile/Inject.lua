@@ -171,7 +171,7 @@ function inject_code:injectMacro(injectPath)
     -- 先写入宏定义
     file:write("#define USE_BJ_ANTI_LEAK\n")
     file:write("#define USE_BJ_OPTIMIZATION\n")
-    file:write("#include <YDTrigger/Import.h>\n")
+    file:write("#include <YDTrigger/Import.h>\n")   --这条还是要写,在Alljass.h里直接导入就行了,不用搞这么多弯弯绕绕
     file:write("#include <YDTrigger/YDTrigger.h>\n")
     file:write("\n")  -- 添加一个空行分隔
 

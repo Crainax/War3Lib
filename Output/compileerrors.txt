@@ -1,4 +1,5 @@
 logs\currentmapscript.j
 pjass.exe
-Line 1198:  Undeclared function DamageArea
-1
+Line 164:  Undeclared variable itemcode
+Line 164:  syntax error
+2

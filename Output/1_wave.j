@@ -13,17 +13,6 @@
 //*  Global Variables
 //*
 //***************************************************************************
-library_once YDTriggerSaveLoadSystem initializer Init
-//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-globals
-        hashtable YDHT
-    hashtable YDLOC
-endglobals
-    private function Init takes nothing returns nothing
-            set YDHT = InitHashtable()
-        set YDLOC = InitHashtable()
-    endfunction
-endlibrary
 globals
     // Generated
     rect gg_rct_Wave1 = null
@@ -112,6 +101,18 @@ endfunction
 // 当前的平台分包
     // 单元测试
     // lua_print: 单元测试
+//这两条是用到YDWE函数就要导入的,没用到就不用导入
+library_once YDTriggerSaveLoadSystem initializer Init
+//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
+globals
+        hashtable YDHT
+    hashtable YDLOC
+endglobals
+    private function Init takes nothing returns nothing
+            set YDHT = InitHashtable()
+        set YDLOC = InitHashtable()
+    endfunction
+endlibrary
 // 原生UI的大小
 //函数入口
 // 用原始地图测试
@@ -119,34 +120,31 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTUnitLifeCycle requires UnitLifeCycle {
+library UTMusic requires Music {
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start
 			}, function() {
 			//end
 		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
+		UnitTestAutoTimer(bj_PI, 2.0, function() {
 			//assert.Boolean(true, "测试1");
-			//unitLifeCycle
+			//music[1001]
+			//music[13]
 		},null);
+		// YDUserDataSet(itemcode, 'esaz', "LL", integer, 23000);
 	}
-	unit u = null;
-	function TTestUTUnitLifeCycle1 (player p) {
-		u = CreateUnit(GetOwningPlayer(GetSpellAbilityUnit()),'uyan',GetUnitX(GetSpellAbilityUnit()),GetUnitY(GetSpellAbilityUnit()),0);
-	}
-	function TTestUTUnitLifeCycle2 (player p) {
-		RemoveUnit(u);
-	}
-	function TTestUTUnitLifeCycle3 (player p) {}
-	function TTestUTUnitLifeCycle4 (player p) {}
-	function TTestUTUnitLifeCycle5 (player p) {}
-	function TTestUTUnitLifeCycle6 (player p) {}
-	function TTestUTUnitLifeCycle7 (player p) {}
-	function TTestUTUnitLifeCycle8 (player p) {}
-	function TTestUTUnitLifeCycle9 (player p) {}
-	function TTestUTUnitLifeCycle10 (player p) {}
-	function TTestActUTUnitLifeCycle1 (string str) {
+	function TTestUTMusic1 (player p) {}
+	function TTestUTMusic2 (player p) {}
+	function TTestUTMusic3 (player p) {}
+	function TTestUTMusic4 (player p) {}
+	function TTestUTMusic5 (player p) {}
+	function TTestUTMusic6 (player p) {}
+	function TTestUTMusic7 (player p) {}
+	function TTestUTMusic8 (player p) {}
+	function TTestUTMusic9 (player p) {}
+	function TTestUTMusic10 (player p) {}
+	function TTestActUTMusic1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -178,7 +176,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UnitLifeCycle] 单元测试已加载");
+			BJDebugMsg("[Music] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -187,19 +185,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUnitLifeCycle1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTMusic1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUnitLifeCycle1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUnitLifeCycle2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUnitLifeCycle3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUnitLifeCycle4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUnitLifeCycle5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUnitLifeCycle6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUnitLifeCycle7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUnitLifeCycle8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUnitLifeCycle9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUnitLifeCycle10(GetTriggerPlayer());
+			if (str == "s1") TTestUTMusic1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTMusic2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTMusic3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTMusic4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTMusic5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTMusic6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTMusic7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTMusic8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTMusic9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTMusic10(GetTriggerPlayer());
 		});
 	}
 }
