@@ -17,8 +17,6 @@
  * -d [value] : 设置HP减幅比例
  */
 
-#include "Crainax/units/attribute/UnitAttr.j"
-
 //! zinc
 
 library UTUnitAttr requires UnitAttr {
@@ -32,9 +30,8 @@ library UTUnitAttr requires UnitAttr {
 		}
 		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0); // 使用步兵作为测试单位
 		testAttr = unitAttr.parse(testUnit);
-		testAttr.baseHP = 100; // 设置初始基础HP为100
-		testAttr.hpRateUp = 0;
-		testAttr.hpRateDown = 0;
+		testAttr.addHP(100);
+		SelectUnit(testUnit,true);
 	}
 
 	// 测试基础HP的增减
@@ -139,12 +136,104 @@ library UTUnitAttr requires UnitAttr {
 	}
 
 	function Init() {
+		player p = Player(0);
 		BJDebugMsg("=== UnitAttr测试系统已加载 ===");
-		BJDebugMsg("使用hp1-hp4测试预设功能");
-		BJDebugMsg("使用-a [value]设置基础HP");
-		BJDebugMsg("使用-b [value]增加基础HP");
-		BJDebugMsg("使用-c [value]设置HP增幅");
-		BJDebugMsg("使用-d [value]设置HP减幅");
+
+		// 创建测试单位
+		CreateTestUnit(p);
+
+		// 测试1.1：测试初始HP
+		UnitTestAutoTimer(0.1, 0, function() {
+			assert.Real(testAttr.getCurrentHP(), 100.0, "初始HP应为100");
+		}, null);
+
+		// 测试1.2：测试增加HP
+		UnitTestAutoTimer(0.6, 0, function() {
+			testAttr.addHP(50);
+			assert.Real(testAttr.getCurrentHP(), 150.0, "增加50点HP后应为150");
+		}, null);
+
+		// 测试1.3：测试减少HP
+		UnitTestAutoTimer(1.1, 0, function() {
+			testAttr.addHP(-30);
+			assert.Real(testAttr.getCurrentHP(), 120.0, "减少30点HP后应为120");
+		}, null);
+
+		// 测试2：HP增幅比例测试
+		UnitTestAutoTimer(1.6, 0, function() {
+			CreateTestUnit(Player(0));
+			testAttr.addHPRateUp(0.5);
+			assert.Real(testAttr.getCurrentHP(), 150.0, "增加50%增幅后应为150");
+			assert.Real(testAttr.getCurrentHPRate(), 1.5, "当前HP倍率应为1.5");
+		}, null);
+
+		// 测试3：HP减幅比例测试
+		UnitTestAutoTimer(2.1, 0, function() {
+			CreateTestUnit(Player(0));
+			testAttr.addHPRateDown(0.3);
+			assert.Real(testAttr.getCurrentHP(), 70.0, "增加30%减幅后应为70");
+			assert.Real(testAttr.getCurrentHPRate(), 0.7, "当前HP倍率应为0.7");
+		}, null);
+
+		// 测试4：HP增减幅组合效果测试
+		UnitTestAutoTimer(2.6, 0, function() {
+			CreateTestUnit(Player(0));
+			testAttr.addHPRateUp(0.5);
+			testAttr.addHPRateDown(0.2);
+			assert.Real(testAttr.getCurrentHP(), 120.0, "增加50%增幅,20%减幅后应为120");
+			assert.Real(testAttr.getCurrentHPRate(), 1.2, "当前HP倍率应为1.2");
+		}, null);
+
+		// 测试5：HP减幅的递减收益测试
+		UnitTestAutoTimer(3.1, 0, function() {
+			CreateTestUnit(Player(0));
+
+			// 测试两个30%减幅的叠加
+			testAttr.addHPRateDown(0.3);
+			testAttr.addHPRateDown(0.3);
+			// 期望值：1 - (1-0.3)*(1-0.3) = 0.51，所以最终HP应该是100*(1-0.51)=49
+			assert.Real(testAttr.getCurrentHP(), 49.0, "两个30%减幅叠加后应为49");
+			assert.Real(testAttr.getHPRateDown(), 0.51, "两个30%减幅叠加后减幅值应为0.51");
+
+			// 测试第三个30%减幅的叠加
+			testAttr.addHPRateDown(0.3);
+			// 期望值：1 - (1-0.51)*(1-0.3) ≈ 0.657，所以最终HP应该是100*(1-0.657)=34.3
+			assert.Real(testAttr.getCurrentHP(), 34.3, "三个30%减幅叠加后应为34.3");
+			assert.Real(testAttr.getHPRateDown(), 0.657, "三个30%减幅叠加后减幅值应为0.657");
+		}, null);
+
+		// 测试6：HP减幅的反向恢复测试
+		UnitTestAutoTimer(3.6, 0, function() {
+			CreateTestUnit(Player(0));
+
+			// 先加一个减幅
+			testAttr.addHPRateDown(0.3);
+			assert.Real(testAttr.getCurrentHP(), 70.0, "30%减幅后应为70");
+
+			// 加入反向值测试恢复
+			testAttr.addHPRateDown(-0.3);
+			assert.Real(testAttr.getCurrentHP(), 100.0, "加入反向值后应恢复到100");
+			assert.Real(testAttr.getHPRateDown(), 0.0, "加入反向值后减幅应为0");
+		}, null);
+
+		// 测试7：HP减幅的复杂叠加测试
+		UnitTestAutoTimer(4.1, 0, function() {
+			CreateTestUnit(Player(0));
+
+			// 测试多个不同数值的减幅叠加
+			testAttr.addHPRateDown(0.2);  // 20%减幅
+			testAttr.addHPRateDown(0.3);  // 30%减幅
+			testAttr.addHPRateDown(0.1);  // 10%减幅
+
+			// 计算期望值：
+			// 第一次：0.2
+			// 第二次：1-(1-0.2)*(1-0.3) = 0.44
+			// 第三次：1-(1-0.44)*(1-0.1) ≈ 0.496
+			assert.Real(testAttr.getCurrentHP(), 50.4, "20%,30%,10%减幅叠加后应为50.4");
+			assert.Real(testAttr.getHPRateDown(), 0.496, "20%,30%,10%减幅叠加后减幅值应为0.496");
+		}, null);
+
+		p = null;
 	}
 
 	function onInit() {

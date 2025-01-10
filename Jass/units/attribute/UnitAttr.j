@@ -2,7 +2,8 @@
 #define UnitAttrIncluded
 
 #include "Crainax/config/SharedMethod.h"
-#include "Crainax/core/table/Hash_UnitDefine.h"
+#include "Crainax/core/table/Hash_UnitDefine.j"
+#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
 
 
 //! zinc
@@ -10,9 +11,9 @@
 单位的属性
 */
 
-library UnitAttr requires UnitUtils {
+library UnitAttr requires UnitUtils,MathUtils {
 
-	struct unitAttr [] {
+	public struct unitAttr {
 
 		STRUCT_SHARED_METHODS(unitAttr)
 
@@ -37,18 +38,18 @@ library UnitAttr requires UnitUtils {
 			this.cachedHP   = 0;
 
 			// 初始化攻击力相关属性
-			this.baseAtk = GetUnitState(u, UNIT_STATE_ATTACK_BASE);
-			this.atkRateUp = 0.0;
+			this.baseAtk     = 0.0;
+			this.atkRateUp   = 0.0;
 			this.atkRateDown = 0.0;
-			this.rateBonus = 0.0;
-			this.fixedBonus = 0.0;
+			this.rateBonus   = 0.0;
+			this.fixedBonus  = 0.0;
 			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR, this);
 			return this;
 		}
 
 		public  real baseHP;      // 基础HP值
 		public  real hpRateUp;    // HP增幅比例
-		public  real hpRateDown;  // HP减幅比例
+		private real hpRateDown;  // HP减幅比例 (改为private,因为我们要用方法来控制它的叠加)
 		private real cachedHP;    // 缓存的实际HP值
 
 		// 同步并刷新当前单位的HP
@@ -93,7 +94,7 @@ library UnitAttr requires UnitUtils {
 		// 增加HP减幅比例
 		public method addHPRateDown(real value) {
 			if (value != 0) {  // 避免不必要的计算
-				hpRateDown += value;
+				hpRateDown = RealAdd(hpRateDown, value);
 				syncHPRate();
 			}
 		}
@@ -129,7 +130,7 @@ library UnitAttr requires UnitUtils {
 			// 只在bonus值确实发生变化时更新
 			if (newBonus != rateBonus) {
 				rateBonus = newBonus;
-				SetUnitState(u, UNIT_STATE_ATTACK_BASE, baseAtk + rateBonus + fixedBonus);
+				SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), baseAtk + rateBonus + fixedBonus);
 			}
 		}
 
@@ -154,7 +155,7 @@ library UnitAttr requires UnitUtils {
 			if (value != 0) {
 				fixedBonus += value;
 				// 直接更新攻击力，无需重新计算rate bonus
-				SetUnitState(u, UNIT_STATE_ATTACK_BASE, baseAtk + rateBonus + fixedBonus);
+				SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), baseAtk + rateBonus + fixedBonus);
 			}
 		}
 
@@ -169,7 +170,7 @@ library UnitAttr requires UnitUtils {
 		// 增加攻击力减幅
 		public method addAtkRateDown(real value) {
 			if (value != 0) {
-				atkRateDown += value;
+				atkRateDown = RealAdd(atkRateDown, value);
 				syncAtkRate();
 			}
 		}
@@ -215,7 +216,7 @@ library UnitAttr requires UnitUtils {
 			atkRateDown = 0.0;
 			fixedBonus = 0.0;
 			rateBonus = 0.0;
-			SetUnitState(u, UNIT_STATE_ATTACK_BASE, baseAtk);
+			SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), baseAtk);
 		}
 
 		//单位删除会调用
@@ -229,6 +230,11 @@ library UnitAttr requires UnitUtils {
 		//注册到周期结束中
 		static method onInit () {
 
+		}
+
+		// 获取当前的HP减幅值
+		public method getHPRateDown() -> real {
+			return hpRateDown;
 		}
 	}
 

@@ -3,6 +3,25 @@
 #include <YDTrigger/Import.h>
 #include <YDTrigger/YDTrigger.h>
 
+#ifndef UnitHashTableIncluded
+#define UnitHashTableIncluded
+
+
+#include "Crainax/core/table/Hash_UnitDefine.j"
+
+//! zinc
+/*
+单位哈希表
+*/
+library UnitHashTable {
+
+    public hashtable HASH_UNIT = InitHashtable();  // 单位哈希表
+
+}
+
+//! endzinc
+#endif
+
 #ifndef UnitTestFramworkIncluded
 #define UnitTestFramworkIncluded
 
@@ -39,6 +58,33 @@ library UnitTestFramwork {
             }
         }
 
+        //断言整数相等
+        static method Integer(integer actual, integer expected, string name) {
+            if (actual != expected) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + I2S(expected));
+                BJDebugMsg("  Actual: " + I2S(actual));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+
+        //断言浮点数相等
+        static method Real(real actual, real expected, string name) {
+            real maxValue = RMaxBJ(RAbsBJ(actual), RAbsBJ(expected));  // 取两个数的绝对值的较大值
+            real epsilon = maxValue * 0.00001;  // 相对误差为数值大小的万分之一
+            // 处理接近0的特殊情况
+            if (maxValue < 0.00001) {
+                epsilon = 0.00001;
+            }
+            if (RAbsBJ(actual - expected) > epsilon) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + R2SW(expected,0,1));
+                BJDebugMsg("  Actual: " + R2SW(actual,0,1));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
     }
 
     //注册单元测试事件(聊天内容),自动注入
@@ -66,24 +112,26 @@ library UnitTestFramwork {
             DestroyTrigger(GetTriggeringTrigger());
             tr = null;
         }));
-        t = CreateTrigger();
-        tr = CreateTrigger();
-        TriggerAddCondition(t, Condition(end));
-        TriggerRegisterTimerEventSingle(tr,time+duration);
-        SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
-        SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
-        SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
-        TriggerAddCondition(tr,Condition(function (){
-            real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
-            real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
-            trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
-            TriggerEvaluate(tr);
-            BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]结束------");
-            DestroyTrigger(tr);
-            FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
-            DestroyTrigger(GetTriggeringTrigger());
-            tr = null;
-        }));
+        if (end != null) {
+            t = CreateTrigger();
+            tr = CreateTrigger();
+            TriggerAddCondition(t, Condition(end));
+            TriggerRegisterTimerEventSingle(tr,time+duration);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
+            SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
+            TriggerAddCondition(tr,Condition(function (){
+                real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
+                real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
+                trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
+                TriggerEvaluate(tr);
+                BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]结束------");
+                DestroyTrigger(tr);
+                FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
+                DestroyTrigger(GetTriggeringTrigger());
+                tr = null;
+            }));
+        }
         tr = null;
         t = null;
     }
@@ -115,142 +163,619 @@ library UnitTestFramwork {
 
 
 
-#ifndef MusicIncluded
-#define MusicIncluded
+#ifndef UnitUtilsIncluded
+#define UnitUtilsIncluded
 
-/*
-声音的初始化
-及一些常用的声音API
-*/
-
-#define MUSIC_INDEX_BTN_DOWN_1 1001   //用于UI的音效:按钮按下
-#define MUSIC_INDEX_BTN_OVER_1 1002   //用于UI的音效:按钮悬停
-#define MUSIC_INDEX_BTN_OVER_2 1003   //用于UI的音效:按钮悬停
-#define MUSIC_INDEX_BTN_UP_1   1004   //用于UI的音效:按钮弹起
-
-#define MUSIC_INDEX_BASE_DMGED 5  //基地受击音效
-#define MUSIC_INDEX_BASE_DEATH 6  //基地死亡音效
-#define MUSIC_INDEX_NO_GOLD    7  //金币不足音效
-#define MUSIC_INDEX_ERROR      8  //错误提示音效
-#define MUSIC_INDEX_GOLD       9  //获得金币音效
-#define MUSIC_INDEX_TOMES      10 //典籍音效
-#define MUSIC_INDEX_ITEM       11 //获得物品音效
-#define MUSIC_INDEX_BTN_CLICK  12 //按钮点击音效
-#define MUSIC_INDEX_UP_SPELL   13 //升级法术音效
+#include "Crainax/core/constant/UNDefine.j" //constant可以直接加进去没问题
+#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
 
 //! zinc
+/*
+单位有关的增强功能
+*/
+library UnitUtils {
+
+    //获取单位的攻击力/防御/生命/魔法值
+    public function GetUnitAttack(unit u) -> integer {
+        return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
+    }
+
+    public function GetUnitDefense(unit u) -> integer {
+        return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR)));
+    }
+
+    public function GetUnitHP(unit u) -> real {
+        return GetUnitState(u,UNIT_STATE_MAX_LIFE);
+    }
+
+    public function GetUnitMP(unit u) -> real {
+        return GetUnitState(u,UNIT_STATE_MAX_MANA);
+    }
+
+    //设置攻击力
+    public function SetUnitAttack(unit u, real attack) -> nothing {
+        SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE),attack);
+    }
+    //增加攻击力
+    public function AddUnitAttack(unit u, real attack) -> nothing {
+        SetUnitAttack(u,GetUnitAttack(u) + attack);
+    }
+
+    //设置防御
+    public function SetUnitDefense(unit u, real defense) -> nothing {
+        SetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR),defense);
+    }
+    //增加防御
+    public function AddUnitDefense(unit u, real defense) -> nothing {
+        SetUnitDefense(u,GetUnitDefense(u)+defense);
+    }
+
+    //修改生命最大值
+    public function SetUnitHP(unit u, real hp) -> nothing {
+        SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,2.0));
+    }
+    //增加生命最大值
+    public function AddUnitHP(unit u,real hp ) {
+        SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
+        if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
+    }
+    //回血(定值)
+    public function RegenUnitHP(unit u, real volume) -> nothing {
+        SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+volume);
+    }
+    //回蓝(百分比)
+    public function RegenUnitHPPercent(unit u, real rate) -> nothing {
+        SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate);
+    }
+
+    //设置魔法最大值
+    public function SetUnitMP(unit u, real mp) -> nothing {
+        SetUnitState(u,UNIT_STATE_MAX_MANA,mp);
+    }
+    //增加魔法最大值
+    public function AddUnitMP(unit u,real mp ) {
+        SetUnitMP(u,GetUnitMP(u)+mp);
+        if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
+    }
+    //回蓝(定值)
+    public function RegenUnitMP(unit u, real volume) -> nothing {
+        SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+volume);
+    }
+    //回蓝(百分比)
+    public function RegenUnitMPPercent(unit u, real rate) -> nothing {
+        SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate);
+    }
+
+    // 获取移速
+    public function GetUnitSpeed (unit u)  -> integer {
+        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
+            return LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
+        }
+        else {return R2I(GetUnitMoveSpeed(u));}
+    }
+    //todo: 这个UNTable其他地图需要兼容
+    // 增加移速
+    public function AddUnitSpeed (unit u,integer speed) {
+        integer value;
+        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
+            value  = LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
+            value += speed;
+            SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
+        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
+		SetUnitMoveSpeed(u,value);
+    }
+    // 初始化突破移速
+    public function InitUnitSpeed (unit u) {
+        SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,R2I(GetUnitMoveSpeed(u)));
+    }
+
+    //射程(还会+警戒范围)
+    public function GetUnitAttackRange(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE));
+    }
+    //设置射程(还会设置警戒范围)
+    public function SetUnitAttackRange (unit u,real range) {
+		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),range);
+		SetUnitAcquireRange(u,RMaxBJ(range,900.0));
+    }
+    //增加射程(还会+警戒范围)
+	public function AddUnitAttackRange (unit u,real range) {
+		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),GetUnitAttackRange(u) + range);
+		SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0));
+    }
+
+    // 获取攻速
+    public function GetUnitAttackSpeed(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE));
+    }
+    // 增加攻速
+	public function AddUnitAttackSpeed (unit u,real speed) {
+		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE)) + speed);
+	}
+
+    public function GetUnitInterval(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL));
+    }
+    // 攻击间隔(虽然写着加,但是实际是减)
+	public function AddAttackInterval (unit u,real value) {
+        SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL),GetUnitInterval(u) - value);
+	}
+
+    //传送单位(带特效与镜头转换)
+    public function TransportUnit (unit u,real x,real y,boolean camera) {
+        if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);
+        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)));
+        SetUnitPosition(u,x,y);
+        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
+    }
+
+    //删除单位
+    public function DeleteUnit (unit u) {
+        FlushChildHashtable(HASH_UNIT,GetHandleId(u));
+        RemoveUnit(u);
+    }
+
+}
+
+//! endzinc
+#endif
+
+#ifndef UnitAttrIncluded
+#define UnitAttrIncluded
+
+#include "Crainax/config/SharedMethod.h"
+#include "Crainax/core/table/Hash_UnitDefine.j"
+#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
 
 
-library Music {
+//! zinc
+/*
+单位的属性
+*/
 
-	public struct music []{
+library UnitAttr requires UnitUtils,MathUtils {
 
-		private sound snd;
+	public struct unitAttr {
 
-		//只给某个玩家播放
-		method playFor (player p) {
-			if (GetLocalPlayer() == p) {
-				StartSound(snd);
+		STRUCT_SHARED_METHODS(unitAttr)
+
+		unit u; //绑定的单位
+
+		static method parse (unit u) -> thistype {
+			thistype this;
+			integer handleId = GetHandleId(u);
+
+			// 先检查是否已存在
+			if (HaveSavedInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR)) {
+				return LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR);
+			}
+
+			// 不存在才创建新的
+			this = allocate();
+			//todo: 测试一下用setUnitState设超过21亿的数再get能get到吗
+			this.u          = u;
+			this.baseHP     = 0;
+			this.hpRateUp   = 0;
+			this.hpRateDown = 0;
+			this.cachedHP   = 0;
+
+			// 初始化攻击力相关属性
+			this.baseAtk     = 0.0;
+			this.atkRateUp   = 0.0;
+			this.atkRateDown = 0.0;
+			this.rateBonus   = 0.0;
+			this.fixedBonus  = 0.0;
+			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR, this);
+			return this;
+		}
+
+		public  real baseHP;      // 基础HP值
+		public  real hpRateUp;    // HP增幅比例
+		private real hpRateDown;  // HP减幅比例 (改为private,因为我们要用方法来控制它的叠加)
+		private real cachedHP;    // 缓存的实际HP值
+
+		// 同步并刷新当前单位的HP
+		private method syncHPRate() {
+			real desiredHP;
+			real diff;
+
+			// 计算期望的HP值 - 先计算增幅,再计算减幅
+			desiredHP = baseHP * (1.0 + hpRateUp) * (1.0 - hpRateDown);
+
+			// 计算差值
+			diff = desiredHP - cachedHP;
+
+			// 只有当差值的绝对值大于等于1时才更新
+			if (diff >= 1.0 || diff <= -1.0) {
+				// 设置最大生命值
+				SetUnitState(u, UNIT_STATE_MAX_LIFE, RMaxBJ(desiredHP, 2.0));
+				// 如果是增加生命值，同时增加当前生命值
+				if (diff > 0) {
+					SetUnitLifeBJ(u, GetUnitState(u, UNIT_STATE_LIFE) + diff);
+				}
+				cachedHP = desiredHP;
 			}
 		}
 
-		//播放音效
-		method play () {
-			StartSound(snd);
+		// 增加或减少基础HP
+		public method addHP(real value) {
+			if (value != 0) {  // 避免不必要的计算
+				baseHP += value;
+				syncHPRate();
+			}
 		}
 
+		// 增加HP增幅比例
+		public method addHPRateUp(real value) {
+			if (value != 0) {  // 避免不必要的计算
+				hpRateUp += value;
+				syncHPRate();
+			}
+		}
+
+		// 增加HP减幅比例
+		public method addHPRateDown(real value) {
+			if (value != 0) {  // 避免不必要的计算
+				hpRateDown = RealAdd(hpRateDown, value);
+				syncHPRate();
+			}
+		}
+
+		// 获取当前的HP倍率
+		public method getCurrentHPRate() -> real {
+			return (1.0 + hpRateUp) * (1.0 - hpRateDown);
+		}
+
+		// 获取当前实际HP值
+		public method getCurrentHP() -> real {
+			return cachedHP;
+		}
+
+		// 攻击力相关属性
+		private real baseAtk;      // 基础攻击力
+		private real atkRateUp;    // 攻击力增幅比例
+		private real atkRateDown;  // 攻击力减幅比例
+		private real rateBonus;    // 受增减幅影响的bonus值
+		private real fixedBonus;   // 固定加成值(不受增减幅影响)
+
+		// 计算受增减幅影响后的攻击力
+		private method calculateRateAtk() -> real {
+			real calculatedAtk = baseAtk * (1.0 + atkRateUp) * (1.0 - atkRateDown);
+			return RMaxBJ(calculatedAtk, 0.0); // 确保不会出现负值
+		}
+
+		// 同步并刷新当前单位的攻击力
+		private method syncAtkRate() {
+			real calculatedAtk = calculateRateAtk();
+			real newBonus = calculatedAtk - baseAtk;
+
+			// 只在bonus值确实发生变化时更新
+			if (newBonus != rateBonus) {
+				rateBonus = newBonus;
+				SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), baseAtk + rateBonus + fixedBonus);
+			}
+		}
+
+		// 设置基础攻击力
+		public method setBaseAtk(real value) {
+			if (baseAtk != value) {
+				baseAtk = value;
+				syncAtkRate();
+			}
+		}
+
+		// 增加基础攻击力
+		public method addBaseAtk(real value) {
+			if (value != 0) {
+				baseAtk += value;
+				syncAtkRate();
+			}
+		}
+
+		// 增加固定bonus
+		public method addFixedBonus(real value) {
+			if (value != 0) {
+				fixedBonus += value;
+				// 直接更新攻击力，无需重新计算rate bonus
+				SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), baseAtk + rateBonus + fixedBonus);
+			}
+		}
+
+		// 增加攻击力增幅
+		public method addAtkRateUp(real value) {
+			if (value != 0) {
+				atkRateUp += value;
+				syncAtkRate();
+			}
+		}
+
+		// 增加攻击力减幅
+		public method addAtkRateDown(real value) {
+			if (value != 0) {
+				atkRateDown = RealAdd(atkRateDown, value);
+				syncAtkRate();
+			}
+		}
+
+		// 获取基础攻击力
+		public method getBaseAtk() -> real {
+			return baseAtk;
+		}
+
+		// 获取受增减幅影响的bonus值
+		public method getRateBonus() -> real {
+			return rateBonus;
+		}
+
+		// 获取固定bonus值
+		public method getFixedBonus() -> real {
+			return fixedBonus;
+		}
+
+		// 获取当前总攻击力
+		public method getCurrentAtk() -> real {
+			return baseAtk + rateBonus + fixedBonus;
+		}
+
+		// 获取当前攻击力倍率
+		public method getCurrentAtkRate() -> real {
+			return (1.0 + atkRateUp) * (1.0 - atkRateDown);
+		}
+
+		// 获取当前增幅值
+		public method getAtkRateUp() -> real {
+			return atkRateUp;
+		}
+
+		// 获取当前减幅值
+		public method getAtkRateDown() -> real {
+			return atkRateDown;
+		}
+
+		// 清除所有攻击力修改
+		public method resetAtk() {
+			atkRateUp = 0.0;
+			atkRateDown = 0.0;
+			fixedBonus = 0.0;
+			rateBonus = 0.0;
+			SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), baseAtk);
+		}
+
+		//单位删除会调用
+		method onDestroy () {
+			if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),HASH_KEY_UNIT_UNITATTR)) {
+				RemoveSavedInteger(HASH_UNIT,GetHandleId(u),HASH_KEY_UNIT_UNITATTR);
+			}
+			u = null;
+		}
+
+		//注册到周期结束中
 		static method onInit () {
-			sound snd = null;
 
-			//# check: music[1001]
-			//# dependency:sound/sound/btn_down_01.wav
-			snd = CreateSound("sound\\btn_down_01.wav", false, false, false, 10, 10, "");
-			SetSoundDuration(snd, 131);
-			SetSoundChannel(snd, 0);
-			SetSoundVolume(snd, 127);
-			SetSoundPitch(snd, 1.0);
-			thistype[MUSIC_INDEX_BTN_DOWN_1].snd = snd;
-			//# endcheck
-
-			//# check: music[1002]
-			//# dependency:sound/sound/btn_over_01.wav
-			snd = CreateSound("sound\\btn_over_01.wav", false, false, false, 10, 10, "");
-			SetSoundDuration(snd, 56);
-			SetSoundChannel(snd, 0);
-			SetSoundVolume(snd, 127);
-			SetSoundPitch(snd, 1.0);
-			thistype[MUSIC_INDEX_BTN_OVER_1].snd = snd;
-			//# endcheck
-
-			//# check: music[1003]
-			//# dependency:sound/sound/btn_over_02.wav
-			snd = CreateSound("sound\\btn_over_02.wav", false, false, false, 10, 10, "");
-			SetSoundDuration(snd, 60);
-			SetSoundChannel(snd, 0);
-			SetSoundVolume(snd, 127);
-			SetSoundPitch(snd, 1.0);
-			thistype[MUSIC_INDEX_BTN_OVER_2].snd = snd;
-			//# endcheck
-
-			//# check: music[1004]
-			//# dependency:sound/sound/btn_up_01.wav
-			snd = CreateSound("sound\\btn_up_01.wav", false, false, false, 10, 10, "");
-			SetSoundDuration(snd, 54);
-			SetSoundChannel(snd, 0);
-			SetSoundVolume(snd, 127);
-			SetSoundPitch(snd, 1.0);
-			thistype[MUSIC_INDEX_BTN_UP_1].snd = snd;
-			//# endcheck
-
-			//# check: music[7]
-			snd = CreateSound("Sound\\Interface\\Warning\\Human\\KnightNoGold1.wav", false, false, false, 10, 10, "DefaultEAXON");
-			SetSoundDuration(snd, 1486);
-			thistype[MUSIC_INDEX_NO_GOLD].snd = snd;
-			//# endcheck
-
-			//# check: music[8]
-			snd = CreateSound("Sound\\Interface\\Error.wav", false, false, false, 10, 10, "DefaultEAXON");
-			SetSoundDuration(snd, 614);
-			thistype[MUSIC_INDEX_ERROR].snd = snd;
-			//# endcheck
-
-			//# check: music[9]
-			snd = CreateSound("Abilities\\Spells\\Items\\ResourceItems\\ReceiveGold.wav", false, false, false, 10, 10, "SpellsEAX");
-			SetSoundDuration(snd, 589);
-			thistype[MUSIC_INDEX_GOLD].snd = snd;
-			//# endcheck
-
-			//# check: music[10]
-			snd = CreateSound("Abilities\\Spells\\Items\\AIam\\Tomes.wav", false, false, false, 10, 10, "SpellsEAX");
-			SetSoundDuration(snd, 1770);
-			thistype[MUSIC_INDEX_TOMES].snd = snd;
-			//# endcheck
-
-			//# check: music[11]
-			snd = CreateSound("Sound\\Interface\\ItemReceived.wav", false, false, false, 10, 10, "");
-			SetSoundDuration(snd, 1483);
-			thistype[MUSIC_INDEX_ITEM].snd = snd;
-			//# endcheck
-
-			//# check: music[12]
-			snd = CreateSound("Sound\\Interface\\MouseClick1.wav", false, false, false, 10, 10, "");
-			SetSoundDuration(snd, 239);
-			thistype[MUSIC_INDEX_BTN_CLICK].snd = snd;
-			//# endcheck
-
-			//# check: music[13]
-			snd = CreateSound("Sound\\Interface\\SecretFound.wav", false, false, false, 10, 10, "");
-			SetSoundDuration(snd, 2525);
-			thistype[MUSIC_INDEX_UP_SPELL].snd = snd;
-			//# endcheck
-
-			snd = null;
 		}
 
+		// 获取当前的HP减幅值
+		public method getHPRateDown() -> real {
+			return hpRateDown;
+		}
 	}
 
 }
 
+//! endzinc
+#endif
+
+#ifndef MathUtilsIncluded
+#define MathUtilsIncluded
+
+//! zinc
+/*
+* 数学工具库
+* 作者：AI Assistant
+*
+* 提供了一些常用的数学函数，包括实数到整数的转换、除法、实数相加、值限制、四舍五入以及射线与地图边界的交点计算。
+*/
+
+library MathUtils {
+
+    // 实转整 带概率进1的
+    // 将实数转换为整数，若小数部分大于随机数则进1
+    public function R2IRandom (real value) -> integer {
+        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
+            return R2I(value) + 1;
+        }
+        return R2I(value);
+    }
+
+    // 进行整数除法，若能整除则结果减1
+    public function Divide1 (integer i1,integer i2) -> integer {
+        if (ModuloInteger(i1,i2) == 0) {
+            return i1/i2 - 1;
+        }
+        return i1/i2;
+    }
+
+    // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
+    // 该函数可以避免简单线性相加导致的数值溢出，保证叠加后的效果符合递减收益原则
+    //
+    // 特点：
+    // - 正数叠加时使用概率学公式：1-(1-a1)*(1-a2)
+    // - 负数叠加时使用衰减公式：1-(1-a1)/(1+a2)
+    // - 当第二个参数绝对值>=1.0时，直接返回第一个参数
+    //
+    // 适用场景：
+    // - 技能冷却缩减叠加（CDR）
+    // - 暴击率、闪避率等概率性属性叠加
+    // - 移速加成等需要控制上限的属性叠加
+    //
+    // 参数说明：
+    // a1: 第一个数值，通常表示当前已有的加成效果
+    // a2: 第二个数值，表示要叠加的新加成效果
+    // 返回值: 叠加后的最终效果值
+    //
+    // 使用示例：
+    // real currentCDR = 0.4;    // 当前40%冷却缩减
+    // real newCDR = 0.5;        // 新装备50%冷却缩减
+    // real finalCDR = RealAdd(currentCDR, newCDR);  // 结果约为0.7，即70%冷却缩减
+    //
+    // 注意事项：
+    // 1. 虽然函数支持任意实数输入，但建议输入值在[-1.0, 1.0]范围内
+    // 2. 当|a2| >= 1.0时，函数会直接返回a1值
+    // 3. 该函数满足结合律，但不满足交换律，建议将已有效果作为第一个参数
+    // 4. 已测试过可以在用负数叠加后,使用负数的绝对值进行恢复
+    public function RealAdd ( real a1,real a2 ) -> real {
+        if (RAbsBJ(a2) >= 1.0) {return a1;}
+        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
+        else {return 1.0-(1.0-a1)/(1.0+a2);}
+    }
+
+    // 最小最大值限制
+    // 限制整数在[min, max]范围内
+    public function ILimit ( integer target,integer min,integer max ) -> integer {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+
+    // 最小最大值限制
+    // 限制实数在[min, max]范围内
+    public function RLimit ( real target,real min,real max ) -> real {
+        if (target < min) {return min;}
+        else if (target > max) {return max;}
+        else {return target;}
+    }
+
+    // 四舍五入法实数转整数
+    // 将实数四舍五入为整数
+    public function R2IM (real r)  -> integer {
+        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
+        else return R2I(r);
+    }
+
+    // 计算射线与地图边界的交点
+    // 计算从给定点出发的射线与地图边界的交点
+    public struct radiationEnd {
+        static real x = 0,y = 0;
+
+        // 一个坐标沿着某个方向的边缘值
+        // 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
+        static method cal (real x1,real y1,real angle) {
+            real x2  = 0; //相交点
+            real y2  = 0; //相交点
+            real a = ModuloReal(angle,360); //求余数
+            real tan;
+            x = 0;
+            y = 0;
+
+            // 处理特殊角度
+            if (a == 0) { // 正右方
+                x = mapBounds.maxX;
+                y = y1;
+                return;
+            }
+            if (a == 90) { // 正上方
+                x = x1;
+                y = mapBounds.maxY;
+                return;
+            }
+            if (a == 180) { // 正左方
+                x = mapBounds.minX;
+                y = y1;
+                return;
+            }
+            if (a == 270) { // 正下方
+                x = x1;
+                y = mapBounds.minY;
+                return;
+            }
+
+            // 处理一般角度
+            if (a < 90) { //第一象限
+                tan = TanBJ(a);
+                x2 = (mapBounds.maxY - y1) / tan + x1;
+                y2 = (mapBounds.maxX - x1) * tan + y1;
+                if (x2 <= mapBounds.maxX) { //取这个
+                    x = x2;
+                    y = mapBounds.maxY;
+                } else {
+                    x = mapBounds.maxX;
+                    y = y2;
+                }
+            } else if(a < 180) { //第二象限
+                tan = TanBJ(a);
+                x2 = (mapBounds.maxY - y1) / tan + x1;
+                y2 = (mapBounds.minX - x1) * tan + y1;
+                if (x2 >= mapBounds.minX) { //取这个
+                    x = x2;
+                    y = mapBounds.maxY;
+                } else {
+                    x = mapBounds.minX;
+                    y = y2;
+                }
+            } else if(a < 270) { //第三象限
+                tan = TanBJ(a);
+                x2 = (mapBounds.minY - y1) / tan + x1;
+                y2 = (mapBounds.minX - x1) * tan + y1;
+                if (x2 >= mapBounds.minX) { //取这个
+                    x = x2;
+                    y = mapBounds.minY;
+                } else {
+                    x = mapBounds.minX;
+                    y = y2;
+                }
+            } else { //第四象限
+                tan = TanBJ(a);
+                x2 = (mapBounds.minY - y1) / tan + x1;
+                y2 = (mapBounds.maxX - x1) * tan + y1;
+                if (x2 <= mapBounds.maxX) { //取这个
+                    x = x2;
+                    y = mapBounds.minY;
+                } else {
+                    x = mapBounds.maxX;
+                    y = y2;
+                }
+            }
+        }
+    }
+
+}
+
+//! endzinc
+#endif
+
+#ifndef MapBoundsUtilsIncluded
+#define MapBoundsUtilsIncluded
+
+//! zinc
+// 地图边界工具库
+library MapBoundsUtils {
+
+    public struct mapBounds {
+        static real maxX = 0.;
+        static real minX = 0.;
+        static real maxY = 0.;
+        static real minY = 0.;
+
+        // 限制X坐标在地图范围内
+        static method X (real x) -> real {
+            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
+        }
+        // 限制Y坐标在地图范围内
+        static method Y (real y) -> real {
+            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
+        }
+
+        // 初始化
+        static method onInit () {
+            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
+            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
+            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
+            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
+        }
+
+    }
+
+}
 //! endzinc
 
 #endif
@@ -359,102 +884,232 @@ endfunction
     // 单元测试
     // lua_print: 单元测试
 //这两条是用到YDWE函数就要导入的,没用到就不用导入
-library_once YDTriggerSaveLoadSystem initializer Init
-//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-globals
-        hashtable YDHT
-    hashtable YDLOC
-endglobals
-    private function Init takes nothing returns nothing
-            set YDHT = InitHashtable()
-        set YDLOC = InitHashtable()
-    endfunction
-endlibrary
+// #include <YDTrigger/ImportSaveLoadSystem.h>
+// #include <YDTrigger/Hash.h>
 // 原生UI的大小
 //函数入口
 // 用原始地图测试
 // 用空地图测试
-// 用原始地图测试
+/*
+ * 单位属性系统测试文件
+ *
+ * 测试命令说明：
+ * hp1: 测试基础HP的增减
+ * hp2: 测试HP增幅比例
+ * hp3: 测试HP减幅比例
+ * hp4: 测试HP增减幅组合效果
+ *
+ * 参数化测试命令：
+ * -a [baseHP] : 设置基础HP
+ * -b [value] : 增加基础HP
+ * -c [value] : 设置HP增幅比例
+ * -d [value] : 设置HP减幅比例
+ */
 //! zinc
-//自动生成的文件
-library UTMusic requires Music {
-	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start
-			}, function() {
-			//end
-		});
-		UnitTestAutoTimer(bj_PI, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-			//music[1001]
-			//music[13]
-		},null);
-		// YDUserDataSet(itemcode, 'esaz', "LL", integer, 23000);
+library UTUnitAttr requires UnitAttr {
+	private unit testUnit = null;
+	private unitAttr testAttr = 0;
+	// 创建测试单位
+	private function CreateTestUnit(player p) {
+		if (testUnit != null) {
+			RemoveUnit(testUnit);
+		}
+		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0); // 使用步兵作为测试单位
+testAttr = unitAttr.parse(testUnit);
+		testAttr.addHP(100);
+		SelectUnit(testUnit,true);
 	}
-	function TTestUTMusic1 (player p) {}
-	function TTestUTMusic2 (player p) {}
-	function TTestUTMusic3 (player p) {}
-	function TTestUTMusic4 (player p) {}
-	function TTestUTMusic5 (player p) {}
-	function TTestUTMusic6 (player p) {}
-	function TTestUTMusic7 (player p) {}
-	function TTestUTMusic8 (player p) {}
-	function TTestUTMusic9 (player p) {}
-	function TTestUTMusic10 (player p) {}
-	function TTestActUTMusic1 (string str) {
+	// 测试基础HP的增减
+	function TTestUTUnitAttr1(player p) {
+		CreateTestUnit(p);
+		BJDebugMsg("测试1开始: 基础HP增减测试");
+		BJDebugMsg("初始基础HP: " + R2S(testAttr.getCurrentHP()));
+		testAttr.addHP(50);
+		BJDebugMsg("增加50点HP后: " + R2S(testAttr.getCurrentHP()));
+		testAttr.addHP(-30);
+		BJDebugMsg("减少30点HP后: " + R2S(testAttr.getCurrentHP()));
+	}
+	// 测试HP增幅比例
+	function TTestUTUnitAttr2(player p) {
+		CreateTestUnit(p);
+		BJDebugMsg("测试2开始: HP增幅比例测试");
+		BJDebugMsg("初始HP: " + R2S(testAttr.getCurrentHP()));
+		testAttr.addHPRateUp(0.5); // 增加50%
+BJDebugMsg("增加50%增幅后: " + R2S(testAttr.getCurrentHP()));
+		BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
+	}
+	// 测试HP减幅比例
+	function TTestUTUnitAttr3(player p) {
+		CreateTestUnit(p);
+		BJDebugMsg("测试3开始: HP减幅比例测试");
+		BJDebugMsg("初始HP: " + R2S(testAttr.getCurrentHP()));
+		testAttr.addHPRateDown(0.3); // 减少30%
+BJDebugMsg("增加30%减幅后: " + R2S(testAttr.getCurrentHP()));
+		BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
+	}
+	// 测试HP增减幅组合效果
+	function TTestUTUnitAttr4(player p) {
+		CreateTestUnit(p);
+		BJDebugMsg("测试4开始: HP增减幅组合测试");
+		BJDebugMsg("初始HP: " + R2S(testAttr.getCurrentHP()));
+		testAttr.addHPRateUp(0.5); // 增加50%
+testAttr.addHPRateDown(0.2); // 减少20%
+BJDebugMsg("增加50%增幅,20%减幅后: " + R2S(testAttr.getCurrentHP()));
+		BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
+	}
+	// 参数化测试处理函数
+	function TTestActUTUnitAttr1(string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str); //获取范围式数字
-string paramS []; //所有参数S
-integer paramI []; //所有参数I
-real	paramR []; //所有参数R
-for (0 <= i <= len - 1) {
+		integer i, num = 0, len = StringLength(str);
+		string paramS[];
+		integer paramI[];
+		real paramR[];
+		// 解析参数
+		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
-				paramI[num]= S2I(paramS[num]);
-				paramR[num]= S2R(paramS[num]);
-				num = num + 1;
-				str = SubString(str,i + 1,len);
-				len = StringLength(str);
-				i = -1;
+					paramI[num]= S2I(paramS[num]);
+					paramR[num]= S2R(paramS[num]);
+					num = num + 1;
+					str = SubString(str,i + 1,len);
+					len = StringLength(str);
+					i = -1;
 			}
 		}
 		paramS[num]= str;
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "a") {
-		} else if (paramS[0] == "b") {
+		if (testUnit == null) {
+			CreateTestUnit(p);
 		}
+		// 处理不同的参数命令
+		if (paramS[0] == "a") {
+			// 设置基础HP
+			testAttr.baseHP = paramR[1];
+			BJDebugMsg("设置基础HP为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "b") {
+			// 增加基础HP
+			testAttr.addHP(paramR[1]);
+			BJDebugMsg("增加基础HP: " + R2S(paramR[1]));
+		} else if (paramS[0] == "c") {
+			// 设置HP增幅
+			testAttr.addHPRateUp(paramR[1]);
+			BJDebugMsg("设置HP增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "d") {
+			// 设置HP减幅
+			testAttr.addHPRateDown(paramR[1]);
+			BJDebugMsg("设置HP减幅为: " + R2S(paramR[1]));
+		}
+		BJDebugMsg("当前HP: " + R2S(testAttr.getCurrentHP()));
+		BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
 		p = null;
 	}
-	function onInit () {
-		//在游戏开始0.0秒后再调用
+	function Init() {
+		player p = Player(0);
+		BJDebugMsg("=== UnitAttr测试系统已加载 ===");
+		// 创建测试单位
+		CreateTestUnit(p);
+		// 测试1.1：测试初始HP
+		UnitTestAutoTimer(0.1, 0, function() {
+			assert.Real(testAttr.getCurrentHP(), 100.0, "初始HP应为100");
+		}, null);
+		// 测试1.2：测试增加HP
+		UnitTestAutoTimer(0.6, 0, function() {
+			testAttr.addHP(50);
+			assert.Real(testAttr.getCurrentHP(), 150.0, "增加50点HP后应为150");
+		}, null);
+		// 测试1.3：测试减少HP
+		UnitTestAutoTimer(1.1, 0, function() {
+			testAttr.addHP(-30);
+			assert.Real(testAttr.getCurrentHP(), 120.0, "减少30点HP后应为120");
+		}, null);
+		// 测试2：HP增幅比例测试
+		UnitTestAutoTimer(1.6, 0, function() {
+			CreateTestUnit(Player(0));
+			testAttr.addHPRateUp(0.5);
+			assert.Real(testAttr.getCurrentHP(), 150.0, "增加50%增幅后应为150");
+			assert.Real(testAttr.getCurrentHPRate(), 1.5, "当前HP倍率应为1.5");
+		}, null);
+		// 测试3：HP减幅比例测试
+		UnitTestAutoTimer(2.1, 0, function() {
+			CreateTestUnit(Player(0));
+			testAttr.addHPRateDown(0.3);
+			assert.Real(testAttr.getCurrentHP(), 70.0, "增加30%减幅后应为70");
+			assert.Real(testAttr.getCurrentHPRate(), 0.7, "当前HP倍率应为0.7");
+		}, null);
+		// 测试4：HP增减幅组合效果测试
+		UnitTestAutoTimer(2.6, 0, function() {
+			CreateTestUnit(Player(0));
+			testAttr.addHPRateUp(0.5);
+			testAttr.addHPRateDown(0.2);
+			assert.Real(testAttr.getCurrentHP(), 120.0, "增加50%增幅,20%减幅后应为120");
+			assert.Real(testAttr.getCurrentHPRate(), 1.2, "当前HP倍率应为1.2");
+		}, null);
+		// 测试5：HP减幅的递减收益测试
+		UnitTestAutoTimer(3.1, 0, function() {
+			CreateTestUnit(Player(0));
+			// 测试两个30%减幅的叠加
+			testAttr.addHPRateDown(0.3);
+			testAttr.addHPRateDown(0.3);
+			// 期望值：1 - (1-0.3)*(1-0.3) = 0.51，所以最终HP应该是100*(1-0.51)=49
+			assert.Real(testAttr.getCurrentHP(), 49.0, "两个30%减幅叠加后应为49");
+			assert.Real(testAttr.getHPRateDown(), 0.51, "两个30%减幅叠加后减幅值应为0.51");
+			// 测试第三个30%减幅的叠加
+			testAttr.addHPRateDown(0.3);
+			// 期望值：1 - (1-0.51)*(1-0.3) ≈ 0.657，所以最终HP应该是100*(1-0.657)=34.3
+			assert.Real(testAttr.getCurrentHP(), 34.3, "三个30%减幅叠加后应为34.3");
+			assert.Real(testAttr.getHPRateDown(), 0.657, "三个30%减幅叠加后减幅值应为0.657");
+		}, null);
+		// 测试6：HP减幅的反向恢复测试
+		UnitTestAutoTimer(3.6, 0, function() {
+			CreateTestUnit(Player(0));
+			// 先加一个减幅
+			testAttr.addHPRateDown(0.3);
+			assert.Real(testAttr.getCurrentHP(), 70.0, "30%减幅后应为70");
+			// 加入反向值测试恢复
+			testAttr.addHPRateDown(-0.3);
+			assert.Real(testAttr.getCurrentHP(), 100.0, "加入反向值后应恢复到100");
+			assert.Real(testAttr.getHPRateDown(), 0.0, "加入反向值后减幅应为0");
+		}, null);
+		// 测试7：HP减幅的复杂叠加测试
+		UnitTestAutoTimer(4.1, 0, function() {
+			CreateTestUnit(Player(0));
+			// 测试多个不同数值的减幅叠加
+			testAttr.addHPRateDown(0.2); // 20%减幅
+testAttr.addHPRateDown(0.3); // 30%减幅
+testAttr.addHPRateDown(0.1); // 10%减幅
+
+			// 计算期望值：
+			// 第一次：0.2
+			// 第二次：1-(1-0.2)*(1-0.3) = 0.44
+			// 第三次：1-(1-0.44)*(1-0.1) ≈ 0.496
+			assert.Real(testAttr.getCurrentHP(), 50.4, "20%,30%,10%减幅叠加后应为50.4");
+			assert.Real(testAttr.getHPRateDown(), 0.496, "20%,30%,10%减幅叠加后减幅值应为0.496");
+		}, null);
+		p = null;
+	}
+	function onInit() {
+		//在游戏开始0.5秒后初始化
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
-		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[Music] 单元测试已加载");
+		TriggerAddCondition(tr,Condition(function() {
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
-		UnitTestRegisterChatEvent(function () {
+		// 注册聊天事件
+		UnitTestRegisterChatEvent(function() {
 			string str = GetEventPlayerChatString();
-			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTMusic1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUnitAttr1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTMusic1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTMusic2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTMusic3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTMusic4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTMusic5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTMusic6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTMusic7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTMusic8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTMusic9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTMusic10(GetTriggerPlayer());
+			if (str == "hp1") TTestUTUnitAttr1(GetTriggerPlayer());
+			else if(str == "hp2") TTestUTUnitAttr2(GetTriggerPlayer());
+			else if(str == "hp3") TTestUTUnitAttr3(GetTriggerPlayer());
+			else if(str == "hp4") TTestUTUnitAttr4(GetTriggerPlayer());
 		});
 	}
 }
