@@ -11,7 +11,7 @@
 单位的属性
 */
 
-library UnitAttr requires UnitUtils,MathUtils {
+library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 
 	public struct unitAttr {
 
@@ -110,28 +110,16 @@ library UnitAttr requires UnitUtils,MathUtils {
 		}
 
 		// 攻击力相关属性
-		private real baseAtk;      // 基础攻击力
-		private real atkRateUp;    // 攻击力增幅比例
-		private real atkRateDown;  // 攻击力减幅比例
-		private real rateBonus;    // 受增减幅影响的bonus值
-		private real fixedBonus;   // 固定加成值(不受增减幅影响)
-
-		// 计算受增减幅影响后的攻击力
-		private method calculateRateAtk() -> real {
-			real calculatedAtk = baseAtk * (1.0 + atkRateUp) * (1.0 - atkRateDown);
-			return RMaxBJ(calculatedAtk, 0.0); // 确保不会出现负值
-		}
+		public real baseAtk;      // 基础攻击力
+		public real atkRateUp;    // 攻击力增幅比例
+		public real atkRateDown;  // 攻击力减幅比例
+		public real rateBonus;    // 受增减幅影响的bonus值
+		public real fixedBonus;   // 固定加成值(不受增减幅影响)
 
 		// 同步并刷新当前单位的攻击力
 		private method syncAtkRate() {
-			real calculatedAtk = calculateRateAtk();
-			real newBonus = calculatedAtk - baseAtk;
-
-			// 只在bonus值确实发生变化时更新
-			if (newBonus != rateBonus) {
-				rateBonus = newBonus;
-				SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), baseAtk + rateBonus + fixedBonus);
-			}
+			rateBonus = baseAtk * (1.0 + atkRateUp) * (1.0 - atkRateDown) - baseAtk;
+			SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), RMaxBJ(baseAtk + rateBonus + fixedBonus, 0.0));
 		}
 
 		// 设置基础攻击力
@@ -154,8 +142,7 @@ library UnitAttr requires UnitUtils,MathUtils {
 		public method addFixedBonus(real value) {
 			if (value != 0) {
 				fixedBonus += value;
-				// 直接更新攻击力，无需重新计算rate bonus
-				SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), baseAtk + rateBonus + fixedBonus);
+				syncAtkRate();
 			}
 		}
 
@@ -175,21 +162,6 @@ library UnitAttr requires UnitUtils,MathUtils {
 			}
 		}
 
-		// 获取基础攻击力
-		public method getBaseAtk() -> real {
-			return baseAtk;
-		}
-
-		// 获取受增减幅影响的bonus值
-		public method getRateBonus() -> real {
-			return rateBonus;
-		}
-
-		// 获取固定bonus值
-		public method getFixedBonus() -> real {
-			return fixedBonus;
-		}
-
 		// 获取当前总攻击力
 		public method getCurrentAtk() -> real {
 			return baseAtk + rateBonus + fixedBonus;
@@ -200,24 +172,6 @@ library UnitAttr requires UnitUtils,MathUtils {
 			return (1.0 + atkRateUp) * (1.0 - atkRateDown);
 		}
 
-		// 获取当前增幅值
-		public method getAtkRateUp() -> real {
-			return atkRateUp;
-		}
-
-		// 获取当前减幅值
-		public method getAtkRateDown() -> real {
-			return atkRateDown;
-		}
-
-		// 清除所有攻击力修改
-		public method resetAtk() {
-			atkRateUp = 0.0;
-			atkRateDown = 0.0;
-			fixedBonus = 0.0;
-			rateBonus = 0.0;
-			SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), baseAtk);
-		}
 
 		//单位删除会调用
 		method onDestroy () {
@@ -229,7 +183,14 @@ library UnitAttr requires UnitUtils,MathUtils {
 
 		//注册到周期结束中
 		static method onInit () {
-
+			unitLifeCycle.registerDestroy(function () {
+				unit u = unitLifeCycle.argsUnit;
+				thistype this = unitAttr.parse(u);
+				if (this.isExist()) {
+					this.destroy();
+				}
+				u = null;
+			});
 		}
 
 		// 获取当前的HP减幅值

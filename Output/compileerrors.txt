@@ -1,5 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 384:  Undeclared function RealAdd
-Line 432:  Undeclared function RealAdd
-2
+JASSHelper - Step 2 (structs)
+Line 673: getBaseAtk is not a member of unitAttr
+1

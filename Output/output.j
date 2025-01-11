@@ -9,6 +9,9 @@ constant boolean LIBRARY_MathUtils=true
 constant boolean LIBRARY_UnitHashTable=true
 hashtable HASH_UNIT=InitHashtable()
 //endglobals from UnitHashTable
+//globals from UnitLifeCycle:
+constant boolean LIBRARY_UnitLifeCycle=true
+//endglobals from UnitLifeCycle
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork__TUnitTest=null
@@ -64,8 +67,12 @@ integer si__radiationEnd_I=0
 integer array si__radiationEnd_V
 real s__radiationEnd_x=0
 real s__radiationEnd_y=0
-constant integer si__assert=3
-constant integer si__unitAttr=4
+constant integer si__unitLifeCycle=3
+unit s__unitLifeCycle_argsUnit=null
+trigger s__unitLifeCycle_trCreate=null
+trigger s__unitLifeCycle_trDestroy=null
+constant integer si__assert=4
+constant integer si__unitAttr=5
 integer si__unitAttr_F=0
 integer si__unitAttr_I=0
 integer array si__unitAttr_V
@@ -79,7 +86,9 @@ real array s__unitAttr_atkRateUp
 real array s__unitAttr_atkRateDown
 real array s__unitAttr_rateBonus
 real array s__unitAttr_fixedBonus
+trigger st__unitLifeCycle_onDestroyCB
 trigger st__unitAttr_onDestroy
+unit f__arg_unit1
 integer f__arg_this
 
 endglobals
@@ -155,6 +164,14 @@ function sc__unitAttr_deallocate takes integer this returns nothing
     set si__unitAttr_F=this
 endfunction
 
+//Generated method caller for unitLifeCycle.onDestroyCB
+function sc__unitLifeCycle_onDestroyCB takes unit u returns nothing
+            set s__unitLifeCycle_argsUnit=u
+            call TriggerEvaluate(s__unitLifeCycle_trDestroy) //然后再清除所有哈希表
+            call FlushChildHashtable(HASH_UNIT, GetHandleId(u))
+            set s__unitLifeCycle_argsUnit=null
+endfunction
+
 //Generated allocator of radiationEnd
 function s__radiationEnd__allocate takes nothing returns integer
  local integer this=si__radiationEnd_F
@@ -184,6 +201,11 @@ function s__radiationEnd_deallocate takes integer this returns nothing
     endif
     set si__radiationEnd_V[this]=si__radiationEnd_F
     set si__radiationEnd_F=this
+endfunction
+function h__RemoveUnit takes unit a0 returns nothing
+    //hook: unitLifeCycle.onDestroyCB
+    call sc__unitLifeCycle_onDestroyCB(a0)
+call RemoveUnit(a0)
 endfunction
 
 //library MapBoundsUtils:
@@ -327,6 +349,23 @@ endfunction
 //library UnitHashTable:
 
 //library UnitHashTable ends
+//library UnitLifeCycle:
+        //private:
+        function s__unitLifeCycle_registerDestroy takes code func returns nothing
+            call TriggerAddCondition(s__unitLifeCycle_trDestroy, Condition(func))
+        endfunction
+        function s__unitLifeCycle_onDestroyCB takes unit u returns nothing
+            set s__unitLifeCycle_argsUnit=u
+            call TriggerEvaluate(s__unitLifeCycle_trDestroy) //然后再清除所有哈希表
+            call FlushChildHashtable(HASH_UNIT, GetHandleId(u))
+            set s__unitLifeCycle_argsUnit=null
+        endfunction
+        function s__unitLifeCycle_onInit takes nothing returns nothing
+            set s__unitLifeCycle_trCreate=CreateTrigger()
+            set s__unitLifeCycle_trDestroy=CreateTrigger()
+        endfunction
+
+//library UnitLifeCycle ends
 //library UnitTestFramwork:
 
         function s__assert_Boolean takes boolean condition,string name returns nothing
@@ -548,7 +587,7 @@ endfunction
     endfunction  //删除单位
     function DeleteUnit takes unit u returns nothing
         call FlushChildHashtable(HASH_UNIT, GetHandleId(u))
-        call RemoveUnit(u)
+        call h__RemoveUnit(u)
     endfunction
 
 //library UnitUtils ends
@@ -613,17 +652,9 @@ endfunction
         function s__unitAttr_getCurrentHP takes integer this returns real
             return s__unitAttr_cachedHP[this]
         endfunction  // 攻击力相关属性
-        function s__unitAttr_calculateRateAtk takes integer this returns real
-            local real calculatedAtk=s__unitAttr_baseAtk[this] * ( 1.0 + s__unitAttr_atkRateUp[this] ) * ( 1.0 - s__unitAttr_atkRateDown[this] )
-            return RMaxBJ(calculatedAtk, 0.0)
-        endfunction  // 同步并刷新当前单位的攻击力
         function s__unitAttr_syncAtkRate takes integer this returns nothing
-            local real calculatedAtk=s__unitAttr_calculateRateAtk(this)
-            local real newBonus=calculatedAtk - s__unitAttr_baseAtk[this]
-            if ( newBonus != s__unitAttr_rateBonus[this] ) then
-                set s__unitAttr_rateBonus[this]=newBonus
-                call SetUnitState(s__unitAttr_u[this], ConvertUnitState(0x12), s__unitAttr_baseAtk[this] + s__unitAttr_rateBonus[this] + s__unitAttr_fixedBonus[this])
-            endif
+            set s__unitAttr_rateBonus[this]=s__unitAttr_baseAtk[this] * ( 1.0 + s__unitAttr_atkRateUp[this] ) * ( 1.0 - s__unitAttr_atkRateDown[this] ) - s__unitAttr_baseAtk[this]
+            call SetUnitState(s__unitAttr_u[this], ConvertUnitState(0x12), RMaxBJ(s__unitAttr_baseAtk[this] + s__unitAttr_rateBonus[this] + s__unitAttr_fixedBonus[this], 0.0))
         endfunction  // 设置基础攻击力
         function s__unitAttr_setBaseAtk takes integer this,real value returns nothing
             if ( s__unitAttr_baseAtk[this] != value ) then
@@ -639,8 +670,8 @@ endfunction
         endfunction  // 增加固定bonus
         function s__unitAttr_addFixedBonus takes integer this,real value returns nothing
             if ( value != 0 ) then
-                set s__unitAttr_fixedBonus[this]=s__unitAttr_fixedBonus[this] + value // 直接更新攻击力，无需重新计算rate bonus
-                call SetUnitState(s__unitAttr_u[this], ConvertUnitState(0x12), s__unitAttr_baseAtk[this] + s__unitAttr_rateBonus[this] + s__unitAttr_fixedBonus[this])
+                set s__unitAttr_fixedBonus[this]=s__unitAttr_fixedBonus[this] + value
+                call s__unitAttr_syncAtkRate(this)
             endif
         endfunction  // 增加攻击力增幅
         function s__unitAttr_addAtkRateUp takes integer this,real value returns nothing
@@ -654,34 +685,12 @@ endfunction
                 set s__unitAttr_atkRateDown[this]=RealAdd(s__unitAttr_atkRateDown[this] , value)
                 call s__unitAttr_syncAtkRate(this)
             endif
-        endfunction  // 获取基础攻击力
-        function s__unitAttr_getBaseAtk takes integer this returns real
-            return s__unitAttr_baseAtk[this]
-        endfunction  // 获取受增减幅影响的bonus值
-        function s__unitAttr_getRateBonus takes integer this returns real
-            return s__unitAttr_rateBonus[this]
-        endfunction  // 获取固定bonus值
-        function s__unitAttr_getFixedBonus takes integer this returns real
-            return s__unitAttr_fixedBonus[this]
         endfunction  // 获取当前总攻击力
         function s__unitAttr_getCurrentAtk takes integer this returns real
             return s__unitAttr_baseAtk[this] + s__unitAttr_rateBonus[this] + s__unitAttr_fixedBonus[this]
         endfunction  // 获取当前攻击力倍率
         function s__unitAttr_getCurrentAtkRate takes integer this returns real
             return ( 1.0 + s__unitAttr_atkRateUp[this] ) * ( 1.0 - s__unitAttr_atkRateDown[this] )
-        endfunction  // 获取当前增幅值
-        function s__unitAttr_getAtkRateUp takes integer this returns real
-            return s__unitAttr_atkRateUp[this]
-        endfunction  // 获取当前减幅值
-        function s__unitAttr_getAtkRateDown takes integer this returns real
-            return s__unitAttr_atkRateDown[this]
-        endfunction  // 清除所有攻击力修改
-        function s__unitAttr_resetAtk takes integer this returns nothing
-            set s__unitAttr_atkRateUp[this]=0.0
-            set s__unitAttr_atkRateDown[this]=0.0
-            set s__unitAttr_fixedBonus[this]=0.0
-            set s__unitAttr_rateBonus[this]=0.0
-            call SetUnitState(s__unitAttr_u[this], ConvertUnitState(0x12), s__unitAttr_baseAtk[this])
         endfunction  //单位删除会调用
         function s__unitAttr_onDestroy takes integer this returns nothing
             if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__unitAttr_u[this]), 1726) ) then
@@ -703,7 +712,16 @@ function s__unitAttr_deallocate takes integer this returns nothing
     set si__unitAttr_V[this]=si__unitAttr_F
     set si__unitAttr_F=this
 endfunction
+            function s__unitAttr_anon__0 takes nothing returns nothing
+                local unit u=s__unitLifeCycle_argsUnit
+                local integer this=s__unitAttr_parse(u)
+                if ( s__unitAttr_isExist(this) ) then
+                    call s__unitAttr_deallocate(this)
+                endif
+                set u=null
+            endfunction
         function s__unitAttr_onInit takes nothing returns nothing
+            call s__unitLifeCycle_registerDestroy(function s__unitAttr_anon__0)
         endfunction  // 获取当前的HP减幅值
         function s__unitAttr_getHPRateDown takes integer this returns real
             return s__unitAttr_hpRateDown[this]
@@ -714,7 +732,7 @@ endfunction
 
     function UTUnitAttr__CreateTestUnit takes player p returns nothing
         if ( UTUnitAttr__testUnit != null ) then
-            call RemoveUnit(UTUnitAttr__testUnit)
+            call h__RemoveUnit(UTUnitAttr__testUnit)
         endif // 使用步兵作为测试单位
         set UTUnitAttr__testUnit=CreateUnit(p, 'hfoo', 0, 0, 0)
         set UTUnitAttr__testAttr=s__unitAttr_parse(UTUnitAttr__testUnit)
@@ -722,38 +740,12 @@ endfunction
         call SelectUnit(UTUnitAttr__testUnit, true)
     endfunction  // 测试基础HP的增减
     function UTUnitAttr__TTestUTUnitAttr1 takes player p returns nothing
-        call UTUnitAttr__CreateTestUnit(p)
-        call BJDebugMsg("测试1开始: 基础HP增减测试")
-        call BJDebugMsg("初始基础HP: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr)))
-        call s__unitAttr_addHP(UTUnitAttr__testAttr,50)
-        call BJDebugMsg("增加50点HP后: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr)))
-        call s__unitAttr_addHP(UTUnitAttr__testAttr,- 30)
-        call BJDebugMsg("减少30点HP后: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr)))
     endfunction  // 测试HP增幅比例
     function UTUnitAttr__TTestUTUnitAttr2 takes player p returns nothing
-        call UTUnitAttr__CreateTestUnit(p)
-        call BJDebugMsg("测试2开始: HP增幅比例测试")
-        call BJDebugMsg("初始HP: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr))) // 增加50%
-        call s__unitAttr_addHPRateUp(UTUnitAttr__testAttr,0.5)
-        call BJDebugMsg("增加50%增幅后: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr)))
-        call BJDebugMsg("当前HP倍率: " + R2S(s__unitAttr_getCurrentHPRate(UTUnitAttr__testAttr)))
     endfunction  // 测试HP减幅比例
     function UTUnitAttr__TTestUTUnitAttr3 takes player p returns nothing
-        call UTUnitAttr__CreateTestUnit(p)
-        call BJDebugMsg("测试3开始: HP减幅比例测试")
-        call BJDebugMsg("初始HP: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr))) // 减少30%
-        call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.3)
-        call BJDebugMsg("增加30%减幅后: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr)))
-        call BJDebugMsg("当前HP倍率: " + R2S(s__unitAttr_getCurrentHPRate(UTUnitAttr__testAttr)))
     endfunction  // 测试HP增减幅组合效果
     function UTUnitAttr__TTestUTUnitAttr4 takes player p returns nothing
-        call UTUnitAttr__CreateTestUnit(p)
-        call BJDebugMsg("测试4开始: HP增减幅组合测试")
-        call BJDebugMsg("初始HP: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr))) // 增加50%
-        call s__unitAttr_addHPRateUp(UTUnitAttr__testAttr,0.5) // 减少20%
-        call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.2)
-        call BJDebugMsg("增加50%增幅,20%减幅后: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr)))
-        call BJDebugMsg("当前HP倍率: " + R2S(s__unitAttr_getCurrentHPRate(UTUnitAttr__testAttr)))
     endfunction  // 参数化测试处理函数
     function UTUnitAttr__TTestActUTUnitAttr1 takes string str returns nothing
         local player p=GetTriggerPlayer()
@@ -784,22 +776,38 @@ endfunction
         set num=num + 1
         if ( UTUnitAttr__testUnit == null ) then
             call UTUnitAttr__CreateTestUnit(p)
-        endif // 处理不同的参数命令
-        if ( paramS[0] == "a" ) then // 设置基础HP
-            set s__unitAttr_baseHP[UTUnitAttr__testAttr]=paramR[1]
-            call BJDebugMsg("设置基础HP为: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "b" ) then // 增加基础HP
+        endif // HP相关命令
+        if ( paramS[0] == "addhp" ) then // 增加基础HP
             call s__unitAttr_addHP(UTUnitAttr__testAttr,paramR[1])
             call BJDebugMsg("增加基础HP: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "c" ) then // 设置HP增幅
+        elseif ( paramS[0] == "hpup" ) then // 设置HP增幅
             call s__unitAttr_addHPRateUp(UTUnitAttr__testAttr,paramR[1])
             call BJDebugMsg("设置HP增幅为: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "d" ) then // 设置HP减幅
+        elseif ( paramS[0] == "hpdown" ) then // 设置HP减幅
             call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,paramR[1])
             call BJDebugMsg("设置HP减幅为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "atk" ) then // 攻击力相关命令 // 设置基础攻击力
+            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,paramR[1])
+            call BJDebugMsg("设置基础攻击力为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "addatk" ) then // 增加基础攻击力
+            call s__unitAttr_addBaseAtk(UTUnitAttr__testAttr,paramR[1])
+            call BJDebugMsg("增加基础攻击力: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "atkup" ) then // 设置攻击力增幅
+            call s__unitAttr_addAtkRateUp(UTUnitAttr__testAttr,paramR[1])
+            call BJDebugMsg("设置攻击力增幅为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "atkdown" ) then // 设置攻击力减幅
+            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,paramR[1])
+            call BJDebugMsg("设置攻击力减幅为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "atkbonus" ) then // 设置固定加成
+            call s__unitAttr_addFixedBonus(UTUnitAttr__testAttr,paramR[1])
+            call BJDebugMsg("设置固定加成为: " + R2S(paramR[1]))
+        endif // 显示当前状态
+        if ( paramS[0] == "hp" or paramS[0] == "addhp" or paramS[0] == "hpup" or paramS[0] == "hpdown" ) then
+            call BJDebugMsg("当前HP: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr)))
+            call BJDebugMsg("当前HP倍率: " + R2S(s__unitAttr_getCurrentHPRate(UTUnitAttr__testAttr)))
+        else
+            call BJDebugMsg("攻击力: " + R2S(s__unitAttr_baseAtk[UTUnitAttr__testAttr]) + " + " + R2S(s__unitAttr_rateBonus[UTUnitAttr__testAttr] + s__unitAttr_fixedBonus[UTUnitAttr__testAttr]))
         endif
-        call BJDebugMsg("当前HP: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr)))
-        call BJDebugMsg("当前HP倍率: " + R2S(s__unitAttr_getCurrentHPRate(UTUnitAttr__testAttr)))
         set p=null
     endfunction
         function UTUnitAttr__anon__0 takes nothing returns nothing
@@ -857,6 +865,51 @@ endfunction
             call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.1) // 计算期望值：
             call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 50.4 , "20%,30%,10%减幅叠加后应为50.4") // 第一次：0.2 // 第二次：1-(1-0.2)*(1-0.3) = 0.44 // 第三次：1-(1-0.44)*(1-0.1) ≈ 0.496
             call s__assert_Real(s__unitAttr_getHPRateDown(UTUnitAttr__testAttr) , 0.496 , "20%,30%,10%减幅叠加后减幅值应为0.496")
+        endfunction  // 测试8：基础攻击力测试
+        function UTUnitAttr__anon__9 takes nothing returns nothing
+            call UTUnitAttr__CreateTestUnit(Player(0)) // 测试设置基础攻击力
+            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,100.0)
+            call s__assert_Real(s__unitAttr_baseAtk[UTUnitAttr__testAttr] , 100.0 , "设置基础攻击力应为100")
+            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 100.0 , "当前攻击力应为100") // 测试增加基础攻击力
+            call s__unitAttr_addBaseAtk(UTUnitAttr__testAttr,50.0)
+            call s__assert_Real(s__unitAttr_baseAtk[UTUnitAttr__testAttr] , 150.0 , "增加50点后基础攻击力应为150")
+            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 150.0 , "当前攻击力应为150")
+        endfunction  // 测试9：攻击力增幅测试
+        function UTUnitAttr__anon__10 takes nothing returns nothing
+            call UTUnitAttr__CreateTestUnit(Player(0))
+            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,100.0) // 测试增幅效果
+            call s__unitAttr_addAtkRateUp(UTUnitAttr__testAttr,0.5) // 增加50%
+            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 150.0 , "50%增幅后攻击力应为150")
+            call s__assert_Real(s__unitAttr_getCurrentAtkRate(UTUnitAttr__testAttr) , 1.5 , "当前攻击力倍率应为1.5") // 测试固定加成
+            call s__unitAttr_addFixedBonus(UTUnitAttr__testAttr,30.0)
+            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 180.0 , "加30点固定加成后应为180")
+            call s__assert_Real(s__unitAttr_fixedBonus[UTUnitAttr__testAttr] , 30.0 , "固定加成应为30")
+        endfunction  // 测试10：攻击力减幅的递减收益测试
+        function UTUnitAttr__anon__11 takes nothing returns nothing
+            call UTUnitAttr__CreateTestUnit(Player(0))
+            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,100.0) // 测试两个30%减幅的叠加
+            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,0.3)
+            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,0.3) // 期望值：1 - (1-0.3)*(1-0.3) = 0.51
+            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 49.0 , "两个30%减幅叠加后攻击力应为49")
+            call s__assert_Real(s__unitAttr_atkRateDown[UTUnitAttr__testAttr] , 0.51 , "两个30%减幅叠加后减幅值应为0.51") // 测试第三个30%减幅的叠加
+            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,0.3) // 期望值：1 - (1-0.51)*(1-0.3) ≈ 0.657
+            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 34.3 , "三个30%减幅叠加后攻击力应为34.3")
+            call s__assert_Real(s__unitAttr_atkRateDown[UTUnitAttr__testAttr] , 0.657 , "三个30%减幅叠加后减幅值应为0.657") // 测试恢复减幅效果
+            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,- 0.3)
+            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,- 0.3)
+            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,- 0.3)
+            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 100.0 , "三个-30%减幅叠加后攻击力应恢复为100")
+            call s__assert_Real(s__unitAttr_atkRateDown[UTUnitAttr__testAttr] , 0.0 , "三个-30%减幅叠加后减幅值应恢复为0")
+        endfunction  // 测试11：攻击力增减幅组合效果测试
+        function UTUnitAttr__anon__12 takes nothing returns nothing
+            call UTUnitAttr__CreateTestUnit(Player(0))
+            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,100.0) // 测试增幅和减幅的组合效果
+            call s__unitAttr_addAtkRateUp(UTUnitAttr__testAttr,0.5) // 增加50% // 减少20%
+            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,0.2) // 计算：100 * (1 + 0.5) * (1 - 0.2) = 120
+            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 120.0 , "50%增幅20%减幅后攻击力应为120")
+            call s__assert_Real(s__unitAttr_getCurrentAtkRate(UTUnitAttr__testAttr) , 1.2 , "当前攻击力倍率应为1.2") // 添加固定加成测试
+            call s__unitAttr_addFixedBonus(UTUnitAttr__testAttr,30.0)
+            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 150.0 , "加30点固定加成后应为150")
         endfunction
     function UTUnitAttr__Init takes nothing returns nothing
         local player p=Player(0)
@@ -871,13 +924,17 @@ endfunction
         call UnitTestAutoTimer(3.1 , 0 , function UTUnitAttr__anon__6 , null)
         call UnitTestAutoTimer(3.6 , 0 , function UTUnitAttr__anon__7 , null)
         call UnitTestAutoTimer(4.1 , 0 , function UTUnitAttr__anon__8 , null)
+        call UnitTestAutoTimer(4.6 , 0 , function UTUnitAttr__anon__9 , null)
+        call UnitTestAutoTimer(5.1 , 0 , function UTUnitAttr__anon__10 , null)
+        call UnitTestAutoTimer(5.6 , 0 , function UTUnitAttr__anon__11 , null)
+        call UnitTestAutoTimer(6.1 , 0 , function UTUnitAttr__anon__12 , null)
         set p=null
     endfunction
-        function UTUnitAttr__anon__9 takes nothing returns nothing
+        function UTUnitAttr__anon__13 takes nothing returns nothing
             call UTUnitAttr__Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUnitAttr__anon__10 takes nothing returns nothing
+        function UTUnitAttr__anon__14 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
                 call UTUnitAttr__TTestActUTUnitAttr1(SubString(str, ( 2 ) - 1, StringLength(str)))
@@ -896,9 +953,9 @@ endfunction
     function UTUnitAttr__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTUnitAttr__anon__9))
+        call TriggerAddCondition(tr, Condition(function UTUnitAttr__anon__13))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUnitAttr__anon__10)
+        call UnitTestRegisterChatEvent(function UTUnitAttr__anon__14)
     endfunction
 
 //library UTUnitAttr ends
@@ -911,7 +968,12 @@ endfunction
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
 
-
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1004,12 +1066,8 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
+
+//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1479,7 +1537,7 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs209614671")
+call ExecuteFunc("jasshelper__initstructs41260421")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("UTUnitAttr__onInit")
 
@@ -1527,16 +1585,24 @@ local integer this=f__arg_this
             set s__unitAttr_u[this]=null
    return true
 endfunction
+function sa__unitLifeCycle_onDestroyCB takes nothing returns boolean
+    call s__unitLifeCycle_onDestroyCB(f__arg_unit1)
+   return true
+endfunction
 
-function jasshelper__initstructs209614671 takes nothing returns nothing
+function jasshelper__initstructs41260421 takes nothing returns nothing
     set st__unitAttr_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__unitAttr_onDestroy,Condition( function sa__unitAttr_onDestroy))
+    set st__unitLifeCycle_onDestroyCB=CreateTrigger()
+    call TriggerAddCondition(st__unitLifeCycle_onDestroyCB,Condition( function sa__unitLifeCycle_onDestroyCB))
+
 
 
 
 
 
     call ExecuteFunc("s__mapBounds_onInit")
+    call ExecuteFunc("s__unitLifeCycle_onInit")
     call ExecuteFunc("s__unitAttr_onInit")
 endfunction
 

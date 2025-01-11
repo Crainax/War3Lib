@@ -18,6 +18,275 @@ library UnitHashTable {
 
 }
 //! endzinc
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
+/*
+
+japi引用的常量库 由于wave宏定义 只对以下的代码有效
+
+请将常量库里所有内容复制到  自定义脚本代码区
+*/
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//冷却时间
+//目标允许
+//施放时间
+//持续时间
+//持续时间
+//魔法消耗
+//施放间隔
+//影响区域
+//施法距离
+//数据A
+//数据B
+//数据C
+//数据D
+//数据E
+//数据F
+//数据G
+//数据H
+//数据I
+//单位类型
+//热键
+//关闭热键
+//学习热键
+//名字
+//图标
+//目标效果
+//施法者效果
+//目标点效果
+//区域效果
+//投射物
+//特殊效果
+//闪电效果
+//buff提示
+//buff提示
+//学习提示
+//提示
+//关闭提示
+//学习提示
+//提示
+//关闭提示
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
+//! zinc
+/*
+单位的属性
+*/
+library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
+	public struct unitAttr {
+		method isExist () -> boolean {return (this != null && si__unitAttr_V[this] == -1);}
+		unit u; //绑定的单位
+
+		static method parse (unit u) -> thistype {
+			thistype this;
+			integer handleId = GetHandleId(u);
+			// 先检查是否已存在
+			if (HaveSavedInteger(HASH_UNIT, handleId, 1726)) {
+				return LoadInteger(HASH_UNIT, handleId, 1726);
+			}
+			// 不存在才创建新的
+			this = allocate();
+			//todo: 测试一下用setUnitState设超过21亿的数再get能get到吗
+			this.u = u;
+			this.baseHP = 0;
+			this.hpRateUp = 0;
+			this.hpRateDown = 0;
+			this.cachedHP = 0;
+			// 初始化攻击力相关属性
+			this.baseAtk = 0.0;
+			this.atkRateUp = 0.0;
+			this.atkRateDown = 0.0;
+			this.rateBonus = 0.0;
+			this.fixedBonus = 0.0;
+			SaveInteger(HASH_UNIT, handleId, 1726, this);
+			return this;
+		}
+		public real baseHP; // 基础HP值
+public real hpRateUp; // HP增幅比例
+private real hpRateDown; // HP减幅比例 (改为private,因为我们要用方法来控制它的叠加)
+private real cachedHP; // 缓存的实际HP值
+
+		// 同步并刷新当前单位的HP
+		private method syncHPRate() {
+			real desiredHP;
+			real diff;
+			// 计算期望的HP值 - 先计算增幅,再计算减幅
+			desiredHP = baseHP * (1.0 + hpRateUp) * (1.0 - hpRateDown);
+			// 计算差值
+			diff = desiredHP - cachedHP;
+			// 只有当差值的绝对值大于等于1时才更新
+			if (diff >= 1.0 || diff <= -1.0) {
+				// 设置最大生命值
+				SetUnitState(u, UNIT_STATE_MAX_LIFE, RMaxBJ(desiredHP, 2.0));
+				// 如果是增加生命值，同时增加当前生命值
+				if (diff > 0) {
+					SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u, UNIT_STATE_LIFE) + diff));
+				}
+				cachedHP = desiredHP;
+			}
+		}
+		// 增加或减少基础HP
+		public method addHP(real value) {
+			if (value != 0) { // 避免不必要的计算
+baseHP += value;
+				syncHPRate();
+			}
+		}
+		// 增加HP增幅比例
+		public method addHPRateUp(real value) {
+			if (value != 0) { // 避免不必要的计算
+hpRateUp += value;
+				syncHPRate();
+			}
+		}
+		// 增加HP减幅比例
+		public method addHPRateDown(real value) {
+			if (value != 0) { // 避免不必要的计算
+hpRateDown = RealAdd(hpRateDown, value);
+				syncHPRate();
+			}
+		}
+		// 获取当前的HP倍率
+		public method getCurrentHPRate() -> real {
+			return (1.0 + hpRateUp) * (1.0 - hpRateDown);
+		}
+		// 获取当前实际HP值
+		public method getCurrentHP() -> real {
+			return cachedHP;
+		}
+		// 攻击力相关属性
+		public real baseAtk; // 基础攻击力
+public real atkRateUp; // 攻击力增幅比例
+public real atkRateDown; // 攻击力减幅比例
+public real rateBonus; // 受增减幅影响的bonus值
+public real fixedBonus; // 固定加成值(不受增减幅影响)
+
+		// 同步并刷新当前单位的攻击力
+		private method syncAtkRate() {
+			rateBonus = baseAtk * (1.0 + atkRateUp) * (1.0 - atkRateDown) - baseAtk;
+			SetUnitState(u, ConvertUnitState(0x12), RMaxBJ(baseAtk + rateBonus + fixedBonus, 0.0));
+		}
+		// 设置基础攻击力
+		public method setBaseAtk(real value) {
+			if (baseAtk != value) {
+				baseAtk = value;
+				syncAtkRate();
+			}
+		}
+		// 增加基础攻击力
+		public method addBaseAtk(real value) {
+			if (value != 0) {
+				baseAtk += value;
+				syncAtkRate();
+			}
+		}
+		// 增加固定bonus
+		public method addFixedBonus(real value) {
+			if (value != 0) {
+				fixedBonus += value;
+				syncAtkRate();
+			}
+		}
+		// 增加攻击力增幅
+		public method addAtkRateUp(real value) {
+			if (value != 0) {
+				atkRateUp += value;
+				syncAtkRate();
+			}
+		}
+		// 增加攻击力减幅
+		public method addAtkRateDown(real value) {
+			if (value != 0) {
+				atkRateDown = RealAdd(atkRateDown, value);
+				syncAtkRate();
+			}
+		}
+		// 获取当前总攻击力
+		public method getCurrentAtk() -> real {
+			return baseAtk + rateBonus + fixedBonus;
+		}
+		// 获取当前攻击力倍率
+		public method getCurrentAtkRate() -> real {
+			return (1.0 + atkRateUp) * (1.0 - atkRateDown);
+		}
+		//单位删除会调用
+		method onDestroy () {
+			if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),1726)) {
+				RemoveSavedInteger(HASH_UNIT,GetHandleId(u),1726);
+			}
+			u = null;
+		}
+		//注册到周期结束中
+		static method onInit () {
+			unitLifeCycle.registerDestroy(function () {
+				unit u = unitLifeCycle.argsUnit;
+				thistype this = unitAttr.parse(u);
+				if (this.isExist()) {
+					this.destroy();
+				}
+				u = null;
+			});
+		}
+		// 获取当前的HP减幅值
+		public method getHPRateDown() -> real {
+			return hpRateDown;
+		}
+	}
+}
+//! endzinc
 /*
 单元测试框架(注入)
 */
@@ -140,497 +409,6 @@ if (maxValue < 0.00001) {
 		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
 		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
     }
-}
-//! endzinc
-/*
-
-japi引用的常量库 由于wave宏定义 只对以下的代码有效
-
-请将常量库里所有内容复制到  自定义脚本代码区
-*/
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//冷却时间
-//目标允许
-//施放时间
-//持续时间
-//持续时间
-//魔法消耗
-//施放间隔
-//影响区域
-//施法距离
-//数据A
-//数据B
-//数据C
-//数据D
-//数据E
-//数据F
-//数据G
-//数据H
-//数据I
-//单位类型
-//热键
-//关闭热键
-//学习热键
-//名字
-//图标
-//目标效果
-//施法者效果
-//目标点效果
-//区域效果
-//投射物
-//特殊效果
-//闪电效果
-//buff提示
-//buff提示
-//学习提示
-//提示
-//关闭提示
-//学习提示
-//提示
-//关闭提示
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-//! zinc
-/*
-单位有关的增强功能
-*/
-library UnitUtils {
-    //获取单位的攻击力/防御/生命/魔法值
-    public function GetUnitAttack(unit u) -> integer {
-        return R2I(GetUnitState(u,ConvertUnitState(0x12)));
-    }
-    public function GetUnitDefense(unit u) -> integer {
-        return R2I(GetUnitState(u,ConvertUnitState(0x20)));
-    }
-    public function GetUnitHP(unit u) -> real {
-        return GetUnitState(u,UNIT_STATE_MAX_LIFE);
-    }
-    public function GetUnitMP(unit u) -> real {
-        return GetUnitState(u,UNIT_STATE_MAX_MANA);
-    }
-    //设置攻击力
-    public function SetUnitAttack(unit u, real attack) -> nothing {
-        SetUnitState(u,ConvertUnitState(0x12),attack);
-    }
-    //增加攻击力
-    public function AddUnitAttack(unit u, real attack) -> nothing {
-        SetUnitAttack(u,GetUnitAttack(u) + attack);
-    }
-    //设置防御
-    public function SetUnitDefense(unit u, real defense) -> nothing {
-        SetUnitState(u,ConvertUnitState(0x20),defense);
-    }
-    //增加防御
-    public function AddUnitDefense(unit u, real defense) -> nothing {
-        SetUnitDefense(u,GetUnitDefense(u)+defense);
-    }
-    //修改生命最大值
-    public function SetUnitHP(unit u, real hp) -> nothing {
-        SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,2.0));
-    }
-    //增加生命最大值
-    public function AddUnitHP(unit u,real hp ) {
-        SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
-        if (hp > 0) {SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_LIFE)+hp));}
-    }
-    //回血(定值)
-    public function RegenUnitHP(unit u, real volume) -> nothing {
-        SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_LIFE)+volume));
-    }
-    //回蓝(百分比)
-    public function RegenUnitHPPercent(unit u, real rate) -> nothing {
-        SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate));
-    }
-    //设置魔法最大值
-    public function SetUnitMP(unit u, real mp) -> nothing {
-        SetUnitState(u,UNIT_STATE_MAX_MANA,mp);
-    }
-    //增加魔法最大值
-    public function AddUnitMP(unit u,real mp ) {
-        SetUnitMP(u,GetUnitMP(u)+mp);
-        if (mp > 0) {SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_MANA)+mp));}
-    }
-    //回蓝(定值)
-    public function RegenUnitMP(unit u, real volume) -> nothing {
-        SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_MANA)+volume));
-    }
-    //回蓝(百分比)
-    public function RegenUnitMPPercent(unit u, real rate) -> nothing {
-        SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate));
-    }
-    // 获取移速
-    public function GetUnitSpeed (unit u) -> integer {
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),237960560)) { //突破522与0的移速的Hook
-return LoadInteger(HASH_UNIT,GetHandleId(u),237960560);
-        }
-        else {return R2I(GetUnitMoveSpeed(u));}
-    }
-    //todo: 这个UNTable其他地图需要兼容
-    // 增加移速
-    public function AddUnitSpeed (unit u,integer speed) {
-        integer value;
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),237960560)) { //突破522与0的移速的Hook
-value = LoadInteger(HASH_UNIT,GetHandleId(u),237960560);
-            value += speed;
-            SaveInteger(HASH_UNIT,GetHandleId(u),237960560,value);
-        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
-		SetUnitMoveSpeed(u,value);
-    }
-    // 初始化突破移速
-    public function InitUnitSpeed (unit u) {
-        SaveInteger(HASH_UNIT,GetHandleId(u),237960560,R2I(GetUnitMoveSpeed(u)));
-    }
-    //射程(还会+警戒范围)
-    public function GetUnitAttackRange(unit u) -> real {
-        return GetUnitState(u,ConvertUnitState(0x16));
-    }
-    //设置射程(还会设置警戒范围)
-    public function SetUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(0x16),range);
-		SetUnitAcquireRange(u,RMaxBJ(range,900.0));
-    }
-    //增加射程(还会+警戒范围)
-	public function AddUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(0x16),GetUnitAttackRange(u) + range);
-		SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0));
-    }
-    // 获取攻速
-    public function GetUnitAttackSpeed(unit u) -> real {
-        return GetUnitState(u,ConvertUnitState(0x51));
-    }
-    // 增加攻速
-	public function AddUnitAttackSpeed (unit u,real speed) {
-		SetUnitState(u,ConvertUnitState(0x51),GetUnitState(u,ConvertUnitState(0x51)) + speed);
-	}
-    public function GetUnitInterval(unit u) -> real {
-        return GetUnitState(u,ConvertUnitState(0x25));
-    }
-    // 攻击间隔(虽然写着加,但是实际是减)
-	public function AddAttackInterval (unit u,real value) {
-        SetUnitState(u,ConvertUnitState(0x25),GetUnitInterval(u) - value);
-	}
-    //传送单位(带特效与镜头转换)
-    public function TransportUnit (unit u,real x,real y,boolean camera) {
-        if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)));
-        SetUnitPosition(u,x,y);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
-    }
-    //删除单位
-    public function DeleteUnit (unit u) {
-        FlushChildHashtable(HASH_UNIT,GetHandleId(u));
-        RemoveUnit(u);
-    }
-}
-//! endzinc
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
-/*
-
-japi引用的常量库 由于wave宏定义 只对以下的代码有效
-
-请将常量库里所有内容复制到  自定义脚本代码区
-*/
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-//! zinc
-/*
-单位的属性
-*/
-library UnitAttr requires UnitUtils,MathUtils {
-	public struct unitAttr {
-		method isExist () -> boolean {return (this != null && si__unitAttr_V[this] == -1);}
-		unit u; //绑定的单位
-
-		static method parse (unit u) -> thistype {
-			thistype this;
-			integer handleId = GetHandleId(u);
-			// 先检查是否已存在
-			if (HaveSavedInteger(HASH_UNIT, handleId, 1726)) {
-				return LoadInteger(HASH_UNIT, handleId, 1726);
-			}
-			// 不存在才创建新的
-			this = allocate();
-			//todo: 测试一下用setUnitState设超过21亿的数再get能get到吗
-			this.u = u;
-			this.baseHP = 0;
-			this.hpRateUp = 0;
-			this.hpRateDown = 0;
-			this.cachedHP = 0;
-			// 初始化攻击力相关属性
-			this.baseAtk = 0.0;
-			this.atkRateUp = 0.0;
-			this.atkRateDown = 0.0;
-			this.rateBonus = 0.0;
-			this.fixedBonus = 0.0;
-			SaveInteger(HASH_UNIT, handleId, 1726, this);
-			return this;
-		}
-		public real baseHP; // 基础HP值
-public real hpRateUp; // HP增幅比例
-private real hpRateDown; // HP减幅比例 (改为private,因为我们要用方法来控制它的叠加)
-private real cachedHP; // 缓存的实际HP值
-
-		// 同步并刷新当前单位的HP
-		private method syncHPRate() {
-			real desiredHP;
-			real diff;
-			// 计算期望的HP值 - 先计算增幅,再计算减幅
-			desiredHP = baseHP * (1.0 + hpRateUp) * (1.0 - hpRateDown);
-			// 计算差值
-			diff = desiredHP - cachedHP;
-			// 只有当差值的绝对值大于等于1时才更新
-			if (diff >= 1.0 || diff <= -1.0) {
-				// 设置最大生命值
-				SetUnitState(u, UNIT_STATE_MAX_LIFE, RMaxBJ(desiredHP, 2.0));
-				// 如果是增加生命值，同时增加当前生命值
-				if (diff > 0) {
-					SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u, UNIT_STATE_LIFE) + diff));
-				}
-				cachedHP = desiredHP;
-			}
-		}
-		// 增加或减少基础HP
-		public method addHP(real value) {
-			if (value != 0) { // 避免不必要的计算
-baseHP += value;
-				syncHPRate();
-			}
-		}
-		// 增加HP增幅比例
-		public method addHPRateUp(real value) {
-			if (value != 0) { // 避免不必要的计算
-hpRateUp += value;
-				syncHPRate();
-			}
-		}
-		// 增加HP减幅比例
-		public method addHPRateDown(real value) {
-			if (value != 0) { // 避免不必要的计算
-hpRateDown = RealAdd(hpRateDown, value);
-				syncHPRate();
-			}
-		}
-		// 获取当前的HP倍率
-		public method getCurrentHPRate() -> real {
-			return (1.0 + hpRateUp) * (1.0 - hpRateDown);
-		}
-		// 获取当前实际HP值
-		public method getCurrentHP() -> real {
-			return cachedHP;
-		}
-		// 攻击力相关属性
-		private real baseAtk; // 基础攻击力
-private real atkRateUp; // 攻击力增幅比例
-private real atkRateDown; // 攻击力减幅比例
-private real rateBonus; // 受增减幅影响的bonus值
-private real fixedBonus; // 固定加成值(不受增减幅影响)
-
-		// 计算受增减幅影响后的攻击力
-		private method calculateRateAtk() -> real {
-			real calculatedAtk = baseAtk * (1.0 + atkRateUp) * (1.0 - atkRateDown);
-			return RMaxBJ(calculatedAtk, 0.0); // 确保不会出现负值
-}
-		// 同步并刷新当前单位的攻击力
-		private method syncAtkRate() {
-			real calculatedAtk = calculateRateAtk();
-			real newBonus = calculatedAtk - baseAtk;
-			// 只在bonus值确实发生变化时更新
-			if (newBonus != rateBonus) {
-				rateBonus = newBonus;
-				SetUnitState(u, ConvertUnitState(0x12), baseAtk + rateBonus + fixedBonus);
-			}
-		}
-		// 设置基础攻击力
-		public method setBaseAtk(real value) {
-			if (baseAtk != value) {
-				baseAtk = value;
-				syncAtkRate();
-			}
-		}
-		// 增加基础攻击力
-		public method addBaseAtk(real value) {
-			if (value != 0) {
-				baseAtk += value;
-				syncAtkRate();
-			}
-		}
-		// 增加固定bonus
-		public method addFixedBonus(real value) {
-			if (value != 0) {
-				fixedBonus += value;
-				// 直接更新攻击力，无需重新计算rate bonus
-				SetUnitState(u, ConvertUnitState(0x12), baseAtk + rateBonus + fixedBonus);
-			}
-		}
-		// 增加攻击力增幅
-		public method addAtkRateUp(real value) {
-			if (value != 0) {
-				atkRateUp += value;
-				syncAtkRate();
-			}
-		}
-		// 增加攻击力减幅
-		public method addAtkRateDown(real value) {
-			if (value != 0) {
-				atkRateDown = RealAdd(atkRateDown, value);
-				syncAtkRate();
-			}
-		}
-		// 获取基础攻击力
-		public method getBaseAtk() -> real {
-			return baseAtk;
-		}
-		// 获取受增减幅影响的bonus值
-		public method getRateBonus() -> real {
-			return rateBonus;
-		}
-		// 获取固定bonus值
-		public method getFixedBonus() -> real {
-			return fixedBonus;
-		}
-		// 获取当前总攻击力
-		public method getCurrentAtk() -> real {
-			return baseAtk + rateBonus + fixedBonus;
-		}
-		// 获取当前攻击力倍率
-		public method getCurrentAtkRate() -> real {
-			return (1.0 + atkRateUp) * (1.0 - atkRateDown);
-		}
-		// 获取当前增幅值
-		public method getAtkRateUp() -> real {
-			return atkRateUp;
-		}
-		// 获取当前减幅值
-		public method getAtkRateDown() -> real {
-			return atkRateDown;
-		}
-		// 清除所有攻击力修改
-		public method resetAtk() {
-			atkRateUp = 0.0;
-			atkRateDown = 0.0;
-			fixedBonus = 0.0;
-			rateBonus = 0.0;
-			SetUnitState(u, ConvertUnitState(0x12), baseAtk);
-		}
-		//单位删除会调用
-		method onDestroy () {
-			if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),1726)) {
-				RemoveSavedInteger(HASH_UNIT,GetHandleId(u),1726);
-			}
-			u = null;
-		}
-		//注册到周期结束中
-		static method onInit () {
-		}
-		// 获取当前的HP减幅值
-		public method getHPRateDown() -> real {
-			return hpRateDown;
-		}
-	}
 }
 //! endzinc
 //! zinc
@@ -819,6 +597,228 @@ library MapBoundsUtils {
     }
 }
 //! endzinc
+//! zinc
+/*
+Unit生命周期管理器
+负责管理Unit组件的创建和销毁事件
+*/
+library UnitLifeCycle {
+    public struct unitLifeCycle [] {
+        static unit argsUnit = null;
+        private {
+            static trigger trCreate = null;
+            static trigger trDestroy = null;
+        }
+        // 注册销毁回调
+        static method registerDestroy(code func) {
+            TriggerAddCondition(trDestroy, Condition(func));
+        }
+        static method onDestroyCB(unit u) {
+            argsUnit = u;
+            TriggerEvaluate(trDestroy);
+            //然后再清除所有哈希表
+            FlushChildHashtable(HASH_UNIT,GetHandleId(u));
+            argsUnit = null;
+        }
+        static method onInit () {
+            trCreate = CreateTrigger();
+            trDestroy = CreateTrigger();
+        }
+    }
+}
+//! endzinc
+hook RemoveUnit unitLifeCycle.onDestroyCB
+/*
+
+japi引用的常量库 由于wave宏定义 只对以下的代码有效
+
+请将常量库里所有内容复制到  自定义脚本代码区
+*/
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
+//! zinc
+/*
+单位有关的增强功能
+*/
+library UnitUtils {
+    //获取单位的攻击力/防御/生命/魔法值
+    public function GetUnitAttack(unit u) -> integer {
+        return R2I(GetUnitState(u,ConvertUnitState(0x12)));
+    }
+    public function GetUnitDefense(unit u) -> integer {
+        return R2I(GetUnitState(u,ConvertUnitState(0x20)));
+    }
+    public function GetUnitHP(unit u) -> real {
+        return GetUnitState(u,UNIT_STATE_MAX_LIFE);
+    }
+    public function GetUnitMP(unit u) -> real {
+        return GetUnitState(u,UNIT_STATE_MAX_MANA);
+    }
+    //设置攻击力
+    public function SetUnitAttack(unit u, real attack) -> nothing {
+        SetUnitState(u,ConvertUnitState(0x12),attack);
+    }
+    //增加攻击力
+    public function AddUnitAttack(unit u, real attack) -> nothing {
+        SetUnitAttack(u,GetUnitAttack(u) + attack);
+    }
+    //设置防御
+    public function SetUnitDefense(unit u, real defense) -> nothing {
+        SetUnitState(u,ConvertUnitState(0x20),defense);
+    }
+    //增加防御
+    public function AddUnitDefense(unit u, real defense) -> nothing {
+        SetUnitDefense(u,GetUnitDefense(u)+defense);
+    }
+    //修改生命最大值
+    public function SetUnitHP(unit u, real hp) -> nothing {
+        SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,2.0));
+    }
+    //增加生命最大值
+    public function AddUnitHP(unit u,real hp ) {
+        SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
+        if (hp > 0) {SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_LIFE)+hp));}
+    }
+    //回血(定值)
+    public function RegenUnitHP(unit u, real volume) -> nothing {
+        SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_LIFE)+volume));
+    }
+    //回蓝(百分比)
+    public function RegenUnitHPPercent(unit u, real rate) -> nothing {
+        SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate));
+    }
+    //设置魔法最大值
+    public function SetUnitMP(unit u, real mp) -> nothing {
+        SetUnitState(u,UNIT_STATE_MAX_MANA,mp);
+    }
+    //增加魔法最大值
+    public function AddUnitMP(unit u,real mp ) {
+        SetUnitMP(u,GetUnitMP(u)+mp);
+        if (mp > 0) {SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_MANA)+mp));}
+    }
+    //回蓝(定值)
+    public function RegenUnitMP(unit u, real volume) -> nothing {
+        SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_MANA)+volume));
+    }
+    //回蓝(百分比)
+    public function RegenUnitMPPercent(unit u, real rate) -> nothing {
+        SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate));
+    }
+    // 获取移速
+    public function GetUnitSpeed (unit u) -> integer {
+        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),237960560)) { //突破522与0的移速的Hook
+return LoadInteger(HASH_UNIT,GetHandleId(u),237960560);
+        }
+        else {return R2I(GetUnitMoveSpeed(u));}
+    }
+    //todo: 这个UNTable其他地图需要兼容
+    // 增加移速
+    public function AddUnitSpeed (unit u,integer speed) {
+        integer value;
+        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),237960560)) { //突破522与0的移速的Hook
+value = LoadInteger(HASH_UNIT,GetHandleId(u),237960560);
+            value += speed;
+            SaveInteger(HASH_UNIT,GetHandleId(u),237960560,value);
+        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
+		SetUnitMoveSpeed(u,value);
+    }
+    // 初始化突破移速
+    public function InitUnitSpeed (unit u) {
+        SaveInteger(HASH_UNIT,GetHandleId(u),237960560,R2I(GetUnitMoveSpeed(u)));
+    }
+    //射程(还会+警戒范围)
+    public function GetUnitAttackRange(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(0x16));
+    }
+    //设置射程(还会设置警戒范围)
+    public function SetUnitAttackRange (unit u,real range) {
+		SetUnitState(u,ConvertUnitState(0x16),range);
+		SetUnitAcquireRange(u,RMaxBJ(range,900.0));
+    }
+    //增加射程(还会+警戒范围)
+	public function AddUnitAttackRange (unit u,real range) {
+		SetUnitState(u,ConvertUnitState(0x16),GetUnitAttackRange(u) + range);
+		SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0));
+    }
+    // 获取攻速
+    public function GetUnitAttackSpeed(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(0x51));
+    }
+    // 增加攻速
+	public function AddUnitAttackSpeed (unit u,real speed) {
+		SetUnitState(u,ConvertUnitState(0x51),GetUnitState(u,ConvertUnitState(0x51)) + speed);
+	}
+    public function GetUnitInterval(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(0x25));
+    }
+    // 攻击间隔(虽然写着加,但是实际是减)
+	public function AddAttackInterval (unit u,real value) {
+        SetUnitState(u,ConvertUnitState(0x25),GetUnitInterval(u) - value);
+	}
+    //传送单位(带特效与镜头转换)
+    public function TransportUnit (unit u,real x,real y,boolean camera) {
+        if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);
+        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)));
+        SetUnitPosition(u,x,y);
+        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
+    }
+    //删除单位
+    public function DeleteUnit (unit u) {
+        FlushChildHashtable(HASH_UNIT,GetHandleId(u));
+        RemoveUnit(u);
+    }
+}
+//! endzinc
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -933,16 +933,18 @@ endfunction
  * 单位属性系统测试文件
  *
  * 测试命令说明：
- * hp1: 测试基础HP的增减
- * hp2: 测试HP增幅比例
- * hp3: 测试HP减幅比例
- * hp4: 测试HP增减幅组合效果
  *
- * 参数化测试命令：
- * -a [baseHP] : 设置基础HP
- * -b [value] : 增加基础HP
- * -c [value] : 设置HP增幅比例
- * -d [value] : 设置HP减幅比例
+ * HP相关命令：
+ * -addhp [value] : 增加基础HP
+ * -hpup [value] : 设置HP增幅比例
+ * -hpdown [value] : 设置HP减幅比例
+ *
+ * 攻击力相关命令：
+ * -atk [value] : 设置基础攻击力
+ * -addatk [value] : 增加基础攻击力
+ * -atkup [value] : 设置攻击力增幅比例
+ * -atkdown [value] : 设置攻击力减幅比例
+ * -atkbonus [value] : 设置攻击力固定加成
  */
 //! zinc
 library UTUnitAttr requires UnitAttr {
@@ -960,41 +962,15 @@ testAttr = unitAttr.parse(testUnit);
 	}
 	// 测试基础HP的增减
 	function TTestUTUnitAttr1(player p) {
-		CreateTestUnit(p);
-		BJDebugMsg("测试1开始: 基础HP增减测试");
-		BJDebugMsg("初始基础HP: " + R2S(testAttr.getCurrentHP()));
-		testAttr.addHP(50);
-		BJDebugMsg("增加50点HP后: " + R2S(testAttr.getCurrentHP()));
-		testAttr.addHP(-30);
-		BJDebugMsg("减少30点HP后: " + R2S(testAttr.getCurrentHP()));
 	}
 	// 测试HP增幅比例
 	function TTestUTUnitAttr2(player p) {
-		CreateTestUnit(p);
-		BJDebugMsg("测试2开始: HP增幅比例测试");
-		BJDebugMsg("初始HP: " + R2S(testAttr.getCurrentHP()));
-		testAttr.addHPRateUp(0.5); // 增加50%
-BJDebugMsg("增加50%增幅后: " + R2S(testAttr.getCurrentHP()));
-		BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
 	}
 	// 测试HP减幅比例
 	function TTestUTUnitAttr3(player p) {
-		CreateTestUnit(p);
-		BJDebugMsg("测试3开始: HP减幅比例测试");
-		BJDebugMsg("初始HP: " + R2S(testAttr.getCurrentHP()));
-		testAttr.addHPRateDown(0.3); // 减少30%
-BJDebugMsg("增加30%减幅后: " + R2S(testAttr.getCurrentHP()));
-		BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
 	}
 	// 测试HP增减幅组合效果
 	function TTestUTUnitAttr4(player p) {
-		CreateTestUnit(p);
-		BJDebugMsg("测试4开始: HP增减幅组合测试");
-		BJDebugMsg("初始HP: " + R2S(testAttr.getCurrentHP()));
-		testAttr.addHPRateUp(0.5); // 增加50%
-testAttr.addHPRateDown(0.2); // 减少20%
-BJDebugMsg("增加50%增幅,20%减幅后: " + R2S(testAttr.getCurrentHP()));
-		BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
 	}
 	// 参数化测试处理函数
 	function TTestActUTUnitAttr1(string str) {
@@ -1023,26 +999,49 @@ BJDebugMsg("增加50%增幅,20%减幅后: " + R2S(testAttr.getCurrentHP()));
 		if (testUnit == null) {
 			CreateTestUnit(p);
 		}
-		// 处理不同的参数命令
-		if (paramS[0] == "a") {
-			// 设置基础HP
-			testAttr.baseHP = paramR[1];
-			BJDebugMsg("设置基础HP为: " + R2S(paramR[1]));
-		} else if (paramS[0] == "b") {
+		// HP相关命令
+		if (paramS[0] == "addhp") {
 			// 增加基础HP
 			testAttr.addHP(paramR[1]);
 			BJDebugMsg("增加基础HP: " + R2S(paramR[1]));
-		} else if (paramS[0] == "c") {
+		} else if (paramS[0] == "hpup") {
 			// 设置HP增幅
 			testAttr.addHPRateUp(paramR[1]);
 			BJDebugMsg("设置HP增幅为: " + R2S(paramR[1]));
-		} else if (paramS[0] == "d") {
+		} else if (paramS[0] == "hpdown") {
 			// 设置HP减幅
 			testAttr.addHPRateDown(paramR[1]);
 			BJDebugMsg("设置HP减幅为: " + R2S(paramR[1]));
 		}
-		BJDebugMsg("当前HP: " + R2S(testAttr.getCurrentHP()));
-		BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
+		// 攻击力相关命令
+		else if (paramS[0] == "atk") {
+			// 设置基础攻击力
+			testAttr.setBaseAtk(paramR[1]);
+			BJDebugMsg("设置基础攻击力为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "addatk") {
+			// 增加基础攻击力
+			testAttr.addBaseAtk(paramR[1]);
+			BJDebugMsg("增加基础攻击力: " + R2S(paramR[1]));
+		} else if (paramS[0] == "atkup") {
+			// 设置攻击力增幅
+			testAttr.addAtkRateUp(paramR[1]);
+			BJDebugMsg("设置攻击力增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "atkdown") {
+			// 设置攻击力减幅
+			testAttr.addAtkRateDown(paramR[1]);
+			BJDebugMsg("设置攻击力减幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "atkbonus") {
+			// 设置固定加成
+			testAttr.addFixedBonus(paramR[1]);
+			BJDebugMsg("设置固定加成为: " + R2S(paramR[1]));
+		}
+		// 显示当前状态
+		if (paramS[0] == "hp" || paramS[0] == "addhp" || paramS[0] == "hpup" || paramS[0] == "hpdown") {
+			BJDebugMsg("当前HP: " + R2S(testAttr.getCurrentHP()));
+			BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
+		} else {
+			BJDebugMsg("攻击力: " + R2S(testAttr.baseAtk) + " + " + R2S(testAttr.rateBonus + testAttr.fixedBonus));
+		}
 		p = null;
 	}
 	function Init() {
@@ -1126,6 +1125,67 @@ testAttr.addHPRateDown(0.1); // 10%减幅
 			// 第三次：1-(1-0.44)*(1-0.1) ≈ 0.496
 			assert.Real(testAttr.getCurrentHP(), 50.4, "20%,30%,10%减幅叠加后应为50.4");
 			assert.Real(testAttr.getHPRateDown(), 0.496, "20%,30%,10%减幅叠加后减幅值应为0.496");
+		}, null);
+		// 测试8：基础攻击力测试
+		UnitTestAutoTimer(4.6, 0, function() {
+			CreateTestUnit(Player(0));
+			// 测试设置基础攻击力
+			testAttr.setBaseAtk(100.0);
+			assert.Real(testAttr.baseAtk, 100.0, "设置基础攻击力应为100");
+			assert.Real(testAttr.getCurrentAtk(), 100.0, "当前攻击力应为100");
+			// 测试增加基础攻击力
+			testAttr.addBaseAtk(50.0);
+			assert.Real(testAttr.baseAtk, 150.0, "增加50点后基础攻击力应为150");
+			assert.Real(testAttr.getCurrentAtk(), 150.0, "当前攻击力应为150");
+		}, null);
+		// 测试9：攻击力增幅测试
+		UnitTestAutoTimer(5.1, 0, function() {
+			CreateTestUnit(Player(0));
+			testAttr.setBaseAtk(100.0);
+			// 测试增幅效果
+			testAttr.addAtkRateUp(0.5); // 增加50%
+assert.Real(testAttr.getCurrentAtk(), 150.0, "50%增幅后攻击力应为150");
+			assert.Real(testAttr.getCurrentAtkRate(), 1.5, "当前攻击力倍率应为1.5");
+			// 测试固定加成
+			testAttr.addFixedBonus(30.0);
+			assert.Real(testAttr.getCurrentAtk(), 180.0, "加30点固定加成后应为180");
+			assert.Real(testAttr.fixedBonus, 30.0, "固定加成应为30");
+		}, null);
+		// 测试10：攻击力减幅的递减收益测试
+		UnitTestAutoTimer(5.6, 0, function() {
+			CreateTestUnit(Player(0));
+			testAttr.setBaseAtk(100.0);
+			// 测试两个30%减幅的叠加
+			testAttr.addAtkRateDown(0.3);
+			testAttr.addAtkRateDown(0.3);
+			// 期望值：1 - (1-0.3)*(1-0.3) = 0.51
+			assert.Real(testAttr.getCurrentAtk(), 49.0, "两个30%减幅叠加后攻击力应为49");
+			assert.Real(testAttr.atkRateDown, 0.51, "两个30%减幅叠加后减幅值应为0.51");
+			// 测试第三个30%减幅的叠加
+			testAttr.addAtkRateDown(0.3);
+			// 期望值：1 - (1-0.51)*(1-0.3) ≈ 0.657
+			assert.Real(testAttr.getCurrentAtk(), 34.3, "三个30%减幅叠加后攻击力应为34.3");
+			assert.Real(testAttr.atkRateDown, 0.657, "三个30%减幅叠加后减幅值应为0.657");
+			// 测试恢复减幅效果
+			testAttr.addAtkRateDown(-0.3);
+			testAttr.addAtkRateDown(-0.3);
+			testAttr.addAtkRateDown(-0.3);
+			assert.Real(testAttr.getCurrentAtk(), 100.0, "三个-30%减幅叠加后攻击力应恢复为100");
+			assert.Real(testAttr.atkRateDown, 0.0, "三个-30%减幅叠加后减幅值应恢复为0");
+		}, null);
+		// 测试11：攻击力增减幅组合效果测试
+		UnitTestAutoTimer(6.1, 0, function() {
+			CreateTestUnit(Player(0));
+			testAttr.setBaseAtk(100.0);
+			// 测试增幅和减幅的组合效果
+			testAttr.addAtkRateUp(0.5); // 增加50%
+testAttr.addAtkRateDown(0.2); // 减少20%
+// 计算：100 * (1 + 0.5) * (1 - 0.2) = 120
+assert.Real(testAttr.getCurrentAtk(), 120.0, "50%增幅20%减幅后攻击力应为120");
+			assert.Real(testAttr.getCurrentAtkRate(), 1.2, "当前攻击力倍率应为1.2");
+			// 添加固定加成测试
+			testAttr.addFixedBonus(30.0);
+			assert.Real(testAttr.getCurrentAtk(), 150.0, "加30点固定加成后应为150");
 		}, null);
 		p = null;
 	}
