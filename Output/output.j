@@ -14,20 +14,21 @@ constant boolean LIBRARY_UnitLifeCycle=true
 //endglobals from UnitLifeCycle
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
-hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
+trigger UnitTestFramwork___TUnitTest=null
+hashtable UnitTestFramwork___HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
 //globals from UnitUtils:
 constant boolean LIBRARY_UnitUtils=true
 //endglobals from UnitUtils
+//globals from HeroAttr:
+constant boolean LIBRARY_HeroAttr=true
+//endglobals from HeroAttr
 //globals from UnitAttr:
 constant boolean LIBRARY_UnitAttr=true
 //endglobals from UnitAttr
-//globals from UTUnitAttr:
-constant boolean LIBRARY_UTUnitAttr=true
-unit UTUnitAttr__testUnit=null
-integer UTUnitAttr__testAttr=0
-//endglobals from UTUnitAttr
+//globals from UTHeroAttr:
+constant boolean LIBRARY_UTHeroAttr=true
+//endglobals from UTHeroAttr
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -72,24 +73,58 @@ unit s__unitLifeCycle_argsUnit=null
 trigger s__unitLifeCycle_trCreate=null
 trigger s__unitLifeCycle_trDestroy=null
 constant integer si__assert=4
-constant integer si__unitAttr=5
+constant integer si__heroAttr=5
+integer si__heroAttr_F=0
+integer si__heroAttr_I=0
+integer array si__heroAttr_V
+unit array s__heroAttr_u
+real array s__heroAttr_baseStr
+real array s__heroAttr_StrRateUp
+real array s__heroAttr_StrRateDown
+real array s__heroAttr_StrRateBonus
+real array s__heroAttr_StrFixedBonus
+real array s__heroAttr_baseAgi
+real array s__heroAttr_AgiRateUp
+real array s__heroAttr_AgiRateDown
+real array s__heroAttr_AgiRateBonus
+real array s__heroAttr_AgiFixedBonus
+real array s__heroAttr_baseInt
+real array s__heroAttr_IntRateUp
+real array s__heroAttr_IntRateDown
+real array s__heroAttr_IntRateBonus
+real array s__heroAttr_IntFixedBonus
+constant integer si__unitAttr=6
 integer si__unitAttr_F=0
 integer si__unitAttr_I=0
 integer array si__unitAttr_V
 unit array s__unitAttr_u
 real array s__unitAttr_baseHP
-real array s__unitAttr_hpRateUp
-real array s__unitAttr_hpRateDown
+real array s__unitAttr_HPRateUp
+real array s__unitAttr_HPRateDown
 real array s__unitAttr_cachedHP
+real array s__unitAttr_baseMP
+real array s__unitAttr_MPRateUp
+real array s__unitAttr_MPRateDown
+real array s__unitAttr_cachedMP
 real array s__unitAttr_baseAtk
-real array s__unitAttr_atkRateUp
-real array s__unitAttr_atkRateDown
-real array s__unitAttr_rateBonus
-real array s__unitAttr_fixedBonus
+real array s__unitAttr_AtkRateUp
+real array s__unitAttr_AtkRateDown
+real array s__unitAttr_AtkRateBonus
+real array s__unitAttr_AtkFixedBonus
+real array s__unitAttr_baseDef
+real array s__unitAttr_DefRateUp
+real array s__unitAttr_DefRateDown
+real array s__unitAttr_DefRateBonus
+real array s__unitAttr_DefFixedBonus
+real array s__unitAttr_SpellDmgRateUp
+real array s__unitAttr_SpellDmgRateDown
 trigger st__unitLifeCycle_onDestroyCB
+trigger st__heroAttr_onDestroy
+trigger st__unitAttr_parse
 trigger st__unitAttr_onDestroy
 unit f__arg_unit1
 integer f__arg_this
+integer f__result_integer
 
 endglobals
 
@@ -123,6 +158,13 @@ function s__mapBounds_deallocate takes integer this returns nothing
     endif
     set si__mapBounds_V[this]=si__mapBounds_F
     set si__mapBounds_F=this
+endfunction
+
+//Generated method caller for unitAttr.parse
+function sc__unitAttr_parse takes unit u returns integer
+    set f__arg_unit1=u
+    call TriggerEvaluate(st__unitAttr_parse)
+ return f__result_integer
 endfunction
 
 //Generated method caller for unitAttr.onDestroy
@@ -162,6 +204,45 @@ function sc__unitAttr_deallocate takes integer this returns nothing
     call TriggerEvaluate(st__unitAttr_onDestroy)
     set si__unitAttr_V[this]=si__unitAttr_F
     set si__unitAttr_F=this
+endfunction
+
+//Generated method caller for heroAttr.onDestroy
+function sc__heroAttr_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__heroAttr_onDestroy)
+endfunction
+
+//Generated allocator of heroAttr
+function s__heroAttr__allocate takes nothing returns integer
+ local integer this=si__heroAttr_F
+    if (this!=0) then
+        set si__heroAttr_F=si__heroAttr_V[this]
+    else
+        set si__heroAttr_I=si__heroAttr_I+1
+        set this=si__heroAttr_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: heroAttr")
+        return 0
+    endif
+
+    set si__heroAttr_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of heroAttr
+function sc__heroAttr_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: heroAttr")
+        return
+    elseif (si__heroAttr_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: heroAttr")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__heroAttr_onDestroy)
+    set si__heroAttr_V[this]=si__heroAttr_F
+    set si__heroAttr_F=this
 endfunction
 
 //Generated method caller for unitLifeCycle.onDestroyCB
@@ -408,27 +489,27 @@ endfunction
             endif
         endfunction
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction  //指定开始时间与持续时间的定时器
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]开始------")
             call TriggerEvaluate(tr)
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
-        function UnitTestFramwork__anon__1 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__1 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call TriggerEvaluate(tr)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]结束------")
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
@@ -437,24 +518,24 @@ endfunction
         local trigger tr=CreateTrigger()
         call TriggerAddCondition(t, Condition(start))
         call TriggerRegisterTimerEvent(tr, time, false)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-        call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         if ( end != null ) then
             set t=CreateTrigger()
             set tr=CreateTrigger()
             call TriggerAddCondition(t, Condition(end))
             call TriggerRegisterTimerEvent(tr, time + duration, false)
-            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-            call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-            call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__1))
+            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+            call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+            call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__1))
         endif
         set tr=null
         set t=null
     endfunction
-        function UnitTestFramwork__anon__2 takes nothing returns nothing
+        function UnitTestFramwork___anon__2 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -465,16 +546,16 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.1, false)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__2))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__2))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
@@ -591,6 +672,189 @@ endfunction
     endfunction
 
 //library UnitUtils ends
+//library HeroAttr:
+        function s__heroAttr_isExist takes integer this returns boolean
+            return ( this != null and si__heroAttr_V[this] == - 1 )
+        endfunction
+        function s__heroAttr_parse takes unit u returns integer
+            local integer this
+            local integer handleId=GetHandleId(u)
+            if ( HaveSavedInteger(HASH_UNIT, handleId, 1727) ) then
+                return LoadInteger(HASH_UNIT, handleId, 1727)
+            endif // 不存在才创建新的
+            set this=s__heroAttr__allocate() //todo: 测试一下用setUnitState设超过21亿的数再get能get到吗
+            set s__heroAttr_u[this]=u
+            set s__heroAttr_baseStr[this]=0.0
+            set s__heroAttr_StrRateUp[this]=0.0
+            set s__heroAttr_StrRateDown[this]=0.0
+            set s__heroAttr_StrRateBonus[this]=0.0
+            set s__heroAttr_StrFixedBonus[this]=0.0
+            set s__heroAttr_baseAgi[this]=0.0
+            set s__heroAttr_AgiRateUp[this]=0.0
+            set s__heroAttr_AgiRateDown[this]=0.0
+            set s__heroAttr_AgiRateBonus[this]=0.0
+            set s__heroAttr_AgiFixedBonus[this]=0.0
+            set s__heroAttr_baseInt[this]=0.0
+            set s__heroAttr_IntRateUp[this]=0.0
+            set s__heroAttr_IntRateDown[this]=0.0
+            set s__heroAttr_IntRateBonus[this]=0.0
+            set s__heroAttr_IntFixedBonus[this]=0.0
+            call SaveInteger(HASH_UNIT, handleId, 1727, this)
+            return this
+        endfunction  // 同步并刷新当前单位的力量
+        function s__heroAttr_syncStrRate takes integer this returns nothing
+            set s__heroAttr_StrRateBonus[this]=s__heroAttr_baseStr[this] * ( 1.0 + s__heroAttr_StrRateUp[this] ) * ( 1.0 - s__heroAttr_StrRateDown[this] ) - s__heroAttr_baseStr[this]
+            call SetUnitState(s__heroAttr_u[this], ConvertUnitState(0x20), s__heroAttr_baseStr[this] + s__heroAttr_StrRateBonus[this] + s__heroAttr_StrFixedBonus[this])
+        endfunction  // 同步并刷新当前单位的敏捷
+        function s__heroAttr_syncAgiRate takes integer this returns nothing
+            set s__heroAttr_AgiRateBonus[this]=s__heroAttr_baseAgi[this] * ( 1.0 + s__heroAttr_AgiRateUp[this] ) * ( 1.0 - s__heroAttr_AgiRateDown[this] ) - s__heroAttr_baseAgi[this]
+            call SetUnitState(s__heroAttr_u[this], ConvertUnitState(0x20), s__heroAttr_baseAgi[this] + s__heroAttr_AgiRateBonus[this] + s__heroAttr_AgiFixedBonus[this])
+        endfunction  // 同步并刷新当前单位的智力
+        function s__heroAttr_syncIntRate takes integer this returns nothing
+            set s__heroAttr_IntRateBonus[this]=s__heroAttr_baseInt[this] * ( 1.0 + s__heroAttr_IntRateUp[this] ) * ( 1.0 - s__heroAttr_IntRateDown[this] ) - s__heroAttr_baseInt[this]
+            call SetUnitState(s__heroAttr_u[this], ConvertUnitState(0x20), s__heroAttr_baseInt[this] + s__heroAttr_IntRateBonus[this] + s__heroAttr_IntFixedBonus[this])
+        endfunction
+        function s__heroAttr_setBaseStr takes integer this,real value returns nothing
+            if ( s__heroAttr_baseStr[this] != value ) then
+                set s__heroAttr_baseStr[this]=value
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addBaseStr takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_baseStr[this]=s__heroAttr_baseStr[this] + value
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addStrFixedBonus takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_StrFixedBonus[this]=s__heroAttr_StrFixedBonus[this] + value
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addStrRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_StrRateUp[this]=s__heroAttr_StrRateUp[this] + value
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addStrRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_StrRateDown[this]=RealAdd(s__heroAttr_StrRateDown[this] , value)
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_getCurrentStr takes integer this returns real
+            return s__heroAttr_baseStr[this] + s__heroAttr_StrRateBonus[this] + s__heroAttr_StrFixedBonus[this]
+        endfunction
+        function s__heroAttr_getCurrentStrRate takes integer this returns real
+            return ( 1.0 + s__heroAttr_StrRateUp[this] ) * ( 1.0 - s__heroAttr_StrRateDown[this] ) - 1.0
+        endfunction
+        function s__heroAttr_setBaseAgi takes integer this,real value returns nothing
+            if ( s__heroAttr_baseAgi[this] != value ) then
+                set s__heroAttr_baseAgi[this]=value
+                call s__heroAttr_syncAgiRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addBaseAgi takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_baseAgi[this]=s__heroAttr_baseAgi[this] + value
+                call s__heroAttr_syncAgiRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addAgiFixedBonus takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_AgiFixedBonus[this]=s__heroAttr_AgiFixedBonus[this] + value
+                call s__heroAttr_syncAgiRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addAgiRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_AgiRateUp[this]=s__heroAttr_AgiRateUp[this] + value
+                call s__heroAttr_syncAgiRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addAgiRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_AgiRateDown[this]=RealAdd(s__heroAttr_AgiRateDown[this] , value)
+                call s__heroAttr_syncAgiRate(this)
+            endif
+        endfunction
+        function s__heroAttr_getCurrentAgi takes integer this returns real
+            return s__heroAttr_baseAgi[this] + s__heroAttr_AgiRateBonus[this] + s__heroAttr_AgiFixedBonus[this]
+        endfunction
+        function s__heroAttr_getCurrentAgiRate takes integer this returns real
+            return ( 1.0 + s__heroAttr_AgiRateUp[this] ) * ( 1.0 - s__heroAttr_AgiRateDown[this] ) - 1.0
+        endfunction
+        function s__heroAttr_setBaseInt takes integer this,real value returns nothing
+            if ( s__heroAttr_baseInt[this] != value ) then
+                set s__heroAttr_baseInt[this]=value
+                call s__heroAttr_syncIntRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addBaseInt takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_baseInt[this]=s__heroAttr_baseInt[this] + value
+                call s__heroAttr_syncIntRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addIntFixedBonus takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_IntFixedBonus[this]=s__heroAttr_IntFixedBonus[this] + value
+                call s__heroAttr_syncIntRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addIntRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_IntRateUp[this]=s__heroAttr_IntRateUp[this] + value
+                call s__heroAttr_syncIntRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addIntRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_IntRateDown[this]=RealAdd(s__heroAttr_IntRateDown[this] , value)
+                call s__heroAttr_syncIntRate(this)
+            endif
+        endfunction
+        function s__heroAttr_getCurrentInt takes integer this returns real
+            return s__heroAttr_baseInt[this] + s__heroAttr_IntRateBonus[this] + s__heroAttr_IntFixedBonus[this]
+        endfunction
+        function s__heroAttr_getCurrentIntRate takes integer this returns real
+            return ( 1.0 + s__heroAttr_IntRateUp[this] ) * ( 1.0 - s__heroAttr_IntRateDown[this] ) - 1.0
+        endfunction
+        function s__heroAttr_onDestroy takes integer this returns nothing
+            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727) ) then
+                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727)
+            endif
+            set s__heroAttr_u[this]=null
+        endfunction  //注册到周期结束中
+
+//Generated destructor of heroAttr
+function s__heroAttr_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: heroAttr")
+        return
+    elseif (si__heroAttr_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: heroAttr")
+        return
+    endif
+    call s__heroAttr_onDestroy(this)
+    set si__heroAttr_V[this]=si__heroAttr_F
+    set si__heroAttr_F=this
+endfunction
+            function s__heroAttr_anon__0 takes nothing returns nothing
+                local unit u=s__unitLifeCycle_argsUnit
+                local integer this=sc__unitAttr_parse(u)
+                if ( s__heroAttr_isExist(this) ) then
+                    call s__heroAttr_deallocate(this)
+                endif
+                set u=null
+            endfunction
+        function s__heroAttr_onInit takes nothing returns nothing
+            call s__unitLifeCycle_registerDestroy(function s__heroAttr_anon__0)
+        endfunction
+
+//library HeroAttr ends
 //library UnitAttr:
         function s__unitAttr_isExist takes integer this returns boolean
             return ( this != null and si__unitAttr_V[this] == - 1 )
@@ -601,97 +865,198 @@ endfunction
             if ( HaveSavedInteger(HASH_UNIT, handleId, 1726) ) then
                 return LoadInteger(HASH_UNIT, handleId, 1726)
             endif // 不存在才创建新的
-            set this=s__unitAttr__allocate() //todo: 测试一下用setUnitState设超过21亿的数再get能get到吗
+            set this=s__unitAttr__allocate()
             set s__unitAttr_u[this]=u
             set s__unitAttr_baseHP[this]=0
-            set s__unitAttr_hpRateUp[this]=0
-            set s__unitAttr_hpRateDown[this]=0
-            set s__unitAttr_cachedHP[this]=0 // 初始化攻击力相关属性
-            set s__unitAttr_baseAtk[this]=0.0
-            set s__unitAttr_atkRateUp[this]=0.0
-            set s__unitAttr_atkRateDown[this]=0.0
-            set s__unitAttr_rateBonus[this]=0.0
-            set s__unitAttr_fixedBonus[this]=0.0
+            set s__unitAttr_HPRateUp[this]=0
+            set s__unitAttr_HPRateDown[this]=0
+            set s__unitAttr_cachedHP[this]=0
+            set s__unitAttr_baseMP[this]=0
+            set s__unitAttr_MPRateUp[this]=0
+            set s__unitAttr_MPRateDown[this]=0
+            set s__unitAttr_cachedMP[this]=0
+            set s__unitAttr_baseAtk[this]=0.0 // 初始化攻击力和防御力相关属性
+            set s__unitAttr_AtkRateUp[this]=0.0
+            set s__unitAttr_AtkRateDown[this]=0.0
+            set s__unitAttr_AtkRateBonus[this]=0.0
+            set s__unitAttr_AtkFixedBonus[this]=0.0
+            set s__unitAttr_baseDef[this]=0.0
+            set s__unitAttr_DefRateUp[this]=0.0
+            set s__unitAttr_DefRateDown[this]=0.0
+            set s__unitAttr_DefRateBonus[this]=0.0
+            set s__unitAttr_DefFixedBonus[this]=0.0
+            set s__unitAttr_SpellDmgRateUp[this]=0.0 // 初始化技能伤害增幅
+            set s__unitAttr_SpellDmgRateDown[this]=0.0
             call SaveInteger(HASH_UNIT, handleId, 1726, this)
             return this
-        endfunction  // 基础HP值
+        endfunction  //同步并刷新当前单位的HP
         function s__unitAttr_syncHPRate takes integer this returns nothing
             local real desiredHP
             local real diff
-            set desiredHP=s__unitAttr_baseHP[this] * ( 1.0 + s__unitAttr_hpRateUp[this] ) * ( 1.0 - s__unitAttr_hpRateDown[this] ) // 计算差值
-            set diff=desiredHP - s__unitAttr_cachedHP[this] // 只有当差值的绝对值大于等于1时才更新
-            if ( diff >= 1.0 or diff <= - 1.0 ) then // 设置最大生命值
-                call SetUnitState(s__unitAttr_u[this], UNIT_STATE_MAX_LIFE, RMaxBJ(desiredHP, 2.0)) // 如果是增加生命值，同时增加当前生命值
+            set desiredHP=s__unitAttr_baseHP[this] * ( 1.0 + s__unitAttr_HPRateUp[this] ) * ( 1.0 - s__unitAttr_HPRateDown[this] ) //计算差值
+            set diff=desiredHP - s__unitAttr_cachedHP[this] //只有当差值的绝对值大于等于1时才更新
+            if ( diff >= 1.0 or diff <= - 1.0 ) then //设置最大值
+                call SetUnitState(s__unitAttr_u[this], UNIT_STATE_MAX_LIFE, RMaxBJ(desiredHP, 2.0)) //如果是增加值，同时增加当前值
                 if ( diff > 0 ) then
-                    call SetUnitState(s__unitAttr_u[this], UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(s__unitAttr_u[this], UNIT_STATE_LIFE) + diff))
+                    call SetUnitState(s__unitAttr_u[this], UNIT_STATE_LIFE, GetUnitState(s__unitAttr_u[this], UNIT_STATE_LIFE) + diff)
                 endif
                 set s__unitAttr_cachedHP[this]=desiredHP
             endif
-        endfunction  // 增加或减少基础HP
+        endfunction  //同步并刷新当前单位的MP
+        function s__unitAttr_syncMPRate takes integer this returns nothing
+            local real desiredMP
+            local real diff
+            set desiredMP=s__unitAttr_baseMP[this] * ( 1.0 + s__unitAttr_MPRateUp[this] ) * ( 1.0 - s__unitAttr_MPRateDown[this] ) //计算差值
+            set diff=desiredMP - s__unitAttr_cachedMP[this] //只有当差值的绝对值大于等于1时才更新
+            if ( diff >= 1.0 or diff <= - 1.0 ) then //设置最大值
+                call SetUnitState(s__unitAttr_u[this], UNIT_STATE_MAX_MANA, RMaxBJ(desiredMP, 2.0)) //如果是增加值，同时增加当前值
+                if ( diff > 0 ) then
+                    call SetUnitState(s__unitAttr_u[this], UNIT_STATE_MANA, GetUnitState(s__unitAttr_u[this], UNIT_STATE_MANA) + diff)
+                endif
+                set s__unitAttr_cachedMP[this]=desiredMP
+            endif
+        endfunction  // 同步并刷新当前单位的攻击
+        function s__unitAttr_syncAtkRate takes integer this returns nothing
+            set s__unitAttr_AtkRateBonus[this]=s__unitAttr_baseAtk[this] * ( 1.0 + s__unitAttr_AtkRateUp[this] ) * ( 1.0 - s__unitAttr_AtkRateDown[this] ) - s__unitAttr_baseAtk[this]
+            call SetUnitState(s__unitAttr_u[this], ConvertUnitState(0x12), RMaxBJ(s__unitAttr_baseAtk[this] + s__unitAttr_AtkRateBonus[this] + s__unitAttr_AtkFixedBonus[this], 0.0))
+        endfunction  // 同步并刷新当前单位的防御
+        function s__unitAttr_syncDefRate takes integer this returns nothing
+            set s__unitAttr_DefRateBonus[this]=s__unitAttr_baseDef[this] * ( 1.0 + s__unitAttr_DefRateUp[this] ) * ( 1.0 - s__unitAttr_DefRateDown[this] ) - s__unitAttr_baseDef[this]
+            call SetUnitState(s__unitAttr_u[this], ConvertUnitState(0x20), s__unitAttr_baseDef[this] + s__unitAttr_DefRateBonus[this] + s__unitAttr_DefFixedBonus[this])
+        endfunction  // 使用宏定义生成HP相关属性和方法
         function s__unitAttr_addHP takes integer this,real value returns nothing
             if ( value != 0 ) then
                 set s__unitAttr_baseHP[this]=s__unitAttr_baseHP[this] + value
                 call s__unitAttr_syncHPRate(this)
             endif
-        endfunction  // 增加HP增幅比例
+        endfunction
         function s__unitAttr_addHPRateUp takes integer this,real value returns nothing
             if ( value != 0 ) then
-                set s__unitAttr_hpRateUp[this]=s__unitAttr_hpRateUp[this] + value
+                set s__unitAttr_HPRateUp[this]=s__unitAttr_HPRateUp[this] + value
                 call s__unitAttr_syncHPRate(this)
             endif
-        endfunction  // 增加HP减幅比例
+        endfunction
         function s__unitAttr_addHPRateDown takes integer this,real value returns nothing
             if ( value != 0 ) then
-                set s__unitAttr_hpRateDown[this]=RealAdd(s__unitAttr_hpRateDown[this] , value)
+                set s__unitAttr_HPRateDown[this]=RealAdd(s__unitAttr_HPRateDown[this] , value)
                 call s__unitAttr_syncHPRate(this)
             endif
-        endfunction  // 获取当前的HP倍率
+        endfunction
         function s__unitAttr_getCurrentHPRate takes integer this returns real
-            return ( 1.0 + s__unitAttr_hpRateUp[this] ) * ( 1.0 - s__unitAttr_hpRateDown[this] )
-        endfunction  // 获取当前实际HP值
+            return ( 1.0 + s__unitAttr_HPRateUp[this] ) * ( 1.0 - s__unitAttr_HPRateDown[this] ) - 1.0
+        endfunction
         function s__unitAttr_getCurrentHP takes integer this returns real
             return s__unitAttr_cachedHP[this]
-        endfunction  // 攻击力相关属性
-        function s__unitAttr_syncAtkRate takes integer this returns nothing
-            set s__unitAttr_rateBonus[this]=s__unitAttr_baseAtk[this] * ( 1.0 + s__unitAttr_atkRateUp[this] ) * ( 1.0 - s__unitAttr_atkRateDown[this] ) - s__unitAttr_baseAtk[this]
-            call SetUnitState(s__unitAttr_u[this], ConvertUnitState(0x12), RMaxBJ(s__unitAttr_baseAtk[this] + s__unitAttr_rateBonus[this] + s__unitAttr_fixedBonus[this], 0.0))
-        endfunction  // 设置基础攻击力
+        endfunction
+        function s__unitAttr_addMP takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_baseMP[this]=s__unitAttr_baseMP[this] + value
+                call s__unitAttr_syncMPRate(this)
+            endif
+        endfunction
+        function s__unitAttr_addMPRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_MPRateUp[this]=s__unitAttr_MPRateUp[this] + value
+                call s__unitAttr_syncMPRate(this)
+            endif
+        endfunction
+        function s__unitAttr_addMPRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_MPRateDown[this]=RealAdd(s__unitAttr_MPRateDown[this] , value)
+                call s__unitAttr_syncMPRate(this)
+            endif
+        endfunction
+        function s__unitAttr_getCurrentMPRate takes integer this returns real
+            return ( 1.0 + s__unitAttr_MPRateUp[this] ) * ( 1.0 - s__unitAttr_MPRateDown[this] ) - 1.0
+        endfunction
+        function s__unitAttr_getCurrentMP takes integer this returns real
+            return s__unitAttr_cachedMP[this]
+        endfunction
         function s__unitAttr_setBaseAtk takes integer this,real value returns nothing
             if ( s__unitAttr_baseAtk[this] != value ) then
                 set s__unitAttr_baseAtk[this]=value
                 call s__unitAttr_syncAtkRate(this)
             endif
-        endfunction  // 增加基础攻击力
+        endfunction
         function s__unitAttr_addBaseAtk takes integer this,real value returns nothing
             if ( value != 0 ) then
                 set s__unitAttr_baseAtk[this]=s__unitAttr_baseAtk[this] + value
                 call s__unitAttr_syncAtkRate(this)
             endif
-        endfunction  // 增加固定bonus
-        function s__unitAttr_addFixedBonus takes integer this,real value returns nothing
+        endfunction
+        function s__unitAttr_addAtkFixedBonus takes integer this,real value returns nothing
             if ( value != 0 ) then
-                set s__unitAttr_fixedBonus[this]=s__unitAttr_fixedBonus[this] + value
+                set s__unitAttr_AtkFixedBonus[this]=s__unitAttr_AtkFixedBonus[this] + value
                 call s__unitAttr_syncAtkRate(this)
             endif
-        endfunction  // 增加攻击力增幅
+        endfunction
         function s__unitAttr_addAtkRateUp takes integer this,real value returns nothing
             if ( value != 0 ) then
-                set s__unitAttr_atkRateUp[this]=s__unitAttr_atkRateUp[this] + value
+                set s__unitAttr_AtkRateUp[this]=s__unitAttr_AtkRateUp[this] + value
                 call s__unitAttr_syncAtkRate(this)
             endif
-        endfunction  // 增加攻击力减幅
+        endfunction
         function s__unitAttr_addAtkRateDown takes integer this,real value returns nothing
             if ( value != 0 ) then
-                set s__unitAttr_atkRateDown[this]=RealAdd(s__unitAttr_atkRateDown[this] , value)
+                set s__unitAttr_AtkRateDown[this]=RealAdd(s__unitAttr_AtkRateDown[this] , value)
                 call s__unitAttr_syncAtkRate(this)
             endif
-        endfunction  // 获取当前总攻击力
+        endfunction
         function s__unitAttr_getCurrentAtk takes integer this returns real
-            return s__unitAttr_baseAtk[this] + s__unitAttr_rateBonus[this] + s__unitAttr_fixedBonus[this]
-        endfunction  // 获取当前攻击力倍率
+            return s__unitAttr_baseAtk[this] + s__unitAttr_AtkRateBonus[this] + s__unitAttr_AtkFixedBonus[this]
+        endfunction
         function s__unitAttr_getCurrentAtkRate takes integer this returns real
-            return ( 1.0 + s__unitAttr_atkRateUp[this] ) * ( 1.0 - s__unitAttr_atkRateDown[this] )
-        endfunction  //单位删除会调用
+            return ( 1.0 + s__unitAttr_AtkRateUp[this] ) * ( 1.0 - s__unitAttr_AtkRateDown[this] ) - 1.0
+        endfunction
+        function s__unitAttr_setBaseDef takes integer this,real value returns nothing
+            if ( s__unitAttr_baseDef[this] != value ) then
+                set s__unitAttr_baseDef[this]=value
+                call s__unitAttr_syncDefRate(this)
+            endif
+        endfunction
+        function s__unitAttr_addBaseDef takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_baseDef[this]=s__unitAttr_baseDef[this] + value
+                call s__unitAttr_syncDefRate(this)
+            endif
+        endfunction
+        function s__unitAttr_addDefFixedBonus takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_DefFixedBonus[this]=s__unitAttr_DefFixedBonus[this] + value
+                call s__unitAttr_syncDefRate(this)
+            endif
+        endfunction
+        function s__unitAttr_addDefRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_DefRateUp[this]=s__unitAttr_DefRateUp[this] + value
+                call s__unitAttr_syncDefRate(this)
+            endif
+        endfunction
+        function s__unitAttr_addDefRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_DefRateDown[this]=RealAdd(s__unitAttr_DefRateDown[this] , value)
+                call s__unitAttr_syncDefRate(this)
+            endif
+        endfunction
+        function s__unitAttr_getCurrentDef takes integer this returns real
+            return s__unitAttr_baseDef[this] + s__unitAttr_DefRateBonus[this] + s__unitAttr_DefFixedBonus[this]
+        endfunction
+        function s__unitAttr_getCurrentDefRate takes integer this returns real
+            return ( 1.0 + s__unitAttr_DefRateUp[this] ) * ( 1.0 - s__unitAttr_DefRateDown[this] ) - 1.0
+        endfunction
+        function s__unitAttr_addSpellDmgRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_SpellDmgRateUp[this]=s__unitAttr_SpellDmgRateUp[this] + value
+            endif
+        endfunction
+        function s__unitAttr_addSpellDmgRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_SpellDmgRateDown[this]=RealAdd(s__unitAttr_SpellDmgRateDown[this] , value)
+            endif
+        endfunction
+        function s__unitAttr_getSpellDmgMultiplier takes integer this returns real
+            return ( 1.0 + s__unitAttr_SpellDmgRateUp[this] ) * ( 1.0 - s__unitAttr_SpellDmgRateDown[this] ) - 1.0
+        endfunction
         function s__unitAttr_onDestroy takes integer this returns nothing
             if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__unitAttr_u[this]), 1726) ) then
                 call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__unitAttr_u[this]), 1726)
@@ -722,32 +1087,42 @@ endfunction
             endfunction
         function s__unitAttr_onInit takes nothing returns nothing
             call s__unitLifeCycle_registerDestroy(function s__unitAttr_anon__0)
-        endfunction  // 获取当前的HP减幅值
-        function s__unitAttr_getHPRateDown takes integer this returns real
-            return s__unitAttr_hpRateDown[this]
         endfunction
 
 //library UnitAttr ends
-//library UTUnitAttr:
+//library UTHeroAttr:
 
-    function UTUnitAttr__CreateTestUnit takes player p returns nothing
-        if ( UTUnitAttr__testUnit != null ) then
-            call h__RemoveUnit(UTUnitAttr__testUnit)
-        endif // 使用步兵作为测试单位
-        set UTUnitAttr__testUnit=CreateUnit(p, 'hfoo', 0, 0, 0)
-        set UTUnitAttr__testAttr=s__unitAttr_parse(UTUnitAttr__testUnit)
-        call s__unitAttr_addHP(UTUnitAttr__testAttr,100)
-        call SelectUnit(UTUnitAttr__testUnit, true)
-    endfunction  // 测试基础HP的增减
-    function UTUnitAttr__TTestUTUnitAttr1 takes player p returns nothing
-    endfunction  // 测试HP增幅比例
-    function UTUnitAttr__TTestUTUnitAttr2 takes player p returns nothing
-    endfunction  // 测试HP减幅比例
-    function UTUnitAttr__TTestUTUnitAttr3 takes player p returns nothing
-    endfunction  // 测试HP增减幅组合效果
-    function UTUnitAttr__TTestUTUnitAttr4 takes player p returns nothing
-    endfunction  // 参数化测试处理函数
-    function UTUnitAttr__TTestActUTUnitAttr1 takes string str returns nothing
+        function UTHeroAttr___anon__0 takes nothing returns nothing
+        endfunction  //end
+        function UTHeroAttr___anon__1 takes nothing returns nothing
+        endfunction
+        function UTHeroAttr___anon__2 takes nothing returns nothing
+        endfunction  //heroAttr
+    function UTHeroAttr___Init takes nothing returns nothing
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTHeroAttr___anon__0 , function UTHeroAttr___anon__1)
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTHeroAttr___anon__2 , null)
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr1 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr2 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr3 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr4 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr5 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr6 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr7 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr8 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr9 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestUTHeroAttr10 takes player p returns nothing
+    endfunction
+    function UTHeroAttr___TTestActUTHeroAttr1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -774,191 +1149,54 @@ endfunction
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
-        if ( UTUnitAttr__testUnit == null ) then
-            call UTUnitAttr__CreateTestUnit(p)
-        endif // HP相关命令
-        if ( paramS[0] == "addhp" ) then // 增加基础HP
-            call s__unitAttr_addHP(UTUnitAttr__testAttr,paramR[1])
-            call BJDebugMsg("增加基础HP: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "hpup" ) then // 设置HP增幅
-            call s__unitAttr_addHPRateUp(UTUnitAttr__testAttr,paramR[1])
-            call BJDebugMsg("设置HP增幅为: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "hpdown" ) then // 设置HP减幅
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,paramR[1])
-            call BJDebugMsg("设置HP减幅为: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "atk" ) then // 攻击力相关命令 // 设置基础攻击力
-            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,paramR[1])
-            call BJDebugMsg("设置基础攻击力为: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "addatk" ) then // 增加基础攻击力
-            call s__unitAttr_addBaseAtk(UTUnitAttr__testAttr,paramR[1])
-            call BJDebugMsg("增加基础攻击力: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "atkup" ) then // 设置攻击力增幅
-            call s__unitAttr_addAtkRateUp(UTUnitAttr__testAttr,paramR[1])
-            call BJDebugMsg("设置攻击力增幅为: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "atkdown" ) then // 设置攻击力减幅
-            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,paramR[1])
-            call BJDebugMsg("设置攻击力减幅为: " + R2S(paramR[1]))
-        elseif ( paramS[0] == "atkbonus" ) then // 设置固定加成
-            call s__unitAttr_addFixedBonus(UTUnitAttr__testAttr,paramR[1])
-            call BJDebugMsg("设置固定加成为: " + R2S(paramR[1]))
-        endif // 显示当前状态
-        if ( paramS[0] == "hp" or paramS[0] == "addhp" or paramS[0] == "hpup" or paramS[0] == "hpdown" ) then
-            call BJDebugMsg("当前HP: " + R2S(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr)))
-            call BJDebugMsg("当前HP倍率: " + R2S(s__unitAttr_getCurrentHPRate(UTUnitAttr__testAttr)))
-        else
-            call BJDebugMsg("攻击力: " + R2S(s__unitAttr_baseAtk[UTUnitAttr__testAttr]) + " + " + R2S(s__unitAttr_rateBonus[UTUnitAttr__testAttr] + s__unitAttr_fixedBonus[UTUnitAttr__testAttr]))
+        if ( paramS[0] == "a" ) then
+        elseif ( paramS[0] == "b" ) then
         endif
         set p=null
     endfunction
-        function UTUnitAttr__anon__0 takes nothing returns nothing
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 100.0 , "初始HP应为100")
-        endfunction  // 测试1.2：测试增加HP
-        function UTUnitAttr__anon__1 takes nothing returns nothing
-            call s__unitAttr_addHP(UTUnitAttr__testAttr,50)
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 150.0 , "增加50点HP后应为150")
-        endfunction  // 测试1.3：测试减少HP
-        function UTUnitAttr__anon__2 takes nothing returns nothing
-            call s__unitAttr_addHP(UTUnitAttr__testAttr,- 30)
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 120.0 , "减少30点HP后应为120")
-        endfunction  // 测试2：HP增幅比例测试
-        function UTUnitAttr__anon__3 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0))
-            call s__unitAttr_addHPRateUp(UTUnitAttr__testAttr,0.5)
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 150.0 , "增加50%增幅后应为150")
-            call s__assert_Real(s__unitAttr_getCurrentHPRate(UTUnitAttr__testAttr) , 1.5 , "当前HP倍率应为1.5")
-        endfunction  // 测试3：HP减幅比例测试
-        function UTUnitAttr__anon__4 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0))
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.3)
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 70.0 , "增加30%减幅后应为70")
-            call s__assert_Real(s__unitAttr_getCurrentHPRate(UTUnitAttr__testAttr) , 0.7 , "当前HP倍率应为0.7")
-        endfunction  // 测试4：HP增减幅组合效果测试
-        function UTUnitAttr__anon__5 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0))
-            call s__unitAttr_addHPRateUp(UTUnitAttr__testAttr,0.5)
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.2)
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 120.0 , "增加50%增幅,20%减幅后应为120")
-            call s__assert_Real(s__unitAttr_getCurrentHPRate(UTUnitAttr__testAttr) , 1.2 , "当前HP倍率应为1.2")
-        endfunction  // 测试5：HP减幅的递减收益测试
-        function UTUnitAttr__anon__6 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0)) // 测试两个30%减幅的叠加
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.3)
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.3) // 期望值：1 - (1-0.3)*(1-0.3) = 0.51，所以最终HP应该是100*(1-0.51)=49
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 49.0 , "两个30%减幅叠加后应为49")
-            call s__assert_Real(s__unitAttr_getHPRateDown(UTUnitAttr__testAttr) , 0.51 , "两个30%减幅叠加后减幅值应为0.51") // 测试第三个30%减幅的叠加
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.3) // 期望值：1 - (1-0.51)*(1-0.3) ≈ 0.657，所以最终HP应该是100*(1-0.657)=34.3
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 34.3 , "三个30%减幅叠加后应为34.3")
-            call s__assert_Real(s__unitAttr_getHPRateDown(UTUnitAttr__testAttr) , 0.657 , "三个30%减幅叠加后减幅值应为0.657")
-        endfunction  // 测试6：HP减幅的反向恢复测试
-        function UTUnitAttr__anon__7 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0)) // 先加一个减幅
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.3)
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 70.0 , "30%减幅后应为70") // 加入反向值测试恢复
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,- 0.3)
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 100.0 , "加入反向值后应恢复到100")
-            call s__assert_Real(s__unitAttr_getHPRateDown(UTUnitAttr__testAttr) , 0.0 , "加入反向值后减幅应为0")
-        endfunction  // 测试7：HP减幅的复杂叠加测试
-        function UTUnitAttr__anon__8 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0)) // 测试多个不同数值的减幅叠加
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.2) // 20%减幅 // 30%减幅
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.3) // 10%减幅
-            call s__unitAttr_addHPRateDown(UTUnitAttr__testAttr,0.1) // 计算期望值：
-            call s__assert_Real(s__unitAttr_getCurrentHP(UTUnitAttr__testAttr) , 50.4 , "20%,30%,10%减幅叠加后应为50.4") // 第一次：0.2 // 第二次：1-(1-0.2)*(1-0.3) = 0.44 // 第三次：1-(1-0.44)*(1-0.1) ≈ 0.496
-            call s__assert_Real(s__unitAttr_getHPRateDown(UTUnitAttr__testAttr) , 0.496 , "20%,30%,10%减幅叠加后减幅值应为0.496")
-        endfunction  // 测试8：基础攻击力测试
-        function UTUnitAttr__anon__9 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0)) // 测试设置基础攻击力
-            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,100.0)
-            call s__assert_Real(s__unitAttr_baseAtk[UTUnitAttr__testAttr] , 100.0 , "设置基础攻击力应为100")
-            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 100.0 , "当前攻击力应为100") // 测试增加基础攻击力
-            call s__unitAttr_addBaseAtk(UTUnitAttr__testAttr,50.0)
-            call s__assert_Real(s__unitAttr_baseAtk[UTUnitAttr__testAttr] , 150.0 , "增加50点后基础攻击力应为150")
-            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 150.0 , "当前攻击力应为150")
-        endfunction  // 测试9：攻击力增幅测试
-        function UTUnitAttr__anon__10 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0))
-            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,100.0) // 测试增幅效果
-            call s__unitAttr_addAtkRateUp(UTUnitAttr__testAttr,0.5) // 增加50%
-            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 150.0 , "50%增幅后攻击力应为150")
-            call s__assert_Real(s__unitAttr_getCurrentAtkRate(UTUnitAttr__testAttr) , 1.5 , "当前攻击力倍率应为1.5") // 测试固定加成
-            call s__unitAttr_addFixedBonus(UTUnitAttr__testAttr,30.0)
-            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 180.0 , "加30点固定加成后应为180")
-            call s__assert_Real(s__unitAttr_fixedBonus[UTUnitAttr__testAttr] , 30.0 , "固定加成应为30")
-        endfunction  // 测试10：攻击力减幅的递减收益测试
-        function UTUnitAttr__anon__11 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0))
-            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,100.0) // 测试两个30%减幅的叠加
-            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,0.3)
-            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,0.3) // 期望值：1 - (1-0.3)*(1-0.3) = 0.51
-            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 49.0 , "两个30%减幅叠加后攻击力应为49")
-            call s__assert_Real(s__unitAttr_atkRateDown[UTUnitAttr__testAttr] , 0.51 , "两个30%减幅叠加后减幅值应为0.51") // 测试第三个30%减幅的叠加
-            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,0.3) // 期望值：1 - (1-0.51)*(1-0.3) ≈ 0.657
-            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 34.3 , "三个30%减幅叠加后攻击力应为34.3")
-            call s__assert_Real(s__unitAttr_atkRateDown[UTUnitAttr__testAttr] , 0.657 , "三个30%减幅叠加后减幅值应为0.657") // 测试恢复减幅效果
-            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,- 0.3)
-            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,- 0.3)
-            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,- 0.3)
-            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 100.0 , "三个-30%减幅叠加后攻击力应恢复为100")
-            call s__assert_Real(s__unitAttr_atkRateDown[UTUnitAttr__testAttr] , 0.0 , "三个-30%减幅叠加后减幅值应恢复为0")
-        endfunction  // 测试11：攻击力增减幅组合效果测试
-        function UTUnitAttr__anon__12 takes nothing returns nothing
-            call UTUnitAttr__CreateTestUnit(Player(0))
-            call s__unitAttr_setBaseAtk(UTUnitAttr__testAttr,100.0) // 测试增幅和减幅的组合效果
-            call s__unitAttr_addAtkRateUp(UTUnitAttr__testAttr,0.5) // 增加50% // 减少20%
-            call s__unitAttr_addAtkRateDown(UTUnitAttr__testAttr,0.2) // 计算：100 * (1 + 0.5) * (1 - 0.2) = 120
-            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 120.0 , "50%增幅20%减幅后攻击力应为120")
-            call s__assert_Real(s__unitAttr_getCurrentAtkRate(UTUnitAttr__testAttr) , 1.2 , "当前攻击力倍率应为1.2") // 添加固定加成测试
-            call s__unitAttr_addFixedBonus(UTUnitAttr__testAttr,30.0)
-            call s__assert_Real(s__unitAttr_getCurrentAtk(UTUnitAttr__testAttr) , 150.0 , "加30点固定加成后应为150")
-        endfunction
-    function UTUnitAttr__Init takes nothing returns nothing
-        local player p=Player(0)
-        call BJDebugMsg("=== UnitAttr测试系统已加载 ===")
-        call UTUnitAttr__CreateTestUnit(p)
-        call UnitTestAutoTimer(0.1 , 0 , function UTUnitAttr__anon__0 , null)
-        call UnitTestAutoTimer(0.6 , 0 , function UTUnitAttr__anon__1 , null)
-        call UnitTestAutoTimer(1.1 , 0 , function UTUnitAttr__anon__2 , null)
-        call UnitTestAutoTimer(1.6 , 0 , function UTUnitAttr__anon__3 , null)
-        call UnitTestAutoTimer(2.1 , 0 , function UTUnitAttr__anon__4 , null)
-        call UnitTestAutoTimer(2.6 , 0 , function UTUnitAttr__anon__5 , null)
-        call UnitTestAutoTimer(3.1 , 0 , function UTUnitAttr__anon__6 , null)
-        call UnitTestAutoTimer(3.6 , 0 , function UTUnitAttr__anon__7 , null)
-        call UnitTestAutoTimer(4.1 , 0 , function UTUnitAttr__anon__8 , null)
-        call UnitTestAutoTimer(4.6 , 0 , function UTUnitAttr__anon__9 , null)
-        call UnitTestAutoTimer(5.1 , 0 , function UTUnitAttr__anon__10 , null)
-        call UnitTestAutoTimer(5.6 , 0 , function UTUnitAttr__anon__11 , null)
-        call UnitTestAutoTimer(6.1 , 0 , function UTUnitAttr__anon__12 , null)
-        set p=null
-    endfunction
-        function UTUnitAttr__anon__13 takes nothing returns nothing
-            call UTUnitAttr__Init()
+        function UTHeroAttr___anon__3 takes nothing returns nothing
+            call BJDebugMsg("[HeroAttr] 单元测试已加载")
+            call UTHeroAttr___Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUnitAttr__anon__14 takes nothing returns nothing
+        function UTHeroAttr___anon__4 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
+            local integer i=1
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
-                call UTUnitAttr__TTestActUTUnitAttr1(SubString(str, ( 2 ) - 1, StringLength(str)))
+                call UTHeroAttr___TTestActUTHeroAttr1(SubString(str, ( 2 ) - 1, StringLength(str)))
                 return
             endif
-            if ( str == "hp1" ) then
-                call UTUnitAttr__TTestUTUnitAttr1(GetTriggerPlayer())
-            elseif ( str == "hp2" ) then
-                call UTUnitAttr__TTestUTUnitAttr2(GetTriggerPlayer())
-            elseif ( str == "hp3" ) then
-                call UTUnitAttr__TTestUTUnitAttr3(GetTriggerPlayer())
-            elseif ( str == "hp4" ) then
-                call UTUnitAttr__TTestUTUnitAttr4(GetTriggerPlayer())
+            if ( str == "s1" ) then
+                call UTHeroAttr___TTestUTHeroAttr1(GetTriggerPlayer())
+            elseif ( str == "s2" ) then
+                call UTHeroAttr___TTestUTHeroAttr2(GetTriggerPlayer())
+            elseif ( str == "s3" ) then
+                call UTHeroAttr___TTestUTHeroAttr3(GetTriggerPlayer())
+            elseif ( str == "s4" ) then
+                call UTHeroAttr___TTestUTHeroAttr4(GetTriggerPlayer())
+            elseif ( str == "s5" ) then
+                call UTHeroAttr___TTestUTHeroAttr5(GetTriggerPlayer())
+            elseif ( str == "s6" ) then
+                call UTHeroAttr___TTestUTHeroAttr6(GetTriggerPlayer())
+            elseif ( str == "s7" ) then
+                call UTHeroAttr___TTestUTHeroAttr7(GetTriggerPlayer())
+            elseif ( str == "s8" ) then
+                call UTHeroAttr___TTestUTHeroAttr8(GetTriggerPlayer())
+            elseif ( str == "s9" ) then
+                call UTHeroAttr___TTestUTHeroAttr9(GetTriggerPlayer())
+            elseif ( str == "s10" ) then
+                call UTHeroAttr___TTestUTHeroAttr10(GetTriggerPlayer())
             endif
         endfunction
-    function UTUnitAttr__onInit takes nothing returns nothing
+    function UTHeroAttr___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTUnitAttr__anon__13))
+        call TriggerAddCondition(tr, Condition(function UTHeroAttr___anon__3))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUnitAttr__anon__14)
+        call UnitTestRegisterChatEvent(function UTHeroAttr___anon__4)
     endfunction
 
-//library UTUnitAttr ends
+//library UTHeroAttr ends
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
 //#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
@@ -968,12 +1206,18 @@ endfunction
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
 
+
+
+
+
+
 // 结构体共用方法定义
 //共享打印方法
 // UI组件内部共享方法及成员
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
+
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1066,8 +1310,61 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
-
 //processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
+
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
+
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1208,7 +1505,7 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
-
+// 用原始地图测试
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -1537,9 +1834,9 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs41260421")
-call ExecuteFunc("UnitTestFramwork__onInit")
-call ExecuteFunc("UTUnitAttr__onInit")
+call ExecuteFunc("jasshelper__initstructs34529234")
+call ExecuteFunc("UnitTestFramwork___onInit")
+call ExecuteFunc("UTHeroAttr___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1577,6 +1874,10 @@ endfunction
 
 
 //Struct method generated initializers/callers:
+function sa__unitAttr_parse takes nothing returns boolean
+    set f__result_integer=s__unitAttr_parse(f__arg_unit1)
+   return true
+endfunction
 function sa__unitAttr_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
             if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__unitAttr_u[this]), 1726) ) then
@@ -1585,14 +1886,26 @@ local integer this=f__arg_this
             set s__unitAttr_u[this]=null
    return true
 endfunction
+function sa__heroAttr_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727) ) then
+                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727)
+            endif
+            set s__heroAttr_u[this]=null
+   return true
+endfunction
 function sa__unitLifeCycle_onDestroyCB takes nothing returns boolean
     call s__unitLifeCycle_onDestroyCB(f__arg_unit1)
    return true
 endfunction
 
-function jasshelper__initstructs41260421 takes nothing returns nothing
+function jasshelper__initstructs34529234 takes nothing returns nothing
+    set st__unitAttr_parse=CreateTrigger()
+    call TriggerAddCondition(st__unitAttr_parse,Condition( function sa__unitAttr_parse))
     set st__unitAttr_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__unitAttr_onDestroy,Condition( function sa__unitAttr_onDestroy))
+    set st__heroAttr_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__heroAttr_onDestroy,Condition( function sa__heroAttr_onDestroy))
     set st__unitLifeCycle_onDestroyCB=CreateTrigger()
     call TriggerAddCondition(st__unitLifeCycle_onDestroyCB,Condition( function sa__unitLifeCycle_onDestroyCB))
 
@@ -1601,8 +1914,10 @@ function jasshelper__initstructs41260421 takes nothing returns nothing
 
 
 
+
     call ExecuteFunc("s__mapBounds_onInit")
     call ExecuteFunc("s__unitLifeCycle_onInit")
+    call ExecuteFunc("s__heroAttr_onInit")
     call ExecuteFunc("s__unitAttr_onInit")
 endfunction
 

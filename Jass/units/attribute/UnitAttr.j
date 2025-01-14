@@ -1,6 +1,7 @@
 #ifndef UnitAttrIncluded
 #define UnitAttrIncluded
 
+#include "Crainax/units/attribute/UnitAttr.h"
 #include "Crainax/config/SharedMethod.h"
 #include "Crainax/core/table/Hash_UnitDefine.j"
 #include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
@@ -30,148 +31,93 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 
 			// 不存在才创建新的
 			this = allocate();
-			//todo: 测试一下用setUnitState设超过21亿的数再get能get到吗
 			this.u          = u;
-			this.baseHP     = 0;
-			this.hpRateUp   = 0;
-			this.hpRateDown = 0;
-			this.cachedHP   = 0;
 
-			// 初始化攻击力相关属性
-			this.baseAtk     = 0.0;
-			this.atkRateUp   = 0.0;
-			this.atkRateDown = 0.0;
-			this.rateBonus   = 0.0;
-			this.fixedBonus  = 0.0;
+			INIT_UNIT_ATTR(HP)
+			INIT_UNIT_ATTR(MP)
+
+			// 初始化攻击力和防御力相关属性
+			INIT_COMBAT_ATTR(Atk)
+			INIT_COMBAT_ATTR(Def)
+
+			// 初始化技能伤害增幅
+			INIT_PERCENTAGE_ATTR(SpellDmg)
+
 			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR, this);
 			return this;
 		}
 
-		public  real baseHP;      // 基础HP值
-		public  real hpRateUp;    // HP增幅比例
-		private real hpRateDown;  // HP减幅比例 (改为private,因为我们要用方法来控制它的叠加)
-		private real cachedHP;    // 缓存的实际HP值
-
-		// 同步并刷新当前单位的HP
+		//同步并刷新当前单位的HP
 		private method syncHPRate() {
 			real desiredHP;
 			real diff;
 
-			// 计算期望的HP值 - 先计算增幅,再计算减幅
-			desiredHP = baseHP * (1.0 + hpRateUp) * (1.0 - hpRateDown);
+			//计算期望的HP值 - 先计算增幅,再计算减幅
+			desiredHP = baseHP * (1.0 + HPRateUp) * (1.0 - HPRateDown);
 
-			// 计算差值
+			//计算差值
 			diff = desiredHP - cachedHP;
 
-			// 只有当差值的绝对值大于等于1时才更新
+			//只有当差值的绝对值大于等于1时才更新
 			if (diff >= 1.0 || diff <= -1.0) {
-				// 设置最大生命值
+				//设置最大值
 				SetUnitState(u, UNIT_STATE_MAX_LIFE, RMaxBJ(desiredHP, 2.0));
-				// 如果是增加生命值，同时增加当前生命值
+				//如果是增加值，同时增加当前值
 				if (diff > 0) {
-					SetUnitLifeBJ(u, GetUnitState(u, UNIT_STATE_LIFE) + diff);
+					SetUnitState(u, UNIT_STATE_LIFE, GetUnitState(u, UNIT_STATE_LIFE) + diff);
 				}
 				cachedHP = desiredHP;
 			}
 		}
+		//同步并刷新当前单位的MP
+		private method syncMPRate() {
+			real desiredMP;
+			real diff;
 
-		// 增加或减少基础HP
-		public method addHP(real value) {
-			if (value != 0) {  // 避免不必要的计算
-				baseHP += value;
-				syncHPRate();
+			//计算期望的MP值 - 先计算增幅,再计算减幅
+			desiredMP = baseMP * (1.0 + MPRateUp) * (1.0 - MPRateDown);
+
+			//计算差值
+			diff = desiredMP - cachedMP;
+
+			//只有当差值的绝对值大于等于1时才更新
+			if (diff >= 1.0 || diff <= -1.0) {
+				//设置最大值
+				SetUnitState(u, UNIT_STATE_MAX_MANA, RMaxBJ(desiredMP, 2.0));
+				//如果是增加值，同时增加当前值
+				if (diff > 0) {
+					SetUnitState(u, UNIT_STATE_MANA, GetUnitState(u, UNIT_STATE_MANA) + diff);
+				}
+				cachedMP = desiredMP;
 			}
 		}
 
-		// 增加HP增幅比例
-		public method addHPRateUp(real value) {
-			if (value != 0) {  // 避免不必要的计算
-				hpRateUp += value;
-				syncHPRate();
-			}
-		}
-
-		// 增加HP减幅比例
-		public method addHPRateDown(real value) {
-			if (value != 0) {  // 避免不必要的计算
-				hpRateDown = RealAdd(hpRateDown, value);
-				syncHPRate();
-			}
-		}
-
-		// 获取当前的HP倍率
-		public method getCurrentHPRate() -> real {
-			return (1.0 + hpRateUp) * (1.0 - hpRateDown);
-		}
-
-		// 获取当前实际HP值
-		public method getCurrentHP() -> real {
-			return cachedHP;
-		}
-
-		// 攻击力相关属性
-		public real baseAtk;      // 基础攻击力
-		public real atkRateUp;    // 攻击力增幅比例
-		public real atkRateDown;  // 攻击力减幅比例
-		public real rateBonus;    // 受增减幅影响的bonus值
-		public real fixedBonus;   // 固定加成值(不受增减幅影响)
-
-		// 同步并刷新当前单位的攻击力
+		// 同步并刷新当前单位的攻击
 		private method syncAtkRate() {
-			rateBonus = baseAtk * (1.0 + atkRateUp) * (1.0 - atkRateDown) - baseAtk;
-			SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), RMaxBJ(baseAtk + rateBonus + fixedBonus, 0.0));
+			AtkRateBonus = baseAtk * (1.0 + AtkRateUp) * (1.0 - AtkRateDown) - baseAtk;
+			SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), RMaxBJ(baseAtk + AtkRateBonus + AtkFixedBonus, 0.0));
 		}
 
-		// 设置基础攻击力
-		public method setBaseAtk(real value) {
-			if (baseAtk != value) {
-				baseAtk = value;
-				syncAtkRate();
-			}
+		// 同步并刷新当前单位的防御
+		private method syncDefRate() {
+			DefRateBonus = baseDef * (1.0 + DefRateUp) * (1.0 - DefRateDown) - baseDef;
+			SetUnitState(u, ConvertUnitState(UNIT_STATE_ARMOR), baseDef + DefRateBonus + DefFixedBonus);
 		}
 
-		// 增加基础攻击力
-		public method addBaseAtk(real value) {
-			if (value != 0) {
-				baseAtk += value;
-				syncAtkRate();
-			}
-		}
+		// 使用宏定义生成HP相关属性和方法
+		DEFINE_UNIT_ATTR(HP)
 
-		// 增加固定bonus
-		public method addFixedBonus(real value) {
-			if (value != 0) {
-				fixedBonus += value;
-				syncAtkRate();
-			}
-		}
+		// 使用宏定义生成MP相关属性和方法
+		DEFINE_UNIT_ATTR(MP)
 
-		// 增加攻击力增幅
-		public method addAtkRateUp(real value) {
-			if (value != 0) {
-				atkRateUp += value;
-				syncAtkRate();
-			}
-		}
+		// 使用宏定义生成攻击力相关属性和方法
+		DEFINE_COMBAT_ATTR(Atk)
 
-		// 增加攻击力减幅
-		public method addAtkRateDown(real value) {
-			if (value != 0) {
-				atkRateDown = RealAdd(atkRateDown, value);
-				syncAtkRate();
-			}
-		}
+		// 使用宏定义生成防御力相关属性和方法
+		DEFINE_COMBAT_ATTR(Def)
 
-		// 获取当前总攻击力
-		public method getCurrentAtk() -> real {
-			return baseAtk + rateBonus + fixedBonus;
-		}
-
-		// 获取当前攻击力倍率
-		public method getCurrentAtkRate() -> real {
-			return (1.0 + atkRateUp) * (1.0 - atkRateDown);
-		}
-
+		// 使用宏定义生成技能伤害增幅
+		DEFINE_PERCENTAGE_ATTR(SpellDmg)
 
 		//单位删除会调用
 		method onDestroy () {
@@ -193,10 +139,6 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 			});
 		}
 
-		// 获取当前的HP减幅值
-		public method getHPRateDown() -> real {
-			return hpRateDown;
-		}
 	}
 
 }

@@ -11,12 +11,24 @@
  * -hpup [value] : 设置HP增幅比例
  * -hpdown [value] : 设置HP减幅比例
  *
+ * MP相关命令：
+ * -addmp [value] : 增加基础MP
+ * -mpup [value] : 设置MP增幅比例
+ * -mpdown [value] : 设置MP减幅比例
+ *
  * 攻击力相关命令：
  * -atk [value] : 设置基础攻击力
  * -addatk [value] : 增加基础攻击力
  * -atkup [value] : 设置攻击力增幅比例
  * -atkdown [value] : 设置攻击力减幅比例
  * -atkbonus [value] : 设置攻击力固定加成
+ *
+ * 防御力相关命令：
+ * -def [value] : 设置基础防御力
+ * -adddef [value] : 增加基础防御力
+ * -defup [value] : 设置防御力增幅比例
+ * -defdown [value] : 设置防御力减幅比例
+ * -defbonus [value] : 设置防御力固定加成
  */
 
 //! zinc
@@ -96,6 +108,20 @@ library UTUnitAttr requires UnitAttr {
 			testAttr.addHPRateDown(paramR[1]);
 			BJDebugMsg("设置HP减幅为: " + R2S(paramR[1]));
 		}
+		// MP相关命令
+		else if (paramS[0] == "addmp") {
+			// 增加基础MP
+			testAttr.addMP(paramR[1]);
+			BJDebugMsg("增加基础MP: " + R2S(paramR[1]));
+		} else if (paramS[0] == "mpup") {
+			// 设置MP增幅
+			testAttr.addMPRateUp(paramR[1]);
+			BJDebugMsg("设置MP增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "mpdown") {
+			// 设置MP减幅
+			testAttr.addMPRateDown(paramR[1]);
+			BJDebugMsg("设置MP减幅为: " + R2S(paramR[1]));
+		}
 		// 攻击力相关命令
 		else if (paramS[0] == "atk") {
 			// 设置基础攻击力
@@ -115,16 +141,43 @@ library UTUnitAttr requires UnitAttr {
 			BJDebugMsg("设置攻击力减幅为: " + R2S(paramR[1]));
 		} else if (paramS[0] == "atkbonus") {
 			// 设置固定加成
-			testAttr.addFixedBonus(paramR[1]);
+			testAttr.addAtkFixedBonus(paramR[1]);
 			BJDebugMsg("设置固定加成为: " + R2S(paramR[1]));
+		}
+		// 防御力相关命令
+		else if (paramS[0] == "def") {
+			// 设置基础防御力
+			testAttr.setBaseDef(paramR[1]);
+			BJDebugMsg("设置基础防御力为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "adddef") {
+			// 增加基础防御力
+			testAttr.addBaseDef(paramR[1]);
+			BJDebugMsg("增加基础防御力: " + R2S(paramR[1]));
+		} else if (paramS[0] == "defup") {
+			// 设置防御力增幅
+			testAttr.addDefRateUp(paramR[1]);
+			BJDebugMsg("设置防御力增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "defdown") {
+			// 设置防御力减幅
+			testAttr.addDefRateDown(paramR[1]);
+			BJDebugMsg("设置防御力减幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "defbonus") {
+			// 设置固定加成
+			testAttr.addDefFixedBonus(paramR[1]);
+			BJDebugMsg("设置防御力固定加成为: " + R2S(paramR[1]));
 		}
 
 		// 显示当前状态
-		if (paramS[0] == "hp" || paramS[0] == "addhp" || paramS[0] == "hpup" || paramS[0] == "hpdown") {
+		if (paramS[0] == "addhp" || paramS[0] == "hpup" || paramS[0] == "hpdown") {
 			BJDebugMsg("当前HP: " + R2S(testAttr.getCurrentHP()));
 			BJDebugMsg("当前HP倍率: " + R2S(testAttr.getCurrentHPRate()));
+		} else if (paramS[0] == "addmp" || paramS[0] == "mpup" || paramS[0] == "mpdown") {
+			BJDebugMsg("当前MP: " + R2S(testAttr.getCurrentMP()));
+			BJDebugMsg("当前MP倍率: " + R2S(testAttr.getCurrentMPRate()));
+		} else if (paramS[0] == "def" || paramS[0] == "adddef" || paramS[0] == "defup" || paramS[0] == "defdown" || paramS[0] == "defbonus") {
+			BJDebugMsg("防御力: " + R2S(testAttr.baseDef) + " + " + R2S(testAttr.DefRateBonus + testAttr.DefFixedBonus));
 		} else {
-			BJDebugMsg("攻击力: " + R2S(testAttr.baseAtk) + " + " + R2S(testAttr.rateBonus + testAttr.fixedBonus));
+			BJDebugMsg("攻击力: " + R2S(testAttr.baseAtk) + " + " + R2S(testAttr.AtkRateBonus + testAttr.AtkFixedBonus));
 		}
 
 		p = null;
@@ -159,7 +212,7 @@ library UTUnitAttr requires UnitAttr {
 			CreateTestUnit(Player(0));
 			testAttr.addHPRateUp(0.5);
 			assert.Real(testAttr.getCurrentHP(), 150.0, "增加50%增幅后应为150");
-			assert.Real(testAttr.getCurrentHPRate(), 1.5, "当前HP倍率应为1.5");
+			assert.Real(testAttr.getCurrentHPRate(), 0.5, "当前HP倍率应为0.5");
 		}, null);
 
 		// 测试3：HP减幅比例测试
@@ -167,7 +220,7 @@ library UTUnitAttr requires UnitAttr {
 			CreateTestUnit(Player(0));
 			testAttr.addHPRateDown(0.3);
 			assert.Real(testAttr.getCurrentHP(), 70.0, "增加30%减幅后应为70");
-			assert.Real(testAttr.getCurrentHPRate(), 0.7, "当前HP倍率应为0.7");
+			assert.Real(testAttr.getCurrentHPRate(), -0.3, "当前HP倍率应为-0.3");
 		}, null);
 
 		// 测试4：HP增减幅组合效果测试
@@ -176,7 +229,7 @@ library UTUnitAttr requires UnitAttr {
 			testAttr.addHPRateUp(0.5);
 			testAttr.addHPRateDown(0.2);
 			assert.Real(testAttr.getCurrentHP(), 120.0, "增加50%增幅,20%减幅后应为120");
-			assert.Real(testAttr.getCurrentHPRate(), 1.2, "当前HP倍率应为1.2");
+			assert.Real(testAttr.getCurrentHPRate(), 0.2, "当前HP倍率应为0.2");
 		}, null);
 
 		// 测试5：HP减幅的递减收益测试
@@ -188,13 +241,13 @@ library UTUnitAttr requires UnitAttr {
 			testAttr.addHPRateDown(0.3);
 			// 期望值：1 - (1-0.3)*(1-0.3) = 0.51，所以最终HP应该是100*(1-0.51)=49
 			assert.Real(testAttr.getCurrentHP(), 49.0, "两个30%减幅叠加后应为49");
-			assert.Real(testAttr.getHPRateDown(), 0.51, "两个30%减幅叠加后减幅值应为0.51");
+			assert.Real(testAttr.HPRateDown, 0.51, "两个30%减幅叠加后减幅值应为0.51");
 
 			// 测试第三个30%减幅的叠加
 			testAttr.addHPRateDown(0.3);
 			// 期望值：1 - (1-0.51)*(1-0.3) ≈ 0.657，所以最终HP应该是100*(1-0.657)=34.3
 			assert.Real(testAttr.getCurrentHP(), 34.3, "三个30%减幅叠加后应为34.3");
-			assert.Real(testAttr.getHPRateDown(), 0.657, "三个30%减幅叠加后减幅值应为0.657");
+			assert.Real(testAttr.HPRateDown, 0.657, "三个30%减幅叠加后减幅值应为0.657");
 		}, null);
 
 		// 测试6：HP减幅的反向恢复测试
@@ -208,7 +261,7 @@ library UTUnitAttr requires UnitAttr {
 			// 加入反向值测试恢复
 			testAttr.addHPRateDown(-0.3);
 			assert.Real(testAttr.getCurrentHP(), 100.0, "加入反向值后应恢复到100");
-			assert.Real(testAttr.getHPRateDown(), 0.0, "加入反向值后减幅应为0");
+			assert.Real(testAttr.HPRateDown, 0.0, "加入反向值后减幅应为0");
 		}, null);
 
 		// 测试7：HP减幅的复杂叠加测试
@@ -225,7 +278,7 @@ library UTUnitAttr requires UnitAttr {
 			// 第二次：1-(1-0.2)*(1-0.3) = 0.44
 			// 第三次：1-(1-0.44)*(1-0.1) ≈ 0.496
 			assert.Real(testAttr.getCurrentHP(), 50.4, "20%,30%,10%减幅叠加后应为50.4");
-			assert.Real(testAttr.getHPRateDown(), 0.496, "20%,30%,10%减幅叠加后减幅值应为0.496");
+			assert.Real(testAttr.HPRateDown, 0.496, "20%,30%,10%减幅叠加后减幅值应为0.496");
 		}, null);
 
 		// 测试8：基础攻击力测试
@@ -251,12 +304,12 @@ library UTUnitAttr requires UnitAttr {
 			// 测试增幅效果
 			testAttr.addAtkRateUp(0.5); // 增加50%
 			assert.Real(testAttr.getCurrentAtk(), 150.0, "50%增幅后攻击力应为150");
-			assert.Real(testAttr.getCurrentAtkRate(), 1.5, "当前攻击力倍率应为1.5");
+			assert.Real(testAttr.getCurrentAtkRate(), 0.5, "当前攻击力倍率应为0.5");
 
 			// 测试固定加成
-			testAttr.addFixedBonus(30.0);
+			testAttr.addAtkFixedBonus(30.0);
 			assert.Real(testAttr.getCurrentAtk(), 180.0, "加30点固定加成后应为180");
-			assert.Real(testAttr.fixedBonus, 30.0, "固定加成应为30");
+			assert.Real(testAttr.AtkFixedBonus, 30.0, "固定加成应为30");
 		}, null);
 
 		// 测试10：攻击力减幅的递减收益测试
@@ -269,20 +322,20 @@ library UTUnitAttr requires UnitAttr {
 			testAttr.addAtkRateDown(0.3);
 			// 期望值：1 - (1-0.3)*(1-0.3) = 0.51
 			assert.Real(testAttr.getCurrentAtk(), 49.0, "两个30%减幅叠加后攻击力应为49");
-			assert.Real(testAttr.atkRateDown, 0.51, "两个30%减幅叠加后减幅值应为0.51");
+			assert.Real(testAttr.AtkRateDown, 0.51, "两个30%减幅叠加后减幅值应为0.51");
 
 			// 测试第三个30%减幅的叠加
 			testAttr.addAtkRateDown(0.3);
 			// 期望值：1 - (1-0.51)*(1-0.3) ≈ 0.657
 			assert.Real(testAttr.getCurrentAtk(), 34.3, "三个30%减幅叠加后攻击力应为34.3");
-			assert.Real(testAttr.atkRateDown, 0.657, "三个30%减幅叠加后减幅值应为0.657");
+			assert.Real(testAttr.AtkRateDown, 0.657, "三个30%减幅叠加后减幅值应为0.657");
 
 			// 测试恢复减幅效果
 			testAttr.addAtkRateDown(-0.3);
 			testAttr.addAtkRateDown(-0.3);
 			testAttr.addAtkRateDown(-0.3);
 			assert.Real(testAttr.getCurrentAtk(), 100.0, "三个-30%减幅叠加后攻击力应恢复为100");
-			assert.Real(testAttr.atkRateDown, 0.0, "三个-30%减幅叠加后减幅值应恢复为0");
+			assert.Real(testAttr.AtkRateDown, 0.0, "三个-30%减幅叠加后减幅值应恢复为0");
 		}, null);
 
 		// 测试11：攻击力增减幅组合效果测试
@@ -295,10 +348,10 @@ library UTUnitAttr requires UnitAttr {
 			testAttr.addAtkRateDown(0.2);   // 减少20%
 			// 计算：100 * (1 + 0.5) * (1 - 0.2) = 120
 			assert.Real(testAttr.getCurrentAtk(), 120.0, "50%增幅20%减幅后攻击力应为120");
-			assert.Real(testAttr.getCurrentAtkRate(), 1.2, "当前攻击力倍率应为1.2");
+			assert.Real(testAttr.getCurrentAtkRate(), 0.2, "当前攻击力倍率应为0.2");
 
 			// 添加固定加成测试
-			testAttr.addFixedBonus(30.0);
+			testAttr.addAtkFixedBonus(30.0);
 			assert.Real(testAttr.getCurrentAtk(), 150.0, "加30点固定加成后应为150");
 		}, null);
 

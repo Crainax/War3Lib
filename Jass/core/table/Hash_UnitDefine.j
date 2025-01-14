@@ -6,5 +6,6 @@
 */
 
 #define HASH_KEY_UNIT_UNITATTR    1726 //储存的单位属性结构体
+#define HASH_KEY_UNIT_HEROATTR    1727 //储存的英雄属性结构体
 
 #endif

@@ -1,4 +1,6 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 673: getBaseAtk is not a member of unitAttr
-1
+pjass.exe
+Line 682:  Undeclared variable HASH_KEY_UNIT_HEROATTR
+Line 826:  Undeclared variable HASH_KEY_UNIT_HEROATTR
+Line 1891:  Undeclared variable HASH_KEY_UNIT_HEROATTR. Maybe you meant bj_destRandomConsidered, MAP_DENSITY_LIGHT or LIBRARY_MathUtils
+3
