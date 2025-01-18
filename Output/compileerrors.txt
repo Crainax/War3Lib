@@ -1,6 +1,4 @@
 logs\currentmapscript.j
 pjass.exe
-Line 682:  Undeclared variable HASH_KEY_UNIT_HEROATTR
-Line 826:  Undeclared variable HASH_KEY_UNIT_HEROATTR
-Line 1891:  Undeclared variable HASH_KEY_UNIT_HEROATTR. Maybe you meant bj_destRandomConsidered, MAP_DENSITY_LIGHT or LIBRARY_MathUtils
-3
+Line 1349:  Cannot convert real to integer
+1

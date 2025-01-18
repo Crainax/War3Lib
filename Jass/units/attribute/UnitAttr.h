@@ -177,4 +177,126 @@ CRNL \
         this.ATTR##RateBonus = 0.0; CRNL \
         this.ATTR##FixedBonus = 0.0; CRNL
 
+/*
+ * 英雄主属性系统宏定义(适用于力量、敏捷、智力)
+ * 用法:
+ * DEFINE_HERO_ATTR(Str) 会生成力量相关的所有属性和方法
+ * DEFINE_HERO_ATTR(Agi) 会生成敏捷相关的所有属性和方法
+ * DEFINE_HERO_ATTR(Int) 会生成智力相关的所有属性和方法
+ *
+ * 参数说明:
+ * ATTR: 属性名(Str/Agi/Int)
+ */
+#define DEFINE_HERO_ATTR(ATTR) \
+        public real base##ATTR;                       /* 基础ATTR值 */ CRNL \
+        public real ATTR##RateUp;                     /* ATTR增幅比例 */ CRNL \
+        public real ATTR##RateDown;                   /* ATTR减幅比例 */ CRNL \
+        public real ATTR##RateBonus;                  /* 受增减幅影响的bonus值 */ CRNL \
+        public real ATTR##FixedBonus;                 /* 固定加成值(不受增减幅影响) */ CRNL \
+        public static trigger tr##ATTR##Change = null;  /* ATTR变化触发器 */ CRNL \
+CRNL \
+        /* 获取基础ATTR(白字) */ CRNL \
+        public method getBase##ATTR() -> real { CRNL \
+            if (mainAttrType == MAIN_ATTR_##ATTR) { CRNL \
+                return base##ATTR + mainAttrBase; CRNL \
+            } else { CRNL \
+                return base##ATTR + subAttrBase; CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 获取额外ATTR(绿字) */ CRNL \
+        public method getExtra##ATTR() -> real { CRNL \
+            if (mainAttrType == MAIN_ATTR_##ATTR) { CRNL \
+                return ATTR##RateBonus + ATTR##FixedBonus + mainAttrFixedBonus; CRNL \
+            } else { CRNL \
+                return ATTR##RateBonus + ATTR##FixedBonus + subAttrFixedBonus; CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 获取当前总ATTR */ CRNL \
+        public method getCurrent##ATTR() -> real { CRNL \
+            if (mainAttrType == MAIN_ATTR_##ATTR) { CRNL \
+                return base##ATTR + mainAttrBase + ATTR##RateBonus + ATTR##FixedBonus + mainAttrFixedBonus; CRNL \
+            } else { CRNL \
+                return base##ATTR + subAttrBase + ATTR##RateBonus + ATTR##FixedBonus + subAttrFixedBonus; CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 获取当前ATTR倍率 */ CRNL \
+        public method getCurrent##ATTR##Rate() -> real { CRNL \
+            if (mainAttrType == MAIN_ATTR_##ATTR) { CRNL \
+                return (1.0 + ATTR##RateUp + mainAttrRateUp) * (1.0 - ATTR##RateDown) * (1.0 - mainAttrRateDown) - 1.0; CRNL \
+            } else { CRNL \
+                return (1.0 + ATTR##RateUp + subAttrRateUp) * (1.0 - ATTR##RateDown) * (1.0 - subAttrRateDown) - 1.0; CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 同步并刷新当前单位的ATTR */ CRNL \
+        private method sync##ATTR##Rate() { CRNL \
+            ATTR##RateBonus = base##ATTR * getCurrent##ATTR##Rate(); CRNL \
+            SetHero##ATTR(u, R2I(RMaxBJ(getCurrent##ATTR(), 0.0)), true); CRNL \
+            if (tr##ATTR##Change != null) { CRNL \
+                ethis = this; CRNL \
+                TriggerEvaluate(tr##ATTR##Change); CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 设置基础ATTR */ CRNL \
+        public method setBase##ATTR(real value) { CRNL \
+            if (base##ATTR != value) { CRNL \
+                base##ATTR = value; CRNL \
+                sync##ATTR##Rate(); CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 增加基础ATTR */ CRNL \
+        public method addBase##ATTR(real value) { CRNL \
+            if (value != 0) { CRNL \
+                base##ATTR += value; CRNL \
+                sync##ATTR##Rate(); CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 增加固定bonus */ CRNL \
+        public method add##ATTR##FixedBonus(real value) { CRNL \
+            if (value != 0) { CRNL \
+                ATTR##FixedBonus += value; CRNL \
+                sync##ATTR##Rate(); CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 增加ATTR增幅 */ CRNL \
+        public method add##ATTR##RateUp(real value) { CRNL \
+            if (value != 0) { CRNL \
+                ATTR##RateUp += value; CRNL \
+                sync##ATTR##Rate(); CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 增加ATTR减幅 */ CRNL \
+        public method add##ATTR##RateDown(real value) { CRNL \
+            if (value != 0) { CRNL \
+                ATTR##RateDown = RealAdd(ATTR##RateDown, value); CRNL \
+                sync##ATTR##Rate(); CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 回调ATTR变化 */ CRNL \
+        public static method on##ATTR##Change(code func) { CRNL \
+            if (tr##ATTR##Change == null) { CRNL \
+                tr##ATTR##Change = CreateTrigger(); CRNL \
+            } CRNL \
+            TriggerAddCondition(tr##ATTR##Change, Condition(func)); CRNL \
+        } CRNL
+
+/*
+ * 初始化英雄属性宏定义
+ */
+#define INIT_HERO_ATTR(ATTR) \
+        this.base##ATTR = 0.0; CRNL \
+        this.ATTR##RateUp = 0.0; CRNL \
+        this.ATTR##RateDown = 0.0; CRNL \
+        this.ATTR##RateBonus = 0.0; CRNL \
+        this.ATTR##FixedBonus = 0.0; CRNL
+
 #endif

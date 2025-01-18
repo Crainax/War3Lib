@@ -3,6 +3,25 @@
 #include <YDTrigger/Import.h>
 #include <YDTrigger/YDTrigger.h>
 
+#ifndef UnitHashTableIncluded
+#define UnitHashTableIncluded
+
+
+#include "Crainax/core/table/Hash_UnitDefine.j"
+
+//! zinc
+/*
+单位哈希表
+*/
+library UnitHashTable {
+
+    public hashtable HASH_UNIT = InitHashtable();  // 单位哈希表
+
+}
+
+//! endzinc
+#endif
+
 #ifndef UnitAttrIncluded
 #define UnitAttrIncluded
 
@@ -324,110 +343,307 @@ library MathUtils {
         }
     }
 
-}
-
-//! endzinc
-#endif
-
-#ifndef UnitLifeCycleIncluded
-#define UnitLifeCycleIncluded
-
-//! zinc
-/*
-Unit生命周期管理器
-负责管理Unit组件的创建和销毁事件
-*/
-library UnitLifeCycle {
-
-    public struct unitLifeCycle [] {
-
-        static unit argsUnit = null;
-        private {
-            static trigger trCreate = null;
-            static trigger trDestroy = null;
+    // 实现三个数值的特殊叠加计算
+    // 效果等同于 RealAdd(RealAdd(a1,a2),a3)
+    //
+    // 参数说明：
+    // a1: 第一个数值，通常表示当前已有的加成效果
+    // a2: 第二个数值，表示第一次要叠加的新加成效果
+    // a3: 第三个数值，表示第二次要叠加的新加成效果
+    // 返回值: 三个数值叠加后的最终效果值
+    //
+    // 使用示例：
+    // real baseEffect = 0.3;     // 基础30%效果
+    // real bonus1 = 0.4;         // 第一个40%加成
+    // real bonus2 = 0.2;         // 第二个20%加成
+    // real final = RealAdd3(baseEffect, bonus1, bonus2);  // 一次性计算三个效果的叠加
+    public function RealAdd3 ( real a1, real a2, real a3 ) -> real {
+        real temp;
+        // 如果第二个参数绝对值>=1.0，直接用第一个参数与第三个参数计算
+        if (RAbsBJ(a2) >= 1.0) {
+            return RealAdd(a1, a3);
+        }
+        // 如果第三个参数绝对值>=1.0，直接返回前两个参数的计算结果
+        if (RAbsBJ(a3) >= 1.0) {
+            return RealAdd(a1, a2);
         }
 
-        // 注册销毁回调
-        static method registerDestroy(code func) {
-            TriggerAddCondition(trDestroy, Condition(func));
+        // 先计算前两个参数的结果
+        if (a2 >= 0) {
+            temp = 1.0-(1.0-a1)*(1.0-a2);
+        } else {
+            temp = 1.0-(1.0-a1)/(1.0+a2);
         }
 
-        static method onDestroyCB(unit u) {
-            argsUnit = u;
-            TriggerEvaluate(trDestroy);
-            //然后再清除所有哈希表
-            FlushChildHashtable(HASH_UNIT,GetHandleId(u));
-            argsUnit = null;
+        // 再与第三个参数计算
+        if (a3 >= 0) {
+            return 1.0-(1.0-temp)*(1.0-a3);
+        } else {
+            return 1.0-(1.0-temp)/(1.0+a3);
         }
-
-        static method onInit () {
-            trCreate = CreateTrigger();
-            trDestroy = CreateTrigger();
-        }
-
-    }
-}
-//! endzinc
-
-hook RemoveUnit unitLifeCycle.onDestroyCB
-
-#endif
-
-#ifndef MapBoundsUtilsIncluded
-#define MapBoundsUtilsIncluded
-
-//! zinc
-// 地图边界工具库
-library MapBoundsUtils {
-
-    public struct mapBounds {
-        static real maxX = 0.;
-        static real minX = 0.;
-        static real maxY = 0.;
-        static real minY = 0.;
-
-        // 限制X坐标在地图范围内
-        static method X (real x) -> real {
-            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
-        }
-        // 限制Y坐标在地图范围内
-        static method Y (real y) -> real {
-            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
-        }
-
-        // 初始化
-        static method onInit () {
-            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
-            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
-            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
-            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
-        }
-
     }
 
 }
-//! endzinc
 
+//! endzinc
 #endif
 
-#ifndef UnitHashTableIncluded
-#define UnitHashTableIncluded
-
-
-#include "Crainax/core/table/Hash_UnitDefine.j"
+#ifndef LoggerIncluded
+#define LoggerIncluded
 
 //! zinc
-/*
-单位哈希表
-*/
-library UnitHashTable {
+//==================================
+// 日志打印系统
+// version: 1.0
+// author: 系统自动生成
+// date: 2024/3/21
+//
+// 功能：提供五个日志级别输出
+// - TRACE(灰)：追踪调试用
+// - DEBUG(绿)：调试信息用
+// - INFO(白)：普通信息用
+// - WARN(黄)：警告信息用
+// - ERROR(红)：错误信息用
+//
+// 示例：
+// call Info("普通信息")
+// call Error(Player(0), "玩家1的错误")
+//==================================
+library Logger requires YDLua {
 
-    public hashtable HASH_UNIT = InitHashtable();  // 单位哈希表
+    public integer logger_level = 0;
+    public string  logger_msg   = null;
+    public player  logger_p     = null;
+    public trigger logger_tr    = null;
 
+    // 追踪级别日志(灰色),用于程序执行追踪
+    public function Trace(string msg) {
+        logger_msg   = msg;
+        logger_level = 0;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 调试级别日志(绿色),用于输出变量值等调试信息
+    public function Debug(string msg) {
+        logger_msg   = msg;
+        logger_level = 1;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 信息级别日志(白色),用于输出普通提示信息
+    public function Info(string msg) {
+        logger_msg   = msg;
+        logger_level = 2;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 警告级别日志(黄色),用于输出警告信息
+    public function Warn(string msg) {
+        logger_msg   = msg;
+        logger_level = 3;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 错误级别日志(红色),用于输出错误信息
+    public function Error(string msg) {
+        logger_msg   = msg;
+        logger_level = 4;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出追踪日志(灰色)
+    public function TraceToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 0;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出调试日志(绿色)
+    public function DebugToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 1;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出信息日志(白色)
+    public function InfoToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 2;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出警告日志(黄色)
+    public function WarnToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 3;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出错误日志(红色)
+    public function ErrorToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 4;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    function onInit() {
+        Cheat("exec-lua:depends.debug.logger"); //日志打印系统初始化
+    }
 }
 
 //! endzinc
 #endif
+
+#ifndef UnitTestFramworkIncluded
+#define UnitTestFramworkIncluded
+
+/*
+单元测试框架(注入)
+*/
+
+//! zinc
+library UnitTestFramwork {
+
+	//单元测试总
+	trigger TUnitTest = null;
+    private hashtable HASH_UNITTEST = InitHashtable();  // 单元测试哈希表
+
+    //断言
+    public struct assert []{
+        //断言布尔值
+        static method Boolean (boolean condition,string name) {
+            if (!condition) {
+                BJDebugMsg("FAIL: " + name);
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+
+        //断言字符串相等
+        static method String(string actual, string expected, string name) {
+            if (actual != expected) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + expected);
+                BJDebugMsg("  Actual: " + actual);
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+
+        //断言整数相等
+        static method Integer(integer actual, integer expected, string name) {
+            if (actual != expected) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + I2S(expected));
+                BJDebugMsg("  Actual: " + I2S(actual));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+
+        //断言浮点数相等
+        static method Real(real actual, real expected, string name) {
+            real maxValue = RMaxBJ(RAbsBJ(actual), RAbsBJ(expected));  // 取两个数的绝对值的较大值
+            real epsilon = maxValue * 0.00001;  // 相对误差为数值大小的万分之一
+            // 处理接近0的特殊情况
+            if (maxValue < 0.00001) {
+                epsilon = 0.00001;
+            }
+            if (RAbsBJ(actual - expected) > epsilon) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + R2SW(expected,0,1));
+                BJDebugMsg("  Actual: " + R2SW(actual,0,1));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+    }
+
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
+    }
+
+    //指定开始时间与持续时间的定时器
+    public function UnitTestAutoTimer (real time, real duration,code start, code end) {
+        trigger t = CreateTrigger();
+        trigger tr = CreateTrigger();
+        TriggerAddCondition(t, Condition(start));
+        TriggerRegisterTimerEventSingle(tr,time);
+        SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
+        SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
+        SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
+        TriggerAddCondition(tr,Condition(function (){
+            real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
+            real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
+            trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
+            BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]开始------");
+            TriggerEvaluate(tr);
+            DestroyTrigger(tr);
+            FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
+            DestroyTrigger(GetTriggeringTrigger());
+            tr = null;
+        }));
+        if (end != null) {
+            t = CreateTrigger();
+            tr = CreateTrigger();
+            TriggerAddCondition(t, Condition(end));
+            TriggerRegisterTimerEventSingle(tr,time+duration);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
+            SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
+            TriggerAddCondition(tr,Condition(function (){
+                real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
+                real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
+                trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
+                TriggerEvaluate(tr);
+                BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]结束------");
+                DestroyTrigger(tr);
+                FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
+                DestroyTrigger(GetTriggeringTrigger());
+                tr = null;
+            }));
+        }
+        tr = null;
+        t = null;
+    }
+
+    function onInit ()  {
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
+            }
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+    }
+}
+
+//! endzinc
+#endif
+
+
 
 #ifndef UnitUtilsIncluded
 #define UnitUtilsIncluded
@@ -586,146 +802,146 @@ library UnitUtils {
 //! endzinc
 #endif
 
-#ifndef UnitTestFramworkIncluded
-#define UnitTestFramworkIncluded
-
-/*
-单元测试框架(注入)
-*/
+#ifndef UnitLifeCycleIncluded
+#define UnitLifeCycleIncluded
 
 //! zinc
-library UnitTestFramwork {
+/*
+Unit生命周期管理器
+负责管理Unit组件的创建和销毁事件
+*/
+library UnitLifeCycle {
 
-	//单元测试总
-	trigger TUnitTest = null;
-    private hashtable HASH_UNITTEST = InitHashtable();  // 单元测试哈希表
+    public struct unitLifeCycle [] {
 
-    //断言
-    public struct assert []{
-        //断言布尔值
-        static method Boolean (boolean condition,string name) {
-            if (!condition) {
-                BJDebugMsg("FAIL: " + name);
-            } else {
-                BJDebugMsg("PASS: " + name);
-            }
+        static unit argsUnit = null;
+        private {
+            static trigger trCreate = null;
+            static trigger trDestroy = null;
         }
 
-        //断言字符串相等
-        static method String(string actual, string expected, string name) {
-            if (actual != expected) {
-                BJDebugMsg("FAIL: " + name);
-                BJDebugMsg("  Expected: " + expected);
-                BJDebugMsg("  Actual: " + actual);
-            } else {
-                BJDebugMsg("PASS: " + name);
-            }
+        // 注册销毁回调
+        static method registerDestroy(code func) {
+            TriggerAddCondition(trDestroy, Condition(func));
         }
 
-        //断言整数相等
-        static method Integer(integer actual, integer expected, string name) {
-            if (actual != expected) {
-                BJDebugMsg("FAIL: " + name);
-                BJDebugMsg("  Expected: " + I2S(expected));
-                BJDebugMsg("  Actual: " + I2S(actual));
-            } else {
-                BJDebugMsg("PASS: " + name);
-            }
+        static method onDestroyCB(unit u) {
+            argsUnit = u;
+            TriggerEvaluate(trDestroy);
+            //然后再清除所有哈希表
+            FlushChildHashtable(HASH_UNIT,GetHandleId(u));
+            argsUnit = null;
         }
 
-        //断言浮点数相等
-        static method Real(real actual, real expected, string name) {
-            real maxValue = RMaxBJ(RAbsBJ(actual), RAbsBJ(expected));  // 取两个数的绝对值的较大值
-            real epsilon = maxValue * 0.00001;  // 相对误差为数值大小的万分之一
-            // 处理接近0的特殊情况
-            if (maxValue < 0.00001) {
-                epsilon = 0.00001;
-            }
-            if (RAbsBJ(actual - expected) > epsilon) {
-                BJDebugMsg("FAIL: " + name);
-                BJDebugMsg("  Expected: " + R2SW(expected,0,1));
-                BJDebugMsg("  Actual: " + R2SW(actual,0,1));
-            } else {
-                BJDebugMsg("PASS: " + name);
-            }
+        static method onInit () {
+            trCreate = CreateTrigger();
+            trDestroy = CreateTrigger();
         }
+
+    }
+}
+//! endzinc
+
+hook RemoveUnit unitLifeCycle.onDestroyCB
+
+#endif
+
+#define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
+
+#ifndef YDLuaIncluded
+#define YDLuaIncluded
+
+//! zinc
+/*
+原生Lua引擎非内置
+*/
+
+// https://create.reckfeng.com/kkapidoc/#/menu_kkapi_japi kkapi的japi文档
+
+library YDLua {
+
+    #define SetCameraBounds(a,b,c,d,e,f,g,h) initializeLua() CRNL call SetCameraBounds(a,b,c,d,e,f,g,h)
+
+    // main 函数就初始化的
+    public function initializeLua () -> integer {
+        Cheat("exec-lua:plugin_main");
+        return 0;
     }
 
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-
-    //指定开始时间与持续时间的定时器
-    public function UnitTestAutoTimer (real time, real duration,code start, code end) {
-        trigger t = CreateTrigger();
-        trigger tr = CreateTrigger();
-        TriggerAddCondition(t, Condition(start));
-        TriggerRegisterTimerEventSingle(tr,time);
-        SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
-        SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
-        SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
-        TriggerAddCondition(tr,Condition(function (){
-            real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
-            real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
-            trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
-            BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]开始------");
-            TriggerEvaluate(tr);
-            DestroyTrigger(tr);
-            FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
-            DestroyTrigger(GetTriggeringTrigger());
-            tr = null;
-        }));
-        if (end != null) {
-            t = CreateTrigger();
-            tr = CreateTrigger();
-            TriggerAddCondition(t, Condition(end));
-            TriggerRegisterTimerEventSingle(tr,time+duration);
-            SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
-            SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
-            SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
-            TriggerAddCondition(tr,Condition(function (){
-                real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
-                real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
-                trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
-                TriggerEvaluate(tr);
-                BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]结束------");
-                DestroyTrigger(tr);
-                FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
-                DestroyTrigger(GetTriggeringTrigger());
-                tr = null;
-            }));
-        }
-        tr = null;
-        t = null;
-    }
 
     function onInit ()  {
-        //在游戏开始0.1秒后再调用
+        //在游戏开始0.0秒后再调用
         trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerRegisterTimerEventSingle(tr,0.0);
         TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
-            }
+            BJDebugMsg("调用了YDLua引擎");
             DestroyTrigger(GetTriggeringTrigger());
         }));
         tr = null;
-
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
     }
 }
 
 //! endzinc
 #endif
 
+#ifndef ConversionUtilsIncluded
+#define ConversionUtilsIncluded
 
+//! zinc
+/*
+转换工具
+*/
+library ConversionUtils {
+
+    //补充函数
+    public function B2S(boolean b) -> string {
+        if (b) {return "true";}
+        else {return "false";}
+    }
+
+    //三目运算符
+    public function S3 (boolean b,string s1,string s2)  -> string {
+        if (b) {return s1;}
+        else {return s2;}
+    }
+    //三目运算符
+    public function U3 (boolean b,unit u1,unit u2)  -> unit {
+        if (b) {return u1;}
+        else {return u2;}
+    }
+    //三目运算符
+    public function I3 (boolean b,integer i1,integer i2)  -> integer  {
+        if (b) {return i1;}
+        else {return i2;}
+    }
+    //三目运算符
+    public function R3 (boolean b,real r1,real r2)  -> real  {
+        if (b) {return r1;}
+        else {return r2;}
+    }
+    // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    // pos为输入数字,每36个数字进一位,每位用0-9和a-z表示(共36个字符)
+    // 示例:0->'0000', 35->'000z', 36->'0010'(进位), 37->'0011'
+    public function GetIDSymbol ( integer pos ) -> integer {
+        integer bit = pos/36;
+        pos = ModuloInteger(pos,36);
+        if (pos < 10) {return pos + bit * 256;}
+        else {return '000a' - '0000' + pos - 10 + bit * 256;}
+    }
+    // 将魔兽的四字符ID转换回对应数字
+    // s为输入的四字符ID,将其还原为原始数字
+    // 示例:'0000'->0, '000z'->35, '0010'->36, '0011'->37
+    public function GetSymbolID ( integer s ) -> integer {
+        integer i1 = s/256;
+        integer i2 = ModuloInteger(s,256);
+        if (i2 < 10) {return i1 * 36 + i2;}
+        else {return i2 - '000a' + '0000' + 10 + i1 * 36;}
+    }
+
+}
+
+//! endzinc
+#endif
 
 #ifndef HeroAttrIncluded
 #define HeroAttrIncluded
@@ -739,58 +955,298 @@ library UnitTestFramwork {
 /*
 英雄的属性
 */
-library HeroAttr requires UnitUtils,MathUtils,UnitLifeCycle {
+library HeroAttr requires ConversionUtils,UnitAttr {
 
-    public struct heroAttr {
-        STRUCT_SHARED_METHODS(heroAttr)
+	public constant integer MAIN_ATTR_STR = 0; //主属性:力量
+	public constant integer MAIN_ATTR_AGI = 1; //主属性:敏捷
+	public constant integer MAIN_ATTR_INT = 2; //主属性:智力
+
+	public struct heroAttr {
+		STRUCT_SHARED_METHODS(heroAttr)
+		static thistype ethis = 0;
 		unit u; //绑定的单位
 
-		static method parse (unit u) -> thistype {
+		integer mainAttrType;  // 主属性类型
+
+		real mainAttrBase;        // 基础主属性
+		real mainAttrRateUp;      // 主属性增幅
+		real mainAttrRateDown;    // 主属性减幅
+		real mainAttrFixedBonus;  // 主属性固定加成
+
+		real subAttrBase;        // 基础次属性
+		real subAttrRateUp;      // 次属性增幅
+		real subAttrRateDown;    // 次属性减幅
+		real subAttrFixedBonus;  // 次属性固定加成
+
+		// 展开的Str属性相关代码
+		/* 基础属性值及加成系数 */
+
+		public real baseStr;                       /* 基础Str值 */
+		public real StrRateUp;                     /* Str增幅比例 */
+		public real StrRateDown;                   /* Str减幅比例 */
+		public real StrRateBonus;                  /* 受增减幅影响的bonus值 */
+		public real StrFixedBonus;                 /* 固定加成值(不受增减幅影响) */
+		public static trigger trStrChange = null;  /* Str变化触发器 */
+
+        // 获取基础Str(白字)
+        public method getBaseStr ()  -> real {
+            if (mainAttrType == MAIN_ATTR_STR) {
+                return baseStr + mainAttrBase;
+            } else {
+                return baseStr + subAttrBase;
+            }
+        }
+
+        // 获取额外Str(绿字)
+        public method getExtraStr ()  -> real {
+            if (mainAttrType == MAIN_ATTR_STR) {
+                return StrRateBonus + StrFixedBonus + mainAttrFixedBonus;
+            } else {
+                return StrRateBonus + StrFixedBonus + subAttrFixedBonus;
+            }
+        }
+
+		/* 获取当前总Str */
+		public method getCurrentStr() -> real {
+            if (mainAttrType == MAIN_ATTR_STR) { //主属性是力量
+				return baseStr + mainAttrBase + StrRateBonus + StrFixedBonus + mainAttrFixedBonus;
+			} else {
+				return baseStr + subAttrBase + StrRateBonus + StrFixedBonus + subAttrFixedBonus;
+			}
+		}
+
+		/* 获取当前Str倍率 */
+		public method getCurrentStrRate() -> real {
+			if (mainAttrType == MAIN_ATTR_STR) { //主属性是力量
+				return (1.0 + StrRateUp + mainAttrRateUp) * (1.0-StrRateDown) * (1.0-mainAttrRateDown) - 1.0;
+			} else {
+				return (1.0 + StrRateUp + subAttrRateUp) * (1.0-StrRateDown) * (1.0-subAttrRateDown) - 1.0;
+			}
+		}
+
+		// 同步并刷新当前单位的力量
+		private method syncStrRate() {
+			StrRateBonus = baseStr * getCurrentStrRate();
+			SetHeroStr(u, R2I(RMaxBJ(getCurrentStr(), 0.0)), true);
+			if (trStrChange != null) {
+				ethis = this;
+				TriggerEvaluate(trStrChange);
+			}
+		}
+
+		/* 设置基础Str */
+		public method setBaseStr(real value) {
+			if (baseStr != value) {
+				baseStr = value;
+				syncStrRate();
+			}
+		}
+
+		/* 增加基础Str */
+		public method addBaseStr(real value) {
+			if (value != 0) {
+				baseStr += value;
+				syncStrRate();
+			}
+		}
+
+		/* 增加固定bonus */
+		public method addStrFixedBonus(real value) {
+			if (value != 0) {
+				StrFixedBonus += value;
+				syncStrRate();
+			}
+		}
+
+		/* 增加Str增幅 */
+		public method addStrRateUp(real value) {
+			if (value != 0) {
+				StrRateUp += value;
+				syncStrRate();
+			}
+		}
+
+		/* 增加Str减幅 */
+		public method addStrRateDown(real value) {
+			if (value != 0) {
+				StrRateDown = RealAdd(StrRateDown, value);
+				syncStrRate();
+			}
+		}
+
+		/* 回调Str变化 */
+		public static method onStrChange(code func) {
+			if (trStrChange == null) {
+				trStrChange = CreateTrigger();
+			}
+			TriggerAddCondition(trStrChange, Condition(func));
+		}
+
+		// 同步并刷新当前单位的敏捷
+		private method syncAgiRate() {
+		}
+		// 同步并刷新当前单位的智力
+		private method syncIntRate() {
+		}
+
+		static method parse (unit u, integer mainAttrType) -> thistype {
 			thistype this;
 			integer handleId = GetHandleId(u);
 
 			// 先检查是否已存在
 			if (HaveSavedInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_HEROATTR)) {
 				return LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_HEROATTR);
+			} else if (!IsHeroUnitId(GetUnitTypeId(u))) {
+				// 如果不是英雄单位就不给创建
+				return 0;
 			}
+
 
 			// 不存在才创建新的
 			this = allocate();
-			//todo: 测试一下用setUnitState设超过21亿的数再get能get到吗
-			this.u          = u;
+			this.u = u;
+
+			this.mainAttrType       = mainAttrType;
+
+			this.mainAttrBase       = 0.0;
+			this.mainAttrRateUp     = 0.0;
+			this.mainAttrRateDown   = 0.0;
+			this.mainAttrFixedBonus = 0.0;
+
+			this.subAttrBase       = 0.0;
+			this.subAttrRateUp     = 0.0;
+			this.subAttrRateDown   = 0.0;
+			this.subAttrFixedBonus = 0.0;
 
 			INIT_COMBAT_ATTR(Str)
-			INIT_COMBAT_ATTR(Agi)
-			INIT_COMBAT_ATTR(Int)
+			// INIT_COMBAT_ATTR(Agi)
+			// INIT_COMBAT_ATTR(Int)
 
 			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_HEROATTR, this);
 			return this;
 		}
 
-
-
-		// 同步并刷新当前单位的力量
-		private method syncStrRate() {
-			StrRateBonus = baseStr * (1.0 + StrRateUp) * (1.0 - StrRateDown) - baseStr;
-			SetUnitState(u, ConvertUnitState(UNIT_STATE_ARMOR), baseStr + StrRateBonus + StrFixedBonus);
+		/* 增加主属性基础值 */
+		public method addMainAttrBase(real value) {
+			if (value != 0) {
+				mainAttrBase += value;
+				// 根据主属性类型同步相应属性
+				if (mainAttrType == MAIN_ATTR_STR) {
+					syncStrRate();
+				} else if (mainAttrType == MAIN_ATTR_AGI) {
+					syncAgiRate();
+				} else if (mainAttrType == MAIN_ATTR_INT) {
+					syncIntRate();
+				}
+			}
 		}
 
-		// 同步并刷新当前单位的敏捷
-		private method syncAgiRate() {
-			AgiRateBonus = baseAgi * (1.0 + AgiRateUp) * (1.0 - AgiRateDown) - baseAgi;
-			SetUnitState(u, ConvertUnitState(UNIT_STATE_ARMOR), baseAgi + AgiRateBonus + AgiFixedBonus);
+		/* 增加次属性基础值 */
+		public method addSubAttrBase(real value) {
+			if (value != 0) {
+				subAttrBase += value;
+				// 根据主属性类型同步次属性
+				if (mainAttrType == MAIN_ATTR_STR) {
+					syncAgiRate();
+					syncIntRate();
+				} else if (mainAttrType == MAIN_ATTR_AGI) {
+					syncStrRate();
+					syncIntRate();
+				} else if (mainAttrType == MAIN_ATTR_INT) {
+					syncStrRate();
+					syncAgiRate();
+				}
+			}
 		}
 
-		// 同步并刷新当前单位的智力
-		private method syncIntRate() {
-			IntRateBonus = baseInt * (1.0 + IntRateUp) * (1.0 - IntRateDown) - baseInt;
-			SetUnitState(u, ConvertUnitState(UNIT_STATE_ARMOR), baseInt + IntRateBonus + IntFixedBonus);
+		// 添加主属性相关方法
+		public method addMainAttrRateUp(real value) {
+			if (value != 0) {
+				mainAttrRateUp += value;
+				if (mainAttrType == MAIN_ATTR_STR) {
+					syncStrRate();
+				} else if (mainAttrType == MAIN_ATTR_AGI) {
+					syncAgiRate();
+				} else if (mainAttrType == MAIN_ATTR_INT) {
+					syncIntRate();
+				}
+			}
 		}
 
-		DEFINE_COMBAT_ATTR(Str)
-		DEFINE_COMBAT_ATTR(Agi)
-		DEFINE_COMBAT_ATTR(Int)
+		public method addMainAttrRateDown(real value) {
+			if (value != 0) {
+				mainAttrRateDown = RealAdd(mainAttrRateDown, value);
+				if (mainAttrType == MAIN_ATTR_STR) {
+					syncStrRate();
+				} else if (mainAttrType == MAIN_ATTR_AGI) {
+					syncAgiRate();
+				} else if (mainAttrType == MAIN_ATTR_INT) {
+					syncIntRate();
+				}
+			}
+		}
 
+		public method addMainAttrFixedBonus(real value) {
+			if (value != 0) {
+				mainAttrFixedBonus += value;
+				if (mainAttrType == MAIN_ATTR_STR) {
+					syncStrRate();
+				} else if (mainAttrType == MAIN_ATTR_AGI) {
+					syncAgiRate();
+				} else if (mainAttrType == MAIN_ATTR_INT) {
+					syncIntRate();
+				}
+			}
+		}
+
+		// 添加次属性相关方法
+		public method addSubAttrRateUp(real value) {
+			if (value != 0) {
+				subAttrRateUp += value;
+				if (mainAttrType == MAIN_ATTR_STR) {
+					syncAgiRate();
+					syncIntRate();
+				} else if (mainAttrType == MAIN_ATTR_AGI) {
+					syncStrRate();
+					syncIntRate();
+				} else if (mainAttrType == MAIN_ATTR_INT) {
+					syncStrRate();
+					syncAgiRate();
+				}
+			}
+		}
+
+		public method addSubAttrRateDown(real value) {
+			if (value != 0) {
+				subAttrRateDown = RealAdd(subAttrRateDown, value);
+				if (mainAttrType == MAIN_ATTR_STR) {
+					syncAgiRate();
+					syncIntRate();
+				} else if (mainAttrType == MAIN_ATTR_AGI) {
+					syncStrRate();
+					syncIntRate();
+				} else if (mainAttrType == MAIN_ATTR_INT) {
+					syncStrRate();
+					syncAgiRate();
+				}
+			}
+		}
+
+		public method addSubAttrFixedBonus(real value) {
+			if (value != 0) {
+				subAttrFixedBonus += value;
+				if (mainAttrType == MAIN_ATTR_STR) {
+					syncAgiRate();
+					syncIntRate();
+				} else if (mainAttrType == MAIN_ATTR_AGI) {
+					syncStrRate();
+					syncIntRate();
+				} else if (mainAttrType == MAIN_ATTR_INT) {
+					syncStrRate();
+					syncAgiRate();
+				}
+			}
+		}
 
 		//单位删除会调用
 		method onDestroy () {
@@ -812,11 +1268,48 @@ library HeroAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 			});
 		}
 
-    }
+	}
 
 }
 
 //! endzinc
+#endif
+
+#ifndef MapBoundsUtilsIncluded
+#define MapBoundsUtilsIncluded
+
+//! zinc
+// 地图边界工具库
+library MapBoundsUtils {
+
+    public struct mapBounds {
+        static real maxX = 0.;
+        static real minX = 0.;
+        static real maxY = 0.;
+        static real minY = 0.;
+
+        // 限制X坐标在地图范围内
+        static method X (real x) -> real {
+            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
+        }
+        // 限制Y坐标在地图范围内
+        static method Y (real y) -> real {
+            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
+        }
+
+        // 初始化
+        static method onInit () {
+            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
+            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
+            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
+            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
+        }
+
+    }
+
+}
+//! endzinc
+
 #endif
 
 //===========================================================================
@@ -933,35 +1426,262 @@ endfunction
 //! zinc
 //自动生成的文件
 library UTHeroAttr requires HeroAttr {
-	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start
-			}, function() {
-			//end
-		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-			//heroAttr
-		},null);
+	private unit testHeroStr = null; // 力量型英雄
+private unit testHeroAgi = null; // 敏捷型英雄
+private heroAttr attrStr = 0; // 力量英雄属性
+private heroAttr attrAgi = 0; // 敏捷英雄属性
+
+	// 创建测试英雄
+	private function CreateTestHeroes(player p) {
+		if (testHeroStr != null) {
+			RemoveUnit(testHeroStr);
+		}
+		if (testHeroAgi != null) {
+			RemoveUnit(testHeroAgi);
+		}
+		// 创建一个力量型英雄和一个敏捷型英雄
+		testHeroStr = CreateUnit(p, 'Hmkg', 0, 0, 0); // 山丘之王
+testHeroAgi = CreateUnit(p, 'Edem', 200, 0, 0); // 恶魔猎手
+
+		// 初始化属性系统
+		attrStr = heroAttr.parse(testHeroStr, MAIN_ATTR_STR);
+		attrAgi = heroAttr.parse(testHeroAgi, MAIN_ATTR_AGI);
+		// 设置基础属性值方便测试
+		attrStr.setBaseStr(100);
+		attrAgi.setBaseStr(80);
+		SelectUnit(testHeroStr, true);
 	}
-	function TTestUTHeroAttr1 (player p) {}
-	function TTestUTHeroAttr2 (player p) {}
-	function TTestUTHeroAttr3 (player p) {}
-	function TTestUTHeroAttr4 (player p) {}
-	function TTestUTHeroAttr5 (player p) {}
-	function TTestUTHeroAttr6 (player p) {}
-	function TTestUTHeroAttr7 (player p) {}
-	function TTestUTHeroAttr8 (player p) {}
-	function TTestUTHeroAttr9 (player p) {}
-	function TTestUTHeroAttr10 (player p) {}
-	function TTestActUTHeroAttr1 (string str) {
+	function Init() {
+		player p = Player(0);
+		BJDebugMsg("=== HeroAttr测试系统已加载 ===");
+		heroAttr.onStrChange(function() { // 监听Str变化
+heroAttr ha = heroAttr.ethis;
+			// BJDebugMsg("[单位]: " + GetUnitName(ha.u) + " [Str]: " + R2S(ha.getCurrentStr()));
+		});
+		// 创建测试英雄
+		//Trace
+		CreateTestHeroes(p);
+		// 测试1：基础力量属性测试
+		UnitTestAutoTimer(0.1, 0, function() {
+			assert.Real(attrStr.getCurrentStr(), 100.0, "力量英雄初始Str应为100");
+			assert.Real(attrAgi.getCurrentStr(), 80.0, "敏捷英雄初始Str应为80");
+		}, null);
+		// 测试2：主属性增幅测试
+		UnitTestAutoTimer(0.6, 0, function() {
+			// 给力量英雄加50%主属性增幅
+			attrStr.addMainAttrRateUp(0.5);
+			assert.Real(attrStr.getCurrentStr(), 150.0, "力量英雄50%主属性增幅后Str应为150");
+			// 给敏捷英雄加50%主属性增幅(不应影响力量)
+			attrAgi.addMainAttrRateUp(0.5);
+			assert.Real(attrAgi.getCurrentStr(), 80.0, "敏捷英雄主属性增幅不应影响Str");
+		}, null);
+		// 测试3：次属性增幅测试
+		UnitTestAutoTimer(1.1, 0, function() {
+			// 重置测试英雄
+			CreateTestHeroes(Player(0));
+			// 给力量英雄加30%次属性增幅
+			attrStr.addSubAttrRateUp(0.3);
+			assert.Real(attrStr.getCurrentStr(), 100.0, "力量英雄次属性增幅不应影响Str");
+			// 给敏捷英雄加30%次属性增幅(应影响力量)
+			attrAgi.addSubAttrRateUp(0.3);
+			assert.Real(attrAgi.getCurrentStr(), 104.0, "敏捷英雄30%次属性增幅后Str应为104");
+		}, null);
+		// 测试4：属性固定加成测试
+		UnitTestAutoTimer(1.6, 0, function() {
+			CreateTestHeroes(Player(0));
+			// 测试主属性固定加成
+			attrStr.addMainAttrFixedBonus(50.0);
+			assert.Real(attrStr.getCurrentStr(), 150.0, "力量英雄加50点主属性固定加成后Str应为150");
+			// 测试次属性固定加成
+			attrAgi.addSubAttrFixedBonus(30.0);
+			assert.Real(attrAgi.getCurrentStr(), 110.0, "敏捷英雄加30点次属性固定加成后Str应为110");
+		}, null);
+		// 测试5：力量属性各种增减幅组合测试
+		UnitTestAutoTimer(2.1, 0, function() {
+			CreateTestHeroes(Player(0));
+			// 设置基础力量为100
+			attrStr.setBaseStr(100);
+			// 添加力量增减幅
+			attrStr.addStrRateUp(0.3); // +30%
+attrStr.addStrRateDown(0.1); // -10%
+
+			// 添加主属性增减幅
+			attrStr.addMainAttrRateUp(0.2); // +20%
+attrStr.addMainAttrRateDown(0.05); // -5%
+
+			// 计算期望值：
+			// 基础值: 100
+			// 所有增幅相加: (1 + 0.3 + 0.2) = 1.5
+			// 所有减幅相乘: (1 - 0.1) * (1 - 0.05) = 0.9 * 0.95 = 0.855
+			// 最终计算: 100 * 1.5 * 0.855 = 128.25
+			assert.Real(attrStr.getCurrentStr(), 128.25, "力量英雄复杂增减幅组合测试1");
+			// 添加固定加成
+			attrStr.addStrFixedBonus(50);
+			attrStr.addMainAttrFixedBonus(30);
+			// 最终结果应为: 128.25 + 50 + 30 = 208.25
+			assert.Real(attrStr.getCurrentStr(), 208.25, "力量英雄复杂增减幅组合测试2");
+		}, null);
+		// 测试6：次属性对力量的影响组合测试
+		UnitTestAutoTimer(2.6, 0, function() {
+			CreateTestHeroes(Player(0));
+			// 设置基础属性
+			attrAgi.setBaseStr(100);
+			// 添加力量相关增减幅
+			attrAgi.addStrRateUp(0.2); // +20%
+attrAgi.addStrRateDown(0.1); // -10%
+
+			// 添加次属性增减幅
+			attrAgi.addSubAttrRateUp(0.3); // +30%
+attrAgi.addSubAttrRateDown(0.15); // -15%
+
+			// 计算期望值：
+			// 基础值: 100
+			// 所有增幅相加: (1 + 0.2 + 0.3) = 1.5
+			// 所有减幅相乘: (1 - 0.1) * (1 - 0.15) = 0.9 * 0.85 = 0.765
+			// 最终计算: 100 * 1.5 * 0.765 = 114.75
+			assert.Real(attrAgi.getCurrentStr(), 114.75, "敏捷英雄力量复杂增减幅组合测试1");
+			// 添加固定加成
+			attrAgi.addStrFixedBonus(40);
+			attrAgi.addSubAttrFixedBonus(20);
+			// 最终结果应为: 114.75 + 40 + 20 = 174.75
+			assert.Real(attrAgi.getCurrentStr(), 174.75, "敏捷英雄力量复杂增减幅组合测试2");
+		}, null);
+		// 测试7：极限值测试
+		UnitTestAutoTimer(3.1, 0, function() {
+			CreateTestHeroes(Player(0));
+			// 设置一个较大的基础值
+			attrStr.setBaseStr(1000);
+			// 添加多个大幅度的增减幅
+			attrStr.addStrRateUp(2.0); // +200%
+attrStr.addMainAttrRateUp(1.5); // +150%
+attrStr.addStrRateDown(0.4); // -40%
+attrStr.addMainAttrRateDown(0.3); // -30%
+
+			// 添加大量固定加成
+			attrStr.addStrFixedBonus(500);
+			attrStr.addMainAttrFixedBonus(300);
+			// 计算期望值：
+			// 基础值: 1000
+			// 所有增幅相加: (1 + 2.0 + 1.5) = 4.5
+			// 所有减幅相乘: (1 - 0.4) * (1 - 0.3) = 0.6 * 0.7 = 0.42
+			// 属性计算: 1000 * 4.5 * 0.42 = 1890
+			// 加上固定加成: 1890 + 500 + 300 = 2690
+			assert.Real(attrStr.getCurrentStr(), 2690.0, "力量英雄极限值测试");
+		}, null);
+		// 测试8：主属性基础值测试
+		UnitTestAutoTimer(3.6, 0, function() {
+			CreateTestHeroes(Player(0));
+			// 测试力量英雄的主属性基础值
+			attrStr.addMainAttrBase(50);
+			assert.Real(attrStr.getBaseStr(), 150.0, "力量英雄加50主属性基础值后白字应为150");
+			assert.Real(attrStr.getCurrentStr(), 150.0, "力量英雄加50主属性基础值后总值应为150");
+			// 测试敏捷英雄的主属性基础值(不应影响力量)
+			attrAgi.addMainAttrBase(50);
+			assert.Real(attrAgi.getBaseStr(), 80.0, "敏捷英雄加50主属性基础值后力量白字应为80");
+			assert.Real(attrAgi.getCurrentStr(), 80.0, "敏捷英雄加50主属性基础值后力量总值应为80");
+		}, null);
+		// 测试9：次属性基础值测试
+		UnitTestAutoTimer(4.1, 0, function() {
+			CreateTestHeroes(Player(0));
+			// 测试力量英雄的次属性基础值(不应影响力量)
+			attrStr.addSubAttrBase(30);
+			assert.Real(attrStr.getBaseStr(), 100.0, "力量英雄加30次属性基础值后力量白字应为100");
+			assert.Real(attrStr.getCurrentStr(), 100.0, "力量英雄加30次属性基础值后力量总值应为100");
+			// 测试敏捷英雄的次属性基础值(应影响力量)
+			attrAgi.addSubAttrBase(30);
+			assert.Real(attrAgi.getBaseStr(), 110.0, "敏捷英雄加30次属性基础值后力量白字应为110");
+			assert.Real(attrAgi.getCurrentStr(), 110.0, "敏捷英雄加30次属性基础值后力量总值应为110");
+		}, null);
+		// 测试10：主属性和次属性基础值组合测试
+		UnitTestAutoTimer(4.6, 0, function() {
+			CreateTestHeroes(Player(0));
+			// 设置基础属性和增减幅
+			attrAgi.setBaseStr(100);
+			attrAgi.addStrRateUp(0.5); // +50%
+attrAgi.addSubAttrRateUp(0.3); // +30%
+
+			// 添加主属性和次属性基础值
+			attrAgi.addMainAttrBase(20); // 不影响力量
+attrAgi.addSubAttrBase(50); // 影响力量
+
+			// 计算期望值：
+			// 增幅: 100 * (1 + 0.5 + 0.3) + 50 = 230
+			assert.Real(attrAgi.getBaseStr(), 150.0, "敏捷英雄复杂组合后力量白字应为150");
+			assert.Real(attrAgi.getCurrentStr(), 230.0, "敏捷英雄复杂组合后力量总值应为230");
+		}, null);
+		// 测试11：多重增幅叠加测试
+		UnitTestAutoTimer(5.1, 0, function() {
+			CreateTestHeroes(Player(0));
+			// 设置基础属性
+			attrStr.setBaseStr(100);
+			// 添加多次力量增幅
+			attrStr.addStrRateUp(0.2); // +20%
+attrStr.addStrRateUp(0.3); // +30%
+attrStr.addStrRateUp(0.15); // +15%
+
+			// 添加多次主属性增幅
+			attrStr.addMainAttrRateUp(0.25); // +25%
+attrStr.addMainAttrRateUp(0.35); // +35%
+
+			// 添加多次次属性增幅
+			attrStr.addSubAttrRateUp(0.1); // +10%
+attrStr.addSubAttrRateUp(0.2); // +20%
+
+			// 计算期望值：
+			// 基础值: 100
+			// 力量增幅总和: 0.2 + 0.3 + 0.15 = 0.65
+			// 主属性增幅总和: 0.25 + 0.35 = 0.6
+			// 次属性增幅总和: 0.1 + 0.2 = 0.3
+			// 所有增幅相加: (1 + 0.65 + 0.6) = 2.25
+			// 最终计算: 100 * 2.25 = 225
+			assert.Real(attrStr.getCurrentStr(), 225.0, "力量英雄多重增幅叠加测试1");
+			// 再添加一些减幅测试
+			attrStr.addStrRateDown(0.2); // -20%
+attrStr.addMainAttrRateDown(0.1); // -10%
+
+			// 计算最终期望值：
+			// 之前结果: 225
+			// 减幅相乘: (1 - 0.2) * (1 - 0.1) = 0.8 * 0.9 = 0.72
+			// 最终计算: 225 * 0.72 = 162
+			assert.Real(attrStr.getCurrentStr(), 162, "力量英雄多重增幅叠加测试2");
+			// 测试敏捷英雄的多重增幅叠加
+			attrAgi.setBaseStr(100);
+			// 添加多次各类增幅
+			attrAgi.addStrRateUp(0.25); // +25%
+attrAgi.addStrRateUp(0.35); // +35%
+attrAgi.addSubAttrRateUp(0.2); // +20%
+attrAgi.addSubAttrRateUp(0.3); // +30%
+attrAgi.addMainAttrRateUp(0.4); // +40% (不影响力量)
+
+			// 计算期望值：
+			// 基础值: 100
+			// 力量增幅总和: 0.25 + 0.35 = 0.6
+			// 次属性增幅总和: 0.2 + 0.3 = 0.5
+			// 所有增幅相加: (1 + 0.6 + 0.5) = 2.1
+			// 最终计算: 100 * 2.1 = 210
+			assert.Real(attrAgi.getCurrentStr(), 210.0, "敏捷英雄多重增幅叠加测试1");
+			// 添加减幅
+			attrAgi.addStrRateDown(0.15); // -15%
+attrAgi.addSubAttrRateDown(0.25); // -25%
+
+			// 计算最终期望值：
+			// 之前结果: 210
+			// 减幅相乘: (1 - 0.15) * (1 - 0.25) = 0.85 * 0.75 = 0.6375
+			// 最终计算: 210 * 0.6375 = 133.875
+			assert.Real(attrAgi.getCurrentStr(), 133.875, "敏捷英雄多重增幅叠加测试2");
+		}, null);
+		p = null;
+	}
+	// 处理测试命令
+	function TTestActUTHeroAttr1(string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str); //获取范围式数字
-string paramS []; //所有参数S
-integer paramI []; //所有参数I
-real	paramR []; //所有参数R
-for (0 <= i <= len - 1) {
+		integer i, num = 0, len = StringLength(str);
+		string paramS[];
+		integer paramI[];
+		real paramR[];
+		// 解析参数
+		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
 				paramI[num]= S2I(paramS[num]);
@@ -976,38 +1696,104 @@ for (0 <= i <= len - 1) {
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "a") {
-		} else if (paramS[0] == "b") {
+		if (testHeroStr == null) {
+			CreateTestHeroes(p);
 		}
+		// 新建测试单位命令
+		if (paramS[0] == "new") {
+			CreateTestHeroes(p);
+			BJDebugMsg("已重新创建测试英雄");
+		}
+		// 力量相关命令
+		else if (paramS[0] == "str") {
+			attrStr.setBaseStr(paramR[1]);
+			attrAgi.setBaseStr(paramR[1]);
+			BJDebugMsg("设置力量英雄基础力量为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "addstr") {
+			attrStr.addBaseStr(paramR[1]);
+			attrAgi.addBaseStr(paramR[1]);
+			BJDebugMsg("增加力量英雄基础力量: " + R2S(paramR[1]));
+		} else if (paramS[0] == "strup") {
+			attrStr.addStrRateUp(paramR[1]);
+			attrAgi.addStrRateUp(paramR[1]);
+			BJDebugMsg("设置力量英雄力量增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "strdown") {
+			attrStr.addStrRateDown(paramR[1]);
+			attrAgi.addStrRateDown(paramR[1]);
+			BJDebugMsg("设置力量英雄力量减幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "strbonus") {
+			attrStr.addStrFixedBonus(paramR[1]);
+			attrAgi.addStrFixedBonus(paramR[1]);
+			BJDebugMsg("设置力量英雄力量固定加成为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "addstrbonus") {
+			attrStr.addStrFixedBonus(paramR[1]);
+			attrAgi.addStrFixedBonus(paramR[1]);
+			BJDebugMsg("增加力量英雄力量固定加成: " + R2S(paramR[1]));
+		}
+		// 主属性相关命令
+		else if (paramS[0] == "mainup") {
+			attrStr.addMainAttrRateUp(paramR[1]);
+			attrAgi.addMainAttrRateUp(paramR[1]);
+			BJDebugMsg("设置力量英雄主属性增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "maindown") {
+			attrStr.addMainAttrRateDown(paramR[1]);
+			attrAgi.addMainAttrRateDown(paramR[1]);
+			BJDebugMsg("设置力量英雄主属性减幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "mainbonus") {
+			attrStr.addMainAttrFixedBonus(paramR[1]);
+			attrAgi.addMainAttrFixedBonus(paramR[1]);
+			BJDebugMsg("设置力量英雄主属性固定加成为: " + R2S(paramR[1]));
+		}
+		// 次属性相关命令
+		else if (paramS[0] == "subup") {
+			attrStr.addSubAttrRateUp(paramR[1]);
+			attrAgi.addSubAttrRateUp(paramR[1]);
+			BJDebugMsg("设置力量英雄次属性增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "subdown") {
+			attrStr.addSubAttrRateDown(paramR[1]);
+			attrAgi.addSubAttrRateDown(paramR[1]);
+			BJDebugMsg("设置力量英雄次属性减幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "subbonus") {
+			attrStr.addSubAttrFixedBonus(paramR[1]);
+			attrAgi.addSubAttrFixedBonus(paramR[1]);
+			BJDebugMsg("设置力量英雄次属性固定加成为: " + R2S(paramR[1]));
+		}
+		// 主属性基础值相关命令
+		else if (paramS[0] == "mainadd") {
+			attrStr.addMainAttrBase(paramR[1]);
+			attrAgi.addMainAttrBase(paramR[1]);
+			BJDebugMsg("增加力量英雄主属性基础值: " + R2S(paramR[1]));
+		}
+		// 次属性基础值相关命令
+		else if (paramS[0] == "subadd") {
+			attrStr.addSubAttrBase(paramR[1]);
+			attrAgi.addSubAttrBase(paramR[1]);
+			BJDebugMsg("增加力量英雄次属性基础值: " + R2S(paramR[1]));
+		}
+		// 显示当前状态
+		BJDebugMsg("力量英雄当前力量: " + R2S(attrStr.getCurrentStr()));
+		BJDebugMsg("力量英雄当前力量白字: " + R2S(attrStr.getBaseStr()));
+		BJDebugMsg("力量英雄当前力量绿字: " + R2S(attrStr.getExtraStr()));
+		BJDebugMsg("敏捷英雄当前力量: " + R2S(attrAgi.getCurrentStr()));
+		BJDebugMsg("敏捷英雄当前力量白字: " + R2S(attrAgi.getBaseStr()));
+		BJDebugMsg("敏捷英雄当前力量绿字: " + R2S(attrAgi.getExtraStr()));
 		p = null;
 	}
-	function onInit () {
-		//在游戏开始0.0秒后再调用
+	function onInit() {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
-		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[HeroAttr] 单元测试已加载");
+		TriggerAddCondition(tr,Condition(function() {
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
-		UnitTestRegisterChatEvent(function () {
+		// 注册聊天事件
+		UnitTestRegisterChatEvent(function() {
 			string str = GetEventPlayerChatString();
-			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
 				TTestActUTHeroAttr1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTHeroAttr1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTHeroAttr2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTHeroAttr3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTHeroAttr4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTHeroAttr5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTHeroAttr6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTHeroAttr7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTHeroAttr8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTHeroAttr9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTHeroAttr10(GetTriggerPlayer());
 		});
 	}
 }

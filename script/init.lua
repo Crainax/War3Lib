@@ -80,11 +80,12 @@ else
     print("JAPI环境: YDLua")
     local hook = require 'jass.hook'
     local jass = require 'jass.common'
+    local old_display = jass.DisplayTimedTextToPlayer
     function hook.DisplayTimedTextToPlayer(toPlayer, x, y, duration, message)
-        -- 当jass内调用CreateUnit时，就会被执行
         if toPlayer == jass.GetLocalPlayer() then
             print(message)
         end
+        old_display(toPlayer, x, y, duration, message)
     end
 end
 

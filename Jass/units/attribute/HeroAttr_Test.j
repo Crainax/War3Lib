@@ -41,7 +41,13 @@ library UTHeroAttr requires HeroAttr {
 		player p = Player(0);
 		BJDebugMsg("=== HeroAttr测试系统已加载 ===");
 
+		heroAttr.onStrChange(function() { // 监听Str变化
+			heroAttr ha = heroAttr.ethis;
+			// BJDebugMsg("[单位]: " + GetUnitName(ha.u) + " [Str]: " + R2S(ha.getCurrentStr()));
+		});
+
 		// 创建测试英雄
+		//Trace
 		CreateTestHeroes(p);
 
 		// 测试1：基础力量属性测试
@@ -104,16 +110,18 @@ library UTHeroAttr requires HeroAttr {
 			attrStr.addMainAttrRateDown(0.05);  // -5%
 
 			// 计算期望值：
-			// 1. 力量增减幅: 100 * (1 + 0.3) * (1 - 0.1) = 117
-			// 2. 主属性增减幅: 117 * (1 + 0.2) * (1 - 0.05) ≈ 133.38
-			assert.Real(attrStr.getCurrentStr(), 133.38, "力量英雄复杂增减幅组合测试1");
+			// 基础值: 100
+			// 所有增幅相加: (1 + 0.3 + 0.2) = 1.5
+			// 所有减幅相乘: (1 - 0.1) * (1 - 0.05) = 0.9 * 0.95 = 0.855
+			// 最终计算: 100 * 1.5 * 0.855 = 128.25
+			assert.Real(attrStr.getCurrentStr(), 128.25, "力量英雄复杂增减幅组合测试1");
 
 			// 添加固定加成
 			attrStr.addStrFixedBonus(50);
 			attrStr.addMainAttrFixedBonus(30);
 
-			// 最终结果应为: 133.38 + 50 + 30 = 213.38
-			assert.Real(attrStr.getCurrentStr(), 213.38, "力量英雄复杂增减幅组合测试2");
+			// 最终结果应为: 128.25 + 50 + 30 = 208.25
+			assert.Real(attrStr.getCurrentStr(), 208.25, "力量英雄复杂增减幅组合测试2");
 		}, null);
 
 		// 测试6：次属性对力量的影响组合测试
@@ -132,16 +140,18 @@ library UTHeroAttr requires HeroAttr {
 			attrAgi.addSubAttrRateDown(0.15);   // -15%
 
 			// 计算期望值：
-			// 1. 力量增减幅: 100 * (1 + 0.2) * (1 - 0.1) = 108
-			// 2. 次属性增减幅: 108 * (1 + 0.3) * (1 - 0.15) ≈ 119.34
-			assert.Real(attrAgi.getCurrentStr(), 119.34, "敏捷英雄力量复杂增减幅组合测试1");
+			// 基础值: 100
+			// 所有增幅相加: (1 + 0.2 + 0.3) = 1.5
+			// 所有减幅相乘: (1 - 0.1) * (1 - 0.15) = 0.9 * 0.85 = 0.765
+			// 最终计算: 100 * 1.5 * 0.765 = 114.75
+			assert.Real(attrAgi.getCurrentStr(), 114.75, "敏捷英雄力量复杂增减幅组合测试1");
 
 			// 添加固定加成
 			attrAgi.addStrFixedBonus(40);
 			attrAgi.addSubAttrFixedBonus(20);
 
-			// 最终结果应为: 119.34 + 40 + 20 = 179.34
-			assert.Real(attrAgi.getCurrentStr(), 179.34, "敏捷英雄力量复杂增减幅组合测试2");
+			// 最终结果应为: 114.75 + 40 + 20 = 174.75
+			assert.Real(attrAgi.getCurrentStr(), 174.75, "敏捷英雄力量复杂增减幅组合测试2");
 		}, null);
 
 		// 测试7：极限值测试
@@ -161,12 +171,13 @@ library UTHeroAttr requires HeroAttr {
 			attrStr.addStrFixedBonus(500);
 			attrStr.addMainAttrFixedBonus(300);
 
-			// 验证数值计算的准确性
 			// 计算期望值：
-			// 1. 力量增减幅: 1000 * (1 + 2.0) * (1 - 0.4) = 1800
-			// 2. 主属性增减幅: 1800 * (1 + 1.5) * (1 - 0.3) ≈ 3150
-			// 3. 加上固定加成: 3150 + 500 + 300 = 3950
-			assert.Real(attrStr.getCurrentStr(), 3950.0, "力量英雄极限值测试");
+			// 基础值: 1000
+			// 所有增幅相加: (1 + 2.0 + 1.5) = 4.5
+			// 所有减幅相乘: (1 - 0.4) * (1 - 0.3) = 0.6 * 0.7 = 0.42
+			// 属性计算: 1000 * 4.5 * 0.42 = 1890
+			// 加上固定加成: 1890 + 500 + 300 = 2690
+			assert.Real(attrStr.getCurrentStr(), 2690.0, "力量英雄极限值测试");
 		}, null);
 
 		// 测试8：主属性基础值测试
@@ -213,10 +224,77 @@ library UTHeroAttr requires HeroAttr {
 			attrAgi.addSubAttrBase(50);   // 影响力量
 
 			// 计算期望值：
-			// 基础力量: 100 + 50(次属性基础值) = 150
-			// 增幅: 150 * (1 + 0.5 + 0.3) = 270
+			// 增幅: 100 * (1 + 0.5 + 0.3) + 50 = 230
 			assert.Real(attrAgi.getBaseStr(), 150.0, "敏捷英雄复杂组合后力量白字应为150");
-			assert.Real(attrAgi.getCurrentStr(), 270.0, "敏捷英雄复杂组合后力量总值应为270");
+			assert.Real(attrAgi.getCurrentStr(), 230.0, "敏捷英雄复杂组合后力量总值应为230");
+		}, null);
+
+		// 测试11：多重增幅叠加测试
+		UnitTestAutoTimer(5.1, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 设置基础属性
+			attrStr.setBaseStr(100);
+
+			// 添加多次力量增幅
+			attrStr.addStrRateUp(0.2);     // +20%
+			attrStr.addStrRateUp(0.3);     // +30%
+			attrStr.addStrRateUp(0.15);    // +15%
+
+			// 添加多次主属性增幅
+			attrStr.addMainAttrRateUp(0.25);    // +25%
+			attrStr.addMainAttrRateUp(0.35);    // +35%
+
+			// 添加多次次属性增幅
+			attrStr.addSubAttrRateUp(0.1);     // +10%
+			attrStr.addSubAttrRateUp(0.2);     // +20%
+
+			// 计算期望值：
+			// 基础值: 100
+			// 力量增幅总和: 0.2 + 0.3 + 0.15 = 0.65
+			// 主属性增幅总和: 0.25 + 0.35 = 0.6
+			// 次属性增幅总和: 0.1 + 0.2 = 0.3
+			// 所有增幅相加: (1 + 0.65 + 0.6) = 2.25
+			// 最终计算: 100 * 2.25 = 225
+			assert.Real(attrStr.getCurrentStr(), 225.0, "力量英雄多重增幅叠加测试1");
+
+			// 再添加一些减幅测试
+			attrStr.addStrRateDown(0.2);      // -20%
+			attrStr.addMainAttrRateDown(0.1);  // -10%
+
+			// 计算最终期望值：
+			// 之前结果: 225
+			// 减幅相乘: (1 - 0.2) * (1 - 0.1) = 0.8 * 0.9 = 0.72
+			// 最终计算: 225 * 0.72 = 162
+			assert.Real(attrStr.getCurrentStr(), 162, "力量英雄多重增幅叠加测试2");
+
+			// 测试敏捷英雄的多重增幅叠加
+			attrAgi.setBaseStr(100);
+
+			// 添加多次各类增幅
+			attrAgi.addStrRateUp(0.25);      // +25%
+			attrAgi.addStrRateUp(0.35);      // +35%
+			attrAgi.addSubAttrRateUp(0.2);   // +20%
+			attrAgi.addSubAttrRateUp(0.3);   // +30%
+			attrAgi.addMainAttrRateUp(0.4);  // +40% (不影响力量)
+
+			// 计算期望值：
+			// 基础值: 100
+			// 力量增幅总和: 0.25 + 0.35 = 0.6
+			// 次属性增幅总和: 0.2 + 0.3 = 0.5
+			// 所有增幅相加: (1 + 0.6 + 0.5) = 2.1
+			// 最终计算: 100 * 2.1 = 210
+			assert.Real(attrAgi.getCurrentStr(), 210.0, "敏捷英雄多重增幅叠加测试1");
+
+			// 添加减幅
+			attrAgi.addStrRateDown(0.15);     // -15%
+			attrAgi.addSubAttrRateDown(0.25);  // -25%
+
+			// 计算最终期望值：
+			// 之前结果: 210
+			// 减幅相乘: (1 - 0.15) * (1 - 0.25) = 0.85 * 0.75 = 0.6375
+			// 最终计算: 210 * 0.6375 = 133.875
+			assert.Real(attrAgi.getCurrentStr(), 133.875, "敏捷英雄多重增幅叠加测试2");
 		}, null);
 
 		p = null;
@@ -252,56 +330,75 @@ library UTHeroAttr requires HeroAttr {
 			CreateTestHeroes(p);
 		}
 
+		// 新建测试单位命令
+		if (paramS[0] == "new") {
+			CreateTestHeroes(p);
+			BJDebugMsg("已重新创建测试英雄");
+		}
 		// 力量相关命令
-		if (paramS[0] == "str") {
+		else if (paramS[0] == "str") {
 			attrStr.setBaseStr(paramR[1]);
+			attrAgi.setBaseStr(paramR[1]);
 			BJDebugMsg("设置力量英雄基础力量为: " + R2S(paramR[1]));
 		} else if (paramS[0] == "addstr") {
 			attrStr.addBaseStr(paramR[1]);
+			attrAgi.addBaseStr(paramR[1]);
 			BJDebugMsg("增加力量英雄基础力量: " + R2S(paramR[1]));
 		} else if (paramS[0] == "strup") {
 			attrStr.addStrRateUp(paramR[1]);
+			attrAgi.addStrRateUp(paramR[1]);
 			BJDebugMsg("设置力量英雄力量增幅为: " + R2S(paramR[1]));
 		} else if (paramS[0] == "strdown") {
 			attrStr.addStrRateDown(paramR[1]);
+			attrAgi.addStrRateDown(paramR[1]);
 			BJDebugMsg("设置力量英雄力量减幅为: " + R2S(paramR[1]));
 		} else if (paramS[0] == "strbonus") {
 			attrStr.addStrFixedBonus(paramR[1]);
+			attrAgi.addStrFixedBonus(paramR[1]);
 			BJDebugMsg("设置力量英雄力量固定加成为: " + R2S(paramR[1]));
 		} else if (paramS[0] == "addstrbonus") {
 			attrStr.addStrFixedBonus(paramR[1]);
+			attrAgi.addStrFixedBonus(paramR[1]);
 			BJDebugMsg("增加力量英雄力量固定加成: " + R2S(paramR[1]));
 		}
 		// 主属性相关命令
 		else if (paramS[0] == "mainup") {
 			attrStr.addMainAttrRateUp(paramR[1]);
+			attrAgi.addMainAttrRateUp(paramR[1]);
 			BJDebugMsg("设置力量英雄主属性增幅为: " + R2S(paramR[1]));
 		} else if (paramS[0] == "maindown") {
 			attrStr.addMainAttrRateDown(paramR[1]);
+			attrAgi.addMainAttrRateDown(paramR[1]);
 			BJDebugMsg("设置力量英雄主属性减幅为: " + R2S(paramR[1]));
 		} else if (paramS[0] == "mainbonus") {
 			attrStr.addMainAttrFixedBonus(paramR[1]);
+			attrAgi.addMainAttrFixedBonus(paramR[1]);
 			BJDebugMsg("设置力量英雄主属性固定加成为: " + R2S(paramR[1]));
 		}
 		// 次属性相关命令
 		else if (paramS[0] == "subup") {
 			attrStr.addSubAttrRateUp(paramR[1]);
+			attrAgi.addSubAttrRateUp(paramR[1]);
 			BJDebugMsg("设置力量英雄次属性增幅为: " + R2S(paramR[1]));
 		} else if (paramS[0] == "subdown") {
 			attrStr.addSubAttrRateDown(paramR[1]);
+			attrAgi.addSubAttrRateDown(paramR[1]);
 			BJDebugMsg("设置力量英雄次属性减幅为: " + R2S(paramR[1]));
 		} else if (paramS[0] == "subbonus") {
 			attrStr.addSubAttrFixedBonus(paramR[1]);
+			attrAgi.addSubAttrFixedBonus(paramR[1]);
 			BJDebugMsg("设置力量英雄次属性固定加成为: " + R2S(paramR[1]));
 		}
 		// 主属性基础值相关命令
 		else if (paramS[0] == "mainadd") {
 			attrStr.addMainAttrBase(paramR[1]);
+			attrAgi.addMainAttrBase(paramR[1]);
 			BJDebugMsg("增加力量英雄主属性基础值: " + R2S(paramR[1]));
 		}
 		// 次属性基础值相关命令
 		else if (paramS[0] == "subadd") {
 			attrStr.addSubAttrBase(paramR[1]);
+			attrAgi.addSubAttrBase(paramR[1]);
 			BJDebugMsg("增加力量英雄次属性基础值: " + R2S(paramR[1]));
 		}
 

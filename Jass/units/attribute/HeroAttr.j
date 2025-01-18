@@ -18,34 +18,37 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 
 	public struct heroAttr {
 		STRUCT_SHARED_METHODS(heroAttr)
+		static thistype ethis = 0;
 		unit u; //绑定的单位
 
 		integer mainAttrType;  // 主属性类型
 
-		real baseMainAttr;        // 基础主属性
+		real mainAttrBase;        // 基础主属性
 		real mainAttrRateUp;      // 主属性增幅
 		real mainAttrRateDown;    // 主属性减幅
 		real mainAttrFixedBonus;  // 主属性固定加成
 
-		real baseSubAttr;        // 基础次属性
+		real subAttrBase;        // 基础次属性
 		real subAttrRateUp;      // 次属性增幅
 		real subAttrRateDown;    // 次属性减幅
 		real subAttrFixedBonus;  // 次属性固定加成
 
 		// 展开的Str属性相关代码
 		/* 基础属性值及加成系数 */
-		public real baseStr;      /* 基础Str值 */
-		public real StrRateUp;    /* Str增幅比例 */
-		public real StrRateDown;  /* Str减幅比例 */
-		public real StrRateBonus; /* 受增减幅影响的bonus值 */
-		public real StrFixedBonus;/* 固定加成值(不受增减幅影响) */
+
+		public real baseStr;                       /* 基础Str值 */
+		public real StrRateUp;                     /* Str增幅比例 */
+		public real StrRateDown;                   /* Str减幅比例 */
+		public real StrRateBonus;                  /* 受增减幅影响的bonus值 */
+		public real StrFixedBonus;                 /* 固定加成值(不受增减幅影响) */
+		public static trigger trStrChange = null;  /* Str变化触发器 */
 
         // 获取基础Str(白字)
         public method getBaseStr ()  -> real {
             if (mainAttrType == MAIN_ATTR_STR) {
-                return baseStr + baseMainAttr;
+                return baseStr + mainAttrBase;
             } else {
-                return baseStr + baseSubAttr;
+                return baseStr + subAttrBase;
             }
         }
 
@@ -61,25 +64,29 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 		/* 获取当前总Str */
 		public method getCurrentStr() -> real {
             if (mainAttrType == MAIN_ATTR_STR) { //主属性是力量
-				return baseStr + baseMainAttr + StrRateBonus + StrFixedBonus + mainAttrFixedBonus;
+				return baseStr + mainAttrBase + StrRateBonus + StrFixedBonus + mainAttrFixedBonus;
 			} else {
-				return baseStr + baseMainAttr + StrRateBonus + StrFixedBonus + subAttrFixedBonus;
+				return baseStr + subAttrBase + StrRateBonus + StrFixedBonus + subAttrFixedBonus;
 			}
 		}
 
 		/* 获取当前Str倍率 */
 		public method getCurrentStrRate() -> real {
 			if (mainAttrType == MAIN_ATTR_STR) { //主属性是力量
-				return (1.0 + StrRateUp + mainAttrRateUp) * (1.0 - RealAdd(StrRateDown,mainAttrRateDown)) - 1.0;
+				return (1.0 + StrRateUp + mainAttrRateUp) * (1.0-StrRateDown) * (1.0-mainAttrRateDown) - 1.0;
 			} else {
-				return (1.0 + StrRateUp + subAttrRateUp) * (1.0 - RealAdd(StrRateDown,subAttrRateDown)) - 1.0;
+				return (1.0 + StrRateUp + subAttrRateUp) * (1.0-StrRateDown) * (1.0-subAttrRateDown) - 1.0;
 			}
 		}
 
 		// 同步并刷新当前单位的力量
 		private method syncStrRate() {
-			StrRateBonus = baseStr * getCurrentStrRate() - baseStr;
+			StrRateBonus = baseStr * getCurrentStrRate();
 			SetHeroStr(u, R2I(RMaxBJ(getCurrentStr(), 0.0)), true);
+			if (trStrChange != null) {
+				ethis = this;
+				TriggerEvaluate(trStrChange);
+			}
 		}
 
 		/* 设置基础Str */
@@ -120,6 +127,14 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 				StrRateDown = RealAdd(StrRateDown, value);
 				syncStrRate();
 			}
+		}
+
+		/* 回调Str变化 */
+		public static method onStrChange(code func) {
+			if (trStrChange == null) {
+				trStrChange = CreateTrigger();
+			}
+			TriggerAddCondition(trStrChange, Condition(func));
 		}
 
 		// 同步并刷新当前单位的敏捷
@@ -169,7 +184,7 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 		/* 增加主属性基础值 */
 		public method addMainAttrBase(real value) {
 			if (value != 0) {
-				baseMainAttr += value;
+				mainAttrBase += value;
 				// 根据主属性类型同步相应属性
 				if (mainAttrType == MAIN_ATTR_STR) {
 					syncStrRate();
@@ -184,7 +199,7 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 		/* 增加次属性基础值 */
 		public method addSubAttrBase(real value) {
 			if (value != 0) {
-				baseSubAttr += value;
+				subAttrBase += value;
 				// 根据主属性类型同步次属性
 				if (mainAttrType == MAIN_ATTR_STR) {
 					syncAgiRate();

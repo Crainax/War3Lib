@@ -1,4 +1,7 @@
 globals
+//globals from ConversionUtils:
+constant boolean LIBRARY_ConversionUtils=true
+//endglobals from ConversionUtils
 //globals from MapBoundsUtils:
 constant boolean LIBRARY_MapBoundsUtils=true
 //endglobals from MapBoundsUtils
@@ -20,14 +23,31 @@ hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
 //globals from UnitUtils:
 constant boolean LIBRARY_UnitUtils=true
 //endglobals from UnitUtils
-//globals from HeroAttr:
-constant boolean LIBRARY_HeroAttr=true
-//endglobals from HeroAttr
+//globals from YDLua:
+constant boolean LIBRARY_YDLua=true
+//endglobals from YDLua
+//globals from Logger:
+constant boolean LIBRARY_Logger=true
+integer logger_level=0
+string logger_msg=null
+player logger_p=null
+trigger logger_tr=null
+//endglobals from Logger
 //globals from UnitAttr:
 constant boolean LIBRARY_UnitAttr=true
 //endglobals from UnitAttr
+//globals from HeroAttr:
+constant boolean LIBRARY_HeroAttr=true
+constant integer MAIN_ATTR_STR=0
+constant integer MAIN_ATTR_AGI=1
+constant integer MAIN_ATTR_INT=2
+//endglobals from HeroAttr
 //globals from UTHeroAttr:
 constant boolean LIBRARY_UTHeroAttr=true
+unit UTHeroAttr__testHeroStr=null
+unit UTHeroAttr__testHeroAgi=null
+integer UTHeroAttr__attrStr=0
+integer UTHeroAttr__attrAgi=0
 //endglobals from UTHeroAttr
     // Generated
 rect gg_rct_Wave1= null
@@ -73,27 +93,7 @@ unit s__unitLifeCycle_argsUnit=null
 trigger s__unitLifeCycle_trCreate=null
 trigger s__unitLifeCycle_trDestroy=null
 constant integer si__assert=4
-constant integer si__heroAttr=5
-integer si__heroAttr_F=0
-integer si__heroAttr_I=0
-integer array si__heroAttr_V
-unit array s__heroAttr_u
-real array s__heroAttr_baseStr
-real array s__heroAttr_StrRateUp
-real array s__heroAttr_StrRateDown
-real array s__heroAttr_StrRateBonus
-real array s__heroAttr_StrFixedBonus
-real array s__heroAttr_baseAgi
-real array s__heroAttr_AgiRateUp
-real array s__heroAttr_AgiRateDown
-real array s__heroAttr_AgiRateBonus
-real array s__heroAttr_AgiFixedBonus
-real array s__heroAttr_baseInt
-real array s__heroAttr_IntRateUp
-real array s__heroAttr_IntRateDown
-real array s__heroAttr_IntRateBonus
-real array s__heroAttr_IntFixedBonus
-constant integer si__unitAttr=6
+constant integer si__unitAttr=5
 integer si__unitAttr_F=0
 integer si__unitAttr_I=0
 integer array si__unitAttr_V
@@ -118,13 +118,32 @@ real array s__unitAttr_DefRateBonus
 real array s__unitAttr_DefFixedBonus
 real array s__unitAttr_SpellDmgRateUp
 real array s__unitAttr_SpellDmgRateDown
+constant integer si__heroAttr=6
+integer si__heroAttr_F=0
+integer si__heroAttr_I=0
+integer array si__heroAttr_V
+integer s__heroAttr_ethis=0
+unit array s__heroAttr_u
+integer array s__heroAttr_mainAttrType
+real array s__heroAttr_mainAttrBase
+real array s__heroAttr_mainAttrRateUp
+real array s__heroAttr_mainAttrRateDown
+real array s__heroAttr_mainAttrFixedBonus
+real array s__heroAttr_subAttrBase
+real array s__heroAttr_subAttrRateUp
+real array s__heroAttr_subAttrRateDown
+real array s__heroAttr_subAttrFixedBonus
+real array s__heroAttr_baseStr
+real array s__heroAttr_StrRateUp
+real array s__heroAttr_StrRateDown
+real array s__heroAttr_StrRateBonus
+real array s__heroAttr_StrFixedBonus
+trigger s__heroAttr_trStrChange=null
 trigger st__unitLifeCycle_onDestroyCB
-trigger st__heroAttr_onDestroy
-trigger st__unitAttr_parse
 trigger st__unitAttr_onDestroy
+trigger st__heroAttr_onDestroy
 unit f__arg_unit1
 integer f__arg_this
-integer f__result_integer
 
 endglobals
 
@@ -158,52 +177,6 @@ function s__mapBounds_deallocate takes integer this returns nothing
     endif
     set si__mapBounds_V[this]=si__mapBounds_F
     set si__mapBounds_F=this
-endfunction
-
-//Generated method caller for unitAttr.parse
-function sc__unitAttr_parse takes unit u returns integer
-    set f__arg_unit1=u
-    call TriggerEvaluate(st__unitAttr_parse)
- return f__result_integer
-endfunction
-
-//Generated method caller for unitAttr.onDestroy
-function sc__unitAttr_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__unitAttr_onDestroy)
-endfunction
-
-//Generated allocator of unitAttr
-function s__unitAttr__allocate takes nothing returns integer
- local integer this=si__unitAttr_F
-    if (this!=0) then
-        set si__unitAttr_F=si__unitAttr_V[this]
-    else
-        set si__unitAttr_I=si__unitAttr_I+1
-        set this=si__unitAttr_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: unitAttr")
-        return 0
-    endif
-
-    set si__unitAttr_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of unitAttr
-function sc__unitAttr_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: unitAttr")
-        return
-    elseif (si__unitAttr_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: unitAttr")
-        return
-    endif
-    set f__arg_this=this
-    call TriggerEvaluate(st__unitAttr_onDestroy)
-    set si__unitAttr_V[this]=si__unitAttr_F
-    set si__unitAttr_F=this
 endfunction
 
 //Generated method caller for heroAttr.onDestroy
@@ -243,6 +216,45 @@ function sc__heroAttr_deallocate takes integer this returns nothing
     call TriggerEvaluate(st__heroAttr_onDestroy)
     set si__heroAttr_V[this]=si__heroAttr_F
     set si__heroAttr_F=this
+endfunction
+
+//Generated method caller for unitAttr.onDestroy
+function sc__unitAttr_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__unitAttr_onDestroy)
+endfunction
+
+//Generated allocator of unitAttr
+function s__unitAttr__allocate takes nothing returns integer
+ local integer this=si__unitAttr_F
+    if (this!=0) then
+        set si__unitAttr_F=si__unitAttr_V[this]
+    else
+        set si__unitAttr_I=si__unitAttr_I+1
+        set this=si__unitAttr_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: unitAttr")
+        return 0
+    endif
+
+    set si__unitAttr_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of unitAttr
+function sc__unitAttr_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: unitAttr")
+        return
+    elseif (si__unitAttr_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: unitAttr")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__unitAttr_onDestroy)
+    set si__unitAttr_V[this]=si__unitAttr_F
+    set si__unitAttr_F=this
 endfunction
 
 //Generated method caller for unitLifeCycle.onDestroyCB
@@ -289,6 +301,62 @@ function h__RemoveUnit takes unit a0 returns nothing
 call RemoveUnit(a0)
 endfunction
 
+//library ConversionUtils:
+    function B2S takes boolean b returns string
+        if ( b ) then
+            return "true"
+        else
+            return "false"
+        endif
+    endfunction  //三目运算符
+    function S3 takes boolean b,string s1,string s2 returns string
+        if ( b ) then
+            return s1
+        else
+            return s2
+        endif
+    endfunction  //三目运算符
+    function U3 takes boolean b,unit u1,unit u2 returns unit
+        if ( b ) then
+            return u1
+        else
+            return u2
+        endif
+    endfunction  //三目运算符
+    function I3 takes boolean b,integer i1,integer i2 returns integer
+        if ( b ) then
+            return i1
+        else
+            return i2
+        endif
+    endfunction  //三目运算符
+    function R3 takes boolean b,real r1,real r2 returns real
+        if ( b ) then
+            return r1
+        else
+            return r2
+        endif
+    endfunction  // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    function GetIDSymbol takes integer pos returns integer
+        local integer bit=pos / 36
+        set pos=ModuloInteger(pos, 36)
+        if ( pos < 10 ) then
+            return pos + bit * 256
+        else
+            return '000a' - '0000' + pos - 10 + bit * 256
+        endif
+    endfunction  // 将魔兽的四字符ID转换回对应数字
+    function GetSymbolID takes integer s returns integer
+        local integer i1=s / 256
+        local integer i2=ModuloInteger(s, 256)
+        if ( i2 < 10 ) then
+            return i1 * 36 + i2
+        else
+            return i2 - '000a' + '0000' + 10 + i1 * 36
+        endif
+    endfunction
+
+//library ConversionUtils ends
 //library MapBoundsUtils:
         function s__mapBounds_X takes real x returns real
             return RMinBJ(RMaxBJ(x, s__mapBounds_minX), s__mapBounds_maxX)
@@ -425,6 +493,25 @@ endfunction
                 endif
             endif
         endfunction
+    function RealAdd3 takes real a1,real a2,real a3 returns real
+        local real temp
+        if ( RAbsBJ(a2) >= 1.0 ) then
+            return RealAdd(a1 , a3)
+        endif // 如果第三个参数绝对值>=1.0，直接返回前两个参数的计算结果
+        if ( RAbsBJ(a3) >= 1.0 ) then
+            return RealAdd(a1 , a2)
+        endif // 先计算前两个参数的结果
+        if ( a2 >= 0 ) then
+            set temp=1.0 - ( 1.0 - a1 ) * ( 1.0 - a2 )
+        else
+            set temp=1.0 - ( 1.0 - a1 ) / ( 1.0 + a2 )
+        endif // 再与第三个参数计算
+        if ( a3 >= 0 ) then
+            return 1.0 - ( 1.0 - temp ) * ( 1.0 - a3 )
+        else
+            return 1.0 - ( 1.0 - temp ) / ( 1.0 + a3 )
+        endif
+    endfunction
 
 //library MathUtils ends
 //library UnitHashTable:
@@ -672,189 +759,91 @@ endfunction
     endfunction
 
 //library UnitUtils ends
-//library HeroAttr:
-        function s__heroAttr_isExist takes integer this returns boolean
-            return ( this != null and si__heroAttr_V[this] == - 1 )
-        endfunction
-        function s__heroAttr_parse takes unit u returns integer
-            local integer this
-            local integer handleId=GetHandleId(u)
-            if ( HaveSavedInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_HEROATTR) ) then
-                return LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_HEROATTR)
-            endif // 不存在才创建新的
-            set this=s__heroAttr__allocate() //todo: 测试一下用setUnitState设超过21亿的数再get能get到吗
-            set s__heroAttr_u[this]=u
-            set s__heroAttr_baseStr[this]=0.0
-            set s__heroAttr_StrRateUp[this]=0.0
-            set s__heroAttr_StrRateDown[this]=0.0
-            set s__heroAttr_StrRateBonus[this]=0.0
-            set s__heroAttr_StrFixedBonus[this]=0.0
-            set s__heroAttr_baseAgi[this]=0.0
-            set s__heroAttr_AgiRateUp[this]=0.0
-            set s__heroAttr_AgiRateDown[this]=0.0
-            set s__heroAttr_AgiRateBonus[this]=0.0
-            set s__heroAttr_AgiFixedBonus[this]=0.0
-            set s__heroAttr_baseInt[this]=0.0
-            set s__heroAttr_IntRateUp[this]=0.0
-            set s__heroAttr_IntRateDown[this]=0.0
-            set s__heroAttr_IntRateBonus[this]=0.0
-            set s__heroAttr_IntFixedBonus[this]=0.0
-            call SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_HEROATTR, this)
-            return this
-        endfunction  // 同步并刷新当前单位的力量
-        function s__heroAttr_syncStrRate takes integer this returns nothing
-            set s__heroAttr_StrRateBonus[this]=s__heroAttr_baseStr[this] * ( 1.0 + s__heroAttr_StrRateUp[this] ) * ( 1.0 - s__heroAttr_StrRateDown[this] ) - s__heroAttr_baseStr[this]
-            call SetUnitState(s__heroAttr_u[this], ConvertUnitState(0x20), s__heroAttr_baseStr[this] + s__heroAttr_StrRateBonus[this] + s__heroAttr_StrFixedBonus[this])
-        endfunction  // 同步并刷新当前单位的敏捷
-        function s__heroAttr_syncAgiRate takes integer this returns nothing
-            set s__heroAttr_AgiRateBonus[this]=s__heroAttr_baseAgi[this] * ( 1.0 + s__heroAttr_AgiRateUp[this] ) * ( 1.0 - s__heroAttr_AgiRateDown[this] ) - s__heroAttr_baseAgi[this]
-            call SetUnitState(s__heroAttr_u[this], ConvertUnitState(0x20), s__heroAttr_baseAgi[this] + s__heroAttr_AgiRateBonus[this] + s__heroAttr_AgiFixedBonus[this])
-        endfunction  // 同步并刷新当前单位的智力
-        function s__heroAttr_syncIntRate takes integer this returns nothing
-            set s__heroAttr_IntRateBonus[this]=s__heroAttr_baseInt[this] * ( 1.0 + s__heroAttr_IntRateUp[this] ) * ( 1.0 - s__heroAttr_IntRateDown[this] ) - s__heroAttr_baseInt[this]
-            call SetUnitState(s__heroAttr_u[this], ConvertUnitState(0x20), s__heroAttr_baseInt[this] + s__heroAttr_IntRateBonus[this] + s__heroAttr_IntFixedBonus[this])
-        endfunction
-        function s__heroAttr_setBaseStr takes integer this,real value returns nothing
-            if ( s__heroAttr_baseStr[this] != value ) then
-                set s__heroAttr_baseStr[this]=value
-                call s__heroAttr_syncStrRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addBaseStr takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_baseStr[this]=s__heroAttr_baseStr[this] + value
-                call s__heroAttr_syncStrRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addStrFixedBonus takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_StrFixedBonus[this]=s__heroAttr_StrFixedBonus[this] + value
-                call s__heroAttr_syncStrRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addStrRateUp takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_StrRateUp[this]=s__heroAttr_StrRateUp[this] + value
-                call s__heroAttr_syncStrRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addStrRateDown takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_StrRateDown[this]=RealAdd(s__heroAttr_StrRateDown[this] , value)
-                call s__heroAttr_syncStrRate(this)
-            endif
-        endfunction
-        function s__heroAttr_getCurrentStr takes integer this returns real
-            return s__heroAttr_baseStr[this] + s__heroAttr_StrRateBonus[this] + s__heroAttr_StrFixedBonus[this]
-        endfunction
-        function s__heroAttr_getCurrentStrRate takes integer this returns real
-            return ( 1.0 + s__heroAttr_StrRateUp[this] ) * ( 1.0 - s__heroAttr_StrRateDown[this] ) - 1.0
-        endfunction
-        function s__heroAttr_setBaseAgi takes integer this,real value returns nothing
-            if ( s__heroAttr_baseAgi[this] != value ) then
-                set s__heroAttr_baseAgi[this]=value
-                call s__heroAttr_syncAgiRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addBaseAgi takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_baseAgi[this]=s__heroAttr_baseAgi[this] + value
-                call s__heroAttr_syncAgiRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addAgiFixedBonus takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_AgiFixedBonus[this]=s__heroAttr_AgiFixedBonus[this] + value
-                call s__heroAttr_syncAgiRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addAgiRateUp takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_AgiRateUp[this]=s__heroAttr_AgiRateUp[this] + value
-                call s__heroAttr_syncAgiRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addAgiRateDown takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_AgiRateDown[this]=RealAdd(s__heroAttr_AgiRateDown[this] , value)
-                call s__heroAttr_syncAgiRate(this)
-            endif
-        endfunction
-        function s__heroAttr_getCurrentAgi takes integer this returns real
-            return s__heroAttr_baseAgi[this] + s__heroAttr_AgiRateBonus[this] + s__heroAttr_AgiFixedBonus[this]
-        endfunction
-        function s__heroAttr_getCurrentAgiRate takes integer this returns real
-            return ( 1.0 + s__heroAttr_AgiRateUp[this] ) * ( 1.0 - s__heroAttr_AgiRateDown[this] ) - 1.0
-        endfunction
-        function s__heroAttr_setBaseInt takes integer this,real value returns nothing
-            if ( s__heroAttr_baseInt[this] != value ) then
-                set s__heroAttr_baseInt[this]=value
-                call s__heroAttr_syncIntRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addBaseInt takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_baseInt[this]=s__heroAttr_baseInt[this] + value
-                call s__heroAttr_syncIntRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addIntFixedBonus takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_IntFixedBonus[this]=s__heroAttr_IntFixedBonus[this] + value
-                call s__heroAttr_syncIntRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addIntRateUp takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_IntRateUp[this]=s__heroAttr_IntRateUp[this] + value
-                call s__heroAttr_syncIntRate(this)
-            endif
-        endfunction
-        function s__heroAttr_addIntRateDown takes integer this,real value returns nothing
-            if ( value != 0 ) then
-                set s__heroAttr_IntRateDown[this]=RealAdd(s__heroAttr_IntRateDown[this] , value)
-                call s__heroAttr_syncIntRate(this)
-            endif
-        endfunction
-        function s__heroAttr_getCurrentInt takes integer this returns real
-            return s__heroAttr_baseInt[this] + s__heroAttr_IntRateBonus[this] + s__heroAttr_IntFixedBonus[this]
-        endfunction
-        function s__heroAttr_getCurrentIntRate takes integer this returns real
-            return ( 1.0 + s__heroAttr_IntRateUp[this] ) * ( 1.0 - s__heroAttr_IntRateDown[this] ) - 1.0
-        endfunction
-        function s__heroAttr_onDestroy takes integer this returns nothing
-            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), HASH_KEY_UNIT_HEROATTR) ) then
-                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), HASH_KEY_UNIT_HEROATTR)
-            endif
-            set s__heroAttr_u[this]=null
-        endfunction  //注册到周期结束中
+//library YDLua:
 
-//Generated destructor of heroAttr
-function s__heroAttr_deallocate takes integer this returns nothing
-    if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: heroAttr")
-        return
-    elseif (si__heroAttr_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: heroAttr")
-        return
-    endif
-    call s__heroAttr_onDestroy(this)
-    set si__heroAttr_V[this]=si__heroAttr_F
-    set si__heroAttr_F=this
-endfunction
-            function s__heroAttr_anon__0 takes nothing returns nothing
-                local unit u=s__unitLifeCycle_argsUnit
-                local integer this=sc__unitAttr_parse(u)
-                if ( s__heroAttr_isExist(this) ) then
-                    call s__heroAttr_deallocate(this)
-                endif
-                set u=null
-            endfunction
-        function s__heroAttr_onInit takes nothing returns nothing
-            call s__unitLifeCycle_registerDestroy(function s__heroAttr_anon__0)
+    function initializeLua takes nothing returns integer
+        call Cheat("exec-lua:plugin_main")
+        return 0
+    endfunction
+        function YDLua__anon__0 takes nothing returns nothing
+            call BJDebugMsg("调用了YDLua引擎")
+            call DestroyTrigger(GetTriggeringTrigger())
         endfunction
+    function YDLua__onInit takes nothing returns nothing
+        local trigger tr=CreateTrigger()
+        call TriggerRegisterTimerEvent(tr, 0.0, false)
+        call TriggerAddCondition(tr, Condition(function YDLua__anon__0))
+        set tr=null
+    endfunction
 
-//library HeroAttr ends
+//library YDLua ends
+//library Logger:
+
+    function Trace takes string msg returns nothing
+        set logger_msg=msg
+        set logger_level=0
+        set logger_p=GetLocalPlayer()
+        call TriggerEvaluate(logger_tr)
+    endfunction  // 调试级别日志(绿色),用于输出变量值等调试信息
+    function Debug takes string msg returns nothing
+        set logger_msg=msg
+        set logger_level=1
+        set logger_p=GetLocalPlayer()
+        call TriggerEvaluate(logger_tr)
+    endfunction  // 信息级别日志(白色),用于输出普通提示信息
+    function Info takes string msg returns nothing
+        set logger_msg=msg
+        set logger_level=2
+        set logger_p=GetLocalPlayer()
+        call TriggerEvaluate(logger_tr)
+    endfunction  // 警告级别日志(黄色),用于输出警告信息
+    function Warn takes string msg returns nothing
+        set logger_msg=msg
+        set logger_level=3
+        set logger_p=GetLocalPlayer()
+        call TriggerEvaluate(logger_tr)
+    endfunction  // 错误级别日志(红色),用于输出错误信息
+    function Error takes string msg returns nothing
+        set logger_msg=msg
+        set logger_level=4
+        set logger_p=GetLocalPlayer()
+        call TriggerEvaluate(logger_tr)
+    endfunction  // 向指定玩家输出追踪日志(灰色)
+    function TraceToPlayer takes player p,string msg returns nothing
+        set logger_msg=msg
+        set logger_level=0
+        set logger_p=p
+        call TriggerEvaluate(logger_tr)
+    endfunction  // 向指定玩家输出调试日志(绿色)
+    function DebugToPlayer takes player p,string msg returns nothing
+        set logger_msg=msg
+        set logger_level=1
+        set logger_p=p
+        call TriggerEvaluate(logger_tr)
+    endfunction  // 向指定玩家输出信息日志(白色)
+    function InfoToPlayer takes player p,string msg returns nothing
+        set logger_msg=msg
+        set logger_level=2
+        set logger_p=p
+        call TriggerEvaluate(logger_tr)
+    endfunction  // 向指定玩家输出警告日志(黄色)
+    function WarnToPlayer takes player p,string msg returns nothing
+        set logger_msg=msg
+        set logger_level=3
+        set logger_p=p
+        call TriggerEvaluate(logger_tr)
+    endfunction  // 向指定玩家输出错误日志(红色)
+    function ErrorToPlayer takes player p,string msg returns nothing
+        set logger_msg=msg
+        set logger_level=4
+        set logger_p=p
+        call TriggerEvaluate(logger_tr)
+    endfunction
+    function Logger__onInit takes nothing returns nothing
+        call Cheat("exec-lua:depends.debug.logger")
+    endfunction
+
+//library Logger ends
 //library UnitAttr:
         function s__unitAttr_isExist takes integer this returns boolean
             return ( this != null and si__unitAttr_V[this] == - 1 )
@@ -1090,38 +1079,405 @@ endfunction
         endfunction
 
 //library UnitAttr ends
+//library HeroAttr:
+        function s__heroAttr_isExist takes integer this returns boolean
+            return ( this != null and si__heroAttr_V[this] == - 1 )
+        endfunction
+        function s__heroAttr_getBaseStr takes integer this returns real
+            if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                return s__heroAttr_baseStr[this] + s__heroAttr_mainAttrBase[this]
+            else
+                return s__heroAttr_baseStr[this] + s__heroAttr_subAttrBase[this]
+            endif
+        endfunction  // 获取额外Str(绿字)
+        function s__heroAttr_getExtraStr takes integer this returns real
+            if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                return s__heroAttr_StrRateBonus[this] + s__heroAttr_StrFixedBonus[this] + s__heroAttr_mainAttrFixedBonus[this]
+            else
+                return s__heroAttr_StrRateBonus[this] + s__heroAttr_StrFixedBonus[this] + s__heroAttr_subAttrFixedBonus[this]
+            endif
+        endfunction
+        function s__heroAttr_getCurrentStr takes integer this returns real
+            if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                return s__heroAttr_baseStr[this] + s__heroAttr_mainAttrBase[this] + s__heroAttr_StrRateBonus[this] + s__heroAttr_StrFixedBonus[this] + s__heroAttr_mainAttrFixedBonus[this]
+            else
+                return s__heroAttr_baseStr[this] + s__heroAttr_subAttrBase[this] + s__heroAttr_StrRateBonus[this] + s__heroAttr_StrFixedBonus[this] + s__heroAttr_subAttrFixedBonus[this]
+            endif
+        endfunction
+        function s__heroAttr_getCurrentStrRate takes integer this returns real
+            if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                return ( 1.0 + s__heroAttr_StrRateUp[this] + s__heroAttr_mainAttrRateUp[this] ) * ( 1.0 - s__heroAttr_StrRateDown[this] ) * ( 1.0 - s__heroAttr_mainAttrRateDown[this] ) - 1.0
+            else
+                return ( 1.0 + s__heroAttr_StrRateUp[this] + s__heroAttr_subAttrRateUp[this] ) * ( 1.0 - s__heroAttr_StrRateDown[this] ) * ( 1.0 - s__heroAttr_subAttrRateDown[this] ) - 1.0
+            endif
+        endfunction  // 同步并刷新当前单位的力量
+        function s__heroAttr_syncStrRate takes integer this returns nothing
+            set s__heroAttr_StrRateBonus[this]=s__heroAttr_baseStr[this] * s__heroAttr_getCurrentStrRate(this)
+            call SetHeroStr(s__heroAttr_u[this], R2I(RMaxBJ(s__heroAttr_getCurrentStr(this), 0.0)), true)
+            if ( s__heroAttr_trStrChange != null ) then
+                set s__heroAttr_ethis=this
+                call TriggerEvaluate(s__heroAttr_trStrChange)
+            endif
+        endfunction
+        function s__heroAttr_setBaseStr takes integer this,real value returns nothing
+            if ( s__heroAttr_baseStr[this] != value ) then
+                set s__heroAttr_baseStr[this]=value
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addBaseStr takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_baseStr[this]=s__heroAttr_baseStr[this] + value
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addStrFixedBonus takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_StrFixedBonus[this]=s__heroAttr_StrFixedBonus[this] + value
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addStrRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_StrRateUp[this]=s__heroAttr_StrRateUp[this] + value
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_addStrRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_StrRateDown[this]=RealAdd(s__heroAttr_StrRateDown[this] , value)
+                call s__heroAttr_syncStrRate(this)
+            endif
+        endfunction
+        function s__heroAttr_onStrChange takes code func returns nothing
+            if ( s__heroAttr_trStrChange == null ) then
+                set s__heroAttr_trStrChange=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__heroAttr_trStrChange, Condition(func))
+        endfunction  // 同步并刷新当前单位的敏捷
+        function s__heroAttr_syncAgiRate takes integer this returns nothing
+        endfunction  // 同步并刷新当前单位的智力
+        function s__heroAttr_syncIntRate takes integer this returns nothing
+        endfunction
+        function s__heroAttr_parse takes unit u,integer mainAttrType returns integer
+            local integer this
+            local integer handleId=GetHandleId(u)
+            if ( HaveSavedInteger(HASH_UNIT, handleId, 1727) ) then
+                return LoadInteger(HASH_UNIT, handleId, 1727)
+            elseif ( not ( IsHeroUnitId(GetUnitTypeId(u)) ) ) then // 如果不是英雄单位就不给创建
+                return 0
+            endif // 不存在才创建新的
+            set this=s__heroAttr__allocate()
+            set s__heroAttr_u[this]=u
+            set s__heroAttr_mainAttrType[this]=mainAttrType
+            set s__heroAttr_mainAttrBase[this]=0.0
+            set s__heroAttr_mainAttrRateUp[this]=0.0
+            set s__heroAttr_mainAttrRateDown[this]=0.0
+            set s__heroAttr_mainAttrFixedBonus[this]=0.0
+            set s__heroAttr_subAttrBase[this]=0.0
+            set s__heroAttr_subAttrRateUp[this]=0.0
+            set s__heroAttr_subAttrRateDown[this]=0.0
+            set s__heroAttr_subAttrFixedBonus[this]=0.0
+            set s__heroAttr_baseStr[this]=0.0
+            set s__heroAttr_StrRateUp[this]=0.0
+            set s__heroAttr_StrRateDown[this]=0.0
+            set s__heroAttr_StrRateBonus[this]=0.0
+            set s__heroAttr_StrFixedBonus[this]=0.0
+            call SaveInteger(HASH_UNIT, handleId, 1727, this) // INIT_COMBAT_ATTR(Agi) // INIT_COMBAT_ATTR(Int)
+            return this
+        endfunction
+        function s__heroAttr_addMainAttrBase takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_mainAttrBase[this]=s__heroAttr_mainAttrBase[this] + value // 根据主属性类型同步相应属性
+                if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                    call s__heroAttr_syncStrRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_AGI ) then
+                    call s__heroAttr_syncAgiRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_INT ) then
+                    call s__heroAttr_syncIntRate(this)
+                endif
+            endif
+        endfunction
+        function s__heroAttr_addSubAttrBase takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_subAttrBase[this]=s__heroAttr_subAttrBase[this] + value // 根据主属性类型同步次属性
+                if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                    call s__heroAttr_syncAgiRate(this)
+                    call s__heroAttr_syncIntRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_AGI ) then
+                    call s__heroAttr_syncStrRate(this)
+                    call s__heroAttr_syncIntRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_INT ) then
+                    call s__heroAttr_syncStrRate(this)
+                    call s__heroAttr_syncAgiRate(this)
+                endif
+            endif
+        endfunction  // 添加主属性相关方法
+        function s__heroAttr_addMainAttrRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_mainAttrRateUp[this]=s__heroAttr_mainAttrRateUp[this] + value
+                if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                    call s__heroAttr_syncStrRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_AGI ) then
+                    call s__heroAttr_syncAgiRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_INT ) then
+                    call s__heroAttr_syncIntRate(this)
+                endif
+            endif
+        endfunction
+        function s__heroAttr_addMainAttrRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_mainAttrRateDown[this]=RealAdd(s__heroAttr_mainAttrRateDown[this] , value)
+                if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                    call s__heroAttr_syncStrRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_AGI ) then
+                    call s__heroAttr_syncAgiRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_INT ) then
+                    call s__heroAttr_syncIntRate(this)
+                endif
+            endif
+        endfunction
+        function s__heroAttr_addMainAttrFixedBonus takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_mainAttrFixedBonus[this]=s__heroAttr_mainAttrFixedBonus[this] + value
+                if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                    call s__heroAttr_syncStrRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_AGI ) then
+                    call s__heroAttr_syncAgiRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_INT ) then
+                    call s__heroAttr_syncIntRate(this)
+                endif
+            endif
+        endfunction  // 添加次属性相关方法
+        function s__heroAttr_addSubAttrRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_subAttrRateUp[this]=s__heroAttr_subAttrRateUp[this] + value
+                if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                    call s__heroAttr_syncAgiRate(this)
+                    call s__heroAttr_syncIntRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_AGI ) then
+                    call s__heroAttr_syncStrRate(this)
+                    call s__heroAttr_syncIntRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_INT ) then
+                    call s__heroAttr_syncStrRate(this)
+                    call s__heroAttr_syncAgiRate(this)
+                endif
+            endif
+        endfunction
+        function s__heroAttr_addSubAttrRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_subAttrRateDown[this]=RealAdd(s__heroAttr_subAttrRateDown[this] , value)
+                if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                    call s__heroAttr_syncAgiRate(this)
+                    call s__heroAttr_syncIntRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_AGI ) then
+                    call s__heroAttr_syncStrRate(this)
+                    call s__heroAttr_syncIntRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_INT ) then
+                    call s__heroAttr_syncStrRate(this)
+                    call s__heroAttr_syncAgiRate(this)
+                endif
+            endif
+        endfunction
+        function s__heroAttr_addSubAttrFixedBonus takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__heroAttr_subAttrFixedBonus[this]=s__heroAttr_subAttrFixedBonus[this] + value
+                if ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_STR ) then
+                    call s__heroAttr_syncAgiRate(this)
+                    call s__heroAttr_syncIntRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_AGI ) then
+                    call s__heroAttr_syncStrRate(this)
+                    call s__heroAttr_syncIntRate(this)
+                elseif ( s__heroAttr_mainAttrType[this] == MAIN_ATTR_INT ) then
+                    call s__heroAttr_syncStrRate(this)
+                    call s__heroAttr_syncAgiRate(this)
+                endif
+            endif
+        endfunction  //单位删除会调用
+        function s__heroAttr_onDestroy takes integer this returns nothing
+            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727) ) then
+                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727)
+            endif
+            set s__heroAttr_u[this]=null
+        endfunction  //注册到周期结束中
+
+//Generated destructor of heroAttr
+function s__heroAttr_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: heroAttr")
+        return
+    elseif (si__heroAttr_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: heroAttr")
+        return
+    endif
+    call s__heroAttr_onDestroy(this)
+    set si__heroAttr_V[this]=si__heroAttr_F
+    set si__heroAttr_F=this
+endfunction
+            function s__heroAttr_anon__0 takes nothing returns nothing
+                local unit u=s__unitLifeCycle_argsUnit
+                local integer this=s__unitAttr_parse(u)
+                if ( s__heroAttr_isExist(this) ) then
+                    call s__heroAttr_deallocate(this)
+                endif
+                set u=null
+            endfunction
+        function s__heroAttr_onInit takes nothing returns nothing
+            call s__unitLifeCycle_registerDestroy(function s__heroAttr_anon__0)
+        endfunction
+
+//library HeroAttr ends
 //library UTHeroAttr:
 
+    function UTHeroAttr__CreateTestHeroes takes player p returns nothing
+        if ( UTHeroAttr__testHeroStr != null ) then
+            call h__RemoveUnit(UTHeroAttr__testHeroStr)
+        endif
+        if ( UTHeroAttr__testHeroAgi != null ) then
+            call h__RemoveUnit(UTHeroAttr__testHeroAgi)
+        endif // 创建一个力量型英雄和一个敏捷型英雄
+        set UTHeroAttr__testHeroStr=CreateUnit(p, 'Hmkg', 0, 0, 0) // 山丘之王 // 恶魔猎手
+        set UTHeroAttr__testHeroAgi=CreateUnit(p, 'Edem', 200, 0, 0) // 初始化属性系统
+        set UTHeroAttr__attrStr=s__heroAttr_parse(UTHeroAttr__testHeroStr , MAIN_ATTR_STR)
+        set UTHeroAttr__attrAgi=s__heroAttr_parse(UTHeroAttr__testHeroAgi , MAIN_ATTR_AGI) // 设置基础属性值方便测试
+        call s__heroAttr_setBaseStr(UTHeroAttr__attrStr,100)
+        call s__heroAttr_setBaseStr(UTHeroAttr__attrAgi,80)
+        call SelectUnit(UTHeroAttr__testHeroStr, true)
+    endfunction
         function UTHeroAttr__anon__0 takes nothing returns nothing
-        endfunction  //end
+            local integer ha=s__heroAttr_ethis
+            call BJDebugMsg("[单位]: " + GetUnitName(s__heroAttr_u[ha]) + " [Str]: " + I2S(s__heroAttr_getCurrentStr(ha)))
+        endfunction  // 创建测试英雄
         function UTHeroAttr__anon__1 takes nothing returns nothing
-        endfunction
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 100.0 , "力量英雄初始Str应为100")
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 80.0 , "敏捷英雄初始Str应为80")
+        endfunction  // 测试2：主属性增幅测试
         function UTHeroAttr__anon__2 takes nothing returns nothing
-        endfunction  //heroAttr
+            call s__heroAttr_addMainAttrRateUp(UTHeroAttr__attrStr,0.5)
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 150.0 , "力量英雄50%主属性增幅后Str应为150") // 给敏捷英雄加50%主属性增幅(不应影响力量)
+            call s__heroAttr_addMainAttrRateUp(UTHeroAttr__attrAgi,0.5)
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 80.0 , "敏捷英雄主属性增幅不应影响Str")
+        endfunction  // 测试3：次属性增幅测试
+        function UTHeroAttr__anon__3 takes nothing returns nothing
+            call UTHeroAttr__CreateTestHeroes(Player(0)) // 给力量英雄加30%次属性增幅
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrStr,0.3)
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 100.0 , "力量英雄次属性增幅不应影响Str") // 给敏捷英雄加30%次属性增幅(应影响力量)
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrAgi,0.3)
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 104.0 , "敏捷英雄30%次属性增幅后Str应为104")
+        endfunction  // 测试4：属性固定加成测试
+        function UTHeroAttr__anon__4 takes nothing returns nothing
+            call UTHeroAttr__CreateTestHeroes(Player(0)) // 测试主属性固定加成
+            call s__heroAttr_addMainAttrFixedBonus(UTHeroAttr__attrStr,50.0)
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 150.0 , "力量英雄加50点主属性固定加成后Str应为150") // 测试次属性固定加成
+            call s__heroAttr_addSubAttrFixedBonus(UTHeroAttr__attrAgi,30.0)
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 110.0 , "敏捷英雄加30点次属性固定加成后Str应为110")
+        endfunction  // 测试5：力量属性各种增减幅组合测试
+        function UTHeroAttr__anon__5 takes nothing returns nothing
+            call UTHeroAttr__CreateTestHeroes(Player(0)) // 设置基础力量为100
+            call s__heroAttr_setBaseStr(UTHeroAttr__attrStr,100) // 添加力量增减幅
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrStr,0.3) // +30% // -10%
+            call s__heroAttr_addStrRateDown(UTHeroAttr__attrStr,0.1) // 添加主属性增减幅
+            call s__heroAttr_addMainAttrRateUp(UTHeroAttr__attrStr,0.2) // +20% // -5%
+            call s__heroAttr_addMainAttrRateDown(UTHeroAttr__attrStr,0.05) // 计算期望值：
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 128.25 , "力量英雄复杂增减幅组合测试1") // 基础值: 100 // 所有增幅相加: (1 + 0.3 + 0.2) = 1.5 // 所有减幅相乘: (1 - 0.1) * (1 - 0.05) = 0.9 * 0.95 = 0.855 // 最终计算: 100 * 1.5 * 0.855 = 128.25 // 添加固定加成
+            call s__heroAttr_addStrFixedBonus(UTHeroAttr__attrStr,50)
+            call s__heroAttr_addMainAttrFixedBonus(UTHeroAttr__attrStr,30) // 最终结果应为: 128.25 + 50 + 30 = 208.25
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 208.25 , "力量英雄复杂增减幅组合测试2")
+        endfunction  // 测试6：次属性对力量的影响组合测试
+        function UTHeroAttr__anon__6 takes nothing returns nothing
+            call UTHeroAttr__CreateTestHeroes(Player(0)) // 设置基础属性
+            call s__heroAttr_setBaseStr(UTHeroAttr__attrAgi,100) // 添加力量相关增减幅
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrAgi,0.2) // +20% // -10%
+            call s__heroAttr_addStrRateDown(UTHeroAttr__attrAgi,0.1) // 添加次属性增减幅
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrAgi,0.3) // +30% // -15%
+            call s__heroAttr_addSubAttrRateDown(UTHeroAttr__attrAgi,0.15) // 计算期望值：
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 114.75 , "敏捷英雄力量复杂增减幅组合测试1") // 基础值: 100 // 所有增幅相加: (1 + 0.2 + 0.3) = 1.5 // 所有减幅相乘: (1 - 0.1) * (1 - 0.15) = 0.9 * 0.85 = 0.765 // 最终计算: 100 * 1.5 * 0.765 = 114.75 // 添加固定加成
+            call s__heroAttr_addStrFixedBonus(UTHeroAttr__attrAgi,40)
+            call s__heroAttr_addSubAttrFixedBonus(UTHeroAttr__attrAgi,20) // 最终结果应为: 114.75 + 40 + 20 = 174.75
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 174.75 , "敏捷英雄力量复杂增减幅组合测试2")
+        endfunction  // 测试7：极限值测试
+        function UTHeroAttr__anon__7 takes nothing returns nothing
+            call UTHeroAttr__CreateTestHeroes(Player(0)) // 设置一个较大的基础值
+            call s__heroAttr_setBaseStr(UTHeroAttr__attrStr,1000) // 添加多个大幅度的增减幅
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrStr,2.0) // +200% // +150%
+            call s__heroAttr_addMainAttrRateUp(UTHeroAttr__attrStr,1.5) // -40%
+            call s__heroAttr_addStrRateDown(UTHeroAttr__attrStr,0.4) // -30%
+            call s__heroAttr_addMainAttrRateDown(UTHeroAttr__attrStr,0.3) // 添加大量固定加成
+            call s__heroAttr_addStrFixedBonus(UTHeroAttr__attrStr,500)
+            call s__heroAttr_addMainAttrFixedBonus(UTHeroAttr__attrStr,300) // 计算期望值：
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 2690.0 , "力量英雄极限值测试") // 基础值: 1000 // 所有增幅相加: (1 + 2.0 + 1.5) = 4.5 // 所有减幅相乘: (1 - 0.4) * (1 - 0.3) = 0.6 * 0.7 = 0.42 // 属性计算: 1000 * 4.5 * 0.42 = 1890 // 加上固定加成: 1890 + 500 + 300 = 2690
+        endfunction  // 测试8：主属性基础值测试
+        function UTHeroAttr__anon__8 takes nothing returns nothing
+            call UTHeroAttr__CreateTestHeroes(Player(0)) // 测试力量英雄的主属性基础值
+            call s__heroAttr_addMainAttrBase(UTHeroAttr__attrStr,50)
+            call s__assert_Real(s__heroAttr_getBaseStr(UTHeroAttr__attrStr) , 150.0 , "力量英雄加50主属性基础值后白字应为150")
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 150.0 , "力量英雄加50主属性基础值后总值应为150") // 测试敏捷英雄的主属性基础值(不应影响力量)
+            call s__heroAttr_addMainAttrBase(UTHeroAttr__attrAgi,50)
+            call s__assert_Real(s__heroAttr_getBaseStr(UTHeroAttr__attrAgi) , 80.0 , "敏捷英雄加50主属性基础值后力量白字应为80")
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 80.0 , "敏捷英雄加50主属性基础值后力量总值应为80")
+        endfunction  // 测试9：次属性基础值测试
+        function UTHeroAttr__anon__9 takes nothing returns nothing
+            call UTHeroAttr__CreateTestHeroes(Player(0)) // 测试力量英雄的次属性基础值(不应影响力量)
+            call s__heroAttr_addSubAttrBase(UTHeroAttr__attrStr,30)
+            call s__assert_Real(s__heroAttr_getBaseStr(UTHeroAttr__attrStr) , 100.0 , "力量英雄加30次属性基础值后力量白字应为100")
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 100.0 , "力量英雄加30次属性基础值后力量总值应为100") // 测试敏捷英雄的次属性基础值(应影响力量)
+            call s__heroAttr_addSubAttrBase(UTHeroAttr__attrAgi,30)
+            call s__assert_Real(s__heroAttr_getBaseStr(UTHeroAttr__attrAgi) , 110.0 , "敏捷英雄加30次属性基础值后力量白字应为110")
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 110.0 , "敏捷英雄加30次属性基础值后力量总值应为110")
+        endfunction  // 测试10：主属性和次属性基础值组合测试
+        function UTHeroAttr__anon__10 takes nothing returns nothing
+            call UTHeroAttr__CreateTestHeroes(Player(0)) // 设置基础属性和增减幅
+            call s__heroAttr_setBaseStr(UTHeroAttr__attrAgi,100) // +50%
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrAgi,0.5) // +30%
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrAgi,0.3) // 添加主属性和次属性基础值
+            call s__heroAttr_addMainAttrBase(UTHeroAttr__attrAgi,20) // 不影响力量 // 影响力量
+            call s__heroAttr_addSubAttrBase(UTHeroAttr__attrAgi,50) // 计算期望值：
+            call s__assert_Real(s__heroAttr_getBaseStr(UTHeroAttr__attrAgi) , 150.0 , "敏捷英雄复杂组合后力量白字应为150") // 增幅: 100 * (1 + 0.5 + 0.3) + 50 = 230
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 230.0 , "敏捷英雄复杂组合后力量总值应为230")
+        endfunction  // 测试11：多重增幅叠加测试
+        function UTHeroAttr__anon__11 takes nothing returns nothing
+            call UTHeroAttr__CreateTestHeroes(Player(0)) // 设置基础属性
+            call s__heroAttr_setBaseStr(UTHeroAttr__attrStr,100) // 添加多次力量增幅
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrStr,0.2) // +20% // +30%
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrStr,0.3) // +15%
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrStr,0.15) // 添加多次主属性增幅
+            call s__heroAttr_addMainAttrRateUp(UTHeroAttr__attrStr,0.25) // +25% // +35%
+            call s__heroAttr_addMainAttrRateUp(UTHeroAttr__attrStr,0.35) // 添加多次次属性增幅
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrStr,0.1) // +10% // +20%
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrStr,0.2) // 计算期望值：
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 225.0 , "力量英雄多重增幅叠加测试1") // 基础值: 100 // 力量增幅总和: 0.2 + 0.3 + 0.15 = 0.65 // 主属性增幅总和: 0.25 + 0.35 = 0.6 // 次属性增幅总和: 0.1 + 0.2 = 0.3 // 所有增幅相加: (1 + 0.65 + 0.6) = 2.25 // 最终计算: 100 * 2.25 = 225 // 再添加一些减幅测试
+            call s__heroAttr_addStrRateDown(UTHeroAttr__attrStr,0.2) // -20% // -10%
+            call s__heroAttr_addMainAttrRateDown(UTHeroAttr__attrStr,0.1) // 计算最终期望值：
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr) , 162 , "力量英雄多重增幅叠加测试2") // 之前结果: 225 // 减幅相乘: (1 - 0.2) * (1 - 0.1) = 0.8 * 0.9 = 0.72 // 最终计算: 225 * 0.72 = 162 // 测试敏捷英雄的多重增幅叠加
+            call s__heroAttr_setBaseStr(UTHeroAttr__attrAgi,100) // 添加多次各类增幅
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrAgi,0.25) // +25% // +35%
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrAgi,0.35) // +20%
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrAgi,0.2) // +30%
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrAgi,0.3) // +40% (不影响力量)
+            call s__heroAttr_addMainAttrRateUp(UTHeroAttr__attrAgi,0.4) // 计算期望值：
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 210.0 , "敏捷英雄多重增幅叠加测试1") // 基础值: 100 // 力量增幅总和: 0.25 + 0.35 = 0.6 // 次属性增幅总和: 0.2 + 0.3 = 0.5 // 所有增幅相加: (1 + 0.6 + 0.5) = 2.1 // 最终计算: 100 * 2.1 = 210 // 添加减幅
+            call s__heroAttr_addStrRateDown(UTHeroAttr__attrAgi,0.15) // -15% // -25%
+            call s__heroAttr_addSubAttrRateDown(UTHeroAttr__attrAgi,0.25) // 计算最终期望值：
+            call s__assert_Real(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi) , 133.875 , "敏捷英雄多重增幅叠加测试2") // 之前结果: 210 // 减幅相乘: (1 - 0.15) * (1 - 0.25) = 0.85 * 0.75 = 0.6375 // 最终计算: 210 * 0.6375 = 133.875
+        endfunction
     function UTHeroAttr__Init takes nothing returns nothing
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTHeroAttr__anon__0 , function UTHeroAttr__anon__1)
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTHeroAttr__anon__2 , null)
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr1 takes player p returns nothing
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr2 takes player p returns nothing
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr3 takes player p returns nothing
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr4 takes player p returns nothing
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr5 takes player p returns nothing
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr6 takes player p returns nothing
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr7 takes player p returns nothing
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr8 takes player p returns nothing
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr9 takes player p returns nothing
-    endfunction
-    function UTHeroAttr__TTestUTHeroAttr10 takes player p returns nothing
-    endfunction
+        local player p=Player(0)
+        call BJDebugMsg("=== HeroAttr测试系统已加载 ===")
+        call s__heroAttr_onStrChange(function UTHeroAttr__anon__0)
+        call UTHeroAttr__CreateTestHeroes(p)
+        call UnitTestAutoTimer(0.1 , 0 , function UTHeroAttr__anon__1 , null)
+        call UnitTestAutoTimer(0.6 , 0 , function UTHeroAttr__anon__2 , null)
+        call UnitTestAutoTimer(1.1 , 0 , function UTHeroAttr__anon__3 , null)
+        call UnitTestAutoTimer(1.6 , 0 , function UTHeroAttr__anon__4 , null)
+        call UnitTestAutoTimer(2.1 , 0 , function UTHeroAttr__anon__5 , null)
+        call UnitTestAutoTimer(2.6 , 0 , function UTHeroAttr__anon__6 , null)
+        call UnitTestAutoTimer(3.1 , 0 , function UTHeroAttr__anon__7 , null)
+        call UnitTestAutoTimer(3.6 , 0 , function UTHeroAttr__anon__8 , null)
+        call UnitTestAutoTimer(4.1 , 0 , function UTHeroAttr__anon__9 , null)
+        call UnitTestAutoTimer(4.6 , 0 , function UTHeroAttr__anon__10 , null)
+        call UnitTestAutoTimer(5.1 , 0 , function UTHeroAttr__anon__11 , null)
+        set p=null
+    endfunction  // 处理测试命令
     function UTHeroAttr__TTestActUTHeroAttr1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
@@ -1149,51 +1505,94 @@ endfunction
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
-        if ( paramS[0] == "a" ) then
-        elseif ( paramS[0] == "b" ) then
-        endif
+        if ( UTHeroAttr__testHeroStr == null ) then
+            call UTHeroAttr__CreateTestHeroes(p)
+        endif // 新建测试单位命令
+        if ( paramS[0] == "new" ) then
+            call UTHeroAttr__CreateTestHeroes(p)
+            call BJDebugMsg("已重新创建测试英雄")
+        elseif ( paramS[0] == "str" ) then // 力量相关命令
+            call s__heroAttr_setBaseStr(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_setBaseStr(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄基础力量为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "addstr" ) then
+            call s__heroAttr_addBaseStr(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addBaseStr(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("增加力量英雄基础力量: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "strup" ) then
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addStrRateUp(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄力量增幅为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "strdown" ) then
+            call s__heroAttr_addStrRateDown(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addStrRateDown(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄力量减幅为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "strbonus" ) then
+            call s__heroAttr_addStrFixedBonus(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addStrFixedBonus(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄力量固定加成为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "addstrbonus" ) then
+            call s__heroAttr_addStrFixedBonus(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addStrFixedBonus(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("增加力量英雄力量固定加成: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "mainup" ) then // 主属性相关命令
+            call s__heroAttr_addMainAttrRateUp(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addMainAttrRateUp(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄主属性增幅为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "maindown" ) then
+            call s__heroAttr_addMainAttrRateDown(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addMainAttrRateDown(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄主属性减幅为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "mainbonus" ) then
+            call s__heroAttr_addMainAttrFixedBonus(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addMainAttrFixedBonus(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄主属性固定加成为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "subup" ) then // 次属性相关命令
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addSubAttrRateUp(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄次属性增幅为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "subdown" ) then
+            call s__heroAttr_addSubAttrRateDown(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addSubAttrRateDown(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄次属性减幅为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "subbonus" ) then
+            call s__heroAttr_addSubAttrFixedBonus(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addSubAttrFixedBonus(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("设置力量英雄次属性固定加成为: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "mainadd" ) then // 主属性基础值相关命令
+            call s__heroAttr_addMainAttrBase(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addMainAttrBase(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("增加力量英雄主属性基础值: " + R2S(paramR[1]))
+        elseif ( paramS[0] == "subadd" ) then // 次属性基础值相关命令
+            call s__heroAttr_addSubAttrBase(UTHeroAttr__attrStr,paramR[1])
+            call s__heroAttr_addSubAttrBase(UTHeroAttr__attrAgi,paramR[1])
+            call BJDebugMsg("增加力量英雄次属性基础值: " + R2S(paramR[1]))
+        endif // 显示当前状态
+        call BJDebugMsg("力量英雄当前力量: " + R2S(s__heroAttr_getCurrentStr(UTHeroAttr__attrStr)))
+        call BJDebugMsg("力量英雄当前力量白字: " + R2S(s__heroAttr_getBaseStr(UTHeroAttr__attrStr)))
+        call BJDebugMsg("力量英雄当前力量绿字: " + R2S(s__heroAttr_getExtraStr(UTHeroAttr__attrStr)))
+        call BJDebugMsg("敏捷英雄当前力量: " + R2S(s__heroAttr_getCurrentStr(UTHeroAttr__attrAgi)))
+        call BJDebugMsg("敏捷英雄当前力量白字: " + R2S(s__heroAttr_getBaseStr(UTHeroAttr__attrAgi)))
+        call BJDebugMsg("敏捷英雄当前力量绿字: " + R2S(s__heroAttr_getExtraStr(UTHeroAttr__attrAgi)))
         set p=null
     endfunction
-        function UTHeroAttr__anon__3 takes nothing returns nothing
-            call BJDebugMsg("[HeroAttr] 单元测试已加载")
+        function UTHeroAttr__anon__12 takes nothing returns nothing
             call UTHeroAttr__Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTHeroAttr__anon__4 takes nothing returns nothing
+        function UTHeroAttr__anon__13 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
-            local integer i=1
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
                 call UTHeroAttr__TTestActUTHeroAttr1(SubString(str, ( 2 ) - 1, StringLength(str)))
                 return
-            endif
-            if ( str == "s1" ) then
-                call UTHeroAttr__TTestUTHeroAttr1(GetTriggerPlayer())
-            elseif ( str == "s2" ) then
-                call UTHeroAttr__TTestUTHeroAttr2(GetTriggerPlayer())
-            elseif ( str == "s3" ) then
-                call UTHeroAttr__TTestUTHeroAttr3(GetTriggerPlayer())
-            elseif ( str == "s4" ) then
-                call UTHeroAttr__TTestUTHeroAttr4(GetTriggerPlayer())
-            elseif ( str == "s5" ) then
-                call UTHeroAttr__TTestUTHeroAttr5(GetTriggerPlayer())
-            elseif ( str == "s6" ) then
-                call UTHeroAttr__TTestUTHeroAttr6(GetTriggerPlayer())
-            elseif ( str == "s7" ) then
-                call UTHeroAttr__TTestUTHeroAttr7(GetTriggerPlayer())
-            elseif ( str == "s8" ) then
-                call UTHeroAttr__TTestUTHeroAttr8(GetTriggerPlayer())
-            elseif ( str == "s9" ) then
-                call UTHeroAttr__TTestUTHeroAttr9(GetTriggerPlayer())
-            elseif ( str == "s10" ) then
-                call UTHeroAttr__TTestUTHeroAttr10(GetTriggerPlayer())
             endif
         endfunction
     function UTHeroAttr__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTHeroAttr__anon__3))
+        call TriggerAddCondition(tr, Condition(function UTHeroAttr__anon__12))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTHeroAttr__anon__4)
+        call UnitTestRegisterChatEvent(function UTHeroAttr__anon__13)
     endfunction
 
 //library UTHeroAttr ends
@@ -1205,7 +1604,6 @@ endfunction
 //#  define TriggerRegisterPlayerEventLeave(trig, player)                    TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_LEAVE)
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
-
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1299,6 +1697,8 @@ endfunction
 //攻击2 武器类型
 //装甲类型
 
+//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
+
 
 
 
@@ -1310,6 +1710,7 @@ endfunction
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
+
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1363,8 +1764,6 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
-
-//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -1824,7 +2223,8 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function main takes nothing returns nothing
-    call SetCameraBounds(- 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), - 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM))
+    call initializeLua()
+ call SetCameraBounds(- 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), - 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM))
     call SetDayNightModels("Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl")
     call NewSoundEnvironment("Default")
     call SetAmbientDaySound("NorthrendDay")
@@ -1834,8 +2234,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs32565359")
+call ExecuteFunc("jasshelper__initstructs32063828")
 call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("YDLua__onInit")
+call ExecuteFunc("Logger__onInit")
 call ExecuteFunc("UTHeroAttr__onInit")
 
     call InitGlobals()
@@ -1874,8 +2276,12 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__unitAttr_parse takes nothing returns boolean
-    set f__result_integer=s__unitAttr_parse(f__arg_unit1)
+function sa__heroAttr_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727) ) then
+                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727)
+            endif
+            set s__heroAttr_u[this]=null
    return true
 endfunction
 function sa__unitAttr_onDestroy takes nothing returns boolean
@@ -1886,26 +2292,16 @@ local integer this=f__arg_this
             set s__unitAttr_u[this]=null
    return true
 endfunction
-function sa__heroAttr_onDestroy takes nothing returns boolean
-local integer this=f__arg_this
-            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), HASH_KEY_UNIT_HEROATTR) ) then
-                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), HASH_KEY_UNIT_HEROATTR)
-            endif
-            set s__heroAttr_u[this]=null
-   return true
-endfunction
 function sa__unitLifeCycle_onDestroyCB takes nothing returns boolean
     call s__unitLifeCycle_onDestroyCB(f__arg_unit1)
    return true
 endfunction
 
-function jasshelper__initstructs32565359 takes nothing returns nothing
-    set st__unitAttr_parse=CreateTrigger()
-    call TriggerAddCondition(st__unitAttr_parse,Condition( function sa__unitAttr_parse))
-    set st__unitAttr_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__unitAttr_onDestroy,Condition( function sa__unitAttr_onDestroy))
+function jasshelper__initstructs32063828 takes nothing returns nothing
     set st__heroAttr_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__heroAttr_onDestroy,Condition( function sa__heroAttr_onDestroy))
+    set st__unitAttr_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__unitAttr_onDestroy,Condition( function sa__unitAttr_onDestroy))
     set st__unitLifeCycle_onDestroyCB=CreateTrigger()
     call TriggerAddCondition(st__unitLifeCycle_onDestroyCB,Condition( function sa__unitLifeCycle_onDestroyCB))
 
@@ -1917,7 +2313,7 @@ function jasshelper__initstructs32565359 takes nothing returns nothing
 
     call ExecuteFunc("s__mapBounds_onInit")
     call ExecuteFunc("s__unitLifeCycle_onInit")
-    call ExecuteFunc("s__heroAttr_onInit")
     call ExecuteFunc("s__unitAttr_onInit")
+    call ExecuteFunc("s__heroAttr_onInit")
 endfunction
 
