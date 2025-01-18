@@ -8,36 +8,230 @@
 
 //自动生成的文件
 library UTHeroAttr requires HeroAttr {
+	private unit testHeroStr = null;  // 力量型英雄
+	private unit testHeroAgi = null;  // 敏捷型英雄
+	private heroAttr attrStr = 0;     // 力量英雄属性
+	private heroAttr attrAgi = 0;     // 敏捷英雄属性
 
-	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start
-			}, function() {
-			//end
-		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-			//heroAttr
-		},null);
+	// 创建测试英雄
+	private function CreateTestHeroes(player p) {
+		if (testHeroStr != null) {
+			RemoveUnit(testHeroStr);
+		}
+		if (testHeroAgi != null) {
+			RemoveUnit(testHeroAgi);
+		}
+
+		// 创建一个力量型英雄和一个敏捷型英雄
+		testHeroStr = CreateUnit(p, 'Hmkg', 0, 0, 0);  // 山丘之王
+		testHeroAgi = CreateUnit(p, 'Edem', 200, 0, 0);  // 恶魔猎手
+
+		// 初始化属性系统
+		attrStr = heroAttr.parse(testHeroStr, MAIN_ATTR_STR);
+		attrAgi = heroAttr.parse(testHeroAgi, MAIN_ATTR_AGI);
+
+		// 设置基础属性值方便测试
+		attrStr.setBaseStr(100);
+		attrAgi.setBaseStr(80);
+
+		SelectUnit(testHeroStr, true);
 	}
 
-	function TTestUTHeroAttr1 (player p) {}
-	function TTestUTHeroAttr2 (player p) {}
-	function TTestUTHeroAttr3 (player p) {}
-	function TTestUTHeroAttr4 (player p) {}
-	function TTestUTHeroAttr5 (player p) {}
-	function TTestUTHeroAttr6 (player p) {}
-	function TTestUTHeroAttr7 (player p) {}
-	function TTestUTHeroAttr8 (player p) {}
-	function TTestUTHeroAttr9 (player p) {}
-	function TTestUTHeroAttr10 (player p) {}
-	function TTestActUTHeroAttr1 (string str) {
-		player  p	 = GetTriggerPlayer();
+	function Init() {
+		player p = Player(0);
+		BJDebugMsg("=== HeroAttr测试系统已加载 ===");
+
+		// 创建测试英雄
+		CreateTestHeroes(p);
+
+		// 测试1：基础力量属性测试
+		UnitTestAutoTimer(0.1, 0, function() {
+			assert.Real(attrStr.getCurrentStr(), 100.0, "力量英雄初始Str应为100");
+			assert.Real(attrAgi.getCurrentStr(), 80.0, "敏捷英雄初始Str应为80");
+		}, null);
+
+		// 测试2：主属性增幅测试
+		UnitTestAutoTimer(0.6, 0, function() {
+			// 给力量英雄加50%主属性增幅
+			attrStr.addMainAttrRateUp(0.5);
+			assert.Real(attrStr.getCurrentStr(), 150.0, "力量英雄50%主属性增幅后Str应为150");
+
+			// 给敏捷英雄加50%主属性增幅(不应影响力量)
+			attrAgi.addMainAttrRateUp(0.5);
+			assert.Real(attrAgi.getCurrentStr(), 80.0, "敏捷英雄主属性增幅不应影响Str");
+		}, null);
+
+		// 测试3：次属性增幅测试
+		UnitTestAutoTimer(1.1, 0, function() {
+			// 重置测试英雄
+			CreateTestHeroes(Player(0));
+
+			// 给力量英雄加30%次属性增幅
+			attrStr.addSubAttrRateUp(0.3);
+			assert.Real(attrStr.getCurrentStr(), 100.0, "力量英雄次属性增幅不应影响Str");
+
+			// 给敏捷英雄加30%次属性增幅(应影响力量)
+			attrAgi.addSubAttrRateUp(0.3);
+			assert.Real(attrAgi.getCurrentStr(), 104.0, "敏捷英雄30%次属性增幅后Str应为104");
+		}, null);
+
+		// 测试4：属性固定加成测试
+		UnitTestAutoTimer(1.6, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 测试主属性固定加成
+			attrStr.addMainAttrFixedBonus(50.0);
+			assert.Real(attrStr.getCurrentStr(), 150.0, "力量英雄加50点主属性固定加成后Str应为150");
+
+			// 测试次属性固定加成
+			attrAgi.addSubAttrFixedBonus(30.0);
+			assert.Real(attrAgi.getCurrentStr(), 110.0, "敏捷英雄加30点次属性固定加成后Str应为110");
+		}, null);
+
+		// 测试5：力量属性各种增减幅组合测试
+		UnitTestAutoTimer(2.1, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 设置基础力量为100
+			attrStr.setBaseStr(100);
+
+			// 添加力量增减幅
+			attrStr.addStrRateUp(0.3);    // +30%
+			attrStr.addStrRateDown(0.1);   // -10%
+
+			// 添加主属性增减幅
+			attrStr.addMainAttrRateUp(0.2);    // +20%
+			attrStr.addMainAttrRateDown(0.05);  // -5%
+
+			// 计算期望值：
+			// 1. 力量增减幅: 100 * (1 + 0.3) * (1 - 0.1) = 117
+			// 2. 主属性增减幅: 117 * (1 + 0.2) * (1 - 0.05) ≈ 133.38
+			assert.Real(attrStr.getCurrentStr(), 133.38, "力量英雄复杂增减幅组合测试1");
+
+			// 添加固定加成
+			attrStr.addStrFixedBonus(50);
+			attrStr.addMainAttrFixedBonus(30);
+
+			// 最终结果应为: 133.38 + 50 + 30 = 213.38
+			assert.Real(attrStr.getCurrentStr(), 213.38, "力量英雄复杂增减幅组合测试2");
+		}, null);
+
+		// 测试6：次属性对力量的影响组合测试
+		UnitTestAutoTimer(2.6, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 设置基础属性
+			attrAgi.setBaseStr(100);
+
+			// 添加力量相关增减幅
+			attrAgi.addStrRateUp(0.2);     // +20%
+			attrAgi.addStrRateDown(0.1);    // -10%
+
+			// 添加次属性增减幅
+			attrAgi.addSubAttrRateUp(0.3);     // +30%
+			attrAgi.addSubAttrRateDown(0.15);   // -15%
+
+			// 计算期望值：
+			// 1. 力量增减幅: 100 * (1 + 0.2) * (1 - 0.1) = 108
+			// 2. 次属性增减幅: 108 * (1 + 0.3) * (1 - 0.15) ≈ 119.34
+			assert.Real(attrAgi.getCurrentStr(), 119.34, "敏捷英雄力量复杂增减幅组合测试1");
+
+			// 添加固定加成
+			attrAgi.addStrFixedBonus(40);
+			attrAgi.addSubAttrFixedBonus(20);
+
+			// 最终结果应为: 119.34 + 40 + 20 = 179.34
+			assert.Real(attrAgi.getCurrentStr(), 179.34, "敏捷英雄力量复杂增减幅组合测试2");
+		}, null);
+
+		// 测试7：极限值测试
+		UnitTestAutoTimer(3.1, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 设置一个较大的基础值
+			attrStr.setBaseStr(1000);
+
+			// 添加多个大幅度的增减幅
+			attrStr.addStrRateUp(2.0);      // +200%
+			attrStr.addMainAttrRateUp(1.5);  // +150%
+			attrStr.addStrRateDown(0.4);     // -40%
+			attrStr.addMainAttrRateDown(0.3); // -30%
+
+			// 添加大量固定加成
+			attrStr.addStrFixedBonus(500);
+			attrStr.addMainAttrFixedBonus(300);
+
+			// 验证数值计算的准确性
+			// 计算期望值：
+			// 1. 力量增减幅: 1000 * (1 + 2.0) * (1 - 0.4) = 1800
+			// 2. 主属性增减幅: 1800 * (1 + 1.5) * (1 - 0.3) ≈ 3150
+			// 3. 加上固定加成: 3150 + 500 + 300 = 3950
+			assert.Real(attrStr.getCurrentStr(), 3950.0, "力量英雄极限值测试");
+		}, null);
+
+		// 测试8：主属性基础值测试
+		UnitTestAutoTimer(3.6, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 测试力量英雄的主属性基础值
+			attrStr.addMainAttrBase(50);
+			assert.Real(attrStr.getBaseStr(), 150.0, "力量英雄加50主属性基础值后白字应为150");
+			assert.Real(attrStr.getCurrentStr(), 150.0, "力量英雄加50主属性基础值后总值应为150");
+
+			// 测试敏捷英雄的主属性基础值(不应影响力量)
+			attrAgi.addMainAttrBase(50);
+			assert.Real(attrAgi.getBaseStr(), 80.0, "敏捷英雄加50主属性基础值后力量白字应为80");
+			assert.Real(attrAgi.getCurrentStr(), 80.0, "敏捷英雄加50主属性基础值后力量总值应为80");
+		}, null);
+
+		// 测试9：次属性基础值测试
+		UnitTestAutoTimer(4.1, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 测试力量英雄的次属性基础值(不应影响力量)
+			attrStr.addSubAttrBase(30);
+			assert.Real(attrStr.getBaseStr(), 100.0, "力量英雄加30次属性基础值后力量白字应为100");
+			assert.Real(attrStr.getCurrentStr(), 100.0, "力量英雄加30次属性基础值后力量总值应为100");
+
+			// 测试敏捷英雄的次属性基础值(应影响力量)
+			attrAgi.addSubAttrBase(30);
+			assert.Real(attrAgi.getBaseStr(), 110.0, "敏捷英雄加30次属性基础值后力量白字应为110");
+			assert.Real(attrAgi.getCurrentStr(), 110.0, "敏捷英雄加30次属性基础值后力量总值应为110");
+		}, null);
+
+		// 测试10：主属性和次属性基础值组合测试
+		UnitTestAutoTimer(4.6, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 设置基础属性和增减幅
+			attrAgi.setBaseStr(100);
+			attrAgi.addStrRateUp(0.5);     // +50%
+			attrAgi.addSubAttrRateUp(0.3);  // +30%
+
+			// 添加主属性和次属性基础值
+			attrAgi.addMainAttrBase(20);  // 不影响力量
+			attrAgi.addSubAttrBase(50);   // 影响力量
+
+			// 计算期望值：
+			// 基础力量: 100 + 50(次属性基础值) = 150
+			// 增幅: 150 * (1 + 0.5 + 0.3) = 270
+			assert.Real(attrAgi.getBaseStr(), 150.0, "敏捷英雄复杂组合后力量白字应为150");
+			assert.Real(attrAgi.getCurrentStr(), 270.0, "敏捷英雄复杂组合后力量总值应为270");
+		}, null);
+
+		p = null;
+	}
+
+	// 处理测试命令
+	function TTestActUTHeroAttr1(string str) {
+		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
-		integer i,	 num = 0, len = StringLength(str); //获取范围式数字
-		string  paramS [];							   //所有参数S
-		integer paramI [];							   //所有参数I
-		real	paramR [];							   //所有参数R
+		integer i, num = 0, len = StringLength(str);
+		string paramS[];
+		integer paramI[];
+		real paramR[];
+
+		// 解析参数
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -54,49 +248,95 @@ library UTHeroAttr requires HeroAttr {
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
 
-		if (paramS[0] == "a") {
-
-		} else if (paramS[0] == "b") {
-
+		if (testHeroStr == null) {
+			CreateTestHeroes(p);
 		}
+
+		// 力量相关命令
+		if (paramS[0] == "str") {
+			attrStr.setBaseStr(paramR[1]);
+			BJDebugMsg("设置力量英雄基础力量为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "addstr") {
+			attrStr.addBaseStr(paramR[1]);
+			BJDebugMsg("增加力量英雄基础力量: " + R2S(paramR[1]));
+		} else if (paramS[0] == "strup") {
+			attrStr.addStrRateUp(paramR[1]);
+			BJDebugMsg("设置力量英雄力量增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "strdown") {
+			attrStr.addStrRateDown(paramR[1]);
+			BJDebugMsg("设置力量英雄力量减幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "strbonus") {
+			attrStr.addStrFixedBonus(paramR[1]);
+			BJDebugMsg("设置力量英雄力量固定加成为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "addstrbonus") {
+			attrStr.addStrFixedBonus(paramR[1]);
+			BJDebugMsg("增加力量英雄力量固定加成: " + R2S(paramR[1]));
+		}
+		// 主属性相关命令
+		else if (paramS[0] == "mainup") {
+			attrStr.addMainAttrRateUp(paramR[1]);
+			BJDebugMsg("设置力量英雄主属性增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "maindown") {
+			attrStr.addMainAttrRateDown(paramR[1]);
+			BJDebugMsg("设置力量英雄主属性减幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "mainbonus") {
+			attrStr.addMainAttrFixedBonus(paramR[1]);
+			BJDebugMsg("设置力量英雄主属性固定加成为: " + R2S(paramR[1]));
+		}
+		// 次属性相关命令
+		else if (paramS[0] == "subup") {
+			attrStr.addSubAttrRateUp(paramR[1]);
+			BJDebugMsg("设置力量英雄次属性增幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "subdown") {
+			attrStr.addSubAttrRateDown(paramR[1]);
+			BJDebugMsg("设置力量英雄次属性减幅为: " + R2S(paramR[1]));
+		} else if (paramS[0] == "subbonus") {
+			attrStr.addSubAttrFixedBonus(paramR[1]);
+			BJDebugMsg("设置力量英雄次属性固定加成为: " + R2S(paramR[1]));
+		}
+		// 主属性基础值相关命令
+		else if (paramS[0] == "mainadd") {
+			attrStr.addMainAttrBase(paramR[1]);
+			BJDebugMsg("增加力量英雄主属性基础值: " + R2S(paramR[1]));
+		}
+		// 次属性基础值相关命令
+		else if (paramS[0] == "subadd") {
+			attrStr.addSubAttrBase(paramR[1]);
+			BJDebugMsg("增加力量英雄次属性基础值: " + R2S(paramR[1]));
+		}
+
+		// 显示当前状态
+		BJDebugMsg("力量英雄当前力量: " + R2S(attrStr.getCurrentStr()));
+		BJDebugMsg("力量英雄当前力量白字: " + R2S(attrStr.getBaseStr()));
+		BJDebugMsg("力量英雄当前力量绿字: " + R2S(attrStr.getExtraStr()));
+		BJDebugMsg("敏捷英雄当前力量: " + R2S(attrAgi.getCurrentStr()));
+		BJDebugMsg("敏捷英雄当前力量白字: " + R2S(attrAgi.getBaseStr()));
+		BJDebugMsg("敏捷英雄当前力量绿字: " + R2S(attrAgi.getExtraStr()));
 
 		p = null;
 	}
 
-	function onInit () {
-		//在游戏开始0.0秒后再调用
+	function onInit() {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
-		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[HeroAttr] 单元测试已加载");
+		TriggerAddCondition(tr,Condition(function() {
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
 
-		UnitTestRegisterChatEvent(function () {
+		// 注册聊天事件
+		UnitTestRegisterChatEvent(function() {
 			string str = GetEventPlayerChatString();
-			integer i = 1;
 
 			if (SubStringBJ(str,1,1) == "-") {
 				TTestActUTHeroAttr1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTHeroAttr1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTHeroAttr2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTHeroAttr3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTHeroAttr4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTHeroAttr5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTHeroAttr6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTHeroAttr7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTHeroAttr8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTHeroAttr9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTHeroAttr10(GetTriggerPlayer());
 		});
-
 	}
-
 }
+
 //! endzinc
 
 #endif
