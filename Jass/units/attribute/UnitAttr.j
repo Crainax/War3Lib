@@ -18,6 +18,7 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 
 		STRUCT_SHARED_METHODS(unitAttr)
 
+		static thistype ethis = 0;
 		unit u; //绑定的单位
 
 		static method parse (unit u) -> thistype {
@@ -96,12 +97,20 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 		private method syncAtkRate() {
 			AtkRateBonus = baseAtk * (1.0 + AtkRateUp) * (1.0 - AtkRateDown) - baseAtk;
 			SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), RMaxBJ(baseAtk + AtkRateBonus + AtkFixedBonus, 0.0));
+			if (trAtkChange != null) {
+				ethis = this;
+				TriggerEvaluate(trAtkChange);
+			}
 		}
 
 		// 同步并刷新当前单位的防御
 		private method syncDefRate() {
 			DefRateBonus = baseDef * (1.0 + DefRateUp) * (1.0 - DefRateDown) - baseDef;
 			SetUnitState(u, ConvertUnitState(UNIT_STATE_ARMOR), baseDef + DefRateBonus + DefFixedBonus);
+			if (trDefChange != null) {
+				ethis = this;
+				TriggerEvaluate(trDefChange);
+			}
 		}
 
 		// 使用宏定义生成HP相关属性和方法

@@ -36,113 +36,9 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 		// 展开的Str属性相关代码
 		/* 基础属性值及加成系数 */
 
-		public real baseStr;                       /* 基础Str值 */
-		public real StrRateUp;                     /* Str增幅比例 */
-		public real StrRateDown;                   /* Str减幅比例 */
-		public real StrRateBonus;                  /* 受增减幅影响的bonus值 */
-		public real StrFixedBonus;                 /* 固定加成值(不受增减幅影响) */
-		public static trigger trStrChange = null;  /* Str变化触发器 */
-
-        // 获取基础Str(白字)
-        public method getBaseStr ()  -> real {
-            if (mainAttrType == MAIN_ATTR_STR) {
-                return baseStr + mainAttrBase;
-            } else {
-                return baseStr + subAttrBase;
-            }
-        }
-
-        // 获取额外Str(绿字)
-        public method getExtraStr ()  -> real {
-            if (mainAttrType == MAIN_ATTR_STR) {
-                return StrRateBonus + StrFixedBonus + mainAttrFixedBonus;
-            } else {
-                return StrRateBonus + StrFixedBonus + subAttrFixedBonus;
-            }
-        }
-
-		/* 获取当前总Str */
-		public method getCurrentStr() -> real {
-            if (mainAttrType == MAIN_ATTR_STR) { //主属性是力量
-				return baseStr + mainAttrBase + StrRateBonus + StrFixedBonus + mainAttrFixedBonus;
-			} else {
-				return baseStr + subAttrBase + StrRateBonus + StrFixedBonus + subAttrFixedBonus;
-			}
-		}
-
-		/* 获取当前Str倍率 */
-		public method getCurrentStrRate() -> real {
-			if (mainAttrType == MAIN_ATTR_STR) { //主属性是力量
-				return (1.0 + StrRateUp + mainAttrRateUp) * (1.0-StrRateDown) * (1.0-mainAttrRateDown) - 1.0;
-			} else {
-				return (1.0 + StrRateUp + subAttrRateUp) * (1.0-StrRateDown) * (1.0-subAttrRateDown) - 1.0;
-			}
-		}
-
-		// 同步并刷新当前单位的力量
-		private method syncStrRate() {
-			StrRateBonus = baseStr * getCurrentStrRate();
-			SetHeroStr(u, R2I(RMaxBJ(getCurrentStr(), 0.0)), true);
-			if (trStrChange != null) {
-				ethis = this;
-				TriggerEvaluate(trStrChange);
-			}
-		}
-
-		/* 设置基础Str */
-		public method setBaseStr(real value) {
-			if (baseStr != value) {
-				baseStr = value;
-				syncStrRate();
-			}
-		}
-
-		/* 增加基础Str */
-		public method addBaseStr(real value) {
-			if (value != 0) {
-				baseStr += value;
-				syncStrRate();
-			}
-		}
-
-		/* 增加固定bonus */
-		public method addStrFixedBonus(real value) {
-			if (value != 0) {
-				StrFixedBonus += value;
-				syncStrRate();
-			}
-		}
-
-		/* 增加Str增幅 */
-		public method addStrRateUp(real value) {
-			if (value != 0) {
-				StrRateUp += value;
-				syncStrRate();
-			}
-		}
-
-		/* 增加Str减幅 */
-		public method addStrRateDown(real value) {
-			if (value != 0) {
-				StrRateDown = RealAdd(StrRateDown, value);
-				syncStrRate();
-			}
-		}
-
-		/* 回调Str变化 */
-		public static method onStrChange(code func) {
-			if (trStrChange == null) {
-				trStrChange = CreateTrigger();
-			}
-			TriggerAddCondition(trStrChange, Condition(func));
-		}
-
-		// 同步并刷新当前单位的敏捷
-		private method syncAgiRate() {
-		}
-		// 同步并刷新当前单位的智力
-		private method syncIntRate() {
-		}
+		DEFINE_HERO_ATTR(Str,STR)
+		DEFINE_HERO_ATTR(Agi,AGI)
+		DEFINE_HERO_ATTR(Int,INT)
 
 		static method parse (unit u, integer mainAttrType) -> thistype {
 			thistype this;
@@ -174,8 +70,8 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 			this.subAttrFixedBonus = 0.0;
 
 			INIT_COMBAT_ATTR(Str)
-			// INIT_COMBAT_ATTR(Agi)
-			// INIT_COMBAT_ATTR(Int)
+			INIT_COMBAT_ATTR(Agi)
+			INIT_COMBAT_ATTR(Int)
 
 			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_HEROATTR, this);
 			return this;
@@ -211,6 +107,23 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 					syncStrRate();
 					syncAgiRate();
 				}
+			}
+		}
+
+		/* 切换主属性类型 */
+		public method switchMainAttr(integer newMainAttrType) {
+            boolean isStr = mainAttrType == MAIN_ATTR_STR || newMainAttrType == MAIN_ATTR_STR;
+            boolean isAgi = mainAttrType == MAIN_ATTR_AGI || newMainAttrType == MAIN_ATTR_AGI;
+            boolean isInt = mainAttrType == MAIN_ATTR_INT || newMainAttrType == MAIN_ATTR_INT;
+
+			if (mainAttrType != newMainAttrType) {
+				// 切换主属性类型
+				mainAttrType = newMainAttrType;
+
+				// 同步三种属性
+				if (isStr) syncStrRate();
+				if (isAgi) syncAgiRate();
+				if (isInt) syncIntRate();
 			}
 		}
 

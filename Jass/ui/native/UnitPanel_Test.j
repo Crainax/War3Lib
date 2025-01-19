@@ -43,6 +43,7 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		});
 	}
 
+	integer testCount = 0;
 	// 初始化测试内容
 	function Init () {
 		#define testInit2(name,evt) unitPanel.on/**/name/**/evt(function () {BJDebugMsg(#name + " " + #evt);});
@@ -60,6 +61,37 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		testInit2In(Monster)
 
 		Init2();
+
+		unitPanel.onAttackEnter(function () {
+			testCount = testCount + 1;
+			unitPanel.textAttackExtra.setText("|cff00ff00+" + I2S(testCount) + "|r");
+			unitPanel.showAttackExtra(true);
+		});
+		unitPanel.onAttackLeave(function () {
+			unitPanel.showAttackExtra(false);
+		});
+		unitPanel.onArmorEnter(function () {
+			testCount = testCount + 1;
+			unitPanel.textArmorExtra.setText("|cffff0000-" + I2S(testCount) + "|r");
+			unitPanel.showArmorExtra(true);
+		});
+		unitPanel.onArmorLeave(function () {
+			unitPanel.showArmorExtra(false);
+		});
+		unitPanel.onHeroEnter(function () {
+			testCount = testCount + 1;
+			unitPanel.textStrExtra.setText("|cff00ff00+" + I2S(testCount * 3) + "|r");
+			unitPanel.textAgiExtra.setText("|cff00ff00+" + I2S(testCount * 5) + "|r");
+			unitPanel.textIntExtra.setText("|cff00ff00+" + I2S(testCount * 67) + "|r");
+			unitPanel.showStrExtra(true);
+			unitPanel.showAgiExtra(true);
+			unitPanel.showIntExtra(true);
+		});
+		unitPanel.onHeroLeave(function () {
+			unitPanel.showStrExtra(false);
+			unitPanel.showAgiExtra(false);
+			unitPanel.showIntExtra(false);
+		});
 	}
 	function TTestUTUnitPanel1 (player p) { //给两个图标加一下grow看看效果
 		unitPanel.iconAttack.grow(growdata[ICONGROW_14]);

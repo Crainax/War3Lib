@@ -1,4 +1,6 @@
 logs\currentmapscript.j
 pjass.exe
-Line 1349:  Cannot convert real to integer
-1
+Line 5820:  Undeclared function FormatNumber
+Line 5823:  Undeclared function FormatNumber
+Line 5826:  Undeclared function FormatNumber
+3

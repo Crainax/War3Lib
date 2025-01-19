@@ -68,12 +68,12 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         static icon iconHero    = 0; static icon iconBuilding = 0;
         static icon iconMonster = 0;
 
-        static uiText textAttack   = 0; static uiText  textAttackValue  = 0;  //攻击相关
-        static uiText textArmor    = 0; static uiText textArmorValue    = 0;  //防御相关
-        static uiText textStr      = 0; static uiText  textStrValue     = 0;  //力量
-        static uiText textAgi      = 0; static uiText  textAgiValue     = 0;  //敏捷
-        static uiText textInt      = 0; static uiText  textIntValue     = 0;  //智力
-        static uiText textBuilding = 0; static uiText textBuildingValue = 0;
+        static uiText textAttack   = 0; static uiText  textAttackValue   = 0;static uiText  textAttackExtra   = 0;  //攻击相关
+        static uiText textArmor    = 0; static uiText  textArmorValue    = 0;static uiText  textArmorExtra    = 0;  //防御相关
+        static uiText textStr      = 0; static uiText  textStrValue      = 0;static uiText  textStrExtra      = 0;  //力量
+        static uiText textAgi      = 0; static uiText  textAgiValue      = 0;static uiText  textAgiExtra      = 0;  //敏捷
+        static uiText textInt      = 0; static uiText  textIntValue      = 0;static uiText  textIntExtra      = 0;  //智力
+        static uiText textBuilding = 0; static uiText  textBuildingValue = 0;
 
         // 事件触发器
         private {
@@ -134,6 +134,8 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             textAttackValue = uiText.bindSimple("单位面板数值", 0)
                 .setPoint(ANCHOR_BOTTOMLEFT, iconAttack.mainImage.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
                 .setText("0");
+            textAttackExtra = uiText.createSimple(parent)
+                .setPoint(ANCHOR_LEFT, textAttackValue.ui, ANCHOR_RIGHT, 0.002, 0.0);
 
             //防御小框架相关
             child = DzCreateFrameByTagName("SIMPLEFRAME", "upArmor", parent, "单位面板框架", 1);
@@ -153,6 +155,8 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             textArmorValue = uiText.bindSimple("单位面板数值", 1)
                 .setPoint(ANCHOR_BOTTOMLEFT, iconArmor.mainImage.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
                 .setText("20");
+            textArmorExtra = uiText.createSimple(parent)
+                .setPoint(ANCHOR_LEFT, textArmorValue.ui, ANCHOR_RIGHT, 0.002, 0.0);
 
             //英雄属性三围
             parent = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6); //英雄属性的父框架
@@ -175,6 +179,8 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             textStrValue = uiText.bindSimple("英雄力量值", 0)
                 .setPoint(ANCHOR_TOPLEFT, textStr.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("10");
+            textStrExtra = uiText.createSimple(parent)
+                .setPoint(ANCHOR_LEFT, textStrValue.ui, ANCHOR_RIGHT, 0.002, 0.0);
 
             //敏捷
             textAgi = uiText.bindSimple("英雄敏捷名", 0)
@@ -183,6 +189,8 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             textAgiValue = uiText.bindSimple("英雄敏捷值", 0)
                 .setPoint(ANCHOR_TOPLEFT, textAgi.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("20");
+            textAgiExtra = uiText.createSimple(parent)
+                .setPoint(ANCHOR_LEFT, textAgiValue.ui, ANCHOR_RIGHT, 0.002, 0.0);
 
             //智力
             textInt = uiText.bindSimple("英雄智力名", 0)
@@ -191,6 +199,8 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             textIntValue = uiText.bindSimple("英雄智力值", 0)
                 .setPoint(ANCHOR_TOPLEFT, textInt.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("30");
+            textIntExtra = uiText.createSimple(parent)
+                .setPoint(ANCHOR_LEFT, textIntValue.ui, ANCHOR_RIGHT, 0.002, 0.0);
 
             //建筑小框架相关
             parent = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7); //建筑的父框架(放弃了因为频繁拉回来的原因)
@@ -262,51 +272,65 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             });
         }
 
-        //把所有原生UI移走
-        static method moveOutAll () {
-            integer ui;
-            // 攻击1
-            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 0);
-            DzFrameSetSize( ui, 0.03, 0.03 );
-            DzFrameClearAllPoints( ui );
-            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
-            // 攻击2
-            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 1);
-            DzFrameSetSize( ui, 0.03, 0.03 );
-            DzFrameClearAllPoints( ui );
-            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
-            // 护甲
-            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 2);
-            DzFrameSetSize( ui, 0.001, 0.001 );
-            DzFrameClearAllPoints( ui );
-            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
-            // 食物
-            ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 4);
-            DzFrameSetSize( ui, 0.001, 0.001 );
-            DzFrameClearAllPoints( ui );
-            DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
-            // 英雄三围面板
-            ui = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);
-            DzFrameSetSize( ui, 0.02, 0.02 );
-            DzFrameClearAllPoints( ui );
-            DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
-        }
-
-        //初始化单位按钮面板
-        private static method onInit () {
-            //在游戏开始0.0秒后再调用
-            trigger tr = CreateTrigger();
-            TriggerRegisterTimerEventSingle(tr,0.0);
-            TriggerAddCondition(tr,Condition(function (){
-                moveOutAll(); // 把所有原生UI移走
-                mapInit(); // 初始化单位按钮面板
-                DestroyTrigger(GetTriggeringTrigger());
-            }));
-            tr = null;
-        }
-
-
+        //隐藏/显示额外数值显示
+        #define SHOW_EXTRA_VALUE(name) \
+        static method show##name##Extra (boolean flag) { \
+        if (flag) text##name##Extra.setPoint(ANCHOR_LEFT, text##name##Value.ui, ANCHOR_RIGHT, 0.002, 0.0); \
+        else text##name##Extra.setPoint(ANCHOR_LEFT, text##name##Value.ui, ANCHOR_RIGHT, -2.0, 0.0); \
     }
+
+    //隐藏/显示额外数值显示
+    SHOW_EXTRA_VALUE(Attack)
+    SHOW_EXTRA_VALUE(Armor)
+    SHOW_EXTRA_VALUE(Str)
+    SHOW_EXTRA_VALUE(Agi)
+    SHOW_EXTRA_VALUE(Int)
+
+    //把所有原生UI移走
+    static method moveOutAll () {
+        integer ui;
+        // 攻击1
+        ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 0);
+        DzFrameSetSize( ui, 0.03, 0.03 );
+        DzFrameClearAllPoints( ui );
+        DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+        // 攻击2
+        ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 1);
+        DzFrameSetSize( ui, 0.03, 0.03 );
+        DzFrameClearAllPoints( ui );
+        DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+        // 护甲
+        ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 2);
+        DzFrameSetSize( ui, 0.001, 0.001 );
+        DzFrameClearAllPoints( ui );
+        DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+        // 食物
+        ui = DzSimpleTextureFindByName("InfoPanelIconBackdrop", 4);
+        DzFrameSetSize( ui, 0.001, 0.001 );
+        DzFrameClearAllPoints( ui );
+        DzFrameSetAbsolutePoint( ui, 4, 0.80, -0.60 );
+        // 英雄三围面板
+        ui = DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6);
+        DzFrameSetSize( ui, 0.02, 0.02 );
+        DzFrameClearAllPoints( ui );
+        DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
+    }
+
+    //初始化单位按钮面板
+    private static method onInit () {
+        //在游戏开始0.0秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.0);
+        TriggerAddCondition(tr,Condition(function (){
+            moveOutAll(); // 把所有原生UI移走
+            mapInit(); // 初始化单位按钮面板
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+    }
+
+
+}
 
 
 }

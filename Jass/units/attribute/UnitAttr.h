@@ -75,6 +75,7 @@ CRNL \
         public real ATTR##RateDown;  /* ATTR减幅比例 */ CRNL \
         public real ATTR##RateBonus; /* 受增减幅影响的bonus值 */ CRNL \
         public real ATTR##FixedBonus;/* 固定加成值(不受增减幅影响) */ CRNL \
+        public static trigger tr##ATTR##Change = null;  /* ATTR变化触发器 */ CRNL \
 CRNL \
         /* 设置基础ATTR */ CRNL \
         public method setBase##ATTR(real value) { CRNL \
@@ -124,8 +125,15 @@ CRNL \
         /* 获取当前ATTR倍率 */ CRNL \
         public method getCurrent##ATTR##Rate() -> real { CRNL \
             return (1.0 + ATTR##RateUp) * (1.0 - ATTR##RateDown) - 1.0; CRNL \
+        } CRNL \
+CRNL \
+        /* 回调ATTR变化 */ CRNL \
+        public static method on##ATTR##Change(code func) { CRNL \
+            if (tr##ATTR##Change == null) { CRNL \
+                tr##ATTR##Change = CreateTrigger(); CRNL \
+            } CRNL \
+            TriggerAddCondition(tr##ATTR##Change, Condition(func)); CRNL \
         } CRNL
-
 /*
  * 百分比属性系统宏定义(适用于技能伤害增幅、治疗效果等纯百分比属性)
  * 用法:
@@ -187,7 +195,7 @@ CRNL \
  * 参数说明:
  * ATTR: 属性名(Str/Agi/Int)
  */
-#define DEFINE_HERO_ATTR(ATTR) \
+#define DEFINE_HERO_ATTR(ATTR,ATTR_UPPER) \
         public real base##ATTR;                       /* 基础ATTR值 */ CRNL \
         public real ATTR##RateUp;                     /* ATTR增幅比例 */ CRNL \
         public real ATTR##RateDown;                   /* ATTR减幅比例 */ CRNL \
@@ -197,7 +205,7 @@ CRNL \
 CRNL \
         /* 获取基础ATTR(白字) */ CRNL \
         public method getBase##ATTR() -> real { CRNL \
-            if (mainAttrType == MAIN_ATTR_##ATTR) { CRNL \
+            if (mainAttrType == MAIN_ATTR_##ATTR_UPPER) { CRNL \
                 return base##ATTR + mainAttrBase; CRNL \
             } else { CRNL \
                 return base##ATTR + subAttrBase; CRNL \
@@ -206,7 +214,7 @@ CRNL \
 CRNL \
         /* 获取额外ATTR(绿字) */ CRNL \
         public method getExtra##ATTR() -> real { CRNL \
-            if (mainAttrType == MAIN_ATTR_##ATTR) { CRNL \
+            if (mainAttrType == MAIN_ATTR_##ATTR_UPPER) { CRNL \
                 return ATTR##RateBonus + ATTR##FixedBonus + mainAttrFixedBonus; CRNL \
             } else { CRNL \
                 return ATTR##RateBonus + ATTR##FixedBonus + subAttrFixedBonus; CRNL \
@@ -215,7 +223,7 @@ CRNL \
 CRNL \
         /* 获取当前总ATTR */ CRNL \
         public method getCurrent##ATTR() -> real { CRNL \
-            if (mainAttrType == MAIN_ATTR_##ATTR) { CRNL \
+            if (mainAttrType == MAIN_ATTR_##ATTR_UPPER) { CRNL \
                 return base##ATTR + mainAttrBase + ATTR##RateBonus + ATTR##FixedBonus + mainAttrFixedBonus; CRNL \
             } else { CRNL \
                 return base##ATTR + subAttrBase + ATTR##RateBonus + ATTR##FixedBonus + subAttrFixedBonus; CRNL \
@@ -224,7 +232,7 @@ CRNL \
 CRNL \
         /* 获取当前ATTR倍率 */ CRNL \
         public method getCurrent##ATTR##Rate() -> real { CRNL \
-            if (mainAttrType == MAIN_ATTR_##ATTR) { CRNL \
+            if (mainAttrType == MAIN_ATTR_##ATTR_UPPER) { CRNL \
                 return (1.0 + ATTR##RateUp + mainAttrRateUp) * (1.0 - ATTR##RateDown) * (1.0 - mainAttrRateDown) - 1.0; CRNL \
             } else { CRNL \
                 return (1.0 + ATTR##RateUp + subAttrRateUp) * (1.0 - ATTR##RateDown) * (1.0 - subAttrRateDown) - 1.0; CRNL \

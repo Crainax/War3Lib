@@ -297,6 +297,37 @@ library UTHeroAttr requires HeroAttr {
 			assert.Real(attrAgi.getCurrentStr(), 133.875, "敏捷英雄多重增幅叠加测试2");
 		}, null);
 
+		// 测试12：主属性切换测试
+		UnitTestAutoTimer(5.6, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 设置初始状态
+			attrStr.setBaseStr(100);
+			attrStr.addMainAttrBase(50);    // 主属性基础值+50
+			attrStr.addSubAttrBase(30);     // 次属性基础值+30
+			attrStr.addMainAttrRateUp(0.5); // 主属性增幅+50%
+			attrStr.addSubAttrRateUp(0.3);  // 次属性增幅+30%
+
+			// 验证初始状态
+			assert.Real(attrStr.getBaseStr(), 150.0, "力量英雄切换前力量白字应为150");
+			assert.Real(attrStr.getCurrentStr(), 225.0, "力量英雄切换前力量总值应为225"); // 150 * (1 + 0.5) = 225
+
+			// 切换到敏捷主属性
+			attrStr.switchMainAttr(MAIN_ATTR_AGI);
+
+			// 验证切换后状态
+			// 原主属性值变为次属性值,原次属性值变为主属性值
+			assert.Real(attrStr.getBaseStr(), 130.0, "力量英雄切换后力量白字应为130"); // 100 + 30(原次属性基础值)
+			assert.Real(attrStr.getCurrentStr(), 169.0, "力量英雄切换后力量总值应为169"); // 130 * (1 + 0.3) = 169
+
+			// 切换回力量主属性
+			attrStr.switchMainAttr(MAIN_ATTR_STR);
+
+			// 验证恢复状态
+			assert.Real(attrStr.getBaseStr(), 150.0, "力量英雄恢复后力量白字应为150");
+			assert.Real(attrStr.getCurrentStr(), 225.0, "力量英雄恢复后力量总值应为225");
+		}, null);
+
 		p = null;
 	}
 
@@ -400,6 +431,17 @@ library UTHeroAttr requires HeroAttr {
 			attrStr.addSubAttrBase(paramR[1]);
 			attrAgi.addSubAttrBase(paramR[1]);
 			BJDebugMsg("增加力量英雄次属性基础值: " + R2S(paramR[1]));
+		}
+		// 切换主属性命令
+		else if (paramS[0] == "switch") {
+			integer newType = paramI[1];
+			if (newType >= 0 && newType <= 2) {
+				attrStr.switchMainAttr(newType);
+				attrAgi.switchMainAttr(newType);
+				BJDebugMsg("切换主属性类型为: " + I2S(newType));
+			} else {
+				BJDebugMsg("无效的主属性类型,请使用0(力量),1(敏捷),2(智力)");
+			}
 		}
 
 		// 显示当前状态
