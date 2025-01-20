@@ -223,10 +223,12 @@ library UTHeroAttr requires HeroAttr {
 			attrAgi.addMainAttrBase(20);  // 不影响力量
 			attrAgi.addSubAttrBase(50);   // 影响力量
 
+			attrAgi.addSubAttrFixedBonus(25); //固定影响
+
 			// 计算期望值：
-			// 增幅: 100 * (1 + 0.5 + 0.3) + 50 = 230
+			// 增幅: (100+50) * (1 + 0.5 + 0.3) + 25 = 295
 			assert.Real(attrAgi.getBaseStr(), 150.0, "敏捷英雄复杂组合后力量白字应为150");
-			assert.Real(attrAgi.getCurrentStr(), 230.0, "敏捷英雄复杂组合后力量总值应为230");
+			assert.Real(attrAgi.getCurrentStr(), 295.0, "敏捷英雄复杂组合后力量总值应为295");
 		}, null);
 
 		// 测试11：多重增幅叠加测试
@@ -326,6 +328,21 @@ library UTHeroAttr requires HeroAttr {
 			// 验证恢复状态
 			assert.Real(attrStr.getBaseStr(), 150.0, "力量英雄恢复后力量白字应为150");
 			assert.Real(attrStr.getCurrentStr(), 225.0, "力量英雄恢复后力量总值应为225");
+		}, null);
+
+		// 测试13：主属性或次属性能否吃到%加成
+		UnitTestAutoTimer(5.6, 0, function() {
+			CreateTestHeroes(Player(0));
+
+			// 设置初始状态
+			attrStr.setBaseStr(100);
+			attrStr.addMainAttrBase(200);    // 主属性基础值+50
+			attrStr.addMainAttrRateUp(0.5); // 主属性增幅+50%
+			attrStr.addStrRateUp(0.5);
+
+			// 验证初始状态
+			assert.Real(attrStr.getBaseStr(), 300.0, "力量英雄双重白字应为300");
+			assert.Real(attrStr.getCurrentStr(), 600.0, "力量英雄双重总值应为600"); // 300 * (1 + 0.5 + 0.5) = 600
 		}, null);
 
 		p = null;
@@ -434,11 +451,10 @@ library UTHeroAttr requires HeroAttr {
 		}
 		// 切换主属性命令
 		else if (paramS[0] == "switch") {
-			integer newType = paramI[1];
-			if (newType >= 0 && newType <= 2) {
-				attrStr.switchMainAttr(newType);
-				attrAgi.switchMainAttr(newType);
-				BJDebugMsg("切换主属性类型为: " + I2S(newType));
+			if (paramI[1] >= 0 && paramI[1] <= 2) {
+				attrStr.switchMainAttr(paramI[1]);
+				attrAgi.switchMainAttr(paramI[1]);
+				BJDebugMsg("切换主属性类型为: " + I2S(paramI[1]));
 			} else {
 				BJDebugMsg("无效的主属性类型,请使用0(力量),1(敏捷),2(智力)");
 			}

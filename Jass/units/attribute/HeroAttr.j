@@ -77,6 +77,14 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 			return this;
 		}
 
+        //仅获取已创建的,不创建新的
+		static method get (unit u) -> thistype {
+			if (HaveSavedInteger(HASH_UNIT, GetHandleId(u), HASH_KEY_UNIT_HEROATTR)) {
+				return LoadInteger(HASH_UNIT, GetHandleId(u), HASH_KEY_UNIT_HEROATTR);
+			}
+			return 0;
+		}
+
 		/* 增加主属性基础值 */
 		public method addMainAttrBase(real value) {
 			if (value != 0) {

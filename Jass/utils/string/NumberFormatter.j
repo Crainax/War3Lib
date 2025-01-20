@@ -30,27 +30,31 @@ library NumberFormatter {
             value = -value;
         }
 
-        // 循环除以10000直到小于10000
-        while (value >= 10000.0) {
-            value = value / 10000.0;
-            unitLevel = unitLevel + 1;
-        }
-
-        // 根据unitLevel确定单位
-        if (unitLevel == 1) units = "万";
-        else if (unitLevel == 2) units = "亿";
-        else if (unitLevel == 3) units = "兆";
-        else if (unitLevel >= 4) units = "京";
-
-        // 根据数值范围决定小数位数
-        if (value < 10.0) {
-            result = R2SW(value, 0, 2) + units;  // 小于10显示2位小数
-        } else if (value < 100.0) {
-            result = R2SW(value, 0, 1) + units;  // 小于100显示1位小数
+        if (value < 10000.0) {
+            result = I2S(R2I(value));
+            // 对于小于10000的数也需要处理负号
         } else {
-            result = I2S(R2I(value)) + units;    // 大于等于100显示整数
-        }
+            // 循环除以10000直到小于10000
+            while (value >= 10000.0) {
+                value = value / 10000.0;
+                unitLevel = unitLevel + 1;
+            }
 
+            // 根据unitLevel确定单位
+            if (unitLevel == 1) units = "万";
+            else if (unitLevel == 2) units = "亿";
+            else if (unitLevel == 3) units = "兆";
+            else if (unitLevel >= 4) units = "京";
+
+            // 根据数值范围决定小数位数
+            if (value < 10.0) {
+                result = R2SW(value, 0, 2) + units;  // 小于10显示2位小数
+            } else if (value < 100.0) {
+                result = R2SW(value, 0, 1) + units;  // 小于100显示1位小数
+            } else {
+                result = I2S(R2I(value)) + units;    // 大于等于100显示整数
+            }
+        }
         // 添加负号
         if (isNegative) {
             result = "-" + result;

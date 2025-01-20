@@ -46,7 +46,7 @@ constant boolean LIBRARY_UIEventModule=true
 //globals from UIHashTable:
 constant boolean LIBRARY_UIHashTable=true
 hashtable HASH_UI=InitHashtable()
-integer UIHashTable__frame=0
+integer UIHashTable___frame=0
 //endglobals from UIHashTable
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
@@ -75,6 +75,16 @@ hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
 //globals from UnitUtils:
 constant boolean LIBRARY_UnitUtils=true
 //endglobals from UnitUtils
+//globals from YDWEYDWEJapiScript:
+constant boolean LIBRARY_YDWEYDWEJapiScript=true
+constant integer YDWE_OBJECT_TYPE_ABILITY= 0
+constant integer YDWE_OBJECT_TYPE_BUFF= 1
+constant integer YDWE_OBJECT_TYPE_UNIT= 2
+constant integer YDWE_OBJECT_TYPE_ITEM= 3
+constant integer YDWE_OBJECT_TYPE_UPGRADE= 4
+constant integer YDWE_OBJECT_TYPE_DOODAD= 5
+constant integer YDWE_OBJECT_TYPE_DESTRUCTABLE= 6
+//endglobals from YDWEYDWEJapiScript
 //globals from Hardware:
 constant boolean LIBRARY_Hardware=true
 //endglobals from Hardware
@@ -140,6 +150,8 @@ constant boolean LIBRARY_UnitAttrUpdate=true
 //endglobals from UnitAttrUpdate
 //globals from UTUnitAttrUpdate:
 constant boolean LIBRARY_UTUnitAttrUpdate=true
+integer UTUnitAttrUpdate___uaSelect=0
+integer UTUnitAttrUpdate___haSelect=0
 //endglobals from UTUnitAttrUpdate
     // Generated
 rect gg_rct_Wave1= null
@@ -193,11 +205,11 @@ integer array s__uianim_UIAList
 integer s__uianim_size=0
 trigger array s__uianim_trig
 integer array s__uianim_trID
-constant integer si__UIHashTable__uiHT=5
-integer array s__UIHashTable__uiHT_eventdata
-integer array s__UIHashTable__uiHT_ui
-constant integer si__UIHashTable__uiHTFrame=6
-constant integer si__UIHashTable__uiHTEvent=7
+constant integer si__UIHashTable___uiHT=5
+integer array s__UIHashTable___uiHT_eventdata
+integer array s__UIHashTable___uiHT_ui
+constant integer si__UIHashTable___uiHTFrame=6
+constant integer si__UIHashTable___uiHTEvent=7
 constant integer si__uiId=8
 hashtable s__uiId_ht
 integer s__uiId_nextId
@@ -758,6 +770,7 @@ endglobals
         native DzItemSetVertexColor takes item whichItem, integer color returns nothing
         native DzItemSetAlpha takes item whichItem, integer color returns nothing
         native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
+	native EXExecuteScript takes string script returns string
 
 
 //Generated method caller for icon.onDestroy
@@ -1991,27 +2004,31 @@ endfunction
         local boolean isNegative=( value < 0 )
         if ( isNegative ) then
             set value=- value
-        endif // 循环除以10000直到小于10000
-        loop
-        exitwhen ( value < 10000.0 )
-            set value=value / 10000.0
-            set unitLevel=unitLevel + 1
-        endloop // 根据unitLevel确定单位
-        if ( unitLevel == 1 ) then
-            set units="万"
-        elseif ( unitLevel == 2 ) then
-            set units="亿"
-        elseif ( unitLevel == 3 ) then
-            set units="兆"
-        elseif ( unitLevel >= 4 ) then // 根据数值范围决定小数位数
-            set units="京"
         endif
-        if ( value < 10.0 ) then // 小于10显示2位小数
-            set result=R2SW(value, 0, 2) + units
-        elseif ( value < 100.0 ) then // 小于100显示1位小数
-            set result=R2SW(value, 0, 1) + units
-        else // 大于等于100显示整数
-            set result=I2S(R2I(value)) + units
+        if ( value < 10000.0 ) then
+            set result=I2S(R2I(value)) // 对于小于10000的数也需要处理负号
+        else // 循环除以10000直到小于10000
+            loop
+            exitwhen ( value < 10000.0 )
+                set value=value / 10000.0
+                set unitLevel=unitLevel + 1
+            endloop // 根据unitLevel确定单位
+            if ( unitLevel == 1 ) then
+                set units="万"
+            elseif ( unitLevel == 2 ) then
+                set units="亿"
+            elseif ( unitLevel == 3 ) then
+                set units="兆"
+            elseif ( unitLevel >= 4 ) then // 根据数值范围决定小数位数
+                set units="京"
+            endif
+            if ( value < 10.0 ) then // 小于10显示2位小数
+                set result=R2SW(value, 0, 2) + units
+            elseif ( value < 100.0 ) then // 小于100显示1位小数
+                set result=R2SW(value, 0, 1) + units
+            else // 大于等于100显示整数
+                set result=I2S(R2I(value)) + units
+            endif
         endif // 添加负号
         if ( isNegative ) then
             set result="-" + result
@@ -2171,30 +2188,30 @@ endfunction
 //library UIEventModule ends
 //library UIHashTable:
     function uiHashTable takes integer f returns integer
-        set UIHashTable__frame=f
+        set UIHashTable___frame=f
         return (0)
     endfunction  //私有
-        function s__UIHashTable__uiHTFrame_bind takes integer this,integer typeID,integer ui returns nothing
-            call SaveInteger(HASH_UI, UIHashTable__frame, 1820, typeID)
-            call SaveInteger(HASH_UI, UIHashTable__frame, 1821, ui)
+        function s__UIHashTable___uiHTFrame_bind takes integer this,integer typeID,integer ui returns nothing
+            call SaveInteger(HASH_UI, UIHashTable___frame, 1820, typeID)
+            call SaveInteger(HASH_UI, UIHashTable___frame, 1821, ui)
         endfunction  // 从frame获取UI实例
-        function s__UIHashTable__uiHTFrame_get takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable__frame, 1821)
+        function s__UIHashTable___uiHTFrame_get takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable___frame, 1821)
         endfunction  // 从frame获取UI类型
-        function s__UIHashTable__uiHTFrame_getType takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable__frame, 1820)
+        function s__UIHashTable___uiHTFrame_getType takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable___frame, 1820)
         endfunction
-        function s__UIHashTable__uiHTEvent_bind takes integer this,integer value returns nothing
-            call SaveInteger(HASH_UI, UIHashTable__frame, 1823, value)
+        function s__UIHashTable___uiHTEvent_bind takes integer this,integer value returns nothing
+            call SaveInteger(HASH_UI, UIHashTable___frame, 1823, value)
         endfunction
-        function s__UIHashTable__uiHTEvent_get takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable__frame, 1823)
+        function s__UIHashTable___uiHTEvent_get takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable___frame, 1823)
         endfunction
-        function s__UIHashTable__uiHTEvent_bind2 takes integer this,integer value returns nothing
-            call SaveInteger(HASH_UI, UIHashTable__frame, 1824, value)
+        function s__UIHashTable___uiHTEvent_bind2 takes integer this,integer value returns nothing
+            call SaveInteger(HASH_UI, UIHashTable___frame, 1824, value)
         endfunction
-        function s__UIHashTable__uiHTEvent_get2 takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable__frame, 1824)
+        function s__UIHashTable___uiHTEvent_get2 takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable___frame, 1824)
         endfunction
 
 //library UIHashTable ends
@@ -2509,6 +2526,10 @@ endfunction
     endfunction
 
 //library UnitUtils ends
+//library YDWEYDWEJapiScript:
+
+
+//library YDWEYDWEJapiScript ends
 //library Hardware:
         function s__hardware_regLeftUpEvent takes code func returns nothing
             call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
@@ -2658,6 +2679,12 @@ endfunction
             set s__unitAttr_SpellDmgRateDown[this]=0.0
             call SaveInteger(HASH_UNIT, handleId, 1726, this)
             return this
+        endfunction  //仅获取已创建的,不创建新的
+        function s__unitAttr_get takes unit u returns integer
+            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(u), 1726) ) then
+                return LoadInteger(HASH_UNIT, GetHandleId(u), 1726)
+            endif
+            return 0
         endfunction  //同步并刷新当前单位的HP
         function s__unitAttr_syncHPRate takes integer this returns nothing
             local real desiredHP
@@ -3314,7 +3341,7 @@ endfunction
             endif
         endfunction
         function s__heroAttr_syncStrRate takes integer this returns nothing
-            set s__heroAttr_StrRateBonus[this]=s__heroAttr_baseStr[this] * s__heroAttr_getCurrentStrRate(this)
+            set s__heroAttr_StrRateBonus[this]=s__heroAttr_getBaseStr(this) * s__heroAttr_getCurrentStrRate(this)
             call SetHeroStr(s__heroAttr_u[this], R2I(RMaxBJ(s__heroAttr_getCurrentStr(this), 0.0)), true)
             if ( s__heroAttr_trStrChange != null ) then
                 set s__heroAttr_ethis=this
@@ -3386,7 +3413,7 @@ endfunction
             endif
         endfunction
         function s__heroAttr_syncAgiRate takes integer this returns nothing
-            set s__heroAttr_AgiRateBonus[this]=s__heroAttr_baseAgi[this] * s__heroAttr_getCurrentAgiRate(this)
+            set s__heroAttr_AgiRateBonus[this]=s__heroAttr_getBaseAgi(this) * s__heroAttr_getCurrentAgiRate(this)
             call SetHeroAgi(s__heroAttr_u[this], R2I(RMaxBJ(s__heroAttr_getCurrentAgi(this), 0.0)), true)
             if ( s__heroAttr_trAgiChange != null ) then
                 set s__heroAttr_ethis=this
@@ -3458,7 +3485,7 @@ endfunction
             endif
         endfunction
         function s__heroAttr_syncIntRate takes integer this returns nothing
-            set s__heroAttr_IntRateBonus[this]=s__heroAttr_baseInt[this] * s__heroAttr_getCurrentIntRate(this)
+            set s__heroAttr_IntRateBonus[this]=s__heroAttr_getBaseInt(this) * s__heroAttr_getCurrentIntRate(this)
             call SetHeroInt(s__heroAttr_u[this], R2I(RMaxBJ(s__heroAttr_getCurrentInt(this), 0.0)), true)
             if ( s__heroAttr_trIntChange != null ) then
                 set s__heroAttr_ethis=this
@@ -3537,6 +3564,12 @@ endfunction
             set s__heroAttr_IntFixedBonus[this]=0.0
             call SaveInteger(HASH_UNIT, handleId, 1727, this)
             return this
+        endfunction  //仅获取已创建的,不创建新的
+        function s__heroAttr_get takes unit u returns integer
+            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(u), 1727) ) then
+                return LoadInteger(HASH_UNIT, GetHandleId(u), 1727)
+            endif
+            return 0
         endfunction
         function s__heroAttr_addMainAttrBase takes integer this,real value returns nothing
             if ( value != 0 ) then
@@ -3702,7 +3735,7 @@ endfunction
 //library UIExtendEvent:
 
 //processed:     function interface uiEvent takes integer arg0 returns nothing
-        function UIExtendEvent__anon__3 takes nothing returns nothing
+        function UIExtendEvent___anon__3 takes nothing returns nothing
             local integer currentUI
             local integer func
             if ( not ( DzIsMouseOverUI() ) ) then
@@ -3714,7 +3747,7 @@ endfunction
                 call sc___prototype35_evaluate(func,currentUI)
             endif
         endfunction  //注册左键抬起事件,在click事件之前触发
-        function UIExtendEvent__anon__4 takes nothing returns nothing
+        function UIExtendEvent___anon__4 takes nothing returns nothing
             local integer currentUI
             local integer func
             if ( not ( DzIsMouseOverUI() ) ) then
@@ -3726,12 +3759,12 @@ endfunction
                 call sc___prototype35_evaluate(func,currentUI)
             endif
         endfunction
-        function UIExtendEvent__anon__5 takes nothing returns nothing
+        function UIExtendEvent___anon__5 takes nothing returns nothing
             if ( s__uiEventState_uiId != 0 ) then
                 set s__uiEventState_rcStart=true
             endif
         endfunction
-        function UIExtendEvent__anon__6 takes nothing returns nothing
+        function UIExtendEvent___anon__6 takes nothing returns nothing
             local integer func
             if ( s__uiEventState_rcStart and s__uiEventState_uiId != 0 ) then
                 if ( HaveSavedInteger(HASH_UI, s__uiEventState_uiId, 1913) ) then
@@ -3741,7 +3774,7 @@ endfunction
             endif
             set s__uiEventState_rcStart=false
         endfunction  // UI销毁时如果鼠标正在上面,则触发一次离开事件,不然会引进只进不出的错误
-        function UIExtendEvent__anon__7 takes nothing returns nothing
+        function UIExtendEvent___anon__7 takes nothing returns nothing
             local integer ui=s__uiLifeCycle_agrsFrame
             local integer func
             if ( s__uiEventState_uiId == ui and HaveSavedInteger(HASH_UI, ui, 1911) ) then
@@ -3750,12 +3783,12 @@ endfunction
             endif
             set s__uiEventState_uiId=0
         endfunction  // hardware.regRightDownEvent(function () { //注册右键按下事件
-    function UIExtendEvent__onInit takes nothing returns nothing
-        call s__hardware_regLeftDownEvent(function UIExtendEvent__anon__3)
-        call s__hardware_regLeftUpEvent(function UIExtendEvent__anon__4)
-        call s__hardware_regRightDownEvent(function UIExtendEvent__anon__5)
-        call s__hardware_regRightUpEvent(function UIExtendEvent__anon__6)
-        call s__uiLifeCycle_registerDestroy(function UIExtendEvent__anon__7)
+    function UIExtendEvent___onInit takes nothing returns nothing
+        call s__hardware_regLeftDownEvent(function UIExtendEvent___anon__3)
+        call s__hardware_regLeftUpEvent(function UIExtendEvent___anon__4)
+        call s__hardware_regRightDownEvent(function UIExtendEvent___anon__5)
+        call s__hardware_regRightUpEvent(function UIExtendEvent___anon__6)
+        call s__uiLifeCycle_registerDestroy(function UIExtendEvent___anon__7)
     endfunction  //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     rcStartOnUI = true; //     rcStartUI = currentUI; // }); // hardware.regRightUpEvent(function () { //注册右键抬起事件 //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     if (rcStartOnUI && currentUI == rcStartUI) { //         if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) { //             func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK); //             func.evaluate(currentUI); //         } //     } //     rcStartOnUI = false; //     rcStartUI = 0; // });
 
 //library UIExtendEvent ends
@@ -4129,7 +4162,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边框种类2:适用于按钮系
@@ -4141,7 +4174,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边框种类2:适用于大面板通知消息系
@@ -4153,7 +4186,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边框种类2:适用于大面板通知消息系
@@ -4165,7 +4198,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类1)
@@ -4177,7 +4210,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类2)
@@ -4189,7 +4222,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边角(图标系的)
@@ -4201,7 +4234,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction
@@ -4397,7 +4430,7 @@ endfunction
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1902, func)
             return this
         endfunction  // 鼠标进入事件(右键前提强化版)
-            function s__uiBtn_extendEvent__anon__0 takes nothing returns nothing
+            function s__uiBtn_extendEvent___anon__0 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 set s__uiEventState_uiId=frame
@@ -4411,10 +4444,10 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1910, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_extendEvent__anon__0, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_extendEvent___anon__0, false)
             return this
         endfunction  // 鼠标离开事件(右键前提强化版)
-            function s__uiBtn_extendEvent__anon__1 takes nothing returns nothing
+            function s__uiBtn_extendEvent___anon__1 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 set s__uiEventState_uiId=0
@@ -4428,10 +4461,10 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1911, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_extendEvent__anon__1, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_extendEvent___anon__1, false)
             return this
         endfunction  // 鼠标点击事件,其实这个不是必须项,只是为了统一写法硬加的
-            function s__uiBtn_extendEvent__anon__2 takes nothing returns nothing
+            function s__uiBtn_extendEvent___anon__2 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 if ( HaveSavedInteger(HASH_UI, frame, 1912) ) then
@@ -4444,7 +4477,7 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1912, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_extendEvent__anon__2, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_extendEvent___anon__2, false)
             return this
         endfunction  // 鼠标右键点击事件
         function s__uiBtn_spRightClick takes integer this,integer fun returns integer
@@ -4462,7 +4495,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //普通带声效系
@@ -4474,7 +4507,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //右键菜单系
@@ -4486,7 +4519,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建空白按钮
@@ -4498,7 +4531,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建菜单系按钮
@@ -4510,7 +4543,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
@@ -4522,7 +4555,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //绑定原生的Button成为SimpleButton,注意不能删除哦
@@ -4534,7 +4567,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction
@@ -4695,7 +4728,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
@@ -4709,7 +4742,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 绑定原生图片
@@ -4721,7 +4754,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction
@@ -4887,7 +4920,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiSprite , s__uiSprite_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiSprite_ui[this])],si__uiSprite , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiSprite_ui[this])],si__uiSprite , this)
 //#             endif
             return this
         endfunction  // 设置模型(目前只做平面型就行了,后面2个0固定了)
@@ -5123,7 +5156,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的文本,这种文本是不能destroy的!
@@ -5137,7 +5170,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction  // 绑定原生文本
@@ -5150,7 +5183,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction
@@ -5450,7 +5483,7 @@ endfunction
                     set s__icon_cdSprite[this]=s__uiSprite_create(s__uiImage_ui[s__icon_mainImage[this]])
                 endif
                 call s__uiSprite_setAnimate(s__uiSprite_setModel(s__uiSprite_setSize(s__uiSprite_setPoint(s__icon_cdSprite[this],4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0),0.001 , 0.001),"ui\\model\\cooldown_center.mdx" , 0 , 0),0 , false)
-                call s__UIHashTable__uiHTEvent_bind(s__UIHashTable__uiHT_eventdata[uiHashTable(s__icon_cdSprite[this])],this)
+                call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__icon_cdSprite[this])],this)
             endif
             call s__uiSprite_progAnimate(s__icon_cdSprite[this],0 , 1 , duration , func)
             call s__uiSprite_setScale(s__icon_cdSprite[this],s__icon_sizeY[this] / 0.038)
@@ -5797,14 +5830,14 @@ endfunction
             set parent=DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2)
             set child=DzCreateFrameByTagName("SIMPLEFRAME", "upAttack", parent, "单位面板框架", 0)
             call DzFrameClearAllPoints(child)
-            set s__unitPanel_iconAttack=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("单位面板图标" , 0) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.0295 , - 0.006),"ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp")
+            set s__unitPanel_iconAttack=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("单位面板图标" , 0) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.0295 , - 0.006),"ui\\console\\unitpanel\\origin_attack.blp")
             set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(s__unitPanel_iconAttack),(1)),(2)),(3)),(4))
             set s__unitPanel_textAttack=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板属性名" , 0),0 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconAttack]] , 2 , 0.003 , - 0.003),"攻击:")
             set s__unitPanel_textAttackValue=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板数值" , 0),6 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconAttack]] , 8 , 0.008 , 0.003),"0")
             set s__unitPanel_textAttackExtra=s__uiText_setPoint(s__uiText_createSimple(parent),3 , s__uiText_ui[s__unitPanel_textAttackValue] , 5 , 0.002 , 0.0)
             set child=DzCreateFrameByTagName("SIMPLEFRAME", "upArmor", parent, "单位面板框架", 1)
             call DzFrameClearAllPoints(child)
-            set s__unitPanel_iconArmor=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("单位面板图标" , 1) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.0295 , - 0.037),"ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp")
+            set s__unitPanel_iconArmor=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("单位面板图标" , 1) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.0295 , - 0.037),"ui\\console\\unitpanel\\origin_armor.blp")
             set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(s__unitPanel_iconArmor),(5)),(6)),(7)),(8))
             set s__unitPanel_textArmor=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板属性名" , 1),0 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconArmor]] , 2 , 0.003 , - 0.003),"防御:")
             set s__unitPanel_textArmorValue=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("单位面板数值" , 1),6 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconArmor]] , 8 , 0.008 , 0.003),"20")
@@ -5812,7 +5845,7 @@ endfunction
             set parent=DzSimpleFrameFindByName("SimpleInfoPanelIconHero", 6)
             set child=DzCreateFrameByTagName("SIMPLEFRAME", "upHero", parent, "英雄三围框架", 0)
             call DzFrameClearAllPoints(child)
-            set s__unitPanel_iconHero=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("英雄三围图标" , 0) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.1235 , - 0.02),"ReplaceableTextures\\CommandButtons\\BTNJanggo.blp")
+            set s__unitPanel_iconHero=s__icon_setTexture(s__icon_setPoint(s__icon_setSize(s__icon_fromExistingUI(s__uiImage_bindSimple("英雄三围图标" , 0) , parent),0.027 , 0.027),4 , DzFrameGetPortrait() , 5 , 0.1235 , - 0.02),"ui\\console\\unitpanel\\origin_str.blp")
             set btn=s__uiBtn_spRightClick(s__uiBtn_spClick(s__uiBtn_spLeave(s__uiBtn_spEnter(s__icon_getClickBtn(s__unitPanel_iconHero),(9)),(10)),(11)),(12))
             set s__unitPanel_textStr=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("英雄力量名" , 0),0 , s__uiImage_ui[s__icon_mainImage[s__unitPanel_iconHero]] , 4 , 0.017 , 0.027),"力量:")
             set s__unitPanel_textStrValue=s__uiText_setText(s__uiText_setPoint(s__uiText_bindSimple("英雄力量值" , 0),0 , s__uiText_ui[s__unitPanel_textStr] , 6 , 0.005 , - 0.001),"10")
@@ -5938,93 +5971,148 @@ endfunction
 //library UnitPanel ends
 //library UnitAttrUpdate:
 
+    function UnitAttrUpdate__updateAttack takes integer ua returns nothing
+        local real extra=s__unitAttr_AtkRateBonus[ua] + s__unitAttr_AtkFixedBonus[ua]
+        call s__uiText_setText(s__unitPanel_textAttackValue,FormatNumber(s__unitAttr_baseAtk[ua]))
+        if ( extra > 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textAttackExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showAttackExtra(true)
+        elseif ( extra < - 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textAttackExtra,"|cffff0000" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showAttackExtra(true)
+        else
+            call s__unitPanel_showAttackExtra(false)
+        endif
+    endfunction
+    function UnitAttrUpdate__updateDefense takes integer ua returns nothing
+        local real extra=s__unitAttr_DefRateBonus[ua] + s__unitAttr_DefFixedBonus[ua]
+        call s__uiText_setText(s__unitPanel_textArmorValue,FormatNumber(s__unitAttr_baseDef[ua]))
+        if ( extra > 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textArmorExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showArmorExtra(true)
+        elseif ( extra < - 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textArmorExtra,"|cffff0000" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showArmorExtra(true)
+        else
+            call s__unitPanel_showArmorExtra(false)
+        endif
+    endfunction
+    function UnitAttrUpdate__updateStr takes integer ha returns nothing
+        local real extra=s__heroAttr_getExtraStr(ha)
+        call s__uiText_setText(s__unitPanel_textStrValue,FormatNumber(s__heroAttr_getBaseStr(ha)))
+        if ( extra > 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textStrExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showStrExtra(true)
+        elseif ( extra < - 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textStrExtra,"|cffff0000" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showStrExtra(true)
+        else
+            call s__unitPanel_showStrExtra(false)
+        endif
+    endfunction
+    function UnitAttrUpdate__updateAgi takes integer ha returns nothing
+        local real extra=s__heroAttr_getExtraAgi(ha)
+        call s__uiText_setText(s__unitPanel_textAgiValue,FormatNumber(s__heroAttr_getBaseAgi(ha)))
+        if ( extra > 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textAgiExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showAgiExtra(true)
+        elseif ( extra < - 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textAgiExtra,"|cffff0000" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showAgiExtra(true)
+        else
+            call s__unitPanel_showAgiExtra(false)
+        endif
+    endfunction
+    function UnitAttrUpdate__updateInt takes integer ha returns nothing
+        local real extra=s__heroAttr_getExtraInt(ha)
+        call s__uiText_setText(s__unitPanel_textIntValue,FormatNumber(s__heroAttr_getBaseInt(ha)))
+        if ( extra > 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textIntExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showIntExtra(true)
+        elseif ( extra < - 0.9 ) then
+            call s__uiText_setText(s__unitPanel_textIntExtra,"|cffff0000" + FormatNumber(extra) + "|r")
+            call s__unitPanel_showIntExtra(true)
+        else
+            call s__unitPanel_showIntExtra(false)
+        endif
+    endfunction  // 引用
     function InitUnitAttrUpdate takes nothing returns nothing
         call DoNothing()
     endfunction
         function UnitAttrUpdate__anon__0 takes nothing returns nothing
             local integer ua=s__unitAttr_ethis
-            local real extra
             if ( s__unitAttr_u[ua] != null and s__unitAttr_u[ua] == DzGetSelectedLeaderUnit() ) then
-                call s__uiText_setText(s__unitPanel_textAttackValue,FormatNumber(s__unitAttr_baseAtk[ua]))
-                set extra=s__unitAttr_AtkRateBonus[ua] + s__unitAttr_AtkFixedBonus[ua]
-                if ( extra > 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textAttackExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showAttackExtra(true)
-                elseif ( extra < - 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textAttackExtra,"|cffff0000-" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showAttackExtra(true)
-                else
-                    call s__unitPanel_showAttackExtra(false)
-                endif
+                call UnitAttrUpdate__updateAttack(ua)
             endif
-        endfunction  // 防御力变化事件
+        endfunction
         function UnitAttrUpdate__anon__1 takes nothing returns nothing
             local integer ua=s__unitAttr_ethis
-            local real extra
             if ( s__unitAttr_u[ua] != null and s__unitAttr_u[ua] == DzGetSelectedLeaderUnit() ) then
-                call s__uiText_setText(s__unitPanel_textArmorValue,FormatNumber(s__unitAttr_baseDef[ua]))
-                set extra=s__unitAttr_DefRateBonus[ua] + s__unitAttr_DefFixedBonus[ua]
-                if ( extra > 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textArmorExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showArmorExtra(true)
-                elseif ( extra < - 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textArmorExtra,"|cffff0000-" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showArmorExtra(true)
-                else
-                    call s__unitPanel_showArmorExtra(false)
-                endif
+                call UnitAttrUpdate__updateDefense(ua)
             endif
-        endfunction  // 力量变化事件
+        endfunction
         function UnitAttrUpdate__anon__2 takes nothing returns nothing
             local integer ha=s__heroAttr_ethis
-            local real extra
             if ( s__heroAttr_u[ha] != null and s__heroAttr_u[ha] == DzGetSelectedLeaderUnit() ) then
-                call s__uiText_setText(s__unitPanel_textStrValue,FormatNumber(s__heroAttr_getBaseStr(ha)))
-                set extra=s__heroAttr_getExtraStr(ha)
-                if ( extra > 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textStrExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showStrExtra(true)
-                elseif ( extra < - 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textStrExtra,"|cffff0000-" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showStrExtra(true)
-                else
-                    call s__unitPanel_showStrExtra(false)
-                endif
+                call UnitAttrUpdate__updateStr(ha)
             endif
-        endfunction  // 敏捷变化事件
+        endfunction
         function UnitAttrUpdate__anon__3 takes nothing returns nothing
             local integer ha=s__heroAttr_ethis
-            local real extra
             if ( s__heroAttr_u[ha] != null and s__heroAttr_u[ha] == DzGetSelectedLeaderUnit() ) then
-                call s__uiText_setText(s__unitPanel_textAgiValue,FormatNumber(s__heroAttr_getBaseAgi(ha)))
-                set extra=s__heroAttr_getExtraAgi(ha)
-                if ( extra > 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textAgiExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showAgiExtra(true)
-                elseif ( extra < - 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textAgiExtra,"|cffff0000-" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showAgiExtra(true)
-                else
-                    call s__unitPanel_showAgiExtra(false)
-                endif
+                call UnitAttrUpdate__updateAgi(ha)
             endif
-        endfunction  // 智力变化事件
+        endfunction
         function UnitAttrUpdate__anon__4 takes nothing returns nothing
             local integer ha=s__heroAttr_ethis
-            local real extra
             if ( s__heroAttr_u[ha] != null and s__heroAttr_u[ha] == DzGetSelectedLeaderUnit() ) then
-                call s__uiText_setText(s__unitPanel_textIntValue,FormatNumber(s__heroAttr_getBaseInt(ha)))
-                set extra=s__heroAttr_getExtraInt(ha)
-                if ( extra > 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textIntExtra,"|cff00ff00+" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showIntExtra(true)
-                elseif ( extra < - 0.9 ) then
-                    call s__uiText_setText(s__unitPanel_textIntExtra,"|cffff0000-" + FormatNumber(extra) + "|r")
-                    call s__unitPanel_showIntExtra(true)
+                call UnitAttrUpdate__updateInt(ha)
+            endif
+        endfunction
+        function UnitAttrUpdate__anon__5 takes nothing returns nothing
+            local unit u=s__unitSelect_args
+            local integer ua=s__unitAttr_get(u)
+            local integer ha=s__heroAttr_get(u)
+            local string primary
+            if ( s__unitAttr_isExist(ua) ) then //如果单位属性存在
+                call UnitAttrUpdate__updateAttack(ua)
+                call UnitAttrUpdate__updateDefense(ua) //用默认的单位JAPI来显示
+            else
+                call s__unitPanel_showAttackExtra(false)
+                call s__unitPanel_showArmorExtra(false)
+                call s__uiText_setText(s__unitPanel_textAttackValue,FormatNumber(GetUnitState(u, ConvertUnitState(0x12))))
+                call s__uiText_setText(s__unitPanel_textArmorValue,FormatNumber(GetUnitState(u, ConvertUnitState(0x20))))
+            endif
+            if ( IsHeroUnitId(GetUnitTypeId(u)) ) then
+                if ( s__heroAttr_isExist(ha) ) then
+                    if ( s__heroAttr_mainAttrType[ha] == MAIN_ATTR_STR ) then
+                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_str.blp")
+                    elseif ( s__heroAttr_mainAttrType[ha] == MAIN_ATTR_AGI ) then
+                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_agi.blp")
+                    elseif ( s__heroAttr_mainAttrType[ha] == MAIN_ATTR_INT ) then
+                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_int.blp")
+                    endif
+                    call UnitAttrUpdate__updateStr(ha)
+                    call UnitAttrUpdate__updateAgi(ha)
+                    call UnitAttrUpdate__updateInt(ha)
                 else
+                    set primary=( EXExecuteScript("(require'jass.slk').unit[" + I2S(GetUnitTypeId(u)) + "].Primary") )
+                    if ( primary == "STR" ) then
+                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_str.blp")
+                    elseif ( primary == "AGI" ) then
+                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_agi.blp")
+                    elseif ( primary == "INT" ) then
+                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_int.blp")
+                    endif
+                    call s__unitPanel_showStrExtra(false)
+                    call s__unitPanel_showAgiExtra(false)
                     call s__unitPanel_showIntExtra(false)
+                    call s__uiText_setText(s__unitPanel_textStrValue,FormatNumber(GetHeroStr(u, true)))
+                    call s__uiText_setText(s__unitPanel_textAgiValue,FormatNumber(GetHeroAgi(u, true)))
+                    call s__uiText_setText(s__unitPanel_textIntValue,FormatNumber(GetHeroInt(u, true)))
                 endif
             endif
+            set u=null
         endfunction
     function UnitAttrUpdate__onInit takes nothing returns nothing
         call s__unitAttr_onAtkChange(function UnitAttrUpdate__anon__0)
@@ -6032,20 +6120,38 @@ endfunction
         call s__heroAttr_onStrChange(function UnitAttrUpdate__anon__2)
         call s__heroAttr_onAgiChange(function UnitAttrUpdate__anon__3)
         call s__heroAttr_onIntChange(function UnitAttrUpdate__anon__4)
+        call s__unitSelect_onAsync(function UnitAttrUpdate__anon__5)
     endfunction
 
 //library UnitAttrUpdate ends
 //library UTUnitAttrUpdate:
 
         function UTUnitAttrUpdate___anon__0 takes nothing returns nothing
-        endfunction  //end
-        function UTUnitAttrUpdate___anon__1 takes nothing returns nothing
+            local unit u=s__unitSelect_argsSync
+            set UTUnitAttrUpdate___uaSelect=s__unitAttr_get(u)
+            set UTUnitAttrUpdate___haSelect=s__heroAttr_get(u)
+            set u=null
         endfunction
-        function UTUnitAttrUpdate___anon__2 takes nothing returns nothing
-        endfunction  //InitUnitAttrUpdate();
     function UTUnitAttrUpdate___Init takes nothing returns nothing
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTUnitAttrUpdate___anon__0 , function UTUnitAttrUpdate___anon__1)
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTUnitAttrUpdate___anon__2 , null)
+        local player p=Player(0)
+        local unit u=null
+        call s__unitSelect_onSync(function UTUnitAttrUpdate___anon__0)
+        set u=CreateUnit(p, 'Hmkg', 0, 0, 0) // 山丘之王:结构体化
+        call s__heroAttr_parse(u , MAIN_ATTR_STR)
+        call s__unitAttr_parse(u)
+        set u=CreateUnit(p, 'Edem', 0, 0, 0) // 恶魔猎手:结构体化
+        call s__heroAttr_parse(u , MAIN_ATTR_AGI)
+        call s__unitAttr_parse(u)
+        set u=CreateUnit(p, 'Hamg', 0, 0, 0) // 大魔法师:结构体化
+        call s__heroAttr_parse(u , MAIN_ATTR_INT)
+        call s__unitAttr_parse(u) // 步兵:结构体化
+        set u=CreateUnit(p, 'hfoo', 0, 0, 0) // 使用步兵作为测试单位
+        call s__unitAttr_parse(u) // 无结构化的兽族步兵
+        set u=CreateUnit(p, 'nchg', 0, 0, 0) // 牛头人酋长:无结构化
+        set u=CreateUnit(p, 'Ocb2', 0, 0, 0) // 月之女祭司:无结构化
+        set u=CreateUnit(p, 'Emoo', 0, 0, 0) // 血魔法师:无结构化
+        set u=CreateUnit(p, 'Hkal', 0, 0, 0)
+        set u=null //InitUnitAttrUpdate
     endfunction
     function UTUnitAttrUpdate___TTestUTUnitAttrUpdate1 takes player p returns nothing
     endfunction
@@ -6094,17 +6200,153 @@ endfunction
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
-        if ( paramS[0] == "a" ) then
-        elseif ( paramS[0] == "b" ) then
+        if ( s__heroAttr_isExist(UTUnitAttrUpdate___haSelect) ) then
+            if ( paramS[0] == "str" ) then
+                call s__heroAttr_setBaseStr(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄基础力量为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "addstr" ) then
+                call s__heroAttr_addBaseStr(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("增加力量英雄基础力量: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "strup" ) then
+                call s__heroAttr_addStrRateUp(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄力量增幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "strdown" ) then
+                call s__heroAttr_addStrRateDown(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄力量减幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "strbonus" ) then
+                call s__heroAttr_addStrFixedBonus(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄力量固定加成为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "addstrbonus" ) then
+                call s__heroAttr_addStrFixedBonus(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("增加力量英雄力量固定加成: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "agi" ) then // 敏捷相关命令
+                call s__heroAttr_setBaseAgi(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置英雄基础敏捷为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "addagi" ) then
+                call s__heroAttr_addBaseAgi(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("增加英雄基础敏捷: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "agiup" ) then
+                call s__heroAttr_addAgiRateUp(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置英雄敏捷增幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "agidown" ) then
+                call s__heroAttr_addAgiRateDown(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置英雄敏捷减幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "agibonus" ) then
+                call s__heroAttr_addAgiFixedBonus(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置英雄敏捷固定加成为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "addagibonus" ) then
+                call s__heroAttr_addAgiFixedBonus(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("增加英雄敏捷固定加成: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "int" ) then // 智力相关命令
+                call s__heroAttr_setBaseInt(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置英雄基础智力为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "addint" ) then
+                call s__heroAttr_addBaseInt(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("增加英雄基础智力: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "intup" ) then
+                call s__heroAttr_addIntRateUp(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置英雄智力增幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "intdown" ) then
+                call s__heroAttr_addIntRateDown(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置英雄智力减幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "intbonus" ) then
+                call s__heroAttr_addIntFixedBonus(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置英雄智力固定加成为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "addintbonus" ) then
+                call s__heroAttr_addIntFixedBonus(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("增加英雄智力固定加成: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "mainup" ) then // 主属性相关命令
+                call s__heroAttr_addMainAttrRateUp(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄主属性增幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "maindown" ) then
+                call s__heroAttr_addMainAttrRateDown(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄主属性减幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "mainbonus" ) then
+                call s__heroAttr_addMainAttrFixedBonus(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄主属性固定加成为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "subup" ) then // 次属性相关命令
+                call s__heroAttr_addSubAttrRateUp(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄次属性增幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "subdown" ) then
+                call s__heroAttr_addSubAttrRateDown(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄次属性减幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "subbonus" ) then
+                call s__heroAttr_addSubAttrFixedBonus(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("设置力量英雄次属性固定加成为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "mainadd" ) then // 主属性基础值相关命令
+                call s__heroAttr_addMainAttrBase(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("增加力量英雄主属性基础值: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "subadd" ) then // 次属性基础值相关命令
+                call s__heroAttr_addSubAttrBase(UTUnitAttrUpdate___haSelect,paramR[1])
+                call BJDebugMsg("增加力量英雄次属性基础值: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "switch" ) then // 切换主属性命令
+                if ( paramI[1] >= 0 and paramI[1] <= 2 ) then
+                    call s__heroAttr_switchMainAttr(UTUnitAttrUpdate___haSelect,paramI[1])
+                    call BJDebugMsg("切换主属性类型为: " + I2S(paramI[1]))
+                else
+                    call BJDebugMsg("无效的主属性类型,请使用0(力量),1(敏捷),2(智力)")
+                endif
+            endif
+        endif
+        if ( s__unitAttr_isExist(UTUnitAttrUpdate___uaSelect) ) then // HP相关命令
+            if ( paramS[0] == "addhp" ) then // 增加基础HP
+                call s__unitAttr_addHP(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("增加基础HP: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "hpup" ) then // 设置HP增幅
+                call s__unitAttr_addHPRateUp(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置HP增幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "hpdown" ) then // 设置HP减幅
+                call s__unitAttr_addHPRateDown(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置HP减幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "addmp" ) then // MP相关命令 // 增加基础MP
+                call s__unitAttr_addMP(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("增加基础MP: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "mpup" ) then // 设置MP增幅
+                call s__unitAttr_addMPRateUp(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置MP增幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "mpdown" ) then // 设置MP减幅
+                call s__unitAttr_addMPRateDown(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置MP减幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "atk" ) then // 攻击力相关命令 // 设置基础攻击力
+                call s__unitAttr_setBaseAtk(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置基础攻击力为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "addatk" ) then // 增加基础攻击力
+                call s__unitAttr_addBaseAtk(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("增加基础攻击力: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "atkup" ) then // 设置攻击力增幅
+                call s__unitAttr_addAtkRateUp(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置攻击力增幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "atkdown" ) then // 设置攻击力减幅
+                call s__unitAttr_addAtkRateDown(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置攻击力减幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "atkbonus" ) then // 设置固定加成
+                call s__unitAttr_addAtkFixedBonus(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置固定加成为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "def" ) then // 防御力相关命令 // 设置基础防御力
+                call s__unitAttr_setBaseDef(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置基础防御力为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "adddef" ) then // 增加基础防御力
+                call s__unitAttr_addBaseDef(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("增加基础防御力: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "defup" ) then // 设置防御力增幅
+                call s__unitAttr_addDefRateUp(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置防御力增幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "defdown" ) then // 设置防御力减幅
+                call s__unitAttr_addDefRateDown(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置防御力减幅为: " + R2S(paramR[1]))
+            elseif ( paramS[0] == "defbonus" ) then // 设置固定加成
+                call s__unitAttr_addDefFixedBonus(UTUnitAttrUpdate___uaSelect,paramR[1])
+                call BJDebugMsg("设置防御力固定加成为: " + R2S(paramR[1]))
+            endif
         endif
         set p=null
     endfunction
-        function UTUnitAttrUpdate___anon__3 takes nothing returns nothing
+        function UTUnitAttrUpdate___anon__1 takes nothing returns nothing
             call BJDebugMsg("[UnitAttrUpdate] 单元测试已加载")
             call UTUnitAttrUpdate___Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUnitAttrUpdate___anon__4 takes nothing returns nothing
+        function UTUnitAttrUpdate___anon__2 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
@@ -6136,9 +6378,9 @@ endfunction
     function UTUnitAttrUpdate___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTUnitAttrUpdate___anon__3))
+        call TriggerAddCondition(tr, Condition(function UTUnitAttrUpdate___anon__1))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUnitAttrUpdate___anon__4)
+        call UnitTestRegisterChatEvent(function UTUnitAttrUpdate___anon__2)
     endfunction
 
 //library UTUnitAttrUpdate ends
@@ -6150,22 +6392,23 @@ endfunction
 //#  define TriggerRegisterPlayerEventLeave(trig, player)                    TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_LEAVE)
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
+// 原生UI的大小
+
+
+// 0 - 1亿这里用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
 // 结构体共用方法定义
 //共享打印方法
 // UI组件内部共享方法及成员
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
-
-// 0 - 1亿这里用
-
-
-
-
-
-
-
-
 
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
@@ -6259,69 +6502,6 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
-//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
-
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-
-//窗口的大小
 //===========================================================================
 // Icon.j
 //===========================================================================
@@ -6351,6 +6531,14 @@ endfunction
 //# dependency:resource/ui/model/cooldown_center.mdx
 
 
+
+
+
+
+
+
+
+
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
 //---------技能数据类型---------------
@@ -6403,6 +6591,114 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
+
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
+
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
+//窗口的大小
+//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -6495,8 +6791,6 @@ endfunction
     // 单元测试
     // lua_print: 单元测试
 //这两条是用到YDWE函数就要导入的,没用到就不用导入
-// #include <YDTrigger/ImportSaveLoadSystem.h>
-// #include <YDTrigger/Hash.h>
 // 原生UI的大小
 //函数入口
 // 用原始地图测试
@@ -6830,10 +7124,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs26882375")
+call ExecuteFunc("jasshelper__initstructs42041468")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UIExtendEvent__onInit")
+call ExecuteFunc("UIExtendEvent___onInit")
 call ExecuteFunc("UIExtendResize__onInit")
 call ExecuteFunc("UnitAttrUpdate__onInit")
 call ExecuteFunc("UTUnitAttrUpdate___onInit")
@@ -7238,7 +7532,7 @@ function sa___prototype35_s__unitPanel_anon__19 takes nothing returns boolean
     return true
 endfunction
 
-function jasshelper__initstructs26882375 takes nothing returns nothing
+function jasshelper__initstructs42041468 takes nothing returns nothing
     set st__icon_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__icon_onDestroy,Condition( function sa__icon_onDestroy))
     set st__progAnim_create=CreateTrigger()

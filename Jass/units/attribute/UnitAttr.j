@@ -48,6 +48,14 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 			return this;
 		}
 
+		//仅获取已创建的,不创建新的
+		static method get (unit u) -> thistype {
+			if (HaveSavedInteger(HASH_UNIT, GetHandleId(u), HASH_KEY_UNIT_UNITATTR)) {
+				return LoadInteger(HASH_UNIT, GetHandleId(u), HASH_KEY_UNIT_UNITATTR);
+			}
+			return 0;
+		}
+
 		//同步并刷新当前单位的HP
 		private method syncHPRate() {
 			real desiredHP;

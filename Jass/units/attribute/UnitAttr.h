@@ -241,7 +241,7 @@ CRNL \
 CRNL \
         /* 同步并刷新当前单位的ATTR */ CRNL \
         private method sync##ATTR##Rate() { CRNL \
-            ATTR##RateBonus = base##ATTR * getCurrent##ATTR##Rate(); CRNL \
+            ATTR##RateBonus = getBase##ATTR() * getCurrent##ATTR##Rate(); CRNL \
             SetHero##ATTR(u, R2I(RMaxBJ(getCurrent##ATTR(), 0.0)), true); CRNL \
             if (tr##ATTR##Change != null) { CRNL \
                 ethis = this; CRNL \

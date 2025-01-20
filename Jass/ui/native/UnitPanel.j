@@ -116,13 +116,14 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             uiBtn btn;
 
             //攻击小框架相关
+            //todo:config.h
             parent = DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2); //防御的父框架
             child = DzCreateFrameByTagName("SIMPLEFRAME", "upAttack", parent, "单位面板框架", 0);
             DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
             iconAttack = icon.fromExistingUI(uiImage.bindSimple("单位面板图标", 0), parent)
                 .setSize(0.027, 0.027)
                 .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.006)
-                .setTexture("ReplaceableTextures\\CommandButtons\\BTNFrostArmor.blp");
+                .setTexture(UNITPANEL_ICON_TEXTURE_ATTACK);
             btn = iconAttack.getClickBtn()
                 .spEnter(function(integer frame) {if (trAttackEnter != null) TriggerEvaluate(trAttackEnter);})
                 .spLeave(function(integer frame) {if (trAttackLeave != null) TriggerEvaluate(trAttackLeave);})
@@ -143,7 +144,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             iconArmor = icon.fromExistingUI(uiImage.bindSimple("单位面板图标", 1), parent)
                 .setSize(0.027, 0.027)
                 .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.037)
-                .setTexture("ReplaceableTextures\\CommandButtons\\BTNDarkSummoning.blp");
+                .setTexture(UNITPANEL_ICON_TEXTURE_ARMOR);
             btn = iconArmor.getClickBtn()
                 .spEnter(function(integer frame) {if (trArmorEnter != null) TriggerEvaluate(trArmorEnter);})
                 .spLeave(function(integer frame) {if (trArmorLeave != null) TriggerEvaluate(trArmorLeave);})
@@ -165,7 +166,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             iconHero = icon.fromExistingUI(uiImage.bindSimple("英雄三围图标", 0), parent)
                 .setSize(0.027, 0.027)
                 .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.1235, -0.02)
-                .setTexture("ReplaceableTextures\\CommandButtons\\BTNJanggo.blp");
+                .setTexture(UNITPANEL_ICON_TEXTURE_STR);
             btn = iconHero.getClickBtn()
                 .spEnter(function(integer frame) {if (trHeroEnter != null) TriggerEvaluate(trHeroEnter);})
                 .spLeave(function(integer frame) {if (trHeroLeave != null) TriggerEvaluate(trHeroLeave);})

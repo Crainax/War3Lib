@@ -155,7 +155,7 @@ end
 -- 注入宏头(最后调用)
 function inject_code:injectMacro(injectPath)
     -- 首先读取原文件内容
-    local original_content = read_file(injectPath)
+local original_content = read_file(injectPath)
     if not original_content then
         print("Error reading original file content")
         return
@@ -173,6 +173,7 @@ function inject_code:injectMacro(injectPath)
     file:write("#define USE_BJ_OPTIMIZATION\n")
     file:write("#include <YDTrigger/Import.h>\n")   --这条还是要写,在Alljass.h里直接导入就行了,不用搞这么多弯弯绕绕
     file:write("#include <YDTrigger/YDTrigger.h>\n")
+    file:write("#include \"config/config.h\"\n")
     file:write("\n")  -- 添加一个空行分隔
 
     -- 写入原始内容

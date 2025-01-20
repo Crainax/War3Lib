@@ -26,10 +26,8 @@
 #endif
 
 //这两条是用到YDWE函数就要导入的,没用到就不用导入
-// #include <YDTrigger/ImportSaveLoadSystem.h>
-// #include <YDTrigger/Hash.h>
 #include "Crainax/config/Log.h" // 输出日志配置
-#include "Crainax/config/config.h"               // 配置
+#include "config/config.h"               // 配置
 
 //函数入口
 #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST) // 单元测试

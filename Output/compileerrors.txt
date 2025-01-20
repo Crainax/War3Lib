@@ -1,6 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 5820:  Undeclared function FormatNumber
-Line 5823:  Undeclared function FormatNumber
-Line 5826:  Undeclared function FormatNumber
-3
+JASSHelper - Step 2 (structs)
+Line 1457: addSubAttrBouns is not a member of heroAttr
+1

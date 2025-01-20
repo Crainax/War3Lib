@@ -22,6 +22,11 @@
 
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
+//# dependency:resource/ui/console/unitpanel/origin_agi.blp
+//# dependency:resource/ui/console/unitpanel/origin_armor.blp
+//# dependency:resource/ui/console/unitpanel/origin_attack.blp
+//# dependency:resource/ui/console/unitpanel/origin_int.blp
+//# dependency:resource/ui/console/unitpanel/origin_str.blp
 
 //! zinc
 

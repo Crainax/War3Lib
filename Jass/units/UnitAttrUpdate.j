@@ -1,105 +1,170 @@
 #ifndef UnitAttrUpdateIncluded
 #define UnitAttrUpdateIncluded
 
+#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
+
+
 //! zinc
 /*
 单位的属性更新UI
 */
-library UnitAttrUpdate requires UnitPanel,HeroAttr{
+library UnitAttrUpdate requires UnitPanel,HeroAttr,YDWEYDWEJapiScript{
 
+    // 新增：抽取的通用更新函数
+    private function updateAttack(unitAttr ua) {
+        real extra = ua.AtkRateBonus + ua.AtkFixedBonus;
+        unitPanel.textAttackValue.setText(FormatNumber(ua.baseAtk));
+        if (extra > 0.9) {
+            unitPanel.textAttackExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
+            unitPanel.showAttackExtra(true);
+        } else if (extra < -0.9) {
+            unitPanel.textAttackExtra.setText("|cffff0000" + FormatNumber(extra) + "|r");
+            unitPanel.showAttackExtra(true);
+        } else {
+            unitPanel.showAttackExtra(false);
+        }
+    }
 
+    private function updateDefense(unitAttr ua) {
+        real extra = ua.DefRateBonus + ua.DefFixedBonus;
+        unitPanel.textArmorValue.setText(FormatNumber(ua.baseDef));
+        if (extra > 0.9) {
+            unitPanel.textArmorExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
+            unitPanel.showArmorExtra(true);
+        } else if (extra < -0.9) {
+            unitPanel.textArmorExtra.setText("|cffff0000" + FormatNumber(extra) + "|r");
+            unitPanel.showArmorExtra(true);
+        } else {
+            unitPanel.showArmorExtra(false);
+        }
+    }
+
+    private function updateStr(heroAttr ha) {
+        real extra = ha.getExtraStr();
+        unitPanel.textStrValue.setText(FormatNumber(ha.getBaseStr()));
+        if (extra > 0.9) {
+            unitPanel.textStrExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
+            unitPanel.showStrExtra(true);
+        } else if (extra < -0.9) {
+            unitPanel.textStrExtra.setText("|cffff0000" + FormatNumber(extra) + "|r");
+            unitPanel.showStrExtra(true);
+        } else {
+            unitPanel.showStrExtra(false);
+        }
+    }
+
+    private function updateAgi(heroAttr ha) {
+        real extra = ha.getExtraAgi();
+        unitPanel.textAgiValue.setText(FormatNumber(ha.getBaseAgi()));
+        if (extra > 0.9) {
+            unitPanel.textAgiExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
+            unitPanel.showAgiExtra(true);
+        } else if (extra < -0.9) {
+            unitPanel.textAgiExtra.setText("|cffff0000" + FormatNumber(extra) + "|r");
+            unitPanel.showAgiExtra(true);
+        } else {
+            unitPanel.showAgiExtra(false);
+        }
+    }
+
+    private function updateInt(heroAttr ha) {
+        real extra = ha.getExtraInt();
+        unitPanel.textIntValue.setText(FormatNumber(ha.getBaseInt()));
+        if (extra > 0.9) {
+            unitPanel.textIntExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
+            unitPanel.showIntExtra(true);
+        } else if (extra < -0.9) {
+            unitPanel.textIntExtra.setText("|cffff0000" + FormatNumber(extra) + "|r");
+            unitPanel.showIntExtra(true);
+        } else {
+            unitPanel.showIntExtra(false);
+        }
+    }
+
+    // 引用
     public function InitUnitAttrUpdate (){
         DoNothing();
     }
 
     function onInit ()  {
-        unitAttr.onAtkChange(function () { // 攻击力变化事件
+        unitAttr.onAtkChange(function () {
             unitAttr ua = unitAttr.ethis;
-            real extra;
-            if (ua.u != null && ua.u == DzGetSelectedLeaderUnit()) { // 如果当前单位是选中的单位
-                unitPanel.textAttackValue.setText(FormatNumber(ua.baseAtk));
-                extra = ua.AtkRateBonus + ua.AtkFixedBonus;
-                if (extra > 0.9) {
-                    unitPanel.textAttackExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
-                    unitPanel.showAttackExtra(true);
-                } else if (extra < -0.9) {
-                    unitPanel.textAttackExtra.setText("|cffff0000-" + FormatNumber(extra) + "|r");
-                    unitPanel.showAttackExtra(true);
-                } else {
-                    unitPanel.showAttackExtra(false);
-                }
+            if (ua.u != null && ua.u == DzGetSelectedLeaderUnit()) {
+                updateAttack(ua);
             }
         });
-        unitAttr.onDefChange(function () { // 防御力变化事件
+        unitAttr.onDefChange(function () {
             unitAttr ua = unitAttr.ethis;
-            real extra;
-            if (ua.u != null && ua.u == DzGetSelectedLeaderUnit()) { // 如果当前单位是选中的单位
-                unitPanel.textArmorValue.setText(FormatNumber(ua.baseDef));
-                extra = ua.DefRateBonus + ua.DefFixedBonus;
-                if (extra > 0.9) {
-                    unitPanel.textArmorExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
-                    unitPanel.showArmorExtra(true);
-                } else if (extra < -0.9) {
-                    unitPanel.textArmorExtra.setText("|cffff0000-" + FormatNumber(extra) + "|r");
-                    unitPanel.showArmorExtra(true);
-                } else {
-                    unitPanel.showArmorExtra(false);
-                }
+            if (ua.u != null && ua.u == DzGetSelectedLeaderUnit()) {
+                updateDefense(ua);
             }
         });
-        heroAttr.onStrChange(function () { // 力量变化事件
+        heroAttr.onStrChange(function () {
             heroAttr ha = heroAttr.ethis;
-            real extra;
-            if (ha.u != null && ha.u == DzGetSelectedLeaderUnit()) { // 如果当前单位是选中的单位
-                unitPanel.textStrValue.setText(FormatNumber(ha.getBaseStr()));
-                extra = ha.getExtraStr();
-                if (extra > 0.9) {
-                    unitPanel.textStrExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
-                    unitPanel.showStrExtra(true);
-                } else if (extra < -0.9) {
-                    unitPanel.textStrExtra.setText("|cffff0000-" + FormatNumber(extra) + "|r");
-                    unitPanel.showStrExtra(true);
+            if (ha.u != null && ha.u == DzGetSelectedLeaderUnit()) {
+                updateStr(ha);
+            }
+        });
+
+        heroAttr.onAgiChange(function () {
+            heroAttr ha = heroAttr.ethis;
+            if (ha.u != null && ha.u == DzGetSelectedLeaderUnit()) {
+                updateAgi(ha);
+            }
+        });
+        heroAttr.onIntChange(function () {
+            heroAttr ha = heroAttr.ethis;
+            if (ha.u != null && ha.u == DzGetSelectedLeaderUnit()) {
+                updateInt(ha);
+            }
+        });
+        unitSelect.onAsync(function () {
+            unit u = unitSelect.args;
+            unitAttr ua = unitAttr.get(u);
+            heroAttr ha = heroAttr.get(u);
+            string primary;
+            //todo:无法攻击与无敌
+            if (ua.isExist()){ //如果单位属性存在
+                updateAttack(ua);
+                updateDefense(ua);
+            } else { //用默认的单位JAPI来显示
+                unitPanel.showAttackExtra(false);
+                unitPanel.showArmorExtra(false);
+                unitPanel.textAttackValue.setText(FormatNumber(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE))));
+                unitPanel.textArmorValue.setText(FormatNumber(GetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR))));
+            }
+
+            if (IsHeroUnitId(GetUnitTypeId(u))) {
+                if (ha.isExist()){
+                    if (ha.mainAttrType ==MAIN_ATTR_STR) {
+                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_STR);
+                    } else if (ha.mainAttrType ==MAIN_ATTR_AGI) {
+                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_AGI);
+                    } else if (ha.mainAttrType ==MAIN_ATTR_INT) {
+                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_INT);
+                    }
+                    updateStr(ha);
+                    updateAgi(ha);
+                    updateInt(ha);
                 } else {
+                    primary = YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_UNIT, GetUnitTypeId(u), "Primary");
+                    if (primary == "STR") {
+                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_STR);
+                    } else if (primary == "AGI") {
+                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_AGI);
+                    } else if (primary == "INT") {
+                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_INT);
+                    }
                     unitPanel.showStrExtra(false);
-                }
-            }
-        });
-        heroAttr.onAgiChange(function () { // 敏捷变化事件
-            heroAttr ha = heroAttr.ethis;
-            real extra;
-            if (ha.u != null && ha.u == DzGetSelectedLeaderUnit()) { // 如果当前单位是选中的单位
-                unitPanel.textAgiValue.setText(FormatNumber(ha.getBaseAgi()));
-                extra = ha.getExtraAgi();
-                if (extra > 0.9) {
-                    unitPanel.textAgiExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
-                    unitPanel.showAgiExtra(true);
-                } else if (extra < -0.9) {
-                    unitPanel.textAgiExtra.setText("|cffff0000-" + FormatNumber(extra) + "|r");
-                    unitPanel.showAgiExtra(true);
-                } else {
                     unitPanel.showAgiExtra(false);
-                }
-            }
-        });
-        heroAttr.onIntChange(function () { // 智力变化事件
-            heroAttr ha = heroAttr.ethis;
-            real extra;
-            if (ha.u != null && ha.u == DzGetSelectedLeaderUnit()) { // 如果当前单位是选中的单位
-                unitPanel.textIntValue.setText(FormatNumber(ha.getBaseInt()));
-                extra = ha.getExtraInt();
-                if (extra > 0.9) {
-                    unitPanel.textIntExtra.setText("|cff00ff00+" + FormatNumber(extra) + "|r");
-                    unitPanel.showIntExtra(true);
-                } else if (extra < -0.9) {
-                    unitPanel.textIntExtra.setText("|cffff0000-" + FormatNumber(extra) + "|r");
-                    unitPanel.showIntExtra(true);
-                } else {
                     unitPanel.showIntExtra(false);
+                    unitPanel.textStrValue.setText(FormatNumber(GetHeroStr(u,true)));
+                    unitPanel.textAgiValue.setText(FormatNumber(GetHeroAgi(u,true)));
+                    unitPanel.textIntValue.setText(FormatNumber(GetHeroInt(u,true)));
                 }
             }
-        });
-        unitSelect.onAsync(function () { // 选择单位时更新攻击力等内容
-            unit u = unitSelect.asyncU;
+
+            u = null;
         });
     }
 }
