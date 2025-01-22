@@ -73,6 +73,11 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 			INIT_COMBAT_ATTR(Agi)
 			INIT_COMBAT_ATTR(Int)
 
+			static if (LIBRARY_AllHeroAttr) { //其他地图的自定义属性
+				this.initAllHeroAttr();
+			}
+
+
 			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_HEROATTR, this);
 			return this;
 		}
@@ -84,6 +89,30 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 			}
 			return 0;
 		}
+
+        //获取主属性(无论有没有heroAttr实例)
+        static method getMainAttr (unit u)  -> integer {
+            heroAttr ha = heroAttr.get(u);
+            string primary;
+            if (IsHeroUnitId(GetUnitTypeId(u))) {
+                if (ha.isExist()) {
+                    return ha.mainAttrType;
+                } else {
+                    primary = YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_UNIT, GetUnitTypeId(u), "Primary");
+                    if (primary == "STR") {
+                        primary = null;
+                        return MAIN_ATTR_STR;
+                    } else if (primary == "AGI") {
+                        primary = null;
+                        return MAIN_ATTR_AGI;
+                    } else if (primary == "INT") {
+                        primary = null;
+                        return MAIN_ATTR_INT;
+                    }
+                }
+            }
+            return 0;
+        }
 
 		/* 增加主属性基础值 */
 		public method addMainAttrBase(real value) {
@@ -223,6 +252,8 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 				}
 			}
 		}
+
+        optional module allHeroAttr; //其他地图的自定义属性
 
 		//单位删除会调用
 		method onDestroy () {

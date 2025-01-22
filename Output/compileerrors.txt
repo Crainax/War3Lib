@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 1457: addSubAttrBouns is not a member of heroAttr
+pjass.exe
+Line 3603:  Cannot convert returned value from real to integer
 1

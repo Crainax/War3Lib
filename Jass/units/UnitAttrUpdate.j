@@ -122,7 +122,7 @@ library UnitAttrUpdate requires UnitPanel,HeroAttr,YDWEYDWEJapiScript{
             unit u = unitSelect.args;
             unitAttr ua = unitAttr.get(u);
             heroAttr ha = heroAttr.get(u);
-            string primary;
+            integer mainAttr;
             //todo:无法攻击与无敌
             if (ua.isExist()){ //如果单位属性存在
                 updateAttack(ua);
@@ -135,26 +135,19 @@ library UnitAttrUpdate requires UnitPanel,HeroAttr,YDWEYDWEJapiScript{
             }
 
             if (IsHeroUnitId(GetUnitTypeId(u))) {
+                mainAttr = heroAttr.getMainAttr(u);
+                if (mainAttr ==MAIN_ATTR_STR) {
+                    unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_STR);
+                } else if (mainAttr ==MAIN_ATTR_AGI) {
+                    unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_AGI);
+                } else if (mainAttr ==MAIN_ATTR_INT) {
+                    unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_INT);
+                }
                 if (ha.isExist()){
-                    if (ha.mainAttrType ==MAIN_ATTR_STR) {
-                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_STR);
-                    } else if (ha.mainAttrType ==MAIN_ATTR_AGI) {
-                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_AGI);
-                    } else if (ha.mainAttrType ==MAIN_ATTR_INT) {
-                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_INT);
-                    }
                     updateStr(ha);
                     updateAgi(ha);
                     updateInt(ha);
                 } else {
-                    primary = YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_UNIT, GetUnitTypeId(u), "Primary");
-                    if (primary == "STR") {
-                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_STR);
-                    } else if (primary == "AGI") {
-                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_AGI);
-                    } else if (primary == "INT") {
-                        unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_INT);
-                    }
                     unitPanel.showStrExtra(false);
                     unitPanel.showAgiExtra(false);
                     unitPanel.showIntExtra(false);

@@ -7,5 +7,13 @@
 			"path": "../../../Program Files (x86)/Warcraft III Frozen Throne/War3Lib/日志"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.associations": {
+			"*.ini": "jass",
+			"*.j2": "jass",
+			"*.zn": "zn",
+			"*.km": "kmscript",
+			"*.j": "jass"
+		}
+	}
 }

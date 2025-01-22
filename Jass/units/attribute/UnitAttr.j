@@ -43,6 +43,11 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 
 			// 初始化技能伤害增幅
 			INIT_PERCENTAGE_ATTR(SpellDmg)
+			INIT_PERCENTAGE_ATTR(FinalDmgRate)
+
+			static if (LIBRARY_AllUnitAttr) { //其他地图的自定义属性
+				this.initAllUnitAttr();
+			}
 
 			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR, this);
 			return this;
@@ -135,6 +140,11 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 
 		// 使用宏定义生成技能伤害增幅
 		DEFINE_PERCENTAGE_ATTR(SpellDmg)
+
+		// 最终伤害倍率
+		DEFINE_PERCENTAGE_ATTR(FinalDmgRate)
+
+		optional module allUnitAttr; //其他地图的自定义属性
 
 		//单位删除会调用
 		method onDestroy () {

@@ -46,7 +46,7 @@ constant boolean LIBRARY_UIEventModule=true
 //globals from UIHashTable:
 constant boolean LIBRARY_UIHashTable=true
 hashtable HASH_UI=InitHashtable()
-integer UIHashTable___frame=0
+integer UIHashTable__frame=0
 //endglobals from UIHashTable
 //globals from UIId:
 constant boolean LIBRARY_UIId=true
@@ -205,11 +205,11 @@ integer array s__uianim_UIAList
 integer s__uianim_size=0
 trigger array s__uianim_trig
 integer array s__uianim_trID
-constant integer si__UIHashTable___uiHT=5
-integer array s__UIHashTable___uiHT_eventdata
-integer array s__UIHashTable___uiHT_ui
-constant integer si__UIHashTable___uiHTFrame=6
-constant integer si__UIHashTable___uiHTEvent=7
+constant integer si__UIHashTable__uiHT=5
+integer array s__UIHashTable__uiHT_eventdata
+integer array s__UIHashTable__uiHT_ui
+constant integer si__UIHashTable__uiHTFrame=6
+constant integer si__UIHashTable__uiHTEvent=7
 constant integer si__uiId=8
 hashtable s__uiId_ht
 integer s__uiId_nextId
@@ -258,6 +258,8 @@ real array s__unitAttr_DefFixedBonus
 trigger s__unitAttr_trDefChange=null
 real array s__unitAttr_SpellDmgRateUp
 real array s__unitAttr_SpellDmgRateDown
+real array s__unitAttr_FinalDmgRateRateUp
+real array s__unitAttr_FinalDmgRateRateDown
 constant integer si__baseanim=14
 integer si__baseanim_F=0
 integer si__baseanim_I=0
@@ -2188,30 +2190,30 @@ endfunction
 //library UIEventModule ends
 //library UIHashTable:
     function uiHashTable takes integer f returns integer
-        set UIHashTable___frame=f
+        set UIHashTable__frame=f
         return (0)
     endfunction  //私有
-        function s__UIHashTable___uiHTFrame_bind takes integer this,integer typeID,integer ui returns nothing
-            call SaveInteger(HASH_UI, UIHashTable___frame, 1820, typeID)
-            call SaveInteger(HASH_UI, UIHashTable___frame, 1821, ui)
+        function s__UIHashTable__uiHTFrame_bind takes integer this,integer typeID,integer ui returns nothing
+            call SaveInteger(HASH_UI, UIHashTable__frame, 1820, typeID)
+            call SaveInteger(HASH_UI, UIHashTable__frame, 1821, ui)
         endfunction  // 从frame获取UI实例
-        function s__UIHashTable___uiHTFrame_get takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable___frame, 1821)
+        function s__UIHashTable__uiHTFrame_get takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable__frame, 1821)
         endfunction  // 从frame获取UI类型
-        function s__UIHashTable___uiHTFrame_getType takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable___frame, 1820)
+        function s__UIHashTable__uiHTFrame_getType takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable__frame, 1820)
         endfunction
-        function s__UIHashTable___uiHTEvent_bind takes integer this,integer value returns nothing
-            call SaveInteger(HASH_UI, UIHashTable___frame, 1823, value)
+        function s__UIHashTable__uiHTEvent_bind takes integer this,integer value returns nothing
+            call SaveInteger(HASH_UI, UIHashTable__frame, 1823, value)
         endfunction
-        function s__UIHashTable___uiHTEvent_get takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable___frame, 1823)
+        function s__UIHashTable__uiHTEvent_get takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable__frame, 1823)
         endfunction
-        function s__UIHashTable___uiHTEvent_bind2 takes integer this,integer value returns nothing
-            call SaveInteger(HASH_UI, UIHashTable___frame, 1824, value)
+        function s__UIHashTable__uiHTEvent_bind2 takes integer this,integer value returns nothing
+            call SaveInteger(HASH_UI, UIHashTable__frame, 1824, value)
         endfunction
-        function s__UIHashTable___uiHTEvent_get2 takes integer this returns integer
-            return LoadInteger(HASH_UI, UIHashTable___frame, 1824)
+        function s__UIHashTable__uiHTEvent_get2 takes integer this returns integer
+            return LoadInteger(HASH_UI, UIHashTable__frame, 1824)
         endfunction
 
 //library UIHashTable ends
@@ -2677,6 +2679,11 @@ endfunction
             set s__unitAttr_DefFixedBonus[this]=0.0
             set s__unitAttr_SpellDmgRateUp[this]=0.0 // 初始化技能伤害增幅
             set s__unitAttr_SpellDmgRateDown[this]=0.0
+            set s__unitAttr_FinalDmgRateRateUp[this]=0.0
+            set s__unitAttr_FinalDmgRateRateDown[this]=0.0
+//#             static if LIBRARY_AllUnitAttr then  //其他地图的自定义属性
+//#                 call this.initAllUnitAttr()
+//#             endif
             call SaveInteger(HASH_UNIT, handleId, 1726, this)
             return this
         endfunction  //仅获取已创建的,不创建新的
@@ -2872,6 +2879,19 @@ endfunction
         endfunction
         function s__unitAttr_getSpellDmgMultiplier takes integer this returns real
             return ( 1.0 + s__unitAttr_SpellDmgRateUp[this] ) * ( 1.0 - s__unitAttr_SpellDmgRateDown[this] ) - 1.0
+        endfunction
+        function s__unitAttr_addFinalDmgRateRateUp takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_FinalDmgRateRateUp[this]=s__unitAttr_FinalDmgRateRateUp[this] + value
+            endif
+        endfunction
+        function s__unitAttr_addFinalDmgRateRateDown takes integer this,real value returns nothing
+            if ( value != 0 ) then
+                set s__unitAttr_FinalDmgRateRateDown[this]=RealAdd(s__unitAttr_FinalDmgRateRateDown[this] , value)
+            endif
+        endfunction
+        function s__unitAttr_getFinalDmgRateMultiplier takes integer this returns real
+            return ( 1.0 + s__unitAttr_FinalDmgRateRateUp[this] ) * ( 1.0 - s__unitAttr_FinalDmgRateRateDown[this] ) - 1.0
         endfunction
         function s__unitAttr_onDestroy takes integer this returns nothing
             if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__unitAttr_u[this]), 1726) ) then
@@ -3562,12 +3582,37 @@ endfunction
             set s__heroAttr_IntRateDown[this]=0.0
             set s__heroAttr_IntRateBonus[this]=0.0
             set s__heroAttr_IntFixedBonus[this]=0.0
+//#             static if LIBRARY_AllHeroAttr then  //其他地图的自定义属性
+//#                 call this.initAllHeroAttr()
+//#             endif
             call SaveInteger(HASH_UNIT, handleId, 1727, this)
             return this
         endfunction  //仅获取已创建的,不创建新的
         function s__heroAttr_get takes unit u returns integer
             if ( HaveSavedInteger(HASH_UNIT, GetHandleId(u), 1727) ) then
                 return LoadInteger(HASH_UNIT, GetHandleId(u), 1727)
+            endif
+            return 0
+        endfunction  //获取主属性(无论有没有heroAttr实例)
+        function s__heroAttr_getMainAttr takes unit u returns integer
+            local integer ha=s__heroAttr_get(u)
+            local string primary
+            if ( IsHeroUnitId(GetUnitTypeId(u)) ) then
+                if ( s__heroAttr_isExist(ha) ) then
+                    return s__heroAttr_mainAttrType[ha]
+                else
+                    set primary=( EXExecuteScript("(require'jass.slk').unit[" + I2S(GetUnitTypeId(u)) + "].Primary") )
+                    if ( primary == "STR" ) then
+                        set primary=null
+                        return MAIN_ATTR_STR
+                    elseif ( primary == "AGI" ) then
+                        set primary=null
+                        return MAIN_ATTR_AGI
+                    elseif ( primary == "INT" ) then
+                        set primary=null
+                        return MAIN_ATTR_INT
+                    endif
+                endif
             endif
             return 0
         endfunction
@@ -3695,7 +3740,7 @@ endfunction
                     call s__heroAttr_syncAgiRate(this)
                 endif
             endif
-        endfunction  //单位删除会调用
+        endfunction  //其他地图的自定义属性
         function s__heroAttr_onDestroy takes integer this returns nothing
             if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727) ) then
                 call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__heroAttr_u[this]), 1727)
@@ -3735,7 +3780,7 @@ endfunction
 //library UIExtendEvent:
 
 //processed:     function interface uiEvent takes integer arg0 returns nothing
-        function UIExtendEvent___anon__3 takes nothing returns nothing
+        function UIExtendEvent__anon__3 takes nothing returns nothing
             local integer currentUI
             local integer func
             if ( not ( DzIsMouseOverUI() ) ) then
@@ -3747,7 +3792,7 @@ endfunction
                 call sc___prototype35_evaluate(func,currentUI)
             endif
         endfunction  //注册左键抬起事件,在click事件之前触发
-        function UIExtendEvent___anon__4 takes nothing returns nothing
+        function UIExtendEvent__anon__4 takes nothing returns nothing
             local integer currentUI
             local integer func
             if ( not ( DzIsMouseOverUI() ) ) then
@@ -3759,12 +3804,12 @@ endfunction
                 call sc___prototype35_evaluate(func,currentUI)
             endif
         endfunction
-        function UIExtendEvent___anon__5 takes nothing returns nothing
+        function UIExtendEvent__anon__5 takes nothing returns nothing
             if ( s__uiEventState_uiId != 0 ) then
                 set s__uiEventState_rcStart=true
             endif
         endfunction
-        function UIExtendEvent___anon__6 takes nothing returns nothing
+        function UIExtendEvent__anon__6 takes nothing returns nothing
             local integer func
             if ( s__uiEventState_rcStart and s__uiEventState_uiId != 0 ) then
                 if ( HaveSavedInteger(HASH_UI, s__uiEventState_uiId, 1913) ) then
@@ -3774,7 +3819,7 @@ endfunction
             endif
             set s__uiEventState_rcStart=false
         endfunction  // UI销毁时如果鼠标正在上面,则触发一次离开事件,不然会引进只进不出的错误
-        function UIExtendEvent___anon__7 takes nothing returns nothing
+        function UIExtendEvent__anon__7 takes nothing returns nothing
             local integer ui=s__uiLifeCycle_agrsFrame
             local integer func
             if ( s__uiEventState_uiId == ui and HaveSavedInteger(HASH_UI, ui, 1911) ) then
@@ -3783,12 +3828,12 @@ endfunction
             endif
             set s__uiEventState_uiId=0
         endfunction  // hardware.regRightDownEvent(function () { //注册右键按下事件
-    function UIExtendEvent___onInit takes nothing returns nothing
-        call s__hardware_regLeftDownEvent(function UIExtendEvent___anon__3)
-        call s__hardware_regLeftUpEvent(function UIExtendEvent___anon__4)
-        call s__hardware_regRightDownEvent(function UIExtendEvent___anon__5)
-        call s__hardware_regRightUpEvent(function UIExtendEvent___anon__6)
-        call s__uiLifeCycle_registerDestroy(function UIExtendEvent___anon__7)
+    function UIExtendEvent__onInit takes nothing returns nothing
+        call s__hardware_regLeftDownEvent(function UIExtendEvent__anon__3)
+        call s__hardware_regLeftUpEvent(function UIExtendEvent__anon__4)
+        call s__hardware_regRightDownEvent(function UIExtendEvent__anon__5)
+        call s__hardware_regRightUpEvent(function UIExtendEvent__anon__6)
+        call s__uiLifeCycle_registerDestroy(function UIExtendEvent__anon__7)
     endfunction  //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     rcStartOnUI = true; //     rcStartUI = currentUI; // }); // hardware.regRightUpEvent(function () { //注册右键抬起事件 //     integer currentUI; //     uiEvent func; //     if (!DzIsMouseOverUI()) { //         return; //     } //     currentUI = DzGetMouseFocus(); //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) { //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP); //         func.evaluate(currentUI); //     } //     // 新增的click判断逻辑 //     if (rcStartOnUI && currentUI == rcStartUI) { //         if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) { //             func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK); //             func.evaluate(currentUI); //         } //     } //     rcStartOnUI = false; //     rcStartUI = 0; // });
 
 //library UIExtendEvent ends
@@ -3903,7 +3948,7 @@ function s__rePointer_deallocate takes integer this returns nothing
     set si__rePointer_V[this]=si__rePointer_F
     set si__rePointer_F=this
 endfunction
-        function UIExtendResize__anon__0 takes nothing returns nothing
+        function UIExtendResize___anon__0 takes nothing returns nothing
             local real resizeX=GetResizeRate()
             local integer i
             local integer ser
@@ -3917,7 +3962,7 @@ endfunction
                 endloop
             endif
         endfunction  //注册窗口大小变化事件
-        function UIExtendResize__anon__1 takes nothing returns nothing
+        function UIExtendResize___anon__1 takes nothing returns nothing
             local real resizeX=GetResizeRate()
             local integer i
             local integer ptr
@@ -3931,7 +3976,7 @@ endfunction
                 endloop
             endif
         endfunction  //UI的销毁回调事件
-        function UIExtendResize__anon__2 takes nothing returns nothing
+        function UIExtendResize___anon__2 takes nothing returns nothing
             local integer frame=s__uiLifeCycle_agrsFrame
             local integer ser
             local integer ptr
@@ -3948,10 +3993,10 @@ endfunction
                 endif
             endif
         endfunction
-    function UIExtendResize__onInit takes nothing returns nothing
-        call s__hardware_regResizeEvent(function UIExtendResize__anon__0)
-        call s__hardware_regResizeEvent(function UIExtendResize__anon__1)
-        call s__uiLifeCycle_registerDestroy(function UIExtendResize__anon__2)
+    function UIExtendResize___onInit takes nothing returns nothing
+        call s__hardware_regResizeEvent(function UIExtendResize___anon__0)
+        call s__hardware_regResizeEvent(function UIExtendResize___anon__1)
+        call s__uiLifeCycle_registerDestroy(function UIExtendResize___anon__2)
     endfunction
 
 //library UIExtendResize ends
@@ -4162,7 +4207,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边框种类2:适用于按钮系
@@ -4174,7 +4219,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边框种类2:适用于大面板通知消息系
@@ -4186,7 +4231,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边框种类2:适用于大面板通知消息系
@@ -4198,7 +4243,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类1)
@@ -4210,7 +4255,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建工具提示背景图片(种类2)
@@ -4222,7 +4267,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction  // 创建边角(图标系的)
@@ -4234,7 +4279,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBorder , s__uiBorder_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBorder_ui[this])],si__uiBorder , this)
 //#             endif
             return this
         endfunction
@@ -4430,7 +4475,7 @@ endfunction
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1902, func)
             return this
         endfunction  // 鼠标进入事件(右键前提强化版)
-            function s__uiBtn_extendEvent___anon__0 takes nothing returns nothing
+            function s__uiBtn_extendEvent__anon__0 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 set s__uiEventState_uiId=frame
@@ -4444,10 +4489,10 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1910, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_extendEvent___anon__0, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 2, function s__uiBtn_extendEvent__anon__0, false)
             return this
         endfunction  // 鼠标离开事件(右键前提强化版)
-            function s__uiBtn_extendEvent___anon__1 takes nothing returns nothing
+            function s__uiBtn_extendEvent__anon__1 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 set s__uiEventState_uiId=0
@@ -4461,10 +4506,10 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1911, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_extendEvent___anon__1, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 3, function s__uiBtn_extendEvent__anon__1, false)
             return this
         endfunction  // 鼠标点击事件,其实这个不是必须项,只是为了统一写法硬加的
-            function s__uiBtn_extendEvent___anon__2 takes nothing returns nothing
+            function s__uiBtn_extendEvent__anon__2 takes nothing returns nothing
                 local integer frame=DzGetTriggerUIEventFrame()
                 local integer func
                 if ( HaveSavedInteger(HASH_UI, frame, 1912) ) then
@@ -4477,7 +4522,7 @@ endfunction
                 return this
             endif
             call SaveInteger(HASH_UI, s__uiBtn_ui[this], 1912, fun)
-            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_extendEvent___anon__2, false)
+            call DzFrameSetScriptByCode(s__uiBtn_ui[this], 1, function s__uiBtn_extendEvent__anon__2, false)
             return this
         endfunction  // 鼠标右键点击事件
         function s__uiBtn_spRightClick takes integer this,integer fun returns integer
@@ -4495,7 +4540,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //普通带声效系
@@ -4507,7 +4552,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //右键菜单系
@@ -4519,7 +4564,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建空白按钮
@@ -4531,7 +4576,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建菜单系按钮
@@ -4543,7 +4588,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
@@ -4555,7 +4600,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction  //绑定原生的Button成为SimpleButton,注意不能删除哦
@@ -4567,7 +4612,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiBtn , s__uiBtn_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiBtn_ui[this])],si__uiBtn , this)
 //#             endif
             return this
         endfunction
@@ -4728,7 +4773,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
@@ -4742,7 +4787,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction  // 绑定原生图片
@@ -4754,7 +4799,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiImage , s__uiImage_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiImage_ui[this])],si__uiImage , this)
 //#             endif
             return this
         endfunction
@@ -4920,7 +4965,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiSprite , s__uiSprite_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiSprite_ui[this])],si__uiSprite , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiSprite_ui[this])],si__uiSprite , this)
 //#             endif
             return this
         endfunction  // 设置模型(目前只做平面型就行了,后面2个0固定了)
@@ -5156,7 +5201,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction  // 创建一个用在原生Frame里的文本,这种文本是不能destroy的!
@@ -5170,7 +5215,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction  // 绑定原生文本
@@ -5183,7 +5228,7 @@ endfunction
                     call s__uiLifeCycle_onCreateCB(this , si__uiText , s__uiText_ui[this])
 //#             endif
 //#             static if LIBRARY_UIHashTable then
-                    call s__UIHashTable___uiHTFrame_bind(s__UIHashTable___uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
+                    call s__UIHashTable__uiHTFrame_bind(s__UIHashTable__uiHT_ui[uiHashTable(s__uiText_ui[this])],si__uiText , this)
 //#             endif
             return this
         endfunction
@@ -5483,7 +5528,7 @@ endfunction
                     set s__icon_cdSprite[this]=s__uiSprite_create(s__uiImage_ui[s__icon_mainImage[this]])
                 endif
                 call s__uiSprite_setAnimate(s__uiSprite_setModel(s__uiSprite_setSize(s__uiSprite_setPoint(s__icon_cdSprite[this],4 , s__uiImage_ui[s__icon_mainImage[this]] , 4 , 0 , 0),0.001 , 0.001),"ui\\model\\cooldown_center.mdx" , 0 , 0),0 , false)
-                call s__UIHashTable___uiHTEvent_bind(s__UIHashTable___uiHT_eventdata[uiHashTable(s__icon_cdSprite[this])],this)
+                call s__UIHashTable__uiHTEvent_bind(s__UIHashTable__uiHT_eventdata[uiHashTable(s__icon_cdSprite[this])],this)
             endif
             call s__uiSprite_progAnimate(s__icon_cdSprite[this],0 , 1 , duration , func)
             call s__uiSprite_setScale(s__icon_cdSprite[this],s__icon_sizeY[this] / 0.038)
@@ -6073,7 +6118,7 @@ endfunction
             local unit u=s__unitSelect_args
             local integer ua=s__unitAttr_get(u)
             local integer ha=s__heroAttr_get(u)
-            local string primary
+            local integer mainAttr
             if ( s__unitAttr_isExist(ua) ) then //如果单位属性存在
                 call UnitAttrUpdate__updateAttack(ua)
                 call UnitAttrUpdate__updateDefense(ua) //用默认的单位JAPI来显示
@@ -6084,26 +6129,19 @@ endfunction
                 call s__uiText_setText(s__unitPanel_textArmorValue,FormatNumber(GetUnitState(u, ConvertUnitState(0x20))))
             endif
             if ( IsHeroUnitId(GetUnitTypeId(u)) ) then
+                set mainAttr=s__heroAttr_getMainAttr(u)
+                if ( mainAttr == MAIN_ATTR_STR ) then
+                    call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_str.blp")
+                elseif ( mainAttr == MAIN_ATTR_AGI ) then
+                    call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_agi.blp")
+                elseif ( mainAttr == MAIN_ATTR_INT ) then
+                    call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_int.blp")
+                endif
                 if ( s__heroAttr_isExist(ha) ) then
-                    if ( s__heroAttr_mainAttrType[ha] == MAIN_ATTR_STR ) then
-                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_str.blp")
-                    elseif ( s__heroAttr_mainAttrType[ha] == MAIN_ATTR_AGI ) then
-                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_agi.blp")
-                    elseif ( s__heroAttr_mainAttrType[ha] == MAIN_ATTR_INT ) then
-                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_int.blp")
-                    endif
                     call UnitAttrUpdate__updateStr(ha)
                     call UnitAttrUpdate__updateAgi(ha)
                     call UnitAttrUpdate__updateInt(ha)
                 else
-                    set primary=( EXExecuteScript("(require'jass.slk').unit[" + I2S(GetUnitTypeId(u)) + "].Primary") )
-                    if ( primary == "STR" ) then
-                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_str.blp")
-                    elseif ( primary == "AGI" ) then
-                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_agi.blp")
-                    elseif ( primary == "INT" ) then
-                        call s__icon_setTexture(s__unitPanel_iconHero,"ui\\console\\unitpanel\\origin_int.blp")
-                    endif
                     call s__unitPanel_showStrExtra(false)
                     call s__unitPanel_showAgiExtra(false)
                     call s__unitPanel_showIntExtra(false)
@@ -6393,9 +6431,12 @@ endfunction
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
 // 原生UI的大小
-
-
-// 0 - 1亿这里用
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
 // 锚点常量
 // 事件常量
 //鼠标点击事件
@@ -6403,13 +6444,38 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
+//===========================================================================
+// Icon.j
+//===========================================================================
+//
+// 模块描述：
+//   实现了魔兽争霸3中通用的图标UI组件，支持图标显示、数字标记、
+//   按钮功能、流光特效等特性。
+//
+// 作者：[你的名字]
+// 创建日期：[创建日期]
+// 最后修改：[最后修改日期]
+//
+// 依赖项：
+//   - UIBase
+//   - UIAnim
+//   - GrowData
+//   - UIText
+//   - UIImage
+//   - UIButton
+//   - UISprite
+//
+// 使用示例：
+//   icon myIcon = icon.create(parentFrame, true, true);
+//   myIcon.size(0.04, 0.04);
+//
+//===========================================================================
+//# dependency:resource/ui/model/cooldown_center.mdx
+//控件的共用基本方法
 
+
+
+//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
 
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
@@ -6502,203 +6568,7 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
-//===========================================================================
-// Icon.j
-//===========================================================================
-//
-// 模块描述：
-//   实现了魔兽争霸3中通用的图标UI组件，支持图标显示、数字标记、
-//   按钮功能、流光特效等特性。
-//
-// 作者：[你的名字]
-// 创建日期：[创建日期]
-// 最后修改：[最后修改日期]
-//
-// 依赖项：
-//   - UIBase
-//   - UIAnim
-//   - GrowData
-//   - UIText
-//   - UIImage
-//   - UIButton
-//   - UISprite
-//
-// 使用示例：
-//   icon myIcon = icon.create(parentFrame, true, true);
-//   myIcon.size(0.04, 0.04);
-//
-//===========================================================================
-//# dependency:resource/ui/model/cooldown_center.mdx
-
-
-
-
-
-
-
-
-
-
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
 //窗口的大小
-//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
 // [DzSetUnitMoveType]  
 // title = "设置单位移动类型[NEW]"  
 // description = "设置 ${单位} 的移动类型：${movetype} "  
@@ -6709,7 +6579,173 @@ endfunction
 // [[.args]]  
 // type = MoveTypeName  
 // default = MoveTypeName01  
-//控件的共用基本方法
+
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
+
+
+
+
+
+
+
+
+
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
+
+//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
+//-----------模拟聊天------------------
+//---------技能数据类型---------------
+//----------物品数据类型----------------------
+//物品图标
+//物品提示
+//物品扩展提示
+//物品名字
+//物品说明
+//------------单位数据类型--------------
+//攻击1 伤害骰子数量
+//攻击1 伤害骰子面数
+//攻击1 基础伤害
+//攻击1 升级奖励
+//攻击1 最小伤害
+//攻击1 最大伤害
+//攻击1 全伤害范围
+//装甲
+// attack 1 attribute adds
+//攻击1 伤害衰减参数
+//攻击1 武器声音
+//攻击1 攻击类型
+//攻击1 最大目标数
+//攻击1 攻击间隔
+//攻击1 攻击延迟/summary>
+//攻击1 弹射弧度
+//攻击1 攻击范围缓冲
+//攻击1 目标允许
+//攻击1 溅出区域
+//攻击1 溅出半径
+//攻击1 武器类型
+// attack 2 attributes (sorted in a sequencial order based on memory address)
+//攻击2 伤害骰子数量
+//攻击2 伤害骰子面数
+//攻击2 基础伤害
+//攻击2 升级奖励
+//攻击2 伤害衰减参数
+//攻击2 武器声音
+//攻击2 攻击类型
+//攻击2 最大目标数
+//攻击2 攻击间隔
+//攻击2 攻击延迟
+//攻击2 攻击范围
+//攻击2 攻击缓冲
+//攻击2 最小伤害
+//攻击2 最大伤害
+//攻击2 弹射弧度
+//攻击2 目标允许类型
+//攻击2 溅出区域
+//攻击2 溅出半径
+//攻击2 武器类型
+//装甲类型
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -7124,11 +7160,11 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs42041468")
+call ExecuteFunc("jasshelper__initstructs14140062")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("UITocInit__onInit")
-call ExecuteFunc("UIExtendEvent___onInit")
-call ExecuteFunc("UIExtendResize__onInit")
+call ExecuteFunc("UIExtendEvent__onInit")
+call ExecuteFunc("UIExtendResize___onInit")
 call ExecuteFunc("UnitAttrUpdate__onInit")
 call ExecuteFunc("UTUnitAttrUpdate___onInit")
 
@@ -7532,7 +7568,7 @@ function sa___prototype35_s__unitPanel_anon__19 takes nothing returns boolean
     return true
 endfunction
 
-function jasshelper__initstructs42041468 takes nothing returns nothing
+function jasshelper__initstructs14140062 takes nothing returns nothing
     set st__icon_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__icon_onDestroy,Condition( function sa__icon_onDestroy))
     set st__progAnim_create=CreateTrigger()
