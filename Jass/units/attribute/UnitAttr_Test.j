@@ -29,6 +29,22 @@
  * -defup [value] : 设置防御力增幅比例
  * -defdown [value] : 设置防御力减幅比例
  * -defbonus [value] : 设置防御力固定加成
+ *
+ * 攻击速度相关命令：
+ * -atkspd [value] : 增加基础攻击速度
+ * -atkspddown [value] : 设置攻击速度减速比例
+ *
+ * 攻击范围相关命令：
+ * -atkrange [value] : 增加基础攻击范围
+ * -atkrangeup [value] : 设置攻击范围增幅比例
+ * -atkrangedown [value] : 设置攻击范围减幅比例
+ *
+ * 攻击间隔相关命令：
+ * -atkinterval [value] : 增加基础攻击间隔
+ *
+ * 其他测试命令：
+ * -archer : 切换为弓箭手单位进行测试
+ * -enemy [count] : 在远处创建指定数量的敌对单位
  */
 
 //! zinc
@@ -42,7 +58,19 @@ library UTUnitAttr requires UnitAttr {
 		if (testUnit != null) {
 			RemoveUnit(testUnit);
 		}
-		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0); // 使用步兵作为测试单位
+		// 默认使用步兵作为测试单位
+		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		testAttr = unitAttr.parse(testUnit);
+		testAttr.addHP(100);
+		SelectUnit(testUnit,true);
+	}
+
+	// 创建弓箭手测试单位
+	private function CreateArcherUnit(player p) {
+		if (testUnit != null) {
+			RemoveUnit(testUnit);
+		}
+		testUnit = CreateUnit(p, 'earc', 0, 0, 0); // 使用精灵弓箭手
 		testAttr = unitAttr.parse(testUnit);
 		testAttr.addHP(100);
 		SelectUnit(testUnit,true);
@@ -72,6 +100,7 @@ library UTUnitAttr requires UnitAttr {
 		string  paramS[];
 		integer paramI[];
 		real    paramR[];
+		unit    enemy;
 
 		// 解析参数
 		for (0 <= i <= len - 1) {
@@ -165,6 +194,58 @@ library UTUnitAttr requires UnitAttr {
 			// 设置固定加成
 			testAttr.addDefFixedBonus(paramR[1]);
 			BJDebugMsg("设置防御力固定加成为: " + R2S(paramR[1]));
+		}
+		// 攻击速度相关命令
+		else if (paramS[0] == "atkspd") {
+			// 增加基础攻击速度
+			testAttr.addAtkSpeed(paramR[1]);
+			BJDebugMsg("增加基础攻击速度: " + R2S(paramR[1]));
+			BJDebugMsg("当前攻击速度: " + R2S(testAttr.getCurrentAtkSpeed()));
+		} else if (paramS[0] == "atkspddown") {
+			// 设置攻击速度减速比例
+			testAttr.addAtkSpdDown(paramR[1]);
+			BJDebugMsg("攻击速度百分比减少: " + R2S(paramR[1]));
+			BJDebugMsg("当前攻击速度: " + R2S(testAttr.getCurrentAtkSpeed()));
+		}
+		// 攻击范围相关命令
+		else if (paramS[0] == "atkrange") {
+			// 增加基础攻击范围
+			testAttr.addAtkRange(paramR[1]);
+			BJDebugMsg("增加基础攻击范围: " + R2S(paramR[1]));
+			BJDebugMsg("当前攻击范围: " + R2S(testAttr.getCurrentAtkRange()));
+		} else if (paramS[0] == "atkrangeup") {
+			// 设置攻击范围增幅
+			testAttr.addAtkRangeRateUp(paramR[1]);
+			BJDebugMsg("设置攻击范围增幅: " + R2S(paramR[1]));
+			BJDebugMsg("当前攻击范围: " + R2S(testAttr.getCurrentAtkRange()));
+		} else if (paramS[0] == "atkrangedown") {
+			// 设置攻击范围减幅
+			testAttr.addAtkRangeRateDown(paramR[1]);
+			BJDebugMsg("设置攻击范围减幅: " + R2S(paramR[1]));
+			BJDebugMsg("当前攻击范围: " + R2S(testAttr.getCurrentAtkRange()));
+		}
+		// 攻击间隔相关命令
+		else if (paramS[0] == "atkinterval") {
+			// 增加基础攻击间隔
+			testAttr.addAtkItvDown(paramR[1]);
+			BJDebugMsg("攻击间隔百分比减少: " + R2S(paramR[1]));
+			BJDebugMsg("当前攻击间隔: " + R2S(testAttr.getCurrentAtkInterval()));
+		}
+		// 其他测试命令
+		else if (paramS[0] == "archer") {
+			// 切换为弓箭手单位
+			CreateArcherUnit(p);
+			BJDebugMsg("已切换为弓箭手单位进行测试");
+		} else if (paramS[0] == "enemy") {
+			// 创建敌对单位
+			for (0 <= i < paramI[1]) {
+				enemy = CreateUnit(Player(11), 'hfoo', 500, 200 + i * 100, 270);
+				SetUnitOwner(enemy, Player(11), true);
+				// 设置敌对关系
+				SetPlayerAllianceStateAllyBJ(Player(11), p, false);
+				SetPlayerAllianceStateVisionBJ(Player(11), p, false);
+			}
+			BJDebugMsg("已创建 " + I2S(paramI[1]) + " 个敌对单位");
 		}
 
 		// 显示当前状态

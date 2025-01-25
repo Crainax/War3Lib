@@ -1,4 +1,6 @@
 logs\currentmapscript.j
 pjass.exe
-Line 3603:  Cannot convert returned value from real to integer
-1
+Line 700:  Cannot convert integer to unitstate
+Line 722:  Undeclared variable this
+Line 740:  Undeclared variable this
+3

@@ -12,7 +12,7 @@
 单位的属性
 */
 
-library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
+library UnitAttr requires MathUtils,UnitLifeCycle,UnitAttrAttackModule {
 
 	public struct unitAttr {
 
@@ -21,37 +21,6 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 		static thistype ethis = 0;
 		unit u; //绑定的单位
 
-		static method parse (unit u) -> thistype {
-			thistype this;
-			integer handleId = GetHandleId(u);
-
-			// 先检查是否已存在
-			if (HaveSavedInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR)) {
-				return LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR);
-			}
-
-			// 不存在才创建新的
-			this = allocate();
-			this.u          = u;
-
-			INIT_UNIT_ATTR(HP)
-			INIT_UNIT_ATTR(MP)
-
-			// 初始化攻击力和防御力相关属性
-			INIT_COMBAT_ATTR(Atk)
-			INIT_COMBAT_ATTR(Def)
-
-			// 初始化技能伤害增幅
-			INIT_PERCENTAGE_ATTR(SpellDmg)
-			INIT_PERCENTAGE_ATTR(FinalDmgRate)
-
-			static if (LIBRARY_AllUnitAttr) { //其他地图的自定义属性
-				this.initAllUnitAttr();
-			}
-
-			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR, this);
-			return this;
-		}
 
 		//仅获取已创建的,不创建新的
 		static method get (unit u) -> thistype {
@@ -126,6 +95,47 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 			}
 		}
 
+
+
+		module UnitAttrAttackModule; // 引入攻击相关属性模块
+		optional module allUnitAttr; //其他地图的自定义属性
+
+
+		static method parse (unit u) -> thistype {
+			thistype this;
+			integer handleId = GetHandleId(u);
+
+			// 先检查是否已存在
+			if (HaveSavedInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR)) {
+				return LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR);
+			}
+
+			// 不存在才创建新的
+			this = allocate();
+			this.u          = u;
+
+			INIT_UNIT_ATTR(HP)
+			INIT_UNIT_ATTR(MP)
+
+			// 初始化攻击力和防御力相关属性
+			INIT_COMBAT_ATTR(Atk)
+			INIT_COMBAT_ATTR(Def)
+
+			// 初始化技能伤害增幅
+			INIT_PERCENTAGE_ATTR(SpellDmg)
+			INIT_PERCENTAGE_ATTR(FinalDmgRate)
+
+			// 初始化攻击相关属性
+			this.initAttackAttributes();
+
+			static if (LIBRARY_AllUnitAttr) { //其他地图的自定义属性
+				this.initAllUnitAttr();
+			}
+
+			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITATTR, this);
+			return this;
+		}
+
 		// 使用宏定义生成HP相关属性和方法
 		DEFINE_UNIT_ATTR(HP)
 
@@ -138,13 +148,10 @@ library UnitAttr requires UnitUtils,MathUtils,UnitLifeCycle {
 		// 使用宏定义生成防御力相关属性和方法
 		DEFINE_COMBAT_ATTR(Def)
 
-		// 使用宏定义生成技能伤害增幅
+		// 使用宏定义生成技能伤害增幅与最终伤害倍率
 		DEFINE_PERCENTAGE_ATTR(SpellDmg)
-
-		// 最终伤害倍率
 		DEFINE_PERCENTAGE_ATTR(FinalDmgRate)
 
-		optional module allUnitAttr; //其他地图的自定义属性
 
 		//单位删除会调用
 		method onDestroy () {

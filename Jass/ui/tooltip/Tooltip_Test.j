@@ -40,7 +40,14 @@ library UTTooltip requires Tooltip {
 				.setAbsPoint(ANCHOR_BOTTOM,0.4,0.3);
 		}
 	}
-	function TTestUTTooltip3 (player p) {}
+	function TTestUTTooltip3 (player p) {
+		tooltip tip = tooltip.create()
+			.layoutFlexible("第一行文本")
+			.addText("第二行文本", 2)
+			.addText("中间插入的文本", 2)
+			.setAbsPoint(ANCHOR_BOTTOM,0.4,0.3);
+
+	}
 	function TTestUTTooltip4 (player p) {}
 	function TTestUTTooltip5 (player p) {}
 	function TTestUTTooltip6 (player p) {}

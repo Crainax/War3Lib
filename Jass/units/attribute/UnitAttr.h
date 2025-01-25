@@ -164,7 +164,7 @@ CRNL \
         } CRNL \
 CRNL \
         /* 获取当前的ATTR最终倍率 */ CRNL \
-        public method get##ATTR##Multiplier() -> real { CRNL \
+        public method getCurrent##ATTR() -> real { CRNL \
             return (1.0 + ATTR##RateUp) * (1.0 - ATTR##RateDown) - 1.0; CRNL \
         } CRNL
 

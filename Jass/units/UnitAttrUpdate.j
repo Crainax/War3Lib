@@ -159,6 +159,48 @@ library UnitAttrUpdate requires UnitPanel,HeroAttr,YDWEYDWEJapiScript{
 
             u = null;
         });
+        unitPanel.onAttackEnter(function () {
+            unitAttr ua = unitAttr.get(DzGetSelectedLeaderUnit());
+            real attack; //攻击力
+            real range; //攻击范围
+            real attackSpeed; //攻击速度
+            real attackInterval; //攻击间隔
+            real spellDmg; //法术伤害
+            real finalDmg; //最终伤害
+            if (ua.isExist()) { //如果有ua
+                attack = ua.getCurrentAtk();
+            } else { //无,用japi获取属性
+                attack = GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE));
+                range = GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE));
+                attackSpeed = GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE));
+                attackInterval = GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL));
+                spellDmg = 0.0;
+                finalDmg = 0.0;
+            }
+			tooltipStack.pushOrigin();
+			if (tt.isExist()) {
+				tt.destroy();
+			}
+
+            tt = tooltip.create()
+                .layoutFlexible("第一行文本")
+                .addText("第二行文本", 2)
+                .addText("中间插入的文本", 2)
+                .setAbsPoint(ANCHOR_BOTTOM,0.4,0.3);
+
+            tooltipStack.push(function (player p) { //压栈
+				if (tt.isExist()) {
+					tt.destroy();
+				}
+				tt = 0;
+			});
+        });
+        unitPanel.onArmorEnter(function () {
+            unitAttr ua = unitAttr.get(DzGetSelectedLeaderUnit());
+        });
+		unitPanel.onAttackLeave(function tooltipStack.clear); //离开事件,销毁tooltip
+		unitPanel.onArmorLeave(function tooltipStack.clear); //离开事件,销毁tooltip
+
     }
 }
 
