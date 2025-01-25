@@ -1,6 +1,8 @@
 logs\currentmapscript.j
 pjass.exe
-Line 700:  Cannot convert integer to unitstate
-Line 722:  Undeclared variable this
-Line 740:  Undeclared variable this
-3
+Line 618:  Undeclared variable t
+Line 643:  Undeclared variable t
+Line 668:  Undeclared variable t
+Line 693:  Undeclared variable t
+Line 718:  Undeclared variable t
+5

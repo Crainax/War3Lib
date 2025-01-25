@@ -101,11 +101,14 @@ library UnitRegen {
 
 		method onDestroy () {
 			GroupRemoveUnit(regenGroup, u);
+			if (HaveSavedInteger(HASH_UNIT, GetHandleId(u),HASH_KEY_UNIT_UNITREGEN )) {
+				RemoveSavedInteger(HASH_UNIT, GetHandleId(u), HASH_KEY_UNIT_UNITREGEN);
+			}
 		}
 
 		// 初始化计时器
 		static method onInit() {
-			TimerStart(CreateTimer(), 0.33, true, function() {
+			TimerStart(CreateTimer(), 0.25, true, function() {
 				ForGroup(regenGroup, function() {
 					real hpRegen;
 					real mpRegen;
@@ -115,13 +118,13 @@ library UnitRegen {
 						eft = this.getCurrentRegenEffect();
 
 						// 计算总回血量
-						hpRegen = (this.HPRegenFixed + GetUnitState(GetEnumUnit(), UNIT_STATE_MAX_LIFE) * this.HPRegenPercent) * eft * 0.33;
+						hpRegen = (this.HPRegenFixed + GetUnitState(GetEnumUnit(), UNIT_STATE_MAX_LIFE) * this.HPRegenPercent) * eft * 0.25;
 						if (hpRegen > 0 && GetUnitState(GetEnumUnit(), UNIT_STATE_LIFE) > 0) {
 							SetUnitState(GetEnumUnit(), UNIT_STATE_LIFE, GetUnitState(GetEnumUnit(), UNIT_STATE_LIFE) + hpRegen);
 						}
 
 						// 计算总回魔量
-						mpRegen = (this.MPRegenFixed + GetUnitState(GetEnumUnit(), UNIT_STATE_MAX_MANA) * this.MPRegenPercent) * eft * 0.33;
+						mpRegen = (this.MPRegenFixed + GetUnitState(GetEnumUnit(), UNIT_STATE_MAX_MANA) * this.MPRegenPercent) * eft * 0.25;
 						if (mpRegen > 0) {
 							SetUnitState(GetEnumUnit(), UNIT_STATE_MANA, GetUnitState(GetEnumUnit(), UNIT_STATE_MANA) + mpRegen);
 						}
