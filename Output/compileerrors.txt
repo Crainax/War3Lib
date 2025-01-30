@@ -1,8 +1,4 @@
 logs\currentmapscript.j
 pjass.exe
-Line 618:  Undeclared variable t
-Line 643:  Undeclared variable t
-Line 668:  Undeclared variable t
-Line 693:  Undeclared variable t
-Line 718:  Undeclared variable t
-5
+Line 4847:  Undeclared variable textGold
+1

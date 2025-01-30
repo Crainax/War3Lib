@@ -109,6 +109,7 @@ path.setMapName	= function(name)
     path.resource			= path.package .. "/resource"          -- 地图资源
     path.table.root			= path.package .. "/table"             -- 物编的根目录
     path.backup.resource	= path.package .. "/table"             -- 需要备份的路径
+    path.injectCache        = path.package .. "/config/cacheInject.cfg" -- 缓存注入文件库 防止注入太慢
 end
 
 --- 设置当前版本为内测版本

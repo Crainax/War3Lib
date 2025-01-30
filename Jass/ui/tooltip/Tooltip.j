@@ -23,7 +23,8 @@ library Tooltip requires Icon {
         boolean alignWidth[TOOL_CHILD_MAX]; //是否对齐宽度
         integer iconCount;
         integer textCount;
-        integer relative; //整个框架的锚点控制
+        integer relative; //整个框架的锚点控制(下面的UI)
+        integer relativeTop; //整个框架的锚点控制(上面的UI)
 
         STRUCT_SHARED_METHODS(tooltip)
 
@@ -32,6 +33,7 @@ library Tooltip requires Icon {
             thistype this   = allocate();
             border = uiBorder.createToolTips(DzGetGameUI());
             relative = 0;
+            relativeTop = 0;
             return this;
         }
 
@@ -89,6 +91,7 @@ library Tooltip requires Icon {
             textCount = 1;
             alignWidth[1] = true;
             relative  = text[1].ui;                //锚点控制
+            relativeTop = text[1].ui;                //锚点控制
 
             border.alignParent(relative,0.01);
             return this;
@@ -108,6 +111,7 @@ library Tooltip requires Icon {
                 .setPoint(ANCHOR_BOTTOM,text[2].ui,ANCHOR_TOP,0,0.005);
             textCount     = 2;
             relative      = text[2].ui;  //锚点控制
+            relativeTop   = text[1].ui;  //锚点控制
             alignWidth[2] = true;        //对齐宽度
             border.setPoint(ANCHOR_TOP, text[1].ui, ANCHOR_TOP, 0, 0.01);
             border.setPoint(ANCHOR_BOTTOM, text[2].ui, ANCHOR_BOTTOM, 0, -0.01);
@@ -140,11 +144,12 @@ library Tooltip requires Icon {
 
             this.clear(); //清除老UI
             text[1] = uiText.create(border.ui)
-                .setAlign(4)
+                .setAlign(3)
                 .setText(initialText);
             textCount = 1;
             alignWidth[1] = true;
             relative = text[1].ui;
+            relativeTop = text[1].ui;
 
             //初始化border位置
             border.setPoint(ANCHOR_TOP, text[1].ui, ANCHOR_TOP, 0, 0.01);
@@ -155,55 +160,29 @@ library Tooltip requires Icon {
             return this;
         }
 
-        //在指定位置添加文本
-        //position: 插入位置(1-based)，如果大于当前文本数量则追加到末尾
-        method addText(string content, integer position) -> thistype {
-            integer i;
-            integer actualPos;
+        //添加文本到tooltip顶部
+        method addText(string content) -> uiText {
+            integer newPosition;
 
-            if (!this.isExist()) {return this;}
-            if (textCount >= TOOL_CHILD_MAX) {return this;}
-
-            //确定实际插入位置
-            actualPos = position;
-            if (actualPos > textCount + 1) {
-                actualPos = textCount + 1;
-            }
-            if (actualPos < 1) {
-                actualPos = 1;
-            }
-
-            //移动现有文本
-            for (i = textCount; i >= actualPos; i -= 1) {
-                text[i + 1] = text[i];
-                alignWidth[i + 1] = alignWidth[i];
-            }
+            if (!this.isExist()) {return 0;}
+            if (textCount >= TOOL_CHILD_MAX) {return 0;}
 
             //创建新文本
-            text[actualPos] = uiText.create(border.ui)
-                .setAlign(4)
-                .setText(content);
-            alignWidth[actualPos] = true;
             textCount += 1;
+            newPosition = textCount;
+            text[newPosition] = uiText.create(border.ui)
+                .setAlign(3)
+                .setText(content);
+            alignWidth[newPosition] = true;
+            relativeTop = text[newPosition].ui;
 
-            //重新设置文本间的相对位置
-            for (i = 1; i <= textCount; i += 1) {
-                if (i == 1) {
-                    text[i].setPoint(ANCHOR_TOP, border.ui, ANCHOR_TOP, 0, 0.01);
-                } else {
-                    text[i].setPoint(ANCHOR_TOP, text[i-1].ui, ANCHOR_BOTTOM, 0, 0.005);
-                }
-            }
+            //设置新文本的位置
+            text[newPosition].setPoint(ANCHOR_BOTTOM, text[newPosition-1].ui, ANCHOR_TOP, 0, 0.005);
 
-            //更新border边界
-            border.setPoint(ANCHOR_TOP, text[1].ui, ANCHOR_TOP, 0, 0.01);
-            border.setPoint(ANCHOR_BOTTOM, text[textCount].ui, ANCHOR_BOTTOM, 0, -0.01);
-            border.setPointFix(ANCHOR_LEFT, text[1].ui, ANCHOR_LEFT, -0.01, 0);
-            border.setPointFix(ANCHOR_RIGHT, text[1].ui, ANCHOR_RIGHT, 0.01, 0);
+            //更新border边界(头部)
+            border.setPoint(ANCHOR_TOP, text[textCount].ui, ANCHOR_TOP, 0, 0.01);
 
-            relative = text[textCount].ui; //更新相对位置控制点
-
-            return this;
+            return text[newPosition];
         }
 
         method onDestroy() {

@@ -10,6 +10,8 @@
 */
 library UnitAttrUpdate requires UnitPanel,HeroAttr,YDWEYDWEJapiScript{
 
+    private tooltip tt = 0;
+
     // 新增：抽取的通用更新函数
     private function updateAttack(unitAttr ua) {
         real extra = ua.AtkRateBonus + ua.AtkFixedBonus;
@@ -165,17 +167,16 @@ library UnitAttrUpdate requires UnitPanel,HeroAttr,YDWEYDWEJapiScript{
             real range; //攻击范围
             real attackSpeed; //攻击速度
             real attackInterval; //攻击间隔
-            real spellDmg; //法术伤害
-            real finalDmg; //最终伤害
             if (ua.isExist()) { //如果有ua
                 attack = ua.getCurrentAtk();
+                range = ua.getCurrentAtkRange();
+                attackSpeed = ua.getCurrentAtkSpeed();
+                attackInterval = ua.getCurrentAtkInterval();
             } else { //无,用japi获取属性
-                attack = GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE));
-                range = GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE));
-                attackSpeed = GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE));
-                attackInterval = GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL));
-                spellDmg = 0.0;
-                finalDmg = 0.0;
+                attack = GetUnitState(DzGetSelectedLeaderUnit(),ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE));
+                range = GetUnitState(DzGetSelectedLeaderUnit(),ConvertUnitState(UNIT_STATE_ATTACK1_RANGE));
+                attackSpeed = GetUnitState(DzGetSelectedLeaderUnit(),ConvertUnitState(UNIT_STATE_RATE_OF_FIRE));
+                attackInterval = GetUnitState(DzGetSelectedLeaderUnit(),ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL));
             }
 			tooltipStack.pushOrigin();
 			if (tt.isExist()) {
@@ -183,10 +184,20 @@ library UnitAttrUpdate requires UnitPanel,HeroAttr,YDWEYDWEJapiScript{
 			}
 
             tt = tooltip.create()
-                .layoutFlexible("第一行文本")
-                .addText("第二行文本", 2)
-                .addText("中间插入的文本", 2)
-                .setAbsPoint(ANCHOR_BOTTOM,0.4,0.3);
+                .layoutFlexible("|cfffc9c42攻击间隔:|r " + R2SW(attackInterval,0,2) + "s")
+                .setAbsPoint(ANCHOR_BOTTOMRIGHT,TOOLTIP_DEFAULT_X,TOOLTIP_DEFAULT_Y);
+
+            tt.text[1].setFontSize(4);
+
+            if (ua.isExist()) {
+                tt.addText("|cfffc9c42最终伤害:|r " + I2S(R2I(ua.getCurrentFinalDmg() * 100)) + "%").setFontSize(4);
+                tt.addText("|cfffc9c42法术伤害:|r " + I2S(R2I(ua.getCurrentSpellDmg() * 100)) + "%").setFontSize(4);
+            }
+
+            tt.addText("|cfffc9c42攻击范围:|r " + I2S(R2I(range)) + "m").setFontSize(4);
+            tt.addText("|cfffc9c42攻击力:|r " + FormatNumber(attack)).setFontSize(4);
+
+            tt.setWidth(0.1);
 
             tooltipStack.push(function (player p) { //压栈
 				if (tt.isExist()) {
@@ -197,10 +208,161 @@ library UnitAttrUpdate requires UnitPanel,HeroAttr,YDWEYDWEJapiScript{
         });
         unitPanel.onArmorEnter(function () {
             unitAttr ua = unitAttr.get(DzGetSelectedLeaderUnit());
+            unitRegen ur = unitRegen.get(DzGetSelectedLeaderUnit());
+            real armor;        //护甲
+            real armorEffect;  //护甲减伤效果
+            real resist;       //魔法抗性
+            real hpRegen;      //生命恢复(定值)
+            real hpRegenRate;  //生命恢复(百分比)
+            real mpRegen;      //魔法恢复(定值)
+            real mpRegenRate;  //魔法恢复(百分比)
+            real moveSpeed;    //移动速度
+            string temp;
+            if (ua.isExist()) { //如果有ua
+                armor = ua.getCurrentDef();
+                resist = ua.getCurrentResist();
+                moveSpeed = ua.getCurrentMoveSpeed();
+            } else { //无,用japi获取属性
+                armor = GetUnitState(DzGetSelectedLeaderUnit(),ConvertUnitState(UNIT_STATE_ARMOR));
+                resist = 0.0;
+                moveSpeed = GetUnitMoveSpeed(DzGetSelectedLeaderUnit());
+            }
+
+            armorEffect = (armor * DEFENSE_ARMOR) / (1 + DEFENSE_ARMOR * armor);
+
+			tooltipStack.pushOrigin();
+			if (tt.isExist()) {
+				tt.destroy();
+			}
+
+            tt = tooltip.create()
+                .layoutFlexible("|cfffc9c42移动速度:|r " + I2S(R2I(moveSpeed)))
+                .setAbsPoint(ANCHOR_BOTTOMRIGHT,TOOLTIP_DEFAULT_X,TOOLTIP_DEFAULT_Y);
+
+            tt.text[1].setFontSize(4);
+
+            if (ur.isExist()) {
+                hpRegen     = ur.HPRegenFixed;
+                hpRegenRate = ur.HPRegenPercent;
+                mpRegen     = ur.MPRegenFixed;
+                mpRegenRate = ur.MPRegenPercent;
+                temp        = "";
+
+                // MP回复文本
+                if (mpRegen > 0 || mpRegenRate > 0) {
+                    temp = "|cfffc9c42MP回复:|r ";
+                    if (mpRegen > 0) {
+                        temp = temp + FormatNumber(mpRegen);
+                    }
+                    if (mpRegenRate > 0) {
+                        if (mpRegen > 0) {
+                            temp = temp + "+";
+                        }
+                        temp = temp + I2S(R2I(mpRegenRate * 100)) + "%";
+                    }
+                } else {
+                    temp = "|cfffc9c42MP回复:|r 0";
+                }
+                tt.addText(temp).setFontSize(4);
+
+                // HP回复文本
+                temp = "";
+                if (hpRegen > 0 || hpRegenRate > 0) {
+                    temp = "|cfffc9c42HP回复:|r ";
+                    if (hpRegen > 0) {
+                        temp = temp + FormatNumber(hpRegen);
+                    }
+                    if (hpRegenRate > 0) {
+                        if (hpRegen > 0) {
+                            temp = temp + "+";
+                        }
+                        temp = temp + I2S(R2I(hpRegenRate * 100)) + "%";
+                    }
+                } else {
+                    temp = "|cfffc9c42HP回复:|r 0";
+                }
+                temp = null;
+                tt.addText(temp).setFontSize(4);
+            }
+
+            tt.addText("|cfffc9c42魔法抗性:|r " + R2SW(resist*100.0,0,2) + "%").setFontSize(4);
+            tt.addText("|cfffc9c42物理抗性:|r " + R2SW(armorEffect*100.0,0,2) + "%").setFontSize(4);
+            tt.addText("|cfffc9c42防御力:|r " + FormatNumber(armorEffect)).setFontSize(4);
+
+            tt.setWidth(0.1);
+
+            tooltipStack.push(function (player p) { //压栈
+				if (tt.isExist()) {
+					tt.destroy();
+				}
+				tt = 0;
+			});
         });
 		unitPanel.onAttackLeave(function tooltipStack.clear); //离开事件,销毁tooltip
 		unitPanel.onArmorLeave(function tooltipStack.clear); //离开事件,销毁tooltip
+		unitSelect.onAsync(function () { //显示怪物的金币和经验
+            monster m = monster.get(unitSelect.args);
+            if (m.isExist() && !IsHeroUnitId(GetUnitTypeId(unitSelect.args))) {
+				unitPanel.iconMonster.show(true);
+                unitPanel.textGoldValue.setText("|cffffffff" + FormatNumber(m.gold));
+                unitPanel.textExpValue.setText("|cffffffff" + FormatNumber(m.exp));
+            }
+		});
+		unitSelect.onAsyncUn(function () { //隐藏怪物的金币和经验
+            monster m = monster.get(unitSelect.args);
+            if (m.isExist()) {
+                unitPanel.iconMonster.show(false);
+            }
+		});
+        unitPanel.onMonsterEnter(function () { //怪物的图标事件
+            monster m = monster.get(DzGetSelectedLeaderUnit());
+            unitSpell us = unitSpell.get(DzGetSelectedLeaderUnit());
 
+			tooltipStack.pushOrigin();
+			if (monsterTip1.isExist()) {
+				monsterTip1.destroy();
+			}
+
+            if (m.isExist()) {
+
+            } else {
+                monsterTip1 = tooltip.create()
+                    .layoutTitle("该怪物没有战利品.")
+                    .setAbsPoint(ANCHOR_BOTTOMRIGHT,TOOLTIP_DEFAULT_X,TOOLTIP_DEFAULT_Y);
+            }
+
+            tooltipStack.push(function (player p) { //压栈
+				if (monsterTip1.isExist()) {
+					monsterTip1.destroy();
+				}
+				monsterTip1 = 0;
+			});
+
+
+            // 怪物的技能
+			if (monsterTip2.isExist()) {
+				monsterTip2.destroy();
+			}
+
+            if (us.isExist()) {
+
+            } else {
+                monsterTip2 = tooltip.create()
+                    .layoutTitle("该怪物没有技能.")
+                    .setPoint(ANCHOR_BOTTOMRIGHT,monsterTip1.relativeTop,ANCHOR_TOPRIGHT,0,0.008);
+            }
+
+            tooltipStack.push(function (player p) { //压栈
+				if (monsterTip2.isExist()) {
+					monsterTip2.destroy();
+				}
+				monsterTip2 = 0;
+			});
+
+
+
+        });
+        unitPanel.onMonsterLeave(function tooltipStack.clear);
     }
 }
 

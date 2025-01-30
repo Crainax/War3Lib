@@ -96,6 +96,15 @@ library UnitAttr requires MathUtils,UnitLifeCycle,UnitAttrAttackModule {
 		}
 
 
+		// 同步并刷新当前单位的移速
+		private method syncMoveSpeedRate() {
+			MoveSpeedRateBonus = baseMoveSpeed * (1.0 + MoveSpeedRateUp) * (1.0 - MoveSpeedRateDown) - baseMoveSpeed;
+			SetUnitMoveSpeed(u,RMaxBJ(baseMoveSpeed + MoveSpeedRateBonus + MoveSpeedFixedBonus, 0.0));
+			if (trMoveSpeedChange != null) {
+				ethis = this;
+				TriggerEvaluate(trMoveSpeedChange);
+			}
+		}
 
 		module UnitAttrAttackModule; // 引入攻击相关属性模块
 		optional module allUnitAttr; //其他地图的自定义属性
@@ -123,7 +132,13 @@ library UnitAttr requires MathUtils,UnitLifeCycle,UnitAttrAttackModule {
 
 			// 初始化技能伤害增幅
 			INIT_PERCENTAGE_ATTR(SpellDmg)
-			INIT_PERCENTAGE_ATTR(FinalDmgRate)
+			INIT_PERCENTAGE_ATTR(FinalDmg)
+
+			// 初始化魔抗
+			INIT_PROBABILITY_ATTR(Resist)
+
+			// 初始化移速
+			INIT_COMBAT_ATTR(MoveSpeed)
 
 			// 初始化攻击相关属性
 			this.initAttackAttributes();
@@ -150,9 +165,13 @@ library UnitAttr requires MathUtils,UnitLifeCycle,UnitAttrAttackModule {
 
 		// 使用宏定义生成技能伤害增幅与最终伤害倍率
 		DEFINE_PERCENTAGE_ATTR(SpellDmg)
-		DEFINE_PERCENTAGE_ATTR(FinalDmgRate)
+		DEFINE_PERCENTAGE_ATTR(FinalDmg)
 
+		// 移速(类攻击)
+		DEFINE_COMBAT_ATTR(MoveSpeed)
 
+		// 使用宏定义生成概率性属性(魔抗)
+		DEFINE_PROBABILITY_ATTR(Resist)
 		//单位删除会调用
 		method onDestroy () {
 			if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),HASH_KEY_UNIT_UNITATTR)) {

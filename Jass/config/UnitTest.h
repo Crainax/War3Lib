@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/units/attribute/UnitRegen_Test.j"
+#include "/Users/crainax/War3/Library/War3Lib/Jass/units/monster/Monster_Test.j"
 
 
 

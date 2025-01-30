@@ -42,6 +42,14 @@
  * 攻击间隔相关命令：
  * -atkinterval [value] : 增加基础攻击间隔
  *
+ * 移速相关命令：
+ * -movespeed [value] : 增加基础移速
+ * -movespeedup [value] : 设置移速增幅
+ * -movespeeddown [value] : 设置移速减幅
+ *
+ * 魔抗相关命令：
+ * -resist [value] : 增加魔抗值
+ *
  * 其他测试命令：
  * -archer : 切换为弓箭手单位进行测试
  * -enemy [count] : 在远处创建指定数量的敌对单位
@@ -230,6 +238,35 @@ library UTUnitAttr requires UnitAttr {
 			testAttr.addAtkItvDown(paramR[1]);
 			BJDebugMsg("攻击间隔百分比减少: " + R2S(paramR[1]));
 			BJDebugMsg("当前攻击间隔: " + R2S(testAttr.getCurrentAtkInterval()));
+		}
+		// 移速相关命令
+		else if (paramS[0] == "movespeed") {
+			// 增加基础移速
+			testAttr.addBaseMoveSpeed(paramR[1]);
+			BJDebugMsg("增加基础移速: " + R2S(paramR[1]));
+			BJDebugMsg("当前移速: " + R2S(testAttr.getCurrentMoveSpeed()));
+		} else if (paramS[0] == "movespeedup") {
+			// 设置移速增幅
+			testAttr.addMoveSpeedRateUp(paramR[1]);
+			BJDebugMsg("设置移速增幅: " + R2S(paramR[1]));
+			BJDebugMsg("当前移速: " + R2S(testAttr.getCurrentMoveSpeed()));
+		} else if (paramS[0] == "movespeeddown") {
+			// 设置移速减幅
+			testAttr.addMoveSpeedRateDown(paramR[1]);
+			BJDebugMsg("设置移速减幅: " + R2S(paramR[1]));
+			BJDebugMsg("当前移速: " + R2S(testAttr.getCurrentMoveSpeed()));
+		}
+		// 魔抗相关命令
+		else if (paramS[0] == "resist") {
+			// 增加魔抗值
+			testAttr.addResistRateUp(paramR[1]);
+			BJDebugMsg("增加魔抗值: " + R2S(paramR[1]));
+			BJDebugMsg("当前魔抗值: " + R2S(testAttr.getCurrentResist()));
+		} else if (paramS[0] == "resistDown") {
+			// 增加魔抗值
+			testAttr.addResistRateDown(paramR[1]);
+			BJDebugMsg("减少魔抗值: " + R2S(paramR[1]));
+			BJDebugMsg("当前魔抗值: " + R2S(testAttr.getCurrentResist()));
 		}
 		// 其他测试命令
 		else if (paramS[0] == "archer") {

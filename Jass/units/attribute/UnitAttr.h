@@ -136,6 +136,7 @@ CRNL \
         } CRNL
 /*
  * 百分比属性系统宏定义(适用于技能伤害增幅、治疗效果等纯百分比属性)
+ * 减法是概率相乘,加法是直接相加
  * 用法:
  * DEFINE_PERCENTAGE_ATTR(SpellDmg) 会生成技能伤害加成相关的所有属性和方法
  * DEFINE_PERCENTAGE_ATTR(Heal) 会生成治疗效果加成相关的所有属性和方法
@@ -167,6 +168,40 @@ CRNL \
         public method getCurrent##ATTR() -> real { CRNL \
             return (1.0 + ATTR##RateUp) * (1.0 - ATTR##RateDown) - 1.0; CRNL \
         } CRNL
+/*
+ * 概率性属性系统宏定义(适用于闪避、暴击等概率叠加属性)
+ * 加减都采用概率相乘的方式,所以不会是负数
+ * 用法:
+ * DEFINE_PROBABILITY_ATTR(Dodge) 会生成闪避相关的所有属性和方法
+ * DEFINE_PROBABILITY_ATTR(Crit) 会生成暴击相关的所有属性和方法
+ *
+ * 参数说明:
+ * ATTR: 属性名, 如Dodge(闪避), Crit(暴击)
+ * up: 表示提升概率(例如+20%表示为0.2)
+ * down: 表示降低概率(例如-30%表示为0.3)
+ */
+#define DEFINE_PROBABILITY_ATTR(ATTR) \
+        public real ATTR##RateUp;    /* ATTR增幅比例 */ CRNL \
+        public real ATTR##RateDown;  /* ATTR减幅比例 */ CRNL \
+CRNL \
+        /* 增加ATTR增幅比例 */ CRNL \
+        public method add##ATTR##RateUp(real value) { CRNL \
+            if (value != 0) { CRNL \
+                ATTR##RateUp = RealAdd(ATTR##RateUp, value); CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 增加ATTR减幅比例 */ CRNL \
+        public method add##ATTR##RateDown(real value) { CRNL \
+            if (value != 0) { CRNL \
+                ATTR##RateDown = RealAdd(ATTR##RateDown, value); CRNL \
+            } CRNL \
+        } CRNL \
+CRNL \
+        /* 获取当前的ATTR最终倍率,这里不用减1.0,和上面的不一样 */ CRNL \
+        public method getCurrent##ATTR() -> real { CRNL \
+            return ATTR##RateUp * (1.0 - ATTR##RateDown); CRNL \
+        } CRNL
 
 /*
  * 初始化百分比属性宏定义
@@ -175,6 +210,7 @@ CRNL \
         this.ATTR##RateUp = 0.0; CRNL \
         this.ATTR##RateDown = 0.0; CRNL
 
+#define INIT_PROBABILITY_ATTR(ATTR) INIT_PERCENTAGE_ATTR(ATTR)
 /*
  * 初始化战斗属性宏定义
  */

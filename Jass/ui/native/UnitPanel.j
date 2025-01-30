@@ -74,6 +74,8 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         static uiText textAgi      = 0; static uiText  textAgiValue      = 0;static uiText  textAgiExtra      = 0;  //敏捷
         static uiText textInt      = 0; static uiText  textIntValue      = 0;static uiText  textIntExtra      = 0;  //智力
         static uiText textBuilding = 0; static uiText  textBuildingValue = 0;
+        static uiText textGold     = 0; static uiText  textGoldValue     = 0;
+        static uiText textExp      = 0; static uiText  textExpValue      = 0;
 
         // 事件触发器
         private {
@@ -226,7 +228,6 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             //怪物属性框架
             iconMonster = icon.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
                 .setSize(0.027, 0.027)
-            // .setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0,0)
                 .setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.1235, -0.02)
                 .setTexture("ReplaceableTextures\\CommandButtons\\BTNSkeletonArcher.blp")
                 .show(false);
@@ -235,6 +236,20 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
                 .spLeave(function(integer frame) {if (trMonsterLeave != null) TriggerEvaluate(trMonsterLeave);})
                 .spClick(function(integer frame) {if (trMonsterClick != null) TriggerEvaluate(trMonsterClick);})
                 .spRightClick(function(integer frame) {if (trMonsterRightClick != null) TriggerEvaluate(trMonsterRightClick);});
+
+            //金币
+            textGold = uiText.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
+                .setPoint(ANCHOR_TOPLEFT, iconMonster.mainImage.ui, ANCHOR_CENTER, 0.017, 0.021)
+                .setText("|cfff2b721怪物金币:|r");
+            textGoldValue = uiText.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
+                .setPoint(ANCHOR_TOPLEFT, textGold.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
+                .setText("|cffffffff10|r");            //金币
+            textExp = uiText.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
+                .setPoint(ANCHOR_TOPLEFT, iconMonster.mainImage.ui, ANCHOR_CENTER, 0.017, -0.006)
+                .setText("|cfff2b721怪物经验:|r");
+            textExpValue = uiText.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
+                .setPoint(ANCHOR_TOPLEFT, textExp.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
+                .setText("|cffffffff20|r");
         }
 
         // 友方建筑单位的金币之类的东西(会频繁重置,需要在选择单位时就重新处理)

@@ -40,15 +40,19 @@ library UTTooltip requires Tooltip {
 				.setAbsPoint(ANCHOR_BOTTOM,0.4,0.3);
 		}
 	}
+	tooltip tip = 0;
+	integer count = 1;
 	function TTestUTTooltip3 (player p) {
-		tooltip tip = tooltip.create()
-			.layoutFlexible("第一行文本")
-			.addText("第二行文本", 2)
-			.addText("中间插入的文本", 2)
+		tip = tooltip.create()
+			.layoutFlexible("第一行文本",4)
 			.setAbsPoint(ANCHOR_BOTTOM,0.4,0.3);
-
 	}
-	function TTestUTTooltip4 (player p) {}
+	function TTestUTTooltip4 (player p) {
+		if (tip.isExist()) {
+			count = count + 1;
+			tip.addText("插入文本" + I2S(count));
+		}
+	}
 	function TTestUTTooltip5 (player p) {}
 	function TTestUTTooltip6 (player p) {}
 	function TTestUTTooltip7 (player p) {}
