@@ -29,7 +29,7 @@ library Monster {
 
         module monsterDrop; //怪物掉落
 
-        // 构造函数
+        // 构造函数(从单位类型来复制内容创建)
         static method parse(unit u) -> thistype {
 			thistype this;
 			integer handleId = GetHandleId(u);
@@ -47,13 +47,46 @@ library Monster {
 			this.exp = this.md.exp;
 			this.kill = this.md.kill;
 
+			this.useDefaultDrop();
+
 			static if (LIBRARY_AllMonster) { //其他地图的自定义属性
-				this.initAllMonster();
+				this.initAllMonster(); //使用默认掉落模式
 			}
 
 			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_MONSTER, this);
 			return this;
         }
+
+		// 新增：构造自定义怪物(不继承monsterData数据)
+		static method parseCustom(unit u) -> thistype {
+			thistype this;
+			integer handleId = GetHandleId(u);
+
+			// 先检查是否已存在
+			if (HaveSavedInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_MONSTER)) {
+				return LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_MONSTER);
+			}
+
+			// 不存在才创建新的
+			this = allocate();
+			this.u = u;
+			this.md = monsterData.byUnitType(GetUnitTypeId(u));
+
+			// 设置基础属性为0，由调用者自行设置
+			this.gold = 0;
+			this.exp = 0;
+			this.kill = 0;
+
+			// 设置为自定义掉落模式
+			this.setCustomDrop();
+
+			static if (LIBRARY_AllMonster) {
+				this.initAllMonster();  // 这里应该删除,因为是自定义模式
+			}
+
+			SaveInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_MONSTER, this);
+			return this;
+		}
 
 		static method get (unit u) -> thistype {
 			if (HaveSavedInteger(HASH_UNIT, GetHandleId(u), HASH_KEY_UNIT_MONSTER)) {
