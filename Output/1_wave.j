@@ -106,121 +106,83 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
-//===========================================================================
-// UnitPanel_Test.j
-//===========================================================================
-// 文件描述：单位面板测试模块
-// 创建日期：未知
-// 修改记录：
-//   - 实现了单位属性面板的测试功能
-//   - 包含攻击、护甲等属性的显示和交互
-//
-// 主要功能：
-//   - 创建并测试单位属性面板UI
-//   - 提供属性图标和数值显示
-//   - 实现鼠标悬停和点击事件
-//   - 包含单元测试用例
-//===========================================================================
 // 用原始地图测试
-/*
-UI哈希表定义
-*/
-// 0 - 1亿这里用
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
-//# dependency:resource/ui/console/unitpanel/origin_agi.blp
-//# dependency:resource/ui/console/unitpanel/origin_armor.blp
-//# dependency:resource/ui/console/unitpanel/origin_attack.blp
-//# dependency:resource/ui/console/unitpanel/origin_int.blp
-//# dependency:resource/ui/console/unitpanel/origin_str.blp
 //! zinc
 //自动生成的文件
-library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
-	public function Init2 () {
-		unitPanel.registerBuilding(); //注册建筑单位的单位面板刷新机制
-
-		unitSelect.onAsync(function () {
-			if (GetUnitTypeId(unitSelect.args) == 'hsor' || GetUnitTypeId(unitSelect.args) == 'hmpr') {
-				unitPanel.iconMonster.show(true);
-			}
-		});
-		unitSelect.onAsyncUn(function () {
-			if (GetUnitTypeId(unitSelect.args) == 'hsor' || GetUnitTypeId(unitSelect.args) == 'hmpr') {
-				unitPanel.iconMonster.show(false);
-			}
-		});
+library UTSpell requires Spell {
+	private struct [20000] spell {
+		integer id;
+		integer level;
+		integer sdId;
 	}
-	integer testCount = 0;
-	// 初始化测试内容
+	// 添加全局测试单位变量
+	private unit testArchmage = null;
+	private unit testFootman = null;
 	function Init () {
-		unitPanel.on/**/Attack/**/Enter(function () {BJDebugMsg("Attack" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Attack/**/Leave(function () {BJDebugMsg("Attack" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Attack/**/Click(function () {BJDebugMsg("Attack" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Attack/**/RightClick(function () {BJDebugMsg("Attack" + " " + "RightClick");}); <?='\n'?>
-		unitPanel.on/**/Armor/**/Enter(function () {BJDebugMsg("Armor" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Armor/**/Leave(function () {BJDebugMsg("Armor" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Armor/**/Click(function () {BJDebugMsg("Armor" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Armor/**/RightClick(function () {BJDebugMsg("Armor" + " " + "RightClick");}); <?='\n'?>
-		unitPanel.on/**/Hero/**/Enter(function () {BJDebugMsg("Hero" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Hero/**/Leave(function () {BJDebugMsg("Hero" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Hero/**/Click(function () {BJDebugMsg("Hero" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Hero/**/RightClick(function () {BJDebugMsg("Hero" + " " + "RightClick");}); <?='\n'?>
-		unitPanel.on/**/Building/**/Enter(function () {BJDebugMsg("Building" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Building/**/Leave(function () {BJDebugMsg("Building" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Building/**/Click(function () {BJDebugMsg("Building" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Building/**/RightClick(function () {BJDebugMsg("Building" + " " + "RightClick");}); <?='\n'?>
-		unitPanel.on/**/Monster/**/Enter(function () {BJDebugMsg("Monster" + " " + "Enter");}); <?='\n'?> unitPanel.on/**/Monster/**/Leave(function () {BJDebugMsg("Monster" + " " + "Leave");}); <?='\n'?> unitPanel.on/**/Monster/**/Click(function () {BJDebugMsg("Monster" + " " + "Click");}); <?='\n'?> unitPanel.on/**/Monster/**/RightClick(function () {BJDebugMsg("Monster" + " " + "RightClick");}); <?='\n'?>
-		Init2();
-		unitPanel.onAttackEnter(function () {
-			testCount = testCount + 1;
-			unitPanel.textAttackExtra.setText("|cff00ff00+" + I2S(testCount) + "|r");
-			unitPanel.showAttackExtra(true);
+		UnitTestAutoTimer(0.1, 2.0, function() {
+			//start
+			}, function() {
+			//end
 		});
-		unitPanel.onAttackLeave(function () {
-			unitPanel.showAttackExtra(false);
-		});
-		unitPanel.onArmorEnter(function () {
-			testCount = testCount + 1;
-			unitPanel.textArmorExtra.setText("|cffff0000-" + I2S(testCount) + "|r");
-			unitPanel.showArmorExtra(true);
-		});
-		unitPanel.onArmorLeave(function () {
-			unitPanel.showArmorExtra(false);
-		});
-		unitPanel.onHeroEnter(function () {
-			testCount = testCount + 1;
-			unitPanel.textStrExtra.setText("|cff00ff00+" + I2S(testCount * 3) + "|r");
-			unitPanel.textAgiExtra.setText("|cff00ff00+" + I2S(testCount * 5) + "|r");
-			unitPanel.textIntExtra.setText("|cff00ff00+" + I2S(testCount * 67) + "|r");
-			unitPanel.showStrExtra(true);
-			unitPanel.showAgiExtra(true);
-			unitPanel.showIntExtra(true);
-		});
-		unitPanel.onHeroLeave(function () {
-			unitPanel.showStrExtra(false);
-			unitPanel.showAgiExtra(false);
-			unitPanel.showIntExtra(false);
+		UnitTestAutoTimer(0.1, 2.0, function() {
+			//assert.Boolean(true, "测试1");
+			//spell
+		},null);
+		unitSelect.onSync(function() {
+			//结论:EXGetUnitAbility获取百位动态技能
+			//DzUnitFindAbility获取正常Handle技能,未学习的技能没有Handle,学习后的Handle不是最大的(代表不是新建的)
+			//AInv这个物品栏技能不知道为什么步兵也有
+			//删除再新建后,Handle会变
+			unit u = unitSelect.argsSync;
+			integer index;
+			ability a = null,b = null;
+			Trace("已选择单位:" + GetUnitName(u));
+			b = DzUnitFindAbility(u, 'AHbz');
+			Trace(" AHbz: " + I2S(GetHandleId(b)));
+			b = DzUnitFindAbility(u, 'AHab');
+			Trace(" AHab: " + I2S(GetHandleId(b)));
+			b = DzUnitFindAbility(u, 'AHwe');
+			Trace(" AHwe: " + I2S(GetHandleId(b)));
+			b = DzUnitFindAbility(u, 'AHmt');
+			Trace(" AHmt: " + I2S(GetHandleId(b)));
+			b = DzUnitFindAbility(u, 'AInv');
+			Trace(" AInv: " + I2S(GetHandleId(b)));
+			b = DzUnitFindAbility(u, 'Adef');
+			Trace(" Adef: " + I2S(GetHandleId(b)));
+			u = null;
 		});
 	}
-	function TTestUTUnitPanel1 (player p) { //给两个图标加一下grow看看效果
-unitPanel.iconAttack.grow(growdata[ICONGROW_14]);
-		unitPanel.iconArmor.grow(growdata[ICONGROW_18]);
+	//测试一下Japi获取的技能
+	function TTestUTSpell1 (player p) {
+		testArchmage = CreateUnit(p, 'Hamg', 0, 0, 270); // 在(0,0)位置创建大法师
+testFootman = CreateUnit(p, 'hfoo', 200, 0, 270); // 在(200,0)位置创建步兵
+SetHeroLevel(testArchmage, 10, true); // 将大法师升到10级
+Trace("已创建大法师和步兵用于测试");
 	}
-	function TTestUTUnitPanel2 (player p) { //移除所有原生UI到屏幕外
-unitPanel.iconAttack.setCornerText("Lv.1");
-		unitPanel.iconArmor.setCornerText("1级");
+	function TTestUTSpell2 (player p) {
+		if (testFootman != null) {
+			UnitRemoveAbility(testFootman, 'Adef'); // 移除防御技能
+Trace("已移除步兵的防御技能");
+		} else {
+			Trace("错误：请先使用s1创建测试单位");
+		}
 	}
-	function TTestUTUnitPanel3 (player p) {
-		unitPanel.iconAttack.startCooldown(3.0,0);
-		unitPanel.iconArmor.startCooldown(5.0,0);
+	function TTestUTSpell3 (player p) {
+		if (testFootman != null) {
+			UnitAddAbility(testFootman, 'Adef'); // 添加防御技能
+Trace("已给步兵添加防御技能");
+		} else {
+			Trace("错误：请先使用s1创建测试单位");
+		}
 	}
-	function TTestUTUnitPanel4 (player p) {
-		unitPanel.iconArmor.startCooldown(0,0);
-	}
-	function TTestUTUnitPanel5 (player p) {
-		unitPanel.moveOutBuilding();
-		unitPanel.moveOutMonster();
-		BJDebugMsg("移走");
-	}
-	function TTestUTUnitPanel6 (player p) {}
-	function TTestUTUnitPanel7 (player p) {}
-	function TTestUTUnitPanel8 (player p) {}
-	function TTestUTUnitPanel9 (player p) {}
-	function TTestUTUnitPanel10 (player p) {}
-	function TTestActUTUnitPanel1 (string str) {
+	function TTestUTSpell4 (player p) {}
+	function TTestUTSpell5 (player p) {}
+	function TTestUTSpell6 (player p) {}
+	function TTestUTSpell7 (player p) {}
+	function TTestUTSpell8 (player p) {}
+	function TTestUTSpell9 (player p) {}
+	function TTestUTSpell10 (player p) {}
+	function TTestActUTSpell1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -252,54 +214,8 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			unit hero,building,witch1,priest1,witch2,priest2;
-			real x = 0, y = 0;
-			integer i = 0;
-			// 为玩家1创建测试英雄
-			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
-SetHeroLevel(hero, 10,true);
-			// 为玩家1创建女巫和牧师
-			witch1 = CreateUnit(Player(0), 'hsor', 200, 200, 270); // 创建女巫
-priest1 = CreateUnit(Player(0), 'hmpr', 200, -200, 270); // 创建牧师
-
-			// 在地图远角创建玩家2的女巫和牧师
-			witch2 = CreateUnit(Player(11), 'hsor', 5000, 5000, 270); // 创建玩家12的女巫
-priest2 = CreateUnit(Player(11), 'hmpr', 5000, -5000, 270); // 创建玩家12的牧师
-
-			// 创建一个建筑单位用于测试12个技能
-			building = CreateUnit(Player(0), 'hcas', 400, 0, 270); // 创建人族城堡
-
-			// 为建筑添加12个技能
-			UnitAddAbility(building, 'AHbz'); // 暴风雪
-UnitAddAbility(building, 'AHwe'); // 水元素
-UnitAddAbility(building, 'AHab'); // 闪现
-UnitAddAbility(building, 'AHmt'); // 群体传送
-UnitAddAbility(building, 'AHfs'); // 烈焰风暴
-UnitAddAbility(building, 'AHbn'); // 驱逐魔法
-UnitAddAbility(building, 'AHdr'); // 吸取魔法
-UnitAddAbility(building, 'AHpx'); // 凤凰
-UnitAddAbility(building, 'AHad'); // 奥术光环
-UnitAddAbility(building, 'AHav'); // 化身
-UnitAddAbility(building, 'AHcs'); // 寒冰护甲
-UnitAddAbility(building, 'AHfa'); // 烈焰护甲
-
-			// 添加8个预选的技能
-			UnitAddAbility(hero, 'ACbc'); // 火焰呼吸
-UnitAddAbility(hero, 'ACbf'); // 霜冻闪电
-UnitAddAbility(hero, 'ACpy'); // 变形术
-UnitAddAbility(hero, 'AOhx'); // 妖术
-UnitAddAbility(hero, 'ACdv'); // 吞噬
-UnitAddAbility(hero, 'ACen'); // 诱捕
-UnitAddAbility(hero, 'ANr3'); // 混乱之雨
-UnitAddAbility(hero, 'AOhw'); // 医疗波
-BJDebugMsg("[UnitPanel] 单元测试已加载");
+			BJDebugMsg("[Spell] 单元测试已加载");
 			Init();
-			DestroyTrigger(GetTriggeringTrigger());
-		}));
-		//在游戏开始0.1秒后再调用
-		tr = CreateTrigger();
-		TriggerRegisterTimerEventSingle(tr,0.1);
-		TriggerAddCondition(tr,Condition(function (){
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -307,21 +223,20 @@ BJDebugMsg("[UnitPanel] 单元测试已加载");
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUnitPanel1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTSpell1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUnitPanel1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUnitPanel2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUnitPanel3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUnitPanel4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUnitPanel5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUnitPanel6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUnitPanel7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUnitPanel8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUnitPanel9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUnitPanel10(GetTriggerPlayer());
+			if (str == "s1") TTestUTSpell1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTSpell2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTSpell3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTSpell4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTSpell5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTSpell6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTSpell7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTSpell8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTSpell9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTSpell10(GetTriggerPlayer());
 		});
-		InitTestUIRuler();
 	}
 }
 //! endzinc

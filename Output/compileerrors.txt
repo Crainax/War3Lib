@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 4847:  Undeclared variable textGold
+JASSHelper - Step 2 (structs)
+Line 553: u is not a member of spell
 1

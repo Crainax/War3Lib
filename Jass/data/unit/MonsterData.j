@@ -26,8 +26,8 @@ library MonsterData {
             integer array items[];
             real array chances[];
 
-            if (HaveSavedInteger(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_COUNT)) {
-                count = LoadInteger(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_COUNT);
+            if (HaveSavedInteger(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_COUNT)) {
+                count = LoadInteger(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_COUNT);
             }
 
             if (count >= MAX_MONSTER_DROP_ITEMS) {
@@ -35,17 +35,17 @@ library MonsterData {
             }
 
             // 保存物品类型
-            SaveInteger(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_TYPES + count, itemType);
+            SaveInteger(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_TYPES + count, itemType);
             // 保存掉落概率
-            SaveReal(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_CHANCES + count, chance);
+            SaveReal(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_CHANCES + count, chance);
             // 更新物品总数
-            SaveInteger(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_COUNT, count + 1);
+            SaveInteger(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_COUNT, count + 1);
         }
 
         // 获取物品掉落数量
         public method getDropItemCount() -> integer {
-            if (HaveSavedInteger(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_COUNT)) {
-                return LoadInteger(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_COUNT);
+            if (HaveSavedInteger(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_COUNT)) {
+                return LoadInteger(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_COUNT);
             }
             return 0;
         }
@@ -53,7 +53,7 @@ library MonsterData {
         // 获取指定索引的物品类型
         public method getDropItemType(integer index) -> integer {
             if (index >= 0 && index < this.getDropItemCount()) {
-                return LoadInteger(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_TYPES + index);
+                return LoadInteger(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_TYPES + index);
             }
             return 0;
         }
@@ -61,21 +61,22 @@ library MonsterData {
         // 获取指定索引的物品掉落概率
         public method getDropItemChance(integer index) -> real {
             if (index >= 0 && index < this.getDropItemCount()) {
-                return LoadReal(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_CHANCES + index);
+                return LoadReal(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_CHANCES + index);
             }
             return 0.0;
         }
 
         //根据单位类型
-        public static method byUnitType (integer ut) -> thistype {
+        public static method byType(integer ut) -> thistype {
             thistype this;
-            if (HaveSavedInteger(HASH_UNITTYPE,ut,HASH_KEY_UNITTYPE_MONSTERDATA)) {
-                this = LoadInteger(HASH_UNITTYPE,ut,HASH_KEY_UNITTYPE_MONSTERDATA);
+            if (HaveSavedInteger(HASH_UNITTYPE,ut,HASH_KEY_SLK_MONSTERDATA)) {
+                this = LoadInteger(HASH_UNITTYPE,ut,HASH_KEY_SLK_MONSTERDATA);
             } else {
                 counter += 1;
-                SaveInteger(HASH_UNITTYPE,ut,HASH_KEY_UNITTYPE_MONSTERDATA,thistype[counter]);
+                this = thistype[counter];
+                SaveInteger(HASH_UNITTYPE,ut,HASH_KEY_SLK_MONSTERDATA,this);
                 //初始化
-                SaveInteger(HASH_UNITTYPE, this, HASH_KEY_UNITTYPE_ITEM_COUNT, 0);
+                SaveInteger(HASH_UNITTYPE, this, HASH_KEY_SLK_UNIT_DROP_COUNT, 0);
             }
             return this;
         }

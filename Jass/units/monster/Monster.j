@@ -42,7 +42,7 @@ library Monster {
 			// 不存在才创建新的
 			this = allocate();
             this.u = u;
-			thistype.md = monsterData.byUnitType(GetUnitTypeId(u));
+			thistype.md = monsterData.byType(GetUnitTypeId(u));
 			this.gold = this.md.gold;
 			this.exp = this.md.exp;
 			this.kill = this.md.kill;
@@ -70,7 +70,7 @@ library Monster {
 			// 不存在才创建新的
 			this = allocate();
 			this.u = u;
-			this.md = monsterData.byUnitType(GetUnitTypeId(u));
+			this.md = monsterData.byType(GetUnitTypeId(u));
 
 			// 设置基础属性为0，由调用者自行设置
 			this.gold = 0;
