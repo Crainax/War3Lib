@@ -11,16 +11,16 @@ jass.TriggerAddCondition(g.logger_tr, jass.Condition(function()
     if g.logger_p == jass.GetLocalPlayer() then
         if g.logger_level == 0 then
             log.trace(g.logger_msg)
-            print(g.logger_msg)
+            console.write(g.logger_msg)
         elseif g.logger_level == 1 then
             log.debug(g.logger_msg)
-            print(g.logger_msg)
+            console.write(g.logger_msg)
         elseif g.logger_level == 2 then
             log.info(g.logger_msg)
-            print(g.logger_msg)
+            console.write(g.logger_msg)
         elseif g.logger_level == 3 then
             log.warn(g.logger_msg)
-            print(g.logger_msg)
+            console.write(g.logger_msg)
         elseif g.logger_level == 4 then
             log.error(g.logger_msg)
         end

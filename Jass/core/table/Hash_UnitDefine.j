@@ -9,8 +9,7 @@
 #define HASH_KEY_UNIT_HEROATTR  1727 //储存的英雄属性结构体
 #define HASH_KEY_UNIT_UNITREGEN 1728 //储存的单位回复属性结构体
 #define HASH_KEY_UNIT_MONSTER   1729 //储存的怪物结构体
-#define HASH_KEY_UNIT_SPELL        1730 //储存的单位技能结构体
-#define HASH_KEY_UNIT_SPELL_COUNT  1731 //单位当前技能数量
+#define HASH_KEY_UNIT_UNITSPELL  1730 //储存的单位技能结构体
 
 // 怪物掉落相关键值 (预留20个空间 1800-1819)
 #define HASH_KEY_UNIT_DROP_TYPES    1800 //怪物掉落物品类型数组起始键值
@@ -20,10 +19,8 @@
 #define HASH_KEY_UNIT_DROP_COUNT    1840 //怪物掉落物品数量
 
 // 单位技能相关键值 (预留200个空间 1800-1999)
-#define HASH_KEY_UNIT_SPELL_IDS    1800 //单位技能ID数组起始键值
-// 单位技能等级相关键值 (预留200个空间 2000-2199)
-#define HASH_KEY_UNIT_SPELL_LEVELS 2000 //单位技能等级数组起始键值
+#define HASH_KEY_UNIT_UNITSPELL_IDS    1800 //单位技能ID数组起始键值
 
-// 2200开始可继续添加新的键值定义...
+// 2000开始可继续添加新的键值定义...
 
 #endif

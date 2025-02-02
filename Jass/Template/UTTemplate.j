@@ -13,9 +13,9 @@ library {UnitTest} requires LibraryName {
 
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start
+			//start,这里是0.1秒后调用的内容
 			}, function() {
-			//end
+			//end,这里是2秒后调用的内容
 		});
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//assert.Boolean(true, "测试1");

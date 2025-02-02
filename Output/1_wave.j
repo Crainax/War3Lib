@@ -108,134 +108,174 @@ endfunction
 // 用空地图测试
 // 用原始地图测试
 //! zinc
-//自动生成的文件
-library UTSpell requires Spell {
-	private struct [20000] spell {
-		integer id;
-		integer level;
-		integer sdId;
-	}
-	// 添加全局测试单位变量
-	private unit testArchmage = null;
-	private unit testFootman = null;
-	function Init () {
+/*
+ * UnitSpell测试文件
+ * 测试UnitSpell库的所有功能
+ *
+ * 测试命令:
+ * s1 - 测试unitSpell.parse创建和基本属性
+ * s2 - 测试unitSpell.get获取实例
+ * s3 - 测试addSpell和getSpell
+ * s4 - 测试getSpellCount
+ * s5 - 测试默认技能初始化
+ * s6 - 测试单位销毁时的清理
+ *
+ * -a [unitId] - 创建指定ID的测试单位
+ * -b [spellId] - 为当前选中单位添加指定技能
+ */
+library UTUnitSpell requires UnitSpell {
+	private unit testUnit = null;
+	function Init() {
 		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start
-			}, function() {
-			//end
-		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-			//spell
-		},null);
-		unitSelect.onSync(function() {
-			//结论:EXGetUnitAbility获取百位动态技能
-			//DzUnitFindAbility获取正常Handle技能,未学习的技能没有Handle,学习后的Handle不是最大的(代表不是新建的)
-			//AInv这个物品栏技能不知道为什么步兵也有
-			//删除再新建后,Handle会变
-			unit u = unitSelect.argsSync;
-			integer index;
-			ability a = null,b = null;
-			Trace("已选择单位:" + GetUnitName(u));
-			b = DzUnitFindAbility(u, 'AHbz');
-			Trace(" AHbz: " + I2S(GetHandleId(b)));
-			b = DzUnitFindAbility(u, 'AHab');
-			Trace(" AHab: " + I2S(GetHandleId(b)));
-			b = DzUnitFindAbility(u, 'AHwe');
-			Trace(" AHwe: " + I2S(GetHandleId(b)));
-			b = DzUnitFindAbility(u, 'AHmt');
-			Trace(" AHmt: " + I2S(GetHandleId(b)));
-			b = DzUnitFindAbility(u, 'AInv');
-			Trace(" AInv: " + I2S(GetHandleId(b)));
-			b = DzUnitFindAbility(u, 'Adef');
-			Trace(" Adef: " + I2S(GetHandleId(b)));
-			u = null;
+			// 初始化测试环境
+			testUnit = null;
+		}, function() {
+			// 清理测试环境
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+				testUnit = null;
+			}
 		});
 	}
-	//测试一下Japi获取的技能
-	function TTestUTSpell1 (player p) {
-		testArchmage = CreateUnit(p, 'Hamg', 0, 0, 270); // 在(0,0)位置创建大法师
-testFootman = CreateUnit(p, 'hfoo', 200, 0, 270); // 在(200,0)位置创建步兵
-SetHeroLevel(testArchmage, 10, true); // 将大法师升到10级
-Trace("已创建大法师和步兵用于测试");
+	// 测试unitSpell.parse创建和基本属性
+	function TTestUTUnitSpell1(player p) {
+		unitSpell us = unitSpell.parse(testUnit);
+		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		BJDebugMsg("测试1: unitSpell.parse创建");
+		BJDebugMsg("单位是否有效: " + B2S(us != 0));
+		BJDebugMsg("绑定单位是否正确: " + B2S(us.u == testUnit));
 	}
-	function TTestUTSpell2 (player p) {
-		if (testFootman != null) {
-			UnitRemoveAbility(testFootman, 'Adef'); // 移除防御技能
-Trace("已移除步兵的防御技能");
-		} else {
-			Trace("错误：请先使用s1创建测试单位");
-		}
+	// 测试unitSpell.get获取实例
+	function TTestUTUnitSpell2(player p) {
+		unitSpell us1 = unitSpell.parse(testUnit);
+		unitSpell us2 = unitSpell.get(testUnit);
+		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		BJDebugMsg("测试2: unitSpell.get获取");
+		BJDebugMsg("获取实例是否相同: " + B2S(us1 == us2));
 	}
-	function TTestUTSpell3 (player p) {
-		if (testFootman != null) {
-			UnitAddAbility(testFootman, 'Adef'); // 添加防御技能
-Trace("已给步兵添加防御技能");
-		} else {
-			Trace("错误：请先使用s1创建测试单位");
-		}
+	// 测试addSpell和getSpell
+	function TTestUTUnitSpell3(player p) {
+		unitSpell us = unitSpell.parse(testUnit);
+		spell sp = spell.create(testUnit, 'AHbz', 1); // 创建一个测试技能
+testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		us.addSpell(sp);
+		BJDebugMsg("测试3: addSpell和getSpell");
+		BJDebugMsg("获取技能是否正确: " + B2S(us.getSpell(0) == sp));
 	}
-	function TTestUTSpell4 (player p) {}
-	function TTestUTSpell5 (player p) {}
-	function TTestUTSpell6 (player p) {}
-	function TTestUTSpell7 (player p) {}
-	function TTestUTSpell8 (player p) {}
-	function TTestUTSpell9 (player p) {}
-	function TTestUTSpell10 (player p) {}
-	function TTestActUTSpell1 (string str) {
-		player p = GetTriggerPlayer();
-		integer index = GetConvertedPlayerId(p);
-		integer i, num = 0, len = StringLength(str); //获取范围式数字
-string paramS []; //所有参数S
-integer paramI []; //所有参数I
-real	paramR []; //所有参数R
-for (0 <= i <= len - 1) {
+	// 测试getSpellCount
+	function TTestUTUnitSpell4(player p) {
+		unitSpell us;
+		spell sp;
+		integer countBefore;
+		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		us = unitSpell.parse(testUnit);
+		sp = spell.create(testUnit, 'AHbz', 1);
+		countBefore = us.getSpellCount();
+		us.addSpell(sp);
+		BJDebugMsg("测试4: getSpellCount");
+		BJDebugMsg("技能数量是否正确: " + B2S(us.getSpellCount() == countBefore + 1));
+	}
+	// 测试默认技能初始化
+	function TTestUTUnitSpell5(player p) {
+		unitSpell us = unitSpell.parse(testUnit);
+		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		BJDebugMsg("测试5: 默认技能初始化");
+		BJDebugMsg("默认技能数量: " + I2S(us.getSpellCount()));
+	}
+	// 测试单位销毁时的清理
+	function TTestUTUnitSpell6(player p) {
+		unitSpell us = unitSpell.parse(testUnit);
+		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		BJDebugMsg("测试6: 单位销毁清理");
+		BJDebugMsg("销毁前unitSpell存在: " + B2S(us.isExist()));
+		RemoveUnit(testUnit);
+		BJDebugMsg("销毁后unitSpell存在: " + B2S(us.isExist()));
+	}
+	// 以下测试用例预留
+	function TTestUTUnitSpell7(player p) {}
+	function TTestUTUnitSpell8(player p) {}
+	function TTestUTUnitSpell9(player p) {}
+	function TTestUTUnitSpell10(player p) {}
+	// 处理带参数的测试命令
+	function TTestActUTUnitSpell1(string str) {
+		player p;
+		integer index;
+		integer i;
+		integer num;
+		integer len;
+		string paramS[];
+		integer paramI[];
+		real paramR[];
+		unit selectedUnit;
+		unitSpell us;
+		spell sp;
+		p = GetTriggerPlayer();
+		index = GetConvertedPlayerId(p);
+		num = 0;
+		len = StringLength(str);
+		// 解析参数
+		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
-				paramS[num]= SubString(str,0,i);
-				paramI[num]= S2I(paramS[num]);
-				paramR[num]= S2R(paramS[num]);
+				paramS[num] = SubString(str,0,i);
+				paramI[num] = S2I(paramS[num]);
+				paramR[num] = S2R(paramS[num]);
 				num = num + 1;
 				str = SubString(str,i + 1,len);
 				len = StringLength(str);
 				i = -1;
 			}
 		}
-		paramS[num]= str;
-		paramI[num]= S2I(paramS[num]);
-		paramR[num]= S2R(paramS[num]);
+		paramS[num] = str;
+		paramI[num] = S2I(paramS[num]);
+		paramR[num] = S2R(paramS[num]);
 		num = num + 1;
 		if (paramS[0] == "a") {
+			// 创建测试单位
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(p, paramI[1], 0, 0, 0);
+			BJDebugMsg("创建测试单位: " + I2S(paramI[1]));
 		} else if (paramS[0] == "b") {
+			// 为当前选中单位添加技能
+			selectedUnit = GetSelectedUnit(p);
+			if (selectedUnit != null) {
+				us = unitSpell.get(selectedUnit);
+				if (us != 0) {
+					sp = spell.create(selectedUnit, paramI[1], 1);
+					us.addSpell(sp);
+					BJDebugMsg("添加技能: " + I2S(paramI[1]));
+				}
+			}
 		}
 		p = null;
 	}
-	function onInit () {
-		//在游戏开始0.0秒后再调用
+	function onInit() {
 		trigger tr = CreateTrigger();
-		TriggerRegisterTimerEventSingle(tr,0.5);
-		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[Spell] 单元测试已加载");
+		TriggerRegisterTimerEventSingle(tr, 0.5);
+		TriggerAddCondition(tr, Condition(function() {
+			BJDebugMsg("[UnitSpell] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
-		UnitTestRegisterChatEvent(function () {
+		UnitTestRegisterChatEvent(function() {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTSpell1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUnitSpell1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTSpell1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTSpell2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTSpell3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTSpell4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTSpell5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTSpell6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTSpell7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTSpell8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTSpell9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTSpell10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUnitSpell1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUnitSpell2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUnitSpell3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUnitSpell4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUnitSpell5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUnitSpell6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUnitSpell7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUnitSpell8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUnitSpell9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUnitSpell10(GetTriggerPlayer());
 		});
 	}
 }

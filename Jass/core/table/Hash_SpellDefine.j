@@ -1,5 +1,5 @@
-#ifndef HASHUnitDefineIncluded
-#define HASHUnitDefineIncluded
+#ifndef HASHSpellDefineIncluded
+#define HASHSpellDefineIncluded
 
 /*
 技能哈希表定义

@@ -77,7 +77,80 @@ library UTSpell requires Spell {
 			Trace("错误：请先使用s1创建测试单位");
 		}
 	}
-	function TTestUTSpell4 (player p) {}
+	function TTestUTSpell4 (player p) {
+		timer t;
+		t = CreateTimer();
+		SaveInteger(HASH_TIMER, GetHandleId(t), 1, 1);  // 当前测试次数
+
+		// 保存所有技能ID到哈希表中
+		SaveInteger(HASH_TIMER, GetHandleId(t), 100, 'AAns');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 101, 'ACac');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 102, 'ACad');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 103, 'ACah');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 104, 'ACam');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 105, 'ACat');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 106, 'ACav');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 107, 'ACba');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 108, 'ACbb');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 109, 'ACbc');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 110, 'ACbf');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 111, 'ACbh');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 112, 'ACbk');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 113, 'ACbl');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 114, 'ACbn');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 115, 'ACbz');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 116, 'ACc2');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 117, 'ACc3');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 118, 'ACca');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 119, 'ACcb');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 120, 'ACce');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 121, 'ACch');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 122, 'ACcl');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 123, 'ACcn');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 124, 'ACcr');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 125, 'ACcs');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 126, 'ACct');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 127, 'ACcv');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 128, 'ACcw');
+		SaveInteger(HASH_TIMER, GetHandleId(t), 129, 'ACcy');
+
+		TimerStart(t, 0.1, true, function() {
+			timer t = GetExpiredTimer();
+			integer id = GetHandleId(t);
+			integer testCount = LoadInteger(HASH_TIMER, id, 1);
+			integer abilityId;
+			unit testUnit;
+			integer i;
+
+			if (testCount <= 100) {
+				testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 270);
+				Trace("第" + I2S(testCount) + "个单位的测试结果:");
+
+				// 先测试1-5的普通值
+				Trace("普通值测试结果:");
+				for (1 <= i <= 5) {
+					Trace("数值" + I2S(i) + "的HashValue: " + I2S(GetHashValue(GetHandleId(testUnit), i)));
+				}
+
+				// 再测试所有技能
+				Trace("技能测试结果:");
+				for (0 <= i < 30) {
+					abilityId = LoadInteger(HASH_TIMER, id, 100 + i);
+					Trace("技能" + GetAbilityName(abilityId) + "的HashValue: " + I2S(GetHashValue(GetHandleId(testUnit), abilityId)));
+				}
+
+				testCount += 1;
+				SaveInteger(HASH_TIMER, id, 1, testCount);
+			} else {
+				Trace("测试完成！");
+				PauseTimer(t);
+				FlushChildHashtable(HASH_TIMER, id);
+				DestroyTimer(t);
+			}
+			t = null;
+		});
+		t = null;
+	}
 	function TTestUTSpell5 (player p) {}
 	function TTestUTSpell6 (player p) {}
 	function TTestUTSpell7 (player p) {}

@@ -267,7 +267,7 @@ library HeroAttr requires ConversionUtils,UnitAttr {
 		static method onInit () {
 			unitLifeCycle.registerDestroy(function () {
 				unit u = unitLifeCycle.argsUnit;
-				thistype this = unitAttr.parse(u);
+				thistype this = thistype.get(u);
 				if (this.isExist()) {
 					this.destroy();
 				}

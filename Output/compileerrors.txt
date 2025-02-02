@@ -1,4 +1,4 @@
 logs\currentmapscript.j
 JASSHelper - Step 2 (structs)
-Line 553: u is not a member of spell
+Line 647: constructor requires no arguments
 1

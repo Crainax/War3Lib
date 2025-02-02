@@ -10,7 +10,7 @@
 */
 library SpellTable {
 
-    public hashtable HASH_SPELL = InitHashtable();  // 技能哈希表
+    public hashtable HASH_SPELL   = InitHashtable();  // 技能哈希表(键是通过GetHashValue计算的)
 
 }
 
