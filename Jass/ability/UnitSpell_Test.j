@@ -7,104 +7,202 @@
 //! zinc
 
 /*
- * UnitSpell测试文件
- * 测试UnitSpell库的所有功能
- *
- * 测试命令:
- * s1 - 测试unitSpell.parse创建和基本属性
- * s2 - 测试unitSpell.get获取实例
- * s3 - 测试addSpell和getSpell
- * s4 - 测试getSpellCount
- * s5 - 测试默认技能初始化
- * s6 - 测试单位销毁时的清理
- *
- * -a [unitId] - 创建指定ID的测试单位
- * -b [spellId] - 为当前选中单位添加指定技能
- */
+* UnitSpell测试文件
+* 测试UnitSpell库的所有功能
+*
+* 测试命令:
+* s1 - 测试unitSpell.parse创建和基本属性
+* s2 - 测试unitSpell.get获取实例
+* s3 - 测试addSpell和getSpell
+* s4 - 测试getSpellCount
+* s5 - 测试随机创建和删除
+* s6 - 测试单位销毁时的清理
+*
+* -a [unitId] - 创建指定ID的测试单位
+* -b [spellId] - 为当前选中单位添加指定技能
+*/
 library UTUnitSpell requires UnitSpell {
 
 	private unit testUnit = null;
+	private unitSpell us = 0;
+	private boolean toggle5 = false;
 
 	function Init() {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			// 初始化测试环境
-			testUnit = null;
-		}, function() {
-			// 清理测试环境
+		// 测试1: parse创建
+		UnitTestAutoTimer(0.1, 0, function() {
 			if (testUnit != null) {
 				RemoveUnit(testUnit);
-				testUnit = null;
 			}
-		});
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+
+			Trace("测试1: unitSpell.parse创建");
+			assert.Boolean(us != 0, "单位是否有效");
+			assert.Boolean(us.u == testUnit, "绑定单位是否正确");
+		}, null);
+
+		// 测试2: get获取
+		UnitTestAutoTimer(0.6 ,0, function() {
+			unitSpell us2;
+
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			us2 = unitSpell.get(testUnit);
+
+			Trace("测试2: unitSpell.get获取");
+			assert.Boolean(us == us2, "获取实例是否相同");
+		}, null);
+
+		// 测试3: addSpell和getSpell
+		UnitTestAutoTimer(1.1 ,0, function() {
+			spell sp;
+
+
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			sp = spell.entity(testUnit, 'AHbz', 1);
+
+			us.addSpell(sp);
+			Trace("测试3: addSpell和getSpell");
+			assert.Boolean(us.getSpell(0) == sp, "获取技能是否正确");
+		}, null);
+
+		// 测试4: getSpellCount
+		UnitTestAutoTimer(1.6 ,0, function() {
+			spell sp;
+			integer countBefore;
+
+
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			sp = spell.entity(testUnit, 'AHbz', 1);
+
+			countBefore = us.getSpellCount();
+			us.addSpell(sp);
+
+			Trace("测试4: getSpellCount");
+			assert.Boolean(us.getSpellCount() == countBefore + 1, "技能数量是否正确");
+		}, null);
+
+		// 测试6: 单位销毁清理
+		UnitTestAutoTimer(2.1 ,0, function() {
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+
+			Trace("测试6: 单位销毁清理");
+			assert.Boolean(us.isExist(), "销毁前unitSpell存在");
+			RemoveUnit(testUnit);
+			assert.Boolean(!us.isExist(), "销毁后unitSpell不存在");
+			testUnit = null;
+		}, null);
+
+		// 测试7: 技能添加删除测试
+		UnitTestAutoTimer(2.6, 0, function() {
+			spell spells[5];
+			integer i = 0;
+			boolean removeResult = false;
+			spell invalidSpell = 0;
+
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+
+			Trace("测试7: 技能添加删除测试");
+
+			// 添加5个技能
+			for (0 <= i < 5) {
+				spells[i] = spell.entity(testUnit, 'AHbz', 1);
+				us.addSpell(spells[i]);
+			}
+
+			// 测试技能数量
+			assert.Boolean(us.getSpellCount() == 5, "添加5个技能后数量是否为5");
+
+			// 测试删除不存在的技能
+			removeResult = us.removeSpell(invalidSpell);
+			assert.Boolean(!removeResult, "删除不存在的技能应该返回false");
+
+			// 逐个删除技能并检查数量
+			for (0 <= i < 5) {
+				removeResult = us.removeSpell(spells[i]);
+				assert.Boolean(removeResult, "删除第" + I2S(i + 1) + "个技能应该成功");
+				assert.Boolean(us.getSpellCount() == 4 - i, "删除后技能数量应该为" + I2S(4 - i));
+			}
+
+			// 最终检查
+			assert.Boolean(us.getSpellCount() == 0, "删除所有技能后数量应该为0");
+		}, null);
 	}
 
-	// 测试unitSpell.parse创建和基本属性
-	function TTestUTUnitSpell1(player p) {
-		unitSpell us = unitSpell.parse(testUnit);
-		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+	// 测试用例函数保持空实现
+	function TTestUTUnitSpell1(player p) {}
+	function TTestUTUnitSpell2(player p) {}
+	function TTestUTUnitSpell3(player p) {}
+	function TTestUTUnitSpell4(player p) {}
 
-		BJDebugMsg("测试1: unitSpell.parse创建");
-		BJDebugMsg("单位是否有效: " + B2S(us != 0));
-		BJDebugMsg("绑定单位是否正确: " + B2S(us.u == testUnit));
-	}
-
-	// 测试unitSpell.get获取实例
-	function TTestUTUnitSpell2(player p) {
-		unitSpell us1 = unitSpell.parse(testUnit);
-		unitSpell us2 = unitSpell.get(testUnit);
-		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
-
-		BJDebugMsg("测试2: unitSpell.get获取");
-		BJDebugMsg("获取实例是否相同: " + B2S(us1 == us2));
-	}
-
-	// 测试addSpell和getSpell
-	function TTestUTUnitSpell3(player p) {
-		unitSpell us = unitSpell.parse(testUnit);
-		spell sp = spell.create(testUnit, 'AHbz', 1); // 创建一个测试技能
-		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
-
-		us.addSpell(sp);
-		BJDebugMsg("测试3: addSpell和getSpell");
-		BJDebugMsg("获取技能是否正确: " + B2S(us.getSpell(0) == sp));
-	}
-
-	// 测试getSpellCount
-	function TTestUTUnitSpell4(player p) {
-		unitSpell us;
-		spell sp;
-		integer countBefore;
-
-		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
-		us = unitSpell.parse(testUnit);
-		sp = spell.create(testUnit, 'AHbz', 1);
-
-		countBefore = us.getSpellCount();
-		us.addSpell(sp);
-
-		BJDebugMsg("测试4: getSpellCount");
-		BJDebugMsg("技能数量是否正确: " + B2S(us.getSpellCount() == countBefore + 1));
-	}
-
-	// 测试默认技能初始化
+	// 只保留测试5的实现，因为它是交互式的随机创建删除测试
 	function TTestUTUnitSpell5(player p) {
-		unitSpell us = unitSpell.parse(testUnit);
-		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		integer i;
+		integer count;
+		unit u;
+		group g;
+		unitSpell tempUs;
 
-		BJDebugMsg("测试5: 默认技能初始化");
-		BJDebugMsg("默认技能数量: " + I2S(us.getSpellCount()));
+		if (toggle5) {
+			// 删除模式：遍历所有单位并删除技能实例
+			g = CreateGroup();
+			GroupEnumUnitsInRect(g, GetPlayableMapRect(), null);
+			ForGroup(g, function() {
+				unit u = GetEnumUnit();
+				unitSpell tempUs = unitSpell.get(u);
+				if (tempUs != 0) {
+					tempUs.destroy();
+					Trace("删除了单位 " + GetUnitName(u) + " 的技能实例");
+				}
+				u = null;
+			});
+			DestroyGroup(g);
+			g = null;
+			Trace("已清理所有技能实例");
+		} else {
+			// 创建模式：随机创建10-20个带技能的单位
+			count = GetRandomInt(10, 20);
+			Trace("准备创建 " + I2S(count) + " 个测试单位");
+
+			for (0 <= i < count) {
+				u = CreateUnit(p, 'hfoo',
+				GetRandomReal(-1000, 1000),
+				GetRandomReal(-1000, 1000),
+				GetRandomReal(0, 360));
+
+				tempUs = unitSpell.parse(u);
+				if (tempUs != 0) {
+					Trace("创建第 " + I2S(i + 1) + " 个单位的技能实例成功");
+				}
+				u = null;
+			}
+			Trace("完成创建测试单位");
+		}
+
+		toggle5 = !toggle5;
 	}
 
-	// 测试单位销毁时的清理
-	function TTestUTUnitSpell6(player p) {
-		unitSpell us = unitSpell.parse(testUnit);
-		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
-
-		BJDebugMsg("测试6: 单位销毁清理");
-		BJDebugMsg("销毁前unitSpell存在: " + B2S(us.isExist()));
-		RemoveUnit(testUnit);
-		BJDebugMsg("销毁后unitSpell存在: " + B2S(us.isExist()));
-	}
+	function TTestUTUnitSpell6(player p) {}
 
 	// 以下测试用例预留
 	function TTestUTUnitSpell7(player p) {}
@@ -123,8 +221,6 @@ library UTUnitSpell requires UnitSpell {
 		integer paramI[];
 		real paramR[];
 		unit selectedUnit;
-		unitSpell us;
-		spell sp;
 
 		p = GetTriggerPlayer();
 		index = GetConvertedPlayerId(p);
@@ -149,21 +245,19 @@ library UTUnitSpell requires UnitSpell {
 		num = num + 1;
 
 		if (paramS[0] == "a") {
-			// 创建测试单位
 			if (testUnit != null) {
 				RemoveUnit(testUnit);
 			}
 			testUnit = CreateUnit(p, paramI[1], 0, 0, 0);
-			BJDebugMsg("创建测试单位: " + I2S(paramI[1]));
+			us = unitSpell.parse(testUnit);
+			Trace("创建测试单位: " + I2S(paramI[1]));
 		} else if (paramS[0] == "b") {
-			// 为当前选中单位添加技能
-			selectedUnit = GetSelectedUnit(p);
+			selectedUnit = unitSelect.currentU[index];
 			if (selectedUnit != null) {
 				us = unitSpell.get(selectedUnit);
 				if (us != 0) {
-					sp = spell.create(selectedUnit, paramI[1], 1);
-					us.addSpell(sp);
-					BJDebugMsg("添加技能: " + I2S(paramI[1]));
+					us.addSpell(spell.entity(selectedUnit, paramI[1], 1));
+					Trace("添加技能: " + I2S(paramI[1]));
 				}
 			}
 		}
@@ -175,7 +269,7 @@ library UTUnitSpell requires UnitSpell {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr, 0.5);
 		TriggerAddCondition(tr, Condition(function() {
-			BJDebugMsg("[UnitSpell] 单元测试已加载");
+			Trace("[UnitSpell] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));

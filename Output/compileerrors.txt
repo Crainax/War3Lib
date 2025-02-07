@@ -1,4 +1,7 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 647: constructor requires no arguments
-1
+pjass.exe
+Line 1005:  Undeclared function Trace
+Line 1008:  Undeclared function Trace
+Line 1011:  Undeclared function Trace
+Line 1014:  Undeclared function Trace
+4

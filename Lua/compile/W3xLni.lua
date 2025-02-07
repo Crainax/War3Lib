@@ -47,7 +47,7 @@ function w3xlni:Start(func)
 	local result = table.pack(func())
 	if fu.fileExist(path.mapJ) then fu.WriteOver(path.mapJ, "") end --覆盖一下war3map.j为空
 	if path.buildVersion == "单元测试" then
-		utr.RemoveTable() -- 删除单元测试的物编
+		-- utr.RemoveTable() -- 删除单元测试的物编
 		utr.removeResourceFiles()                                -- 删除资源文件(blp,mdx这些)
 		print("[Lua" .. path.buildVersion .. "]清除临时物编(不含Lua文件).")
 	end

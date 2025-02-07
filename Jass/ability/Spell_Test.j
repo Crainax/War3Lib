@@ -9,19 +9,18 @@
 //自动生成的文件
 library UTSpell requires Spell {
 
-	private struct [20000] spell  {
-		integer id;
-		integer level;
-		integer sdId;
-	}
 
 	// 添加全局测试单位变量
 	private unit testArchmage = null;
 	private unit testFootman = null;
 
+	private unit testSpell = null;
+	private spell sp = 0;
+	private spellData sd[];
+
 	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start
+		UnitTestAutoTimer(0.1, 2.0, function() { //创建技能结构体测试
+			sd[1] = spellData.byType('A001');
 			}, function() {
 			//end
 		});
@@ -37,7 +36,7 @@ library UTSpell requires Spell {
 			unit u = unitSelect.argsSync;
 			integer index;
 			ability a = null,b = null;
-			Trace("已选择单位:" + GetUnitName(u));
+			Trace("已选择单位:" + GetUnitName(u) +"("+I2S(GetHandleId(u)) +")");
 			b = DzUnitFindAbility(u, 'AHbz');
 			Trace(" AHbz: " + I2S(GetHandleId(b)));
 			b = DzUnitFindAbility(u, 'AHab');
@@ -151,19 +150,77 @@ library UTSpell requires Spell {
 		});
 		t = null;
 	}
-	function TTestUTSpell5 (player p) {}
+
+	integer count = 10;
+	boolean toggle5 = false;
+	function TTestUTSpell5 (player p) {
+		integer i;
+		unit u;
+		group g;
+		spell sp1;
+
+		if (toggle5) {
+			// 删除模式：遍历所有单位并删除技能实例
+			g = CreateGroup();
+			GroupEnumUnitsInRect(g, GetPlayableMapRect(), null);
+			ForGroup(g, function() {
+				unit u = GetEnumUnit();
+				spell sp1 = spell.get(u, 'A001');
+				if (sp1.isExist()) {
+					sp1.destroy();
+				}
+				u = null;
+			});
+			DestroyGroup(g);
+			g = null;
+			Trace("已清理所有技能实例");
+		} else {
+			// 创建模式：随机创建10-20个带技能的单位
+			Trace("准备创建 " + I2S(count) + " 个测试单位");
+			for (0 <= i < count) {
+				// 在随机位置创建单位
+				u = CreateUnit(p, 'nsm1',
+					GetRandomReal(-1000, 1000),
+					GetRandomReal(-1000, 1000),
+					GetRandomReal(0, 360));
+
+				// 创建技能实例
+				sp1 = spell.entity(u, 'A001', 1);
+				sp1.registerDestroy(function () {
+					Trace("技能ID:" + I2S(spell.ethis) + "被销毁了(群)");
+				});
+				if (sp1.isExist()) {
+					Trace("创建第 " + I2S(i + 1) + " 个单位的技能实例成功");
+				}
+				u = null;
+			}
+			count -= 1;
+			Trace("完成创建测试单位");
+		}
+
+		toggle5 = !toggle5;
+	}
 	function TTestUTSpell6 (player p) {}
 	function TTestUTSpell7 (player p) {}
 	function TTestUTSpell8 (player p) {}
 	function TTestUTSpell9 (player p) {}
 	function TTestUTSpell10 (player p) {}
 	function TTestActUTSpell1 (string str) {
-		player  p	 = GetTriggerPlayer();
-		integer index = GetConvertedPlayerId(p);
-		integer i,	 num = 0, len = StringLength(str); //获取范围式数字
-		string  paramS [];							   //所有参数S
-		integer paramI [];							   //所有参数I
-		real	paramR [];							   //所有参数R
+		player p;
+		integer index;
+		integer i;
+		integer num;
+		integer len;
+		string paramS[];
+		integer paramI[];
+		real paramR[];
+
+		p = GetTriggerPlayer();
+		index = GetConvertedPlayerId(p);
+		num = 0;
+		len = StringLength(str);
+
+		// 解析参数
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -181,9 +238,38 @@ library UTSpell requires Spell {
 		num = num + 1;
 
 		if (paramS[0] == "a") {
-
+			// 原有的a指令逻辑
 		} else if (paramS[0] == "b") {
-
+			// 原有的b指令逻辑
+		} else if (paramS[0] == "destroy") {
+			// 销毁sp
+			if (sp != 0) {
+				sp.destroy();
+				sp = 0;
+				Trace("已销毁技能结构体sp");
+			} else {
+				Trace("错误：sp已经是空的了");
+			}
+		} else if (paramS[0] == "new") {
+			// 销毁sp
+			if (sp != 0) {
+				sp.destroy();
+			}
+			RemoveUnit(testSpell);
+			testSpell = CreateUnit(Player(0),'nsm1',0,0,0);
+			sp = spell.entity(testSpell,'A001',1);
+			sp.registerDestroy(function () {
+				Trace("技能ID:" + I2S(spell.ethis) + "被销毁了(独)");
+			});
+			Trace("测试单位创建完成了");
+		} else if (paramS[0] == "remove") {
+			// 删除testSpell的'A001'技能
+			if (testSpell != null) {
+				UnitRemoveAbility(testSpell, 'A001');
+				Trace("已移除testSpell的A001技能");
+			} else {
+				Trace("错误：testSpell不存在，请先创建测试单位");
+			}
 		}
 
 		p = null;

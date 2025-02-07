@@ -20,13 +20,21 @@ library UnitSpell requires Spell {
         integer spellCount = 0;       // 当前技能数量
 
         // 添加技能
-        method addSpell(spell sp) {
-            if (sp == 0) { return; }      // 无效的技能
-            if (this.spellCount >= MAX_UNIT_CURRENT_SPELLS) { return; }
+        //todo:看看能不能给技能改位置
+        method addSpell(spellData sd, integer level) -> spell {
+            spell sp = 0;
+
+            if (this.spellCount >= MAX_UNIT_CURRENT_SPELLS) { return 0; }
+
+            // 创建技能实例
+            sp = spell.entity(this.u, sd, IMinBJ(level, IMaxBJ(sd.maxLevel, 1)));
+            if (sp == 0) { return 0; }
 
             SaveInteger(HASH_UNIT, GetHandleId(this.u),
-            HASH_KEY_UNIT_UNITSPELL_IDS + this.spellCount, sp);
+                HASH_KEY_UNIT_UNITSPELL_IDS + this.spellCount, sp);
             this.spellCount += 1;
+
+            return sp;
         }
 
         // 获取技能数量
@@ -43,29 +51,50 @@ library UnitSpell requires Spell {
             return 0;
         }
 
+        // 移除指定技能
+        method removeSpell(spell sp) -> boolean {
+            integer i = 0;
+            integer handleId = GetHandleId(this.u);
+            spell lastSpell = 0;
+            spell targetSpell = 0;
+
+            if (!sp.isExist()) {return false;}
+
+            // 遍历查找技能
+            for (0 <= i < this.spellCount) {
+                targetSpell = LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_UNITSPELL_IDS + i);
+                if (targetSpell == sp) {
+                    // 如果不是最后一个技能,则把最后一个技能移到当前位置
+                    if (i < this.spellCount - 1) {
+                        lastSpell = LoadInteger(HASH_UNIT, handleId,
+                            HASH_KEY_UNIT_UNITSPELL_IDS + this.spellCount - 1);
+                        SaveInteger(HASH_UNIT, handleId,
+                            HASH_KEY_UNIT_UNITSPELL_IDS + i, lastSpell);
+                    }
+
+                    // 清理最后一个位置
+                    RemoveSavedInteger(HASH_UNIT, handleId,
+                        HASH_KEY_UNIT_UNITSPELL_IDS + this.spellCount - 1);
+                    this.spellCount -= 1;
+
+                    // 销毁技能对象
+                    targetSpell.destroy();
+                    return true;
+                }
+            }
+            return false;
+        }
 
         // 初始化默认技能(从unitData继承)
         private method initDefaultSpell() {
             integer i = 0;
-            spellData sd = 0;
-            integer level = 0;
-            integer maxLevel = 0;
-            spell sp = 0;
             unitData ud = unitData.byType(GetUnitTypeId(this.u));
 
             this.spellCount = 0; // 初始化技能数量
 
             // 从unitData创建所有技能
             for (0 <= i < ud.getSpellCount()) {
-                sd = ud.getSpellId(i);
-                level = ud.getSpellLevel(i);
-                maxLevel = sd.maxLevel;
-                sp = spell.entity(this.u, sd, IMinBJ(level, IMaxBJ(maxLevel, 1)));
-                if (sp != 0) {
-                    SaveInteger(HASH_UNIT, GetHandleId(this.u),
-                    HASH_KEY_UNIT_UNITSPELL_IDS + this.spellCount, sp);
-                    this.spellCount += 1;
-                }
+                this.addSpell(ud.getSpellId(i), ud.getSpellLevel(i));
             }
         }
 
@@ -109,6 +138,7 @@ library UnitSpell requires Spell {
                 RemoveSavedInteger(HASH_UNIT, GetHandleId(this.u), HASH_KEY_UNIT_UNITSPELL);
             }
             this.u = null;
+            BJDebugMsg("unitSpell销毁了:"+I2S(this));
         }
 
         static method onInit () {
