@@ -137,7 +137,7 @@ library Spell {
                 thistype.ethis = this;
                 TriggerEvaluate(trDestroy);
                 DestroyTrigger(trDestroy);
-                trDestroy = null;`
+                trDestroy = null;
             }
             if (spellType == SPELL_TYPE_VIRTUAL) { //虚拟技能
                 if (HaveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(u), sd), HASH_KEY_SPELL_SPELL)) {

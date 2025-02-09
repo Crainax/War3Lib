@@ -29,6 +29,11 @@ library UTUnitSpell requires UnitSpell {
 
 	function Init() {
 		// 测试1: parse创建
+		spellData sd = spellData.byType('AHbz');
+		sd = spellData.byType('AHtb');
+		sd = spellData.byType('AHtc');
+		sd = spellData.byType('AHmt');
+		sd = spellData.byType('AHfs');
 		UnitTestAutoTimer(0.1, 0, function() {
 			if (testUnit != null) {
 				RemoveUnit(testUnit);
@@ -111,10 +116,17 @@ library UTUnitSpell requires UnitSpell {
 
 		// 测试7: 技能添加删除测试
 		UnitTestAutoTimer(2.6, 0, function() {
-			spell spells[5];
+			integer spellIds[]; // 不同的技能ID
 			integer i = 0;
 			boolean removeResult = false;
 			spell invalidSpell = 0;
+			spellData sd = 0;
+
+			spellIds[0] = 'AHbz';
+			spellIds[1] = 'AHtb';
+			spellIds[2] = 'AHtc';
+			spellIds[3] = 'AHmt';
+			spellIds[4] = 'AHfs';
 
 			if (testUnit != null) {
 				RemoveUnit(testUnit);
@@ -122,16 +134,14 @@ library UTUnitSpell requires UnitSpell {
 			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
 			us = unitSpell.parse(testUnit);
 
-			Trace("测试7: 技能添加删除测试");
-
-			// 添加5个技能
+			// 添加5个不同的技能
 			for (0 <= i < 5) {
-				spells[i] = spell.entity(testUnit, 'AHbz', 1);
-				us.addSpell(spells[i]);
+				sd = spellData.byType(spellIds[i]);
+				us.addSpellData(sd, 1);
 			}
 
 			// 测试技能数量
-			assert.Boolean(us.getSpellCount() == 5, "添加5个技能后数量是否为5");
+			assert.Integer(us.getSpellCount(), 5, "添加5个技能后数量是否为5");
 
 			// 测试删除不存在的技能
 			removeResult = us.removeSpell(invalidSpell);
@@ -139,13 +149,38 @@ library UTUnitSpell requires UnitSpell {
 
 			// 逐个删除技能并检查数量
 			for (0 <= i < 5) {
-				removeResult = us.removeSpell(spells[i]);
+				sd = spellData.byType(spellIds[i]);
+				removeResult = us.removeSpellData(sd);
 				assert.Boolean(removeResult, "删除第" + I2S(i + 1) + "个技能应该成功");
-				assert.Boolean(us.getSpellCount() == 4 - i, "删除后技能数量应该为" + I2S(4 - i));
+				assert.Integer(us.getSpellCount(), 4 - i, "删除后技能数量应该为" + I2S(4 - i));
 			}
 
 			// 最终检查
-			assert.Boolean(us.getSpellCount() == 0, "删除所有技能后数量应该为0");
+			assert.Integer(us.getSpellCount(), 0, "删除所有技能后数量应该为0");
+		}, null);
+
+		// 测试8: 重复添加技能测试
+		UnitTestAutoTimer(3.1, 0, function() {
+			spell sp1, sp2;
+			spellData sd;
+
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+
+			// 测试重复添加相同的spell实例
+			sp1 = spell.entity(testUnit, 'AHbz', 1);
+			assert.Boolean(us.addSpell(sp1) == sp1, "首次添加技能实例应该成功");
+			assert.Boolean(us.addSpell(sp1) == 0, "重复添加相同技能实例应该失败");
+			assert.Integer(us.getSpellCount(), 1, "重复添加后技能数量应该为1");
+
+			// 测试重复添加相同的spellData
+			sd = spellData.byType('AHtb');
+			assert.Boolean(us.addSpellData(sd, 1), "首次通过spellData添加技能应该成功");
+			assert.Boolean(us.addSpellData(sd, 1), "重复添加相同spellData应该失败");
+			assert.Integer(us.getSpellCount(), 2, "重复添加后技能数量应该为2");
 		}, null);
 	}
 
