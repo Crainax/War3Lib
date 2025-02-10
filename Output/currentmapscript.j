@@ -1,210 +1,441 @@
-globals
-//globals from BzAPI:
-constant boolean LIBRARY_BzAPI=true
-//endglobals from BzAPI
-//globals from LBKKAPI:
-constant boolean LIBRARY_LBKKAPI=true
-string MOVE_TYPE_NONE= "none"
-string MOVE_TYPE_FOOT= "foot"
-string MOVE_TYPE_HORSE= "horse"
-string MOVE_TYPE_FLY= "fly"
-string MOVE_TYPE_HOVER= "hover"
-string MOVE_TYPE_FLOAT= "float"
-string MOVE_TYPE_AMPH= "amph"
-string MOVE_TYPE_UNBUILD= "unbuild"
-constant integer DEFENSE_TYPE_LIGHT= 0
-constant integer DEFENSE_TYPE_MEDIUM= 1
-constant integer DEFENSE_TYPE_LARGE= 2
-constant integer DEFENSE_TYPE_FORT= 3
-constant integer DEFENSE_TYPE_NORMAL= 4
-constant integer DEFENSE_TYPE_HERO= 5
-constant integer DEFENSE_TYPE_DIVINE= 6
-constant integer DEFENSE_TYPE_NONE= 7
-//endglobals from LBKKAPI
-//globals from SLKTable:
-constant boolean LIBRARY_SLKTable=true
-hashtable HASH_SLK=InitHashtable()
-//endglobals from SLKTable
-//globals from Spell:
-constant boolean LIBRARY_Spell=true
-//endglobals from Spell
-//globals from SpellData:
-constant boolean LIBRARY_SpellData=true
-constant integer SPELL_TYPE_ENTITY=0
-constant integer SPELL_TYPE_MIRROR=1
-constant integer SPELL_TYPE_VIRTUAL=2
-constant integer SPELL_TYPE_SIMPLE=3
-//endglobals from SpellData
-//globals from SpellTable:
-constant boolean LIBRARY_SpellTable=true
-hashtable HASH_SPELL=InitHashtable()
-//endglobals from SpellTable
-//globals from UnitHashTable:
-constant boolean LIBRARY_UnitHashTable=true
-hashtable HASH_UNIT=InitHashtable()
-//endglobals from UnitHashTable
-//globals from UnitLifeCycle:
-constant boolean LIBRARY_UnitLifeCycle=true
-//endglobals from UnitLifeCycle
-//globals from UnitTestFramwork:
-constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork___TUnitTest=null
-hashtable UnitTestFramwork___HASH_UNITTEST=InitHashtable()
-//endglobals from UnitTestFramwork
-//globals from YDLua:
-constant boolean LIBRARY_YDLua=true
-//endglobals from YDLua
-//globals from YDWEAbilityState:
-constant boolean LIBRARY_YDWEAbilityState=true
-constant integer YDWEAbilityState___ABILITY_STATE_COOLDOWN= 1
-constant integer YDWEAbilityState___ABILITY_DATA_TARGS= 100
-constant integer YDWEAbilityState___ABILITY_DATA_CAST= 101
-constant integer YDWEAbilityState___ABILITY_DATA_DUR= 102
-constant integer YDWEAbilityState___ABILITY_DATA_HERODUR= 103
-constant integer YDWEAbilityState___ABILITY_DATA_COST= 104
-constant integer YDWEAbilityState___ABILITY_DATA_COOL= 105
-constant integer YDWEAbilityState___ABILITY_DATA_AREA= 106
-constant integer YDWEAbilityState___ABILITY_DATA_RNG= 107
-constant integer YDWEAbilityState___ABILITY_DATA_DATA_A= 108
-constant integer YDWEAbilityState___ABILITY_DATA_DATA_B= 109
-constant integer YDWEAbilityState___ABILITY_DATA_DATA_C= 110
-constant integer YDWEAbilityState___ABILITY_DATA_DATA_D= 111
-constant integer YDWEAbilityState___ABILITY_DATA_DATA_E= 112
-constant integer YDWEAbilityState___ABILITY_DATA_DATA_F= 113
-constant integer YDWEAbilityState___ABILITY_DATA_DATA_G= 114
-constant integer YDWEAbilityState___ABILITY_DATA_DATA_H= 115
-constant integer YDWEAbilityState___ABILITY_DATA_DATA_I= 116
-constant integer YDWEAbilityState___ABILITY_DATA_UNITID= 117
-constant integer YDWEAbilityState___ABILITY_DATA_HOTKET= 200
-constant integer YDWEAbilityState___ABILITY_DATA_UNHOTKET= 201
-constant integer YDWEAbilityState___ABILITY_DATA_RESEARCH_HOTKEY= 202
-constant integer YDWEAbilityState___ABILITY_DATA_NAME= 203
-constant integer YDWEAbilityState___ABILITY_DATA_ART= 204
-constant integer YDWEAbilityState___ABILITY_DATA_TARGET_ART= 205
-constant integer YDWEAbilityState___ABILITY_DATA_CASTER_ART= 206
-constant integer YDWEAbilityState___ABILITY_DATA_EFFECT_ART= 207
-constant integer YDWEAbilityState___ABILITY_DATA_AREAEFFECT_ART= 208
-constant integer YDWEAbilityState___ABILITY_DATA_MISSILE_ART= 209
-constant integer YDWEAbilityState___ABILITY_DATA_SPECIAL_ART= 210
-constant integer YDWEAbilityState___ABILITY_DATA_LIGHTNING_EFFECT= 211
-constant integer YDWEAbilityState___ABILITY_DATA_BUFF_TIP= 212
-constant integer YDWEAbilityState___ABILITY_DATA_BUFF_UBERTIP= 213
-constant integer YDWEAbilityState___ABILITY_DATA_RESEARCH_TIP= 214
-constant integer YDWEAbilityState___ABILITY_DATA_TIP= 215
-constant integer YDWEAbilityState___ABILITY_DATA_UNTIP= 216
-constant integer YDWEAbilityState___ABILITY_DATA_RESEARCH_UBERTIP= 217
-constant integer YDWEAbilityState___ABILITY_DATA_UBERTIP= 218
-constant integer YDWEAbilityState___ABILITY_DATA_UNUBERTIP= 219
-constant integer YDWEAbilityState___ABILITY_DATA_UNART= 220
-//endglobals from YDWEAbilityState
-//globals from Hardware:
-constant boolean LIBRARY_Hardware=true
-//endglobals from Hardware
-//globals from Logger:
-constant boolean LIBRARY_Logger=true
-integer logger_level=0
-string logger_msg=null
-player logger_p=null
-trigger logger_tr=null
-//endglobals from Logger
-//globals from UnitData:
-constant boolean LIBRARY_UnitData=true
-//endglobals from UnitData
-//globals from UnitSpell:
-constant boolean LIBRARY_UnitSpell=true
-//endglobals from UnitSpell
-//globals from UTUnitSpell:
-constant boolean LIBRARY_UTUnitSpell=true
-unit UTUnitSpell___testUnit=null
-integer UTUnitSpell___us=0
-boolean UTUnitSpell___toggle5=false
-//endglobals from UTUnitSpell
-//globals from UnitSelect:
-constant boolean LIBRARY_UnitSelect=true
-//endglobals from UnitSelect
-    // Generated
-rect gg_rct_Wave1= null
-rect gg_rct_Wave2= null
-rect gg_rct_Wave3= null
-rect gg_rct_Wave4= null
-rect gg_rct_Base= null
-rect gg_rct_BaseBack= null
-rect gg_rct_Home1= null
-rect gg_rct_Home2= null
-rect gg_rct_Home3= null
-rect gg_rct_Home4= null
-rect gg_rct_Fuben1= null
-rect gg_rct_Fuben2= null
-rect gg_rct_Fuben3= null
-rect gg_rct_Fuben4= null
-rect gg_rct_Fuben5= null
-rect gg_rct_Fuben6= null
-rect gg_rct_Fuben7= null
-rect gg_rct_Fuben8= null
-trigger gg_trg_______u= null
-unit gg_unit_hcas_0011= null
+//#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
+//#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
+//#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
+//#  define TriggerRegisterPlayerEventVictory(trig, player)                  TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_VICTORY)
+//#  define TriggerRegisterPlayerEventDefeat(trig, player)                   TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_DEFEAT)
+//#  define TriggerRegisterPlayerEventLeave(trig, player)                    TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_LEAVE)
+//#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
+//#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
+// 原生UI的大小
 
-trigger l__library_init
+// 物品掉落相关键值 (预留20个空间 1800-1819/1820-1839)  MonsterData
+// 技能相关键值 (预留200个空间 2000-2199) UnitData
+// 2400开始可继续添加新的键值定义...
+//! zinc
 
-//JASSHelper struct globals:
-constant integer si__spell=1
-integer si__spell_F=0
-integer si__spell_I=0
-integer array si__spell_V
-integer s__spell_ethis=0
-unit array s__spell_u
-integer array s__spell_spellType
-integer array s__spell_id
-integer array s__spell_sd
-integer array s__spell_level
-trigger array s__spell_trDestroy
-constant integer si__spellData=2
-integer s__spellData_counter=0
-integer array s__spellData_id
-integer array s__spellData_spellType
-trigger array s__spellData_trInit
-trigger array s__spellData_trDestroy
-trigger array s__spellData_trUpgrade
-integer array s__spellData_maxLevel
-string array s__spellData_description
-string array s__spellData_icon
-constant integer si__unitLifeCycle=3
-unit s__unitLifeCycle_argsUnit=null
-trigger s__unitLifeCycle_trCreate=null
-trigger s__unitLifeCycle_trDestroy=null
-constant integer si__assert=4
-constant integer si__hardware=5
-trigger s__hardware_trWheel=null
-trigger s__hardware_trUpdate=null
-trigger s__hardware_trResize=null
-trigger s__hardware_trMove=null
-constant integer si__unitData=6
-integer s__unitData_counter=0
-constant integer si__unitSpell=7
-integer si__unitSpell_F=0
-integer si__unitSpell_I=0
-integer array si__unitSpell_V
-unit array s__unitSpell_u
-integer array s__unitSpell_spellCount
-constant integer si__unitSelect=8
-unit s__unitSelect_args=null
-unit s__unitSelect_argsSync=null
-unit array s__unitSelect_currentU
-trigger s__unitSelect_trAsync
-trigger s__unitSelect_trAsyncUn
-trigger s__unitSelect_trSync
-trigger s__unitSelect_trSyncUn
-unit s__unitSelect_asyncU=null
-trigger st__spell_onDestroy
-trigger st__spellData_byType
-trigger st__unitLifeCycle_onDestroyCB
-trigger st__unitSpell_onDestroy
-integer f__arg_integer1
-unit f__arg_unit1
-integer f__arg_this
-integer f__result_integer
+library SpellData {
+    public constant integer SPELL_TYPE_ENTITY = 0; //固定技能(默认)
+public constant integer SPELL_TYPE_MIRROR = 1; //镜像技能(英雄的模板技能)
+public constant integer SPELL_TYPE_VIRTUAL = 2; //虚拟技能(物品技能)
+public constant integer SPELL_TYPE_SIMPLE = 3; //简单技能(无结构体,固定发挥)
+    public struct spellData [] {
+        static unit argsU = null; //事件单位
+static integer argsLevel = 0; //事件等级
+        static integer counter = 0; // 当前有几个技能数据
+        integer id; // 技能ID(从那边直接获取数据)
+integer spellType; // 技能类型(1:结构技能,2:无结构技能,3:虚拟技能,4:简单技能)
+        trigger trInit; // 技能初始化事件
+trigger trDestroy; // 技能销毁事件
+trigger trUpgrade; // 技能升级事件
+        integer maxLevel; // 技能等级(最大等级)
+string description; // 技能描述
+string icon; // 技能图标
+        public method registerInit(code func) {
+            if (trInit == null) {
+                trInit = CreateTrigger();
+            }
+            TriggerAddCondition(trInit, Condition(func));
+        }
+        public method registerDestroy(code func) {
+            if (trDestroy == null) {
+                trDestroy = CreateTrigger();
+            }
+            TriggerAddCondition(trDestroy, Condition(func));
+        }
+        public method registerUpgrade(code func) {
+            if (trUpgrade == null) {
+                trUpgrade = CreateTrigger();
+            }
+            TriggerAddCondition(trUpgrade, Condition(func));
+        }
+        //根据技能类型
+        public static method byType(integer at) -> thistype {
+            thistype this;
+            if (HaveSavedInteger(HASH_SLK, at, 1727)) {
+                this = LoadInteger(HASH_SLK, at, 1727);
+            } else {
+                counter += 1;
+                this = thistype[counter];
+                SaveInteger(HASH_SLK, at, 1727, this);
+                id = at;
+                maxLevel = 1; //默认最大等级1级
+}
+            return this;
+        }
+        // 返回一个新的并自增(空物编)
+        public static method new () -> thistype {
+            thistype this;
+            counter += 1;
+            this = thistype[counter];
+            return this;
+        }
+    }
+}
+//! endzinc
 
-endglobals
+//! zinc
+library UnitTestFramwork {
+	//单元测试总
+	trigger TUnitTest = null;
+    private hashtable HASH_UNITTEST = InitHashtable(); // 单元测试哈希表
+    //断言
+    public struct assert []{
+        //断言布尔值
+        static method Boolean (boolean condition,string name) {
+            if (!condition) {
+                BJDebugMsg("FAIL: " + name);
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+        //断言字符串相等
+        static method String(string actual, string expected, string name) {
+            if (actual != expected) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + expected);
+                BJDebugMsg("  Actual: " + actual);
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+        //断言整数相等
+        static method Integer(integer actual, integer expected, string name) {
+            if (actual != expected) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + I2S(expected));
+                BJDebugMsg("  Actual: " + I2S(actual));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+        //断言浮点数相等
+        static method Real(real actual, real expected, string name) {
+            real maxValue = RMaxBJ(RAbsBJ(actual), RAbsBJ(expected)); // 取两个数的绝对值的较大值
+real epsilon = maxValue * 0.00001; // 相对误差为数值大小的万分之一
+// 处理接近0的特殊情况
+if (maxValue < 0.00001) {
+                epsilon = 0.00001;
+            }
+            if (RAbsBJ(actual - expected) > epsilon) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + R2SW(expected,0,1));
+                BJDebugMsg("  Actual: " + R2SW(actual,0,1));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+    }
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
+    }
+    //指定开始时间与持续时间的定时器
+    public function UnitTestAutoTimer (real time, real duration,code start, code end) {
+        trigger t = CreateTrigger();
+        trigger tr = CreateTrigger();
+        TriggerAddCondition(t, Condition(start));
+        TriggerRegisterTimerEvent(tr, time, false);
+        SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
+        SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
+        SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
+        TriggerAddCondition(tr,Condition(function (){
+            real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
+            real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
+            trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
+            BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]开始------");
+            TriggerEvaluate(tr);
+            DestroyTrigger(tr);
+            FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
+            DestroyTrigger(GetTriggeringTrigger());
+            tr = null;
+        }));
+        if (end != null) {
+            t = CreateTrigger();
+            tr = CreateTrigger();
+            TriggerAddCondition(t, Condition(end));
+            TriggerRegisterTimerEvent(tr, time+duration, false);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
+            SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
+            TriggerAddCondition(tr,Condition(function (){
+                real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
+                real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
+                trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
+                TriggerEvaluate(tr);
+                BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]结束------");
+                DestroyTrigger(tr);
+                FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
+                DestroyTrigger(GetTriggeringTrigger());
+                tr = null;
+            }));
+        }
+        tr = null;
+        t = null;
+    }
+    function onInit () {
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEvent(tr, 0.1, false);
+        TriggerAddCondition(tr,Condition(function (){
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, bj_mapInitialPlayableArea ); //迷雾全关
+}
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+    }
+}
+//! endzinc
+library LBKKAPI 
+        globals 
+                string MOVE_TYPE_NONE = "none" //没有（无视碰撞）  
+string MOVE_TYPE_FOOT = "foot" //步行  
+string MOVE_TYPE_HORSE = "horse" //骑马  
+string MOVE_TYPE_FLY = "fly" //飞行（还具有空中视野，也可以设置飞行高度）  
+string MOVE_TYPE_HOVER = "hover" //浮空（不会踩中地雷）  
+string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）  
+string MOVE_TYPE_AMPH = "amph" //两栖  
+string MOVE_TYPE_UNBUILD = "unbuild" //不可建造  
+constant integer DEFENSE_TYPE_LIGHT = 0 
+		constant integer DEFENSE_TYPE_MEDIUM = 1 
+		constant integer DEFENSE_TYPE_LARGE = 2 
+		constant integer DEFENSE_TYPE_FORT = 3 
+		constant integer DEFENSE_TYPE_NORMAL = 4 
+		constant integer DEFENSE_TYPE_HERO = 5 
+		constant integer DEFENSE_TYPE_DIVINE = 6 
+		constant integer DEFENSE_TYPE_NONE = 7 
+        endglobals 
+        native DzGetSelectedLeaderUnit takes nothing returns unit 
+        native DzIsChatBoxOpen takes nothing returns boolean 
+        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
+        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
+        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
+        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
+        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
+        native DzSetEffectModel takes effect whichEffect, string model returns nothing
+        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
+        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
+        native DzChangeWindowSize takes integer width, integer height returns boolean 
+        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
+        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
+        native DzUnbindEffect takes effect whichEffect returns nothing 
+        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
+        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
+        native DzGetEffectVertexColor takes effect whichEffect returns integer 
+        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
+        native DzGetItemAbility takes item whichEffect, integer index returns ability 
+        native DzFrameGetChildrenCount takes integer whichframe returns integer 
+        native DzFrameGetChild takes integer whichframe, integer index returns integer 
+        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
+        native DzGetActivePatron takes unit store, player p returns unit 
+        native DzGetLocalSelectUnitCount takes nothing returns integer 
+        native DzGetLocalSelectUnit takes integer index returns unit 
+        native DzGetJassStringTableCount takes nothing returns integer 
+        native DzModelRemoveFromCache takes string path returns nothing 
+        native DzModelRemoveAllFromCache takes nothing returns nothing 
+        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
+        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
+        native DzFrameGetPeonBar takes nothing returns integer 
+        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
+        native DzToggleFPS takes boolean show returns nothing 
+        native DzGetFPS takes nothing returns integer 
+        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
+        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
+        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
+        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
+        native DzFrameGetWorldFrameMessage takes nothing returns integer 
+        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
+        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
+        //转换屏幕坐标到世界坐标  
+        native DzConvertScreenPositionX takes real x, real y returns real 
+        native DzConvertScreenPositionY takes real x, real y returns real 
+        //监听建筑选位置  
+        native DzRegisterOnBuildLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnBuildOrderId takes nothing returns integer 
+        native DzGetOnBuildOrderType takes nothing returns integer 
+        native DzGetOnBuildAgent takes nothing returns widget 
+        //监听技能选目标  
+        native DzRegisterOnTargetLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnTargetAbilId takes nothing returns integer 
+        native DzGetOnTargetOrderId takes nothing returns integer 
+        native DzGetOnTargetOrderType takes nothing returns integer 
+        native DzGetOnTargetAgent takes nothing returns widget 
+        native DzGetOnTargetInstantTarget takes nothing returns widget 
+        // 打开QQ群链接  
+        native DzOpenQQGroupUrl takes string url returns boolean 
+        native DzFrameEnableClipRect takes boolean enable returns nothing 
+        native DzSetUnitName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
+        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
+        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
+        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
+        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
+        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
+        native DzGetAttackAbility takes unit whichUnit returns ability 
+        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
+        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
+        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
+        function DzSetHeroTypeProperName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 61, 0, name) 
+                call EXSetUnitInteger(uid, 61, 1) 
+        endfunction 
+        function DzSetUnitTypeName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 10, 0, name) 
+                call EXSetUnitInteger(uid, 10, 1) 
+        endfunction 
+        function DzIsUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns boolean 
+                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType 
+        endfunction 
+        function DzSetUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType)) 
+        endfunction 
+        function DzIsUnitDefenseType takes unit whichUnit, integer defenseType returns boolean 
+                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType 
+        endfunction 
+        function DzSetUnitDefenseType takes unit whichUnit, integer defenseType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType) 
+        endfunction 
+        // 地形装饰物
+        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
+        native DzDoodadGetTypeId takes integer doodad returns integer 
+        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
+        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
+        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
+        native DzDoodadGetX takes integer doodad returns real 
+        native DzDoodadGetY takes integer doodad returns real 
+        native DzDoodadGetZ takes integer doodad returns real 
+        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
+        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
+        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
+        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
+        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
+        native DzDoodadGetTimeScale takes integer doodad returns real 
+        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
+        native DzDoodadGetAnimationCount takes integer doodad returns integer 
+        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
+        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
+        // 解锁JASS字节码限制
+        native DzUnlockOpCodeLimit takes boolean enable returns nothing
+        // 设置剪切板内容
+        native DzSetClipboard takes string content returns boolean
+        //删除装饰物
+        native DzDoodadRemove takes integer doodad returns nothing
+        //移除科技等级
+        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
+        
+        // 查找单位技能
+        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
+        // 修改技能数据-字符串
+        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
+                
+        // 启用/禁用技能
+        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
+        // 设置单位移动类型
+        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
+        // 获取控件宽度
+        native DzFrameGetWidth takes integer frame returns real
+        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
+        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
+        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
+        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
+                call DzSetUnitDataCacheInteger( uid, id, 0, v)
+        endfunction
+        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 94, id, v)
+        endfunction
+        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 100, id, v)
+        endfunction
+        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 112, id, v)
+        endfunction
+        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 106, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 118, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 124, id, v)
+        endfunction
+        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 130, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 172, id, v)
+        endfunction
+         // 设置道具模型
+        native DzItemSetModel takes item whichItem, string file returns nothing
+        // 设置道具颜色
+        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
+        // 设置道具透明度
+        native DzItemSetAlpha takes item whichItem, integer color returns nothing
+        // 设置道具头像
+        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
+endlibrary
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
+//! zinc
+
+library UnitLifeCycle {
+    public struct unitLifeCycle [] {
+        static unit argsUnit = null;
+        private {
+            static trigger trCreate = null;
+            static trigger trDestroy = null;
+        }
+        // 注册销毁回调
+        static method registerDestroy(code func) {
+            TriggerAddCondition(trDestroy, Condition(func));
+        }
+        static method onDestroyCB(unit u) {
+            argsUnit = u;
+            TriggerEvaluate(trDestroy);
+            //然后再清除所有哈希表
+            FlushChildHashtable(HASH_UNIT,GetHandleId(u));
+            argsUnit = null;
+        }
+        static method onInit () {
+            trCreate = CreateTrigger();
+            trDestroy = CreateTrigger();
+        }
+    }
+}
+//! endzinc
+hook RemoveUnit unitLifeCycle.onDestroyCB
+library BzAPI
+    //hardware
     native DzGetMouseTerrainX takes nothing returns real
     native DzGetMouseTerrainY takes nothing returns real
     native DzGetMouseTerrainZ takes nothing returns real
@@ -233,6 +464,7 @@ endglobals
     native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
     native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
     native DzIsWindowActive takes nothing returns boolean
+    //plus
     native DzDestructablePosition takes destructable d, real x, real y returns nothing
     native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
     native DzExecuteFunc takes string funcName returns nothing
@@ -244,13 +476,16 @@ endglobals
     native DzSetWar3MapMap takes string map returns nothing
     native DzGetLocale takes nothing returns string
     native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
+    //sync
     native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
     native DzSyncData takes string prefix, string data returns nothing
     native DzGetTriggerSyncPrefix takes nothing returns string
     native DzGetTriggerSyncData takes nothing returns string
     native DzGetTriggerSyncPlayer takes nothing returns player
     native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
+    //native DzGetPushContext takes nothing returns string
     native DzSyncDataImmediately takes string prefix, string data returns nothing 
+    //gui
     native DzFrameHideInterface takes nothing returns nothing
     native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
     native DzFrameGetPortrait takes nothing returns integer
@@ -326,410 +561,45 @@ endglobals
     native DzGetClientWidth takes nothing returns integer
     native DzGetClientHeight takes nothing returns integer
     native DzFrameIsVisible takes integer frame returns boolean
-    native DzFrameAddText takes integer frame, string text returns nothing
-    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
-    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
-    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
-    native DzUpdateMinimap takes nothing returns nothing
-    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
-    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
-    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
-    native DzSaveMemoryCache takes string cache returns nothing
-    native DzGetMemoryCache takes nothing returns string
-    native DzSetSpeed takes real ratio returns nothing
-    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
-    native DzGetConvertWorldPositionX takes nothing returns real
-    native DzGetConvertWorldPositionY takes nothing returns real
-    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
-        native DzGetSelectedLeaderUnit takes nothing returns unit 
-        native DzIsChatBoxOpen takes nothing returns boolean 
-        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
-        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
-        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
-        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
-        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
-        native DzSetEffectModel takes effect whichEffect, string model returns nothing
-        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
-        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
-        native DzChangeWindowSize takes integer width, integer height returns boolean 
-        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
-        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
-        native DzUnbindEffect takes effect whichEffect returns nothing 
-        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
-        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
-        native DzGetEffectVertexColor takes effect whichEffect returns integer 
-        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
-        native DzGetItemAbility takes item whichEffect, integer index returns ability 
-        native DzFrameGetChildrenCount takes integer whichframe returns integer 
-        native DzFrameGetChild takes integer whichframe, integer index returns integer 
-        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
-        native DzGetActivePatron takes unit store, player p returns unit 
-        native DzGetLocalSelectUnitCount takes nothing returns integer 
-        native DzGetLocalSelectUnit takes integer index returns unit 
-        native DzGetJassStringTableCount takes nothing returns integer 
-        native DzModelRemoveFromCache takes string path returns nothing 
-        native DzModelRemoveAllFromCache takes nothing returns nothing 
-        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
-        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
-        native DzFrameGetPeonBar takes nothing returns integer 
-        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
-        native DzToggleFPS takes boolean show returns nothing 
-        native DzGetFPS takes nothing returns integer 
-        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
-        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
-        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
-        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
-        native DzFrameGetWorldFrameMessage takes nothing returns integer 
-        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
-        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
-        native DzConvertScreenPositionX takes real x, real y returns real 
-        native DzConvertScreenPositionY takes real x, real y returns real 
-        native DzRegisterOnBuildLocal takes code func returns nothing 
-        native DzGetOnBuildOrderId takes nothing returns integer 
-        native DzGetOnBuildOrderType takes nothing returns integer 
-        native DzGetOnBuildAgent takes nothing returns widget 
-        native DzRegisterOnTargetLocal takes code func returns nothing 
-        native DzGetOnTargetAbilId takes nothing returns integer 
-        native DzGetOnTargetOrderId takes nothing returns integer 
-        native DzGetOnTargetOrderType takes nothing returns integer 
-        native DzGetOnTargetAgent takes nothing returns widget 
-        native DzGetOnTargetInstantTarget takes nothing returns widget 
-        native DzOpenQQGroupUrl takes string url returns boolean 
-        native DzFrameEnableClipRect takes boolean enable returns nothing 
-        native DzSetUnitName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
-        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
-        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
-        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
-        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
-        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
-        native DzGetAttackAbility takes unit whichUnit returns ability 
-        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
-        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
-        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
-        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
-        native DzDoodadGetTypeId takes integer doodad returns integer 
-        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
-        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
-        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
-        native DzDoodadGetX takes integer doodad returns real 
-        native DzDoodadGetY takes integer doodad returns real 
-        native DzDoodadGetZ takes integer doodad returns real 
-        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
-        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
-        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
-        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
-        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
-        native DzDoodadGetTimeScale takes integer doodad returns real 
-        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
-        native DzDoodadGetAnimationCount takes integer doodad returns integer 
-        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
-        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
-        native DzUnlockOpCodeLimit takes boolean enable returns nothing
-        native DzSetClipboard takes string content returns boolean
-        native DzDoodadRemove takes integer doodad returns nothing
-        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
-        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
-        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
-        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
-        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
-        native DzFrameGetWidth takes integer frame returns real
-        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
-        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
-        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
-        native DzItemSetModel takes item whichItem, string file returns nothing
-        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
-        native DzItemSetAlpha takes item whichItem, integer color returns nothing
-        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
-	native EXGetUnitAbility takes unit u, integer abilcode returns ability
-	native EXGetUnitAbilityByIndex takes unit u, integer index returns ability
-	native EXGetAbilityId takes ability abil returns integer
-	native EXGetAbilityState takes ability abil, integer state_type returns real
-	native EXSetAbilityState takes ability abil, integer state_type, real value returns boolean
-	native EXGetAbilityDataReal takes ability abil, integer level, integer data_type returns real
-	native EXSetAbilityDataReal takes ability abil, integer level, integer data_type, real value returns boolean
-	native EXGetAbilityDataInteger takes ability abil, integer level, integer data_type returns integer
-	native EXSetAbilityDataInteger takes ability abil, integer level, integer data_type, integer value returns boolean
-	native EXGetAbilityDataString takes ability abil, integer level, integer data_type returns string
-	native EXSetAbilityDataString takes ability abil, integer level, integer data_type, string value returns boolean
-	native EXSetAbilityAEmeDataA takes ability abil, integer unitid returns boolean
-	native EXGetItemDataString takes integer itemcode, integer data_type returns string
-	native EXSetItemDataString takes integer itemcode, integer data_type, string value returns boolean
-
-
-//Generated method caller for spell.onDestroy
-function sc__spell_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__spell_onDestroy)
-endfunction
-
-//Generated allocator of spell
-function s__spell__allocate takes nothing returns integer
- local integer this=si__spell_F
-    if (this!=0) then
-        set si__spell_F=si__spell_V[this]
-    else
-        set si__spell_I=si__spell_I+1
-        set this=si__spell_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: spell")
-        return 0
-    endif
-
-    set si__spell_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of spell
-function sc__spell_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: spell")
-        return
-    elseif (si__spell_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: spell")
-        return
-    endif
-    set f__arg_this=this
-    call TriggerEvaluate(st__spell_onDestroy)
-    set si__spell_V[this]=si__spell_F
-    set si__spell_F=this
-endfunction
-
-//Generated method caller for unitSpell.onDestroy
-function sc__unitSpell_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__unitSpell_onDestroy)
-endfunction
-
-//Generated allocator of unitSpell
-function s__unitSpell__allocate takes nothing returns integer
- local integer this=si__unitSpell_F
-    if (this!=0) then
-        set si__unitSpell_F=si__unitSpell_V[this]
-    else
-        set si__unitSpell_I=si__unitSpell_I+1
-        set this=si__unitSpell_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: unitSpell")
-        return 0
-    endif
-
-   set s__unitSpell_spellCount[this]=0
-    set si__unitSpell_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of unitSpell
-function sc__unitSpell_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: unitSpell")
-        return
-    elseif (si__unitSpell_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: unitSpell")
-        return
-    endif
-    set f__arg_this=this
-    call TriggerEvaluate(st__unitSpell_onDestroy)
-    set si__unitSpell_V[this]=si__unitSpell_F
-    set si__unitSpell_F=this
-endfunction
-
-//Generated method caller for unitLifeCycle.onDestroyCB
-function sc__unitLifeCycle_onDestroyCB takes unit u returns nothing
-            set s__unitLifeCycle_argsUnit=u
-            call TriggerEvaluate(s__unitLifeCycle_trDestroy) //然后再清除所有哈希表
-            call FlushChildHashtable(HASH_UNIT, GetHandleId(u))
-            set s__unitLifeCycle_argsUnit=null
-endfunction
-
-//Generated method caller for spellData.byType
-function sc__spellData_byType takes integer at returns integer
-    set f__arg_integer1=at
-    call TriggerEvaluate(st__spellData_byType)
- return f__result_integer
-endfunction
-function h__RemoveUnit takes unit a0 returns nothing
-    //hook: unitLifeCycle.onDestroyCB
-    call sc__unitLifeCycle_onDestroyCB(a0)
-call RemoveUnit(a0)
-endfunction
-
-//library BzAPI:
-    //hardware
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //plus
-
-
-
-
-
-
-
-
-
-
-
-    //sync
-
-
-
-
-
-
-    //native DzGetPushContext takes nothing returns string
-
-    //gui
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         //显示/隐藏SimpleFrame
     //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
     // 追加文字（支持TextArea）
-
+    native DzFrameAddText takes integer frame, string text returns nothing
     // 沉默单位-禁用技能
-
+    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
     // 禁用攻击
-
+    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
     // 禁用道具
-
+    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
     // 刷新小地图
-
+    native DzUpdateMinimap takes nothing returns nothing
     // 修改单位alpha
-
+    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
     // 设置单位是否可以选中
-
+    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
     // 修改单位是否可以被设置为目标
-
+    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
     // 保存内存数据
-
+    native DzSaveMemoryCache takes string cache returns nothing
     // 读取内存数据
-
+    native DzGetMemoryCache takes nothing returns string
     // 设置加速倍率
-
+    native DzSetSpeed takes real ratio returns nothing
     // 转换世界坐标为屏幕坐标-异步
-
+    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
     // 转换世界坐标为屏幕坐标-获取转换后的X坐标
-
+    native DzGetConvertWorldPositionX takes nothing returns real
     // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
-
+    native DzGetConvertWorldPositionY takes nothing returns real
     // 创建command button
-
-    function DzTriggerRegisterMouseEventTrg takes trigger trg,integer status,integer btn returns nothing
+    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
+    function DzTriggerRegisterMouseEventTrg takes trigger trg, integer status, integer btn returns nothing
         if trg == null then
             return
         endif
         call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
     endfunction
-    function DzTriggerRegisterKeyEventTrg takes trigger trg,integer status,integer btn returns nothing
+    function DzTriggerRegisterKeyEventTrg takes trigger trg, integer status, integer btn returns nothing
         if trg == null then
             return
         endif
@@ -783,1257 +653,28 @@ endfunction
         return DzGetTriggerSyncData()
     endfunction
     
-
-//library BzAPI ends
-//library LBKKAPI:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //转换屏幕坐标到世界坐标  
-
-
-        //监听建筑选位置  
-
-        //等于0时是结束事件  
-
-
-
-        //监听技能选目标  
-
-        //等于0时是结束事件  
-
-
-
-
-
-        // 打开QQ群链接  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        function DzSetHeroTypeProperName takes integer uid,string name returns nothing
-                call EXSetUnitArrayString(uid, 61, 0, name)
-                call EXSetUnitInteger(uid, 61, 1)
-        endfunction 
-        function DzSetUnitTypeName takes integer uid,string name returns nothing
-                call EXSetUnitArrayString(uid, 10, 0, name)
-                call EXSetUnitInteger(uid, 10, 1)
-        endfunction 
-        function DzIsUnitAttackType takes unit whichUnit,integer index,attacktype attackType returns boolean
-                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType
-        endfunction 
-        function DzSetUnitAttackType takes unit whichUnit,integer index,attacktype attackType returns nothing
-                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType))
-        endfunction 
-        function DzIsUnitDefenseType takes unit whichUnit,integer defenseType returns boolean
-                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType
-        endfunction 
-        function DzSetUnitDefenseType takes unit whichUnit,integer defenseType returns nothing
-                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType)
-        endfunction 
-        // 地形装饰物
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // 解锁JASS字节码限制
-
-        // 设置剪切板内容
-
-        //删除装饰物
-
-        //移除科技等级
-
-        
-        // 查找单位技能
-
-        // 修改技能数据-字符串
-
-                
-        // 启用/禁用技能
-
-        // 设置单位移动类型
-
-        // 获取控件宽度
-
-
-
-
-        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
-                call DzSetUnitDataCacheInteger(uid, id, 0, v)
-        endfunction
-        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 94, id, v)
-        endfunction
-        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 100, id, v)
-        endfunction
-        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 112, id, v)
-        endfunction
-        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 106, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 118, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 124, id, v)
-        endfunction
-        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 130, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger(uid, 172, id, v)
-        endfunction
-         // 设置道具模型
-
-        // 设置道具颜色
-
-        // 设置道具透明度
-
-        // 设置道具头像
-
-
-//library LBKKAPI ends
-//library SLKTable:
-
-//library SLKTable ends
-//library Spell:
-    function GetHashValue takes integer handleID,integer customId returns integer
-        local integer prime1=131071 // 2^17-1 
-        local integer prime2=179424673
-        return ( handleID * prime1 ) + ( customId * prime2 )
-    endfunction
-        function s__spell_isExist takes integer this returns boolean
-            return ( this != null and si__spell_V[this] == - 1 )
-        endfunction
-        function s__spell_entity takes unit u,integer id,integer level returns integer
-            local integer this
-            local integer key=GetHashValue(GetHandleId(u) , id)
-            if ( key == 0 ) then
-                return 0
-            endif // 先检查是否已存在
-            if ( HaveSavedInteger(HASH_SPELL, key, 15) ) then
-                return LoadInteger(HASH_SPELL, key, 15)
-            endif //没技能就添加技能
-            if ( GetUnitAbilityLevel(u, id) == 0 ) then
-                call UnitAddAbility(u, id)
-            endif // 不存在才创建新的
-            set this=s__spell__allocate()
-            set s__spell_u[this]=u
-            set s__spell_id[this]=id
-            set s__spell_sd[this]=sc__spellData_byType(id)
-            set s__spell_level[this]=level
-            set s__spell_spellType[this]=SPELL_TYPE_ENTITY //实体技能要设置等级
-            call SetUnitAbilityLevel(u, id, level)
-            call SaveInteger(HASH_SPELL, key, 15, this)
-            return this
-        endfunction  // 创建镜像技能(无ID)
-        function s__spell_mirror takes unit u,integer id,integer sd,integer level returns integer
-            local integer this
-            local integer key=GetHashValue(GetHandleId(u) , id)
-            if ( HaveSavedInteger(HASH_SPELL, key, 15) ) then
-                return LoadInteger(HASH_SPELL, key, 15)
-            endif //没技能就添加技能
-            if ( GetUnitAbilityLevel(u, id) == 0 ) then
-                call UnitAddAbility(u, id)
-            endif // 不存在才创建新的
-            set this=s__spell__allocate()
-            set s__spell_u[this]=u
-            set s__spell_id[this]=id
-            set s__spell_spellType[this]=SPELL_TYPE_MIRROR
-            set s__spell_sd[this]=sd
-            set s__spell_level[this]=level
-            call SaveInteger(HASH_SPELL, key, 15, this)
-            return this
-        endfunction  // 创建虚拟技能(无ID)
-        function s__spell_virtual takes unit u,integer sd,integer level returns integer
-            local integer this
-            local integer key=GetHashValue(GetHandleId(u) , sd)
-            if ( HaveSavedInteger(HASH_SPELL, key, 15) ) then
-                return LoadInteger(HASH_SPELL, key, 15)
-            endif // 不存在才创建新的
-            set this=s__spell__allocate()
-            set s__spell_u[this]=u
-            set s__spell_id[this]=0
-            set s__spell_spellType[this]=SPELL_TYPE_VIRTUAL
-            set s__spell_sd[this]=sd
-            set s__spell_level[this]=level
-            call SaveInteger(HASH_SPELL, key, 15, this)
-            return this
-        endfunction  // 获取技能结构体
-        function s__spell_get takes unit u,integer id returns integer
-            if ( HaveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(u) , id), 15) ) then
-                return LoadInteger(HASH_SPELL, GetHashValue(GetHandleId(u) , id), 15)
-            endif
-            return 0
-        endfunction  // 注册销毁时的回调
-        function s__spell_registerDestroy takes integer this,code func returns nothing
-            if ( not ( s__spell_isExist(this) ) ) then
-                return
-            endif
-            if ( s__spell_trDestroy[this] == null ) then
-                set s__spell_trDestroy[this]=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__spell_trDestroy[this], Condition(func))
-        endfunction  //销毁时调用
-        function s__spell_onDestroy takes integer this returns nothing
-            if ( not ( s__spell_isExist(this) ) ) then
-                return
-            endif
-            if ( s__spell_trDestroy[this] != null ) then
-                set s__spell_ethis=this
-                call TriggerEvaluate(s__spell_trDestroy[this])
-                call DestroyTrigger(s__spell_trDestroy[this])
-                set s__spell_trDestroy[this]=null
-            endif //虚拟技能
-            if ( s__spell_spellType[this] == SPELL_TYPE_VIRTUAL ) then
-                if ( HaveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(s__spell_u[this]) , s__spell_sd[this]), 15) ) then
-                    call RemoveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(s__spell_u[this]) , s__spell_sd[this]), 15)
-                endif //有ID的技能
-            elseif ( HaveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(s__spell_u[this]) , s__spell_id[this]), 15) ) then
-                call RemoveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(s__spell_u[this]) , s__spell_id[this]), 15)
-            endif
-            if ( s__spell_id[this] != 0 ) then
-                call UnitRemoveAbility(s__spell_u[this], s__spell_id[this])
-            endif
-            set s__spell_u[this]=null
-            set s__spell_id[this]=0
-            set s__spell_sd[this]=0
-        endfunction  // HOOK:这里的id仅是物编ID没有virtual
-
-//Generated destructor of spell
-function s__spell_deallocate takes integer this returns nothing
-    if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: spell")
-        return
-    elseif (si__spell_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: spell")
-        return
-    endif
-    call s__spell_onDestroy(this)
-    set si__spell_V[this]=si__spell_F
-    set si__spell_F=this
-endfunction
-
-//library Spell ends
-//library SpellData:
-        function s__spellData_byType takes integer at returns integer
-            local integer this
-            if ( HaveSavedInteger(HASH_SLK, at, 1727) ) then
-                set this=LoadInteger(HASH_SLK, at, 1727)
-            else
-                set s__spellData_counter=s__spellData_counter + 1
-                set this=(s__spellData_counter)
-                call SaveInteger(HASH_SLK, at, 1727, this)
-                set s__spellData_id[this]=at //默认最大等级1级
-                set s__spellData_maxLevel[this]=1
-            endif
-            return this
-        endfunction
-
-//library SpellData ends
-//library SpellTable:
-
-//library SpellTable ends
-//library UnitHashTable:
-
-//library UnitHashTable ends
-//library UnitLifeCycle:
-        //private:
-        function s__unitLifeCycle_registerDestroy takes code func returns nothing
-            call TriggerAddCondition(s__unitLifeCycle_trDestroy, Condition(func))
-        endfunction
-        function s__unitLifeCycle_onDestroyCB takes unit u returns nothing
-            set s__unitLifeCycle_argsUnit=u
-            call TriggerEvaluate(s__unitLifeCycle_trDestroy) //然后再清除所有哈希表
-            call FlushChildHashtable(HASH_UNIT, GetHandleId(u))
-            set s__unitLifeCycle_argsUnit=null
-        endfunction
-        function s__unitLifeCycle_onInit takes nothing returns nothing
-            set s__unitLifeCycle_trCreate=CreateTrigger()
-            set s__unitLifeCycle_trDestroy=CreateTrigger()
-        endfunction
-
-//library UnitLifeCycle ends
-//library UnitTestFramwork:
-
-        function s__assert_Boolean takes boolean condition,string name returns nothing
-            if ( not condition ) then
-                call BJDebugMsg("FAIL: " + name)
-            else
-                call BJDebugMsg("PASS: " + name)
-            endif
-        endfunction  //断言字符串相等
-        function s__assert_String takes string actual,string expected,string name returns nothing
-            if ( actual != expected ) then
-                call BJDebugMsg("FAIL: " + name)
-                call BJDebugMsg("  Expected: " + expected)
-                call BJDebugMsg("  Actual: " + actual)
-            else
-                call BJDebugMsg("PASS: " + name)
-            endif
-        endfunction  //断言整数相等
-        function s__assert_Integer takes integer actual,integer expected,string name returns nothing
-            if ( actual != expected ) then
-                call BJDebugMsg("FAIL: " + name)
-                call BJDebugMsg("  Expected: " + I2S(expected))
-                call BJDebugMsg("  Actual: " + I2S(actual))
-            else
-                call BJDebugMsg("PASS: " + name)
-            endif
-        endfunction  //断言浮点数相等
-        function s__assert_Real takes real actual,real expected,string name returns nothing
-            local real maxValue=RMaxBJ(RAbsBJ(actual), RAbsBJ(expected))
-            local real epsilon=maxValue * 0.00001
-            if ( maxValue < 0.00001 ) then
-                set epsilon=0.00001
-            endif
-            if ( RAbsBJ(actual - expected) > epsilon ) then
-                call BJDebugMsg("FAIL: " + name)
-                call BJDebugMsg("  Expected: " + R2SW(expected, 0, 1))
-                call BJDebugMsg("  Actual: " + R2SW(actual, 0, 1))
-            else
-                call BJDebugMsg("PASS: " + name)
-            endif
-        endfunction
-    function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
-    endfunction  //指定开始时间与持续时间的定时器
-        function UnitTestFramwork___anon__0 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
-            call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]开始------")
-            call TriggerEvaluate(tr)
-            call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
-            call DestroyTrigger(GetTriggeringTrigger())
-            set tr=null
-        endfunction
-        function UnitTestFramwork___anon__1 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
-            call TriggerEvaluate(tr)
-            call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]结束------")
-            call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
-            call DestroyTrigger(GetTriggeringTrigger())
-            set tr=null
-        endfunction
-    function UnitTestAutoTimer takes real time,real duration,code start,code end returns nothing
-        local trigger t=CreateTrigger()
-        local trigger tr=CreateTrigger()
-        call TriggerAddCondition(t, Condition(start))
-        call TriggerRegisterTimerEvent(tr, time, false)
-        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
-        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
-        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
-        if ( end != null ) then
-            set t=CreateTrigger()
-            set tr=CreateTrigger()
-            call TriggerAddCondition(t, Condition(end))
-            call TriggerRegisterTimerEvent(tr, time + duration, false)
-            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
-            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
-            call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
-            call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__1))
-        endif
-        set tr=null
-        set t=null
-    endfunction
-        function UnitTestFramwork___anon__2 takes nothing returns nothing
-            local integer i
-            set i=1
-            loop
-            exitwhen ( i > 12 )
-                call SetPlayerName(ConvertedPlayer(i), "测试员" + I2S(i) + "号") //迷雾全关
-                call CreateFogModifierRectBJ(true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, bj_mapInitialPlayableArea)
-            set i=i + 1
-            endloop
-            call DestroyTrigger(GetTriggeringTrigger())
-        endfunction
-    function UnitTestFramwork___onInit takes nothing returns nothing
-        local trigger tr=CreateTrigger()
-        call TriggerRegisterTimerEvent(tr, 0.1, false)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__2))
-        set tr=null
-        set UnitTestFramwork___TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
-    endfunction
-
-//library UnitTestFramwork ends
-//library YDLua:
-
-    function initializeLua takes nothing returns integer
-        call Cheat("exec-lua:plugin_main")
-        return 0
-    endfunction
-        function YDLua___anon__0 takes nothing returns nothing
-            call BJDebugMsg("调用了YDLua引擎")
-            call DestroyTrigger(GetTriggeringTrigger())
-        endfunction
-    function YDLua___onInit takes nothing returns nothing
-        local trigger tr=CreateTrigger()
-        call TriggerRegisterTimerEvent(tr, 0.0, false)
-        call TriggerAddCondition(tr, Condition(function YDLua___anon__0))
-        set tr=null
-    endfunction
-
-//library YDLua ends
-//library YDWEAbilityState:
-
-
-
-
-
-
-
-
-
-
-
- function YDWEGetUnitAbilityState takes unit u,integer abilcode,integer state_type returns real
-		return EXGetAbilityState(EXGetUnitAbility(u, abilcode), state_type)
-	endfunction
- function YDWEGetUnitAbilityDataInteger takes unit u,integer abilcode,integer level,integer data_type returns integer
-		return EXGetAbilityDataInteger(EXGetUnitAbility(u, abilcode), level, data_type)
-	endfunction
- function YDWEGetUnitAbilityDataReal takes unit u,integer abilcode,integer level,integer data_type returns real
-		return EXGetAbilityDataReal(EXGetUnitAbility(u, abilcode), level, data_type)
-	endfunction
- function YDWEGetUnitAbilityDataString takes unit u,integer abilcode,integer level,integer data_type returns string
-		return EXGetAbilityDataString(EXGetUnitAbility(u, abilcode), level, data_type)
-	endfunction
- function YDWESetUnitAbilityState takes unit u,integer abilcode,integer state_type,real value returns boolean
-		return EXSetAbilityState(EXGetUnitAbility(u, abilcode), state_type, value)
-	endfunction
- function YDWESetUnitAbilityDataInteger takes unit u,integer abilcode,integer level,integer data_type,integer value returns boolean
-		return EXSetAbilityDataInteger(EXGetUnitAbility(u, abilcode), level, data_type, value)
-	endfunction
- function YDWESetUnitAbilityDataReal takes unit u,integer abilcode,integer level,integer data_type,real value returns boolean
-		return EXSetAbilityDataReal(EXGetUnitAbility(u, abilcode), level, data_type, value)
-	endfunction
- function YDWESetUnitAbilityDataString takes unit u,integer abilcode,integer level,integer data_type,string value returns boolean
-		return EXSetAbilityDataString(EXGetUnitAbility(u, abilcode), level, data_type, value)
-	endfunction
-
- function YDWEUnitTransform takes unit u,integer abilcode,integer targetid returns nothing
-		call UnitAddAbility(u, abilcode)
-		call EXSetAbilityDataInteger(EXGetUnitAbility(u, abilcode), 1, YDWEAbilityState___ABILITY_DATA_UNITID, GetUnitTypeId(u))
-		call EXSetAbilityAEmeDataA(EXGetUnitAbility(u, abilcode), GetUnitTypeId(u))
-		call UnitRemoveAbility(u, abilcode)
-		call UnitAddAbility(u, abilcode)
-		call EXSetAbilityAEmeDataA(EXGetUnitAbility(u, abilcode), targetid)
-		call UnitRemoveAbility(u, abilcode)
-	endfunction
-
-
- function YDWEGetItemDataString takes integer itemcode,integer data_type returns string
-		return EXGetItemDataString(itemcode, data_type)
-	endfunction
- function YDWESetItemDataString takes integer itemcode,integer data_type,string value returns boolean
-		return EXSetItemDataString(itemcode, data_type, value)
-	endfunction
-
-//library YDWEAbilityState ends
-//library Hardware:
-        function s__hardware_regLeftUpEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
-        endfunction  // 注册一个左键按下事件
-        function s__hardware_regLeftDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 1, false, func)
-        endfunction  // 注册一个右键按下事件
-        function s__hardware_regRightDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 2, 1, false, func)
-        endfunction  // 注册一个右键抬起事件
-        function s__hardware_regRightUpEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 2, 0, false, func)
-        endfunction  // 注册一个滚轮事件,不能异步注册
-        function s__hardware_regWheelEvent takes code func returns nothing
-            if ( s__hardware_trWheel == null ) then
-                set s__hardware_trWheel=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trWheel, Condition(func))
-        endfunction  // 注册一个绘制事件,不能异步注册
-        function s__hardware_regUpdateEvent takes code func returns nothing
-            if ( s__hardware_trUpdate == null ) then
-                set s__hardware_trUpdate=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trUpdate, Condition(func))
-        endfunction  // 注册一个窗口变化事件,不能异步注册
-        function s__hardware_regResizeEvent takes code func returns nothing
-            if ( s__hardware_trResize == null ) then
-                set s__hardware_trResize=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trResize, Condition(func))
-        endfunction  // 注册一个鼠标移动事件,不能异步注册
-        function s__hardware_regMoveEvent takes code func returns nothing
-            call BJDebugMsg("注册鼠标移动事件")
-            if ( s__hardware_trMove == null ) then
-                set s__hardware_trMove=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trMove, Condition(func))
-        endfunction  // 获取鼠标的实数坐标X(0-0.8)
-        function s__hardware_getMouseX takes nothing returns real
-            local integer width=DzGetClientWidth()
-            if ( width > 0 ) then
-                return DzGetMouseXRelative() * 0.8 / width
-            else
-                return 0.1
-            endif
-        endfunction  // 获取鼠标的实数坐标Y(0-0.6)
-        function s__hardware_getMouseY takes nothing returns real
-            local integer height=DzGetClientHeight()
-            if ( height > 0 ) then // 防止除以0
-                return 0.6 - DzGetMouseYRelative() * 0.6 / height
-            else
-                return 0.1
-            endif
-        endfunction
-        //private:
-            function s__hardware_anon__0 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trWheel)
-            endfunction  // 帧绘制事件
-            function s__hardware_anon__1 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trUpdate)
-            endfunction  // 窗口大小变化事件
-            function s__hardware_anon__2 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trResize)
-            endfunction  // 鼠标移动事件
-            function s__hardware_anon__3 takes nothing returns nothing
-                call TriggerEvaluate(s__hardware_trMove)
-            endfunction
-        function s__hardware_onInit takes nothing returns nothing
-            call DzTriggerRegisterMouseWheelEventByCode(null, false, function s__hardware_anon__0)
-            call DzFrameSetUpdateCallbackByCode(function s__hardware_anon__1)
-            call DzTriggerRegisterWindowResizeEventByCode(null, false, function s__hardware_anon__2)
-            call DzTriggerRegisterMouseMoveEventByCode(null, false, function s__hardware_anon__3)
-        endfunction
-
-//library Hardware ends
-//library Logger:
-
-    function Trace takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=0
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 调试级别日志(绿色),用于输出变量值等调试信息
-    function Debug takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=1
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 信息级别日志(白色),用于输出普通提示信息
-    function Info takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=2
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 警告级别日志(黄色),用于输出警告信息
-    function Warn takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=3
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 错误级别日志(红色),用于输出错误信息
-    function Error takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=4
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出追踪日志(灰色)
-    function TraceToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=0
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出调试日志(绿色)
-    function DebugToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=1
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出信息日志(白色)
-    function InfoToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=2
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出警告日志(黄色)
-    function WarnToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=3
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出错误日志(红色)
-    function ErrorToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=4
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction
-    function Logger___onInit takes nothing returns nothing
-        call Cheat("exec-lua:depends.debug.logger")
-    endfunction
-
-//library Logger ends
-//library UnitData:
-        function s__unitData_addSpell takes integer this,integer sd,integer level returns nothing
-            local integer count=0
-            if ( HaveSavedInteger(HASH_SLK, this, 1900) ) then
-                set count=LoadInteger(HASH_SLK, this, 1900)
-            endif
-            if ( count >= 200 ) then // 超出最大数量限制
-                return
-            endif // 保存技能ID
-            call SaveInteger(HASH_SLK, this, 2000 + count, sd) // 保存技能等级
-            call SaveInteger(HASH_SLK, this, 2200 + count, level) // 更新技能总数
-            call SaveInteger(HASH_SLK, this, 1900, count + 1)
-        endfunction  // 获取技能数量
-        function s__unitData_getSpellCount takes integer this returns integer
-            if ( HaveSavedInteger(HASH_SLK, this, 1900) ) then
-                return LoadInteger(HASH_SLK, this, 1900)
-            endif
-            return 0
-        endfunction  // 获取指定索引的技能ID
-        function s__unitData_getSpellId takes integer this,integer index returns integer
-            if ( index >= 0 and index < s__unitData_getSpellCount(this) ) then
-                return LoadInteger(HASH_SLK, this, 2000 + index)
-            endif
-            return 0
-        endfunction  // 获取指定索引的技能等级
-        function s__unitData_getSpellLevel takes integer this,integer index returns integer
-            if ( index >= 0 and index < s__unitData_getSpellCount(this) ) then
-                return LoadInteger(HASH_SLK, this, 2200 + index)
-            endif
-            return 0
-        endfunction  //根据单位类型
-        function s__unitData_byType takes integer ut returns integer
-            local integer this
-            if ( HaveSavedInteger(HASH_SLK, ut, 1725) ) then
-                set this=LoadInteger(HASH_SLK, ut, 1725)
-            else
-                set s__unitData_counter=s__unitData_counter + 1
-                set this=(s__unitData_counter)
-                call SaveInteger(HASH_SLK, ut, 1725, this) //初始化
-                call SaveInteger(HASH_SLK, this, 1900, 0)
-            endif
-            return this
-        endfunction
-
-//library UnitData ends
-//library UnitSpell:
-        function s__unitSpell_isExist takes integer this returns boolean
-            return ( this != null and si__unitSpell_V[this] == - 1 )
-        endfunction
-        function s__unitSpell_hasSpell takes integer this,integer sp returns boolean
-            local integer i=0
-            local integer handleId=GetHandleId(s__unitSpell_u[this])
-            local integer existingSpell
-            set i=0
-            loop
-            exitwhen ( i >= s__unitSpell_spellCount[this] )
-                set existingSpell=LoadInteger(HASH_UNIT, handleId, 1800 + i)
-                if ( existingSpell == sp ) then
-                    return true
-                endif
-            set i=i + 1
-            endloop
-            return false
-        endfunction  // 通过spellData添加技能
-        function s__unitSpell_addSpellData takes integer this,integer sd,integer level returns integer
-            local integer sp=0
-            if ( s__unitSpell_spellCount[this] >= 200 ) then
-                return 0
-            endif // 创建技能实例
-            if ( s__spellData_spellType[sd] == SPELL_TYPE_ENTITY ) then
-                set sp=s__spell_entity(s__unitSpell_u[this] , s__spellData_id[sd] , IMinBJ(level, IMaxBJ(s__spellData_maxLevel[sd], 1)))
-            elseif ( s__spellData_spellType[sd] == SPELL_TYPE_MIRROR ) then
-                set sp=s__spell_mirror(s__unitSpell_u[this] , s__spellData_id[sd] , IMinBJ(level, IMaxBJ(s__spellData_maxLevel[sd], 1)))
-            elseif ( s__spellData_spellType[sd] == SPELL_TYPE_VIRTUAL ) then
-                set sp=s__spell_virtual(s__unitSpell_u[this] , s__spellData_id[sd] , IMinBJ(level, IMaxBJ(s__spellData_maxLevel[sd], 1)))
-            elseif ( s__spellData_spellType[sd] == SPELL_TYPE_SIMPLE ) then
-                set sp=s__spell_virtual(s__unitSpell_u[this] , s__spellData_id[sd] , IMinBJ(level, IMaxBJ(s__spellData_maxLevel[sd], 1)))
-            endif
-            if ( sp == 0 ) then
-                return 0
-            endif
-            call SaveInteger(HASH_UNIT, GetHandleId(s__unitSpell_u[this]), 1800 + s__unitSpell_spellCount[this], sp)
-            set s__unitSpell_spellCount[this]=s__unitSpell_spellCount[this] + 1
-            return sp
-        endfunction  // 直接添加技能实例
-        function s__unitSpell_addSpell takes integer this,integer sp returns integer
-            if ( s__unitSpell_spellCount[this] >= 200 ) then
-                return 0
-            endif
-            if ( not ( s__spell_isExist(sp) ) ) then
-                return 0
-            endif // 检查是否已存在相同的技能实例
-            if ( s__unitSpell_hasSpell(this,sp) ) then
-                return 0
-            endif
-            call SaveInteger(HASH_UNIT, GetHandleId(s__unitSpell_u[this]), 1800 + s__unitSpell_spellCount[this], sp)
-            set s__unitSpell_spellCount[this]=s__unitSpell_spellCount[this] + 1
-            return sp
-        endfunction  // 获取技能数量
-        function s__unitSpell_getSpellCount takes integer this returns integer
-            return s__unitSpell_spellCount[this]
-        endfunction  // 获取指定索引的技能
-        function s__unitSpell_getSpell takes integer this,integer index returns integer
-            local integer handleId=GetHandleId(s__unitSpell_u[this])
-            local integer sp
-            if ( index >= 0 and index < s__unitSpell_spellCount[this] ) then
-                set sp=LoadInteger(HASH_UNIT, handleId, 1800 + index)
-                return sp
-            endif
-            return 0
-        endfunction  // 移除指定技能
-        function s__unitSpell_removeSpell takes integer this,integer sp returns boolean
-            local integer i=0
-            local integer handleId=GetHandleId(s__unitSpell_u[this])
-            local integer lastSpell=0
-            local integer targetSpell=0
-            if ( not ( s__spell_isExist(sp) ) ) then
-                return false
-            endif // 遍历查找技能
-            set i=0
-            loop
-            exitwhen ( i >= s__unitSpell_spellCount[this] )
-                set targetSpell=LoadInteger(HASH_UNIT, handleId, 1800 + i)
-                if ( targetSpell == sp ) then // 如果不是最后一个技能,则把最后一个技能移到当前位置
-                    if ( i < s__unitSpell_spellCount[this] - 1 ) then
-                        set lastSpell=LoadInteger(HASH_UNIT, handleId, 1800 + s__unitSpell_spellCount[this] - 1)
-                        call SaveInteger(HASH_UNIT, handleId, 1800 + i, lastSpell)
-                    endif // 清理最后一个位置
-                    call RemoveSavedInteger(HASH_UNIT, handleId, 1800 + s__unitSpell_spellCount[this] - 1)
-                    set s__unitSpell_spellCount[this]=s__unitSpell_spellCount[this] - 1 // 销毁技能对象
-                    call s__spell_deallocate(targetSpell)
-                    return true
-                endif
-            set i=i + 1
-            endloop
-            return false
-        endfunction  // 初始化默认技能(从unitData继承)
-        function s__unitSpell_initDefaultSpell takes integer this returns nothing
-            local integer i=0
-            local integer ud=s__unitData_byType(GetUnitTypeId(s__unitSpell_u[this]))
-            set s__unitSpell_spellCount[this]=0 // 从unitData创建所有技能
-            set i=0
-            loop
-            exitwhen ( i >= s__unitData_getSpellCount(ud) )
-                call s__unitSpell_addSpellData(this,s__unitData_getSpellId(ud,i) , s__unitData_getSpellLevel(ud,i))
-            set i=i + 1
-            endloop
-        endfunction  // 构造函数
-        function s__unitSpell_parse takes unit u returns integer
-            local integer this
-            local integer handleId=GetHandleId(u)
-            if ( HaveSavedInteger(HASH_UNIT, handleId, 1730) ) then
-                return LoadInteger(HASH_UNIT, handleId, 1730)
-            endif // 不存在才创建新的
-            set this=s__unitSpell__allocate()
-            set s__unitSpell_u[this]=u // 默认初始化技能
-            call s__unitSpell_initDefaultSpell(this)
-            call SaveInteger(HASH_UNIT, handleId, 1730, this)
-            return this
-        endfunction  // 获取已存在的实例
-        function s__unitSpell_get takes unit u returns integer
-            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(u), 1730) ) then
-                return LoadInteger(HASH_UNIT, GetHandleId(u), 1730)
-            endif
-            return 0
-        endfunction
-        function s__unitSpell_onDestroy takes integer this returns nothing
-            local integer i=0
-            set i=0
-            loop
-            exitwhen ( i >= s__unitSpell_spellCount[this] )
-                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__unitSpell_u[this]), 1800 + i)
-            set i=i + 1
-            endloop
-            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__unitSpell_u[this]), 1730) ) then
-                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__unitSpell_u[this]), 1730)
-            endif
-            set s__unitSpell_u[this]=null
-            call BJDebugMsg("unitSpell销毁了:" + I2S(this))
-        endfunction
-
-//Generated destructor of unitSpell
-function s__unitSpell_deallocate takes integer this returns nothing
-    if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: unitSpell")
-        return
-    elseif (si__unitSpell_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: unitSpell")
-        return
-    endif
-    call s__unitSpell_onDestroy(this)
-    set si__unitSpell_V[this]=si__unitSpell_F
-    set si__unitSpell_F=this
-endfunction
-            function s__unitSpell_anon__0 takes nothing returns nothing
-                local unit u=s__unitLifeCycle_argsUnit
-                local integer this=s__unitSpell_get(u)
-                if ( s__unitSpell_isExist(this) ) then
-                    call s__unitSpell_deallocate(this)
-                endif
-                set u=null
-            endfunction
-        function s__unitSpell_onInit takes nothing returns nothing
-            call s__unitLifeCycle_registerDestroy(function s__unitSpell_anon__0)
-        endfunction
-
-//library UnitSpell ends
-//library UTUnitSpell:
-
-        function UTUnitSpell___anon__0 takes nothing returns nothing
-            if ( UTUnitSpell___testUnit != null ) then
-                call h__RemoveUnit(UTUnitSpell___testUnit)
-            endif
-            set UTUnitSpell___testUnit=CreateUnit(Player(0), 'hfoo', 0, 0, 0)
-            set UTUnitSpell___us=s__unitSpell_parse(UTUnitSpell___testUnit)
-            call Trace("测试1: unitSpell.parse创建")
-            call s__assert_Boolean(UTUnitSpell___us != 0 , "单位是否有效")
-            call s__assert_Boolean(s__unitSpell_u[UTUnitSpell___us] == UTUnitSpell___testUnit , "绑定单位是否正确")
-        endfunction  // 测试2: get获取
-        function UTUnitSpell___anon__1 takes nothing returns nothing
-            local integer us2
-            if ( UTUnitSpell___testUnit != null ) then
-                call h__RemoveUnit(UTUnitSpell___testUnit)
-            endif
-            set UTUnitSpell___testUnit=CreateUnit(Player(0), 'hfoo', 0, 0, 0)
-            set UTUnitSpell___us=s__unitSpell_parse(UTUnitSpell___testUnit)
-            set us2=s__unitSpell_get(UTUnitSpell___testUnit)
-            call Trace("测试2: unitSpell.get获取")
-            call s__assert_Boolean(UTUnitSpell___us == us2 , "获取实例是否相同")
-        endfunction  // 测试3: addSpell和getSpell
-        function UTUnitSpell___anon__2 takes nothing returns nothing
-            local integer sp
-            if ( UTUnitSpell___testUnit != null ) then
-                call h__RemoveUnit(UTUnitSpell___testUnit)
-            endif
-            set UTUnitSpell___testUnit=CreateUnit(Player(0), 'hfoo', 0, 0, 0)
-            set UTUnitSpell___us=s__unitSpell_parse(UTUnitSpell___testUnit)
-            set sp=s__spell_entity(UTUnitSpell___testUnit , 'AHbz' , 1)
-            call s__unitSpell_addSpell(UTUnitSpell___us,sp)
-            call Trace("测试3: addSpell和getSpell")
-            call s__assert_Boolean(s__unitSpell_getSpell(UTUnitSpell___us,0) == sp , "获取技能是否正确")
-        endfunction  // 测试4: getSpellCount
-        function UTUnitSpell___anon__3 takes nothing returns nothing
-            local integer sp
-            local integer countBefore
-            if ( UTUnitSpell___testUnit != null ) then
-                call h__RemoveUnit(UTUnitSpell___testUnit)
-            endif
-            set UTUnitSpell___testUnit=CreateUnit(Player(0), 'hfoo', 0, 0, 0)
-            set UTUnitSpell___us=s__unitSpell_parse(UTUnitSpell___testUnit)
-            set sp=s__spell_entity(UTUnitSpell___testUnit , 'AHbz' , 1)
-            set countBefore=s__unitSpell_getSpellCount(UTUnitSpell___us)
-            call s__unitSpell_addSpell(UTUnitSpell___us,sp)
-            call Trace("测试4: getSpellCount")
-            call s__assert_Boolean(s__unitSpell_getSpellCount(UTUnitSpell___us) == countBefore + 1 , "技能数量是否正确")
-        endfunction  // 测试6: 单位销毁清理
-        function UTUnitSpell___anon__4 takes nothing returns nothing
-            if ( UTUnitSpell___testUnit != null ) then
-                call h__RemoveUnit(UTUnitSpell___testUnit)
-            endif
-            set UTUnitSpell___testUnit=CreateUnit(Player(0), 'hfoo', 0, 0, 0)
-            set UTUnitSpell___us=s__unitSpell_parse(UTUnitSpell___testUnit)
-            call Trace("测试6: 单位销毁清理")
-            call s__assert_Boolean(s__unitSpell_isExist(UTUnitSpell___us) , "销毁前unitSpell存在")
-            call h__RemoveUnit(UTUnitSpell___testUnit)
-            call s__assert_Boolean(not ( s__unitSpell_isExist(UTUnitSpell___us) ) , "销毁后unitSpell不存在")
-            set UTUnitSpell___testUnit=null
-        endfunction  // 测试7: 技能添加删除测试
-        function UTUnitSpell___anon__5 takes nothing returns nothing
-            local integer array spells
-            local integer array spellIds
-            local integer i=0
-            local boolean removeResult=false
-            local integer invalidSpell=0
-            local integer sd=0
-            set spellIds[0]='AHbz'
-            set spellIds[1]='AHtb'
-            set spellIds[2]='AHtc'
-            set spellIds[3]='AHmt'
-            set spellIds[4]='AHfs'
-            if ( UTUnitSpell___testUnit != null ) then
-                call h__RemoveUnit(UTUnitSpell___testUnit)
-            endif
-            set UTUnitSpell___testUnit=CreateUnit(Player(0), 'hfoo', 0, 0, 0)
-            set UTUnitSpell___us=s__unitSpell_parse(UTUnitSpell___testUnit) // 添加5个不同的技能
-            set i=0
-            loop
-            exitwhen ( i >= 5 )
-                set sd=s__spellData_byType(spellIds[i])
-                set spells[i]=s__unitSpell_addSpellData(UTUnitSpell___us,sd , 1)
-            set i=i + 1
-            endloop // 测试技能数量
-            call s__assert_Integer(s__unitSpell_getSpellCount(UTUnitSpell___us) , 5 , "添加5个技能后数量是否为5") // 测试删除不存在的技能
-            set removeResult=s__unitSpell_removeSpell(UTUnitSpell___us,invalidSpell)
-            call s__assert_Boolean(not removeResult , "删除不存在的技能应该返回false") // 逐个删除技能并检查数量
-            set i=0
-            loop
-            exitwhen ( i >= 5 )
-                set removeResult=s__unitSpell_removeSpell(UTUnitSpell___us,spells[i])
-                call s__assert_Boolean(removeResult , "删除第" + I2S(i + 1) + "个技能应该成功")
-                call s__assert_Integer(s__unitSpell_getSpellCount(UTUnitSpell___us) , 4 - i , "删除后技能数量应该为" + I2S(4 - i))
-            set i=i + 1
-            endloop // 最终检查
-            call s__assert_Integer(s__unitSpell_getSpellCount(UTUnitSpell___us) , 0 , "删除所有技能后数量应该为0")
-        endfunction  // 测试8: 重复添加技能测试
-        function UTUnitSpell___anon__6 takes nothing returns nothing
-            local integer sp1
-            local integer sp2
-            local integer sd
-            if ( UTUnitSpell___testUnit != null ) then
-                call h__RemoveUnit(UTUnitSpell___testUnit)
-            endif
-            set UTUnitSpell___testUnit=CreateUnit(Player(0), 'hfoo', 0, 0, 0)
-            set UTUnitSpell___us=s__unitSpell_parse(UTUnitSpell___testUnit) // 测试重复添加相同的spell实例
-            set sp1=s__spell_entity(UTUnitSpell___testUnit , 'AHbz' , 1)
-            call s__assert_Boolean(s__unitSpell_addSpell(UTUnitSpell___us,sp1) == sp1 , "首次添加技能实例应该成功")
-            call s__assert_Boolean(s__unitSpell_addSpell(UTUnitSpell___us,sp1) == 0 , "重复添加相同技能实例应该失败")
-            call s__assert_Integer(s__unitSpell_getSpellCount(UTUnitSpell___us) , 1 , "重复添加后技能数量应该为1") // 测试重复添加相同的spellData
-            set sd=s__spellData_byType('AHtb')
-            set sp1=s__unitSpell_addSpellData(UTUnitSpell___us,sd , 1)
-            call s__assert_Boolean(sp1 != 0 , "首次通过spellData添加技能应该成功")
-            set sp2=s__unitSpell_addSpellData(UTUnitSpell___us,sd , 1)
-            call s__assert_Boolean(sp2 == 0 , "重复添加相同spellData应该失败")
-            call s__assert_Integer(s__unitSpell_getSpellCount(UTUnitSpell___us) , 2 , "重复添加后技能数量应该为2")
-        endfunction
-    function UTUnitSpell___Init takes nothing returns nothing
-        local integer sd=s__spellData_byType('AHbz')
-        set sd=s__spellData_byType('AHtb')
-        set sd=s__spellData_byType('AHtc')
-        set sd=s__spellData_byType('AHmt')
-        set sd=s__spellData_byType('AHfs')
-        call UnitTestAutoTimer(0.1 , 0 , function UTUnitSpell___anon__0 , null)
-        call UnitTestAutoTimer(0.6 , 0 , function UTUnitSpell___anon__1 , null)
-        call UnitTestAutoTimer(1.1 , 0 , function UTUnitSpell___anon__2 , null)
-        call UnitTestAutoTimer(1.6 , 0 , function UTUnitSpell___anon__3 , null)
-        call UnitTestAutoTimer(2.1 , 0 , function UTUnitSpell___anon__4 , null)
-        call UnitTestAutoTimer(2.6 , 0 , function UTUnitSpell___anon__5 , null)
-        call UnitTestAutoTimer(3.1 , 0 , function UTUnitSpell___anon__6 , null)
-    endfunction  // 测试用例函数保持空实现
-    function UTUnitSpell___TTestUTUnitSpell1 takes player p returns nothing
-    endfunction
-    function UTUnitSpell___TTestUTUnitSpell2 takes player p returns nothing
-    endfunction
-    function UTUnitSpell___TTestUTUnitSpell3 takes player p returns nothing
-    endfunction
-    function UTUnitSpell___TTestUTUnitSpell4 takes player p returns nothing
-    endfunction
-        function UTUnitSpell___anon__7 takes nothing returns nothing
-            local unit u=GetEnumUnit()
-            local integer tempUs=s__unitSpell_get(u)
-            if ( tempUs != 0 ) then
-                call s__unitSpell_deallocate(tempUs)
-                call Trace("删除了单位 " + GetUnitName(u) + " 的技能实例")
-            endif
-            set u=null
-        endfunction
-    function UTUnitSpell___TTestUTUnitSpell5 takes player p returns nothing
-        local integer i
-        local integer count
-        local unit u
-        local group g
-        local integer tempUs
-        if ( UTUnitSpell___toggle5 ) then
-            set g=CreateGroup()
-            call GroupEnumUnitsInRect(g, bj_mapInitialPlayableArea, null)
-            call ForGroup(g, function UTUnitSpell___anon__7)
-            call DestroyGroup(g)
-            set g=null
-            call Trace("已清理所有技能实例")
-        else // 创建模式：随机创建10-20个带技能的单位
-            set count=GetRandomInt(10, 20)
-            call Trace("准备创建 " + I2S(count) + " 个测试单位")
-            set i=0
-            loop
-            exitwhen ( i >= count )
-                set u=CreateUnit(p, 'hfoo', GetRandomReal(- 1000, 1000), GetRandomReal(- 1000, 1000), GetRandomReal(0, 360))
-                set tempUs=s__unitSpell_parse(u)
-                if ( tempUs != 0 ) then
-                    call Trace("创建第 " + I2S(i + 1) + " 个单位的技能实例成功")
-                endif
-                set u=null
-            set i=i + 1
-            endloop
-            call Trace("完成创建测试单位")
-        endif
-        set UTUnitSpell___toggle5=not UTUnitSpell___toggle5
-    endfunction
-    function UTUnitSpell___TTestUTUnitSpell6 takes player p returns nothing
-    endfunction
-    function UTUnitSpell___TTestUTUnitSpell7 takes player p returns nothing
-    endfunction
-    function UTUnitSpell___TTestUTUnitSpell8 takes player p returns nothing
-    endfunction
-    function UTUnitSpell___TTestUTUnitSpell9 takes player p returns nothing
-    endfunction
-    function UTUnitSpell___TTestUTUnitSpell10 takes player p returns nothing
-    endfunction
-    function UTUnitSpell___TTestActUTUnitSpell1 takes string str returns nothing
-        local player p
-        local integer index
-        local integer i
-        local integer num
-        local integer len
-        local string array paramS
-        local integer array paramI
-        local real array paramR
-        local unit selectedUnit
-        set p=GetTriggerPlayer()
-        set index=GetConvertedPlayerId(p)
-        set num=0
-        set len=StringLength(str) // 解析参数
-        set i=0
-        loop
-        exitwhen ( i > len - 1 )
-            if ( SubString(str, i, i + 1) == " " ) then
-                set paramS[num]=SubString(str, 0, i)
-                set paramI[num]=S2I(paramS[num])
-                set paramR[num]=S2R(paramS[num])
-                set num=num + 1
-                set str=SubString(str, i + 1, len)
-                set len=StringLength(str)
-                set i=- 1
-            endif
-        set i=i + 1
-        endloop
-        set paramS[num]=str
-        set paramI[num]=S2I(paramS[num])
-        set paramR[num]=S2R(paramS[num])
-        set num=num + 1
-        if ( paramS[0] == "a" ) then
-            if ( UTUnitSpell___testUnit != null ) then
-                call h__RemoveUnit(UTUnitSpell___testUnit)
-            endif
-            set UTUnitSpell___testUnit=CreateUnit(p, paramI[1], 0, 0, 0)
-            set UTUnitSpell___us=s__unitSpell_parse(UTUnitSpell___testUnit)
-            call Trace("创建测试单位: " + I2S(paramI[1]))
-        elseif ( paramS[0] == "b" ) then
-            set selectedUnit=s__unitSelect_currentU[index]
-            if ( selectedUnit != null ) then
-                set UTUnitSpell___us=s__unitSpell_get(selectedUnit)
-                if ( UTUnitSpell___us != 0 ) then
-                    call s__unitSpell_addSpell(UTUnitSpell___us,s__spell_entity(selectedUnit , paramI[1] , 1))
-                    call Trace("添加技能: " + I2S(paramI[1]))
-                endif
-            endif
-        endif
-        set p=null
-    endfunction
-        function UTUnitSpell___anon__8 takes nothing returns nothing
-            call Trace("[UnitSpell] 单元测试已加载")
-            call UTUnitSpell___Init()
-            call DestroyTrigger(GetTriggeringTrigger())
-        endfunction
-        function UTUnitSpell___anon__9 takes nothing returns nothing
-            local string str=GetEventPlayerChatString()
-            local integer i=1
-            if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
-                call UTUnitSpell___TTestActUTUnitSpell1(SubString(str, ( 2 ) - 1, StringLength(str)))
-                return
-            endif
-            if ( str == "s1" ) then
-                call UTUnitSpell___TTestUTUnitSpell1(GetTriggerPlayer())
-            elseif ( str == "s2" ) then
-                call UTUnitSpell___TTestUTUnitSpell2(GetTriggerPlayer())
-            elseif ( str == "s3" ) then
-                call UTUnitSpell___TTestUTUnitSpell3(GetTriggerPlayer())
-            elseif ( str == "s4" ) then
-                call UTUnitSpell___TTestUTUnitSpell4(GetTriggerPlayer())
-            elseif ( str == "s5" ) then
-                call UTUnitSpell___TTestUTUnitSpell5(GetTriggerPlayer())
-            elseif ( str == "s6" ) then
-                call UTUnitSpell___TTestUTUnitSpell6(GetTriggerPlayer())
-            elseif ( str == "s7" ) then
-                call UTUnitSpell___TTestUTUnitSpell7(GetTriggerPlayer())
-            elseif ( str == "s8" ) then
-                call UTUnitSpell___TTestUTUnitSpell8(GetTriggerPlayer())
-            elseif ( str == "s9" ) then
-                call UTUnitSpell___TTestUTUnitSpell9(GetTriggerPlayer())
-            elseif ( str == "s10" ) then
-                call UTUnitSpell___TTestUTUnitSpell10(GetTriggerPlayer())
-            endif
-        endfunction
-    function UTUnitSpell___onInit takes nothing returns nothing
-        local trigger tr=CreateTrigger()
-        call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTUnitSpell___anon__8))
-        set tr=null
-        call UnitTestRegisterChatEvent(function UTUnitSpell___anon__9)
-    endfunction
-
-//library UTUnitSpell ends
-//library UnitSelect:
-        //private:
-        function s__unitSelect_onAsync takes code func returns nothing
-            call TriggerAddCondition(s__unitSelect_trAsync, Condition(func))
-        endfunction  // 异步时取消选择单位调用
-        function s__unitSelect_onAsyncUn takes code func returns nothing
-            call TriggerAddCondition(s__unitSelect_trAsyncUn, Condition(func))
-        endfunction  // 同步时选中单位调用
-        function s__unitSelect_onSync takes code func returns nothing
-            call TriggerAddCondition(s__unitSelect_trSync, Condition(func))
-        endfunction  // 同步时取消选择单位调用
-        function s__unitSelect_onSyncUn takes code func returns nothing
-            call TriggerAddCondition(s__unitSelect_trSyncUn, Condition(func))
-        endfunction  //初始化
-            function s__unitSelect_anon__0 takes nothing returns nothing
-                local integer index=GetConvertedPlayerId(GetTriggerPlayer())
-                if ( GetTriggerUnit() != s__unitSelect_currentU[index] ) then
-                    set s__unitSelect_argsSync=s__unitSelect_currentU[index] //事件里用unitSelect.argsSync来指代
-                    call TriggerEvaluate(s__unitSelect_trSyncUn)
-                    set s__unitSelect_argsSync=GetTriggerUnit() //事件里用unitSelect.argsSync来指代
-                    call TriggerEvaluate(s__unitSelect_trSync)
-                    set s__unitSelect_currentU[index]=GetTriggerUnit()
-                    set s__unitSelect_argsSync=null
-                endif
-            endfunction  //注册2个事件:选择单位,与不选择事件
-            function s__unitSelect_anon__1 takes nothing returns nothing
-                if ( DzGetSelectedLeaderUnit() != s__unitSelect_asyncU ) then
-                    set s__unitSelect_args=s__unitSelect_asyncU //事件里用unitSelect.args来指代
-                    call TriggerEvaluate(s__unitSelect_trAsyncUn)
-                    set s__unitSelect_args=DzGetSelectedLeaderUnit() //事件里用unitSelect.args来指代
-                    call TriggerEvaluate(s__unitSelect_trAsync)
-                    set s__unitSelect_asyncU=DzGetSelectedLeaderUnit()
-                    set s__unitSelect_args=null
-                endif
-            endfunction
-        function s__unitSelect_onInit takes nothing returns nothing
-            local integer i
-            local trigger tr=CreateTrigger()
-            set s__unitSelect_trAsync=CreateTrigger()
-            set s__unitSelect_trAsyncUn=CreateTrigger()
-            set s__unitSelect_trSync=CreateTrigger()
-            set s__unitSelect_trSyncUn=CreateTrigger()
-            set i=1
-            loop
-            exitwhen ( i > 12 )
-                call TriggerRegisterPlayerSelectionEventBJ(tr, ConvertedPlayer(i), true)
-            set i=i + 1
-            endloop
-            call TriggerAddCondition(tr, Condition(function s__unitSelect_anon__0))
-            call s__hardware_regUpdateEvent(function s__unitSelect_anon__1)
-        endfunction
-
-//library UnitSelect ends
-//#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
-//#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
-//#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
-//#  define TriggerRegisterPlayerEventVictory(trig, player)                  TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_VICTORY)
-//#  define TriggerRegisterPlayerEventDefeat(trig, player)                   TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_DEFEAT)
-//#  define TriggerRegisterPlayerEventLeave(trig, player)                    TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_LEAVE)
-//#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
-//#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
-// 原生UI的大小
-//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
-
-
-
-// 物品掉落相关键值 (预留20个空间 1800-1819/1820-1839)  MonsterData
-// 技能相关键值 (预留200个空间 2000-2199) UnitData
-// 2400开始可继续添加新的键值定义...
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
-// 定义技能最大数量
-
-// 怪物掉落相关键值 (预留20个空间 1800-1819)
-// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
-// 怪物掉落数量键值
-// 单位技能相关键值 (预留200个空间 1800-1999)
-// 2000开始可继续添加新的键值定义...
-// 定义单位最大技能数量
+endlibrary
+//! zinc
+
+// https://create.reckfeng.com/kkapidoc/#/menu_kkapi_japi kkapi的japi文档
+library YDLua {
+    // main 函数就初始化的
+    public function initializeLua () -> integer {
+        Cheat("exec-lua:plugin_main");
+        return 0;
+    }
+    function onInit () {
+        //在游戏开始0.0秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEvent(tr, 0.0, false);
+        TriggerAddCondition(tr,Condition(function (){
+            BJDebugMsg("调用了YDLua引擎");
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+    }
+}
+//! endzinc
 
 // 0 - 1亿这里用
 // 锚点常量
@@ -2043,17 +684,872 @@ endfunction
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
+//! zinc
+
+library Hardware requires BzAPI {
+	public struct hardware []{
+		// 注册一个左键抬起事件
+		static method regLeftUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,1,0,false,func);
+		}
+		// 注册一个左键按下事件
+		static method regLeftDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,1,1,false,func);
+		}
+		// 注册一个右键按下事件
+		static method regRightDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,2,1,false,func);
+		}
+		// 注册一个右键抬起事件
+		static method regRightUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,2,0,false,func);
+		}
+		// 注册一个滚轮事件,不能异步注册
+		static method regWheelEvent (code func) {
+			if (trWheel == null) {trWheel = CreateTrigger();}
+			TriggerAddCondition(trWheel, Condition(func));
+		}
+		// 注册一个绘制事件,不能异步注册
+		static method regUpdateEvent (code func) {
+			if (trUpdate == null) {trUpdate = CreateTrigger();}
+			TriggerAddCondition(trUpdate, Condition(func));
+		}
+		// 注册一个窗口变化事件,不能异步注册
+		static method regResizeEvent (code func) {
+			if (trResize == null) {trResize = CreateTrigger();}
+			TriggerAddCondition(trResize, Condition(func));
+		}
+		// 注册一个鼠标移动事件,不能异步注册
+		static method regMoveEvent (code func) {
+			BJDebugMsg("注册鼠标移动事件");
+			if (trMove == null) {trMove = CreateTrigger();}
+			TriggerAddCondition(trMove, Condition(func));
+		}
+		// 获取鼠标的实数坐标X(0-0.8)
+		static method getMouseX () -> real {
+			integer width = DzGetClientWidth();
+			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
+			else return 0.1;
+		}
+		// 获取鼠标的实数坐标Y(0-0.6)
+		static method getMouseY () -> real {
+			integer height = DzGetClientHeight();
+			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
+			else return 0.1; // 防止除以0
+}
+		private {
+			static trigger trWheel = null;
+			static trigger trUpdate = null;
+			static trigger trResize = null;
+			static trigger trMove = null;
+		}
+		static method onInit () {
+			// 滚轮事件
+			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
+				TriggerEvaluate(trWheel);
+			});
+			// 帧绘制事件
+			DzFrameSetUpdateCallbackByCode(function (){
+				TriggerEvaluate(trUpdate);
+			});
+			// 窗口大小变化事件
+			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
+				 TriggerEvaluate(trResize);
+			});
+			// 鼠标移动事件
+			DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
+				 TriggerEvaluate(trMove);
+			});
+		}
+	}
+}
+//! endzinc
+
+// 怪物掉落相关键值 (预留20个空间 1800-1819)
+// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
+// 怪物掉落数量键值
+// 单位技能相关键值 (预留200个空间 1800-1999)
+// 2400开始可继续添加新的键值定义...
+//! zinc
+
+library UnitHashTable {
+    public hashtable HASH_UNIT = InitHashtable(); // 单位哈希表
+}
+//! endzinc
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
+// 定义技能最大数量
+//! zinc
+
+library UnitData requires SpellData {
+    public struct unitData [] {
+        static integer counter = 0;
+        // 添加技能
+        public method addSpell(spellData sd, integer level) {
+            integer count = 0;
+            if (HaveSavedInteger(HASH_SLK, this, 1900)) {
+                count = LoadInteger(HASH_SLK, this, 1900);
+            }
+            if (count >= 200) {
+                return; // 超出最大数量限制
+}
+            // 保存技能ID
+            SaveInteger(HASH_SLK, this, 2000 + count, sd);
+            // 保存技能等级
+            SaveInteger(HASH_SLK, this, 2200 + count, level);
+            // 更新技能总数
+            SaveInteger(HASH_SLK, this, 1900, count + 1);
+        }
+        // 获取技能数量
+        public method getSpellCount() -> integer {
+            if (HaveSavedInteger(HASH_SLK, this, 1900)) {
+                return LoadInteger(HASH_SLK, this, 1900);
+            }
+            return 0;
+        }
+        // 获取指定索引的技能ID
+        public method getSpellId(integer index) -> spellData {
+            if (index >= 0 && index < this.getSpellCount()) {
+                return LoadInteger(HASH_SLK, this, 2000 + index);
+            }
+            return 0;
+        }
+        // 获取指定索引的技能等级
+        public method getSpellLevel(integer index) -> integer {
+            if (index >= 0 && index < this.getSpellCount()) {
+                return LoadInteger(HASH_SLK, this, 2200 + index);
+            }
+            return 0;
+        }
+        //根据单位类型
+        public static method byType(integer ut) -> thistype {
+            thistype this;
+            if (HaveSavedInteger(HASH_SLK, ut, 1725)) {
+                this = LoadInteger(HASH_SLK, ut, 1725);
+            } else {
+                counter += 1;
+                this = thistype[counter];
+                SaveInteger(HASH_SLK, ut, 1725, this);
+                //初始化
+                SaveInteger(HASH_SLK, this, 1900, 0);
+            }
+            return this;
+        }
+    }
+}
+//! endzinc
+// 定义单位最大技能数量(简单技能也是这个数)
+//! zinc
+
+library UnitSpell requires Spell {
+    public struct unitSpell {
+        method isExist () -> boolean {return (this != null && si__unitSpell_V[this] == -1);}
+        unit u; // 所属单位
+integer spellCount = 0; // 当前技能数量
+integer simpleCount = 0; // 简单技能的数量
+        // 检查技能是否已存在(不含简单技能)
+        method hasSpell(spell sp) -> boolean {
+            integer i = 0;
+            integer handleId = GetHandleId(this.u);
+            spell existingSpell;
+            for (0 <= i < this.spellCount) {
+                existingSpell = LoadInteger(HASH_UNIT, handleId, 1800 + i);
+                if (existingSpell == sp) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        // 检查单位是否拥有指定技能类型(含简单技能)
+        method hasSpellData (spellData sd) -> boolean {
+            integer i;
+            integer handleId = GetHandleId(this.u);
+            spell sp;
+            if (sd.spellType == SPELL_TYPE_SIMPLE) { //简单技能的判断
+for (0 <= i < this.simpleCount) {
+                    if (HaveSavedInteger(HASH_UNIT, handleId, 2000 + i)) {
+                        return true;
+                    }
+                }
+                return false;
+            } else { //其他技能的判断
+for (0 <= i < this.spellCount) {
+                    sp = LoadInteger(HASH_UNIT, handleId, 1800 + i);
+                    if (sp.sd == sd) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+        // 通过spellData添加技能
+        method addSpellData(spellData sd, integer lv) -> boolean {
+            spell sp = 0;
+            integer level = IMinBJ(lv, IMaxBJ(sd.maxLevel, 1));
+            if (sd.spellType == SPELL_TYPE_SIMPLE) { //优先处理简单技能
+if (this.simpleCount >= 200 || this.hasSpellData(sd)) {
+                    return false;
+                }
+                if (sd.trInit != null) {
+                    sd.argsU = this.u;
+                    sd.argsLevel = level;
+                    TriggerEvaluate(sd.trInit);
+                }
+                SaveInteger(HASH_UNIT, GetHandleId(this.u),
+                2000 + this.simpleCount, sd);
+                // 保存技能等级
+                SaveInteger(HASH_UNIT, GetHandleId(this.u),
+                2200 + this.simpleCount, level);
+                this.simpleCount += 1;
+                return true;
+            }
+            //以下是其他技能
+            if (this.spellCount >= 200) {
+                return false;
+            }
+            // 创建技能实例
+            if (sd.spellType == SPELL_TYPE_ENTITY) {
+                sp = spell.entity(this.u, sd.id, level);
+                // } else if (sd.spellType == SPELL_TYPE_MIRROR) {
+                //     sp = spell.mirror(this.u, sd.id, level);
+            } else if (sd.spellType == SPELL_TYPE_VIRTUAL) {
+                sp = spell.virtual(this.u, sd.id,level) ;
+            }
+            if (sp == 0) {
+                return false;
+            }
+            // 检查是否已存在相同的技能实例
+            if (this.hasSpell(sp)) {
+                return false;
+            }
+            SaveInteger(HASH_UNIT, GetHandleId(this.u),
+            1800 + this.spellCount, sp);
+            this.spellCount += 1;
+            return true;
+        }
+        // 直接添加技能实例
+        method addSpell(spell sp) -> boolean {
+            if (this.spellCount >= 200) {
+                return false;
+            }
+            if (!sp.isExist()) {
+                return false;
+            }
+            // 检查是否已存在相同的技能实例
+            if (this.hasSpell(sp)) {
+                return false;
+            }
+            SaveInteger(HASH_UNIT, GetHandleId(this.u),
+            1800 + this.spellCount, sp);
+            this.spellCount += 1;
+            return true;
+        }
+        // 获取技能数量
+        method getSpellCount() -> integer {
+            return this.spellCount;
+        }
+        // 获取简单技能数量
+        method getSimpleSpellCount() -> integer {
+            return this.simpleCount;
+        }
+        // 获取指定索引的技能(从0开始到count-1)
+        method getSpell(integer index) -> spell {
+            integer handleId = GetHandleId(this.u);
+            spell sp;
+            if (index >= 0 && index < this.spellCount) {
+                sp = LoadInteger(HASH_UNIT, handleId, 1800 + index);
+                return sp;
+            }
+            return 0;
+        }
+        // 获取指定索引的简单技能类型(从0开始到count-1)
+        method getSimpleSpell(integer index) -> spellData {
+            integer handleId = GetHandleId(this.u);
+            spellData sd;
+            if (index >= 0 && index < this.simpleCount) {
+                sd = LoadInteger(HASH_UNIT, handleId, 2000 + index);
+                return sd;
+            }
+            return 0;
+        }
+        // 移除指定技能
+        method removeSpell(spell sp) -> boolean {
+            integer i = 0;
+            integer handleId = GetHandleId(this.u);
+            spell lastSpell = 0;
+            spell targetSpell = 0;
+            if (!sp.isExist()) {
+                return false;
+            }
+            // 遍历查找技能
+            for (0 <= i < this.spellCount) {
+                targetSpell = LoadInteger(HASH_UNIT, handleId, 1800 + i);
+                if (targetSpell == sp) {
+                    // 如果不是最后一个技能,则把最后一个技能移到当前位置
+                    if (i < this.spellCount - 1) {
+                        lastSpell = LoadInteger(HASH_UNIT, handleId,
+                            1800 + this.spellCount - 1);
+                        SaveInteger(HASH_UNIT, handleId,
+                            1800 + i, lastSpell);
+                    }
+                    // 清理最后一个位置
+                    RemoveSavedInteger(HASH_UNIT, handleId,
+                        1800 + this.spellCount - 1);
+                    this.spellCount -= 1;
+                    // 销毁技能对象
+                    targetSpell.destroy();
+                    return true;
+                }
+            }
+            return false;
+        }
+        // 移除指定的简单技能
+        method removeSimpleSpell(spellData sd) -> boolean {
+            integer i = 0;
+            integer handleId = GetHandleId(this.u);
+            spellData lastSpell = 0;
+            spellData targetSpell = 0;
+            integer targetLevel = 0;
+            integer lastLevel = 0;
+            // 遍历查找简单技能
+            for (0 <= i < this.simpleCount) {
+                targetSpell = LoadInteger(HASH_UNIT, handleId, 2000 + i);
+                if (targetSpell == sd) {
+                    // 获取技能等级并调用销毁触发器
+                    targetLevel = LoadInteger(HASH_UNIT, handleId, 2200 + i);
+                    if (sd.trDestroy != null) {
+                        sd.argsU = this.u;
+                        sd.argsLevel = targetLevel;
+                        TriggerEvaluate(sd.trDestroy);
+                    }
+                    // 如果不是最后一个技能,则把最后一个技能移到当前位置
+                    if (i < this.simpleCount - 1) {
+                        lastSpell = LoadInteger(HASH_UNIT, handleId,
+                        2000 + this.simpleCount - 1);
+                        lastLevel = LoadInteger(HASH_UNIT, handleId,
+                        2200 + this.simpleCount - 1);
+                        SaveInteger(HASH_UNIT, handleId,
+                        2000 + i, lastSpell);
+                        SaveInteger(HASH_UNIT, handleId,
+                        2200 + i, lastLevel);
+                    }
+                    // 清理最后一个位置
+                    RemoveSavedInteger(HASH_UNIT, handleId,
+                    2000 + this.simpleCount - 1);
+                    RemoveSavedInteger(HASH_UNIT, handleId,
+                    2200 + this.simpleCount - 1);
+                    this.simpleCount -= 1;
+                    return true;
+                }
+            }
+            return false;
+        }
+        // 通过spellData移除技能
+        method removeSpellData(spellData sd) -> boolean {
+            spell sp;
+            if (sd.spellType == SPELL_TYPE_SIMPLE) {
+                return this.removeSimpleSpell(sd);
+            } else {
+                sp = spell.get(this.u, sd.id);
+                if (sp != 0) {
+                    return this.removeSpell(sp);
+                }
+            }
+            return false;
+        }
+        // 初始化默认技能(从unitData继承)
+        private method initDefaultSpell() {
+            integer i = 0;
+            unitData ud = unitData.byType(GetUnitTypeId(this.u));
+            this.spellCount = 0; // 初始化技能数量
+            // 从unitData创建所有技能
+            for (0 <= i < ud.getSpellCount()) {
+                this.addSpellData(ud.getSpellId(i), ud.getSpellLevel(i));
+            }
+        }
+        // 构造函数
+        static method parse(unit u) -> thistype {
+            thistype this;
+            integer handleId = GetHandleId(u);
+            // 先检查是否已存在
+            if (HaveSavedInteger(HASH_UNIT, handleId, 1730)) {
+                return LoadInteger(HASH_UNIT, handleId, 1730);
+            }
+            // 不存在才创建新的
+            this = thistype.allocate();
+            this.u = u;
+            this.initDefaultSpell(); // 默认初始化技能
+            SaveInteger(HASH_UNIT, handleId, 1730, this);
+            return this;
+        }
+        // 获取已存在的实例
+        static method get(unit u) -> thistype {
+            if (HaveSavedInteger(HASH_UNIT, GetHandleId(u), 1730)) {
+                return LoadInteger(HASH_UNIT, GetHandleId(u), 1730);
+            }
+            return 0;
+        }
+        method onDestroy() {
+            integer i = 0;
+            integer handleId = GetHandleId(this.u);
+            spell sp;
+            spellData sd;
+            integer level;
+            // 销毁所有技能实例
+            for (0 <= i < this.spellCount) {
+                sp = LoadInteger(HASH_UNIT, handleId, 1800 + i);
+                if (sp != 0) {
+                    sp.destroy();
+                }
+                RemoveSavedInteger(HASH_UNIT, handleId, 1800 + i);
+            }
+            // 清理简单技能的引用和调用销毁触发器
+            for (0 <= i < this.simpleCount) {
+                sd = LoadInteger(HASH_UNIT, handleId, 2000 + i);
+                if (sd != 0 && sd.trDestroy != null) {
+                    level = LoadInteger(HASH_UNIT, handleId, 2200 + i);
+                    sd.argsU = this.u;
+                    sd.argsLevel = level;
+                    TriggerEvaluate(sd.trDestroy);
+                }
+                RemoveSavedInteger(HASH_UNIT, handleId, 2000 + i);
+                RemoveSavedInteger(HASH_UNIT, handleId, 2200 + i);
+            }
+            // 清理自身的引用
+            if (HaveSavedInteger(HASH_UNIT, handleId, 1730)) {
+                RemoveSavedInteger(HASH_UNIT, handleId, 1730);
+            }
+            this.u = null;
+        }
+        static method onInit () {
+            unitLifeCycle.registerDestroy(function () { //单位移除后也移除这里
+unit u = unitLifeCycle.argsUnit;
+				thistype this = thistype.get(u);
+				if (this.isExist()) {
+					this.destroy();
+				}
+				u = null;
+			});
+        }
+    }
+}
+//! endzinc
+//! zinc
+
+library UnitSelect requires Hardware ,LBKKAPI{
+    public struct unitSelect[] {
+            static unit args = null; //回调传参用(异步)
+static unit argsSync = null; //回调传参用(同步)
+static unit currentU []; //每个人当前选择的单位(同步)
+            private {
+                static trigger trAsync;
+                static trigger trAsyncUn;
+                static trigger trSync;
+                static trigger trSyncUn;
+                static unit asyncU = null; //现在的选择单位-异步(每个人的引用不一样)
+}
+        // 异步时选中单位调用,在取消选择后面
+        // 调用这个函数注册过程要同步,不能注册的时候异步
+        static method onAsync (code func) {
+            TriggerAddCondition(trAsync, Condition(func));
+        }
+        // 异步时取消选择单位调用
+        // 调用这个函数注册过程要同步,不能注册的时候异步
+        static method onAsyncUn (code func) {
+            TriggerAddCondition(trAsyncUn, Condition(func));
+        }
+        // 同步时选中单位调用
+        static method onSync (code func) {
+            TriggerAddCondition(trSync, Condition(func));
+        }
+        // 同步时取消选择单位调用
+        static method onSyncUn (code func) {
+            TriggerAddCondition(trSyncUn, Condition(func));
+        }
+        //初始化
+        static method onInit () {
+            integer i;
+            trigger tr = CreateTrigger(); //一次性用的选择事件
+            trAsync = CreateTrigger();
+            trAsyncUn = CreateTrigger();
+            trSync = CreateTrigger();
+            trSyncUn = CreateTrigger();
+            //选单位的事件[同步]
+            for (1 <= i <= 12) {TriggerRegisterPlayerSelectionEventBJ(tr, ConvertedPlayer(i), true);}
+            TriggerAddCondition(tr, Condition(function (){
+                //单位选择事件[同步]
+                integer index = GetConvertedPlayerId(GetTriggerPlayer());
+                if (GetTriggerUnit() != unitSelect.currentU[index]) {
+                    unitSelect.argsSync = unitSelect.currentU[index];
+                    TriggerEvaluate(trSyncUn); //事件里用unitSelect.argsSync来指代
+unitSelect.argsSync = GetTriggerUnit();
+                    TriggerEvaluate(trSync); //事件里用unitSelect.argsSync来指代
+unitSelect.currentU[index] = GetTriggerUnit();
+                    unitSelect.argsSync = null;
+                }
+            }));
+            hardware.regUpdateEvent(function (){ //注册2个事件:选择单位,与不选择事件
+if (DzGetSelectedLeaderUnit() != unitSelect.asyncU) {
+                    unitSelect.args = unitSelect.asyncU;
+                    TriggerEvaluate(trAsyncUn); //事件里用unitSelect.args来指代
+unitSelect.args = DzGetSelectedLeaderUnit();
+                    TriggerEvaluate(trAsync); //事件里用unitSelect.args来指代
+unitSelect.asyncU = DzGetSelectedLeaderUnit();
+                    unitSelect.args = null;
+                }
+            });
+        }
+    }
+}
+//! endzinc
+library YDWEAbilityState
+	globals
+		private constant integer ABILITY_STATE_COOLDOWN = 1
+		private constant integer ABILITY_DATA_TARGS = 100 // integer
+private constant integer ABILITY_DATA_CAST = 101 // real
+private constant integer ABILITY_DATA_DUR = 102 // real
+private constant integer ABILITY_DATA_HERODUR = 103 // real
+private constant integer ABILITY_DATA_COST = 104 // integer
+private constant integer ABILITY_DATA_COOL = 105 // real
+private constant integer ABILITY_DATA_AREA = 106 // real
+private constant integer ABILITY_DATA_RNG = 107 // real
+private constant integer ABILITY_DATA_DATA_A = 108 // real
+private constant integer ABILITY_DATA_DATA_B = 109 // real
+private constant integer ABILITY_DATA_DATA_C = 110 // real
+private constant integer ABILITY_DATA_DATA_D = 111 // real
+private constant integer ABILITY_DATA_DATA_E = 112 // real
+private constant integer ABILITY_DATA_DATA_F = 113 // real
+private constant integer ABILITY_DATA_DATA_G = 114 // real
+private constant integer ABILITY_DATA_DATA_H = 115 // real
+private constant integer ABILITY_DATA_DATA_I = 116 // real
+private constant integer ABILITY_DATA_UNITID = 117 // integer
+		private constant integer ABILITY_DATA_HOTKET = 200 // integer
+private constant integer ABILITY_DATA_UNHOTKET = 201 // integer
+private constant integer ABILITY_DATA_RESEARCH_HOTKEY = 202 // integer
+private constant integer ABILITY_DATA_NAME = 203 // string
+private constant integer ABILITY_DATA_ART = 204 // string
+private constant integer ABILITY_DATA_TARGET_ART = 205 // string
+private constant integer ABILITY_DATA_CASTER_ART = 206 // string
+private constant integer ABILITY_DATA_EFFECT_ART = 207 // string
+private constant integer ABILITY_DATA_AREAEFFECT_ART = 208 // string
+private constant integer ABILITY_DATA_MISSILE_ART = 209 // string
+private constant integer ABILITY_DATA_SPECIAL_ART = 210 // string
+private constant integer ABILITY_DATA_LIGHTNING_EFFECT = 211 // string
+private constant integer ABILITY_DATA_BUFF_TIP = 212 // string
+private constant integer ABILITY_DATA_BUFF_UBERTIP = 213 // string
+private constant integer ABILITY_DATA_RESEARCH_TIP = 214 // string
+private constant integer ABILITY_DATA_TIP = 215 // string
+private constant integer ABILITY_DATA_UNTIP = 216 // string
+private constant integer ABILITY_DATA_RESEARCH_UBERTIP = 217 // string
+private constant integer ABILITY_DATA_UBERTIP = 218 // string
+private constant integer ABILITY_DATA_UNUBERTIP = 219 // string
+private constant integer ABILITY_DATA_UNART = 220 // string
+endglobals
+	native EXGetUnitAbility takes unit u, integer abilcode returns ability
+	native EXGetUnitAbilityByIndex takes unit u, integer index returns ability
+	native EXGetAbilityId takes ability abil returns integer
+	native EXGetAbilityState takes ability abil, integer state_type returns real
+	native EXSetAbilityState takes ability abil, integer state_type, real value returns boolean
+	native EXGetAbilityDataReal takes ability abil, integer level, integer data_type returns real
+	native EXSetAbilityDataReal takes ability abil, integer level, integer data_type, real value returns boolean
+	native EXGetAbilityDataInteger takes ability abil, integer level, integer data_type returns integer
+	native EXSetAbilityDataInteger takes ability abil, integer level, integer data_type, integer value returns boolean
+	native EXGetAbilityDataString takes ability abil, integer level, integer data_type returns string
+	native EXSetAbilityDataString takes ability abil, integer level, integer data_type, string value returns boolean
+	function YDWEGetUnitAbilityState takes unit u, integer abilcode, integer state_type returns real
+		return EXGetAbilityState(EXGetUnitAbility(u, abilcode), state_type)
+	endfunction
+	function YDWEGetUnitAbilityDataInteger takes unit u, integer abilcode, integer level, integer data_type returns integer
+		return EXGetAbilityDataInteger(EXGetUnitAbility(u, abilcode), level, data_type)
+	endfunction
+	function YDWEGetUnitAbilityDataReal takes unit u, integer abilcode, integer level, integer data_type returns real
+		return EXGetAbilityDataReal(EXGetUnitAbility(u, abilcode), level, data_type)
+	endfunction
+	function YDWEGetUnitAbilityDataString takes unit u, integer abilcode, integer level, integer data_type returns string
+		return EXGetAbilityDataString(EXGetUnitAbility(u, abilcode), level, data_type)
+	endfunction
+	function YDWESetUnitAbilityState takes unit u, integer abilcode, integer state_type, real value returns boolean
+		return EXSetAbilityState(EXGetUnitAbility(u, abilcode), state_type, value)
+	endfunction
+	function YDWESetUnitAbilityDataInteger takes unit u, integer abilcode, integer level, integer data_type, integer value returns boolean
+		return EXSetAbilityDataInteger(EXGetUnitAbility(u, abilcode), level, data_type, value)
+	endfunction
+	function YDWESetUnitAbilityDataReal takes unit u, integer abilcode, integer level, integer data_type, real value returns boolean
+		return EXSetAbilityDataReal(EXGetUnitAbility(u, abilcode), level, data_type, value)
+	endfunction
+	function YDWESetUnitAbilityDataString takes unit u, integer abilcode, integer level, integer data_type, string value returns boolean
+		return EXSetAbilityDataString(EXGetUnitAbility(u, abilcode), level, data_type, value)
+	endfunction
+	native EXSetAbilityAEmeDataA takes ability abil, integer unitid returns boolean
+	function YDWEUnitTransform takes unit u, integer abilcode, integer targetid returns nothing
+		call UnitAddAbility(u, abilcode)
+		call EXSetAbilityDataInteger(EXGetUnitAbility(u, abilcode), 1, ABILITY_DATA_UNITID, GetUnitTypeId(u))
+		call EXSetAbilityAEmeDataA(EXGetUnitAbility(u, abilcode), GetUnitTypeId(u))
+		call UnitRemoveAbility(u, abilcode)
+		call UnitAddAbility(u, abilcode)
+		call EXSetAbilityAEmeDataA(EXGetUnitAbility(u, abilcode), targetid)
+		call UnitRemoveAbility(u, abilcode)
+	endfunction
+	native EXGetItemDataString takes integer itemcode, integer data_type returns string
+	native EXSetItemDataString takes integer itemcode, integer data_type, string value returns boolean
+	function YDWEGetItemDataString takes integer itemcode, integer data_type returns string
+		return EXGetItemDataString(itemcode, data_type)
+	endfunction
+	function YDWESetItemDataString takes integer itemcode, integer data_type, string value returns boolean
+		return EXSetItemDataString(itemcode, data_type, value)
+	endfunction
+endlibrary
+//! zinc
+
+library SLKTable {
+    public hashtable HASH_SLK = InitHashtable(); // SLK数据哈希表
+}
+//! endzinc
+//! zinc
+//==================================
+// 日志打印系统
+// version: 1.0
+// author: 系统自动生成
+// date: 2024/3/21
+//
+// 功能：提供五个日志级别输出
+// - TRACE(灰)：追踪调试用
+// - DEBUG(绿)：调试信息用
+// - INFO(白)：普通信息用
+// - WARN(黄)：警告信息用
+// - ERROR(红)：错误信息用
+//
+// 示例：
+// call Info("普通信息")
+// call Error(Player(0), "玩家1的错误")
+//==================================
+library Logger requires YDLua {
+    public integer logger_level = 0;
+    public string logger_msg = null;
+    public player logger_p = null;
+    public trigger logger_tr = null;
+    // 追踪级别日志(灰色),用于程序执行追踪
+    public function Trace(string msg) {
+        logger_msg = msg;
+        logger_level = 0;
+        logger_p = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+    // 调试级别日志(绿色),用于输出变量值等调试信息
+    public function Debug(string msg) {
+        logger_msg = msg;
+        logger_level = 1;
+        logger_p = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+    // 信息级别日志(白色),用于输出普通提示信息
+    public function Info(string msg) {
+        logger_msg = msg;
+        logger_level = 2;
+        logger_p = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+    // 警告级别日志(黄色),用于输出警告信息
+    public function Warn(string msg) {
+        logger_msg = msg;
+        logger_level = 3;
+        logger_p = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+    // 错误级别日志(红色),用于输出错误信息
+    public function Error(string msg) {
+        logger_msg = msg;
+        logger_level = 4;
+        logger_p = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+    // 向指定玩家输出追踪日志(灰色)
+    public function TraceToPlayer(player p, string msg) {
+        logger_msg = msg;
+        logger_level = 0;
+        logger_p = p;
+		TriggerEvaluate(logger_tr);
+    }
+    // 向指定玩家输出调试日志(绿色)
+    public function DebugToPlayer(player p, string msg) {
+        logger_msg = msg;
+        logger_level = 1;
+        logger_p = p;
+		TriggerEvaluate(logger_tr);
+    }
+    // 向指定玩家输出信息日志(白色)
+    public function InfoToPlayer(player p, string msg) {
+        logger_msg = msg;
+        logger_level = 2;
+        logger_p = p;
+		TriggerEvaluate(logger_tr);
+    }
+    // 向指定玩家输出警告日志(黄色)
+    public function WarnToPlayer(player p, string msg) {
+        logger_msg = msg;
+        logger_level = 3;
+        logger_p = p;
+		TriggerEvaluate(logger_tr);
+    }
+    // 向指定玩家输出错误日志(红色)
+    public function ErrorToPlayer(player p, string msg) {
+        logger_msg = msg;
+        logger_level = 4;
+        logger_p = p;
+		TriggerEvaluate(logger_tr);
+    }
+    function onInit() {
+        Cheat("exec-lua:depends.debug.logger"); //日志打印系统初始化
+}
+}
+//! endzinc
+
+//! zinc
+
+library Spell {
+    // 技能哈希值计算
+    public function GetHashValue ( integer handleID, integer customId ) -> integer {
+        // 使用两个大质数
+        integer prime1 = 131071; // 2^17-1
+integer prime2 = 179424673; // 较大的质数
+        return (handleID * prime1) + (customId * prime2);
+    }
+    public struct spell {
+        static thistype ethis = 0;
+        unit u; // 技能拥有者
+integer spellType; // 技能类型(0:结构技能,1:无结构技能,2:虚拟技能,3:简单技能)
+integer id; // 技能ID(一致则1类,不一致则2类,为0则是3类)
+spellData sd; // 技能实例的对应技能数据
+integer level; // 技能等级
+trigger trDestroy; // 当销毁时调用
+        method isExist () -> boolean {return (this != null && si__spell_V[this] == -1);}
+        // 创建实体技能(有ID)
+        public static method entity (unit u, integer id, integer level) -> thistype {
+            thistype this;
+			integer key = GetHashValue(GetHandleId(u), id);
+            if (key == 0 ) { //单位没有这个技能
+return 0;
+            }
+			// 先检查是否已存在
+			if (HaveSavedInteger(HASH_SPELL, key, 15)) {
+				return LoadInteger(HASH_SPELL, key, 15);
+			}
+            if (GetUnitAbilityLevel(u,id) == 0) { //没技能就添加技能
+UnitAddAbility(u,id);
+            }
+			// 不存在才创建新的
+			this = allocate();
+            this.u = u;
+            this.id = id;
+            this.sd = spellData.byType(id);
+            this.level = level;
+            this.spellType = SPELL_TYPE_ENTITY;
+            SetUnitAbilityLevel(u,id,level); //实体技能要设置等级
+			SaveInteger(HASH_SPELL, key, 15, this);
+			return this;
+        }
+        // 创建镜像技能(无ID)
+        public static method mirror (unit u ,integer id, spellData sd, integer level) -> thistype {
+            thistype this;
+			integer key = GetHashValue(GetHandleId(u), id);
+			// 先检查是否已存在
+			if (HaveSavedInteger(HASH_SPELL, key, 15)) {
+				return LoadInteger(HASH_SPELL, key, 15);
+			}
+            if (GetUnitAbilityLevel(u,id) == 0) { //没技能就添加技能
+UnitAddAbility(u,id);
+            }
+            // 不存在才创建新的
+            this = allocate();
+            this.u = u;
+            this.id = id;
+            this.spellType = SPELL_TYPE_MIRROR;
+            this.sd = sd;
+            this.level = level;
+			SaveInteger(HASH_SPELL, key, 15, this);
+            return this;
+        }
+        // 创建虚拟技能(无ID)
+        public static method virtual (unit u ,spellData sd, integer level) -> thistype {
+            thistype this;
+			integer key = GetHashValue(GetHandleId(u), sd); //使用sd作为哈希值
+			// 先检查是否已存在
+			if (HaveSavedInteger(HASH_SPELL, key, 15)) {
+				return LoadInteger(HASH_SPELL, key, 15);
+			}
+            // 不存在才创建新的
+            this = allocate();
+            this.u = u;
+            this.id = 0;
+            this.spellType = SPELL_TYPE_VIRTUAL;
+            this.sd = sd;
+            this.level = level;
+			SaveInteger(HASH_SPELL, key, 15, this);
+            return this;
+        }
+        // 获取技能结构体
+        public static method get (unit u, integer id) -> thistype {
+            if (HaveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(u), id), 15)) {
+				return LoadInteger(HASH_SPELL, GetHashValue(GetHandleId(u), id), 15);
+			}
+			return 0;
+        }
+        // 注册销毁时的回调
+        public method registerDestroy (code func) {
+            if (!this.isExist()) {return;}
+            if (trDestroy == null) {
+                trDestroy = CreateTrigger();
+            }
+            TriggerAddCondition(trDestroy, Condition(func));
+        }
+        //销毁时调用
+        method onDestroy () {
+            if (!this.isExist()) {return;}
+            if (trDestroy != null) {
+                thistype.ethis = this;
+                TriggerEvaluate(trDestroy);
+                DestroyTrigger(trDestroy);
+                trDestroy = null;
+            }
+            if (spellType == SPELL_TYPE_VIRTUAL) { //虚拟技能
+if (HaveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(u), sd), 15)) {
+                    RemoveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(u), sd), 15);
+                }
+            } else { //有ID的技能
+if (HaveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(u), id), 15)) {
+                    RemoveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(u), id), 15);
+                }
+            }
+            if (id != 0) {
+                UnitRemoveAbility(u,id);
+            }
+            this.u = null;
+            this.id = 0;
+            this.sd = 0;
+        }
+        // HOOK:这里的id仅是物编ID没有virtual
+        // public static method RemoveHook (unit u, integer id)  -> nothing {
+		// 	integer key = GetHashValue(GetHandleId(u), id); //使用sd作为哈希值
+        //     thistype this;
+        //     if (HaveSavedInteger(HASH_SPELL,key,HASH_KEY_SPELL_SPELL)) {
+        //         this = LoadInteger(HASH_SPELL,key,HASH_KEY_SPELL_SPELL);
+        //         this.destroy();
+        //     }
+        // }
+    }
+}
+//! endzinc
 // hook UnitRemoveAbility spell.RemoveHook
-// [DzSetUnitMoveType]  
-// title = "设置单位移动类型[NEW]"  
-// description = "设置 ${单位} 的移动类型：${movetype} "  
-// comment = ""  
-// category = TC_KKPRE  
-// [[.args]]  
-// type = unit  
-// [[.args]]  
-// type = MoveTypeName  
-// default = MoveTypeName01  
+//! zinc
+
+library SpellTable {
+    public hashtable HASH_SPELL = InitHashtable(); // 技能哈希表(键是通过GetHashValue计算的)
+}
+//! endzinc
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -2069,6 +1565,29 @@ endfunction
 //*  Global Variables
 //*
 //***************************************************************************
+globals
+    // Generated
+    rect gg_rct_Wave1 = null
+    rect gg_rct_Wave2 = null
+    rect gg_rct_Wave3 = null
+    rect gg_rct_Wave4 = null
+    rect gg_rct_Base = null
+    rect gg_rct_BaseBack = null
+    rect gg_rct_Home1 = null
+    rect gg_rct_Home2 = null
+    rect gg_rct_Home3 = null
+    rect gg_rct_Home4 = null
+    rect gg_rct_Fuben1 = null
+    rect gg_rct_Fuben2 = null
+    rect gg_rct_Fuben3 = null
+    rect gg_rct_Fuben4 = null
+    rect gg_rct_Fuben5 = null
+    rect gg_rct_Fuben6 = null
+    rect gg_rct_Fuben7 = null
+    rect gg_rct_Fuben8 = null
+    trigger gg_trg_______u = null
+    unit gg_unit_hcas_0011 = null
+endglobals
 function InitGlobals takes nothing returns nothing
 endfunction
 //***************************************************************************
@@ -2078,24 +1597,24 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function CreateBuildingsForPlayer8 takes nothing returns nothing
-    local player p= Player(8)
+    local player p = Player(8)
     local unit u
     local integer unitID
     local trigger t
     local real life
-    set gg_unit_hcas_0011=CreateUnit(p, 'hcas', - 64.0, - 1984.0, 270.000)
+    set gg_unit_hcas_0011 = CreateUnit( p, 'hcas', -64.0, -1984.0, 270.000 )
 endfunction
 //===========================================================================
 function CreatePlayerBuildings takes nothing returns nothing
-    call CreateBuildingsForPlayer8()
+    call CreateBuildingsForPlayer8( )
 endfunction
 //===========================================================================
 function CreatePlayerUnits takes nothing returns nothing
 endfunction
 //===========================================================================
 function CreateAllUnits takes nothing returns nothing
-    call CreatePlayerBuildings()
-    call CreatePlayerUnits()
+    call CreatePlayerBuildings( )
+    call CreatePlayerUnits( )
 endfunction
 //***************************************************************************
 //*
@@ -2104,24 +1623,24 @@ endfunction
 //***************************************************************************
 function CreateRegions takes nothing returns nothing
     local weathereffect we
-    set gg_rct_Wave1=Rect(- 5088.0, 3168.0, - 4448.0, 3968.0)
-    set gg_rct_Wave2=Rect(- 1568.0, 3360.0, - 928.0, 4160.0)
-    set gg_rct_Wave3=Rect(1312.0, 3584.0, 1952.0, 4384.0)
-    set gg_rct_Wave4=Rect(4320.0, 3232.0, 4960.0, 4032.0)
-    set gg_rct_Base=Rect(- 320.0, - 2304.0, 192.0, - 1664.0)
-    set gg_rct_BaseBack=Rect(- 320.0, - 3328.0, 160.0, - 2848.0)
-    set gg_rct_Home1=Rect(- 10496.0, 1440.0, - 8128.0, 3776.0)
-    set gg_rct_Home2=Rect(7712.0, 1568.0, 10080.0, 3904.0)
-    set gg_rct_Home3=Rect(- 10464.0, - 3680.0, - 8096.0, - 1344.0)
-    set gg_rct_Home4=Rect(7712.0, - 3552.0, 10080.0, - 1216.0)
-    set gg_rct_Fuben1=Rect(- 11872.0, 7968.0, - 8224.0, 11584.0)
-    set gg_rct_Fuben2=Rect(- 5472.0, 8000.0, - 1824.0, 11616.0)
-    set gg_rct_Fuben3=Rect(1184.0, 8000.0, 4832.0, 11616.0)
-    set gg_rct_Fuben4=Rect(7712.0, 7968.0, 11360.0, 11584.0)
-    set gg_rct_Fuben5=Rect(- 11872.0, - 11328.0, - 8224.0, - 7712.0)
-    set gg_rct_Fuben6=Rect(- 5472.0, - 11328.0, - 1824.0, - 7712.0)
-    set gg_rct_Fuben7=Rect(1184.0, - 11328.0, 4832.0, - 7712.0)
-    set gg_rct_Fuben8=Rect(7712.0, - 11328.0, 11360.0, - 7712.0)
+    set gg_rct_Wave1 = Rect( -5088.0, 3168.0, -4448.0, 3968.0 )
+    set gg_rct_Wave2 = Rect( -1568.0, 3360.0, -928.0, 4160.0 )
+    set gg_rct_Wave3 = Rect( 1312.0, 3584.0, 1952.0, 4384.0 )
+    set gg_rct_Wave4 = Rect( 4320.0, 3232.0, 4960.0, 4032.0 )
+    set gg_rct_Base = Rect( -320.0, -2304.0, 192.0, -1664.0 )
+    set gg_rct_BaseBack = Rect( -320.0, -3328.0, 160.0, -2848.0 )
+    set gg_rct_Home1 = Rect( -10496.0, 1440.0, -8128.0, 3776.0 )
+    set gg_rct_Home2 = Rect( 7712.0, 1568.0, 10080.0, 3904.0 )
+    set gg_rct_Home3 = Rect( -10464.0, -3680.0, -8096.0, -1344.0 )
+    set gg_rct_Home4 = Rect( 7712.0, -3552.0, 10080.0, -1216.0 )
+    set gg_rct_Fuben1 = Rect( -11872.0, 7968.0, -8224.0, 11584.0 )
+    set gg_rct_Fuben2 = Rect( -5472.0, 8000.0, -1824.0, 11616.0 )
+    set gg_rct_Fuben3 = Rect( 1184.0, 8000.0, 4832.0, 11616.0 )
+    set gg_rct_Fuben4 = Rect( 7712.0, 7968.0, 11360.0, 11584.0 )
+    set gg_rct_Fuben5 = Rect( -11872.0, -11328.0, -8224.0, -7712.0 )
+    set gg_rct_Fuben6 = Rect( -5472.0, -11328.0, -1824.0, -7712.0 )
+    set gg_rct_Fuben7 = Rect( 1184.0, -11328.0, 4832.0, -7712.0 )
+    set gg_rct_Fuben8 = Rect( 7712.0, -11328.0, 11360.0, -7712.0 )
 endfunction
 //***************************************************************************
 //*
@@ -2140,6 +1659,352 @@ endfunction
 // 用原始地图测试
 // 用空地图测试
 // 用原始地图测试
+//! zinc
+
+library UTUnitSpell requires UnitSpell {
+	private unit testUnit = null;
+	private unitSpell us = 0;
+	private boolean toggle5 = false;
+	// 用于Simple技能回调测试的全局变量
+	private integer simpleSpellInitCount = 0;
+	private integer simpleSpellDestroyCount = 0;
+	function Init() {
+		// 测试1: parse创建 - 0.1秒
+		spellData sd = spellData.byType('AHbz');
+		sd = spellData.byType('AHtb');
+		sd = spellData.byType('AHtc');
+		sd = spellData.byType('AHmt');
+		sd = spellData.byType('AHfs');
+		UnitTestAutoTimer(0.1, 0, function() {
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			Trace("测试1: unitSpell.parse创建");
+			assert.Boolean(us != 0, "单位是否有效");
+			assert.Boolean(us.u == testUnit, "绑定单位是否正确");
+		}, null);
+		// 测试2: get获取 - 0.2秒
+		UnitTestAutoTimer(0.2, 0, function() {
+			unitSpell us2;
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			us2 = unitSpell.get(testUnit);
+			Trace("测试2: unitSpell.get获取");
+			assert.Boolean(us == us2, "获取实例是否相同");
+		}, null);
+		// 测试3: addSpell和getSpell - 0.3秒
+		UnitTestAutoTimer(0.3, 0, function() {
+			spell sp;
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			sp = spell.entity(testUnit, 'AHbz', 1);
+			us.addSpell(sp);
+			Trace("测试3: addSpell和getSpell");
+			assert.Boolean(us.getSpell(0) == sp, "获取技能是否正确");
+		}, null);
+		// 测试4: getSpellCount - 0.4秒
+		UnitTestAutoTimer(0.4, 0, function() {
+			spell sp;
+			integer countBefore;
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			sp = spell.entity(testUnit, 'AHbz', 1);
+			countBefore = us.getSpellCount();
+			us.addSpell(sp);
+			Trace("测试4: getSpellCount");
+			assert.Boolean(us.getSpellCount() == countBefore + 1, "技能数量是否正确");
+		}, null);
+		// 测试6: 单位销毁清理 - 0.5秒
+		UnitTestAutoTimer(0.5, 0, function() {
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			Trace("测试6: 单位销毁清理");
+			assert.Boolean(us.isExist(), "销毁前unitSpell存在");
+			RemoveUnit(testUnit);
+			assert.Boolean(!us.isExist(), "销毁后unitSpell不存在");
+			testUnit = null;
+		}, null);
+		// 测试7: 技能添加删除测试 - 0.6秒
+		UnitTestAutoTimer(0.6, 0, function() {
+			integer spellIds[]; // 不同的技能ID
+integer i = 0;
+			boolean removeResult = false;
+			spell invalidSpell = 0;
+			spellData sd = 0;
+			Trace("开始测试7: 技能添加删除测试");
+			spellIds[0] = 'AHbz';
+			spellIds[1] = 'AHtb';
+			spellIds[2] = 'AHtc';
+			spellIds[3] = 'AHmt';
+			spellIds[4] = 'AHfs';
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			// 添加5个不同的技能
+			for (0 <= i < 5) {
+				sd = spellData.byType(spellIds[i]);
+				us.addSpellData(sd, 1);
+			}
+			// 测试技能数量
+			assert.Integer(us.getSpellCount(), 5, "添加5个技能后数量是否为5");
+			// 测试删除不存在的技能
+			removeResult = us.removeSpell(invalidSpell);
+			assert.Boolean(!removeResult, "删除不存在的技能应该返回false");
+			// 逐个删除技能并检查数量
+			for (0 <= i < 5) {
+				sd = spellData.byType(spellIds[i]);
+				removeResult = us.removeSpellData(sd);
+				assert.Boolean(removeResult, "删除第" + I2S(i + 1) + "个技能应该成功");
+				assert.Integer(us.getSpellCount(), 4 - i, "删除后技能数量应该为" + I2S(4 - i));
+			}
+			// 最终检查
+			assert.Integer(us.getSpellCount(), 0, "删除所有技能后数量应该为0");
+		}, null);
+		// 测试8: 重复添加技能测试 - 0.7秒
+		UnitTestAutoTimer(0.7, 0, function() {
+			spell sp1, sp2;
+			spellData sd;
+			Trace("开始测试8: 重复添加技能测试");
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			// 测试重复添加相同的spell实例
+			sp1 = spell.entity(testUnit, 'AHbz', 1);
+			assert.Boolean(us.addSpell(sp1), "首次添加技能实例应该成功");
+			assert.Boolean(!us.addSpell(sp1), "重复添加相同技能实例应该失败");
+			assert.Integer(us.getSpellCount(), 1, "重复添加后技能数量应该为1");
+			// 测试重复添加相同的spellData
+			sd = spellData.byType('AHtb');
+			assert.Boolean(us.addSpellData(sd, 1), "首次通过spellData添加技能应该成功");
+			assert.Boolean(!us.addSpellData(sd, 1), "重复添加相同spellData应该失败");
+			assert.Integer(us.getSpellCount(), 2, "重复添加后技能数量应该为2");
+		}, null);
+		// 测试9: Simple技能测试 - 0.8秒
+		UnitTestAutoTimer(0.8, 0, function() {
+			spellData sd;
+			spellData sds[];
+			boolean addResult = false;
+			boolean removeResult = false;
+			Trace("开始测试9: Simple技能测试");
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			// 创建Simple类型的技能数据
+			sd = spellData.new();
+			sd.spellType = SPELL_TYPE_SIMPLE;
+			sd.maxLevel = 3;
+			integer i;
+			for (1 <= i <= 3) {
+				sds[i] = spellData.new();
+				sds[i].spellType = SPELL_TYPE_SIMPLE;
+				sds[i].maxLevel = 2+i;
+			}
+			// 注册初始化和销毁回调
+			sd.registerInit(function() {
+				simpleSpellInitCount += 1;
+				Trace("Simple技能初始化回调被调用, 当前计数: " + I2S(simpleSpellInitCount));
+			});
+			sd.registerDestroy(function() {
+				simpleSpellDestroyCount += 1;
+				Trace("Simple技能销毁回调被调用, 当前计数: " + I2S(simpleSpellDestroyCount));
+			});
+			// 测试添加Simple技能
+			addResult = us.addSpellData(sd, 2);
+			assert.Boolean(addResult, "添加Simple技能应该成功");
+			assert.Integer(us.getSimpleSpellCount(), 1, "Simple技能数量应该为1");
+			assert.Integer(simpleSpellInitCount, 1, "Simple技能初始化回调应该被调用一次");
+			// 测试获取Simple技能
+			assert.Boolean(us.getSimpleSpell(0) == sd, "获取Simple技能应该返回正确的spellData");
+			assert.Boolean(us.hasSpellData(sd), "hasSpellData应该能检测到Simple技能");
+			// 测试重复添加
+			addResult = us.addSpellData(sd, 2);
+			assert.Boolean(!addResult, "重复添加Simple技能应该失败");
+			assert.Integer(us.getSimpleSpellCount(), 1, "重复添加后Simple技能数量应该仍为1");
+			// 测试删除Simple技能
+			removeResult = us.removeSpellData(sd);
+			assert.Boolean(removeResult, "删除Simple技能应该成功");
+			assert.Integer(us.getSimpleSpellCount(), 0, "删除后Simple技能数量应该为0");
+			assert.Integer(simpleSpellDestroyCount, 1, "Simple技能销毁回调应该被调用一次");
+			// 测试删除不存在的Simple技能
+			removeResult = us.removeSpellData(sd);
+			assert.Boolean(!removeResult, "删除不存在的Simple技能应该失败");
+			// 测试添加多个Simple技能
+			for (1 <= i <= 3) {
+				addResult = us.addSpellData(sds[i], i);
+				assert.Boolean(addResult, "添加第" + I2S(i) + "个Simple技能应该成功");
+				assert.Integer(us.getSimpleSpellCount(), i, "添加" + I2S(i) + "个Simple技能后数量应该为" + I2S(i));
+			}
+			// 测试获取多个Simple技能
+			for (1 <= i <= 3) {
+				assert.Boolean(us.getSimpleSpell(i-1) == sds[i], "获取第" + I2S(i) + "个Simple技能应该返回正确的spellData");
+				assert.Boolean(us.hasSpellData(sds[i]), "hasSpellData应该能检测到第" + I2S(i) + "个Simple技能");
+			}
+			// 测试逐个删除Simple技能
+			for (1 <= i <= 3) {
+				removeResult = us.removeSpellData(sds[i]);
+				assert.Boolean(removeResult, "删除第" + I2S(i) + "个Simple技能应该成功");
+				assert.Integer(us.getSimpleSpellCount(), 3-i, "删除后Simple技能数量应该为" + I2S(3-i));
+			}
+			// 测试全部删除后再次删除
+			for (1 <= i <= 3) {
+				removeResult = us.removeSpellData(sds[i]);
+				assert.Boolean(!removeResult, "删除已删除的Simple技能应该失败");
+			}
+		}, null);
+	}
+	// 测试用例函数保持空实现
+	function TTestUTUnitSpell1(player p) {}
+	function TTestUTUnitSpell2(player p) {}
+	function TTestUTUnitSpell3(player p) {}
+	function TTestUTUnitSpell4(player p) {}
+	// 只保留测试5的实现，因为它是交互式的随机创建删除测试
+	function TTestUTUnitSpell5(player p) {
+		integer i;
+		integer count;
+		unit u;
+		group g;
+		unitSpell tempUs;
+		if (toggle5) {
+			// 删除模式：遍历所有单位并删除技能实例
+			g = CreateGroup();
+			GroupEnumUnitsInRect(g, bj_mapInitialPlayableArea, null);
+			ForGroup(g, function() {
+				unit u = GetEnumUnit();
+				unitSpell tempUs = unitSpell.get(u);
+				if (tempUs != 0) {
+					tempUs.destroy();
+					Trace("删除了单位 " + GetUnitName(u) + " 的技能实例");
+				}
+				u = null;
+			});
+			DestroyGroup(g);
+			g = null;
+			Trace("已清理所有技能实例");
+		} else {
+			// 创建模式：随机创建10-20个带技能的单位
+			count = GetRandomInt(10, 20);
+			Trace("准备创建 " + I2S(count) + " 个测试单位");
+			for (0 <= i < count) {
+				u = CreateUnit(p, 'hfoo',
+				GetRandomReal(-1000, 1000),
+				GetRandomReal(-1000, 1000),
+				GetRandomReal(0, 360));
+				tempUs = unitSpell.parse(u);
+				if (tempUs != 0) {
+					Trace("创建第 " + I2S(i + 1) + " 个单位的技能实例成功");
+				}
+				u = null;
+			}
+			Trace("完成创建测试单位");
+		}
+		toggle5 = !toggle5;
+	}
+	function TTestUTUnitSpell6(player p) {}
+	// 以下测试用例预留
+	function TTestUTUnitSpell7(player p) {}
+	function TTestUTUnitSpell8(player p) {}
+	function TTestUTUnitSpell9(player p) {}
+	function TTestUTUnitSpell10(player p) {}
+	// 处理带参数的测试命令
+	function TTestActUTUnitSpell1(string str) {
+		player p;
+		integer index;
+		integer i;
+		integer num;
+		integer len;
+		string paramS[];
+		integer paramI[];
+		real paramR[];
+		unit selectedUnit;
+		p = GetTriggerPlayer();
+		index = GetConvertedPlayerId(p);
+		num = 0;
+		len = StringLength(str);
+		// 解析参数
+		for (0 <= i <= len - 1) {
+			if (SubString(str,i,i+1) == " ") {
+				paramS[num] = SubString(str,0,i);
+				paramI[num] = S2I(paramS[num]);
+				paramR[num] = S2R(paramS[num]);
+				num = num + 1;
+				str = SubString(str,i + 1,len);
+				len = StringLength(str);
+				i = -1;
+			}
+		}
+		paramS[num] = str;
+		paramI[num] = S2I(paramS[num]);
+		paramR[num] = S2R(paramS[num]);
+		num = num + 1;
+		if (paramS[0] == "a") {
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(p, paramI[1], 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			Trace("创建测试单位: " + I2S(paramI[1]));
+		} else if (paramS[0] == "b") {
+			selectedUnit = unitSelect.currentU[index];
+			if (selectedUnit != null) {
+				us = unitSpell.get(selectedUnit);
+				if (us != 0) {
+					us.addSpell(spell.entity(selectedUnit, paramI[1], 1));
+					Trace("添加技能: " + I2S(paramI[1]));
+				}
+			}
+		}
+		p = null;
+	}
+	function onInit() {
+		trigger tr = CreateTrigger();
+		TriggerRegisterTimerEvent(tr, 0.5, false);
+		TriggerAddCondition(tr, Condition(function() {
+			Trace("[UnitSpell] 单元测试已加载");
+			Init();
+			DestroyTrigger(GetTriggeringTrigger());
+		}));
+		tr = null;
+		UnitTestRegisterChatEvent(function() {
+			string str = GetEventPlayerChatString();
+			integer i = 1;
+			if (SubString(str, (1)-1, 1) == "-") {
+				TTestActUTUnitSpell1(SubString(str, (2)-1, StringLength(str)));
+				return;
+			}
+			if (str == "s1") TTestUTUnitSpell1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUnitSpell2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUnitSpell3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUnitSpell4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUnitSpell5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUnitSpell6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUnitSpell7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUnitSpell8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUnitSpell9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUnitSpell10(GetTriggerPlayer());
+		});
+	}
+}
+//! endzinc
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -2158,13 +2023,13 @@ function Trig_______uActions takes nothing returns nothing
 endfunction
 //===========================================================================
 function InitTrig_______u takes nothing returns nothing
-    set gg_trg_______u=CreateTrigger()
+    set gg_trg_______u = CreateTrigger()
     call DoNothing()
     call TriggerAddAction(gg_trg_______u, function Trig_______uActions)
 endfunction
 //===========================================================================
 function InitCustomTriggers takes nothing returns nothing
-    call InitTrig_______u()
+    call InitTrig_______u( )
 endfunction
 //***************************************************************************
 //*
@@ -2173,283 +2038,283 @@ endfunction
 //***************************************************************************
 function InitCustomPlayerSlots takes nothing returns nothing
     // Player 0
-    call SetPlayerStartLocation(Player(0), 0)
-    call ForcePlayerStartLocation(Player(0), 0)
-    call SetPlayerColor(Player(0), ConvertPlayerColor(0))
-    call SetPlayerRacePreference(Player(0), RACE_PREF_HUMAN)
-    call SetPlayerRaceSelectable(Player(0), false)
-    call SetPlayerController(Player(0), MAP_CONTROL_USER)
+    call SetPlayerStartLocation( Player(0), 0 )
+    call ForcePlayerStartLocation( Player(0), 0 )
+    call SetPlayerColor( Player(0), ConvertPlayerColor(0) )
+    call SetPlayerRacePreference( Player(0), RACE_PREF_HUMAN )
+    call SetPlayerRaceSelectable( Player(0), false )
+    call SetPlayerController( Player(0), MAP_CONTROL_USER )
     // Player 1
-    call SetPlayerStartLocation(Player(1), 1)
-    call ForcePlayerStartLocation(Player(1), 1)
-    call SetPlayerColor(Player(1), ConvertPlayerColor(1))
-    call SetPlayerRacePreference(Player(1), RACE_PREF_HUMAN)
-    call SetPlayerRaceSelectable(Player(1), false)
-    call SetPlayerController(Player(1), MAP_CONTROL_USER)
+    call SetPlayerStartLocation( Player(1), 1 )
+    call ForcePlayerStartLocation( Player(1), 1 )
+    call SetPlayerColor( Player(1), ConvertPlayerColor(1) )
+    call SetPlayerRacePreference( Player(1), RACE_PREF_HUMAN )
+    call SetPlayerRaceSelectable( Player(1), false )
+    call SetPlayerController( Player(1), MAP_CONTROL_USER )
     // Player 2
-    call SetPlayerStartLocation(Player(2), 2)
-    call ForcePlayerStartLocation(Player(2), 2)
-    call SetPlayerColor(Player(2), ConvertPlayerColor(2))
-    call SetPlayerRacePreference(Player(2), RACE_PREF_HUMAN)
-    call SetPlayerRaceSelectable(Player(2), false)
-    call SetPlayerController(Player(2), MAP_CONTROL_USER)
+    call SetPlayerStartLocation( Player(2), 2 )
+    call ForcePlayerStartLocation( Player(2), 2 )
+    call SetPlayerColor( Player(2), ConvertPlayerColor(2) )
+    call SetPlayerRacePreference( Player(2), RACE_PREF_HUMAN )
+    call SetPlayerRaceSelectable( Player(2), false )
+    call SetPlayerController( Player(2), MAP_CONTROL_USER )
     // Player 3
-    call SetPlayerStartLocation(Player(3), 3)
-    call ForcePlayerStartLocation(Player(3), 3)
-    call SetPlayerColor(Player(3), ConvertPlayerColor(3))
-    call SetPlayerRacePreference(Player(3), RACE_PREF_HUMAN)
-    call SetPlayerRaceSelectable(Player(3), false)
-    call SetPlayerController(Player(3), MAP_CONTROL_USER)
+    call SetPlayerStartLocation( Player(3), 3 )
+    call ForcePlayerStartLocation( Player(3), 3 )
+    call SetPlayerColor( Player(3), ConvertPlayerColor(3) )
+    call SetPlayerRacePreference( Player(3), RACE_PREF_HUMAN )
+    call SetPlayerRaceSelectable( Player(3), false )
+    call SetPlayerController( Player(3), MAP_CONTROL_USER )
     // Player 4
-    call SetPlayerStartLocation(Player(4), 4)
-    call ForcePlayerStartLocation(Player(4), 4)
-    call SetPlayerColor(Player(4), ConvertPlayerColor(4))
-    call SetPlayerRacePreference(Player(4), RACE_PREF_NIGHTELF)
-    call SetPlayerRaceSelectable(Player(4), false)
-    call SetPlayerController(Player(4), MAP_CONTROL_COMPUTER)
+    call SetPlayerStartLocation( Player(4), 4 )
+    call ForcePlayerStartLocation( Player(4), 4 )
+    call SetPlayerColor( Player(4), ConvertPlayerColor(4) )
+    call SetPlayerRacePreference( Player(4), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(4), false )
+    call SetPlayerController( Player(4), MAP_CONTROL_COMPUTER )
     // Player 5
-    call SetPlayerStartLocation(Player(5), 5)
-    call ForcePlayerStartLocation(Player(5), 5)
-    call SetPlayerColor(Player(5), ConvertPlayerColor(5))
-    call SetPlayerRacePreference(Player(5), RACE_PREF_NIGHTELF)
-    call SetPlayerRaceSelectable(Player(5), false)
-    call SetPlayerController(Player(5), MAP_CONTROL_COMPUTER)
+    call SetPlayerStartLocation( Player(5), 5 )
+    call ForcePlayerStartLocation( Player(5), 5 )
+    call SetPlayerColor( Player(5), ConvertPlayerColor(5) )
+    call SetPlayerRacePreference( Player(5), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(5), false )
+    call SetPlayerController( Player(5), MAP_CONTROL_COMPUTER )
     // Player 6
-    call SetPlayerStartLocation(Player(6), 6)
-    call ForcePlayerStartLocation(Player(6), 6)
-    call SetPlayerColor(Player(6), ConvertPlayerColor(6))
-    call SetPlayerRacePreference(Player(6), RACE_PREF_NIGHTELF)
-    call SetPlayerRaceSelectable(Player(6), false)
-    call SetPlayerController(Player(6), MAP_CONTROL_COMPUTER)
+    call SetPlayerStartLocation( Player(6), 6 )
+    call ForcePlayerStartLocation( Player(6), 6 )
+    call SetPlayerColor( Player(6), ConvertPlayerColor(6) )
+    call SetPlayerRacePreference( Player(6), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(6), false )
+    call SetPlayerController( Player(6), MAP_CONTROL_COMPUTER )
     // Player 7
-    call SetPlayerStartLocation(Player(7), 7)
-    call ForcePlayerStartLocation(Player(7), 7)
-    call SetPlayerColor(Player(7), ConvertPlayerColor(7))
-    call SetPlayerRacePreference(Player(7), RACE_PREF_NIGHTELF)
-    call SetPlayerRaceSelectable(Player(7), false)
-    call SetPlayerController(Player(7), MAP_CONTROL_COMPUTER)
+    call SetPlayerStartLocation( Player(7), 7 )
+    call ForcePlayerStartLocation( Player(7), 7 )
+    call SetPlayerColor( Player(7), ConvertPlayerColor(7) )
+    call SetPlayerRacePreference( Player(7), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(7), false )
+    call SetPlayerController( Player(7), MAP_CONTROL_COMPUTER )
     // Player 8
-    call SetPlayerStartLocation(Player(8), 8)
-    call ForcePlayerStartLocation(Player(8), 8)
-    call SetPlayerColor(Player(8), ConvertPlayerColor(8))
-    call SetPlayerRacePreference(Player(8), RACE_PREF_NIGHTELF)
-    call SetPlayerRaceSelectable(Player(8), false)
-    call SetPlayerController(Player(8), MAP_CONTROL_COMPUTER)
+    call SetPlayerStartLocation( Player(8), 8 )
+    call ForcePlayerStartLocation( Player(8), 8 )
+    call SetPlayerColor( Player(8), ConvertPlayerColor(8) )
+    call SetPlayerRacePreference( Player(8), RACE_PREF_NIGHTELF )
+    call SetPlayerRaceSelectable( Player(8), false )
+    call SetPlayerController( Player(8), MAP_CONTROL_COMPUTER )
     // Player 9
-    call SetPlayerStartLocation(Player(9), 9)
-    call ForcePlayerStartLocation(Player(9), 9)
-    call SetPlayerColor(Player(9), ConvertPlayerColor(9))
-    call SetPlayerRacePreference(Player(9), RACE_PREF_UNDEAD)
-    call SetPlayerRaceSelectable(Player(9), false)
-    call SetPlayerController(Player(9), MAP_CONTROL_COMPUTER)
+    call SetPlayerStartLocation( Player(9), 9 )
+    call ForcePlayerStartLocation( Player(9), 9 )
+    call SetPlayerColor( Player(9), ConvertPlayerColor(9) )
+    call SetPlayerRacePreference( Player(9), RACE_PREF_UNDEAD )
+    call SetPlayerRaceSelectable( Player(9), false )
+    call SetPlayerController( Player(9), MAP_CONTROL_COMPUTER )
     // Player 10
-    call SetPlayerStartLocation(Player(10), 10)
-    call ForcePlayerStartLocation(Player(10), 10)
-    call SetPlayerColor(Player(10), ConvertPlayerColor(10))
-    call SetPlayerRacePreference(Player(10), RACE_PREF_UNDEAD)
-    call SetPlayerRaceSelectable(Player(10), false)
-    call SetPlayerController(Player(10), MAP_CONTROL_COMPUTER)
+    call SetPlayerStartLocation( Player(10), 10 )
+    call ForcePlayerStartLocation( Player(10), 10 )
+    call SetPlayerColor( Player(10), ConvertPlayerColor(10) )
+    call SetPlayerRacePreference( Player(10), RACE_PREF_UNDEAD )
+    call SetPlayerRaceSelectable( Player(10), false )
+    call SetPlayerController( Player(10), MAP_CONTROL_COMPUTER )
     // Player 11
-    call SetPlayerStartLocation(Player(11), 11)
-    call ForcePlayerStartLocation(Player(11), 11)
-    call SetPlayerColor(Player(11), ConvertPlayerColor(11))
-    call SetPlayerRacePreference(Player(11), RACE_PREF_UNDEAD)
-    call SetPlayerRaceSelectable(Player(11), false)
-    call SetPlayerController(Player(11), MAP_CONTROL_COMPUTER)
+    call SetPlayerStartLocation( Player(11), 11 )
+    call ForcePlayerStartLocation( Player(11), 11 )
+    call SetPlayerColor( Player(11), ConvertPlayerColor(11) )
+    call SetPlayerRacePreference( Player(11), RACE_PREF_UNDEAD )
+    call SetPlayerRaceSelectable( Player(11), false )
+    call SetPlayerController( Player(11), MAP_CONTROL_COMPUTER )
 endfunction
 function InitCustomTeams takes nothing returns nothing
     // Force: TRIGSTR_013
-    call SetPlayerTeam(Player(0), 0)
-    call SetPlayerTeam(Player(1), 0)
-    call SetPlayerTeam(Player(2), 0)
-    call SetPlayerTeam(Player(3), 0)
-    call SetPlayerTeam(Player(4), 0)
-    call SetPlayerTeam(Player(5), 0)
-    call SetPlayerTeam(Player(6), 0)
-    call SetPlayerTeam(Player(7), 0)
-    call SetPlayerTeam(Player(8), 0)
+    call SetPlayerTeam( Player(0), 0 )
+    call SetPlayerTeam( Player(1), 0 )
+    call SetPlayerTeam( Player(2), 0 )
+    call SetPlayerTeam( Player(3), 0 )
+    call SetPlayerTeam( Player(4), 0 )
+    call SetPlayerTeam( Player(5), 0 )
+    call SetPlayerTeam( Player(6), 0 )
+    call SetPlayerTeam( Player(7), 0 )
+    call SetPlayerTeam( Player(8), 0 )
     //   Allied
-    call SetPlayerAllianceStateAllyBJ(Player(0), Player(1), true)
-    call SetPlayerAllianceStateAllyBJ(Player(0), Player(2), true)
-    call SetPlayerAllianceStateAllyBJ(Player(0), Player(3), true)
-    call SetPlayerAllianceStateAllyBJ(Player(0), Player(4), true)
-    call SetPlayerAllianceStateAllyBJ(Player(0), Player(5), true)
-    call SetPlayerAllianceStateAllyBJ(Player(0), Player(6), true)
-    call SetPlayerAllianceStateAllyBJ(Player(0), Player(7), true)
-    call SetPlayerAllianceStateAllyBJ(Player(0), Player(8), true)
-    call SetPlayerAllianceStateAllyBJ(Player(1), Player(0), true)
-    call SetPlayerAllianceStateAllyBJ(Player(1), Player(2), true)
-    call SetPlayerAllianceStateAllyBJ(Player(1), Player(3), true)
-    call SetPlayerAllianceStateAllyBJ(Player(1), Player(4), true)
-    call SetPlayerAllianceStateAllyBJ(Player(1), Player(5), true)
-    call SetPlayerAllianceStateAllyBJ(Player(1), Player(6), true)
-    call SetPlayerAllianceStateAllyBJ(Player(1), Player(7), true)
-    call SetPlayerAllianceStateAllyBJ(Player(1), Player(8), true)
-    call SetPlayerAllianceStateAllyBJ(Player(2), Player(0), true)
-    call SetPlayerAllianceStateAllyBJ(Player(2), Player(1), true)
-    call SetPlayerAllianceStateAllyBJ(Player(2), Player(3), true)
-    call SetPlayerAllianceStateAllyBJ(Player(2), Player(4), true)
-    call SetPlayerAllianceStateAllyBJ(Player(2), Player(5), true)
-    call SetPlayerAllianceStateAllyBJ(Player(2), Player(6), true)
-    call SetPlayerAllianceStateAllyBJ(Player(2), Player(7), true)
-    call SetPlayerAllianceStateAllyBJ(Player(2), Player(8), true)
-    call SetPlayerAllianceStateAllyBJ(Player(3), Player(0), true)
-    call SetPlayerAllianceStateAllyBJ(Player(3), Player(1), true)
-    call SetPlayerAllianceStateAllyBJ(Player(3), Player(2), true)
-    call SetPlayerAllianceStateAllyBJ(Player(3), Player(4), true)
-    call SetPlayerAllianceStateAllyBJ(Player(3), Player(5), true)
-    call SetPlayerAllianceStateAllyBJ(Player(3), Player(6), true)
-    call SetPlayerAllianceStateAllyBJ(Player(3), Player(7), true)
-    call SetPlayerAllianceStateAllyBJ(Player(3), Player(8), true)
-    call SetPlayerAllianceStateAllyBJ(Player(4), Player(0), true)
-    call SetPlayerAllianceStateAllyBJ(Player(4), Player(1), true)
-    call SetPlayerAllianceStateAllyBJ(Player(4), Player(2), true)
-    call SetPlayerAllianceStateAllyBJ(Player(4), Player(3), true)
-    call SetPlayerAllianceStateAllyBJ(Player(4), Player(5), true)
-    call SetPlayerAllianceStateAllyBJ(Player(4), Player(6), true)
-    call SetPlayerAllianceStateAllyBJ(Player(4), Player(7), true)
-    call SetPlayerAllianceStateAllyBJ(Player(4), Player(8), true)
-    call SetPlayerAllianceStateAllyBJ(Player(5), Player(0), true)
-    call SetPlayerAllianceStateAllyBJ(Player(5), Player(1), true)
-    call SetPlayerAllianceStateAllyBJ(Player(5), Player(2), true)
-    call SetPlayerAllianceStateAllyBJ(Player(5), Player(3), true)
-    call SetPlayerAllianceStateAllyBJ(Player(5), Player(4), true)
-    call SetPlayerAllianceStateAllyBJ(Player(5), Player(6), true)
-    call SetPlayerAllianceStateAllyBJ(Player(5), Player(7), true)
-    call SetPlayerAllianceStateAllyBJ(Player(5), Player(8), true)
-    call SetPlayerAllianceStateAllyBJ(Player(6), Player(0), true)
-    call SetPlayerAllianceStateAllyBJ(Player(6), Player(1), true)
-    call SetPlayerAllianceStateAllyBJ(Player(6), Player(2), true)
-    call SetPlayerAllianceStateAllyBJ(Player(6), Player(3), true)
-    call SetPlayerAllianceStateAllyBJ(Player(6), Player(4), true)
-    call SetPlayerAllianceStateAllyBJ(Player(6), Player(5), true)
-    call SetPlayerAllianceStateAllyBJ(Player(6), Player(7), true)
-    call SetPlayerAllianceStateAllyBJ(Player(6), Player(8), true)
-    call SetPlayerAllianceStateAllyBJ(Player(7), Player(0), true)
-    call SetPlayerAllianceStateAllyBJ(Player(7), Player(1), true)
-    call SetPlayerAllianceStateAllyBJ(Player(7), Player(2), true)
-    call SetPlayerAllianceStateAllyBJ(Player(7), Player(3), true)
-    call SetPlayerAllianceStateAllyBJ(Player(7), Player(4), true)
-    call SetPlayerAllianceStateAllyBJ(Player(7), Player(5), true)
-    call SetPlayerAllianceStateAllyBJ(Player(7), Player(6), true)
-    call SetPlayerAllianceStateAllyBJ(Player(7), Player(8), true)
-    call SetPlayerAllianceStateAllyBJ(Player(8), Player(0), true)
-    call SetPlayerAllianceStateAllyBJ(Player(8), Player(1), true)
-    call SetPlayerAllianceStateAllyBJ(Player(8), Player(2), true)
-    call SetPlayerAllianceStateAllyBJ(Player(8), Player(3), true)
-    call SetPlayerAllianceStateAllyBJ(Player(8), Player(4), true)
-    call SetPlayerAllianceStateAllyBJ(Player(8), Player(5), true)
-    call SetPlayerAllianceStateAllyBJ(Player(8), Player(6), true)
-    call SetPlayerAllianceStateAllyBJ(Player(8), Player(7), true)
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(0), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(1), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(2), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(3), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(4), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(5), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(7), true )
+    call SetPlayerAllianceStateAllyBJ( Player(6), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(7), Player(8), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(0), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(1), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(2), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(3), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(4), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(5), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(6), true )
+    call SetPlayerAllianceStateAllyBJ( Player(8), Player(7), true )
     //   Shared Vision
-    call SetPlayerAllianceStateVisionBJ(Player(0), Player(1), true)
-    call SetPlayerAllianceStateVisionBJ(Player(0), Player(2), true)
-    call SetPlayerAllianceStateVisionBJ(Player(0), Player(3), true)
-    call SetPlayerAllianceStateVisionBJ(Player(0), Player(4), true)
-    call SetPlayerAllianceStateVisionBJ(Player(0), Player(5), true)
-    call SetPlayerAllianceStateVisionBJ(Player(0), Player(6), true)
-    call SetPlayerAllianceStateVisionBJ(Player(0), Player(7), true)
-    call SetPlayerAllianceStateVisionBJ(Player(0), Player(8), true)
-    call SetPlayerAllianceStateVisionBJ(Player(1), Player(0), true)
-    call SetPlayerAllianceStateVisionBJ(Player(1), Player(2), true)
-    call SetPlayerAllianceStateVisionBJ(Player(1), Player(3), true)
-    call SetPlayerAllianceStateVisionBJ(Player(1), Player(4), true)
-    call SetPlayerAllianceStateVisionBJ(Player(1), Player(5), true)
-    call SetPlayerAllianceStateVisionBJ(Player(1), Player(6), true)
-    call SetPlayerAllianceStateVisionBJ(Player(1), Player(7), true)
-    call SetPlayerAllianceStateVisionBJ(Player(1), Player(8), true)
-    call SetPlayerAllianceStateVisionBJ(Player(2), Player(0), true)
-    call SetPlayerAllianceStateVisionBJ(Player(2), Player(1), true)
-    call SetPlayerAllianceStateVisionBJ(Player(2), Player(3), true)
-    call SetPlayerAllianceStateVisionBJ(Player(2), Player(4), true)
-    call SetPlayerAllianceStateVisionBJ(Player(2), Player(5), true)
-    call SetPlayerAllianceStateVisionBJ(Player(2), Player(6), true)
-    call SetPlayerAllianceStateVisionBJ(Player(2), Player(7), true)
-    call SetPlayerAllianceStateVisionBJ(Player(2), Player(8), true)
-    call SetPlayerAllianceStateVisionBJ(Player(3), Player(0), true)
-    call SetPlayerAllianceStateVisionBJ(Player(3), Player(1), true)
-    call SetPlayerAllianceStateVisionBJ(Player(3), Player(2), true)
-    call SetPlayerAllianceStateVisionBJ(Player(3), Player(4), true)
-    call SetPlayerAllianceStateVisionBJ(Player(3), Player(5), true)
-    call SetPlayerAllianceStateVisionBJ(Player(3), Player(6), true)
-    call SetPlayerAllianceStateVisionBJ(Player(3), Player(7), true)
-    call SetPlayerAllianceStateVisionBJ(Player(3), Player(8), true)
-    call SetPlayerAllianceStateVisionBJ(Player(4), Player(0), true)
-    call SetPlayerAllianceStateVisionBJ(Player(4), Player(1), true)
-    call SetPlayerAllianceStateVisionBJ(Player(4), Player(2), true)
-    call SetPlayerAllianceStateVisionBJ(Player(4), Player(3), true)
-    call SetPlayerAllianceStateVisionBJ(Player(4), Player(5), true)
-    call SetPlayerAllianceStateVisionBJ(Player(4), Player(6), true)
-    call SetPlayerAllianceStateVisionBJ(Player(4), Player(7), true)
-    call SetPlayerAllianceStateVisionBJ(Player(4), Player(8), true)
-    call SetPlayerAllianceStateVisionBJ(Player(5), Player(0), true)
-    call SetPlayerAllianceStateVisionBJ(Player(5), Player(1), true)
-    call SetPlayerAllianceStateVisionBJ(Player(5), Player(2), true)
-    call SetPlayerAllianceStateVisionBJ(Player(5), Player(3), true)
-    call SetPlayerAllianceStateVisionBJ(Player(5), Player(4), true)
-    call SetPlayerAllianceStateVisionBJ(Player(5), Player(6), true)
-    call SetPlayerAllianceStateVisionBJ(Player(5), Player(7), true)
-    call SetPlayerAllianceStateVisionBJ(Player(5), Player(8), true)
-    call SetPlayerAllianceStateVisionBJ(Player(6), Player(0), true)
-    call SetPlayerAllianceStateVisionBJ(Player(6), Player(1), true)
-    call SetPlayerAllianceStateVisionBJ(Player(6), Player(2), true)
-    call SetPlayerAllianceStateVisionBJ(Player(6), Player(3), true)
-    call SetPlayerAllianceStateVisionBJ(Player(6), Player(4), true)
-    call SetPlayerAllianceStateVisionBJ(Player(6), Player(5), true)
-    call SetPlayerAllianceStateVisionBJ(Player(6), Player(7), true)
-    call SetPlayerAllianceStateVisionBJ(Player(6), Player(8), true)
-    call SetPlayerAllianceStateVisionBJ(Player(7), Player(0), true)
-    call SetPlayerAllianceStateVisionBJ(Player(7), Player(1), true)
-    call SetPlayerAllianceStateVisionBJ(Player(7), Player(2), true)
-    call SetPlayerAllianceStateVisionBJ(Player(7), Player(3), true)
-    call SetPlayerAllianceStateVisionBJ(Player(7), Player(4), true)
-    call SetPlayerAllianceStateVisionBJ(Player(7), Player(5), true)
-    call SetPlayerAllianceStateVisionBJ(Player(7), Player(6), true)
-    call SetPlayerAllianceStateVisionBJ(Player(7), Player(8), true)
-    call SetPlayerAllianceStateVisionBJ(Player(8), Player(0), true)
-    call SetPlayerAllianceStateVisionBJ(Player(8), Player(1), true)
-    call SetPlayerAllianceStateVisionBJ(Player(8), Player(2), true)
-    call SetPlayerAllianceStateVisionBJ(Player(8), Player(3), true)
-    call SetPlayerAllianceStateVisionBJ(Player(8), Player(4), true)
-    call SetPlayerAllianceStateVisionBJ(Player(8), Player(5), true)
-    call SetPlayerAllianceStateVisionBJ(Player(8), Player(6), true)
-    call SetPlayerAllianceStateVisionBJ(Player(8), Player(7), true)
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(0), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(1), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(2), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(3), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(4), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(5), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(7), true )
+    call SetPlayerAllianceStateVisionBJ( Player(6), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(7), Player(8), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(0), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(1), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(2), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(3), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(4), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(5), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(6), true )
+    call SetPlayerAllianceStateVisionBJ( Player(8), Player(7), true )
     // Force: TRIGSTR_014
-    call SetPlayerTeam(Player(9), 1)
-    call SetPlayerTeam(Player(10), 1)
-    call SetPlayerTeam(Player(11), 1)
+    call SetPlayerTeam( Player(9), 1 )
+    call SetPlayerTeam( Player(10), 1 )
+    call SetPlayerTeam( Player(11), 1 )
     //   Allied
-    call SetPlayerAllianceStateAllyBJ(Player(9), Player(10), true)
-    call SetPlayerAllianceStateAllyBJ(Player(9), Player(11), true)
-    call SetPlayerAllianceStateAllyBJ(Player(10), Player(9), true)
-    call SetPlayerAllianceStateAllyBJ(Player(10), Player(11), true)
-    call SetPlayerAllianceStateAllyBJ(Player(11), Player(9), true)
-    call SetPlayerAllianceStateAllyBJ(Player(11), Player(10), true)
+    call SetPlayerAllianceStateAllyBJ( Player(9), Player(10), true )
+    call SetPlayerAllianceStateAllyBJ( Player(9), Player(11), true )
+    call SetPlayerAllianceStateAllyBJ( Player(10), Player(9), true )
+    call SetPlayerAllianceStateAllyBJ( Player(10), Player(11), true )
+    call SetPlayerAllianceStateAllyBJ( Player(11), Player(9), true )
+    call SetPlayerAllianceStateAllyBJ( Player(11), Player(10), true )
     //   Shared Vision
-    call SetPlayerAllianceStateVisionBJ(Player(9), Player(10), true)
-    call SetPlayerAllianceStateVisionBJ(Player(9), Player(11), true)
-    call SetPlayerAllianceStateVisionBJ(Player(10), Player(9), true)
-    call SetPlayerAllianceStateVisionBJ(Player(10), Player(11), true)
-    call SetPlayerAllianceStateVisionBJ(Player(11), Player(9), true)
-    call SetPlayerAllianceStateVisionBJ(Player(11), Player(10), true)
+    call SetPlayerAllianceStateVisionBJ( Player(9), Player(10), true )
+    call SetPlayerAllianceStateVisionBJ( Player(9), Player(11), true )
+    call SetPlayerAllianceStateVisionBJ( Player(10), Player(9), true )
+    call SetPlayerAllianceStateVisionBJ( Player(10), Player(11), true )
+    call SetPlayerAllianceStateVisionBJ( Player(11), Player(9), true )
+    call SetPlayerAllianceStateVisionBJ( Player(11), Player(10), true )
 endfunction
 function InitAllyPriorities takes nothing returns nothing
-    call SetStartLocPrioCount(0, 3)
-    call SetStartLocPrio(0, 0, 1, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrio(0, 1, 2, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrio(0, 2, 3, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrioCount(1, 3)
-    call SetStartLocPrio(1, 0, 0, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrio(1, 1, 2, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrio(1, 2, 3, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrioCount(2, 3)
-    call SetStartLocPrio(2, 0, 0, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrio(2, 1, 1, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrio(2, 2, 3, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrioCount(3, 3)
-    call SetStartLocPrio(3, 0, 0, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrio(3, 1, 1, MAP_LOC_PRIO_HIGH)
-    call SetStartLocPrio(3, 2, 2, MAP_LOC_PRIO_HIGH)
+    call SetStartLocPrioCount( 0, 3 )
+    call SetStartLocPrio( 0, 0, 1, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 0, 1, 2, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 0, 2, 3, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrioCount( 1, 3 )
+    call SetStartLocPrio( 1, 0, 0, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 1, 1, 2, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 1, 2, 3, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrioCount( 2, 3 )
+    call SetStartLocPrio( 2, 0, 0, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 2, 1, 1, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 2, 2, 3, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrioCount( 3, 3 )
+    call SetStartLocPrio( 3, 0, 0, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 3, 1, 1, MAP_LOC_PRIO_HIGH )
+    call SetStartLocPrio( 3, 2, 2, MAP_LOC_PRIO_HIGH )
 endfunction
 //***************************************************************************
 //*
@@ -2458,25 +2323,18 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function main takes nothing returns nothing
-    call initializeLua()
- call SetCameraBounds(- 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), - 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM))
-    call SetDayNightModels("Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl")
-    call NewSoundEnvironment("Default")
-    call SetAmbientDaySound("NorthrendDay")
-    call SetAmbientNightSound("NorthrendNight")
-    call SetMapMusic("Music", true, 0)
-    call CreateRegions()
-    call CreateAllUnits()
-    call InitBlizzard()
-
-call ExecuteFunc("jasshelper__initstructs11096984")
-call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("YDLua___onInit")
-call ExecuteFunc("Logger___onInit")
-call ExecuteFunc("UTUnitSpell___onInit")
-
-    call InitGlobals()
-    call InitCustomTriggers()
+    call initializeLua() 
+ call SetCameraBounds( -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM) )
+    call SetDayNightModels( "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl" )
+    call NewSoundEnvironment( "Default" )
+    call SetAmbientDaySound( "NorthrendDay" )
+    call SetAmbientNightSound( "NorthrendNight" )
+    call SetMapMusic( "Music", true, 0 )
+    call CreateRegions( )
+    call CreateAllUnits( )
+    call InitBlizzard( )
+    call InitGlobals( )
+    call InitCustomTriggers( )
 endfunction
 //***************************************************************************
 //*
@@ -2484,116 +2342,28 @@ endfunction
 //*
 //***************************************************************************
 function config takes nothing returns nothing
-    call SetMapName("TRIGSTR_1232")
-    call SetMapDescription("TRIGSTR_1234")
-    call SetPlayers(12)
-    call SetTeams(12)
-    call SetGamePlacement(MAP_PLACEMENT_TEAMS_TOGETHER)
-    call DefineStartLocation(0, 0.0, 0.0)
-    call DefineStartLocation(1, 0.0, 0.0)
-    call DefineStartLocation(2, 0.0, 0.0)
-    call DefineStartLocation(3, 0.0, 0.0)
-    call DefineStartLocation(4, 0.0, 0.0)
-    call DefineStartLocation(5, 0.0, 0.0)
-    call DefineStartLocation(6, 0.0, 0.0)
-    call DefineStartLocation(7, 0.0, 0.0)
-    call DefineStartLocation(8, 0.0, 0.0)
-    call DefineStartLocation(9, 0.0, 0.0)
-    call DefineStartLocation(10, 0.0, 0.0)
-    call DefineStartLocation(11, 0.0, 0.0)
+    call SetMapName( "TRIGSTR_1232" )
+    call SetMapDescription( "TRIGSTR_1234" )
+    call SetPlayers( 12 )
+    call SetTeams( 12 )
+    call SetGamePlacement( MAP_PLACEMENT_TEAMS_TOGETHER )
+    call DefineStartLocation( 0, 0.0, 0.0 )
+    call DefineStartLocation( 1, 0.0, 0.0 )
+    call DefineStartLocation( 2, 0.0, 0.0 )
+    call DefineStartLocation( 3, 0.0, 0.0 )
+    call DefineStartLocation( 4, 0.0, 0.0 )
+    call DefineStartLocation( 5, 0.0, 0.0 )
+    call DefineStartLocation( 6, 0.0, 0.0 )
+    call DefineStartLocation( 7, 0.0, 0.0 )
+    call DefineStartLocation( 8, 0.0, 0.0 )
+    call DefineStartLocation( 9, 0.0, 0.0 )
+    call DefineStartLocation( 10, 0.0, 0.0 )
+    call DefineStartLocation( 11, 0.0, 0.0 )
     // Player setup
-    call InitCustomPlayerSlots()
-    call InitCustomTeams()
-    call InitAllyPriorities()
+    call InitCustomPlayerSlots( )
+    call InitCustomTeams( )
+    call InitAllyPriorities( )
 endfunction
 
 
-
-
-//Struct method generated initializers/callers:
-function sa__spell_onDestroy takes nothing returns boolean
-local integer this=f__arg_this
-            if ( not ( s__spell_isExist(this) ) ) then
-return true
-            endif
-            if ( s__spell_trDestroy[this] != null ) then
-                set s__spell_ethis=this
-                call TriggerEvaluate(s__spell_trDestroy[this])
-                call DestroyTrigger(s__spell_trDestroy[this])
-                set s__spell_trDestroy[this]=null
-            endif //虚拟技能
-            if ( s__spell_spellType[this] == SPELL_TYPE_VIRTUAL ) then
-                if ( HaveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(s__spell_u[this]) , s__spell_sd[this]), 15) ) then
-                    call RemoveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(s__spell_u[this]) , s__spell_sd[this]), 15)
-                endif //有ID的技能
-            elseif ( HaveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(s__spell_u[this]) , s__spell_id[this]), 15) ) then
-                call RemoveSavedInteger(HASH_SPELL, GetHashValue(GetHandleId(s__spell_u[this]) , s__spell_id[this]), 15)
-            endif
-            if ( s__spell_id[this] != 0 ) then
-                call UnitRemoveAbility(s__spell_u[this], s__spell_id[this])
-            endif
-            set s__spell_u[this]=null
-            set s__spell_id[this]=0
-            set s__spell_sd[this]=0
-   return true
-endfunction
-function sa__unitSpell_onDestroy takes nothing returns boolean
-local integer this=f__arg_this
-            local integer i=0
-            set i=0
-            loop
-            exitwhen ( i >= s__unitSpell_spellCount[this] )
-                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__unitSpell_u[this]), 1800 + i)
-            set i=i + 1
-            endloop
-            if ( HaveSavedInteger(HASH_UNIT, GetHandleId(s__unitSpell_u[this]), 1730) ) then
-                call RemoveSavedInteger(HASH_UNIT, GetHandleId(s__unitSpell_u[this]), 1730)
-            endif
-            set s__unitSpell_u[this]=null
-            call BJDebugMsg("unitSpell销毁了:" + I2S(this))
-   return true
-endfunction
-function sa__unitLifeCycle_onDestroyCB takes nothing returns boolean
-    call s__unitLifeCycle_onDestroyCB(f__arg_unit1)
-   return true
-endfunction
-function sa__spellData_byType takes nothing returns boolean
-local integer at=f__arg_integer1
-            local integer this
-            if ( HaveSavedInteger(HASH_SLK, at, 1727) ) then
-                set this=LoadInteger(HASH_SLK, at, 1727)
-            else
-                set s__spellData_counter=s__spellData_counter + 1
-                set this=(s__spellData_counter)
-                call SaveInteger(HASH_SLK, at, 1727, this)
-                set s__spellData_id[this]=at //默认最大等级1级
-                set s__spellData_maxLevel[this]=1
-            endif
-set f__result_integer= this
-   return true
-endfunction
-
-function jasshelper__initstructs11096984 takes nothing returns nothing
-    set st__spell_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__spell_onDestroy,Condition( function sa__spell_onDestroy))
-    set st__unitSpell_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__unitSpell_onDestroy,Condition( function sa__unitSpell_onDestroy))
-    set st__unitLifeCycle_onDestroyCB=CreateTrigger()
-    call TriggerAddCondition(st__unitLifeCycle_onDestroyCB,Condition( function sa__unitLifeCycle_onDestroyCB))
-    set st__spellData_byType=CreateTrigger()
-    call TriggerAddCondition(st__spellData_byType,Condition( function sa__spellData_byType))
-
-
-
-
-
-
-
-
-
-    call ExecuteFunc("s__unitLifeCycle_onInit")
-    call ExecuteFunc("s__hardware_onInit")
-    call ExecuteFunc("s__unitSpell_onInit")
-    call ExecuteFunc("s__unitSelect_onInit")
-endfunction
 

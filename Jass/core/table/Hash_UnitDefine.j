@@ -21,6 +21,9 @@
 // 单位技能相关键值 (预留200个空间 1800-1999)
 #define HASH_KEY_UNIT_UNITSPELL_IDS    1800 //单位技能ID数组起始键值
 
-// 2000开始可继续添加新的键值定义...
+#define HASH_KEY_UNIT_SIMPLESPELL_IDS    2000 //单位技能(简单)ID数组起始键值
+#define HASH_KEY_UNIT_SIMPLESPELL_LEVELS  2200 //单位简单技能等级数组起始键值
+
+// 2400开始可继续添加新的键值定义...
 
 #endif

@@ -16,8 +16,10 @@ library SpellData {
 
     public struct spellData [] {
 
-        static integer counter = 0; // 当前有几个技能数据
+        static unit argsU = null; //事件单位
+        static integer argsLevel = 0; //事件等级
 
+        static integer counter = 0; // 当前有几个技能数据
 
         integer id;         // 技能ID(从那边直接获取数据)
         integer spellType;  // 技能类型(1:结构技能,2:无结构技能,3:虚拟技能,4:简单技能)
@@ -29,6 +31,27 @@ library SpellData {
         integer maxLevel;     // 技能等级(最大等级)
         string  description;  // 技能描述
         string  icon;         // 技能图标
+
+        public method registerInit(code func) {
+            if (trInit == null) {
+                trInit = CreateTrigger();
+            }
+            TriggerAddCondition(trInit, Condition(func));
+        }
+
+        public method registerDestroy(code func) {
+            if (trDestroy == null) {
+                trDestroy = CreateTrigger();
+            }
+            TriggerAddCondition(trDestroy, Condition(func));
+        }
+
+        public method registerUpgrade(code func) {
+            if (trUpgrade == null) {
+                trUpgrade = CreateTrigger();
+            }
+            TriggerAddCondition(trUpgrade, Condition(func));
+        }
 
         //根据技能类型
         public static method byType(integer at) -> thistype {
@@ -42,6 +65,14 @@ library SpellData {
                 id = at;
                 maxLevel = 1; //默认最大等级1级
             }
+            return this;
+        }
+
+        // 返回一个新的并自增(空物编)
+        public static method new ()  -> thistype {
+            thistype this;
+            counter += 1;
+            this = thistype[counter];
             return this;
         }
     }

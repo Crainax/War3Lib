@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 1535:  Not enough arguments passed to function
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 1816: Unexpected local variable.
 1
