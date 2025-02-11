@@ -120,6 +120,11 @@ integer UTUnitSpell__us=0
 boolean UTUnitSpell__toggle5=false
 integer UTUnitSpell__simpleSpellInitCount=0
 integer UTUnitSpell__simpleSpellDestroyCount=0
+integer UTUnitSpell__spellDataInitCount=0
+integer UTUnitSpell__spellDataDestroyCount=0
+integer UTUnitSpell__spellDestroyCount=0
+integer UTUnitSpell__unitDataInitCount=0
+integer UTUnitSpell__destroyCount=0
 //endglobals from UTUnitSpell
 //globals from UnitSelect:
 constant boolean LIBRARY_UnitSelect=true
@@ -1009,6 +1014,12 @@ endfunction
             set s__spell_spellType[this]=SPELL_TYPE_ENTITY //实体技能要设置等级
             call SetUnitAbilityLevel(u, id, level)
             call SaveInteger(HASH_SPELL, key, 15, this)
+            if ( s__spellData_trInit[s__spell_sd[this]] != null ) then
+                set s__spellData_argsU=s__spell_u[this]
+                set s__spellData_argsLevel=level
+                set s__spell_ethis=this
+                call TriggerEvaluate(s__spellData_trInit[s__spell_sd[this]])
+            endif
             return this
         endfunction  // 创建镜像技能(无ID)
         function s__spell_mirror takes unit u,integer id,integer sd,integer level returns integer
@@ -1027,6 +1038,12 @@ endfunction
             set s__spell_sd[this]=sd
             set s__spell_level[this]=level
             call SaveInteger(HASH_SPELL, key, 15, this)
+            if ( s__spellData_trInit[sd] != null ) then
+                set s__spellData_argsU=s__spell_u[this]
+                set s__spellData_argsLevel=level
+                set s__spell_ethis=this
+                call TriggerEvaluate(s__spellData_trInit[sd])
+            endif
             return this
         endfunction  // 创建虚拟技能(无ID)
         function s__spell_virtual takes unit u,integer sd,integer level returns integer
@@ -1042,6 +1059,12 @@ endfunction
             set s__spell_sd[this]=sd
             set s__spell_level[this]=level
             call SaveInteger(HASH_SPELL, key, 15, this)
+            if ( s__spellData_trInit[sd] != null ) then
+                set s__spellData_argsU=s__spell_u[this]
+                set s__spellData_argsLevel=level
+                set s__spell_ethis=this
+                call TriggerEvaluate(s__spellData_trInit[sd])
+            endif
             return this
         endfunction  // 获取技能结构体
         function s__spell_get takes unit u,integer id returns integer
@@ -1060,9 +1083,14 @@ endfunction
             call TriggerAddCondition(s__spell_trDestroy[this], Condition(func))
         endfunction  //销毁时调用
         function s__spell_onDestroy takes integer this returns nothing
-            if ( not ( s__spell_isExist(this) ) ) then
+            if ( not ( s__spell_isExist(this) ) ) then //spellData的销毁回调
                 return
             endif
+            if ( s__spellData_trDestroy[s__spell_sd[this]] != null ) then
+                set s__spellData_argsU=s__spell_u[this]
+                set s__spellData_argsLevel=s__spell_level[this]
+                call TriggerEvaluate(s__spellData_trDestroy[s__spell_sd[this]])
+            endif //spell的销毁回调
             if ( s__spell_trDestroy[this] != null ) then
                 set s__spell_ethis=this
                 call TriggerEvaluate(s__spell_trDestroy[this])
@@ -1130,7 +1158,7 @@ endfunction
                 set s__spellData_maxLevel[this]=1
             endif
             return this
-        endfunction  // 返回一个新的并自增(空物编)
+        endfunction  // 返回一个新的并自增(空物编),这个一定不能用来做spell的,只能用来做
         function s__spellData_new takes nothing returns integer
             local integer this
             set s__spellData_counter=s__spellData_counter + 1
@@ -1520,7 +1548,7 @@ endfunction
                 return LoadInteger(HASH_SLK, this, 2200 + index)
             endif
             return 0
-        endfunction  //根据单位类型
+        endfunction  //根据单位类型(只有这一个构造函数)
         function s__unitData_byType takes integer ut returns integer
             local integer this
             if ( HaveSavedInteger(HASH_SLK, ut, 1725) ) then
@@ -1656,6 +1684,21 @@ endfunction
                 set sd=LoadInteger(HASH_UNIT, handleId, 2000 + index)
                 return sd
             endif
+            return 0
+        endfunction  // 获取指定Simple技能的等级
+        function s__unitSpell_getSimpleSpellLevel takes integer this,integer sd returns integer
+            local integer i=0
+            local integer handleId=GetHandleId(s__unitSpell_u[this])
+            local integer targetSpell
+            set i=0
+            loop
+            exitwhen ( i >= s__unitSpell_simpleCount[this] )
+                set targetSpell=LoadInteger(HASH_UNIT, handleId, 2000 + i)
+                if ( targetSpell == sd ) then
+                    return LoadInteger(HASH_UNIT, handleId, 2200 + i)
+                endif
+            set i=i + 1
+            endloop // 未找到该技能返回0
             return 0
         endfunction  // 移除指定技能
         function s__unitSpell_removeSpell takes integer this,integer sp returns boolean
@@ -2017,6 +2060,149 @@ endfunction
                 call s__assert_Boolean(not removeResult , "删除已删除的Simple技能应该失败")
             set i=i + 1
             endloop
+        endfunction  // 测试10: 直接删除单位时的技能清理测试
+            function UTUnitSpell__anon__11 takes nothing returns nothing
+                set UTUnitSpell__destroyCount=UTUnitSpell__destroyCount + 1
+            endfunction
+            function UTUnitSpell__anon__12 takes nothing returns nothing
+                set UTUnitSpell__destroyCount=UTUnitSpell__destroyCount + 10
+            endfunction
+            function UTUnitSpell__anon__13 takes nothing returns nothing
+                set UTUnitSpell__destroyCount=UTUnitSpell__destroyCount + 100
+            endfunction  // 创建2个Entity技能
+            function UTUnitSpell__anon__14 takes nothing returns nothing
+                set UTUnitSpell__destroyCount=UTUnitSpell__destroyCount + 1000
+            endfunction
+            function UTUnitSpell__anon__15 takes nothing returns nothing
+                set UTUnitSpell__destroyCount=UTUnitSpell__destroyCount + 10000
+            endfunction  // 添加所有技能
+        function UTUnitSpell__anon__10 takes nothing returns nothing
+            local integer sd1
+            local integer sd2
+            local integer sd3
+            local integer sd4
+            local integer sd5
+            call Trace("开始测试10: 直接删除单位时的技能清理测试")
+            if ( UTUnitSpell__testUnit != null ) then
+                call h__RemoveUnit(UTUnitSpell__testUnit)
+            endif
+            set UTUnitSpell__destroyCount=0
+            set UTUnitSpell__testUnit=CreateUnit(Player(0), 'hfoo', 0, 0, 0)
+            set UTUnitSpell__us=s__unitSpell_parse(UTUnitSpell__testUnit)
+            set sd1=s__spellData_new()
+            set s__spellData_spellType[sd1]=SPELL_TYPE_SIMPLE
+            set s__spellData_maxLevel[sd1]=1
+            call s__spellData_registerDestroy(sd1,function UTUnitSpell__anon__11)
+            set sd2=s__spellData_new()
+            set s__spellData_spellType[sd2]=SPELL_TYPE_SIMPLE
+            set s__spellData_maxLevel[sd2]=1
+            call s__spellData_registerDestroy(sd2,function UTUnitSpell__anon__12)
+            set sd3=s__spellData_new()
+            set s__spellData_spellType[sd3]=SPELL_TYPE_SIMPLE
+            set s__spellData_maxLevel[sd3]=1
+            call s__spellData_registerDestroy(sd3,function UTUnitSpell__anon__13)
+            set sd4=s__spellData_byType('ACch')
+            set s__spellData_spellType[sd4]=SPELL_TYPE_ENTITY
+            set s__spellData_maxLevel[sd4]=1
+            call s__spellData_registerDestroy(sd4,function UTUnitSpell__anon__14)
+            set sd5=s__spellData_byType('ACcl')
+            set s__spellData_spellType[sd5]=SPELL_TYPE_ENTITY
+            set s__spellData_maxLevel[sd5]=1
+            call s__spellData_registerDestroy(sd5,function UTUnitSpell__anon__15)
+            call s__unitSpell_addSpellData(UTUnitSpell__us,sd1 , 1) // +1 // +10
+            call s__unitSpell_addSpellData(UTUnitSpell__us,sd2 , 1) // +100
+            call s__unitSpell_addSpellData(UTUnitSpell__us,sd3 , 1) // +1000
+            call s__unitSpell_addSpellData(UTUnitSpell__us,sd4 , 1) // +10000
+            call s__unitSpell_addSpellData(UTUnitSpell__us,sd5 , 1) // 直接删除单位
+            call h__RemoveUnit(UTUnitSpell__testUnit)
+            set UTUnitSpell__testUnit=null // 验证所有回调都被调用 (1 + 10 + 100 + 1000 + 10000 = 11111)
+            call s__assert_Integer(UTUnitSpell__destroyCount , 11111 , "删除单位后所有技能的销毁回调应该被正确调用,值应该为11111")
+        endfunction  // 测试11: 技能数量上限测试
+        function UTUnitSpell__anon__16 takes nothing returns nothing
+            local integer sd
+            local integer i
+            local boolean addResult
+            call Trace("开始测试11: 技能数量上限测试")
+            if ( UTUnitSpell__testUnit != null ) then
+                call h__RemoveUnit(UTUnitSpell__testUnit)
+            endif
+            set UTUnitSpell__testUnit=CreateUnit(Player(0), 'hfoo', 0, 0, 0)
+            set UTUnitSpell__us=s__unitSpell_parse(UTUnitSpell__testUnit) // 尝试添加201个不同的技能
+            set i=0 // 每次创建新的spellData
+            loop
+            exitwhen ( i >= 201 )
+                set sd=s__spellData_new()
+                set s__spellData_spellType[sd]=SPELL_TYPE_SIMPLE
+                set s__spellData_maxLevel[sd]=1
+                set addResult=s__unitSpell_addSpellData(UTUnitSpell__us,sd , 1)
+                if ( i < 200 ) then
+                    if ( ModuloInteger(i, 10) == 0 ) then
+                        call s__assert_Boolean(addResult , "添加第" + I2S(IMaxBJ(i - 9, 0)) + "-" + I2S(i + 1) + "个技能应该成功")
+                    endif
+                else
+                    call s__assert_Boolean(not addResult , "添加第201个技能应该失败")
+                endif
+            set i=i + 1
+            endloop // 验证最终技能数量
+            call s__assert_Integer(s__unitSpell_getSimpleSpellCount(UTUnitSpell__us) , 200 , "最终Simple技能数量应该为200")
+        endfunction  // 测试12: unitData技能初始化测试
+            function UTUnitSpell__anon__18 takes nothing returns nothing
+                set UTUnitSpell__unitDataInitCount=UTUnitSpell__unitDataInitCount + 1
+                call Trace("spellData1初始化回调被调用")
+            endfunction
+            function UTUnitSpell__anon__19 takes nothing returns nothing
+                set UTUnitSpell__unitDataInitCount=UTUnitSpell__unitDataInitCount + 10
+                call Trace("spellData2初始化回调被调用")
+            endfunction
+            function UTUnitSpell__anon__20 takes nothing returns nothing
+                set UTUnitSpell__unitDataInitCount=UTUnitSpell__unitDataInitCount + 100
+                call Trace("spellData3初始化回调被调用")
+            endfunction  // 获取食尸鬼的unitData并添加技能
+        function UTUnitSpell__anon__17 takes nothing returns nothing
+            local integer ud
+            local integer sd1
+            local integer sd2
+            local integer sd3
+            local unit l__UTUnitSpell__testUnit
+            local integer usl
+            set UTUnitSpell__unitDataInitCount=0
+            call Trace("开始测试12: unitData技能初始化测试")
+            set sd1=s__spellData_new()
+            set s__spellData_spellType[sd1]=SPELL_TYPE_SIMPLE
+            set s__spellData_maxLevel[sd1]=3
+            call s__spellData_registerInit(sd1,function UTUnitSpell__anon__18)
+            set sd2=s__spellData_byType('AHbz')
+            set s__spellData_spellType[sd2]=SPELL_TYPE_ENTITY
+            set s__spellData_maxLevel[sd2]=2
+            call s__spellData_registerInit(sd2,function UTUnitSpell__anon__19)
+            set sd3=s__spellData_byType('AHtb')
+            set s__spellData_spellType[sd3]=SPELL_TYPE_ENTITY
+            set s__spellData_maxLevel[sd3]=4
+            call s__spellData_registerInit(sd3,function UTUnitSpell__anon__20)
+            set ud=s__unitData_byType('ugho') // Simple技能 等级2
+            call s__unitData_addSpell(ud,sd1 , 2) // Entity技能 等级1
+            call s__unitData_addSpell(ud,sd2 , 1) // Entity技能 等级3
+            call s__unitData_addSpell(ud,sd3 , 3) // 验证unitData中的技能数据是否正确
+            call s__assert_Integer(s__unitData_getSpellCount(ud) , 3 , "unitData中应该有3个技能")
+            call s__assert_Integer(s__unitData_getSpellId(ud,0) , sd1 , "第1个技能应该是sd1:" + I2S(sd1))
+            call s__assert_Integer(s__unitData_getSpellId(ud,1) , sd2 , "第2个技能应该是sd2:" + I2S(sd2))
+            call s__assert_Integer(s__unitData_getSpellId(ud,2) , sd3 , "第3个技能应该是sd3:" + I2S(sd3))
+            call s__assert_Integer(s__unitData_getSpellLevel(ud,0) , 2 , "sd1的等级应该是2")
+            call s__assert_Integer(s__unitData_getSpellLevel(ud,1) , 1 , "sd2的等级应该是1")
+            call s__assert_Integer(s__unitData_getSpellLevel(ud,2) , 3 , "sd3的等级应该是3") // 创建食尸鬼单位并初始化unitSpell
+            set l__UTUnitSpell__testUnit=CreateUnit(Player(0), 'ugho', 0, 0, 0)
+            set usl=s__unitSpell_parse(l__UTUnitSpell__testUnit) // 验证unitSpell是否正确初始化了所有技能
+            call s__assert_Integer(s__unitSpell_getSimpleSpellCount(usl) , 1 , "应该有1个Simple技能")
+            call s__assert_Integer(s__unitSpell_getSpellCount(usl) , 2 , "应该有2个Entity技能") // 验证Simple技能
+            call s__assert_Integer(s__unitSpell_getSimpleSpell(usl,0) , sd1 , "Simple技能应该是sd1:" + I2S(sd1)) // 验证Entity技能
+            call s__assert_Integer(s__spell_sd[s__unitSpell_getSpell(usl,0)] , sd2 , "第1个Entity技能应该是sd2:" + I2S(sd2))
+            call s__assert_Integer(s__spell_sd[s__unitSpell_getSpell(usl,1)] , sd3 , "第2个Entity技能应该是sd3:" + I2S(sd3)) // 验证所有技能的等级
+            call s__assert_Integer(s__unitSpell_getSimpleSpellLevel(usl,sd1) , 2 , "Simple技能sd1的等级应该是2")
+            call s__assert_Integer(s__spell_level[s__unitSpell_getSpell(usl,0)] , 1 , "sd2的等级应该是1")
+            call s__assert_Integer(s__spell_level[s__unitSpell_getSpell(usl,1)] , 3 , "sd3的等级应该是3") // 验证初始化回调是否都被调用 (1 + 10 + 100 = 111)
+            call s__assert_Integer(UTUnitSpell__unitDataInitCount , 111 , "所有spellData的初始化回调都应该被调用") // 清理
+            call h__RemoveUnit(l__UTUnitSpell__testUnit)
+            set l__UTUnitSpell__testUnit=null
         endfunction
     function UTUnitSpell__Init takes nothing returns nothing
         local integer sd=s__spellData_byType('AHbz')
@@ -2032,6 +2218,9 @@ endfunction
         call UnitTestAutoTimer(0.6 , 0 , function UTUnitSpell__anon__5 , null)
         call UnitTestAutoTimer(0.7 , 0 , function UTUnitSpell__anon__6 , null)
         call UnitTestAutoTimer(0.8 , 0 , function UTUnitSpell__anon__7 , null)
+        call UnitTestAutoTimer(0.9 , 0 , function UTUnitSpell__anon__10 , null)
+        call UnitTestAutoTimer(1.0 , 0 , function UTUnitSpell__anon__16 , null)
+        call UnitTestAutoTimer(1.1 , 0 , function UTUnitSpell__anon__17 , null)
     endfunction  // 测试用例函数保持空实现
     function UTUnitSpell__TTestUTUnitSpell1 takes player p returns nothing
     endfunction
@@ -2041,7 +2230,7 @@ endfunction
     endfunction
     function UTUnitSpell__TTestUTUnitSpell4 takes player p returns nothing
     endfunction
-        function UTUnitSpell__anon__10 takes nothing returns nothing
+        function UTUnitSpell__anon__21 takes nothing returns nothing
             local unit u=GetEnumUnit()
             local integer tempUs=s__unitSpell_get(u)
             if ( tempUs != 0 ) then
@@ -2059,7 +2248,7 @@ endfunction
         if ( UTUnitSpell__toggle5 ) then
             set g=CreateGroup()
             call GroupEnumUnitsInRect(g, bj_mapInitialPlayableArea, null)
-            call ForGroup(g, function UTUnitSpell__anon__10)
+            call ForGroup(g, function UTUnitSpell__anon__21)
             call DestroyGroup(g)
             set g=null
             call Trace("已清理所有技能实例")
@@ -2090,6 +2279,8 @@ endfunction
     function UTUnitSpell__TTestUTUnitSpell9 takes player p returns nothing
     endfunction
     function UTUnitSpell__TTestUTUnitSpell10 takes player p returns nothing
+    endfunction
+    function UTUnitSpell__TTestUTUnitSpell11 takes player p returns nothing
     endfunction
     function UTUnitSpell__TTestActUTUnitSpell1 takes string str returns nothing
         local player p
@@ -2142,12 +2333,12 @@ endfunction
         endif
         set p=null
     endfunction
-        function UTUnitSpell__anon__11 takes nothing returns nothing
+        function UTUnitSpell__anon__22 takes nothing returns nothing
             call Trace("[UnitSpell] 单元测试已加载")
             call UTUnitSpell__Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTUnitSpell__anon__12 takes nothing returns nothing
+        function UTUnitSpell__anon__23 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
@@ -2174,14 +2365,17 @@ endfunction
                 call UTUnitSpell__TTestUTUnitSpell9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
                 call UTUnitSpell__TTestUTUnitSpell10(GetTriggerPlayer())
+            elseif ( str == "s11" ) then
+                call UTUnitSpell__TTestUTUnitSpell11(GetTriggerPlayer())
             endif
-        endfunction
+        endfunction  // 解锁OpCode限制
     function UTUnitSpell__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTUnitSpell__anon__11))
+        call TriggerAddCondition(tr, Condition(function UTUnitSpell__anon__22))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTUnitSpell__anon__12)
+        call UnitTestRegisterChatEvent(function UTUnitSpell__anon__23)
+        call DzUnlockOpCodeLimit(true)
     endfunction
 
 //library UTUnitSpell ends
@@ -2247,24 +2441,6 @@ endfunction
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
 // 原生UI的大小
-//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
-// [DzSetUnitMoveType]  
-// title = "设置单位移动类型[NEW]"  
-// description = "设置 ${单位} 的移动类型：${movetype} "  
-// comment = ""  
-// category = TC_KKPRE  
-// [[.args]]  
-// type = unit  
-// [[.args]]  
-// type = MoveTypeName  
-// default = MoveTypeName01  
-
-// 怪物掉落相关键值 (预留20个空间 1800-1819)
-// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
-// 怪物掉落数量键值
-// 单位技能相关键值 (预留200个空间 1800-1999)
-// 2400开始可继续添加新的键值定义...
-
 
 // 0 - 1亿这里用
 // 锚点常量
@@ -2275,19 +2451,37 @@ endfunction
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
 
+// 物品掉落相关键值 (预留20个空间 1800-1819/1820-1839)  MonsterData
+// 技能相关键值 (预留200个空间 2000-2199) UnitData
+// 2400开始可继续添加新的键值定义...
+
+// 怪物掉落相关键值 (预留20个空间 1800-1819)
+// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
+// 怪物掉落数量键值
+// 单位技能相关键值 (预留200个空间 1800-1999)
+// 2400开始可继续添加新的键值定义...
+
+//processed hook: hook RemoveUnit unitLifeCycle.onDestroyCB
 // 结构体共用方法定义
 //共享打印方法
 // UI组件内部共享方法及成员
 // UI组件依赖库
 // UI组件创建时共享调用
 // UI组件销毁时共享调用
-
-// 物品掉落相关键值 (预留20个空间 1800-1819/1820-1839)  MonsterData
-// 技能相关键值 (预留200个空间 2000-2199) UnitData
-// 2400开始可继续添加新的键值定义...
 // 定义技能最大数量
 // 定义单位最大技能数量(简单技能也是这个数)
+
 // hook UnitRemoveAbility spell.RemoveHook
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -2703,7 +2897,7 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs20871843")
+call ExecuteFunc("jasshelper__initstructs20812109")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("YDLua__onInit")
 call ExecuteFunc("Logger__onInit")
@@ -2747,9 +2941,14 @@ endfunction
 //Struct method generated initializers/callers:
 function sa__spell_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            if ( not ( s__spell_isExist(this) ) ) then
+            if ( not ( s__spell_isExist(this) ) ) then //spellData的销毁回调
 return true
             endif
+            if ( s__spellData_trDestroy[s__spell_sd[this]] != null ) then
+                set s__spellData_argsU=s__spell_u[this]
+                set s__spellData_argsLevel=s__spell_level[this]
+                call TriggerEvaluate(s__spellData_trDestroy[s__spell_sd[this]])
+            endif //spell的销毁回调
             if ( s__spell_trDestroy[this] != null ) then
                 set s__spell_ethis=this
                 call TriggerEvaluate(s__spell_trDestroy[this])
@@ -2828,7 +3027,7 @@ set f__result_integer= this
    return true
 endfunction
 
-function jasshelper__initstructs20871843 takes nothing returns nothing
+function jasshelper__initstructs20812109 takes nothing returns nothing
     set st__spell_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__spell_onDestroy,Condition( function sa__spell_onDestroy))
     set st__unitSpell_onDestroy=CreateTrigger()

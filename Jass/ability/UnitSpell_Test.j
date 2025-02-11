@@ -31,6 +31,14 @@ library UTUnitSpell requires UnitSpell {
 	private integer simpleSpellInitCount = 0;
 	private integer simpleSpellDestroyCount = 0;
 
+	// 用于回调测试的全局变量
+	private integer spellDataInitCount = 0;
+	private integer spellDataDestroyCount = 0;
+	private integer spellDestroyCount = 0;
+	private integer unitDataInitCount = 0;  // 添加这个全局变量
+	private integer destroyCount = 0;
+
+
 	function Init() {
 		// 测试1: parse创建 - 0.1秒
 		spellData sd = spellData.byType('AHbz');
@@ -280,6 +288,187 @@ library UTUnitSpell requires UnitSpell {
 				assert.Boolean(!removeResult, "删除已删除的Simple技能应该失败");
 			}
 		}, null);
+
+		// 测试10: 直接删除单位时的技能清理测试
+		UnitTestAutoTimer(0.9, 0, function() {
+			spellData sd1, sd2, sd3, sd4, sd5;
+
+			Trace("开始测试10: 直接删除单位时的技能清理测试");
+
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+
+
+			destroyCount = 0;
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+
+			// 创建3个Simple技能,回调数不同
+			sd1 = spellData.new();
+			sd1.spellType = SPELL_TYPE_SIMPLE;
+			sd1.maxLevel = 1;
+			sd1.registerDestroy(function() {
+				destroyCount += 1;
+			});
+
+			sd2 = spellData.new();
+			sd2.spellType = SPELL_TYPE_SIMPLE;
+			sd2.maxLevel = 1;
+			sd2.registerDestroy(function() {
+				destroyCount += 10;
+			});
+
+			sd3 = spellData.new();
+			sd3.spellType = SPELL_TYPE_SIMPLE;
+			sd3.maxLevel = 1;
+			sd3.registerDestroy(function() {
+				destroyCount += 100;
+			});
+
+			// 创建2个Entity技能
+			sd4 = spellData.byType('ACch');
+			sd4.spellType = SPELL_TYPE_ENTITY;
+			sd4.maxLevel = 1;
+			sd4.registerDestroy(function() {
+				destroyCount += 1000;
+			});
+
+			sd5 = spellData.byType('ACcl');
+			sd5.spellType = SPELL_TYPE_ENTITY;
+			sd5.maxLevel = 1;
+			sd5.registerDestroy(function() {
+				destroyCount += 10000;
+			});
+
+			// 添加所有技能
+			us.addSpellData(sd1, 1);  // +1
+			us.addSpellData(sd2, 1);  // +10
+			us.addSpellData(sd3, 1);  // +100
+			us.addSpellData(sd4, 1);  // +1000
+			us.addSpellData(sd5, 1);  // +10000
+
+			// 直接删除单位
+			RemoveUnit(testUnit);
+			testUnit = null;
+
+			// 验证所有回调都被调用 (1 + 10 + 100 + 1000 + 10000 = 11111)
+			assert.Integer(destroyCount, 11111, "删除单位后所有技能的销毁回调应该被正确调用,值应该为11111");
+		}, null);
+
+		// 测试11: 技能数量上限测试
+		UnitTestAutoTimer(1.0, 0, function() {
+			spellData sd;
+			integer i;
+			boolean addResult;
+			Trace("开始测试11: 技能数量上限测试");
+
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+
+			// 尝试添加201个不同的技能
+			for (0 <= i < 201) {
+				// 每次创建新的spellData
+				sd = spellData.new();
+				sd.spellType = SPELL_TYPE_SIMPLE;
+				sd.maxLevel = 1;
+
+				addResult = us.addSpellData(sd, 1);
+				if (i < 200) {
+					if (ModuloInteger(i,10) == 0) {
+						assert.Boolean(addResult, "添加第" + I2S(IMaxBJ(i-9,0)) +"-" + I2S(i + 1) + "个技能应该成功");
+					}
+				} else {
+					assert.Boolean(!addResult, "添加第201个技能应该失败");
+				}
+			}
+
+			// 验证最终技能数量
+			assert.Integer(us.getSimpleSpellCount(), 200, "最终Simple技能数量应该为200");
+		}, null);
+
+		// 测试12: unitData技能初始化测试
+		UnitTestAutoTimer(1.1, 0, function() {
+			unitData ud;
+			spellData sd1, sd2, sd3;
+			unit testUnit;
+			unitSpell usl;
+
+			// 重置计数
+			unitDataInitCount = 0;
+			Trace("开始测试12: unitData技能初始化测试");
+
+			// 创建几个不同的spellData
+			sd1 = spellData.new();
+			sd1.spellType = SPELL_TYPE_SIMPLE;
+			sd1.maxLevel = 3;
+			sd1.registerInit(function() {
+				unitDataInitCount += 1;
+				Trace("spellData1初始化回调被调用");
+			});
+
+			sd2 = spellData.byType('AHbz');
+			sd2.spellType = SPELL_TYPE_ENTITY;
+			sd2.maxLevel = 2;
+			sd2.registerInit(function() {
+				unitDataInitCount += 10;
+				Trace("spellData2初始化回调被调用");
+			});
+
+			sd3 = spellData.byType('AHtb');
+			sd3.spellType = SPELL_TYPE_ENTITY;
+			sd3.maxLevel = 4;
+			sd3.registerInit(function() {
+				unitDataInitCount += 100;
+				Trace("spellData3初始化回调被调用");
+			});
+
+			// 获取食尸鬼的unitData并添加技能
+			ud = unitData.byType('ugho');
+			ud.addSpell(sd1, 2);  // Simple技能 等级2
+			ud.addSpell(sd2, 1);  // Entity技能 等级1
+			ud.addSpell(sd3, 3);  // Entity技能 等级3
+
+			// 验证unitData中的技能数据是否正确
+			assert.Integer(ud.getSpellCount(), 3, "unitData中应该有3个技能");
+			assert.Integer(ud.getSpellId(0),sd1, "第1个技能应该是sd1:"+I2S(sd1));
+			assert.Integer(ud.getSpellId(1),sd2, "第2个技能应该是sd2:"+I2S(sd2));
+			assert.Integer(ud.getSpellId(2),sd3, "第3个技能应该是sd3:"+I2S(sd3));
+			assert.Integer(ud.getSpellLevel(0), 2, "sd1的等级应该是2");
+			assert.Integer(ud.getSpellLevel(1), 1, "sd2的等级应该是1");
+			assert.Integer(ud.getSpellLevel(2), 3, "sd3的等级应该是3");
+
+			// 创建食尸鬼单位并初始化unitSpell
+			testUnit = CreateUnit(Player(0), 'ugho', 0, 0, 0);
+			usl = unitSpell.parse(testUnit);
+
+			// 验证unitSpell是否正确初始化了所有技能
+			assert.Integer(usl.getSimpleSpellCount(), 1, "应该有1个Simple技能");
+			assert.Integer(usl.getSpellCount(), 2, "应该有2个Entity技能");
+
+			// 验证Simple技能
+			assert.Integer(usl.getSimpleSpell(0) , sd1, "Simple技能应该是sd1:"+I2S(sd1));
+
+			// 验证Entity技能
+			assert.Integer(usl.getSpell(0).sd , sd2, "第1个Entity技能应该是sd2:"+I2S(sd2));
+			assert.Integer(usl.getSpell(1).sd , sd3, "第2个Entity技能应该是sd3:"+I2S(sd3));
+
+			// 验证所有技能的等级
+			assert.Integer(usl.getSimpleSpellLevel(sd1), 2, "Simple技能sd1的等级应该是2");
+			assert.Integer(usl.getSpell(0).level, 1, "sd2的等级应该是1");
+			assert.Integer(usl.getSpell(1).level, 3, "sd3的等级应该是3");
+
+			// 验证初始化回调是否都被调用 (1 + 10 + 100 = 111)
+			assert.Integer(unitDataInitCount, 111, "所有spellData的初始化回调都应该被调用");
+
+			// 清理
+			RemoveUnit(testUnit);
+			testUnit = null;
+		}, null);
 	}
 
 	// 测试用例函数保持空实现
@@ -342,6 +531,7 @@ library UTUnitSpell requires UnitSpell {
 	function TTestUTUnitSpell8(player p) {}
 	function TTestUTUnitSpell9(player p) {}
 	function TTestUTUnitSpell10(player p) {}
+	function TTestUTUnitSpell11(player p) {}
 
 	// 处理带参数的测试命令
 	function TTestActUTUnitSpell1(string str) {
@@ -426,7 +616,10 @@ library UTUnitSpell requires UnitSpell {
 			else if(str == "s8") TTestUTUnitSpell8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTUnitSpell9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTUnitSpell10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTUnitSpell11(GetTriggerPlayer());
 		});
+
+		DzUnlockOpCodeLimit(true); // 解锁OpCode限制
 	}
 }
 //! endzinc

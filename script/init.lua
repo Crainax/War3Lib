@@ -17,14 +17,6 @@ end)
 -- 版本号
 base.version = '4.18'
 
--- 错误处理函数
-function base.error_handle(msg)
-	print("---------------------------------------")
-	print(tostring(msg) .. "\n")
-	print(debug.traceback())
-	print("---------------------------------------")
-end
-
 -- 错误汇报
 function runtime.error_handle(msg) base.error_handle(msg) end
 
@@ -41,6 +33,14 @@ local std_print = print
 function print(...)
 	log.info(...)
 	return std_print(...)
+end
+
+-- 错误处理函数
+function base.error_handle(msg)
+    print("---------------------------------------")
+    print(tostring(msg) .. "\n")
+    print(debug.traceback())
+    print("---------------------------------------")
 end
 
 local log_error = log.error

@@ -18,16 +18,15 @@ library UTSpell requires Spell {
 	private spell sp = 0;
 	private spellData sd[];
 
+	// 用于回调测试的全局变量
+	private integer spellDataInitCount = 0;
+	private integer spellDataDestroyCount = 0;
+	private integer spellDestroyCount = 0;
+
 	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() { //创建技能结构体测试
-			sd[1] = spellData.byType('A001');
-			}, function() {
-			//end
-		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-			//spell
-		},null);
+		sd[1] = spellData.byType('A001');
+
+		//这是注册点击事件
 		unitSelect.onSync(function() {
 			//结论:EXGetUnitAbility获取百位动态技能
 			//DzUnitFindAbility获取正常Handle技能,未学习的技能没有Handle,学习后的Handle不是最大的(代表不是新建的)
@@ -51,6 +50,57 @@ library UTSpell requires Spell {
 			Trace(" Adef: " + I2S(GetHandleId(b)));
 			u = null;
 		});
+
+		// 测试1: 回调函数测试
+		UnitTestAutoTimer(0.1, 0, function() {
+			spellData sd;
+			spell sp;
+			unit testUnit;
+
+			Trace("开始测试1: spell回调函数测试");
+
+			// 创建测试单位
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+
+			// 创建spellData并注册回调
+			sd = spellData.new();
+			sd.id = 'AHbz';
+			sd.spellType = SPELL_TYPE_ENTITY;
+			sd.maxLevel = 1;
+
+			sd.registerInit(function() {
+				spellDataInitCount += 1;
+				Trace("spellData初始化回调被调用, 当前计数: " + I2S(spellDataInitCount));
+			});
+
+			sd.registerDestroy(function() {
+				spellDataDestroyCount += 1;
+				Trace("spellData销毁回调被调用, 当前计数: " + I2S(spellDataDestroyCount));
+			});
+
+			// 创建spell实例
+			sp = spell.entity(testUnit, 'AHbz', 1);
+
+			// 注册spell的销毁回调
+			sp.registerDestroy(function() {
+				spellDestroyCount += 1;
+				Trace("spell销毁回调被调用, 当前计数: " + I2S(spellDestroyCount));
+			});
+
+			// 验证初始化回调是否被调用
+			assert.Integer(spellDataInitCount, 1, "spellData初始化回调应该被调用一次");
+
+			// 销毁spell实例
+			sp.destroy();
+
+			// 验证销毁回调是否被调用
+			assert.Integer(spellDataDestroyCount, 1, "spellData销毁回调应该被调用一次");
+			assert.Integer(spellDestroyCount, 1, "spell销毁回调应该被调用一次");
+
+			// 清理测试单位
+			RemoveUnit(testUnit);
+			testUnit = null;
+		}, null);
 	}
 
 	//测试一下Japi获取的技能
@@ -76,7 +126,7 @@ library UTSpell requires Spell {
 			Trace("错误：请先使用s1创建测试单位");
 		}
 	}
-	function TTestUTSpell4 (player p) {
+	function TTestUTSpell4 (player p) { //测试GetHashValue不会哈希碰撞
 		timer t;
 		t = CreateTimer();
 		SaveInteger(HASH_TIMER, GetHandleId(t), 1, 1);  // 当前测试次数
@@ -180,9 +230,9 @@ library UTSpell requires Spell {
 			for (0 <= i < count) {
 				// 在随机位置创建单位
 				u = CreateUnit(p, 'nsm1',
-					GetRandomReal(-1000, 1000),
-					GetRandomReal(-1000, 1000),
-					GetRandomReal(0, 360));
+				GetRandomReal(-1000, 1000),
+				GetRandomReal(-1000, 1000),
+				GetRandomReal(0, 360));
 
 				// 创建技能实例
 				sp1 = spell.entity(u, 'A001', 1);

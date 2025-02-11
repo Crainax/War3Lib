@@ -4,424 +4,6 @@
 #include <YDTrigger/YDTrigger.h>
 #include "config/config.h"
 
-#ifndef UnitLifeCycleIncluded
-#define UnitLifeCycleIncluded
-
-//! zinc
-/*
-Unit生命周期管理器
-负责管理Unit组件的创建和销毁事件
-*/
-library UnitLifeCycle {
-
-    public struct unitLifeCycle [] {
-
-        static unit argsUnit = null;
-        private {
-            static trigger trCreate = null;
-            static trigger trDestroy = null;
-        }
-
-        // 注册销毁回调
-        static method registerDestroy(code func) {
-            TriggerAddCondition(trDestroy, Condition(func));
-        }
-
-        static method onDestroyCB(unit u) {
-            argsUnit = u;
-            TriggerEvaluate(trDestroy);
-            //然后再清除所有哈希表
-            FlushChildHashtable(HASH_UNIT,GetHandleId(u));
-            argsUnit = null;
-        }
-
-        static method onInit () {
-            trCreate = CreateTrigger();
-            trDestroy = CreateTrigger();
-        }
-
-    }
-}
-//! endzinc
-
-hook RemoveUnit unitLifeCycle.onDestroyCB
-
-#endif
-
-#ifndef KKAPIINCLUDE 
-#define KKAPIINCLUDE 
-
-library LBKKAPI 
-        globals 
-                string MOVE_TYPE_NONE = "none" //没有（无视碰撞）  
-                string MOVE_TYPE_FOOT = "foot" //步行  
-                string MOVE_TYPE_HORSE = "horse" //骑马  
-                string MOVE_TYPE_FLY = "fly" //飞行（还具有空中视野，也可以设置飞行高度）  
-                string MOVE_TYPE_HOVER = "hover" //浮空（不会踩中地雷）  
-                string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）  
-                string MOVE_TYPE_AMPH = "amph" //两栖  
-                string MOVE_TYPE_UNBUILD = "unbuild" //不可建造  
-                constant integer DEFENSE_TYPE_LIGHT = 0 
-		constant integer DEFENSE_TYPE_MEDIUM = 1 
-		constant integer DEFENSE_TYPE_LARGE = 2 
-		constant integer DEFENSE_TYPE_FORT = 3 
-		constant integer DEFENSE_TYPE_NORMAL = 4 
-		constant integer DEFENSE_TYPE_HERO = 5 
-		constant integer DEFENSE_TYPE_DIVINE = 6 
-		constant integer DEFENSE_TYPE_NONE = 7 
-        endglobals 
-
-        native DzGetSelectedLeaderUnit takes nothing returns unit 
-        native DzIsChatBoxOpen takes nothing returns boolean 
-        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
-        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
-        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
-        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
-        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
-        native DzSetEffectModel takes effect whichEffect, string model returns nothing
-        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
-        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
-        native DzChangeWindowSize takes integer width, integer height returns boolean 
-        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
-        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
-        native DzUnbindEffect takes effect whichEffect returns nothing 
-        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
-        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
-        native DzGetEffectVertexColor takes effect whichEffect returns integer 
-        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
-        native DzGetItemAbility takes item whichEffect, integer index returns ability 
-        native DzFrameGetChildrenCount takes integer whichframe returns integer 
-        native DzFrameGetChild takes integer whichframe, integer index returns integer 
-        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
-        native DzGetActivePatron takes unit store, player p returns unit 
-        native DzGetLocalSelectUnitCount takes nothing returns integer 
-        native DzGetLocalSelectUnit takes integer index returns unit 
-        native DzGetJassStringTableCount takes nothing returns integer 
-        native DzModelRemoveFromCache takes string path returns nothing 
-        native DzModelRemoveAllFromCache takes nothing returns nothing 
-        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
-        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
-        native DzFrameGetPeonBar takes nothing returns integer 
-        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
-        native DzToggleFPS takes boolean show returns nothing 
-        native DzGetFPS takes nothing returns integer 
-        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
-        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
-        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
-        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
-        native DzFrameGetWorldFrameMessage takes nothing returns integer 
-        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
-        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
-        //转换屏幕坐标到世界坐标  
-        native DzConvertScreenPositionX takes real x, real y returns real 
-        native DzConvertScreenPositionY takes real x, real y returns real 
-        //监听建筑选位置  
-        native DzRegisterOnBuildLocal takes code func returns nothing 
-        //等于0时是结束事件  
-        native DzGetOnBuildOrderId takes nothing returns integer 
-        native DzGetOnBuildOrderType takes nothing returns integer 
-        native DzGetOnBuildAgent takes nothing returns widget 
-        //监听技能选目标  
-        native DzRegisterOnTargetLocal takes code func returns nothing 
-        //等于0时是结束事件  
-        native DzGetOnTargetAbilId takes nothing returns integer 
-        native DzGetOnTargetOrderId takes nothing returns integer 
-        native DzGetOnTargetOrderType takes nothing returns integer 
-        native DzGetOnTargetAgent takes nothing returns widget 
-        native DzGetOnTargetInstantTarget takes nothing returns widget 
-        // 打开QQ群链接  
-        native DzOpenQQGroupUrl takes string url returns boolean 
-        native DzFrameEnableClipRect takes boolean enable returns nothing 
-        native DzSetUnitName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
-        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
-        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
-        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
-        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
-        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
-        native DzGetAttackAbility takes unit whichUnit returns ability 
-        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
-        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
-        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
-        function DzSetHeroTypeProperName takes integer uid, string name returns nothing 
-                call EXSetUnitArrayString(uid, 61, 0, name) 
-                call EXSetUnitInteger(uid, 61, 1) 
-        endfunction 
-        function DzSetUnitTypeName takes integer uid, string name returns nothing 
-                call EXSetUnitArrayString(uid, 10, 0, name) 
-                call EXSetUnitInteger(uid, 10, 1) 
-        endfunction 
-        function DzIsUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns boolean 
-                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType 
-        endfunction 
-        function DzSetUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns nothing 
-                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType)) 
-        endfunction 
-        function DzIsUnitDefenseType takes unit whichUnit, integer defenseType returns boolean 
-                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType 
-        endfunction 
-        function DzSetUnitDefenseType takes unit whichUnit, integer defenseType returns nothing 
-                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType) 
-        endfunction 
-
-        // 地形装饰物
-        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
-        native DzDoodadGetTypeId takes integer doodad returns integer 
-        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
-        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
-        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
-        native DzDoodadGetX takes integer doodad returns real 
-        native DzDoodadGetY takes integer doodad returns real 
-        native DzDoodadGetZ takes integer doodad returns real 
-        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
-        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
-        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
-        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
-        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
-        native DzDoodadGetTimeScale takes integer doodad returns real 
-        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
-        native DzDoodadGetAnimationCount takes integer doodad returns integer 
-        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
-        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
-        // 解锁JASS字节码限制
-        native DzUnlockOpCodeLimit takes boolean enable returns nothing
-        // 设置剪切板内容
-        native DzSetClipboard takes string content returns boolean
-        //删除装饰物
-        native DzDoodadRemove takes integer doodad returns nothing
-        //移除科技等级
-        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
-        
-        // 查找单位技能
-        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
-        // 修改技能数据-字符串
-        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
-                
-        // 启用/禁用技能
-        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
-        // 设置单位移动类型
-        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
-        // 获取控件宽度
-        native DzFrameGetWidth takes integer frame returns real
-        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
-        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
-        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
-
-        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
-                call DzSetUnitDataCacheInteger( uid, id, 0, v)
-        endfunction
-
-        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 94, id, v)
-        endfunction
-
-        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 100, id, v)
-        endfunction
-
-        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 112, id, v)
-        endfunction
-
-        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 106, id, v)
-        endfunction
-
-        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 118, id, v)
-        endfunction
-
-        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 124, id, v)
-        endfunction
-
-        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 130, id, v)
-        endfunction
-
-        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
-        endfunction
-
-        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
-        endfunction
-
-        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 172, id, v)
-        endfunction
-
-         // 设置道具模型
-        native DzItemSetModel takes item whichItem, string file returns nothing
-        // 设置道具颜色
-        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
-        // 设置道具透明度
-        native DzItemSetAlpha takes item whichItem, integer color returns nothing
-        // 设置道具头像
-        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
-
-endlibrary
-
-
-
-// [DzSetUnitMoveType]  
-// title = "设置单位移动类型[NEW]"  
-// description = "设置 ${单位} 的移动类型：${movetype} "  
-// comment = ""  
-// category = TC_KKPRE  
-// [[.args]]  
-// type = unit  
-// [[.args]]  
-// type = MoveTypeName  
-// default = MoveTypeName01  
-
-
-#endif 
-
-
-#ifndef UnitHashTableIncluded
-#define UnitHashTableIncluded
-
-
-#include "Crainax/core/table/Hash_UnitDefine.j"
-
-//! zinc
-/*
-单位哈希表
-*/
-library UnitHashTable {
-
-    public hashtable HASH_UNIT = InitHashtable();  // 单位哈希表
-
-}
-
-//! endzinc
-#endif
-
-#ifndef LoggerIncluded
-#define LoggerIncluded
-
-//! zinc
-//==================================
-// 日志打印系统
-// version: 1.0
-// author: 系统自动生成
-// date: 2024/3/21
-//
-// 功能：提供五个日志级别输出
-// - TRACE(灰)：追踪调试用
-// - DEBUG(绿)：调试信息用
-// - INFO(白)：普通信息用
-// - WARN(黄)：警告信息用
-// - ERROR(红)：错误信息用
-//
-// 示例：
-// call Info("普通信息")
-// call Error(Player(0), "玩家1的错误")
-//==================================
-library Logger requires YDLua {
-
-    public integer logger_level = 0;
-    public string  logger_msg   = null;
-    public player  logger_p     = null;
-    public trigger logger_tr    = null;
-
-    // 追踪级别日志(灰色),用于程序执行追踪
-    public function Trace(string msg) {
-        logger_msg   = msg;
-        logger_level = 0;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 调试级别日志(绿色),用于输出变量值等调试信息
-    public function Debug(string msg) {
-        logger_msg   = msg;
-        logger_level = 1;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 信息级别日志(白色),用于输出普通提示信息
-    public function Info(string msg) {
-        logger_msg   = msg;
-        logger_level = 2;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 警告级别日志(黄色),用于输出警告信息
-    public function Warn(string msg) {
-        logger_msg   = msg;
-        logger_level = 3;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 错误级别日志(红色),用于输出错误信息
-    public function Error(string msg) {
-        logger_msg   = msg;
-        logger_level = 4;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出追踪日志(灰色)
-    public function TraceToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 0;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出调试日志(绿色)
-    public function DebugToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 1;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出信息日志(白色)
-    public function InfoToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 2;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出警告日志(黄色)
-    public function WarnToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 3;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出错误日志(红色)
-    public function ErrorToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 4;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    function onInit() {
-        Cheat("exec-lua:depends.debug.logger"); //日志打印系统初始化
-    }
-}
-
-//! endzinc
-#endif
-
 #ifndef BZAPIINCLUDE
 #define BZAPIINCLUDE
 
@@ -663,6 +245,482 @@ endlibrary
 
 #endif /// YDWEAddAIOrderIncluded
 
+#ifndef HardwareIncluded
+#define HardwareIncluded
+
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
+//! zinc
+/*
+结构体
+硬件事件(按/滑/帧事件)
+*/
+library Hardware requires BzAPI {
+
+	public struct hardware []{
+		// 注册一个左键抬起事件
+		static method regLeftUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_UP,false,func);
+		}
+		// 注册一个左键按下事件
+		static method regLeftDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_PRESSED,false,func);
+		}
+		// 注册一个右键按下事件
+		static method regRightDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_PRESSED,false,func);
+		}
+		// 注册一个右键抬起事件
+		static method regRightUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_UP,false,func);
+		}
+		// 注册一个滚轮事件,不能异步注册
+		static method regWheelEvent (code func) {
+			if (trWheel == null) {trWheel = CreateTrigger();}
+			TriggerAddCondition(trWheel, Condition(func));
+		}
+		// 注册一个绘制事件,不能异步注册
+		static method regUpdateEvent (code func) {
+			if (trUpdate == null) {trUpdate = CreateTrigger();}
+			TriggerAddCondition(trUpdate, Condition(func));
+		}
+		// 注册一个窗口变化事件,不能异步注册
+		static method regResizeEvent (code func) {
+			if (trResize == null) {trResize = CreateTrigger();}
+			TriggerAddCondition(trResize, Condition(func));
+		}
+		// 注册一个鼠标移动事件,不能异步注册
+		static method regMoveEvent (code func) {
+			BJDebugMsg("注册鼠标移动事件");
+			if (trMove == null) {trMove = CreateTrigger();}
+			TriggerAddCondition(trMove, Condition(func));
+		}
+
+		// 获取鼠标的实数坐标X(0-0.8)
+		static method getMouseX ()  -> real {
+			integer width = DzGetClientWidth();
+			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
+			else return 0.1;
+		}
+
+		// 获取鼠标的实数坐标Y(0-0.6)
+		static method getMouseY ()  -> real {
+			integer height = DzGetClientHeight();
+			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
+			else return 0.1; // 防止除以0
+		}
+
+		private {
+			static trigger trWheel = null;
+			static trigger trUpdate = null;
+			static trigger trResize = null;
+			static trigger trMove = null;
+		}
+
+		static method onInit () {
+			// 滚轮事件
+			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
+				TriggerEvaluate(trWheel);
+			});
+			// 帧绘制事件
+			DzFrameSetUpdateCallbackByCode(function (){
+				TriggerEvaluate(trUpdate);
+			});
+			// 窗口大小变化事件
+			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
+				 TriggerEvaluate(trResize);
+			});
+			// 鼠标移动事件
+			DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
+				 TriggerEvaluate(trMove);
+			});
+		}
+	}
+}
+
+//! endzinc
+#endif
+
+#ifndef SpellDataIncluded
+#define SpellDataIncluded
+
+#include "Crainax/core/table/Hash_SLKDefine.j"
+
+//! zinc
+/*
+技能数据
+*/
+library SpellData {
+
+    public constant integer SPELL_TYPE_ENTITY  = 0;  //固定技能(默认)
+    public constant integer SPELL_TYPE_MIRROR  = 1;  //镜像技能(英雄的模板技能)
+    public constant integer SPELL_TYPE_VIRTUAL = 2;  //虚拟技能(物品技能)
+    public constant integer SPELL_TYPE_SIMPLE  = 3;  //简单技能(无结构体,固定发挥)
+
+    public struct spellData [] {
+
+        static unit argsU = null; //事件单位
+        static integer argsLevel = 0; //事件等级
+        static integer counter = 0; // 当前有几个技能数据
+
+        integer id;         // 技能ID(从那边直接获取数据)
+        integer spellType;  // 技能类型(1:结构技能,2:无结构技能,3:虚拟技能,4:简单技能)
+
+        trigger trInit;     // 技能初始化事件
+        trigger trDestroy;  // 技能销毁事件
+        trigger trUpgrade;  // 技能升级事件
+
+        integer maxLevel;     // 技能等级(最大等级)
+        string  description;  // 技能描述
+        string  icon;         // 技能图标
+
+        public method registerInit(code func) {
+            if (trInit == null) {
+                trInit = CreateTrigger();
+            }
+            TriggerAddCondition(trInit, Condition(func));
+        }
+
+        public method registerDestroy(code func) {
+            if (trDestroy == null) {
+                trDestroy = CreateTrigger();
+            }
+            TriggerAddCondition(trDestroy, Condition(func));
+        }
+
+        public method registerUpgrade(code func) {
+            if (trUpgrade == null) {
+                trUpgrade = CreateTrigger();
+            }
+            TriggerAddCondition(trUpgrade, Condition(func));
+        }
+
+        //根据技能类型
+        public static method byType(integer at) -> thistype {
+            thistype this;
+            if (HaveSavedInteger(HASH_SLK, at, HASH_KEY_SLK_SPELLDATA)) {
+                this = LoadInteger(HASH_SLK, at, HASH_KEY_SLK_SPELLDATA);
+            } else {
+                counter += 1;
+                this = thistype[counter];
+                SaveInteger(HASH_SLK, at, HASH_KEY_SLK_SPELLDATA, this);
+                id = at;
+                maxLevel = 1; //默认最大等级1级
+            }
+            return this;
+        }
+
+        // 返回一个新的并自增(空物编),这个一定不能用来做spell的,只能用来做
+        public static method new ()  -> thistype {
+            thistype this;
+            counter += 1;
+            this = thistype[counter];
+            return this;
+        }
+    }
+
+}
+
+//! endzinc
+#endif
+
+#define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
+
+#ifndef YDLuaIncluded
+#define YDLuaIncluded
+
+//! zinc
+/*
+原生Lua引擎非内置
+*/
+
+// https://create.reckfeng.com/kkapidoc/#/menu_kkapi_japi kkapi的japi文档
+
+library YDLua {
+
+    #define SetCameraBounds(a,b,c,d,e,f,g,h) initializeLua() CRNL call SetCameraBounds(a,b,c,d,e,f,g,h)
+
+    // main 函数就初始化的
+    public function initializeLua () -> integer {
+        Cheat("exec-lua:plugin_main");
+        return 0;
+    }
+
+
+    function onInit ()  {
+        //在游戏开始0.0秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.0);
+        TriggerAddCondition(tr,Condition(function (){
+            BJDebugMsg("调用了YDLua引擎");
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+    }
+}
+
+//! endzinc
+#endif
+
+#ifndef LoggerIncluded
+#define LoggerIncluded
+
+//! zinc
+//==================================
+// 日志打印系统
+// version: 1.0
+// author: 系统自动生成
+// date: 2024/3/21
+//
+// 功能：提供五个日志级别输出
+// - TRACE(灰)：追踪调试用
+// - DEBUG(绿)：调试信息用
+// - INFO(白)：普通信息用
+// - WARN(黄)：警告信息用
+// - ERROR(红)：错误信息用
+//
+// 示例：
+// call Info("普通信息")
+// call Error(Player(0), "玩家1的错误")
+//==================================
+library Logger requires YDLua {
+
+    public integer logger_level = 0;
+    public string  logger_msg   = null;
+    public player  logger_p     = null;
+    public trigger logger_tr    = null;
+
+    // 追踪级别日志(灰色),用于程序执行追踪
+    public function Trace(string msg) {
+        logger_msg   = msg;
+        logger_level = 0;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 调试级别日志(绿色),用于输出变量值等调试信息
+    public function Debug(string msg) {
+        logger_msg   = msg;
+        logger_level = 1;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 信息级别日志(白色),用于输出普通提示信息
+    public function Info(string msg) {
+        logger_msg   = msg;
+        logger_level = 2;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 警告级别日志(黄色),用于输出警告信息
+    public function Warn(string msg) {
+        logger_msg   = msg;
+        logger_level = 3;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 错误级别日志(红色),用于输出错误信息
+    public function Error(string msg) {
+        logger_msg   = msg;
+        logger_level = 4;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出追踪日志(灰色)
+    public function TraceToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 0;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出调试日志(绿色)
+    public function DebugToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 1;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出信息日志(白色)
+    public function InfoToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 2;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出警告日志(黄色)
+    public function WarnToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 3;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出错误日志(红色)
+    public function ErrorToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 4;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    function onInit() {
+        Cheat("exec-lua:depends.debug.logger"); //日志打印系统初始化
+    }
+}
+
+//! endzinc
+#endif
+
+#ifndef YDWEAbilityStateIncluded
+#define YDWEAbilityStateIncluded
+
+library YDWEAbilityState
+	globals
+
+		#ifndef JapiAbilityConstantIncluded
+		#define JapiAbilityConstantIncluded
+		private constant integer ABILITY_STATE_COOLDOWN         = 1
+
+		private constant integer ABILITY_DATA_TARGS             = 100 // integer
+		private constant integer ABILITY_DATA_CAST              = 101 // real
+		private constant integer ABILITY_DATA_DUR               = 102 // real
+		private constant integer ABILITY_DATA_HERODUR           = 103 // real
+		private constant integer ABILITY_DATA_COST              = 104 // integer
+		private constant integer ABILITY_DATA_COOL              = 105 // real
+		private constant integer ABILITY_DATA_AREA              = 106 // real
+		private constant integer ABILITY_DATA_RNG               = 107 // real
+		private constant integer ABILITY_DATA_DATA_A            = 108 // real
+		private constant integer ABILITY_DATA_DATA_B            = 109 // real
+		private constant integer ABILITY_DATA_DATA_C            = 110 // real
+		private constant integer ABILITY_DATA_DATA_D            = 111 // real
+		private constant integer ABILITY_DATA_DATA_E            = 112 // real
+		private constant integer ABILITY_DATA_DATA_F            = 113 // real
+		private constant integer ABILITY_DATA_DATA_G            = 114 // real
+		private constant integer ABILITY_DATA_DATA_H            = 115 // real
+		private constant integer ABILITY_DATA_DATA_I            = 116 // real
+		private constant integer ABILITY_DATA_UNITID            = 117 // integer
+
+		private constant integer ABILITY_DATA_HOTKET            = 200 // integer
+		private constant integer ABILITY_DATA_UNHOTKET          = 201 // integer
+		private constant integer ABILITY_DATA_RESEARCH_HOTKEY   = 202 // integer
+		private constant integer ABILITY_DATA_NAME              = 203 // string
+		private constant integer ABILITY_DATA_ART               = 204 // string
+		private constant integer ABILITY_DATA_TARGET_ART        = 205 // string
+		private constant integer ABILITY_DATA_CASTER_ART        = 206 // string
+		private constant integer ABILITY_DATA_EFFECT_ART        = 207 // string
+		private constant integer ABILITY_DATA_AREAEFFECT_ART    = 208 // string
+		private constant integer ABILITY_DATA_MISSILE_ART       = 209 // string
+		private constant integer ABILITY_DATA_SPECIAL_ART       = 210 // string
+		private constant integer ABILITY_DATA_LIGHTNING_EFFECT  = 211 // string
+		private constant integer ABILITY_DATA_BUFF_TIP          = 212 // string
+		private constant integer ABILITY_DATA_BUFF_UBERTIP      = 213 // string
+		private constant integer ABILITY_DATA_RESEARCH_TIP      = 214 // string
+		private constant integer ABILITY_DATA_TIP               = 215 // string
+		private constant integer ABILITY_DATA_UNTIP             = 216 // string
+		private constant integer ABILITY_DATA_RESEARCH_UBERTIP  = 217 // string
+		private constant integer ABILITY_DATA_UBERTIP           = 218 // string
+		private constant integer ABILITY_DATA_UNUBERTIP         = 219 // string
+		private constant integer ABILITY_DATA_UNART             = 220 // string
+		#endif
+	endglobals
+
+	native EXGetUnitAbility        takes unit u, integer abilcode returns ability
+	native EXGetUnitAbilityByIndex takes unit u, integer index returns ability
+	native EXGetAbilityId          takes ability abil returns integer
+	native EXGetAbilityState       takes ability abil, integer state_type returns real
+	native EXSetAbilityState       takes ability abil, integer state_type, real value returns boolean
+	native EXGetAbilityDataReal    takes ability abil, integer level, integer data_type returns real
+	native EXSetAbilityDataReal    takes ability abil, integer level, integer data_type, real value returns boolean
+	native EXGetAbilityDataInteger takes ability abil, integer level, integer data_type returns integer
+	native EXSetAbilityDataInteger takes ability abil, integer level, integer data_type, integer value returns boolean
+	native EXGetAbilityDataString  takes ability abil, integer level, integer data_type returns string
+	native EXSetAbilityDataString  takes ability abil, integer level, integer data_type, string value returns boolean
+
+	function YDWEGetUnitAbilityState takes unit u, integer abilcode, integer state_type returns real
+		return EXGetAbilityState(EXGetUnitAbility(u, abilcode), state_type)
+	endfunction
+
+	function YDWEGetUnitAbilityDataInteger takes unit u, integer abilcode, integer level, integer data_type returns integer
+		return EXGetAbilityDataInteger(EXGetUnitAbility(u, abilcode), level, data_type)
+	endfunction
+
+	function YDWEGetUnitAbilityDataReal takes unit u, integer abilcode, integer level, integer data_type returns real
+		return EXGetAbilityDataReal(EXGetUnitAbility(u, abilcode), level, data_type)
+	endfunction
+
+	function YDWEGetUnitAbilityDataString takes unit u, integer abilcode, integer level, integer data_type returns string
+		return EXGetAbilityDataString(EXGetUnitAbility(u, abilcode), level, data_type)
+	endfunction
+
+	function YDWESetUnitAbilityState takes unit u, integer abilcode, integer state_type, real value returns boolean
+		return EXSetAbilityState(EXGetUnitAbility(u, abilcode), state_type, value)
+	endfunction
+
+	function YDWESetUnitAbilityDataInteger takes unit u, integer abilcode, integer level, integer data_type, integer value returns boolean
+		return EXSetAbilityDataInteger(EXGetUnitAbility(u, abilcode), level, data_type, value)
+	endfunction
+
+	function YDWESetUnitAbilityDataReal takes unit u, integer abilcode, integer level, integer data_type, real value returns boolean
+		return EXSetAbilityDataReal(EXGetUnitAbility(u, abilcode), level, data_type, value)
+	endfunction
+
+	function YDWESetUnitAbilityDataString takes unit u, integer abilcode, integer level, integer data_type, string value returns boolean
+		return EXSetAbilityDataString(EXGetUnitAbility(u, abilcode), level, data_type, value)
+	endfunction
+
+	native EXSetAbilityAEmeDataA takes ability abil, integer unitid returns boolean
+
+	function YDWEUnitTransform takes unit u, integer abilcode, integer targetid returns nothing
+		call UnitAddAbility(u, abilcode)
+		call EXSetAbilityDataInteger(EXGetUnitAbility(u, abilcode), 1, ABILITY_DATA_UNITID, GetUnitTypeId(u))
+		call EXSetAbilityAEmeDataA(EXGetUnitAbility(u, abilcode), GetUnitTypeId(u))
+		call UnitRemoveAbility(u, abilcode)
+		call UnitAddAbility(u, abilcode)
+		call EXSetAbilityAEmeDataA(EXGetUnitAbility(u, abilcode), targetid)
+		call UnitRemoveAbility(u, abilcode)
+	endfunction
+
+	native EXGetItemDataString takes integer itemcode, integer data_type returns string
+	native EXSetItemDataString takes integer itemcode, integer data_type, string value returns boolean
+
+	function YDWEGetItemDataString takes integer itemcode, integer data_type returns string
+		return EXGetItemDataString(itemcode, data_type)
+	endfunction
+
+	function YDWESetItemDataString takes integer itemcode, integer data_type, string value returns boolean
+		return EXSetItemDataString(itemcode, data_type, value)
+	endfunction
+
+endlibrary
+
+#endif  /// YDWEAbilityStateIncluded
+
+#ifndef UnitHashTableIncluded
+#define UnitHashTableIncluded
+
+
+#include "Crainax/core/table/Hash_UnitDefine.j"
+
+//! zinc
+/*
+单位哈希表
+*/
+library UnitHashTable {
+
+    public hashtable HASH_UNIT = InitHashtable();  // 单位哈希表
+
+}
+
+//! endzinc
+#endif
+
 #ifndef UnitTestFramworkIncluded
 #define UnitTestFramworkIncluded
 
@@ -804,264 +862,6 @@ library UnitTestFramwork {
 
 
 
-#ifndef YDWEAbilityStateIncluded
-#define YDWEAbilityStateIncluded
-
-library YDWEAbilityState
-	globals
-
-		#ifndef JapiAbilityConstantIncluded
-		#define JapiAbilityConstantIncluded
-		private constant integer ABILITY_STATE_COOLDOWN         = 1
-
-		private constant integer ABILITY_DATA_TARGS             = 100 // integer
-		private constant integer ABILITY_DATA_CAST              = 101 // real
-		private constant integer ABILITY_DATA_DUR               = 102 // real
-		private constant integer ABILITY_DATA_HERODUR           = 103 // real
-		private constant integer ABILITY_DATA_COST              = 104 // integer
-		private constant integer ABILITY_DATA_COOL              = 105 // real
-		private constant integer ABILITY_DATA_AREA              = 106 // real
-		private constant integer ABILITY_DATA_RNG               = 107 // real
-		private constant integer ABILITY_DATA_DATA_A            = 108 // real
-		private constant integer ABILITY_DATA_DATA_B            = 109 // real
-		private constant integer ABILITY_DATA_DATA_C            = 110 // real
-		private constant integer ABILITY_DATA_DATA_D            = 111 // real
-		private constant integer ABILITY_DATA_DATA_E            = 112 // real
-		private constant integer ABILITY_DATA_DATA_F            = 113 // real
-		private constant integer ABILITY_DATA_DATA_G            = 114 // real
-		private constant integer ABILITY_DATA_DATA_H            = 115 // real
-		private constant integer ABILITY_DATA_DATA_I            = 116 // real
-		private constant integer ABILITY_DATA_UNITID            = 117 // integer
-
-		private constant integer ABILITY_DATA_HOTKET            = 200 // integer
-		private constant integer ABILITY_DATA_UNHOTKET          = 201 // integer
-		private constant integer ABILITY_DATA_RESEARCH_HOTKEY   = 202 // integer
-		private constant integer ABILITY_DATA_NAME              = 203 // string
-		private constant integer ABILITY_DATA_ART               = 204 // string
-		private constant integer ABILITY_DATA_TARGET_ART        = 205 // string
-		private constant integer ABILITY_DATA_CASTER_ART        = 206 // string
-		private constant integer ABILITY_DATA_EFFECT_ART        = 207 // string
-		private constant integer ABILITY_DATA_AREAEFFECT_ART    = 208 // string
-		private constant integer ABILITY_DATA_MISSILE_ART       = 209 // string
-		private constant integer ABILITY_DATA_SPECIAL_ART       = 210 // string
-		private constant integer ABILITY_DATA_LIGHTNING_EFFECT  = 211 // string
-		private constant integer ABILITY_DATA_BUFF_TIP          = 212 // string
-		private constant integer ABILITY_DATA_BUFF_UBERTIP      = 213 // string
-		private constant integer ABILITY_DATA_RESEARCH_TIP      = 214 // string
-		private constant integer ABILITY_DATA_TIP               = 215 // string
-		private constant integer ABILITY_DATA_UNTIP             = 216 // string
-		private constant integer ABILITY_DATA_RESEARCH_UBERTIP  = 217 // string
-		private constant integer ABILITY_DATA_UBERTIP           = 218 // string
-		private constant integer ABILITY_DATA_UNUBERTIP         = 219 // string
-		private constant integer ABILITY_DATA_UNART             = 220 // string
-		#endif
-	endglobals
-
-	native EXGetUnitAbility        takes unit u, integer abilcode returns ability
-	native EXGetUnitAbilityByIndex takes unit u, integer index returns ability
-	native EXGetAbilityId          takes ability abil returns integer
-	native EXGetAbilityState       takes ability abil, integer state_type returns real
-	native EXSetAbilityState       takes ability abil, integer state_type, real value returns boolean
-	native EXGetAbilityDataReal    takes ability abil, integer level, integer data_type returns real
-	native EXSetAbilityDataReal    takes ability abil, integer level, integer data_type, real value returns boolean
-	native EXGetAbilityDataInteger takes ability abil, integer level, integer data_type returns integer
-	native EXSetAbilityDataInteger takes ability abil, integer level, integer data_type, integer value returns boolean
-	native EXGetAbilityDataString  takes ability abil, integer level, integer data_type returns string
-	native EXSetAbilityDataString  takes ability abil, integer level, integer data_type, string value returns boolean
-
-	function YDWEGetUnitAbilityState takes unit u, integer abilcode, integer state_type returns real
-		return EXGetAbilityState(EXGetUnitAbility(u, abilcode), state_type)
-	endfunction
-
-	function YDWEGetUnitAbilityDataInteger takes unit u, integer abilcode, integer level, integer data_type returns integer
-		return EXGetAbilityDataInteger(EXGetUnitAbility(u, abilcode), level, data_type)
-	endfunction
-
-	function YDWEGetUnitAbilityDataReal takes unit u, integer abilcode, integer level, integer data_type returns real
-		return EXGetAbilityDataReal(EXGetUnitAbility(u, abilcode), level, data_type)
-	endfunction
-
-	function YDWEGetUnitAbilityDataString takes unit u, integer abilcode, integer level, integer data_type returns string
-		return EXGetAbilityDataString(EXGetUnitAbility(u, abilcode), level, data_type)
-	endfunction
-
-	function YDWESetUnitAbilityState takes unit u, integer abilcode, integer state_type, real value returns boolean
-		return EXSetAbilityState(EXGetUnitAbility(u, abilcode), state_type, value)
-	endfunction
-
-	function YDWESetUnitAbilityDataInteger takes unit u, integer abilcode, integer level, integer data_type, integer value returns boolean
-		return EXSetAbilityDataInteger(EXGetUnitAbility(u, abilcode), level, data_type, value)
-	endfunction
-
-	function YDWESetUnitAbilityDataReal takes unit u, integer abilcode, integer level, integer data_type, real value returns boolean
-		return EXSetAbilityDataReal(EXGetUnitAbility(u, abilcode), level, data_type, value)
-	endfunction
-
-	function YDWESetUnitAbilityDataString takes unit u, integer abilcode, integer level, integer data_type, string value returns boolean
-		return EXSetAbilityDataString(EXGetUnitAbility(u, abilcode), level, data_type, value)
-	endfunction
-
-	native EXSetAbilityAEmeDataA takes ability abil, integer unitid returns boolean
-
-	function YDWEUnitTransform takes unit u, integer abilcode, integer targetid returns nothing
-		call UnitAddAbility(u, abilcode)
-		call EXSetAbilityDataInteger(EXGetUnitAbility(u, abilcode), 1, ABILITY_DATA_UNITID, GetUnitTypeId(u))
-		call EXSetAbilityAEmeDataA(EXGetUnitAbility(u, abilcode), GetUnitTypeId(u))
-		call UnitRemoveAbility(u, abilcode)
-		call UnitAddAbility(u, abilcode)
-		call EXSetAbilityAEmeDataA(EXGetUnitAbility(u, abilcode), targetid)
-		call UnitRemoveAbility(u, abilcode)
-	endfunction
-
-	native EXGetItemDataString takes integer itemcode, integer data_type returns string
-	native EXSetItemDataString takes integer itemcode, integer data_type, string value returns boolean
-
-	function YDWEGetItemDataString takes integer itemcode, integer data_type returns string
-		return EXGetItemDataString(itemcode, data_type)
-	endfunction
-
-	function YDWESetItemDataString takes integer itemcode, integer data_type, string value returns boolean
-		return EXSetItemDataString(itemcode, data_type, value)
-	endfunction
-
-endlibrary
-
-#endif  /// YDWEAbilityStateIncluded
-
-#define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
-
-#ifndef YDLuaIncluded
-#define YDLuaIncluded
-
-//! zinc
-/*
-原生Lua引擎非内置
-*/
-
-// https://create.reckfeng.com/kkapidoc/#/menu_kkapi_japi kkapi的japi文档
-
-library YDLua {
-
-    #define SetCameraBounds(a,b,c,d,e,f,g,h) initializeLua() CRNL call SetCameraBounds(a,b,c,d,e,f,g,h)
-
-    // main 函数就初始化的
-    public function initializeLua () -> integer {
-        Cheat("exec-lua:plugin_main");
-        return 0;
-    }
-
-
-    function onInit ()  {
-        //在游戏开始0.0秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.0);
-        TriggerAddCondition(tr,Condition(function (){
-            BJDebugMsg("调用了YDLua引擎");
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-    }
-}
-
-//! endzinc
-#endif
-
-#ifndef HardwareIncluded
-#define HardwareIncluded
-
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-
-//! zinc
-/*
-结构体
-硬件事件(按/滑/帧事件)
-*/
-library Hardware requires BzAPI {
-
-	public struct hardware []{
-		// 注册一个左键抬起事件
-		static method regLeftUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_UP,false,func);
-		}
-		// 注册一个左键按下事件
-		static method regLeftDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_PRESSED,false,func);
-		}
-		// 注册一个右键按下事件
-		static method regRightDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_PRESSED,false,func);
-		}
-		// 注册一个右键抬起事件
-		static method regRightUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_UP,false,func);
-		}
-		// 注册一个滚轮事件,不能异步注册
-		static method regWheelEvent (code func) {
-			if (trWheel == null) {trWheel = CreateTrigger();}
-			TriggerAddCondition(trWheel, Condition(func));
-		}
-		// 注册一个绘制事件,不能异步注册
-		static method regUpdateEvent (code func) {
-			if (trUpdate == null) {trUpdate = CreateTrigger();}
-			TriggerAddCondition(trUpdate, Condition(func));
-		}
-		// 注册一个窗口变化事件,不能异步注册
-		static method regResizeEvent (code func) {
-			if (trResize == null) {trResize = CreateTrigger();}
-			TriggerAddCondition(trResize, Condition(func));
-		}
-		// 注册一个鼠标移动事件,不能异步注册
-		static method regMoveEvent (code func) {
-			BJDebugMsg("注册鼠标移动事件");
-			if (trMove == null) {trMove = CreateTrigger();}
-			TriggerAddCondition(trMove, Condition(func));
-		}
-
-		// 获取鼠标的实数坐标X(0-0.8)
-		static method getMouseX ()  -> real {
-			integer width = DzGetClientWidth();
-			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
-			else return 0.1;
-		}
-
-		// 获取鼠标的实数坐标Y(0-0.6)
-		static method getMouseY ()  -> real {
-			integer height = DzGetClientHeight();
-			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
-			else return 0.1; // 防止除以0
-		}
-
-		private {
-			static trigger trWheel = null;
-			static trigger trUpdate = null;
-			static trigger trResize = null;
-			static trigger trMove = null;
-		}
-
-		static method onInit () {
-			// 滚轮事件
-			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
-				TriggerEvaluate(trWheel);
-			});
-			// 帧绘制事件
-			DzFrameSetUpdateCallbackByCode(function (){
-				TriggerEvaluate(trUpdate);
-			});
-			// 窗口大小变化事件
-			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
-				 TriggerEvaluate(trResize);
-			});
-			// 鼠标移动事件
-			DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
-				 TriggerEvaluate(trMove);
-			});
-		}
-	}
-}
-
-//! endzinc
-#endif
-
 #ifndef UnitSelectIncluded
 #define UnitSelectIncluded
 
@@ -1151,25 +951,49 @@ library UnitSelect requires Hardware ,LBKKAPI{
 //! endzinc
 #endif
 
-#ifndef SpellTableIncluded
-#define SpellTableIncluded
-
-
-#include "Crainax/core/table/Hash_SpellDefine.j"
+#ifndef UnitLifeCycleIncluded
+#define UnitLifeCycleIncluded
 
 //! zinc
 /*
-技能哈希表
+Unit生命周期管理器
+负责管理Unit组件的创建和销毁事件
 */
-library SpellTable {
+library UnitLifeCycle {
 
-    public hashtable HASH_SPELL   = InitHashtable();  // 技能哈希表(键是通过GetHashValue计算的)
+    public struct unitLifeCycle [] {
 
+        static unit argsUnit = null;
+        private {
+            static trigger trCreate = null;
+            static trigger trDestroy = null;
+        }
+
+        // 注册销毁回调
+        static method registerDestroy(code func) {
+            TriggerAddCondition(trDestroy, Condition(func));
+        }
+
+        static method onDestroyCB(unit u) {
+            argsUnit = u;
+            TriggerEvaluate(trDestroy);
+            //然后再清除所有哈希表
+            FlushChildHashtable(HASH_UNIT,GetHandleId(u));
+            argsUnit = null;
+        }
+
+        static method onInit () {
+            trCreate = CreateTrigger();
+            trDestroy = CreateTrigger();
+        }
+
+    }
 }
-
 //! endzinc
-#endif
 
+hook RemoveUnit unitLifeCycle.onDestroyCB
+
+#endif
 
 #ifndef UnitSpellIncluded
 #define UnitSpellIncluded
@@ -1348,6 +1172,21 @@ library UnitSpell requires Spell {
             return 0;
         }
 
+        // 获取指定Simple技能的等级
+        method getSimpleSpellLevel(spellData sd) -> integer {
+            integer i = 0;
+            integer handleId = GetHandleId(this.u);
+            spellData targetSpell;
+
+            // 遍历查找Simple技能
+            for (0 <= i < this.simpleCount) {
+                targetSpell = LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_SIMPLESPELL_IDS + i);
+                if (targetSpell == sd) {
+                    return LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_SIMPLESPELL_LEVELS + i);
+                }
+            }
+            return 0; // 未找到该技能返回0
+        }
 
         // 移除指定技能
         method removeSpell(spell sp) -> boolean {
@@ -1541,104 +1380,6 @@ library UnitSpell requires Spell {
 #undef MAX_UNIT_CURRENT_SPELLS
 #endif
 
-#ifndef SpellDataIncluded
-#define SpellDataIncluded
-
-#include "Crainax/core/table/Hash_SLKDefine.j"
-
-//! zinc
-/*
-技能数据
-*/
-library SpellData {
-
-    public constant integer SPELL_TYPE_ENTITY  = 0;  //固定技能(默认)
-    public constant integer SPELL_TYPE_MIRROR  = 1;  //镜像技能(英雄的模板技能)
-    public constant integer SPELL_TYPE_VIRTUAL = 2;  //虚拟技能(物品技能)
-    public constant integer SPELL_TYPE_SIMPLE  = 3;  //简单技能(无结构体,固定发挥)
-
-    public struct spellData [] {
-
-        static unit argsU = null; //事件单位
-        static integer argsLevel = 0; //事件等级
-
-        static integer counter = 0; // 当前有几个技能数据
-
-        integer id;         // 技能ID(从那边直接获取数据)
-        integer spellType;  // 技能类型(1:结构技能,2:无结构技能,3:虚拟技能,4:简单技能)
-
-        trigger trInit;     // 技能初始化事件
-        trigger trDestroy;  // 技能销毁事件
-        trigger trUpgrade;  // 技能升级事件
-
-        integer maxLevel;     // 技能等级(最大等级)
-        string  description;  // 技能描述
-        string  icon;         // 技能图标
-
-        public method registerInit(code func) {
-            if (trInit == null) {
-                trInit = CreateTrigger();
-            }
-            TriggerAddCondition(trInit, Condition(func));
-        }
-
-        public method registerDestroy(code func) {
-            if (trDestroy == null) {
-                trDestroy = CreateTrigger();
-            }
-            TriggerAddCondition(trDestroy, Condition(func));
-        }
-
-        public method registerUpgrade(code func) {
-            if (trUpgrade == null) {
-                trUpgrade = CreateTrigger();
-            }
-            TriggerAddCondition(trUpgrade, Condition(func));
-        }
-
-        //根据技能类型
-        public static method byType(integer at) -> thistype {
-            thistype this;
-            if (HaveSavedInteger(HASH_SLK, at, HASH_KEY_SLK_SPELLDATA)) {
-                this = LoadInteger(HASH_SLK, at, HASH_KEY_SLK_SPELLDATA);
-            } else {
-                counter += 1;
-                this = thistype[counter];
-                SaveInteger(HASH_SLK, at, HASH_KEY_SLK_SPELLDATA, this);
-                id = at;
-                maxLevel = 1; //默认最大等级1级
-            }
-            return this;
-        }
-
-        // 返回一个新的并自增(空物编)
-        public static method new ()  -> thistype {
-            thistype this;
-            counter += 1;
-            this = thistype[counter];
-            return this;
-        }
-    }
-
-}
-
-//! endzinc
-#endif
-
-#ifndef SLKTableIncluded
-#define SLKTableIncluded
-
-//! zinc
-/*
-SLK数据的表(所有物编都在一起)
-*/
-library SLKTable {
-    public hashtable HASH_SLK = InitHashtable();  // SLK数据哈希表
-}
-
-//! endzinc
-#endif
-
 #ifndef SpellIncluded
 #define SpellIncluded
 
@@ -1666,7 +1407,7 @@ library Spell {
     }
 
     public struct spell {
-        static thistype ethis = 0;
+        static thistype ethis = 0; //回调
 
         unit      u;          // 技能拥有者
         integer   spellType;  // 技能类型(0:结构技能,1:无结构技能,2:虚拟技能,3:简单技能)
@@ -1677,7 +1418,7 @@ library Spell {
 
         STRUCT_SHARED_METHODS(spell)
 
-        // 创建实体技能(有ID)
+        // 创建实体技能(有ID),注意如果spellData不是通过byType创建的话会自动创建一个
         public static method entity (unit u, integer id, integer level) -> thistype {
             thistype this;
 			integer key = GetHashValue(GetHandleId(u), id);
@@ -1704,6 +1445,13 @@ library Spell {
             SetUnitAbilityLevel(u,id,level); //实体技能要设置等级
 
 			SaveInteger(HASH_SPELL, key, HASH_KEY_SPELL_SPELL, this);
+
+            if (sd.trInit != null) {
+                sd.argsU = this.u;
+                sd.argsLevel = level;
+                ethis = this;
+                TriggerEvaluate(sd.trInit);
+            }
 			return this;
         }
 
@@ -1729,6 +1477,13 @@ library Spell {
             this.sd = sd;
             this.level = level;
 			SaveInteger(HASH_SPELL, key, HASH_KEY_SPELL_SPELL, this);
+
+            if (sd.trInit != null) {
+                sd.argsU = this.u;
+                sd.argsLevel = level;
+                ethis = this;
+                TriggerEvaluate(sd.trInit);
+            }
             return this;
         }
 
@@ -1750,6 +1505,13 @@ library Spell {
             this.sd = sd;
             this.level = level;
 			SaveInteger(HASH_SPELL, key, HASH_KEY_SPELL_SPELL, this);
+
+            if (sd.trInit != null) {
+                sd.argsU = this.u;
+                sd.argsLevel = level;
+                ethis = this;
+                TriggerEvaluate(sd.trInit);
+            }
             return this;
         }
 
@@ -1760,7 +1522,6 @@ library Spell {
 			}
 			return 0;
         }
-
 
         // 注册销毁时的回调
         public method registerDestroy (code func) {
@@ -1774,7 +1535,12 @@ library Spell {
         //销毁时调用
         method onDestroy () {
             if (!this.isExist()) {return;}
-            if (trDestroy != null) {
+            if (sd.trDestroy != null) { //spellData的销毁回调
+                sd.argsU = this.u;
+                sd.argsLevel = level;
+                TriggerEvaluate(sd.trDestroy);
+            }
+            if (trDestroy != null) { //spell的销毁回调
                 thistype.ethis = this;
                 TriggerEvaluate(trDestroy);
                 DestroyTrigger(trDestroy);
@@ -1815,6 +1581,279 @@ library Spell {
 // hook UnitRemoveAbility spell.RemoveHook
 
 #endif
+
+#ifndef SLKTableIncluded
+#define SLKTableIncluded
+
+//! zinc
+/*
+SLK数据的表(所有物编都在一起)
+*/
+library SLKTable {
+    public hashtable HASH_SLK = InitHashtable();  // SLK数据哈希表
+}
+
+//! endzinc
+#endif
+
+#ifndef SpellTableIncluded
+#define SpellTableIncluded
+
+
+#include "Crainax/core/table/Hash_SpellDefine.j"
+
+//! zinc
+/*
+技能哈希表
+*/
+library SpellTable {
+
+    public hashtable HASH_SPELL   = InitHashtable();  // 技能哈希表(键是通过GetHashValue计算的)
+
+}
+
+//! endzinc
+#endif
+
+
+#ifndef KKAPIINCLUDE 
+#define KKAPIINCLUDE 
+
+library LBKKAPI 
+        globals 
+                string MOVE_TYPE_NONE = "none" //没有（无视碰撞）  
+                string MOVE_TYPE_FOOT = "foot" //步行  
+                string MOVE_TYPE_HORSE = "horse" //骑马  
+                string MOVE_TYPE_FLY = "fly" //飞行（还具有空中视野，也可以设置飞行高度）  
+                string MOVE_TYPE_HOVER = "hover" //浮空（不会踩中地雷）  
+                string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）  
+                string MOVE_TYPE_AMPH = "amph" //两栖  
+                string MOVE_TYPE_UNBUILD = "unbuild" //不可建造  
+                constant integer DEFENSE_TYPE_LIGHT = 0 
+		constant integer DEFENSE_TYPE_MEDIUM = 1 
+		constant integer DEFENSE_TYPE_LARGE = 2 
+		constant integer DEFENSE_TYPE_FORT = 3 
+		constant integer DEFENSE_TYPE_NORMAL = 4 
+		constant integer DEFENSE_TYPE_HERO = 5 
+		constant integer DEFENSE_TYPE_DIVINE = 6 
+		constant integer DEFENSE_TYPE_NONE = 7 
+        endglobals 
+
+        native DzGetSelectedLeaderUnit takes nothing returns unit 
+        native DzIsChatBoxOpen takes nothing returns boolean 
+        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
+        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
+        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
+        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
+        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
+        native DzSetEffectModel takes effect whichEffect, string model returns nothing
+        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
+        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
+        native DzChangeWindowSize takes integer width, integer height returns boolean 
+        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
+        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
+        native DzUnbindEffect takes effect whichEffect returns nothing 
+        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
+        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
+        native DzGetEffectVertexColor takes effect whichEffect returns integer 
+        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
+        native DzGetItemAbility takes item whichEffect, integer index returns ability 
+        native DzFrameGetChildrenCount takes integer whichframe returns integer 
+        native DzFrameGetChild takes integer whichframe, integer index returns integer 
+        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
+        native DzGetActivePatron takes unit store, player p returns unit 
+        native DzGetLocalSelectUnitCount takes nothing returns integer 
+        native DzGetLocalSelectUnit takes integer index returns unit 
+        native DzGetJassStringTableCount takes nothing returns integer 
+        native DzModelRemoveFromCache takes string path returns nothing 
+        native DzModelRemoveAllFromCache takes nothing returns nothing 
+        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
+        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
+        native DzFrameGetPeonBar takes nothing returns integer 
+        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
+        native DzToggleFPS takes boolean show returns nothing 
+        native DzGetFPS takes nothing returns integer 
+        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
+        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
+        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
+        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
+        native DzFrameGetWorldFrameMessage takes nothing returns integer 
+        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
+        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
+        //转换屏幕坐标到世界坐标  
+        native DzConvertScreenPositionX takes real x, real y returns real 
+        native DzConvertScreenPositionY takes real x, real y returns real 
+        //监听建筑选位置  
+        native DzRegisterOnBuildLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnBuildOrderId takes nothing returns integer 
+        native DzGetOnBuildOrderType takes nothing returns integer 
+        native DzGetOnBuildAgent takes nothing returns widget 
+        //监听技能选目标  
+        native DzRegisterOnTargetLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnTargetAbilId takes nothing returns integer 
+        native DzGetOnTargetOrderId takes nothing returns integer 
+        native DzGetOnTargetOrderType takes nothing returns integer 
+        native DzGetOnTargetAgent takes nothing returns widget 
+        native DzGetOnTargetInstantTarget takes nothing returns widget 
+        // 打开QQ群链接  
+        native DzOpenQQGroupUrl takes string url returns boolean 
+        native DzFrameEnableClipRect takes boolean enable returns nothing 
+        native DzSetUnitName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
+        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
+        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
+        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
+        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
+        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
+        native DzGetAttackAbility takes unit whichUnit returns ability 
+        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
+        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
+        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
+        function DzSetHeroTypeProperName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 61, 0, name) 
+                call EXSetUnitInteger(uid, 61, 1) 
+        endfunction 
+        function DzSetUnitTypeName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 10, 0, name) 
+                call EXSetUnitInteger(uid, 10, 1) 
+        endfunction 
+        function DzIsUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns boolean 
+                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType 
+        endfunction 
+        function DzSetUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType)) 
+        endfunction 
+        function DzIsUnitDefenseType takes unit whichUnit, integer defenseType returns boolean 
+                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType 
+        endfunction 
+        function DzSetUnitDefenseType takes unit whichUnit, integer defenseType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType) 
+        endfunction 
+
+        // 地形装饰物
+        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
+        native DzDoodadGetTypeId takes integer doodad returns integer 
+        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
+        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
+        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
+        native DzDoodadGetX takes integer doodad returns real 
+        native DzDoodadGetY takes integer doodad returns real 
+        native DzDoodadGetZ takes integer doodad returns real 
+        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
+        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
+        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
+        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
+        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
+        native DzDoodadGetTimeScale takes integer doodad returns real 
+        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
+        native DzDoodadGetAnimationCount takes integer doodad returns integer 
+        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
+        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
+        // 解锁JASS字节码限制
+        native DzUnlockOpCodeLimit takes boolean enable returns nothing
+        // 设置剪切板内容
+        native DzSetClipboard takes string content returns boolean
+        //删除装饰物
+        native DzDoodadRemove takes integer doodad returns nothing
+        //移除科技等级
+        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
+        
+        // 查找单位技能
+        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
+        // 修改技能数据-字符串
+        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
+                
+        // 启用/禁用技能
+        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
+        // 设置单位移动类型
+        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
+        // 获取控件宽度
+        native DzFrameGetWidth takes integer frame returns real
+        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
+        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
+        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
+
+        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
+                call DzSetUnitDataCacheInteger( uid, id, 0, v)
+        endfunction
+
+        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 94, id, v)
+        endfunction
+
+        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 100, id, v)
+        endfunction
+
+        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 112, id, v)
+        endfunction
+
+        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 106, id, v)
+        endfunction
+
+        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 118, id, v)
+        endfunction
+
+        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 124, id, v)
+        endfunction
+
+        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 130, id, v)
+        endfunction
+
+        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+
+        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+
+        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 172, id, v)
+        endfunction
+
+         // 设置道具模型
+        native DzItemSetModel takes item whichItem, string file returns nothing
+        // 设置道具颜色
+        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
+        // 设置道具透明度
+        native DzItemSetAlpha takes item whichItem, integer color returns nothing
+        // 设置道具头像
+        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
+
+endlibrary
+
+
+
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
+
+
+#endif 
+
 
 //===========================================================================
 //
@@ -1948,6 +1987,12 @@ library UTUnitSpell requires UnitSpell {
 	// 用于Simple技能回调测试的全局变量
 	private integer simpleSpellInitCount = 0;
 	private integer simpleSpellDestroyCount = 0;
+	// 用于回调测试的全局变量
+	private integer spellDataInitCount = 0;
+	private integer spellDataDestroyCount = 0;
+	private integer spellDestroyCount = 0;
+	private integer unitDataInitCount = 0; // 添加这个全局变量
+private integer destroyCount = 0;
 	function Init() {
 		// 测试1: parse创建 - 0.1秒
 		spellData sd = spellData.byType('AHbz');
@@ -2151,6 +2196,156 @@ integer i = 0;
 				assert.Boolean(!removeResult, "删除已删除的Simple技能应该失败");
 			}
 		}, null);
+		// 测试10: 直接删除单位时的技能清理测试
+		UnitTestAutoTimer(0.9, 0, function() {
+			spellData sd1, sd2, sd3, sd4, sd5;
+			Trace("开始测试10: 直接删除单位时的技能清理测试");
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			destroyCount = 0;
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			// 创建3个Simple技能,回调数不同
+			sd1 = spellData.new();
+			sd1.spellType = SPELL_TYPE_SIMPLE;
+			sd1.maxLevel = 1;
+			sd1.registerDestroy(function() {
+				destroyCount += 1;
+			});
+			sd2 = spellData.new();
+			sd2.spellType = SPELL_TYPE_SIMPLE;
+			sd2.maxLevel = 1;
+			sd2.registerDestroy(function() {
+				destroyCount += 10;
+			});
+			sd3 = spellData.new();
+			sd3.spellType = SPELL_TYPE_SIMPLE;
+			sd3.maxLevel = 1;
+			sd3.registerDestroy(function() {
+				destroyCount += 100;
+			});
+			// 创建2个Entity技能
+			sd4 = spellData.byType('ACch');
+			sd4.spellType = SPELL_TYPE_ENTITY;
+			sd4.maxLevel = 1;
+			sd4.registerDestroy(function() {
+				destroyCount += 1000;
+			});
+			sd5 = spellData.byType('ACcl');
+			sd5.spellType = SPELL_TYPE_ENTITY;
+			sd5.maxLevel = 1;
+			sd5.registerDestroy(function() {
+				destroyCount += 10000;
+			});
+			// 添加所有技能
+			us.addSpellData(sd1, 1); // +1
+us.addSpellData(sd2, 1); // +10
+us.addSpellData(sd3, 1); // +100
+us.addSpellData(sd4, 1); // +1000
+us.addSpellData(sd5, 1); // +10000
+
+			// 直接删除单位
+			RemoveUnit(testUnit);
+			testUnit = null;
+			// 验证所有回调都被调用 (1 + 10 + 100 + 1000 + 10000 = 11111)
+			assert.Integer(destroyCount, 11111, "删除单位后所有技能的销毁回调应该被正确调用,值应该为11111");
+		}, null);
+		// 测试11: 技能数量上限测试
+		UnitTestAutoTimer(1.0, 0, function() {
+			spellData sd;
+			integer i;
+			boolean addResult;
+			Trace("开始测试11: 技能数量上限测试");
+			if (testUnit != null) {
+				RemoveUnit(testUnit);
+			}
+			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
+			us = unitSpell.parse(testUnit);
+			// 尝试添加201个不同的技能
+			for (0 <= i < 201) {
+				// 每次创建新的spellData
+				sd = spellData.new();
+				sd.spellType = SPELL_TYPE_SIMPLE;
+				sd.maxLevel = 1;
+				addResult = us.addSpellData(sd, 1);
+				if (i < 200) {
+					if (ModuloInteger(i,10) == 0) {
+						assert.Boolean(addResult, "添加第" + I2S(IMaxBJ(i-9,0)) +"-" + I2S(i + 1) + "个技能应该成功");
+					}
+				} else {
+					assert.Boolean(!addResult, "添加第201个技能应该失败");
+				}
+			}
+			// 验证最终技能数量
+			assert.Integer(us.getSimpleSpellCount(), 200, "最终Simple技能数量应该为200");
+		}, null);
+		// 测试12: unitData技能初始化测试
+		UnitTestAutoTimer(1.1, 0, function() {
+			unitData ud;
+			spellData sd1, sd2, sd3;
+			unit testUnit;
+			unitSpell usl;
+			// 重置计数
+			unitDataInitCount = 0;
+			Trace("开始测试12: unitData技能初始化测试");
+			// 创建几个不同的spellData
+			sd1 = spellData.new();
+			sd1.spellType = SPELL_TYPE_SIMPLE;
+			sd1.maxLevel = 3;
+			sd1.registerInit(function() {
+				unitDataInitCount += 1;
+				Trace("spellData1初始化回调被调用");
+			});
+			sd2 = spellData.byType('AHbz');
+			sd2.spellType = SPELL_TYPE_ENTITY;
+			sd2.maxLevel = 2;
+			sd2.registerInit(function() {
+				unitDataInitCount += 10;
+				Trace("spellData2初始化回调被调用");
+			});
+			sd3 = spellData.byType('AHtb');
+			sd3.spellType = SPELL_TYPE_ENTITY;
+			sd3.maxLevel = 4;
+			sd3.registerInit(function() {
+				unitDataInitCount += 100;
+				Trace("spellData3初始化回调被调用");
+			});
+			// 获取食尸鬼的unitData并添加技能
+			ud = unitData.byType('ugho');
+			ud.addSpell(sd1, 2); // Simple技能 等级2
+ud.addSpell(sd2, 1); // Entity技能 等级1
+ud.addSpell(sd3, 3); // Entity技能 等级3
+
+			// 验证unitData中的技能数据是否正确
+			assert.Integer(ud.getSpellCount(), 3, "unitData中应该有3个技能");
+			assert.Integer(ud.getSpellId(0),sd1, "第1个技能应该是sd1:"+I2S(sd1));
+			assert.Integer(ud.getSpellId(1),sd2, "第2个技能应该是sd2:"+I2S(sd2));
+			assert.Integer(ud.getSpellId(2),sd3, "第3个技能应该是sd3:"+I2S(sd3));
+			assert.Integer(ud.getSpellLevel(0), 2, "sd1的等级应该是2");
+			assert.Integer(ud.getSpellLevel(1), 1, "sd2的等级应该是1");
+			assert.Integer(ud.getSpellLevel(2), 3, "sd3的等级应该是3");
+			// 创建食尸鬼单位并初始化unitSpell
+			testUnit = CreateUnit(Player(0), 'ugho', 0, 0, 0);
+			usl = unitSpell.parse(testUnit);
+			// 验证unitSpell是否正确初始化了所有技能
+			assert.Integer(usl.getSimpleSpellCount(), 1, "应该有1个Simple技能");
+			assert.Integer(usl.getSpellCount(), 2, "应该有2个Entity技能");
+			// 验证Simple技能
+			assert.Integer(usl.getSimpleSpell(0) , sd1, "Simple技能应该是sd1:"+I2S(sd1));
+			// 验证Entity技能
+			assert.Integer(usl.getSpell(0).sd , sd2, "第1个Entity技能应该是sd2:"+I2S(sd2));
+			assert.Integer(usl.getSpell(1).sd , sd3, "第2个Entity技能应该是sd3:"+I2S(sd3));
+			// 验证所有技能的等级
+			assert.Integer(usl.getSimpleSpellLevel(sd1), 2, "Simple技能sd1的等级应该是2");
+			assert.Integer(usl.getSpell(0).level, 1, "sd2的等级应该是1");
+			assert.Integer(usl.getSpell(1).level, 3, "sd3的等级应该是3");
+			// 验证初始化回调是否都被调用 (1 + 10 + 100 = 111)
+			assert.Integer(unitDataInitCount, 111, "所有spellData的初始化回调都应该被调用");
+			// 清理
+			RemoveUnit(testUnit);
+			testUnit = null;
+		}, null);
 	}
 	// 测试用例函数保持空实现
 	function TTestUTUnitSpell1(player p) {}
@@ -2205,6 +2400,7 @@ integer i = 0;
 	function TTestUTUnitSpell8(player p) {}
 	function TTestUTUnitSpell9(player p) {}
 	function TTestUTUnitSpell10(player p) {}
+	function TTestUTUnitSpell11(player p) {}
 	// 处理带参数的测试命令
 	function TTestActUTUnitSpell1(string str) {
 		player p;
@@ -2281,8 +2477,10 @@ integer i = 0;
 			else if(str == "s8") TTestUTUnitSpell8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTUnitSpell9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTUnitSpell10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTUnitSpell11(GetTriggerPlayer());
 		});
-	}
+		DzUnlockOpCodeLimit(true); // 解锁OpCode限制
+}
 }
 //! endzinc
 // lua_print: 空白地图

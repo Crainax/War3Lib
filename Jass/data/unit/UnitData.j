@@ -64,7 +64,7 @@ library UnitData requires SpellData {
             return 0;
         }
 
-        //根据单位类型
+        //根据单位类型(只有这一个构造函数)
         public static method byType(integer ut) -> thistype {
             thistype this;
             if (HaveSavedInteger(HASH_SLK, ut, HASH_KEY_SLK_UNITDATA)) {

@@ -25,7 +25,7 @@ library Spell {
     }
 
     public struct spell {
-        static thistype ethis = 0;
+        static thistype ethis = 0; //回调
 
         unit      u;          // 技能拥有者
         integer   spellType;  // 技能类型(0:结构技能,1:无结构技能,2:虚拟技能,3:简单技能)
@@ -36,7 +36,7 @@ library Spell {
 
         STRUCT_SHARED_METHODS(spell)
 
-        // 创建实体技能(有ID)
+        // 创建实体技能(有ID),注意如果spellData不是通过byType创建的话会自动创建一个
         public static method entity (unit u, integer id, integer level) -> thistype {
             thistype this;
 			integer key = GetHashValue(GetHandleId(u), id);
@@ -63,6 +63,13 @@ library Spell {
             SetUnitAbilityLevel(u,id,level); //实体技能要设置等级
 
 			SaveInteger(HASH_SPELL, key, HASH_KEY_SPELL_SPELL, this);
+
+            if (sd.trInit != null) {
+                sd.argsU = this.u;
+                sd.argsLevel = level;
+                ethis = this;
+                TriggerEvaluate(sd.trInit);
+            }
 			return this;
         }
 
@@ -88,6 +95,13 @@ library Spell {
             this.sd = sd;
             this.level = level;
 			SaveInteger(HASH_SPELL, key, HASH_KEY_SPELL_SPELL, this);
+
+            if (sd.trInit != null) {
+                sd.argsU = this.u;
+                sd.argsLevel = level;
+                ethis = this;
+                TriggerEvaluate(sd.trInit);
+            }
             return this;
         }
 
@@ -109,6 +123,13 @@ library Spell {
             this.sd = sd;
             this.level = level;
 			SaveInteger(HASH_SPELL, key, HASH_KEY_SPELL_SPELL, this);
+
+            if (sd.trInit != null) {
+                sd.argsU = this.u;
+                sd.argsLevel = level;
+                ethis = this;
+                TriggerEvaluate(sd.trInit);
+            }
             return this;
         }
 
@@ -119,7 +140,6 @@ library Spell {
 			}
 			return 0;
         }
-
 
         // 注册销毁时的回调
         public method registerDestroy (code func) {
@@ -133,7 +153,12 @@ library Spell {
         //销毁时调用
         method onDestroy () {
             if (!this.isExist()) {return;}
-            if (trDestroy != null) {
+            if (sd.trDestroy != null) { //spellData的销毁回调
+                sd.argsU = this.u;
+                sd.argsLevel = level;
+                TriggerEvaluate(sd.trDestroy);
+            }
+            if (trDestroy != null) { //spell的销毁回调
                 thistype.ethis = this;
                 TriggerEvaluate(trDestroy);
                 DestroyTrigger(trDestroy);

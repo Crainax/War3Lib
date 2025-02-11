@@ -175,6 +175,21 @@ library UnitSpell requires Spell {
             return 0;
         }
 
+        // 获取指定Simple技能的等级
+        method getSimpleSpellLevel(spellData sd) -> integer {
+            integer i = 0;
+            integer handleId = GetHandleId(this.u);
+            spellData targetSpell;
+
+            // 遍历查找Simple技能
+            for (0 <= i < this.simpleCount) {
+                targetSpell = LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_SIMPLESPELL_IDS + i);
+                if (targetSpell == sd) {
+                    return LoadInteger(HASH_UNIT, handleId, HASH_KEY_UNIT_SIMPLESPELL_LEVELS + i);
+                }
+            }
+            return 0; // 未找到该技能返回0
+        }
 
         // 移除指定技能
         method removeSpell(spell sp) -> boolean {

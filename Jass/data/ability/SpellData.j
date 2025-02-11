@@ -18,7 +18,6 @@ library SpellData {
 
         static unit argsU = null; //事件单位
         static integer argsLevel = 0; //事件等级
-
         static integer counter = 0; // 当前有几个技能数据
 
         integer id;         // 技能ID(从那边直接获取数据)
@@ -68,7 +67,7 @@ library SpellData {
             return this;
         }
 
-        // 返回一个新的并自增(空物编)
+        // 返回一个新的并自增(空物编),这个一定不能用来做spell的,只能用来做
         public static method new ()  -> thistype {
             thistype this;
             counter += 1;
