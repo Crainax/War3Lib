@@ -1,5 +1,8 @@
 logs\currentmapscript.j
 pjass.exe
-Line 1090:  Undeclared function Trace
-Line 1097:  Undeclared function Trace
-2
+Line 185:  Undeclared variable u1
+Line 186:  Undeclared variable u2
+Line 187:  Undeclared variable testAbility1
+Line 188:  Undeclared variable testAbility2
+Line 189:  Undeclared variable testAbility3
+5

@@ -15,8 +15,8 @@ library UTSpell requires Spell {
 	private unit testFootman = null;
 
 	private unit testSpell = null;
-	private spell sp = 0;
-	private spellData sd[];
+	private spell spSingle = 0;
+	private spellData sds[];
 
 	// 用于回调测试的全局变量
 	private integer spellDataInitCount = 0;
@@ -24,7 +24,7 @@ library UTSpell requires Spell {
 	private integer spellDestroyCount = 0;
 
 	function Init () {
-		sd[1] = spellData.byType('A001');
+		sds[1] = spellData.byType('A001');
 
 		//这是注册点击事件
 		unitSelect.onSync(function() {
@@ -63,8 +63,7 @@ library UTSpell requires Spell {
 			testUnit = CreateUnit(Player(0), 'hfoo', 0, 0, 0);
 
 			// 创建spellData并注册回调
-			sd = spellData.new();
-			sd.id = 'AHbz';
+			sd = spellData.byType('AHbz');
 			sd.spellType = SPELL_TYPE_ENTITY;
 			sd.maxLevel = 1;
 
@@ -293,22 +292,22 @@ library UTSpell requires Spell {
 			// 原有的b指令逻辑
 		} else if (paramS[0] == "destroy") {
 			// 销毁sp
-			if (sp != 0) {
-				sp.destroy();
-				sp = 0;
+			if (spSingle != 0) {
+				spSingle.destroy();
+				spSingle = 0;
 				Trace("已销毁技能结构体sp");
 			} else {
 				Trace("错误：sp已经是空的了");
 			}
 		} else if (paramS[0] == "new") {
 			// 销毁sp
-			if (sp != 0) {
-				sp.destroy();
+			if (spSingle != 0) {
+				spSingle.destroy();
 			}
 			RemoveUnit(testSpell);
 			testSpell = CreateUnit(Player(0),'nsm1',0,0,0);
-			sp = spell.entity(testSpell,'A001',1);
-			sp.registerDestroy(function () {
+			spSingle = spell.entity(testSpell,'A001',1);
+			spSingle.registerDestroy(function () {
 				Trace("技能ID:" + I2S(spell.ethis) + "被销毁了(独)");
 			});
 			Trace("测试单位创建完成了");

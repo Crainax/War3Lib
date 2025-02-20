@@ -9,12 +9,13 @@
 //自动生成的文件
 library UTSpellPool requires SpellPool {
 
+
+	unit u1;
+	unit u2;
+	integer testAbility1 = 'AHbz'; // 暴风雪
+	integer testAbility2 = 'AHfs'; // 烈焰风暴
+	integer testAbility3 = 'AHwe'; // 水元素
 	function Init () {
-		unit u1;
-		unit u2;
-		integer testAbility1 = 'AHbz'; // 暴风雪
-		integer testAbility2 = 'AHfs'; // 烈焰风暴
-		integer testAbility3 = 'AHwe'; // 水元素
 
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			// 创建两个步兵在(0,0)位置
@@ -31,17 +32,24 @@ library UTSpellPool requires SpellPool {
 			UnitAddAbility(u2, testAbility3);
 
 			BJDebugMsg("测试单位已创建并添加技能");
-		}, function() {
+			}, function() {
 			// 2秒后的清理代码
+		});
+
+		unitSelect.onSync(function () {
+			spellpool_u = unitSelect.argsSync;
 		});
 
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//assert.Boolean(true, "测试1");
-			//
+			//spellPool
 		},null);
 	}
 
-	function TTestUTSpellPool1 (player p) {}
+	function TTestUTSpellPool1 (player p) {
+		TriggerEvaluate(spellpool_tr);
+		BJDebugMsg("调用了测试");
+	}
 	function TTestUTSpellPool2 (player p) {}
 	function TTestUTSpellPool3 (player p) {}
 	function TTestUTSpellPool4 (player p) {}
@@ -88,6 +96,8 @@ library UTSpellPool requires SpellPool {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
+			//YDLua
+			Cheat("exec-lua:depends.spellpool");
 			BJDebugMsg("[SpellPool] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());

@@ -2,11 +2,11 @@ local jass = require 'jass.common'
 local console = require 'jass.console'
 local log = require 'jass.log'
 local g = require 'jass.globals'
--- local debug = require 'jass.debug'
+local debug = require 'jass.debug'
 local mt = {}
 
 g.logger_tr = jass.CreateTrigger()
--- debug.handle_ref(g.logger_tr)
+debug.handle_ref(g.logger_tr)
 jass.TriggerAddCondition(g.logger_tr, jass.Condition(function()
     if g.logger_p == jass.GetLocalPlayer() then
         if g.logger_level == 0 then

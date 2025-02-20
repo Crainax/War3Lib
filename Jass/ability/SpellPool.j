@@ -8,9 +8,18 @@
 */
 library SpellPool {
 
-    function onInit ()  {
-        // body ...
+
+    public unit spellpool_u     = null;
+    public trigger spellpool_tr = null;
+    public function TriggerName(unit u) {
+        spellpool_u = u;
+        TriggerEvaluate(spellpool_tr);
     }
+
+    function onInit () {
+        Cheat("exec-lua:depends.spellpool");
+    }
+
 }
 
 //! endzinc

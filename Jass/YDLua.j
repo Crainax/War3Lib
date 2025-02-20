@@ -20,7 +20,6 @@ library YDLua {
         return 0;
     }
 
-
     function onInit ()  {
         //在游戏开始0.0秒后再调用
         trigger tr = CreateTrigger();
