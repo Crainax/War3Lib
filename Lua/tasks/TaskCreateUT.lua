@@ -50,7 +50,7 @@ function CreateUnitTest(args)
 			return false, msg
 		end
 
-		local code, msg = os.execute(string.format("%s %s", "code", utPath))
+		local code, msg = os.execute(string.format("%s %s", "cursor", utPath))
 		if (code) then
 			print('[VSCODE]打开生成文件成功.')
 		end

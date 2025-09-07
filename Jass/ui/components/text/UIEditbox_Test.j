@@ -101,7 +101,7 @@ library UTUIEditbox requires UIEditbox {
 			else if(str == "s10") TTestUTUIEditbox10(GetTriggerPlayer());
 		});
 
-		hardware.regRightClickEvent(function (){
+		hardware.regRightUpEvent(function (){
 			currentEditbox.setFocus(false);
 			BJDebugMsg("取消焦点");
 		});

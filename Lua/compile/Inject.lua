@@ -5,6 +5,7 @@ local inject_code = {}
 inject_code.new_table = {}
 inject_code.old_table = {}
 inject_code.chain_table = {} -- 链式依赖
+inject_code.detect_cache = {} -- 结果缓存
 
 -- 辅助函数：获取文件扩展名
 local function get_extension(filename)
@@ -27,71 +28,205 @@ local function read_file(file_path)
     return content
 end
 
+-- 计算函数名集合签名（用于缓存键）
+local function compute_keys_signature(name_to_file_table)
+    local keys = {}
+    for fname in pairs(name_to_file_table or {}) do
+        table.insert(keys, fname)
+    end
+    table.sort(keys)
+    local concat = table.concat(keys, "\n")
+    local sum = 0
+    for i = 1, #concat do
+        sum = (sum + concat:byte(i)) % 1000000007
+    end
+    return tostring(#keys) .. ":" .. tostring(sum)
+end
+
+-- 计算链表签名（用于缓存键）
+local function compute_chain_signature(chain_table)
+    if not chain_table then return "0:0" end
+    local items = {}
+    for file, deps in pairs(chain_table) do
+        local copy = {}
+        for i = 1, #deps do copy[i] = deps[i] end
+        table.sort(copy)
+        table.insert(items, file .. "->" .. table.concat(copy, ","))
+    end
+    table.sort(items)
+    local concat = table.concat(items, "\n")
+    local sum = 0
+    for i = 1, #concat do
+        sum = (sum + concat:byte(i)) % 1000000007
+    end
+    return tostring(#items) .. ":" .. tostring(sum)
+end
+
+-- 构建标识符索引：
+-- 返回两个集合：
+-- 1) wordSet：出现过的“词”（[%w_]+）
+-- 2) windowSet：由点连接的连续词窗口（长度范围[2, maxSegments]）
+local function build_identifier_index(s, maxSegments)
+    local wordSet = {}
+    local windowSet = {}
+
+    local function finalize_sequence(seq)
+        local n = #seq
+        if n >= 2 then
+            local upper = maxSegments
+            if not upper or upper > n then upper = n end
+            for k = 2, upper do
+                for i = 1, n - k + 1 do
+                    local name = table.concat(seq, ".", i, i + k - 1)
+                    windowSet[name] = true
+                end
+            end
+        end
+    end
+
+    for line in s:gmatch("[^\r\n]+") do
+        local len = #line
+        local pos = 1
+        local seq = {}
+        local prev = "other" -- other | word | dot
+        while pos <= len do
+            local a, b = line:find("[%w_]+", pos)
+            if a == pos then
+                local w = line:sub(a, b)
+                wordSet[w] = true
+                if prev == "dot" then
+                    table.insert(seq, w)
+                elseif prev == "word" then
+                    finalize_sequence(seq)
+                    seq = { w }
+                else -- other
+                    seq = { w }
+                end
+                pos = b + 1
+                prev = "word"
+            else
+                local da, db = line:find("%.", pos)
+                if da == pos then
+                    if prev ~= "word" then
+                        finalize_sequence(seq)
+                        seq = {}
+                    end
+                    pos = db + 1
+                    prev = "dot"
+                else
+                    if prev ~= "other" then
+                        finalize_sequence(seq)
+                        seq = {}
+                        prev = "other"
+                    end
+                    pos = pos + 1
+                end
+            end
+        end
+        if prev ~= "other" then
+            finalize_sequence(seq)
+        end
+    end
+
+    return wordSet, windowSet
+end
+
 -- 侦测需要注入哪些代码(使用的是string.find方式,所以说注释下也会检测到)
 function inject_code:detect(path)
     -- 添加开始时间记录
     local start_time = os.clock()
 
-    local r = {}
-    local s, e = read_file(path.inject)
+    local result = {}
+    local s, err = read_file(path.inject)
+    if not s then
+        print("Error occured when opening map script.")
+        print(err)
+        return result
+    end
+
+    -- 构建缓存键
+    local attr = lfs.attributes(path.inject)
+    local file_sig = (attr and ((attr.modification or 0) .. ":" .. (attr.size or 0))) or "0:0"
+    local keys_sig = compute_keys_signature(self.new_table)
+    local chain_sig = compute_chain_signature(self.chain_table)
+    local cache_key = table.concat({ path.inject, file_sig, keys_sig, chain_sig }, "|")
+
+    local cache_entry = self.detect_cache[cache_key]
+    if cache_entry then
+        -- 命中缓存
+        local end_time_cached = os.clock()
+        print(string.format("函数检测用时: %.3f 秒", end_time_cached - start_time))
+        return cache_entry
+    end
 
     -- 递归处理依赖文件
     local function process_chain_files(file)
         if self.chain_table and self.chain_table[file] then
             for _, chain_file in ipairs(self.chain_table[file]) do
-                if not r[chain_file] then
-                    r[chain_file] = true
-                    -- print(file .. " 的依赖文件同时注入: " .. chain_file)
-                    -- 递归处理依赖文件的依赖
+                if not result[chain_file] then
+                    result[chain_file] = true
                     process_chain_files(chain_file)
                 end
             end
         end
     end
 
-    if s then
-        -- 检查是否有需要注入的函数
-        local all_table = self.new_table
+    -- 计算函数名的最大分段数（按点切分）
+    local maxSegments = 1
+    for fname in pairs(self.new_table) do
+        local segs = 1
+        for _ in fname:gmatch("%.") do segs = segs + 1 end
+        if segs > maxSegments then maxSegments = segs end
+    end
 
-        for function_name, file in pairs(all_table) do
-            if not r[file] then -- 速度慢但是是全词匹配
+    -- 单次扫描构建索引
+    local wordSet, windowSet = build_identifier_index(s, maxSegments)
 
-                -- 根据函数名是否以YDWE开头选择不同的匹配模式
-                if function_name:sub(1, 4) == "YDWE" then -- 简单模式
-                    -- print(string.format("[简单模式]开始检测函数 '%s' 文件 '%s'", function_name, file))
-                    if not r[file] and s:find(function_name:gsub("%.", "%%.")) then -- 速度很快但是不是全词匹配
-                        -- if not r[file] and s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then -- 速度慢但是是全词匹配
-                        r[file] = true
-                        process_chain_files(file)  -- 处理依赖文件
+    -- 匹配逻辑：
+    -- - 含点：用 windowSet 精确命中（等价于 "%f[%w_]A%.B%f[^%w_]" 语义）
+    -- - 不含点：用 wordSet 命中（等价于 "%f[%w_]NAME%f[^%w_]" 语义）
+    for function_name, file in pairs(self.new_table) do
+        if not result[file] then
+            local hasDot = function_name:find("%.") ~= nil
+
+            if function_name:sub(1, 4) == "YDWE" then
+                -- 简单模式：优先用索引命中，避免全文扫描
+                if hasDot then
+                    if windowSet[function_name] then
+                        result[file] = true
+                        process_chain_files(file)
                     end
-                else -- 严格模式
-                    if not r[file] and s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then -- 速度慢但是是全词匹配
-                        r[file] = true
-                        process_chain_files(file)  -- 处理依赖文件
+                else
+                    if wordSet[function_name] then
+                        result[file] = true
+                        process_chain_files(file)
                     end
-                    --[[ local pattern = "[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]" -- 严格模式,检查边界
-                    print(string.format("[严格模式]开始检测函数 '%s' 文件 '%s'", function_name, file))
-                    -- 调试输出
-                    for line in s:gmatch("[^\r\n]+") do
-                        if line:match(pattern) then
-                            print(string.format("检测到函数 '%s' 在行: %s", function_name, line))
-                            r[file] = true
-                            break
-                        end
-                    end ]]
+                end
+            else
+                -- 严格模式
+                if hasDot then
+                    if windowSet[function_name] then
+                        result[file] = true
+                        process_chain_files(file)
+                    end
+                else
+                    if wordSet[function_name] then
+                        result[file] = true
+                        process_chain_files(file)
+                    end
                 end
             end
         end
-    else
-        print("Error occured when opening map script.")
-        print(e)
     end
+
+    -- 写入缓存
+    self.detect_cache[cache_key] = result
 
     -- 添加结束时间记录和输出
     local end_time = os.clock()
     print(string.format("函数检测用时: %.3f 秒", end_time - start_time))
 
-    return r
+    return result
 end
 
 -- 注入代码到Jass代码文件中
@@ -328,7 +463,7 @@ end
 -- self.new_table["DzFrameIsVisible"] = "D:/WE/KKWE_Plugin/jass/Base/DzFrame.j"
 function inject_code:initialize()
     local counter = self:scan("D:/WE/KKWE_Plugin/jass")
-    -- print(("[注入函数]总数量: %d"):format(counter))
+    print(("[注入函数]总数量: %d"):format(counter))
 end
 
 return inject_code

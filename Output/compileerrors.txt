@@ -1,8 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 185:  Undeclared variable u1
-Line 186:  Undeclared variable u2
-Line 187:  Undeclared variable testAbility1
-Line 188:  Undeclared variable testAbility2
-Line 189:  Undeclared variable testAbility3
-5
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 285: Missing requirement: PlayerUtils (libraries cannot require scopes)
+1

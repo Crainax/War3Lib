@@ -14,7 +14,7 @@
 #define PlayerCoreIncluded
 
 //! zinc
-library PlayUtils {
+library PlayerUtils {
 
     //玩家数量
     public struct playerCount [] {
@@ -51,3 +51,4 @@ library PlayUtils {
 //! endzinc
 
 #endif
+
