@@ -193,11 +193,13 @@ function inject_code:detect(path)
                 -- 简单模式：优先用索引命中，避免全文扫描
                 if hasDot then
                     if windowSet[function_name] then
+                        -- print(string.format("[简单模式]检测到函数 '%s' 文件 '%s'", function_name, file))
                         result[file] = true
                         process_chain_files(file)
                     end
                 else
                     if wordSet[function_name] then
+                        -- print(string.format("[简单模式]检测到函数 '%s' 文件 '%s'", function_name, file))
                         result[file] = true
                         process_chain_files(file)
                     end
@@ -206,11 +208,13 @@ function inject_code:detect(path)
                 -- 严格模式
                 if hasDot then
                     if windowSet[function_name] then
+                        print(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
                         result[file] = true
                         process_chain_files(file)
                     end
                 else
                     if wordSet[function_name] then
+                        print(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
                         result[file] = true
                         process_chain_files(file)
                     end
@@ -463,7 +467,7 @@ end
 -- self.new_table["DzFrameIsVisible"] = "D:/WE/KKWE_Plugin/jass/Base/DzFrame.j"
 function inject_code:initialize()
     local counter = self:scan("D:/WE/KKWE_Plugin/jass")
-    print(("[注入函数]总数量: %d"):format(counter))
+    -- print(("[注入函数]总数量: %d"):format(counter))
 end
 
 return inject_code

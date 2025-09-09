@@ -4,10 +4,114 @@ inject_code = {}
 inject_code.new_table = {}
 inject_code.old_table = {}
 inject_code.chain_table = {} -- 链式依赖
+inject_code.detect_cache = {} -- 结果缓存
 
 local root = fs.ydwe_path():parent_path():remove_filename():remove_filename() / "Component"
 if not fs.exists(root) then
 	root = fs.ydwe_path()
+end
+
+-- 计算函数名集合签名（用于缓存键）
+local function compute_keys_signature(name_to_file_table)
+	local keys = {}
+	for fname in pairs(name_to_file_table or {}) do
+		table.insert(keys, fname)
+	end
+	table.sort(keys)
+	local concat = table.concat(keys, "\n")
+	local sum = 0
+	for i = 1, #concat do
+		sum = (sum + concat:byte(i)) % 1000000007
+	end
+	return tostring(#keys) .. ":" .. tostring(sum)
+end
+
+-- 计算链表签名（用于缓存键）
+local function compute_chain_signature(chain_table)
+	if not chain_table then return "0:0" end
+	local items = {}
+	for file, deps in pairs(chain_table) do
+		local copy = {}
+		for i = 1, #deps do copy[i] = deps[i] end
+		table.sort(copy)
+		table.insert(items, file .. "->" .. table.concat(copy, ","))
+	end
+	table.sort(items)
+	local concat = table.concat(items, "\n")
+	local sum = 0
+	for i = 1, #concat do
+		sum = (sum + concat:byte(i)) % 1000000007
+	end
+	return tostring(#items) .. ":" .. tostring(sum)
+end
+
+-- 构建标识符索引：
+-- 返回两个集合：
+-- 1) wordSet：出现过的"词"（[%w_]+）
+-- 2) windowSet：由点连接的连续词窗口（长度范围[2, maxSegments]）
+local function build_identifier_index(s, maxSegments)
+	local wordSet = {}
+	local windowSet = {}
+
+	local function finalize_sequence(seq)
+		local n = #seq
+		if n >= 2 then
+			local upper = maxSegments
+			if not upper or upper > n then upper = n end
+			for k = 2, upper do
+				for i = 1, n - k + 1 do
+					local name = table.concat(seq, ".", i, i + k - 1)
+					windowSet[name] = true
+				end
+			end
+		end
+	end
+
+	for line in s:gmatch("[^\r\n]+") do
+		local len = #line
+		local pos = 1
+		local seq = {}
+		local prev = "other" -- other | word | dot
+		while pos <= len do
+			local a, b = line:find("[%w_]+", pos)
+			if a == pos then
+				local w = line:sub(a, b)
+				wordSet[w] = true
+				if prev == "dot" then
+					table.insert(seq, w)
+				elseif prev == "word" then
+					finalize_sequence(seq)
+					seq = { w }
+				else -- other
+					seq = { w }
+				end
+				pos = b + 1
+				prev = "word"
+			else
+				local da, db = line:find("%.", pos)
+				if da == pos then
+					if prev ~= "word" then
+						finalize_sequence(seq)
+						seq = {}
+					end
+					pos = db + 1
+					prev = "dot"
+				else
+					if prev ~= "other" then
+						finalize_sequence(seq)
+						seq = {}
+						prev = "other"
+					end
+					pos = pos + 1
+				end
+			end
+		end
+		if prev ~= "other" then
+			finalize_sequence(seq)
+		end
+	end
+
+	return wordSet, windowSet
 end
 
 function inject_code:inject_file(op, path_in_archive)
@@ -20,8 +124,38 @@ end
 -- 	runtime_version - 表示魔兽版本
 -- 返回：一个table，数组形式，包含所有需要注入的文件名（注意不是fs.path）
 function inject_code:detect(op)
+	-- 添加开始时间记录
+	local start_time = os.clock()
+
 	local r = {}
 	local s, e = io.load(op.input)
+	if not s then
+		log.error("Error occured when opening map script.")
+		log.error(e)
+		return r
+	end
+
+	-- 构建缓存键
+	local file_time = fs.last_write_time(op.input)
+	local file_size = 0
+	if fs.exists(op.input) then
+		-- YDWE 环境中可能没有 fs.file_size，使用字符串长度作为替代
+		file_size = #s
+	end
+	local file_sig = tostring(file_time) .. ":" .. tostring(file_size)
+	local all_table = op.option.runtime_version:is_new() and self.new_table or self.old_table
+	local keys_sig = compute_keys_signature(all_table)
+	local chain_sig = compute_chain_signature(self.chain_table)
+	local version_sig = op.option.runtime_version:is_new() and "new" or "old"
+	local cache_key = table.concat({ tostring(op.input), file_sig, keys_sig, chain_sig, version_sig }, "|")
+
+	local cache_entry = self.detect_cache[cache_key]
+	if cache_entry then
+		-- 命中缓存
+		local end_time_cached = os.clock()
+		log.trace(string.format("函数检测用时: %.3f 秒 (缓存命中)", end_time_cached - start_time))
+		return cache_entry
+	end
 
 	-- 修改递归处理依赖文件的函数
 	local function process_chain_files(file)
@@ -56,41 +190,78 @@ function inject_code:detect(op)
 		end
 	end
 
-	if s then
-		local all_table = op.option.runtime_version:is_new() and self.new_table or self.old_table
+	-- 计算函数名的最大分段数（按点切分）
+	local maxSegments = 1
+	for fname in pairs(all_table) do
+		local segs = 1
+		for _ in fname:gmatch("%.") do segs = segs + 1 end
+		if segs > maxSegments then maxSegments = segs end
+	end
 
-		for function_name, file in pairs(all_table) do
-			local file_path = fs.path(file)
-			-- 检查是否已经添加过这个文件（使用规范化的路径进行比较）
-			local file_path_str = tostring(file_path):gsub("\\", "/")
-			local already_exists = false
+	-- 单次扫描构建索引
+	local wordSet, windowSet = build_identifier_index(s, maxSegments)
 
-			for existing_path in pairs(r) do
-				local existing_str = tostring(existing_path):gsub("\\", "/")
-				if existing_str == file_path_str then
-					already_exists = true
-					break
-				end
+	-- 匹配逻辑：
+	-- - 含点：用 windowSet 精确命中（等价于 "%f[%w_]A%.B%f[^%w_]" 语义）
+	-- - 不含点：用 wordSet 命中（等价于 "%f[%w_]NAME%f[^%w_]" 语义）
+	for function_name, file in pairs(all_table) do
+		local file_path = fs.path(file)
+		-- 检查是否已经添加过这个文件（使用规范化的路径进行比较）
+		local file_path_str = tostring(file_path):gsub("\\", "/")
+		local already_exists = false
+
+		for existing_path in pairs(r) do
+			local existing_str = tostring(existing_path):gsub("\\", "/")
+			if existing_str == file_path_str then
+				already_exists = true
+				break
 			end
+		end
 
-			if not already_exists then
-				if function_name:sub(1, 4) == "YDWE" then
-					if s:find(function_name:gsub("%.", "%%.")) then
+		if not already_exists then
+			local hasDot = function_name:find("%.") ~= nil
+
+			if function_name:sub(1, 4) == "YDWE" then
+				-- 简单模式：优先用索引命中，避免全文扫描
+				if hasDot then
+					if windowSet[function_name] then
+						log.trace(string.format("[简单模式]检测到函数 '%s' 文件 '%s'", function_name, tostring(file_path)))
 						r[file_path] = true
 						process_chain_files(file)
 					end
 				else
-					if s:find("[^%w_]" .. function_name:gsub("%.", "%%.") .. "[^%w_]") then
+					if wordSet[function_name] then
+						log.trace(string.format("[简单模式]检测到函数 '%s' 文件 '%s'", function_name, tostring(file_path)))
+						r[file_path] = true
+						process_chain_files(file)
+					end
+				end
+			else
+				-- 严格模式
+				if hasDot then
+					if windowSet[function_name] then
+						log.trace(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, tostring(file_path)))
+						r[file_path] = true
+						process_chain_files(file)
+					end
+				else
+					if wordSet[function_name] then
+						log.trace(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, tostring(file_path)))
 						r[file_path] = true
 						process_chain_files(file)
 					end
 				end
 			end
 		end
-	else
-		log.error("Error occured when opening map script.")
-		log.error(e)
 	end
+
+	-- 写入缓存
+	self.detect_cache[cache_key] = r
+
+	-- 添加结束时间记录和输出
+	local end_time = os.clock()
+	log.trace(string.format("函数检测用时: %.3f 秒", end_time - start_time))
+
 	return r
 end
 

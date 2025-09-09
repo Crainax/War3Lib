@@ -13,6 +13,17 @@
 //*  Global Variables
 //*
 //***************************************************************************
+library_once YDTriggerSaveLoadSystem initializer Init
+//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
+globals
+        hashtable YDHT
+    hashtable YDLOC
+endglobals
+    private function Init takes nothing returns nothing
+            set YDHT = InitHashtable()
+        set YDLOC = InitHashtable()
+    endfunction
+endlibrary
 globals
     // Generated
     rect gg_rct_Wave1 = null
@@ -109,28 +120,18 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTPlayerUtils requires PlayerUtils {
-	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start,这里是0.1秒后调用的内容
-			}, function() {
-			//end,这里是2秒后调用的内容
-		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-		},null);
-	}
-	function TTestUTPlayerUtils1 (player p) {}
-	function TTestUTPlayerUtils2 (player p) {}
-	function TTestUTPlayerUtils3 (player p) {}
-	function TTestUTPlayerUtils4 (player p) {}
-	function TTestUTPlayerUtils5 (player p) {}
-	function TTestUTPlayerUtils6 (player p) {}
-	function TTestUTPlayerUtils7 (player p) {}
-	function TTestUTPlayerUtils8 (player p) {}
-	function TTestUTPlayerUtils9 (player p) {}
-	function TTestUTPlayerUtils10 (player p) {}
-	function TTestActUTPlayerUtils1 (string str) {
+library UTUnitTestUIRuler requires UnitTestUIRuler {
+	function TTestUTUnitTestUIRuler1 (player p) {}
+	function TTestUTUnitTestUIRuler2 (player p) {}
+	function TTestUTUnitTestUIRuler3 (player p) {}
+	function TTestUTUnitTestUIRuler4 (player p) {}
+	function TTestUTUnitTestUIRuler5 (player p) {}
+	function TTestUTUnitTestUIRuler6 (player p) {}
+	function TTestUTUnitTestUIRuler7 (player p) {}
+	function TTestUTUnitTestUIRuler8 (player p) {}
+	function TTestUTUnitTestUIRuler9 (player p) {}
+	function TTestUTUnitTestUIRuler10 (player p) {}
+	function TTestActUTUnitTestUIRuler1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -162,8 +163,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[PlayerUtils] 单元测试已加载");
-			Init();
+			BJDebugMsg("[UnitTestUIRuler] 单元测试已加载");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -171,20 +171,21 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTPlayerUtils1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTUnitTestUIRuler1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTPlayerUtils1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTPlayerUtils2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTPlayerUtils3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTPlayerUtils4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTPlayerUtils5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTPlayerUtils6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTPlayerUtils7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTPlayerUtils8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTPlayerUtils9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTPlayerUtils10(GetTriggerPlayer());
+			if (str == "s1") TTestUTUnitTestUIRuler1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTUnitTestUIRuler2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTUnitTestUIRuler3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTUnitTestUIRuler4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTUnitTestUIRuler5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTUnitTestUIRuler6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTUnitTestUIRuler7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTUnitTestUIRuler8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTUnitTestUIRuler9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTUnitTestUIRuler10(GetTriggerPlayer());
 		});
+		InitTestUIRuler();
 	}
 }
 //! endzinc

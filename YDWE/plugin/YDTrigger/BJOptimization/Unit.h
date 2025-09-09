@@ -24,7 +24,7 @@
 #  define SelectUnitAdd(unit)                                    SelectUnit(unit, true)
 #  define SelectUnitRemove(unit)                                 SelectUnit(unit, false)
 #  define SetUnitLifeBJ(unit, value)                             SetUnitState(unit, UNIT_STATE_LIFE, RMaxBJ(0, value))
-#  define SetUnitManaBJ(unit, value)                             SetUnitState(unit, UNIT_STATE_LIFE, RMaxBJ(0, value))
+#  define SetUnitManaBJ(unit, value)                             SetUnitState(unit, UNIT_STATE_MANA, RMaxBJ(0, value))
 #  define IsUnitHiddenBJ(unit)                                   IsUnitHidden(unit)
 #  define ShowUnitHide(unit)                                     ShowUnit(unit, false)
 #  define IssueTrainOrderByIdBJ(unit, id)                        IssueImmediateOrderById(unit, id)

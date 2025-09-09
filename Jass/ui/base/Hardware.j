@@ -71,22 +71,29 @@ library Hardware requires BzAPI {
 		}
 
 		static method onInit () {
-			// 滚轮事件
-			DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
-				TriggerEvaluate(trWheel);
-			});
-			// 帧绘制事件
-			DzFrameSetUpdateCallbackByCode(function (){
-				TriggerEvaluate(trUpdate);
-			});
-			// 窗口大小变化事件
-			DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
+			//在游戏开始0.0秒后再调用
+			trigger tr = CreateTrigger();
+			TriggerRegisterTimerEventSingle(tr,0.0);
+			TriggerAddCondition(tr,Condition(function (){
+				// 滚轮事件
+				DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
+					TriggerEvaluate(trWheel);
+				});
+				// 帧绘制事件
+				DzFrameSetUpdateCallbackByCode(function (){
+					TriggerEvaluate(trUpdate);
+				});
+				// 窗口大小变化事件
+				DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
 				 TriggerEvaluate(trResize);
-			});
-			// 鼠标移动事件
-			DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
+				});
+				// 鼠标移动事件
+				DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
 				 TriggerEvaluate(trMove);
-			});
+				});
+				DestroyTrigger(GetTriggeringTrigger());
+			}));
+			tr = null;
 		}
 	}
 }
