@@ -2,7 +2,7 @@
 #define USE_BJ_OPTIMIZATION
 #include <YDTrigger/Import.h>
 #include <YDTrigger/YDTrigger.h>
-#include "config/config.h"
+#include "config/rewave.h"
 
 #ifndef DZAPIINCLUDE
 #define DZAPIINCLUDE
@@ -705,68 +705,20 @@ endlibrary
 
 #endif
 
-#ifndef ConversionUtilsIncluded
-#define ConversionUtilsIncluded
-
-//! zinc
-/*
-转换工具
-*/
-library ConversionUtils {
-
-    //补充函数
-    public function B2S(boolean b) -> string {
-        if (b) {return "true";}
-        else {return "false";}
-    }
-
-    //三目运算符
-    public function S3 (boolean b,string s1,string s2)  -> string {
-        if (b) {return s1;}
-        else {return s2;}
-    }
-    //三目运算符
-    public function U3 (boolean b,unit u1,unit u2)  -> unit {
-        if (b) {return u1;}
-        else {return u2;}
-    }
-    //三目运算符
-    public function I3 (boolean b,integer i1,integer i2)  -> integer  {
-        if (b) {return i1;}
-        else {return i2;}
-    }
-    //三目运算符
-    public function R3 (boolean b,real r1,real r2)  -> real  {
-        if (b) {return r1;}
-        else {return r2;}
-    }
-    // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
-    // pos为输入数字,每36个数字进一位,每位用0-9和a-z表示(共36个字符)
-    // 示例:0->'0000', 35->'000z', 36->'0010'(进位), 37->'0011'
-    public function GetIDSymbol ( integer pos ) -> integer {
-        integer bit = pos/36;
-        pos = ModuloInteger(pos,36);
-        if (pos < 10) {return pos + bit * 256;}
-        else {return '000a' - '0000' + pos - 10 + bit * 256;}
-    }
-    // 将魔兽的四字符ID转换回对应数字
-    // s为输入的四字符ID,将其还原为原始数字
-    // 示例:'0000'->0, '000z'->35, '0010'->36, '0011'->37
-    public function GetSymbolID ( integer s ) -> integer {
-        integer i1 = s/256;
-        integer i2 = ModuloInteger(s,256);
-        if (i2 < 10) {return i1 * 36 + i2;}
-        else {return i2 - '000a' + '0000' + 10 + i1 * 36;}
-    }
-
-}
-
-//! endzinc
-#endif
+#ifndef MallItemIncluded
+#define MallItemIncluded
 
 // 常量配置
 #define MALLITEM_MAX_ITEMS      300
 #define MALLITEM_INIT_DELAY     2.0
+
+#if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
+
+    #define DzAPI_Map_HasMallItem(p, k) true
+    #define DzAPI_Map_GetMallItemCount(p, k) 999
+    #define DzAPI_Map_ConsumeMallItem(p, k, c) true
+
+#endif
 
 // 使用说明（MallItem 黑箱）
 // 1) 在地图启动阶段注册商品（每次注册一个 key）：
@@ -1189,7 +1141,67 @@ library MallItem requires DzAPI{
 }
 //! endzinc
 
+#endif
 
+
+#ifndef ConversionUtilsIncluded
+#define ConversionUtilsIncluded
+
+//! zinc
+/*
+转换工具
+*/
+library ConversionUtils {
+
+    //补充函数
+    public function B2S(boolean b) -> string {
+        if (b) {return "true";}
+        else {return "false";}
+    }
+
+    //三目运算符
+    public function S3 (boolean b,string s1,string s2)  -> string {
+        if (b) {return s1;}
+        else {return s2;}
+    }
+    //三目运算符
+    public function U3 (boolean b,unit u1,unit u2)  -> unit {
+        if (b) {return u1;}
+        else {return u2;}
+    }
+    //三目运算符
+    public function I3 (boolean b,integer i1,integer i2)  -> integer  {
+        if (b) {return i1;}
+        else {return i2;}
+    }
+    //三目运算符
+    public function R3 (boolean b,real r1,real r2)  -> real  {
+        if (b) {return r1;}
+        else {return r2;}
+    }
+    // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    // pos为输入数字,每36个数字进一位,每位用0-9和a-z表示(共36个字符)
+    // 示例:0->'0000', 35->'000z', 36->'0010'(进位), 37->'0011'
+    public function GetIDSymbol ( integer pos ) -> integer {
+        integer bit = pos/36;
+        pos = ModuloInteger(pos,36);
+        if (pos < 10) {return pos + bit * 256;}
+        else {return '000a' - '0000' + pos - 10 + bit * 256;}
+    }
+    // 将魔兽的四字符ID转换回对应数字
+    // s为输入的四字符ID,将其还原为原始数字
+    // 示例:'0000'->0, '000z'->35, '0010'->36, '0011'->37
+    public function GetSymbolID ( integer s ) -> integer {
+        integer i1 = s/256;
+        integer i2 = ModuloInteger(s,256);
+        if (i2 < 10) {return i1 * 36 + i2;}
+        else {return i2 - '000a' + '0000' + 10 + i1 * 36;}
+    }
+
+}
+
+//! endzinc
+#endif
 
 #ifndef UnitTestFramworkIncluded
 #define UnitTestFramworkIncluded
@@ -1444,10 +1456,10 @@ endfunction
 //TESH.alwaysfold=0
 // 当前构建版本
 // 当前的平台分包
+// 原生UI的大小
     // 单元测试
     // lua_print: 单元测试
 //这两条是用到YDWE函数就要导入的,没用到就不用导入
-// 原生UI的大小
 //函数入口
 // 用原始地图测试
 // 用空地图测试

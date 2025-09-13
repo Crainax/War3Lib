@@ -24,7 +24,7 @@ function path.init(root, project, we)
     path.mapName          = "OriginMap" -- 地图名字
     path.buildVersion     = "单元测试" -- 当前构建版本(默认单元测试)   "单元测试|正式版本|模型测试|内测版本|公测版本"
 
-    path.alljass          = path.project .. "/"..path.jassPathName .."/AllJass.h" -- 地图导包文件
+    path.rewave          = path.project .. "config/rewave.h" -- 地图导包文件
     path.scriptJ          = path.project .. "/"..path.jassPathName .."/config/script.j" -- 脚本源文件(不要动这个文件)
     path.CompileStep0     = path.project .. "/Output/0_script.j" -- 脚本源文件的复制(第一步)
     path.CompileStep1     = path.project .. "/Output/1_wave.j" -- wave预处理后的文件

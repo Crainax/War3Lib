@@ -1178,7 +1178,7 @@ endglobals
 //library UnitTestFramwork ends
 //library YDTriggerSaveLoadSystem:
 //#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
+    function YDTriggerSaveLoadSystem___Init takes nothing returns nothing
             set YDHT=InitHashtable()
         set YDLOC=InitHashtable()
     endfunction
@@ -1259,8 +1259,8 @@ endglobals
                     loop
                     exitwhen ( idx >= n )
                         set k=s__mallItem_itemKeys[idx]
-                        set s__mallItem_owns[base + idx]=DzAPI_Map_HasMallItem(p, k)
-                        set s__mallItem_uses[base + idx]=DzAPI_Map_GetMallItemCount(p , k) // 直接在此处解锁科技（如果拥有商品且设置了科技）
+                        set s__mallItem_owns[base + idx]=true
+                        set s__mallItem_uses[base + idx]=999 // 直接在此处解锁科技（如果拥有商品且设置了科技）
                         if ( s__mallItem_owns[base + idx] and s__mallItem_techs[idx] != 0 ) then
                             call SetPlayerTechResearched(p, s__mallItem_techs[idx], 1)
                         endif
@@ -1344,7 +1344,7 @@ endglobals
             loop
             exitwhen ( i >= n )
                 set k=s__mallItem_itemKeys[i]
-                set s__mallItem_owns[base + i]=DzAPI_Map_HasMallItem(p, k)
+                set s__mallItem_owns[base + i]=true
                 set i=i + 1
             endloop
             set p=null
@@ -1363,11 +1363,11 @@ endglobals
             if ( idx < 0 ) then // 执行消费
                 return false
             endif
-            set ok=DzAPI_Map_ConsumeMallItem(whichPlayer , itemKey , count)
+            set ok=true
             if ( ok ) then
                 set base=pid * 300 // 刷新该玩家该商品缓存
-                set s__mallItem_owns[base + idx]=DzAPI_Map_HasMallItem(whichPlayer, itemKey)
-                set s__mallItem_uses[base + idx]=DzAPI_Map_GetMallItemCount(whichPlayer , itemKey) // 如果使用次数小于等于0，则认为该玩家没有这个道具了
+                set s__mallItem_owns[base + idx]=true
+                set s__mallItem_uses[base + idx]=999 // 如果使用次数小于等于0，则认为该玩家没有这个道具了
                 if ( s__mallItem_uses[base + idx] <= 0 ) then
                     set s__mallItem_owns[base + idx]=false
                 endif // 调用回调（传入玩家参数）
@@ -1702,6 +1702,8 @@ endglobals
 //#  define TriggerRegisterPlayerEventLeave(trig, player)                    TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_LEAVE)
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
+// 当前构建版本
+// 当前的平台分包
 // 原生UI的大小
 // 常量配置
 // 使用说明（MallItem 黑箱）
@@ -1819,10 +1821,10 @@ endfunction
 //TESH.alwaysfold=0
 // 当前构建版本
 // 当前的平台分包
+// 原生UI的大小
     // 单元测试
     // lua_print: 单元测试
 //这两条是用到YDWE函数就要导入的,没用到就不用导入
-// 原生UI的大小
 //函数入口
 // 用原始地图测试
 // 用空地图测试
@@ -2155,9 +2157,9 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs265190875")
+call ExecuteFunc("jasshelper__initstructs276692968")
 call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
+call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
 call ExecuteFunc("UTMallItem___onInit")
 
     call InitGlobals()
@@ -2197,7 +2199,7 @@ endfunction
 
 //Struct method generated initializers/callers:
 
-function jasshelper__initstructs265190875 takes nothing returns nothing
+function jasshelper__initstructs276692968 takes nothing returns nothing
 
 
 

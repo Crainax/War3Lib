@@ -1,4 +1,6 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 1394: getUseCountById is not a member of mallItem
-1
+pjass.exe
+Line 1262:  Cannot convert integer to boolean
+Line 1347:  Cannot convert integer to boolean
+Line 1369:  Cannot convert integer to boolean
+3

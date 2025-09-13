@@ -297,6 +297,7 @@ function inject_code:do_inject(op, tbl)
 			map_script_file:write("#define USE_BJ_OPTIMIZATION\n")
 			map_script_file:write("#include <YDTrigger/Import.h>\n")
 			map_script_file:write("#include <YDTrigger/YDTrigger.h>\n")
+			map_script_file:write("#include \"config/rewave.h\"\n")
 			map_script_file:write("\n")  -- 添加一个空行分隔
 
 			-- 然后写入需要注入的代码

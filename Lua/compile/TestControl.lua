@@ -6,7 +6,7 @@ local tc = {}
 --- @param version BuildVersion
 ---修改当前的构建版本
 tc.ChangeBuildVersion = function(version)
-	fu.ExecuteFile(path.alljass, function(line)
+	fu.ExecuteFile(path.rewave, function(line)
 		if string.match(line, "^%s*#[ud]efine%s+CURRENT_BUILD_VERSION") then
 			-- 修改为单元测试版本
 			if version == "单元测试" then
@@ -32,7 +32,7 @@ end
 
 -- 根据AllJassH文件情况判断返回是不是处于单元测试状态
 tc.GetState = function()
-	fu.ReadFile(path.alljass, function(line)
+	fu.ReadFile(path.rewave, function(line)
 		if string.match(line, "^%s*#define%s+CURRENT_BUILD_VERSION%s+VERSION_ALPHA") then
 			path.initAlpha()
 		elseif string.match(line, "^%s*#define%s+CURRENT_BUILD_VERSION%s+VERSION_BETA") then

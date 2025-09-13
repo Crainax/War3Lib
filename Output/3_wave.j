@@ -17,6 +17,8 @@ endlibrary
 //#  define TriggerRegisterPlayerEventLeave(trig, player)                    TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_LEAVE)
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
+// 当前构建版本
+// 当前的平台分包
 // 原生UI的大小
 library BzAPI
     //hardware
@@ -814,56 +816,6 @@ library DzAPI
         return RequestExtraIntegerData(110, whichPlayer, key, null, false, 0, 0, 0)
     endfunction
 endlibrary
-//! zinc
-/*
-转换工具
-*/
-library ConversionUtils {
-    //补充函数
-    public function B2S(boolean b) -> string {
-        if (b) {return "true";}
-        else {return "false";}
-    }
-    //三目运算符
-    public function S3 (boolean b,string s1,string s2) -> string {
-        if (b) {return s1;}
-        else {return s2;}
-    }
-    //三目运算符
-    public function U3 (boolean b,unit u1,unit u2) -> unit {
-        if (b) {return u1;}
-        else {return u2;}
-    }
-    //三目运算符
-    public function I3 (boolean b,integer i1,integer i2) -> integer {
-        if (b) {return i1;}
-        else {return i2;}
-    }
-    //三目运算符
-    public function R3 (boolean b,real r1,real r2) -> real {
-        if (b) {return r1;}
-        else {return r2;}
-    }
-    // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
-    // pos为输入数字,每36个数字进一位,每位用0-9和a-z表示(共36个字符)
-    // 示例:0->'0000', 35->'000z', 36->'0010'(进位), 37->'0011'
-    public function GetIDSymbol ( integer pos ) -> integer {
-        integer bit = pos/36;
-        pos = ModuloInteger(pos,36);
-        if (pos < 10) {return pos + bit * 256;}
-        else {return '000a' - '0000' + pos - 10 + bit * 256;}
-    }
-    // 将魔兽的四字符ID转换回对应数字
-    // s为输入的四字符ID,将其还原为原始数字
-    // 示例:'0000'->0, '000z'->35, '0010'->36, '0011'->37
-    public function GetSymbolID ( integer s ) -> integer {
-        integer i1 = s/256;
-        integer i2 = ModuloInteger(s,256);
-        if (i2 < 10) {return i1 * 36 + i2;}
-        else {return i2 - '000a' + '0000' + 10 + i1 * 36;}
-    }
-}
-//! endzinc
 // 常量配置
 // 使用说明（MallItem 黑箱）
 // 1) 在地图启动阶段注册商品（每次注册一个 key）：
@@ -999,8 +951,8 @@ if (idx < 0 || idx >= mallItem.itemCount) { return -1; }
                     idx = 0;
                     while (idx < n) {
                         k = mallItem.itemKeys[idx];
-                        mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(p, k);
-                        mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(p, k);
+                        mallItem.owns[base + idx] = true;
+                        mallItem.uses[base + idx] = 999;
                         // 直接在此处解锁科技（如果拥有商品且设置了科技）
                         if (mallItem.owns[base + idx] && mallItem.techs[idx] != 0) {
                             SetPlayerTechResearched(p, mallItem.techs[idx], 1);
@@ -1071,7 +1023,7 @@ if (idx < 0 || idx >= mallItem.itemCount) { return -1; }
             i = 0;
             while (i < n) {
                 k = mallItem.itemKeys[i];
-                mallItem.owns[base + i] = DzAPI_Map_HasMallItem(p, k);
+                mallItem.owns[base + i] = true;
                 i = i + 1;
             }
             p = null;
@@ -1084,12 +1036,12 @@ if (idx < 0 || idx >= mallItem.itemCount) { return -1; }
             idx = mallItem.getIndex(itemKey);
             if (idx < 0) { return false; }
             // 执行消费
-            ok = DzAPI_Map_ConsumeMallItem(whichPlayer, itemKey, count);
+            ok = true;
             if (ok) {
                 base = pid * 300;
                 // 刷新该玩家该商品缓存
-                mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(whichPlayer, itemKey);
-                mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(whichPlayer, itemKey);
+                mallItem.owns[base + idx] = true;
+                mallItem.uses[base + idx] = 999;
                 // 如果使用次数小于等于0，则认为该玩家没有这个道具了
                 if (mallItem.uses[base + idx] <= 0) {
                     mallItem.owns[base + idx] = false;
@@ -1217,6 +1169,56 @@ if (idx < 0 || idx >= mallItem.itemCount) { return -1; }
         static method getItemCount() ->integer {
             return mallItem.itemCount;
         }
+    }
+}
+//! endzinc
+//! zinc
+/*
+转换工具
+*/
+library ConversionUtils {
+    //补充函数
+    public function B2S(boolean b) -> string {
+        if (b) {return "true";}
+        else {return "false";}
+    }
+    //三目运算符
+    public function S3 (boolean b,string s1,string s2) -> string {
+        if (b) {return s1;}
+        else {return s2;}
+    }
+    //三目运算符
+    public function U3 (boolean b,unit u1,unit u2) -> unit {
+        if (b) {return u1;}
+        else {return u2;}
+    }
+    //三目运算符
+    public function I3 (boolean b,integer i1,integer i2) -> integer {
+        if (b) {return i1;}
+        else {return i2;}
+    }
+    //三目运算符
+    public function R3 (boolean b,real r1,real r2) -> real {
+        if (b) {return r1;}
+        else {return r2;}
+    }
+    // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    // pos为输入数字,每36个数字进一位,每位用0-9和a-z表示(共36个字符)
+    // 示例:0->'0000', 35->'000z', 36->'0010'(进位), 37->'0011'
+    public function GetIDSymbol ( integer pos ) -> integer {
+        integer bit = pos/36;
+        pos = ModuloInteger(pos,36);
+        if (pos < 10) {return pos + bit * 256;}
+        else {return '000a' - '0000' + pos - 10 + bit * 256;}
+    }
+    // 将魔兽的四字符ID转换回对应数字
+    // s为输入的四字符ID,将其还原为原始数字
+    // 示例:'0000'->0, '000z'->35, '0010'->36, '0011'->37
+    public function GetSymbolID ( integer s ) -> integer {
+        integer i1 = s/256;
+        integer i2 = ModuloInteger(s,256);
+        if (i2 < 10) {return i1 * 36 + i2;}
+        else {return i2 - '000a' + '0000' + 10 + i1 * 36;}
     }
 }
 //! endzinc
@@ -1456,10 +1458,10 @@ endfunction
 //TESH.alwaysfold=0
 // 当前构建版本
 // 当前的平台分包
+// 原生UI的大小
     // 单元测试
     // lua_print: 单元测试
 //这两条是用到YDWE函数就要导入的,没用到就不用导入
-// 原生UI的大小
 //函数入口
 // 用原始地图测试
 // 用空地图测试

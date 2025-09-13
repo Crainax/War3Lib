@@ -1,6 +1,17 @@
+#ifndef MallItemIncluded
+#define MallItemIncluded
+
 // 常量配置
 #define MALLITEM_MAX_ITEMS      300
 #define MALLITEM_INIT_DELAY     2.0
+
+#if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
+
+    #define DzAPI_Map_HasMallItem(p, k) true
+    #define DzAPI_Map_GetMallItemCount(p, k) 999
+    #define DzAPI_Map_ConsumeMallItem(p, k, c) true
+
+#endif
 
 // 使用说明（MallItem 黑箱）
 // 1) 在地图启动阶段注册商品（每次注册一个 key）：
@@ -423,4 +434,5 @@ library MallItem requires DzAPI{
 }
 //! endzinc
 
+#endif
 
