@@ -1,7 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 1301:  Return nothing in function that should return value
-Line 1305:  Return nothing in function that should return value
-Line 1333:  Cannot return value from function that returns nothing
-Line 1337:  Cannot return value from function that returns nothing
-4
+JASSHelper - Step 2 (structs)
+Line 1394: getUseCountById is not a member of mallItem
+1

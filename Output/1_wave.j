@@ -119,17 +119,70 @@ endfunction
 // 用空地图测试
 // 用原始地图测试
 //! zinc
+// 我完善了 MallItem_Test.j 的单元测试：
+// 初始化阶段注册 VIP1/RhdeKey/RopgKey，并为 RhdeKey、RopgKey 设置科技 'Rhde'、'Ropg'
+// onReady 时打印状态、验证科技解锁（若拥有对应商品）
+// 进行次数型消费（带回调）与局数型消费（无回调）
+// 提供聊天命令：
+// -mi 打印当前玩家的商城状态
+// -ct <key> <count> 执行次数型消费并打印回调
+// -co <key> 执行一次性消费
+// -rf <pid> 刷新某玩家缓存
 //自动生成的文件
 library UTMallItem requires MallItem {
+	function DumpState(player p) {
+		integer pid = GetPlayerId(p);
+		integer n = mallItem.getItemCount();
+		integer i = 1;
+		string key ;
+		boolean has;
+		integer cnt;
+		BJDebugMsg("[UTMallItem] DumpState pid=" + I2S(pid) + ", items=" + I2S(n));
+		for (1 <= i <= n) {
+			key = mallItem.getItemKeyByIndex(i);
+			has = mallItem.hasByPlayer(Player(pid), key);
+			cnt = mallItem.getUseCountByPlayer(Player(pid), key);
+			BJDebugMsg("  - [" + I2S(i) + "] key=" + key + ", has=" + I2S(I3(has,1,0)) + ", cnt=" + I2S(cnt));
+		}
+	}
 	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start,这里是0.1秒后调用的内容
-			}, function() {
-			//end,这里是2秒后调用的内容
+		// 注册测试商品（逐个注册）
+		mallItem.init("VIP1");
+		mallItem.init("RhdeKey");
+		mallItem.init("RopgKey");
+		// 配置元信息与科技
+		mallItem.setMeta("VIP1", "白金VIP", "ReplaceableTextures\\CommandButtons\\BTN.tga", "尊享特权");
+		mallItem.setTech("RhdeKey", 'Rhde');
+		mallItem.setTech("RopgKey", 'Ropg');
+		// 就绪后校验
+		mallItem.onReady(function () -> boolean {
+			player p0 = Player(0);
+			BJDebugMsg("[UTMallItem] onReady reached");
+			DumpState(p0);
+			if (mallItem.hasByPlayer(Player(0), "RhdeKey")) {
+				BJDebugMsg("  Rhde tech count=" + I2S(GetPlayerTechCount(p0, 'Rhde', true)));
+			}
+			if (mallItem.hasByPlayer(Player(0), "RopgKey")) {
+				BJDebugMsg("  Ropg tech count=" + I2S(GetPlayerTechCount(p0, 'Ropg', true)));
+			}
+			// 次数型消费（带回调）
+			mallItem.consumeTimes(p0, "VIP1", 1, function () -> boolean {
+				player cbp = mallItem.getCallbackPlayer();
+				BJDebugMsg("[UTMallItem] consumeTimes callback player=" + GetPlayerName(cbp));
+				BJDebugMsg("  VIP1 after consume cnt=" + I2S(mallItem.getUseCountByPlayer(Player(0), "VIP1")));
+				return true;
+			});
+			// 局数型消费（无回调）
+			mallItem.consumeOnce(p0, "VIP1");
+			p0 = null;
+			return true;
 		});
+		// 演示定时器
 		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-		},null);
+			// start: 0.1 秒后
+			}, function() {
+			// end: 2.0 秒后
+		});
 	}
 	function TTestUTMallItem1 (player p) {
 		// mallItem
@@ -165,8 +218,35 @@ for (0 <= i <= len - 1) {
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "a") {
-		} else if (paramS[0] == "b") {
+		if (paramS[0] == "mi") {
+			DumpState(p);
+		} else if (paramS[0] == "ct") {
+			// ct <key> <count>
+			if (num >= 3) {
+				mallItem.consumeTimes(p, paramS[1], paramI[2], function () -> boolean {
+					player cbp = mallItem.getCallbackPlayer();
+					BJDebugMsg("[UTMallItem] chat consumeTimes cb player=" + GetPlayerName(cbp));
+					return true;
+				});
+			} else {
+				BJDebugMsg("usage: -ct <key> <count>");
+			}
+		} else if (paramS[0] == "co") {
+			// co <key>
+			if (num >= 2) {
+				mallItem.consumeOnce(p, paramS[1]);
+				BJDebugMsg("[UTMallItem] chat consumeOnce key=" + paramS[1]);
+			} else {
+				BJDebugMsg("usage: -co <key>");
+			}
+		} else if (paramS[0] == "rf") {
+			// rf <pid0-based>
+			if (num >= 2) {
+				mallItem.refreshItemsForPlayer(paramI[1]);
+				BJDebugMsg("[UTMallItem] refreshed pid=" + I2S(paramI[1]));
+			} else {
+				BJDebugMsg("usage: -rf <pid>");
+			}
 		}
 		p = null;
 	}

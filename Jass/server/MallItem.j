@@ -2,6 +2,41 @@
 #define MALLITEM_MAX_ITEMS      300
 #define MALLITEM_INIT_DELAY     2.0
 
+// 使用说明（MallItem 黑箱）
+// 1) 在地图启动阶段注册商品（每次注册一个 key）：
+//    mallItem.init("VIP1");
+//    mallItem.init("RhdeKey");
+//    mallItem.init("RopgKey");
+//
+// 2) 可选：为商品配置元信息与科技（四位字符如 'Rhde' 为整数字面量）：
+//    mallItem.setMeta("VIP1", "白金VIP", "ReplaceableTextures\\CommandButtons\\BTN.tga", "尊享特权");
+//    mallItem.setTech("RhdeKey", 'Rhde'); // 步兵测试科技
+//    mallItem.setTech("RopgKey", 'Ropg'); // ogre 测试科技
+//
+// 3) 等待就绪：在 2.0 秒后自动扫描，完成后触发 onReady 回调（使用 Condition/TriggerEvaluate）：
+//    mallItem.onReady(function () -> boolean {
+//        // 示例：查询玩家0（0-based）的拥有权与次数
+//        if (mallItem.hasByPlayer(Player(0), "VIP1")) {
+//            BJDebugMsg("[MallItem] 玩家0拥有VIP1, 次数=" + I2S(mallItem.getUseCountByPlayer(Player(0), "VIP1")));
+//        }
+//        return true;
+//    });
+//
+// 4) 消费：
+//    // 数量型消费：成功后回调被调用，并可通过 mallItem.getCallbackPlayer() 获取玩家
+//    mallItem.consumeTimes(Player(0), "VIP1", 1, function () -> boolean {
+//        player cbp = mallItem.getCallbackPlayer();
+//        BJDebugMsg("[MallItem] consumeTimes 回调: " + GetPlayerName(cbp));
+//        return true;
+//    });
+//    // 局数型消费：无回调
+//    mallItem.consumeOnce(Player(0), "VIP1");
+//
+// 5) 其他：
+//    local integer n = mallItem.getItemCount();
+//    local string k1 = mallItem.getItemKeyByIndex(1); // 1-based 索引
+//
+//todo: 加入局内商品进包的回调
 //! zinc
 library MallItem requires DzAPI{
 

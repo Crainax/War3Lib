@@ -2,13 +2,16 @@ globals
 //globals from BzAPI:
 constant boolean LIBRARY_BzAPI=true
 //endglobals from BzAPI
+//globals from ConversionUtils:
+constant boolean LIBRARY_ConversionUtils=true
+//endglobals from ConversionUtils
 //globals from DzAPI:
 constant boolean LIBRARY_DzAPI=true
 //endglobals from DzAPI
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
-hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
+trigger UnitTestFramwork___TUnitTest=null
+hashtable UnitTestFramwork___HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
 //globals from YDTriggerSaveLoadSystem:
 constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
@@ -428,6 +431,62 @@ endglobals
     
 
 //library BzAPI ends
+//library ConversionUtils:
+    function B2S takes boolean b returns string
+        if ( b ) then
+            return "true"
+        else
+            return "false"
+        endif
+    endfunction  //三目运算符
+    function S3 takes boolean b,string s1,string s2 returns string
+        if ( b ) then
+            return s1
+        else
+            return s2
+        endif
+    endfunction  //三目运算符
+    function U3 takes boolean b,unit u1,unit u2 returns unit
+        if ( b ) then
+            return u1
+        else
+            return u2
+        endif
+    endfunction  //三目运算符
+    function I3 takes boolean b,integer i1,integer i2 returns integer
+        if ( b ) then
+            return i1
+        else
+            return i2
+        endif
+    endfunction  //三目运算符
+    function R3 takes boolean b,real r1,real r2 returns real
+        if ( b ) then
+            return r1
+        else
+            return r2
+        endif
+    endfunction  // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    function GetIDSymbol takes integer pos returns integer
+        local integer bit=pos / 36
+        set pos=ModuloInteger(pos, 36)
+        if ( pos < 10 ) then
+            return pos + bit * 256
+        else
+            return '000a' - '0000' + pos - 10 + bit * 256
+        endif
+    endfunction  // 将魔兽的四字符ID转换回对应数字
+    function GetSymbolID takes integer s returns integer
+        local integer i1=s / 256
+        local integer i2=ModuloInteger(s, 256)
+        if ( i2 < 10 ) then
+            return i1 * 36 + i2
+        else
+            return i2 - '000a' + '0000' + 10 + i1 * 36
+        endif
+    endfunction
+
+//library ConversionUtils ends
 //library DzAPI:
 
 
@@ -1047,27 +1106,27 @@ endglobals
             endif
         endfunction
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction  //指定开始时间与持续时间的定时器
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]开始------")
             call TriggerEvaluate(tr)
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
-        function UnitTestFramwork__anon__1 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__1 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call TriggerEvaluate(tr)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]结束------")
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
@@ -1076,24 +1135,24 @@ endglobals
         local trigger tr=CreateTrigger()
         call TriggerAddCondition(t, Condition(start))
         call TriggerRegisterTimerEvent(tr, time, false)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-        call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         if ( end != null ) then
             set t=CreateTrigger()
             set tr=CreateTrigger()
             call TriggerAddCondition(t, Condition(end))
             call TriggerRegisterTimerEvent(tr, time + duration, false)
-            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-            call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-            call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__1))
+            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+            call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+            call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__1))
         endif
         set tr=null
         set t=null
     endfunction
-        function UnitTestFramwork__anon__2 takes nothing returns nothing
+        function UnitTestFramwork___anon__2 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -1104,16 +1163,16 @@ endglobals
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.1, false)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__2))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__2))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
@@ -1194,7 +1253,7 @@ endglobals
                 set pid=0
                 loop
                 exitwhen ( pid >= 4 )
-                    set p=ConvertedPlayer(pid)
+                    set p=ConvertedPlayer(pid + 1)
                     set base=pid * 300
                     set idx=0
                     loop
@@ -1278,7 +1337,7 @@ endglobals
             if ( playerId < 0 or playerId >= 4 ) then
                 return
             endif
-            set p=ConvertedPlayer(playerId)
+            set p=ConvertedPlayer(playerId + 1)
             set base=playerId * 300
             set n=s__mallItem_itemCount
             set i=0
@@ -1462,37 +1521,85 @@ endglobals
 //library MallItem ends
 //library UTMallItem:
 
-        function UTMallItem__anon__0 takes nothing returns nothing
-        endfunction  //end,这里是2秒后调用的内容
-        function UTMallItem__anon__1 takes nothing returns nothing
+    function UTMallItem___DumpState takes player p returns nothing
+        local integer pid=GetPlayerId(p)
+        local integer n=s__mallItem_getItemCount()
+        local integer i=1
+        local string key
+        local boolean has
+        local integer cnt
+        call BJDebugMsg("[UTMallItem] DumpState pid=" + I2S(pid) + ", items=" + I2S(n))
+        set i=1
+        loop
+        exitwhen ( i > n )
+            set key=s__mallItem_getItemKeyByIndex(i)
+            set has=s__mallItem_hasByPlayer(Player(pid) , key)
+            set cnt=s__mallItem_getUseCountByPlayer(Player(pid) , key)
+            call BJDebugMsg("  - [" + I2S(i) + "] key=" + key + ", has=" + I2S(I3(has , 1 , 0)) + ", cnt=" + I2S(cnt))
+        set i=i + 1
+        endloop
+    endfunction
+            function UTMallItem___anon__1 takes nothing returns boolean
+                local player cbp=s__mallItem_getCallbackPlayer()
+                call BJDebugMsg("[UTMallItem] consumeTimes callback player=" + GetPlayerName(cbp))
+                call BJDebugMsg("  VIP1 after consume cnt=" + I2S(s__mallItem_getUseCountByPlayer(Player(0) , "VIP1")))
+                return true
+            endfunction  // 局数型消费（无回调）
+        function UTMallItem___anon__0 takes nothing returns boolean
+            local player p0=Player(0)
+            call BJDebugMsg("[UTMallItem] onReady reached")
+            call UTMallItem___DumpState(p0)
+            if ( s__mallItem_hasByPlayer(Player(0) , "RhdeKey") ) then
+                call BJDebugMsg("  Rhde tech count=" + I2S(GetPlayerTechCount(p0, 'Rhde', true)))
+            endif
+            if ( s__mallItem_hasByPlayer(Player(0) , "RopgKey") ) then
+                call BJDebugMsg("  Ropg tech count=" + I2S(GetPlayerTechCount(p0, 'Ropg', true)))
+            endif
+            call s__mallItem_consumeTimes(p0 , "VIP1" , 1 , function UTMallItem___anon__1)
+            call s__mallItem_consumeOnce(p0 , "VIP1")
+            set p0=null
+            return true
+        endfunction  // 演示定时器
+        function UTMallItem___anon__2 takes nothing returns nothing
+        endfunction  // end: 2.0 秒后
+        function UTMallItem___anon__3 takes nothing returns nothing
         endfunction
-        function UTMallItem__anon__2 takes nothing returns nothing
+    function UTMallItem___Init takes nothing returns nothing
+        call s__mallItem_init("VIP1")
+        call s__mallItem_init("RhdeKey")
+        call s__mallItem_init("RopgKey")
+        call s__mallItem_setMeta("VIP1" , "白金VIP" , "ReplaceableTextures\\CommandButtons\\BTN.tga" , "尊享特权")
+        call s__mallItem_setTech("RhdeKey" , 'Rhde')
+        call s__mallItem_setTech("RopgKey" , 'Ropg')
+        call s__mallItem_onReady(function UTMallItem___anon__0)
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTMallItem___anon__2 , function UTMallItem___anon__3)
+    endfunction
+    function UTMallItem___TTestUTMallItem1 takes player p returns nothing
+    endfunction
+    function UTMallItem___TTestUTMallItem2 takes player p returns nothing
+    endfunction
+    function UTMallItem___TTestUTMallItem3 takes player p returns nothing
+    endfunction
+    function UTMallItem___TTestUTMallItem4 takes player p returns nothing
+    endfunction
+    function UTMallItem___TTestUTMallItem5 takes player p returns nothing
+    endfunction
+    function UTMallItem___TTestUTMallItem6 takes player p returns nothing
+    endfunction
+    function UTMallItem___TTestUTMallItem7 takes player p returns nothing
+    endfunction
+    function UTMallItem___TTestUTMallItem8 takes player p returns nothing
+    endfunction
+    function UTMallItem___TTestUTMallItem9 takes player p returns nothing
+    endfunction
+    function UTMallItem___TTestUTMallItem10 takes player p returns nothing
+    endfunction
+        function UTMallItem___anon__4 takes nothing returns boolean
+            local player cbp=s__mallItem_getCallbackPlayer()
+            call BJDebugMsg("[UTMallItem] chat consumeTimes cb player=" + GetPlayerName(cbp))
+            return true
         endfunction
-    function UTMallItem__Init takes nothing returns nothing
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTMallItem__anon__0 , function UTMallItem__anon__1)
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTMallItem__anon__2 , null)
-    endfunction
-    function UTMallItem__TTestUTMallItem1 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestUTMallItem2 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestUTMallItem3 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestUTMallItem4 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestUTMallItem5 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestUTMallItem6 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestUTMallItem7 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestUTMallItem8 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestUTMallItem9 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestUTMallItem10 takes player p returns nothing
-    endfunction
-    function UTMallItem__TTestActUTMallItem1 takes string str returns nothing
+    function UTMallItem___TTestActUTMallItem1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1519,51 +1626,71 @@ endglobals
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
         set num=num + 1
-        if ( paramS[0] == "a" ) then
-        elseif ( paramS[0] == "b" ) then
+        if ( paramS[0] == "mi" ) then
+            call UTMallItem___DumpState(p)
+        elseif ( paramS[0] == "ct" ) then
+            if ( num >= 3 ) then
+                call s__mallItem_consumeTimes(p , paramS[1] , paramI[2] , function UTMallItem___anon__4)
+            else
+                call BJDebugMsg("usage: -ct <key> <count>")
+            endif
+        elseif ( paramS[0] == "co" ) then // co <key>
+            if ( num >= 2 ) then
+                call s__mallItem_consumeOnce(p , paramS[1])
+                call BJDebugMsg("[UTMallItem] chat consumeOnce key=" + paramS[1])
+            else
+                call BJDebugMsg("usage: -co <key>")
+            endif
+        elseif ( paramS[0] == "rf" ) then // rf <pid0-based>
+            if ( num >= 2 ) then
+                call s__mallItem_refreshItemsForPlayer(paramI[1])
+                call BJDebugMsg("[UTMallItem] refreshed pid=" + I2S(paramI[1]))
+            else
+                call BJDebugMsg("usage: -rf <pid>")
+            endif
         endif
         set p=null
     endfunction
-        function UTMallItem__anon__3 takes nothing returns nothing
+        function UTMallItem___anon__5 takes nothing returns nothing
             call BJDebugMsg("[MallItem] 单元测试已加载")
-            call UTMallItem__Init()
+            call UTMallItem___Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTMallItem__anon__4 takes nothing returns nothing
+        function UTMallItem___anon__6 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
-                call UTMallItem__TTestActUTMallItem1(SubString(str, ( 2 ) - 1, StringLength(str)))
+                call UTMallItem___TTestActUTMallItem1(SubString(str, ( 2 ) - 1, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTMallItem__TTestUTMallItem1(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTMallItem__TTestUTMallItem2(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTMallItem__TTestUTMallItem3(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTMallItem__TTestUTMallItem4(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTMallItem__TTestUTMallItem5(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTMallItem__TTestUTMallItem6(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTMallItem__TTestUTMallItem7(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTMallItem__TTestUTMallItem8(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTMallItem__TTestUTMallItem9(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTMallItem__TTestUTMallItem10(GetTriggerPlayer())
+                call UTMallItem___TTestUTMallItem10(GetTriggerPlayer())
             endif
         endfunction
-    function UTMallItem__onInit takes nothing returns nothing
+    function UTMallItem___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTMallItem__anon__3))
+        call TriggerAddCondition(tr, Condition(function UTMallItem___anon__5))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTMallItem__anon__4)
+        call UnitTestRegisterChatEvent(function UTMallItem___anon__6)
     endfunction
 
 //library UTMallItem ends
@@ -1576,8 +1703,43 @@ endglobals
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
 // 原生UI的大小
-
 // 常量配置
+// 使用说明（MallItem 黑箱）
+// 1) 在地图启动阶段注册商品（每次注册一个 key）：
+//    mallItem.init("VIP1");
+//    mallItem.init("RhdeKey");
+//    mallItem.init("RopgKey");
+//
+// 2) 可选：为商品配置元信息与科技（四位字符如 'Rhde' 为整数字面量）：
+//    mallItem.setMeta("VIP1", "白金VIP", "ReplaceableTextures\\CommandButtons\\BTN.tga", "尊享特权");
+//    mallItem.setTech("RhdeKey", 'Rhde'); // 步兵测试科技
+//    mallItem.setTech("RopgKey", 'Ropg'); // ogre 测试科技
+//
+// 3) 等待就绪：在 2.0 秒后自动扫描，完成后触发 onReady 回调（使用 Condition/TriggerEvaluate）：
+//    mallItem.onReady(function () -> boolean {
+//        // 示例：查询玩家0（0-based）的拥有权与次数
+//        if (mallItem.hasByPlayer(Player(0), "VIP1")) {
+//            BJDebugMsg("[MallItem] 玩家0拥有VIP1, 次数=" + I2S(mallItem.getUseCountByPlayer(Player(0), "VIP1")));
+//        }
+//        return true;
+//    });
+//
+// 4) 消费：
+//    // 数量型消费：成功后回调被调用，并可通过 mallItem.getCallbackPlayer() 获取玩家
+//    mallItem.consumeTimes(Player(0), "VIP1", 1, function () -> boolean {
+//        player cbp = mallItem.getCallbackPlayer();
+//        BJDebugMsg("[MallItem] consumeTimes 回调: " + GetPlayerName(cbp));
+//        return true;
+//    });
+//    // 局数型消费：无回调
+//    mallItem.consumeOnce(Player(0), "VIP1");
+//
+// 5) 其他：
+//    local integer n = mallItem.getItemCount();
+//    local string k1 = mallItem.getItemKeyByIndex(1); // 1-based 索引
+//
+//todo: 加入局内商品进包的回调
+
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1993,10 +2155,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs263216609")
-call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("jasshelper__initstructs265190875")
+call ExecuteFunc("UnitTestFramwork___onInit")
 call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
-call ExecuteFunc("UTMallItem__onInit")
+call ExecuteFunc("UTMallItem___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -2035,7 +2197,7 @@ endfunction
 
 //Struct method generated initializers/callers:
 
-function jasshelper__initstructs263216609 takes nothing returns nothing
+function jasshelper__initstructs265190875 takes nothing returns nothing
 
 
 

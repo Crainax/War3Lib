@@ -4,147 +4,6 @@
 #include <YDTrigger/YDTrigger.h>
 #include "config/config.h"
 
-#ifndef UnitTestFramworkIncluded
-#define UnitTestFramworkIncluded
-
-/*
-单元测试框架(注入)
-*/
-
-//! zinc
-library UnitTestFramwork {
-
-	//单元测试总
-	trigger TUnitTest = null;
-    private hashtable HASH_UNITTEST = InitHashtable();  // 单元测试哈希表
-
-    //断言
-    public struct assert []{
-        //断言布尔值
-        static method Boolean (boolean condition,string name) {
-            if (!condition) {
-                BJDebugMsg("FAIL: " + name);
-            } else {
-                BJDebugMsg("PASS: " + name);
-            }
-        }
-
-        //断言字符串相等
-        static method String(string actual, string expected, string name) {
-            if (actual != expected) {
-                BJDebugMsg("FAIL: " + name);
-                BJDebugMsg("  Expected: " + expected);
-                BJDebugMsg("  Actual: " + actual);
-            } else {
-                BJDebugMsg("PASS: " + name);
-            }
-        }
-
-        //断言整数相等
-        static method Integer(integer actual, integer expected, string name) {
-            if (actual != expected) {
-                BJDebugMsg("FAIL: " + name);
-                BJDebugMsg("  Expected: " + I2S(expected));
-                BJDebugMsg("  Actual: " + I2S(actual));
-            } else {
-                BJDebugMsg("PASS: " + name);
-            }
-        }
-
-        //断言浮点数相等
-        static method Real(real actual, real expected, string name) {
-            real maxValue = RMaxBJ(RAbsBJ(actual), RAbsBJ(expected));  // 取两个数的绝对值的较大值
-            real epsilon = maxValue * 0.00001;  // 相对误差为数值大小的万分之一
-            // 处理接近0的特殊情况
-            if (maxValue < 0.00001) {
-                epsilon = 0.00001;
-            }
-            if (RAbsBJ(actual - expected) > epsilon) {
-                BJDebugMsg("FAIL: " + name);
-                BJDebugMsg("  Expected: " + R2SW(expected,0,1));
-                BJDebugMsg("  Actual: " + R2SW(actual,0,1));
-            } else {
-                BJDebugMsg("PASS: " + name);
-            }
-        }
-    }
-
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-
-    //指定开始时间与持续时间的定时器
-    public function UnitTestAutoTimer (real time, real duration,code start, code end) {
-        trigger t = CreateTrigger();
-        trigger tr = CreateTrigger();
-        TriggerAddCondition(t, Condition(start));
-        TriggerRegisterTimerEventSingle(tr,time);
-        SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
-        SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
-        SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
-        TriggerAddCondition(tr,Condition(function (){
-            real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
-            real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
-            trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
-            BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]开始------");
-            TriggerEvaluate(tr);
-            DestroyTrigger(tr);
-            FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
-            DestroyTrigger(GetTriggeringTrigger());
-            tr = null;
-        }));
-        if (end != null) {
-            t = CreateTrigger();
-            tr = CreateTrigger();
-            TriggerAddCondition(t, Condition(end));
-            TriggerRegisterTimerEventSingle(tr,time+duration);
-            SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
-            SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
-            SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
-            TriggerAddCondition(tr,Condition(function (){
-                real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
-                real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
-                trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
-                TriggerEvaluate(tr);
-                BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]结束------");
-                DestroyTrigger(tr);
-                FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
-                DestroyTrigger(GetTriggeringTrigger());
-                tr = null;
-            }));
-        }
-        tr = null;
-        t = null;
-    }
-
-    function onInit ()  {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.1);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
-            }
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
-    }
-}
-
-//! endzinc
-#endif
-
-
-
 #ifndef DZAPIINCLUDE
 #define DZAPIINCLUDE
 
@@ -846,10 +705,104 @@ endlibrary
 
 #endif
 
+#ifndef ConversionUtilsIncluded
+#define ConversionUtilsIncluded
+
+//! zinc
+/*
+转换工具
+*/
+library ConversionUtils {
+
+    //补充函数
+    public function B2S(boolean b) -> string {
+        if (b) {return "true";}
+        else {return "false";}
+    }
+
+    //三目运算符
+    public function S3 (boolean b,string s1,string s2)  -> string {
+        if (b) {return s1;}
+        else {return s2;}
+    }
+    //三目运算符
+    public function U3 (boolean b,unit u1,unit u2)  -> unit {
+        if (b) {return u1;}
+        else {return u2;}
+    }
+    //三目运算符
+    public function I3 (boolean b,integer i1,integer i2)  -> integer  {
+        if (b) {return i1;}
+        else {return i2;}
+    }
+    //三目运算符
+    public function R3 (boolean b,real r1,real r2)  -> real  {
+        if (b) {return r1;}
+        else {return r2;}
+    }
+    // 将数字转换为魔兽的四字符ID,使用256进制但限制36个数一进位
+    // pos为输入数字,每36个数字进一位,每位用0-9和a-z表示(共36个字符)
+    // 示例:0->'0000', 35->'000z', 36->'0010'(进位), 37->'0011'
+    public function GetIDSymbol ( integer pos ) -> integer {
+        integer bit = pos/36;
+        pos = ModuloInteger(pos,36);
+        if (pos < 10) {return pos + bit * 256;}
+        else {return '000a' - '0000' + pos - 10 + bit * 256;}
+    }
+    // 将魔兽的四字符ID转换回对应数字
+    // s为输入的四字符ID,将其还原为原始数字
+    // 示例:'0000'->0, '000z'->35, '0010'->36, '0011'->37
+    public function GetSymbolID ( integer s ) -> integer {
+        integer i1 = s/256;
+        integer i2 = ModuloInteger(s,256);
+        if (i2 < 10) {return i1 * 36 + i2;}
+        else {return i2 - '000a' + '0000' + 10 + i1 * 36;}
+    }
+
+}
+
+//! endzinc
+#endif
+
 // 常量配置
 #define MALLITEM_MAX_ITEMS      300
 #define MALLITEM_INIT_DELAY     2.0
 
+// 使用说明（MallItem 黑箱）
+// 1) 在地图启动阶段注册商品（每次注册一个 key）：
+//    mallItem.init("VIP1");
+//    mallItem.init("RhdeKey");
+//    mallItem.init("RopgKey");
+//
+// 2) 可选：为商品配置元信息与科技（四位字符如 'Rhde' 为整数字面量）：
+//    mallItem.setMeta("VIP1", "白金VIP", "ReplaceableTextures\\CommandButtons\\BTN.tga", "尊享特权");
+//    mallItem.setTech("RhdeKey", 'Rhde'); // 步兵测试科技
+//    mallItem.setTech("RopgKey", 'Ropg'); // ogre 测试科技
+//
+// 3) 等待就绪：在 2.0 秒后自动扫描，完成后触发 onReady 回调（使用 Condition/TriggerEvaluate）：
+//    mallItem.onReady(function () -> boolean {
+//        // 示例：查询玩家0（0-based）的拥有权与次数
+//        if (mallItem.hasByPlayer(Player(0), "VIP1")) {
+//            BJDebugMsg("[MallItem] 玩家0拥有VIP1, 次数=" + I2S(mallItem.getUseCountByPlayer(Player(0), "VIP1")));
+//        }
+//        return true;
+//    });
+//
+// 4) 消费：
+//    // 数量型消费：成功后回调被调用，并可通过 mallItem.getCallbackPlayer() 获取玩家
+//    mallItem.consumeTimes(Player(0), "VIP1", 1, function () -> boolean {
+//        player cbp = mallItem.getCallbackPlayer();
+//        BJDebugMsg("[MallItem] consumeTimes 回调: " + GetPlayerName(cbp));
+//        return true;
+//    });
+//    // 局数型消费：无回调
+//    mallItem.consumeOnce(Player(0), "VIP1");
+//
+// 5) 其他：
+//    local integer n = mallItem.getItemCount();
+//    local string k1 = mallItem.getItemKeyByIndex(1); // 1-based 索引
+//
+//todo: 加入局内商品进包的回调
 //! zinc
 library MallItem requires DzAPI{
 
@@ -968,7 +921,7 @@ library MallItem requires DzAPI{
                 n = mallItem.itemCount;
                 pid = 0;
                 while (pid < MAX_PLAYER_COUNT) {
-                    p = ConvertedPlayer(pid);
+                    p = ConvertedPlayer(pid + 1);
                     base = pid * MALLITEM_MAX_ITEMS;
 
                     idx = 0;
@@ -1054,7 +1007,7 @@ library MallItem requires DzAPI{
                 return;
             }
 
-            p = ConvertedPlayer(playerId);
+            p = ConvertedPlayer(playerId + 1);
             base = playerId * MALLITEM_MAX_ITEMS;
             n = mallItem.itemCount;
 
@@ -1238,6 +1191,147 @@ library MallItem requires DzAPI{
 
 
 
+#ifndef UnitTestFramworkIncluded
+#define UnitTestFramworkIncluded
+
+/*
+单元测试框架(注入)
+*/
+
+//! zinc
+library UnitTestFramwork {
+
+	//单元测试总
+	trigger TUnitTest = null;
+    private hashtable HASH_UNITTEST = InitHashtable();  // 单元测试哈希表
+
+    //断言
+    public struct assert []{
+        //断言布尔值
+        static method Boolean (boolean condition,string name) {
+            if (!condition) {
+                BJDebugMsg("FAIL: " + name);
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+
+        //断言字符串相等
+        static method String(string actual, string expected, string name) {
+            if (actual != expected) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + expected);
+                BJDebugMsg("  Actual: " + actual);
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+
+        //断言整数相等
+        static method Integer(integer actual, integer expected, string name) {
+            if (actual != expected) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + I2S(expected));
+                BJDebugMsg("  Actual: " + I2S(actual));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+
+        //断言浮点数相等
+        static method Real(real actual, real expected, string name) {
+            real maxValue = RMaxBJ(RAbsBJ(actual), RAbsBJ(expected));  // 取两个数的绝对值的较大值
+            real epsilon = maxValue * 0.00001;  // 相对误差为数值大小的万分之一
+            // 处理接近0的特殊情况
+            if (maxValue < 0.00001) {
+                epsilon = 0.00001;
+            }
+            if (RAbsBJ(actual - expected) > epsilon) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + R2SW(expected,0,1));
+                BJDebugMsg("  Actual: " + R2SW(actual,0,1));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+    }
+
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
+    }
+
+    //指定开始时间与持续时间的定时器
+    public function UnitTestAutoTimer (real time, real duration,code start, code end) {
+        trigger t = CreateTrigger();
+        trigger tr = CreateTrigger();
+        TriggerAddCondition(t, Condition(start));
+        TriggerRegisterTimerEventSingle(tr,time);
+        SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
+        SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
+        SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
+        TriggerAddCondition(tr,Condition(function (){
+            real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
+            real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
+            trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
+            BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]开始------");
+            TriggerEvaluate(tr);
+            DestroyTrigger(tr);
+            FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
+            DestroyTrigger(GetTriggeringTrigger());
+            tr = null;
+        }));
+        if (end != null) {
+            t = CreateTrigger();
+            tr = CreateTrigger();
+            TriggerAddCondition(t, Condition(end));
+            TriggerRegisterTimerEventSingle(tr,time+duration);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
+            SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
+            TriggerAddCondition(tr,Condition(function (){
+                real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
+                real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
+                trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
+                TriggerEvaluate(tr);
+                BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]结束------");
+                DestroyTrigger(tr);
+                FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
+                DestroyTrigger(GetTriggeringTrigger());
+                tr = null;
+            }));
+        }
+        tr = null;
+        t = null;
+    }
+
+    function onInit ()  {
+        //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.1);
+        TriggerAddCondition(tr,Condition(function (){
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() ); //迷雾全关
+            }
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+    }
+}
+
+//! endzinc
+#endif
+
+
+
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1359,17 +1453,70 @@ endfunction
 // 用空地图测试
 // 用原始地图测试
 //! zinc
+// 我完善了 MallItem_Test.j 的单元测试：
+// 初始化阶段注册 VIP1/RhdeKey/RopgKey，并为 RhdeKey、RopgKey 设置科技 'Rhde'、'Ropg'
+// onReady 时打印状态、验证科技解锁（若拥有对应商品）
+// 进行次数型消费（带回调）与局数型消费（无回调）
+// 提供聊天命令：
+// -mi 打印当前玩家的商城状态
+// -ct <key> <count> 执行次数型消费并打印回调
+// -co <key> 执行一次性消费
+// -rf <pid> 刷新某玩家缓存
 //自动生成的文件
 library UTMallItem requires MallItem {
+	function DumpState(player p) {
+		integer pid = GetPlayerId(p);
+		integer n = mallItem.getItemCount();
+		integer i = 1;
+		string key ;
+		boolean has;
+		integer cnt;
+		BJDebugMsg("[UTMallItem] DumpState pid=" + I2S(pid) + ", items=" + I2S(n));
+		for (1 <= i <= n) {
+			key = mallItem.getItemKeyByIndex(i);
+			has = mallItem.hasByPlayer(Player(pid), key);
+			cnt = mallItem.getUseCountByPlayer(Player(pid), key);
+			BJDebugMsg("  - [" + I2S(i) + "] key=" + key + ", has=" + I2S(I3(has,1,0)) + ", cnt=" + I2S(cnt));
+		}
+	}
 	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start,这里是0.1秒后调用的内容
-			}, function() {
-			//end,这里是2秒后调用的内容
+		// 注册测试商品（逐个注册）
+		mallItem.init("VIP1");
+		mallItem.init("RhdeKey");
+		mallItem.init("RopgKey");
+		// 配置元信息与科技
+		mallItem.setMeta("VIP1", "白金VIP", "ReplaceableTextures\\CommandButtons\\BTN.tga", "尊享特权");
+		mallItem.setTech("RhdeKey", 'Rhde');
+		mallItem.setTech("RopgKey", 'Ropg');
+		// 就绪后校验
+		mallItem.onReady(function () -> boolean {
+			player p0 = Player(0);
+			BJDebugMsg("[UTMallItem] onReady reached");
+			DumpState(p0);
+			if (mallItem.hasByPlayer(Player(0), "RhdeKey")) {
+				BJDebugMsg("  Rhde tech count=" + I2S(GetPlayerTechCount(p0, 'Rhde', true)));
+			}
+			if (mallItem.hasByPlayer(Player(0), "RopgKey")) {
+				BJDebugMsg("  Ropg tech count=" + I2S(GetPlayerTechCount(p0, 'Ropg', true)));
+			}
+			// 次数型消费（带回调）
+			mallItem.consumeTimes(p0, "VIP1", 1, function () -> boolean {
+				player cbp = mallItem.getCallbackPlayer();
+				BJDebugMsg("[UTMallItem] consumeTimes callback player=" + GetPlayerName(cbp));
+				BJDebugMsg("  VIP1 after consume cnt=" + I2S(mallItem.getUseCountByPlayer(Player(0), "VIP1")));
+				return true;
+			});
+			// 局数型消费（无回调）
+			mallItem.consumeOnce(p0, "VIP1");
+			p0 = null;
+			return true;
 		});
+		// 演示定时器
 		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-		},null);
+			// start: 0.1 秒后
+			}, function() {
+			// end: 2.0 秒后
+		});
 	}
 	function TTestUTMallItem1 (player p) {
 		// mallItem
@@ -1405,8 +1552,35 @@ for (0 <= i <= len - 1) {
 		paramI[num]= S2I(paramS[num]);
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
-		if (paramS[0] == "a") {
-		} else if (paramS[0] == "b") {
+		if (paramS[0] == "mi") {
+			DumpState(p);
+		} else if (paramS[0] == "ct") {
+			// ct <key> <count>
+			if (num >= 3) {
+				mallItem.consumeTimes(p, paramS[1], paramI[2], function () -> boolean {
+					player cbp = mallItem.getCallbackPlayer();
+					BJDebugMsg("[UTMallItem] chat consumeTimes cb player=" + GetPlayerName(cbp));
+					return true;
+				});
+			} else {
+				BJDebugMsg("usage: -ct <key> <count>");
+			}
+		} else if (paramS[0] == "co") {
+			// co <key>
+			if (num >= 2) {
+				mallItem.consumeOnce(p, paramS[1]);
+				BJDebugMsg("[UTMallItem] chat consumeOnce key=" + paramS[1]);
+			} else {
+				BJDebugMsg("usage: -co <key>");
+			}
+		} else if (paramS[0] == "rf") {
+			// rf <pid0-based>
+			if (num >= 2) {
+				mallItem.refreshItemsForPlayer(paramI[1]);
+				BJDebugMsg("[UTMallItem] refreshed pid=" + I2S(paramI[1]));
+			} else {
+				BJDebugMsg("usage: -rf <pid>");
+			}
 		}
 		p = null;
 	}
