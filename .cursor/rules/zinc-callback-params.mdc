@@ -1,0 +1,108 @@
+---
+globs: *.j
+description: Zinc 回调参数传递最佳实践 - 使用静态成员变量避免哈希表冲突
+---
+
+# Zinc 回调参数传递规则
+
+## 问题与解决方案
+
+### 避免哈希表冲突
+
+在需要向回调函数传递参数时，**不要使用哈希表存储**（容易产生键冲突），而应使用 **public 静态成员变量**。
+
+### 错误方式（哈希表）
+```jass
+// 错误：可能产生哈希冲突
+SavePlayerHandle(table, StringHash("callbackPlayer"), 0, whichPlayer);
+// 回调中读取
+player p = LoadPlayerHandle(table, StringHash("callbackPlayer"), 0);
+```
+
+### 正确方式（静态成员变量）
+```jass
+public struct MyStruct []{
+    // 回调参数传递（避免哈希表冲突）
+    public static player callbackPlayer = null;
+    public static integer callbackValue = 0;
+    public static string callbackData = "";
+
+    static method doSomethingWithCallback(player p, code callback) {
+        // 设置参数
+        MyStruct.callbackPlayer = p;
+        MyStruct.callbackValue = 123;
+
+        // 执行回调
+        if (callback != null) {
+            trigger tempTr;
+            tempTr = CreateTrigger();
+            TriggerAddCondition(tempTr, Condition(callback));
+            TriggerEvaluate(tempTr);
+            DestroyTrigger(tempTr);
+            tempTr = null;
+        }
+
+        // 清理
+        MyStruct.callbackPlayer = null;
+        MyStruct.callbackValue = 0;
+    }
+
+    // 在回调中获取参数的辅助方法
+    static method getCallbackPlayer() ->player {
+        return MyStruct.callbackPlayer;
+    }
+
+    static method getCallbackValue() ->integer {
+        return MyStruct.callbackValue;
+    }
+}
+```
+
+## 实际应用示例
+
+参考 [MallItem.j](mdc:Jass/server/MallItem.j) 的实现：
+
+```jass
+public struct mallItem []{
+    // 回调参数传递（避免哈希表冲突）
+    public static player callbackPlayer = null;
+
+    static method consumeTimes(player whichPlayer, string itemKey, integer count, code callback) ->boolean {
+        integer pid; integer idx; integer base; boolean ok; trigger tempTr;
+
+        // ... 执行消费逻辑 ...
+
+        if (ok && callback != null) {
+            mallItem.callbackPlayer = whichPlayer;
+            tempTr = CreateTrigger();
+            TriggerAddCondition(tempTr, Condition(callback));
+            TriggerEvaluate(tempTr);
+            DestroyTrigger(tempTr);
+            mallItem.callbackPlayer = null;
+            tempTr = null;
+        }
+        return ok;
+    }
+
+    static method getCallbackPlayer() ->player {
+        return mallItem.callbackPlayer;
+    }
+}
+```
+
+### 使用方式
+```jass
+mallItem.consumeTimes(GetTriggerPlayer(), "VIP1", 1, function () -> boolean {
+    player p = mallItem.getCallbackPlayer();
+    BJDebugMsg("玩家 " + GetPlayerName(p) + " 消费了道具");
+    return true;
+});
+```
+
+## 规则要点
+
+1. **使用 public static 成员变量**：避免哈希表键冲突，提升性能
+2. **及时清理**：回调执行后立即将变量置为初始值（null/0/""）
+3. **提供辅助方法**：如 `getCallbackPlayer()` 方便回调中访问
+4. **局部变量声明在前**：如 `trigger tempTr;` 放在函数开头
+5. **句柄资源管理**：临时触发器用后立即销毁并置 null

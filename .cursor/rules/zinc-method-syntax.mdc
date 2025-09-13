@@ -1,0 +1,126 @@
+---
+globs: *.j
+description: Zinc 结构体语法规则 - 静态方法、实例方法、成员变量、结构体数组
+---
+
+# Zinc 结构体语法规则
+
+## 结构体定义
+
+```jass
+public struct StructName {
+    // 成员变量
+    // 静态方法
+    // 实例方法
+    // 构造函数/析构函数
+}
+```
+
+## 结构体数组（全静态/无需实例化）
+
+用于全静态结构体或希望通过 `StructName[index]` 直接索引的场景，可在结构体名后添加 `[]`：
+
+```jass
+public struct MallItem []{
+    // 静态成员、静态方法
+}
+```
+
+特点与约定：
+- 不需要 `create/destroy`，通常只包含静态字段与静态方法
+- 适合做全局黑箱/管理器，例如当前 `mallItem[]`
+- 常与宏 `#define` 配合，控制容量、延迟等常量
+
+## 静态方法语法与命名
+
+### 带返回类型的静态方法
+```jass
+static method methodName(paramType param) ->returnType {
+    // 方法体
+}
+```
+
+### 无返回类型的静态方法
+```jass
+static method methodName(paramType param) {
+    // 方法体
+}
+```
+
+### 错误语法
+```jass
+// 错误：不能在方法名前放返回类型
+static returnType MethodName(paramType param) {
+    // 这是错误的语法
+}
+```
+
+## 实例方法语法与命名
+
+### 带返回类型的实例方法
+```jass
+method methodName(paramType param) ->returnType {
+    // 方法体，可以访问 this
+}
+```
+
+### 无返回类型的实例方法
+```jass
+method methodName(paramType param) {
+    // 方法体
+}
+```
+
+## 成员变量
+
+```jass
+public struct Example {
+    integer memberVar;          // 实例变量
+    static integer staticVar;   // 静态变量
+
+    // 也可以声明为私有
+    private real privateVar;
+    private static boolean staticPrivateVar;
+}
+```
+
+## 构造函数和析构函数
+
+```jass
+public struct Example {
+    // 静态构造函数（创建实例）
+    static method create() ->Example {
+        Example instance = Example.allocate();
+        // 初始化代码
+        return instance;
+    }
+
+    // 析构函数
+    method onDestroy() {
+        // 清理代码
+    }
+}
+```
+
+## 实际示例
+
+参考 [MallItem.j](mdc:Jass/server/MallItem.j) 的实现：
+
+```jass
+public struct mallItem []{
+    static method init(string key) { /* ... */ }
+    static method onReady(code cb) { /* Condition + TriggerEvaluate */ }
+    static method hasById(integer pid, string key) ->boolean { /* ... */ }
+}
+```
+
+## 命名与语法要点
+
+1. **返回类型语法**：使用 `->returnType` 放在参数列表之后
+2. **访问修饰符**：`public`、`private` 可用于结构体、方法、成员变量
+3. **方法命名**：方法名首字母小写，使用动词短语，例如 `init`, `hasById`
+4. **静态 vs 实例**：静态方法用 `static method`，实例方法用 `method`
+4. **调用方式**：
+   - 静态方法：`StructName.MethodName(params)`
+   - 实例方法：`instance.MethodName(params)`
+5. **句柄管理**：记得在方法结束前将句柄类型变量设为 `null`

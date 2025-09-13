@@ -18,1070 +18,127 @@ endlibrary
 //#  define TriggerRegisterPlayerEventAllianceChanged(trig, player)          TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_ALLIANCE_CHANGED)
 //#  define TriggerRegisterPlayerEventEndCinematic(trig, player)             TriggerRegisterPlayerEvent(trig, player, EVENT_PLAYER_END_CINEMATIC)
 // 原生UI的大小
-//! zinc
-// 地图边界工具库
-library MapBoundsUtils {
-    public struct mapBounds {
-        static real maxX = 0.;
-        static real minX = 0.;
-        static real maxY = 0.;
-        static real minY = 0.;
-        // 限制X坐标在地图范围内
-        static method X (real x) -> real {
-            return RMinBJ(RMaxBJ(x, mapBounds.minX), mapBounds.maxX);
-        }
-        // 限制Y坐标在地图范围内
-        static method Y (real y) -> real {
-            return RMinBJ(RMaxBJ(y, mapBounds.minY), mapBounds.maxY);
-        }
-        // 初始化
-        static method onInit () {
-            mapBounds.minX = GetCameraBoundMinX() - GetCameraMargin(CAMERA_MARGIN_LEFT);
-            mapBounds.minY = GetCameraBoundMinY() - GetCameraMargin(CAMERA_MARGIN_BOTTOM);
-            mapBounds.maxX = GetCameraBoundMaxX() + GetCameraMargin(CAMERA_MARGIN_RIGHT);
-            mapBounds.maxY = GetCameraBoundMaxY() + GetCameraMargin(CAMERA_MARGIN_TOP);
-        }
-    }
-}
-//! endzinc
-//! zinc
 /*
-Toc初始化,才能使用UI功能
-*/
-library UITocInit requires BzAPI,LBKKAPI {
-  function onInit () {
-		DzLoadToc("ui\\Crainax.toc");
-		DzFrameEnableClipRect(false);
-  }
-}
-//! endzinc
-//! zinc
-/*
-* 数学工具库
-* 作者：AI Assistant
-*
-* 提供了一些常用的数学函数，包括实数到整数的转换、除法、实数相加、值限制、四舍五入以及射线与地图边界的交点计算。
-*/
-library MathUtils {
-    // 实转整 带概率进1的
-    // 将实数转换为整数，若小数部分大于随机数则进1
-    public function R2IRandom (real value) -> integer {
-        if (GetRandomReal(0,1.0) <= ModuloReal(value,1.0)) {
-            return R2I(value) + 1;
-        }
-        return R2I(value);
-    }
-    // 进行整数除法，若能整除则结果减1
-    public function Divide1 (integer i1,integer i2) -> integer {
-        if (ModuloInteger(i1,i2) == 0) {
-            return i1/i2 - 1;
-        }
-        return i1/i2;
-    }
-    // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
-    // 该函数可以避免简单线性相加导致的数值溢出，保证叠加后的效果符合递减收益原则
-    //
-    // 特点：
-    // - 正数叠加时使用概率学公式：1-(1-a1)*(1-a2)
-    // - 负数叠加时使用衰减公式：1-(1-a1)/(1+a2)
-    // - 当第二个参数绝对值>=1.0时，直接返回第一个参数
-    //
-    // 适用场景：
-    // - 技能冷却缩减叠加（CDR）
-    // - 暴击率、闪避率等概率性属性叠加
-    // - 移速加成等需要控制上限的属性叠加
-    //
-    // 参数说明：
-    // a1: 第一个数值，通常表示当前已有的加成效果
-    // a2: 第二个数值，表示要叠加的新加成效果
-    // 返回值: 叠加后的最终效果值
-    //
-    // 使用示例：
-    // real currentCDR = 0.4;    // 当前40%冷却缩减
-    // real newCDR = 0.5;        // 新装备50%冷却缩减
-    // real finalCDR = RealAdd(currentCDR, newCDR);  // 结果约为0.7，即70%冷却缩减
-    //
-    // 注意事项：
-    // 1. 虽然函数支持任意实数输入，但建议输入值在[-1.0, 1.0]范围内
-    // 2. 当|a2| >= 1.0时，函数会直接返回a1值
-    // 3. 该函数满足结合律，但不满足交换律，建议将已有效果作为第一个参数
-    // 4. 已测试过可以在用负数叠加后,使用负数的绝对值进行恢复
-    public function RealAdd ( real a1,real a2 ) -> real {
-        if (RAbsBJ(a2) >= 1.0) {return a1;}
-        if (a2 >= 0) {return 1.0-(1.0-a1)*(1.0-a2);}
-        else {return 1.0-(1.0-a1)/(1.0+a2);}
-    }
-    // 最小最大值限制
-    // 限制整数在[min, max]范围内
-    public function ILimit ( integer target,integer min,integer max ) -> integer {
-        if (target < min) {return min;}
-        else if (target > max) {return max;}
-        else {return target;}
-    }
-    // 最小最大值限制
-    // 限制实数在[min, max]范围内
-    public function RLimit ( real target,real min,real max ) -> real {
-        if (target < min) {return min;}
-        else if (target > max) {return max;}
-        else {return target;}
-    }
-    // 四舍五入法实数转整数
-    // 将实数四舍五入为整数
-    public function R2IM (real r) -> integer {
-        if (ModuloReal(r,1.0) >= 0.5) return R2I(r)+1;
-        else return R2I(r);
-    }
-    // 计算射线与地图边界的交点
-    // 计算从给定点出发的射线与地图边界的交点
-    public struct radiationEnd {
-        static real x = 0,y = 0;
-        // 一个坐标沿着某个方向的边缘值
-        // 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点
-        static method cal (real x1,real y1,real angle) {
-            real x2 = 0; //相交点
-real y2 = 0; //相交点
-real a = ModuloReal(angle,360); //求余数
-real tan;
-            x = 0;
-            y = 0;
-            // 处理特殊角度
-            if (a == 0) { // 正右方
-x = mapBounds.maxX;
-                y = y1;
-                return;
-            }
-            if (a == 90) { // 正上方
-x = x1;
-                y = mapBounds.maxY;
-                return;
-            }
-            if (a == 180) { // 正左方
-x = mapBounds.minX;
-                y = y1;
-                return;
-            }
-            if (a == 270) { // 正下方
-x = x1;
-                y = mapBounds.minY;
-                return;
-            }
-            // 处理一般角度
-            if (a < 90) { //第一象限
-tan = Tan((a)*0.0174538);
-                x2 = (mapBounds.maxY - y1) / tan + x1;
-                y2 = (mapBounds.maxX - x1) * tan + y1;
-                if (x2 <= mapBounds.maxX) { //取这个
-x = x2;
-                    y = mapBounds.maxY;
-                } else {
-                    x = mapBounds.maxX;
-                    y = y2;
-                }
-            } else if(a < 180) { //第二象限
-tan = Tan((a)*0.0174538);
-                x2 = (mapBounds.maxY - y1) / tan + x1;
-                y2 = (mapBounds.minX - x1) * tan + y1;
-                if (x2 >= mapBounds.minX) { //取这个
-x = x2;
-                    y = mapBounds.maxY;
-                } else {
-                    x = mapBounds.minX;
-                    y = y2;
-                }
-            } else if(a < 270) { //第三象限
-tan = Tan((a)*0.0174538);
-                x2 = (mapBounds.minY - y1) / tan + x1;
-                y2 = (mapBounds.minX - x1) * tan + y1;
-                if (x2 >= mapBounds.minX) { //取这个
-x = x2;
-                    y = mapBounds.minY;
-                } else {
-                    x = mapBounds.minX;
-                    y = y2;
-                }
-            } else { //第四象限
-tan = Tan((a)*0.0174538);
-                x2 = (mapBounds.minY - y1) / tan + x1;
-                y2 = (mapBounds.maxX - x1) * tan + y1;
-                if (x2 <= mapBounds.maxX) { //取这个
-x = x2;
-                    y = mapBounds.minY;
-                } else {
-                    x = mapBounds.maxX;
-                    y = y2;
-                }
-            }
-        }
-    }
-    // 实现三个数值的特殊叠加计算
-    // 效果等同于 RealAdd(RealAdd(a1,a2),a3)
-    //
-    // 参数说明：
-    // a1: 第一个数值，通常表示当前已有的加成效果
-    // a2: 第二个数值，表示第一次要叠加的新加成效果
-    // a3: 第三个数值，表示第二次要叠加的新加成效果
-    // 返回值: 三个数值叠加后的最终效果值
-    //
-    // 使用示例：
-    // real baseEffect = 0.3;     // 基础30%效果
-    // real bonus1 = 0.4;         // 第一个40%加成
-    // real bonus2 = 0.2;         // 第二个20%加成
-    // real final = RealAdd3(baseEffect, bonus1, bonus2);  // 一次性计算三个效果的叠加
-    public function RealAdd3 ( real a1, real a2, real a3 ) -> real {
-        real temp;
-        // 如果第二个参数绝对值>=1.0，直接用第一个参数与第三个参数计算
-        if (RAbsBJ(a2) >= 1.0) {
-            return RealAdd(a1, a3);
-        }
-        // 如果第三个参数绝对值>=1.0，直接返回前两个参数的计算结果
-        if (RAbsBJ(a3) >= 1.0) {
-            return RealAdd(a1, a2);
-        }
-        // 先计算前两个参数的结果
-        if (a2 >= 0) {
-            temp = 1.0-(1.0-a1)*(1.0-a2);
-        } else {
-            temp = 1.0-(1.0-a1)/(1.0+a2);
-        }
-        // 再与第三个参数计算
-        if (a3 >= 0) {
-            return 1.0-(1.0-temp)*(1.0-a3);
-        } else {
-            return 1.0-(1.0-temp)/(1.0+a3);
-        }
-    }
-}
-//! endzinc
-/*
-UI哈希表定义
-*/
-// 0 - 1亿这里用
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
-//! zinc
-/*
-UI图片的共用方法
-*/
-library UIImageModule {
-    // 定义共用的方法结构
-    public module uiImageModule {
-        // 设置图片路径
-        method setTexture (string path) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetTexture(this.ui,path,0);
-            return this;
-        }
-        // 设置图片控件视口,防止模型超出范围
-        method setClip (boolean clip) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetClip(this.ui,clip);
-            return this;
-        }
-    }
-}
-//! endzinc
-//! zinc
-/*
-UI文本的共用方法
-*/
-library UITextModule {
-    // 定义共用的方法结构
-    public module uiTextModule {
-        // 设置标准字体大小
-        // size: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
-        method setFontSize (integer size) -> thistype {
-            real fontSize = 0.0095; // 修改默认值
-if (!this.isExist()) {return this;}
-            if (size == 1) {
-                fontSize = 0.006;
-            } else if (size == 2) {
-                fontSize = 0.008;
-            } else if (size == 3) {
-                fontSize = 0.009;
-            } else if (size == 4) {
-                fontSize = 0.0095; // 新的适中尺寸
-} else if (size == 5) {
-                fontSize = 0.01;
-            } else if (size == 6) {
-                fontSize = 0.011;
-            } else if (size == 7) {
-                fontSize = 0.012;
-            } else if (size == 8) {
-                fontSize = 0.015;
-            }
-            DzFrameSetFont(ui, "fonts\\zt.ttf", fontSize, 0);
-            return this;
-        }
-        // 设置对齐方式(前提要先定好大小,不然无处对齐)
-        // align: 可以使用0-8的简单数字,或TEXT_ALIGN_*常量
-        // 0=左上, 1=顶部居中, 2=右上
-        // 3=左中, 4=居中, 5=右中
-        // 6=左下, 7=底部居中, 8=右下
-        method setAlign (integer align) -> thistype {
-            integer finalAlign = align;
-            if (!this.isExist()) {return this;}
-            // 如果输入0-8,转换为对应的组合值
-            if (align >= 0 && align <= 8) {
-                if (align == 0) {
-                    finalAlign = 9; // 左上
-} else if (align == 1) {
-                    finalAlign = 17; // 顶部居中
-} else if (align == 2) {
-                    finalAlign = 33; // 右上
-} else if (align == 3) {
-                    finalAlign = 10; // 左中
-} else if (align == 4) {
-                    finalAlign = 18; // 居中
-} else if (align == 5) {
-                    finalAlign = 34; // 右中
-} else if (align == 6) {
-                    finalAlign = 12; // 左下
-} else if (align == 7) {
-                    finalAlign = 20; // 底部居中
-} else if (align == 8) {
-                    finalAlign = 36; // 右下
-}
-            }
-            DzFrameSetTextAlignment(ui, finalAlign);
-            return this;
-        }
-        // 设置文本内容
-        method setText (string text) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetText(ui,text);
-            return this;
-        }
-    }
-}
-//! endzinc
-// 结构体共用方法定义
-//共享打印方法
-// UI组件内部共享方法及成员
-// UI组件依赖库
-// UI组件创建时共享调用
-// UI组件销毁时共享调用
-//! zinc
-/*
-文字UI组件
-*/
-library UIText requires UIId, UITocInit, UIBaseModule, optional UILifeCycle,UITextModule {
-    public struct uiText {
-        // UI组件内部共享方法及成员
-        integer ui; 
- integer id; 
- method isExist () -> boolean {return (this != null && si__uiText_V[this] == -1);} 
- optional module uiLifeCycle; 
- module uiBaseModule;
-        // UI控件的共用方法
-        module uiTextModule; // UI文本的共用方法
-        // 创建文本
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("TEXT","Text" + I2S(id),parent,"T1",0);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 创建一个用在原生Frame里的文本,这种文本是不能destroy的!
-        // parent: 父级框架
-        static method createSimple (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            DzCreateFrameByTagName("SIMPLEFRAME", "Text" + I2S(id), parent, "简单文字", id);
-            ui = DzSimpleFontStringFindByName("简单文字内容", id);
-            DzFrameClearAllPoints(ui);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 绑定原生文本
-        // name: 文本名称(fdf写的text的名字)
-        // index: 文本索引(在外部创建时的填写的ID最后一个参数)
-        static method bindSimple (string name, integer index) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzSimpleFontStringFindByName(name, index);
-            DzFrameClearAllPoints(ui);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) { FlushChildHashtable(HASH_UI, ui); }
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
-    }
-}
-//! endzinc
-//! zinc
-/*
-图片UI组件
-*/
-library UIImage requires UIId,UITocInit,UIBaseModule,UIImageModule {
-    public struct uiImage {
-        // UI组件内部共享方法及成员
-        integer ui; 
- integer id; 
- method isExist () -> boolean {return (this != null && si__uiImage_V[this] == -1);} 
- optional module uiLifeCycle; 
- module uiBaseModule;
-        module uiImageModule; // UI图片的共用方法
-        // 创建图片
-        // parent: 父级框架
-        static method create (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzCreateFrameByTagName("BACKDROP","Img" + I2S(id),parent,"IT",0);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
-        // parent: 父级框架
-        static method createSimple (integer parent) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            DzCreateFrameByTagName("SIMPLEFRAME", "Img" + I2S(id), parent, "简单图片", id);
-            ui = DzSimpleTextureFindByName("简单图片内容", id);
-            DzFrameClearAllPoints(ui);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        // 绑定原生图片
-        // name: 图片名称(fdf写的image的名字)
-        // index: 图片索引(在外部创建时的填写的ID最后一个参数)
-        static method bindSimple (string name, integer index) -> thistype {
-            thistype this = allocate();
-            id = uiId.get();
-            ui = DzSimpleTextureFindByName(name, index);
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onCreateCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) {uiHashTable(ui).ui.bind(thistype.typeid,this); }
-            return this;
-        }
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            static if (LIBRARY_UILifeCycle) {uiLifeCycle.onDestroyCB(this,thistype.typeid,ui);} 
- static if (LIBRARY_UIHashTable) { FlushChildHashtable(HASH_UI, ui); }
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
-        }
-    }
-}
-//! endzinc
-// 按键ASCII码
-// 按键事件
-//! zinc
-/*
-键盘的输入事件监听
-*/
-library Keyboard requires BzAPI{
-    public struct keyboard[] {
-        private {
-            static trigger trsDown[]; // 按下事件
-static trigger trsUp[]; // 抬起事件
-static boolean isDown[]; // 是否按下
-}
-        // 注册一个键盘事件
-        static method regKeyDownEvent (integer keyCode, code func) {
-            if (trsDown[keyCode] == null) {
-                trsDown[keyCode] = CreateTrigger();
-                DzTriggerRegisterKeyEventByCode(null, keyCode, 1, false, function() {
-                    integer triggerKey = DzGetTriggerKey();
-                    if (!isDown[triggerKey]) {
-                        isDown[triggerKey] = true;
-                        TriggerEvaluate(trsDown[triggerKey]);
-                    }
-                });
-            }
-            TriggerAddCondition(trsDown[keyCode], Condition(func));
-        }
-        // 注册一个键盘事件
-        static method regKeyUpEvent (integer keyCode, code func) {
-            if (trsUp[keyCode] == null) {
-                trsUp[keyCode] = CreateTrigger();
-                DzTriggerRegisterKeyEventByCode(null, keyCode, 0, false, function() {
-                    integer triggerKey = DzGetTriggerKey();
-                    isDown[triggerKey] = false;
-                    TriggerEvaluate(trsUp[triggerKey]);
-                });
-            }
-            TriggerAddCondition(trsUp[keyCode], Condition(func));
-        }
-    }
-}
-//! endzinc
-//控件的共用基本方法
-//! zinc
-library UIBaseModule requires UIUtils {
-    // 定义共用的方法结构
-    public module uiBaseModule {
-        // 设置位置
-        method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
-            return this;
-        }
-        // 设置位置
-        method setPointFix (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY);
-            return this;
-        }
-        // 大小完全对齐父框架
-        method setAllPoint (integer relative) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAllPoints(ui,relative);
-            return this;
-        }
-        //绝对位置
-        method setAbsPoint (integer anchor, real x, real y) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAbsolutePoint(ui,anchor,x,y);
-            return this;
-        }
-        // 清除所有位置
-        method clearPoint () -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameClearAllPoints(ui);
-            return this;
-        }
-        // 设置大小
-        method setSize (real width, real height) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetSize(ui,width,height);
-            return this;
-        }
-        // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
-        method setSizeFix (real width, real height) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetSize(ui,width*GetResizeRate(),height);
-            return this;
-        }
-        // 显示控件
-        // 参数: boolean flag 是否显示
-        method show (boolean flag) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameShow(ui,flag);
-            return this;
-        }
-        //透明度(0-255)
-        method setAlpha (integer value) -> thistype {
-            if (!this.isExist()) {return this;}
-            DzFrameSetAlpha(ui,value);
-            return this;
-        }
-        optional module extendResize; //扩展自适应大小方法
-}
-}
-//! endzinc
-//窗口的大小
-//! zinc
-/*
-UI工具库
-*/
-library UIUtils requires BzAPI{
-	//获得现在的X / Y比例
-	//主要用于UI缩放
-	public function GetResizeRate () -> real {
-		if (DzGetWindowWidth() > 0) return DzGetWindowHeight()/ 600.0 * 800.0 / DzGetWindowWidth();
-		else return 1.0;
-	}
-	// 获取鼠标位置X(绝对坐标)[修正版]
-	public function GetMouseXEx () -> real {
-		integer width = DzGetClientWidth();
-		if (width > 0) return DzGetMouseXRelative()* 0.80 / width;
-		else return 0.1;
-	}
-	// 获取鼠标位置Y(绝对坐标)[修正版]
-	public function GetMouseYEx () -> real {
-		integer height = DzGetClientHeight();
-		if (height > 0) return 0.60 - DzGetMouseYRelative()* 0.60 / height;
-		else return 0.1;
-	}
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseX (real min,real max) -> real {
-		return RLimit(GetMouseXEx(),min,max);
-	}
-	// 限制一个值是在一定区域内以防UI超出这个区域
-	public function GetFixedMouseY (real min,real max) -> real {
-		return RLimit(GetMouseYEx(),min,max);
-	}
-}
-//! endzinc
-/*
-用来测量UI组件的尺寸
+单元测试框架(注入)
 */
 //! zinc
-library UnitTestUIRuler requires UIImage,UIText,UIUtils,Hardware,Keyboard {
+library UnitTestFramwork {
 	//单元测试总
 	trigger TUnitTest = null;
-    boolean isShowRuler = false; //是否显示尺子
-uiImage imageAnchor = 0; //锚点,按下Ctrl再点击鼠标左键定锚
-real anchorPosX = 0; //锚点X坐标
-real anchorPosY = 0; //锚点Y坐标
-uiImage imageRuler[]; //尺子(4把常规的)+一把锚点尺
-uiText textRuler[]; //尺子上的文字
-    //触发UI尺子调用这条就行了
-    public function InitTestUIRuler () {
-        DoNothing();
+    private hashtable HASH_UNITTEST = InitHashtable(); // 单元测试哈希表
+    //断言
+    public struct assert []{
+        //断言布尔值
+        static method Boolean (boolean condition,string name) {
+            if (!condition) {
+                BJDebugMsg("FAIL: " + name);
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+        //断言字符串相等
+        static method String(string actual, string expected, string name) {
+            if (actual != expected) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + expected);
+                BJDebugMsg("  Actual: " + actual);
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+        //断言整数相等
+        static method Integer(integer actual, integer expected, string name) {
+            if (actual != expected) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + I2S(expected));
+                BJDebugMsg("  Actual: " + I2S(actual));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+        //断言浮点数相等
+        static method Real(real actual, real expected, string name) {
+            real maxValue = RMaxBJ(RAbsBJ(actual), RAbsBJ(expected)); // 取两个数的绝对值的较大值
+real epsilon = maxValue * 0.00001; // 相对误差为数值大小的万分之一
+// 处理接近0的特殊情况
+if (maxValue < 0.00001) {
+                epsilon = 0.00001;
+            }
+            if (RAbsBJ(actual - expected) > epsilon) {
+                BJDebugMsg("FAIL: " + name);
+                BJDebugMsg("  Expected: " + R2SW(expected,0,1));
+                BJDebugMsg("  Actual: " + R2SW(actual,0,1));
+            } else {
+                BJDebugMsg("PASS: " + name);
+            }
+        }
+    }
+    //注册单元测试事件(聊天内容),自动注入
+    public function UnitTestRegisterChatEvent (code func) {
+        TriggerAddAction(TUnitTest, func);
+    }
+    //指定开始时间与持续时间的定时器
+    public function UnitTestAutoTimer (real time, real duration,code start, code end) {
+        trigger t = CreateTrigger();
+        trigger tr = CreateTrigger();
+        TriggerAddCondition(t, Condition(start));
+        TriggerRegisterTimerEvent(tr, time, false);
+        SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
+        SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
+        SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
+        TriggerAddCondition(tr,Condition(function (){
+            real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
+            real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
+            trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
+            BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]开始------");
+            TriggerEvaluate(tr);
+            DestroyTrigger(tr);
+            FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
+            DestroyTrigger(GetTriggeringTrigger());
+            tr = null;
+        }));
+        if (end != null) {
+            t = CreateTrigger();
+            tr = CreateTrigger();
+            TriggerAddCondition(t, Condition(end));
+            TriggerRegisterTimerEvent(tr, time+duration, false);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
+            SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
+            SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
+            TriggerAddCondition(tr,Condition(function (){
+                real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
+                real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
+                trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
+                TriggerEvaluate(tr);
+                BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]结束------");
+                DestroyTrigger(tr);
+                FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
+                DestroyTrigger(GetTriggeringTrigger());
+                tr = null;
+            }));
+        }
+        tr = null;
+        t = null;
     }
     function onInit () {
-        integer i;
-        trigger tr = CreateTrigger();
-        // 初始化锚点在地图中心
-        anchorPosX = 0.4;
-        anchorPosY = 0.3;
-        imageAnchor = uiImage.create(DzGetGameUI()) //锚点钉
-.setSize(0.005,0.005)
-            .show(false)
-            .setAbsPoint(4, anchorPosX, anchorPosY) // 设置初始位置
-.setTexture("UI\\MiniMap\\minimap-gold.blp");
-        for (1 <= i <= 5) {
-            imageRuler[i] = uiImage.create(DzGetGameUI());
-            textRuler[i] = uiText.create(DzGetGameUI()) //上
-.setAlign(4)
-                .show(false)
-                .setText("0.000");
-        }
-        // 创建尺子图像
-        for (1 <= i <= 2) { //上下
-imageRuler[i].setPoint(1, textRuler[i].ui, 1, 0, 0)
-                .setPoint(7, textRuler[i].ui, 7, 0, 0)
-                .setSize(0.01, 0.01)
-                .show(false)
-                .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
-        }
-        // 创建尺子图像
-        for (3 <= i <= 4) { //左右
-imageRuler[i].setAllPoint(textRuler[i].ui)
-                .show(false)
-                .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
-        }
-        // 创建锚点到鼠标的尺子
-        imageRuler[5].show(false)
-            .setAlpha(100)
-            .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
-        textRuler[5].setPoint(4, imageRuler[5].ui, 4, 0, 0)
-            .setSize(0.1, 0);
-        // ESC键切换显示/隐藏
-        keyboard.regKeyUpEvent(27, function (){
-            integer i;
-            isShowRuler = !isShowRuler;
-            if (isShowRuler) {
-                imageAnchor.show(true);
-                for (1 <= i <= 5) {
-                    imageRuler[i].show(true);
-                    textRuler[i].show(true);
-                }
-            } else {
-                imageAnchor.show(false);
-                for (1 <= i <= 5) {
-                    imageRuler[i].show(false);
-                    textRuler[i].show(false);
-                }
-            }
-        });
-        // 添加鼠标点击事件
-        hardware.regLeftUpEvent(function() {
-            real mouseX;
-            real mouseY;
-            if (!isShowRuler) return;
-            if (DzIsKeyDown(17)) {
-                mouseX = GetMouseXEx();
-                mouseY = GetMouseYEx();
-                imageAnchor.setAbsPoint(4, mouseX, mouseY);
-                anchorPosX = mouseX; // 记录锚点位置
-anchorPosY = mouseY;
-                BJDebugMsg("参考物位置: " + R2SW(mouseX, 7, 3) + " " + R2SW(mouseY, 7, 3));
-            } else {
-                // 添加打印边距信息
-                mouseX = GetMouseXEx();
-                mouseY = GetMouseYEx();
-                BJDebugMsg("距离边界: " +
-                "左=" + R2SW(mouseX, 7, 3) +
-                " 右=" + R2SW(0.8 - mouseX, 7, 3) +
-                " 上=" + R2SW(0.6 - mouseY, 7, 3) +
-                " 下=" + R2SW(mouseY, 7, 3));
-            }
-        });
-        // 鼠标移动事件
-        hardware.regMoveEvent(function (){
-            real mouseX, mouseY, dx, dy, width, height;
-            mouseX = GetMouseXEx();
-            mouseY = GetMouseYEx();
-            if (!isShowRuler) return;
-            // 更新上尺子
-            textRuler[1].setAbsPoint(1, mouseX, 0.6);
-            textRuler[1].setAbsPoint(7, mouseX, mouseY + 0.005);
-            textRuler[1].setText(R2SW(0.6 - mouseY, 7, 3));
-            // 更新下尺子
-            textRuler[2].setAbsPoint(1, mouseX, mouseY - 0.005);
-            textRuler[2].setAbsPoint(7, mouseX, 0);
-            textRuler[2].setText(R2SW(mouseY, 7, 3));
-            // 更新左尺子
-            textRuler[3].setAbsPoint(3, 0, mouseY);
-            textRuler[3].setAbsPoint(5, mouseX - 0.005, mouseY);
-            textRuler[3].setText(R2SW(mouseX, 7, 3));
-            // 更新右尺子
-            textRuler[4].setAbsPoint(3, mouseX + 0.005, mouseY);
-            textRuler[4].setAbsPoint(5, 0.8, mouseY);
-            textRuler[4].setText(R2SW(0.8 - mouseX, 7, 3));
-            // 计算x,y偏移并更新文本
-            dx = mouseX - anchorPosX;
-            dy = mouseY - anchorPosY;
-            // 计算尺子的宽高(尺子绝对值)
-            width = I2R(IAbsBJ(R2I(dx * 1000))) / 1000;
-            height = I2R(IAbsBJ(R2I(dy * 1000))) / 1000;
-            // 根据鼠标位置设置锚点和尺寸
-            if (mouseX >= anchorPosX) {
-                if (mouseY >= anchorPosY) {
-                    // 鼠标在右上
-                    imageRuler[5].clearPoint()
-                        .setAbsPoint(2, mouseX, mouseY)
-                        .setSize(width, height);
-                } else {
-                    // 鼠标在右下
-                    imageRuler[5].clearPoint()
-                        .setAbsPoint(8, mouseX, mouseY)
-                        .setSize(width, height);
-                }
-            } else {
-                if (mouseY >= anchorPosY) {
-                    // 鼠标在左上
-                    imageRuler[5].clearPoint()
-                        .setAbsPoint(0, mouseX, mouseY)
-                        .setSize(width, height);
-                } else {
-                    // 鼠标在左下
-                    imageRuler[5].clearPoint()
-                        .setAbsPoint(6, mouseX, mouseY)
-                        .setSize(width, height);
-                }
-            }
-            textRuler[5].setText("x:" + R2SW(dx, 7, 3) + " y:" + R2SW(dy, 7, 3));
-        });
         //在游戏开始0.1秒后再调用
+        trigger tr = CreateTrigger();
         TriggerRegisterTimerEvent(tr, 0.1, false);
         TriggerAddCondition(tr,Condition(function (){
-            BJDebugMsg("[已注入UI尺子,按下Ctrl+点击设置锚点,按下Esc开启/关闭尺子]");
+            integer i;
+            for (1 <= i <= 12) {
+				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
+                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, bj_mapInitialPlayableArea ); //迷雾全关
+}
             DestroyTrigger(GetTriggeringTrigger());
         }));
         tr = null;
+		TUnitTest = CreateTrigger();
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
+		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
     }
-}
-//! endzinc
-library LBKKAPI 
-        globals 
-                string MOVE_TYPE_NONE = "none" //没有（无视碰撞）  
-string MOVE_TYPE_FOOT = "foot" //步行  
-string MOVE_TYPE_HORSE = "horse" //骑马  
-string MOVE_TYPE_FLY = "fly" //飞行（还具有空中视野，也可以设置飞行高度）  
-string MOVE_TYPE_HOVER = "hover" //浮空（不会踩中地雷）  
-string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）  
-string MOVE_TYPE_AMPH = "amph" //两栖  
-string MOVE_TYPE_UNBUILD = "unbuild" //不可建造  
-constant integer DEFENSE_TYPE_LIGHT = 0 
-		constant integer DEFENSE_TYPE_MEDIUM = 1 
-		constant integer DEFENSE_TYPE_LARGE = 2 
-		constant integer DEFENSE_TYPE_FORT = 3 
-		constant integer DEFENSE_TYPE_NORMAL = 4 
-		constant integer DEFENSE_TYPE_HERO = 5 
-		constant integer DEFENSE_TYPE_DIVINE = 6 
-		constant integer DEFENSE_TYPE_NONE = 7 
-        endglobals 
-        native DzGetSelectedLeaderUnit takes nothing returns unit 
-        native DzIsChatBoxOpen takes nothing returns boolean 
-        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
-        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
-        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
-        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
-        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
-        native DzSetEffectModel takes effect whichEffect, string model returns nothing
-        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
-        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
-        native DzChangeWindowSize takes integer width, integer height returns boolean 
-        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
-        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
-        native DzUnbindEffect takes effect whichEffect returns nothing 
-        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
-        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
-        native DzGetEffectVertexColor takes effect whichEffect returns integer 
-        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
-        native DzGetItemAbility takes item whichEffect, integer index returns ability 
-        native DzFrameGetChildrenCount takes integer whichframe returns integer 
-        native DzFrameGetChild takes integer whichframe, integer index returns integer 
-        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
-        native DzGetActivePatron takes unit store, player p returns unit 
-        native DzGetLocalSelectUnitCount takes nothing returns integer 
-        native DzGetLocalSelectUnit takes integer index returns unit 
-        native DzGetJassStringTableCount takes nothing returns integer 
-        native DzModelRemoveFromCache takes string path returns nothing 
-        native DzModelRemoveAllFromCache takes nothing returns nothing 
-        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
-        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
-        native DzFrameGetPeonBar takes nothing returns integer 
-        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
-        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
-        native DzToggleFPS takes boolean show returns nothing 
-        native DzGetFPS takes nothing returns integer 
-        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
-        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
-        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
-        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
-        native DzFrameGetWorldFrameMessage takes nothing returns integer 
-        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
-        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
-        //转换屏幕坐标到世界坐标  
-        native DzConvertScreenPositionX takes real x, real y returns real 
-        native DzConvertScreenPositionY takes real x, real y returns real 
-        //监听建筑选位置  
-        native DzRegisterOnBuildLocal takes code func returns nothing 
-        //等于0时是结束事件  
-        native DzGetOnBuildOrderId takes nothing returns integer 
-        native DzGetOnBuildOrderType takes nothing returns integer 
-        native DzGetOnBuildAgent takes nothing returns widget 
-        //监听技能选目标  
-        native DzRegisterOnTargetLocal takes code func returns nothing 
-        //等于0时是结束事件  
-        native DzGetOnTargetAbilId takes nothing returns integer 
-        native DzGetOnTargetOrderId takes nothing returns integer 
-        native DzGetOnTargetOrderType takes nothing returns integer 
-        native DzGetOnTargetAgent takes nothing returns widget 
-        native DzGetOnTargetInstantTarget takes nothing returns widget 
-        // 打开QQ群链接  
-        native DzOpenQQGroupUrl takes string url returns boolean 
-        native DzFrameEnableClipRect takes boolean enable returns nothing 
-        native DzSetUnitName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
-        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
-        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
-        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
-        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
-        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
-        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
-        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
-        native DzGetAttackAbility takes unit whichUnit returns ability 
-        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
-        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
-        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
-        function DzSetHeroTypeProperName takes integer uid, string name returns nothing 
-                call EXSetUnitArrayString(uid, 61, 0, name) 
-                call EXSetUnitInteger(uid, 61, 1) 
-        endfunction 
-        function DzSetUnitTypeName takes integer uid, string name returns nothing 
-                call EXSetUnitArrayString(uid, 10, 0, name) 
-                call EXSetUnitInteger(uid, 10, 1) 
-        endfunction 
-        function DzIsUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns boolean 
-                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType 
-        endfunction 
-        function DzSetUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns nothing 
-                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType)) 
-        endfunction 
-        function DzIsUnitDefenseType takes unit whichUnit, integer defenseType returns boolean 
-                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType 
-        endfunction 
-        function DzSetUnitDefenseType takes unit whichUnit, integer defenseType returns nothing 
-                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType) 
-        endfunction 
-        // 地形装饰物
-        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
-        native DzDoodadGetTypeId takes integer doodad returns integer 
-        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
-        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
-        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
-        native DzDoodadGetX takes integer doodad returns real 
-        native DzDoodadGetY takes integer doodad returns real 
-        native DzDoodadGetZ takes integer doodad returns real 
-        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
-        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
-        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
-        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
-        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
-        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
-        native DzDoodadGetTimeScale takes integer doodad returns real 
-        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
-        native DzDoodadGetAnimationCount takes integer doodad returns integer 
-        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
-        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
-        // 解锁JASS字节码限制
-        native DzUnlockOpCodeLimit takes boolean enable returns nothing
-        // 设置剪切板内容
-        native DzSetClipboard takes string content returns boolean
-        //删除装饰物
-        native DzDoodadRemove takes integer doodad returns nothing
-        //移除科技等级
-        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
-        
-        // 查找单位技能
-        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
-        // 修改技能数据-字符串
-        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
-                
-        // 启用/禁用技能
-        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
-        // 设置单位移动类型
-        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
-        // 获取控件宽度
-        native DzFrameGetWidth takes integer frame returns real
-        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
-        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
-        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
-        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
-                call DzSetUnitDataCacheInteger( uid, id, 0, v)
-        endfunction
-        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 94, id, v)
-        endfunction
-        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 100, id, v)
-        endfunction
-        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 112, id, v)
-        endfunction
-        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 106, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 118, id, v)
-        endfunction
-        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 124, id, v)
-        endfunction
-        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 130, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
-        endfunction
-        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
-                call DzUnitUIAddLevelArrayInteger( uid, 172, id, v)
-        endfunction
-         // 设置道具模型
-        native DzItemSetModel takes item whichItem, string file returns nothing
-        // 设置道具颜色
-        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
-        // 设置道具透明度
-        native DzItemSetAlpha takes item whichItem, integer color returns nothing
-        // 设置道具头像
-        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
-endlibrary
-// [DzSetUnitMoveType]  
-// title = "设置单位移动类型[NEW]"  
-// description = "设置 ${单位} 的移动类型：${movetype} "  
-// comment = ""  
-// category = TC_KKPRE  
-// [[.args]]  
-// type = unit  
-// [[.args]]  
-// type = MoveTypeName  
-// default = MoveTypeName01  
-//! zinc
-/*
-结构体
-硬件事件(按/滑/帧事件)
-*/
-library Hardware requires BzAPI {
-	public struct hardware []{
-		// 注册一个左键抬起事件
-		static method regLeftUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,1,0,false,func);
-		}
-		// 注册一个左键按下事件
-		static method regLeftDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,1,1,false,func);
-		}
-		// 注册一个右键按下事件
-		static method regRightDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,2,1,false,func);
-		}
-		// 注册一个右键抬起事件
-		static method regRightUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,2,0,false,func);
-		}
-		// 注册一个滚轮事件,不能异步注册
-		static method regWheelEvent (code func) {
-			if (trWheel == null) {trWheel = CreateTrigger();}
-			TriggerAddCondition(trWheel, Condition(func));
-		}
-		// 注册一个绘制事件,不能异步注册
-		static method regUpdateEvent (code func) {
-			if (trUpdate == null) {trUpdate = CreateTrigger();}
-			TriggerAddCondition(trUpdate, Condition(func));
-		}
-		// 注册一个窗口变化事件,不能异步注册
-		static method regResizeEvent (code func) {
-			if (trResize == null) {trResize = CreateTrigger();}
-			TriggerAddCondition(trResize, Condition(func));
-		}
-		// 注册一个鼠标移动事件,不能异步注册
-		static method regMoveEvent (code func) {
-			BJDebugMsg("注册鼠标移动事件");
-			if (trMove == null) {trMove = CreateTrigger();}
-			TriggerAddCondition(trMove, Condition(func));
-		}
-		// 获取鼠标的实数坐标X(0-0.8)
-		static method getMouseX () -> real {
-			integer width = DzGetClientWidth();
-			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
-			else return 0.1;
-		}
-		// 获取鼠标的实数坐标Y(0-0.6)
-		static method getMouseY () -> real {
-			integer height = DzGetClientHeight();
-			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
-			else return 0.1; // 防止除以0
-}
-		private {
-			static trigger trWheel = null;
-			static trigger trUpdate = null;
-			static trigger trResize = null;
-			static trigger trMove = null;
-		}
-		static method onInit () {
-			//在游戏开始0.0秒后再调用
-			trigger tr = CreateTrigger();
-			TriggerRegisterTimerEvent(tr, 0.0, false);
-			TriggerAddCondition(tr,Condition(function (){
-				// 滚轮事件
-				DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
-					TriggerEvaluate(trWheel);
-				});
-				// 帧绘制事件
-				DzFrameSetUpdateCallbackByCode(function (){
-					TriggerEvaluate(trUpdate);
-				});
-				// 窗口大小变化事件
-				DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
-				 TriggerEvaluate(trResize);
-				});
-				// 鼠标移动事件
-				DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
-				 TriggerEvaluate(trMove);
-				});
-				DestroyTrigger(GetTriggeringTrigger());
-			}));
-			tr = null;
-		}
-	}
 }
 //! endzinc
 library BzAPI
@@ -1304,181 +361,898 @@ library BzAPI
     endfunction
     
 endlibrary
+library DzAPI
+    native DzAPI_Map_HasMallItem takes player whichPlayer, string key returns boolean
+    native DzAPI_Map_GetMapLevel takes player whichPlayer returns integer
+    // native DzAPI_Map_GetGuildName takes player whichPlayer returns string
+    native RequestExtraIntegerData takes integer dataType, player whichPlayer, string param1, string param2, boolean param3, integer param4, integer param5, integer param6 returns integer
+    native RequestExtraBooleanData takes integer dataType, player whichPlayer, string param1, string param2, boolean param3, integer param4, integer param5, integer param6 returns boolean
+    native RequestExtraStringData takes integer dataType, player whichPlayer, string param1, string param2, boolean param3, integer param4, integer param5, integer param6 returns string
+    native RequestExtraRealData takes integer dataType, player whichPlayer, string param1, string param2, boolean param3, integer param4, integer param5, integer param6 returns real
+    
+    // SaveServerValue,               //保存服务器存档
+    function DzAPI_Map_SaveServerValue takes player whichPlayer, string key, string value returns boolean
+        return RequestExtraBooleanData(4, whichPlayer, key, value, false, 0, 0, 0)
+    endfunction
+    // GetServerValue,                //读取服务器存档
+    function DzAPI_Map_GetServerValue takes player whichPlayer, string key returns string
+        return RequestExtraStringData(5, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // GetGameStartTime,              //取游戏开始时间
+    function DzAPI_Map_GetGameStartTime takes nothing returns integer
+        return RequestExtraIntegerData(11, null, null, null, false, 0, 0, 0)
+    endfunction
+    // IsRPGLadder,                   //判断当前是否rpg天梯
+    function DzAPI_Map_IsRPGLadder takes nothing returns boolean
+        return RequestExtraBooleanData(12, null, null, null, false, 0, 0, 0)
+    endfunction
+    // GetMatchType,                  //获取匹配类型
+    function DzAPI_Map_GetMatchType takes nothing returns integer
+        return RequestExtraIntegerData(13, null, null, null, false, 0, 0, 0)
+    endfunction
+        // SetStat,                       //统计-提交地图数据
+    function DzAPI_Map_Stat_SetStat takes player whichPlayer, string key, string value returns nothing
+        call RequestExtraIntegerData(7, whichPlayer, key, value, false, 0, 0, 0)
+    endfunction
+    // SetLadderStat,                 //天梯-统计数据
+    function DzAPI_Map_Ladder_SetStat takes player whichPlayer, string key, string value returns nothing
+        call RequestExtraIntegerData(8, whichPlayer, key, value, false, 0, 0, 0)
+    endfunction
+    // SetLadderPlayerStat,           //天梯-统计数据
+    function DzAPI_Map_Ladder_SetPlayerStat takes player whichPlayer, string key, string value returns nothing
+        call RequestExtraIntegerData(9, whichPlayer, key, value, false, 0, 0, 0)
+    endfunction
+        // GetServerValueErrorCode,       //读取加载服务器存档时的错误码
+    function DzAPI_Map_GetServerValueErrorCode takes player whichPlayer returns integer
+        return RequestExtraIntegerData(6, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    // GetLadderLevel,                //提供给地图的接口，用与取天梯等级
+    function DzAPI_Map_GetLadderLevel takes player whichPlayer returns integer
+        return RequestExtraIntegerData(14, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    // PlayerIdentityType, // 获取玩家身份类型
+    function KKApiPlayerIdentityType takes player whichPlayer, integer id returns boolean
+        return RequestExtraBooleanData(92, whichPlayer, null, null, false, id, 0, 0)
+    endfunction
+    // IsRedVIP,                      //提供给地图的接口，用与判断是否红V
+    function DzAPI_Map_IsRedVIP takes player whichPlayer returns boolean
+        return KKApiPlayerIdentityType(whichPlayer, 4)
+    endfunction
+    // IsBlueVIP,                     //提供给地图的接口，用与判断是否蓝V
+    function DzAPI_Map_IsBlueVIP takes player whichPlayer returns boolean
+        return KKApiPlayerIdentityType(whichPlayer, 3)
+    endfunction
+    // GetLadderRank,                 //提供给地图的接口，用与取天梯排名
+    function DzAPI_Map_GetLadderRank takes player whichPlayer returns integer
+        return RequestExtraIntegerData(17, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    // GetMapLevelRank,               //提供给地图的接口，用与取地图等级排名
+    function DzAPI_Map_GetMapLevelRank takes player whichPlayer returns integer
+        return RequestExtraIntegerData(18, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    // GetGuildRole,                  //获取公会职责 Member=10 Admin=20 Leader=30
+    function DzAPI_Map_GetGuildRole takes player whichPlayer returns integer
+        return RequestExtraIntegerData(20, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    // IsRPGLobby,                    //检查是否大厅地图
+    function DzAPI_Map_IsRPGLobby takes nothing returns boolean
+        return RequestExtraBooleanData(10, null, null, null, false, 0, 0, 0)
+    endfunction
+    
+    // MissionComplete,               //用作完成某个任务，发奖励
+    function DzAPI_Map_MissionComplete takes player whichPlayer, string key, string value returns nothing
+        call RequestExtraIntegerData(1, whichPlayer, key, value, false, 0, 0, 0)
+    endfunction
+    // GetActivityData,               //提供给地图的接口，用作取服务器上的活动数据
+    function DzAPI_Map_GetActivityData takes nothing returns string
+        return RequestExtraStringData(2, null, null, null, false, 0, 0, 0)
+    endfunction
+    // GetMapConfig,                  //获取地图配置
+    function DzAPI_Map_GetMapConfig takes string key returns string
+        return RequestExtraStringData(21, null, key, null, false, 0, 0, 0)
+    endfunction
+    // SavePublicArchive,             //保存服务器存档组
+    function DzAPI_Map_SavePublicArchive takes player whichPlayer, string key, string value returns boolean
+        return RequestExtraBooleanData(31, whichPlayer, key, value, false, 0, 0, 0)
+    endfunction
+    // GetPublicArchive,              //读取服务器存档组
+    function DzAPI_Map_GetPublicArchive takes player whichPlayer, string key returns string
+        return RequestExtraStringData(32, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_UseConsumablesItem takes player whichPlayer, string key returns nothing
+        call RequestExtraIntegerData(33, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // OrpgTrigger,                   //触发boss击杀
+    function DzAPI_Map_OrpgTrigger takes player whichPlayer, string key returns nothing
+        call RequestExtraIntegerData(28, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // GetServerArchiveDrop,          //读取服务器掉落数据
+    function DzAPI_Map_GetServerArchiveDrop takes player whichPlayer, string key returns string
+        return RequestExtraStringData(27, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // GetServerArchiveEquip,         //读取服务器装备数据
+    function DzAPI_Map_GetServerArchiveEquip takes player whichPlayer, string key returns integer
+        return RequestExtraIntegerData(26, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_GetPlatformVIP takes player whichPlayer returns integer
+        return RequestExtraIntegerData(30, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_IsPlatformVIP takes player whichPlayer returns boolean
+        return DzAPI_Map_GetPlatformVIP(whichPlayer) > 0
+    endfunction
+    function DzAPI_Map_Global_GetStoreString takes string key returns string
+        return RequestExtraStringData(36, GetLocalPlayer(), key, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_Global_StoreString takes string key, string value returns nothing
+        call RequestExtraBooleanData(37, GetLocalPlayer(), key, value, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_Global_ChangeMsg takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZGAU", true)
+    endfunction
+    function DzAPI_Map_ServerArchive takes player whichPlayer, string key returns string
+        return RequestExtraStringData(38, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_SaveServerArchive takes player whichPlayer, string key, string value returns nothing
+        call RequestExtraBooleanData(39, whichPlayer, key, value, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_IsRPGQuickMatch takes nothing returns boolean
+        return RequestExtraBooleanData(40, null, null, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_GetMallItemCount takes player whichPlayer, string key returns integer
+        return RequestExtraIntegerData(41, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_ConsumeMallItem takes player whichPlayer, string key, integer count returns boolean
+        return RequestExtraBooleanData(42, whichPlayer, key, null, false, count, 0, 0)
+    endfunction
+    function DzAPI_Map_EnablePlatformSettings takes player whichPlayer, integer option, boolean enable returns boolean
+        return RequestExtraBooleanData(43, whichPlayer, null, null, enable, option, 0, 0)
+    endfunction
+    function GetPlayerServerValueSuccess takes player whichPlayer returns boolean
+        if(DzAPI_Map_GetServerValueErrorCode(whichPlayer)==0)then
+            return true
+        else
+            return false
+        endif
+    endfunction
+    function DzAPI_Map_StoreIntegerEX takes player whichPlayer, string key, integer value returns nothing
+        set key="I"+key
+        call RequestExtraBooleanData(39, whichPlayer, key, I2S(value), false, 0, 0, 0)
+        set key=null
+        set whichPlayer=null
+    endfunction
+    function DzAPI_Map_GetStoredIntegerEX takes player whichPlayer, string key returns integer
+        local integer value
+        set key="I"+key
+        set value=S2I(RequestExtraStringData(38, whichPlayer, key, null, false, 0, 0, 0))
+        set key=null
+        set whichPlayer=null
+        return value
+    endfunction
+    function DzAPI_Map_StoreInteger takes player whichPlayer, string key, integer value returns nothing
+        set key="I"+key
+        call DzAPI_Map_SaveServerValue(whichPlayer,key,I2S(value))
+        set key=null
+        set whichPlayer=null
+    endfunction
+    function DzAPI_Map_GetStoredInteger takes player whichPlayer, string key returns integer
+        local integer value
+        set key="I"+key
+        set value=S2I(DzAPI_Map_GetServerValue(whichPlayer,key))
+        set key=null
+        set whichPlayer=null
+        return value
+    endfunction
+        function DzAPI_Map_CommentTotalCount1 takes player whichPlayer, integer id returns integer
+            return RequestExtraIntegerData(52, whichPlayer, null, null, false, id, 0, 0)
+    endfunction
+    function DzAPI_Map_StoreReal takes player whichPlayer, string key, real value returns nothing
+        set key="R"+key
+        call DzAPI_Map_SaveServerValue(whichPlayer,key,R2S(value))
+        set key=null
+        set whichPlayer=null
+    endfunction
+    function DzAPI_Map_GetStoredReal takes player whichPlayer, string key returns real
+        local real value
+        set key="R"+key
+        set value=S2R(DzAPI_Map_GetServerValue(whichPlayer,key))
+        set key=null
+        set whichPlayer=null
+        return value
+    endfunction
+    function DzAPI_Map_StoreBoolean takes player whichPlayer, string key, boolean value returns nothing
+        set key="B"+key
+        if(value)then
+            call DzAPI_Map_SaveServerValue(whichPlayer,key,"1")
+        else
+            call DzAPI_Map_SaveServerValue(whichPlayer,key,"0")
+        endif
+        set key=null
+        set whichPlayer=null
+    endfunction
+    function DzAPI_Map_GetStoredBoolean takes player whichPlayer, string key returns boolean
+        local boolean value
+        set key="B"+key
+        set key=DzAPI_Map_GetServerValue(whichPlayer,key)
+        if(key=="1")then
+            set value=true
+        else
+            set value=false
+        endif
+        set key=null
+        set whichPlayer=null
+        return value
+    endfunction
+    function DzAPI_Map_StoreString takes player whichPlayer, string key, string value returns nothing
+        set key="S"+key
+        call DzAPI_Map_SaveServerValue(whichPlayer,key,value)
+        set key=null
+        set whichPlayer=null
+    endfunction
+    function DzAPI_Map_GetStoredString takes player whichPlayer, string key returns string
+        return DzAPI_Map_GetServerValue(whichPlayer,"S"+key)
+    endfunction
+    function DzAPI_Map_StoreStringEX takes player whichPlayer, string key, string value returns nothing
+        set key="S"+key
+        call RequestExtraBooleanData(39, whichPlayer,key,value,false,0,0,0)
+        set key=null
+        set whichPlayer=null
+    endfunction
+    function DzAPI_Map_GetStoredStringEX takes player whichPlayer, string key returns string
+        return RequestExtraStringData(38, whichPlayer,"S"+key,null,false,0,0,0)
+    endfunction
+    function DzAPI_Map_GetStoredUnitType takes player whichPlayer, string key returns integer
+        local integer value
+        set key="I"+key
+        set value=S2I(DzAPI_Map_GetServerValue(whichPlayer,key))
+        set key=null
+        set whichPlayer=null
+        return value
+    endfunction
+    function DzAPI_Map_GetStoredAbilityId takes player whichPlayer, string key returns integer
+        local integer value
+        set key="I"+key
+        set value=S2I(DzAPI_Map_GetServerValue(whichPlayer,key))
+        set key=null
+        set whichPlayer=null
+        return value
+    endfunction
+    function DzAPI_Map_FlushStoredMission takes player whichPlayer, string key returns nothing
+        call DzAPI_Map_SaveServerValue(whichPlayer,key,null)
+        set key=null
+        set whichPlayer=null
+    endfunction
+    function DzAPI_Map_Ladder_SubmitIntegerData takes player whichPlayer, string key, integer value returns nothing
+        call DzAPI_Map_Ladder_SetStat(whichPlayer,key,I2S(value))
+    endfunction
+    function DzAPI_Map_Stat_SubmitUnitIdData takes player whichPlayer, string key,integer value returns nothing
+        if(value==0)then
+            //call DzAPI_Map_Ladder_SetStat(whichPlayer,key,"0")
+        else
+            call DzAPI_Map_Ladder_SetStat(whichPlayer,key,I2S(value))
+        endif
+    endfunction
+    function DzAPI_Map_Stat_SubmitUnitData takes player whichPlayer, string key,unit value returns nothing
+        call DzAPI_Map_Stat_SubmitUnitIdData(whichPlayer,key,GetUnitTypeId(value))
+    endfunction
+    function DzAPI_Map_Ladder_SubmitAblityIdData takes player whichPlayer, string key, integer value returns nothing
+        if(value==0)then
+            //call DzAPI_Map_Ladder_SetStat(whichPlayer,key,"0")
+        else
+            call DzAPI_Map_Ladder_SetStat(whichPlayer,key,I2S(value))
+        endif
+    endfunction
+    function DzAPI_Map_Ladder_SubmitItemIdData takes player whichPlayer, string key, integer value returns nothing
+        local string S
+        if(value==0)then
+            set S="0"
+        else
+            set S=I2S(value)
+            call DzAPI_Map_Ladder_SetStat(whichPlayer,key,S)
+        endif
+        //call DzAPI_Map_Ladder_SetStat(whichPlayer,key,S)
+        set S=null
+        set whichPlayer=null
+    endfunction
+    function DzAPI_Map_Ladder_SubmitItemData takes player whichPlayer, string key, item value returns nothing
+        call DzAPI_Map_Ladder_SubmitItemIdData(whichPlayer,key,GetItemTypeId(value))
+    endfunction
+    function DzAPI_Map_Ladder_SubmitBooleanData takes player whichPlayer, string key,boolean value returns nothing
+        if(value)then
+            call DzAPI_Map_Ladder_SetStat(whichPlayer,key,"1")
+        else
+            call DzAPI_Map_Ladder_SetStat(whichPlayer,key,"0")
+        endif
+    endfunction
+    function DzAPI_Map_Ladder_SubmitTitle takes player whichPlayer, string value returns nothing
+        call DzAPI_Map_Ladder_SetStat(whichPlayer,value,"1")
+    endfunction
+    function DzAPI_Map_Ladder_SubmitPlayerRank takes player whichPlayer, integer value returns nothing
+        call DzAPI_Map_Ladder_SetPlayerStat(whichPlayer,"RankIndex",I2S(value))
+    endfunction
+    function DzAPI_Map_Ladder_SubmitPlayerExtraExp takes player whichPlayer, integer value returns nothing
+        call DzAPI_Map_Ladder_SetStat(whichPlayer,"ExtraExp",I2S(value))
+    endfunction
+    function DzAPI_Map_PlayedGames takes player whichPlayer returns integer
+        return RequestExtraIntegerData(45, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_CommentCount takes player whichPlayer returns integer
+        return RequestExtraIntegerData(46, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_FriendCount takes player whichPlayer returns integer
+        return RequestExtraIntegerData(47, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_IsConnoisseur takes player whichPlayer returns boolean
+        return RequestExtraBooleanData(48, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_IsAuthor takes player whichPlayer returns boolean
+        return RequestExtraBooleanData(50, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_CommentTotalCount takes nothing returns integer
+        return RequestExtraIntegerData(51, null, null, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_Statistics takes player whichPlayer, string eventKey, string eventType, integer value returns nothing
+        call RequestExtraBooleanData(34, whichPlayer, eventKey, eventType, false, value, 0, 0)
+    endfunction
+    function DzAPI_Map_Returns takes player whichPlayer, integer label returns boolean
+        return RequestExtraBooleanData(53, whichPlayer, null, null, false, label, 0, 0)
+    endfunction
+    function DzAPI_Map_ContinuousCount takes player whichPlayer, integer id returns integer
+        return RequestExtraIntegerData(54, whichPlayer, null, null, false, id, 0, 0)
+    endfunction
+    // IsPlayer,                      //是否为玩家
+    function DzAPI_Map_IsPlayer takes player whichPlayer returns boolean
+        return RequestExtraBooleanData(55, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    // MapsTotalPlayed,               //所有地图的总游戏时长
+    function DzAPI_Map_MapsTotalPlayed takes player whichPlayer returns integer
+        return RequestExtraIntegerData(56, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    // MapsLevel,                    //指定地图的地图等级
+    function DzAPI_Map_MapsLevel takes player whichPlayer, integer mapId returns integer
+        return RequestExtraIntegerData(57, whichPlayer, null, null, false, mapId, 0, 0)
+    endfunction
+    // MapsConsumeGold,              //所有地图的金币消耗
+    function DzAPI_Map_MapsConsumeGold takes player whichPlayer, integer mapId returns integer
+        return RequestExtraIntegerData(58, whichPlayer, null, null, false, mapId, 0, 0)
+    endfunction
+    // MapsConsumeLumber,            //所有地图的木材消耗
+    function DzAPI_Map_MapsConsumeLumber takes player whichPlayer, integer mapId returns integer
+        return RequestExtraIntegerData(59, whichPlayer, null, null, false, mapId, 0, 0)
+    endfunction
+    // MapsConsumeLv1,               //消费 1-199
+    function DzAPI_Map_MapsConsumeLv1 takes player whichPlayer, integer mapId returns boolean
+        return RequestExtraBooleanData(60, whichPlayer, null, null, false, mapId, 0, 0)
+    endfunction
+    // MapsConsumeLv2,               //消费 200-499
+    function DzAPI_Map_MapsConsumeLv2 takes player whichPlayer, integer mapId returns boolean
+        return RequestExtraBooleanData(61, whichPlayer, null, null, false, mapId, 0, 0)
+    endfunction
+    // MapsConsumeLv3,               //消费 500~999
+    function DzAPI_Map_MapsConsumeLv3 takes player whichPlayer, integer mapId returns boolean
+        return RequestExtraBooleanData(62, whichPlayer, null, null, false, mapId, 0, 0)
+    endfunction
+    // MapsConsumeLv4,               //消费 1000+
+    function DzAPI_Map_MapsConsumeLv4 takes player whichPlayer, integer mapId returns boolean
+        return RequestExtraBooleanData(63, whichPlayer, null, null, false, mapId, 0, 0)
+    endfunction
+    // IsPlayerUsingSkin,            //检查是否装备着皮肤（skinType：头像=1、边框=2、称号=3、底纹=4）
+    function DzAPI_Map_IsPlayerUsingSkin takes player whichPlayer, integer skinType, integer id returns boolean
+        return RequestExtraBooleanData(64,whichPlayer, null, null, false, skinType, id, 0)
+    endfunction
+    //获取论坛数据（0=累计获得赞数，1=精华帖数量，2=发表回复次数，3=收到的欢乐数，4=是否发过贴子，5=是否版主，6=主题数量）
+    function DzAPI_Map_GetForumData takes player whichPlayer, integer whichData returns integer
+        return RequestExtraIntegerData(65, whichPlayer, null, null, false, whichData, 0, 0)
+    endfunction
+    // PlayerFlags,                   //玩家标记 label（1=曾经是平台回流用户，2=当前是平台回流用户，4=曾经是地图回流用户，8=当前是地图回流用户，16=地图是否被玩家收藏）
+    function DzAPI_Map_PlayerFlags takes player whichPlayer, integer label returns boolean
+        return RequestExtraBooleanData(53, whichPlayer, null, null, false, label, 0, 0)
+    endfunction
+    // GetLotteryUsedCount, // 获取宝箱抽取次数
+    function DzAPI_Map_GetLotteryUsedCountEx takes player whichPlayer,integer index returns integer
+        return RequestExtraIntegerData(68, whichPlayer, null, null, false, index, 0, 0)
+    endfunction
+    function DzAPI_Map_GetLotteryUsedCount takes player whichPlayer returns integer
+        return DzAPI_Map_GetLotteryUsedCountEx(whichPlayer,0)+DzAPI_Map_GetLotteryUsedCountEx(whichPlayer,1)+DzAPI_Map_GetLotteryUsedCountEx(whichPlayer,2)
+    endfunction
+    function DzAPI_Map_OpenMall takes player whichPlayer,string whichkey returns boolean
+        return RequestExtraBooleanData(66, whichPlayer, whichkey, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_GameResult_CommitData takes player whichPlayer, string key, string value returns nothing
+        call RequestExtraIntegerData(69, whichPlayer, key, value, false, 0, 0, 0)
+    endfunction
+    //游戏结算
+    function DzAPI_Map_GameResult_CommitTitle takes player whichPlayer, string value returns nothing
+        call DzAPI_Map_GameResult_CommitData(whichPlayer,value,"1")
+        set whichPlayer=null
+        set value=null
+    endfunction
+    function DzAPI_Map_GameResult_CommitPlayerRank takes player whichPlayer, integer value returns nothing
+        call DzAPI_Map_GameResult_CommitData(whichPlayer,"RankIndex",I2S(value))
+        set whichPlayer=null
+        set value=0
+    endfunction
+    function DzAPI_Map_GameResult_CommitGameMode takes string value returns nothing
+        call DzAPI_Map_GameResult_CommitData(GetLocalPlayer(),"InnerGameMode",value)
+        set value=null
+    endfunction
+    function DzAPI_Map_GameResult_CommitGameResult takes player whichPlayer, integer value returns nothing
+        call DzAPI_Map_GameResult_CommitData(whichPlayer,"GameResult",I2S(value))
+        set whichPlayer=null
+    endfunction
+    function DzAPI_Map_GameResult_CommitGameResultNoEnd takes player whichPlayer, integer value returns nothing
+        call DzAPI_Map_GameResult_CommitData(whichPlayer,"GameResultNoEnd",I2S(value))
+        set whichPlayer=null
+    endfunction
+    // GetSinceLastPlayedSeconds, // 获取距最后一次游戏的秒数
+    function DzAPI_Map_GetSinceLastPlayedSeconds takes player whichPlayer returns integer
+        return RequestExtraIntegerData(70, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    // QuickBuy, //游戏内快速购买
+    function DzAPI_Map_QuickBuy takes player whichPlayer, string key, integer count, integer seconds returns boolean
+        return RequestExtraBooleanData(72, whichPlayer, key, null, false, count, seconds, 0)
+    endfunction
+    // CancelQuickBuy, //取消快速购买
+    function DzAPI_Map_CancelQuickBuy takes player whichPlayer returns boolean
+        return RequestExtraBooleanData(73, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    //判断是加载成功某个玩家的道具
+    function DzAPI_Map_PlayerLoadedItems takes player whichPlayer returns boolean
+        return RequestExtraBooleanData(77, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    function DzAPI_Map_CustomRankCount takes integer id returns integer
+        return RequestExtraIntegerData(78, null, null, null, false, id, 0, 0)
+    endfunction
+    // CustomRankPlayerName            // 获取排行榜上指定排名的用户名称
+    function DzAPI_Map_CustomRankPlayerName takes integer id, integer ranking returns string
+        return RequestExtraStringData(79, null, null, null, false, id, ranking, 0)
+    endfunction
+    // CustomRankPlayerValue           // 获取排行榜上指定排名的值
+    function DzAPI_Map_CustomRankValue takes integer id, integer ranking returns integer
+        return RequestExtraIntegerData(80, null, null, null, false, id, ranking, 0)
+    endfunction
+    //获取玩家在KK平台的完整昵称（基础昵称#编号）
+    function DzAPI_Map_GetPlayerUserName takes player whichPlayer returns string 
+        return RequestExtraStringData(81, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    // GetServerValueLimitLeft,   // 获取服务器存档限制余额
+    function KKApiGetServerValueLimitLeft takes player whichPlayer, string key returns integer
+        return RequestExtraIntegerData(82, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // RequestBackendLogic,       //请求后端逻辑生成 
+    function KKApiRequestBackendLogic takes player whichPlayer, string key, string groupkey returns boolean
+        return RequestExtraBooleanData(83, whichPlayer, key, groupkey, false, 0, 0, 0)
+    endfunction
+    // CheckBackendLogicExists,   // 获取后端逻辑生成结果 是否存在
+    function KKApiCheckBackendLogicExists takes player whichPlayer, string key returns boolean
+        return RequestExtraBooleanData(84, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // GetBackendLogicIntResult,  // 获取后端逻辑生成结果 整型
+    function KKApiGetBackendLogicIntResult takes player whichPlayer, string key returns integer
+        return RequestExtraIntegerData(85, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // GetBackendLogicStrResult,  // 获取后端逻辑生成结果 字符串
+    function KKApiGetBackendLogicStrResult takes player whichPlayer, string key returns string
+        return RequestExtraStringData(86, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // GetBackendLogicUpdateTime, // 获取后端逻辑生成时间
+    function KKApiGetBackendLogicUpdateTime takes player whichPlayer, string key returns integer
+        return RequestExtraIntegerData(87, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // GetBackendLogicGroup,      // 获取后端逻辑生成组
+    function KKApiGetBackendLogicGroup takes player whichPlayer, string key returns string
+        return RequestExtraStringData(88, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // RemoveBackendLogicResult,  // 删除后端逻辑生成结果
+    function KKApiRemoveBackendLogicResult takes player whichPlayer, string key returns boolean
+        return RequestExtraBooleanData(89, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+    // 获取随机存档剩余次数
+    function KKApiRandomSaveGameCount takes player whichPlayer, string groupkey returns integer
+        return RequestExtraIntegerData(101, whichPlayer, groupkey, null, false, 0, 0, 0)
+    endfunction
+    function KKApiTriggerRegisterBackendLogicUpdata takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZBLU", true)
+    endfunction
+    function KKApiTriggerRegisterBackendLogicDelete takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZBLD", true)
+    endfunction
+    function KKApiGetSyncBackendLogic takes nothing returns string
+        return DzGetTriggerSyncData()
+    endfunction
+    function KKApiIsGameMode takes nothing returns boolean
+        return RequestExtraBooleanData(90, null, null, null, false, 0, 0, 0)
+    endfunction
+    function KKApiInitializeGameKey takes player whichPlayer,integer setIndex, string k,string data returns boolean
+        return RequestExtraBooleanData(91, whichPlayer, "[{\"name\":\""+data+"\",\"key\":\""+k+"\"}]", null, false, setIndex, 0, 0)
+    endfunction
+    function KKApiPlayerGUID takes player whichPlayer returns string
+        return RequestExtraStringData(93, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    function KKApiIsTaskInProgress takes player whichPlayer,integer setIndex,integer taskstat returns boolean
+        return RequestExtraIntegerData(94, whichPlayer, null, null, false, setIndex, 0, 0)==taskstat
+    endfunction
+    function KKApiQueryTaskCurrentProgress takes player whichPlayer, integer setIndex returns integer
+        return RequestExtraIntegerData(95, whichPlayer, null, null, false, setIndex, 0, 0)
+    endfunction
+    function KKApiQueryTaskTotalProgress takes player whichPlayer, integer setIndex returns integer
+        return RequestExtraIntegerData(96, whichPlayer, null, null, false, setIndex, 0, 0)
+    endfunction
+    // IsAchievementCompleted,  // 获取玩家成就是否完成
+    function KKApiIsAchievementCompleted takes player whichPlayer, string id returns boolean
+        return RequestExtraBooleanData(98, whichPlayer, id, null, false, 0, 0, 0)
+    endfunction
+    // AchievementPoints,  // 获取玩家地图成就点数
+    function KKApiAchievementPoints takes player whichPlayer returns integer
+        return RequestExtraIntegerData(99, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    
+    // 判断游戏时长是否满足条件 minHours: 最小小时数，maxHours: 最大小时数，0表示不限制
+    function KKApiPlayedTime takes player whichPlayer, integer minHours, integer maxHours returns boolean
+        return RequestExtraBooleanData(100, whichPlayer, null, null, false, minHours, maxHours, 0)
+    endfunction
+    // BeginBatchSaveArchive,  // 开始批量保存存档
+    function KKApiBeginBatchSaveArchive takes player whichPlayer returns boolean
+        return RequestExtraBooleanData(102, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    
+    // AddBatchSaveArchive,    // 添加批量保存存档条目
+    function KKApiAddBatchSaveArchive takes player whichPlayer, string key, string value, boolean caseInsensitive returns boolean
+        return RequestExtraBooleanData(103, whichPlayer, key, value, caseInsensitive, 0, 0, 0)
+    endfunction
+    
+    // EndBatchSaveArchive,    // 结束批量保存存档
+    function KKApiEndBatchSaveArchive takes player whichPlayer, boolean abandon returns boolean
+        return RequestExtraBooleanData(104, whichPlayer, null, null, abandon, 0, 0, 0)
+    endfunction
+    //天梯投降
+    function KKApiTriggerRegisterLadderSurrender takes trigger trig returns nothing
+        call DzTriggerRegisterSyncData(trig, "DZSR", true)
+    endfunction
+    function KKApiGetLadderSurrenderTeamId takes nothing returns integer
+        return S2I(DzGetTriggerSyncData())
+    endfunction
+    // GetGuildLevel,          // 获取公会等级
+    function KKApiGetGuildLevel takes player whichPlayer returns integer
+        return RequestExtraIntegerData(106, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    //宠物探险次数
+    function KKApiMapExplorationNum takes player whichPlayer returns integer
+        return RequestExtraIntegerData(107, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    //宠物探险时间
+    function KKApiMapExplorationTime takes player whichPlayer returns integer
+        return RequestExtraIntegerData(108, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+    
+    //测试大厅预约人数
+    function KKApiMapOrderNum takes nothing returns integer
+        return RequestExtraIntegerData(109, null, null, null, false, 0, 0, 0)
+    endfunction
+    // 发送云脚本数据
+    function KKApiMlScriptEvent takes player whichPlayer, string eventName, string payload returns boolean
+        return RequestExtraBooleanData(110, whichPlayer, eventName, payload, false, 0, 0, 0)
+    endfunction
+    // 获取商城道具最后变动的数量（新增/删除）
+    function KKApiGetMallItemUpdateCount takes player whichPlayer, string key returns integer
+        return RequestExtraIntegerData(110, whichPlayer, key, null, false, 0, 0, 0)
+    endfunction
+endlibrary
+// 常量配置
 //! zinc
-/*
-ID复用器
-*/
-// 使用常量定义父键，使代码更清晰
-library UIId {
-    public struct uiId []{
-        static hashtable ht;
-        static integer nextId;
-        static integer recycleCount;
-        static method onInit () {
-            thistype.ht = InitHashtable();
-            thistype.nextId = 1;
-            thistype.recycleCount = 0;
-        }
-        static method get () -> integer {
-            integer id;
-            // 如果有已回收的ID，优先使用
-            if (recycleCount > 0) {
-                // 获取最后一个回收的ID
-                id = LoadInteger(ht, 1, recycleCount - 1);
-                // 从回收池中删除这个ID
-                RemoveSavedInteger(ht, 1, recycleCount - 1);
-                // 从状态表中删除
-                RemoveSavedBoolean(ht, 2, id);
-                recycleCount = recycleCount - 1;
-                return id;
+library MallItem requires DzAPI{
+    // 黑箱：商城商品拥有权初始化、缓存、查询与元信息
+    public struct mallItem []{
+        // 状态与事件
+        private static boolean initialized = false;
+        private static boolean ready = false;
+        private static trigger readyTrigger = null;
+        // 数据表
+        private static hashtable table = null; // key 映射与临时使用
+        // 商品列表与映射
+        private static integer itemCount = 0;
+        private static string itemKeys[]; // 0..itemCount-1
+// 拥有权缓存：owns[player * MALLITEM_MAX_ITEMS + itemIndex] player是从0开始
+private static boolean owns[];
+        // 使用次数缓存：uses[player * MALLITEM_MAX_ITEMS + itemIndex]
+        private static integer uses[];
+        // 元信息：按 itemIndex 对齐
+        private static string names[];
+        private static string icons[];
+        private static string descs[];
+        private static integer techs[]; // 科技 ID，如 'R015'（四位字符转换为整数）
+        // 回调参数传递（避免哈希表冲突）
+        public static player callbackPlayer = null;
+        // ========== 内部：解析与映射 =========
+        private static method getIndex(string key) ->integer {
+            integer stored; integer idx;
+            stored = LoadInteger(mallItem.table, 0, StringHash(key));
+            if (stored == 0) {
+                return -1;
             }
-            // 如果没有可复用的ID，返回新的ID
-            id = nextId;
-            nextId = nextId + 1;
-            return id;
+            idx = stored - 1; // 存储时 +1，读取时 -1
+if (idx < 0 || idx >= mallItem.itemCount) { return -1; }
+            return idx;
         }
-        static method recycle (integer id) {
-            // 快速检查ID是否已经在回收池中
-            if (!HaveSavedBoolean(ht, 2, id)) {
-                // 将ID存入回收池
-                SaveInteger(ht, 1, recycleCount, id);
-                // 标记该ID已被回收
-                SaveBoolean(ht, 2, id, true);
-                recycleCount = recycleCount + 1;
-            }
+        private static method setIndex(string key, integer index) {
+            SaveInteger(mallItem.table, 0, StringHash(key), index + 1);
         }
-        // 获取回收池中ID的数量
-        static method getRecycledCount() -> integer {
-            return recycleCount;
-        }
-        // 获取当前正在使用的ID数量
-        static method getActiveCount() -> integer {
-            // 最大ID减去已回收的ID数量
-            return (nextId - 1) - recycleCount;
-        }
-    }
+        private static method addKey(string key) {
+            integer idx; integer i; integer n; integer base;
+            if (key == null) { return; }
+            if (StringLength(key) == 0) { return; }
+            // 已存在则跳过
+            idx = mallItem.getIndex(key);
+            if (idx >= 0) { return; }
+            if (mallItem.itemCount >= 300) {
+                return; // 超上限忽略
 }
-//! endzinc
-/*
-单元测试框架(注入)
-*/
-//! zinc
-library UnitTestFramwork {
-	//单元测试总
-	trigger TUnitTest = null;
-    private hashtable HASH_UNITTEST = InitHashtable(); // 单元测试哈希表
-    //断言
-    public struct assert []{
-        //断言布尔值
-        static method Boolean (boolean condition,string name) {
-            if (!condition) {
-                BJDebugMsg("FAIL: " + name);
-            } else {
-                BJDebugMsg("PASS: " + name);
+            idx = mallItem.itemCount;
+            mallItem.itemKeys[idx] = key;
+            mallItem.setIndex(key, idx);
+            // 默认元信息
+            mallItem.names[idx] = "";
+            mallItem.icons[idx] = "";
+            mallItem.descs[idx] = "";
+            mallItem.techs[idx] = 0;
+            // 初始化拥有权为 false（所有玩家）
+            i = 0;
+            while (i < 4) {
+                base = i * 300;
+                mallItem.owns[base + idx] = false;
+                i = i + 1;
+            }
+            mallItem.itemCount = mallItem.itemCount + 1;
+        }
+        // （移除字符串拆分，改为单商品增量注册）
+        //公用方法
+        // 初始化底层（在 map 启动时自动调用）
+        static method onInit() {
+            // 先声明
+            // 无句柄局部变量
+            mallItem.initialized = false;
+            mallItem.ready = false;
+            mallItem.itemCount = 0;
+            mallItem.table = InitHashtable();
+            mallItem.readyTrigger = CreateTrigger();
+        }
+        // 外部初始化：每次只注册一个商品 key；首次调用时启动延迟扫描
+        static method init(string productKey) {
+            timer t;
+            // 注册商品（支持多次调用，去重在 addKey 内部完成）
+            mallItem.addKey(productKey);
+            // 首次调用时启动延迟扫描
+            if (!mallItem.initialized) {
+                mallItem.initialized = true;
+                // 延迟初始化玩家商品状态
+                t = CreateTimer();
+                TimerStart(t, 2.0, false, function () {
+                integer pid; integer idx; integer base; player p; string k; integer n;
+                n = mallItem.itemCount;
+                pid = 0;
+                while (pid < 4) {
+                    p = ConvertedPlayer(pid);
+                    base = pid * 300;
+                    idx = 0;
+                    while (idx < n) {
+                        k = mallItem.itemKeys[idx];
+                        mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(p, k);
+                        mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(p, k);
+                        // 直接在此处解锁科技（如果拥有商品且设置了科技）
+                        if (mallItem.owns[base + idx] && mallItem.techs[idx] != 0) {
+                            SetPlayerTechResearched(p, mallItem.techs[idx], 1);
+                        }
+                        idx = idx + 1;
+                    }
+                    p = null;
+                    pid = pid + 1;
+                }
+                mallItem.ready = true;
+                if (mallItem.readyTrigger != null) {
+                    // 使用 TriggerEvaluate 调用回调条件
+                    TriggerEvaluate(mallItem.readyTrigger);
+                }
+            });
+            // handler 置空
+            t = null;
             }
         }
-        //断言字符串相等
-        static method String(string actual, string expected, string name) {
-            if (actual != expected) {
-                BJDebugMsg("FAIL: " + name);
-                BJDebugMsg("  Expected: " + expected);
-                BJDebugMsg("  Actual: " + actual);
-            } else {
-                BJDebugMsg("PASS: " + name);
+        // 是否已完成首次扫描
+        static method isReady() ->boolean {
+            return mallItem.ready;
+        }
+        // 注册 onReady 回调（使用 Condition 封装 code），若已就绪则立即 Evaluate
+        static method onReady(code cb) {
+            if (mallItem.readyTrigger == null) {
+                mallItem.readyTrigger = CreateTrigger();
+            }
+            TriggerAddCondition(mallItem.readyTrigger, Condition(cb));
+            if (mallItem.ready) {
+                TriggerEvaluate(mallItem.readyTrigger);
             }
         }
-        //断言整数相等
-        static method Integer(integer actual, integer expected, string name) {
-            if (actual != expected) {
-                BJDebugMsg("FAIL: " + name);
-                BJDebugMsg("  Expected: " + I2S(expected));
-                BJDebugMsg("  Actual: " + I2S(actual));
-            } else {
-                BJDebugMsg("PASS: " + name);
+        // 拥有权查询：通过玩家句柄
+        static method hasByPlayer(player whichPlayer, string itemKey) ->boolean {
+            integer pid; integer idx; integer base; boolean result;
+            pid = GetPlayerId(whichPlayer);
+            if (pid < 0 || pid >= 4) {
+                return false;
             }
-        }
-        //断言浮点数相等
-        static method Real(real actual, real expected, string name) {
-            real maxValue = RMaxBJ(RAbsBJ(actual), RAbsBJ(expected)); // 取两个数的绝对值的较大值
-real epsilon = maxValue * 0.00001; // 相对误差为数值大小的万分之一
-// 处理接近0的特殊情况
-if (maxValue < 0.00001) {
-                epsilon = 0.00001;
+            idx = mallItem.getIndex(itemKey);
+            if (idx < 0) {
+                return false;
             }
-            if (RAbsBJ(actual - expected) > epsilon) {
-                BJDebugMsg("FAIL: " + name);
-                BJDebugMsg("  Expected: " + R2SW(expected,0,1));
-                BJDebugMsg("  Actual: " + R2SW(actual,0,1));
-            } else {
-                BJDebugMsg("PASS: " + name);
+            base = pid * 300;
+            result = mallItem.owns[base + idx];
+            return result;
+        }
+        // 使用次数查询：通过玩家句柄
+        static method getUseCountByPlayer(player whichPlayer, string itemKey) ->integer {
+            integer pid; integer idx; integer base;
+            pid = GetPlayerId(whichPlayer);
+            if (pid < 0 || pid >= 4) { return 0; }
+            idx = mallItem.getIndex(itemKey);
+            if (idx < 0) { return 0; }
+            base = pid * 300;
+            return mallItem.uses[base + idx];
+        }
+        // 刷新某玩家的拥有权（对已登记商品）
+        static method refreshItemsForPlayer(integer playerId) {
+            integer i; integer base; player p; string k; integer n;
+            if (playerId < 0 || playerId >= 4) {
+                return;
             }
+            p = ConvertedPlayer(playerId);
+            base = playerId * 300;
+            n = mallItem.itemCount;
+            i = 0;
+            while (i < n) {
+                k = mallItem.itemKeys[i];
+                mallItem.owns[base + i] = DzAPI_Map_HasMallItem(p, k);
+                i = i + 1;
+            }
+            p = null;
         }
-    }
-    //注册单元测试事件(聊天内容),自动注入
-    public function UnitTestRegisterChatEvent (code func) {
-        TriggerAddAction(TUnitTest, func);
-    }
-    //指定开始时间与持续时间的定时器
-    public function UnitTestAutoTimer (real time, real duration,code start, code end) {
-        trigger t = CreateTrigger();
-        trigger tr = CreateTrigger();
-        TriggerAddCondition(t, Condition(start));
-        TriggerRegisterTimerEvent(tr, time, false);
-        SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
-        SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
-        SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
-        TriggerAddCondition(tr,Condition(function (){
-            real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
-            real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
-            trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
-            BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]开始------");
-            TriggerEvaluate(tr);
-            DestroyTrigger(tr);
-            FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
-            DestroyTrigger(GetTriggeringTrigger());
-            tr = null;
-        }));
-        if (end != null) {
-            t = CreateTrigger();
-            tr = CreateTrigger();
-            TriggerAddCondition(t, Condition(end));
-            TriggerRegisterTimerEvent(tr, time+duration, false);
-            SaveReal(HASH_UNITTEST,GetHandleId(tr),1,time);
-            SaveReal(HASH_UNITTEST,GetHandleId(tr),2,duration);
-            SaveTriggerHandle(HASH_UNITTEST,GetHandleId(tr),3,t);
-            TriggerAddCondition(tr,Condition(function (){
-                real time = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),1);
-                real d = LoadReal(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),2);
-                trigger tr = LoadTriggerHandle(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()),3);
-                TriggerEvaluate(tr);
-                BJDebugMsg("-----[单测 " + R2SW(time,0,1) + " - " + R2SW(time+d,0,1) + " 秒]结束------");
-                DestroyTrigger(tr);
-                FlushChildHashtable(HASH_UNITTEST,GetHandleId(GetTriggeringTrigger()));
-                DestroyTrigger(GetTriggeringTrigger());
-                tr = null;
-            }));
+        // 消费次数型道具（带回调）：成功消费后调用回调并传入玩家参数
+        static method consumeTimes(player whichPlayer, string itemKey, integer count, code callback) ->boolean {
+            integer pid; integer idx; integer base; boolean ok; trigger tempTr;
+            pid = GetPlayerId(whichPlayer);
+            if (pid < 0 || pid >= 4) { return false; }
+            idx = mallItem.getIndex(itemKey);
+            if (idx < 0) { return false; }
+            // 执行消费
+            ok = DzAPI_Map_ConsumeMallItem(whichPlayer, itemKey, count);
+            if (ok) {
+                base = pid * 300;
+                // 刷新该玩家该商品缓存
+                mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(whichPlayer, itemKey);
+                mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(whichPlayer, itemKey);
+                // 如果使用次数小于等于0，则认为该玩家没有这个道具了
+                if (mallItem.uses[base + idx] <= 0) {
+                    mallItem.owns[base + idx] = false;
+                }
+                // 调用回调（传入玩家参数）
+                if (callback != null) {
+                    mallItem.callbackPlayer = whichPlayer;
+                    tempTr = CreateTrigger();
+                    TriggerAddCondition(tempTr, Condition(callback));
+                    TriggerEvaluate(tempTr);
+                    DestroyTrigger(tempTr);
+                    mallItem.callbackPlayer = null;
+                    tempTr = null;
+                }
+            }
+            return ok;
         }
-        tr = null;
-        t = null;
-    }
-    function onInit () {
-        //在游戏开始0.1秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEvent(tr, 0.1, false);
-        TriggerAddCondition(tr,Condition(function (){
-            integer i;
-            for (1 <= i <= 12) {
-				SetPlayerName(ConvertedPlayer(i),"测试员" + I2S(i)+ "号");
-                CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, bj_mapInitialPlayableArea ); //迷雾全关
-}
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-		TUnitTest = CreateTrigger();
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(0), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(1), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(2), "", false );
-		TriggerRegisterPlayerChatEvent(TUnitTest, Player(3), "", false );
+        // 消费一次性道具（UseConsumablesItem）：无回调
+        static method consumeOnce(player whichPlayer, string itemKey) {
+            integer pid; integer idx; integer base;
+            pid = GetPlayerId(whichPlayer);
+            if (pid < 0 || pid >= 4) { return ; }
+            idx = mallItem.getIndex(itemKey);
+            if (idx < 0) { return ; }
+            // 执行消费(无回调)
+            DzAPI_Map_UseConsumablesItem(whichPlayer, itemKey);
+        }
+        // ========== 元信息写接口 ==========
+        static method setName(string key, string name) {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return; }
+            mallItem.names[idx] = name;
+        }
+        static method setIcon(string key, string iconPath) {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return; }
+            mallItem.icons[idx] = iconPath;
+        }
+        static method setDesc(string key, string desc) {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return; }
+            mallItem.descs[idx] = desc;
+        }
+        static method setTech(string key, integer techId) {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return; }
+            mallItem.techs[idx] = techId;
+        }
+        static method setMeta(string key, string name, string iconPath, string desc) {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return; }
+            mallItem.names[idx] = name;
+            mallItem.icons[idx] = iconPath;
+            mallItem.descs[idx] = desc;
+        }
+        static method setMetaWithTech(string key, string name, string iconPath, string desc, integer techId) {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return; }
+            mallItem.names[idx] = name;
+            mallItem.icons[idx] = iconPath;
+            mallItem.descs[idx] = desc;
+            mallItem.techs[idx] = techId;
+        }
+        // ========== 元信息读接口 ==========
+        static method getName(string key) ->string {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return ""; }
+            return mallItem.names[idx];
+        }
+        static method getIcon(string key) ->string {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return ""; }
+            return mallItem.icons[idx];
+        }
+        static method getDesc(string key) ->string {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return ""; }
+            return mallItem.descs[idx];
+        }
+        static method getTech(string key) ->integer {
+            integer idx;
+            idx = mallItem.getIndex(key);
+            if (idx < 0) { return 0; }
+            return mallItem.techs[idx];
+        }
+        // 在 consumeTimes 回调中获取触发的玩家
+        static method getCallbackPlayer() ->player {
+            return mallItem.callbackPlayer;
+        }
+        static method hasItemKey(string key) ->boolean {
+            return mallItem.getIndex(key) >= 0;
+        }
+        static method getAllItemKeys() ->string {
+            integer i; string out; integer n;
+            n = mallItem.itemCount;
+            out = "";
+            i = 0;
+            while (i < n) {
+                if (i == 0) {
+                    out = mallItem.itemKeys[i];
+                } else {
+                    out = out + "," + mallItem.itemKeys[i];
+                }
+                i = i + 1;
+            }
+            return out;
+        }
+        // 根据索引获取商品 key（1-based 外部语义：1 表示第一个）
+        static method getItemKeyByIndex(integer oneBasedIndex) ->string {
+            integer idx;
+            idx = oneBasedIndex - 1;
+            if (idx < 0 || idx >= mallItem.itemCount) { return ""; }
+            return mallItem.itemKeys[idx];
+        }
+        // 获取已登记商品数量
+        static method getItemCount() ->integer {
+            return mallItem.itemCount;
+        }
     }
 }
 //! endzinc
@@ -1604,18 +1378,30 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTUnitTestUIRuler requires UnitTestUIRuler {
-	function TTestUTUnitTestUIRuler1 (player p) {}
-	function TTestUTUnitTestUIRuler2 (player p) {}
-	function TTestUTUnitTestUIRuler3 (player p) {}
-	function TTestUTUnitTestUIRuler4 (player p) {}
-	function TTestUTUnitTestUIRuler5 (player p) {}
-	function TTestUTUnitTestUIRuler6 (player p) {}
-	function TTestUTUnitTestUIRuler7 (player p) {}
-	function TTestUTUnitTestUIRuler8 (player p) {}
-	function TTestUTUnitTestUIRuler9 (player p) {}
-	function TTestUTUnitTestUIRuler10 (player p) {}
-	function TTestActUTUnitTestUIRuler1 (string str) {
+library UTMallItem requires MallItem {
+	function Init () {
+		UnitTestAutoTimer(0.1, 2.0, function() {
+			//start,这里是0.1秒后调用的内容
+			}, function() {
+			//end,这里是2秒后调用的内容
+		});
+		UnitTestAutoTimer(0.1, 2.0, function() {
+			//assert.Boolean(true, "测试1");
+		},null);
+	}
+	function TTestUTMallItem1 (player p) {
+		// mallItem
+	}
+	function TTestUTMallItem2 (player p) {}
+	function TTestUTMallItem3 (player p) {}
+	function TTestUTMallItem4 (player p) {}
+	function TTestUTMallItem5 (player p) {}
+	function TTestUTMallItem6 (player p) {}
+	function TTestUTMallItem7 (player p) {}
+	function TTestUTMallItem8 (player p) {}
+	function TTestUTMallItem9 (player p) {}
+	function TTestUTMallItem10 (player p) {}
+	function TTestActUTMallItem1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -1647,7 +1433,8 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEvent(tr, 0.5, false);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UnitTestUIRuler] 单元测试已加载");
+			BJDebugMsg("[MallItem] 单元测试已加载");
+			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -1655,21 +1442,20 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubString(str, (1)-1, 1) == "-") {
-				TTestActUTUnitTestUIRuler1(SubString(str, (2)-1, StringLength(str)));
+				TTestActUTMallItem1(SubString(str, (2)-1, StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUnitTestUIRuler1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUnitTestUIRuler2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUnitTestUIRuler3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUnitTestUIRuler4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUnitTestUIRuler5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUnitTestUIRuler6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUnitTestUIRuler7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUnitTestUIRuler8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUnitTestUIRuler9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUnitTestUIRuler10(GetTriggerPlayer());
+			if (str == "s1") TTestUTMallItem1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTMallItem2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTMallItem3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTMallItem4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTMallItem5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTMallItem6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTMallItem7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTMallItem8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTMallItem9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTMallItem10(GetTriggerPlayer());
 		});
-		InitTestUIRuler();
 	}
 }
 //! endzinc

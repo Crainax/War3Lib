@@ -1,4 +1,7 @@
 logs\currentmapscript.j
-JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 285: Missing requirement: PlayerUtils (libraries cannot require scopes)
-1
+pjass.exe
+Line 1301:  Return nothing in function that should return value
+Line 1305:  Return nothing in function that should return value
+Line 1333:  Cannot return value from function that returns nothing
+Line 1337:  Cannot return value from function that returns nothing
+4

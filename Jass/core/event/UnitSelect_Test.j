@@ -31,8 +31,34 @@ library UTUnitSelect requires UnitSelect {
 			u = null;
 		});
 	}
-	function TTestUTUnitSelect2 (player p) {}
-	function TTestUTUnitSelect3 (player p) {}
+	timer TiAutoDiff = null;
+	timerdialog TdAutoDiff = null;
+	function TTestUTUnitSelect2 (player p) {
+		TiAutoDiff = CreateTimer();
+		TdAutoDiff = CreateTimerDialog(TiAutoDiff);
+		TimerDialogDisplay(TdAutoDiff,true);
+		TimerDialogSetTitle(TdAutoDiff,"自动选择难度");
+		TimerDialogSetSpeed(TdAutoDiff,1.0);
+		TimerStart(TiAutoDiff,20,true,function (){
+			timer t = GetExpiredTimer();
+			integer id = GetHandleId(t);
+			BJDebugMsg("hehe");
+			PauseTimer(t);
+			DestroyTimer(t);
+			DestroyTimerDialog(TdAutoDiff);
+			TdAutoDiff = null;
+			t = null;
+		});
+	}
+	function TTestUTUnitSelect3 (player p) {
+		if (TiAutoDiff != null) {
+			DestroyTimer(TiAutoDiff);
+		}
+		if (TdAutoDiff != null) {
+			DestroyTimerDialog(TdAutoDiff);
+		}
+	}
+
 	function TTestUTUnitSelect4 (player p) {}
 	function TTestUTUnitSelect5 (player p) {}
 	function TTestUTUnitSelect6 (player p) {}
