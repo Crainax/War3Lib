@@ -50,8 +50,8 @@ tc.GetState = function()
 end
 
 -- path = require("Lua.path")
--- path.init("D:/War3", "D:/War3/Maps/PhantomOrbit", "D:/WE/KKWE_Plugin")
--- print("开始测试:" .. path.alljass)
+-- path.init("D:/War3", "D:/War3/Maps/LH", "D:/WE/KKWE_Plugin")
 -- tc.ChangeBuildVersion("单元测试")
+-- print("hehe")
 
 return tc

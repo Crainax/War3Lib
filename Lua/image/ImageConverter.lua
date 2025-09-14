@@ -2,26 +2,26 @@ local fileUtils = require("lua.utils.FileUtils")
 local lfs = require("lfs")
 local gbk = require "gbk"
 
--- ½Ì³ÌÍøÕ¾: https://legacy.imagemagick.org/Usage/basics/#convert
--- ±ä»¯ResizeµÄ½Ì³Ì: https://legacy.imagemagick.org/Usage/basics/#convert
--- ¼Ó±ß¿òµÄ½Ì³Ì: https://legacy.imagemagick.org/Usage/basics/#convert
+-- æ•™ç¨‹ä¸ç«™ç‚¹: https://legacy.imagemagick.org/Usage/basics/#convert
+-- å˜åŒ–/Resize æ•™ç¨‹: https://legacy.imagemagick.org/Usage/basics/#convert
+-- åŠ è¾¹æ¡†æ•™ç¨‹: https://legacy.imagemagick.org/Usage/basics/#convert
 local flag = {
-	['single'] = true, -- µ¥ÎÄ¼ş²âÊÔ
-	['src'] = "D:/War3/´´ÊÀUI/Test/test.png", -- Òª²âÊÔµÄÎÄ¼ş
-	['src2'] = "D:/War3/´´ÊÀUI/Test/test.png", -- Òª²âÊÔµÄÎÄ¼ş[ºÏ²¢]
-	-- ['src'] = "D:/War3/´´ÊÀUI/Test/gif/*", -- Òª²âÊÔµÄÎÄ¼ş
-	-- ['src'] = "WIZARD:", -- ×Ô´øµÄÎÄ¼ş
-	-- ['tar'] = "D:/War3/´´ÊÀUI/Test/output_test.png", -- ²âÊÔÊä³öµÄÎÄ¼ş
-	['tar'] = "D:/War3/´´ÊÀUI/Test/output.png", -- ²âÊÔÊä³öµÄÎÄ¼ş
-	['mSrc'] = "D:/War3/´´ÊÀUI/Test/equit", -- Èº²âÊÔµÄÎÄ¼ş¼Ğ
-	['isSubDir'] = false -- ÊÇ·ñ´¦Àí×ÓÎÄ¼ş¼Ğ
+	['single'] = true, -- å•æ–‡ä»¶è°ƒè¯•
+	['src'] = "D:/War3/è‡ªå®šä¹‰UI/Test/test.png", -- è¦è°ƒè¯•çš„æ–‡ä»¶
+	['src2'] = "D:/War3/è‡ªå®šä¹‰UI/Test/test.png", -- è¦è°ƒè¯•çš„æ–‡ä»¶ï¼»å åŠ ç”¨ï¼½
+	-- ['src'] = "D:/War3/è‡ªå®šä¹‰UI/Test/gif/*", -- è¦è°ƒè¯•çš„æ–‡ä»¶ï¼ˆæ‰¹é‡ï¼‰
+	-- ['src'] = "WIZARD:", -- å†…ç½®æ¼”ç¤ºæ–‡ä»¶
+	-- ['tar'] = "D:/War3/è‡ªå®šä¹‰UI/Test/output_test.png", -- ç›®æ ‡è¾“å‡ºæ–‡ä»¶
+	['tar'] = "D:/War3/è‡ªå®šä¹‰UI/Test/output.png", -- ç›®æ ‡è¾“å‡ºæ–‡ä»¶
+	['mSrc'] = "D:/War3/è‡ªå®šä¹‰UI/Test/equit", -- æ‰¹é‡è°ƒè¯•çš„æ–‡ä»¶å¤¹
+	['isSubDir'] = false -- æ˜¯å¦éå†å­æ–‡ä»¶å¤¹
 }
 
--- ²âÊÔÒ»ÏÂImageMagickµÄ¹¦ÄÜ
+-- è°ƒè¯•ä¸€å¼ å›¾ï¼ˆå•æ¬¡å‘½ä»¤ï¼‰
 local function DebugSingle()
-	-- ±éÀúĞèÒª¸ÉµÄÊÂ(ÕâËûÂèÊÇÂÒĞò)
+	-- å¦‚éœ€æŸ¥çœ‹å‚ä¸ç”Ÿæˆçš„å‚æ•°ï¼ˆè°ƒè¯•æ—¶å¼€å¯ï¼‰
 	-- for key, value in pairs(flag) do
-	-- 	print(gbk.toutf8(tostring(key)) .. ":" .. gbk.toutf8(tostring(value)))
+	--     print(gbk.toutf8(tostring(key)) .. ":" .. gbk.toutf8(tostring(value)))
 	-- end
 	local cmdExe = 'magick'
 	local cmdArgs = ''
@@ -32,23 +32,23 @@ local function DebugSingle()
 	-- local cmd = string.format('%s %s %s %s', cmdExe, cmdArgs, srcArgs, fileUtils.PathString(flag.tar))
 	-- local cmd = 'magick convert wizard: -matte -mattecolor "#CCC600" -frame 10x10+3+4 ( -size 100x100 plasma:fractal -normalize -blur 0x1 ) -compose DstOver -composite ' .. flag.tar
 
-	-- Õâ2¸öÊÇµ¥´¿²âÊÔ´¿Ö¸Áî
+	-- ç¤ºä¾‹2ï¼šå°†å†…ç½® rose: å åŠ åˆ°æŒ‡å®šå›¾ç‰‡ä¸Š
 	local cmd = 'convert ' .. flag.src .. ' rose: -resize 100x100  -composite '
 	cmd = "magick " .. cmd .. " " .. flag.tar
 
 	print(gbk.toutf8(cmd))
 	os.execute(cmd)
 
-	-- ²âÊÔÃüÁî2
+	-- ç¤ºä¾‹2 çš„å¦ä¸€ç§å†™æ³•ï¼šä½¿ç”¨ composite å‘½ä»¤
 	cmd = 'magick composite rose: ' .. flag.src2 .. ' -gravity center ' .. fileUtils.Suffix(flag.tar, "_2")
 	print(gbk.toutf8(cmd))
 	os.execute(cmd)
 
-	-- ´ò¿ªĞŞ¸ÄºóµÄÎÄ¼ş
+	-- æ‰“å¼€è¾“å‡ºæ–‡ä»¶æ‰€åœ¨æ–‡ä»¶å¤¹
 	os.execute("explorer " .. string.gsub(fileUtils.GetDir(flag.tar), "/", "\\"))
 end
 
--- ²âÊÔÒ»ÏÂÒ»ÈºÎÄ¼ş
+-- è°ƒè¯•ä¸€ç»„æ–‡ä»¶ï¼ˆæ‰¹é‡ï¼‰
 local function DebugMulti()
 	local count = 0
 	local showOnce = true
@@ -63,21 +63,21 @@ local function DebugMulti()
 		cmdArgs = cmdArgs .. fileUtils.PathString(filePath)
 		srcArgs = srcArgs .. '-background rgb(0,0,0) '
 		srcArgs = srcArgs .. '-flatten '
-		srcArgs = srcArgs .. '-fuzz 25% -trim +repage ' -- ²Ã¼ôËùÓĞµØ·½[ÒÔ25%µÄÈİ²î](repageºÃÏñÊÇÍ¼Æ¬ÓĞ¹ØµÄĞÅÏ¢)
+		srcArgs = srcArgs .. '-fuzz 25% -trim +repage ' -- è£åˆ‡è¾¹ç¼˜ç›¸è¿‘é¢œè‰²åŒºåŸŸï¼ˆ25%å®¹å·®ï¼‰ï¼›repage æ¸…é™¤ç”»å¸ƒ/é¡µä¿¡æ¯
 		srcArgs = srcArgs .. '-resize 200x200 '
 		srcArgs = srcArgs .. '-gravity center '
 		srcArgs = srcArgs .. '-extent 256x256 '
 		-- srcArgs = srcArgs .. '-composite (-size 256x256 gradient:rgba(255,0,0,255)-rgba(0,0,0,0)) '
-		srcArgs = srcArgs .. '-mattecolor rgb(255,0,0) ' -- ±ß¿òÑÕÉ«
-		srcArgs = srcArgs .. '-frame 20x20+10+10 ' -- ¼Ó±ß¿ò(Õâ¸ö+x+x¾ÍÊÇ±ß¿òÁ¢Ìå¶È)
+		srcArgs = srcArgs .. '-mattecolor rgb(255,0,0) ' -- è¾¹æ¡†é¢œè‰²
+		srcArgs = srcArgs .. '-frame 20x20+10+10 '       -- åŠ è¾¹æ¡†ï¼ˆwxh+å†…åç§»x+å†…åç§»yï¼‰
 		srcArgs = srcArgs .. '-resize 128x128 '
-		-- "D:\War3\´´ÊÀUI\btn.psd"
-		-- Êä³öÎÄ¼şÃû
+		-- "D:\War3\è‡ªå®šä¹‰UI\btn.psd"
+		-- ç›®æ ‡æ–‡ä»¶
 		count = count + 1
 		tarArgs = fileUtils.PathString(outputPath .. "/" .. count .. ".png")
 		local cmd = string.format('%s %s %s %s', cmdExe, cmdArgs, srcArgs, tarArgs)
 		if showOnce then
-			print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+			print(gbk.toutf8(cmd)) -- æ‰“å°ä¸€æ¬¡ç¤ºä¾‹å‘½ä»¤
 			showOnce = false
 		end
 		os.execute(cmd)
@@ -85,43 +85,45 @@ local function DebugMulti()
 	os.execute("explorer " .. string.gsub(outputPath, "/", "\\"))
 end
 
-if flag then -- ²âÊÔÄ£Ê½
+if flag then          -- è°ƒè¯•æ¨¡å¼
 	if flag.single then
-		DebugSingle() -- µ¥ÎÄ¼ş²âÊÔ
+		DebugSingle() -- å•æ–‡ä»¶è°ƒè¯•
 	else
-		DebugMulti() -- ÈºÎÄ¼ş²âÊÔ
+		DebugMulti()  -- æ‰¹æ–‡ä»¶è°ƒè¯•
 	end
 end
 -- for index, value in ipairs(flag) do
--- 	print(index .. ":" .. value)
+--     print(index .. ":" .. value)
 -- end
 
--- cmdArgs = cmdArgs .. '-resize 200% '       --·Å´ó2±¶
--- cmdArgs = cmdArgs .. '-resize "512x512!" ' -- Ç¿ÖÆ±ä³É512x512ÎŞÊÓ±ÈÀı
--- cmdArgs = cmdArgs .. '-resize "480x480>" ' -- ±£³Ö±ÈÀıÇé¿öÏÂ³¤ºÍ¿í¶¼¿ØÖÆµ½¸ø¶¨ÖµÒÔÏÂ[1000->480]
--- cmdArgs = cmdArgs .. '-resize "480x480<" ' -- ±£³Ö±ÈÀıÇé¿öÏÂ³¤ºÍ¿í¶¼¿ØÖÆµ½¸ø¶¨ÖµÒÔÉÏ[100->120]
--- cmdArgs = cmdArgs .. '-resize "480x480^" ' -- ±ä³É960x480
--- cmdArgs = cmdArgs .. '-resize "480x480" '  -- ±ä³É480x240
--- magick convert *.png -resize 200x50%  output%3d.png ÕâÑùÒ²¿ÉÒÔ °ÑÊä³öµÄÎÄ¼şĞ´ÔÚºóÃæ
+-- cmdArgs = cmdArgs .. '-resize 200% '       -- æ”¾å¤§ 2 å€
+-- cmdArgs = cmdArgs .. '-resize "512x512!" ' -- å¼ºåˆ¶å˜ä¸º 512x512ï¼ˆå¯èƒ½æ‹‰ä¼¸ï¼‰
+-- cmdArgs = cmdArgs .. '-resize "480x480>" ' -- ä»…å½“å¤§äº 480 æ—¶æ‰ç¼©å°åˆ°ä¸è¶…è¿‡è¯¥å€¼ï¼ˆä¾‹ï¼š1000 -> 480ï¼‰
+-- cmdArgs = cmdArgs .. '-resize "480x480<" ' -- ä»…å½“å°äº 480 æ—¶æ‰æ”¾å¤§åˆ°ä¸å°äºè¯¥å€¼ï¼ˆä¾‹ï¼š100 -> 120ï¼‰
+-- cmdArgs = cmdArgs .. '-resize "480x480^" ' -- é€‚é…è¦†ç›– 480x480ï¼ˆç­‰æ¯”è£å‰ªï¼Œå¾—åˆ° 960x480ï¼‰
+-- cmdArgs = cmdArgs .. '-resize "480x480" '  -- ç­‰æ¯”ç¼©æ”¾é€‚é…åˆ° 480x?ï¼ˆä¾‹ï¼š480x240ï¼‰
+-- magick convert *.png -resize 200x50%  output%3d.png æ‰¹é‡ä¹Ÿå¯ä»¥ï¼›è¾“å‡ºæ–‡ä»¶åå†™åœ¨æœ€å
 
--- cmdArgs = cmdArgs .. '-trim ' -- Õâ¸öÓĞµã¶«Î÷µÄ°¡  ×Ô¶¯²Ã¼ô¶àÓàµÄ²¿·Ö.
+-- cmdArgs = cmdArgs .. '-trim ' -- å»æ‰å››å‘¨è¿‘ä¼¼è‰²çš„è¾¹ï¼Œè‡ªåŠ¨è£åˆ‡æº¢å‡ºéƒ¨åˆ†
 
--- cropÄ¬ÈÏÈ«¶¼·Ö¸î
--- srcArgs = srcArgs .. '-shave 100x100 ' --ÏòÄÚÇĞ¸î200
--- srcArgs = srcArgs .. '-mattecolor rgb(255,0,255) -frame 20x20+10+10 ' -- ¼Ó±ß¿ò(Õâ¸ö+x+x¾ÍÊÇ±ß¿òÁ¢Ìå¶È)
--- magick *.png -bordercolor rgb(0,0,0) -border 5% output%3d.png --¼Ó±ß¿ò
+-- crop é»˜è®¤å…¨å›¾å‚è€ƒ
+-- srcArgs = srcArgs .. '-shave 100x100 ' -- å››è¾¹å„è£ 100ï¼ˆæ€»è£å» 200ï¼‰
+-- srcArgs = srcArgs .. '-mattecolor rgb(255,0,255) -frame 20x20+10+10 ' -- åŠ è¾¹æ¡†ï¼ˆwxh+åç§»x+åç§»yï¼‰
+-- magick *.png -bordercolor rgb(0,0,0) -border 5% output%3d.png -- åŠ è¾¹æ¡†ï¼ˆç™¾åˆ†æ¯”ï¼‰
 
---  gradient:black-none -- ½¥±ä
--- 'magick convert -size 256x256 radial-gradient:rgba(255,0,0,255)-rgba(0,0,0,0) ' .. flag.tar --¾¶Ïò½¥±ä
--- 'blur'¾ÍÊÇ´«ËµÖĞµÄÓğ»¯
+-- gradient:black-none -- æ¸å˜
+-- 'magick convert -size 256x256 radial-gradient:rgba(255,0,0,255)-rgba(0,0,0,0) ' .. flag.tar -- å¾„å‘æ¸å˜ç¤ºä¾‹
+-- 'blur' å°±æ˜¯æ•™ç¨‹é‡Œè¯´çš„æ¨¡ç³Š
 
--- -flip ×İ¾µÏñ flop ºá¾µÏñ
+-- -flip å‚ç›´ç¿»è½¬  -flop æ°´å¹³ç¿»è½¬
 
--- magick convert *.png -resize 200x200 -background rgba(0,0,0,0) -gravity center -extent 200x200 output%3d.png ²Ã¼ô²¢Ç¿ÖÆ±ä³ÉÕı·½ĞÎ[Í¸Ã÷É«]
+-- magick convert *.png -resize 200x200 -background rgba(0,0,0,0) -gravity center -extent 200x200 output%3d.png
+-- ä¸Šé¢å‘½ä»¤ï¼šè£åˆ‡åå¼ºåˆ¶è¡¥è¶³ç”»å¸ƒä¸ºæŒ‡å®šå¤§å°ï¼ˆé€æ˜èƒŒæ™¯ï¼‰
 
--- Mogrify ÊÇÖ±½ÓÔ­µØ¸üĞÂ (È¥µôoutput °Ñinput·Å×îºóÃæ)
+-- Mogrify æ˜¯å°±åœ°ä¿®æ”¹åŸæ–‡ä»¶ï¼ˆä¸å†™ outputï¼Œä»…æœ‰ input ä¸å‚æ•°ï¼‰
 
--- magick  convert -size 200x200 xc:"#ffff00" -delay 6 -dispose previous  *.png movie.gif  Éú³É¶¯Í¼·½±ãÔ¤ÀÀÌØĞ§
--- magick  convert -size 512x512 xc:"#ffff00" -delay 6 -dispose previous  _³á°ò_0002_*.png move.gif
+-- magick convert -size 200x200 xc:"#ffff00" -delay 6 -dispose previous  *.png movie.gif  ç”ŸæˆåŠ¨å›¾å¹¶é¢„è§ˆæ•ˆæœ
+-- magick convert -size 512x512 xc:"#ffff00" -delay 6 -dispose previous  _å‰ç¼€_0002_*.png move.gif
 
--- compositeÓëconvert»ìÓÃµÄ¸ñÊ½:  convert  {background} {overlay} [{mask}] [-compose {method}] -composite   {result}
+-- composite ä¸ convert çš„æ ¼å¼:
+-- convert {background} {overlay} [{mask}] [-compose {method}] -composite {result}

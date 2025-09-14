@@ -208,7 +208,7 @@ library MallItem requires DzAPI{
                 mallItem.readyTrigger = CreateTrigger();
             }
             TriggerAddCondition(mallItem.readyTrigger, Condition(cb));
-            if (mallItem.ready) {
+              if (mallItem.ready) {
                 TriggerEvaluate(mallItem.readyTrigger);
             }
         }

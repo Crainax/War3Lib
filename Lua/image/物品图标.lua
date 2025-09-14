@@ -6,78 +6,78 @@ local iu = require "lua.image.ImageUtils"
 local BlpLab = iu.BlpLab
 
 local flag = {
-	['path'] = "D:/War3/´´ÊÀUI/Test/equit", -- Òª´¦ÀíµÄÎÄ¼ş¼Ğ
-	['isSubDir'] = false, -- ÊÇ·ñ´¦Àí×ÓÎÄ¼ş¼Ğ
-	['disable'] = true, -- ÊÇ·ñÉú³É°µÍ¼±ê
-	['frame'] = true, -- ÊÇ·ñÉú³É×Ô¶¨Òå±ß¿ò[·ñ¾ÍÊÇÔ­Éú±ß¿ò]
-	['size'] = 128, -- ÎÄ¼ş³¤¿í[×îÖÕ×ª»»µÄ]
-	['tSize'] = 128, -- ÎÄ¼ş³¤¿í[ÖĞ×ª]
-	['trimSize'] = 40, -- Í¼±êÏàÁÚËÄ±ßµÄ¾àÀë
-	['frameSize'] = 12, -- ±ß¿ò¾àÀë
-	['frameOff'] = 6, -- ±ß¿ò¸ß¶È
-	['bgColor'] = "orange", -- µ×ÑÕÉ«[Ö»ÓĞgreen/blue/purple/orange/pink/red]6ÖÖ ,×¢ÊÍµô¾ÍÊÇºÚµ×
-	-- ['fColor'] = "rgb(107,194,53)", -- [ÂÌÉ«±ß¿ò]
-	-- ['fColor']  = "rgb(65,117,182)", -- [À¶É«±ß¿ò]
-	-- ['fColor']  = "rgb(255,0,255)", -- [×Ï±ß¿ò]
-	['fColor'] = "rgb(255,94,0)", -- [³È±ß¿ò]
-	-- ['fColor'] = "rgb(255,0,0)", -- [ºì±ß¿ò]
-	-- ['fColor'] = "rgb(243,109,180)", -- [·Û±ß¿ò]
-	-- ['fColor']  = "rgb(128,128,128)", -- [»Ò±ß¿ò]
-	['isPrint'] = false, -- ÊÇ·ñ´òÓ¡Éú³ÉµÄÖ¸Áî
-	['namePrefix'] = 'test', -- Ãû×ÖÇ°×º
-	['nameCount'] = 1, -- Ãû×ÖÆğÊ¼µã
-	['isCorner'] = function(fileName) return false end, -- [ÅĞ¶ÏÄ³¸öÎÄ¼şÊÇ·ñÎª±ß½ÇÎÄ¼ş]
-	['corner'] = 5 -- [±ß½Ç¶ÔÓ¦ÎÄ¼ş,Ä¿Ç°Ö»ÓĞ0-5]
+    ['path'] = "D:/War3/è‡ªå®šä¹‰UI/Test/equit", -- è¦å¤„ç†çš„æ–‡ä»¶å¤¹
+    ['isSubDir'] = false, -- æ˜¯å¦éå†å­æ–‡ä»¶å¤¹
+    ['disable'] = true, -- æ˜¯å¦ç”Ÿæˆç¦ç”¨ï¼ˆç°åº¦ï¼‰å›¾
+    ['frame'] = true, -- æ˜¯å¦å¯ç”¨è‡ªå®šä¹‰è¾¹æ¡†ï¼»ä¸ä½¿ç”¨åŸç‰ˆè¾¹æ¡†ï¼½
+    ['size'] = 128, -- å›¾æ ‡ç›®æ ‡å°ºå¯¸ï¼»ç”¨äºè½¬æ¢/åˆæˆï¼½
+    ['tSize'] = 128, -- ä¸´æ—¶ç¼©æ”¾å°ºå¯¸
+    ['trimSize'] = 40, -- å›¾ç‰‡å››å‘¨æ‰©å±•ç•™ç™½çš„åƒç´ ï¼ˆè£åˆ‡åå†æ‰©è¾¹ï¼‰
+    ['frameSize'] = 12, -- è¾¹æ¡†ç²—ç»†
+    ['frameOff'] = 6, -- è¾¹æ¡†å†…ç¼©/å¤–æ‰©åç§»
+    ['bgColor'] = "orange", -- èƒŒæ™¯è‰²ï¼»ä»…æ”¯æŒ green/blue/purple/orange/pink/red å…­ç§ï¼Œæ³¨é‡Šæ‰åˆ™ä¸ºé»‘è‰²ï¼½
+    -- ['fColor'] = "rgb(107,194,53)", -- ï¼»ç»¿è¾¹æ¡†ï¼½
+    -- ['fColor']  = "rgb(65,117,182)", -- ï¼»è“è¾¹æ¡†ï¼½
+    -- ['fColor']  = "rgb(255,0,255)", -- ï¼»ç´«è¾¹æ¡†ï¼½
+    ['fColor'] = "rgb(255,94,0)", -- ï¼»æ©™è¾¹æ¡†ï¼½
+    -- ['fColor'] = "rgb(255,0,0)", -- ï¼»çº¢è¾¹æ¡†ï¼½
+    -- ['fColor'] = "rgb(243,109,180)", -- ï¼»ç²‰è¾¹æ¡†ï¼½
+    -- ['fColor']  = "rgb(128,128,128)", -- ï¼»ç°è¾¹æ¡†ï¼½
+    ['isPrint'] = false, -- æ˜¯å¦æ‰“å°ç”Ÿæˆçš„å‘½ä»¤
+    ['namePrefix'] = 'test', -- å‘½åå‰ç¼€
+    ['nameCount'] = 1, -- å‘½åèµ·å§‹è®¡æ•°
+    ['isCorner'] = function(fileName) return false end, -- åˆ¤æ–­æŸæ–‡ä»¶æ˜¯å¦éœ€è¦å åŠ â€œè§’æ ‡â€
+    ['corner'] = 5 -- è§’æ ‡ç¼–å·ï¼ˆå½“å‰ä»…æ”¯æŒ 0-5ï¼‰
 }
 
--- ²Ã¼ôÍ¼±ê(À¬»øconvert)
+-- è£åˆ‡å›¾åƒï¼ˆä½¿ç”¨ ImageMagick convertï¼‰
 local function Trim(filePath, output)
-	local cmd = 'magick convert \
-	' .. fu.PathString(filePath) .. ' \
-	-background rgba(0,0,0,0) \
-	-flatten \
-	-fuzz 25% -trim +repage \
-	-resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' \
-	-gravity center \
-	-extent ' .. (flag.tSize + flag.trimSize) .. 'x' .. (flag.tSize + flag.trimSize) .. ' \
-	-resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' \
-	' .. fu.PathString(output)
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîĞĞ·½±ã»»ĞĞ
-	-- Êä³öÎÄ¼şÃû
-	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
-	end
-	os.execute(cmd)
+    local cmd = 'magick convert ' ..
+        fu.PathString(filePath) .. ' ' ..
+        '-background rgba(0,0,0,0) ' ..
+        '-flatten ' ..
+        '-fuzz 25% -trim +repage ' ..
+        '-resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' ' ..
+        '-gravity center ' ..
+        '-extent ' .. (flag.tSize + flag.trimSize) .. 'x' .. (flag.tSize + flag.trimSize) .. ' ' ..
+        '-resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' ' ..
+        fu.PathString(output)
+    cmd = string.gsub(cmd, '[\n\t]', '') -- å»æ‰æ¢è¡Œä¸åˆ¶è¡¨ç¬¦
+    -- æ‰§è¡Œå‘½ä»¤
+    if flag.isPrint then
+        print(gbk.toutf8(cmd)) -- æ‰“å°å‘½ä»¤
+    end
+    os.execute(cmd)
 end
 
--- ¼Ó±ß½Ç(¸ù¾İÌõ¼ş)
+-- å åŠ è§’æ ‡ï¼ˆæŒ‰è§„åˆ™åˆ¤æ–­ï¼‰
 function Corner(file)
-	if flag.isCorner(file) then
-		iu.Combine(path.image.path .. "/bj" .. flag.corner .. ".png", file, file, flag.tSize)
-	end
+    if flag.isCorner(file) then
+        iu.Combine(path.image.path .. "/bj" .. flag.corner .. ".png", file, file, flag.tSize)
+    end
 end
 
--- Éú³ÉÍ¼±ê
+-- ç”Ÿæˆå›¾æ ‡
 local function GenerateIcon(outputPath, tempPath)
-	os.execute("explorer " .. string.gsub(outputPath, "/", "\\"))
-	fu.ForDir(flag.path, function(filePath)
-		local outputFile = outputPath .. "/" .. flag.namePrefix .. flag.nameCount .. ".png"
-		local tempFile = tempPath .. "/" .. flag.namePrefix .. flag.nameCount .. ".png"
-		local disFile = outputPath .. "/dis" .. flag.namePrefix .. flag.nameCount .. ".png"
-		if not (flag.isPrint) then
-			print(gbk.toutf8("´¦ÀíÖĞ..." .. outputFile))
-		end
-		flag.nameCount = flag.nameCount + 1
-		Trim(filePath, tempFile) -- µÚ1²½:²Ã¼ô×°±¸Í¼±ê
-		iu:BG(tempFile, outputFile) -- µÚ2²½:ºÏ²¢¡¾±³¾°/Í¼±ê¡¿
-		iu:Frame(outputFile) -- µÚ3²½:¼Ó¿ò
-		Corner(outputFile) -- µÚ4²½:±ß½Ç
-		iu:Light(outputFile) -- µÚ5²½:Å×¹â
-		if flag.disable then
-			iu:Disable(outputFile, disFile) -- µÚ6²½:Éú³É°µÍ¼±ê
-		end
-		flag.isPrint = false
-	end, flag.isSubDir)
+    os.execute("explorer " .. string.gsub(outputPath, "/", "\\"))
+    fu.ForDir(flag.path, function(filePath)
+        local outputFile = outputPath .. "/" .. flag.namePrefix .. flag.nameCount .. ".png"
+        local tempFile = tempPath .. "/" .. flag.namePrefix .. flag.nameCount .. ".png"
+        local disFile = outputPath .. "/dis" .. flag.namePrefix .. flag.nameCount .. ".png"
+        if not (flag.isPrint) then
+            print(gbk.toutf8("ç”Ÿæˆä¸­..." .. outputFile))
+        end
+        flag.nameCount = flag.nameCount + 1
+        Trim(filePath, tempFile) -- ç¬¬1æ­¥ï¼šè£åˆ‡ä¸æ ‡å‡†åŒ–å›¾åƒ
+        iu:BG(tempFile, outputFile) -- ç¬¬2æ­¥ï¼šåˆæˆèƒŒæ™¯/å›¾æ ‡
+        iu:Frame(outputFile) -- ç¬¬3æ­¥ï¼šåŠ è¾¹æ¡†
+        Corner(outputFile) -- ç¬¬4æ­¥ï¼šè§’æ ‡
+        iu:Light(outputFile) -- ç¬¬5æ­¥ï¼šé«˜å…‰
+        if flag.disable then
+            iu:Disable(outputFile, disFile) -- ç¬¬6æ­¥ï¼šç”Ÿæˆç¦ç”¨ï¼ˆç°åº¦ï¼‰å›¾
+        end
+        flag.isPrint = false
+    end, flag.isSubDir)
 end
 
 local outputPath = fu.GetDir(flag.path) .. "/output"
@@ -86,10 +86,10 @@ local blpPath = fu.GetDir(flag.path) .. "/blp"
 lfs.mkdir(outputPath)
 lfs.mkdir(tempPath)
 lfs.mkdir(blpPath)
-iu.Flag(flag) -- ´«µİFlag
+iu.Flag(flag) -- è®¾ç½® Flag
 GenerateIcon(outputPath, tempPath)
 BlpLab:ConvertBLP(outputPath, blpPath)
 BlpLab:MoveBLP(blpPath)
-print(gbk.toutf8("ÎïÆ·Í¼±êÉú³É½áÊø."))
+print(gbk.toutf8("æˆå“å›¾æ ‡ç”Ÿæˆå®Œæˆ."))
 
--- magick convert  canvas:white -resize 128x128 dis.psd -resize 128x128 -background none -flatten -composite 1.png
+-- magick convert canvas:white -resize 128x128 dis.psd -resize 128x128 -background none -flatten -composite 1.png

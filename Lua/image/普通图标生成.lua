@@ -7,36 +7,36 @@ local iu = require "lua.image.ImageUtils"
 local BlpLab = iu.BlpLab
 
 local flag = {
-	['path'] = [[D:\War3\´´ÊÀUI\IÓ¢ĞÛ\Í·Ïñ\1]], -- Òª´¦ÀíµÄÎÄ¼ş¼Ğ
-	['isSubDir'] = false, -- ÊÇ·ñ´¦Àí×ÓÎÄ¼ş¼Ğ
-	['passive'] = function(name) -- ÊÇ·ñÉú³É±»¶¯Í¼±ê[¾ÉÃûÎªÓ³Éä]
+	['path'] = [[D:\War3\è‡ªå®šä¹‰UI\Iè‹±é›„\å¤´åƒ\1]], -- è¦å¤„ç†çš„æ–‡ä»¶å¤¹
+	['isSubDir'] = false, -- æ˜¯å¦éå†å­æ–‡ä»¶å¤¹
+	['passive'] = function(name) -- æ˜¯å¦ç”Ÿæˆè¢«åŠ¨å›¾æ ‡ï¼»è¿”å›ä¸ºæ˜¯å¦æ˜¯è¢«åŠ¨ï¼½
 		return false
 	end,
-	['disable'] = true, -- ÊÇ·ñÉú³É°µÍ¼±ê
-	['size'] = 128, -- ÎÄ¼ş³¤¿í[×îÖÕ×ª»»µÄ]
-	['tSize'] = 128, -- ÎÄ¼ş³¤¿í[ÖĞ×ª]
-	['isPrint'] = false, -- ÊÇ·ñ´òÓ¡Éú³ÉµÄÖ¸Áî
-	['namePrefix'] = 'HeroSpell', -- Ãû×ÖÇ°×º
-	['nameCount'] = 1 -- Ãû×ÖÆğÊ¼µã
+	['disable'] = true,           -- æ˜¯å¦ç”Ÿæˆç°åº¦ç¦ç”¨å›¾
+	['size'] = 128,               -- æ–‡ä»¶å°ºå¯¸ï¼»ç”¨äºè½¬æ¢ï¼½
+	['tSize'] = 128,              -- æ–‡ä»¶å°ºå¯¸ï¼»ä¸´æ—¶ç¼©æ”¾ï¼½
+	['isPrint'] = false,          -- æ˜¯å¦æ‰“å°ç”Ÿæˆçš„å‘½ä»¤
+	['namePrefix'] = 'HeroSpell', -- å‘½åå‰ç¼€
+	['nameCount'] = 1             -- å‘½åèµ·å§‹è®¡æ•°
 }
--- Ãû×ÖÓ³Éä
+-- å‘½åæ˜ å°„
 flag['name'] = function(name)
-    local result = 'Hero' .. name
-	-- local result = flag.namePrefix .. flag.nameCount -- Ãû×Ö
+	local result = 'Hero' .. name
+	-- local result = flag.namePrefix .. flag.nameCount -- é€’å¢å‘½å
 	-- flag.nameCount = flag.nameCount + 1
 	return result
-end -- Éú³É
+end -- å‘½å
 
--- ´´½¨¶ÔÓ¦ÎÄ×ÖµÄText,²¢Trim
+-- å°†å›¾ç‰‡ç¼©æ”¾åˆ°æŒ‡å®šå°ºå¯¸ï¼ˆå»é™¤å¤šä½™ç©ºç™½ï¼‰
 local function Resize(tempFile, outputFile)
-	local cmd = 'magick convert \
-	' .. fu.PathString(tempFile) .. ' \
-	-resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' \
-	' .. fu.PathString(outputFile)
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîĞĞ·½±ã»»ĞĞ
-	-- Êä³öÎÄ¼şÃû
+	local cmd = 'magick convert ' ..
+		fu.PathString(tempFile) ..
+		' -resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' ' ..
+		fu.PathString(outputFile)
+	cmd = string.gsub(cmd, '[\n\t]', '') -- å»é™¤æ¢è¡Œå’Œåˆ¶è¡¨ç¬¦
+	-- æ‰§è¡Œå‘½ä»¤
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+		print(gbk.toutf8(cmd)) -- æ‰“å°å‘½ä»¤
 	end
 	os.execute(cmd)
 end
@@ -49,16 +49,16 @@ local function GenerateIcon(outputPath)
 		local outputFile = outputPath .. "/" .. name .. ".png"
 		local disFile = outputPath .. "/dis" .. name .. ".png"
 		if not (flag.isPrint) then
-			print(gbk.toutf8("´¦ÀíÖĞ..." .. outputFile))
+			print(gbk.toutf8("ç”Ÿæˆä¸­..." .. outputFile))
 		end
-		Resize(filePath, outputFile) -- µÚ1²½:Ö±½Ó×ö×î³õµÄµ÷Õû
-		if flag.passive(oldName) then -- ¸ù¾İ¾ÉÃûÀ´¾ö¶¨ÊÇ
+		Resize(filePath, outputFile)  -- ç¬¬1æ­¥ï¼šç›´æ¥ç¼©æ”¾ä¸ºç›®æ ‡å°ºå¯¸
+		if flag.passive(oldName) then -- æ ¹æ®è§„åˆ™ç”Ÿæˆè¢«åŠ¨å›¾æ ‡
 			iu:Combine(path.image.path .. "/passive.png", outputFile, outputFile, flag.size)
 		else
-			iu:Frame(outputFile) -- :¼Ó¿ò
-			iu:Light(outputFile) -- :Å×¹â
+			iu:Frame(outputFile)        -- åŠ è¾¹æ¡†
+			iu:Light(outputFile)        -- é«˜å…‰
 		end
-		iu:Disable(outputFile, disFile) -- Éú³É°µÍ¼±ê
+		iu:Disable(outputFile, disFile) -- ç”Ÿæˆç°åº¦ç¦ç”¨å›¾
 		flag.isPrint = false
 	end, flag.isSubDir)
 end
@@ -67,8 +67,8 @@ local outputPath = fu.GetDir(flag.path) .. "/output"
 local blpPath = fu.GetDir(flag.path) .. "/blp"
 lfs.mkdir(outputPath)
 lfs.mkdir(blpPath)
-iu.Flag(flag) -- ´«µİFlag
+iu.Flag(flag) -- è®¾ç½®Flag
 GenerateIcon(outputPath)
 BlpLab:ConvertBLP(outputPath, blpPath)
 BlpLab:MoveBLP(blpPath)
-print(gbk.toutf8("ÆÕÍ¨Í¼±êÉú³É½áÊø."))
+print(gbk.toutf8("é€šç”¨å›¾æ ‡ç”Ÿæˆå®Œæˆ."))

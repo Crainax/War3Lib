@@ -7,97 +7,96 @@ local iu = require "lua.image.ImageUtils"
 local BlpLab = iu.BlpLab
 
 local flag = {
-	['path'] = "D:/War3/´´ÊÀUI/Test/text", -- Òª´¦ÀíµÄÎÄ¼ş¼Ğ
-	['isSubDir'] = false, -- ÊÇ·ñ´¦Àí×ÓÎÄ¼ş¼Ğ
-	['passive'] = false, -- ÊÇ·ñÉú³É±»¶¯Í¼±ê
-	['disable'] = true, -- ÊÇ·ñÉú³É°µÍ¼±ê
-	['size'] = 128, -- ÎÄ¼ş³¤¿í[×îÖÕ×ª»»µÄ]
-	['tSize'] = 128, -- ÎÄ¼ş³¤¿í[ÖĞ×ª]
-	['trimSize'] = 40, -- Í¼±êÏàÁÚËÄ±ßµÄ¾àÀë
-	['bgColor'] = "green", -- µ×ÑÕÉ«[Ö»ÓĞgreen/blue/purple/orange/pink/red]6ÖÖ ,×¢ÊÍµô¾ÍÊÇºÚµ×
-	['wColor'] = "cyan", -- ×ÖµÄÑÕÉ«
-	['isPrint'] = false, -- ÊÇ·ñ´òÓ¡Éú³ÉµÄÖ¸Áî
-	['namePrefix'] = 'Diamond', -- Ãû×ÖÇ°×º
-	['font'] = font.font3, -- Ê¹ÓÃÊ²Ã´×ÖÌå
-	['nameCount'] = 1, -- Ãû×ÖÆğÊ¼µã
+	['path'] = "D:/War3/è‡ªå®šä¹‰UI/Test/text", -- è¦å¤„ç†çš„æ–‡ä»¶å¤¹
+	['isSubDir'] = false, -- æ˜¯å¦éå†å­æ–‡ä»¶å¤¹
+	['passive'] = false, -- æ˜¯å¦ç”Ÿæˆâ€œè¢«åŠ¨â€å›¾æ ‡ï¼ˆå è¢«åŠ¨åº•æ¡†ï¼‰
+	['disable'] = true, -- æ˜¯å¦ç”Ÿæˆç¦ç”¨ï¼ˆç°åº¦ï¼‰å›¾
+	['size'] = 128, -- ç›®æ ‡å°ºå¯¸ï¼»ç”¨äºè½¬æ¢/åˆæˆï¼½
+	['tSize'] = 128, -- ä¸´æ—¶å­—ä½“å°ºå¯¸ï¼ˆç”¨äºæ–‡æœ¬è½¬å›¾ï¼‰
+	['trimSize'] = 40, -- å›¾ç‰‡å››å‘¨æ‰©å±•ç•™ç™½çš„åƒç´ 
+	['bgColor'] = "green", -- èƒŒæ™¯è‰²ï¼»ä»…æ”¯æŒ green/blue/purple/orange/pink/red å…­ç§ï¼Œæ³¨é‡Šåˆ™ä¸ºé»‘è‰²ï¼½
+	['wColor'] = "cyan", -- æ–‡æœ¬é¢œè‰²ï¼ˆword colorï¼‰
+	['isPrint'] = false, -- æ˜¯å¦æ‰“å°ç”Ÿæˆçš„å‘½ä»¤
+	['namePrefix'] = 'Diamond', -- å‘½åå‰ç¼€
+	['font'] = font.font3, -- ä½¿ç”¨çš„å­—ä½“æ–‡ä»¶
+	['nameCount'] = 1, -- å‘½åèµ·å§‹è®¡æ•°
 }
 
--- ĞèÒªÉú³ÉµÄÄÚÈİ
-math.randomseed(tostring(os.time()):reverse():sub(1, 7)) -- ³õÊ¼»¯ÖÖ×Ó
+-- éœ€è¦ç”Ÿæˆçš„å†…å®¹
+math.randomseed(tostring(os.time()):reverse():sub(1, 7)) -- åˆå§‹åŒ–éšæœºæ•°
 local content = {
-	{"±¦Ê¯\nA"}, --
-	{"±¦Ê¯\nB"}, --
-	{"±¦Ê¯\nC"}, --
-	{"±¦Ê¯\nD"}, --
-	{"±¦Ê¯\nE"}, --
-	{"±¦Ê¯\nF"}, --
-	{"±¦Ê¯\nG"}, --
-	{"±¦Ê¯\nH"}, --
-	{"±¦Ê¯\nI"}, --
-	{"±¦Ê¯\nJ"}, --
-	{"±¦Ê¯\nK"}, --
-	{"±¦Ê¯\nL"}, --
-	{"±¦Ê¯\nM"}, --
-	{"±¦Ê¯\nN"}, --
-	{"±¦Ê¯\nO"}, --
-	{"±¦Ê¯\nP"}, --
-	{"±¦Ê¯\nQ"}, --
-	{"±¦Ê¯\nR"}, --
-	{"±¦Ê¯\nS"}, --
-	{"±¦Ê¯\nT"}, --
-	{"±¦Ê¯\nU"}, --
-	{"±¦Ê¯\nV"}, --
-	{"±¦Ê¯\nW"}, --
-	{"±¦Ê¯\nX"}, --
-	{"±¦Ê¯\nY"}, --
-	{"±¦Ê¯\nA"}, --
-	{"±¦Ê¯\nB"}, --
-	{"±¦Ê¯\nC"}, --
-	{"±¦Ê¯\nD"}, --
-	{"±¦Ê¯\nE"}, --
-	{"±¦Ê¯\nF"}, --
-	{"±¦Ê¯\nG"}, --
-	{"±¦Ê¯\nH"}, --
-	{"±¦Ê¯\nI"}, --
-	{"±¦Ê¯\nJ"}, --
-	{"±¦Ê¯\nK"}, --
-	{"±¦Ê¯\nL"}, --
-	{"±¦Ê¯\nM"}, --
-	{"±¦Ê¯\nN"}, --
-	{"±¦Ê¯\nO"}, --
-	{"±¦Ê¯\nP"}, --
-	{"±¦Ê¯\nQ"}, --
-	{"±¦Ê¯\nR"}, --
-	{"±¦Ê¯\nS"}, --
-	{"±¦Ê¯\nT"}, --
-	{"±¦Ê¯\nU"}, --
-	{"±¦Ê¯\nV"}, --
-	{"±¦Ê¯\nW"}, --
-	{"±¦Ê¯\nX"}, --
-	{"±¦Ê¯\nY"}, --
-
+	{ "é’»çŸ³\nA" }, --
+	{ "é’»çŸ³\nB" }, --
+	{ "é’»çŸ³\nC" }, --
+	{ "é’»çŸ³\nD" }, --
+	{ "é’»çŸ³\nE" }, --
+	{ "é’»çŸ³\nF" }, --
+	{ "é’»çŸ³\nG" }, --
+	{ "é’»çŸ³\nH" }, --
+	{ "é’»çŸ³\nI" }, --
+	{ "é’»çŸ³\nJ" }, --
+	{ "é’»çŸ³\nK" }, --
+	{ "é’»çŸ³\nL" }, --
+	{ "é’»çŸ³\nM" }, --
+	{ "é’»çŸ³\nN" }, --
+	{ "é’»çŸ³\nO" }, --
+	{ "é’»çŸ³\nP" }, --
+	{ "é’»çŸ³\nQ" }, --
+	{ "é’»çŸ³\nR" }, --
+	{ "é’»çŸ³\nS" }, --
+	{ "é’»çŸ³\nT" }, --
+	{ "é’»çŸ³\nU" }, --
+	{ "é’»çŸ³\nV" }, --
+	{ "é’»çŸ³\nW" }, --
+	{ "é’»çŸ³\nX" }, --
+	{ "é’»çŸ³\nY" }, --
+	{ "é’»çŸ³\nA" }, --
+	{ "é’»çŸ³\nB" }, --
+	{ "é’»çŸ³\nC" }, --
+	{ "é’»çŸ³\nD" }, --
+	{ "é’»çŸ³\nE" }, --
+	{ "é’»çŸ³\nF" }, --
+	{ "é’»çŸ³\nG" }, --
+	{ "é’»çŸ³\nH" }, --
+	{ "é’»çŸ³\nI" }, --
+	{ "é’»çŸ³\nJ" }, --
+	{ "é’»çŸ³\nK" }, --
+	{ "é’»çŸ³\nL" }, --
+	{ "é’»çŸ³\nM" }, --
+	{ "é’»çŸ³\nN" }, --
+	{ "é’»çŸ³\nO" }, --
+	{ "é’»çŸ³\nP" }, --
+	{ "é’»çŸ³\nQ" }, --
+	{ "é’»çŸ³\nR" }, --
+	{ "é’»çŸ³\nS" }, --
+	{ "é’»çŸ³\nT" }, --
+	{ "é’»çŸ³\nU" }, --
+	{ "é’»çŸ³\nV" }, --
+	{ "é’»çŸ³\nW" }, --
+	{ "é’»çŸ³\nX" }, --
+	{ "é’»çŸ³\nY" }, --
 }
 
--- ´´½¨¶ÔÓ¦ÎÄ×ÖµÄText,²¢Trim
+-- æ–‡æœ¬è½¬å›¾ï¼ˆç”Ÿæˆæ–‡æœ¬è´´å›¾ï¼Œå†åš Trimï¼‰
 local function Text(va, tempFile, outputFile)
-	local cmd = 'magick convert \
-	-background none \
-	-fill ' .. (va.wColor or flag.wColor) .. ' \
-	-font ' .. fu.PathString(flag.font) .. ' \
-	-size x150 \
-	-pointsize ' .. flag.tSize .. ' \
-	-gravity center \
-	label:@' .. tempFile .. ' \
-	-trim +repage \
-	-resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' \
-	-gravity center \
-	-extent ' .. (flag.tSize + flag.trimSize) .. 'x' .. (flag.tSize + flag.trimSize) .. ' \
-	-resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' \
-	' .. fu.PathString(outputFile)
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîĞĞ·½±ã»»ĞĞ
-	-- Êä³öÎÄ¼şÃû
+	local cmd = 'magick convert ' ..
+		'-background none ' ..
+		'-fill ' .. (va.wColor or flag.wColor) .. ' ' ..
+		'-font ' .. fu.PathString(flag.font) .. ' ' ..
+		'-size x150 ' ..
+		'-pointsize ' .. flag.tSize .. ' ' ..
+		'-gravity center ' ..
+		'label:@' .. tempFile .. ' ' ..
+		'-trim +repage ' ..
+		'-resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' ' ..
+		'-gravity center ' ..
+		'-extent ' .. (flag.tSize + flag.trimSize) .. 'x' .. (flag.tSize + flag.trimSize) .. ' ' ..
+		'-resize ' .. flag.tSize .. 'x' .. flag.tSize .. ' ' ..
+		fu.PathString(outputFile)
+	cmd = string.gsub(cmd, '[\n\t]', '') -- å»é™¤æ¢è¡Œä¸åˆ¶è¡¨ç¬¦
+	-- æ‰§è¡Œå‘½ä»¤
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+		print(gbk.toutf8(cmd)) -- æ‰“å°ä¸€æ¬¡
 	end
 	os.execute(cmd)
 end
@@ -112,22 +111,26 @@ local function GenerateIcon(outputPath, tempPath)
 		local disFile = outputPath .. "/dis" .. fileName .. ".png"
 		local outputFile = outputPath .. "/" .. fileName .. ".png"
 		fu.WriteOver(tempFile, gbk.toutf8(value[1]))
-		if not (flag.isPrint) then print(gbk.toutf8("´¦ÀíÖĞ..." .. outputFile)) end
-		Text(value, tempFile, outputFile) -- µÚ1²½:Ğ´×Ö
-		if value.bgColor then -- ÓÃÄÚÈİµÄÀ´´úÌæÄ¬ÈÏ±³¾°
+		if not (flag.isPrint) then
+			print(gbk.toutf8("ç”Ÿæˆä¸­..." .. outputFile))
+		end
+		Text(value, tempFile, outputFile) -- ç¬¬1æ­¥ï¼šæ–‡å­—æ¸²æŸ“æˆå›¾
+		-- æ ¹æ®æ•°æ®é¡¹è¦†ç›–èƒŒæ™¯è‰²ï¼Œå¦åˆ™ç”¨å…¨å±€é»˜è®¤
+		if value.bgColor then
 			flag.bgColor = value.bgColor
 		else
 			flag.bgColor = tempBgColor
 		end
-		iu:BG(outputFile, outputFile) -- µÚ2²½:ºÏ²¢¡¾±³¾°/Í¼±ê¡¿
-		if value.passive then -- µÚ3²½:Ö÷¶¯¾Í¼Ó¿ò+Å×¹â,±»¶¯¾Í²»ĞèÒª
+		iu:BG(outputFile, outputFile) -- ç¬¬2æ­¥ï¼šå èƒŒæ™¯
+		if value.passive or flag.passive then
+			-- ç¬¬3æ­¥ï¼šè¢«åŠ¨å›¾æ ‡å åº•ï¼›è¢«åŠ¨æ— éœ€è¾¹æ¡†/é«˜å…‰
 			iu:Combine(path.image.path .. "/passive.png", outputFile, outputFile, flag.size)
 		else
-			iu:Frame(outputFile)
-			iu:Light(outputFile)
+			iu:Frame(outputFile) -- åŠ è¾¹æ¡†
+			iu:Light(outputFile) -- é«˜å…‰
 		end
 		if flag.disable then
-			iu:Disable(outputFile, disFile) -- µÚ4²½:Éú³É°µÍ¼±ê
+			iu:Disable(outputFile, disFile) -- ç¬¬4æ­¥ï¼šç”Ÿæˆç¦ç”¨ï¼ˆç°åº¦ï¼‰å›¾
 		end
 		flag.nameCount = flag.nameCount + 1
 		flag.isPrint = false
@@ -137,13 +140,13 @@ end
 local outputPath = fu.GetDir(flag.path) .. "/output"
 local tempPath = fu.GetDir(flag.path) .. "/temp"
 local blpPath = fu.GetDir(flag.path) .. "/blp"
-fu.clearDir(outputPath) -- Çå¿ÕÎÄ¼ş¼Ğ
-fu.clearDir(tempPath) -- Çå¿ÕÎÄ¼ş¼Ğ
-fu.clearDir(blpPath) -- Çå¿ÕÎÄ¼ş¼Ğ
+fu.clearDir(outputPath) -- æ¸…ç©ºæ–‡ä»¶å¤¹
+fu.clearDir(tempPath)   -- æ¸…ç©ºæ–‡ä»¶å¤¹
+fu.clearDir(blpPath)    -- æ¸…ç©ºæ–‡ä»¶å¤¹
 lfs.mkdir(outputPath)
 lfs.mkdir(tempPath)
 lfs.mkdir(blpPath)
 GenerateIcon(outputPath, tempPath)
 BlpLab:ConvertBLP(outputPath, blpPath)
 BlpLab:MoveBLP(blpPath)
-print(gbk.toutf8("ÎÄ±¾Ê½Í¼±êÉú³É½áÊø."))
+print(gbk.toutf8("æ–‡å­—å¼å›¾æ ‡ç”Ÿæˆå®Œæˆ."))
