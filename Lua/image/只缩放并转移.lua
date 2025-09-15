@@ -6,10 +6,10 @@ local iu = require "lua.image.ImageUtils"
 local BlpLab = iu.BlpLab
 
 local flag = {
-	['path'] = [[D:\War3\自定义UI\优雅装饰\imagedot]], -- 要处理的文件夹
+	['path'] = [[D:\War3Asset\Asset\LoopingHell\icon]], -- 要处理的文件夹
 	['isSubDir'] = false, -- 是否遍历子文件夹
 	['disable'] = true, -- 是否生成禁用（灰度）图
-	['size'] = 128, -- 目标尺寸［用于转换/合成］
+	['size'] = 64, -- 目标尺寸［用于转换/合成］
 	['tWidth'] = 128, -- 临时宽度
 	['tHeight'] = 128, -- 临时高度
 	['isPrint'] = false, -- 是否打印生成的命令

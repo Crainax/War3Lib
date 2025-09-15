@@ -1,13 +1,11 @@
 local fu = require "lua.utils.FileUtils"
 local lfs = require "lfs"
-local gbk = require "gbk"
-local path = require "lua.path"
-local font = require "lua.font"
+local path = require "Lua.path"
 local iu = require "lua.image.ImageUtils"
 local BlpLab = iu.BlpLab
 
 local flag = {
-	['path'] = [[D:\War3\自定义UI\I英雄\头像\1]], -- 要处理的文件夹
+	['path'] = [[D:/War3Asset/Asset/LoopingHell/icon]], -- 要处理的文件夹
 	['isSubDir'] = false, -- 是否遍历子文件夹
 	['passive'] = function(name) -- 是否生成被动图标［返回为是否是被动］
 		return false
@@ -36,7 +34,7 @@ local function Resize(tempFile, outputFile)
 	cmd = string.gsub(cmd, '[\n\t]', '') -- 去除换行和制表符
 	-- 执行命令
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- 打印命令
+		print(cmd) -- 打印命令
 	end
 	os.execute(cmd)
 end
@@ -49,7 +47,7 @@ local function GenerateIcon(outputPath)
 		local outputFile = outputPath .. "/" .. name .. ".png"
 		local disFile = outputPath .. "/dis" .. name .. ".png"
 		if not (flag.isPrint) then
-			print(gbk.toutf8("生成中..." .. outputFile))
+			print("生成中..." .. outputFile)
 		end
 		Resize(filePath, outputFile)  -- 第1步：直接缩放为目标尺寸
 		if flag.passive(oldName) then -- 根据规则生成被动图标
@@ -71,4 +69,4 @@ iu.Flag(flag) -- 设置Flag
 GenerateIcon(outputPath)
 BlpLab:ConvertBLP(outputPath, blpPath)
 BlpLab:MoveBLP(blpPath)
-print(gbk.toutf8("通用图标生成完成."))
+print("通用图标生成完成.")
