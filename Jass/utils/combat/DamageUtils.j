@@ -82,7 +82,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
 
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
-            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
+            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source))) {
                 ApplyPhysicalDamage(current.source,GetFilterUnit(),current.damage);
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
@@ -110,7 +110,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
 
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
-            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
+            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source))) {
                 ApplyMagicDamage(current.source,GetFilterUnit(),current.damage);
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
@@ -138,7 +138,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
 
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
-            if (IsEnemy(GetOwningPlayer(current.source),GetFilterUnit())) {
+            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source))) {
                 ApplyPureDamage(current.source,GetFilterUnit(),current.damage);
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));

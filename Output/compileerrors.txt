@@ -1,6 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 1262:  Cannot convert integer to boolean
-Line 1347:  Cannot convert integer to boolean
-Line 1369:  Cannot convert integer to boolean
-3
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 266: Missing requirement: GroupUtils (libraries cannot require scopes)
+1

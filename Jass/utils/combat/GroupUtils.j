@@ -29,7 +29,7 @@ library GroupUtils requires UnitFilter {
         tempG = CreateGroup();
         tempU = u;
         GroupEnumUnitsInRangeEx(tempG, x, y, radius, Filter(function () -> boolean {
-            if (IsEnemy(GetOwningPlayer(tempU),GetFilterUnit())) {
+            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(tempU))) {
                 return true;
             }
             return false;

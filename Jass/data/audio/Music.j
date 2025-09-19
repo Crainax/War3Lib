@@ -11,15 +11,16 @@
 #define MUSIC_INDEX_BTN_OVER_2 1003   //用于UI的音效:按钮悬停
 #define MUSIC_INDEX_BTN_UP_1   1004   //用于UI的音效:按钮弹起
 
-#define MUSIC_INDEX_BASE_DMGED 5  //基地受击音效
-#define MUSIC_INDEX_BASE_DEATH 6  //基地死亡音效
-#define MUSIC_INDEX_NO_GOLD    7  //金币不足音效
-#define MUSIC_INDEX_ERROR      8  //错误提示音效
-#define MUSIC_INDEX_GOLD       9  //获得金币音效
-#define MUSIC_INDEX_TOMES      10 //典籍音效
-#define MUSIC_INDEX_ITEM       11 //获得物品音效
-#define MUSIC_INDEX_BTN_CLICK  12 //按钮点击音效
-#define MUSIC_INDEX_UP_SPELL   13 //升级法术音效
+#define MUSIC_INDEX_BASE_DMGED 5   //基地受击音效
+#define MUSIC_INDEX_BASE_DEATH 6   //基地死亡音效
+#define MUSIC_INDEX_NO_GOLD    7   //金币不足音效
+#define MUSIC_INDEX_ERROR      8   //错误提示音效
+#define MUSIC_INDEX_GOLD       9   //获得金币音效
+#define MUSIC_INDEX_TOMES      10  //典籍音效
+#define MUSIC_INDEX_ITEM       11  //获得物品音效
+#define MUSIC_INDEX_BTN_CLICK  12  //按钮点击音效
+#define MUSIC_INDEX_UP_SPELL   13  //升级法术音效
+#define MUSIC_INDEX_LUMBER     14  //获得木材的声音
 
 //! zinc
 
@@ -126,6 +127,13 @@ library Music {
 			SetSoundDuration(snd, 2525);
 			thistype[MUSIC_INDEX_UP_SPELL].snd = snd;
 			//# endcheck
+
+			//# check: music[14]
+			snd = CreateSound("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", false, false, false, 10, 10, "SpellsEAX");
+			SetSoundDuration(snd, 1347);
+			thistype[MUSIC_INDEX_LUMBER].snd = snd;
+			//# endcheck
+
 
 			snd = null;
 		}
