@@ -301,63 +301,63 @@ library UnitAttrUpdate requires UnitPanel,HeroAttr,YDWEYDWEJapiScript{
 		unitPanel.onAttackLeave(function tooltipStack.clear); //离开事件,销毁tooltip
 		unitPanel.onArmorLeave(function tooltipStack.clear); //离开事件,销毁tooltip
 		unitSelect.onAsync(function () { //显示怪物的金币和经验
-            monster m = monster.get(unitSelect.args);
-            if (m.isExist() && !IsHeroUnitId(GetUnitTypeId(unitSelect.args))) {
-				unitPanel.iconMonster.show(true);
-                unitPanel.textGoldValue.setText("|cffffffff" + FormatNumber(m.gold));
-                unitPanel.textExpValue.setText("|cffffffff" + FormatNumber(m.exp));
-            }
+            // monster m = monster.get(unitSelect.args);
+            // if (m.isExist() && !IsHeroUnitId(GetUnitTypeId(unitSelect.args))) {
+			// 	unitPanel.iconMonster.show(true);
+            //     unitPanel.textGoldValue.setText("|cffffffff" + FormatNumber(m.gold));
+            //     unitPanel.textExpValue.setText("|cffffffff" + FormatNumber(m.exp));
+            // }
 		});
 		unitSelect.onAsyncUn(function () { //隐藏怪物的金币和经验
-            monster m = monster.get(unitSelect.args);
-            if (m.isExist()) {
-                unitPanel.iconMonster.show(false);
-            }
+            // monster m = monster.get(unitSelect.args);
+            // if (m.isExist()) {
+            //     unitPanel.iconMonster.show(false);
+            // }
 		});
         unitPanel.onMonsterEnter(function () { //怪物的图标事件
-            monster m = monster.get(DzGetSelectedLeaderUnit());
-            unitSpell us = unitSpell.get(DzGetSelectedLeaderUnit());
+            // monster m = monster.get(DzGetSelectedLeaderUnit());
+            // unitSpell us = unitSpell.get(DzGetSelectedLeaderUnit());
 
-			tooltipStack.pushOrigin();
-			if (monsterTip1.isExist()) {
-				monsterTip1.destroy();
-			}
+			// tooltipStack.pushOrigin();
+			// if (monsterTip1.isExist()) {
+			// 	monsterTip1.destroy();
+			// }
 
-            if (m.isExist()) {
+            // if (m.isExist()) {
 
-            } else {
-                monsterTip1 = tooltip.create()
-                    .layoutTitle("该怪物没有战利品.")
-                    .setAbsPoint(ANCHOR_BOTTOMRIGHT,TOOLTIP_DEFAULT_X,TOOLTIP_DEFAULT_Y);
-            }
+            // } else {
+            //     monsterTip1 = tooltip.create()
+            //         .layoutTitle("该怪物没有战利品.")
+            //         .setAbsPoint(ANCHOR_BOTTOMRIGHT,TOOLTIP_DEFAULT_X,TOOLTIP_DEFAULT_Y);
+            // }
 
-            tooltipStack.push(function (player p) { //压栈
-				if (monsterTip1.isExist()) {
-					monsterTip1.destroy();
-				}
-				monsterTip1 = 0;
-			});
+            // tooltipStack.push(function (player p) { //压栈
+			// 	if (monsterTip1.isExist()) {
+			// 		monsterTip1.destroy();
+			// 	}
+			// 	monsterTip1 = 0;
+			// });
 
 
-            // 怪物的技能
-			if (monsterTip2.isExist()) {
-				monsterTip2.destroy();
-			}
+            // // 怪物的技能
+			// if (monsterTip2.isExist()) {
+			// 	monsterTip2.destroy();
+			// }
 
-            if (us.isExist()) {
+            // if (us.isExist()) {
 
-            } else {
-                monsterTip2 = tooltip.create()
-                    .layoutTitle("该怪物没有技能.")
-                    .setPoint(ANCHOR_BOTTOMRIGHT,monsterTip1.relativeTop,ANCHOR_TOPRIGHT,0,0.008);
-            }
+            // } else {
+            //     monsterTip2 = tooltip.create()
+            //         .layoutTitle("该怪物没有技能.")
+            //         .setPoint(ANCHOR_BOTTOMRIGHT,monsterTip1.relativeTop,ANCHOR_TOPRIGHT,0,0.008);
+            // }
 
-            tooltipStack.push(function (player p) { //压栈
-				if (monsterTip2.isExist()) {
-					monsterTip2.destroy();
-				}
-				monsterTip2 = 0;
-			});
+            // tooltipStack.push(function (player p) { //压栈
+			// 	if (monsterTip2.isExist()) {
+			// 		monsterTip2.destroy();
+			// 	}
+			// 	monsterTip2 = 0;
+			// });
 
 
 

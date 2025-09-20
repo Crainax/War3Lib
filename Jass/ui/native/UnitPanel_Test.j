@@ -69,7 +69,7 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 
 		unitPanel.onAttackEnter(function () {
 			testCount = testCount + 1;
-			unitPanel.textAttackExtra.setText("|cff00ff00+" + I2S(testCount) + "|r");
+			unitPanel.textAttackExtra.setText("|cff00ff00+" + FormatNumber(testCount*1230432.) + "|r");
 			unitPanel.showAttackExtra(true);
 		});
 		unitPanel.onAttackLeave(function () {
@@ -77,7 +77,7 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		});
 		unitPanel.onArmorEnter(function () {
 			testCount = testCount + 1;
-			unitPanel.textArmorExtra.setText("|cffff0000-" + I2S(testCount) + "|r");
+			unitPanel.textArmorExtra.setText("|cffff0000-" + FormatNumber(testCount*123043242.) + "|r");
 			unitPanel.showArmorExtra(true);
 		});
 		unitPanel.onArmorLeave(function () {
@@ -85,9 +85,9 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		});
 		unitPanel.onHeroEnter(function () {
 			testCount = testCount + 1;
-			unitPanel.textStrExtra.setText("|cff00ff00+" + I2S(testCount * 3) + "|r");
-			unitPanel.textAgiExtra.setText("|cff00ff00+" + I2S(testCount * 5) + "|r");
-			unitPanel.textIntExtra.setText("|cff00ff00+" + I2S(testCount * 67) + "|r");
+			unitPanel.textStrExtra.setText("|cff00ff00+" + FormatNumber(testCount * 300000000.) + "|r");
+			unitPanel.textAgiExtra.setText("|cff00ff00+" + FormatNumber(testCount * 500000000.) + "|r");
+			unitPanel.textIntExtra.setText("|cff00ff00+" + FormatNumber(testCount * 6700000000.) + "|r");
 			unitPanel.showStrExtra(true);
 			unitPanel.showAgiExtra(true);
 			unitPanel.showIntExtra(true);

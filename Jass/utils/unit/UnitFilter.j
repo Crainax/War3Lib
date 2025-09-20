@@ -7,29 +7,34 @@
 */
 
 
-// 根据是否定义了 DUMMY_UNIT_JUDGE_NOT 来决定是否添加虚拟单位判断
+// 基础单位状态检查（生命值、存活状态）
 #ifdef DUMMY_UNIT_JUDGE_NOT
-#define IS_VALID_ENEMY_TARGET(p,u) ( \
-!IsUnitType(u, UNIT_TYPE_SLEEPING) && \
+#define IS_VALID_UNIT_BASIC(u) ( \
 GetUnitState(u, UNIT_STATE_LIFE) > 0.405 && \
-!IsUnitType(u, UNIT_TYPE_STRUCTURE) && \
 IsUnitAliveBJ(u) && \
-!IsUnitHidden(u) && \
-IsUnitEnemy(u, p) && \
-IsUnitVisible(u, p) && \
 DUMMY_UNIT_JUDGE_NOT(u) \
 )
 #else
-#define IS_VALID_ENEMY_TARGET(p,u) ( \
-!IsUnitType(u, UNIT_TYPE_SLEEPING) && \
+#define IS_VALID_UNIT_BASIC(u) ( \
 GetUnitState(u, UNIT_STATE_LIFE) > 0.405 && \
+IsUnitAliveBJ(u) \
+)
+#endif
+
+// 敌对关系检查（不包含虚拟单位判断）
+#define IS_VALID_ENEMY_RELATION(p,u) ( \
+!IsUnitType(u, UNIT_TYPE_SLEEPING) && \
 !IsUnitType(u, UNIT_TYPE_STRUCTURE) && \
-IsUnitAliveBJ(u) && \
 !IsUnitHidden(u) && \
 IsUnitEnemy(u, p) && \
 IsUnitVisible(u, p) \
 )
-#endif
+
+// 完整的敌方目标检查（合并两部分）
+#define IS_VALID_ENEMY_TARGET(p,u) ( \
+IS_VALID_UNIT_BASIC(u) && \
+IS_VALID_ENEMY_RELATION(p,u) \
+)
 
 library UnitFilter {
 
@@ -40,11 +45,26 @@ library UnitFilter {
     //旧名：IsEnemy2
     //判断是否是敌方(能匹配到无敌单位)
     public function IsEnemyIncludeInvul (unit u,player p)  -> boolean {
-        return IS_VALID_ENEMY_TARGET(p,u) && GetUnitAbilityLevel(u, 'Avul') < 1;
+        return IS_VALID_ENEMY_TARGET(p,u);
     }
+
+    //判断是否是敌方非魔法免疫单位
+    public function IsEnemyMagic (unit u,player p)  -> boolean {
+        return !IsUnitType(u, UNIT_TYPE_MAGIC_IMMUNE) && IsEnemy(u,p) && !IsUnitType(u, UNIT_TYPE_RESISTANT);
+    }
+
+    //判断是否是敌方(简化版本,只检查基础状态和敌对关系)
+    public function IsEnemyBasic(unit u, player p) -> boolean {
+        return IS_VALID_UNIT_BASIC(u) && IsUnitEnemy(u, p);
+    }
+
     //判断是否是友方
     public function IsAlly (unit u,player p)  -> boolean {
+        #ifdef DUMMY_UNIT_JUDGE_NOT
+        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p) && DUMMY_UNIT_JUDGE_NOT(u);
+        #else
         return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p);
+        #endif
     }
 
     //判断两个单位是否互为敌人(不带无敌)
@@ -57,6 +77,17 @@ library UnitFilter {
     public function IsAllyUnit(unit target, unit caster) -> boolean {
         return IsAlly(target,GetOwningPlayer(caster));
     }
+
+    //判断两个单位是否互为敌人(简化版本,只检查基础状态和敌对关系)
+    public function IsEnemyBasicUnit(unit target, unit caster) -> boolean {
+        return IS_VALID_UNIT_BASIC(target) && IsUnitEnemy(target, GetOwningPlayer(caster));
+    }
+
+    //判断是否是敌方非魔法免疫单位(双单位参数版)
+    public function IsEnemyMagicUnit(unit target, unit caster) -> boolean {
+        return IsEnemyMagic(target, GetOwningPlayer(caster));
+    }
+
 
     // //判断单位是否属于指定常见种族或中立阵营
     // // 人族/兽族/不死/精灵 以及 中立敌对/中立中立

@@ -18,16 +18,16 @@ library UnitRegen {
 		private unit u; // 单位
 
 		// 定量回复值
-		private real HPRegenFixed = 0.0;     // 每秒定量回血
-		private real MPRegenFixed = 0.0;     // 每秒定量回魔
+		public real HPRegenFixed = 0.0;     // 每秒定量回血
+		public real MPRegenFixed = 0.0;     // 每秒定量回魔
 
 		// 百分比回复值 (基于最大值的百分比)
-		private real HPRegenPercent = 0.0;   // 每秒百分比回血
-		private real MPRegenPercent = 0.0;   // 每秒百分比回魔
+		public real HPRegenPercent = 0.0;   // 每秒百分比回血
+		public real MPRegenPercent = 0.0;   // 每秒百分比回魔
 
 		// 回复效益
-		private real RegenEffectUp = 0.0;    // 回复效益增幅
-		private real RegenEffectDown = 0.0;  // 回复效益减幅
+		public real RegenEffectUp = 0.0;    // 回复效益增幅
+		public real RegenEffectDown = 0.0;  // 回复效益减幅
 
 		STRUCT_SHARED_METHODS(unitRegen)
 

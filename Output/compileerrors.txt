@@ -1,4 +1,6 @@
 logs\currentmapscript.j
-JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 266: Missing requirement: GroupUtils (libraries cannot require scopes)
-1
+pjass.exe
+Line 2361:  Undeclared variable ANCHOR_BOTTOMRIGHT
+Line 2364:  Undeclared variable ANCHOR_BOTTOMRIGHT
+Line 8220:  Undeclared variable ANCHOR_BOTTOMRIGHT
+3

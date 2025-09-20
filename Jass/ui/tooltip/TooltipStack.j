@@ -1,6 +1,9 @@
 #ifndef ToolTipStackIncluded
 #define ToolTipStackIncluded
 
+#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
+
+
 //! zinc
 /*
 Tooltip栈,保证每次进出都删除所有Tooltip,防止那些没读取到onLeave键的Tooltip残留
