@@ -1,6 +1,4 @@
 logs\currentmapscript.j
 pjass.exe
-Line 2361:  Undeclared variable ANCHOR_BOTTOMRIGHT
-Line 2364:  Undeclared variable ANCHOR_BOTTOMRIGHT
-Line 8220:  Undeclared variable ANCHOR_BOTTOMRIGHT
-3
+Line 281:  Undeclared function GetUnitInterval
+1

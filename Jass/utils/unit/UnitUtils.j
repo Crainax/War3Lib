@@ -10,6 +10,21 @@
 */
 library UnitUtils {
 
+    public struct unitAttrObserver [] {
+
+        public static unit argsU = null;
+        public static trigger attackIntervalCB = null;
+
+        //攻击间隔的观察者事件注册
+        public static method registerAttackInterval (code func) {
+            if (attackIntervalCB == null) {
+                attackIntervalCB = CreateTrigger();
+            }
+            TriggerAddCondition(attackIntervalCB, Condition(func));
+        }
+
+    }
+
     //获取单位的攻击力/防御/生命/魔法值
     public function GetUnitAttack(unit u) -> integer {
         return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
@@ -128,12 +143,44 @@ library UnitUtils {
 		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE)) + speed);
 	}
 
-    public function GetUnitInterval(unit u) -> real {
+    // (获取缓存的攻击间隔(可能为负))
+    public function GetUnitAttackIntervalCache(unit u) -> real {
+        return LoadReal(HASH_UNIT,GetHandleId(u),KEY_UNIT_ATTACK_INTERVAL_CACHE);
+    }
+
+    // (获取单位的攻击间隔,不会小于0.1)
+    public function GetUnitAttackInterval(unit u) -> real {
         return GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL));
     }
-    // 攻击间隔(虽然写着加,但是实际是减)
+
+    // 攻击间隔(虽然写着加,但是实际是减) - 带最小值与观察者
 	public function AddAttackInterval (unit u,real value) {
-        SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL),GetUnitInterval(u) - value);
+        real cacheValue; real newValue; integer uid;
+
+        uid = GetHandleId(u);
+
+        // 检查是否已初始化缓存
+        if (!HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE)) {
+            // 如果没有初始化，先保存当前攻击间隔到缓存
+            SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE, GetUnitAttackInterval(u));
+        }
+
+        // 获取当前缓存值并添加新值
+        cacheValue = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE);
+        cacheValue += value;
+
+        // 更新缓存
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE, cacheValue);
+
+        // 设置实际攻击间隔（确保不小于MIN_ATTACK_INTERVAL）
+        newValue = RMaxBJ(cacheValue, MIN_ATTACK_INTERVAL);
+        SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL), newValue);
+
+        // 观察者模式回调
+        if (unitAttrObserver.attackIntervalCB != null) {
+            unitAttrObserver.argsU = u;
+            TriggerEvaluate(unitAttrObserver.attackIntervalCB);
+        }
 	}
 
     //传送单位(带特效与镜头转换)

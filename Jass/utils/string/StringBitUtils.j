@@ -5,7 +5,7 @@
 /*
 字符串位工具
 */
-library StringBitUtils {
+library StringBitUtils requires StringUtils {
 
     // 根据存档:判断位
     //取相应的整数

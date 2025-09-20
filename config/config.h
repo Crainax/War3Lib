@@ -16,3 +16,7 @@
 
 #define DEFENSE_ARMOR 0.01
 
+//地图的最低攻击间隔(非特殊情况)
+#define MIN_ATTACK_INTERVAL 0.2
+
+
