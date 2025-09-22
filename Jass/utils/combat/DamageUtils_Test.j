@@ -212,7 +212,7 @@ library UTDamageUtils requires DamageUtils {
 			if(isShowDamage) {
 				Trace("|cffff0000伤害事件|r - 来源: " + GetUnitName(source) +
 				" 目标: " + GetUnitName(target) +
-				"("+I2S(GetHandleId(target))+ ") 伤害: " + R2S(damage) + " 当前栈层: " + I2S(DmgS.getTop()));
+				"("+I2S(GetHandleId(target))+ ") 伤害: " + R2S(damage) + " 当前栈层: " + I2S(DmgS.current()));
 			}
 
 			// 反伤测试
@@ -221,10 +221,10 @@ library UTDamageUtils requires DamageUtils {
 				Trace("第 " + I2S(reflectCount) + " 次反伤");
 
 				// 造成反伤
-				DamageAreaPhysical(target, GetUnitX(target),GetUnitY(target), 100, damage * 0.5, I2S(DmgS.getTop()));
+				DamageAreaPhysical(target, GetUnitX(target),GetUnitY(target), 100, damage * 0.5, I2S(DmgS.current()));
 
 				if(reflectCount >= 5) {
-					Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(DmgS.getTop()));
+					Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(DmgS.current()));
 				}
 			}
 		}));

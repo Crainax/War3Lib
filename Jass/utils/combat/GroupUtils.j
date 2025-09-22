@@ -11,7 +11,7 @@
 library GroupUtils requires UnitFilter {
 
     group tempG = null;
-    unit tempU = null;
+    player tempP = null;
 
     //库补充,防内存泄漏
     public function GroupEnumUnitsInRangeEx (group whichGroup,real x,real y,real radius,boolexpr filter) {
@@ -25,22 +25,22 @@ library GroupUtils requires UnitFilter {
     }
 
     //获取单位组:[敌方]
-    public function GetEnemyGroup (unit u,real x,real y,real radius) -> group {
+    public function GetEnemyGroup (player p,real x,real y,real radius) -> group {
         tempG = CreateGroup();
-        tempU = u;
+        tempP = p;
         GroupEnumUnitsInRangeEx(tempG, x, y, radius, Filter(function () -> boolean {
-            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(tempU))) {
+            if (IsEnemy(GetFilterUnit(),tempP)) {
                 return true;
             }
             return false;
         }));
-        tempU = null;
+        tempP = null;
         return tempG;
     }
 
     //获取圆形随机单位
-    public function GetRandomEnemy (unit u,real x,real y,real radius)  -> unit {
-        return GroupPickRandomUnit(GetEnemyGroup(u,x,y,radius));
+    public function GetRandomEnemy (player p,real x,real y,real radius)  -> unit {
+        return GroupPickRandomUnit(GetEnemyGroup(p,x,y,radius));
     }
 
 }

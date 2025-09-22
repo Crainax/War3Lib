@@ -32,37 +32,45 @@ library DamageUtils requires UnitFilter,GroupUtils {
         UnitDamageTarget( u, target, GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE))*(1.0+fd), true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
     }
 
-    //伤害参数结构体
+    // 伤害参数结构体
     private struct DmgP {
-        unit    source;  //伤害来源
-        string  eft;     //特效
-        real    damage;  //伤害值
+        unit   source;
+        string eft;
+        real   damage;
 
-        method destroy() {
+        // 正确使用 onDestroy，而不是 destroy
+        method onDestroy() {
             this.source = null;
-            this.eft = null;
+            // this.eft = null; // 可选
         }
     }
 
-    //伤害参数栈
+    // 伤害参数栈
     public struct DmgS [] {
-        private static DmgP stack[100];
+        private static DmgP stack [];
         private static integer top = -1;
 
         public static method push(DmgP params) {
+            if (thistype.top >= 8190) {
+                // 调试期提示或直接 return，避免越界
+                #if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
+                    BJDebugMsg("DmgS overflow");
+                #endif
+                return;
+            }
             thistype.top += 1;
             thistype.stack[thistype.top] = params;
         }
 
         public static method pop() -> DmgP {
             DmgP params = thistype.stack[thistype.top];
+            if (thistype.top < 0) {
+                BJDebugMsg("DmgS underflow");
+                return 0;
+            }
             thistype.stack[thistype.top] = 0;
             thistype.top -= 1;
             return params;
-        }
-
-        public static method getTop() -> integer {
-            return thistype.top;
         }
 
         public static method current() -> DmgP {
@@ -70,8 +78,8 @@ library DamageUtils requires UnitFilter,GroupUtils {
         }
     }
 
-    //范围普通伤害
-    public function DamageAreaPhysical (unit u,real x,real y,real radius,real damage,string efx) {
+    // 范围普通伤害
+    public function DamageAreaPhysical (unit u, real x, real y, real radius, real damage, string efx) {
         group g = CreateGroup();
         DmgP params = DmgP.create();
         params.source = u;
@@ -82,10 +90,10 @@ library DamageUtils requires UnitFilter,GroupUtils {
 
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
-            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source))) {
-                ApplyPhysicalDamage(current.source,GetFilterUnit(),current.damage);
+            if (IsEnemy(GetFilterUnit(), GetOwningPlayer(current.source))) {
+                ApplyPhysicalDamage(current.source, GetFilterUnit(), current.damage);
                 if (current.eft != null) {
-                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
+                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())));
                 }
                 return true;
             }
@@ -93,7 +101,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
         }));
 
         params = DmgS.pop();
-        params.destroy();
+        params.destroy(); // 现在会真正释放实例，并调用 onDestroy
         DestroyGroup(g);
         g = null;
     }
