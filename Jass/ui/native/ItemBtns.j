@@ -3,7 +3,6 @@
 
 #include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
-#include "Crainax/config/config.h" // 配置
 
 //! zinc
 

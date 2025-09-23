@@ -2,67 +2,31 @@ globals
 //globals from BzAPI:
 constant boolean LIBRARY_BzAPI=true
 //endglobals from BzAPI
-//globals from UnitFilter:
-constant boolean LIBRARY_UnitFilter=true
-//endglobals from UnitFilter
-//globals from UnitHashTable:
-constant boolean LIBRARY_UnitHashTable=true
-hashtable HASH_UNIT=InitHashtable()
-//endglobals from UnitHashTable
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
-hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
+trigger UnitTestFramwork___TUnitTest=null
+hashtable UnitTestFramwork___HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
-//globals from UnitUtils:
-constant boolean LIBRARY_UnitUtils=true
-//endglobals from UnitUtils
-//globals from YDLua:
-constant boolean LIBRARY_YDLua=true
-//endglobals from YDLua
 //globals from YDTriggerSaveLoadSystem:
 constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
 hashtable YDHT
 hashtable YDLOC
 //endglobals from YDTriggerSaveLoadSystem
-//globals from GroupUtils:
-constant boolean LIBRARY_GroupUtils=true
-group GroupUtils__tempG=null
-player GroupUtils__tempP=null
-//endglobals from GroupUtils
 //globals from Hardware:
 constant boolean LIBRARY_Hardware=true
 //endglobals from Hardware
-//globals from Logger:
-constant boolean LIBRARY_Logger=true
-integer logger_level=0
-string logger_msg=null
-player logger_p=null
-trigger logger_tr=null
-//endglobals from Logger
 //globals from CameraControl:
 constant boolean LIBRARY_CameraControl=true
-integer CameraControl__ViewLevel=8
-boolean CameraControl__ResetCam=false
-real CameraControl__WheelSpeed=0.1
-boolean CameraControl__WideScr=false
-real CameraControl__X_ANGLE=304
+integer CameraControl___ViewLevel=8
+boolean CameraControl___ResetCam=false
+real CameraControl___WheelSpeed=0.1
+boolean CameraControl___WideScr=false
+real CameraControl___X_ANGLE=304
+boolean CameraControl___HeightLocked=false
 //endglobals from CameraControl
-//globals from DamageUtils:
-constant boolean LIBRARY_DamageUtils=true
-//endglobals from DamageUtils
-//globals from UTDamageUtils:
-constant boolean LIBRARY_UTDamageUtils=true
-unit UTDamageUtils___testDummy=null
-unit UTDamageUtils___testSource=null
-real UTDamageUtils___testDamage=100.0
-real UTDamageUtils___testRadius=300.0
-string UTDamageUtils___testEffect="Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdl"
-trigger UTDamageUtils___damageEventTrigger=null
-boolean UTDamageUtils___isShowDamage=false
-boolean UTDamageUtils___isReflectDamage=false
-integer UTDamageUtils___reflectCount=0
-//endglobals from UTDamageUtils
+//globals from UTCameraControl:
+constant boolean LIBRARY_UTCameraControl=true
+//endglobals from UTCameraControl
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -89,30 +53,15 @@ trigger l__library_init
 
 //JASSHelper struct globals:
 constant integer si__assert=1
-constant integer si__unitAttrObserver=2
-unit s__unitAttrObserver_argsU=null
-trigger s__unitAttrObserver_attackIntervalCB=null
-constant integer si__hardware=3
+constant integer si__hardware=2
 trigger s__hardware_trWheel=null
 trigger s__hardware_trUpdate=null
 trigger s__hardware_trResize=null
 trigger s__hardware_trMove=null
-constant integer si__cameraControl=4
+constant integer si__cameraControl=3
 integer si__cameraControl_F=0
 integer si__cameraControl_I=0
 integer array si__cameraControl_V
-constant integer si__DamageUtils__DmgP=5
-integer si__DamageUtils__DmgP_F=0
-integer si__DamageUtils__DmgP_I=0
-integer array si__DamageUtils__DmgP_V
-unit array s__DamageUtils__DmgP_source
-string array s__DamageUtils__DmgP_eft
-real array s__DamageUtils__DmgP_damage
-constant integer si__DmgS=6
-integer array s__DmgS_stack
-integer s__DmgS_top=- 1
-trigger st__DamageUtils__DmgP_onDestroy
-integer f__arg_this
 
 endglobals
     native DzGetMouseTerrainX takes nothing returns real
@@ -252,44 +201,6 @@ endglobals
     native DzGetConvertWorldPositionY takes nothing returns real
     native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
 
-
-//Generated method caller for DamageUtils__DmgP.onDestroy
-function sc__DamageUtils__DmgP_onDestroy takes integer this returns nothing
-            set s__DamageUtils__DmgP_source[this]=null // this.eft = null; // 可选
-endfunction
-
-//Generated allocator of DamageUtils__DmgP
-function s__DamageUtils__DmgP__allocate takes nothing returns integer
- local integer this=si__DamageUtils__DmgP_F
-    if (this!=0) then
-        set si__DamageUtils__DmgP_F=si__DamageUtils__DmgP_V[this]
-    else
-        set si__DamageUtils__DmgP_I=si__DamageUtils__DmgP_I+1
-        set this=si__DamageUtils__DmgP_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: DamageUtils__DmgP")
-        return 0
-    endif
-
-    set si__DamageUtils__DmgP_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of DamageUtils__DmgP
-function sc__DamageUtils__DmgP_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: DamageUtils__DmgP")
-        return
-    elseif (si__DamageUtils__DmgP_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: DamageUtils__DmgP")
-        return
-    endif
-    set f__arg_this=this
-    call TriggerEvaluate(st__DamageUtils__DmgP_onDestroy)
-    set si__DamageUtils__DmgP_V[this]=si__DamageUtils__DmgP_F
-    set si__DamageUtils__DmgP_F=this
-endfunction
 
 //Generated allocator of cameraControl
 function s__cameraControl__allocate takes nothing returns integer
@@ -543,39 +454,6 @@ endfunction
     
 
 //library BzAPI ends
-//library UnitFilter:
-    function IsEnemy takes unit u,player p returns boolean
-        return ( ( GetUnitState(u, UNIT_STATE_LIFE) > 0.405 and ( GetUnitState(u, UNIT_STATE_LIFE) > 0 ) ) and ( not ( IsUnitType(u, UNIT_TYPE_SLEEPING) ) and not ( IsUnitType(u, UNIT_TYPE_STRUCTURE) ) and not ( IsUnitHidden(u) ) and IsUnitEnemy(u, p) and IsUnitVisible(u, p) ) ) and GetUnitAbilityLevel(u, 'Avul') < 1
-    endfunction  //旧名：IsEnemy2
-    function IsEnemyIncludeInvul takes unit u,player p returns boolean
-        return ( ( GetUnitState(u, UNIT_STATE_LIFE) > 0.405 and ( GetUnitState(u, UNIT_STATE_LIFE) > 0 ) ) and ( not ( IsUnitType(u, UNIT_TYPE_SLEEPING) ) and not ( IsUnitType(u, UNIT_TYPE_STRUCTURE) ) and not ( IsUnitHidden(u) ) and IsUnitEnemy(u, p) and IsUnitVisible(u, p) ) )
-    endfunction  //判断是否是敌方非魔法免疫单位
-    function IsEnemyMagic takes unit u,player p returns boolean
-        return not ( IsUnitType(u, UNIT_TYPE_MAGIC_IMMUNE) ) and IsEnemy(u , p) and not ( IsUnitType(u, UNIT_TYPE_RESISTANT) )
-    endfunction  //判断是否是敌方(简化版本,只检查基础状态和敌对关系)
-    function IsEnemyBasic takes unit u,player p returns boolean
-        return ( GetUnitState(u, UNIT_STATE_LIFE) > 0.405 and ( GetUnitState(u, UNIT_STATE_LIFE) > 0 ) ) and IsUnitEnemy(u, p)
-    endfunction  //判断是否是友方
-    function IsAlly takes unit u,player p returns boolean
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 and ( not ( IsUnitType(u, UNIT_TYPE_STRUCTURE) ) ) and ( not ( IsUnitHidden(u) ) ) and IsUnitAlly(u, p)
-    endfunction  //判断两个单位是否互为敌人(不带无敌)
-    function IsEnemyUnit takes unit target,unit caster returns boolean
-        return IsEnemy(target , GetOwningPlayer(caster))
-    endfunction  //判断两个单位是否互为队友(不带无敌)
-    function IsAllyUnit takes unit target,unit caster returns boolean
-        return IsAlly(target , GetOwningPlayer(caster))
-    endfunction  //判断两个单位是否互为敌人(简化版本,只检查基础状态和敌对关系)
-    function IsEnemyBasicUnit takes unit target,unit caster returns boolean
-        return ( GetUnitState(target, UNIT_STATE_LIFE) > 0.405 and ( GetUnitState(target, UNIT_STATE_LIFE) > 0 ) ) and IsUnitEnemy(target, GetOwningPlayer(caster))
-    endfunction  //判断是否是敌方非魔法免疫单位(双单位参数版)
-    function IsEnemyMagicUnit takes unit target,unit caster returns boolean
-        return IsEnemyMagic(target , GetOwningPlayer(caster))
-    endfunction  // //判断单位是否属于指定常见种族或中立阵营
-
-//library UnitFilter ends
-//library UnitHashTable:
-
-//library UnitHashTable ends
 //library UnitTestFramwork:
 
         function s__assert_Boolean takes boolean condition,string name returns nothing
@@ -618,27 +496,27 @@ endfunction
             endif
         endfunction
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction  //指定开始时间与持续时间的定时器
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]开始------")
             call TriggerEvaluate(tr)
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
-        function UnitTestFramwork__anon__1 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__1 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call TriggerEvaluate(tr)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]结束------")
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
@@ -647,24 +525,24 @@ endfunction
         local trigger tr=CreateTrigger()
         call TriggerAddCondition(t, Condition(start))
         call TriggerRegisterTimerEvent(tr, time, false)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-        call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         if ( end != null ) then
             set t=CreateTrigger()
             set tr=CreateTrigger()
             call TriggerAddCondition(t, Condition(end))
             call TriggerRegisterTimerEvent(tr, time + duration, false)
-            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-            call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-            call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__1))
+            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+            call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+            call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__1))
         endif
         set tr=null
         set t=null
     endfunction
-        function UnitTestFramwork__anon__2 takes nothing returns nothing
+        function UnitTestFramwork___anon__2 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -675,209 +553,27 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.1, false)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__2))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__2))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
-//library UnitUtils:
-        function s__unitAttrObserver_registerAttackInterval takes code func returns nothing
-            if ( s__unitAttrObserver_attackIntervalCB == null ) then
-                set s__unitAttrObserver_attackIntervalCB=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__unitAttrObserver_attackIntervalCB, Condition(func))
-        endfunction
-    function GetUnitAttack takes unit u returns integer
-        return R2I(GetUnitState(u, ConvertUnitState(0x12)))
-    endfunction
-    function GetUnitDefense takes unit u returns integer
-        return R2I(GetUnitState(u, ConvertUnitState(0x20)))
-    endfunction
-    function GetUnitHP takes unit u returns real
-        return GetUnitState(u, UNIT_STATE_MAX_LIFE)
-    endfunction
-    function GetUnitMP takes unit u returns real
-        return GetUnitState(u, UNIT_STATE_MAX_MANA)
-    endfunction  //设置攻击力
-    function SetUnitAttack takes unit u,real attack returns nothing
-        call SetUnitState(u, ConvertUnitState(0x12), attack)
-    endfunction  //增加攻击力
-    function AddUnitAttack takes unit u,real attack returns nothing
-        call SetUnitAttack(u , GetUnitAttack(u) + attack)
-    endfunction  //设置防御
-    function SetUnitDefense takes unit u,real defense returns nothing
-        call SetUnitState(u, ConvertUnitState(0x20), defense)
-    endfunction  //增加防御
-    function AddUnitDefense takes unit u,real defense returns nothing
-        call SetUnitDefense(u , GetUnitDefense(u) + defense)
-    endfunction  //修改生命最大值
-    function SetUnitHP takes unit u,real hp returns nothing
-        call SetUnitState(u, UNIT_STATE_MAX_LIFE, RMaxBJ(hp, 2.0))
-    endfunction  //增加生命最大值
-    function AddUnitHP takes unit u,real hp returns nothing
-        call SetUnitHP(u , RMaxBJ(GetUnitHP(u) + hp, 10.0))
-        if ( hp > 0 ) then
-            call SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u, UNIT_STATE_LIFE) + hp))
-        endif
-    endfunction  //回血(定值)
-    function RegenUnitHP takes unit u,real volume returns nothing
-        call SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u, UNIT_STATE_LIFE) + volume))
-    endfunction  //回蓝(百分比)
-    function RegenUnitHPPercent takes unit u,real rate returns nothing
-        call SetUnitState(u, UNIT_STATE_LIFE, RMaxBJ(0, GetUnitState(u, UNIT_STATE_LIFE) + GetUnitHP(u) * rate))
-    endfunction  //设置魔法最大值
-    function SetUnitMP takes unit u,real mp returns nothing
-        call SetUnitState(u, UNIT_STATE_MAX_MANA, mp)
-    endfunction  //增加魔法最大值
-    function AddUnitMP takes unit u,real mp returns nothing
-        call SetUnitMP(u , GetUnitMP(u) + mp)
-        if ( mp > 0 ) then
-            call SetUnitState(u, UNIT_STATE_MANA, RMaxBJ(0, GetUnitState(u, UNIT_STATE_MANA) + mp))
-        endif
-    endfunction  //回蓝(定值)
-    function RegenUnitMP takes unit u,real volume returns nothing
-        call SetUnitState(u, UNIT_STATE_MANA, RMaxBJ(0, GetUnitState(u, UNIT_STATE_MANA) + volume))
-    endfunction  //回蓝(百分比)
-    function RegenUnitMPPercent takes unit u,real rate returns nothing
-        call SetUnitState(u, UNIT_STATE_MANA, RMaxBJ(0, GetUnitState(u, UNIT_STATE_MANA) + GetUnitMP(u) * rate))
-    endfunction  // 获取移速
-    function GetUnitSpeed takes unit u returns integer
-        if ( HaveSavedInteger(HASH_UNIT, GetHandleId(u), 237960560) ) then
-            return LoadInteger(HASH_UNIT, GetHandleId(u), 237960560)
-        else
-            return R2I(GetUnitMoveSpeed(u))
-        endif
-    endfunction  //todo: 这个UNTable其他地图需要兼容
-    function AddUnitSpeed takes unit u,integer speed returns nothing
-        local integer value
-        if ( HaveSavedInteger(HASH_UNIT, GetHandleId(u), 237960560) ) then
-            set value=LoadInteger(HASH_UNIT, GetHandleId(u), 237960560)
-            set value=value + speed
-            call SaveInteger(HASH_UNIT, GetHandleId(u), 237960560, value)
-        else
-            set value=R2I(GetUnitMoveSpeed(u)) + speed
-        endif
-        call SetUnitMoveSpeed(u, value)
-    endfunction  // 初始化突破移速
-    function InitUnitSpeed takes unit u returns nothing
-        call SaveInteger(HASH_UNIT, GetHandleId(u), 237960560, R2I(GetUnitMoveSpeed(u)))
-    endfunction  //射程(还会+警戒范围)
-    function GetUnitAttackRange takes unit u returns real
-        return GetUnitState(u, ConvertUnitState(0x16))
-    endfunction  //设置射程(还会设置警戒范围)
-    function SetUnitAttackRange takes unit u,real range returns nothing
-        call SetUnitState(u, ConvertUnitState(0x16), range)
-        call SetUnitAcquireRange(u, RMaxBJ(range, 900.0))
-    endfunction  //增加射程(还会+警戒范围)
-    function AddUnitAttackRange takes unit u,real range returns nothing
-        call SetUnitState(u, ConvertUnitState(0x16), GetUnitAttackRange(u) + range)
-        call SetUnitAcquireRange(u, RMaxBJ(GetUnitAcquireRange(u) + range, 900.0))
-    endfunction  // 获取攻速
-    function GetUnitAttackSpeed takes unit u returns real
-        return GetUnitState(u, ConvertUnitState(0x51))
-    endfunction  // 增加攻速
-    function AddUnitAttackSpeed takes unit u,real speed returns nothing
-        call SetUnitState(u, ConvertUnitState(0x51), GetUnitState(u, ConvertUnitState(0x51)) + speed)
-    endfunction  // (获取缓存的攻击间隔(可能为负))
-    function GetUnitAttackIntervalCache takes unit u returns real
-        return LoadReal(HASH_UNIT, GetHandleId(u), 255610124)
-    endfunction  // (获取单位的攻击间隔,不会小于0.1)
-    function GetUnitAttackInterval takes unit u returns real
-        return GetUnitState(u, ConvertUnitState(0x25))
-    endfunction  // 攻击间隔(虽然写着加,但是实际是减) - 带最小值与观察者
-    function AddAttackInterval takes unit u,real value returns nothing
-        local real cacheValue
-        local real newValue
-        local integer uid
-        set uid=GetHandleId(u) // 检查是否已初始化缓存
-        if ( not ( HaveSavedReal(HASH_UNIT, uid, 255610124) ) ) then // 如果没有初始化，先保存当前攻击间隔到缓存
-            call SaveReal(HASH_UNIT, uid, 255610124, GetUnitAttackInterval(u))
-        endif // 获取当前缓存值并添加新值
-        set cacheValue=LoadReal(HASH_UNIT, uid, 255610124)
-        set cacheValue=cacheValue + value // 更新缓存
-        call SaveReal(HASH_UNIT, uid, 255610124, cacheValue) // 设置实际攻击间隔（确保不小于MIN_ATTACK_INTERVAL）
-        set newValue=RMaxBJ(cacheValue, 0.2)
-        call SetUnitState(u, ConvertUnitState(0x25), newValue) // 观察者模式回调
-        if ( s__unitAttrObserver_attackIntervalCB != null ) then
-            set s__unitAttrObserver_argsU=u
-            call TriggerEvaluate(s__unitAttrObserver_attackIntervalCB)
-        endif
-    endfunction  //传送单位(带特效与镜头转换)
-    function TransportUnit takes unit u,real x,real y,boolean camera returns nothing
-        if ( camera ) then
-            call PanCameraToTimedForPlayer(GetOwningPlayer(u), x, y, 0.2)
-        endif
-        call DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)))
-        call SetUnitPosition(u, x, y)
-        call DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)))
-    endfunction  //删除单位
-    function DeleteUnit takes unit u returns nothing
-        call FlushChildHashtable(HASH_UNIT, GetHandleId(u))
-        call RemoveUnit(u)
-    endfunction
-
-//library UnitUtils ends
-//library YDLua:
-
-    function initializeLua takes nothing returns integer
-        call Cheat("exec-lua:plugin_main")
-        return 0
-    endfunction
-        function YDLua__anon__0 takes nothing returns nothing
-            call BJDebugMsg("调用了YDLua引擎")
-            call DestroyTrigger(GetTriggeringTrigger())
-        endfunction
-    function YDLua__onInit takes nothing returns nothing
-        local trigger tr=CreateTrigger()
-        call TriggerRegisterTimerEvent(tr, 0.0, false)
-        call TriggerAddCondition(tr, Condition(function YDLua__anon__0))
-        set tr=null
-    endfunction
-
-//library YDLua ends
 //library YDTriggerSaveLoadSystem:
 //#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
+    function YDTriggerSaveLoadSystem___Init takes nothing returns nothing
             set YDHT=InitHashtable()
         set YDLOC=InitHashtable()
     endfunction
 
 //library YDTriggerSaveLoadSystem ends
-//library GroupUtils:
-    function GroupEnumUnitsInRangeEx takes group whichGroup,real x,real y,real radius,boolexpr filter returns nothing
-        call GroupEnumUnitsInRange(whichGroup, x, y, radius, filter)
-        call DestroyBoolExpr(filter)
-    endfunction  //库补充,防内存泄漏
-    function GroupEnumUnitsInRectEx takes group whichGroup,rect r,boolexpr filter returns nothing
-        call GroupEnumUnitsInRect(whichGroup, r, filter)
-        call DestroyBoolExpr(filter)
-    endfunction  //获取单位组:[敌方]
-        function GroupUtils__anon__0 takes nothing returns boolean
-            if ( IsEnemy(GetFilterUnit() , GroupUtils__tempP) ) then
-                return true
-            endif
-            return false
-        endfunction
-    function GetEnemyGroup takes player p,real x,real y,real radius returns group
-        set GroupUtils__tempG=CreateGroup()
-        set GroupUtils__tempP=p
-        call GroupEnumUnitsInRangeEx(GroupUtils__tempG , x , y , radius , Filter(function GroupUtils__anon__0))
-        set GroupUtils__tempP=null
-        return GroupUtils__tempG
-    endfunction  //获取圆形随机单位
-    function GetRandomEnemy takes player p,real x,real y,real radius returns unit
-        return GroupPickRandomUnit(GetEnemyGroup(p , x , y , radius))
-    endfunction
-
-//library GroupUtils ends
 //library Hardware:
         function s__hardware_regLeftUpEvent takes code func returns nothing
             call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
@@ -960,330 +656,90 @@ endfunction
         endfunction
 
 //library Hardware ends
-//library Logger:
-
-    function Trace takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=0
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 调试级别日志(绿色),用于输出变量值等调试信息
-    function Debug takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=1
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 信息级别日志(白色),用于输出普通提示信息
-    function Info takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=2
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 警告级别日志(黄色),用于输出警告信息
-    function Warn takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=3
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 错误级别日志(红色),用于输出错误信息
-    function Error takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=4
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出追踪日志(灰色)
-    function TraceToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=0
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出调试日志(绿色)
-    function DebugToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=1
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出信息日志(白色)
-    function InfoToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=2
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出警告日志(黄色)
-    function WarnToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=3
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出错误日志(红色)
-    function ErrorToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=4
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction
-    function Logger__onInit takes nothing returns nothing
-        call Cheat("exec-lua:depends.debug.logger")
-    endfunction
-
-//library Logger ends
 //library CameraControl:
 
         function s__cameraControl_openWheel takes nothing returns nothing
             call DoNothing()
         endfunction
-        function CameraControl__anon__0 takes nothing returns nothing
+        function s__cameraControl_lockHeight takes nothing returns nothing
+            set CameraControl___HeightLocked=true
+        endfunction
+        function s__cameraControl_unlockHeight takes nothing returns nothing
+            set CameraControl___HeightLocked=false
+        endfunction
+        function s__cameraControl_isHeightLocked takes nothing returns boolean
+            return CameraControl___HeightLocked
+        endfunction
+        function CameraControl___anon__0 takes nothing returns nothing
             local integer delta=DzGetWheelDelta()
-            if ( not ( DzIsMouseOverUI() ) ) then //标记需要重置镜头属性
+            if ( ( not ( DzIsMouseOverUI() ) ) or DzGetMouseFocus() != 0 ) then //标记需要重置镜头属性
                 return
             endif
-            set CameraControl__ResetCam=true //滚轮下滑
-            if ( delta < 0 ) then //视野等级上限
-                if ( CameraControl__ViewLevel < 14 ) then //滚轮上滑
-                    set CameraControl__ViewLevel=CameraControl__ViewLevel + 1
+            set CameraControl___ResetCam=true
+            if ( not CameraControl___HeightLocked ) then // 使用 600 ~ 3600 的高度范围（步长 200）
+                if ( delta < 0 ) then //滚轮下滑 -> 拉远 //上限 3600/200=18
+                    if ( CameraControl___ViewLevel < 18 ) then //滚轮上滑 -> 拉近
+                        set CameraControl___ViewLevel=CameraControl___ViewLevel + 1
+                    endif
+                elseif ( CameraControl___ViewLevel > 3 ) then //下限 600/200=3
+                    set CameraControl___ViewLevel=CameraControl___ViewLevel - 1
                 endif
-            elseif ( CameraControl__ViewLevel > 3 ) then //视野等级下限
-                set CameraControl__ViewLevel=CameraControl__ViewLevel - 1
-            endif
-            set CameraControl__X_ANGLE=Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK)) //记录滚动前的镜头角度
+            else // 锁定时维持当前高度
+                call SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, CameraControl___ViewLevel * 200, 0.1)
+            endif //记录滚动前的镜头角度
+            set CameraControl___X_ANGLE=Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK))
         endfunction  //注册每帧渲染事件
-        function CameraControl__anon__1 takes nothing returns nothing
-            if ( CameraControl__ResetCam ) then
-                call SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, CameraControl__X_ANGLE, 0)
-                call SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, CameraControl__ViewLevel * 200, CameraControl__WheelSpeed)
-                set CameraControl__ResetCam=false
+        function CameraControl___anon__1 takes nothing returns nothing
+            if ( CameraControl___ResetCam ) then
+                call SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, CameraControl___X_ANGLE, 0)
+                call SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, CameraControl___ViewLevel * 200, CameraControl___WheelSpeed)
+                set CameraControl___ResetCam=false
             endif
         endfunction  //注册按下键码为145的按键(ScrollLock)事件
-        function CameraControl__anon__2 takes nothing returns nothing
-            set CameraControl__WideScr=not CameraControl__WideScr
-            call DzEnableWideScreen(CameraControl__WideScr)
+        function CameraControl___anon__2 takes nothing returns nothing
+            set CameraControl___WideScr=not CameraControl___WideScr
+            call DzEnableWideScreen(CameraControl___WideScr)
         endfunction
-    function CameraControl__onInit takes nothing returns nothing
-        call s__hardware_regWheelEvent(function CameraControl__anon__0)
-        call s__hardware_regUpdateEvent(function CameraControl__anon__1)
-        call DzTriggerRegisterKeyEventByCode(null, 145, 1, false, function CameraControl__anon__2)
+    function CameraControl___onInit takes nothing returns nothing
+        call s__hardware_regWheelEvent(function CameraControl___anon__0)
+        call s__hardware_regUpdateEvent(function CameraControl___anon__1)
+        call DzTriggerRegisterKeyEventByCode(null, 145, 1, false, function CameraControl___anon__2)
     endfunction
 
 //library CameraControl ends
-//library DamageUtils:
-    function ApplyPhysicalDamage takes unit u,unit target,real dmg returns nothing
-//#         static if LIBRARY_Damage then
-//#             set dmgF.isBJ=bj
-//#         endif
-        call UnitDamageTarget(u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
-    endfunction  //单体伤害:魔法
-    function ApplyMagicDamage takes unit u,unit target,real dmg returns nothing
-//#         static if LIBRARY_Damage then
-//#             set dmgF.isBJ=bj
-//#         endif
-        call UnitDamageTarget(u, target, dmg, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS)
-    endfunction  //单体伤害:真实
-    function ApplyPureDamage takes unit u,unit target,real dmg returns nothing
-//#         static if LIBRARY_Damage then
-//#             set dmgF.isBJ=bj
-//#         endif
-        call UnitDamageTarget(u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS)
-    endfunction  //模拟普攻(最后一个参数代表额外的终伤,0)
-    function SimulateBasicAttack takes unit u,unit target,real fd returns nothing
-        call UnitDamageTarget(u, target, GetUnitState(u, ConvertUnitState(0x12)) * ( 1.0 + fd ), true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
-    endfunction  // 伤害参数结构体
-        function s__DamageUtils__DmgP_onDestroy takes integer this returns nothing
-            set s__DamageUtils__DmgP_source[this]=null // this.eft = null; // 可选
-        endfunction
+//library UTCameraControl:
 
-//Generated destructor of DamageUtils__DmgP
-function s__DamageUtils__DmgP_deallocate takes integer this returns nothing
-    if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: DamageUtils__DmgP")
-        return
-    elseif (si__DamageUtils__DmgP_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: DamageUtils__DmgP")
-        return
-    endif
-    call s__DamageUtils__DmgP_onDestroy(this)
-    set si__DamageUtils__DmgP_V[this]=si__DamageUtils__DmgP_F
-    set si__DamageUtils__DmgP_F=this
-endfunction
-        function s__DmgS_push takes integer params returns nothing
-            if ( s__DmgS_top >= 8190 ) then // 调试期提示或直接 return，避免越界
-                call BJDebugMsg("DmgS overflow")
-                return
-            endif
-            set s__DmgS_top=s__DmgS_top + 1
-            set s__DmgS_stack[s__DmgS_top]=params
+        function UTCameraControl___anon__0 takes nothing returns nothing
+        endfunction  //end,这里是2秒后调用的内容
+        function UTCameraControl___anon__1 takes nothing returns nothing
         endfunction
-        function s__DmgS_pop takes nothing returns integer
-            local integer params=s__DmgS_stack[s__DmgS_top]
-            if ( s__DmgS_top < 0 ) then
-                call BJDebugMsg("DmgS underflow")
-                return 0
-            endif
-            set s__DmgS_stack[s__DmgS_top]=0
-            set s__DmgS_top=s__DmgS_top - 1
-            return params
+        function UTCameraControl___anon__2 takes nothing returns nothing
         endfunction
-        function s__DmgS_current takes nothing returns integer
-            return s__DmgS_stack[s__DmgS_top]
-        endfunction
-        function DamageUtils__anon__0 takes nothing returns boolean
-            local integer current=s__DmgS_current()
-            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DamageUtils__DmgP_source[current])) ) then
-                call ApplyPhysicalDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current])
-                if ( s__DamageUtils__DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
-                endif
-                return true
-            endif
-            return false
-        endfunction
-    function DamageAreaPhysical takes unit u,real x,real y,real radius,real damage,string efx returns nothing
-        local group g=CreateGroup()
-        local integer params=s__DamageUtils__DmgP__allocate()
-        set s__DamageUtils__DmgP_source[params]=u
-        set s__DamageUtils__DmgP_eft[params]=efx
-        set s__DamageUtils__DmgP_damage[params]=damage
-        call s__DmgS_push(params)
-        call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__0))
-        set params=s__DmgS_pop() // 现在会真正释放实例，并调用 onDestroy
-        call s__DamageUtils__DmgP_deallocate(params)
-        call DestroyGroup(g)
-        set g=null
-    endfunction  //范围魔法伤害
-        function DamageUtils__anon__1 takes nothing returns boolean
-            local integer current=s__DmgS_current()
-            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DamageUtils__DmgP_source[current])) ) then
-                call ApplyMagicDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current])
-                if ( s__DamageUtils__DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
-                endif
-                return true
-            endif
-            return false
-        endfunction
-    function DamageAreaMagic takes unit u,real x,real y,real radius,real damage,string efx returns nothing
-        local group g=CreateGroup()
-        local integer params=s__DamageUtils__DmgP__allocate()
-        set s__DamageUtils__DmgP_source[params]=u
-        set s__DamageUtils__DmgP_eft[params]=efx
-        set s__DamageUtils__DmgP_damage[params]=damage
-        call s__DmgS_push(params)
-        call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__1))
-        set params=s__DmgS_pop()
-        call s__DamageUtils__DmgP_deallocate(params)
-        call DestroyGroup(g)
-        set g=null
-    endfunction  //范围真实伤害
-        function DamageUtils__anon__2 takes nothing returns boolean
-            local integer current=s__DmgS_current()
-            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DamageUtils__DmgP_source[current])) ) then
-                call ApplyPureDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current])
-                if ( s__DamageUtils__DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
-                endif
-                return true
-            endif
-            return false
-        endfunction
-    function DamageAreaPure takes unit u,real x,real y,real radius,real damage,string efx returns nothing
-        local group g=CreateGroup()
-        local integer params=s__DamageUtils__DmgP__allocate()
-        set s__DamageUtils__DmgP_source[params]=u
-        set s__DamageUtils__DmgP_eft[params]=efx
-        set s__DamageUtils__DmgP_damage[params]=damage
-        call s__DmgS_push(params)
-        call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__2))
-        set params=s__DmgS_pop()
-        call s__DamageUtils__DmgP_deallocate(params)
-        call DestroyGroup(g)
-        set g=null
+    function UTCameraControl___Init takes nothing returns nothing
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTCameraControl___anon__0 , function UTCameraControl___anon__1)
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTCameraControl___anon__2 , null)
     endfunction
-
-//library DamageUtils ends
-//library UTDamageUtils:
-
-        function UTDamageUtils___anon__0 takes nothing returns nothing
-            local unit u=GetEnumUnit()
-            if ( GetUnitTypeId(u) == 'opeo' or GetUnitTypeId(u) == 'hpea' ) then
-                call RemoveUnit(u)
-            endif
-            set u=null
-        endfunction
-    function UTDamageUtils___CreateTestEnv takes player p returns nothing
-        local real x=GetPlayerStartLocationX(p)
-        local real y=GetPlayerStartLocationY(p)
-        local real angle
-        local integer i
-        local group g=CreateGroup()
-        local unit dummy
-        call GroupEnumUnitsInRange(g, x, y, 1000, null)
-        call ForGroup(g, function UTDamageUtils___anon__0)
-        call DestroyGroup(g)
-        set g=null
-        set UTDamageUtils___testDummy=null
-        set UTDamageUtils___testSource=null // 创建中心苦工单位
-        set UTDamageUtils___testDummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200, y, 270)
-        call SetUnitInvulnerable(UTDamageUtils___testDummy, false)
-        call SetUnitState(UTDamageUtils___testDummy, UNIT_STATE_LIFE, GetUnitState(UTDamageUtils___testDummy, UNIT_STATE_MAX_LIFE)) // 注册伤害事件
-        call TriggerRegisterUnitEvent(UTDamageUtils___damageEventTrigger, UTDamageUtils___testDummy, EVENT_UNIT_DAMAGED) // 创建环形分布的额外苦工
-        set i=0
-        loop
-        exitwhen ( i >= 8 )
-            set angle=i * 45.0 * 0.0174538
-            set dummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE), 'opeo', x + 200 + UTDamageUtils___testRadius * Cos(angle), y + UTDamageUtils___testRadius * Sin(angle), 270)
-            call TriggerRegisterUnitEvent(UTDamageUtils___damageEventTrigger, dummy, EVENT_UNIT_DAMAGED) // 为每个苦工注册伤害事件
-        set i=i + 1
-        endloop // 创建伤害源(农民)
-        set UTDamageUtils___testSource=CreateUnit(p, 'hpea', x, y, 90)
-        call SetUnitAttack(UTDamageUtils___testSource , 50) // 为农民也注册伤害事件
-        call TriggerRegisterUnitEvent(UTDamageUtils___damageEventTrigger, UTDamageUtils___testSource, EVENT_UNIT_DAMAGED)
-    endfunction  // 测试物理伤害
-    function UTDamageUtils___TTestUTDamageUtils1 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试物理伤害: " + R2S(UTDamageUtils___testDamage))
-        call ApplyPhysicalDamage(UTDamageUtils___testSource , UTDamageUtils___testDummy , UTDamageUtils___testDamage)
-    endfunction  // 测试真实伤害
-    function UTDamageUtils___TTestUTDamageUtils2 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试真实伤害: " + R2S(UTDamageUtils___testDamage))
-        call ApplyPureDamage(UTDamageUtils___testSource , UTDamageUtils___testDummy , UTDamageUtils___testDamage)
-    endfunction  // 测试模拟普攻
-    function UTDamageUtils___TTestUTDamageUtils3 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试模拟普攻，基础攻击: 50")
-        call SimulateBasicAttack(UTDamageUtils___testSource , UTDamageUtils___testDummy , 0)
-    endfunction  // 测试范围物理伤害
-    function UTDamageUtils___TTestUTDamageUtils4 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试范围物理伤害: " + R2S(UTDamageUtils___testDamage) + " 范围: " + R2S(UTDamageUtils___testRadius))
-        call Trace("中心点有1个假人，半径 " + R2S(UTDamageUtils___testRadius) + " 处有8个假人")
-        call Trace("范围内的假人都会受到伤害和特效")
-        call DamageAreaPhysical(UTDamageUtils___testSource , GetUnitX(UTDamageUtils___testSource) , GetUnitY(UTDamageUtils___testSource) , UTDamageUtils___testRadius , UTDamageUtils___testDamage , UTDamageUtils___testEffect)
-    endfunction  // 测试范围真实伤害
-    function UTDamageUtils___TTestUTDamageUtils5 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试范围真实伤害: " + R2S(UTDamageUtils___testDamage) + " 范围: " + R2S(UTDamageUtils___testRadius))
-        call Trace("中心点有1个假人，半径 " + R2S(UTDamageUtils___testRadius) + " 处有8个假人")
-        call Trace("范围内的假人都会受到伤害和特效")
-        call DamageAreaPure(UTDamageUtils___testSource , GetUnitX(UTDamageUtils___testSource) , GetUnitY(UTDamageUtils___testSource) , UTDamageUtils___testRadius , UTDamageUtils___testDamage , UTDamageUtils___testEffect)
-    endfunction  // 测试伤害显示开关
-    function UTDamageUtils___TTestUTDamageUtils6 takes player p returns nothing
-        set UTDamageUtils___isShowDamage=not UTDamageUtils___isShowDamage
-        if ( UTDamageUtils___isShowDamage ) then
-            call Trace("|cff00ff00开启|r伤害数值显示")
-        else
-            call Trace("|cffff0000关闭|r伤害数值显示")
-        endif
-    endfunction  // 测试反伤开关
-    function UTDamageUtils___TTestUTDamageUtils7 takes player p returns nothing
-        set UTDamageUtils___isReflectDamage=not UTDamageUtils___isReflectDamage
-        if ( UTDamageUtils___isReflectDamage ) then // 重置反伤计数
-            set UTDamageUtils___reflectCount=0
-            call Trace("|cff00ff00开启|r伤害反弹测试 - 受伤单位将反弹50%伤害(最多5次)")
-        else
-            call Trace("|cffff0000关闭|r伤害反弹测试")
-        endif
-    endfunction  // 处理参数设置命令
-    function UTDamageUtils___TTestActUTDamageUtils1 takes string str returns nothing
+    function UTCameraControl___TTestUTCameraControl1 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestUTCameraControl2 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestUTCameraControl3 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestUTCameraControl4 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestUTCameraControl5 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestUTCameraControl6 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestUTCameraControl7 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestUTCameraControl8 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestUTCameraControl9 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestUTCameraControl10 takes player p returns nothing
+    endfunction
+    function UTCameraControl___TTestActUTCameraControl1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -1309,88 +765,65 @@ endfunction
         set paramS[num]=str
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
-        set num=num + 1 // 处理命令
-        if ( paramS[0] == "d" ) then
-            set UTDamageUtils___testDamage=paramR[1]
-            call Trace("设置伤害值为: " + R2S(UTDamageUtils___testDamage))
-        elseif ( paramS[0] == "r" ) then
-            set UTDamageUtils___testRadius=paramR[1]
-            call Trace("设置范围值为: " + R2S(UTDamageUtils___testRadius))
-        elseif ( paramS[0] == "e" ) then
-            set UTDamageUtils___testEffect=paramS[1]
-            call Trace("设置特效为: " + UTDamageUtils___testEffect)
+        set num=num + 1
+        if ( paramS[0] == "a" ) then
+        elseif ( paramS[0] == "b" ) then
+        elseif ( paramS[0] == "cam" ) then
+            if ( num >= 2 ) then
+                if ( paramS[1] == "lock" ) then
+                    call s__cameraControl_lockHeight()
+                    call BJDebugMsg("[CameraControl] 已锁定镜头高度")
+                elseif ( paramS[1] == "unlock" ) then
+                    call s__cameraControl_unlockHeight()
+                    call BJDebugMsg("[CameraControl] 已解锁镜头高度")
+                endif
+            endif
         endif
         set p=null
     endfunction
-        function UTDamageUtils___anon__1 takes nothing returns nothing
-            call Trace("|cff00ff00[DamageUtils测试]|r 输入以下命令进行测试:")
-            call Trace("s1 - 测试物理伤害")
-            call Trace("s2 - 测试真实伤害")
-            call Trace("s3 - 测试模拟普攻")
-            call Trace("s4 - 测试范围物理伤害")
-            call Trace("s5 - 测试范围真实伤害")
-            call Trace("s6 - 切换伤害数值显示")
-            call Trace("s7 - 切换伤害反弹测试")
-            call Trace("参数设置:")
-            call Trace("-d [数值] - 设置伤害值")
-            call Trace("-r [数值] - 设置范围值")
-            call Trace("-e [路径] - 设置特效")
+        function UTCameraControl___anon__3 takes nothing returns nothing
+            call BJDebugMsg("[CameraControl] 单元测试已加载")
+            call UTCameraControl___Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTDamageUtils___anon__2 takes nothing returns nothing
-            local unit source=GetEventDamageSource()
-            local unit target=GetTriggerUnit()
-            local real damage=GetEventDamage()
-            if ( UTDamageUtils___isShowDamage ) then
-                call Trace("|cffff0000伤害事件|r - 来源: " + GetUnitName(source) + " 目标: " + GetUnitName(target) + "(" + I2S(GetHandleId(target)) + ") 伤害: " + R2S(damage) + " 当前栈层: " + I2S(s__DmgS_current()))
-            endif // 反伤测试
-            if ( UTDamageUtils___isReflectDamage and UTDamageUtils___reflectCount < 5 ) then // 限制反伤次数 // 增加反伤计数
-                set UTDamageUtils___reflectCount=UTDamageUtils___reflectCount + 1
-                call Trace("第 " + I2S(UTDamageUtils___reflectCount) + " 次反伤") // 造成反伤
-                call DamageAreaPhysical(target , GetUnitX(target) , GetUnitY(target) , 100 , damage * 0.5 , I2S(s__DmgS_current()))
-                if ( UTDamageUtils___reflectCount >= 5 ) then
-                    call Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(s__DmgS_current()))
-                endif
-            endif
-        endfunction  // 注册聊天事件
-        function UTDamageUtils___anon__3 takes nothing returns nothing
+        function UTCameraControl___anon__4 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
-            if ( SubString(str, 0, 1) == "-" ) then
-                call UTDamageUtils___TTestActUTDamageUtils1(SubString(str, 1, StringLength(str)))
+            local integer i=1
+            if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
+                call UTCameraControl___TTestActUTCameraControl1(SubString(str, ( 2 ) - 1, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTDamageUtils___TTestUTDamageUtils1(GetTriggerPlayer())
+                call UTCameraControl___TTestUTCameraControl1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTDamageUtils___TTestUTDamageUtils2(GetTriggerPlayer())
+                call UTCameraControl___TTestUTCameraControl2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTDamageUtils___TTestUTDamageUtils3(GetTriggerPlayer())
+                call UTCameraControl___TTestUTCameraControl3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTDamageUtils___TTestUTDamageUtils4(GetTriggerPlayer())
+                call UTCameraControl___TTestUTCameraControl4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTDamageUtils___TTestUTDamageUtils5(GetTriggerPlayer())
-            elseif ( str == "s6" ) then // 新增命令
-                call UTDamageUtils___TTestUTDamageUtils6(GetTriggerPlayer())
+                call UTCameraControl___TTestUTCameraControl5(GetTriggerPlayer())
+            elseif ( str == "s6" ) then
+                call UTCameraControl___TTestUTCameraControl6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTDamageUtils___TTestUTDamageUtils7(GetTriggerPlayer())
+                call UTCameraControl___TTestUTCameraControl7(GetTriggerPlayer())
+            elseif ( str == "s8" ) then
+                call UTCameraControl___TTestUTCameraControl8(GetTriggerPlayer())
+            elseif ( str == "s9" ) then
+                call UTCameraControl___TTestUTCameraControl9(GetTriggerPlayer())
+            elseif ( str == "s10" ) then
+                call UTCameraControl___TTestUTCameraControl10(GetTriggerPlayer())
             endif
         endfunction
-    function UTDamageUtils___onInit takes nothing returns nothing
+    function UTCameraControl___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTDamageUtils___anon__1))
+        call TriggerAddCondition(tr, Condition(function UTCameraControl___anon__3))
         set tr=null
-        set UTDamageUtils___damageEventTrigger=CreateTrigger()
-        call TriggerAddCondition(UTDamageUtils___damageEventTrigger, Condition(function UTDamageUtils___anon__2))
-        call UnitTestRegisterChatEvent(function UTDamageUtils___anon__3)
-        call s__cameraControl_openWheel()
-    endfunction
-    function UTDamageUtils___onDestroy takes nothing returns nothing
-        call DestroyTrigger(UTDamageUtils___damageEventTrigger)
-        set UTDamageUtils___damageEventTrigger=null
+        call UnitTestRegisterChatEvent(function UTCameraControl___anon__4)
     endfunction
 
-//library UTDamageUtils ends
+//library UTCameraControl ends
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
 //#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
@@ -1404,98 +837,6 @@ endfunction
 // 原生UI的大小
 //地图的最低攻击间隔(非特殊情况)
 
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//冷却时间
-//目标允许
-//施放时间
-//持续时间
-//持续时间
-//魔法消耗
-//施放间隔
-//影响区域
-//施法距离
-//数据A
-//数据B
-//数据C
-//数据D
-//数据E
-//数据F
-//数据G
-//数据H
-//数据I
-//单位类型
-//热键
-//关闭热键
-//学习热键
-//名字
-//图标
-//目标效果
-//施法者效果
-//目标点效果
-//区域效果
-//投射物
-//特殊效果
-//闪电效果
-//buff提示
-//buff提示
-//学习提示
-//提示
-//关闭提示
-//学习提示
-//提示
-//关闭提示
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-
 // 0 - 1亿这里用
 // 锚点常量
 // 事件常量
@@ -1505,65 +846,6 @@ endfunction
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
 
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-
-
-// 怪物掉落相关键值 (预留20个空间 1800-1819)
-// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
-// 怪物掉落数量键值
-// 单位技能相关键值 (预留200个空间 1800-1999)
-// 2400开始可继续添加新的键值定义...
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1651,6 +933,7 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
+// 用原始地图测试
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -1969,8 +1252,7 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function main takes nothing returns nothing
-    call initializeLua()
- call SetCameraBounds(- 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), - 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM))
+    call SetCameraBounds(- 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), - 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM))
     call SetDayNightModels("Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl")
     call NewSoundEnvironment("Default")
     call SetAmbientDaySound("NorthrendDay")
@@ -1980,13 +1262,11 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs76451781")
-call ExecuteFunc("UnitTestFramwork__onInit")
-call ExecuteFunc("YDLua__onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
-call ExecuteFunc("Logger__onInit")
-call ExecuteFunc("CameraControl__onInit")
-call ExecuteFunc("UTDamageUtils___onInit")
+call ExecuteFunc("jasshelper__initstructs106851812")
+call ExecuteFunc("UnitTestFramwork___onInit")
+call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
+call ExecuteFunc("CameraControl___onInit")
+call ExecuteFunc("UTCameraControl___onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -2024,18 +1304,8 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__DamageUtils__DmgP_onDestroy takes nothing returns boolean
-local integer this=f__arg_this
-            set s__DamageUtils__DmgP_source[this]=null // this.eft = null; // 可选
-   return true
-endfunction
 
-function jasshelper__initstructs76451781 takes nothing returns nothing
-    set st__DamageUtils__DmgP_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__DamageUtils__DmgP_onDestroy,Condition( function sa__DamageUtils__DmgP_onDestroy))
-
-
-
+function jasshelper__initstructs106851812 takes nothing returns nothing
 
 
 

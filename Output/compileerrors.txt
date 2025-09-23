@@ -1,4 +1,4 @@
 logs\currentmapscript.j
 JASSHelper - Step 2 (structs)
-Line 1125: getTop is not a member of DmgS
+Line 1247: createMenu is not a member of uiBtn
 1

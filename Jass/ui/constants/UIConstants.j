@@ -52,6 +52,7 @@
 #define STRING_EDITBOX  "Editbox"
 #define STRING_SLIDER   "Slider"
 #define STRING_CHECKBOX "Checkbox"
+#define STRING_TEXTAREA "Textarea"
 
 //默认原生图片路径
 #define UI_STRING_PATH_BLANK "UI\\Widgets\\EscMenu\\Human\\blank-background.blp"
@@ -61,7 +62,6 @@
 #define TEMPLATE_TEXT_BUTTON         "TBT"
 #define TEMPLATE_IMAGE               "IT"
 #define TEMPLATE_BLANK_BUTTON        "BB"
-#define TEMPLATE_MENU_BUTTON        "TestButton1"
 #define TEMPLATE_IMAGE_TOOLTIPS      "ToolTipsTemplate"
 #define TEMPLATE_IMAGE_TOOLTIPS2     "ToolTipsTemplate2"
 #define TEMPLATE_IMAGE_CORNER_BORDER "CornerBorder"

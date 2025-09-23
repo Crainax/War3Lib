@@ -9,6 +9,9 @@
 //! zinc
 
 //自动生成的文件
+// 测试命令：
+// -cam lock：锁定镜头高度并提示
+// -cam unlock：解锁镜头高度并提示
 library UTCameraControl requires CameraControl {
 
 	function Init () {
@@ -59,6 +62,16 @@ library UTCameraControl requires CameraControl {
 
 		} else if (paramS[0] == "b") {
 
+		} else if (paramS[0] == "cam") {
+			if (num >= 2) {
+				if (paramS[1] == "lock") {
+					cameraControl.lockHeight();
+					BJDebugMsg("[CameraControl] 已锁定镜头高度");
+				} else if (paramS[1] == "unlock") {
+					cameraControl.unlockHeight();
+					BJDebugMsg("[CameraControl] 已解锁镜头高度");
+				}
+			}
 		}
 
 		p = null;

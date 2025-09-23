@@ -29,7 +29,7 @@ library Keyboard requires BzAPI{
             }
             TriggerAddCondition(trsDown[keyCode], Condition(func));
         }
-        // 注册一个键盘事件
+        // 注册一个键盘事件(注意不能只注册一个,不需要抬起事件注册null就行了)
         static method regKeyUpEvent (integer keyCode, code func) {
             if (trsUp[keyCode] == null) {
                 trsUp[keyCode] = CreateTrigger();

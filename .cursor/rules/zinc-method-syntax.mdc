@@ -86,6 +86,7 @@ public struct Example {
 
 ## 构造函数和析构函数
 
+### 基本结构
 ```jass
 public struct Example {
     // 静态构造函数（创建实例）
@@ -101,6 +102,154 @@ public struct Example {
     }
 }
 ```
+
+### 析构函数与内存安全规则
+
+#### 必须使用 `onDestroy`，禁止自定义 `destroy`
+
+- **正确做法**：实现 `method onDestroy()` 进行清理
+- **错误做法**：自定义 `method destroy()` 会覆盖内置销毁器，导致实例未释放
+
+```jass
+private struct DmgP {
+    unit   source;
+    string eft;
+    real   damage;
+
+    // ✅ 正确：使用 onDestroy
+    method onDestroy() {
+        this.source = null; // 释放句柄
+        // string 通常无需置 null
+    }
+
+    // ❌ 错误：自定义 destroy 会导致内存泄露
+    // method destroy() { ... }
+}
+```
+
+#### 句柄清理规则
+
+- **句柄类型**：`unit`、`group`、`effect`、`timer`、`trigger` 等必须置为 `null`
+- **字符串**：JASS 字符串为驻留不可变，通常无需置 `null`
+- **资源销毁**：使用对应的 `Destroy*` API 后再置 `null`
+
+```jass
+method onDestroy() {
+    // 销毁资源
+    if (this.myGroup != null) {
+        DestroyGroup(this.myGroup);
+        this.myGroup = null;
+    }
+
+    if (this.myEffect != null) {
+        DestroyEffect(this.myEffect);
+        this.myEffect = null;
+    }
+
+    if (this.myTimer != null) {
+        PauseTimer(this.myTimer);
+        DestroyTimer(this.myTimer);
+        this.myTimer = null;
+    }
+
+    // 句柄置空
+    this.sourceUnit = null;
+    this.targetUnit = null;
+}
+```
+
+## 栈设计与递归安全
+
+### 基于栈的参数传递（伤害系统示例）
+
+用于在回调/枚举中传递参数，避免哈希表键冲突：
+
+```jass
+public struct DmgS [] {
+    private static DmgP stack[100];  // 固定容量栈
+    private static integer top = -1;
+
+    // 入栈（必须做边界检查）
+    public static method push(DmgP params) {
+        if (thistype.top >= 99) {
+            BJDebugMsg("DmgS overflow - 栈溢出");
+            return;
+        }
+        thistype.top += 1;
+        thistype.stack[thistype.top] = params;
+    }
+
+    // 出栈（必须做下溢检查）
+    public static method pop() -> DmgP {
+        if (thistype.top < 0) {
+            BJDebugMsg("DmgS underflow - 栈下溢");
+            return 0;
+        }
+        DmgP params = thistype.stack[thistype.top];
+        thistype.stack[thistype.top] = 0;  // 清空栈位
+        thistype.top -= 1;
+        return params;
+    }
+
+    // 获取栈顶元素（不弹出）
+    public static method current() -> DmgP {
+        if (thistype.top < 0) return 0;
+        return thistype.stack[thistype.top];
+    }
+}
+```
+
+### 栈安全使用模板
+
+```jass
+public function DamageAreaPhysical(unit u, real x, real y, real radius, real damage, string efx) {
+    group g; DmgP params;  // 局部变量声明在前
+
+    // 创建参数对象
+    params = DmgP.create();
+    params.source = u;
+    params.eft = efx;
+    params.damage = damage;
+
+    // 入栈
+    DmgS.push(params);
+
+    // 枚举单位（回调中使用栈顶参数）
+    g = CreateGroup();
+    GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
+        DmgP current; unit target;  // 回调内局部变量声明在前
+
+        current = DmgS.current();
+        target = GetFilterUnit();
+
+        if (IsEnemy(target, GetOwningPlayer(current.source))) {
+            ApplyPhysicalDamage(current.source, target, current.damage);
+            if (current.eft != null) {
+                DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(target), GetUnitY(target)));
+            }
+            target = null;  // 句柄置空
+            return true;
+        }
+
+        target = null;
+        return false;
+    }));
+
+    // 出栈并销毁
+    params = DmgS.pop();
+    params.destroy();  // 触发 onDestroy
+
+    // 清理资源
+    DestroyGroup(g);
+    g = null;
+}
+```
+
+### 递归安全规则
+
+- **严格配对**：每次调用必须 `create -> push -> (逻辑) -> pop -> destroy`
+- **边界检查**：固定容量栈必须检查上溢/下溢，防止数据破坏
+- **递归无碍**：只要每层调用严格配对，递归本身不会导致泄露
 
 ## 实际示例
 
@@ -120,7 +269,39 @@ public struct mallItem []{
 2. **访问修饰符**：`public`、`private` 可用于结构体、方法、成员变量
 3. **方法命名**：方法名首字母小写，使用动词短语，例如 `init`, `hasById`
 4. **静态 vs 实例**：静态方法用 `static method`，实例方法用 `method`
-4. **调用方式**：
+5. **调用方式**：
    - 静态方法：`StructName.MethodName(params)`
    - 实例方法：`instance.MethodName(params)`
-5. **句柄管理**：记得在方法结束前将句柄类型变量设为 `null`
+6. **句柄管理**：记得在方法结束前将句柄类型变量设为 `null`
+
+## 内存安全与风险防护清单
+
+### 必须遵守的规则
+
+- ✅ **使用 `onDestroy`**：析构函数必须用 `method onDestroy()`，禁止自定义 `method destroy()`
+- ✅ **严格配对**：每次 `create()` 必须对应一次 `destroy()`，入栈/出栈必须严格配对
+- ✅ **边界检查**：固定容量栈必须检查上溢/下溢，避免越界导致数据破坏
+- ✅ **句柄清理**：所有句柄类资源都有且仅有一次对应的 `Destroy*` 调用，然后置 `null`
+
+### 推荐做法
+
+- 🔧 **扩大栈容量**：或改为动态结构以适配更深递归场景
+- 🔧 **调试版本警告**：使用 `BJDebugMsg` 定位溢出与未配对问题
+- 🔧 **审视第三方封装**：如 `GroupEnumUnitsInRangeEx` 的 Filter 生命周期管理
+- 🔧 **局部变量前置**：在函数开头声明所有局部变量，包括回调内部
+
+### 常见陷阱与解决方案
+
+| 陷阱 | 后果 | 解决方案 |
+|------|------|----------|
+| 自定义 `destroy()` 方法 | 实例未释放，内存泄露 | 改用 `onDestroy()` |
+| 栈溢出未检查 | 数据破坏，后续释放错误 | 添加边界检查与警告 |
+| 句柄未置 `null` | 句柄泄露 | 析构函数中统一置空 |
+| 入栈/出栈不配对 | 栈状态错乱 | 严格按模板执行 |
+| Filter/Condition 泄露 | boolexpr 泄露 | 确认 API 生命周期管理 |
+
+### 结论
+
+- **递归本身不会导致泄露**，只要保证每层调用严格 `push/pop` 配对，且最终 `destroy`
+- **真正的泄露原因**：错误实现析构函数（`destroy` vs `onDestroy`）与栈越界导致的数据破坏
+- **最佳实践**：使用提供的模板代码，严格遵守配对规则，添加边界检查

@@ -2,67 +2,69 @@ globals
 //globals from BzAPI:
 constant boolean LIBRARY_BzAPI=true
 //endglobals from BzAPI
-//globals from UnitFilter:
-constant boolean LIBRARY_UnitFilter=true
-//endglobals from UnitFilter
-//globals from UnitHashTable:
-constant boolean LIBRARY_UnitHashTable=true
-    hashtable HASH_UNIT=InitHashtable()
-//endglobals from UnitHashTable
+//globals from LBKKAPI:
+constant boolean LIBRARY_LBKKAPI=true
+                string MOVE_TYPE_NONE = "none" //没有（无视碰撞）  
+string MOVE_TYPE_FOOT = "foot" //步行  
+string MOVE_TYPE_HORSE = "horse" //骑马  
+string MOVE_TYPE_FLY = "fly" //飞行（还具有空中视野，也可以设置飞行高度）  
+string MOVE_TYPE_HOVER = "hover" //浮空（不会踩中地雷）  
+string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）  
+string MOVE_TYPE_AMPH = "amph" //两栖  
+string MOVE_TYPE_UNBUILD = "unbuild" //不可建造  
+constant integer DEFENSE_TYPE_LIGHT = 0 
+		constant integer DEFENSE_TYPE_MEDIUM = 1 
+		constant integer DEFENSE_TYPE_LARGE = 2 
+		constant integer DEFENSE_TYPE_FORT = 3 
+		constant integer DEFENSE_TYPE_NORMAL = 4 
+		constant integer DEFENSE_TYPE_HERO = 5 
+		constant integer DEFENSE_TYPE_DIVINE = 6 
+		constant integer DEFENSE_TYPE_NONE = 7 
+//endglobals from LBKKAPI
+//globals from MapBoundsUtils:
+constant boolean LIBRARY_MapBoundsUtils=true
+//endglobals from MapBoundsUtils
+//globals from MathUtils:
+constant boolean LIBRARY_MathUtils=true
+//endglobals from MathUtils
+//globals from UIEventModule:
+constant boolean LIBRARY_UIEventModule=true
+//endglobals from UIEventModule
+//globals from UIId:
+constant boolean LIBRARY_UIId=true
+//endglobals from UIId
+//globals from UIImageModule:
+constant boolean LIBRARY_UIImageModule=true
+//endglobals from UIImageModule
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
     trigger UnitTestFramwork__TUnitTest=null
     hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
-//globals from UnitUtils:
-constant boolean LIBRARY_UnitUtils=true
-//endglobals from UnitUtils
-//globals from YDLua:
-constant boolean LIBRARY_YDLua=true
-//endglobals from YDLua
 //globals from YDTriggerSaveLoadSystem:
 constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
         hashtable YDHT
     hashtable YDLOC
 //endglobals from YDTriggerSaveLoadSystem
-//globals from GroupUtils:
-constant boolean LIBRARY_GroupUtils=true
-    group GroupUtils__tempG=null
-    player GroupUtils__tempP=null
-//endglobals from GroupUtils
-//globals from Hardware:
-constant boolean LIBRARY_Hardware=true
-//endglobals from Hardware
-//globals from Logger:
-constant boolean LIBRARY_Logger=true
-    integer logger_level=0
-    string logger_msg=null
-    player logger_p=null
-    trigger logger_tr=null
-//endglobals from Logger
-//globals from CameraControl:
-constant boolean LIBRARY_CameraControl=true
-    integer CameraControl__ViewLevel=8
-    boolean CameraControl__ResetCam=false
-    real CameraControl__WheelSpeed=0.1
-    boolean CameraControl__WideScr=false
-    real CameraControl__X_ANGLE=304
-//endglobals from CameraControl
-//globals from DamageUtils:
-constant boolean LIBRARY_DamageUtils=true
-//endglobals from DamageUtils
-//globals from UTDamageUtils:
-constant boolean LIBRARY_UTDamageUtils=true
-    unit UTDamageUtils___testDummy=null
-    unit UTDamageUtils___testSource=null
-    real UTDamageUtils___testDamage=100.0
-    real UTDamageUtils___testRadius=300.0
-    string UTDamageUtils___testEffect="Abilities\\Weapons\\PhoenixMissile\\Phoenix_Missile.mdl"
-    trigger UTDamageUtils___damageEventTrigger=null
-    boolean UTDamageUtils___isShowDamage=false
-    boolean UTDamageUtils___isReflectDamage=false
-    integer UTDamageUtils___reflectCount=0
-//endglobals from UTDamageUtils
+//globals from UITocInit:
+constant boolean LIBRARY_UITocInit=true
+//endglobals from UITocInit
+//globals from UIUtils:
+constant boolean LIBRARY_UIUtils=true
+//endglobals from UIUtils
+//globals from UIBaseModule:
+constant boolean LIBRARY_UIBaseModule=true
+//endglobals from UIBaseModule
+//globals from UIButton:
+constant boolean LIBRARY_UIButton=true
+//endglobals from UIButton
+//globals from UIImage:
+constant boolean LIBRARY_UIImage=true
+//endglobals from UIImage
+//globals from UTUIButton:
+constant boolean LIBRARY_UTUIButton=true
+    uiBtn UTUIButton__currentBtn=0
+//endglobals from UTUIButton
     // Generated
     rect gg_rct_Wave1 = null
     rect gg_rct_Wave2 = null
@@ -308,39 +310,461 @@ endglobals
     
 
 //library BzAPI ends
-//library UnitFilter:
-    function IsEnemy takes unit u,player p returns boolean
-        return ((GetUnitState(u,UNIT_STATE_LIFE)>0.405 and (GetUnitState(u,UNIT_STATE_LIFE)>0)) and (not (IsUnitType(u,UNIT_TYPE_SLEEPING)) and not (IsUnitType(u,UNIT_TYPE_STRUCTURE)) and not (IsUnitHidden(u)) and IsUnitEnemy(u,p) and IsUnitVisible(u,p))) and GetUnitAbilityLevel(u,'Avul')<1
-    endfunction  //旧名：IsEnemy2
-    function IsEnemyIncludeInvul takes unit u,player p returns boolean  //判断是否是敌方(能匹配到无敌单位)
-        return ((GetUnitState(u,UNIT_STATE_LIFE)>0.405 and (GetUnitState(u,UNIT_STATE_LIFE)>0)) and (not (IsUnitType(u,UNIT_TYPE_SLEEPING)) and not (IsUnitType(u,UNIT_TYPE_STRUCTURE)) and not (IsUnitHidden(u)) and IsUnitEnemy(u,p) and IsUnitVisible(u,p)))
-    endfunction  //判断是否是敌方非魔法免疫单位
-    function IsEnemyMagic takes unit u,player p returns boolean
-        return not (IsUnitType(u,UNIT_TYPE_MAGIC_IMMUNE)) and IsEnemy(u,p) and not (IsUnitType(u,UNIT_TYPE_RESISTANT))
-    endfunction  //判断是否是敌方(简化版本,只检查基础状态和敌对关系)
-    function IsEnemyBasic takes unit u,player p returns boolean
-        return (GetUnitState(u,UNIT_STATE_LIFE)>0.405 and (GetUnitState(u,UNIT_STATE_LIFE)>0)) and IsUnitEnemy(u,p)
-    endfunction  //判断是否是友方
-    function IsAlly takes unit u,player p returns boolean
-        return GetUnitState(u,UNIT_STATE_LIFE)>.405 and (not (IsUnitType(u,UNIT_TYPE_STRUCTURE))) and (not (IsUnitHidden(u))) and IsUnitAlly(u,p)
-    endfunction  //判断两个单位是否互为敌人(不带无敌)
-    function IsEnemyUnit takes unit target,unit caster returns boolean  //第一个参数是要受伤/中招的单位,第二个参数是锚定单位(施法者)
-        return IsEnemy(target,GetOwningPlayer(caster))
-    endfunction  //判断两个单位是否互为队友(不带无敌)
-    function IsAllyUnit takes unit target,unit caster returns boolean
-        return IsAlly(target,GetOwningPlayer(caster))
-    endfunction  //判断两个单位是否互为敌人(简化版本,只检查基础状态和敌对关系)
-    function IsEnemyBasicUnit takes unit target,unit caster returns boolean
-        return (GetUnitState(target,UNIT_STATE_LIFE)>0.405 and (GetUnitState(target,UNIT_STATE_LIFE)>0)) and IsUnitEnemy(target,GetOwningPlayer(caster))
-    endfunction  //判断是否是敌方非魔法免疫单位(双单位参数版)
-    function IsEnemyMagicUnit takes unit target,unit caster returns boolean
-        return IsEnemyMagic(target,GetOwningPlayer(caster))
-    endfunction  // //判断单位是否属于指定常见种族或中立阵营
+//library LBKKAPI:
+        native DzGetSelectedLeaderUnit takes nothing returns unit 
+        native DzIsChatBoxOpen takes nothing returns boolean 
+        native DzSetUnitPreselectUIVisible takes unit whichUnit, boolean visible returns nothing 
+        native DzSetEffectAnimation takes effect whichEffect, integer index, integer flag returns nothing 
+        native DzSetEffectPos takes effect whichEffect, real x, real y, real z returns nothing 
+        native DzSetEffectVertexColor takes effect whichEffect, integer color returns nothing 
+        native DzSetEffectVertexAlpha takes effect whichEffect, integer alpha returns nothing 
+        native DzSetEffectModel takes effect whichEffect, string model returns nothing
+        native DzSetEffectTeamColor takes effect whichHandle, integer playerId returns nothing
+        native DzFrameSetClip takes integer whichframe, boolean enable returns nothing 
+        native DzChangeWindowSize takes integer width, integer height returns boolean 
+        native DzPlayEffectAnimation takes effect whichEffect, string anim, string link returns nothing 
+        native DzBindEffect takes widget parent, string attachPoint, effect whichEffect returns nothing 
+        native DzUnbindEffect takes effect whichEffect returns nothing 
+        native DzSetWidgetSpriteScale takes widget whichUnit, real scale returns nothing 
+        native DzSetEffectScale takes effect whichHandle, real scale returns nothing 
+        native DzGetEffectVertexColor takes effect whichEffect returns integer 
+        native DzGetEffectVertexAlpha takes effect whichEffect returns integer 
+        native DzGetItemAbility takes item whichEffect, integer index returns ability 
+        native DzFrameGetChildrenCount takes integer whichframe returns integer 
+        native DzFrameGetChild takes integer whichframe, integer index returns integer 
+        native DzUnlockBlpSizeLimit takes boolean enable returns nothing 
+        native DzGetActivePatron takes unit store, player p returns unit 
+        native DzGetLocalSelectUnitCount takes nothing returns integer 
+        native DzGetLocalSelectUnit takes integer index returns unit 
+        native DzGetJassStringTableCount takes nothing returns integer 
+        native DzModelRemoveFromCache takes string path returns nothing 
+        native DzModelRemoveAllFromCache takes nothing returns nothing 
+        native DzFrameGetInfoPanelSelectButton takes integer index returns integer 
+        native DzFrameGetInfoPanelBuffButton takes integer index returns integer 
+        native DzFrameGetPeonBar takes nothing returns integer 
+        native DzFrameGetCommandBarButtonNumberText takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonNumberOverlay takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonCooldownIndicator takes integer whichframe returns integer 
+        native DzFrameGetCommandBarButtonAutoCastIndicator takes integer whichframe returns integer 
+        native DzToggleFPS takes boolean show returns nothing 
+        native DzGetFPS takes nothing returns integer 
+        native DzFrameWorldToMinimapPosX takes real x, real y returns real 
+        native DzFrameWorldToMinimapPosY takes real x, real y returns real 
+        native DzWidgetSetMinimapIcon takes unit whichunit, string path returns nothing 
+        native DzWidgetSetMinimapIconEnable takes unit whichunit, boolean enable returns nothing 
+        native DzFrameGetWorldFrameMessage takes nothing returns integer 
+        native DzSimpleMessageFrameAddMessage takes integer whichframe, string text, integer color, real duration, boolean permanent returns nothing 
+        native DzSimpleMessageFrameClear takes integer whichframe returns nothing 
+        //转换屏幕坐标到世界坐标  
+        native DzConvertScreenPositionX takes real x, real y returns real 
+        native DzConvertScreenPositionY takes real x, real y returns real 
+        //监听建筑选位置  
+        native DzRegisterOnBuildLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnBuildOrderId takes nothing returns integer 
+        native DzGetOnBuildOrderType takes nothing returns integer 
+        native DzGetOnBuildAgent takes nothing returns widget 
+        //监听技能选目标  
+        native DzRegisterOnTargetLocal takes code func returns nothing 
+        //等于0时是结束事件  
+        native DzGetOnTargetAbilId takes nothing returns integer 
+        native DzGetOnTargetOrderId takes nothing returns integer 
+        native DzGetOnTargetOrderType takes nothing returns integer 
+        native DzGetOnTargetAgent takes nothing returns widget 
+        native DzGetOnTargetInstantTarget takes nothing returns widget 
+        // 打开QQ群链接  
+        native DzOpenQQGroupUrl takes string url returns boolean 
+        native DzFrameEnableClipRect takes boolean enable returns nothing 
+        native DzSetUnitName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitPortrait takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitDescription takes unit whichUnit, string value returns nothing 
+        native DzSetUnitMissileArc takes unit whichUnit, real arc returns nothing 
+        native DzSetUnitMissileModel takes unit whichUnit, string modelFile returns nothing 
+        native DzSetUnitProperName takes unit whichUnit, string name returns nothing 
+        native DzSetUnitMissileHoming takes unit whichUnit, boolean enable returns nothing 
+        native DzSetUnitMissileSpeed takes unit whichUnit, real speed returns nothing 
+        native DzSetEffectVisible takes effect whichHandle, boolean enable returns nothing 
+        native DzReviveUnit takes unit whichUnit, player whichPlayer, real hp, real mp, real x, real y returns nothing 
+        native DzGetAttackAbility takes unit whichUnit returns ability 
+        native DzAttackAbilityEndCooldown takes ability whichHandle returns nothing 
+        native EXSetUnitArrayString takes integer uid, integer id, integer n, string name returns boolean 
+        native EXSetUnitInteger takes integer uid, integer id, integer n returns boolean 
+        function DzSetHeroTypeProperName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 61, 0, name) 
+                call EXSetUnitInteger(uid, 61, 1) 
+        endfunction 
+        function DzSetUnitTypeName takes integer uid, string name returns nothing 
+                call EXSetUnitArrayString(uid, 10, 0, name) 
+                call EXSetUnitInteger(uid, 10, 1) 
+        endfunction 
+        function DzIsUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns boolean 
+                return ConvertAttackType(R2I(GetUnitState(whichUnit, ConvertUnitState(16 + 19 * index)))) == attackType 
+        endfunction 
+        function DzSetUnitAttackType takes unit whichUnit, integer index, attacktype attackType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(16 + 19 * index), GetHandleId(attackType)) 
+        endfunction 
+        function DzIsUnitDefenseType takes unit whichUnit, integer defenseType returns boolean 
+                return R2I(GetUnitState(whichUnit, ConvertUnitState(0x50))) == defenseType 
+        endfunction 
+        function DzSetUnitDefenseType takes unit whichUnit, integer defenseType returns nothing 
+                call SetUnitState(whichUnit, ConvertUnitState(0x50), defenseType) 
+        endfunction 
+        // 地形装饰物
+        native DzDoodadCreate takes integer id, integer var, real x, real y, real z, real rotate, real scale returns integer 
+        native DzDoodadGetTypeId takes integer doodad returns integer 
+        native DzDoodadSetModel takes integer doodad, string modelFile returns nothing 
+        native DzDoodadSetTeamColor takes integer doodad, integer color returns nothing 
+        native DzDoodadSetColor takes integer doodad, integer color returns nothing 
+        native DzDoodadGetX takes integer doodad returns real 
+        native DzDoodadGetY takes integer doodad returns real 
+        native DzDoodadGetZ takes integer doodad returns real 
+        native DzDoodadSetPosition takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixRotate takes integer doodad, real angle, real axisX, real axisY, real axisZ returns nothing 
+        native DzDoodadSetOrientMatrixScale takes integer doodad, real x, real y, real z returns nothing 
+        native DzDoodadSetOrientMatrixResize takes integer doodad returns nothing 
+        native DzDoodadSetVisible takes integer doodad, boolean enable returns nothing 
+        native DzDoodadSetAnimation takes integer doodad, string animName, boolean animRandom returns nothing 
+        native DzDoodadSetTimeScale takes integer doodad, real scale returns nothing 
+        native DzDoodadGetTimeScale takes integer doodad returns real 
+        native DzDoodadGetCurrentAnimationIndex takes integer doodad returns integer 
+        native DzDoodadGetAnimationCount takes integer doodad returns integer 
+        native DzDoodadGetAnimationName takes integer doodad, integer index returns string 
+        native DzDoodadGetAnimationTime takes integer doodad, integer index returns integer 
+        // 解锁JASS字节码限制
+        native DzUnlockOpCodeLimit takes boolean enable returns nothing
+        // 设置剪切板内容
+        native DzSetClipboard takes string content returns boolean
+        //删除装饰物
+        native DzDoodadRemove takes integer doodad returns nothing
+        //移除科技等级
+        native DzRemovePlayerTechResearched takes player whichPlayer, integer techid, integer removelevels returns nothing
+        
+        // 查找单位技能
+        native DzUnitFindAbility takes unit whichUnit, integer abilcode returns ability
+        // 修改技能数据-字符串
+        native DzAbilitySetStringData takes ability whichAbility, string key, string value returns nothing
+                
+        // 启用/禁用技能
+        native DzAbilitySetEnable takes ability whichAbility, boolean enable, boolean hideUI returns nothing
+        // 设置单位移动类型
+        native DzUnitSetMoveType takes unit whichUnit, string moveType returns nothing
+        // 获取控件宽度
+        native DzFrameGetWidth takes integer frame returns real
+        native DzFrameSetAnimateByIndex takes integer frame, integer index, integer flag returns nothing
+        native DzSetUnitDataCacheInteger takes integer uid, integer id,integer index,integer v returns nothing
+        native DzUnitUIAddLevelArrayInteger takes integer uid, integer id,integer lv,integer v returns nothing
+        function KKWESetUnitDataCacheInteger takes integer uid,integer id,integer v returns nothing
+                call DzSetUnitDataCacheInteger( uid, id, 0, v)
+        endfunction
+        function KKWEUnitUIAddUpgradesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 94, id, v)
+        endfunction
+        function KKWEUnitUIAddBuildsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 100, id, v)
+        endfunction
+        function KKWEUnitUIAddResearchesIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 112, id, v)
+        endfunction
+        function KKWEUnitUIAddTrainsIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 106, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsUnitIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 118, id, v)
+        endfunction
+        function KKWEUnitUIAddSellsItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 124, id, v)
+        endfunction
+        function KKWEUnitUIAddMakesItemIds takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 130, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresUnitCode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresTechcode takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 166, id, v)
+        endfunction
+        function KKWEUnitUIAddRequiresAmounts takes integer uid,integer id,integer v returns nothing
+                call DzUnitUIAddLevelArrayInteger( uid, 172, id, v)
+        endfunction
+         // 设置道具模型
+        native DzItemSetModel takes item whichItem, string file returns nothing
+        // 设置道具颜色
+        native DzItemSetVertexColor takes item whichItem, integer color returns nothing
+        // 设置道具透明度
+        native DzItemSetAlpha takes item whichItem, integer color returns nothing
+        // 设置道具头像
+        native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
 
-//library UnitFilter ends
-//library UnitHashTable:
+//library LBKKAPI ends
+//library MapBoundsUtils:
+    struct mapBounds 
+    //! pragma implicitthis
+        static real maxX=0.
+        static real minX=0.
+        static real maxY=0.
+        static real minY=0.  // 限制X坐标在地图范围内
+        static method X takes real x returns real
+            return RMinBJ(RMaxBJ(x,mapBounds.minX),mapBounds.maxX)
+        endmethod  // 限制Y坐标在地图范围内
+        static method Y takes real y returns real
+            return RMinBJ(RMaxBJ(y,mapBounds.minY),mapBounds.maxY)
+        endmethod  // 初始化
+        static method onInit takes nothing returns nothing
+            set mapBounds.minX=GetCameraBoundMinX()-GetCameraMargin(CAMERA_MARGIN_LEFT)
+            set mapBounds.minY=GetCameraBoundMinY()-GetCameraMargin(CAMERA_MARGIN_BOTTOM)
+            set mapBounds.maxX=GetCameraBoundMaxX()+GetCameraMargin(CAMERA_MARGIN_RIGHT)
+            set mapBounds.maxY=GetCameraBoundMaxY()+GetCameraMargin(CAMERA_MARGIN_TOP)
+        endmethod
+    endstruct
 
-//library UnitHashTable ends
+//library MapBoundsUtils ends
+//library MathUtils:
+    function R2IRandom takes real value returns integer  // 将实数转换为整数，若小数部分大于随机数则进1
+        if (GetRandomReal(0,1.0)<=ModuloReal(value,1.0))then
+            return R2I(value)+1
+        endif
+        return R2I(value)
+    endfunction  // 进行整数除法，若能整除则结果减1
+    function Divide1 takes integer i1,integer i2 returns integer
+        if (ModuloInteger(i1,i2)==0)then
+            return i1/i2-1
+        endif
+        return i1/i2
+    endfunction  // 实现特殊的数值叠加计算，主要用于游戏中各种加成效果的叠加
+    function RealAdd takes real a1,real a2 returns real  // 该函数可以避免简单线性相加导致的数值溢出，保证叠加后的效果符合递减收益原则 // // 特点： // - 正数叠加时使用概率学公式：1-(1-a1)*(1-a2) // - 负数叠加时使用衰减公式：1-(1-a1)/(1+a2) // - 当第二个参数绝对值>=1.0时，直接返回第一个参数 // // 适用场景： // - 技能冷却缩减叠加（CDR） // - 暴击率、闪避率等概率性属性叠加 // - 移速加成等需要控制上限的属性叠加 // // 参数说明： // a1: 第一个数值，通常表示当前已有的加成效果 // a2: 第二个数值，表示要叠加的新加成效果 // 返回值: 叠加后的最终效果值 // // 使用示例： // real currentCDR = 0.4;    // 当前40%冷却缩减 // real newCDR = 0.5;        // 新装备50%冷却缩减 // real finalCDR = RealAdd(currentCDR, newCDR);  // 结果约为0.7，即70%冷却缩减 // // 注意事项： // 1. 虽然函数支持任意实数输入，但建议输入值在[-1.0, 1.0]范围内 // 2. 当|a2| >= 1.0时，函数会直接返回a1值 // 3. 该函数满足结合律，但不满足交换律，建议将已有效果作为第一个参数 // 4. 已测试过可以在用负数叠加后,使用负数的绝对值进行恢复
+        if (RAbsBJ(a2)>=1.0)then
+            return a1
+        endif
+        if (a2>=0)then
+            return 1.0-(1.0-a1)*(1.0-a2)
+        else
+            return 1.0-(1.0-a1)/(1.0+a2)
+        endif
+    endfunction  // 最小最大值限制
+    function ILimit takes integer target,integer min,integer max returns integer  // 限制整数在[min, max]范围内
+        if (target<min)then
+            return min
+        elseif (target>max)then
+            return max
+        else
+            return target
+        endif
+    endfunction  // 最小最大值限制
+    function RLimit takes real target,real min,real max returns real  // 限制实数在[min, max]范围内
+        if (target<min)then
+            return min
+        elseif (target>max)then
+            return max
+        else
+            return target
+        endif
+    endfunction  // 四舍五入法实数转整数
+    function R2IM takes real r returns integer  // 将实数四舍五入为整数
+        if (ModuloReal(r,1.0)>=0.5)then
+            return R2I(r)+1
+        else
+            return R2I(r)
+        endif
+    endfunction  // 计算射线与地图边界的交点
+    struct radiationEnd   // 计算从给定点出发的射线与地图边界的交点
+    //! pragma implicitthis
+        static real x=0  // 一个坐标沿着某个方向的边缘值
+        static real y=0
+        static method cal takes real x1,real y1,real angle returns nothing  // 计算从点(x1,y1)出发，沿angle角度方向的射线与地图边界的交点 //相交点
+            local real x2=0  //相交点
+            local real y2=0  //求余数
+            local real a=ModuloReal(angle,360)
+            local real tan
+            set x=0
+            set y=0  // 处理特殊角度
+            if (a==0)then  // 正右方
+                set x=mapBounds.maxX
+                set y=y1
+                return
+            endif  // 正上方
+            if (a==90)then
+                set x=x1
+                set y=mapBounds.maxY
+                return
+            endif  // 正左方
+            if (a==180)then
+                set x=mapBounds.minX
+                set y=y1
+                return
+            endif  // 正下方
+            if (a==270)then
+                set x=x1
+                set y=mapBounds.minY
+                return
+            endif  // 处理一般角度
+            if (a<90)then  //第一象限
+                set tan=Tan((a)*0.0174538)
+                set x2=(mapBounds.maxY-y1)/tan+x1
+                set y2=(mapBounds.maxX-x1)*tan+y1  //取这个
+                if (x2<=mapBounds.maxX)then
+                    set x=x2
+                    set y=mapBounds.maxY
+                else
+                    set x=mapBounds.maxX
+                    set y=y2
+                endif  //第二象限
+            elseif (a<180)then
+                set tan=Tan((a)*0.0174538)
+                set x2=(mapBounds.maxY-y1)/tan+x1
+                set y2=(mapBounds.minX-x1)*tan+y1  //取这个
+                if (x2>=mapBounds.minX)then
+                    set x=x2
+                    set y=mapBounds.maxY
+                else
+                    set x=mapBounds.minX
+                    set y=y2
+                endif  //第三象限
+            elseif (a<270)then
+                set tan=Tan((a)*0.0174538)
+                set x2=(mapBounds.minY-y1)/tan+x1
+                set y2=(mapBounds.minX-x1)*tan+y1  //取这个
+                if (x2>=mapBounds.minX)then
+                    set x=x2
+                    set y=mapBounds.minY
+                else
+                    set x=mapBounds.minX
+                    set y=y2
+                endif  //第四象限
+            else
+                set tan=Tan((a)*0.0174538)
+                set x2=(mapBounds.minY-y1)/tan+x1
+                set y2=(mapBounds.maxX-x1)*tan+y1  //取这个
+                if (x2<=mapBounds.maxX)then
+                    set x=x2
+                    set y=mapBounds.minY
+                else
+                    set x=mapBounds.maxX
+                    set y=y2
+                endif
+            endif
+        endmethod
+    endstruct  // 实现三个数值的特殊叠加计算
+    function RealAdd3 takes real a1,real a2,real a3 returns real  // 效果等同于 RealAdd(RealAdd(a1,a2),a3) // // 参数说明： // a1: 第一个数值，通常表示当前已有的加成效果 // a2: 第二个数值，表示第一次要叠加的新加成效果 // a3: 第三个数值，表示第二次要叠加的新加成效果 // 返回值: 三个数值叠加后的最终效果值 // // 使用示例： // real baseEffect = 0.3;     // 基础30%效果 // real bonus1 = 0.4;         // 第一个40%加成 // real bonus2 = 0.2;         // 第二个20%加成 // real final = RealAdd3(baseEffect, bonus1, bonus2);  // 一次性计算三个效果的叠加
+        local real temp  // 如果第二个参数绝对值>=1.0，直接用第一个参数与第三个参数计算
+        if (RAbsBJ(a2)>=1.0)then
+            return RealAdd(a1,a3)
+        endif  // 如果第三个参数绝对值>=1.0，直接返回前两个参数的计算结果
+        if (RAbsBJ(a3)>=1.0)then
+            return RealAdd(a1,a2)
+        endif  // 先计算前两个参数的结果
+        if (a2>=0)then
+            set temp=1.0-(1.0-a1)*(1.0-a2)
+        else
+            set temp=1.0-(1.0-a1)/(1.0+a2)
+        endif  // 再与第三个参数计算
+        if (a3>=0)then
+            return 1.0-(1.0-temp)*(1.0-a3)
+        else
+            return 1.0-(1.0-temp)/(1.0+a3)
+        endif
+    endfunction
+
+//library MathUtils ends
+//library UIEventModule:
+    module uiEventModule  // 鼠标进入事件
+        method onMouseEnter takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,2,fun,false)
+            return this
+        endmethod  // 鼠标离开事件
+        method onMouseLeave takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,3,fun,false)
+            return this
+        endmethod  // 鼠标松开事件,和点击一样,基本可以当相同事件
+        method onMouseClick takes code fun returns thistype  // method onMouseUp (code fun) -> thistype { //     if (!this.isExist()) {return this;} //     DzFrameSetScriptByCode(ui,FRAME_MOUSE_UP,fun,false); //     return this; // } // 鼠标点击事件(效果和FRAME_MOUSE_UP一样,注释掉上面这个了)
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,1,fun,false)
+            return this
+        endmethod  // 鼠标滚轮事件
+        method onMouseWheel takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,6,fun,false)
+            return this
+        endmethod  // 鼠标双击事件
+        method onMouseDoubleClick takes code fun returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetScriptByCode(ui,12,fun,false)
+            return this
+        endmethod  //扩展事件
+        implement optional extendEvent
+    endmodule
+
+//library UIEventModule ends
+//library UIId:
+    struct uiId extends array
+    //! pragma implicitthis
+        static hashtable ht
+        static integer nextId
+        static integer recycleCount
+        static method onInit takes nothing returns nothing
+            set thistype.ht=InitHashtable()
+            set thistype.nextId=1
+            set thistype.recycleCount=0
+        endmethod
+        static method get takes nothing returns integer
+            local integer id  // 如果有已回收的ID，优先使用
+            if (recycleCount>0)then  // 获取最后一个回收的ID
+                set id=LoadInteger(ht,1,recycleCount-1)  // 从回收池中删除这个ID
+                call RemoveSavedInteger(ht,1,recycleCount-1)  // 从状态表中删除
+                call RemoveSavedBoolean(ht,2,id)
+                set recycleCount=recycleCount-1
+                return id
+            endif  // 如果没有可复用的ID，返回新的ID
+            set id=nextId
+            set nextId=nextId+1
+            return id
+        endmethod
+        static method recycle takes integer id returns nothing  // 快速检查ID是否已经在回收池中
+            if (not (HaveSavedBoolean(ht,2,id)))then  // 将ID存入回收池
+                call SaveInteger(ht,1,recycleCount,id)  // 标记该ID已被回收
+                call SaveBoolean(ht,2,id,true)
+                set recycleCount=recycleCount+1
+            endif
+        endmethod  // 获取回收池中ID的数量
+        static method getRecycledCount takes nothing returns integer
+            return recycleCount
+        endmethod  // 获取当前正在使用的ID数量
+        static method getActiveCount takes nothing returns integer  // 最大ID减去已回收的ID数量
+            return (nextId-1)-recycleCount
+        endmethod
+    endstruct
+
+//library UIId ends
+//library UIImageModule:
+    module uiImageModule  // 设置图片路径
+        method setTexture takes string path returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetTexture(this.ui,path,0)
+            return this
+        endmethod  // 设置图片控件视口,防止模型超出范围
+        method setClip takes boolean clip returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetClip(this.ui,clip)
+            return this
+        endmethod
+    endmodule
+
+//library UIImageModule ends
 //library UnitTestFramwork:
 
     struct assert extends array  //断言布尔值
@@ -456,622 +880,391 @@ endglobals
     endfunction
 
 //library UnitTestFramwork ends
-//library UnitUtils:
-    struct unitAttrObserver extends array
-    //! pragma implicitthis
-        static unit argsU=null
-        static trigger attackIntervalCB=null  //攻击间隔的观察者事件注册
-        static method registerAttackInterval takes code func returns nothing
-            if (attackIntervalCB==null)then
-                set attackIntervalCB=CreateTrigger()
-            endif
-            call TriggerAddCondition(attackIntervalCB,Condition(func))
-        endmethod
-    endstruct  //获取单位的攻击力/防御/生命/魔法值
-    function GetUnitAttack takes unit u returns integer
-        return R2I(GetUnitState(u,ConvertUnitState(0x12)))
-    endfunction
-    function GetUnitDefense takes unit u returns integer
-        return R2I(GetUnitState(u,ConvertUnitState(0x20)))
-    endfunction
-    function GetUnitHP takes unit u returns real
-        return GetUnitState(u,UNIT_STATE_MAX_LIFE)
-    endfunction
-    function GetUnitMP takes unit u returns real
-        return GetUnitState(u,UNIT_STATE_MAX_MANA)
-    endfunction  //设置攻击力
-    function SetUnitAttack takes unit u,real attack returns nothing
-        call SetUnitState(u,ConvertUnitState(0x12),attack)
-    endfunction  //增加攻击力
-    function AddUnitAttack takes unit u,real attack returns nothing
-        call SetUnitAttack(u,GetUnitAttack(u)+attack)
-    endfunction  //设置防御
-    function SetUnitDefense takes unit u,real defense returns nothing
-        call SetUnitState(u,ConvertUnitState(0x20),defense)
-    endfunction  //增加防御
-    function AddUnitDefense takes unit u,real defense returns nothing
-        call SetUnitDefense(u,GetUnitDefense(u)+defense)
-    endfunction  //修改生命最大值
-    function SetUnitHP takes unit u,real hp returns nothing
-        call SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,2.0))
-    endfunction  //增加生命最大值
-    function AddUnitHP takes unit u,real hp returns nothing
-        call SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0))
-        if (hp>0)then
-            call SetUnitState(u,UNIT_STATE_LIFE,RMaxBJ(0,GetUnitState(u,UNIT_STATE_LIFE)+hp))
-        endif
-    endfunction  //回血(定值)
-    function RegenUnitHP takes unit u,real volume returns nothing
-        call SetUnitState(u,UNIT_STATE_LIFE,RMaxBJ(0,GetUnitState(u,UNIT_STATE_LIFE)+volume))
-    endfunction  //回蓝(百分比)
-    function RegenUnitHPPercent takes unit u,real rate returns nothing
-        call SetUnitState(u,UNIT_STATE_LIFE,RMaxBJ(0,GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate))
-    endfunction  //设置魔法最大值
-    function SetUnitMP takes unit u,real mp returns nothing
-        call SetUnitState(u,UNIT_STATE_MAX_MANA,mp)
-    endfunction  //增加魔法最大值
-    function AddUnitMP takes unit u,real mp returns nothing
-        call SetUnitMP(u,GetUnitMP(u)+mp)
-        if (mp>0)then
-            call SetUnitState(u,UNIT_STATE_MANA,RMaxBJ(0,GetUnitState(u,UNIT_STATE_MANA)+mp))
-        endif
-    endfunction  //回蓝(定值)
-    function RegenUnitMP takes unit u,real volume returns nothing
-        call SetUnitState(u,UNIT_STATE_MANA,RMaxBJ(0,GetUnitState(u,UNIT_STATE_MANA)+volume))
-    endfunction  //回蓝(百分比)
-    function RegenUnitMPPercent takes unit u,real rate returns nothing
-        call SetUnitState(u,UNIT_STATE_MANA,RMaxBJ(0,GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate))
-    endfunction  // 获取移速
-    function GetUnitSpeed takes unit u returns integer  //突破522与0的移速的Hook
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),237960560))then
-            return LoadInteger(HASH_UNIT,GetHandleId(u),237960560)
-        else
-            return R2I(GetUnitMoveSpeed(u))
-        endif
-    endfunction  //todo: 这个UNTable其他地图需要兼容
-    function AddUnitSpeed takes unit u,integer speed returns nothing  // 增加移速
-        local integer value  //突破522与0的移速的Hook
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),237960560))then
-            set value=LoadInteger(HASH_UNIT,GetHandleId(u),237960560)
-            set value=value+speed
-            call SaveInteger(HASH_UNIT,GetHandleId(u),237960560,value)
-        else
-            set value=R2I(GetUnitMoveSpeed(u))+speed
-        endif
-        call SetUnitMoveSpeed(u,value)
-    endfunction  // 初始化突破移速
-    function InitUnitSpeed takes unit u returns nothing
-        call SaveInteger(HASH_UNIT,GetHandleId(u),237960560,R2I(GetUnitMoveSpeed(u)))
-    endfunction  //射程(还会+警戒范围)
-    function GetUnitAttackRange takes unit u returns real
-        return GetUnitState(u,ConvertUnitState(0x16))
-    endfunction  //设置射程(还会设置警戒范围)
-    function SetUnitAttackRange takes unit u,real range returns nothing
-        call SetUnitState(u,ConvertUnitState(0x16),range)
-        call SetUnitAcquireRange(u,RMaxBJ(range,900.0))
-    endfunction  //增加射程(还会+警戒范围)
-    function AddUnitAttackRange takes unit u,real range returns nothing
-        call SetUnitState(u,ConvertUnitState(0x16),GetUnitAttackRange(u)+range)
-        call SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0))
-    endfunction  // 获取攻速
-    function GetUnitAttackSpeed takes unit u returns real
-        return GetUnitState(u,ConvertUnitState(0x51))
-    endfunction  // 增加攻速
-    function AddUnitAttackSpeed takes unit u,real speed returns nothing
-        call SetUnitState(u,ConvertUnitState(0x51),GetUnitState(u,ConvertUnitState(0x51))+speed)
-    endfunction  // (获取缓存的攻击间隔(可能为负))
-    function GetUnitAttackIntervalCache takes unit u returns real
-        return LoadReal(HASH_UNIT,GetHandleId(u),255610124)
-    endfunction  // (获取单位的攻击间隔,不会小于0.1)
-    function GetUnitAttackInterval takes unit u returns real
-        return GetUnitState(u,ConvertUnitState(0x25))
-    endfunction  // 攻击间隔(虽然写着加,但是实际是减) - 带最小值与观察者
-    function AddAttackInterval takes unit u,real value returns nothing
-        local real cacheValue
-        local real newValue
-        local integer uid
-        set uid=GetHandleId(u)  // 检查是否已初始化缓存
-        if (not (HaveSavedReal(HASH_UNIT,uid,255610124)))then  // 如果没有初始化，先保存当前攻击间隔到缓存
-            call SaveReal(HASH_UNIT,uid,255610124,GetUnitAttackInterval(u))
-        endif  // 获取当前缓存值并添加新值
-        set cacheValue=LoadReal(HASH_UNIT,uid,255610124)
-        set cacheValue=cacheValue+value  // 更新缓存
-        call SaveReal(HASH_UNIT,uid,255610124,cacheValue)  // 设置实际攻击间隔（确保不小于MIN_ATTACK_INTERVAL）
-        set newValue=RMaxBJ(cacheValue,0.2)
-        call SetUnitState(u,ConvertUnitState(0x25),newValue)  // 观察者模式回调
-        if (unitAttrObserver.attackIntervalCB!=null)then
-            set unitAttrObserver.argsU=u
-            call TriggerEvaluate(unitAttrObserver.attackIntervalCB)
-        endif
-    endfunction  //传送单位(带特效与镜头转换)
-    function TransportUnit takes unit u,real x,real y,boolean camera returns nothing
-        if (camera)then
-            call PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2)
-        endif
-        call DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl",GetUnitX(u),GetUnitY(u)))
-        call SetUnitPosition(u,x,y)
-        call DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl",GetUnitX(u),GetUnitY(u)))
-    endfunction  //删除单位
-    function DeleteUnit takes unit u returns nothing
-        call FlushChildHashtable(HASH_UNIT,GetHandleId(u))
-        call RemoveUnit(u)
-    endfunction
-
-//library UnitUtils ends
-//library YDLua:
-
-    function initializeLua takes nothing returns integer
-        call Cheat("exec-lua:plugin_main")
-        return 0
-    endfunction
-        function YDLua__anon__0 takes nothing returns nothing  //在游戏开始0.0秒后再调用
-            call BJDebugMsg("调用了YDLua引擎")
-            call DestroyTrigger(GetTriggeringTrigger())
-        endfunction
-    function YDLua__onInit takes nothing returns nothing
-        local trigger tr=CreateTrigger()
-        call TriggerRegisterTimerEvent(tr,0.0,false)
-        call TriggerAddCondition(tr,Condition(function YDLua__anon__0))
-        set tr=null
-    endfunction
-
-//library YDLua ends
 //library YDTriggerSaveLoadSystem:
 //#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
+    function YDTriggerSaveLoadSystem___Init takes nothing returns nothing
             set YDHT = InitHashtable()
         set YDLOC = InitHashtable()
     endfunction
 
 //library YDTriggerSaveLoadSystem ends
-//library GroupUtils:
-    function GroupEnumUnitsInRangeEx takes group whichGroup,real x,real y,real radius,boolexpr filter returns nothing
-        call GroupEnumUnitsInRange(whichGroup,x,y,radius,filter)
-        call DestroyBoolExpr(filter)
-    endfunction  //库补充,防内存泄漏
-    function GroupEnumUnitsInRectEx takes group whichGroup,rect r,boolexpr filter returns nothing
-        call GroupEnumUnitsInRect(whichGroup,r,filter)
-        call DestroyBoolExpr(filter)
-    endfunction  //获取单位组:[敌方]
-        function GroupUtils__anon__0 takes nothing returns boolean
-            if (IsEnemy(GetFilterUnit(),GroupUtils__tempP))then
-                return true
-            endif
-            return false
-        endfunction
-    function GetEnemyGroup takes player p,real x,real y,real radius returns group
-        set GroupUtils__tempG=CreateGroup()
-        set GroupUtils__tempP=p
-        call GroupEnumUnitsInRangeEx(GroupUtils__tempG,x,y,radius,Filter(function GroupUtils__anon__0))
-        set GroupUtils__tempP=null
-        return GroupUtils__tempG
-    endfunction  //获取圆形随机单位
-    function GetRandomEnemy takes player p,real x,real y,real radius returns unit
-        return GroupPickRandomUnit(GetEnemyGroup(p,x,y,radius))
+//library UITocInit:
+
+    function UITocInit___onInit takes nothing returns nothing
+        call DzLoadToc("ui\\Crainax.toc")
+        call DzFrameEnableClipRect(false)
     endfunction
 
-//library GroupUtils ends
-//library Hardware:
-    struct hardware extends array  // 注册一个左键抬起事件
+//library UITocInit ends
+//library UIUtils:
+    function GetResizeRate takes nothing returns real  //主要用于UI缩放
+        if (DzGetWindowWidth()>0)then
+            return DzGetWindowHeight()/600.0*800.0/DzGetWindowWidth()
+        else
+            return 1.0
+        endif
+    endfunction  // 获取鼠标位置X(绝对坐标)[修正版]
+    function GetMouseXEx takes nothing returns real
+        local integer width=DzGetClientWidth()
+        if (width>0)then
+            return DzGetMouseXRelative()*0.80/width
+        else
+            return 0.1
+        endif
+    endfunction  // 获取鼠标位置Y(绝对坐标)[修正版]
+    function GetMouseYEx takes nothing returns real
+        local integer height=DzGetClientHeight()
+        if (height>0)then
+            return 0.60-DzGetMouseYRelative()*0.60/height
+        else
+            return 0.1
+        endif
+    endfunction  // 限制一个值是在一定区域内以防UI超出这个区域
+    function GetFixedMouseX takes real min,real max returns real
+        return RLimit(GetMouseXEx(),min,max)
+    endfunction  // 限制一个值是在一定区域内以防UI超出这个区域
+    function GetFixedMouseY takes real min,real max returns real
+        return RLimit(GetMouseYEx(),min,max)
+    endfunction
+
+//library UIUtils ends
+//library UIBaseModule:
+    module uiBaseModule  // 设置位置
+        method setPoint takes integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX,offsetY)
+            return this
+        endmethod  // 设置位置
+        method setPointFix takes integer anchor,integer relative,integer relativeAnchor,real offsetX,real offsetY returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY)
+            return this
+        endmethod  // 大小完全对齐父框架
+        method setAllPoint takes integer relative returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetAllPoints(ui,relative)
+            return this
+        endmethod  //绝对位置
+        method setAbsPoint takes integer anchor,real x,real y returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetAbsolutePoint(ui,anchor,x,y)
+            return this
+        endmethod  // 清除所有位置
+        method clearPoint takes nothing returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameClearAllPoints(ui)
+            return this
+        endmethod  // 设置大小
+        method setSize takes real width,real height returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetSize(ui,width,height)
+            return this
+        endmethod  // 设置大小(校正后的),只显示一次,此时改窗口大小不会变化
+        method setSizeFix takes real width,real height returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetSize(ui,width*GetResizeRate(),height)
+            return this
+        endmethod  // 显示控件
+        method show takes boolean flag returns thistype  // 参数: boolean flag 是否显示
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameShow(ui,flag)
+            return this
+        endmethod  //透明度(0-255)
+        method setAlpha takes integer value returns thistype
+            if (not (this.isExist()))then
+                return this
+            endif
+            call DzFrameSetAlpha(ui,value)
+            return this
+        endmethod  //扩展自适应大小方法
+        implement optional extendResize
+    endmodule
+
+//library UIBaseModule ends
+//library UIButton:
+    struct uiBtn   // UI组件内部共享方法及成员
     //! pragma implicitthis
-        static method regLeftUpEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null,1,0,false,func)
-        endmethod  // 注册一个左键按下事件
-        static method regLeftDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null,1,1,false,func)
-        endmethod  // 注册一个右键按下事件
-        static method regRightDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null,2,1,false,func)
-        endmethod  // 注册一个右键抬起事件
-        static method regRightUpEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null,2,0,false,func)
-        endmethod  // 注册一个滚轮事件,不能异步注册
-        static method regWheelEvent takes code func returns nothing
-            if (trWheel==null)then
-                set trWheel=CreateTrigger()
-            endif
-            call TriggerAddCondition(trWheel,Condition(func))
-        endmethod  // 注册一个绘制事件,不能异步注册
-        static method regUpdateEvent takes code func returns nothing
-            if (trUpdate==null)then
-                set trUpdate=CreateTrigger()
-            endif
-            call TriggerAddCondition(trUpdate,Condition(func))
-        endmethod  // 注册一个窗口变化事件,不能异步注册
-        static method regResizeEvent takes code func returns nothing
-            if (trResize==null)then
-                set trResize=CreateTrigger()
-            endif
-            call TriggerAddCondition(trResize,Condition(func))
-        endmethod  // 注册一个鼠标移动事件,不能异步注册
-        static method regMoveEvent takes code func returns nothing
-            call BJDebugMsg("注册鼠标移动事件")
-            if (trMove==null)then
-                set trMove=CreateTrigger()
-            endif
-            call TriggerAddCondition(trMove,Condition(func))
-        endmethod  // 获取鼠标的实数坐标X(0-0.8)
-        static method getMouseX takes nothing returns real
-            local integer width=DzGetClientWidth()
-            if (width>0)then
-                return DzGetMouseXRelative()*0.8/width
-            else
-                return 0.1
-            endif
-        endmethod  // 获取鼠标的实数坐标Y(0-0.6)
-        static method getMouseY takes nothing returns real
-            local integer height=DzGetClientHeight()
-            if (height>0)then  // 防止除以0
-                return 0.6-DzGetMouseYRelative()*0.6/height
-            else
-                return 0.1
-            endif
+        integer ui
+        integer id
+        method isExist takes nothing returns boolean
+            return (this!=null and si__uiBtn_V[this]==-1)
         endmethod
-        //private:
-            private static trigger trWheel=null
-            private static trigger trUpdate=null
-            private static trigger trResize=null
-            private static trigger trMove=null
-                private static method anon__1 takes nothing returns nothing  //在游戏开始0.0秒后再调用 // 滚轮事件
-                    call TriggerEvaluate(trWheel)
-                endmethod  // 帧绘制事件
-                private static method anon__2 takes nothing returns nothing
-                    call TriggerEvaluate(trUpdate)
-                endmethod  // 窗口大小变化事件
-                private static method anon__3 takes nothing returns nothing
-                    call TriggerEvaluate(trResize)
-                endmethod  // 鼠标移动事件
-                private static method anon__4 takes nothing returns nothing
-                    call TriggerEvaluate(trMove)
-                endmethod
-            private static method anon__0 takes nothing returns nothing
-                call DzTriggerRegisterMouseWheelEventByCode(null,false,function thistype.anon__1)
-                call DzFrameSetUpdateCallbackByCode(function thistype.anon__2)
-                call DzTriggerRegisterWindowResizeEventByCode(null,false,function thistype.anon__3)
-                call DzTriggerRegisterMouseMoveEventByCode(null,false,function thistype.anon__4)
-                call DestroyTrigger(GetTriggeringTrigger())
-            endmethod
-        static method onInit takes nothing returns nothing
-            local trigger tr=CreateTrigger()
-            call TriggerRegisterTimerEvent(tr,0.0,false)
-            call TriggerAddCondition(tr,Condition(function thistype.anon__0))
-            set tr=null
+        implement optional uiLifeCycle
+        implement  uiBaseModule  // UI事件的共用方法
+        implement  uiEventModule  //扩展拖动(只有button能用,其他就不放进去了)
+        implement optional extendDrag  // 创建一个不带声音的
+        static method create takes integer parent returns thistype  // parent: 父级框架
+            local thistype this=allocate()
+            set id=uiId.get()  //有高亮无声音的图标
+            set ui=DzCreateFrameByTagName("BUTTON","Btn"+I2S(id),parent,"BT",0)
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onCreateCB(this,thistype.typeid,ui)
+            endif
+            static if LIBRARY_UIHashTable then
+                call uiHashTable(ui).ui.bind(thistype.typeid,this)
+            endif
+            return this
+        endmethod  //普通带声效系
+        static method createSound takes integer parent returns thistype
+            local thistype this=allocate()
+            set id=uiId.get()  //有高亮有声音的图标
+            set ui=DzCreateFrameByTagName("GLUEBUTTON","Btn"+I2S(id),parent,"BT",0)
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onCreateCB(this,thistype.typeid,ui)
+            endif
+            static if LIBRARY_UIHashTable then
+                call uiHashTable(ui).ui.bind(thistype.typeid,this)
+            endif
+            return this
+        endmethod  //右键菜单系
+        static method createRC takes integer parent returns thistype
+            local thistype this=allocate()
+            set id=uiId.get()  //配合异度下的菜单使用,要导入:ui\image\textbutton_highlight.blp
+            set ui=DzCreateFrameByTagName("GLUEBUTTON","Btn"+I2S(id),parent,"TEMPLATE_TEXT_BUTTON",0)
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onCreateCB(this,thistype.typeid,ui)
+            endif
+            static if LIBRARY_UIHashTable then
+                call uiHashTable(ui).ui.bind(thistype.typeid,this)
+            endif
+            return this
+        endmethod  // 创建空白按钮
+        static method createBlank takes integer parent returns thistype  // parent: 父级框架
+            local thistype this=allocate()
+            set id=uiId.get()
+            set ui=DzCreateFrameByTagName("BUTTON","Btn"+I2S(id),parent,"BB",0)
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onCreateCB(this,thistype.typeid,ui)
+            endif
+            static if LIBRARY_UIHashTable then
+                call uiHashTable(ui).ui.bind(thistype.typeid,this)
+            endif
+            return this
+        endmethod  // 创建一个用在原生Frame里的按钮,这种按钮是不能destroy的!
+        static method createSimple takes integer parent returns thistype  // parent: 父级框架
+            local thistype this=allocate()
+            set id=uiId.get()
+            set ui=DzCreateFrameByTagName("SIMPLEBUTTON","Btn"+I2S(id),parent,"简单按钮",id)
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onCreateCB(this,thistype.typeid,ui)
+            endif
+            static if LIBRARY_UIHashTable then
+                call uiHashTable(ui).ui.bind(thistype.typeid,this)
+            endif
+            return this
+        endmethod  //绑定原生的Button成为SimpleButton,注意不能删除哦
+        static method bindCreated takes integer frame returns thistype  // 不能用bindSimple,因为没有dzfindSimpleButton函数,只能用这个
+            local thistype this=allocate()
+            set id=uiId.get()
+            set ui=frame
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onCreateCB(this,thistype.typeid,ui)
+            endif
+            static if LIBRARY_UIHashTable then
+                call uiHashTable(ui).ui.bind(thistype.typeid,this)
+            endif
+            return this
+        endmethod
+        method onDestroy takes nothing returns nothing
+            if (not (this.isExist()))then
+                return
+            endif
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onDestroyCB(this,thistype.typeid,ui)
+            endif
+            static if LIBRARY_UIHashTable then
+                call FlushChildHashtable(HASH_UI,ui)
+            endif
+            call DzDestroyFrame(ui)
+            call uiId.recycle(id)
         endmethod
     endstruct
 
-//library Hardware ends
-//library Logger:
-
-    function Trace takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=0
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 调试级别日志(绿色),用于输出变量值等调试信息
-    function Debug takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=1
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 信息级别日志(白色),用于输出普通提示信息
-    function Info takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=2
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 警告级别日志(黄色),用于输出警告信息
-    function Warn takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=3
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 错误级别日志(红色),用于输出错误信息
-    function Error takes string msg returns nothing
-        set logger_msg=msg
-        set logger_level=4
-        set logger_p=GetLocalPlayer()
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出追踪日志(灰色)
-    function TraceToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=0
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出调试日志(绿色)
-    function DebugToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=1
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出信息日志(白色)
-    function InfoToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=2
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出警告日志(黄色)
-    function WarnToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=3
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction  // 向指定玩家输出错误日志(红色)
-    function ErrorToPlayer takes player p,string msg returns nothing
-        set logger_msg=msg
-        set logger_level=4
-        set logger_p=p
-        call TriggerEvaluate(logger_tr)
-    endfunction
-    function Logger__onInit takes nothing returns nothing  //日志打印系统初始化
-        call Cheat("exec-lua:depends.debug.logger")
-    endfunction
-
-//library Logger ends
-//library CameraControl:
-
-    struct cameraControl   // 打开滚轮控制镜头高度
+//library UIButton ends
+//library UIImage:
+    struct uiImage   // UI组件内部共享方法及成员
     //! pragma implicitthis
-        static method openWheel takes nothing returns nothing
-            call DoNothing()
+        integer ui
+        integer id
+        method isExist takes nothing returns boolean
+            return (this!=null and si__uiImage_V[this]==-1)
         endmethod
-    endstruct  // 滚轮控制镜头
-        function CameraControl__anon__0 takes nothing returns nothing  // 初始化就调用 //注册滚轮事件 //滚轮变化量
-            local integer delta=DzGetWheelDelta()  //如果鼠标不在游戏内，就不响应鼠标滚轮
-            if (not (DzIsMouseOverUI()))then  //标记需要重置镜头属性
-                return
+        implement optional uiLifeCycle
+        implement  uiBaseModule  // UI图片的共用方法
+        implement  uiImageModule  // 创建图片
+        static method create takes integer parent returns thistype  // parent: 父级框架
+            local thistype this=allocate()
+            set id=uiId.get()
+            set ui=DzCreateFrameByTagName("BACKDROP","Img"+I2S(id),parent,"IT",0)
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onCreateCB(this,thistype.typeid,ui)
             endif
-            set CameraControl__ResetCam=true  //滚轮下滑
-            if (delta<0)then  //视野等级上限
-                if (CameraControl__ViewLevel<14)then  //滚轮上滑
-                    set CameraControl__ViewLevel=CameraControl__ViewLevel+1
-                endif
-            elseif (CameraControl__ViewLevel>3)then  //视野等级下限
-                set CameraControl__ViewLevel=CameraControl__ViewLevel-1
+            static if LIBRARY_UIHashTable then
+                call uiHashTable(ui).ui.bind(thistype.typeid,this)
             endif
-            set CameraControl__X_ANGLE=Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK))  //记录滚动前的镜头角度
-        endfunction  //注册每帧渲染事件
-        function CameraControl__anon__1 takes nothing returns nothing  //重设镜头角度和高度
-            if (CameraControl__ResetCam)then
-                call SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK,CameraControl__X_ANGLE,0)
-                call SetCameraField(CAMERA_FIELD_TARGET_DISTANCE,CameraControl__ViewLevel*200,CameraControl__WheelSpeed)
-                set CameraControl__ResetCam=false
+            return this
+        endmethod  // 创建一个用在原生Frame里的图片,这种图片是不能destroy的!
+        static method createSimple takes integer parent returns thistype  // parent: 父级框架
+            local thistype this=allocate()
+            set id=uiId.get()
+            call DzCreateFrameByTagName("SIMPLEFRAME","Img"+I2S(id),parent,"简单图片",id)
+            set ui=DzSimpleTextureFindByName("简单图片内容",id)
+            call DzFrameClearAllPoints(ui)
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onCreateCB(this,thistype.typeid,ui)
             endif
-        endfunction  //注册按下键码为145的按键(ScrollLock)事件
-        function CameraControl__anon__2 takes nothing returns nothing
-            set CameraControl__WideScr=not CameraControl__WideScr
-            call DzEnableWideScreen(CameraControl__WideScr)
-        endfunction
-    function CameraControl__onInit takes nothing returns nothing
-        call hardware.regWheelEvent(function CameraControl__anon__0)
-        call hardware.regUpdateEvent(function CameraControl__anon__1)
-        call DzTriggerRegisterKeyEventByCode(null,145,1,false,function CameraControl__anon__2)
-    endfunction
-
-//library CameraControl ends
-//library DamageUtils:
-    function ApplyPhysicalDamage takes unit u,unit target,real dmg returns nothing  //单体伤害:物理
-        static if LIBRARY_Damage then
-            set dmgF.isBJ=bj
-        endif
-        call UnitDamageTarget(u,target,dmg,false,false,ATTACK_TYPE_HERO,DAMAGE_TYPE_NORMAL,WEAPON_TYPE_WHOKNOWS)
-    endfunction  //单体伤害:魔法
-    function ApplyMagicDamage takes unit u,unit target,real dmg returns nothing
-        static if LIBRARY_Damage then
-            set dmgF.isBJ=bj
-        endif
-        call UnitDamageTarget(u,target,dmg,false,true,ATTACK_TYPE_MAGIC,DAMAGE_TYPE_MAGIC,WEAPON_TYPE_WHOKNOWS)
-    endfunction  //单体伤害:真实
-    function ApplyPureDamage takes unit u,unit target,real dmg returns nothing
-        static if LIBRARY_Damage then
-            set dmgF.isBJ=bj
-        endif
-        call UnitDamageTarget(u,target,dmg,false,true,ATTACK_TYPE_CHAOS,DAMAGE_TYPE_SLOW_POISON,WEAPON_TYPE_WHOKNOWS)
-    endfunction  //模拟普攻(最后一个参数代表额外的终伤,0)
-    function SimulateBasicAttack takes unit u,unit target,real fd returns nothing
-        call UnitDamageTarget(u,target,GetUnitState(u,ConvertUnitState(0x12))*(1.0+fd),true,false,ATTACK_TYPE_HERO,DAMAGE_TYPE_NORMAL,WEAPON_TYPE_WHOKNOWS)
-    endfunction  // 伤害参数结构体
-    struct DamageUtils__DmgP 
-    //! pragma implicitthis
-        unit source
-        string eft
-        real damage  // 正确使用 onDestroy，而不是 destroy
+            static if LIBRARY_UIHashTable then
+                call uiHashTable(ui).ui.bind(thistype.typeid,this)
+            endif
+            return this
+        endmethod  // 绑定原生图片
+        static method bindSimple takes string name,integer index returns thistype  // name: 图片名称(fdf写的image的名字) // index: 图片索引(在外部创建时的填写的ID最后一个参数)
+            local thistype this=allocate()
+            set id=uiId.get()
+            set ui=DzSimpleTextureFindByName(name,index)
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onCreateCB(this,thistype.typeid,ui)
+            endif
+            static if LIBRARY_UIHashTable then
+                call uiHashTable(ui).ui.bind(thistype.typeid,this)
+            endif
+            return this
+        endmethod
         method onDestroy takes nothing returns nothing
-            set this.source=null  // this.eft = null; // 可选
-        endmethod
-    endstruct  // 伤害参数栈
-    struct DmgS extends array
-    //! pragma implicitthis
-        private static DamageUtils__DmgP  array stack
-        private static integer top=-1
-        static method push takes DamageUtils__DmgP params returns nothing
-            if (thistype.top>=8190)then  // 调试期提示或直接 return，避免越界
-                call BJDebugMsg("DmgS overflow")
+            if (not (this.isExist()))then
                 return
             endif
-            set thistype.top=thistype.top+1
-            set thistype.stack[thistype.top]=params
+            static if LIBRARY_UILifeCycle then
+                call uiLifeCycle.onDestroyCB(this,thistype.typeid,ui)
+            endif
+            static if LIBRARY_UIHashTable then
+                call FlushChildHashtable(HASH_UI,ui)
+            endif
+            call DzDestroyFrame(ui)
+            call uiId.recycle(id)
         endmethod
-        static method pop takes nothing returns DamageUtils__DmgP
-            local DamageUtils__DmgP params=thistype.stack[thistype.top]
-            if (thistype.top<0)then
-                call BJDebugMsg("DmgS underflow")
-                return 0
-            endif
-            set thistype.stack[thistype.top]=0
-            set thistype.top=thistype.top-1
-            return params
-        endmethod
-        static method current takes nothing returns DamageUtils__DmgP
-            return thistype.stack[thistype.top]
-        endmethod
-    endstruct  // 范围普通伤害
-        function DamageUtils__anon__0 takes nothing returns boolean
-            local DamageUtils__DmgP current=DmgS.current()
-            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source)))then
-                call ApplyPhysicalDamage(current.source,GetFilterUnit(),current.damage)
-                if (current.eft!=null)then
-                    call DestroyEffect(AddSpecialEffect(current.eft,GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())))
-                endif
-                return true
-            endif
-            return false
+    endstruct
+
+//library UIImage ends
+//library UTUIButton:
+
+    function UTUIButton__TTestUTUIButton1 takes player p returns nothing
+        local uiImage img
+        if (GetLocalPlayer()==p)then
+            set img=uiImage.create(DzGetGameUI()).setSize(0.04,0.04).setTexture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp").setPoint(4,DzGetGameUI(),4,0.0,0.0)
+            set UTUIButton__currentBtn=uiBtn.create(DzGetGameUI()).setAllPoint(img.ui)
+            call BJDebugMsg("创建了一个基础按钮UI")
+        endif
+    endfunction  // 测试按钮事件系统
+        function UTUIButton__anon__0 takes nothing returns nothing
+            call BJDebugMsg("鼠标进入按钮")
         endfunction
-    function DamageAreaPhysical takes unit u,real x,real y,real radius,real damage,string efx returns nothing
-        local group g=CreateGroup()
-        local DamageUtils__DmgP params=DamageUtils__DmgP.create()
-        set params.source=u
-        set params.eft=efx
-        set params.damage=damage
-        call DmgS.push(params)
-        call GroupEnumUnitsInRangeEx(g,x,y,radius,Filter(function DamageUtils__anon__0))
-        set params=DmgS.pop()  // 现在会真正释放实例，并调用 onDestroy
-        call params.destroy()
-        call DestroyGroup(g)
-        set g=null
-    endfunction  //范围魔法伤害
-        function DamageUtils__anon__1 takes nothing returns boolean
-            local DamageUtils__DmgP current=DmgS.current()
-            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source)))then
-                call ApplyMagicDamage(current.source,GetFilterUnit(),current.damage)
-                if (current.eft!=null)then
-                    call DestroyEffect(AddSpecialEffect(current.eft,GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())))
-                endif
-                return true
-            endif
-            return false
+        function UTUIButton__anon__1 takes nothing returns nothing
+            call BJDebugMsg("鼠标离开按钮")
         endfunction
-    function DamageAreaMagic takes unit u,real x,real y,real radius,real damage,string efx returns nothing
-        local group g=CreateGroup()
-        local DamageUtils__DmgP params=DamageUtils__DmgP.create()
-        set params.source=u
-        set params.eft=efx
-        set params.damage=damage
-        call DmgS.push(params)
-        call GroupEnumUnitsInRangeEx(g,x,y,radius,Filter(function DamageUtils__anon__1))
-        set params=DmgS.pop()
-        call params.destroy()
-        call DestroyGroup(g)
-        set g=null
-    endfunction  //范围真实伤害
-        function DamageUtils__anon__2 takes nothing returns boolean
-            local DamageUtils__DmgP current=DmgS.current()
-            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source)))then
-                call ApplyPureDamage(current.source,GetFilterUnit(),current.damage)
-                if (current.eft!=null)then
-                    call DestroyEffect(AddSpecialEffect(current.eft,GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())))
-                endif
-                return true
-            endif
-            return false
+        function UTUIButton__anon__2 takes nothing returns nothing
+            call BJDebugMsg("点击按钮")
         endfunction
-    function DamageAreaPure takes unit u,real x,real y,real radius,real damage,string efx returns nothing
-        local group g=CreateGroup()
-        local DamageUtils__DmgP params=DamageUtils__DmgP.create()
-        set params.source=u
-        set params.eft=efx
-        set params.damage=damage
-        call DmgS.push(params)
-        call GroupEnumUnitsInRangeEx(g,x,y,radius,Filter(function DamageUtils__anon__2))
-        set params=DmgS.pop()
-        call params.destroy()
-        call DestroyGroup(g)
-        set g=null
+    function UTUIButton__TTestUTUIButton2 takes player p returns nothing
+        if (GetLocalPlayer()==p)then
+            set UTUIButton__currentBtn=uiBtn.create(DzGetGameUI()).setSize(0.04,0.04).setPoint(4,DzGetGameUI(),4,0.0,0.0).onMouseEnter(function UTUIButton__anon__0).onMouseLeave(function UTUIButton__anon__1).onMouseClick(function UTUIButton__anon__2)
+            call BJDebugMsg("创建了一个带事件的按钮UI")
+        endif
+    endfunction  // 测试空白按钮
+        function UTUIButton__anon__3 takes nothing returns nothing
+            call BJDebugMsg("鼠标进入按钮")
+        endfunction
+        function UTUIButton__anon__4 takes nothing returns nothing
+            call BJDebugMsg("鼠标离开按钮")
+        endfunction
+        function UTUIButton__anon__5 takes nothing returns nothing
+            call BJDebugMsg("点击按钮")
+        endfunction
+        function UTUIButton__anon__6 takes nothing returns nothing
+            call BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+        function UTUIButton__anon__7 takes nothing returns nothing
+            call BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()))
+        endfunction
+    function UTUIButton__TTestUTUIButton3 takes player p returns nothing
+        local uiBtn blankBtn=uiBtn.createBlank(DzGetGameUI()).setSize(0.04,0.04).setPoint(4,DzGetGameUI(),4,0.0,0.0).onMouseEnter(function UTUIButton__anon__3).onMouseLeave(function UTUIButton__anon__4).onMouseClick(function UTUIButton__anon__5).onMouseWheel(function UTUIButton__anon__6).onMouseDoubleClick(function UTUIButton__anon__7)
+        local uiImage img=uiImage.create(DzGetGameUI()).setTexture("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp").setAllPoint(blankBtn.ui)
+        call BJDebugMsg("创建了空白按钮UI")
+    endfunction  // 测试按钮销毁功能
+    function UTUIButton__TTestUTUIButton4 takes player p returns nothing
+        if (GetLocalPlayer()==p)then
+            if (UTUIButton__currentBtn!=0)then
+                call UTUIButton__currentBtn.destroy()
+                call BJDebugMsg("销毁了当前按钮")
+                set UTUIButton__currentBtn=0
+            else
+                call BJDebugMsg("当前没有可销毁的按钮")
+            endif
+        endif
     endfunction
-
-//library DamageUtils ends
-//library UTDamageUtils:
-
-        function UTDamageUtils___anon__0 takes nothing returns nothing  // 清理所有已存在的测试单位
-            local unit u=GetEnumUnit()
-            if (GetUnitTypeId(u)=='opeo' or GetUnitTypeId(u)=='hpea')then
-                call RemoveUnit(u)
-            endif
-            set u=null
+        function UTUIButton__anon__8 takes nothing returns nothing
+            call BJDebugMsg("鼠标进入按钮")
         endfunction
-    function UTDamageUtils___CreateTestEnv takes player p returns nothing
-        local real x=GetPlayerStartLocationX(p)
-        local real y=GetPlayerStartLocationY(p)
-        local real angle
-        local integer i
-        local group g=CreateGroup()
-        local unit dummy
-        call GroupEnumUnitsInRange(g,x,y,1000,null)
-        call ForGroup(g,function UTDamageUtils___anon__0)
-        call DestroyGroup(g)
-        set g=null
-        set UTDamageUtils___testDummy=null
-        set UTDamageUtils___testSource=null  // 创建中心苦工单位
-        set UTDamageUtils___testDummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE),'opeo',x+200,y,270)
-        call SetUnitInvulnerable(UTDamageUtils___testDummy,false)
-        call SetUnitState(UTDamageUtils___testDummy,UNIT_STATE_LIFE,GetUnitState(UTDamageUtils___testDummy,UNIT_STATE_MAX_LIFE))  // 注册伤害事件
-        call TriggerRegisterUnitEvent(UTDamageUtils___damageEventTrigger,UTDamageUtils___testDummy,EVENT_UNIT_DAMAGED)  // 创建环形分布的额外苦工
-        set i=0
-        loop
-        exitwhen (i>=8)
-            set angle=i*45.0*0.0174538
-            set dummy=CreateUnit(Player(PLAYER_NEUTRAL_AGGRESSIVE),'opeo',x+200+UTDamageUtils___testRadius*Cos(angle),y+UTDamageUtils___testRadius*Sin(angle),270)
-            call TriggerRegisterUnitEvent(UTDamageUtils___damageEventTrigger,dummy,EVENT_UNIT_DAMAGED)  // 为每个苦工注册伤害事件
-        set i = i+1
-        endloop  // 创建伤害源(农民)
-        set UTDamageUtils___testSource=CreateUnit(p,'hpea',x,y,90)
-        call SetUnitAttack(UTDamageUtils___testSource,50)  // 为农民也注册伤害事件
-        call TriggerRegisterUnitEvent(UTDamageUtils___damageEventTrigger,UTDamageUtils___testSource,EVENT_UNIT_DAMAGED)
-    endfunction  // 测试物理伤害
-    function UTDamageUtils___TTestUTDamageUtils1 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试物理伤害: "+R2S(UTDamageUtils___testDamage))
-        call ApplyPhysicalDamage(UTDamageUtils___testSource,UTDamageUtils___testDummy,UTDamageUtils___testDamage)
-    endfunction  // 测试真实伤害
-    function UTDamageUtils___TTestUTDamageUtils2 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试真实伤害: "+R2S(UTDamageUtils___testDamage))
-        call ApplyPureDamage(UTDamageUtils___testSource,UTDamageUtils___testDummy,UTDamageUtils___testDamage)
-    endfunction  // 测试模拟普攻
-    function UTDamageUtils___TTestUTDamageUtils3 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试模拟普攻，基础攻击: 50")
-        call SimulateBasicAttack(UTDamageUtils___testSource,UTDamageUtils___testDummy,0)
-    endfunction  // 测试范围物理伤害
-    function UTDamageUtils___TTestUTDamageUtils4 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试范围物理伤害: "+R2S(UTDamageUtils___testDamage)+" 范围: "+R2S(UTDamageUtils___testRadius))
-        call Trace("中心点有1个假人，半径 "+R2S(UTDamageUtils___testRadius)+" 处有8个假人")
-        call Trace("范围内的假人都会受到伤害和特效")
-        call DamageAreaPhysical(UTDamageUtils___testSource,GetUnitX(UTDamageUtils___testSource),GetUnitY(UTDamageUtils___testSource),UTDamageUtils___testRadius,UTDamageUtils___testDamage,UTDamageUtils___testEffect)
-    endfunction  // 测试范围真实伤害
-    function UTDamageUtils___TTestUTDamageUtils5 takes player p returns nothing
-        call UTDamageUtils___CreateTestEnv(p)
-        call Trace("测试范围真实伤害: "+R2S(UTDamageUtils___testDamage)+" 范围: "+R2S(UTDamageUtils___testRadius))
-        call Trace("中心点有1个假人，半径 "+R2S(UTDamageUtils___testRadius)+" 处有8个假人")
-        call Trace("范围内的假人都会受到伤害和特效")
-        call DamageAreaPure(UTDamageUtils___testSource,GetUnitX(UTDamageUtils___testSource),GetUnitY(UTDamageUtils___testSource),UTDamageUtils___testRadius,UTDamageUtils___testDamage,UTDamageUtils___testEffect)
-    endfunction  // 测试伤害显示开关
-    function UTDamageUtils___TTestUTDamageUtils6 takes player p returns nothing
-        set UTDamageUtils___isShowDamage=not UTDamageUtils___isShowDamage
-        if (UTDamageUtils___isShowDamage)then
-            call Trace("|cff00ff00开启|r伤害数值显示")
-        else
-            call Trace("|cffff0000关闭|r伤害数值显示")
+        function UTUIButton__anon__9 takes nothing returns nothing
+            call BJDebugMsg("鼠标离开按钮")
+        endfunction
+        function UTUIButton__anon__10 takes nothing returns nothing
+            call BJDebugMsg("点击按钮")
+        endfunction
+    function UTUIButton__TTestUTUIButton5 takes player p returns nothing
+        if (GetLocalPlayer()==p)then
+            set UTUIButton__currentBtn=uiBtn.createRC(DzGetGameUI()).setSize(0.04,0.04).setPoint(4,DzGetGameUI(),4,0.0,0.0).onMouseEnter(function UTUIButton__anon__8).onMouseLeave(function UTUIButton__anon__9).onMouseClick(function UTUIButton__anon__10)
+            call BJDebugMsg("创建了一个带事件的按钮UI")
         endif
-    endfunction  // 测试反伤开关
-    function UTDamageUtils___TTestUTDamageUtils7 takes player p returns nothing
-        set UTDamageUtils___isReflectDamage=not UTDamageUtils___isReflectDamage
-        if (UTDamageUtils___isReflectDamage)then  // 重置反伤计数
-            set UTDamageUtils___reflectCount=0
-            call Trace("|cff00ff00开启|r伤害反弹测试 - 受伤单位将反弹50%伤害(最多5次)")
-        else
-            call Trace("|cffff0000关闭|r伤害反弹测试")
+    endfunction
+        function UTUIButton__anon__11 takes nothing returns nothing
+            call BJDebugMsg("鼠标进入按钮")
+        endfunction
+        function UTUIButton__anon__12 takes nothing returns nothing
+            call BJDebugMsg("鼠标离开按钮")
+        endfunction
+        function UTUIButton__anon__13 takes nothing returns nothing
+            call BJDebugMsg("点击按钮")
+        endfunction
+    function UTUIButton__TTestUTUIButton6 takes player p returns nothing
+        if (GetLocalPlayer()==p)then
+            set UTUIButton__currentBtn=uiBtn.createMenu(DzGetGameUI()).setSize(0.179,0.031).setPoint(4,DzGetGameUI(),4,0.0,0.0).onMouseEnter(function UTUIButton__anon__11).onMouseLeave(function UTUIButton__anon__12).onMouseClick(function UTUIButton__anon__13)
+            call BJDebugMsg("创建了一个菜单系的按钮UI")
         endif
-    endfunction  // 处理参数设置命令
-    function UTDamageUtils___TTestActUTDamageUtils1 takes string str returns nothing
+    endfunction
+    function UTUIButton__TTestUTUIButton7 takes player p returns nothing
+    endfunction
+    function UTUIButton__TTestUTUIButton8 takes player p returns nothing
+    endfunction
+    function UTUIButton__TTestUTUIButton9 takes player p returns nothing
+    endfunction
+    function UTUIButton__TTestUTUIButton10 takes player p returns nothing  // 处理带参数的测试命令
+    endfunction
+    function UTUIButton__TTestActUTUIButton1 takes string str returns nothing
         local player p=GetTriggerPlayer()
-        local integer index=GetConvertedPlayerId(p)
-        local integer i  // 所有参数S
+        local integer index=GetConvertedPlayerId(p)  //获取范围式数字
+        local integer i  //所有参数S
         local integer num=0
         local integer len=StringLength(str)
-        local string  array paramS  // 所有参数I
-        local integer  array paramI  // 所有参数R
-        local real  array paramR  // 解析参数
+        local string  array paramS  //所有参数I
+        local integer  array paramI  //所有参数R
+        local real  array paramR
         set i=0
         loop
         exitwhen (i>len-1)
@@ -1089,88 +1282,54 @@ endglobals
         set paramS[num]=str
         set paramI[num]=S2I(paramS[num])
         set paramR[num]=S2R(paramS[num])
-        set num=num+1  // 处理命令
-        if (paramS[0]=="d")then
-            set UTDamageUtils___testDamage=paramR[1]
-            call Trace("设置伤害值为: "+R2S(UTDamageUtils___testDamage))
-        elseif (paramS[0]=="r")then
-            set UTDamageUtils___testRadius=paramR[1]
-            call Trace("设置范围值为: "+R2S(UTDamageUtils___testRadius))
-        elseif (paramS[0]=="e")then
-            set UTDamageUtils___testEffect=paramS[1]
-            call Trace("设置特效为: "+UTDamageUtils___testEffect)
+        set num=num+1
+        if (paramS[0]=="a")then  // 可以添加带参数的测试功能
+        elseif (paramS[0]=="b")then  // 可以添加带参数的测试功能
         endif
         set p=null
     endfunction
-        function UTDamageUtils___anon__1 takes nothing returns nothing
-            call Trace("|cff00ff00[DamageUtils测试]|r 输入以下命令进行测试:")
-            call Trace("s1 - 测试物理伤害")
-            call Trace("s2 - 测试真实伤害")
-            call Trace("s3 - 测试模拟普攻")
-            call Trace("s4 - 测试范围物理伤害")
-            call Trace("s5 - 测试范围真实伤害")
-            call Trace("s6 - 切换伤害数值显示")
-            call Trace("s7 - 切换伤害反弹测试")
-            call Trace("参数设置:")
-            call Trace("-d [数值] - 设置伤害值")
-            call Trace("-r [数值] - 设置范围值")
-            call Trace("-e [路径] - 设置特效")
+        function UTUIButton__anon__14 takes nothing returns nothing  //在游戏开始0.5秒后再调用
+            call BJDebugMsg("[UIButton] 单元测试已加载")
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTDamageUtils___anon__2 takes nothing returns nothing  // 创建伤害事件触发器
-            local unit source=GetEventDamageSource()
-            local unit target=GetTriggerUnit()
-            local real damage=GetEventDamage()  // 显示伤害信息
-            if (UTDamageUtils___isShowDamage)then
-                call Trace("|cffff0000伤害事件|r - 来源: "+GetUnitName(source)+" 目标: "+GetUnitName(target)+"("+I2S(GetHandleId(target))+") 伤害: "+R2S(damage)+" 当前栈层: "+I2S(DmgS.getTop()))
-            endif  // 反伤测试
-            if (UTDamageUtils___isReflectDamage and UTDamageUtils___reflectCount<5)then  // 限制反伤次数 // 增加反伤计数
-                set UTDamageUtils___reflectCount=UTDamageUtils___reflectCount+1
-                call Trace("第 "+I2S(UTDamageUtils___reflectCount)+" 次反伤")  // 造成反伤
-                call DamageAreaPhysical(target,GetUnitX(target),GetUnitY(target),100,damage*0.5,I2S(DmgS.getTop()))
-                if (UTDamageUtils___reflectCount>=5)then
-                    call Trace("|cffff0000达到最大反伤次数(5次),现在栈层: "+I2S(DmgS.getTop()))
-                endif
-            endif
-        endfunction  // 注册聊天事件
-        function UTDamageUtils___anon__3 takes nothing returns nothing
+        function UTUIButton__anon__15 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
-            if (SubString(str,0,1)=="-")then
-                call UTDamageUtils___TTestActUTDamageUtils1(SubString(str,1,StringLength(str)))
+            local integer i=1
+            if (SubString(str,(1)-1,1)=="-")then
+                call UTUIButton__TTestActUTUIButton1(SubString(str,(2)-1,StringLength(str)))
                 return
             endif
             if (str=="s1")then
-                call UTDamageUtils___TTestUTDamageUtils1(GetTriggerPlayer())
+                call UTUIButton__TTestUTUIButton1(GetTriggerPlayer())
             elseif (str=="s2")then
-                call UTDamageUtils___TTestUTDamageUtils2(GetTriggerPlayer())
+                call UTUIButton__TTestUTUIButton2(GetTriggerPlayer())
             elseif (str=="s3")then
-                call UTDamageUtils___TTestUTDamageUtils3(GetTriggerPlayer())
+                call UTUIButton__TTestUTUIButton3(GetTriggerPlayer())
             elseif (str=="s4")then
-                call UTDamageUtils___TTestUTDamageUtils4(GetTriggerPlayer())
+                call UTUIButton__TTestUTUIButton4(GetTriggerPlayer())
             elseif (str=="s5")then
-                call UTDamageUtils___TTestUTDamageUtils5(GetTriggerPlayer())
-            elseif (str=="s6")then  // 新增命令
-                call UTDamageUtils___TTestUTDamageUtils6(GetTriggerPlayer())
+                call UTUIButton__TTestUTUIButton5(GetTriggerPlayer())
+            elseif (str=="s6")then
+                call UTUIButton__TTestUTUIButton6(GetTriggerPlayer())
             elseif (str=="s7")then
-                call UTDamageUtils___TTestUTDamageUtils7(GetTriggerPlayer())
+                call UTUIButton__TTestUTUIButton7(GetTriggerPlayer())
+            elseif (str=="s8")then
+                call UTUIButton__TTestUTUIButton8(GetTriggerPlayer())
+            elseif (str=="s9")then
+                call UTUIButton__TTestUTUIButton9(GetTriggerPlayer())
+            elseif (str=="s10")then
+                call UTUIButton__TTestUTUIButton10(GetTriggerPlayer())
             endif
         endfunction
-    function UTDamageUtils___onInit takes nothing returns nothing
+    function UTUIButton__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr,0.5,false)
-        call TriggerAddCondition(tr,Condition(function UTDamageUtils___anon__1))
+        call TriggerAddCondition(tr,Condition(function UTUIButton__anon__14))
         set tr=null
-        set UTDamageUtils___damageEventTrigger=CreateTrigger()
-        call TriggerAddCondition(UTDamageUtils___damageEventTrigger,Condition(function UTDamageUtils___anon__2))
-        call UnitTestRegisterChatEvent(function UTDamageUtils___anon__3)
-        call cameraControl.openWheel()
-    endfunction
-    function UTDamageUtils___onDestroy takes nothing returns nothing
-        call DestroyTrigger(UTDamageUtils___damageEventTrigger)
-        set UTDamageUtils___damageEventTrigger=null
+        call UnitTestRegisterChatEvent(function UTUIButton__anon__15)
     endfunction
 
-//library UTDamageUtils ends
+//library UTUIButton ends
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
 //#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
@@ -1183,158 +1342,7 @@ endglobals
 // 当前的平台分包
 // 原生UI的大小
 //地图的最低攻击间隔(非特殊情况)
-
-// 怪物掉落相关键值 (预留20个空间 1800-1819)
-// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
-// 怪物掉落数量键值
-// 单位技能相关键值 (预留200个空间 1800-1999)
-// 2400开始可继续添加新的键值定义...
-
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//冷却时间
-//目标允许
-//施放时间
-//持续时间
-//持续时间
-//魔法消耗
-//施放间隔
-//影响区域
-//施法距离
-//数据A
-//数据B
-//数据C
-//数据D
-//数据E
-//数据F
-//数据G
-//数据H
-//数据I
-//单位类型
-//热键
-//关闭热键
-//学习热键
-//名字
-//图标
-//目标效果
-//施法者效果
-//目标点效果
-//区域效果
-//投射物
-//特殊效果
-//闪电效果
-//buff提示
-//buff提示
-//学习提示
-//提示
-//关闭提示
-//学习提示
-//提示
-//关闭提示
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
-
-
-//魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
-//-----------模拟聊天------------------
-//---------技能数据类型---------------
-//----------物品数据类型----------------------
-//物品图标
-//物品提示
-//物品扩展提示
-//物品名字
-//物品说明
-//------------单位数据类型--------------
-//攻击1 伤害骰子数量
-//攻击1 伤害骰子面数
-//攻击1 基础伤害
-//攻击1 升级奖励
-//攻击1 最小伤害
-//攻击1 最大伤害
-//攻击1 全伤害范围
-//装甲
-// attack 1 attribute adds
-//攻击1 伤害衰减参数
-//攻击1 武器声音
-//攻击1 攻击类型
-//攻击1 最大目标数
-//攻击1 攻击间隔
-//攻击1 攻击延迟/summary>
-//攻击1 弹射弧度
-//攻击1 攻击范围缓冲
-//攻击1 目标允许
-//攻击1 溅出区域
-//攻击1 溅出半径
-//攻击1 武器类型
-// attack 2 attributes (sorted in a sequencial order based on memory address)
-//攻击2 伤害骰子数量
-//攻击2 伤害骰子面数
-//攻击2 基础伤害
-//攻击2 升级奖励
-//攻击2 伤害衰减参数
-//攻击2 武器声音
-//攻击2 攻击类型
-//攻击2 最大目标数
-//攻击2 攻击间隔
-//攻击2 攻击延迟
-//攻击2 攻击范围
-//攻击2 攻击缓冲
-//攻击2 最小伤害
-//攻击2 最大伤害
-//攻击2 弹射弧度
-//攻击2 目标允许类型
-//攻击2 溅出区域
-//攻击2 溅出半径
-//攻击2 武器类型
-//装甲类型
+//控件的共用基本方法
 
 // 0 - 1亿这里用
 // 锚点常量
@@ -1344,6 +1352,24 @@ endglobals
 //默认原生图片路径
 //模板名
 //TEXT对齐常量:(uiText.setAlign)
+// [DzSetUnitMoveType]  
+// title = "设置单位移动类型[NEW]"  
+// description = "设置 ${单位} 的移动类型：${movetype} "  
+// comment = ""  
+// category = TC_KKPRE  
+// [[.args]]  
+// type = unit  
+// [[.args]]  
+// type = MoveTypeName  
+// default = MoveTypeName01  
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
+
+//窗口的大小
 //===========================================================================
 //
 // - |cff00ff00单元测试地图|r -
@@ -1431,6 +1457,7 @@ endfunction
 //函数入口
 // 用原始地图测试
 // 用空地图测试
+// 用原始地图测试
 // lua_print: 空白地图
 //***************************************************************************
 //*
@@ -1749,8 +1776,7 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function main takes nothing returns nothing
-    call initializeLua() 
- call SetCameraBounds( -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM) )
+    call SetCameraBounds( -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM) )
     call SetDayNightModels( "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl" )
     call NewSoundEnvironment( "Default" )
     call SetAmbientDaySound( "NorthrendDay" )
@@ -1762,11 +1788,9 @@ function main takes nothing returns nothing
 
 //! initstructs
 call ExecuteFunc("UnitTestFramwork__onInit")
-call ExecuteFunc("YDLua__onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
-call ExecuteFunc("Logger__onInit")
-call ExecuteFunc("CameraControl__onInit")
-call ExecuteFunc("UTDamageUtils___onInit")
+call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
+call ExecuteFunc("UITocInit___onInit")
+call ExecuteFunc("UTUIButton__onInit")
 
 //! initdatastructs
     call InitGlobals( )

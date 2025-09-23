@@ -8,7 +8,6 @@
 */
 library SpellPool {
 
-
     public unit spellpool_u     = null;
     public trigger spellpool_tr = null;
     public function TriggerName(unit u) {

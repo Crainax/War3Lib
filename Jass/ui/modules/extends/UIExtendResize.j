@@ -106,7 +106,6 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
 
         STRUCT_SHARED_METHODS(rePointer)
 
-
         //注册一个对象进池里
         static method create (integer frame,integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
             thistype this = allocate();
