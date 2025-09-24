@@ -1,32 +1,24 @@
 globals
-//globals from BzAPI:
-constant boolean LIBRARY_BzAPI=true
-//endglobals from BzAPI
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork___TUnitTest=null
-hashtable UnitTestFramwork___HASH_UNITTEST=InitHashtable()
+trigger UnitTestFramwork__TUnitTest=null
+hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
+//globals from YDLua:
+constant boolean LIBRARY_YDLua=true
+//endglobals from YDLua
 //globals from YDTriggerSaveLoadSystem:
 constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
 hashtable YDHT
 hashtable YDLOC
 //endglobals from YDTriggerSaveLoadSystem
-//globals from Hardware:
-constant boolean LIBRARY_Hardware=true
-//endglobals from Hardware
-//globals from CameraControl:
-constant boolean LIBRARY_CameraControl=true
-integer CameraControl___ViewLevel=8
-boolean CameraControl___ResetCam=false
-real CameraControl___WheelSpeed=0.1
-boolean CameraControl___WideScr=false
-real CameraControl___X_ANGLE=304
-boolean CameraControl___HeightLocked=false
-//endglobals from CameraControl
-//globals from UTCameraControl:
-constant boolean LIBRARY_UTCameraControl=true
-//endglobals from UTCameraControl
+//globals from MemoryLeak:
+constant boolean LIBRARY_MemoryLeak=true
+trigger trMemoryLeak=null
+//endglobals from MemoryLeak
+//globals from UTMemoryLeak:
+constant boolean LIBRARY_UTMemoryLeak=true
+//endglobals from UTMemoryLeak
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -53,407 +45,10 @@ trigger l__library_init
 
 //JASSHelper struct globals:
 constant integer si__assert=1
-constant integer si__hardware=2
-trigger s__hardware_trWheel=null
-trigger s__hardware_trUpdate=null
-trigger s__hardware_trResize=null
-trigger s__hardware_trMove=null
-constant integer si__cameraControl=3
-integer si__cameraControl_F=0
-integer si__cameraControl_I=0
-integer array si__cameraControl_V
 
 endglobals
-    native DzGetMouseTerrainX takes nothing returns real
-    native DzGetMouseTerrainY takes nothing returns real
-    native DzGetMouseTerrainZ takes nothing returns real
-    native DzIsMouseOverUI takes nothing returns boolean
-    native DzGetMouseX takes nothing returns integer
-    native DzGetMouseY takes nothing returns integer
-    native DzGetMouseXRelative takes nothing returns integer
-    native DzGetMouseYRelative takes nothing returns integer
-    native DzSetMousePos takes integer x, integer y returns nothing
-    native DzTriggerRegisterMouseEvent takes trigger trig, integer btn, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseEventByCode takes trigger trig, integer btn, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterKeyEvent takes trigger trig, integer key, integer status, boolean sync, string func returns nothing
-    native DzTriggerRegisterKeyEventByCode takes trigger trig, integer key, integer status, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseWheelEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseWheelEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzTriggerRegisterMouseMoveEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterMouseMoveEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzGetTriggerKey takes nothing returns integer
-    native DzGetWheelDelta takes nothing returns integer
-    native DzIsKeyDown takes integer iKey returns boolean
-    native DzGetTriggerKeyPlayer takes nothing returns player
-    native DzGetWindowWidth takes nothing returns integer
-    native DzGetWindowHeight takes nothing returns integer
-    native DzGetWindowX takes nothing returns integer
-    native DzGetWindowY takes nothing returns integer
-    native DzTriggerRegisterWindowResizeEvent takes trigger trig, boolean sync, string func returns nothing
-    native DzTriggerRegisterWindowResizeEventByCode takes trigger trig, boolean sync, code funcHandle returns nothing
-    native DzIsWindowActive takes nothing returns boolean
-    native DzDestructablePosition takes destructable d, real x, real y returns nothing
-    native DzSetUnitPosition takes unit whichUnit, real x, real y returns nothing
-    native DzExecuteFunc takes string funcName returns nothing
-    native DzGetUnitUnderMouse takes nothing returns unit
-    native DzSetUnitTexture takes unit whichUnit, string path, integer texId returns nothing
-    native DzSetMemory takes integer address, real value returns nothing
-    native DzSetUnitID takes unit whichUnit, integer id returns nothing
-    native DzSetUnitModel takes unit whichUnit, string path returns nothing
-    native DzSetWar3MapMap takes string map returns nothing
-    native DzGetLocale takes nothing returns string
-    native DzGetUnitNeededXP takes unit whichUnit, integer level returns integer
-    native DzTriggerRegisterSyncData takes trigger trig, string prefix, boolean server returns nothing
-    native DzSyncData takes string prefix, string data returns nothing
-    native DzGetTriggerSyncPrefix takes nothing returns string
-    native DzGetTriggerSyncData takes nothing returns string
-    native DzGetTriggerSyncPlayer takes nothing returns player
-    native DzSyncBuffer takes string prefix, string data, integer dataLen returns nothing
-    native DzSyncDataImmediately takes string prefix, string data returns nothing 
-    native DzFrameHideInterface takes nothing returns nothing
-    native DzFrameEditBlackBorders takes real upperHeight, real bottomHeight returns nothing
-    native DzFrameGetPortrait takes nothing returns integer
-    native DzFrameGetMinimap takes nothing returns integer
-    native DzFrameGetCommandBarButton takes integer row, integer column returns integer
-    native DzFrameGetHeroBarButton takes integer buttonId returns integer
-    native DzFrameGetHeroHPBar takes integer buttonId returns integer
-    native DzFrameGetHeroManaBar takes integer buttonId returns integer
-    native DzFrameGetItemBarButton takes integer buttonId returns integer
-    native DzFrameGetMinimapButton takes integer buttonId returns integer
-    native DzFrameGetUpperButtonBarButton takes integer buttonId returns integer
-    native DzFrameGetTooltip takes nothing returns integer
-    native DzFrameGetChatMessage takes nothing returns integer
-    native DzFrameGetUnitMessage takes nothing returns integer
-    native DzFrameGetTopMessage takes nothing returns integer
-    native DzGetColor takes integer r, integer g, integer b, integer a returns integer
-    native DzFrameSetUpdateCallback takes string func returns nothing
-    native DzFrameSetUpdateCallbackByCode takes code funcHandle returns nothing
-    native DzFrameShow takes integer frame, boolean enable returns nothing
-    native DzCreateFrame takes string frame, integer parent, integer id returns integer
-    native DzCreateSimpleFrame takes string frame, integer parent, integer id returns integer
-    native DzDestroyFrame takes integer frame returns nothing
-    native DzLoadToc takes string fileName returns nothing
-    native DzFrameSetPoint takes integer frame, integer point, integer relativeFrame, integer relativePoint, real x, real y returns nothing
-    native DzFrameSetAbsolutePoint takes integer frame, integer point, real x, real y returns nothing
-    native DzFrameClearAllPoints takes integer frame returns nothing
-    native DzFrameSetEnable takes integer name, boolean enable returns nothing
-    native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
-    native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
-    native DzGetTriggerUIEventPlayer takes nothing returns player
-    native DzGetTriggerUIEventFrame takes nothing returns integer
-    native DzFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFrameFindByName takes string name, integer id returns integer
-    native DzSimpleFontStringFindByName takes string name, integer id returns integer
-    native DzSimpleTextureFindByName takes string name, integer id returns integer
-    native DzGetGameUI takes nothing returns integer
-    native DzClickFrame takes integer frame returns nothing
-    native DzSetCustomFovFix takes real value returns nothing
-    native DzEnableWideScreen takes boolean enable returns nothing
-    native DzFrameSetText takes integer frame, string text returns nothing
-    native DzFrameGetText takes integer frame returns string
-    native DzFrameSetTextSizeLimit takes integer frame, integer size returns nothing
-    native DzFrameGetTextSizeLimit takes integer frame returns integer
-    native DzFrameSetTextColor takes integer frame, integer color returns nothing
-    native DzGetMouseFocus takes nothing returns integer
-    native DzFrameSetAllPoints takes integer frame, integer relativeFrame returns boolean
-    native DzFrameSetFocus takes integer frame, boolean enable returns boolean
-    native DzFrameSetModel takes integer frame, string modelFile, integer modelType, integer flag returns nothing
-    native DzFrameGetEnable takes integer frame returns boolean
-    native DzFrameSetAlpha takes integer frame, integer alpha returns nothing
-    native DzFrameGetAlpha takes integer frame returns integer
-    native DzFrameSetAnimate takes integer frame, integer animId, boolean autocast returns nothing
-    native DzFrameSetAnimateOffset takes integer frame, real offset returns nothing
-    native DzFrameSetTexture takes integer frame, string texture, integer flag returns nothing
-    native DzFrameSetScale takes integer frame, real scale returns nothing
-    native DzFrameSetTooltip takes integer frame, integer tooltip returns nothing
-    native DzFrameCageMouse takes integer frame, boolean enable returns nothing
-    native DzFrameGetValue takes integer frame returns real
-    native DzFrameSetMinMaxValue takes integer frame, real minValue, real maxValue returns nothing
-    native DzFrameSetStepValue takes integer frame, real step returns nothing
-    native DzFrameSetValue takes integer frame, real value returns nothing
-    native DzFrameSetSize takes integer frame, real w, real h returns nothing
-    native DzCreateFrameByTagName takes string frameType, string name, integer parent, string template, integer id returns integer
-    native DzFrameSetVertexColor takes integer frame, integer color returns nothing
-    native DzOriginalUIAutoResetPoint takes boolean enable returns nothing
-    native DzFrameSetPriority takes integer frame, integer priority returns nothing
-    native DzFrameSetParent takes integer frame, integer parent returns nothing
-    native DzFrameGetHeight takes integer frame returns real
-    native DzFrameSetFont takes integer frame, string fileName, real height, integer flag returns nothing
-    native DzFrameGetParent takes integer frame returns integer
-    native DzFrameSetTextAlignment takes integer frame, integer align returns nothing
-    native DzFrameGetName takes integer frame returns string
-    native DzGetClientWidth takes nothing returns integer
-    native DzGetClientHeight takes nothing returns integer
-    native DzFrameIsVisible takes integer frame returns boolean
-    native DzFrameAddText takes integer frame, string text returns nothing
-    native DzUnitSilence takes unit whichUnit, boolean disable returns nothing
-    native DzUnitDisableAttack takes unit whichUnit, boolean disable returns nothing
-    native DzUnitDisableInventory takes unit whichUnit, boolean disable returns nothing
-    native DzUpdateMinimap takes nothing returns nothing
-    native DzUnitChangeAlpha takes unit whichUnit, integer alpha, boolean forceUpdate returns nothing
-    native DzUnitSetCanSelect takes unit whichUnit, boolean state returns nothing
-    native DzUnitSetTargetable takes unit whichUnit, boolean state returns nothing
-    native DzSaveMemoryCache takes string cache returns nothing
-    native DzGetMemoryCache takes nothing returns string
-    native DzSetSpeed takes real ratio returns nothing
-    native DzConvertWorldPosition takes real x, real y, real z, code callback returns boolean
-    native DzGetConvertWorldPositionX takes nothing returns real
-    native DzGetConvertWorldPositionY takes nothing returns real
-    native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
 
 
-//Generated allocator of cameraControl
-function s__cameraControl__allocate takes nothing returns integer
- local integer this=si__cameraControl_F
-    if (this!=0) then
-        set si__cameraControl_F=si__cameraControl_V[this]
-    else
-        set si__cameraControl_I=si__cameraControl_I+1
-        set this=si__cameraControl_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: cameraControl")
-        return 0
-    endif
-
-    set si__cameraControl_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of cameraControl
-function s__cameraControl_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: cameraControl")
-        return
-    elseif (si__cameraControl_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: cameraControl")
-        return
-    endif
-    set si__cameraControl_V[this]=si__cameraControl_F
-    set si__cameraControl_F=this
-endfunction
-
-//library BzAPI:
-    //hardware
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //plus
-
-
-
-
-
-
-
-
-
-
-
-    //sync
-
-
-
-
-
-
-    //native DzGetPushContext takes nothing returns string
-
-    //gui
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //显示/隐藏SimpleFrame
-    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
-    // 追加文字（支持TextArea）
-
-    // 沉默单位-禁用技能
-
-    // 禁用攻击
-
-    // 禁用道具
-
-    // 刷新小地图
-
-    // 修改单位alpha
-
-    // 设置单位是否可以选中
-
-    // 修改单位是否可以被设置为目标
-
-    // 保存内存数据
-
-    // 读取内存数据
-
-    // 设置加速倍率
-
-    // 转换世界坐标为屏幕坐标-异步
-
-    // 转换世界坐标为屏幕坐标-获取转换后的X坐标
-
-    // 转换世界坐标为屏幕坐标-获取转换后的Y坐标
-
-    // 创建command button
-
-    function DzTriggerRegisterMouseEventTrg takes trigger trg,integer status,integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseEvent(trg, btn, status, true, null)
-    endfunction
-    function DzTriggerRegisterKeyEventTrg takes trigger trg,integer status,integer btn returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterKeyEvent(trg, btn, status, true, null)
-    endfunction
-    function DzTriggerRegisterMouseMoveEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseMoveEvent(trg, true, null)
-    endfunction
-    function DzTriggerRegisterMouseWheelEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterMouseWheelEvent(trg, true, null)
-    endfunction
-    function DzTriggerRegisterWindowResizeEventTrg takes trigger trg returns nothing
-        if trg == null then
-            return
-        endif
-        call DzTriggerRegisterWindowResizeEvent(trg, true, null)
-    endfunction
-    function DzF2I takes integer i returns integer
-        return i
-    endfunction
-    function DzI2F takes integer i returns integer
-        return i
-    endfunction
-    function DzK2I takes integer i returns integer
-        return i
-    endfunction
-    function DzI2K takes integer i returns integer
-        return i
-    endfunction
-    function DzTriggerRegisterMallItemSyncData takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMIA", true)
-    endfunction
-    //玩家消耗/使用商城道具事件
-    function DzTriggerRegisterMallItemConsumeEvent takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMIC", true)
-    endfunction
-    //玩家删除商城道具事件
-    function DzTriggerRegisterMallItemRemoveEvent takes trigger trig returns nothing
-        call DzTriggerRegisterSyncData(trig, "DZMID", true)
-    endfunction
-    function DzGetTriggerMallItemPlayer takes nothing returns player
-        return DzGetTriggerSyncPlayer()
-    endfunction
-    function DzGetTriggerMallItem takes nothing returns string
-        return DzGetTriggerSyncData()
-    endfunction
-    
-
-//library BzAPI ends
 //library UnitTestFramwork:
 
         function s__assert_Boolean takes boolean condition,string name returns nothing
@@ -496,27 +91,27 @@ endfunction
             endif
         endfunction
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
     endfunction  //指定开始时间与持续时间的定时器
-        function UnitTestFramwork___anon__0 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork__anon__0 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]开始------")
             call TriggerEvaluate(tr)
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
-        function UnitTestFramwork___anon__1 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork__anon__1 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call TriggerEvaluate(tr)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]结束------")
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
@@ -525,24 +120,24 @@ endfunction
         local trigger tr=CreateTrigger()
         call TriggerAddCondition(t, Condition(start))
         call TriggerRegisterTimerEvent(tr, time, false)
-        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
-        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
-        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
+        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
         if ( end != null ) then
             set t=CreateTrigger()
             set tr=CreateTrigger()
             call TriggerAddCondition(t, Condition(end))
             call TriggerRegisterTimerEvent(tr, time + duration, false)
-            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
-            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
-            call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
-            call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__1))
+            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
+            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
+            call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
+            call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__1))
         endif
         set tr=null
         set t=null
     endfunction
-        function UnitTestFramwork___anon__2 takes nothing returns nothing
+        function UnitTestFramwork__anon__2 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -553,193 +148,81 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork___onInit takes nothing returns nothing
+    function UnitTestFramwork__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.1, false)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__2))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__2))
         set tr=null
-        set UnitTestFramwork___TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
+        set UnitTestFramwork__TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
+//library YDLua:
+
+    function initializeLua takes nothing returns integer
+        call Cheat("exec-lua:plugin_main")
+        return 0
+    endfunction
+        function YDLua__anon__0 takes nothing returns nothing
+            call BJDebugMsg("调用了YDLua引擎")
+            call DestroyTrigger(GetTriggeringTrigger())
+        endfunction
+    function YDLua__onInit takes nothing returns nothing
+        local trigger tr=CreateTrigger()
+        call TriggerRegisterTimerEvent(tr, 0.0, false)
+        call TriggerAddCondition(tr, Condition(function YDLua__anon__0))
+        set tr=null
+    endfunction
+
+//library YDLua ends
 //library YDTriggerSaveLoadSystem:
 //#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem___Init takes nothing returns nothing
+    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
             set YDHT=InitHashtable()
         set YDLOC=InitHashtable()
     endfunction
 
 //library YDTriggerSaveLoadSystem ends
-//library Hardware:
-        function s__hardware_regLeftUpEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 0, false, func)
-        endfunction  // 注册一个左键按下事件
-        function s__hardware_regLeftDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 1, 1, false, func)
-        endfunction  // 注册一个右键按下事件
-        function s__hardware_regRightDownEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 2, 1, false, func)
-        endfunction  // 注册一个右键抬起事件
-        function s__hardware_regRightUpEvent takes code func returns nothing
-            call DzTriggerRegisterMouseEventByCode(null, 2, 0, false, func)
-        endfunction  // 注册一个滚轮事件,不能异步注册
-        function s__hardware_regWheelEvent takes code func returns nothing
-            if ( s__hardware_trWheel == null ) then
-                set s__hardware_trWheel=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trWheel, Condition(func))
-        endfunction  // 注册一个绘制事件,不能异步注册
-        function s__hardware_regUpdateEvent takes code func returns nothing
-            if ( s__hardware_trUpdate == null ) then
-                set s__hardware_trUpdate=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trUpdate, Condition(func))
-        endfunction  // 注册一个窗口变化事件,不能异步注册
-        function s__hardware_regResizeEvent takes code func returns nothing
-            if ( s__hardware_trResize == null ) then
-                set s__hardware_trResize=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trResize, Condition(func))
-        endfunction  // 注册一个鼠标移动事件,不能异步注册
-        function s__hardware_regMoveEvent takes code func returns nothing
-            call BJDebugMsg("注册鼠标移动事件")
-            if ( s__hardware_trMove == null ) then
-                set s__hardware_trMove=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__hardware_trMove, Condition(func))
-        endfunction  // 获取鼠标的实数坐标X(0-0.8)
-        function s__hardware_getMouseX takes nothing returns real
-            local integer width=DzGetClientWidth()
-            if ( width > 0 ) then
-                return DzGetMouseXRelative() * 0.8 / width
-            else
-                return 0.1
-            endif
-        endfunction  // 获取鼠标的实数坐标Y(0-0.6)
-        function s__hardware_getMouseY takes nothing returns real
-            local integer height=DzGetClientHeight()
-            if ( height > 0 ) then // 防止除以0
-                return 0.6 - DzGetMouseYRelative() * 0.6 / height
-            else
-                return 0.1
-            endif
-        endfunction
-        //private:
-                function s__hardware_anon__1 takes nothing returns nothing
-                    call TriggerEvaluate(s__hardware_trWheel)
-                endfunction  // 帧绘制事件
-                function s__hardware_anon__2 takes nothing returns nothing
-                    call TriggerEvaluate(s__hardware_trUpdate)
-                endfunction  // 窗口大小变化事件
-                function s__hardware_anon__3 takes nothing returns nothing
-                    call TriggerEvaluate(s__hardware_trResize)
-                endfunction  // 鼠标移动事件
-                function s__hardware_anon__4 takes nothing returns nothing
-                    call TriggerEvaluate(s__hardware_trMove)
-                endfunction
-            function s__hardware_anon__0 takes nothing returns nothing
-                call DzTriggerRegisterMouseWheelEventByCode(null, false, function s__hardware_anon__1)
-                call DzFrameSetUpdateCallbackByCode(function s__hardware_anon__2)
-                call DzTriggerRegisterWindowResizeEventByCode(null, false, function s__hardware_anon__3)
-                call DzTriggerRegisterMouseMoveEventByCode(null, false, function s__hardware_anon__4)
-                call DestroyTrigger(GetTriggeringTrigger())
-            endfunction
-        function s__hardware_onInit takes nothing returns nothing
-            local trigger tr=CreateTrigger()
-            call TriggerRegisterTimerEvent(tr, 0.0, false)
-            call TriggerAddCondition(tr, Condition(function s__hardware_anon__0))
-            set tr=null
-        endfunction
+//library MemoryLeak:
 
-//library Hardware ends
-//library CameraControl:
-
-        function s__cameraControl_openWheel takes nothing returns nothing
-            call DoNothing()
-        endfunction
-        function s__cameraControl_lockHeight takes nothing returns nothing
-            set CameraControl___HeightLocked=true
-        endfunction
-        function s__cameraControl_unlockHeight takes nothing returns nothing
-            set CameraControl___HeightLocked=false
-        endfunction
-        function s__cameraControl_isHeightLocked takes nothing returns boolean
-            return CameraControl___HeightLocked
-        endfunction
-        function CameraControl___anon__0 takes nothing returns nothing
-            local integer delta=DzGetWheelDelta()
-            if ( ( not ( DzIsMouseOverUI() ) ) or DzGetMouseFocus() != 0 ) then //标记需要重置镜头属性
-                return
-            endif
-            set CameraControl___ResetCam=true
-            if ( not CameraControl___HeightLocked ) then // 使用 600 ~ 3600 的高度范围（步长 200）
-                if ( delta < 0 ) then //滚轮下滑 -> 拉远 //上限 3600/200=18
-                    if ( CameraControl___ViewLevel < 18 ) then //滚轮上滑 -> 拉近
-                        set CameraControl___ViewLevel=CameraControl___ViewLevel + 1
-                    endif
-                elseif ( CameraControl___ViewLevel > 3 ) then //下限 600/200=3
-                    set CameraControl___ViewLevel=CameraControl___ViewLevel - 1
-                endif
-            else // 锁定时维持当前高度
-                call SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, CameraControl___ViewLevel * 200, 0.1)
-            endif //记录滚动前的镜头角度
-            set CameraControl___X_ANGLE=Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK))
-        endfunction  //注册每帧渲染事件
-        function CameraControl___anon__1 takes nothing returns nothing
-            if ( CameraControl___ResetCam ) then
-                call SetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK, CameraControl___X_ANGLE, 0)
-                call SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, CameraControl___ViewLevel * 200, CameraControl___WheelSpeed)
-                set CameraControl___ResetCam=false
-            endif
-        endfunction  //注册按下键码为145的按键(ScrollLock)事件
-        function CameraControl___anon__2 takes nothing returns nothing
-            set CameraControl___WideScr=not CameraControl___WideScr
-            call DzEnableWideScreen(CameraControl___WideScr)
-        endfunction
-    function CameraControl___onInit takes nothing returns nothing
-        call s__hardware_regWheelEvent(function CameraControl___anon__0)
-        call s__hardware_regUpdateEvent(function CameraControl___anon__1)
-        call DzTriggerRegisterKeyEventByCode(null, 145, 1, false, function CameraControl___anon__2)
+    function MemoryLeakShow takes nothing returns nothing
+        call TriggerEvaluate(trMemoryLeak)
+    endfunction
+    function MemoryLeak__onInit takes nothing returns nothing
+        call Cheat("exec-lua:depends.debug.memory_leak")
     endfunction
 
-//library CameraControl ends
-//library UTCameraControl:
+//library MemoryLeak ends
+//library UTMemoryLeak:
 
-        function UTCameraControl___anon__0 takes nothing returns nothing
-        endfunction  //end,这里是2秒后调用的内容
-        function UTCameraControl___anon__1 takes nothing returns nothing
-        endfunction
-        function UTCameraControl___anon__2 takes nothing returns nothing
-        endfunction
-    function UTCameraControl___Init takes nothing returns nothing
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTCameraControl___anon__0 , function UTCameraControl___anon__1)
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTCameraControl___anon__2 , null)
+    function UTMemoryLeak__Init takes nothing returns nothing
     endfunction
-    function UTCameraControl___TTestUTCameraControl1 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak1 takes player p returns nothing
+        call MemoryLeakShow()
     endfunction
-    function UTCameraControl___TTestUTCameraControl2 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak2 takes player p returns nothing
     endfunction
-    function UTCameraControl___TTestUTCameraControl3 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak3 takes player p returns nothing
     endfunction
-    function UTCameraControl___TTestUTCameraControl4 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak4 takes player p returns nothing
     endfunction
-    function UTCameraControl___TTestUTCameraControl5 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak5 takes player p returns nothing
     endfunction
-    function UTCameraControl___TTestUTCameraControl6 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak6 takes player p returns nothing
     endfunction
-    function UTCameraControl___TTestUTCameraControl7 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak7 takes player p returns nothing
     endfunction
-    function UTCameraControl___TTestUTCameraControl8 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak8 takes player p returns nothing
     endfunction
-    function UTCameraControl___TTestUTCameraControl9 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak9 takes player p returns nothing
     endfunction
-    function UTCameraControl___TTestUTCameraControl10 takes player p returns nothing
+    function UTMemoryLeak__TTestUTMemoryLeak10 takes player p returns nothing
     endfunction
-    function UTCameraControl___TTestActUTCameraControl1 takes string str returns nothing
+    function UTMemoryLeak__TTestActUTMemoryLeak1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -768,62 +251,52 @@ endfunction
         set num=num + 1
         if ( paramS[0] == "a" ) then
         elseif ( paramS[0] == "b" ) then
-        elseif ( paramS[0] == "cam" ) then
-            if ( num >= 2 ) then
-                if ( paramS[1] == "lock" ) then
-                    call s__cameraControl_lockHeight()
-                    call BJDebugMsg("[CameraControl] 已锁定镜头高度")
-                elseif ( paramS[1] == "unlock" ) then
-                    call s__cameraControl_unlockHeight()
-                    call BJDebugMsg("[CameraControl] 已解锁镜头高度")
-                endif
-            endif
         endif
         set p=null
     endfunction
-        function UTCameraControl___anon__3 takes nothing returns nothing
-            call BJDebugMsg("[CameraControl] 单元测试已加载")
-            call UTCameraControl___Init()
+        function UTMemoryLeak__anon__0 takes nothing returns nothing
+            call BJDebugMsg("[MemoryLeak] 单元测试已加载")
+            call UTMemoryLeak__Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTCameraControl___anon__4 takes nothing returns nothing
+        function UTMemoryLeak__anon__1 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
-                call UTCameraControl___TTestActUTCameraControl1(SubString(str, ( 2 ) - 1, StringLength(str)))
+                call UTMemoryLeak__TTestActUTMemoryLeak1(SubString(str, ( 2 ) - 1, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTCameraControl___TTestUTCameraControl1(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTCameraControl___TTestUTCameraControl2(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTCameraControl___TTestUTCameraControl3(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTCameraControl___TTestUTCameraControl4(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTCameraControl___TTestUTCameraControl5(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTCameraControl___TTestUTCameraControl6(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTCameraControl___TTestUTCameraControl7(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTCameraControl___TTestUTCameraControl8(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTCameraControl___TTestUTCameraControl9(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTCameraControl___TTestUTCameraControl10(GetTriggerPlayer())
+                call UTMemoryLeak__TTestUTMemoryLeak10(GetTriggerPlayer())
             endif
         endfunction
-    function UTCameraControl___onInit takes nothing returns nothing
+    function UTMemoryLeak__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTCameraControl___anon__3))
+        call TriggerAddCondition(tr, Condition(function UTMemoryLeak__anon__0))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTCameraControl___anon__4)
+        call UnitTestRegisterChatEvent(function UTMemoryLeak__anon__1)
     endfunction
 
-//library UTCameraControl ends
+//library UTMemoryLeak ends
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
 //#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
@@ -836,15 +309,6 @@ endfunction
 // 当前的平台分包
 // 原生UI的大小
 //地图的最低攻击间隔(非特殊情况)
-
-// 0 - 1亿这里用
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
 
 //===========================================================================
 //
@@ -1252,7 +716,8 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function main takes nothing returns nothing
-    call SetCameraBounds(- 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), - 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM))
+    call initializeLua()
+ call SetCameraBounds(- 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), - 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM))
     call SetDayNightModels("Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl")
     call NewSoundEnvironment("Default")
     call SetAmbientDaySound("NorthrendDay")
@@ -1262,11 +727,12 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs106851812")
-call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
-call ExecuteFunc("CameraControl___onInit")
-call ExecuteFunc("UTCameraControl___onInit")
+call ExecuteFunc("jasshelper__initstructs146286765")
+call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("YDLua__onInit")
+call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
+call ExecuteFunc("MemoryLeak__onInit")
+call ExecuteFunc("UTMemoryLeak__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1305,11 +771,8 @@ endfunction
 
 //Struct method generated initializers/callers:
 
-function jasshelper__initstructs106851812 takes nothing returns nothing
+function jasshelper__initstructs146286765 takes nothing returns nothing
 
 
-
-
-    call ExecuteFunc("s__hardware_onInit")
 endfunction
 

@@ -60,41 +60,39 @@ public struct MyStruct []{
 
 ## 实际应用示例
 
-参考 [MallItem.j](mdc:Jass/server/MallItem.j) 的实现：
-
 ```jass
-public struct mallItem []{
+public struct ExampleStruct []{
     // 回调参数传递（避免哈希表冲突）
     public static player callbackPlayer = null;
 
-    static method consumeTimes(player whichPlayer, string itemKey, integer count, code callback) ->boolean {
+    static method processWithCallback(player whichPlayer, string itemKey, integer count, code callback) ->boolean {
         integer pid; integer idx; integer base; boolean ok; trigger tempTr;
 
-        // ... 执行消费逻辑 ...
+        // ... 执行业务逻辑 ...
 
         if (ok && callback != null) {
-            mallItem.callbackPlayer = whichPlayer;
+            ExampleStruct.callbackPlayer = whichPlayer;
             tempTr = CreateTrigger();
             TriggerAddCondition(tempTr, Condition(callback));
             TriggerEvaluate(tempTr);
             DestroyTrigger(tempTr);
-            mallItem.callbackPlayer = null;
+            ExampleStruct.callbackPlayer = null;
             tempTr = null;
         }
         return ok;
     }
 
     static method getCallbackPlayer() ->player {
-        return mallItem.callbackPlayer;
+        return ExampleStruct.callbackPlayer;
     }
 }
 ```
 
 ### 使用方式
 ```jass
-mallItem.consumeTimes(GetTriggerPlayer(), "VIP1", 1, function () -> boolean {
-    player p = mallItem.getCallbackPlayer();
-    BJDebugMsg("玩家 " + GetPlayerName(p) + " 消费了道具");
+ExampleStruct.processWithCallback(GetTriggerPlayer(), "VIP1", 1, function () -> boolean {
+    player p = ExampleStruct.getCallbackPlayer();
+    BJDebugMsg("玩家 " + GetPlayerName(p) + " 完成了操作");
     return true;
 });
 ```

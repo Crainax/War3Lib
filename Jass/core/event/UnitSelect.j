@@ -14,10 +14,10 @@ library UnitSelect requires Hardware ,LBKKAPI{
             static unit currentU [];      //每个人当前选择的单位(同步)
 
             private {
-                static trigger trAsync;
-                static trigger trAsyncUn;
-                static trigger trSync;
-                static trigger trSyncUn;
+                static trigger trAsync = null;
+                static trigger trAsyncUn = null;
+                static trigger trSync = null;
+                static trigger trSyncUn = null;
                 static unit asyncU = null; //现在的选择单位-异步(每个人的引用不一样)
             }
 
@@ -55,7 +55,7 @@ library UnitSelect requires Hardware ,LBKKAPI{
             trSyncUn  = CreateTrigger();
 
             //选单位的事件[同步]
-            for (1 <= i <= 12) {TriggerRegisterPlayerSelectionEventBJ(tr, ConvertedPlayer(i), true);}
+            for (1 <= i <= MAX_PLAYER_COUNT) {TriggerRegisterPlayerSelectionEventBJ(tr, ConvertedPlayer(i), true);}
             TriggerAddCondition(tr, Condition(function (){
                 //单位选择事件[同步]
                 integer index = GetConvertedPlayerId(GetTriggerPlayer());

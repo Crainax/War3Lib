@@ -12,6 +12,7 @@
 // 测试命令：
 // -cam lock：锁定镜头高度并提示
 // -cam unlock：解锁镜头高度并提示
+// -cam init：初始化镜头（增加1000高度）
 library UTCameraControl requires CameraControl {
 
 	function Init () {
@@ -70,6 +71,15 @@ library UTCameraControl requires CameraControl {
 				} else if (paramS[1] == "unlock") {
 					cameraControl.unlockHeight();
 					BJDebugMsg("[CameraControl] 已解锁镜头高度");
+				} else if (paramS[1] == "init") {
+					cameraControl.initCamera(p);
+					BJDebugMsg("[CameraControl] 已初始化镜头（增加1000高度）");
+				} else if (paramS[1] == "up") {
+					cameraControl.increaseHeight(p);
+					BJDebugMsg("[CameraControl] 镜头高度+400");
+				} else if (paramS[1] == "down") {
+					cameraControl.decreaseHeight(p);
+					BJDebugMsg("[CameraControl] 镜头高度-400");
 				}
 			}
 		}

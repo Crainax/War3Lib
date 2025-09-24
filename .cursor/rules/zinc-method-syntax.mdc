@@ -253,13 +253,11 @@ public function DamageAreaPhysical(unit u, real x, real y, real radius, real dam
 
 ## 实际示例
 
-参考 [MallItem.j](mdc:Jass/server/MallItem.j) 的实现：
-
 ```jass
-public struct mallItem []{
-    static method init(string key) { /* ... */ }
+public struct ExampleStruct []{
+    static method init(string key) { /* 初始化逻辑 */ }
     static method onReady(code cb) { /* Condition + TriggerEvaluate */ }
-    static method hasById(integer pid, string key) ->boolean { /* ... */ }
+    static method hasById(integer pid, string key) ->boolean { /* 查询逻辑 */ }
 }
 ```
 

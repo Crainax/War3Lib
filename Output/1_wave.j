@@ -120,92 +120,23 @@ endfunction
 // 用空地图测试
 // 用原始地图测试
 //! zinc
-/*
-鼠标滚轮控制视距
-一键切换宽屏模式
-made by 裂魂
-2018/10/19
-*/
-library CameraControl requires Hardware{
-    integer ViewLevel = 8; //初始视野等级
-boolean ResetCam = false; //开启重置镜头属性标识
-real WheelSpeed = 0.1; //镜头变化平滑度
-boolean WideScr = false; //是否是宽屏
-real X_ANGLE = 304; //默认X轴角度
-boolean HeightLocked = false; //镜头高度是否锁定
-
-    public struct cameraControl {
-        // 打开滚轮控制镜头高度
-        public static method openWheel () {DoNothing();}
-        // 锁定镜头高度
-        public static method lockHeight () { HeightLocked = true; }
-        // 解锁镜头高度
-        public static method unlockHeight () { HeightLocked = false; }
-        // 查询是否锁定
-        public static method isHeightLocked () ->boolean { return HeightLocked; }
-    }
-    // 滚轮控制镜头
-    // 初始化就调用
-    function onInit () {
-        //注册滚轮事件
-        hardware.regWheelEvent(function (){
-            integer delta = DzGetWheelDelta(); //滚轮变化量
-// 鼠标不在游戏内或焦点在UI控件上则不处理
-if ((!DzIsMouseOverUI()) || DzGetMouseFocus() != 0) {return;}
-            ResetCam = true; //标记需要重置镜头属性
-if (!HeightLocked) {
-                // 使用 600 ~ 3600 的高度范围（步长 200）
-                if (delta < 0) { //滚轮下滑 -> 拉远
-if (ViewLevel < 18) {ViewLevel = ViewLevel + 1;} //上限 3600/200=18
-} else { //滚轮上滑 -> 拉近
-if (ViewLevel > 3) {ViewLevel = ViewLevel - 1;} //下限 600/200=3
-}
-            } else {
-                // 锁定时维持当前高度
-                SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, ViewLevel*200, 0.1);
-            }
-            X_ANGLE = Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK)); //记录滚动前的镜头角度
-});
-        //注册每帧渲染事件
-        hardware.regUpdateEvent(function (){
-            if (ResetCam) {//重设镜头角度和高度
-                SetCameraField( CAMERA_FIELD_ANGLE_OF_ATTACK, X_ANGLE, 0 );
-                SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, ViewLevel*200, WheelSpeed);
-                ResetCam = false;
-            }
-        });
-        //注册按下键码为145的按键(ScrollLock)事件
-        DzTriggerRegisterKeyEventByCode( null, 145, 1, false, function (){
-            WideScr = !WideScr;
-            DzEnableWideScreen(WideScr);
-        });
-    }
-}
-//! endzinc
-//! zinc
 //自动生成的文件
-library UTCameraControl requires CameraControl {
+library UTMemoryLeak requires MemoryLeak {
 	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start,这里是0.1秒后调用的内容
-			}, function() {
-			//end,这里是2秒后调用的内容
-		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-		},null);
 	}
-	function TTestUTCameraControl1 (player p) {}
-	function TTestUTCameraControl2 (player p) {}
-	function TTestUTCameraControl3 (player p) {}
-	function TTestUTCameraControl4 (player p) {}
-	function TTestUTCameraControl5 (player p) {}
-	function TTestUTCameraControl6 (player p) {}
-	function TTestUTCameraControl7 (player p) {}
-	function TTestUTCameraControl8 (player p) {}
-	function TTestUTCameraControl9 (player p) {}
-	function TTestUTCameraControl10 (player p) {}
-	function TTestActUTCameraControl1 (string str) {
+	function TTestUTMemoryLeak1 (player p) {
+		MemoryLeakShow();
+	}
+	function TTestUTMemoryLeak2 (player p) {}
+	function TTestUTMemoryLeak3 (player p) {}
+	function TTestUTMemoryLeak4 (player p) {}
+	function TTestUTMemoryLeak5 (player p) {}
+	function TTestUTMemoryLeak6 (player p) {}
+	function TTestUTMemoryLeak7 (player p) {}
+	function TTestUTMemoryLeak8 (player p) {}
+	function TTestUTMemoryLeak9 (player p) {}
+	function TTestUTMemoryLeak10 (player p) {}
+	function TTestActUTMemoryLeak1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -229,16 +160,6 @@ for (0 <= i <= len - 1) {
 		num = num + 1;
 		if (paramS[0] == "a") {
 		} else if (paramS[0] == "b") {
-		} else if (paramS[0] == "cam") {
-			if (num >= 2) {
-				if (paramS[1] == "lock") {
-					cameraControl.lockHeight();
-					BJDebugMsg("[CameraControl] 已锁定镜头高度");
-				} else if (paramS[1] == "unlock") {
-					cameraControl.unlockHeight();
-					BJDebugMsg("[CameraControl] 已解锁镜头高度");
-				}
-			}
 		}
 		p = null;
 	}
@@ -247,7 +168,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[CameraControl] 单元测试已加载");
+			BJDebugMsg("[MemoryLeak] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -256,19 +177,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTCameraControl1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTMemoryLeak1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTCameraControl1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTCameraControl2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTCameraControl3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTCameraControl4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTCameraControl5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTCameraControl6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTCameraControl7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTCameraControl8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTCameraControl9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTCameraControl10(GetTriggerPlayer());
+			if (str == "s1") TTestUTMemoryLeak1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTMemoryLeak2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTMemoryLeak3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTMemoryLeak4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTMemoryLeak5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTMemoryLeak6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTMemoryLeak7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTMemoryLeak8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTMemoryLeak9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTMemoryLeak10(GetTriggerPlayer());
 		});
 	}
 }

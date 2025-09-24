@@ -1,10 +1,8 @@
 ---
-description: JASS 到 Zinc 转换规则（参考 edit/Hero/HeroSelect.j），用于 .j 文件
+description: JASS 到 Zinc 转换规则，用于 .j 文件
 alwaysApply: false
 ---
-## JASS -> Zinc 转换规则（初始版）
-
-参考实现见：[edit/Hero/HeroSelect.j](mdc:edit/Hero/HeroSelect.j) 和 [edit/Diffculty.j](mdc:edit/Diffculty.j)
+## JASS -> Zinc 转换规则
 
 - **触发器/计时器优先匿名回调（除非确需复用）**
   - 构建 `trigger` 与 `timer` 时，若回调逻辑仅在单处使用，请优先采用匿名函数：
@@ -141,12 +139,12 @@ ShowGameHintAll(" \
 
 ### 与通用 Zinc 规则的协同
 
-- 本规则与 [zinc-j](mdc:.cursor/rules/zinc-j.mdc) 配合使用：
-  - 遵循“无闭包”：匿名回调无法直接访问外层局部变量，需通过哈希表按句柄 id 保存/读取。
+- 本规则与 zinc-j 规则配合使用：
+  - 遵循"无闭包"：匿名回调无法直接访问外层局部变量，需通过哈希表按句柄 id 保存/读取。
   - 所有局部变量需在函数开头统一声明；
   - 所有 handler 类局部变量在函数尾部置 `null`，先释放可释放对象（定时器、触发器、组等）。
 
-### 迁移小贴士（参考 HeroSelect.j 和 Diffculty.j 的做法）
+### 迁移小贴士
 
 - 原本分散在多个具名回调中的简单逻辑，可直接收敛为 `TriggerAddAction(..., function () { ... })` 或 `TimerStart(..., function () { ... })`。
 - 原本的 `loop/endloop` 统一替换为 `for (start <= idx <= end)`，索引变量请在函数顶部声明，例如：`integer i;`。

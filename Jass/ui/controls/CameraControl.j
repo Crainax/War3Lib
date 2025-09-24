@@ -29,6 +29,46 @@ library CameraControl requires Hardware{
 
         // 查询是否锁定
         public static method isHeightLocked () ->boolean { return HeightLocked; }
+
+        // 初始化镜头（仅对指定玩家生效）
+        public static method initCamera (player p) {
+            if (GetLocalPlayer() != p) {
+                return;
+            }
+
+            ResetCam = true;
+            ViewLevel = ViewLevel + 5; // 增加1000高度（1000/200=5）
+            SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, ViewLevel*200, 0.1);
+            X_ANGLE = Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK));
+        }
+
+        // 增加镜头高度400（仅对指定玩家生效）
+        public static method increaseHeight (player p) {
+            if (GetLocalPlayer() != p) {
+                return;
+            }
+
+            ResetCam = true;
+            if (ViewLevel < 16) { // 确保不超过上限（3600-400=3200，3200/200=16）
+                ViewLevel = ViewLevel + 2; // 增加400高度（400/200=2）
+                SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, ViewLevel*200, 0.1);
+                X_ANGLE = Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK));
+            }
+        }
+
+        // 减少镜头高度400（仅对指定玩家生效）
+        public static method decreaseHeight (player p) {
+            if (GetLocalPlayer() != p) {
+                return;
+            }
+
+            ResetCam = true;
+            if (ViewLevel > 5) { // 确保不低于下限（600+400=1000，1000/200=5）
+                ViewLevel = ViewLevel - 2; // 减少400高度（400/200=2）
+                SetCameraField(CAMERA_FIELD_TARGET_DISTANCE, ViewLevel*200, 0.1);
+                X_ANGLE = Rad2Deg(GetCameraField(CAMERA_FIELD_ANGLE_OF_ATTACK));
+            }
+        }
     }
 
     // 滚轮控制镜头

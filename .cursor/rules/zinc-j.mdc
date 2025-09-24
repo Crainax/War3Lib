@@ -1,11 +1,9 @@
 ---
 globs: *.j
-description: Zinc 语法与约定（参考 edit/Item/ItemTransport.j），用于 .j 文件
+description: Zinc 语法与约定，用于 .j 文件
 ---
 
 ## Zinc 语法与代码风格
-
-参考实现见：[edit/Item/ItemTransport.j](mdc:edit/Item/ItemTransport.j) 和 [MallItem.j](mdc:Jass/server/MallItem.j)
 
 - **库结构与区域**
   - 使用 `//! zinc` 与 `//! endzinc` 包裹 Zinc 代码块。
@@ -165,10 +163,10 @@ library ExampleZinc requires LHBase {
 //! endzinc
 ```
 
-### 参考实现要点（摘自 ItemTransport）
-- 通过 `GetHandleId(timer)` 作为 key 将 `pos/item/unit` 存入 `spellTable`；在回调中通过 `GetExpiredTimer()` 读取。
-- 当判定物品仍在原位置后，进行跨单位背包转移，并使用 `DisplayTextToPlayer` 与 `BJDebugMsg` 输出。
-- 回调结束：`PauseTimer/DestroyTimer`，`FlushChildHashtable`，并对 `unit/item/timer` 置 `null`。
+### 参考实现要点
+- 通过 `GetHandleId(timer)` 作为 key 将数据存入哈希表；在回调中通过 `GetExpiredTimer()` 读取。
+- 业务逻辑完成后，使用 `DisplayTextToPlayer` 与 `BJDebugMsg` 输出信息。
+- 回调结束：`PauseTimer/DestroyTimer`，`FlushChildHashtable`，并对句柄类型变量置 `null`。
 
 以上规则为初始版本，如与现有代码风格冲突，以本规则为准并逐步迁移。
 
