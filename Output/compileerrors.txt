@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 1247: createMenu is not a member of uiBtn
+JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
+Line 456: Syntax Error (Unexpected: "public"?
 1

@@ -21,44 +21,6 @@ endlibrary
 // 当前的平台分包
 // 原生UI的大小
 //地图的最低攻击间隔(非特殊情况)
-//! zinc
-/*
-内存泄漏检测
-*/
-library MemoryLeak requires YDLua {
-	public trigger trMemoryLeak = null;
-	//显示一下当前的泄露情况
-	public function MemoryLeakShow () {
-		TriggerEvaluate(trMemoryLeak);
-	}
-	function onInit () {
-		Cheat("exec-lua:depends.debug.memory_leak"); //内存泄露检测
-}
-}
-//! endzinc
-//! zinc
-/*
-原生Lua引擎非内置
-*/
-// https://create.reckfeng.com/kkapidoc/#/menu_kkapi_japi kkapi的japi文档
-library YDLua {
-    // main 函数就初始化的
-    public function initializeLua () -> integer {
-        Cheat("exec-lua:plugin_main");
-        return 0;
-    }
-    function onInit () {
-        //在游戏开始0.0秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEvent(tr, 0.0, false);
-        TriggerAddCondition(tr,Condition(function (){
-            BJDebugMsg("调用了YDLua引擎");
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-    }
-}
-//! endzinc
 /*
 单元测试框架(注入)
 */
@@ -304,23 +266,225 @@ endfunction
 // 用空地图测试
 // 用原始地图测试
 //! zinc
+/*
+冲刺系统 - 数据与接口层
+说明：
+- 仅负责数据存储与查询，UI与具体冲刺实现不在本模块中。
+- 参考 @DashSystem.j 与 @DashSystemData.j 的数据形态进行抽离与统一。
+*/
+// 若外部未定义，则提供一个默认值；可按需在上层覆盖
+library Dash {
+    // 实例结构体：每个 dash 实例持有自身配置
+    public struct dash {
+        // ====== 全局索引，用于遍历所有 dash ======
+        public static thistype DashLists[];
+        public static integer size = 0;
+        // ====== 槽位映射（二维数组） ======
+        private static integer IDashID [4][10];
+        private static thistype slots [4][10];
+        // ====== 实例成员（配置与状态） ======
+        integer id; // 冲刺 id（在 create 中设置）
+string dashName;
+        real dashMax;
+        real dashCool;
+        real dashSpeed;
+        string dashPath;
+        real dashCooldownRemain;
+        // 索引（方便 O(1) 从 DashLists 中删除）
+        private integer listIndex;
+        // ===== 工具：边界 =====
+        private static method isValidPlayer1(integer pid1) -> boolean {
+            return pid1 >= 1 && pid1 <= 4;
+        }
+        private static method isValidPos(integer pos) -> boolean {
+            return pos >= 1 && pos <= 10;
+        }
+        // ===== 生命周期 =====
+        static method create (integer id) -> thistype {
+            thistype this = allocate();
+            this.id = id;
+            this.dashName = null;
+            this.dashMax = 0.0;
+            this.dashCool = 0.0;
+            this.dashSpeed = 0.0;
+            this.dashPath = null;
+            this.dashCooldownRemain = 0.0;
+            // 加入全局列表
+            dash.size = dash.size + 1;
+            dash.DashLists[dash.size] = this;
+            this.listIndex = dash.size;
+            return this;
+        }
+        method onDestroy () { // 析构：从 DashLists 中移除
+integer last;
+            if (this.listIndex != 0) {
+                last = dash.size;
+                if (this.listIndex != last) {
+                    dash.DashLists[this.listIndex] = dash.DashLists[last];
+                    dash.DashLists[this.listIndex].listIndex = this.listIndex;
+                }
+                dash.DashLists[last] = 0;
+                dash.size = dash.size - 1;
+                this.listIndex = 0;
+            }
+            this.dashPath = null;
+            this.dashName = null;
+        }
+        // ===== 槽位查询 =====
+        public static method GetDashPos(player p, integer id) -> integer {
+            integer pid1; integer pos;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return 0; }
+            for (1 <= pos <= 10) {
+                if (dash.IDashID[pid1][pos] == id) { return pos; }
+            }
+            return 0;
+        }
+        public static method GetEmptyDashPos(player p) -> integer {
+            integer pid1; integer pos;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return -1; }
+            for (1 <= pos <= 10) {
+                if (dash.IDashID[pid1][pos] == 0) { return pos; }
+            }
+            return -1;
+        }
+        // ===== 注册与移除 =====
+        public static method AddDash(player p, integer id) {
+            integer pid1; integer pos;
+            thistype inst;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return; }
+            // 已存在则跳过
+            pos = dash.GetDashPos(p, id);
+            if (pos != 0) { return; }
+            pos = dash.GetEmptyDashPos(p);
+            if (pos <= 0) { return; }
+            inst = dash.create(id);
+            dash.IDashID[pid1][pos] = id;
+            dash.slots[pid1][pos] = inst;
+        }
+        // 重要：外部配置写入接口
+        public static method SetDashConfig(player p, integer id, string name, real speed, real max, real cool, string path) {
+            integer pid1; integer pos;
+            thistype inst;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return; }
+            pos = dash.GetDashPos(p, id);
+            if (pos == 0) { return; }
+            inst = dash.slots[pid1][pos];
+            if (inst == 0) { return; }
+            inst.dashName = name;
+            inst.dashMax = max;
+            inst.dashSpeed = speed;
+            inst.dashCool = cool;
+            inst.dashPath = path;
+        }
+        // 重要：外部移除接口
+        public static method RemoveDash(player p, integer id) {
+            integer pid1; integer pos;
+            thistype inst;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return; }
+            pos = dash.GetDashPos(p, id);
+            if (pos == 0) { return; }
+            inst = dash.slots[pid1][pos];
+            dash.IDashID[pid1][pos] = 0;
+            dash.slots[pid1][pos] = 0;
+            if (inst != 0) {
+                inst.destroy();
+            }
+        }
+        // ===== 统计与查询 =====
+        // 已注册（含冷却中）数量
+        public static method GetAvailableDashCount(player p) -> integer {
+            integer pid1; integer pos; integer cnt;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return 0; }
+            cnt = 0;
+            for (1 <= pos <= 10) {
+                if (dash.IDashID[pid1][pos] != 0) { cnt = cnt + 1; }
+            }
+            return cnt;
+        }
+        // 可用数量（剔除冷却中）
+        public static method GetNormalDashCount(player p) -> integer {
+            integer pid1; integer pos; integer cnt;
+            thistype inst;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return 0; }
+            cnt = 0;
+            for (1 <= pos <= 10) {
+                inst = dash.slots[pid1][pos];
+                if (inst != 0 && inst.dashCooldownRemain <= 0.0) { cnt = cnt + 1; }
+            }
+            return cnt;
+        }
+        public static method IsDashOnCooldown(player p, integer id) -> boolean {
+            integer pid1; integer pos; thistype inst;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return false; }
+            pos = dash.GetDashPos(p, id);
+            if (pos == 0) { return false; }
+            inst = dash.slots[pid1][pos];
+            if (inst == 0) { return false; }
+            return inst.dashCooldownRemain > 0.0;
+        }
+        public static method GetDashCooldownRemaining(player p, integer id) -> real {
+            integer pid1; integer pos; thistype inst;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return 0.0; }
+            pos = dash.GetDashPos(p, id);
+            if (pos == 0) { return 0.0; }
+            inst = dash.slots[pid1][pos];
+            if (inst == 0) { return 0.0; }
+            return inst.dashCooldownRemain;
+        }
+        public static method SetDashCooldownRemaining(player p, integer id, real value) {
+            integer pid1; integer pos; thistype inst; real v;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer1(pid1)) { return; }
+            pos = dash.GetDashPos(p, id);
+            if (pos == 0) { return; }
+            inst = dash.slots[pid1][pos];
+            if (inst == 0) { return; }
+            v = value; if (v < 0.0) { v = 0.0; }
+            inst.dashCooldownRemain = v;
+        }
+        // ===== 常量查询 =====
+        public static method GetDashMaxPlayers() -> integer { return 4; }
+        public static method GetDashMaxPerPlayer() -> integer { return 10; }
+        // ===== 初始化 =====
+        static method onInit() {
+            // 留空：依赖于 Zinc 数组默认初始化（0/null）
+        }
+    }
+}
+//! endzinc
+//! zinc
 //自动生成的文件
-library UTMemoryLeak requires MemoryLeak {
+library UTDash requires Dash {
 	function Init () {
+		UnitTestAutoTimer(0.1, 2.0, function() {
+			//start,这里是0.1秒后调用的内容
+			}, function() {
+			//end,这里是2秒后调用的内容
+		});
+		UnitTestAutoTimer(0.1, 2.0, function() {
+			//assert.Boolean(true, "测试1");
+		},null);
 	}
-	function TTestUTMemoryLeak1 (player p) {
-		MemoryLeakShow();
-	}
-	function TTestUTMemoryLeak2 (player p) {}
-	function TTestUTMemoryLeak3 (player p) {}
-	function TTestUTMemoryLeak4 (player p) {}
-	function TTestUTMemoryLeak5 (player p) {}
-	function TTestUTMemoryLeak6 (player p) {}
-	function TTestUTMemoryLeak7 (player p) {}
-	function TTestUTMemoryLeak8 (player p) {}
-	function TTestUTMemoryLeak9 (player p) {}
-	function TTestUTMemoryLeak10 (player p) {}
-	function TTestActUTMemoryLeak1 (string str) {
+	function TTestUTDash1 (player p) {}
+	function TTestUTDash2 (player p) {}
+	function TTestUTDash3 (player p) {}
+	function TTestUTDash4 (player p) {}
+	function TTestUTDash5 (player p) {}
+	function TTestUTDash6 (player p) {}
+	function TTestUTDash7 (player p) {}
+	function TTestUTDash8 (player p) {}
+	function TTestUTDash9 (player p) {}
+	function TTestUTDash10 (player p) {}
+	function TTestActUTDash1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -352,7 +516,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEvent(tr, 0.5, false);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[MemoryLeak] 单元测试已加载");
+			BJDebugMsg("[Dash] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -361,19 +525,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubString(str, (1)-1, 1) == "-") {
-				TTestActUTMemoryLeak1(SubString(str, (2)-1, StringLength(str)));
+				TTestActUTDash1(SubString(str, (2)-1, StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTMemoryLeak1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTMemoryLeak2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTMemoryLeak3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTMemoryLeak4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTMemoryLeak5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTMemoryLeak6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTMemoryLeak7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTMemoryLeak8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTMemoryLeak9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTMemoryLeak10(GetTriggerPlayer());
+			if (str == "s1") TTestUTDash1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTDash2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTDash3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTDash4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTDash5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTDash6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTDash7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTDash8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTDash9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTDash10(GetTriggerPlayer());
 		});
 	}
 }
@@ -696,8 +860,7 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function main takes nothing returns nothing
-    call initializeLua() 
- call SetCameraBounds( -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM) )
+    call SetCameraBounds( -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), -13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), -13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM) )
     call SetDayNightModels( "Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl" )
     call NewSoundEnvironment( "Default" )
     call SetAmbientDaySound( "NorthrendDay" )

@@ -1,24 +1,20 @@
 globals
+//globals from Dash:
+constant boolean LIBRARY_Dash=true
+//endglobals from Dash
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
 trigger UnitTestFramwork__TUnitTest=null
 hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
-//globals from YDLua:
-constant boolean LIBRARY_YDLua=true
-//endglobals from YDLua
 //globals from YDTriggerSaveLoadSystem:
 constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
 hashtable YDHT
 hashtable YDLOC
 //endglobals from YDTriggerSaveLoadSystem
-//globals from MemoryLeak:
-constant boolean LIBRARY_MemoryLeak=true
-trigger trMemoryLeak=null
-//endglobals from MemoryLeak
-//globals from UTMemoryLeak:
-constant boolean LIBRARY_UTMemoryLeak=true
-//endglobals from UTMemoryLeak
+//globals from UTDash:
+constant boolean LIBRARY_UTDash=true
+//endglobals from UTDash
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -44,11 +40,322 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
-constant integer si__assert=1
+constant integer si__dash=1
+integer si__dash_F=0
+integer si__dash_I=0
+integer array si__dash_V
+integer array s__dash_DashLists
+integer s__dash_size=0
+integer array s__dash_id
+string array s__dash_dashName
+real array s__dash_dashMax
+real array s__dash_dashCool
+real array s__dash_dashSpeed
+string array s__dash_dashPath
+real array s__dash_dashCooldownRemain
+integer array s__dash_listIndex
+constant integer si__assert=4
+integer array s__s__dash_IDashID
+integer array s__s__dash_slots
+trigger st__dash_onDestroy
+integer f__arg_this
 
 endglobals
 
 
+//Generated method caller for dash.onDestroy
+function sc__dash_onDestroy takes integer this returns nothing
+    set f__arg_this=this
+    call TriggerEvaluate(st__dash_onDestroy)
+endfunction
+
+//Generated allocator of dash
+function s__dash__allocate takes nothing returns integer
+ local integer this=si__dash_F
+    if (this!=0) then
+        set si__dash_F=si__dash_V[this]
+    else
+        set si__dash_I=si__dash_I+1
+        set this=si__dash_I
+    endif
+    if (this>8190) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: dash")
+        return 0
+    endif
+
+    set si__dash_V[this]=-1
+ return this
+endfunction
+
+//Generated destructor of dash
+function sc__dash_deallocate takes integer this returns nothing
+    if this==null then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: dash")
+        return
+    elseif (si__dash_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: dash")
+        return
+    endif
+    set f__arg_this=this
+    call TriggerEvaluate(st__dash_onDestroy)
+    set si__dash_V[this]=si__dash_F
+    set si__dash_F=this
+endfunction
+
+//library Dash:
+        function s__dash_isValidPlayer1 takes integer pid1 returns boolean
+            return pid1 >= 1 and pid1 <= 4
+        endfunction
+        function s__dash_isValidPos takes integer pos returns boolean
+            return pos >= 1 and pos <= 10
+        endfunction  // ===== 生命周期 =====
+        function s__dash_create takes integer id returns integer
+            local integer this=s__dash__allocate()
+            set s__dash_id[this]=id
+            set s__dash_dashName[this]=null
+            set s__dash_dashMax[this]=0.0
+            set s__dash_dashCool[this]=0.0
+            set s__dash_dashSpeed[this]=0.0
+            set s__dash_dashPath[this]=null
+            set s__dash_dashCooldownRemain[this]=0.0 // 加入全局列表
+            set s__dash_size=s__dash_size + 1
+            set s__dash_DashLists[s__dash_size]=this
+            set s__dash_listIndex[this]=s__dash_size
+            return this
+        endfunction  // 析构：从 DashLists 中移除
+        function s__dash_onDestroy takes integer this returns nothing
+            local integer last
+            if ( s__dash_listIndex[this] != 0 ) then
+                set last=s__dash_size
+                if ( s__dash_listIndex[this] != last ) then
+                    set s__dash_DashLists[s__dash_listIndex[this]]=s__dash_DashLists[last]
+                    set s__dash_listIndex[s__dash_DashLists[s__dash_listIndex[this]]]=s__dash_listIndex[this]
+                endif
+                set s__dash_DashLists[last]=0
+                set s__dash_size=s__dash_size - 1
+                set s__dash_listIndex[this]=0
+            endif
+            set s__dash_dashPath[this]=null
+            set s__dash_dashName[this]=null
+        endfunction  // ===== 槽位查询 =====
+
+//Generated destructor of dash
+function s__dash_deallocate takes integer this returns nothing
+    if this==null then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: dash")
+        return
+    elseif (si__dash_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: dash")
+        return
+    endif
+    call s__dash_onDestroy(this)
+    set si__dash_V[this]=si__dash_F
+    set si__dash_F=this
+endfunction
+        function s__dash_GetDashPos takes player p,integer id returns integer
+            local integer pid1
+            local integer pos
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
+                return 0
+            endif
+            set pos=1
+            loop
+            exitwhen ( pos > 10 )
+                if ( s__s__dash_IDashID[(pid1)*(10)+pos] == id ) then
+                    return pos
+                endif
+            set pos=pos + 1
+            endloop
+            return 0
+        endfunction
+        function s__dash_GetEmptyDashPos takes player p returns integer
+            local integer pid1
+            local integer pos
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
+                return - 1
+            endif
+            set pos=1
+            loop
+            exitwhen ( pos > 10 )
+                if ( s__s__dash_IDashID[(pid1)*(10)+pos] == 0 ) then
+                    return pos
+                endif
+            set pos=pos + 1
+            endloop
+            return - 1
+        endfunction  // ===== 注册与移除 =====
+        function s__dash_AddDash takes player p,integer id returns nothing
+            local integer pid1
+            local integer pos
+            local integer inst
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then // 已存在则跳过
+                return
+            endif
+            set pos=s__dash_GetDashPos(p , id)
+            if ( pos != 0 ) then
+                return
+            endif
+            set pos=s__dash_GetEmptyDashPos(p)
+            if ( pos <= 0 ) then
+                return
+            endif
+            set inst=s__dash_create(id)
+            set s__s__dash_IDashID[(pid1)*(10)+pos]= id
+            set s__s__dash_slots[(pid1)*(10)+pos]= inst
+        endfunction  // 重要：外部配置写入接口
+        function s__dash_SetDashConfig takes player p,integer id,string name,real speed,real max,real cool,string path returns nothing
+            local integer pid1
+            local integer pos
+            local integer inst
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
+                return
+            endif
+            set pos=s__dash_GetDashPos(p , id)
+            if ( pos == 0 ) then
+                return
+            endif
+            set inst=s__s__dash_slots[(pid1)*(10)+pos]
+            if ( inst == 0 ) then
+                return
+            endif
+            set s__dash_dashName[inst]=name
+            set s__dash_dashMax[inst]=max
+            set s__dash_dashSpeed[inst]=speed
+            set s__dash_dashCool[inst]=cool
+            set s__dash_dashPath[inst]=path
+        endfunction  // 重要：外部移除接口
+        function s__dash_RemoveDash takes player p,integer id returns nothing
+            local integer pid1
+            local integer pos
+            local integer inst
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
+                return
+            endif
+            set pos=s__dash_GetDashPos(p , id)
+            if ( pos == 0 ) then
+                return
+            endif
+            set inst=s__s__dash_slots[(pid1)*(10)+pos]
+            set s__s__dash_IDashID[(pid1)*(10)+pos]= 0
+            set s__s__dash_slots[(pid1)*(10)+pos]= 0
+            if ( inst != 0 ) then
+                call s__dash_deallocate(inst)
+            endif
+        endfunction  // ===== 统计与查询 =====
+        function s__dash_GetAvailableDashCount takes player p returns integer
+            local integer pid1
+            local integer pos
+            local integer cnt
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
+                return 0
+            endif
+            set cnt=0
+            set pos=1
+            loop
+            exitwhen ( pos > 10 )
+                if ( s__s__dash_IDashID[(pid1)*(10)+pos] != 0 ) then
+                    set cnt=cnt + 1
+                endif
+            set pos=pos + 1
+            endloop
+            return cnt
+        endfunction  // 可用数量（剔除冷却中）
+        function s__dash_GetNormalDashCount takes player p returns integer
+            local integer pid1
+            local integer pos
+            local integer cnt
+            local integer inst
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
+                return 0
+            endif
+            set cnt=0
+            set pos=1
+            loop
+            exitwhen ( pos > 10 )
+                set inst=s__s__dash_slots[(pid1)*(10)+pos]
+                if ( inst != 0 and s__dash_dashCooldownRemain[inst] <= 0.0 ) then
+                    set cnt=cnt + 1
+                endif
+            set pos=pos + 1
+            endloop
+            return cnt
+        endfunction
+        function s__dash_IsDashOnCooldown takes player p,integer id returns boolean
+            local integer pid1
+            local integer pos
+            local integer inst
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
+                return false
+            endif
+            set pos=s__dash_GetDashPos(p , id)
+            if ( pos == 0 ) then
+                return false
+            endif
+            set inst=s__s__dash_slots[(pid1)*(10)+pos]
+            if ( inst == 0 ) then
+                return false
+            endif
+            return s__dash_dashCooldownRemain[inst] > 0.0
+        endfunction
+        function s__dash_GetDashCooldownRemaining takes player p,integer id returns real
+            local integer pid1
+            local integer pos
+            local integer inst
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
+                return 0.0
+            endif
+            set pos=s__dash_GetDashPos(p , id)
+            if ( pos == 0 ) then
+                return 0.0
+            endif
+            set inst=s__s__dash_slots[(pid1)*(10)+pos]
+            if ( inst == 0 ) then
+                return 0.0
+            endif
+            return s__dash_dashCooldownRemain[inst]
+        endfunction
+        function s__dash_SetDashCooldownRemaining takes player p,integer id,real value returns nothing
+            local integer pid1
+            local integer pos
+            local integer inst
+            local real v
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
+                return
+            endif
+            set pos=s__dash_GetDashPos(p , id)
+            if ( pos == 0 ) then
+                return
+            endif
+            set inst=s__s__dash_slots[(pid1)*(10)+pos]
+            if ( inst == 0 ) then
+                return
+            endif
+            set v=value
+            if ( v < 0.0 ) then
+                set v=0.0
+            endif
+            set s__dash_dashCooldownRemain[inst]=v
+        endfunction  // ===== 常量查询 =====
+        function s__dash_GetDashMaxPlayers takes nothing returns integer
+            return 4
+        endfunction
+        function s__dash_GetDashMaxPerPlayer takes nothing returns integer
+            return 10
+        endfunction
+        function s__dash_onInit takes nothing returns nothing
+        endfunction
+
+//library Dash ends
 //library UnitTestFramwork:
 
         function s__assert_Boolean takes boolean condition,string name returns nothing
@@ -161,24 +468,6 @@ endglobals
     endfunction
 
 //library UnitTestFramwork ends
-//library YDLua:
-
-    function initializeLua takes nothing returns integer
-        call Cheat("exec-lua:plugin_main")
-        return 0
-    endfunction
-        function YDLua__anon__0 takes nothing returns nothing
-            call BJDebugMsg("调用了YDLua引擎")
-            call DestroyTrigger(GetTriggeringTrigger())
-        endfunction
-    function YDLua__onInit takes nothing returns nothing
-        local trigger tr=CreateTrigger()
-        call TriggerRegisterTimerEvent(tr, 0.0, false)
-        call TriggerAddCondition(tr, Condition(function YDLua__anon__0))
-        set tr=null
-    endfunction
-
-//library YDLua ends
 //library YDTriggerSaveLoadSystem:
 //#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
     function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
@@ -187,42 +476,39 @@ endglobals
     endfunction
 
 //library YDTriggerSaveLoadSystem ends
-//library MemoryLeak:
+//library UTDash:
 
-    function MemoryLeakShow takes nothing returns nothing
-        call TriggerEvaluate(trMemoryLeak)
+        function UTDash__anon__0 takes nothing returns nothing
+        endfunction  //end,这里是2秒后调用的内容
+        function UTDash__anon__1 takes nothing returns nothing
+        endfunction
+        function UTDash__anon__2 takes nothing returns nothing
+        endfunction
+    function UTDash__Init takes nothing returns nothing
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTDash__anon__0 , function UTDash__anon__1)
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTDash__anon__2 , null)
     endfunction
-    function MemoryLeak__onInit takes nothing returns nothing
-        call Cheat("exec-lua:depends.debug.memory_leak")
+    function UTDash__TTestUTDash1 takes player p returns nothing
     endfunction
-
-//library MemoryLeak ends
-//library UTMemoryLeak:
-
-    function UTMemoryLeak__Init takes nothing returns nothing
+    function UTDash__TTestUTDash2 takes player p returns nothing
     endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak1 takes player p returns nothing
-        call MemoryLeakShow()
+    function UTDash__TTestUTDash3 takes player p returns nothing
     endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak2 takes player p returns nothing
+    function UTDash__TTestUTDash4 takes player p returns nothing
     endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak3 takes player p returns nothing
+    function UTDash__TTestUTDash5 takes player p returns nothing
     endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak4 takes player p returns nothing
+    function UTDash__TTestUTDash6 takes player p returns nothing
     endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak5 takes player p returns nothing
+    function UTDash__TTestUTDash7 takes player p returns nothing
     endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak6 takes player p returns nothing
+    function UTDash__TTestUTDash8 takes player p returns nothing
     endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak7 takes player p returns nothing
+    function UTDash__TTestUTDash9 takes player p returns nothing
     endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak8 takes player p returns nothing
+    function UTDash__TTestUTDash10 takes player p returns nothing
     endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak9 takes player p returns nothing
-    endfunction
-    function UTMemoryLeak__TTestUTMemoryLeak10 takes player p returns nothing
-    endfunction
-    function UTMemoryLeak__TTestActUTMemoryLeak1 takes string str returns nothing
+    function UTDash__TTestActUTDash1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -254,49 +540,49 @@ endglobals
         endif
         set p=null
     endfunction
-        function UTMemoryLeak__anon__0 takes nothing returns nothing
-            call BJDebugMsg("[MemoryLeak] 单元测试已加载")
-            call UTMemoryLeak__Init()
+        function UTDash__anon__3 takes nothing returns nothing
+            call BJDebugMsg("[Dash] 单元测试已加载")
+            call UTDash__Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTMemoryLeak__anon__1 takes nothing returns nothing
+        function UTDash__anon__4 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
-                call UTMemoryLeak__TTestActUTMemoryLeak1(SubString(str, ( 2 ) - 1, StringLength(str)))
+                call UTDash__TTestActUTDash1(SubString(str, ( 2 ) - 1, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak1(GetTriggerPlayer())
+                call UTDash__TTestUTDash1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak2(GetTriggerPlayer())
+                call UTDash__TTestUTDash2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak3(GetTriggerPlayer())
+                call UTDash__TTestUTDash3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak4(GetTriggerPlayer())
+                call UTDash__TTestUTDash4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak5(GetTriggerPlayer())
+                call UTDash__TTestUTDash5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak6(GetTriggerPlayer())
+                call UTDash__TTestUTDash6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak7(GetTriggerPlayer())
+                call UTDash__TTestUTDash7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak8(GetTriggerPlayer())
+                call UTDash__TTestUTDash8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak9(GetTriggerPlayer())
+                call UTDash__TTestUTDash9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTMemoryLeak__TTestUTMemoryLeak10(GetTriggerPlayer())
+                call UTDash__TTestUTDash10(GetTriggerPlayer())
             endif
         endfunction
-    function UTMemoryLeak__onInit takes nothing returns nothing
+    function UTDash__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTMemoryLeak__anon__0))
+        call TriggerAddCondition(tr, Condition(function UTDash__anon__3))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTMemoryLeak__anon__1)
+        call UnitTestRegisterChatEvent(function UTDash__anon__4)
     endfunction
 
-//library UTMemoryLeak ends
+//library UTDash ends
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
 //#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
@@ -716,8 +1002,7 @@ endfunction
 //***************************************************************************
 //===========================================================================
 function main takes nothing returns nothing
-    call initializeLua()
- call SetCameraBounds(- 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), - 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM))
+    call SetCameraBounds(- 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), - 13568.0 + GetCameraMargin(CAMERA_MARGIN_LEFT), 13312.0 - GetCameraMargin(CAMERA_MARGIN_TOP), 13568.0 - GetCameraMargin(CAMERA_MARGIN_RIGHT), - 13824.0 + GetCameraMargin(CAMERA_MARGIN_BOTTOM))
     call SetDayNightModels("Environment\\DNC\\DNCLordaeron\\DNCLordaeronTerrain\\DNCLordaeronTerrain.mdl", "Environment\\DNC\\DNCLordaeron\\DNCLordaeronUnit\\DNCLordaeronUnit.mdl")
     call NewSoundEnvironment("Default")
     call SetAmbientDaySound("NorthrendDay")
@@ -727,12 +1012,10 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs146286765")
+call ExecuteFunc("jasshelper__initstructs167420765")
 call ExecuteFunc("UnitTestFramwork__onInit")
-call ExecuteFunc("YDLua__onInit")
 call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
-call ExecuteFunc("MemoryLeak__onInit")
-call ExecuteFunc("UTMemoryLeak__onInit")
+call ExecuteFunc("UTDash__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -771,8 +1054,33 @@ endfunction
 
 //Struct method generated initializers/callers:
 
-function jasshelper__initstructs146286765 takes nothing returns nothing
+//Functions for BigArrays:
+function sa__dash_onDestroy takes nothing returns boolean
+local integer this=f__arg_this
+            local integer last
+            if ( s__dash_listIndex[this] != 0 ) then
+                set last=s__dash_size
+                if ( s__dash_listIndex[this] != last ) then
+                    set s__dash_DashLists[s__dash_listIndex[this]]=s__dash_DashLists[last]
+                    set s__dash_listIndex[s__dash_DashLists[s__dash_listIndex[this]]]=s__dash_listIndex[this]
+                endif
+                set s__dash_DashLists[last]=0
+                set s__dash_size=s__dash_size - 1
+                set s__dash_listIndex[this]=0
+            endif
+            set s__dash_dashPath[this]=null
+            set s__dash_dashName[this]=null
+   return true
+endfunction
+
+function jasshelper__initstructs167420765 takes nothing returns nothing
+    set st__dash_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__dash_onDestroy,Condition( function sa__dash_onDestroy))
 
 
+
+
+
+    call ExecuteFunc("s__dash_onInit")
 endfunction
 
