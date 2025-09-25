@@ -19,4 +19,7 @@
 //地图的最低攻击间隔(非特殊情况)
 #define MIN_ATTACK_INTERVAL 0.2
 
+//冲刺最大槽位数
+#define MAX_COUNT_DASH 10
+
 

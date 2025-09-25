@@ -4,8 +4,8 @@ constant boolean LIBRARY_Dash=true
 //endglobals from Dash
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork__TUnitTest=null
-hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
+trigger UnitTestFramwork___TUnitTest=null
+hashtable UnitTestFramwork___HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
 //globals from YDTriggerSaveLoadSystem:
 constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
@@ -44,21 +44,29 @@ constant integer si__dash=1
 integer si__dash_F=0
 integer si__dash_I=0
 integer array si__dash_V
-integer array s__dash_DashLists
+integer array s__dash_Lists
 integer s__dash_size=0
-integer array s__dash_id
-string array s__dash_dashName
-real array s__dash_dashMax
-real array s__dash_dashCool
-real array s__dash_dashSpeed
-string array s__dash_dashPath
-real array s__dash_dashCooldownRemain
+string array s__dash_name
+real array s__dash_max
+real array s__dash_cool
+real array s__dash_speed
+string array s__dash_path
+real array s__dash_cooldownRemain
 integer array s__dash_listIndex
-constant integer si__assert=4
-integer array s__s__dash_IDashID
-integer array s__s__dash_slots
+integer array s__dash_ownerPid1
+integer array s__dash_playerListIndex
+trigger s__dash_coolCallback=null
+trigger s__dash_changeCallback=null
+integer s__dash_dArgs=0
+player s__dash_pArgs=null
+constant integer si__assert=3
+integer array s__s__dash_playerLists
+integer array s__s__dash_playerSize
 trigger st__dash_onDestroy
+trigger st__dash_getOwner
+trigger st__dash_destroy
 integer f__arg_this
+player f__result_player
 
 endglobals
 
@@ -67,6 +75,13 @@ endglobals
 function sc__dash_onDestroy takes integer this returns nothing
     set f__arg_this=this
     call TriggerEvaluate(st__dash_onDestroy)
+endfunction
+
+//Generated method caller for dash.getOwner
+function sc__dash_getOwner takes integer this returns player
+    set f__arg_this=this
+    call TriggerEvaluate(st__dash_getOwner)
+ return f__result_player
 endfunction
 
 //Generated allocator of dash
@@ -103,41 +118,89 @@ function sc__dash_deallocate takes integer this returns nothing
 endfunction
 
 //library Dash:
-        function s__dash_isValidPlayer1 takes integer pid1 returns boolean
+        function s__dash_isExist takes integer this returns boolean
+            return ( this != null and si__dash_V[this] == - 1 )
+        endfunction
+        function s__dash_isValidPlayer takes integer pid1 returns boolean
             return pid1 >= 1 and pid1 <= 4
         endfunction
         function s__dash_isValidPos takes integer pos returns boolean
             return pos >= 1 and pos <= 10
         endfunction  // ===== 生命周期 =====
-        function s__dash_create takes integer id returns integer
-            local integer this=s__dash__allocate()
-            set s__dash_id[this]=id
-            set s__dash_dashName[this]=null
-            set s__dash_dashMax[this]=0.0
-            set s__dash_dashCool[this]=0.0
-            set s__dash_dashSpeed[this]=0.0
-            set s__dash_dashPath[this]=null
-            set s__dash_dashCooldownRemain[this]=0.0 // 加入全局列表
+        function s__dash_create takes player p returns integer
+            local integer pid1
+            local integer pos
+            local integer this
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer(pid1) ) ) then
+                return 0
+            endif
+            set this=s__dash__allocate()
+            set s__dash_name[this]=null
+            set s__dash_max[this]=0.0
+            set s__dash_cool[this]=0.0
+            set s__dash_speed[this]=0.0
+            set s__dash_path[this]=null
+            set s__dash_cooldownRemain[this]=0.0 // 加入全局列表
             set s__dash_size=s__dash_size + 1
-            set s__dash_DashLists[s__dash_size]=this
-            set s__dash_listIndex[this]=s__dash_size
+            set s__dash_Lists[s__dash_size]=this
+            set s__dash_listIndex[this]=s__dash_size // 加入玩家列表
+            set s__dash_ownerPid1[this]=pid1
+            set pos=s__s__dash_playerSize[pid1] + 1
+            if ( pos <= 10 ) then
+                set s__s__dash_playerLists[(pid1)*(10)+pos]= this
+                set s__s__dash_playerSize[pid1]= pos
+                set s__dash_playerListIndex[this]=pos
+            else // 若超出容量，撤销全局登记并返回空
+                set s__dash_Lists[s__dash_listIndex[this]]=0
+                set s__dash_size=s__dash_size - 1
+                set s__dash_listIndex[this]=0
+                call sc__dash_deallocate(this)
+                return 0
+            endif
+            if ( s__dash_changeCallback != null ) then
+                set s__dash_pArgs=p
+                call TriggerEvaluate(s__dash_changeCallback)
+            endif
             return this
-        endfunction  // 析构：从 DashLists 中移除
+        endfunction  // 析构：从 Lists 中移除
         function s__dash_onDestroy takes integer this returns nothing
             local integer last
+            local integer pid1
+            local integer plast
+            if ( not ( s__dash_isExist(this) ) ) then
+                return
+            endif
+            set s__dash_pArgs=sc__dash_getOwner(this)
             if ( s__dash_listIndex[this] != 0 ) then
                 set last=s__dash_size
                 if ( s__dash_listIndex[this] != last ) then
-                    set s__dash_DashLists[s__dash_listIndex[this]]=s__dash_DashLists[last]
-                    set s__dash_listIndex[s__dash_DashLists[s__dash_listIndex[this]]]=s__dash_listIndex[this]
+                    set s__dash_Lists[s__dash_listIndex[this]]=s__dash_Lists[last]
+                    set s__dash_listIndex[s__dash_Lists[s__dash_listIndex[this]]]=s__dash_listIndex[this]
                 endif
-                set s__dash_DashLists[last]=0
+                set s__dash_Lists[last]=0
                 set s__dash_size=s__dash_size - 1
                 set s__dash_listIndex[this]=0
+            endif // 从玩家列表移除
+            set pid1=s__dash_ownerPid1[this]
+            if ( s__dash_isValidPlayer(pid1) and s__dash_playerListIndex[this] != 0 ) then
+                set plast=s__s__dash_playerSize[pid1]
+                if ( s__dash_playerListIndex[this] != plast ) then
+                    set s__s__dash_playerLists[(pid1)*(10)+s__dash_playerListIndex[this]]= s__s__dash_playerLists[(pid1)*(10)+plast]
+                    set s__dash_playerListIndex[s__s__dash_playerLists[(pid1)*(10)+s__dash_playerListIndex[this]]]=s__dash_playerListIndex[this]
+                endif
+                set s__s__dash_playerLists[(pid1)*(10)+plast]= 0
+                set s__s__dash_playerSize[pid1]= plast - 1
+                set s__dash_playerListIndex[this]=0
+                set s__dash_ownerPid1[this]=0
             endif
-            set s__dash_dashPath[this]=null
-            set s__dash_dashName[this]=null
-        endfunction  // ===== 槽位查询 =====
+            set s__dash_path[this]=null
+            set s__dash_name[this]=null
+            if ( s__dash_changeCallback != null ) then
+                call TriggerEvaluate(s__dash_changeCallback)
+            endif
+            set s__dash_pArgs=null
+        endfunction  // ===== 实例配置接口 =====
 
 //Generated destructor of dash
 function s__dash_deallocate takes integer this returns nothing
@@ -152,207 +215,122 @@ function s__dash_deallocate takes integer this returns nothing
     set si__dash_V[this]=si__dash_F
     set si__dash_F=this
 endfunction
-        function s__dash_GetDashPos takes player p,integer id returns integer
-            local integer pid1
-            local integer pos
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
-                return 0
+        function s__dash_setConfig takes integer this,string name,real speed,real max,real cool,string path returns nothing
+            if ( not ( s__dash_isExist(this) ) ) then
+                return
             endif
-            set pos=1
-            loop
-            exitwhen ( pos > 10 )
-                if ( s__s__dash_IDashID[(pid1)*(10)+pos] == id ) then
-                    return pos
-                endif
-            set pos=pos + 1
-            endloop
-            return 0
+            set s__dash_name[this]=name
+            set s__dash_max[this]=max
+            set s__dash_speed[this]=speed
+            set s__dash_cool[this]=cool
+            set s__dash_path[this]=path
+        endfunction  // ===== 实例冷却接口 =====
+        function s__dash_isOnCooldown takes integer this returns boolean
+            return s__dash_cooldownRemain[this] > 0.0
         endfunction
-        function s__dash_GetEmptyDashPos takes player p returns integer
-            local integer pid1
-            local integer pos
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
-                return - 1
-            endif
-            set pos=1
-            loop
-            exitwhen ( pos > 10 )
-                if ( s__s__dash_IDashID[(pid1)*(10)+pos] == 0 ) then
-                    return pos
-                endif
-            set pos=pos + 1
-            endloop
-            return - 1
-        endfunction  // ===== 注册与移除 =====
-        function s__dash_AddDash takes player p,integer id returns nothing
-            local integer pid1
-            local integer pos
-            local integer inst
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then // 已存在则跳过
-                return
-            endif
-            set pos=s__dash_GetDashPos(p , id)
-            if ( pos != 0 ) then
-                return
-            endif
-            set pos=s__dash_GetEmptyDashPos(p)
-            if ( pos <= 0 ) then
-                return
-            endif
-            set inst=s__dash_create(id)
-            set s__s__dash_IDashID[(pid1)*(10)+pos]= id
-            set s__s__dash_slots[(pid1)*(10)+pos]= inst
-        endfunction  // 重要：外部配置写入接口
-        function s__dash_SetDashConfig takes player p,integer id,string name,real speed,real max,real cool,string path returns nothing
-            local integer pid1
-            local integer pos
-            local integer inst
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
-                return
-            endif
-            set pos=s__dash_GetDashPos(p , id)
-            if ( pos == 0 ) then
-                return
-            endif
-            set inst=s__s__dash_slots[(pid1)*(10)+pos]
-            if ( inst == 0 ) then
-                return
-            endif
-            set s__dash_dashName[inst]=name
-            set s__dash_dashMax[inst]=max
-            set s__dash_dashSpeed[inst]=speed
-            set s__dash_dashCool[inst]=cool
-            set s__dash_dashPath[inst]=path
-        endfunction  // 重要：外部移除接口
-        function s__dash_RemoveDash takes player p,integer id returns nothing
-            local integer pid1
-            local integer pos
-            local integer inst
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
-                return
-            endif
-            set pos=s__dash_GetDashPos(p , id)
-            if ( pos == 0 ) then
-                return
-            endif
-            set inst=s__s__dash_slots[(pid1)*(10)+pos]
-            set s__s__dash_IDashID[(pid1)*(10)+pos]= 0
-            set s__s__dash_slots[(pid1)*(10)+pos]= 0
-            if ( inst != 0 ) then
-                call s__dash_deallocate(inst)
-            endif
-        endfunction  // ===== 统计与查询 =====
-        function s__dash_GetAvailableDashCount takes player p returns integer
-            local integer pid1
-            local integer pos
-            local integer cnt
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
-                return 0
-            endif
-            set cnt=0
-            set pos=1
-            loop
-            exitwhen ( pos > 10 )
-                if ( s__s__dash_IDashID[(pid1)*(10)+pos] != 0 ) then
-                    set cnt=cnt + 1
-                endif
-            set pos=pos + 1
-            endloop
-            return cnt
-        endfunction  // 可用数量（剔除冷却中）
-        function s__dash_GetNormalDashCount takes player p returns integer
-            local integer pid1
-            local integer pos
-            local integer cnt
-            local integer inst
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
-                return 0
-            endif
-            set cnt=0
-            set pos=1
-            loop
-            exitwhen ( pos > 10 )
-                set inst=s__s__dash_slots[(pid1)*(10)+pos]
-                if ( inst != 0 and s__dash_dashCooldownRemain[inst] <= 0.0 ) then
-                    set cnt=cnt + 1
-                endif
-            set pos=pos + 1
-            endloop
-            return cnt
+        function s__dash_getCooldownRemaining takes integer this returns real
+            return s__dash_cooldownRemain[this]
         endfunction
-        function s__dash_IsDashOnCooldown takes player p,integer id returns boolean
-            local integer pid1
-            local integer pos
-            local integer inst
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
-                return false
-            endif
-            set pos=s__dash_GetDashPos(p , id)
-            if ( pos == 0 ) then
-                return false
-            endif
-            set inst=s__s__dash_slots[(pid1)*(10)+pos]
-            if ( inst == 0 ) then
-                return false
-            endif
-            return s__dash_dashCooldownRemain[inst] > 0.0
-        endfunction
-        function s__dash_GetDashCooldownRemaining takes player p,integer id returns real
-            local integer pid1
-            local integer pos
-            local integer inst
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
-                return 0.0
-            endif
-            set pos=s__dash_GetDashPos(p , id)
-            if ( pos == 0 ) then
-                return 0.0
-            endif
-            set inst=s__s__dash_slots[(pid1)*(10)+pos]
-            if ( inst == 0 ) then
-                return 0.0
-            endif
-            return s__dash_dashCooldownRemain[inst]
-        endfunction
-        function s__dash_SetDashCooldownRemaining takes player p,integer id,real value returns nothing
-            local integer pid1
-            local integer pos
-            local integer inst
-            local real v
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer1(pid1) ) ) then
-                return
-            endif
-            set pos=s__dash_GetDashPos(p , id)
-            if ( pos == 0 ) then
-                return
-            endif
-            set inst=s__s__dash_slots[(pid1)*(10)+pos]
-            if ( inst == 0 ) then
-                return
-            endif
-            set v=value
+        function s__dash_setCooldownRemaining takes integer this,real value returns nothing
+            local real v=value
             if ( v < 0.0 ) then
                 set v=0.0
             endif
-            set s__dash_dashCooldownRemain[inst]=v
-        endfunction  // ===== 常量查询 =====
-        function s__dash_GetDashMaxPlayers takes nothing returns integer
-            return 4
+            set s__dash_cooldownRemain[this]=v
+        endfunction  // ===== 玩家级查询（实例方法）=====
+        function s__dash_getOwnerPid1 takes integer this returns integer
+            return s__dash_ownerPid1[this]
         endfunction
-        function s__dash_GetDashMaxPerPlayer takes nothing returns integer
-            return 10
+        function s__dash_getOwner takes integer this returns player
+            if ( s__dash_ownerPid1[this] <= 0 ) then
+                return null
+            endif
+            return ConvertedPlayer(s__dash_ownerPid1[this])
         endfunction
+        function s__dash_getPlayerDashCount takes integer this returns integer
+            if ( s__dash_ownerPid1[this] <= 0 ) then
+                return 0
+            endif
+            return s__s__dash_playerSize[s__dash_ownerPid1[this]]
+        endfunction
+        function s__dash_getPlayerDashByIndex takes player p,integer pos returns integer
+            local integer pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer(pid1) ) ) then
+                return 0
+            endif
+            if ( not ( s__dash_isValidPos(pos) ) ) then
+                return 0
+            endif
+            return s__s__dash_playerLists[(pid1)*(10)+pos]
+        endfunction  // 获取玩家当前不在冷却中的 dash 数量
+        function s__dash_getPlayerAvailableDashCount takes player p returns integer
+            local integer pid1
+            local integer i
+            local integer count
+            local integer inst
+            set pid1=GetConvertedPlayerId(p)
+            if ( not ( s__dash_isValidPlayer(pid1) ) ) then
+                return 0
+            endif
+            set count=0
+            set i=1
+            loop
+            exitwhen ( i > s__s__dash_playerSize[pid1] )
+                set inst=s__s__dash_playerLists[(pid1)*(10)+i]
+                if ( inst != 0 and s__dash_isExist(inst) and not ( s__dash_isOnCooldown(inst) ) ) then
+                    set count=count + 1
+                endif
+            set i=i + 1
+            endloop
+            return count
+        endfunction  // ===== 冷却好了回调(dArgs参数) =====
+        function s__dash_registerCoolCallBack takes code func returns nothing
+            if ( s__dash_coolCallback == null ) then
+                set s__dash_coolCallback=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__dash_coolCallback, Condition(func))
+        endfunction
+        function s__dash_getCallbackDash takes nothing returns integer
+            return s__dash_dArgs
+        endfunction
+        function s__dash_registerChangeCallBack takes code func returns nothing
+            if ( s__dash_changeCallback == null ) then
+                set s__dash_changeCallback=CreateTrigger()
+            endif
+            call TriggerAddCondition(s__dash_changeCallback, Condition(func))
+        endfunction
+        function s__dash_getCallbackPlayer takes nothing returns player
+            return s__dash_pArgs
+        endfunction
+            function s__dash_anon__0 takes nothing returns nothing
+                local integer i
+                local integer this
+                local boolean isCall=false
+                if ( s__dash_size > 0 ) then
+                    set i=1 //从结论来说i就是.uID
+                    loop
+                    exitwhen ( i > s__dash_size )
+                        set this=s__dash_Lists[i]
+                        if ( s__dash_isExist(this) and s__dash_isOnCooldown(this) ) then
+                            set s__dash_cooldownRemain[this]=RMaxBJ(0, s__dash_cooldownRemain[this] - 0.2)
+                            if ( s__dash_cooldownRemain[this] <= 0 ) then
+                                set isCall=true
+                            endif
+                        endif
+                    set i=i + 1
+                    endloop
+                    if ( isCall ) then //触发回调
+                        if ( s__dash_coolCallback != null ) then
+                            set s__dash_dArgs=this
+                            call TriggerEvaluate(s__dash_coolCallback)
+                        endif
+                    endif
+                endif
+            endfunction
         function s__dash_onInit takes nothing returns nothing
+            local timer ti=CreateTimer()
+            call TimerStart(ti, 0.2, true, function s__dash_anon__0)
+            set ti=null
         endfunction
 
 //library Dash ends
@@ -398,27 +376,27 @@ endfunction
             endif
         endfunction
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
     endfunction  //指定开始时间与持续时间的定时器
-        function UnitTestFramwork__anon__0 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__0 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]开始------")
             call TriggerEvaluate(tr)
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
-        function UnitTestFramwork__anon__1 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork___anon__1 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call TriggerEvaluate(tr)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]结束------")
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
@@ -427,24 +405,24 @@ endfunction
         local trigger tr=CreateTrigger()
         call TriggerAddCondition(t, Condition(start))
         call TriggerRegisterTimerEvent(tr, time, false)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-        call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
         if ( end != null ) then
             set t=CreateTrigger()
             set tr=CreateTrigger()
             call TriggerAddCondition(t, Condition(end))
             call TriggerRegisterTimerEvent(tr, time + duration, false)
-            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
-            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
-            call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
-            call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__1))
+            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
+            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
+            call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
+            call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__1))
         endif
         set tr=null
         set t=null
     endfunction
-        function UnitTestFramwork__anon__2 takes nothing returns nothing
+        function UnitTestFramwork___anon__2 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -455,22 +433,22 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork__onInit takes nothing returns nothing
+    function UnitTestFramwork___onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.1, false)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__2))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__2))
         set tr=null
-        set UnitTestFramwork__TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
+        set UnitTestFramwork___TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
 //library YDTriggerSaveLoadSystem:
 //#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem__Init takes nothing returns nothing
+    function YDTriggerSaveLoadSystem___Init takes nothing returns nothing
             set YDHT=InitHashtable()
         set YDLOC=InitHashtable()
     endfunction
@@ -595,6 +573,7 @@ endfunction
 // 当前的平台分包
 // 原生UI的大小
 //地图的最低攻击间隔(非特殊情况)
+//冲刺最大槽位数
 
 //===========================================================================
 //
@@ -677,6 +656,7 @@ endfunction
 // 当前的平台分包
 // 原生UI的大小
 //地图的最低攻击间隔(非特殊情况)
+//冲刺最大槽位数
     // 单元测试
     // lua_print: 单元测试
 //这两条是用到YDWE函数就要导入的,没用到就不用导入
@@ -1012,9 +992,9 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs167420765")
-call ExecuteFunc("UnitTestFramwork__onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem__Init")
+call ExecuteFunc("jasshelper__initstructs195194578")
+call ExecuteFunc("UnitTestFramwork___onInit")
+call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
 call ExecuteFunc("UTDash__onInit")
 
     call InitGlobals()
@@ -1058,25 +1038,57 @@ endfunction
 function sa__dash_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
             local integer last
+            local integer pid1
+            local integer plast
+            if ( not ( s__dash_isExist(this) ) ) then
+return true
+            endif
+            set s__dash_pArgs=sc__dash_getOwner(this)
             if ( s__dash_listIndex[this] != 0 ) then
                 set last=s__dash_size
                 if ( s__dash_listIndex[this] != last ) then
-                    set s__dash_DashLists[s__dash_listIndex[this]]=s__dash_DashLists[last]
-                    set s__dash_listIndex[s__dash_DashLists[s__dash_listIndex[this]]]=s__dash_listIndex[this]
+                    set s__dash_Lists[s__dash_listIndex[this]]=s__dash_Lists[last]
+                    set s__dash_listIndex[s__dash_Lists[s__dash_listIndex[this]]]=s__dash_listIndex[this]
                 endif
-                set s__dash_DashLists[last]=0
+                set s__dash_Lists[last]=0
                 set s__dash_size=s__dash_size - 1
                 set s__dash_listIndex[this]=0
+            endif // 从玩家列表移除
+            set pid1=s__dash_ownerPid1[this]
+            if ( s__dash_isValidPlayer(pid1) and s__dash_playerListIndex[this] != 0 ) then
+                set plast=s__s__dash_playerSize[pid1]
+                if ( s__dash_playerListIndex[this] != plast ) then
+                    set s__s__dash_playerLists[(pid1)*(10)+s__dash_playerListIndex[this]]= s__s__dash_playerLists[(pid1)*(10)+plast]
+                    set s__dash_playerListIndex[s__s__dash_playerLists[(pid1)*(10)+s__dash_playerListIndex[this]]]=s__dash_playerListIndex[this]
+                endif
+                set s__s__dash_playerLists[(pid1)*(10)+plast]= 0
+                set s__s__dash_playerSize[pid1]= plast - 1
+                set s__dash_playerListIndex[this]=0
+                set s__dash_ownerPid1[this]=0
             endif
-            set s__dash_dashPath[this]=null
-            set s__dash_dashName[this]=null
+            set s__dash_path[this]=null
+            set s__dash_name[this]=null
+            if ( s__dash_changeCallback != null ) then
+                call TriggerEvaluate(s__dash_changeCallback)
+            endif
+            set s__dash_pArgs=null
+   return true
+endfunction
+function sa__dash_getOwner takes nothing returns boolean
+local integer this=f__arg_this
+            if ( s__dash_ownerPid1[this] <= 0 ) then
+set f__result_player= null
+return true
+            endif
+set f__result_player= ConvertedPlayer(s__dash_ownerPid1[this])
    return true
 endfunction
 
-function jasshelper__initstructs167420765 takes nothing returns nothing
+function jasshelper__initstructs195194578 takes nothing returns nothing
     set st__dash_onDestroy=CreateTrigger()
     call TriggerAddCondition(st__dash_onDestroy,Condition( function sa__dash_onDestroy))
-
+    set st__dash_getOwner=CreateTrigger()
+    call TriggerAddCondition(st__dash_getOwner,Condition( function sa__dash_getOwner))
 
 
 

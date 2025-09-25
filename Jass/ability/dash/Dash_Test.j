@@ -4,8 +4,6 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/ability/dash/Dash.j"
-
 //! zinc
 
 //自动生成的文件
@@ -22,7 +20,9 @@ library UTDash requires Dash {
 		},null);
 	}
 
-	function TTestUTDash1 (player p) {}
+	function TTestUTDash1 (player p) {
+		//dash.create
+	}
 	function TTestUTDash2 (player p) {}
 	function TTestUTDash3 (player p) {}
 	function TTestUTDash4 (player p) {}

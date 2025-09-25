@@ -21,6 +21,210 @@ endlibrary
 // 当前的平台分包
 // 原生UI的大小
 //地图的最低攻击间隔(非特殊情况)
+//冲刺最大槽位数
+//! zinc
+/*
+冲刺系统 - 数据与接口层
+说明：
+- 仅负责数据存储与查询，UI与具体冲刺实现不在本模块中。
+- 参考 @DashSystem.j 与 @DashSystemData.j 的数据形态进行抽离与统一。
+*/
+// 结构体共用方法定义
+//共享打印方法
+// UI组件内部共享方法及成员
+// UI组件依赖库
+// UI组件创建时共享调用
+// UI组件销毁时共享调用
+library Dash {
+    // 实例结构体：每个 dash 实例持有自身配置
+    public struct dash {
+        method isExist () -> boolean {return (this != null && si__dash_V[this] == -1);}
+        // ====== 全局索引，用于遍历所有 dash ======
+        public static thistype Lists[];
+        public static integer size = 0;
+        // ====== 每玩家列表（二维数组） ======
+        public static thistype playerLists [4][10];
+        public static integer playerSize [4];
+        // ====== 实例成员（配置与状态） ======
+        string name;
+        real max;
+        real cool;
+        real speed;
+        string path;
+        real cooldownRemain;
+        // 索引（方便 O(1) 从 Lists 中删除）
+        private integer listIndex;
+        // 归属玩家与其在玩家列表中的索引
+        private integer ownerPid1;
+        private integer playerListIndex;
+        private static trigger coolCallback = null; //回调触发器(参数dArgs)
+private static trigger changeCallback = null; //回调触发器(无参数)
+static thistype dArgs = 0;
+        static player pArgs = null;
+        // ===== 工具：边界 =====
+        private static method isValidPlayer(integer pid1) -> boolean {
+            return pid1 >= 1 && pid1 <= 4;
+        }
+        private static method isValidPos(integer pos) -> boolean {
+            return pos >= 1 && pos <= 10;
+        }
+        // ===== 生命周期 =====
+        public static method create (player p) -> thistype {
+            integer pid1; integer pos;
+            thistype this;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer(pid1)) { return 0; }
+            this = allocate();
+            this.name = null;
+            this.max = 0.0;
+            this.cool = 0.0;
+            this.speed = 0.0;
+            this.path = null;
+            this.cooldownRemain = 0.0;
+            // 加入全局列表
+            dash.size = dash.size + 1;
+            dash.Lists[dash.size] = this;
+            this.listIndex = dash.size;
+            // 加入玩家列表
+            this.ownerPid1 = pid1;
+            pos = dash.playerSize[pid1] + 1;
+            if (pos <= 10) {
+                dash.playerLists[pid1][pos] = this;
+                dash.playerSize[pid1] = pos;
+                this.playerListIndex = pos;
+            } else {
+                // 若超出容量，撤销全局登记并返回空
+                dash.Lists[this.listIndex] = 0;
+                dash.size = dash.size - 1;
+                this.listIndex = 0;
+                this.destroy();
+                return 0;
+            }
+            if (changeCallback != null) {
+                pArgs = p;
+                TriggerEvaluate(changeCallback);
+            }
+            return this;
+        }
+        method onDestroy () { // 析构：从 Lists 中移除
+integer last; integer pid1; integer plast;
+            if (!this.isExist()) {return;}
+            pArgs = this.getOwner();
+            if (this.listIndex != 0) {
+                last = dash.size;
+                if (this.listIndex != last) {
+                    dash.Lists[this.listIndex] = dash.Lists[last];
+                    dash.Lists[this.listIndex].listIndex = this.listIndex;
+                }
+                dash.Lists[last] = 0;
+                dash.size = dash.size - 1;
+                this.listIndex = 0;
+            }
+            // 从玩家列表移除
+            pid1 = this.ownerPid1;
+            if (dash.isValidPlayer(pid1) && this.playerListIndex != 0) {
+                plast = dash.playerSize[pid1];
+                if (this.playerListIndex != plast) {
+                    dash.playerLists[pid1][this.playerListIndex] = dash.playerLists[pid1][plast];
+                    dash.playerLists[pid1][this.playerListIndex].playerListIndex = this.playerListIndex;
+                }
+                dash.playerLists[pid1][plast] = 0;
+                dash.playerSize[pid1] = plast - 1;
+                this.playerListIndex = 0;
+                this.ownerPid1 = 0;
+            }
+            this.path = null;
+            this.name = null;
+            if (changeCallback != null) {
+                TriggerEvaluate(changeCallback);
+            }
+            pArgs = null;
+        }
+        // ===== 实例配置接口 =====
+        method setConfig(string name, real speed, real max, real cool, string path) {
+            if (!this.isExist()) {return;}
+            this.name = name;
+            this.max = max;
+            this.speed = speed;
+            this.cool = cool;
+            this.path = path;
+        }
+        // ===== 实例冷却接口 =====
+        method isOnCooldown() -> boolean { return this.cooldownRemain > 0.0; }
+        method getCooldownRemaining() -> real { return this.cooldownRemain; }
+        method setCooldownRemaining(real value) {
+            real v = value; if (v < 0.0) { v = 0.0; }
+            this.cooldownRemain = v;
+        }
+        // ===== 玩家级查询（实例方法）=====
+        method getOwnerPid1() -> integer { return this.ownerPid1; }
+        method getOwner() -> player { if (this.ownerPid1 <= 0) { return null; } return ConvertedPlayer(this.ownerPid1); }
+        method getPlayerDashCount() -> integer { if (this.ownerPid1 <= 0) { return 0; } return dash.playerSize[this.ownerPid1]; }
+        static method getPlayerDashByIndex(player p, integer pos) -> thistype {
+            integer pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer(pid1)) { return 0; }
+            if (!dash.isValidPos(pos)) { return 0; }
+            return dash.playerLists[pid1][pos];
+        }
+        // 获取玩家当前不在冷却中的 dash 数量
+        static method getPlayerAvailableDashCount(player p) -> integer {
+            integer pid1; integer i; integer count; thistype inst;
+            pid1 = GetConvertedPlayerId(p);
+            if (!dash.isValidPlayer(pid1)) { return 0; }
+            count = 0;
+            for (1 <= i <= dash.playerSize[pid1]) {
+                inst = dash.playerLists[pid1][i];
+                if (inst != 0 && inst.isExist() && !inst.isOnCooldown()) {
+                    count = count + 1;
+                }
+            }
+            return count;
+        }
+        // ===== 冷却好了回调(dArgs参数) =====
+        static method registerCoolCallBack(code func) {
+            if (coolCallback == null) {
+                coolCallback = CreateTrigger();
+            }
+            TriggerAddCondition(coolCallback, Condition(func));
+        }
+        static method getCallbackDash () -> thistype { return dArgs; }
+        // ===== 创建了新的 dash 或者销毁了 dash 回调(玩家参数) =====
+        static method registerChangeCallBack(code func) {
+            if (changeCallback == null) {
+                changeCallback = CreateTrigger();
+            }
+            TriggerAddCondition(changeCallback, Condition(func));
+        }
+        static method getCallbackPlayer () -> player { return pArgs; }
+        // ===== 初始化 =====
+        static method onInit() {
+            timer ti = CreateTimer();
+            TimerStart(ti, 0.2, true, function (){ //CD减少事件
+integer i; thistype this; boolean isCall = false;
+                if (size > 0) {
+                    for (1 <= i <= size) {
+                        this = Lists[i]; //从结论来说i就是.uID
+if (this.isExist() && this.isOnCooldown()) {
+                            this.cooldownRemain = RMaxBJ(0, this.cooldownRemain - 0.2);
+                            if (this.cooldownRemain <= 0) {
+                                isCall = true;
+                            }
+                        }
+                    }
+                    if (isCall) {
+                        //触发回调
+                        if (coolCallback != null) {
+                            dArgs = this;
+                            TriggerEvaluate(coolCallback);
+                        }
+                    }
+                }
+            });
+            ti = null;
+        }
+    }
+}
+//! endzinc
 /*
 单元测试框架(注入)
 */
@@ -259,6 +463,7 @@ endfunction
 // 当前的平台分包
 // 原生UI的大小
 //地图的最低攻击间隔(非特殊情况)
+//冲刺最大槽位数
     // 单元测试
     // lua_print: 单元测试
 //这两条是用到YDWE函数就要导入的,没用到就不用导入
@@ -266,202 +471,6 @@ endfunction
 // 用原始地图测试
 // 用空地图测试
 // 用原始地图测试
-//! zinc
-/*
-冲刺系统 - 数据与接口层
-说明：
-- 仅负责数据存储与查询，UI与具体冲刺实现不在本模块中。
-- 参考 @DashSystem.j 与 @DashSystemData.j 的数据形态进行抽离与统一。
-*/
-// 若外部未定义，则提供一个默认值；可按需在上层覆盖
-library Dash {
-    // 实例结构体：每个 dash 实例持有自身配置
-    public struct dash {
-        // ====== 全局索引，用于遍历所有 dash ======
-        public static thistype DashLists[];
-        public static integer size = 0;
-        // ====== 槽位映射（二维数组） ======
-        private static integer IDashID [4][10];
-        private static thistype slots [4][10];
-        // ====== 实例成员（配置与状态） ======
-        integer id; // 冲刺 id（在 create 中设置）
-string dashName;
-        real dashMax;
-        real dashCool;
-        real dashSpeed;
-        string dashPath;
-        real dashCooldownRemain;
-        // 索引（方便 O(1) 从 DashLists 中删除）
-        private integer listIndex;
-        // ===== 工具：边界 =====
-        private static method isValidPlayer1(integer pid1) -> boolean {
-            return pid1 >= 1 && pid1 <= 4;
-        }
-        private static method isValidPos(integer pos) -> boolean {
-            return pos >= 1 && pos <= 10;
-        }
-        // ===== 生命周期 =====
-        static method create (integer id) -> thistype {
-            thistype this = allocate();
-            this.id = id;
-            this.dashName = null;
-            this.dashMax = 0.0;
-            this.dashCool = 0.0;
-            this.dashSpeed = 0.0;
-            this.dashPath = null;
-            this.dashCooldownRemain = 0.0;
-            // 加入全局列表
-            dash.size = dash.size + 1;
-            dash.DashLists[dash.size] = this;
-            this.listIndex = dash.size;
-            return this;
-        }
-        method onDestroy () { // 析构：从 DashLists 中移除
-integer last;
-            if (this.listIndex != 0) {
-                last = dash.size;
-                if (this.listIndex != last) {
-                    dash.DashLists[this.listIndex] = dash.DashLists[last];
-                    dash.DashLists[this.listIndex].listIndex = this.listIndex;
-                }
-                dash.DashLists[last] = 0;
-                dash.size = dash.size - 1;
-                this.listIndex = 0;
-            }
-            this.dashPath = null;
-            this.dashName = null;
-        }
-        // ===== 槽位查询 =====
-        public static method GetDashPos(player p, integer id) -> integer {
-            integer pid1; integer pos;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return 0; }
-            for (1 <= pos <= 10) {
-                if (dash.IDashID[pid1][pos] == id) { return pos; }
-            }
-            return 0;
-        }
-        public static method GetEmptyDashPos(player p) -> integer {
-            integer pid1; integer pos;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return -1; }
-            for (1 <= pos <= 10) {
-                if (dash.IDashID[pid1][pos] == 0) { return pos; }
-            }
-            return -1;
-        }
-        // ===== 注册与移除 =====
-        public static method AddDash(player p, integer id) {
-            integer pid1; integer pos;
-            thistype inst;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return; }
-            // 已存在则跳过
-            pos = dash.GetDashPos(p, id);
-            if (pos != 0) { return; }
-            pos = dash.GetEmptyDashPos(p);
-            if (pos <= 0) { return; }
-            inst = dash.create(id);
-            dash.IDashID[pid1][pos] = id;
-            dash.slots[pid1][pos] = inst;
-        }
-        // 重要：外部配置写入接口
-        public static method SetDashConfig(player p, integer id, string name, real speed, real max, real cool, string path) {
-            integer pid1; integer pos;
-            thistype inst;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return; }
-            pos = dash.GetDashPos(p, id);
-            if (pos == 0) { return; }
-            inst = dash.slots[pid1][pos];
-            if (inst == 0) { return; }
-            inst.dashName = name;
-            inst.dashMax = max;
-            inst.dashSpeed = speed;
-            inst.dashCool = cool;
-            inst.dashPath = path;
-        }
-        // 重要：外部移除接口
-        public static method RemoveDash(player p, integer id) {
-            integer pid1; integer pos;
-            thistype inst;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return; }
-            pos = dash.GetDashPos(p, id);
-            if (pos == 0) { return; }
-            inst = dash.slots[pid1][pos];
-            dash.IDashID[pid1][pos] = 0;
-            dash.slots[pid1][pos] = 0;
-            if (inst != 0) {
-                inst.destroy();
-            }
-        }
-        // ===== 统计与查询 =====
-        // 已注册（含冷却中）数量
-        public static method GetAvailableDashCount(player p) -> integer {
-            integer pid1; integer pos; integer cnt;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return 0; }
-            cnt = 0;
-            for (1 <= pos <= 10) {
-                if (dash.IDashID[pid1][pos] != 0) { cnt = cnt + 1; }
-            }
-            return cnt;
-        }
-        // 可用数量（剔除冷却中）
-        public static method GetNormalDashCount(player p) -> integer {
-            integer pid1; integer pos; integer cnt;
-            thistype inst;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return 0; }
-            cnt = 0;
-            for (1 <= pos <= 10) {
-                inst = dash.slots[pid1][pos];
-                if (inst != 0 && inst.dashCooldownRemain <= 0.0) { cnt = cnt + 1; }
-            }
-            return cnt;
-        }
-        public static method IsDashOnCooldown(player p, integer id) -> boolean {
-            integer pid1; integer pos; thistype inst;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return false; }
-            pos = dash.GetDashPos(p, id);
-            if (pos == 0) { return false; }
-            inst = dash.slots[pid1][pos];
-            if (inst == 0) { return false; }
-            return inst.dashCooldownRemain > 0.0;
-        }
-        public static method GetDashCooldownRemaining(player p, integer id) -> real {
-            integer pid1; integer pos; thistype inst;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return 0.0; }
-            pos = dash.GetDashPos(p, id);
-            if (pos == 0) { return 0.0; }
-            inst = dash.slots[pid1][pos];
-            if (inst == 0) { return 0.0; }
-            return inst.dashCooldownRemain;
-        }
-        public static method SetDashCooldownRemaining(player p, integer id, real value) {
-            integer pid1; integer pos; thistype inst; real v;
-            pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer1(pid1)) { return; }
-            pos = dash.GetDashPos(p, id);
-            if (pos == 0) { return; }
-            inst = dash.slots[pid1][pos];
-            if (inst == 0) { return; }
-            v = value; if (v < 0.0) { v = 0.0; }
-            inst.dashCooldownRemain = v;
-        }
-        // ===== 常量查询 =====
-        public static method GetDashMaxPlayers() -> integer { return 4; }
-        public static method GetDashMaxPerPlayer() -> integer { return 10; }
-        // ===== 初始化 =====
-        static method onInit() {
-            // 留空：依赖于 Zinc 数组默认初始化（0/null）
-        }
-    }
-}
-//! endzinc
 //! zinc
 //自动生成的文件
 library UTDash requires Dash {
@@ -475,7 +484,9 @@ library UTDash requires Dash {
 			//assert.Boolean(true, "测试1");
 		},null);
 	}
-	function TTestUTDash1 (player p) {}
+	function TTestUTDash1 (player p) {
+		//dash.create
+	}
 	function TTestUTDash2 (player p) {}
 	function TTestUTDash3 (player p) {}
 	function TTestUTDash4 (player p) {}
