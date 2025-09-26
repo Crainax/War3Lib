@@ -13,17 +13,6 @@
 //*  Global Variables
 //*
 //***************************************************************************
-library_once YDTriggerSaveLoadSystem initializer Init
-//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-globals
-        hashtable YDHT
-    hashtable YDLOC
-endglobals
-    private function Init takes nothing returns nothing
-            set YDHT = InitHashtable()
-        set YDLOC = InitHashtable()
-    endfunction
-endlibrary
 globals
     // Generated
     rect gg_rct_Wave1 = null
@@ -122,7 +111,7 @@ endfunction
 // 用原始地图测试
 //! zinc
 //自动生成的文件
-library UTDash requires Dash {
+library UTAutoDifficulty requires AutoDifficulty {
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
@@ -133,19 +122,19 @@ library UTDash requires Dash {
 			//assert.Boolean(true, "测试1");
 		},null);
 	}
-	function TTestUTDash1 (player p) {
-		//dash.create
+	function TTestUTAutoDifficulty1 (player p) {
+		//RegisterAutoDifficulty
 	}
-	function TTestUTDash2 (player p) {}
-	function TTestUTDash3 (player p) {}
-	function TTestUTDash4 (player p) {}
-	function TTestUTDash5 (player p) {}
-	function TTestUTDash6 (player p) {}
-	function TTestUTDash7 (player p) {}
-	function TTestUTDash8 (player p) {}
-	function TTestUTDash9 (player p) {}
-	function TTestUTDash10 (player p) {}
-	function TTestActUTDash1 (string str) {
+	function TTestUTAutoDifficulty2 (player p) {}
+	function TTestUTAutoDifficulty3 (player p) {}
+	function TTestUTAutoDifficulty4 (player p) {}
+	function TTestUTAutoDifficulty5 (player p) {}
+	function TTestUTAutoDifficulty6 (player p) {}
+	function TTestUTAutoDifficulty7 (player p) {}
+	function TTestUTAutoDifficulty8 (player p) {}
+	function TTestUTAutoDifficulty9 (player p) {}
+	function TTestUTAutoDifficulty10 (player p) {}
+	function TTestActUTAutoDifficulty1 (string str) {
 		player p = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i, num = 0, len = StringLength(str); //获取范围式数字
@@ -177,7 +166,7 @@ for (0 <= i <= len - 1) {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[Dash] 单元测试已加载");
+			BJDebugMsg("[AutoDifficulty] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -186,19 +175,19 @@ for (0 <= i <= len - 1) {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTDash1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTAutoDifficulty1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTDash1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTDash2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTDash3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTDash4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTDash5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTDash6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTDash7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTDash8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTDash9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTDash10(GetTriggerPlayer());
+			if (str == "s1") TTestUTAutoDifficulty1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTAutoDifficulty2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTAutoDifficulty3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTAutoDifficulty4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTAutoDifficulty5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTAutoDifficulty6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTAutoDifficulty7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTAutoDifficulty8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTAutoDifficulty9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTAutoDifficulty10(GetTriggerPlayer());
 		});
 	}
 }

@@ -18,6 +18,13 @@
 #define KEY_ALT     18
 #define KEY_SHIFT   16
 #define KEY_TAB     9
+// 数字键1-6
+#define KEY_1       49
+#define KEY_2       50
+#define KEY_3       51
+#define KEY_4       52
+#define KEY_5       53
+#define KEY_6       54
 
 // 按键事件
 #define KEYBORAD_PRESSED 1

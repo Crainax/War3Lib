@@ -3,6 +3,8 @@ package.path = package.path .. ';' .. debug.getinfo(1, "S").source:match [[^@?(.
 --[[
  图像处理与BLP转换一体化脚本
 
+chcp 65001
+
  功能:
  1. 批量处理图片, 可同时生成多种版本 (常规, 被动, 失效)。
  2. 处理完成后, 可选择自动调用blplab_runner模块来修改配置并启动BLPLab。
@@ -12,7 +14,7 @@ package.path = package.path .. ';' .. debug.getinfo(1, "S").source:match [[^@?(.
 -- 1. 基础路径配置
 local paths = {
     -- [重要] 图标的基础目录, 也是传递给BLPLab的参数
-    icon_base_dir = "D:\\War3Asset\\Asset\\LoopingHell\\icon\\2\\",
+    icon_base_dir = "D:\\War3Asset\\Asset\\Xlimon\\mall\\icon\\",
 
     -- 各种叠加图片的路径
     btn           = "D:\\War3\\tools\\Image\\btn.png",
@@ -28,7 +30,7 @@ local blplab_config = {
 }
 
 -- 2. 图片尺寸配置
-local image_size = 128
+local image_size = 64
 
 -- 3. 生成开关
 local generate_flags = {

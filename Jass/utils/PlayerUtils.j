@@ -26,7 +26,7 @@ library PlayerUtils {
     //遍历所有玩家位置，返回第一个处于游戏中的真实玩家
     //返回值:
     //  player - 第一个真实玩家，如果没有则返回null
-    public function FirstPlayer() -> player {
+    public function GetFirstPlayer() -> player {
         integer i;
         for (1 <= i <= 12) {
             if ((GetPlayerSlotState(ConvertedPlayer(i)) == PLAYER_SLOT_STATE_PLAYING) &&

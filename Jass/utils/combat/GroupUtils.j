@@ -38,10 +38,20 @@ library GroupUtils requires UnitFilter {
         return tempG;
     }
 
+
     //获取圆形随机单位
     public function GetRandomEnemy (player p,real x,real y,real radius)  -> unit {
         return GroupPickRandomUnit(GetEnemyGroup(p,x,y,radius));
     }
+
+    //复制单位组
+    //复制g1进新组并返回
+    public function CopyGroup (group g1) -> group {
+        tempG = CreateGroup();
+        GroupAddGroup(g1, tempG);
+        return tempG;
+    }
+
 
 }
 

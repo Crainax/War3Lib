@@ -1,20 +1,19 @@
 globals
-//globals from Dash:
-constant boolean LIBRARY_Dash=true
-//endglobals from Dash
+//globals from AutoDifficulty:
+constant boolean LIBRARY_AutoDifficulty=true
+timer AutoDifficulty__TiAutoDiff=null
+timerdialog AutoDifficulty__TdAutoDiff=null
+boolean AutoDifficulty__isRegister=false
+trigger AutoDifficulty__TrAutoDiff=null
+//endglobals from AutoDifficulty
 //globals from UnitTestFramwork:
 constant boolean LIBRARY_UnitTestFramwork=true
-trigger UnitTestFramwork___TUnitTest=null
-hashtable UnitTestFramwork___HASH_UNITTEST=InitHashtable()
+trigger UnitTestFramwork__TUnitTest=null
+hashtable UnitTestFramwork__HASH_UNITTEST=InitHashtable()
 //endglobals from UnitTestFramwork
-//globals from YDTriggerSaveLoadSystem:
-constant boolean LIBRARY_YDTriggerSaveLoadSystem=true
-hashtable YDHT
-hashtable YDLOC
-//endglobals from YDTriggerSaveLoadSystem
-//globals from UTDash:
-constant boolean LIBRARY_UTDash=true
-//endglobals from UTDash
+//globals from UTAutoDifficulty:
+constant boolean LIBRARY_UTAutoDifficulty=true
+//endglobals from UTAutoDifficulty
     // Generated
 rect gg_rct_Wave1= null
 rect gg_rct_Wave2= null
@@ -40,300 +39,53 @@ unit gg_unit_hcas_0011= null
 trigger l__library_init
 
 //JASSHelper struct globals:
-constant integer si__dash=1
-integer si__dash_F=0
-integer si__dash_I=0
-integer array si__dash_V
-integer array s__dash_Lists
-integer s__dash_size=0
-string array s__dash_name
-real array s__dash_max
-real array s__dash_cool
-real array s__dash_speed
-string array s__dash_path
-real array s__dash_cooldownRemain
-integer array s__dash_listIndex
-integer array s__dash_ownerPid1
-integer array s__dash_playerListIndex
-trigger s__dash_coolCallback=null
-trigger s__dash_changeCallback=null
-integer s__dash_dArgs=0
-player s__dash_pArgs=null
-constant integer si__assert=3
-integer array s__s__dash_playerLists
-integer array s__s__dash_playerSize
-trigger st__dash_onDestroy
-trigger st__dash_getOwner
-trigger st__dash_destroy
-integer f__arg_this
-player f__result_player
+constant integer si__assert=1
 
 endglobals
 
 
-//Generated method caller for dash.onDestroy
-function sc__dash_onDestroy takes integer this returns nothing
-    set f__arg_this=this
-    call TriggerEvaluate(st__dash_onDestroy)
-endfunction
+//library AutoDifficulty:
+        function AutoDifficulty__anon__0 takes nothing returns nothing
+            local timer t=GetExpiredTimer()
+            if ( AutoDifficulty__TrAutoDiff != null ) then
+                call TriggerEvaluate(AutoDifficulty__TrAutoDiff)
+            endif
+            call PauseTimer(t)
+            call DestroyTimer(t)
+            call DestroyTimerDialog(AutoDifficulty__TdAutoDiff)
+            set AutoDifficulty__TdAutoDiff=null
+            set t=null
+        endfunction
+    function RegisterAutoDifficulty takes real time,string title,code func returns nothing
+        if ( AutoDifficulty__isRegister ) then
+            return
+        endif
+        set AutoDifficulty__isRegister=true
+        set AutoDifficulty__TiAutoDiff=CreateTimer()
+        set AutoDifficulty__TdAutoDiff=CreateTimerDialog(AutoDifficulty__TiAutoDiff)
+        call TimerDialogDisplay(AutoDifficulty__TdAutoDiff, true)
+        call TimerDialogSetTitle(AutoDifficulty__TdAutoDiff, title)
+        call TimerDialogSetSpeed(AutoDifficulty__TdAutoDiff, 1.0)
+        set AutoDifficulty__TrAutoDiff=CreateTrigger()
+        call TriggerAddCondition(AutoDifficulty__TrAutoDiff, Condition(func))
+        call TimerStart(AutoDifficulty__TiAutoDiff, time, true, function AutoDifficulty__anon__0)
+    endfunction  //结束自动选游戏难度的运行
+    function EndAutoDifficulty takes nothing returns nothing
+        if ( AutoDifficulty__TrAutoDiff != null ) then
+            call DestroyTrigger(AutoDifficulty__TrAutoDiff)
+            set AutoDifficulty__TrAutoDiff=null
+        endif
+        if ( AutoDifficulty__TiAutoDiff != null ) then
+            call DestroyTimer(AutoDifficulty__TiAutoDiff)
+            set AutoDifficulty__TiAutoDiff=null
+        endif
+        if ( AutoDifficulty__TdAutoDiff != null ) then
+            call DestroyTimerDialog(AutoDifficulty__TdAutoDiff)
+            set AutoDifficulty__TdAutoDiff=null
+        endif
+    endfunction
 
-//Generated method caller for dash.getOwner
-function sc__dash_getOwner takes integer this returns player
-    set f__arg_this=this
-    call TriggerEvaluate(st__dash_getOwner)
- return f__result_player
-endfunction
-
-//Generated allocator of dash
-function s__dash__allocate takes nothing returns integer
- local integer this=si__dash_F
-    if (this!=0) then
-        set si__dash_F=si__dash_V[this]
-    else
-        set si__dash_I=si__dash_I+1
-        set this=si__dash_I
-    endif
-    if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: dash")
-        return 0
-    endif
-
-    set si__dash_V[this]=-1
- return this
-endfunction
-
-//Generated destructor of dash
-function sc__dash_deallocate takes integer this returns nothing
-    if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: dash")
-        return
-    elseif (si__dash_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: dash")
-        return
-    endif
-    set f__arg_this=this
-    call TriggerEvaluate(st__dash_onDestroy)
-    set si__dash_V[this]=si__dash_F
-    set si__dash_F=this
-endfunction
-
-//library Dash:
-        function s__dash_isExist takes integer this returns boolean
-            return ( this != null and si__dash_V[this] == - 1 )
-        endfunction
-        function s__dash_isValidPlayer takes integer pid1 returns boolean
-            return pid1 >= 1 and pid1 <= 4
-        endfunction
-        function s__dash_isValidPos takes integer pos returns boolean
-            return pos >= 1 and pos <= 10
-        endfunction  // ===== 生命周期 =====
-        function s__dash_create takes player p returns integer
-            local integer pid1
-            local integer pos
-            local integer this
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer(pid1) ) ) then
-                return 0
-            endif
-            set this=s__dash__allocate()
-            set s__dash_name[this]=null
-            set s__dash_max[this]=0.0
-            set s__dash_cool[this]=0.0
-            set s__dash_speed[this]=0.0
-            set s__dash_path[this]=null
-            set s__dash_cooldownRemain[this]=0.0 // 加入全局列表
-            set s__dash_size=s__dash_size + 1
-            set s__dash_Lists[s__dash_size]=this
-            set s__dash_listIndex[this]=s__dash_size // 加入玩家列表
-            set s__dash_ownerPid1[this]=pid1
-            set pos=s__s__dash_playerSize[pid1] + 1
-            if ( pos <= 10 ) then
-                set s__s__dash_playerLists[(pid1)*(10)+pos]= this
-                set s__s__dash_playerSize[pid1]= pos
-                set s__dash_playerListIndex[this]=pos
-            else // 若超出容量，撤销全局登记并返回空
-                set s__dash_Lists[s__dash_listIndex[this]]=0
-                set s__dash_size=s__dash_size - 1
-                set s__dash_listIndex[this]=0
-                call sc__dash_deallocate(this)
-                return 0
-            endif
-            if ( s__dash_changeCallback != null ) then
-                set s__dash_pArgs=p
-                call TriggerEvaluate(s__dash_changeCallback)
-            endif
-            return this
-        endfunction  // 析构：从 Lists 中移除
-        function s__dash_onDestroy takes integer this returns nothing
-            local integer last
-            local integer pid1
-            local integer plast
-            if ( not ( s__dash_isExist(this) ) ) then
-                return
-            endif
-            set s__dash_pArgs=sc__dash_getOwner(this)
-            if ( s__dash_listIndex[this] != 0 ) then
-                set last=s__dash_size
-                if ( s__dash_listIndex[this] != last ) then
-                    set s__dash_Lists[s__dash_listIndex[this]]=s__dash_Lists[last]
-                    set s__dash_listIndex[s__dash_Lists[s__dash_listIndex[this]]]=s__dash_listIndex[this]
-                endif
-                set s__dash_Lists[last]=0
-                set s__dash_size=s__dash_size - 1
-                set s__dash_listIndex[this]=0
-            endif // 从玩家列表移除
-            set pid1=s__dash_ownerPid1[this]
-            if ( s__dash_isValidPlayer(pid1) and s__dash_playerListIndex[this] != 0 ) then
-                set plast=s__s__dash_playerSize[pid1]
-                if ( s__dash_playerListIndex[this] != plast ) then
-                    set s__s__dash_playerLists[(pid1)*(10)+s__dash_playerListIndex[this]]= s__s__dash_playerLists[(pid1)*(10)+plast]
-                    set s__dash_playerListIndex[s__s__dash_playerLists[(pid1)*(10)+s__dash_playerListIndex[this]]]=s__dash_playerListIndex[this]
-                endif
-                set s__s__dash_playerLists[(pid1)*(10)+plast]= 0
-                set s__s__dash_playerSize[pid1]= plast - 1
-                set s__dash_playerListIndex[this]=0
-                set s__dash_ownerPid1[this]=0
-            endif
-            set s__dash_path[this]=null
-            set s__dash_name[this]=null
-            if ( s__dash_changeCallback != null ) then
-                call TriggerEvaluate(s__dash_changeCallback)
-            endif
-            set s__dash_pArgs=null
-        endfunction  // ===== 实例配置接口 =====
-
-//Generated destructor of dash
-function s__dash_deallocate takes integer this returns nothing
-    if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: dash")
-        return
-    elseif (si__dash_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: dash")
-        return
-    endif
-    call s__dash_onDestroy(this)
-    set si__dash_V[this]=si__dash_F
-    set si__dash_F=this
-endfunction
-        function s__dash_setConfig takes integer this,string name,real speed,real max,real cool,string path returns nothing
-            if ( not ( s__dash_isExist(this) ) ) then
-                return
-            endif
-            set s__dash_name[this]=name
-            set s__dash_max[this]=max
-            set s__dash_speed[this]=speed
-            set s__dash_cool[this]=cool
-            set s__dash_path[this]=path
-        endfunction  // ===== 实例冷却接口 =====
-        function s__dash_isOnCooldown takes integer this returns boolean
-            return s__dash_cooldownRemain[this] > 0.0
-        endfunction
-        function s__dash_getCooldownRemaining takes integer this returns real
-            return s__dash_cooldownRemain[this]
-        endfunction
-        function s__dash_setCooldownRemaining takes integer this,real value returns nothing
-            local real v=value
-            if ( v < 0.0 ) then
-                set v=0.0
-            endif
-            set s__dash_cooldownRemain[this]=v
-        endfunction  // ===== 玩家级查询（实例方法）=====
-        function s__dash_getOwnerPid1 takes integer this returns integer
-            return s__dash_ownerPid1[this]
-        endfunction
-        function s__dash_getOwner takes integer this returns player
-            if ( s__dash_ownerPid1[this] <= 0 ) then
-                return null
-            endif
-            return ConvertedPlayer(s__dash_ownerPid1[this])
-        endfunction
-        function s__dash_getPlayerDashCount takes integer this returns integer
-            if ( s__dash_ownerPid1[this] <= 0 ) then
-                return 0
-            endif
-            return s__s__dash_playerSize[s__dash_ownerPid1[this]]
-        endfunction
-        function s__dash_getPlayerDashByIndex takes player p,integer pos returns integer
-            local integer pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer(pid1) ) ) then
-                return 0
-            endif
-            if ( not ( s__dash_isValidPos(pos) ) ) then
-                return 0
-            endif
-            return s__s__dash_playerLists[(pid1)*(10)+pos]
-        endfunction  // 获取玩家当前不在冷却中的 dash 数量
-        function s__dash_getPlayerAvailableDashCount takes player p returns integer
-            local integer pid1
-            local integer i
-            local integer count
-            local integer inst
-            set pid1=GetConvertedPlayerId(p)
-            if ( not ( s__dash_isValidPlayer(pid1) ) ) then
-                return 0
-            endif
-            set count=0
-            set i=1
-            loop
-            exitwhen ( i > s__s__dash_playerSize[pid1] )
-                set inst=s__s__dash_playerLists[(pid1)*(10)+i]
-                if ( inst != 0 and s__dash_isExist(inst) and not ( s__dash_isOnCooldown(inst) ) ) then
-                    set count=count + 1
-                endif
-            set i=i + 1
-            endloop
-            return count
-        endfunction  // ===== 冷却好了回调(dArgs参数) =====
-        function s__dash_registerCoolCallBack takes code func returns nothing
-            if ( s__dash_coolCallback == null ) then
-                set s__dash_coolCallback=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__dash_coolCallback, Condition(func))
-        endfunction
-        function s__dash_getCallbackDash takes nothing returns integer
-            return s__dash_dArgs
-        endfunction
-        function s__dash_registerChangeCallBack takes code func returns nothing
-            if ( s__dash_changeCallback == null ) then
-                set s__dash_changeCallback=CreateTrigger()
-            endif
-            call TriggerAddCondition(s__dash_changeCallback, Condition(func))
-        endfunction
-        function s__dash_getCallbackPlayer takes nothing returns player
-            return s__dash_pArgs
-        endfunction
-            function s__dash_anon__0 takes nothing returns nothing
-                local integer i
-                local integer this
-                local boolean isCall=false
-                if ( s__dash_size > 0 ) then
-                    set i=1 //从结论来说i就是.uID
-                    loop
-                    exitwhen ( i > s__dash_size )
-                        set this=s__dash_Lists[i]
-                        if ( s__dash_isExist(this) and s__dash_isOnCooldown(this) ) then
-                            set s__dash_cooldownRemain[this]=RMaxBJ(0, s__dash_cooldownRemain[this] - 0.2)
-                            if ( s__dash_cooldownRemain[this] <= 0 ) then
-                                set isCall=true
-                            endif
-                        endif
-                    set i=i + 1
-                    endloop
-                    if ( isCall ) then //触发回调
-                        if ( s__dash_coolCallback != null ) then
-                            set s__dash_dArgs=this
-                            call TriggerEvaluate(s__dash_coolCallback)
-                        endif
-                    endif
-                endif
-            endfunction
-        function s__dash_onInit takes nothing returns nothing
-            local timer ti=CreateTimer()
-            call TimerStart(ti, 0.2, true, function s__dash_anon__0)
-            set ti=null
-        endfunction
-
-//library Dash ends
+//library AutoDifficulty ends
 //library UnitTestFramwork:
 
         function s__assert_Boolean takes boolean condition,string name returns nothing
@@ -376,27 +128,27 @@ endfunction
             endif
         endfunction
     function UnitTestRegisterChatEvent takes code func returns nothing
-        call TriggerAddAction(UnitTestFramwork___TUnitTest, func)
+        call TriggerAddAction(UnitTestFramwork__TUnitTest, func)
     endfunction  //指定开始时间与持续时间的定时器
-        function UnitTestFramwork___anon__0 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork__anon__0 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]开始------")
             call TriggerEvaluate(tr)
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
-        function UnitTestFramwork___anon__1 takes nothing returns nothing
-            local real time=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
-            local real d=LoadReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
-            local trigger tr=LoadTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
+        function UnitTestFramwork__anon__1 takes nothing returns nothing
+            local real time=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 1)
+            local real d=LoadReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 2)
+            local trigger tr=LoadTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()), 3)
             call TriggerEvaluate(tr)
             call BJDebugMsg("-----[单测 " + R2SW(time, 0, 1) + " - " + R2SW(time + d, 0, 1) + " 秒]结束------")
             call DestroyTrigger(tr)
-            call FlushChildHashtable(UnitTestFramwork___HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
+            call FlushChildHashtable(UnitTestFramwork__HASH_UNITTEST, GetHandleId(GetTriggeringTrigger()))
             call DestroyTrigger(GetTriggeringTrigger())
             set tr=null
         endfunction
@@ -405,24 +157,24 @@ endfunction
         local trigger tr=CreateTrigger()
         call TriggerAddCondition(t, Condition(start))
         call TriggerRegisterTimerEvent(tr, time, false)
-        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
-        call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
-        call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__0))
+        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
+        call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
+        call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__0))
         if ( end != null ) then
             set t=CreateTrigger()
             set tr=CreateTrigger()
             call TriggerAddCondition(t, Condition(end))
             call TriggerRegisterTimerEvent(tr, time + duration, false)
-            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 1, time)
-            call SaveReal(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 2, duration)
-            call SaveTriggerHandle(UnitTestFramwork___HASH_UNITTEST, GetHandleId(tr), 3, t)
-            call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__1))
+            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 1, time)
+            call SaveReal(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 2, duration)
+            call SaveTriggerHandle(UnitTestFramwork__HASH_UNITTEST, GetHandleId(tr), 3, t)
+            call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__1))
         endif
         set tr=null
         set t=null
     endfunction
-        function UnitTestFramwork___anon__2 takes nothing returns nothing
+        function UnitTestFramwork__anon__2 takes nothing returns nothing
             local integer i
             set i=1
             loop
@@ -433,60 +185,52 @@ endfunction
             endloop
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-    function UnitTestFramwork___onInit takes nothing returns nothing
+    function UnitTestFramwork__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.1, false)
-        call TriggerAddCondition(tr, Condition(function UnitTestFramwork___anon__2))
+        call TriggerAddCondition(tr, Condition(function UnitTestFramwork__anon__2))
         set tr=null
-        set UnitTestFramwork___TUnitTest=CreateTrigger()
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(0), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(1), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(2), "", false)
-        call TriggerRegisterPlayerChatEvent(UnitTestFramwork___TUnitTest, Player(3), "", false)
+        set UnitTestFramwork__TUnitTest=CreateTrigger()
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(0), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(1), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(2), "", false)
+        call TriggerRegisterPlayerChatEvent(UnitTestFramwork__TUnitTest, Player(3), "", false)
     endfunction
 
 //library UnitTestFramwork ends
-//library YDTriggerSaveLoadSystem:
-//#  define YDTRIGGER_handle(SG)                          YDTRIGGER_HT##SG##(HashtableHandle)
-    function YDTriggerSaveLoadSystem___Init takes nothing returns nothing
-            set YDHT=InitHashtable()
-        set YDLOC=InitHashtable()
-    endfunction
+//library UTAutoDifficulty:
 
-//library YDTriggerSaveLoadSystem ends
-//library UTDash:
-
-        function UTDash__anon__0 takes nothing returns nothing
+        function UTAutoDifficulty__anon__0 takes nothing returns nothing
         endfunction  //end,这里是2秒后调用的内容
-        function UTDash__anon__1 takes nothing returns nothing
+        function UTAutoDifficulty__anon__1 takes nothing returns nothing
         endfunction
-        function UTDash__anon__2 takes nothing returns nothing
+        function UTAutoDifficulty__anon__2 takes nothing returns nothing
         endfunction
-    function UTDash__Init takes nothing returns nothing
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTDash__anon__0 , function UTDash__anon__1)
-        call UnitTestAutoTimer(0.1 , 2.0 , function UTDash__anon__2 , null)
+    function UTAutoDifficulty__Init takes nothing returns nothing
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTAutoDifficulty__anon__0 , function UTAutoDifficulty__anon__1)
+        call UnitTestAutoTimer(0.1 , 2.0 , function UTAutoDifficulty__anon__2 , null)
     endfunction
-    function UTDash__TTestUTDash1 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty1 takes player p returns nothing
     endfunction
-    function UTDash__TTestUTDash2 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty2 takes player p returns nothing
     endfunction
-    function UTDash__TTestUTDash3 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty3 takes player p returns nothing
     endfunction
-    function UTDash__TTestUTDash4 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty4 takes player p returns nothing
     endfunction
-    function UTDash__TTestUTDash5 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty5 takes player p returns nothing
     endfunction
-    function UTDash__TTestUTDash6 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty6 takes player p returns nothing
     endfunction
-    function UTDash__TTestUTDash7 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty7 takes player p returns nothing
     endfunction
-    function UTDash__TTestUTDash8 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty8 takes player p returns nothing
     endfunction
-    function UTDash__TTestUTDash9 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty9 takes player p returns nothing
     endfunction
-    function UTDash__TTestUTDash10 takes player p returns nothing
+    function UTAutoDifficulty__TTestUTAutoDifficulty10 takes player p returns nothing
     endfunction
-    function UTDash__TTestActUTDash1 takes string str returns nothing
+    function UTAutoDifficulty__TTestActUTAutoDifficulty1 takes string str returns nothing
         local player p=GetTriggerPlayer()
         local integer index=GetConvertedPlayerId(p)
         local integer i
@@ -518,49 +262,49 @@ endfunction
         endif
         set p=null
     endfunction
-        function UTDash__anon__3 takes nothing returns nothing
-            call BJDebugMsg("[Dash] 单元测试已加载")
-            call UTDash__Init()
+        function UTAutoDifficulty__anon__3 takes nothing returns nothing
+            call BJDebugMsg("[AutoDifficulty] 单元测试已加载")
+            call UTAutoDifficulty__Init()
             call DestroyTrigger(GetTriggeringTrigger())
         endfunction
-        function UTDash__anon__4 takes nothing returns nothing
+        function UTAutoDifficulty__anon__4 takes nothing returns nothing
             local string str=GetEventPlayerChatString()
             local integer i=1
             if ( SubString(str, ( 1 ) - 1, 1) == "-" ) then
-                call UTDash__TTestActUTDash1(SubString(str, ( 2 ) - 1, StringLength(str)))
+                call UTAutoDifficulty__TTestActUTAutoDifficulty1(SubString(str, ( 2 ) - 1, StringLength(str)))
                 return
             endif
             if ( str == "s1" ) then
-                call UTDash__TTestUTDash1(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty1(GetTriggerPlayer())
             elseif ( str == "s2" ) then
-                call UTDash__TTestUTDash2(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty2(GetTriggerPlayer())
             elseif ( str == "s3" ) then
-                call UTDash__TTestUTDash3(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty3(GetTriggerPlayer())
             elseif ( str == "s4" ) then
-                call UTDash__TTestUTDash4(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty4(GetTriggerPlayer())
             elseif ( str == "s5" ) then
-                call UTDash__TTestUTDash5(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty5(GetTriggerPlayer())
             elseif ( str == "s6" ) then
-                call UTDash__TTestUTDash6(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty6(GetTriggerPlayer())
             elseif ( str == "s7" ) then
-                call UTDash__TTestUTDash7(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty7(GetTriggerPlayer())
             elseif ( str == "s8" ) then
-                call UTDash__TTestUTDash8(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty8(GetTriggerPlayer())
             elseif ( str == "s9" ) then
-                call UTDash__TTestUTDash9(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty9(GetTriggerPlayer())
             elseif ( str == "s10" ) then
-                call UTDash__TTestUTDash10(GetTriggerPlayer())
+                call UTAutoDifficulty__TTestUTAutoDifficulty10(GetTriggerPlayer())
             endif
         endfunction
-    function UTDash__onInit takes nothing returns nothing
+    function UTAutoDifficulty__onInit takes nothing returns nothing
         local trigger tr=CreateTrigger()
         call TriggerRegisterTimerEvent(tr, 0.5, false)
-        call TriggerAddCondition(tr, Condition(function UTDash__anon__3))
+        call TriggerAddCondition(tr, Condition(function UTAutoDifficulty__anon__3))
         set tr=null
-        call UnitTestRegisterChatEvent(function UTDash__anon__4)
+        call UnitTestRegisterChatEvent(function UTAutoDifficulty__anon__4)
     endfunction
 
-//library UTDash ends
+//library UTAutoDifficulty ends
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerSelectionEventBJ.h>
 //#  include <YDTrigger/BJOptimization/detail/TriggerRegisterPlayerKeyEventBJ.h>
 //#  define TriggerRegisterPlayerUnitEventSimple(trig, p, e)                 TriggerRegisterPlayerUnitEvent(trig, p, e, null)
@@ -590,7 +334,6 @@ endfunction
 //*  Global Variables
 //*
 //***************************************************************************
-// redeclaration of library YDTriggerSaveLoadSystem skipped
 function InitGlobals takes nothing returns nothing
 endfunction
 //***************************************************************************
@@ -992,10 +735,9 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs195194578")
-call ExecuteFunc("UnitTestFramwork___onInit")
-call ExecuteFunc("YDTriggerSaveLoadSystem___Init")
-call ExecuteFunc("UTDash__onInit")
+call ExecuteFunc("jasshelper__initstructs166949109")
+call ExecuteFunc("UnitTestFramwork__onInit")
+call ExecuteFunc("UTAutoDifficulty__onInit")
 
     call InitGlobals()
     call InitCustomTriggers()
@@ -1034,65 +776,8 @@ endfunction
 
 //Struct method generated initializers/callers:
 
-//Functions for BigArrays:
-function sa__dash_onDestroy takes nothing returns boolean
-local integer this=f__arg_this
-            local integer last
-            local integer pid1
-            local integer plast
-            if ( not ( s__dash_isExist(this) ) ) then
-return true
-            endif
-            set s__dash_pArgs=sc__dash_getOwner(this)
-            if ( s__dash_listIndex[this] != 0 ) then
-                set last=s__dash_size
-                if ( s__dash_listIndex[this] != last ) then
-                    set s__dash_Lists[s__dash_listIndex[this]]=s__dash_Lists[last]
-                    set s__dash_listIndex[s__dash_Lists[s__dash_listIndex[this]]]=s__dash_listIndex[this]
-                endif
-                set s__dash_Lists[last]=0
-                set s__dash_size=s__dash_size - 1
-                set s__dash_listIndex[this]=0
-            endif // 从玩家列表移除
-            set pid1=s__dash_ownerPid1[this]
-            if ( s__dash_isValidPlayer(pid1) and s__dash_playerListIndex[this] != 0 ) then
-                set plast=s__s__dash_playerSize[pid1]
-                if ( s__dash_playerListIndex[this] != plast ) then
-                    set s__s__dash_playerLists[(pid1)*(10)+s__dash_playerListIndex[this]]= s__s__dash_playerLists[(pid1)*(10)+plast]
-                    set s__dash_playerListIndex[s__s__dash_playerLists[(pid1)*(10)+s__dash_playerListIndex[this]]]=s__dash_playerListIndex[this]
-                endif
-                set s__s__dash_playerLists[(pid1)*(10)+plast]= 0
-                set s__s__dash_playerSize[pid1]= plast - 1
-                set s__dash_playerListIndex[this]=0
-                set s__dash_ownerPid1[this]=0
-            endif
-            set s__dash_path[this]=null
-            set s__dash_name[this]=null
-            if ( s__dash_changeCallback != null ) then
-                call TriggerEvaluate(s__dash_changeCallback)
-            endif
-            set s__dash_pArgs=null
-   return true
-endfunction
-function sa__dash_getOwner takes nothing returns boolean
-local integer this=f__arg_this
-            if ( s__dash_ownerPid1[this] <= 0 ) then
-set f__result_player= null
-return true
-            endif
-set f__result_player= ConvertedPlayer(s__dash_ownerPid1[this])
-   return true
-endfunction
-
-function jasshelper__initstructs195194578 takes nothing returns nothing
-    set st__dash_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__dash_onDestroy,Condition( function sa__dash_onDestroy))
-    set st__dash_getOwner=CreateTrigger()
-    call TriggerAddCondition(st__dash_getOwner,Condition( function sa__dash_getOwner))
+function jasshelper__initstructs166949109 takes nothing returns nothing
 
 
-
-
-    call ExecuteFunc("s__dash_onInit")
 endfunction
 

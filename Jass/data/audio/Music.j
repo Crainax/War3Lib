@@ -31,6 +31,8 @@ library Music {
 
 		private sound snd;
 
+		optional module musicExtend;
+
 		//只给某个玩家播放
 		method playFor (player p) {
 			if (GetLocalPlayer() == p) {
