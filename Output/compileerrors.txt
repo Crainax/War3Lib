@@ -1,4 +1,4 @@
 logs\currentmapscript.j
-JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 297: Missing requirement: AutoDifficulty (libraries cannot require scopes)
+pjass.exe
+Line 127:  Cannot convert returned value from item to unit
 1
