@@ -448,8 +448,8 @@ Trace("第 " + I2S(reflectCount) + " 次反伤");
 				}
 			}
 			// 单体聚合（LS 栈）
-			if (LS_isActive(source)) {
-				LS_add(GetEventDamage());
+			if (SingleDamageLSIsActive(source)) {
+				SingleDamageLSAdd(GetEventDamage());
 				Trace("|cff00ff00吸血聚合|r - 来源: " + GetUnitName(source) + " 伤害: " + R2S(damage));
 			}
 			// AoE 聚合（DmgS 栈）

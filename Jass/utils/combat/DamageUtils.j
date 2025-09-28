@@ -17,13 +17,13 @@ library DamageUtils requires UnitFilter,GroupUtils {
     private unit    lsSource[];
     private real    lsTotal[];
 
-    public function LS_begin(unit src) {
+    private function LS_begin(unit src) {
         lsTop += 1;
         lsSource[lsTop] = src;
         lsTotal[lsTop] = 0.0;
     }
 
-    public function LS_end() -> real {
+    private function LS_end() -> real {
         real dealt;
         if (lsTop < 0) {
             return 0.0;
@@ -35,12 +35,12 @@ library DamageUtils requires UnitFilter,GroupUtils {
         return dealt;
     }
 
-    public function LS_isActive(unit src) -> boolean {
+    public function SingleDamageLSIsActive(unit src) -> boolean {
         if (lsTop < 0) return false;
         return lsSource[lsTop] == src;
     }
 
-    public function LS_add(real amount) {
+    public function SingleDamageLSAdd(real amount) {
         if (lsTop < 0) return;
         if (amount > 0.0) {
             lsTotal[lsTop] = lsTotal[lsTop] + amount;
