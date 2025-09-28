@@ -9,30 +9,13 @@
 */
 library DamageUtils requires UnitFilter,GroupUtils {
 
-    //旧名替换:DamageSingle
-    //单体伤害:物理
-    public function ApplyPhysicalDamage (unit u,unit target,real dmg) {
-        static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
-        UnitDamageTarget( u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
-    }
-
-    //单体伤害:魔法
-    public function ApplyMagicDamage (unit u,unit target,real dmg) {
-        static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
-        UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS );
-    }
-    //单体伤害:真实
-    public function ApplyPureDamage (unit u,unit target,real dmg) {
-        static if (LIBRARY_Damage) {dmgF.isBJ = bj;}
-        UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
-    }
 
     // --------------------
     // Lifesteal aggregation for single-hit (no new structs; lightweight stack)
     // --------------------
-    private static integer lsTop = -1;
-    private static unit    lsSource[];
-    private static real    lsTotal[];
+    private integer lsTop = -1;
+    private unit    lsSource[];
+    private real    lsTotal[];
 
     public function LS_begin(unit src) {
         lsTop += 1;
@@ -64,30 +47,67 @@ library DamageUtils requires UnitFilter,GroupUtils {
         }
     }
 
-    // LS variants for single-target damage (return final dealt; caller decides to lifesteal)
-    public function ApplyPhysicalDamageLS (unit u, unit target, real dmg) -> real {
+
+    //旧名替换:DamageSingle
+    //单体伤害:物理
+    public function ApplyPhysicalDamage (unit u,unit target,real dmg) {
         real dealt;
-        LS_begin(u);
-        ApplyPhysicalDamage(u, target, dmg);
-        dealt = LS_end();
-        return dealt;
+        // 检查是否需要吸血聚合
+        if (TrLifeSteal != null) {
+            LS_begin(u);
+            UnitDamageTarget( u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
+            dealt = LS_end();
+
+            //触发回调
+            uArgs = u; //回调参数
+            rArgs = dealt; //回调参数
+            TriggerEvaluate(TrLifeSteal);
+            uArgs = null;
+            rArgs = 0.;
+        } else {
+            UnitDamageTarget( u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
+        }
     }
 
-    public function ApplyMagicDamageLS (unit u, unit target, real dmg) -> real {
+    //单体伤害:魔法
+    public function ApplyMagicDamage (unit u,unit target,real dmg) {
         real dealt;
-        LS_begin(u);
-        ApplyMagicDamage(u, target, dmg);
-        dealt = LS_end();
-        return dealt;
+        // 检查是否需要吸血聚合
+        if (TrLifeSteal != null) {
+            LS_begin(u);
+            UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS );
+            dealt = LS_end();
+
+            //触发回调
+            uArgs = u; //回调参数
+            rArgs = dealt; //回调参数
+            TriggerEvaluate(TrLifeSteal);
+            uArgs = null;
+            rArgs = 0.;
+        } else {
+            UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS );
+        }
+    }
+    //单体伤害:真实
+    public function ApplyPureDamage (unit u,unit target,real dmg) {
+        real dealt;
+        // 检查是否需要吸血聚合
+        if (TrLifeSteal != null) {
+            LS_begin(u);
+            UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
+            dealt = LS_end();
+
+            //触发回调
+            uArgs = u; //回调参数
+            rArgs = dealt; //回调参数
+            TriggerEvaluate(TrLifeSteal);
+            uArgs = null;
+            rArgs = 0.;
+        } else {
+            UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
+        }
     }
 
-    public function ApplyPureDamageLS (unit u, unit target, real dmg) -> real {
-        real dealt;
-        LS_begin(u);
-        ApplyPureDamage(u, target, dmg);
-        dealt = LS_end();
-        return dealt;
-    }
 
     //模拟普攻(最后一个参数代表额外的终伤,0)
     public function SimulateBasicAttack (unit u,unit target,real fd) {
@@ -144,15 +164,17 @@ library DamageUtils requires UnitFilter,GroupUtils {
 
         // 是否存在可用的上下文，且开启了技能吸血聚合，并且来源匹配
         static method hasAggregation(unit src) -> boolean {
+            DmgP p;
             if (thistype.top < 0) return false;
-            DmgP p = thistype.stack[thistype.top];
+            p = thistype.stack[thistype.top];
             return p.enableLifestealAggregation && p.source == src;
         }
 
         // 聚合一次最终造成的伤害（由 DamageSystem 在事件最终阶段调用）
         static method aggregate(real amount) {
+            DmgP p;
             if (thistype.top < 0) return;
-            DmgP p = thistype.stack[thistype.top];
+            p = thistype.stack[thistype.top];
             if (p.enableLifestealAggregation && amount > 0) {
                 p.lifestealDealtTotal += amount;
                 thistype.stack[thistype.top] = p; // 写回（结构体为值语义）
@@ -162,12 +184,14 @@ library DamageUtils requires UnitFilter,GroupUtils {
 
     // 范围普通伤害
     public function DamageAreaPhysical (unit u, real x, real y, real radius, real damage, string efx) {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
+        group g; real dealt; DmgP params;
+
+        g = CreateGroup();
+        params = DmgP.create();
         params.source = u;
         params.eft = efx;
         params.damage = damage;
-        params.enableLifestealAggregation = false;
+        params.enableLifestealAggregation = (TrLifeSteal != null);
         params.lifestealDealtTotal = 0.0;
 
         DmgS.push(params);
@@ -185,19 +209,31 @@ library DamageUtils requires UnitFilter,GroupUtils {
         }));
 
         params = DmgS.pop();
-        params.destroy(); // 现在会真正释放实例，并调用 onDestroy
+        dealt = params.lifestealDealtTotal;
+        params.destroy();
         DestroyGroup(g);
         g = null;
+
+        // 如果有吸血回调且造成了伤害，触发回调
+        if (TrLifeSteal != null && dealt > 0.0) {
+            uArgs = u;
+            rArgs = dealt;
+            TriggerEvaluate(TrLifeSteal);
+            uArgs = null;
+            rArgs = 0.;
+        }
     }
 
     //范围魔法伤害
     public function DamageAreaMagic (unit u,real x,real y,real radius,real damage,string efx) {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
+        group g; real dealt; DmgP params;
+
+        g = CreateGroup();
+        params = DmgP.create();
         params.source = u;
         params.eft = efx;
         params.damage = damage;
-        params.enableLifestealAggregation = false;
+        params.enableLifestealAggregation = (TrLifeSteal != null);
         params.lifestealDealtTotal = 0.0;
 
         DmgS.push(params);
@@ -215,19 +251,31 @@ library DamageUtils requires UnitFilter,GroupUtils {
         }));
 
         params = DmgS.pop();
+        dealt = params.lifestealDealtTotal;
         params.destroy();
         DestroyGroup(g);
         g = null;
+
+        // 如果有吸血回调且造成了伤害，触发回调
+        if (TrLifeSteal != null && dealt > 0.0) {
+            uArgs = u;
+            rArgs = dealt;
+            TriggerEvaluate(TrLifeSteal);
+            uArgs = null;
+            rArgs = 0.;
+        }
     }
 
     //范围真实伤害
     public function DamageAreaPure (unit u,real x,real y,real radius,real damage,string efx) {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
+        group g; real dealt; DmgP params;
+
+        g = CreateGroup();
+        params = DmgP.create();
         params.source = u;
         params.eft = efx;
         params.damage = damage;
-        params.enableLifestealAggregation = false;
+        params.enableLifestealAggregation = (TrLifeSteal != null);
         params.lifestealDealtTotal = 0.0;
 
         DmgS.push(params);
@@ -245,20 +293,31 @@ library DamageUtils requires UnitFilter,GroupUtils {
         }));
 
         params = DmgS.pop();
+        dealt = params.lifestealDealtTotal;
         params.destroy();
         DestroyGroup(g);
         g = null;
+
+        // 如果有吸血回调且造成了伤害，触发回调
+        if (TrLifeSteal != null && dealt > 0.0) {
+            uArgs = u;
+            rArgs = dealt;
+            TriggerEvaluate(TrLifeSteal);
+            uArgs = null;
+            rArgs = 0.;
+        }
     }
 
     //范围秒杀
     public function DamageAreaKill (unit u,real x,real y,real radius,string efx) {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
+        group g; real dealt; DmgP params;
+
+        g = CreateGroup();
+        params = DmgP.create();
         params.source = u;
         params.eft = efx;
-        params.enableLifestealAggregation = false;
+        params.enableLifestealAggregation = (TrLifeSteal != null);
         params.lifestealDealtTotal = 0.0;
-
 
         DmgS.push(params);
 
@@ -275,83 +334,38 @@ library DamageUtils requires UnitFilter,GroupUtils {
         }));
 
         params = DmgS.pop();
+        dealt = params.lifestealDealtTotal;
         params.destroy();
         DestroyGroup(g);
         g = null;
-    }
 
-    // 带技能吸血聚合的一次性吸血版本（合并一次吸血，按最终造成伤害）
-    public function DamageAreaPhysicalLS (unit u, real x, real y, real radius, real damage, string efx) -> real {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
-        params.source = u;
-        params.eft = efx;
-        params.damage = damage;
-        params.enableLifestealAggregation = true;
-        params.lifestealDealtTotal = 0.0;
-
-        DmgS.push(params);
-
-        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
-            DmgP current = DmgS.current();
-            if (IsEnemy(GetFilterUnit(), GetOwningPlayer(current.source))) {
-                ApplyPhysicalDamage(current.source, GetFilterUnit(), current.damage);
-                if (current.eft != null) {
-                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())));
-                }
-                return true;
-            }
-            return false;
-        }));
-
-        params = DmgS.pop();
-        real dealt = params.lifestealDealtTotal;
-        params.destroy();
-        DestroyGroup(g);
-        g = null;
-        // 一次性吸血（仅当配置非零）
-        integer idx = GetConvertedPlayerId(GetOwningPlayer(u));
-        if (dealt > 0 && RXixueSpell[idx] != 0.0) {
-            Xixue(u, dealt * RXixueSpell[idx]);
+        // 如果有吸血回调且造成了伤害，触发回调
+        if (TrLifeSteal != null && dealt > 0.0) {
+            uArgs = u;
+            rArgs = dealt;
+            TriggerEvaluate(TrLifeSteal);
+            uArgs = null;
+            rArgs = 0.;
         }
-        return dealt;
     }
 
-    public function DamageAreaMagicLS (unit u, real x, real y, real radius, real damage, string efx) -> real {
-        group g = CreateGroup();
-        DmgP params = DmgP.create();
-        params.source = u;
-        params.eft = efx;
-        params.damage = damage;
-        params.enableLifestealAggregation = true;
-        params.lifestealDealtTotal = 0.0;
 
-        DmgS.push(params);
+    private trigger TrLifeSteal = null; //回调触发器
+    private unit uArgs = null; //回调参数
+    private real rArgs = 0.; //回调参数
 
-        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
-            DmgP current = DmgS.current();
-            if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source))) {
-                ApplyMagicDamage(current.source,GetFilterUnit(),current.damage);
-                if (current.eft != null) {
-                    DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
-                }
-                return true;
-            }
-            return false;
-        }));
-
-        params = DmgS.pop();
-        real dealt = params.lifestealDealtTotal;
-        params.destroy();
-        DestroyGroup(g);
-        g = null;
-        // 一次性吸血（仅当配置非零）
-        integer idx = GetConvertedPlayerId(GetOwningPlayer(u));
-        if (dealt > 0 && RXixueSpell[idx] != 0.0) {
-            Xixue(u, dealt * RXixueSpell[idx]);
+    //注册
+    public function RegisterDamageLifeSteal(code func) {
+        if (TrLifeSteal == null) {
+            TrLifeSteal = CreateTrigger();
         }
-        return dealt;
+        TriggerAddCondition(TrLifeSteal, Condition(func));
+
     }
+    //吸血的单位
+    public function GetDamageLifeStealUnit () -> unit { return uArgs;}
+    //吸血的数值
+    public function GetDamageLifeStealReal () -> real { return rArgs;}
 
 }
 

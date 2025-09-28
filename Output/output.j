@@ -46,6 +46,12 @@ boolean CameraControl__HeightLocked=false
 //endglobals from CameraControl
 //globals from DamageUtils:
 constant boolean LIBRARY_DamageUtils=true
+integer DamageUtils__lsTop=- 1
+unit array DamageUtils__lsSource
+real array DamageUtils__lsTotal
+trigger DamageUtils__TrLifeSteal=null
+unit DamageUtils__uArgs=null
+real DamageUtils__rArgs=0.
 //endglobals from DamageUtils
 //globals from UTDamageUtils:
 constant boolean LIBRARY_UTDamageUtils=true
@@ -97,17 +103,19 @@ constant integer si__cameraControl=4
 integer si__cameraControl_F=0
 integer si__cameraControl_I=0
 integer array si__cameraControl_V
-constant integer si__DamageUtils__DmgP=5
-integer si__DamageUtils__DmgP_F=0
-integer si__DamageUtils__DmgP_I=0
-integer array si__DamageUtils__DmgP_V
-unit array s__DamageUtils__DmgP_source
-string array s__DamageUtils__DmgP_eft
-real array s__DamageUtils__DmgP_damage
+constant integer si__DmgP=5
+integer si__DmgP_F=0
+integer si__DmgP_I=0
+integer array si__DmgP_V
+unit array s__DmgP_source
+string array s__DmgP_eft
+real array s__DmgP_damage
+boolean array s__DmgP_enableLifestealAggregation
+real array s__DmgP_lifestealDealtTotal
 constant integer si__DmgS=6
 integer array s__DmgS_stack
 integer s__DmgS_top=- 1
-trigger st__DamageUtils__DmgP_onDestroy
+trigger st__DmgP_onDestroy
 integer f__arg_this
 
 endglobals
@@ -249,42 +257,42 @@ endglobals
     native DzCreateCommandButton takes integer parent, string icon, string name, string desc returns integer
 
 
-//Generated method caller for DamageUtils__DmgP.onDestroy
-function sc__DamageUtils__DmgP_onDestroy takes integer this returns nothing
-            set s__DamageUtils__DmgP_source[this]=null // this.eft = null; // 可选
+//Generated method caller for DmgP.onDestroy
+function sc__DmgP_onDestroy takes integer this returns nothing
+            set s__DmgP_source[this]=null // this.eft = null; // 可选
 endfunction
 
-//Generated allocator of DamageUtils__DmgP
-function s__DamageUtils__DmgP__allocate takes nothing returns integer
- local integer this=si__DamageUtils__DmgP_F
+//Generated allocator of DmgP
+function s__DmgP__allocate takes nothing returns integer
+ local integer this=si__DmgP_F
     if (this!=0) then
-        set si__DamageUtils__DmgP_F=si__DamageUtils__DmgP_V[this]
+        set si__DmgP_F=si__DmgP_V[this]
     else
-        set si__DamageUtils__DmgP_I=si__DamageUtils__DmgP_I+1
-        set this=si__DamageUtils__DmgP_I
+        set si__DmgP_I=si__DmgP_I+1
+        set this=si__DmgP_I
     endif
     if (this>8190) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: DamageUtils__DmgP")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Unable to allocate id for an object of type: DmgP")
         return 0
     endif
 
-    set si__DamageUtils__DmgP_V[this]=-1
+    set si__DmgP_V[this]=-1
  return this
 endfunction
 
-//Generated destructor of DamageUtils__DmgP
-function sc__DamageUtils__DmgP_deallocate takes integer this returns nothing
+//Generated destructor of DmgP
+function sc__DmgP_deallocate takes integer this returns nothing
     if this==null then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: DamageUtils__DmgP")
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: DmgP")
         return
-    elseif (si__DamageUtils__DmgP_V[this]!=-1) then
-            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: DamageUtils__DmgP")
+    elseif (si__DmgP_V[this]!=-1) then
+            call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: DmgP")
         return
     endif
     set f__arg_this=this
-    call TriggerEvaluate(st__DamageUtils__DmgP_onDestroy)
-    set si__DamageUtils__DmgP_V[this]=si__DamageUtils__DmgP_F
-    set si__DamageUtils__DmgP_F=this
+    call TriggerEvaluate(st__DmgP_onDestroy)
+    set si__DmgP_V[this]=si__DmgP_F
+    set si__DmgP_F=this
 endfunction
 
 //Generated allocator of cameraControl
@@ -1103,43 +1111,100 @@ endfunction
 
 //library CameraControl ends
 //library DamageUtils:
+    function LS_begin takes unit src returns nothing
+        set DamageUtils__lsTop=DamageUtils__lsTop + 1
+        set DamageUtils__lsSource[DamageUtils__lsTop]=src
+        set DamageUtils__lsTotal[DamageUtils__lsTop]=0.0
+    endfunction
+    function LS_end takes nothing returns real
+        local real dealt
+        if ( DamageUtils__lsTop < 0 ) then
+            return 0.0
+        endif
+        set dealt=DamageUtils__lsTotal[DamageUtils__lsTop]
+        set DamageUtils__lsSource[DamageUtils__lsTop]=null
+        set DamageUtils__lsTotal[DamageUtils__lsTop]=0.0
+        set DamageUtils__lsTop=DamageUtils__lsTop - 1
+        return dealt
+    endfunction
+    function LS_isActive takes unit src returns boolean
+        if ( DamageUtils__lsTop < 0 ) then
+            return false
+        endif
+        return DamageUtils__lsSource[DamageUtils__lsTop] == src
+    endfunction
+    function LS_add takes real amount returns nothing
+        if ( DamageUtils__lsTop < 0 ) then
+            return
+        endif
+        if ( amount > 0.0 ) then
+            set DamageUtils__lsTotal[DamageUtils__lsTop]=DamageUtils__lsTotal[DamageUtils__lsTop] + amount
+        endif
+    endfunction  //旧名替换:DamageSingle
     function ApplyPhysicalDamage takes unit u,unit target,real dmg returns nothing
-//#         static if LIBRARY_Damage then
-//#             set dmgF.isBJ=bj
-//#         endif
-        call UnitDamageTarget(u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
+        local real dealt
+        if ( DamageUtils__TrLifeSteal != null ) then
+            call LS_begin(u)
+            call UnitDamageTarget(u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
+            set dealt=LS_end() //触发回调
+            set DamageUtils__uArgs=u //回调参数 //回调参数
+            set DamageUtils__rArgs=dealt
+            call TriggerEvaluate(DamageUtils__TrLifeSteal)
+            set DamageUtils__uArgs=null
+            set DamageUtils__rArgs=0.
+        else
+            call UnitDamageTarget(u, target, dmg, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
+        endif
     endfunction  //单体伤害:魔法
     function ApplyMagicDamage takes unit u,unit target,real dmg returns nothing
-//#         static if LIBRARY_Damage then
-//#             set dmgF.isBJ=bj
-//#         endif
-        call UnitDamageTarget(u, target, dmg, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS)
+        local real dealt
+        if ( DamageUtils__TrLifeSteal != null ) then
+            call LS_begin(u)
+            call UnitDamageTarget(u, target, dmg, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS)
+            set dealt=LS_end() //触发回调
+            set DamageUtils__uArgs=u //回调参数 //回调参数
+            set DamageUtils__rArgs=dealt
+            call TriggerEvaluate(DamageUtils__TrLifeSteal)
+            set DamageUtils__uArgs=null
+            set DamageUtils__rArgs=0.
+        else
+            call UnitDamageTarget(u, target, dmg, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS)
+        endif
     endfunction  //单体伤害:真实
     function ApplyPureDamage takes unit u,unit target,real dmg returns nothing
-//#         static if LIBRARY_Damage then
-//#             set dmgF.isBJ=bj
-//#         endif
-        call UnitDamageTarget(u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS)
+        local real dealt
+        if ( DamageUtils__TrLifeSteal != null ) then
+            call LS_begin(u)
+            call UnitDamageTarget(u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS)
+            set dealt=LS_end() //触发回调
+            set DamageUtils__uArgs=u //回调参数 //回调参数
+            set DamageUtils__rArgs=dealt
+            call TriggerEvaluate(DamageUtils__TrLifeSteal)
+            set DamageUtils__uArgs=null
+            set DamageUtils__rArgs=0.
+        else
+            call UnitDamageTarget(u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS)
+        endif
     endfunction  //模拟普攻(最后一个参数代表额外的终伤,0)
     function SimulateBasicAttack takes unit u,unit target,real fd returns nothing
         call UnitDamageTarget(u, target, GetUnitState(u, ConvertUnitState(0x12)) * ( 1.0 + fd ), true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS)
     endfunction  // 伤害参数结构体
-        function s__DamageUtils__DmgP_onDestroy takes integer this returns nothing
-            set s__DamageUtils__DmgP_source[this]=null // this.eft = null; // 可选
+        function s__DmgP_onDestroy takes integer this returns nothing
+            set s__DmgP_source[this]=null // this.eft = null; // 可选
         endfunction
 
-//Generated destructor of DamageUtils__DmgP
-function s__DamageUtils__DmgP_deallocate takes integer this returns nothing
+//Generated destructor of DmgP
+function s__DmgP_deallocate takes integer this returns nothing
     if this==null then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: DamageUtils__DmgP")
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Attempt to destroy a null struct of type: DmgP")
         return
-    elseif (si__DamageUtils__DmgP_V[this]!=-1) then
-        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: DamageUtils__DmgP")
+    elseif (si__DmgP_V[this]!=-1) then
+        call DisplayTimedTextToPlayer(GetLocalPlayer(),0,0,1000.,"Double free of type: DmgP")
         return
     endif
-    call s__DamageUtils__DmgP_onDestroy(this)
-    set si__DamageUtils__DmgP_V[this]=si__DamageUtils__DmgP_F
-    set si__DamageUtils__DmgP_F=this
+    call s__DmgP_onDestroy(this)
+    set si__DmgP_V[this]=si__DmgP_F
+    set si__DmgP_F=this
 endfunction
         function s__DmgS_push takes integer params returns nothing
             if ( s__DmgS_top >= 8190 ) then // 调试期提示或直接 return，避免越界
@@ -1161,101 +1226,184 @@ endfunction
         endfunction
         function s__DmgS_current takes nothing returns integer
             return s__DmgS_stack[s__DmgS_top]
+        endfunction  // 是否存在可用的上下文，且开启了技能吸血聚合，并且来源匹配
+        function s__DmgS_hasAggregation takes unit src returns boolean
+            local integer p
+            if ( s__DmgS_top < 0 ) then
+                return false
+            endif
+            set p=s__DmgS_stack[s__DmgS_top]
+            return s__DmgP_enableLifestealAggregation[p] and s__DmgP_source[p] == src
+        endfunction  // 聚合一次最终造成的伤害（由 DamageSystem 在事件最终阶段调用）
+        function s__DmgS_aggregate takes real amount returns nothing
+            local integer p
+            if ( s__DmgS_top < 0 ) then
+                return
+            endif
+            set p=s__DmgS_stack[s__DmgS_top]
+            if ( s__DmgP_enableLifestealAggregation[p] and amount > 0 ) then
+                set s__DmgP_lifestealDealtTotal[p]=s__DmgP_lifestealDealtTotal[p] + amount // 写回（结构体为值语义）
+                set s__DmgS_stack[s__DmgS_top]=p
+            endif
         endfunction
         function DamageUtils__anon__0 takes nothing returns boolean
             local integer current=s__DmgS_current()
-            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DamageUtils__DmgP_source[current])) ) then
-                call ApplyPhysicalDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current])
-                if ( s__DamageUtils__DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
+            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DmgP_source[current])) ) then
+                call ApplyPhysicalDamage(s__DmgP_source[current] , GetFilterUnit() , s__DmgP_damage[current])
+                if ( s__DmgP_eft[current] != null ) then
+                    call DestroyEffect(AddSpecialEffect(s__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
                 endif
                 return true
             endif
             return false
         endfunction
     function DamageAreaPhysical takes unit u,real x,real y,real radius,real damage,string efx returns nothing
-        local group g=CreateGroup()
-        local integer params=s__DamageUtils__DmgP__allocate()
-        set s__DamageUtils__DmgP_source[params]=u
-        set s__DamageUtils__DmgP_eft[params]=efx
-        set s__DamageUtils__DmgP_damage[params]=damage
+        local group g
+        local real dealt
+        local integer params
+        set g=CreateGroup()
+        set params=s__DmgP__allocate()
+        set s__DmgP_source[params]=u
+        set s__DmgP_eft[params]=efx
+        set s__DmgP_damage[params]=damage
+        set s__DmgP_enableLifestealAggregation[params]=( DamageUtils__TrLifeSteal != null )
+        set s__DmgP_lifestealDealtTotal[params]=0.0
         call s__DmgS_push(params)
         call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__0))
-        set params=s__DmgS_pop() // 现在会真正释放实例，并调用 onDestroy
-        call s__DamageUtils__DmgP_deallocate(params)
+        set params=s__DmgS_pop()
+        set dealt=s__DmgP_lifestealDealtTotal[params]
+        call s__DmgP_deallocate(params)
         call DestroyGroup(g)
-        set g=null
+        set g=null // 如果有吸血回调且造成了伤害，触发回调
+        if ( DamageUtils__TrLifeSteal != null and dealt > 0.0 ) then
+            set DamageUtils__uArgs=u
+            set DamageUtils__rArgs=dealt
+            call TriggerEvaluate(DamageUtils__TrLifeSteal)
+            set DamageUtils__uArgs=null
+            set DamageUtils__rArgs=0.
+        endif
     endfunction  //范围魔法伤害
         function DamageUtils__anon__1 takes nothing returns boolean
             local integer current=s__DmgS_current()
-            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DamageUtils__DmgP_source[current])) ) then
-                call ApplyMagicDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current])
-                if ( s__DamageUtils__DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
+            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DmgP_source[current])) ) then
+                call ApplyMagicDamage(s__DmgP_source[current] , GetFilterUnit() , s__DmgP_damage[current])
+                if ( s__DmgP_eft[current] != null ) then
+                    call DestroyEffect(AddSpecialEffect(s__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
                 endif
                 return true
             endif
             return false
         endfunction
     function DamageAreaMagic takes unit u,real x,real y,real radius,real damage,string efx returns nothing
-        local group g=CreateGroup()
-        local integer params=s__DamageUtils__DmgP__allocate()
-        set s__DamageUtils__DmgP_source[params]=u
-        set s__DamageUtils__DmgP_eft[params]=efx
-        set s__DamageUtils__DmgP_damage[params]=damage
+        local group g
+        local real dealt
+        local integer params
+        set g=CreateGroup()
+        set params=s__DmgP__allocate()
+        set s__DmgP_source[params]=u
+        set s__DmgP_eft[params]=efx
+        set s__DmgP_damage[params]=damage
+        set s__DmgP_enableLifestealAggregation[params]=( DamageUtils__TrLifeSteal != null )
+        set s__DmgP_lifestealDealtTotal[params]=0.0
         call s__DmgS_push(params)
         call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__1))
         set params=s__DmgS_pop()
-        call s__DamageUtils__DmgP_deallocate(params)
+        set dealt=s__DmgP_lifestealDealtTotal[params]
+        call s__DmgP_deallocate(params)
         call DestroyGroup(g)
-        set g=null
+        set g=null // 如果有吸血回调且造成了伤害，触发回调
+        if ( DamageUtils__TrLifeSteal != null and dealt > 0.0 ) then
+            set DamageUtils__uArgs=u
+            set DamageUtils__rArgs=dealt
+            call TriggerEvaluate(DamageUtils__TrLifeSteal)
+            set DamageUtils__uArgs=null
+            set DamageUtils__rArgs=0.
+        endif
     endfunction  //范围真实伤害
         function DamageUtils__anon__2 takes nothing returns boolean
             local integer current=s__DmgS_current()
-            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DamageUtils__DmgP_source[current])) ) then
-                call ApplyPureDamage(s__DamageUtils__DmgP_source[current] , GetFilterUnit() , s__DamageUtils__DmgP_damage[current])
-                if ( s__DamageUtils__DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
+            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DmgP_source[current])) ) then
+                call ApplyPureDamage(s__DmgP_source[current] , GetFilterUnit() , s__DmgP_damage[current])
+                if ( s__DmgP_eft[current] != null ) then
+                    call DestroyEffect(AddSpecialEffect(s__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
                 endif
                 return true
             endif
             return false
         endfunction
     function DamageAreaPure takes unit u,real x,real y,real radius,real damage,string efx returns nothing
-        local group g=CreateGroup()
-        local integer params=s__DamageUtils__DmgP__allocate()
-        set s__DamageUtils__DmgP_source[params]=u
-        set s__DamageUtils__DmgP_eft[params]=efx
-        set s__DamageUtils__DmgP_damage[params]=damage
+        local group g
+        local real dealt
+        local integer params
+        set g=CreateGroup()
+        set params=s__DmgP__allocate()
+        set s__DmgP_source[params]=u
+        set s__DmgP_eft[params]=efx
+        set s__DmgP_damage[params]=damage
+        set s__DmgP_enableLifestealAggregation[params]=( DamageUtils__TrLifeSteal != null )
+        set s__DmgP_lifestealDealtTotal[params]=0.0
         call s__DmgS_push(params)
         call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__2))
         set params=s__DmgS_pop()
-        call s__DamageUtils__DmgP_deallocate(params)
+        set dealt=s__DmgP_lifestealDealtTotal[params]
+        call s__DmgP_deallocate(params)
         call DestroyGroup(g)
-        set g=null
+        set g=null // 如果有吸血回调且造成了伤害，触发回调
+        if ( DamageUtils__TrLifeSteal != null and dealt > 0.0 ) then
+            set DamageUtils__uArgs=u
+            set DamageUtils__rArgs=dealt
+            call TriggerEvaluate(DamageUtils__TrLifeSteal)
+            set DamageUtils__uArgs=null
+            set DamageUtils__rArgs=0.
+        endif
     endfunction  //范围秒杀
         function DamageUtils__anon__3 takes nothing returns boolean
             local integer current=s__DmgS_current()
-            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DamageUtils__DmgP_source[current])) ) then
-                call UnitDamageTarget(s__DamageUtils__DmgP_source[current], GetFilterUnit(), GetUnitState(GetFilterUnit(), UNIT_STATE_MAX_LIFE) * 1.2, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS)
-                if ( s__DamageUtils__DmgP_eft[current] != null ) then
-                    call DestroyEffect(AddSpecialEffect(s__DamageUtils__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
+            if ( IsEnemy(GetFilterUnit() , GetOwningPlayer(s__DmgP_source[current])) ) then
+                call UnitDamageTarget(s__DmgP_source[current], GetFilterUnit(), GetUnitState(GetFilterUnit(), UNIT_STATE_MAX_LIFE) * 1.2, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS)
+                if ( s__DmgP_eft[current] != null ) then
+                    call DestroyEffect(AddSpecialEffect(s__DmgP_eft[current], GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())))
                 endif
                 return true
             endif
             return false
         endfunction
     function DamageAreaKill takes unit u,real x,real y,real radius,string efx returns nothing
-        local group g=CreateGroup()
-        local integer params=s__DamageUtils__DmgP__allocate()
-        set s__DamageUtils__DmgP_source[params]=u
-        set s__DamageUtils__DmgP_eft[params]=efx
+        local group g
+        local real dealt
+        local integer params
+        set g=CreateGroup()
+        set params=s__DmgP__allocate()
+        set s__DmgP_source[params]=u
+        set s__DmgP_eft[params]=efx
+        set s__DmgP_enableLifestealAggregation[params]=( DamageUtils__TrLifeSteal != null )
+        set s__DmgP_lifestealDealtTotal[params]=0.0
         call s__DmgS_push(params)
         call GroupEnumUnitsInRangeEx(g , x , y , radius , Filter(function DamageUtils__anon__3))
         set params=s__DmgS_pop()
-        call s__DamageUtils__DmgP_deallocate(params)
+        set dealt=s__DmgP_lifestealDealtTotal[params]
+        call s__DmgP_deallocate(params)
         call DestroyGroup(g)
-        set g=null
+        set g=null // 如果有吸血回调且造成了伤害，触发回调
+        if ( DamageUtils__TrLifeSteal != null and dealt > 0.0 ) then
+            set DamageUtils__uArgs=u
+            set DamageUtils__rArgs=dealt
+            call TriggerEvaluate(DamageUtils__TrLifeSteal)
+            set DamageUtils__uArgs=null
+            set DamageUtils__rArgs=0.
+        endif
+    endfunction  //回调触发器
+    function RegisterDamageLifeSteal takes code func returns nothing
+        if ( DamageUtils__TrLifeSteal == null ) then
+            set DamageUtils__TrLifeSteal=CreateTrigger()
+        endif
+        call TriggerAddCondition(DamageUtils__TrLifeSteal, Condition(func))
+    endfunction  //吸血的单位
+    function GetDamageLifeStealUnit takes nothing returns unit
+        return DamageUtils__uArgs
+    endfunction
+    function GetDamageLifeStealReal takes nothing returns real
+        return DamageUtils__rArgs
     endfunction
 
 //library DamageUtils ends
@@ -1465,21 +1613,6 @@ endfunction
 //地图的最低攻击间隔(非特殊情况)
 //冲刺最大槽位数
 
-// 0 - 1亿这里用
-// 锚点常量
-// 事件常量
-//鼠标点击事件
-//Index名:
-//默认原生图片路径
-//模板名
-//TEXT对齐常量:(uiText.setAlign)
-
-// 怪物掉落相关键值 (预留20个空间 1800-1819)
-// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
-// 怪物掉落数量键值
-// 单位技能相关键值 (预留200个空间 1800-1999)
-// 2400开始可继续添加新的键值定义...
-
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
 //---------技能数据类型---------------
@@ -1572,6 +1705,15 @@ endfunction
 //攻击2 武器类型
 //装甲类型
 
+// 0 - 1亿这里用
+// 锚点常量
+// 事件常量
+//鼠标点击事件
+//Index名:
+//默认原生图片路径
+//模板名
+//TEXT对齐常量:(uiText.setAlign)
+
 //魔兽版本 用GetGameVersion 来获取当前版本 来对比以下具体版本做出相应操作
 //-----------模拟聊天------------------
 //---------技能数据类型---------------
@@ -1624,6 +1766,12 @@ endfunction
 //攻击2 溅出半径
 //攻击2 武器类型
 //装甲类型
+
+// 怪物掉落相关键值 (预留20个空间 1800-1819)
+// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
+// 怪物掉落数量键值
+// 单位技能相关键值 (预留200个空间 1800-1999)
+// 2400开始可继续添加新的键值定义...
 
 //===========================================================================
 //
@@ -2041,7 +2189,7 @@ function main takes nothing returns nothing
     call CreateAllUnits()
     call InitBlizzard()
 
-call ExecuteFunc("jasshelper__initstructs11262031")
+call ExecuteFunc("jasshelper__initstructs37320031")
 call ExecuteFunc("UnitTestFramwork__onInit")
 call ExecuteFunc("YDLua__onInit")
 call ExecuteFunc("Logger__onInit")
@@ -2084,15 +2232,15 @@ endfunction
 
 
 //Struct method generated initializers/callers:
-function sa__DamageUtils__DmgP_onDestroy takes nothing returns boolean
+function sa__DmgP_onDestroy takes nothing returns boolean
 local integer this=f__arg_this
-            set s__DamageUtils__DmgP_source[this]=null // this.eft = null; // 可选
+            set s__DmgP_source[this]=null // this.eft = null; // 可选
    return true
 endfunction
 
-function jasshelper__initstructs11262031 takes nothing returns nothing
-    set st__DamageUtils__DmgP_onDestroy=CreateTrigger()
-    call TriggerAddCondition(st__DamageUtils__DmgP_onDestroy,Condition( function sa__DamageUtils__DmgP_onDestroy))
+function jasshelper__initstructs37320031 takes nothing returns nothing
+    set st__DmgP_onDestroy=CreateTrigger()
+    call TriggerAddCondition(st__DmgP_onDestroy,Condition( function sa__DmgP_onDestroy))
 
 
 

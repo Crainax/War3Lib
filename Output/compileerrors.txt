@@ -1,4 +1,10 @@
 logs\currentmapscript.j
 pjass.exe
-Line 127:  Cannot convert returned value from item to unit
-1
+Line 1154:  Cannot convert null to real
+Line 1169:  Cannot convert null to real
+Line 1184:  Cannot convert null to real
+Line 1283:  Cannot convert null to real
+Line 1320:  Cannot convert null to real
+Line 1357:  Cannot convert null to real
+Line 1393:  Cannot convert null to real
+7
