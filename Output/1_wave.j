@@ -119,6 +119,15 @@ s4 - 测试范围物理伤害
 s5 - 测试范围真实伤害
 s6 - 切换伤害数值显示
 s7 - 切换伤害反弹测试
+s8 - 测试范围秒杀
+s9 - 切换吸血回调测试
+s10 - 测试物理伤害(带吸血)
+s11 - 测试魔法伤害(带吸血)
+s12 - 测试真实伤害(带吸血)
+s13 - 测试范围物理伤害(带吸血)
+s14 - 测试范围魔法伤害(带吸血)
+s15 - 测试范围真实伤害(带吸血)
+s16 - 测试范围秒杀(带吸血)
 参数命令:
 -d [数值] - 设置伤害值
 -r [数值] - 设置范围值
@@ -134,6 +143,8 @@ private trigger damageEventTrigger = null;
 	private boolean isShowDamage = false;
 	private boolean isReflectDamage = false; // 反伤开关
 private integer reflectCount = 0; // 反伤计数器
+private boolean isLifestealEnabled = false; // 吸血回调开关
+private real totalLifesteal = 0.0; // 累计吸血量
 
 	// 创建测试环境
 	function CreateTestEnv(player p) {
@@ -233,6 +244,118 @@ Trace("|cff00ff00开启|r伤害反弹测试 - 受伤单位将反弹50%伤害(最
 			Trace("|cffff0000关闭|r伤害反弹测试");
 		}
 	}
+	// 测试范围秒杀
+	function TTestUTDamageUtils8(player p) {
+		CreateTestEnv(p);
+		Trace("测试范围秒杀: 范围 " + R2S(testRadius));
+		Trace("中心点有1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会被秒杀");
+		DamageAreaKill(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testEffect);
+	}
+	// 切换吸血回调测试
+	function TTestUTDamageUtils9(player p) {
+		isLifestealEnabled = !isLifestealEnabled;
+		if(isLifestealEnabled) {
+			totalLifesteal = 0.0;
+			Trace("|cff00ff00开启|r吸血回调测试 - 伤害后将按照实际伤害的30%进行回血");
+			// 注册吸血回调
+			RegisterDamageLifeSteal(function () -> boolean {
+				unit u; real damage; real heal;
+				u = GetDamageLifeStealUnit();
+				damage = GetDamageLifeStealReal();
+				heal = damage * 0.3; // 30%吸血率
+
+				if (u != null && heal > 0.0) {
+					SetUnitState(u, UNIT_STATE_LIFE, GetUnitState(u, UNIT_STATE_LIFE) + heal);
+					totalLifesteal += heal;
+					Trace("|cff00ff88吸血|r - " + GetUnitName(u) + " 造成伤害: " + R2S(damage) + ", 回血: " + R2S(heal) + ", 累计: " + R2S(totalLifesteal));
+				}
+				u = null;
+				return true;
+			});
+		} else {
+			Trace("|cffff0000关闭|r吸血回调测试");
+			// 注意: 这里不能取消注册，因为没有提供取消接口
+		}
+	}
+	// 测试物理伤害(带吸血)
+	function TTestUTDamageUtils10(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试物理伤害(带吸血): " + R2S(testDamage));
+		ApplyPhysicalDamage(testSource, testDummy, testDamage);
+	}
+	// 测试魔法伤害(带吸血)
+	function TTestUTDamageUtils11(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试魔法伤害(带吸血): " + R2S(testDamage));
+		ApplyMagicDamage(testSource, testDummy, testDamage);
+	}
+	// 测试真实伤害(带吸血)
+	function TTestUTDamageUtils12(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试真实伤害(带吸血): " + R2S(testDamage));
+		ApplyPureDamage(testSource, testDummy, testDamage);
+	}
+	// 测试范围物理伤害(带吸血)
+	function TTestUTDamageUtils13(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试范围物理伤害(带吸血): " + R2S(testDamage) + " 范围: " + R2S(testRadius));
+		Trace("中心点1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会受到伤害，并触发吸血回调");
+		DamageAreaPhysical(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testDamage, testEffect);
+	}
+	// 测试范围魔法伤害(带吸血)
+	function TTestUTDamageUtils14(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试范围魔法伤害(带吸血): " + R2S(testDamage) + " 范围: " + R2S(testRadius));
+		Trace("中心点1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会受到伤害，并触发吸血回调");
+		DamageAreaMagic(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testDamage, testEffect);
+	}
+	// 测试范围真实伤害(带吸血)
+	function TTestUTDamageUtils15(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试范围真实伤害(带吸血): " + R2S(testDamage) + " 范围: " + R2S(testRadius));
+		Trace("中心点1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会受到伤害，并触发吸血回调");
+		DamageAreaPure(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testDamage, testEffect);
+	}
+	// 测试范围秒杀(带吸血)
+	function TTestUTDamageUtils16(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试范围秒杀(带吸血): 范围 " + R2S(testRadius));
+		Trace("中心点1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会被秒杀，并按照实际伤害触发吸血回调");
+		DamageAreaKill(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testEffect);
+	}
 	// 处理参数设置命令
 	function TTestActUTDamageUtils1(string str) {
 		player p = GetTriggerPlayer();
@@ -276,14 +399,26 @@ real paramR[]; // 所有参数R
 		TriggerRegisterTimerEventSingle(tr, 0.5);
 		TriggerAddCondition(tr, Condition(function() {
 			Trace("|cff00ff00[DamageUtils测试]|r 输入以下命令进行测试:");
+			Trace("|cffaaaaaa=== 基础伤害测试 ===|r");
 			Trace("s1 - 测试物理伤害");
 			Trace("s2 - 测试真实伤害");
 			Trace("s3 - 测试模拟普攻");
 			Trace("s4 - 测试范围物理伤害");
 			Trace("s5 - 测试范围真实伤害");
+			Trace("s8 - 测试范围秒杀");
+			Trace("|cffaaaaaa=== 吸血相关测试 ===|r");
+			Trace("s9 - 切换吸血回调测试");
+			Trace("s10 - 测试物理伤害(带吸血)");
+			Trace("s11 - 测试魔法伤害(带吸血)");
+			Trace("s12 - 测试真实伤害(带吸血)");
+			Trace("s13 - 测试范围物理伤害(带吸血)");
+			Trace("s14 - 测试范围魔法伤害(带吸血)");
+			Trace("s15 - 测试范围真实伤害(带吸血)");
+			Trace("s16 - 测试范围秒杀(带吸血)");
+			Trace("|cffaaaaaa=== 其他测试 ===|r");
 			Trace("s6 - 切换伤害数值显示");
 			Trace("s7 - 切换伤害反弹测试");
-			Trace("参数设置:");
+			Trace("|cffaaaaaa=== 参数设置 ===|r");
 			Trace("-d [数值] - 设置伤害值");
 			Trace("-r [数值] - 设置范围值");
 			Trace("-e [路径] - 设置特效");
@@ -312,6 +447,16 @@ Trace("第 " + I2S(reflectCount) + " 次反伤");
 					Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(DmgS.current()));
 				}
 			}
+			// 单体聚合（LS 栈）
+			if (LS_isActive(source)) {
+				LS_add(GetEventDamage());
+				Trace("|cff00ff00吸血聚合|r - 来源: " + GetUnitName(source) + " 伤害: " + R2S(damage));
+			}
+			// AoE 聚合（DmgS 栈）
+			if (DmgS.hasAggregation(source)) {
+				DmgS.aggregate(GetEventDamage());
+				Trace("|cff00ff00范围伤害聚合|r - 来源: " + GetUnitName(source) + " 伤害: " + R2S(damage));
+			}
 		}));
 		// 注册聊天事件
 		UnitTestRegisterChatEvent(function() {
@@ -326,8 +471,17 @@ Trace("第 " + I2S(reflectCount) + " 次反伤");
 			else if(str == "s4") TTestUTDamageUtils4(GetTriggerPlayer());
 			else if(str == "s5") TTestUTDamageUtils5(GetTriggerPlayer());
 			else if(str == "s6") TTestUTDamageUtils6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTDamageUtils7(GetTriggerPlayer()); // 新增命令
-});
+			else if(str == "s7") TTestUTDamageUtils7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTDamageUtils8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTDamageUtils9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTDamageUtils10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTDamageUtils11(GetTriggerPlayer());
+			else if(str == "s12") TTestUTDamageUtils12(GetTriggerPlayer());
+			else if(str == "s13") TTestUTDamageUtils13(GetTriggerPlayer());
+			else if(str == "s14") TTestUTDamageUtils14(GetTriggerPlayer());
+			else if(str == "s15") TTestUTDamageUtils15(GetTriggerPlayer());
+			else if(str == "s16") TTestUTDamageUtils16(GetTriggerPlayer());
+		});
 		cameraControl.openWheel();
 	}
 	function onDestroy() {

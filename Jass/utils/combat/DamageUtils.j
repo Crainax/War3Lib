@@ -199,7 +199,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
             if (IsEnemy(GetFilterUnit(), GetOwningPlayer(current.source))) {
-                ApplyPhysicalDamage(current.source, GetFilterUnit(), current.damage);
+                UnitDamageTarget( current.source, GetFilterUnit(), current.damage, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())));
                 }
@@ -241,7 +241,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
             if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source))) {
-                ApplyMagicDamage(current.source,GetFilterUnit(),current.damage);
+                UnitDamageTarget( current.source, GetFilterUnit(), current.damage, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS );
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
                 }
@@ -283,7 +283,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
             if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source))) {
-                ApplyPureDamage(current.source,GetFilterUnit(),current.damage);
+                UnitDamageTarget( current.source, GetFilterUnit(), current.damage, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
                 }

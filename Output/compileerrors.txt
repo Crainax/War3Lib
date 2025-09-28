@@ -1,10 +1,4 @@
 logs\currentmapscript.j
-pjass.exe
-Line 1154:  Cannot convert null to real
-Line 1169:  Cannot convert null to real
-Line 1184:  Cannot convert null to real
-Line 1283:  Cannot convert null to real
-Line 1320:  Cannot convert null to real
-Line 1357:  Cannot convert null to real
-Line 1393:  Cannot convert null to real
-7
+JASSHelper - Step 2 (structs)
+Line 1460: DamageUtils is not of a type that allows . syntax
+1

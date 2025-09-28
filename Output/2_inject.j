@@ -4,645 +4,6 @@
 #include <YDTrigger/YDTrigger.h>
 #include "config/rewave.h"
 
-#ifndef UnitFilterIncluded
-#define UnitFilterIncluded
-
-//! zinc
-/*
-单位有关
-*/
-
-
-// 基础单位状态检查（生命值、存活状态）
-#ifdef DUMMY_UNIT_JUDGE_NOT
-#define IS_VALID_UNIT_BASIC(u) ( \
-GetUnitState(u, UNIT_STATE_LIFE) > 0.405 && \
-IsUnitAliveBJ(u) && \
-DUMMY_UNIT_JUDGE_NOT(u) \
-)
-#else
-#define IS_VALID_UNIT_BASIC(u) ( \
-GetUnitState(u, UNIT_STATE_LIFE) > 0.405 && \
-IsUnitAliveBJ(u) \
-)
-#endif
-
-// 敌对关系检查（不包含虚拟单位判断）
-#define IS_VALID_ENEMY_RELATION(p,u) ( \
-!IsUnitType(u, UNIT_TYPE_SLEEPING) && \
-!IsUnitType(u, UNIT_TYPE_STRUCTURE) && \
-!IsUnitHidden(u) && \
-IsUnitEnemy(u, p) && \
-IsUnitVisible(u, p) \
-)
-
-// 完整的敌方目标检查（合并两部分）
-#define IS_VALID_ENEMY_TARGET(p,u) ( \
-IS_VALID_UNIT_BASIC(u) && \
-IS_VALID_ENEMY_RELATION(p,u) \
-)
-
-library UnitFilter {
-
-    //判断是否是敌方(不带无敌)
-    public function IsEnemy (unit u,player p)  -> boolean {
-        return IS_VALID_ENEMY_TARGET(p,u) && GetUnitAbilityLevel(u, 'Avul') < 1;
-    }
-    //旧名：IsEnemy2
-    //判断是否是敌方(能匹配到无敌单位)
-    public function IsEnemyIncludeInvul (unit u,player p)  -> boolean {
-        return IS_VALID_ENEMY_TARGET(p,u);
-    }
-
-    //判断是否是敌方非魔法免疫单位
-    public function IsEnemyMagic (unit u,player p)  -> boolean {
-        return !IsUnitType(u, UNIT_TYPE_MAGIC_IMMUNE) && IsEnemy(u,p) && !IsUnitType(u, UNIT_TYPE_RESISTANT);
-    }
-
-    //判断是否是敌方(简化版本,只检查基础状态和敌对关系)
-    public function IsEnemyBasic(unit u, player p) -> boolean {
-        return IS_VALID_UNIT_BASIC(u) && IsUnitEnemy(u, p);
-    }
-
-    //判断是否是友方
-    public function IsAlly (unit u,player p)  -> boolean {
-        #ifdef DUMMY_UNIT_JUDGE_NOT
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p) && DUMMY_UNIT_JUDGE_NOT(u);
-        #else
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p);
-        #endif
-    }
-
-    //判断两个单位是否互为敌人(不带无敌)
-    //第一个参数是要受伤/中招的单位,第二个参数是锚定单位(施法者)
-    public function IsEnemyUnit(unit target, unit caster) -> boolean {
-        return IsEnemy(target,GetOwningPlayer(caster));
-    }
-
-    //判断两个单位是否互为队友(不带无敌)
-    public function IsAllyUnit(unit target, unit caster) -> boolean {
-        return IsAlly(target,GetOwningPlayer(caster));
-    }
-
-    //判断两个单位是否互为敌人(简化版本,只检查基础状态和敌对关系)
-    public function IsEnemyBasicUnit(unit target, unit caster) -> boolean {
-        return IS_VALID_UNIT_BASIC(target) && IsUnitEnemy(target, GetOwningPlayer(caster));
-    }
-
-    //判断是否是敌方非魔法免疫单位(双单位参数版)
-    public function IsEnemyMagicUnit(unit target, unit caster) -> boolean {
-        return IsEnemyMagic(target, GetOwningPlayer(caster));
-    }
-
-
-    // //判断单位是否属于指定常见种族或中立阵营
-    // // 人族/兽族/不死/精灵 以及 中立敌对/中立中立
-    // // 注意：当传入目标并非单位（例如对可破坏物 'DTrc' 使用 GetSpellTargetUnit()）时，u 可能为 null，返回 false
-    // public function IsUnitRaceOK (unit u)  -> boolean {
-    //     race r; player o;
-    //     if (u == null) return false;
-
-    //     r = GetUnitRace(u);
-    //     if (r == RACE_HUMAN) return true;      // 人族
-    //     if (r == RACE_ORC) return true;        // 兽族
-    //     if (r == RACE_UNDEAD) return true;     // 不死
-    //     if (r == RACE_NIGHTELF) return true;   // 精灵
-
-    //     // 娜迦单位在实际地图中多归属中立敌对/中立中立，这里通过中立所属判断覆盖
-    //     o = GetOwningPlayer(u);
-    //     if (o == Player(PLAYER_NEUTRAL_AGGRESSIVE)) return true; // 中立敌对
-    //     if (o == Player(PLAYER_NEUTRAL_PASSIVE))    return true; // 中立中立
-
-    //     return false;
-    // }
-
-}
-
-//! endzinc
-#endif
-
-
-
-
-#ifndef UnitUtilsIncluded
-#define UnitUtilsIncluded
-
-#include "Crainax/core/constant/UNDefine.j" //constant可以直接加进去没问题
-#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
-
-//! zinc
-/*
-单位有关的增强功能
-*/
-library UnitUtils {
-
-    public struct unitAttrObserver [] {
-
-        public static unit argsU = null;
-        public static trigger attackIntervalCB = null;
-
-        //攻击间隔的观察者事件注册
-        public static method registerAttackInterval (code func) {
-            if (attackIntervalCB == null) {
-                attackIntervalCB = CreateTrigger();
-            }
-            TriggerAddCondition(attackIntervalCB, Condition(func));
-        }
-
-    }
-
-    //获取单位的攻击力/防御/生命/魔法值
-    public function GetUnitAttack(unit u) -> integer {
-        return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
-    }
-
-    public function GetUnitDefense(unit u) -> integer {
-        return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR)));
-    }
-
-    public function GetUnitHP(unit u) -> real {
-        return GetUnitState(u,UNIT_STATE_MAX_LIFE);
-    }
-
-    public function GetUnitMP(unit u) -> real {
-        return GetUnitState(u,UNIT_STATE_MAX_MANA);
-    }
-
-    //设置攻击力
-    public function SetUnitAttack(unit u, real attack) -> nothing {
-        SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE),attack);
-    }
-    //增加攻击力
-    public function AddUnitAttack(unit u, real attack) -> nothing {
-        SetUnitAttack(u,GetUnitAttack(u) + attack);
-    }
-
-    //设置防御
-    public function SetUnitDefense(unit u, real defense) -> nothing {
-        SetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR),defense);
-    }
-    //增加防御
-    public function AddUnitDefense(unit u, real defense) -> nothing {
-        SetUnitDefense(u,GetUnitDefense(u)+defense);
-    }
-
-    //修改生命最大值
-    public function SetUnitHP(unit u, real hp) -> nothing {
-        SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,2.0));
-    }
-    //增加生命最大值
-    public function AddUnitHP(unit u,real hp ) {
-        SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
-        if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
-    }
-    //回血(定值)
-    public function RegenUnitHP(unit u, real volume) -> nothing {
-        SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+volume);
-    }
-    //回蓝(百分比)
-    public function RegenUnitHPPercent(unit u, real rate) -> nothing {
-        SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate);
-    }
-
-    //设置魔法最大值
-    public function SetUnitMP(unit u, real mp) -> nothing {
-        SetUnitState(u,UNIT_STATE_MAX_MANA,mp);
-    }
-    //增加魔法最大值
-    public function AddUnitMP(unit u,real mp ) {
-        SetUnitMP(u,GetUnitMP(u)+mp);
-        if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
-    }
-    //回蓝(定值)
-    public function RegenUnitMP(unit u, real volume) -> nothing {
-        SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+volume);
-    }
-    //回蓝(百分比)
-    public function RegenUnitMPPercent(unit u, real rate) -> nothing {
-        SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate);
-    }
-
-    // 获取移速
-    public function GetUnitSpeed (unit u)  -> integer {
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            return LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
-        }
-        else {return R2I(GetUnitMoveSpeed(u));}
-    }
-    //todo: 这个UNTable其他地图需要兼容
-    // 增加移速
-    public function AddUnitSpeed (unit u,integer speed) {
-        integer value;
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            value  = LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
-            value += speed;
-            SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
-        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
-		SetUnitMoveSpeed(u,value);
-    }
-    // 初始化突破移速
-    public function InitUnitSpeed (unit u) {
-        SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,R2I(GetUnitMoveSpeed(u)));
-    }
-
-    //射程(还会+警戒范围)
-    public function GetUnitAttackRange(unit u) -> real {
-        return GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE));
-    }
-    //设置射程(还会设置警戒范围)
-    public function SetUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),range);
-		SetUnitAcquireRange(u,RMaxBJ(range,900.0));
-    }
-    //增加射程(还会+警戒范围)
-	public function AddUnitAttackRange (unit u,real range) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),GetUnitAttackRange(u) + range);
-		SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0));
-    }
-
-    // 获取攻速
-    public function GetUnitAttackSpeed(unit u) -> real {
-        return GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE));
-    }
-    // 增加攻速
-	public function AddUnitAttackSpeed (unit u,real speed) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE)) + speed);
-	}
-
-    // (获取缓存的攻击间隔(可能为负))
-    public function GetUnitAttackIntervalCache(unit u) -> real {
-        return LoadReal(HASH_UNIT,GetHandleId(u),KEY_UNIT_ATTACK_INTERVAL_CACHE);
-    }
-
-    // (获取单位的攻击间隔,不会小于0.1)
-    public function GetUnitAttackInterval(unit u) -> real {
-        return GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL));
-    }
-
-    // 攻击间隔(虽然写着加,但是实际是减) - 带最小值与观察者
-	public function AddAttackInterval (unit u,real value) {
-        real cacheValue; real newValue; integer uid;
-
-        uid = GetHandleId(u);
-
-        // 检查是否已初始化缓存
-        if (!HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE)) {
-            // 如果没有初始化，先保存当前攻击间隔到缓存
-            SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE, GetUnitAttackInterval(u));
-        }
-
-        // 获取当前缓存值并添加新值
-        cacheValue = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE);
-        cacheValue += value;
-
-        // 更新缓存
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE, cacheValue);
-
-        // 设置实际攻击间隔（确保不小于MIN_ATTACK_INTERVAL）
-        newValue = RMaxBJ(cacheValue, MIN_ATTACK_INTERVAL);
-        SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL), newValue);
-
-        // 观察者模式回调
-        if (unitAttrObserver.attackIntervalCB != null) {
-            unitAttrObserver.argsU = u;
-            TriggerEvaluate(unitAttrObserver.attackIntervalCB);
-        }
-	}
-
-    //传送单位(带特效与镜头转换)
-    public function TransportUnit (unit u,real x,real y,boolean camera) {
-        if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)));
-        SetUnitPosition(u,x,y);
-        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
-    }
-
-    //删除单位
-    public function DeleteUnit (unit u) {
-        FlushChildHashtable(HASH_UNIT,GetHandleId(u));
-        RemoveUnit(u);
-    }
-
-}
-
-//! endzinc
-#endif
-
-#ifndef LoggerIncluded
-#define LoggerIncluded
-
-//! zinc
-//==================================
-// 日志打印系统
-// version: 1.0
-// author: 系统自动生成
-// date: 2024/3/21
-//
-// 功能：提供五个日志级别输出
-// - TRACE(灰)：追踪调试用
-// - DEBUG(绿)：调试信息用
-// - INFO(白)：普通信息用
-// - WARN(黄)：警告信息用
-// - ERROR(红)：错误信息用
-//
-// 示例：
-// call Info("普通信息")
-// call Error(Player(0), "玩家1的错误")
-//==================================
-library Logger requires YDLua {
-
-    public integer logger_level = 0;
-    public string  logger_msg   = null;
-    public player  logger_p     = null;
-    public trigger logger_tr    = null;
-
-    // 追踪级别日志(灰色),用于程序执行追踪
-    public function Trace(string msg) {
-        logger_msg   = msg;
-        logger_level = 0;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 调试级别日志(绿色),用于输出变量值等调试信息
-    public function Debug(string msg) {
-        logger_msg   = msg;
-        logger_level = 1;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 信息级别日志(白色),用于输出普通提示信息
-    public function Info(string msg) {
-        logger_msg   = msg;
-        logger_level = 2;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 警告级别日志(黄色),用于输出警告信息
-    public function Warn(string msg) {
-        logger_msg   = msg;
-        logger_level = 3;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 错误级别日志(红色),用于输出错误信息
-    public function Error(string msg) {
-        logger_msg   = msg;
-        logger_level = 4;
-        logger_p     = GetLocalPlayer();
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出追踪日志(灰色)
-    public function TraceToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 0;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出调试日志(绿色)
-    public function DebugToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 1;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出信息日志(白色)
-    public function InfoToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 2;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出警告日志(黄色)
-    public function WarnToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 3;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    // 向指定玩家输出错误日志(红色)
-    public function ErrorToPlayer(player p, string msg) {
-        logger_msg   = msg;
-        logger_level = 4;
-        logger_p     = p;
-		TriggerEvaluate(logger_tr);
-    }
-
-    function onInit() {
-        Cheat("exec-lua:depends.debug.logger"); //日志打印系统初始化
-    }
-}
-
-//! endzinc
-#endif
-#ifndef HardwareIncluded
-#define HardwareIncluded
-
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-
-//! zinc
-/*
-结构体
-硬件事件(按/滑/帧事件)
-*/
-library Hardware requires BzAPI {
-
-	public struct hardware []{
-		// 注册一个左键抬起事件
-		static method regLeftUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_UP,false,func);
-		}
-		// 注册一个左键按下事件
-		static method regLeftDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_PRESSED,false,func);
-		}
-		// 注册一个右键按下事件
-		static method regRightDownEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_PRESSED,false,func);
-		}
-		// 注册一个右键抬起事件
-		static method regRightUpEvent (code func) {
-			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_UP,false,func);
-		}
-		// 注册一个滚轮事件,不能异步注册
-		static method regWheelEvent (code func) {
-			if (trWheel == null) {trWheel = CreateTrigger();}
-			TriggerAddCondition(trWheel, Condition(func));
-		}
-		// 注册一个绘制事件,不能异步注册
-		static method regUpdateEvent (code func) {
-			if (trUpdate == null) {trUpdate = CreateTrigger();}
-			TriggerAddCondition(trUpdate, Condition(func));
-		}
-		// 注册一个窗口变化事件,不能异步注册
-		static method regResizeEvent (code func) {
-			if (trResize == null) {trResize = CreateTrigger();}
-			TriggerAddCondition(trResize, Condition(func));
-		}
-		// 注册一个鼠标移动事件,不能异步注册
-		static method regMoveEvent (code func) {
-			BJDebugMsg("注册鼠标移动事件");
-			if (trMove == null) {trMove = CreateTrigger();}
-			TriggerAddCondition(trMove, Condition(func));
-		}
-
-		// 获取鼠标的实数坐标X(0-0.8)
-		static method getMouseX ()  -> real {
-			integer width = DzGetClientWidth();
-			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
-			else return 0.1;
-		}
-
-		// 获取鼠标的实数坐标Y(0-0.6)
-		static method getMouseY ()  -> real {
-			integer height = DzGetClientHeight();
-			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
-			else return 0.1; // 防止除以0
-		}
-
-		private {
-			static trigger trWheel = null;
-			static trigger trUpdate = null;
-			static trigger trResize = null;
-			static trigger trMove = null;
-		}
-
-		static method onInit () {
-			//在游戏开始0.0秒后再调用
-			trigger tr = CreateTrigger();
-			TriggerRegisterTimerEventSingle(tr,0.0);
-			TriggerAddCondition(tr,Condition(function (){
-				// 滚轮事件
-				DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
-					TriggerEvaluate(trWheel);
-				});
-				// 帧绘制事件
-				DzFrameSetUpdateCallbackByCode(function (){
-					TriggerEvaluate(trUpdate);
-				});
-				// 窗口大小变化事件
-				DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
-				 TriggerEvaluate(trResize);
-				});
-				// 鼠标移动事件
-				DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
-				 TriggerEvaluate(trMove);
-				});
-				DestroyTrigger(GetTriggeringTrigger());
-			}));
-			tr = null;
-		}
-	}
-}
-
-//! endzinc
-#endif
-
-#define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
-
-#ifndef YDLuaIncluded
-#define YDLuaIncluded
-
-//! zinc
-/*
-原生Lua引擎非内置
-*/
-
-// https://create.reckfeng.com/kkapidoc/#/menu_kkapi_japi kkapi的japi文档
-
-library YDLua {
-
-    #define SetCameraBounds(a,b,c,d,e,f,g,h) initializeLua() CRNL call SetCameraBounds(a,b,c,d,e,f,g,h)
-
-    // main 函数就初始化的
-    public function initializeLua () -> integer {
-        Cheat("exec-lua:plugin_main");
-        return 0;
-    }
-
-    function onInit ()  {
-        //在游戏开始0.0秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.0);
-        TriggerAddCondition(tr,Condition(function (){
-            BJDebugMsg("调用了YDLua引擎");
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-    }
-}
-
-//! endzinc
-#endif
-
-#ifndef GroupUtilsIncluded
-#define GroupUtilsIncluded
-
-//! zinc
-/*
-单位组有关
-伤害有关
-// u = FirstOfGroup(g);  //少用这个,单位删了后直接是0了
-用GroupPickRandomUnit(g);好一些
-*/
-library GroupUtils requires UnitFilter {
-
-    group tempG = null;
-    player tempP = null;
-
-    //库补充,防内存泄漏
-    public function GroupEnumUnitsInRangeEx (group whichGroup,real x,real y,real radius,boolexpr filter) {
-        GroupEnumUnitsInRange(whichGroup, x, y, radius, filter);
-        DestroyBoolExpr(filter);
-    }
-    //库补充,防内存泄漏
-    public function GroupEnumUnitsInRectEx (group whichGroup,rect r,boolexpr filter) {
-        GroupEnumUnitsInRect(whichGroup, r, filter);
-        DestroyBoolExpr(filter);
-    }
-
-    //获取单位组:[敌方]
-    public function GetEnemyGroup (player p,real x,real y,real radius) -> group {
-        tempG = CreateGroup();
-        tempP = p;
-        GroupEnumUnitsInRangeEx(tempG, x, y, radius, Filter(function () -> boolean {
-            if (IsEnemy(GetFilterUnit(),tempP)) {
-                return true;
-            }
-            return false;
-        }));
-        tempP = null;
-        return tempG;
-    }
-
-
-    //获取圆形随机单位
-    public function GetRandomEnemy (player p,real x,real y,real radius)  -> unit {
-        return GroupPickRandomUnit(GetEnemyGroup(p,x,y,radius));
-    }
-
-    //复制单位组
-    //复制g1进新组并返回
-    public function CopyGroup (group g1) -> group {
-        tempG = CreateGroup();
-        GroupAddGroup(g1, tempG);
-        return tempG;
-    }
-
-
-}
-
-//! endzinc
-#endif
-
 #ifndef DamageUtilsIncluded
 #define DamageUtilsIncluded
 
@@ -844,7 +205,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
             if (IsEnemy(GetFilterUnit(), GetOwningPlayer(current.source))) {
-                ApplyPhysicalDamage(current.source, GetFilterUnit(), current.damage);
+                UnitDamageTarget( current.source, GetFilterUnit(), current.damage, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()), GetUnitY(GetFilterUnit())));
                 }
@@ -886,7 +247,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
             if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source))) {
-                ApplyMagicDamage(current.source,GetFilterUnit(),current.damage);
+                UnitDamageTarget( current.source, GetFilterUnit(), current.damage, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS );
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
                 }
@@ -928,7 +289,7 @@ library DamageUtils requires UnitFilter,GroupUtils {
         GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
             DmgP current = DmgS.current();
             if (IsEnemy(GetFilterUnit(),GetOwningPlayer(current.source))) {
-                ApplyPureDamage(current.source,GetFilterUnit(),current.damage);
+                UnitDamageTarget( current.source, GetFilterUnit(), current.damage, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
                 if (current.eft != null) {
                     DestroyEffect(AddSpecialEffect(current.eft, GetUnitX(GetFilterUnit()),GetUnitY(GetFilterUnit())));
                 }
@@ -1011,6 +372,210 @@ library DamageUtils requires UnitFilter,GroupUtils {
     public function GetDamageLifeStealUnit () -> unit { return uArgs;}
     //吸血的数值
     public function GetDamageLifeStealReal () -> real { return rArgs;}
+
+}
+
+//! endzinc
+#endif
+
+#ifndef UnitUtilsIncluded
+#define UnitUtilsIncluded
+
+#include "Crainax/core/constant/UNDefine.j" //constant可以直接加进去没问题
+#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
+
+//! zinc
+/*
+单位有关的增强功能
+*/
+library UnitUtils {
+
+    public struct unitAttrObserver [] {
+
+        public static unit argsU = null;
+        public static trigger attackIntervalCB = null;
+
+        //攻击间隔的观察者事件注册
+        public static method registerAttackInterval (code func) {
+            if (attackIntervalCB == null) {
+                attackIntervalCB = CreateTrigger();
+            }
+            TriggerAddCondition(attackIntervalCB, Condition(func));
+        }
+
+    }
+
+    //获取单位的攻击力/防御/生命/魔法值
+    public function GetUnitAttack(unit u) -> integer {
+        return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
+    }
+
+    public function GetUnitDefense(unit u) -> integer {
+        return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR)));
+    }
+
+    public function GetUnitHP(unit u) -> real {
+        return GetUnitState(u,UNIT_STATE_MAX_LIFE);
+    }
+
+    public function GetUnitMP(unit u) -> real {
+        return GetUnitState(u,UNIT_STATE_MAX_MANA);
+    }
+
+    //设置攻击力
+    public function SetUnitAttack(unit u, real attack) -> nothing {
+        SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE),attack);
+    }
+    //增加攻击力
+    public function AddUnitAttack(unit u, real attack) -> nothing {
+        SetUnitAttack(u,GetUnitAttack(u) + attack);
+    }
+
+    //设置防御
+    public function SetUnitDefense(unit u, real defense) -> nothing {
+        SetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR),defense);
+    }
+    //增加防御
+    public function AddUnitDefense(unit u, real defense) -> nothing {
+        SetUnitDefense(u,GetUnitDefense(u)+defense);
+    }
+
+    //修改生命最大值
+    public function SetUnitHP(unit u, real hp) -> nothing {
+        SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,2.0));
+    }
+    //增加生命最大值
+    public function AddUnitHP(unit u,real hp ) {
+        SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
+        if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
+    }
+    //回血(定值)
+    public function RegenUnitHP(unit u, real volume) -> nothing {
+        SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+volume);
+    }
+    //回蓝(百分比)
+    public function RegenUnitHPPercent(unit u, real rate) -> nothing {
+        SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+GetUnitHP(u)*rate);
+    }
+
+    //设置魔法最大值
+    public function SetUnitMP(unit u, real mp) -> nothing {
+        SetUnitState(u,UNIT_STATE_MAX_MANA,mp);
+    }
+    //增加魔法最大值
+    public function AddUnitMP(unit u,real mp ) {
+        SetUnitMP(u,GetUnitMP(u)+mp);
+        if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
+    }
+    //回蓝(定值)
+    public function RegenUnitMP(unit u, real volume) -> nothing {
+        SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+volume);
+    }
+    //回蓝(百分比)
+    public function RegenUnitMPPercent(unit u, real rate) -> nothing {
+        SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate);
+    }
+
+    // 获取移速
+    public function GetUnitSpeed (unit u)  -> integer {
+        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
+            return LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
+        }
+        else {return R2I(GetUnitMoveSpeed(u));}
+    }
+    //todo: 这个UNTable其他地图需要兼容
+    // 增加移速
+    public function AddUnitSpeed (unit u,integer speed) {
+        integer value;
+        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
+            value  = LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
+            value += speed;
+            SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
+        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
+		SetUnitMoveSpeed(u,value);
+    }
+    // 初始化突破移速
+    public function InitUnitSpeed (unit u) {
+        SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,R2I(GetUnitMoveSpeed(u)));
+    }
+
+    //射程(还会+警戒范围)
+    public function GetUnitAttackRange(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE));
+    }
+    //设置射程(还会设置警戒范围)
+    public function SetUnitAttackRange (unit u,real range) {
+		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),range);
+		SetUnitAcquireRange(u,RMaxBJ(range,900.0));
+    }
+    //增加射程(还会+警戒范围)
+	public function AddUnitAttackRange (unit u,real range) {
+		SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_RANGE),GetUnitAttackRange(u) + range);
+		SetUnitAcquireRange(u,RMaxBJ(GetUnitAcquireRange(u)+range,900.0));
+    }
+
+    // 获取攻速
+    public function GetUnitAttackSpeed(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE));
+    }
+    // 增加攻速
+	public function AddUnitAttackSpeed (unit u,real speed) {
+		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE)) + speed);
+	}
+
+    // (获取缓存的攻击间隔(可能为负))
+    public function GetUnitAttackIntervalCache(unit u) -> real {
+        return LoadReal(HASH_UNIT,GetHandleId(u),KEY_UNIT_ATTACK_INTERVAL_CACHE);
+    }
+
+    // (获取单位的攻击间隔,不会小于0.1)
+    public function GetUnitAttackInterval(unit u) -> real {
+        return GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL));
+    }
+
+    // 攻击间隔(虽然写着加,但是实际是减) - 带最小值与观察者
+	public function AddAttackInterval (unit u,real value) {
+        real cacheValue; real newValue; integer uid;
+
+        uid = GetHandleId(u);
+
+        // 检查是否已初始化缓存
+        if (!HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE)) {
+            // 如果没有初始化，先保存当前攻击间隔到缓存
+            SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE, GetUnitAttackInterval(u));
+        }
+
+        // 获取当前缓存值并添加新值
+        cacheValue = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE);
+        cacheValue += value;
+
+        // 更新缓存
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_INTERVAL_CACHE, cacheValue);
+
+        // 设置实际攻击间隔（确保不小于MIN_ATTACK_INTERVAL）
+        newValue = RMaxBJ(cacheValue, MIN_ATTACK_INTERVAL);
+        SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_INTERVAL), newValue);
+
+        // 观察者模式回调
+        if (unitAttrObserver.attackIntervalCB != null) {
+            unitAttrObserver.argsU = u;
+            TriggerEvaluate(unitAttrObserver.attackIntervalCB);
+        }
+	}
+
+    //传送单位(带特效与镜头转换)
+    public function TransportUnit (unit u,real x,real y,boolean camera) {
+        if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);
+        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportCaster.mdl", GetUnitX(u), GetUnitY(u)));
+        SetUnitPosition(u,x,y);
+        DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
+    }
+
+    //删除单位
+    public function DeleteUnit (unit u) {
+        FlushChildHashtable(HASH_UNIT,GetHandleId(u));
+        RemoveUnit(u);
+    }
 
 }
 
@@ -1258,6 +823,261 @@ endlibrary
 
 #endif /// YDWEAddAIOrderIncluded
 
+#ifndef LoggerIncluded
+#define LoggerIncluded
+
+//! zinc
+//==================================
+// 日志打印系统
+// version: 1.0
+// author: 系统自动生成
+// date: 2024/3/21
+//
+// 功能：提供五个日志级别输出
+// - TRACE(灰)：追踪调试用
+// - DEBUG(绿)：调试信息用
+// - INFO(白)：普通信息用
+// - WARN(黄)：警告信息用
+// - ERROR(红)：错误信息用
+//
+// 示例：
+// call Info("普通信息")
+// call Error(Player(0), "玩家1的错误")
+//==================================
+library Logger requires YDLua {
+
+    public integer logger_level = 0;
+    public string  logger_msg   = null;
+    public player  logger_p     = null;
+    public trigger logger_tr    = null;
+
+    // 追踪级别日志(灰色),用于程序执行追踪
+    public function Trace(string msg) {
+        logger_msg   = msg;
+        logger_level = 0;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 调试级别日志(绿色),用于输出变量值等调试信息
+    public function Debug(string msg) {
+        logger_msg   = msg;
+        logger_level = 1;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 信息级别日志(白色),用于输出普通提示信息
+    public function Info(string msg) {
+        logger_msg   = msg;
+        logger_level = 2;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 警告级别日志(黄色),用于输出警告信息
+    public function Warn(string msg) {
+        logger_msg   = msg;
+        logger_level = 3;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 错误级别日志(红色),用于输出错误信息
+    public function Error(string msg) {
+        logger_msg   = msg;
+        logger_level = 4;
+        logger_p     = GetLocalPlayer();
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出追踪日志(灰色)
+    public function TraceToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 0;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出调试日志(绿色)
+    public function DebugToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 1;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出信息日志(白色)
+    public function InfoToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 2;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出警告日志(黄色)
+    public function WarnToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 3;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    // 向指定玩家输出错误日志(红色)
+    public function ErrorToPlayer(player p, string msg) {
+        logger_msg   = msg;
+        logger_level = 4;
+        logger_p     = p;
+		TriggerEvaluate(logger_tr);
+    }
+
+    function onInit() {
+        Cheat("exec-lua:depends.debug.logger"); //日志打印系统初始化
+    }
+}
+
+//! endzinc
+#endif
+#define CRNL <?='\n'?>  //因为这是二次wave的,所以这个宏定义得重定义一次
+
+#ifndef YDLuaIncluded
+#define YDLuaIncluded
+
+//! zinc
+/*
+原生Lua引擎非内置
+*/
+
+// https://create.reckfeng.com/kkapidoc/#/menu_kkapi_japi kkapi的japi文档
+
+library YDLua {
+
+    #define SetCameraBounds(a,b,c,d,e,f,g,h) initializeLua() CRNL call SetCameraBounds(a,b,c,d,e,f,g,h)
+
+    // main 函数就初始化的
+    public function initializeLua () -> integer {
+        Cheat("exec-lua:plugin_main");
+        return 0;
+    }
+
+    function onInit ()  {
+        //在游戏开始0.0秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.0);
+        TriggerAddCondition(tr,Condition(function (){
+            BJDebugMsg("调用了YDLua引擎");
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+    }
+}
+
+//! endzinc
+#endif
+
+#ifndef HardwareIncluded
+#define HardwareIncluded
+
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
+//! zinc
+/*
+结构体
+硬件事件(按/滑/帧事件)
+*/
+library Hardware requires BzAPI {
+
+	public struct hardware []{
+		// 注册一个左键抬起事件
+		static method regLeftUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_UP,false,func);
+		}
+		// 注册一个左键按下事件
+		static method regLeftDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_LEFT,FRAME_EVENT_KEY_PRESSED,false,func);
+		}
+		// 注册一个右键按下事件
+		static method regRightDownEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_PRESSED,false,func);
+		}
+		// 注册一个右键抬起事件
+		static method regRightUpEvent (code func) {
+			DzTriggerRegisterMouseEventByCode(null,FRAME_MOUSE_RIGHT,FRAME_EVENT_KEY_UP,false,func);
+		}
+		// 注册一个滚轮事件,不能异步注册
+		static method regWheelEvent (code func) {
+			if (trWheel == null) {trWheel = CreateTrigger();}
+			TriggerAddCondition(trWheel, Condition(func));
+		}
+		// 注册一个绘制事件,不能异步注册
+		static method regUpdateEvent (code func) {
+			if (trUpdate == null) {trUpdate = CreateTrigger();}
+			TriggerAddCondition(trUpdate, Condition(func));
+		}
+		// 注册一个窗口变化事件,不能异步注册
+		static method regResizeEvent (code func) {
+			if (trResize == null) {trResize = CreateTrigger();}
+			TriggerAddCondition(trResize, Condition(func));
+		}
+		// 注册一个鼠标移动事件,不能异步注册
+		static method regMoveEvent (code func) {
+			BJDebugMsg("注册鼠标移动事件");
+			if (trMove == null) {trMove = CreateTrigger();}
+			TriggerAddCondition(trMove, Condition(func));
+		}
+
+		// 获取鼠标的实数坐标X(0-0.8)
+		static method getMouseX ()  -> real {
+			integer width = DzGetClientWidth();
+			if (width > 0) return DzGetMouseXRelative()* 0.8 / width;
+			else return 0.1;
+		}
+
+		// 获取鼠标的实数坐标Y(0-0.6)
+		static method getMouseY ()  -> real {
+			integer height = DzGetClientHeight();
+			if (height > 0) return 0.6 - DzGetMouseYRelative()* 0.6 / height;
+			else return 0.1; // 防止除以0
+		}
+
+		private {
+			static trigger trWheel = null;
+			static trigger trUpdate = null;
+			static trigger trResize = null;
+			static trigger trMove = null;
+		}
+
+		static method onInit () {
+			//在游戏开始0.0秒后再调用
+			trigger tr = CreateTrigger();
+			TriggerRegisterTimerEventSingle(tr,0.0);
+			TriggerAddCondition(tr,Condition(function (){
+				// 滚轮事件
+				DzTriggerRegisterMouseWheelEventByCode(null,false,function (){
+					TriggerEvaluate(trWheel);
+				});
+				// 帧绘制事件
+				DzFrameSetUpdateCallbackByCode(function (){
+					TriggerEvaluate(trUpdate);
+				});
+				// 窗口大小变化事件
+				DzTriggerRegisterWindowResizeEventByCode(null, false, function (){
+				 TriggerEvaluate(trResize);
+				});
+				// 鼠标移动事件
+				DzTriggerRegisterMouseMoveEventByCode(null, false, function (){
+				 TriggerEvaluate(trMove);
+				});
+				DestroyTrigger(GetTriggeringTrigger());
+			}));
+			tr = null;
+		}
+	}
+}
+
+//! endzinc
+#endif
+
 #ifndef UnitHashTableIncluded
 #define UnitHashTableIncluded
 
@@ -1418,6 +1238,126 @@ library UnitTestFramwork {
 
 
 
+#ifndef UnitFilterIncluded
+#define UnitFilterIncluded
+
+//! zinc
+/*
+单位有关
+*/
+
+
+// 基础单位状态检查（生命值、存活状态）
+#ifdef DUMMY_UNIT_JUDGE_NOT
+#define IS_VALID_UNIT_BASIC(u) ( \
+GetUnitState(u, UNIT_STATE_LIFE) > 0.405 && \
+IsUnitAliveBJ(u) && \
+DUMMY_UNIT_JUDGE_NOT(u) \
+)
+#else
+#define IS_VALID_UNIT_BASIC(u) ( \
+GetUnitState(u, UNIT_STATE_LIFE) > 0.405 && \
+IsUnitAliveBJ(u) \
+)
+#endif
+
+// 敌对关系检查（不包含虚拟单位判断）
+#define IS_VALID_ENEMY_RELATION(p,u) ( \
+!IsUnitType(u, UNIT_TYPE_SLEEPING) && \
+!IsUnitType(u, UNIT_TYPE_STRUCTURE) && \
+!IsUnitHidden(u) && \
+IsUnitEnemy(u, p) && \
+IsUnitVisible(u, p) \
+)
+
+// 完整的敌方目标检查（合并两部分）
+#define IS_VALID_ENEMY_TARGET(p,u) ( \
+IS_VALID_UNIT_BASIC(u) && \
+IS_VALID_ENEMY_RELATION(p,u) \
+)
+
+library UnitFilter {
+
+    //判断是否是敌方(不带无敌)
+    public function IsEnemy (unit u,player p)  -> boolean {
+        return IS_VALID_ENEMY_TARGET(p,u) && GetUnitAbilityLevel(u, 'Avul') < 1;
+    }
+    //旧名：IsEnemy2
+    //判断是否是敌方(能匹配到无敌单位)
+    public function IsEnemyIncludeInvul (unit u,player p)  -> boolean {
+        return IS_VALID_ENEMY_TARGET(p,u);
+    }
+
+    //判断是否是敌方非魔法免疫单位
+    public function IsEnemyMagic (unit u,player p)  -> boolean {
+        return !IsUnitType(u, UNIT_TYPE_MAGIC_IMMUNE) && IsEnemy(u,p) && !IsUnitType(u, UNIT_TYPE_RESISTANT);
+    }
+
+    //判断是否是敌方(简化版本,只检查基础状态和敌对关系)
+    public function IsEnemyBasic(unit u, player p) -> boolean {
+        return IS_VALID_UNIT_BASIC(u) && IsUnitEnemy(u, p);
+    }
+
+    //判断是否是友方
+    public function IsAlly (unit u,player p)  -> boolean {
+        #ifdef DUMMY_UNIT_JUDGE_NOT
+        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p) && DUMMY_UNIT_JUDGE_NOT(u);
+        #else
+        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p);
+        #endif
+    }
+
+    //判断两个单位是否互为敌人(不带无敌)
+    //第一个参数是要受伤/中招的单位,第二个参数是锚定单位(施法者)
+    public function IsEnemyUnit(unit target, unit caster) -> boolean {
+        return IsEnemy(target,GetOwningPlayer(caster));
+    }
+
+    //判断两个单位是否互为队友(不带无敌)
+    public function IsAllyUnit(unit target, unit caster) -> boolean {
+        return IsAlly(target,GetOwningPlayer(caster));
+    }
+
+    //判断两个单位是否互为敌人(简化版本,只检查基础状态和敌对关系)
+    public function IsEnemyBasicUnit(unit target, unit caster) -> boolean {
+        return IS_VALID_UNIT_BASIC(target) && IsUnitEnemy(target, GetOwningPlayer(caster));
+    }
+
+    //判断是否是敌方非魔法免疫单位(双单位参数版)
+    public function IsEnemyMagicUnit(unit target, unit caster) -> boolean {
+        return IsEnemyMagic(target, GetOwningPlayer(caster));
+    }
+
+
+    // //判断单位是否属于指定常见种族或中立阵营
+    // // 人族/兽族/不死/精灵 以及 中立敌对/中立中立
+    // // 注意：当传入目标并非单位（例如对可破坏物 'DTrc' 使用 GetSpellTargetUnit()）时，u 可能为 null，返回 false
+    // public function IsUnitRaceOK (unit u)  -> boolean {
+    //     race r; player o;
+    //     if (u == null) return false;
+
+    //     r = GetUnitRace(u);
+    //     if (r == RACE_HUMAN) return true;      // 人族
+    //     if (r == RACE_ORC) return true;        // 兽族
+    //     if (r == RACE_UNDEAD) return true;     // 不死
+    //     if (r == RACE_NIGHTELF) return true;   // 精灵
+
+    //     // 娜迦单位在实际地图中多归属中立敌对/中立中立，这里通过中立所属判断覆盖
+    //     o = GetOwningPlayer(u);
+    //     if (o == Player(PLAYER_NEUTRAL_AGGRESSIVE)) return true; // 中立敌对
+    //     if (o == Player(PLAYER_NEUTRAL_PASSIVE))    return true; // 中立中立
+
+    //     return false;
+    // }
+
+}
+
+//! endzinc
+#endif
+
+
+
+
 #ifndef CameraIncluded
 #define CameraIncluded
 
@@ -1527,6 +1467,66 @@ library CameraControl requires Hardware{
             DzEnableWideScreen(WideScr);
         });
     }
+}
+
+//! endzinc
+#endif
+
+#ifndef GroupUtilsIncluded
+#define GroupUtilsIncluded
+
+//! zinc
+/*
+单位组有关
+伤害有关
+// u = FirstOfGroup(g);  //少用这个,单位删了后直接是0了
+用GroupPickRandomUnit(g);好一些
+*/
+library GroupUtils requires UnitFilter {
+
+    group tempG = null;
+    player tempP = null;
+
+    //库补充,防内存泄漏
+    public function GroupEnumUnitsInRangeEx (group whichGroup,real x,real y,real radius,boolexpr filter) {
+        GroupEnumUnitsInRange(whichGroup, x, y, radius, filter);
+        DestroyBoolExpr(filter);
+    }
+    //库补充,防内存泄漏
+    public function GroupEnumUnitsInRectEx (group whichGroup,rect r,boolexpr filter) {
+        GroupEnumUnitsInRect(whichGroup, r, filter);
+        DestroyBoolExpr(filter);
+    }
+
+    //获取单位组:[敌方]
+    public function GetEnemyGroup (player p,real x,real y,real radius) -> group {
+        tempG = CreateGroup();
+        tempP = p;
+        GroupEnumUnitsInRangeEx(tempG, x, y, radius, Filter(function () -> boolean {
+            if (IsEnemy(GetFilterUnit(),tempP)) {
+                return true;
+            }
+            return false;
+        }));
+        tempP = null;
+        return tempG;
+    }
+
+
+    //获取圆形随机单位
+    public function GetRandomEnemy (player p,real x,real y,real radius)  -> unit {
+        return GroupPickRandomUnit(GetEnemyGroup(p,x,y,radius));
+    }
+
+    //复制单位组
+    //复制g1进新组并返回
+    public function CopyGroup (group g1) -> group {
+        tempG = CreateGroup();
+        GroupAddGroup(g1, tempG);
+        return tempG;
+    }
+
+
 }
 
 //! endzinc
@@ -1653,6 +1653,15 @@ s4 - 测试范围物理伤害
 s5 - 测试范围真实伤害
 s6 - 切换伤害数值显示
 s7 - 切换伤害反弹测试
+s8 - 测试范围秒杀
+s9 - 切换吸血回调测试
+s10 - 测试物理伤害(带吸血)
+s11 - 测试魔法伤害(带吸血)
+s12 - 测试真实伤害(带吸血)
+s13 - 测试范围物理伤害(带吸血)
+s14 - 测试范围魔法伤害(带吸血)
+s15 - 测试范围真实伤害(带吸血)
+s16 - 测试范围秒杀(带吸血)
 参数命令:
 -d [数值] - 设置伤害值
 -r [数值] - 设置范围值
@@ -1668,6 +1677,8 @@ private trigger damageEventTrigger = null;
 	private boolean isShowDamage = false;
 	private boolean isReflectDamage = false; // 反伤开关
 private integer reflectCount = 0; // 反伤计数器
+private boolean isLifestealEnabled = false; // 吸血回调开关
+private real totalLifesteal = 0.0; // 累计吸血量
 
 	// 创建测试环境
 	function CreateTestEnv(player p) {
@@ -1767,6 +1778,118 @@ Trace("|cff00ff00开启|r伤害反弹测试 - 受伤单位将反弹50%伤害(最
 			Trace("|cffff0000关闭|r伤害反弹测试");
 		}
 	}
+	// 测试范围秒杀
+	function TTestUTDamageUtils8(player p) {
+		CreateTestEnv(p);
+		Trace("测试范围秒杀: 范围 " + R2S(testRadius));
+		Trace("中心点有1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会被秒杀");
+		DamageAreaKill(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testEffect);
+	}
+	// 切换吸血回调测试
+	function TTestUTDamageUtils9(player p) {
+		isLifestealEnabled = !isLifestealEnabled;
+		if(isLifestealEnabled) {
+			totalLifesteal = 0.0;
+			Trace("|cff00ff00开启|r吸血回调测试 - 伤害后将按照实际伤害的30%进行回血");
+			// 注册吸血回调
+			RegisterDamageLifeSteal(function () -> boolean {
+				unit u; real damage; real heal;
+				u = GetDamageLifeStealUnit();
+				damage = GetDamageLifeStealReal();
+				heal = damage * 0.3; // 30%吸血率
+
+				if (u != null && heal > 0.0) {
+					SetUnitState(u, UNIT_STATE_LIFE, GetUnitState(u, UNIT_STATE_LIFE) + heal);
+					totalLifesteal += heal;
+					Trace("|cff00ff88吸血|r - " + GetUnitName(u) + " 造成伤害: " + R2S(damage) + ", 回血: " + R2S(heal) + ", 累计: " + R2S(totalLifesteal));
+				}
+				u = null;
+				return true;
+			});
+		} else {
+			Trace("|cffff0000关闭|r吸血回调测试");
+			// 注意: 这里不能取消注册，因为没有提供取消接口
+		}
+	}
+	// 测试物理伤害(带吸血)
+	function TTestUTDamageUtils10(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试物理伤害(带吸血): " + R2S(testDamage));
+		ApplyPhysicalDamage(testSource, testDummy, testDamage);
+	}
+	// 测试魔法伤害(带吸血)
+	function TTestUTDamageUtils11(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试魔法伤害(带吸血): " + R2S(testDamage));
+		ApplyMagicDamage(testSource, testDummy, testDamage);
+	}
+	// 测试真实伤害(带吸血)
+	function TTestUTDamageUtils12(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试真实伤害(带吸血): " + R2S(testDamage));
+		ApplyPureDamage(testSource, testDummy, testDamage);
+	}
+	// 测试范围物理伤害(带吸血)
+	function TTestUTDamageUtils13(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试范围物理伤害(带吸血): " + R2S(testDamage) + " 范围: " + R2S(testRadius));
+		Trace("中心点1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会受到伤害，并触发吸血回调");
+		DamageAreaPhysical(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testDamage, testEffect);
+	}
+	// 测试范围魔法伤害(带吸血)
+	function TTestUTDamageUtils14(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试范围魔法伤害(带吸血): " + R2S(testDamage) + " 范围: " + R2S(testRadius));
+		Trace("中心点1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会受到伤害，并触发吸血回调");
+		DamageAreaMagic(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testDamage, testEffect);
+	}
+	// 测试范围真实伤害(带吸血)
+	function TTestUTDamageUtils15(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试范围真实伤害(带吸血): " + R2S(testDamage) + " 范围: " + R2S(testRadius));
+		Trace("中心点1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会受到伤害，并触发吸血回调");
+		DamageAreaPure(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testDamage, testEffect);
+	}
+	// 测试范围秒杀(带吸血)
+	function TTestUTDamageUtils16(player p) {
+		CreateTestEnv(p);
+		if (!isLifestealEnabled) {
+			Trace("|cffff0000警告|r: 请先使用 s9 开启吸血回调测试");
+			return;
+		}
+		Trace("测试范围秒杀(带吸血): 范围 " + R2S(testRadius));
+		Trace("中心点1个假人，半径 " + R2S(testRadius) + " 处有8个假人");
+		Trace("范围内的假人都会被秒杀，并按照实际伤害触发吸血回调");
+		DamageAreaKill(testSource, GetUnitX(testSource), GetUnitY(testSource), testRadius, testEffect);
+	}
 	// 处理参数设置命令
 	function TTestActUTDamageUtils1(string str) {
 		player p = GetTriggerPlayer();
@@ -1810,14 +1933,26 @@ real paramR[]; // 所有参数R
 		TriggerRegisterTimerEventSingle(tr, 0.5);
 		TriggerAddCondition(tr, Condition(function() {
 			Trace("|cff00ff00[DamageUtils测试]|r 输入以下命令进行测试:");
+			Trace("|cffaaaaaa=== 基础伤害测试 ===|r");
 			Trace("s1 - 测试物理伤害");
 			Trace("s2 - 测试真实伤害");
 			Trace("s3 - 测试模拟普攻");
 			Trace("s4 - 测试范围物理伤害");
 			Trace("s5 - 测试范围真实伤害");
+			Trace("s8 - 测试范围秒杀");
+			Trace("|cffaaaaaa=== 吸血相关测试 ===|r");
+			Trace("s9 - 切换吸血回调测试");
+			Trace("s10 - 测试物理伤害(带吸血)");
+			Trace("s11 - 测试魔法伤害(带吸血)");
+			Trace("s12 - 测试真实伤害(带吸血)");
+			Trace("s13 - 测试范围物理伤害(带吸血)");
+			Trace("s14 - 测试范围魔法伤害(带吸血)");
+			Trace("s15 - 测试范围真实伤害(带吸血)");
+			Trace("s16 - 测试范围秒杀(带吸血)");
+			Trace("|cffaaaaaa=== 其他测试 ===|r");
 			Trace("s6 - 切换伤害数值显示");
 			Trace("s7 - 切换伤害反弹测试");
-			Trace("参数设置:");
+			Trace("|cffaaaaaa=== 参数设置 ===|r");
 			Trace("-d [数值] - 设置伤害值");
 			Trace("-r [数值] - 设置范围值");
 			Trace("-e [路径] - 设置特效");
@@ -1846,6 +1981,16 @@ Trace("第 " + I2S(reflectCount) + " 次反伤");
 					Trace("|cffff0000达到最大反伤次数(5次),现在栈层: " + I2S(DmgS.current()));
 				}
 			}
+			// 单体聚合（LS 栈）
+			if (LS_isActive(source)) {
+				LS_add(GetEventDamage());
+				Trace("|cff00ff00吸血聚合|r - 来源: " + GetUnitName(source) + " 伤害: " + R2S(damage));
+			}
+			// AoE 聚合（DmgS 栈）
+			if (DmgS.hasAggregation(source)) {
+				DmgS.aggregate(GetEventDamage());
+				Trace("|cff00ff00范围伤害聚合|r - 来源: " + GetUnitName(source) + " 伤害: " + R2S(damage));
+			}
 		}));
 		// 注册聊天事件
 		UnitTestRegisterChatEvent(function() {
@@ -1860,8 +2005,17 @@ Trace("第 " + I2S(reflectCount) + " 次反伤");
 			else if(str == "s4") TTestUTDamageUtils4(GetTriggerPlayer());
 			else if(str == "s5") TTestUTDamageUtils5(GetTriggerPlayer());
 			else if(str == "s6") TTestUTDamageUtils6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTDamageUtils7(GetTriggerPlayer()); // 新增命令
-});
+			else if(str == "s7") TTestUTDamageUtils7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTDamageUtils8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTDamageUtils9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTDamageUtils10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTDamageUtils11(GetTriggerPlayer());
+			else if(str == "s12") TTestUTDamageUtils12(GetTriggerPlayer());
+			else if(str == "s13") TTestUTDamageUtils13(GetTriggerPlayer());
+			else if(str == "s14") TTestUTDamageUtils14(GetTriggerPlayer());
+			else if(str == "s15") TTestUTDamageUtils15(GetTriggerPlayer());
+			else if(str == "s16") TTestUTDamageUtils16(GetTriggerPlayer());
+		});
 		cameraControl.openWheel();
 	}
 	function onDestroy() {
