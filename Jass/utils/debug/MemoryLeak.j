@@ -5,7 +5,7 @@
 /*
 内存泄漏检测
 */
-library MemoryLeak requires YDLua {
+library MemoryLeak  {
 
 	public trigger trMemoryLeak = null;
 
