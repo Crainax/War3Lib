@@ -40,7 +40,6 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
         call SetUnitAbilityLevel(dummy, aid, lv)
         call SetUnitFlyHeight(dummy, h, 0.0)
         call IssueTargetOrderById(dummy, order, targ)
-        //debug call BJDebugMsg("Target order")
         set dummy = null
     endfunction
 
@@ -74,19 +73,15 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
     private function DamageFilter takes nothing returns boolean
         local unit   u = GetFilterUnit()
         local Thread d = tmp_data
-        //call BJDebugMsg("outer:"+I2S(CountUnitsInGroup(d.g)))
         if not(IsUnitInGroup(u, d.g)) and d.switch != 0 and EnemyFilter(u, d.caster) then
             call GroupAddUnit(d.g, u)
-            call BJDebugMsg(I2S(YDWEGetUnitID(u)))
             call UnitDamageTarget(d.caster, u, d.amount, true, true, bj_lastSetAttackType, bj_lastSetDamageType, bj_lastSetWeaponType)
             //call DestroyEffect(AddSpecialEffectTarget(d.dsfx, u, d.part))
             call DestroyEffect( AddSpecialEffect(d.dsfx, GetUnitX(u), GetUnitY(u)) )
-           // call BJDebugMsg(":" + d.dsfx)
             if d.skills > '0000' and d.skills != null and d.order > 0 and d.order != null then
                 call SingleMagic(d.caster, u, d.pos.x, d.pos.y, GetUnitFlyHeight(d.obj), d.unitid, d.skills, d.level, d.order)
             endif
             if not(d.recycle) then
-                //debug call BJDebugMsg("|cff00ff00[YDWE] Timer Pattern : |r A one-time.")
                 set d.switch = 0
             endif
             set d.target = u
@@ -168,7 +163,6 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
         endmethod
 
         method onDestroy takes nothing returns nothing
-            //debug call BJDebugMsg("|cff00ff00[YDWE] Timer Pattern : |r Knockback stopped!")
             call Thread.flush(.obj)
             call Thread.flush(.t)
             call GroupClear(.g)
@@ -206,7 +200,6 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
                 set .y = GetUnitY(.obj) + .vel.y //.pos.y + .vel.y
                 set .z = GetUnitZ(.obj) + .ac * .step * 2 + .ac * .dist + .bc //.pos.z + .ac * .step * 2 + .ac * .dist + .bc
                 set .step = .step + .dist
-                //debug call BJDebugMsg("|cff00ff00[YDWE] Timer Pattern : |r high = ." + R2S(GetLocationZ(yd_loc)))
                 if YDWECoordinateX(.pos.x) != .pos.x or YDWECoordinateY(.pos.y) != .pos.y or .pos.z <= GetLocationZ(yd_loc) then
                     set .switch = 0
                 endif
@@ -214,7 +207,6 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
                     //call this.damage(.caster, .pos.x + .vel.x, .pos.y + .vel.y, GetUnitZ(.obj), false, false)
                     set tmp_data = integer(this)
                     call GroupEnumUnitsInRange(.g, .pos.x + .vel.x, .pos.y + .vel.y, TIMER_PATTERN_RADIUS, function DamageFilter)
-                    //debug call BJDebugMsg("|cff00ff00[YDWE] Timer Pattern : |r Area damage.")
                 endif
             //else
                 //set .switch = 0
@@ -300,7 +292,6 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
             if .switch == 0 then
                 // YDWETriggerEvent
                 if .target != null then
-                    //debug call BJDebugMsg("|cff00ff00[YDWE] Timer Pattern : |r  |cffff0000" + GetUnitName(.target) + "|r was hit!!!")
                     //call YDWESaveUnitByString(I2S(YDWEH2I(.caster)), "MoonPriestessArrow", .target)
                     set bj_lastAbilityTargetUnit = .target
                     call YDWESyStemAbilityCastingOverTriggerAction(.caster, 8)
@@ -353,7 +344,6 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
             local group ge = CreateGroup()
 
             if .volume == false then
-                //debug call BJDebugMsg("|cff00ff00[YDWE] Timer Pattern : |rPathable without terrain.")
                 if IsTerrainPathable(xp, yp, PATHING_TYPE_WALKABILITY) then
                     if (.afc != 0) then
                         call afc.execute(this,xp,yp)
@@ -446,7 +436,6 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
     // Jump Attack PUI
     function YDWETimerPatternJumpAttack takes unit u, real face, real dis, real lasttime, real timeout, real high, real damage, string part, string dsfx returns nothing
         if u == null then
-            //debug call BJDebugMsg("|cff00ff00[YDWE] Timer Pattern : |r No object!")
             return
         endif
         call Parabola.create(u, u, Deg2Rad(face), RMaxBJ(dis, 0), RMaxBJ(lasttime, 0), RMaxBJ(timeout, 0), high, damage, part, dsfx)
@@ -456,7 +445,6 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
     function YDWETimerPatternMoonPriestessArrow takes unit u, real face, real dis, real lasttime, real timeout, integer lv, integer aid, integer uid, string order, string part, string dsfx returns nothing
         local unit sour = null
         if u == null then
-            //debug call BJDebugMsg("|cff00ff00[YDWE] Timer Pattern : |r No object!")
             return
         endif
         set sour = YDWEGetUnitByString(I2S(YDWEH2I(u)), "MoonPriestessArrow")
@@ -471,7 +459,6 @@ library_once YDWETimerPattern initializer Init requires YDWEBase
     // Rush Slide PUI
     function YDWETimerPatternRushSlide takes unit u, real face, real dis, real lasttime, real timeout, real damage, real radius, boolean killtrees, boolean cycle, boolean path, string part, string gsfx, string wsfx returns nothing
         if u == null then
-            //debug call BJDebugMsg("|cff00ff00[YDWE] Timer Pattern : |r No object!")
             return
         endif
         call Deceleration.create(u, u, Deg2Rad(face), RMaxBJ(dis, 0), RMaxBJ(lasttime, 0), RMaxBJ(timeout, 0), damage, RMaxBJ(radius,0), killtrees, cycle, path, part, gsfx, wsfx ,0)

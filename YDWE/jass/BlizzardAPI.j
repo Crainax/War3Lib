@@ -82,6 +82,10 @@ library BzAPI
     native DzFrameSetEnable takes integer name, boolean enable returns nothing
     native DzFrameSetScript takes integer frame, integer eventId, string func, boolean sync returns nothing
     native DzFrameSetScriptByCode takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
+    native DzFrameSetScriptBlock takes integer frame, integer eventId, code funcHandle, boolean sync returns nothing
+    native DzFrameSetScriptAsync takes integer frame, integer eventId, string funcName returns nothing
+    native DzFrameSetScriptByCodeAsync takes integer frame, integer eventId, code func returns nothing
+    native DzFrameSetScriptBlockAsync takes integer frame, integer eventId, code func returns nothing
     native DzGetTriggerUIEventPlayer takes nothing returns player
     native DzGetTriggerUIEventFrame takes nothing returns integer
     native DzFrameFindByName takes string name, integer id returns integer
@@ -128,8 +132,8 @@ library BzAPI
     native DzGetClientWidth takes nothing returns integer
     native DzGetClientHeight takes nothing returns integer
     native DzFrameIsVisible takes integer frame returns boolean
-        //显示/隐藏SimpleFrame
-    //native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
+    //显示/隐藏SimpleFrame
+    native DzSimpleFrameShow takes integer frame, boolean enable returns nothing
     // 追加文字（支持TextArea）
     native DzFrameAddText takes integer frame, string text returns nothing
     // 沉默单位-禁用技能

@@ -92,7 +92,7 @@ type = string
 
 
 [DzSyncDataImmediately]
-title = "同步游戏数据（立即）[NEW]"
+title = "同步游戏数据（立即）"
 description = "立即同步 标签：${prefix}  发送数据：${data}"
 comment = ""
 category = BZ_SYNC
@@ -102,7 +102,7 @@ type = string
 type = string
 
 [DzSyncBuffer]
-title = "同步游戏数据（指定长度）[NEW]"
+title = "同步游戏数据（指定长度）"
 description = "同步 标签：${prefix}  发送数据：${data} 数据长度：${dataLen}"
 comment = "可以按长度同步数据"
 category = BZ_SYNC
@@ -341,7 +341,7 @@ type = real
 default = "0.5"
 
 [DzFrameSetScript]
-title = "注册UI事件回调(func name)"
+title = "注册UI事件回调(func name)[观战、录像不响应]"
 description = "注册 ${frame} 的 ${事件类型} 事件 运行:${func name} 是否同步:${sync}"
 comment = ""
 category = BZ_GUI
@@ -356,9 +356,9 @@ type = boolean
 default = "true"
 
 [DzFrameSetScriptByCode]
-title = "注册UI事件回调(func handle)"
+title = "注册UI事件回调(func handle)[观战、录像不响应]"
 description = "注册 ${frame} 的 ${事件类型} 事件 运行:${code handle} 是否同步:${sync}"
-comment = "运行触发器时需要打开同步"
+comment = "运行触发器时需要打开同步：执行会阻止它原本的功能继续响应"
 category = BZ_GUI
 [[.args]]
 type = frame
@@ -369,6 +369,57 @@ type = code
 [[.args]]
 type = boolean
 default = "true"
+
+[DzFrameSetScriptBlock]
+title = "注册UI事件回调-异步(func handle)[观战、录像不响应][new]"
+description = "注册 ${frame} 的 ${事件类型} 事件 运行:${code handle} 是否同步:${sync}"
+comment = "注册UI事件回调-异步，可以在游戏、录像、观战等所有模式响应"
+category = BZ_GUI
+[[.args]]
+type = frame
+[[.args]]
+type = frameevent
+[[.args]]
+type = code
+[[.args]]
+type = boolean
+default = "true"
+
+[DzFrameSetScriptAsync]
+title = "注册UI事件回调-异步(func name)[观战、录像可响应][new]"
+description = "注册 ${frame} 的 ${事件类型} 事件 运行:${func name}"
+comment = ""
+category = BZ_GUI
+[[.args]]
+type = frame
+[[.args]]
+type = frameevent
+[[.args]]
+type = string
+
+[DzFrameSetScriptByCodeAsync]
+title = "注册UI事件回调-异步(func handle)[观战、录像可响应][new]"
+description = "注册 ${frame} 的 ${事件类型} 事件 运行:${code handle}"
+comment = "注册UI事件回调-异步，可以在游戏、录像、观战等所有模式响应"
+category = BZ_GUI
+[[.args]]
+type = frame
+[[.args]]
+type = frameevent
+[[.args]]
+type = code
+
+[DzFrameSetScriptBlockAsync]
+title = "注册UI事件回调-异步(func handle)[观战、录像可响应][new]"
+description = "注册 ${frame} 的 ${事件类型} 事件 运行:${code handle}"
+comment = "注册UI事件回调-异步，可以在游戏、录像、观战等所有模式响应，该函数执行会阻止它原本的功能继续响应"
+category = BZ_GUI
+[[.args]]
+type = frame
+[[.args]]
+type = frameevent
+[[.args]]
+type = code
 
 [DzClickFrame]
 title = "点击"
@@ -560,13 +611,13 @@ type = string
 default = "war3mapMap.blp"
 
 [DzUpdateMinimap]
-title = "刷新小地图[NEW]"
+title = "刷新小地图"
 description = "刷新小地图"
 comment = ""
 category = BZ_GUI
 
 [DzUnitSilence]
-title = "沉默单位[NEW]"
+title = "沉默单位"
 description = "设置单位 ${单位} 的沉默状态为 ${true}"
 comment = ""
 category = TC_KKAPI
@@ -576,7 +627,7 @@ type = unit
 type = boolean
 
 [DzUnitDisableAttack]
-title = "禁用攻击[NEW]"
+title = "禁用攻击"
 description = "设置单位 ${单位}  ${true} 物理攻击"
 comment = ""
 category = TC_KKAPI
@@ -587,7 +638,7 @@ type = disableenableoption
 default = DisableEnableTrue
 
 [DzUnitDisableInventory]
-title = "禁用道具[NEW]"
+title = "禁用道具"
 description = "设置单位 ${单位}  ${true} 物品栏"
 comment = ""
 category = TC_KKAPI
@@ -598,7 +649,7 @@ type = disableenableoption
 default = DisableEnableTrue
 
 [DzUnitChangeAlpha]
-title = "修改单位透明度[NEW]"
+title = "修改单位透明度"
 description = "设置单位 ${单位} 的透明度为${透明度}  ${true} 强制更新"
 comment = ""
 category = TC_KKAPI
@@ -610,7 +661,7 @@ type = integer
 type = boolean
 
 [DzUnitSetCanSelect]
-title = "修改单位选中状态[NEW]"
+title = "修改单位选中状态"
 description = "设置单位 ${单位}  ${state} 被选中"
 comment = ""
 category = TC_KKAPI
@@ -621,7 +672,7 @@ type = canorcantoption
 default = CanOrCantTrue
 
 [DzUnitSetTargetable]
-title = "修改单位是否可以被设置为目标[NEW]"
+title = "修改单位是否可以被设置为目标"
 description = "设置单位 ${单位}  ${state} 设置为目标"
 comment = ""
 category = TC_KKAPI
@@ -632,7 +683,7 @@ type = canorcantoption
 default = CanOrCantTrue
 
 [DzConvertWorldPosition]
-title = "转换地图坐标为屏幕坐标-异步[NEW]"
+title = "转换地图坐标为屏幕坐标-异步"
 description = "转换地图坐标（ ${x}，${Y}，${z}）为屏幕坐标执行动作"
 comment = "动作里用“转换后的屏幕X坐标”和“转换后的屏幕Y坐标”去读取"
 category = BZ_GUI
@@ -727,7 +778,7 @@ default = "FrameEvent_Evenr_Pressed"
 type = frame
 
 [DzSaveMemoryCache]
-title = "保存内存数据[NEW]"
+title = "保存内存数据"
 description = "保存内存数据： ${state} "
 comment = ""
 category = TC_KKAPI
@@ -735,7 +786,7 @@ category = TC_KKAPI
 type = string
 
 [DzSetSpeed]
-title = "设置加速倍率[NEW]"
+title = "设置加速倍率"
 description = "设置加速倍率： ${ratio} "
 comment = ""
 category = TC_KKAPI

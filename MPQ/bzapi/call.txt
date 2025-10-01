@@ -18,7 +18,7 @@ returns = boolean
 type = frame
 
 [DzFrameIsVisible]
-title = "控件是否显示[NEW]"
+title = "控件是否显示"
 description = "${frame} 是否显示"
 comment = ""
 category = BZ_GUI
@@ -44,7 +44,7 @@ category = BZ_HW
 returns = boolean
 
 [DzIsWindowActive]
-title = "判断游戏窗口是否处于活动状态[NEW]"
+title = "判断游戏窗口是否处于活动状态"
 description = "判断窗口是否处于活动状态"
 comment = ""
 category = BZ_HW
@@ -128,7 +128,7 @@ category = BZ_HW
 returns = integer
 
 [DzGetTriggerSyncPrefix]
-title = "事件响应 - 获取同步的数据前缀 [NEW]"
+title = "事件响应 - 获取同步的数据前缀 "
 description = "获取同步的数据前缀"
 comment = "响应 [同步] - 同步消息事件"
 category = BZ_SYNC
@@ -184,7 +184,7 @@ category = BZ_HW
 returns = string
 
 [DzGetUnitNeededXP]
-title = "获取升级所需经验 [NEW]"
+title = "获取升级所需经验 "
 description = "获取单位 ${unit} 的 ${level}级 升级所需经验"
 comment = ""
 category = TC_UNIT
@@ -513,14 +513,14 @@ min = 0
 max = 255
 
 [DzGetConvertWorldPositionX]
-title = "获取转换后的屏幕 X 坐标[NEW]"
+title = "获取转换后的屏幕 X 坐标"
 description = "获取转换后的屏幕 X 坐标"
 comment = "用于转换世界坐标为屏幕坐标动作后面"
 category = BZ_GUI
 returns = real
 
 [DzGetConvertWorldPositionY]
-title = "获取转换后的屏幕 Y 坐标[NEW]"
+title = "获取转换后的屏幕 Y 坐标"
 description = "获取转换后的屏幕 Y 坐标"
 comment = "用于转换世界坐标为屏幕坐标动作后面"
 category = BZ_GUI
@@ -528,7 +528,7 @@ returns = real
 
 
 [DzCreateCommandButton]
-title = "创建技能按钮 [NEW]"
+title = "创建技能按钮 "
 description = "在 ${界面} 的创建技能按钮：贴图:${path} 名称:${name} 描述：${desc})"
 comment = ""
 category = BZ_GUI
@@ -543,21 +543,21 @@ type = string
 type = string
 
 [DzGetClientWidth]
-title = "获取魔兽窗口宽度[NEW]"
+title = "获取魔兽窗口宽度"
 description = "获取魔兽窗口宽度"
 comment = "不包括魔兽窗口边框"
 category = BZ_HW
 returns = integer
 
 [DzGetClientHeight]
-title = "获取魔兽窗口高度[NEW]"
+title = "获取魔兽窗口高度"
 description = "获取魔兽窗口高度"
 comment = "不包括魔兽窗口边框"
 category = BZ_HW
 returns = integer
 
 [DzGetMemoryCache]
-title = "读取内存数据[NEW]"
+title = "读取内存数据"
 description = "读取内存数据"
 comment = ""
 category = TC_KKAPI

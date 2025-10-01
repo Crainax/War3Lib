@@ -7,6 +7,18 @@ returns = AnyReturnType
 [[.args]]
 type = scriptcode
 
+[KKAPIGetAnyTypeLocalArray]
+title = "读取【真】局部变量数组 [new]"
+description = "loc_${变量名}[${索引}]"
+comment = "此为真局部变量数组。"
+category = TC_KKAPI
+returns = AnyReturnType
+[[.args]]
+type = scriptcode
+[[.args]]
+type = integer
+default = 0
+
 [DzGetSelectedLeaderUnit]
 title = "当前选择的单位(异步)"
 description = "获取主控单位"
@@ -498,3 +510,1092 @@ returns = integer
 type = typename
 [[.args]]
 type = Null
+
+[DzFrameGetUnitHpBar]
+title = "获取单位血条 [NEW]"
+description = "获取 ${whichUnit} 血条"
+comment = "获取单位血条"
+category = TC_KKAPI
+returns = frame
+[[.args]]
+type = unit
+
+[DzFrameGetTriggerHpBar]
+title = "触发的血条 [NEW]"
+description = "触发的血条"
+comment = "用于血条刷新事件下"
+category = TC_KKAPI
+returns = frame
+
+[DzFrameGetTriggerHpBarUnit]
+title = "触发血条的单位 [NEW]"
+description = "触发血条的单位"
+comment = "用于血条刷新事件下"
+category = TC_KKAPI
+returns = unit
+
+[DzGetCursorFrame]
+title = "鼠标界面 [NEW]"
+description = "鼠标界面"
+comment = ""
+category = TC_KKAPI
+returns = frame
+
+[DzFrameGetPointValid]
+title = "是否有指定锚点 [NEW]"
+description = "判断 ${whichFrame} 是否有 ${anchor} 锚点"
+comment = ""
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = frame
+[[.args]]
+type = framepoints
+default = "FramePoints_Center"
+
+[DzFrameGetPointRelative]
+title = "获取相对锚点所在界面 [NEW]"
+description = "判断 ${whichFrame} 的相对锚点 ${anchor} 所在界面"
+comment = ""
+category = TC_KKAPI
+returns = frame
+[[.args]]
+type = frame
+[[.args]]
+type = framepoints
+default = "FramePoints_Center"
+
+[DzFrameGetPointRelativePoint]
+title = "获取相对锚点的界面锚点 [NEW]"
+description = "判断 ${whichFrame} 的相对锚点 ${anchor} 所在界面的锚点"
+comment = ""
+category = TC_KKAPI
+returns = framepoints
+[[.args]]
+type = frame
+[[.args]]
+type = framepoints
+default = "FramePoints_Center"
+
+[DzFrameGetPointX]
+title = "获取锚点X坐标 [NEW]"
+description = "${whichFrame} 的 ${anchor} X坐标"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = frame
+[[.args]]
+type = framepoints
+default = "FramePoints_Center"
+
+[DzFrameGetPointY]
+title = "获取锚点Y坐标 [NEW]"
+description = "${whichFrame} 的 ${anchor} Y坐标"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = frame
+[[.args]]
+type = framepoints
+default = "FramePoints_Center"
+
+[KKAPIGetTimeDateFromTimestamp]
+title = "转换时间戳为具体时间 [NEW]"
+description = "转换 ${时间戳} 为具体时间"
+comment = "返回值类似：2025-1-10 17:4:40"
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = integer
+default = "DzAPI_Map_GetGameStartTime"
+
+[KKAPIGetTimestampYear]
+title = "获取时间戳年份 [NEW]"
+description = " ${时间戳} 的年份"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+default = "DzAPI_Map_GetGameStartTime"
+
+[KKAPIGetTimestampMonth]
+title = "获取时间戳月份 [NEW]"
+description = " ${时间戳} 的月份"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+default = "DzAPI_Map_GetGameStartTime"
+
+[KKAPIGetTimestampDay]
+title = "获取时间戳日份 [NEW]"
+description = " ${时间戳} 的日份"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+default = "DzAPI_Map_GetGameStartTime"
+
+[DzTextTagGetFont]
+title = "获取当前漂浮文字的字体 [NEW]"
+description = "漂浮文字的字体"
+comment = ""
+category = TC_KKAPI
+returns = string
+
+[DzTextTagGetShadowColor]
+title = "获取漂浮文字的阴影颜色 [NEW]"
+description = "获取 ${漂浮文字} 的阴影颜色"
+comment = ""
+category = TC_KKAPI
+returns = rgba2color
+[[.args]]
+type = texttag
+
+[DzGroupGetCount]
+title = "获取单位组里单位数量 [NEW]"
+description = "获取 ${group} 里单位数量"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = group
+
+[DzGroupGetUnitAt]
+title = "获取单位组里指定索引的单位 [NEW]"
+description = "获取 ${group} 里第 ${index} 个单位"
+comment = ""
+category = TC_KKAPI
+returns = unit
+[[.args]]
+type = group
+[[.args]]
+type = integer
+
+[DzUnitCreateIllusion]
+title = "创建幻象单位 [NEW]"
+description = "为 ${player} 创建一个 ${unitId} 类型的幻象，在坐标(${x},${y}),面向角度：${face}"
+comment = ""
+category = TC_KKAPI
+returns = unit
+[[.args]]
+type = player
+[[.args]]
+type = unitcode
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitCreateIllusionFromUnit]
+title = "为单位创建幻象 [NEW]"
+description = "为 ${unit} 创建一个幻象"
+comment = ""
+category = TC_KKAPI
+returns = unit
+[[.args]]
+type = unit
+
+[DzStringContains]
+title = "检查字符串是否包含指定的子字符串 [NEW]"
+description = "检测 ${targetStr} 是否包含 ${searchStr} 字符串，判定规则：${caseSensitive} 区分大小写"
+comment = ""
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = string
+[[.args]]
+type = string
+[[.args]]
+type = boolean
+
+[DzStringFind]
+title = "字符串中查找子字符串并返回其位置 [NEW]"
+description = "检测 ${targetStr} 包含 ${searchStr} 的位置，从第 ${caseSensitive} 位开始，判定规则：${caseSensitive} 区分大小写"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = string
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = boolean
+
+[DzStringFindFirstOf]
+title = "检测字符串里第一个包含指定字符串里任意字符的位置 [NEW]"
+description = "检测 ${targetStr} 第一个包含 ${searchStr} 里任意字符的位置，从第 ${caseSensitive} 位开始，判定规则：${caseSensitive} 区分大小写"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = string
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = boolean
+
+[DzStringFindFirstNotOf]
+title = "检查字符串第一个不包含指定字符串里任意字符的位置 [NEW]"
+description = "检测 ${targetStr} 第一个不包含 ${searchStr} 里任意字符的位置，从第 ${caseSensitive} 位开始，判定规则：${caseSensitive} 区分大小写"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = string
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = boolean
+
+[DzStringFindLastOf]
+title = "从后往前查找字符串中包含指定字符串任意字符的所在位置 [NEW]"
+description = "从后往前检测 ${targetStr} 包含指定字符串 ${searchStr} 任意字符的位置，从第 ${caseSensitive} 位开始，判定规则：${caseSensitive} 区分大小写"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = string
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = boolean
+
+[DzStringFindLastNotOf]
+title = "从后往前查找字符串中不包含指定字符串任意字符的所在位置 [NEW]"
+description = "从后往前检测 ${targetStr} 不包含指定字符串 ${searchStr} 任意字符的位置，从第 ${caseSensitive} 位开始，判定规则：${caseSensitive} 区分大小写"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = string
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = boolean
+
+[DzStringTrimLeft]
+title = "删除字符串左边的空格 [NEW]"
+description = "删除 ${targetStr} 左边的空格"
+comment = ""
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = string
+
+[DzStringTrimRight]
+title = "删除字符串右边的空格 [NEW]"
+description = "删除 ${targetStr} 右边的空格"
+comment = ""
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = string
+
+[DzStringTrim]
+title = "删除字符串两边的空格 [NEW]"
+description = "删除 ${targetStr} 两边的空格"
+comment = ""
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = string
+
+[DzStringReverse]
+title = "反转字符串 [NEW]"
+description = "反转 ${targetStr}"
+comment = ""
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = string
+
+[DzStringReplace]
+title = "替换字符串 [NEW]"
+description = "替换 ${targetStr} 里的 ${searchStr} 为 ${newStr} "
+comment = ""
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = string
+[[.args]]
+type = string
+[[.args]]
+type = string
+
+[DzStringInsert]
+title = "插入字符串 [NEW]"
+description = "在 ${targetStr} 的位置 ${whichPosition} 插入 ${newStr} "
+comment = ""
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = string
+
+[DzBitGet]
+title = "整数的2进制的位值 [NEW]"
+description = " ${i} 的2进制的第 ${byteIndex} 位的值"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzBitSet]
+title = "设置整数的2进制的位值 [NEW]"
+description = "设置 ${i} 的2进制的第 ${byteIndex} 位的值：${byteValue}"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzBitGetByte]
+title = "整数的256进制的位值 [NEW]"
+description = " ${i} 256进制第 ${byteIndex} 位的值"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzBitSetByte]
+title = "设置整数的256进制的位值 [NEW]"
+description = "设置 ${i} 的256进制的第 ${byteIndex} 位的值：${byteValue}"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzBitNot]
+title = "按位取反 [NEW]"
+description = " ${i} 按位取反"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+
+[DzBitAnd]
+title = "按位与 [NEW]"
+description = "${a} 和 ${b} 按位与"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzBitOr]
+title = "按位或 [NEW]"
+description = "${a} 和 ${b} 按位或"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzBitXor]
+title = "按位异或 [NEW]"
+description = "${a} 和 ${b} 按位异或"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzBitShiftLeft]
+title = "按位左移 [NEW]"
+description = " ${i} 的所有位向左移动 ${bitsToShift} 位"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzBitShiftRight]
+title = "按位右移 [NEW]"
+description = " ${i} 的所有位向右移动 ${bitsToShift} 位"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzBitToInt]
+title = "4字节组合为整数 [NEW]"
+description = "在4个字节(${A},${B},${C},${D})组合成一个整数。"
+comment = "这里组合是256进制，组合的结果其实是DCBA"
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzUnitOrdersCount]
+title = "获取单位的命令数量 [NEW]"
+description = "获取单位 ${u} 的命令数量"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = unit
+
+[DzXlsxOpen]
+title = "打开Excel文件 [NEW]"
+description = "打开Excel文件 ${filePath} "
+comment = "会返回一个工作表"
+category = TC_KKAPI
+returns = xlsxworksheet
+[[.args]]
+type = string
+
+[DzXlsxWorksheetGetRowCount]
+title = "工作表的总行数 [NEW]"
+description = " ${docHandle} 里 ${sheetName} 页的总行数"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = xlsxworksheet
+[[.args]]
+type = string
+
+[DzXlsxWorksheetGetColumnCount]
+title = "工作表的总列数 [NEW]"
+description = " ${docHandle} 里 ${sheetName} 的列数"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = xlsxworksheet
+[[.args]]
+type = string
+
+[DzXlsxWorksheetGetCellType]
+title = "单元格的数据类型 [NEW]"
+description = " ${docHandle} 里 ${sheetName} 中单元格 (${row}, ${column}) 的数据类型"
+comment = "0=None,1=String,2=Integer,3=Boolean,4=Real"
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = xlsxworksheet
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzXlsxWorksheetGetCellBoolean]
+title = "工作表的值（布尔值） [NEW]"
+description = " ${docHandle} 里 ${sheetName} 中单元格 (${row}, ${column}) 的布尔值"
+comment = ""
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = xlsxworksheet
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzXlsxWorksheetGetCellInteger]
+title = "工作表的值（整数） [NEW]"
+description = "${docHandle} 里 ${sheetName} 中单元格 (${row}, ${column}) 的整数值"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = xlsxworksheet
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzXlsxWorksheetGetCellFloat]
+title = "工作表的值（实数） [NEW]"
+description = "${docHandle} 里 ${sheetName} 中单元格 (${row}, ${column}) 的实数值"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = xlsxworksheet
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzXlsxWorksheetGetCellString]
+title = "工作表的值（字符串） [NEW]"
+description = "${docHandle} 里 ${sheetName} 中单元格 (${row}, ${column}) 的字符串值"
+comment = ""
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = xlsxworksheet
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[CreateSound]
+title = "创建声音 [new]"
+description = "创建声音，路径：${fileName}，是否循环播放 ${looping}，是否为3D声音 ${is3D}，超出范围是否停止 ${stopwhenoutofrange}，淡入速率 ${fadeInRate}，淡出速率 ${fadeOutRate}，效果 ${eaxSetting}"
+comment = ""
+category = TC_SOUND
+returns = sound
+[[.args]]
+type = string
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = EaxSetting
+
+[CreateSoundFilenameWithLabel]
+title = "根据文件名和标签创建声音 [new]"
+description = "创建声音， 路径：${fileName} ，是否循环播放 ${looping}，是否为3D声音 ${is3D}，超出范围是否停止 ${stopwhenoutofrange}，淡入速率 ${fadeInRate}，淡出速率 ${fadeOutRate} 设置标签 ${SLKEntryName}"
+comment = ""
+category = TC_SOUND
+returns = sound
+[[.args]]
+type = string
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = string
+
+[CreateSoundFromLabel]
+title = "从标签创建声音 [new]"
+description = "根据标签 ${soundLabel} 创建声音，是否循环播放 ${looping}，是否为3D声音 ${is3D}，超出范围是否停止 ${stopwhenoutofrange}，淡入速率 ${fadeInRate}，淡出速率 ${fadeOutRate}"
+comment = ""
+category = TC_SOUND
+returns = sound
+[[.args]]
+type = string
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[CreateMIDISound]
+title = "创建MIDI音乐 [new]"
+description = "创建MIDI音乐，标签为 ${soundLabel}，淡入速率 ${fadeInRate}，淡出速率 ${fadeOutRate}"
+comment = ""
+category = TC_SOUND
+returns = sound
+[[.args]]
+type = string
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[GetSoundIsPlaying]
+title = "声音在播放 [new]"
+description = " ${soundHandle} 在播放"
+comment = ""
+category = TC_SOUND
+returns = boolean
+[[.args]]
+type = sound
+
+[GetSoundIsLoading]
+title = "声音在加载 [new]"
+description = " ${soundHandle} 在加载"
+comment = ""
+category = TC_SOUND
+returns = boolean
+[[.args]]
+type = sound
+
+
+
+[DzGetUnitAbilityRange]
+title = "技能 - 获取技能施法距离（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的施法距离"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityArea]
+title = "技能 - 获取技能施法范围（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的施法范围"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityCool]
+title = "技能 - 获取技能当前冷却时间（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的当前冷却时间"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityMaxCool]
+title = "技能 - 获取技能最大冷却时间（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的最大冷却时间"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityDataA]
+title = "技能 - 获取技能数据A（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的数据A"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityDataB]
+title = "技能 - 获取技能数据B（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的数据B"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityDataC]
+title = "技能 - 获取技能数据C（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的数据C"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+[DzGetUnitAbilityDataD]
+title = "技能 - 获取技能数据D（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的数据D"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityDataE]
+title = "技能 - 获取技能数据E（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的数据E"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzConvertTargs2Str]
+title = "转化 - 目标允许整数转字符串"
+description = "转换 ${目标允许}为字符串"
+comment = ""
+category = TC_KKAPI
+returns = string
+[[.args]]
+type = integer
+
+[DzConvertStr2Targs]
+title = "转化 - 目标允许字符串转整数"
+description = "转换 ${目标允许}为整数"
+comment = "例如“ground,friend,vuln,invu”"
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = string
+
+[KKConvertInt2AbilId]
+title = "转化 - 整数为技能ID"
+description = "转换 ${整数}为技能ID"
+comment = ""
+category = TC_KKAPI
+returns = abilcode
+[[.args]]
+type = integer
+
+[KKConvertAbilId2Int]
+title = "转化 - 技能ID为整数"
+description = "转换 ${技能ID}为整数"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = abilcode
+
+
+[DzGetUnitAbilityTargs]
+title = "技能 - 获取技能目标允许（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的目标允许"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityCost]
+title = "技能 - 获取技能魔法消耗（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的魔法消耗"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityReqLevel]
+title = "技能 - 获取技能等级要求（通魔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的等级要求"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityUnitId]
+title = "技能 - 获取建造技能单位ID（象牙塔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的单位ID"
+comment = "象牙塔或者变身类技能有效"
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityBuildOrderId]
+title = "技能 - 获取建造技能命令ID（象牙塔）"
+description = "获取 单位${unit} 当前拥有的技能${id} 的命令ID"
+comment = "象牙塔类的技能有效"
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = unit
+[[.args]]
+type = ordercode
+
+[KKCreateCommandButton]
+title = "技能 - 创建技能按钮控件"
+description = "创建技能按钮控件"
+comment = "创建的技能按钮可以拿来绑定技能。"
+category = TC_KKAPI
+returns = frame
+
+
+[DzUnitHasAbility]
+title = "技能 - 判断单位是否拥有技能 (包含模版技能)"
+description = "单位${单位}是否拥有技能 ${技能id}"
+comment = "单位拥有指定id 或者 指定模板id, 真实的模板技能id在 编辑器里units\abilitydata.slk 里面的code列里"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+[DzItemGetVertexColor]
+title = "物品 - 获取物品颜色"
+description = "获取 ${物品} 的颜色"
+comment = ""
+category = TC_KKAPI
+returns = rgba2color
+[[.args]]
+type = item
+
+[KKConvertInt2Color]
+title = "转化 - 转整数为颜色"
+description = "转换 ${整数} 为颜色"
+comment = ""
+category = TC_KKAPI
+returns = rgba2color
+[[.args]]
+type = integer
+
+
+[KKConvertColor2Int]
+title = "转化 - 转颜色为整数"
+description = "转换 ${颜色} 为整数"
+comment = ""
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = rgba2color
+
+
+[DzItemGetSize]
+title = "物品 - 获取物品大小"
+description = "获取 ${物品} 的缩放大小"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = item
+
+[DzGetLastSelectedItem]
+title = "物品 - 当前选择的物品(异步)"
+description = "获取主控物品"
+comment = "获取的物品是异步的，请谨慎操作"
+category = TC_KKAPI
+returns = item
+
+
+[DzGetUnitCollisionSize]
+title = "单位 - 获取单位的碰撞体积"
+description = "获取 ${单位} 的碰撞体积"
+comment = ""
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+
+
+
+
+[DzFrameAddModel]
+title = "界面 - 创建ui模型控件"
+description = "创建ui模型控件 指定父控件${parent}"
+comment = "用来显示3d模型用的，需要手动设置镜头参数，旋转缩放才能正确显示。"
+category = TC_KKPRE
+returns = frame
+[[.args]]
+type = frame
+
+[DzFrameAddModelEffect]
+title = "界面 - ui模型 - 添加绑定特效"
+description = "为ui模型控件${model_frame}绑定特效, 附加点${attach_point}, 特效模型文件路径${model_path}"
+comment = "重置模型后自动失效，只能是ui模型控件, 返回effect_frame"
+category = TC_KKPRE
+returns = frame
+[[.args]]
+type = frame
+[[.args]]
+type = string
+[[.args]]
+type = modelfile
+
+[DzFrameGetModelSize]
+title = "界面 - ui模型 - 获取缩放大小"
+description = "获取ui模型控件${model_frame}的缩放大小"
+comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = frame
+
+
+[DzFrameGetModelX]
+title = "界面 - ui模型 - 获取场景内的坐标X轴"
+description = "获取ui模型控件${model_frame}场景内的坐标X轴"
+comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = frame
+
+[DzFrameGetModelY]
+title = "界面 - ui模型 - 获取场景内的坐标Y轴"
+description = "获取ui模型控件${model_frame}场景内的坐标Y轴"
+comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = frame
+
+[DzFrameGetModelZ]
+title = "界面 - ui模型 - 获取场景内的坐标Z轴"
+description = "获取ui模型控件${model_frame}场景内的坐标Z轴"
+comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = frame
+
+[DzFrameGetModelSpeed]
+title = "界面 - ui模型 - 获取动画播放速度"
+description = "获取ui模型控件${model_frame}场景内的动画播放速度"
+comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = frame
+
+
+[DzFrameGetModelColor]
+title = "界面 - ui模型 - 获取颜色"
+description = "获取ui模型控件 ${model_frame} 的颜色"
+comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
+category = TC_KKPRE
+returns = rgba2color
+[[.args]]
+type = frame
+
+
+[DzGetGlueUI]
+title = "界面 - 获取游戏外界面底层"
+description = "获取游戏外界面底层"
+comment = "返回GlueUI, 从config房间界面到加载界面完成 都属于GlueUI, 进入游戏后属于GameUI"
+category = TC_KKPRE
+returns = frame
+
+
+[DzFrameGetMouse]
+title = "界面 - 获取鼠标控件"
+description = "获取鼠标控件"
+comment = "返回的是SPRITE模型控件，可以通过缩放大小为0来隐藏鼠标, 需要注意的是游戏内跟游戏外鼠标UI不一样，可以游戏开始0秒之后再获取使用。"
+category = TC_KKPRE
+returns = frame
+
+
+[DzFrameGetContext]
+title = "界面 - 获取控件绑定的整数"
+description = "获取控件${frame}绑定的整数"
+comment = "相当于获取 <<新建Frame [Tag]:DzCreateFrameByTagName>> 函数最后一个参数"
+category = TC_KKPRE
+returns = integer
+[[.args]]
+type = frame
+
+[DzFrameGetName]
+title = "界面 - 获取控件的全局名字"
+description = "获取控件${frame}的全局名字"
+comment = "相当于获取 <<新建Frame [Tag]:DzCreateFrameByTagName>> 函数第2个参数"
+category = TC_KKPRE
+returns = string
+[[.args]]
+type = frame
+
+
+[KKCommandGetCooldownModel]
+title = "界面 - 获取技能/物品按钮的冷却模型控件"
+description = "获取技能/物品按钮${command_button}的冷却模型控件"
+comment = "获取技能或者物品按钮上面的 冷却模型控件，相当于是SPRITE类型的控件"
+category = TC_KKPRE
+returns = frame
+[[.args]]
+type = frame
+
+
+[DzGetPlayerLastSelectedItem]
+title = "物品 - 玩家当前选择的物品(同步)"
+description = "获取玩家${玩家}当前选择的物品(同步)"
+comment = "返回值是同步的。每次选择物品后会延迟0.1秒刷新返回值。"
+category = TC_KKPRE
+returns = item
+[[.args]]
+type = player
+
+
+[DzGetCacheModelCount]
+title = "获取当前缓存模型的数量"
+description = "获取当前缓存模型的数量"
+comment = "返回值异步的，用来检测当前游戏模型数量用的"
+category = TC_KKPRE
+returns = integer

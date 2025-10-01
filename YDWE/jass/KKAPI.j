@@ -1,7 +1,8 @@
 #ifndef KKAPIINCLUDE 
 #define KKAPIINCLUDE 
 
-library LBKKAPI 
+library LBKKAPI initializer Init
+
         globals 
                 string MOVE_TYPE_NONE = "none" //没有（无视碰撞）  
                 string MOVE_TYPE_FOOT = "foot" //步行  
@@ -11,7 +12,7 @@ library LBKKAPI
                 string MOVE_TYPE_FLOAT = "float" //漂浮（只能在深水里活动）  
                 string MOVE_TYPE_AMPH = "amph" //两栖  
                 string MOVE_TYPE_UNBUILD = "unbuild" //不可建造  
-                constant integer DEFENSE_TYPE_LIGHT = 0 
+                constant integer DEFENSE_TYPE_SMALL = 0 
 		constant integer DEFENSE_TYPE_MEDIUM = 1 
 		constant integer DEFENSE_TYPE_LARGE = 2 
 		constant integer DEFENSE_TYPE_FORT = 3 
@@ -19,6 +20,8 @@ library LBKKAPI
 		constant integer DEFENSE_TYPE_HERO = 5 
 		constant integer DEFENSE_TYPE_DIVINE = 6 
 		constant integer DEFENSE_TYPE_NONE = 7 
+                private integer array MonthDay
+                private hashtable Hash=InitHashtable()
         endglobals 
 
         native DzGetSelectedLeaderUnit takes nothing returns unit 
@@ -217,7 +220,320 @@ library LBKKAPI
         native DzItemSetAlpha takes item whichItem, integer color returns nothing
         // 设置道具头像
         native DzItemSetPortrait takes item whichItem, string modelPath returns nothing
+	native DzFrameHookHpBar takes code func returns nothing
+	native DzFrameGetTriggerHpBarUnit takes nothing returns unit
+	native DzFrameGetTriggerHpBar takes nothing returns integer
+	native DzFrameGetUnitHpBar takes unit whichUnit returns integer
 
+        native DzGetCursorFrame takes nothing returns integer
+        native DzFrameGetPointValid takes integer frame, integer anchor returns boolean
+        native DzFrameGetPointRelative takes integer frame, integer anchor returns integer
+        native DzFrameGetPointRelativePoint takes integer frame, integer anchor returns integer
+        native DzFrameGetPointX takes integer frame, integer anchor returns real
+        native DzFrameGetPointY takes integer frame, integer anchor returns real
+                
+        function DzIsLeapYear takes integer year returns boolean
+                return (ModuloInteger(year , 4) == 0 and ModuloInteger(year , 100) != 0) or (ModuloInteger(year , 400) == 0)
+        endfunction
+
+        function DzGetTimeDateFromTimestamp takes integer timestamp returns string
+                local integer totalSeconds = timestamp+28800
+                local integer days = 0
+                local integer day = 0
+                local integer secondsInDay = 86400
+                local integer remainingSeconds = ModuloInteger(totalSeconds, secondsInDay)
+                local integer year = 1970
+                local integer totalDays = (totalSeconds+86399) / (secondsInDay)
+                local integer num= 0
+                local integer month=0
+                local integer hour
+                local integer minute
+                local integer second
+                local string str
+                loop
+                if DzIsLeapYear(year) then
+                        set num = num + 366
+                else
+                        set num = num + 365
+                endif
+                if num > totalDays then
+                        set totalDays=totalDays-days
+                        exitwhen true
+                else
+                        set days=num
+                endif
+                set year = year + 1
+                endloop
+                set month=1
+                set num=0
+                set days=0
+                if(DzIsLeapYear(year))then
+                loop
+                        set num = num + MonthDay[100+month]
+                        if num >= totalDays then
+                        set day=totalDays-days
+                        exitwhen true
+                        else
+                        set days=num
+                        endif
+                        set month = month + 1
+                endloop
+                else
+                loop
+                        set num = num + MonthDay[month]
+                        if num >= totalDays then
+                        set day=totalDays-days
+                        exitwhen true
+                        else
+                        set days=num
+                        endif
+                        set month = month + 1
+                endloop
+                endif
+                if(day==0)then
+                set day=1
+                endif
+                set hour = remainingSeconds / 3600
+                set remainingSeconds = ModuloInteger(remainingSeconds, 3600)
+                set minute = remainingSeconds / 60
+                set second = ModuloInteger(remainingSeconds, 60)
+                set str=I2S(year) + "-" + I2S(month) + "-" + I2S(day) + " " + I2S(hour) + ":" + I2S(minute) + ":" + I2S(second)
+                call SaveInteger(Hash,timestamp,1,year)
+                call SaveInteger(Hash,timestamp,2,month)
+                call SaveInteger(Hash,timestamp,3,day)
+                call SaveStr(Hash,timestamp,4,str)
+                return str
+        endfunction
+
+        function KKAPIGetTimeDateFromTimestamp takes integer timestamp returns string
+                set timestamp=IMaxBJ(timestamp,0)
+                if(HaveSavedString(Hash,timestamp,4))then
+                        return LoadStr(Hash,timestamp,4)
+                else
+                        return DzGetTimeDateFromTimestamp(timestamp)
+                endif
+        endfunction
+
+        function  KKAPIGetTimestampYear takes integer timestamp returns integer
+                set timestamp=IMaxBJ(timestamp,0)
+                if(HaveSavedInteger(Hash,timestamp,1)==false)then
+                        call DzGetTimeDateFromTimestamp(timestamp)
+                endif
+                 return LoadInteger(Hash,timestamp,1)
+        endfunction
+
+        function  KKAPIGetTimestampMonth takes integer timestamp returns integer
+                set timestamp=IMaxBJ(timestamp,0)
+                if(HaveSavedInteger(Hash,timestamp,2)==false)then
+                        call DzGetTimeDateFromTimestamp(timestamp)
+                endif
+                 return LoadInteger(Hash,timestamp,2)
+        endfunction
+
+        function  KKAPIGetTimestampDay takes integer timestamp returns integer
+                set timestamp=IMaxBJ(timestamp,0)
+                if(HaveSavedInteger(Hash,timestamp,3)==false)then
+                        call DzGetTimeDateFromTimestamp(timestamp)
+                endif
+                 return LoadInteger(Hash,timestamp,3)
+        endfunction
+
+        private function Init takes nothing returns nothing
+                set MonthDay[1]=31
+                set MonthDay[2]=28
+                set MonthDay[3]=31
+                set MonthDay[4]=30
+                set MonthDay[5]=31
+                set MonthDay[6]=30
+                set MonthDay[7]=31
+                set MonthDay[8]=31
+                set MonthDay[9]=30
+                set MonthDay[10]=31
+                set MonthDay[11]=30
+                set MonthDay[12]=31
+                set MonthDay[101]=31
+                set MonthDay[102]=29
+                set MonthDay[103]=31
+                set MonthDay[104]=30
+                set MonthDay[105]=31
+                set MonthDay[106]=30
+                set MonthDay[107]=31
+                set MonthDay[108]=31
+                set MonthDay[109]=30
+                set MonthDay[110]=31
+                set MonthDay[111]=30
+                set MonthDay[112]=31
+        endfunction
+
+        native DzWriteLog takes string msg returns nothing
+
+        // texttag
+        native DzTextTagGetFont takes nothing returns string
+        native DzTextTagSetFont takes string fileName returns nothing
+        native DzTextTagSetStartAlpha takes texttag t, integer alpha returns nothing
+        native DzTextTagGetShadowColor takes texttag t returns integer
+        native DzTextTagSetShadowColor takes texttag t, integer color returns nothing
+    
+        // group
+        native DzGroupGetCount takes group g returns integer
+        native DzGroupGetUnitAt takes group g, integer index returns unit
+    
+        // unit
+        native DzUnitCreateIllusion takes player p, integer unitId, real x, real y, real face returns unit
+        native DzUnitCreateIllusionFromUnit takes unit u returns unit
+    
+        // string
+        native DzStringContains takes string s, string whichString, boolean caseSensitive returns boolean
+        native DzStringFind takes string s, string whichString, integer off, boolean caseSensitive returns integer
+        native DzStringFindFirstOf takes string s, string whichString, integer off, boolean caseSensitive returns integer
+        native DzStringFindFirstNotOf takes string s, string whichString, integer off, boolean caseSensitive returns integer
+        native DzStringFindLastOf takes string s, string whichString, integer off, boolean caseSensitive returns integer
+        native DzStringFindLastNotOf takes string s, string whichString, integer off, boolean caseSensitive returns integer
+        native DzStringTrimLeft takes string s returns string
+        native DzStringTrimRight takes string s returns string
+        native DzStringTrim takes string s returns string
+        native DzStringReverse takes string s returns string
+        native DzStringReplace takes string s, string whichString, string replaceWith, boolean caseSensitive returns string
+        native DzStringInsert takes string s, integer whichPosition, string whichString returns string
+    
+        // bit
+        native DzBitGet takes integer i, integer byteIndex returns integer
+        native DzBitSet takes integer i, integer byteIndex, integer byteValue returns integer
+        native DzBitGetByte takes integer i, integer byteIndex returns integer
+        native DzBitSetByte takes integer i, integer byteIndex, integer byteValue returns integer
+        native DzBitNot takes integer i returns integer
+        native DzBitAnd takes integer a, integer b returns integer
+        native DzBitOr takes integer a, integer b returns integer
+        native DzBitXor takes integer a, integer b returns integer
+        native DzBitShiftLeft takes integer i, integer bitsToShift returns integer
+        native DzBitShiftRight takes integer i, integer bitsToShift returns integer
+        native DzBitToInt takes integer b1, integer b2, integer b3, integer b4 returns integer
+    
+        // issue
+        native DzQueueGroupImmediateOrderById              takes group whichGroup, integer order returns boolean
+        native DzQueueGroupPointOrderById                  takes group whichGroup, integer order, real x, real y returns boolean
+        native DzQueueGroupTargetOrderById                 takes group whichGroup, integer order, widget targetWidget returns boolean
+        native DzQueueIssueImmediateOrderById      takes unit whichUnit, integer order returns boolean
+        native DzQueueIssuePointOrderById          takes unit whichUnit, integer order, real x, real y returns boolean
+        native DzQueueIssueTargetOrderById         takes unit whichUnit, integer order, widget targetWidget returns boolean
+        native DzQueueIssueInstantPointOrderById   takes unit whichUnit, integer order, real x, real y, widget instantTargetWidget returns boolean
+        native DzQueueIssueInstantTargetOrderById  takes unit whichUnit, integer order, widget targetWidget, widget instantTargetWidget returns boolean
+        native DzQueueIssueBuildOrderById          takes unit whichPeon, integer unitId, real x, real y returns boolean
+        native DzQueueIssueNeutralImmediateOrderById   takes player forWhichPlayer,unit neutralStructure, integer unitId returns boolean
+        native DzQueueIssueNeutralPointOrderById       takes player forWhichPlayer,unit neutralStructure, integer unitId, real x, real y returns boolean
+        native DzQueueIssueNeutralTargetOrderById      takes player forWhichPlayer,unit neutralStructure, integer unitId, widget target returns boolean
+        native DzUnitOrdersCount takes unit u returns integer
+        native DzUnitOrdersClear takes unit u, boolean onlyQueued returns nothing
+        native DzUnitOrdersExec takes unit u returns nothing
+        native DzUnitOrdersForceStop takes unit u, boolean clearQueue returns nothing
+        native DzUnitOrdersReverse takes unit u returns nothing
+        // xlsx
+        native DzXlsxOpen takes string filePath returns integer
+        native DzXlsxClose takes integer docHandle returns boolean
+        native DzXlsxWorksheetGetRowCount takes integer docHandle, string sheetName returns integer
+        native DzXlsxWorksheetGetColumnCount takes integer docHandle, string sheetName returns integer
+        native DzXlsxWorksheetGetCellType takes integer docHandle, string sheetName, integer row, integer column returns integer
+        native DzXlsxWorksheetGetCellString takes integer docHandle, string sheetName, integer row, integer column returns string
+        native DzXlsxWorksheetGetCellInteger takes integer docHandle, string sheetName, integer row, integer column returns integer
+        native DzXlsxWorksheetGetCellBoolean takes integer docHandle, string sheetName, integer row, integer column returns boolean
+        native DzXlsxWorksheetGetCellFloat takes integer docHandle, string sheetName, integer row, integer column returns real
+    
+        native DzFrameSetTexCoord takes integer frame, real left, real top, real right, real bottom returns nothing
+
+        native DzSetUnitAbilityRange takes unit Unit, integer abil_code, real value returns boolean
+        native DzGetUnitAbilityRange takes unit Unit, integer abil_code returns real
+
+        native DzSetUnitAbilityArea takes unit Unit, integer abil_code, real value returns boolean
+        native DzGetUnitAbilityArea takes unit Unit, integer abil_code returns real
+
+        native DzSetUnitAbilityCool takes unit Unit, integer abil_code, real cool, real max_cool returns boolean
+        native DzGetUnitAbilityCool takes unit Unit, integer abil_code returns real
+        native DzGetUnitAbilityMaxCool takes unit Unit, integer abil_code returns real
+
+        native DzSetUnitAbilityDataA takes unit Unit, integer abil_code, real value returns boolean
+        native DzGetUnitAbilityDataA takes unit Unit, integer abil_code returns real
+
+        native DzSetUnitAbilityDataB takes unit Unit, integer abil_code, real value returns boolean
+        native DzGetUnitAbilityDataB takes unit Unit, integer abil_code returns real
+
+        native DzSetUnitAbilityDataC takes unit Unit, integer abil_code, real value returns boolean
+        native DzGetUnitAbilityDataC takes unit Unit, integer abil_code returns real
+
+        native DzSetUnitAbilityDataD takes unit Unit, integer abil_code, real value returns boolean
+        native DzGetUnitAbilityDataD takes unit Unit, integer abil_code returns real
+
+        native DzSetUnitAbilityDataE takes unit Unit, integer abil_code, real value returns boolean
+        native DzGetUnitAbilityDataE takes unit Unit, integer abil_code returns real
+
+        native DzSetUnitAbilityButtonPos takes unit Unit, integer abil_code, integer x, integer y returns boolean
+        native DzSetUnitAbilityHotkey takes unit Unit, integer abil_code, string key returns boolean
+
+        native DzConvertTargs2Str takes integer targs returns string 
+        native DzConvertStr2Targs takes string targs returns integer 
+
+        native DzSetUnitAbilityTargs takes unit Unit, integer abil_code, integer value returns boolean
+        native DzGetUnitAbilityTargs takes unit Unit, integer abil_code returns integer
+
+        native DzSetUnitAbilityCost takes unit Unit, integer abil_code, integer value returns boolean
+        native DzGetUnitAbilityCost takes unit Unit, integer abil_code returns integer
+
+        native DzSetUnitAbilityReqLevel takes unit Unit, integer abil_code, integer value returns boolean
+        native DzGetUnitAbilityReqLevel takes unit Unit, integer abil_code returns integer
+        
+        native DzSetUnitAbilityUnitId takes unit Unit, integer abil_code, integer value returns boolean
+        native DzGetUnitAbilityUnitId takes unit Unit, integer abil_code returns integer
+
+        native DzSetUnitAbilityBuildOrderId takes unit Unit, integer abil_code, integer value returns boolean
+        native DzGetUnitAbilityBuildOrderId takes unit Unit, integer abil_code returns integer
+        
+        native DzSetUnitAbilityBuildModel takes unit Unit, integer abil_code, string model_path, real model_scale returns boolean 
+
+        native DzUnitHasAbility takes unit Unit, integer abil_code returns boolean 
+        
+        
+        native KKCreateCommandButton takes nothing returns integer 
+        native KKDestroyCommandButton takes integer btn returns nothing 
+        native KKCommandButtonClick takes integer btn, integer mouse_type returns nothing
+        native KKCommandTargetClick takes integer mouse_type, widget target returns boolean 
+        native KKCommandTerrainClick takes integer mouse_type, real x, real y, real z returns boolean 
+        native KKSetCommandUnitAbility takes integer btn, unit Unit, integer abil_code returns nothing 
+
+        native DzItemGetVertexColor takes item Item returns integer 
+        native DzItemSetSize takes item Item, real size returns nothing 
+        native DzItemGetSize takes item Item returns real 
+        native DzItemMatRotateX takes item Item, real x returns nothing
+        native DzItemMatRotateY takes item Item, real y returns nothing
+        native DzItemMatRotateZ takes item Item, real z returns nothing
+        native DzItemMatScale takes item Item, real x, real y, real z returns nothing
+        native DzItemMatReset takes item Item returns nothing 
+        native DzGetLastSelectedItem takes nothing returns item 
+        
+        native DzSetPariticle2Size takes agent Widget, real scale returns nothing 
+
+        native DzSetUnitCollisionSize takes unit Unit, real size returns nothing 
+        native DzGetUnitCollisionSize takes unit Unit returns real 
+
+        native DzSetWidgetTexture takes agent Handle, string TexturePath, integer ReplaceId returns nothing 
+        native DzSetUnitSelectScale takes unit Unit, real scale returns nothing 
+        native DzSetUnitHitIgnore takes unit Unit, boolean ignore returns nothing 
+        native DzEffectBindEffect takes agent Handle, string AttachName, effect eff returns nothing
+
+        function KKConvertInt2AbilId takes integer i returns integer 
+                return i
+        endfunction
+
+        function KKConvertAbilId2Int takes integer i returns integer 
+                return i
+        endfunction
+
+        function KKConvertInt2Color takes integer i returns integer
+                return i
+        endfunction
+
+        function KKConvertColor2Int takes integer i returns integer
+                return i
+        endfunction
+        
 endlibrary
 
 
