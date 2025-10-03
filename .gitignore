@@ -24,3 +24,15 @@
 /Tools/*
 /abandon/
 .vscode/tasks.json
+/output/
+.linked/
+# 忽略 macOS 自动生成的 .DS_Store 文件
+.DS_Store
+
+# 忽略 Excel 打开时生成的临时文件 (以 ~$ 开头)
+~$*.xlsx
+~$*.xls
+~$*.xlsm
+
+# 忽略 Excel 启用宏的工作簿文件 (.xlsm)
+*.xlsm
