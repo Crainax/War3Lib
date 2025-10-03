@@ -1,4 +1,0 @@
-logs\currentmapscript.j
-JASSHelper - Step 2 (structs)
-Line 1460: DamageUtils is not of a type that allows . syntax
-1
