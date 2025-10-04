@@ -22,6 +22,8 @@
 #define MUSIC_INDEX_UP_SPELL   13  //升级法术音效
 #define MUSIC_INDEX_LUMBER     14  //获得木材的声音
 
+#define SOUND_POOL_SIZE 10  // 每个音效的对象池大小（可同时播放20个）
+
 //! zinc
 
 
@@ -31,7 +33,62 @@ library Music {
 
 		private sound snd;
 
+		// Sound 对象池系统（用于 playXY）
+		private static hashtable table = null;  // 存储音效池：key=路径hash, value=池信息
+
 		optional module musicExtend;
+
+		// 在位置播放堆叠音效（新方法，使用对象池，无内存泄露）
+		// 原理：为每个音效维护一个对象池，循环使用池中的 sound 对象
+		// !!!!!不能异步使用
+		static method playXY (string soundPath, real x, real y) {
+			sound snd; integer pathHash; integer poolIndex; integer nextIndex; boolean isNewPool;
+
+			// 初始化对象池哈希表
+			if (thistype.table == null) {
+				thistype.table = InitHashtable();
+			}
+
+			// 使用文件路径的哈希值作为key
+			pathHash = StringHash(soundPath);
+
+			// 检查是否已创建该音效的对象池
+			if (HaveSavedInteger(thistype.table, pathHash, 0)) {
+				// 对象池已存在，获取当前使用的索引
+				poolIndex = LoadInteger(thistype.table, pathHash, 0);
+				isNewPool = false;
+			} else {
+				// 首次使用，初始化对象池
+				poolIndex = 1;
+				isNewPool = true;
+			}
+
+			// 从对象池中获取 sound 对象（使用 poolIndex 作为子key）
+			if (HaveSavedHandle(thistype.table, pathHash, poolIndex)) {
+				snd = LoadSoundHandle(thistype.table, pathHash, poolIndex);
+			} else {
+				// 该位置的 sound 对象还未创建，创建新的
+				snd = CreateSound(soundPath, false, true, false, 10, 10, "DefaultEAXON");
+				SetSoundDistances(snd, 1000.0, 3000.0);
+				SetSoundDistanceCutoff(snd, 6000.0);
+				SaveSoundHandle(thistype.table, pathHash, poolIndex, snd);
+			}
+
+			// 停止当前 sound（避免冲突）并设置新位置
+			StopSound(snd, false, false);
+			SetSoundPosition(snd, x, y, 0.0);
+			StartSound(snd);
+
+			// 更新索引，循环使用对象池
+			nextIndex = poolIndex + 1;
+			if (nextIndex > SOUND_POOL_SIZE) {
+				nextIndex = 1;
+			}
+			SaveInteger(thistype.table, pathHash, 0, nextIndex);
+
+
+			snd = null;
+		}
 
 		//只给某个玩家播放
 		method playFor (player p) {
@@ -143,6 +200,8 @@ library Music {
 	}
 
 }
+
+#undef SOUND_POOL_SIZE
 
 //! endzinc
 

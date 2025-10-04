@@ -125,7 +125,9 @@ library UTNewKK requires NewKK {
 		BJDebugMsg("count: " + I2S(count));
 	}
 
-	function TTestUTNewKK5 (player p) {}
+	function TTestUTNewKK5 (player p) {
+		DzWriteLog("测试一下");
+	}
 	function TTestUTNewKK6 (player p) {}
 	function TTestUTNewKK7 (player p) {}
 	function TTestUTNewKK8 (player p) {}

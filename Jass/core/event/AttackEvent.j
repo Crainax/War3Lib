@@ -118,6 +118,7 @@ library AttackEvent {
         // 参数检查
         if (attacker == null || target == null || dmg <= 0.0) { return; }
 
+
         // 设置回调参数
         attackUnit = attacker;
         targetUnit = target;
@@ -144,6 +145,40 @@ library AttackEvent {
         attackUnit = null;
         targetUnit = null;
         damage = 0.0;
+    }
+
+    // ========== 统计诊断函数 ==========
+    public function DiagAttackEvent() {
+        integer i;
+        integer nonNull;
+        integer enabled;
+        integer globalCount;
+        integer unitCount;
+
+        // 统计触发器状态
+        nonNull = 0;
+        enabled = 0;
+        globalCount = 0;
+        unitCount = 0;
+
+        for (i = 1; i <= ISize; i += 1) {
+            if (TData[i] != null) {
+                nonNull = nonNull + 1;
+                if (IsTriggerEnabled(TData[i])) {
+                    enabled = enabled + 1;
+                }
+                // 统计全局事件和单位事件数量
+                if (UData[i] == null) {
+                    globalCount = globalCount + 1;
+                } else {
+                    unitCount = unitCount + 1;
+                }
+            }
+        }
+
+        // 输出诊断信息
+        BJDebugMsg("[AttackEvent] diag: ISize=" + I2S(ISize) + ", nonNull=" + I2S(nonNull) + ", enabled=" + I2S(enabled));
+        BJDebugMsg("[AttackEvent] diag: globalEvents=" + I2S(globalCount) + ", unitEvents=" + I2S(unitCount));
     }
 
 }
