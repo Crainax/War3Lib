@@ -8,6 +8,12 @@
 library StringUtils {
 
     string temp;
+
+    // 判断字符串是否非空且非null
+    public function IsNotNullString(string s) -> boolean {
+        return s != null && s != "";
+    }
+
     //重复某一个字符串N次,并可以按照指定间隔添加空格和换行
     //参数 s: 要重复的字符串
     //参数 times: 重复的次数

@@ -22,7 +22,7 @@
 #define MUSIC_INDEX_UP_SPELL   13  //升级法术音效
 #define MUSIC_INDEX_LUMBER     14  //获得木材的声音
 
-#define SOUND_POOL_SIZE 10  // 每个音效的对象池大小（可同时播放20个）
+#define SOUND_POOL_SIZE 15  // 每个音效的对象池大小（可同时播放20个）
 
 //! zinc
 
