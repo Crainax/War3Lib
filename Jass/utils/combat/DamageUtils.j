@@ -367,6 +367,110 @@ library DamageUtils requires UnitFilter,GroupUtils {
     //吸血的数值
     public function GetDamageLifeStealReal () -> real { return rArgs;}
 
+
+    // 范围回复参数（静态成员变量传递）
+    private unit recoverSource = null;
+    private string recoverEft = null;
+    private real recoverValue = 0.0;
+
+    // 范围回血（固定值）
+    public function RecoverAreaHP (unit u, real x, real y, real radius, real value, string effx) {
+        group g; unit filterUnit; real currentLife;
+
+        recoverSource = u;
+        recoverEft = effx;
+        recoverValue = value;
+
+        g = CreateGroup();
+        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
+            unit filterUnit; real currentLife;
+
+            filterUnit = GetFilterUnit();
+            if (IsAllyUnit(filterUnit, recoverSource)) {
+                currentLife = GetUnitState(filterUnit, UNIT_STATE_LIFE);
+                SetUnitState(filterUnit, UNIT_STATE_LIFE, currentLife + recoverValue);
+
+                if (recoverEft != null) {
+                    DestroyEffect(AddSpecialEffect(recoverEft, GetUnitX(filterUnit), GetUnitY(filterUnit)));
+                }
+
+                filterUnit = null;
+                return true;
+            }
+
+            filterUnit = null;
+            return false;
+        }));
+
+        DestroyGroup(g);
+        g = null;
+        recoverSource = null;
+        recoverEft = null;
+        recoverValue = 0.0;
+    }
+
+    // 范围回血（百分比）
+    public function RecoverAreaHPPercent (unit u, real x, real y, real radius, real value) {
+        group g;
+
+        recoverSource = u;
+        recoverValue = value;
+
+        g = CreateGroup();
+        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
+            unit filterUnit; real currentLife; real maxLife; real recoverAmount;
+
+            filterUnit = GetFilterUnit();
+            if (IsAllyUnit(filterUnit, recoverSource)) {
+                currentLife = GetUnitState(filterUnit, UNIT_STATE_LIFE);
+                maxLife = GetUnitState(filterUnit, UNIT_STATE_MAX_LIFE);
+                recoverAmount = maxLife * recoverValue;
+                SetUnitState(filterUnit, UNIT_STATE_LIFE, currentLife + recoverAmount);
+
+                filterUnit = null;
+                return true;
+            }
+
+            filterUnit = null;
+            return false;
+        }));
+
+        DestroyGroup(g);
+        g = null;
+        recoverSource = null;
+        recoverValue = 0.0;
+    }
+
+    // 范围回蓝（固定值）
+    public function RecoverAreaMP (unit u, real x, real y, real radius, real value) {
+        group g;
+
+        recoverSource = u;
+        recoverValue = value;
+
+        g = CreateGroup();
+        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
+            unit filterUnit; real currentMana;
+
+            filterUnit = GetFilterUnit();
+            if (IsAllyUnit(filterUnit, recoverSource)) {
+                currentMana = GetUnitState(filterUnit, UNIT_STATE_MANA);
+                SetUnitState(filterUnit, UNIT_STATE_MANA, currentMana + recoverValue);
+
+                filterUnit = null;
+                return true;
+            }
+
+            filterUnit = null;
+            return false;
+        }));
+
+        DestroyGroup(g);
+        g = null;
+        recoverSource = null;
+        recoverValue = 0.0;
+    }
+
 }
 
 //! endzinc

@@ -177,8 +177,8 @@ library AttackEvent {
         }
 
         // 输出诊断信息
-        BJDebugMsg("[AttackEvent] diag: ISize=" + I2S(ISize) + ", nonNull=" + I2S(nonNull) + ", enabled=" + I2S(enabled));
-        BJDebugMsg("[AttackEvent] diag: globalEvents=" + I2S(globalCount) + ", unitEvents=" + I2S(unitCount));
+        DzWriteLog("[AttackEvent] diag: ISize=" + I2S(ISize) + ", nonNull=" + I2S(nonNull) + ", enabled=" + I2S(enabled));
+        DzWriteLog("[AttackEvent] diag: globalEvents=" + I2S(globalCount) + ", unitEvents=" + I2S(unitCount));
     }
 
 }

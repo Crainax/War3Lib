@@ -160,6 +160,98 @@ library YDWETriggerEvent {
     public function GetLastMovedItemInItemSlot() -> item {
         return bj_lastMovedItemInItemSlot;
     }
+
+    //===========================================================================
+    // 诊断函数：带日志的伤害事件重建
+    //===========================================================================
+    private integer diagRegCount = 0;
+    private integer diagSkipCount = 0;
+
+    private function YDWEAnyUnitDamagedFilterWithLog() -> boolean {
+        unit u = GetFilterUnit();
+        integer utypeId = GetUnitTypeId(u);
+        player owner = GetOwningPlayer(u);
+        boolean hasAloc = GetUnitAbilityLevel(u, 'Aloc') > 0;
+
+        if (!hasAloc) {
+            TriggerRegisterUnitEvent(yd_DamageEventTrigger, u, EVENT_UNIT_DAMAGED);
+            diagRegCount = diagRegCount + 1;
+            // 仅打印前 50 个注册以避免日志爆炸
+            if (diagRegCount <= 50) {
+                DzWriteLog("  [YDWE] Registered unit: handle=" + I2S(GetHandleId(u)) + ", type=" + YDWEId2S(utypeId) + ", player=" + I2S(GetPlayerId(owner)) + ", Aloc=false");
+            }
+        } else {
+            diagSkipCount = diagSkipCount + 1;
+            if (diagSkipCount <= 50) {
+                DzWriteLog("  [YDWE] Skipped unit (Aloc): handle=" + I2S(GetHandleId(u)) + ", type=" + YDWEId2S(utypeId) + ", player=" + I2S(GetPlayerId(owner)));
+            }
+        }
+        return false;
+    }
+
+    private function YDWEAnyUnitDamagedEnumUnitWithLog() {
+        group g;
+        integer i;
+
+        g = CreateGroup();
+        i = 0;
+        diagRegCount = 0;
+        diagSkipCount = 0;
+
+        DzWriteLog("[YDWE] Enumerating all units for damage event registration...");
+        while (i < bj_MAX_PLAYER_SLOTS) {
+            GroupEnumUnitsOfPlayer(g, Player(i), Condition(function YDWEAnyUnitDamagedFilterWithLog));
+            i = i + 1;
+        }
+        DzWriteLog("[YDWE] Enumeration complete: registered=" + I2S(diagRegCount) + ", skipped(Aloc)=" + I2S(diagSkipCount));
+        DestroyGroup(g);
+        g = null;
+    }
+
+    // 带日志的 swap，用于诊断时强制重建并输出详细信息
+    public function YDWESyStemAnyUnitDamagedSwapWithLog() {
+        boolean isEnabled;
+
+        DzWriteLog("[YDWE] Starting damage event swap with logging...");
+        DzWriteLog("[YDWE] Old trigger: handle=" + I2S(GetHandleId(yd_DamageEventTrigger)) + ", enabled=" + S3(IsTriggerEnabled(yd_DamageEventTrigger), "true", "false"));
+
+        isEnabled = IsTriggerEnabled(yd_DamageEventTrigger);
+
+        DisableTrigger(yd_DamageEventTrigger);
+        if (yd_DamageEventTriggerToDestory != null) {
+            DzWriteLog("[YDWE] Destroying previous queued trigger: handle=" + I2S(GetHandleId(yd_DamageEventTriggerToDestory)));
+            DestroyTrigger(yd_DamageEventTriggerToDestory);
+        }
+
+        yd_DamageEventTriggerToDestory = yd_DamageEventTrigger;
+        yd_DamageEventTrigger = CreateTrigger();
+        DzWriteLog("[YDWE] New trigger created: handle=" + I2S(GetHandleId(yd_DamageEventTrigger)));
+
+        if (!isEnabled) {
+            DisableTrigger(yd_DamageEventTrigger);
+            DzWriteLog("[YDWE] New trigger disabled to match old state");
+        }
+
+        TriggerAddAction(yd_DamageEventTrigger, function YDWEAnyUnitDamagedTriggerAction);
+        YDWEAnyUnitDamagedEnumUnitWithLog();
+        DzWriteLog("[YDWE] Swap complete");
+    }
+
+    // 打印伤害事件队列概览
+    public function YDWE_DamageEventQueueDiag() {
+        integer i = 0;
+        integer active = 0;
+        DzWriteLog("[YDWE] Damage event queue diagnostic:");
+        DzWriteLog("  Total registered triggers: " + I2S(DamageEventNumber));
+        while (i < DamageEventNumber) {
+            if (DamageEventQueue[i] != null && IsTriggerEnabled(DamageEventQueue[i])) {
+                active = active + 1;
+            }
+            i = i + 1;
+        }
+        DzWriteLog("  Active triggers: " + I2S(active));
+        DzWriteLog("  Main trigger: handle=" + I2S(GetHandleId(yd_DamageEventTrigger)) + ", enabled=" + S3(IsTriggerEnabled(yd_DamageEventTrigger), "true", "false"));
+    }
 }
 
 //! endzinc

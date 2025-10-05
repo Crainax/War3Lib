@@ -61,9 +61,9 @@ library UnitFilter {
     //判断是否是友方
     public function IsAlly (unit u,player p)  -> boolean {
         #ifdef DUMMY_UNIT_JUDGE_NOT
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p) && DUMMY_UNIT_JUDGE_NOT(u);
+        return GetUnitState(u, UNIT_STATE_LIFE) > .405  && !(IsUnitHidden(u)) && IsUnitAlly(u, p) && DUMMY_UNIT_JUDGE_NOT(u);
         #else
-        return GetUnitState(u, UNIT_STATE_LIFE) > .405 && !(IsUnitType(u, UNIT_TYPE_STRUCTURE)) && !(IsUnitHidden(u)) && IsUnitAlly(u, p);
+        return GetUnitState(u, UNIT_STATE_LIFE) > .405  && !(IsUnitHidden(u)) && IsUnitAlly(u, p);
         #endif
     }
 
