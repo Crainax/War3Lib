@@ -1,4 +1,0 @@
-logs\currentmapscript.j
-JASSHelper - Step 1 (textmacros, libraries, scopes) (scripts were imported)
-Line 34: Syntax Error (Unexpected: "if"?
-1
