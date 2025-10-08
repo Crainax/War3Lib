@@ -174,8 +174,18 @@ end
 -- 清理单元测试地图中的临时资源文件
 -- 功能：仅清理由copyResourceFiles创建的临时文件
 -- 使用compileFiles.utResourceFiles记录的文件列表进行清理
+-- 只在构建版本为"单元测试"或"模型测试"时才执行删除操作
 utr.removeResourceFiles = function()
-	if not compileFiles.utResourceFiles then return end
+	-- 检查当前构建版本，只有单元测试和模型测试才删除临时资源
+	if path.buildVersion ~= "单元测试" and path.buildVersion ~= "模型测试" then
+		print(string.format("    [删除临时资源] 跳过删除 - 当前构建版本: %s", path.buildVersion))
+		return
+	end
+
+	if not compileFiles.utResourceFiles then
+		print("    [删除临时资源] 无临时资源文件需要删除")
+		return
+	end
 
 	local successCount = 0
 	local failedFiles = {}

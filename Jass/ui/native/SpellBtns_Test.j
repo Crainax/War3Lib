@@ -134,7 +134,7 @@ library UTSpellBtns requires SpellBtns {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			unit hero,building;
+			unit hero,building,goblinShop;
 			real x = 0, y = 0;
 			integer i = 0;
 
@@ -176,25 +176,52 @@ library UTSpellBtns requires SpellBtns {
 			UnitAddAbility(hero, 'ANr3'); // 混乱之雨
 			UnitAddAbility(hero, 'AOhw'); // 医疗波
 
+			// 创建一个中立的地精商店用于测试商品购买
+			goblinShop = CreateUnit(Player(PLAYER_NEUTRAL_PASSIVE), 'ngme', 800, 0, 270); // 创建地精商店
+
+			// 给玩家1一些金币用于测试购买
+			SetPlayerState(Player(0), PLAYER_STATE_RESOURCE_GOLD, 1000);
+			SetPlayerState(Player(0), PLAYER_STATE_RESOURCE_LUMBER, 500);
+
 			spellBtns.onEnter(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
-				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入:" + I2S(spellBtns.grid[row][column]));
+				integer row = spellBtns.getCallbackRow();
+				integer column = spellBtns.getCallbackColumn();
+				//要-1
+				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能进入");
 			});
 			spellBtns.onLeave(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
+				integer row = spellBtns.getCallbackRow();
+				integer column = spellBtns.getCallbackColumn();
+				integer a = spellBtns.getCallbackAbility();
 				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能离开");
 			});
 			spellBtns.onClick(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
+				integer row = spellBtns.getCallbackRow();
+				integer column = spellBtns.getCallbackColumn();
 				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能点击");
 			});
 			spellBtns.onRightClick(function () {
-				integer row = spellBtns.argsRow;
-				integer column = spellBtns.argsCol;
+				integer row = spellBtns.getCallbackRow();
+				integer column = spellBtns.getCallbackColumn();
 				BJDebugMsg("第" + I2S(row) + "行,第" + I2S(column) + "列的技能右键点击");
+			});
+
+			// 新增：能力稳定版回调（仅依赖 getCallbackAbility()）
+			spellBtns.onEnterAbility(function () {
+				integer a = spellBtns.getCallbackAbility();
+				BJDebugMsg("[Ability] 进入: id=" + YDWEId2S(a) + " 名称=" + GetAbilityName(a));
+			});
+			spellBtns.onLeaveAbility(function () {
+				integer a = spellBtns.getCallbackAbility();
+				BJDebugMsg("[Ability] 离开: id=" + YDWEId2S(a) + " 名称=" + GetAbilityName(a));
+			});
+			spellBtns.onClickAbility(function () {
+				integer a = spellBtns.getCallbackAbility();
+				BJDebugMsg("[Ability] 点击: id=" + YDWEId2S(a) + " 名称=" + GetAbilityName(a));
+			});
+			spellBtns.onRightClickAbility(function () {
+				integer a = spellBtns.getCallbackAbility();
+				BJDebugMsg("[Ability] 右键: id=" + YDWEId2S(a) + " 名称=" + GetAbilityName(a));
 			});
 
 			DestroyTrigger(GetTriggeringTrigger());

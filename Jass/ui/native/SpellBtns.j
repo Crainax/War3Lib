@@ -8,16 +8,17 @@
 
 // 原生的技能栏按钮和事件
 // 控制技能栏按钮的进入,离开,点击还有右键点击事件
-library SpellBtns requires Hardware,UIHashTable,Icon,UILayer {
+library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
 
     public struct spellBtns {
         static integer grid [3][4];  // 使用grid表示技能格子Frame
         static icon icons [3][4];
 
-        static integer argsRow = 0; // 回调参数:行
-        static integer argsCol = 0; // 回调参数:列
 
         private {
+            static integer argsCol = 0; // 回调参数:列
+            static integer argsRow = 0; // 回调参数:行
+
             static uiImage shadeImg = 0;  //技能栏大暗遮罩,用于右键表示
             static uiBtn shadeBtn   = 0;  //技能栏大暗遮罩,用于右键表示
 
@@ -26,9 +27,31 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer {
             static trigger trClick      = null;   // 点击事件
             static trigger trRightClick = null;   // 右键点击事件
 
+            // 基于稳定能力值的事件（在 Enter 记录能力，Leave 置 0）
+            static trigger trEnterAbility      = null;
+            static trigger trLeaveAbility      = null;
+            static trigger trClickAbility      = null;
+            static trigger trRightClickAbility = null;
+
+            // 当前悬停按钮的能力值（Enter 时记录，Leave 后置 0）
+            static integer stableAbility = 0;
+
             static integer mousePos     = 0;      //当前鼠标所在的位置
             static boolean rcStartOnUI  = false;  // 是否开始右键点击
             static integer rcStartPos   = 0;      // 右键点击开始时的鼠标位置
+        }
+
+        //回调参数(事件当前的技能id)
+        public static method getCallbackRow ()  -> integer {
+            return argsRow;
+        }
+        public static method getCallbackColumn ()  -> integer {
+            return argsCol;
+        }
+        public static method getCallbackAbility ()  -> integer {
+            // 优先返回稳定记录的能力值；若无则按当前行列即时获取
+            if (stableAbility != 0) { return stableAbility; }
+            return GetCurrentXYAbility(argsCol-1,argsRow-1);
         }
 
         // 注册进入事件
@@ -58,6 +81,24 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer {
                 trRightClick = CreateTrigger();
             }
             TriggerAddCondition(trRightClick, Condition(func));
+        }
+
+        // ===== 能力稳定版回调注册（在 Enter 记录 ability，Leave 清 0） =====
+        static method onEnterAbility (code func) {
+            if (trEnterAbility == null) { trEnterAbility = CreateTrigger(); }
+            TriggerAddCondition(trEnterAbility, Condition(func));
+        }
+        static method onLeaveAbility (code func) {
+            if (trLeaveAbility == null) { trLeaveAbility = CreateTrigger(); }
+            TriggerAddCondition(trLeaveAbility, Condition(func));
+        }
+        static method onClickAbility (code func) {
+            if (trClickAbility == null) { trClickAbility = CreateTrigger(); }
+            TriggerAddCondition(trClickAbility, Condition(func));
+        }
+        static method onRightClickAbility (code func) {
+            if (trRightClickAbility == null) { trRightClickAbility = CreateTrigger(); }
+            TriggerAddCondition(trRightClickAbility, Condition(func));
         }
 
         // 把技能按钮移出屏幕外
@@ -117,25 +158,33 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer {
                         integer data = uiHashTable(frame).eventdata.get();
                         argsRow = (data - 1) / 4 + 1;
                         argsCol = ModuloInteger(data - 1,4) + 1;
-                        TriggerEvaluate(trEnter);
+                        // 进入时记录稳定能力值，供 Click/RightClick/Leave 使用
+                        stableAbility = GetCurrentXYAbility(argsCol-1, argsRow-1);
+                        if (trEnter != null) { TriggerEvaluate(trEnter); }
+                        if (trEnterAbility != null) { TriggerEvaluate(trEnterAbility); }
                     });
                     btn.spLeave(function(integer frame) {
                         integer data = uiHashTable(frame).eventdata.get();
                         argsRow = (data - 1) / 4 + 1;
                         argsCol = ModuloInteger(data - 1,4) + 1;
-                        TriggerEvaluate(trLeave);
+                        if (trLeave != null) { TriggerEvaluate(trLeave); }
+                        if (trLeaveAbility != null) { TriggerEvaluate(trLeaveAbility); }
+                        // 离开后清空稳定能力值
+                        stableAbility = 0;
                     });
                     btn.spClick(function(integer frame) {
                         integer data = uiHashTable(frame).eventdata.get();
                         argsRow = (data - 1) / 4 + 1;
                         argsCol = ModuloInteger(data - 1,4) + 1;
-                        TriggerEvaluate(trClick);
+                        if (trClick != null) { TriggerEvaluate(trClick); }
+                        if (trClickAbility != null) { TriggerEvaluate(trClickAbility); }
                     });
                     btn.spRightClick(function(integer frame) {
                         integer data = uiHashTable(frame).eventdata.get();
                         argsRow = (data - 1) / 4 + 1;
                         argsCol = ModuloInteger(data - 1,4) + 1;
-                        TriggerEvaluate(trRightClick);
+                        if (trRightClick != null) { TriggerEvaluate(trRightClick); }
+                        if (trRightClickAbility != null) { TriggerEvaluate(trRightClickAbility); }
                     });
 
                     icons[row][col] = icon.create(uilayer.lv[1]);
