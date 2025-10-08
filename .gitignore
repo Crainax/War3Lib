@@ -33,6 +33,3 @@
 ~$*.xlsx
 ~$*.xls
 ~$*.xlsm
-
-# 忽略 Excel 启用宏的工作簿文件 (.xlsm)
-*.xlsm

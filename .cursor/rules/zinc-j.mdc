@@ -17,6 +17,11 @@ description: Zinc 语法与约定，用于 .j 文件
 
 - **数组与静态成员**
   - 数组定义使用 `[]` 语法，不是 `array`：`private static string names[];`
+  - **数组定义规则**：
+    - 全局/静态数组：**不能指定大小**，直接用 `[]`：`private static string names[];`
+    - 局部数组：**不能指定大小**，直接用 `[]`：`string localArray[];`
+    - 错误示例：`string abilityIds[22];` ❌
+    - 正确示例：`string abilityIds[];` ✅
   - 静态成员必须初始化：
     - 数字类型：`private static integer count = 0;`
     - 句柄类型：`private static timer t = null;`
@@ -32,6 +37,25 @@ description: Zinc 语法与约定，用于 .j 文件
   - 函数命名使用动词短语；变量使用名词短语，清晰表达含义。
   - 统一在函数体开头声明所有局部变量，再进行赋值与使用（见要点 2）。
   - 避免深层嵌套，优先使用早返回与卫语句。
+
+- **循环与自增运算符**
+  - Zinc **不支持** `++` 和 `--` 运算符
+  - 必须使用 `+= 1` 和 `-= 1` 代替
+  - 错误示例：
+    ```jass
+    for (i = 0; i < 10; i++) { }  // ❌ 不支持 i++
+    count++;  // ❌ 不支持 ++
+    ```
+  - 正确示例：
+    ```jass
+    for (i = 0; i < 10; i += 1) { }  // ✅ 使用 i += 1
+    count += 1;  // ✅ 使用 += 1
+    index -= 1;  // ✅ 使用 -= 1
+    ```
+  - Zinc 风格的 for 循环：
+    ```jass
+    for (0 <= i <= 10) { }  // Zinc 特有的范围循环
+    ```
 
 - **玩家 ID 相关函数**
   - `GetPlayerId(player)` 返回 0 到 玩家数-1（0-based）
@@ -94,6 +118,16 @@ UDepot[pid] = CreateUnit(p, 'nmgv', 10175.0 + ModuloInteger(pid - 1, 3) * 132.0,
 - 包含但不限于：`unit`, `item`, `timer`, `trigger`, `effect`, `group`, `location`, `force`, `region`, `dialog`, `boolexpr` 等。
 - 在回调/函数结束前：释放可释放对象（如 `PauseTimer/DestroyTimer`、`DestroyTrigger`、`DestroyGroup` 等），随后将对应局部变量 `set null`，防止句柄泄漏。
 
+4) 数组大小限制
+- 数组声明时**不能指定大小**，只能用空的 `[]`
+- 数组元素访问时才能使用索引，索引从 0 开始（或从 1 开始，取决于项目约定）
+- 二维数组语法：`integer array2D[][];`
+
+5) 循环自增语法
+- **禁止使用** `++` 和 `--` 运算符
+- 必须使用 `+= 1` 或 `-= 1`
+- 适用于所有场景：for 循环、while 循环、独立语句
+
 ### 推荐模板（示例）
 
 ```jass
@@ -109,7 +143,7 @@ library ExampleZinc requires LHBase {
         private static boolean initialized = false;
         private static integer count = 0;
         private static hashtable table = null;
-        private static string data[];
+        private static string data[];  // ✅ 数组不指定大小
 
         // 统一函数入口：初始化触发/定时器等
         static method onInit() {
@@ -157,6 +191,24 @@ library ExampleZinc requires LHBase {
             // 外层 handler 置空
             it = null; t = null;
             return true;
+        }
+
+        // 循环示例（使用 += 1 而不是 ++）
+        static method loopExample() {
+            integer i; integer j; string items[];  // ✅ 数组不指定大小
+
+            // ✅ 正确的循环写法
+            for (i = 0; i < 10; i += 1) {
+                items[i] = "Item" + I2S(i);
+            }
+
+            // ✅ Zinc 风格的范围循环
+            for (0 <= j <= 10) {
+                BJDebugMsg(I2S(j));
+            }
+
+            // ✅ 计数器自增
+            ExampleStruct.count += 1;
         }
     }
 }

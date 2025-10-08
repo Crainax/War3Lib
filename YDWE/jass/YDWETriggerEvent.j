@@ -10,10 +10,10 @@
 //! zinc
 library YDWETriggerEvent {
 
-    #ifndef YDWE_DamageEventTrigger
-    #define YDWE_DamageEventTrigger
+#ifndef YDWE_DamageEventTrigger
+#define YDWE_DamageEventTrigger
     trigger yd_DamageEventTrigger = null;
-    #endif
+#endif
 
     constant integer DAMAGE_EVENT_SWAP_TIMEOUT = 20;  // 每隔这个时间(秒), yd_DamageEventTrigger 会被移入销毁队列
     constant boolean DAMAGE_EVENT_SWAP_ENABLE = true;  // 若为 false 则不启用销毁机制
@@ -28,9 +28,9 @@ library YDWETriggerEvent {
     trigger MoveItemEventQueue[];
     integer MoveItemEventNumber = 0;
 
-    //===========================================================================
-    //任意单位伤害事件
-    //===========================================================================
+//===========================================================================
+//任意单位伤害事件
+//===========================================================================
     function YDWEAnyUnitDamagedTriggerAction() {
         integer i;
 
@@ -82,12 +82,8 @@ library YDWETriggerEvent {
         world = null;
     }
 
-    // 将 yd_DamageEventTrigger 移入销毁队列, 从而排泄触发器事件
+// 将 yd_DamageEventTrigger 移入销毁队列, 从而排泄触发器事件
     public function YDWESyStemAnyUnitDamagedSwap() {
-        boolean isEnabled;
-
-        isEnabled = IsTriggerEnabled(yd_DamageEventTrigger);
-
         DisableTrigger(yd_DamageEventTrigger);
         if (yd_DamageEventTriggerToDestory != null) {
             DestroyTrigger(yd_DamageEventTriggerToDestory);
@@ -95,9 +91,9 @@ library YDWETriggerEvent {
 
         yd_DamageEventTriggerToDestory = yd_DamageEventTrigger;
         yd_DamageEventTrigger = CreateTrigger();
-        if (!isEnabled) {
-            DisableTrigger(yd_DamageEventTrigger);
-        }
+
+        // 始终启用新主触发器（不继承禁用状态）
+        EnableTrigger(yd_DamageEventTrigger);
 
         TriggerAddAction(yd_DamageEventTrigger, function YDWEAnyUnitDamagedTriggerAction);
         YDWEAnyUnitDamagedEnumUnit();
@@ -114,7 +110,7 @@ library YDWETriggerEvent {
             YDWEAnyUnitDamagedEnumUnit();
             YDWEAnyUnitDamagedRegistTriggerUnitEnter();
             if (DAMAGE_EVENT_SWAP_ENABLE) {
-                // 每隔 DAMAGE_EVENT_SWAP_TIMEOUT 秒, 将正在使用的 yd_DamageEventTrigger 移入销毁队列
+            // 每隔 DAMAGE_EVENT_SWAP_TIMEOUT 秒, 将正在使用的 yd_DamageEventTrigger 移入销毁队列
                 TimerStart(CreateTimer(), DAMAGE_EVENT_SWAP_TIMEOUT, true, function YDWESyStemAnyUnitDamagedSwap);
             }
         }
@@ -123,9 +119,9 @@ library YDWETriggerEvent {
         DamageEventNumber = DamageEventNumber + 1;
     }
 
-    //===========================================================================
-    //移动物品事件
-    //===========================================================================
+//===========================================================================
+//移动物品事件
+//===========================================================================
     function YDWESyStemItemUnmovableTriggerAction() {
         integer i;
 
@@ -210,12 +206,8 @@ library YDWETriggerEvent {
 
     // 带日志的 swap，用于诊断时强制重建并输出详细信息
     public function YDWESyStemAnyUnitDamagedSwapWithLog() {
-        boolean isEnabled;
-
         DzWriteLog("[YDWE] Starting damage event swap with logging...");
         DzWriteLog("[YDWE] Old trigger: handle=" + I2S(GetHandleId(yd_DamageEventTrigger)) + ", enabled=" + S3(IsTriggerEnabled(yd_DamageEventTrigger), "true", "false"));
-
-        isEnabled = IsTriggerEnabled(yd_DamageEventTrigger);
 
         DisableTrigger(yd_DamageEventTrigger);
         if (yd_DamageEventTriggerToDestory != null) {
@@ -227,10 +219,9 @@ library YDWETriggerEvent {
         yd_DamageEventTrigger = CreateTrigger();
         DzWriteLog("[YDWE] New trigger created: handle=" + I2S(GetHandleId(yd_DamageEventTrigger)));
 
-        if (!isEnabled) {
-            DisableTrigger(yd_DamageEventTrigger);
-            DzWriteLog("[YDWE] New trigger disabled to match old state");
-        }
+        // 始终启用新主触发器（不继承禁用状态）
+        EnableTrigger(yd_DamageEventTrigger);
+        DzWriteLog("[YDWE] New trigger forced enabled");
 
         TriggerAddAction(yd_DamageEventTrigger, function YDWEAnyUnitDamagedTriggerAction);
         YDWEAnyUnitDamagedEnumUnitWithLog();
@@ -251,6 +242,41 @@ library YDWETriggerEvent {
         }
         DzWriteLog("  Active triggers: " + I2S(active));
         DzWriteLog("  Main trigger: handle=" + I2S(GetHandleId(yd_DamageEventTrigger)) + ", enabled=" + S3(IsTriggerEnabled(yd_DamageEventTrigger), "true", "false"));
+    }
+
+    #if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
+    // 测试辅助：显式禁用/启用 YDWE 主伤害触发器
+    public function YDWE_TestDisableDamageMain() {
+        if (yd_DamageEventTrigger != null) {
+            DisableTrigger(yd_DamageEventTrigger);
+            DzWriteLog("[YDWE][TEST] Disabled main damage trigger");
+        } else {
+            DzWriteLog("[YDWE][TEST] Main damage trigger is null");
+        }
+    }
+
+    public function YDWE_TestEnableDamageMain() {
+        if (yd_DamageEventTrigger != null) {
+            EnableTrigger(yd_DamageEventTrigger);
+            DzWriteLog("[YDWE][TEST] Enabled main damage trigger");
+        } else {
+            DzWriteLog("[YDWE][TEST] Main damage trigger is null");
+        }
+    }
+
+    public function YDWE_TestPrintMainState() {
+        DzWriteLog("[YDWE][TEST] Main trigger: handle=" + I2S(GetHandleId(yd_DamageEventTrigger)) + ", enabled=" + S3(IsTriggerEnabled(yd_DamageEventTrigger), "true", "false"));
+    }
+    #endif
+
+    // 外部 watchdog 调用：检查并自动修复主触发器禁用状态
+    public function YDWE_CheckAndFixMainTrigger() -> boolean {
+        if (yd_DamageEventTrigger != null && !IsTriggerEnabled(yd_DamageEventTrigger)) {
+            EnableTrigger(yd_DamageEventTrigger);
+            DzWriteLog("[YDWE][WATCHDOG] Main damage trigger was disabled -> auto-enabled");
+            return true; // 表示进行了修复
+        }
+        return false; // 表示无需修复
     }
 }
 

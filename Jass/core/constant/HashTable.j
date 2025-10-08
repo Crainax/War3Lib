@@ -10,6 +10,7 @@ library HashTable {
         hashtable HASH_UNIT_TYPE = InitHashtable();  // 单位类型哈希表
         hashtable HASH_TIMER     = InitHashtable();  // 计时器哈希表
         hashtable HASH_GROUP     = InitHashtable();  // 单位组哈希表
+        hashtable HASH_EFFECT    = InitHashtable();  // 特效哈希表
     }
 
 }
