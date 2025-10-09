@@ -115,16 +115,19 @@ end
 --- 设置当前版本为内测版本
 path.initAlpha = function()
     path.buildVersion = "内测版本"
+    path.setMapName(path.mapName)
 end
 
 --- 设置当前版本为公测版本
 path.initBeta = function()
     path.buildVersion = "公测版本"
+    path.setMapName(path.mapName)
 end
 
 --- 设置当前版本为正式版本
 path.initRelease = function()
     path.buildVersion = "正式版本"
+    path.setMapName(path.mapName)
 end
 
 --- 设置当前版本为单元测试

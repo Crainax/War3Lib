@@ -42,9 +42,10 @@ library UTTooltip requires Tooltip {
 	}
 	tooltip tip = 0;
 	integer count = 1;
+	tooltip upTip = 0;
 	function TTestUTTooltip3 (player p) {
 		tip = tooltip.create()
-			.layoutFlexible("第一行文本",4)
+			.layoutFlexible("第一行文本")
 			.setAbsPoint(ANCHOR_BOTTOM,0.4,0.3);
 	}
 	function TTestUTTooltip4 (player p) {
@@ -53,8 +54,57 @@ library UTTooltip requires Tooltip {
 			tip.addText("插入文本" + I2S(count));
 		}
 	}
-	function TTestUTTooltip5 (player p) {}
-	function TTestUTTooltip6 (player p) {}
+	function TTestUTTooltip5 (player p) {
+		integer needGold; integer needGem;
+		integer haveGold; integer haveGem;
+		boolean ok;
+		string topText; string bottomText; string line;
+
+		if (upTip != 0 && upTip.isExist()) {
+			upTip.destroy();
+			upTip = 0;
+			return;
+		}
+
+		// 示例数据：所需与拥有的资源
+		needGold = 200; needGem = 50;
+		haveGold = 150; haveGem = 80;
+
+		ok = (haveGold >= needGold) && (haveGem >= needGem);
+		if (ok) {
+			topText = "|cff00ff6a升级花费:|r";
+			bottomText = "|cff00ff6a点击进行升级|r";
+		} else {
+			topText = "|cffff0000升级花费:|r";
+			bottomText = "|cffff0000资源不足,无法升级|r";
+		}
+
+		// 拥有晶石放在最下方，随后逐行向上添加内容（宽度随底部行自动对齐，边界留少量 padding）
+		upTip = tooltip.create()
+			.setFontSize(3)
+			.layoutFlexible("您拥有 19.888888888888万 晶石")
+			.setAbsPoint(ANCHOR_BOTTOMRIGHT, 0.786, 0.1375);
+
+		// 底部提示（位于晶石之上）
+		upTip.addText(bottomText);
+
+		// 宝石行（左侧图标 + 文本）
+		line = S3(haveGem >= needGem, "|cff00ff6a", "|cffff0000") + "宝石 " + I2S(needGem) + "|r";
+		upTip.addIconLeft(line, "ReplaceableTextures\\CommandButtons\\BTNAlleriaFlute.blp", 0.01, 0.01);
+
+		// 金币行（左侧图标 + 文本）
+		line = S3(haveGold >= needGold, "|cff00ff6a", "|cffff0000") + "金币 " + I2S(needGold) + "|r";
+		upTip.addIconLeft(line, "ReplaceableTextures\\CommandButtons\\BTNGatherGold.blp", 0.01, 0.01);
+
+		// 顶部标题
+		upTip.setFontSize(4).addText(topText);
+	}
+	function TTestUTTooltip6 (player p) {
+		if (upTip != 0 && upTip.isExist()) {
+			upTip.destroy();
+			upTip = 0;
+		}
+	}
 	function TTestUTTooltip7 (player p) {}
 	function TTestUTTooltip8 (player p) {}
 	function TTestUTTooltip9 (player p) {}

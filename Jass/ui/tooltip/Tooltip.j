@@ -25,6 +25,7 @@ library Tooltip requires Icon {
         integer textCount;
         integer relative; //整个框架的锚点控制(下面的UI)
         integer relativeTop; //整个框架的锚点控制(上面的UI)
+        integer fontSize; //当前字号设置
 
         STRUCT_SHARED_METHODS(tooltip)
 
@@ -34,6 +35,7 @@ library Tooltip requires Icon {
             border = uiBorder.createToolTips(DzGetGameUI());
             relative = 0;
             relativeTop = 0;
+            fontSize = 4; // 默认标准字号
             return this;
         }
 
@@ -58,25 +60,27 @@ library Tooltip requires Icon {
 
 
         //固定长度(个人感觉只需要锚住最下面一条内容就行了)
-        method exWidth (real width) {
+        method exWidth (real width) -> thistype {
             integer i;
-            if (!this.isExist()) {return;}
+            if (!this.isExist()) {return this;}
             for (1 <= i <= textCount) {
                 if (alignWidth[i]) {
                     text[i].exReSize(width,0);
                 }
             }
+            return this;
         }
 
         //一次性长度
-        method setWidth (real width) {
+        method setWidth (real width) -> thistype {
             integer i;
-            if (!this.isExist()) {return;}
+            if (!this.isExist()) {return this;}
             for (1 <= i <= textCount) {
                 if (alignWidth[i]) {
                     text[i].setSize(width,0);
                 }
             }
+            return this;
         }
 
         //标准布局 - 只有标题
@@ -86,6 +90,7 @@ library Tooltip requires Icon {
 
             this.clear(); //清除老UI,除(如果有)
             text[1]   = uiText.create(border.ui)
+                .setFontSize(fontSize)
                 .setAlign(4)
                 .setText(titleText);
             textCount = 1;
@@ -104,9 +109,10 @@ library Tooltip requires Icon {
 
             this.clear(); //清除老UI,除(如果有)
             text[2]   = uiText.create(border.ui)
-                .setText(descText)
-                .setFontSize(4);
+                .setFontSize(fontSize+1)
+                .setText(descText);
             text[1]   = uiText.create(border.ui)
+                .setFontSize(fontSize)
                 .setText(titleText)
                 .setPoint(ANCHOR_BOTTOM,text[2].ui,ANCHOR_TOP,0,0.005);
             textCount     = 2;
@@ -138,13 +144,21 @@ library Tooltip requires Icon {
             return this;
         }
 
+        //设置字号（链式调用）
+        method setFontSize(integer size) -> thistype {
+            if (!this.isExist()) {return this;}
+            fontSize = size;
+            return this;
+        }
+
         //灵活布局 - 初始只有一条文本
         method layoutFlexible(string initialText) -> thistype {
             if (!this.isExist()) {return this;}
 
             this.clear(); //清除老UI
             text[1] = uiText.create(border.ui)
-                .setAlign(3)
+                .setFontSize(fontSize)
+                .setAlign(4)
                 .setText(initialText);
             textCount = 1;
             alignWidth[1] = true;
@@ -160,7 +174,7 @@ library Tooltip requires Icon {
             return this;
         }
 
-        //添加文本到tooltip顶部
+        //添加文本到tooltip顶部(layoutFlexible专用)
         method addText(string content) -> uiText {
             integer newPosition;
 
@@ -171,7 +185,8 @@ library Tooltip requires Icon {
             textCount += 1;
             newPosition = textCount;
             text[newPosition] = uiText.create(border.ui)
-                .setAlign(3)
+                .setFontSize(fontSize)
+                .setAlign(4)
                 .setText(content);
             alignWidth[newPosition] = true;
             relativeTop = text[newPosition].ui;
@@ -183,6 +198,45 @@ library Tooltip requires Icon {
             border.setPoint(ANCHOR_TOP, text[textCount].ui, ANCHOR_TOP, 0, 0.01);
 
             return text[newPosition];
+        }
+
+        // 添加一行：左侧图标 + 文本（文本居中，对齐同 addText）(layoutFlexible专用)
+        method addIconLeft(string content, string iconPath, real sizeX, real sizeY) -> uiText {
+            integer newPosition;
+
+            if (!this.isExist()) {return 0;}
+            if (textCount >= TOOL_CHILD_MAX) {return 0;}
+
+            // 先创建文本（作为锚点，保持与 addText 一致的居中与堆叠规则）
+            textCount += 1;
+            newPosition = textCount;
+            text[newPosition] = uiText.create(border.ui)
+                .setFontSize(fontSize)
+                .setAlign(4)
+                .setText(content);
+            alignWidth[newPosition] = true;
+            relativeTop = text[newPosition].ui;
+
+            // 垂直堆叠到上一行之上
+            text[newPosition].setPoint(ANCHOR_BOTTOM, text[newPosition-1].ui, ANCHOR_TOP, 0, 0.005);
+
+            // 创建并放置图标在文本左侧
+            iconCount += 1;
+            ic[iconCount] = icon.create(border.ui)
+                .setTexture(iconPath)
+                .setSize(sizeX, sizeY)
+                .setPoint(ANCHOR_RIGHT, text[newPosition].ui, ANCHOR_LEFT, -0.004, 0)
+                .show(true);
+
+            // 更新边界顶部（宽度仍与底部第一行一致）
+            border.setPoint(ANCHOR_TOP, text[textCount].ui, ANCHOR_TOP, 0, 0.01);
+
+            return text[newPosition];
+        }
+
+        method getFirstText ()  -> uiText {
+            if (!this.isExist()) {return 0;}
+            return text[1];
         }
 
         method onDestroy() {

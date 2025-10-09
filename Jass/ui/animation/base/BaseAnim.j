@@ -447,7 +447,9 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 
 				if (DNum <= 0 && MNum <= 0 && ANum <= 0 && ZNum <= 0 && SNum <= 0 && BNum <= 0 && LNum <= 0 ) {
 					UIA.unreg(); //这里就删计时器吧
+					#if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
 					BJDebugMsg("baseanim停止了");
+					#endif
 				}
 			});
 			// UI销毁时回调删除基础动画(UI销毁时会自动调用),但是不需要再删ba了,

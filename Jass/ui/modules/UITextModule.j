@@ -46,7 +46,7 @@ library UITextModule {
                 fontSize = FONT_SIZE_HUGE;
             }
 
-            DzFrameSetFont(ui, "fonts\\zt.ttf", fontSize, 0);
+            DzFrameSetFont(ui, "Fonts\\dfst-m3u.ttf", fontSize, 0);
             return this;
         }
 

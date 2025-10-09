@@ -63,7 +63,9 @@ library ToastHint requires UIBorder,UIText,UIAnimTimer,Hardware,EasingUtils {
             // 停止动画
             if(size <= 0) {
                 UIA.unreg();
-                BJDebugMsg("停止了toastHint");
+                #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                    BJDebugMsg("停止了toastHint");
+                #endif
             }
         }
 

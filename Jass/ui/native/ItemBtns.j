@@ -8,22 +8,26 @@
 
 // 原生的物品栏按钮和事件
 // 控制物品栏按钮的进入,离开事件(点击和右键点击事件感觉并不需要)
-library ItemBtns requires Hardware,UIHashTable,Icon,UILayer {
+library ItemBtns requires Hardware,UIHashTable,Icon,UILayer,UnitSelect {
 
     // 物品栏按钮结构体形式
     public struct itemBtns []{
         static integer slot[]; // 使用slot表示物品栏位的UI,第1个是左上角,第6个是右下角
         static icon icons [];   // icon成员(非simple类型)-> 目前禁止getClickBtn搞其他东西,因为绑定的ClickBtn是Simple,其他全是非Simple
 
-        static integer argsPos = 0; // 回调参数:触发位置
-
         // 私有变量
         private {
+            static integer argsPos = 0; // 回调参数:触发位置
             static uiImage shadeImg = 0;  //物品栏大暗遮罩,用于右键表示
             static uiBtn shadeBtn   = 0;  //物品栏大暗遮罩,用于右键表示
 
             static trigger trEnter = null;
             static trigger trLeave = null;
+
+            // 英雄切换相关
+            static unit lastSelectedUnit = null; // 上次选中的单位
+            static boolean isMouseOverItemBar = false; // 鼠标是否在物品栏上
+            static integer currentHoverPos = 0; // 当前悬停的位置
         }
 
         // 注册进入事件,就算没有物品,有物品栏的英雄也会触发这个事件
@@ -40,6 +44,28 @@ library ItemBtns requires Hardware,UIHashTable,Icon,UILayer {
                 trLeave = CreateTrigger();
             }
             TriggerAddCondition(trLeave, Condition(func));
+        }
+
+        // 获取回调参数:触发位置
+        static method getCallbackPos() -> integer {
+            return argsPos;
+        }
+
+        // 手动触发指定位置的leave和enter事件
+        static method triggerLeaveEnter() {
+            if (currentHoverPos < 1 || currentHoverPos > 6) { return; }
+
+            // 先触发leave事件
+            if (trLeave != null) {
+                argsPos = currentHoverPos;
+                TriggerEvaluate(trLeave);
+            }
+
+            // 再触发enter事件
+            if (trEnter != null) {
+                argsPos = currentHoverPos;
+                TriggerEvaluate(trEnter);
+            }
         }
 
         static method outside (integer pos) {
@@ -88,11 +114,15 @@ library ItemBtns requires Hardware,UIHashTable,Icon,UILayer {
                 btn.onMouseEnter(function() {
                     integer frame = DzGetTriggerUIEventFrame();
                     argsPos = uiHashTable(frame).eventdata.get();
+                    isMouseOverItemBar = true;
+                    currentHoverPos = argsPos;
                     TriggerEvaluate(trEnter);
                 });
                 btn.onMouseLeave(function() {
                     integer frame = DzGetTriggerUIEventFrame();
                     argsPos = uiHashTable(frame).eventdata.get();
+                    isMouseOverItemBar = false;
+                    currentHoverPos = 0;
                     TriggerEvaluate(trLeave);
                 });
                 uiHashTable(slot[i]).eventdata.bind(i);
@@ -103,6 +133,18 @@ library ItemBtns requires Hardware,UIHashTable,Icon,UILayer {
                 icons[i].clickBtn = btn;
             }
 
+            // 注册异步选择单位事件，处理英雄切换时的物品栏事件
+            unitSelect.onAsync(function() {
+                unit newUnit = unitSelect.args;
+
+                // 如果鼠标在物品栏上且切换了单位，需要触发先leave再enter
+                if (isMouseOverItemBar && newUnit != lastSelectedUnit && currentHoverPos > 0) {
+                    itemBtns.triggerLeaveEnter();
+                }
+
+                lastSelectedUnit = newUnit;
+                newUnit = null;
+            });
 
         }
 

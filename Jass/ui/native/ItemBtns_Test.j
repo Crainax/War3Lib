@@ -11,11 +11,11 @@ library UTItemBtns requires ItemBtns,UnitTestUIRuler {
 	// 初始化就调用
 	function Init () {
 		itemBtns.onEnter(function () {
-			integer pos = itemBtns.argsPos;
+			integer pos = itemBtns.getCallbackPos();
 			BJDebugMsg("第" + I2S(pos) + "个物品进入2");
 		});
 		itemBtns.onLeave(function () {
-			integer pos = itemBtns.argsPos;
+			integer pos = itemBtns.getCallbackPos();
 			BJDebugMsg("第" + I2S(pos) + "个物品离开2");
 		});
 	}
@@ -97,7 +97,7 @@ library UTItemBtns requires ItemBtns,UnitTestUIRuler {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			unit hero,building;
+			unit hero,hero2,building;
 			real x = 0, y = 0;
 			integer i = 0;
 
@@ -105,6 +105,7 @@ library UTItemBtns requires ItemBtns,UnitTestUIRuler {
 
 			// 为玩家1创建测试英雄
 			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
+			hero2 = CreateUnit(Player(0), 'Hblm', 200, 0, 270); // 创建血法师在坐标(200,0)
 
 			// 创建一个建筑单位用于测试12个技能
 			building = CreateUnit(Player(0), 'hcas', 400, 0, 270); // 创建人族城堡
