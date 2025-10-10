@@ -430,6 +430,24 @@ library MallItem requires DzAPI{
             return mallItem.itemCount;
         }
 
+        // 查询指定玩家和商品key的当前消耗次数
+        static method getConsumeCountByPlayer(player whichPlayer, string itemKey) ->integer {
+            integer pid; integer idx; integer base;
+
+            pid = GetPlayerId(whichPlayer);
+            if (pid < 0 || pid >= MAX_PLAYER_COUNT) {
+                return 0;
+            }
+
+            idx = mallItem.getIndex(itemKey);
+            if (idx < 0) {
+                return 0;
+            }
+
+            base = pid * MALLITEM_MAX_ITEMS;
+            return mallItem.uses[base + idx];
+        }
+
     }
 }
 //! endzinc

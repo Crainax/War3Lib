@@ -1,8 +1,7 @@
 #ifndef ToolTipStackIncluded
 #define ToolTipStackIncluded
 
-#include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
-
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 //! zinc
 /*

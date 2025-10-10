@@ -1,8 +1,8 @@
 #ifndef UnitUtilsIncluded
 #define UnitUtilsIncluded
 
-#include "Crainax/core/constant/UNDefine.j" //constant可以直接加进去没问题
 #include "Crainax/core/constant/JapiConstant.j" //constant可以直接加进去没问题
+#include "Crainax/core/table/Hash_UnitDefine.j"
 
 //! zinc
 /*
