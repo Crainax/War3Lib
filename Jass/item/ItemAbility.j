@@ -1,7 +1,7 @@
 #ifndef ItemAbilityIncluded
 #define ItemAbilityIncluded
 
-#include "Crainax/core/constant/TypeConstant.j" // UI常量
+#include "Crainax/core/constant/TypeConstant.j" // 常量
 
 /*
     物品里的技能（简化维护 + 安全键位 + 最大等级聚合）
@@ -40,7 +40,7 @@ library ItemAbility {
     }
 
     // 配置物品类型的技能1（ID + 等级）
-    public function SetItemAbility1Level(integer itemID, integer abilityId, integer level) {
+    public function SetItemtypeAbility1(integer itemID, integer abilityId, integer level) {
         if (abilityId != 0 && level > 0) {
             SaveInteger(HASH_TYPEID, itemID, KEY_ITEM_ABILITY_1, abilityId);
             SaveInteger(HASH_TYPEID, itemID, KEY_ITEM_ABILITY_1_LV, level);
@@ -50,7 +50,7 @@ library ItemAbility {
         }
     }
     // 配置物品类型的技能2（ID + 等级）
-    public function SetItemAbility2Level(integer itemID, integer abilityId, integer level) {
+    public function SetItemtypeAbility2(integer itemID, integer abilityId, integer level) {
         if (abilityId != 0 && level > 0) {
             SaveInteger(HASH_TYPEID, itemID, KEY_ITEM_ABILITY_2, abilityId);
             SaveInteger(HASH_TYPEID, itemID, KEY_ITEM_ABILITY_2_LV, level);
@@ -60,7 +60,7 @@ library ItemAbility {
         }
     }
 
-    public function ItemHasAbility(item it, integer origin) -> boolean {
+    public function ItemtypeHasAbility(integer origin) -> boolean {
         return HaveSavedInteger(HASH_TYPEID, origin, KEY_ITEM_ABILITY_1)
             || HaveSavedInteger(HASH_TYPEID, origin, KEY_ITEM_ABILITY_2);
     }
@@ -115,7 +115,7 @@ library ItemAbility {
     }
 
     // 单位获得物品：根据“物品类型配置”的技能授予（it 不参与判重）
-    public function UnitAddItemAbility(unit u, integer origin) {
+    public function UnitGetItemtypeAbility(unit u, integer origin) {
         integer abilityId; integer lv;
         if (HaveSavedInteger(HASH_TYPEID, origin, KEY_ITEM_ABILITY_1)) {
             abilityId = LoadInteger(HASH_TYPEID, origin, KEY_ITEM_ABILITY_1);
@@ -130,7 +130,7 @@ library ItemAbility {
     }
 
     // 单位失去物品：撤销对应的技能贡献（it 不参与判重）
-    public function UnitReduceItemAbility(unit u, integer origin) {
+    public function UnitLostItemtypeAbility(unit u, integer origin) {
         integer abilityId; integer lv;
         if (HaveSavedInteger(HASH_TYPEID, origin, KEY_ITEM_ABILITY_1)) {
             abilityId = LoadInteger(HASH_TYPEID, origin, KEY_ITEM_ABILITY_1);

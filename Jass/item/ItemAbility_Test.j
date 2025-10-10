@@ -4,6 +4,8 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
+#include "D:/War3/Library/War3Lib/Jass/item/ItemAbility.j"
+
 //! zinc
 
 //自动生成的文件
@@ -17,13 +19,10 @@ library UTItemAbility requires ItemAbility {
 		});
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//assert.Boolean(true, "测试1");
-			//SetItemAbility1Level
 		},null);
 	}
 
-	function TTestUTItemAbility1 (player p) {
-
-	}
+	function TTestUTItemAbility1 (player p) {}
 	function TTestUTItemAbility2 (player p) {}
 	function TTestUTItemAbility3 (player p) {}
 	function TTestUTItemAbility4 (player p) {}
