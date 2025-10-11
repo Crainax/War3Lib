@@ -43,8 +43,9 @@ library BindEffect requires UnitHashTable {
             id = GetHandleId(u);
             mdlHash = StringHash(mdl);
 
-            // 先查找是否已存在相同 mdl 的特效
-            for (i = 0; i < MAX_EFFECTS; i += 1) {
+            // 先查找是否已存在相同 mdl 的特效（只遍历实际存在的特效）
+            currentCount = LoadInteger(HASH_UNIT, id, EFFECT_COUNT_KEY);
+            for (i = 0; i < currentCount; i += 1) {
                 effectKey = EFFECT_START_KEY + i;
                 hashKey = MDL_HASH_START_KEY + i;
 
@@ -92,7 +93,7 @@ library BindEffect requires UnitHashTable {
             return null;
         }
 
-        // 清理指定 mdl 的唯一特效（通过 mdl 路径精准匹配）
+        // 清理指定 mdl 的唯一特效（通过 mdl 路径精准匹配，使用尾部交换法填补空洞）
         public static method detachUnique(unit u, string mdl) {
             integer id;
             integer i;
@@ -101,59 +102,100 @@ library BindEffect requires UnitHashTable {
             integer hashKey;
             integer storedHash;
             integer currentCount;
+            integer lastIndex;
+            integer lastEffectKey;
+            integer lastHashKey;
             effect e;
+            effect lastEffect;
+            integer lastHash;
 
             if (u == null) { return; }
 
             id = GetHandleId(u);
             mdlHash = StringHash(mdl);
+            currentCount = LoadInteger(HASH_UNIT, id, EFFECT_COUNT_KEY);
 
-            // 遍历查找匹配的 mdl hash
-            for (i = 0; i < MAX_EFFECTS; i += 1) {
+            // 如果特效数量为0，直接返回
+            if (currentCount <= 0) { return; }
+
+            // 只遍历实际存在的特效数量
+            for (i = 0; i < currentCount; i += 1) {
                 effectKey = EFFECT_START_KEY + i;
                 hashKey = MDL_HASH_START_KEY + i;
 
                 storedHash = LoadInteger(HASH_UNIT, id, hashKey);
                 if (storedHash == mdlHash) {
-                    // 找到匹配项，销毁特效并清空存储
+                    // 找到匹配项，销毁特效
                     e = LoadEffectHandle(HASH_UNIT, id, effectKey);
                     if (e != null) {
                         DestroyEffect(e);
-                        RemoveSavedHandle(HASH_UNIT, id, effectKey);
                         e = null;
                     }
 
-                    // 清空 mdl hash
-                    RemoveSavedInteger(HASH_UNIT, id, hashKey);
+                    // 如果不是最后一个元素，使用尾部交换法填补空洞
+                    lastIndex = currentCount - 1;
+                    if (i != lastIndex) {
+                        lastEffectKey = EFFECT_START_KEY + lastIndex;
+                        lastHashKey = MDL_HASH_START_KEY + lastIndex;
+
+                        // 将最后一个元素移动到当前位置
+                        lastEffect = LoadEffectHandle(HASH_UNIT, id, lastEffectKey);
+                        lastHash = LoadInteger(HASH_UNIT, id, lastHashKey);
+
+                        if (lastEffect != null) {
+                            SaveEffectHandle(HASH_UNIT, id, effectKey, lastEffect);
+                        } else {
+                            RemoveSavedHandle(HASH_UNIT, id, effectKey);
+                        }
+
+                        if (lastHash != 0) {
+                            SaveInteger(HASH_UNIT, id, hashKey, lastHash);
+                        } else {
+                            RemoveSavedInteger(HASH_UNIT, id, hashKey);
+                        }
+
+                        // 清空最后一个位置
+                        RemoveSavedHandle(HASH_UNIT, id, lastEffectKey);
+                        RemoveSavedInteger(HASH_UNIT, id, lastHashKey);
+                        lastEffect = null;
+                    } else {
+                        // 是最后一个元素，直接清空
+                        RemoveSavedHandle(HASH_UNIT, id, effectKey);
+                        RemoveSavedInteger(HASH_UNIT, id, hashKey);
+                    }
 
                     // 更新特效数量
-                    currentCount = LoadInteger(HASH_UNIT, id, EFFECT_COUNT_KEY);
-                    if (currentCount > 0) {
-                        SaveInteger(HASH_UNIT, id, EFFECT_COUNT_KEY, currentCount - 1);
-                    }
+                    SaveInteger(HASH_UNIT, id, EFFECT_COUNT_KEY, currentCount - 1);
                     return;
                 }
             }
         }
 
-        // 销毁单位所有特效（带详细调试追踪）
+        // 销毁单位所有特效（优化：根据实际数量循环）
         public static method destroyAll(unit u) {
             integer id;
             integer i;
             integer effectKey;
             integer hashKey;
+            integer currentCount;
             effect e;
-            boolean anyEffect = false;
 
             if (u == null) {
                 return;
             }
 
             id = GetHandleId(u);
+            currentCount = LoadInteger(HASH_UNIT, id, EFFECT_COUNT_KEY);
 
-            // 清理所有特效句柄 (EFFECT_START_KEY: 101-120)
-            for (i = 0; i < MAX_EFFECTS; i += 1) {
+            // 如果特效数量为0，直接返回
+            if (currentCount <= 0) { return; }
+
+            // 只清理实际存在的特效数量
+            for (i = 0; i < currentCount; i += 1) {
                 effectKey = EFFECT_START_KEY + i;
+                hashKey = MDL_HASH_START_KEY + i;
+
+                // 清理特效句柄
                 if (HaveSavedHandle(HASH_UNIT, id, effectKey)) {
                     e = LoadEffectHandle(HASH_UNIT, id, effectKey);
                     if (e != null) {
@@ -161,13 +203,9 @@ library BindEffect requires UnitHashTable {
                     }
                     RemoveSavedHandle(HASH_UNIT, id, effectKey);
                     e = null;
-                    anyEffect = true;
                 }
-            }
 
-            // 清理所有 mdl hash (MDL_HASH_START_KEY: 121-140)
-            for (i = 0; i < MAX_EFFECTS; i += 1) {
-                hashKey = MDL_HASH_START_KEY + i;
+                // 清理 mdl hash
                 if (HaveSavedInteger(HASH_UNIT, id, hashKey)) {
                     RemoveSavedInteger(HASH_UNIT, id, hashKey);
                 }

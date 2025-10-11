@@ -191,12 +191,6 @@ library UnitUtils {
         DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Human\\MassTeleport\\MassTeleportTarget.mdl", GetUnitX(u), GetUnitY(u)));
     }
 
-    //删除单位
-    public function DeleteUnit (unit u) {
-        FlushChildHashtable(HASH_UNIT,GetHandleId(u));
-        RemoveUnit(u);
-    }
-
 }
 
 //! endzinc
