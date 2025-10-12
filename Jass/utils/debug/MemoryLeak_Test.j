@@ -10,16 +10,112 @@
 library UTMemoryLeak requires MemoryLeak {
 
 	function Init () {
+		//YDLua
 	}
 
 	function TTestUTMemoryLeak1 (player p) {
 		MemoryLeakShow();
 	}
-	function TTestUTMemoryLeak2 (player p) {}
-	function TTestUTMemoryLeak3 (player p) {}
-	function TTestUTMemoryLeak4 (player p) {}
-	function TTestUTMemoryLeak5 (player p) {}
-	function TTestUTMemoryLeak6 (player p) {}
+	//结论1:TriggerAddCondition马上调用删除触发器不会泄露
+	//结论2:TriggerAddAction马上调用删除触发器,会泄露1个触发器动作
+	//结论3:TriggerRemoveAction可以排泄触发器动作,不会泄露
+	//结论4:TriggerRegisterDialogEvent会泄露(即使删除触发器),对话框最好用单例模式
+	//结论5:TriggerRegisterUnitEvent能随着触发器删除正常排泄.
+	function TTestUTMemoryLeak2 (player p) {
+		trigger t = CreateTrigger();
+		TriggerAddCondition(t, Condition(function (){
+			BJDebugMsg("测试一下咯(有缓存机制只+1个triggercondition)");
+		}));
+		TriggerEvaluate(t);
+		DestroyTrigger(t);
+		t = null;
+	}
+	function TTestUTMemoryLeak3 (player p) {
+		trigger t = CreateTrigger();
+		TriggerAddAction(t, function (){
+			BJDebugMsg("测试一下Action咯(调用一次泄露一个triggeraction)");
+		});
+		TriggerExecute(t);
+		DestroyTrigger(t);
+		t = null;
+	}
+	function TTestUTMemoryLeak4 (player p) {
+		trigger t = CreateTrigger();
+		triggeraction ta = TriggerAddAction(t, function (){
+			BJDebugMsg("测试一下Action咯(不会泄露)");
+		});
+		TriggerExecute(t);
+		TriggerRemoveAction(t, ta);
+		DestroyTrigger(t);
+		ta = null;
+		t = null;
+	}
+	function TTestUTMemoryLeak5 (player p) {
+		trigger t;
+		dialog d;
+		button b;
+
+		// 创建触发器
+		t = CreateTrigger();
+
+		// 创建对话框
+		d = DialogCreate();
+		DialogSetMessage(d, "测试对话框");
+
+		// 创建按钮
+		b = DialogAddButton(d, "确定", 0);
+
+		// 注册对话框事件
+		TriggerRegisterDialogEvent(t, d);
+
+		// 立即销毁对话框
+		DialogClear(d);
+		DialogDestroy(d);
+
+		// 销毁触发器
+		DestroyTrigger(t);
+
+		// 清理句柄
+		b = null;
+		d = null;
+		t = null;
+
+		BJDebugMsg("测试5: TriggerRegisterDialogEvent 事件泄露测试完成");
+	}
+	function TTestUTMemoryLeak6 (player p) {
+		trigger t;
+		unit u;
+		integer i;
+		unit units[];
+
+		// 创建触发器
+		t = CreateTrigger();
+
+		// 创建10个单位并注册受伤事件
+		for (i = 0; i < 10; i += 1) {
+			u = CreateUnit(p, 'hfoo', 0.0, 0.0, 0.0);
+			units[i] = u;
+
+			// 为每个单位注册受伤事件
+			TriggerRegisterUnitEvent(t, u, EVENT_UNIT_DAMAGED);
+		}
+
+		// 删除所有单位
+		for (i = 0; i < 10; i += 1) {
+			if (units[i] != null) {
+				RemoveUnit(units[i]);
+				units[i] = null;
+			}
+		}
+
+		// 销毁触发器
+		DestroyTrigger(t);
+
+		// 清理句柄
+		t = null;
+
+		BJDebugMsg("测试6: 10个单位受伤事件注册后删除测试完成");
+	}
 	function TTestUTMemoryLeak7 (player p) {}
 	function TTestUTMemoryLeak8 (player p) {}
 	function TTestUTMemoryLeak9 (player p) {}
