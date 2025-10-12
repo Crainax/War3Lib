@@ -3,295 +3,346 @@
 
 //! zinc
 /*
-MultiDialog - 统一对话框系统
+multiDialog - 统一对话框系统
 支持简单对话框和翻页对话框，使用单例触发器避免事件泄露
 */
 library MultiDialog {
 
     public hashtable HASH_DIALOG = InitHashtable();
 
+	public type OnAlterDialogClick extends function(player, integer, AlterDialog);
+	public type OnPageDialogClick extends function(player, integer, PageDialog);
+	public type ValueFiller extends function(player, integer) -> integer;
+	public type StringFiller extends function(player, integer) -> string;
+
+
+
 	// 统一对话框结构体
-	public struct multiDialog {
-		// 共享成员
-		private dialog d;
-		private player p;
-		private integer num;
-		private string title;
-		private boolean isPageDialog;  // 区分类型
-
-		// AlterDialog 专用
-		private OnAlterDialogClick odc1;
-
-		// PageDialog 专用
-		private integer current;
-		private integer spiltCount;
-		private boolean escable;
-		private OnPageDialogClick odc2;
-		private ValueFiller vf;
-		private StringFiller sf;
-
-		// 静态单例触发器系统
-		private static trigger playerTriggers[];
+	public struct multiDialog []{
+		// 每玩家状态（使用结构体索引作为玩家索引：1..MAX_PLAYER_COUNT）
+		private static dialog playerDialogs[];
+		private static trigger playerTriggers [];
 		private static boolean initialized = false;
 
-		// 回调参数传递（避免哈希表冲突）
-		private static thistype callbackDialog = 0;
-		private static button callbackButton = null;
+		// 共享成员（按玩家索引存储状态）
+		private static player p[];
+		private static integer num[];
+		private static string title[];
+		private static boolean isPageDialog[];
+
+		// AlterDialog 专用
+		private static OnAlterDialogClick odc1[];
+
+		// PageDialog 专用
+		private static integer current[];
+		private static integer spiltCount[];
+		private static boolean escable[];
+		private static OnPageDialogClick odc2[];
+		private static ValueFiller vf[];
+		private static StringFiller sf[];
 
 		// 初始化单例触发器系统
 		static method onInit() {
 			integer i;
 			for (1 <= i <= MAX_PLAYER_COUNT) {
-                if ((GetPlayerSlotState(ConvertedPlayer(i)) == PLAYER_SLOT_STATE_PLAYING) && (GetPlayerController(ConvertedPlayer(i)) == MAP_CONTROL_USER)) {
-                    MultiDialog.playerTriggers[i] = CreateTrigger();
-                    TriggerAddAction(MultiDialog.playerTriggers[i], function () {
-                        thistype this;
-                        integer i;
-                        button clicked;
-                        integer nextOrpre;
+				if ((GetPlayerSlotState(ConvertedPlayer(i)) == PLAYER_SLOT_STATE_PLAYING) && (GetPlayerController(ConvertedPlayer(i)) == MAP_CONTROL_USER)) {
+					// 为玩家创建常驻对话框与触发器，并注册事件
+					multiDialog.playerDialogs[i] = DialogCreate();
+					SaveInteger(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[i]), 1, i);
+					multiDialog.playerTriggers[i] = CreateTrigger();
+					TriggerRegisterDialogEvent(multiDialog.playerTriggers[i], multiDialog.playerDialogs[i]);
+					TriggerAddAction(multiDialog.playerTriggers[i], function () {
+						integer pid;
+						integer i;
+						button clicked;
+						integer nextOrpre;
+						dialog dlg;
+						thistype inst;
 
-                        this = MultiDialog.callbackDialog;
-                        clicked = GetClickedButtonBJ();
-                        nextOrpre = 0;
+						// 从被点击的对话框得到玩家索引
+						dlg = GetClickedDialogBJ();
+						pid = LoadInteger(HASH_DIALOG, GetHandleId(dlg), 1);
+						inst = pid;
+						clicked = GetClickedButtonBJ();
+						nextOrpre = 0;
 
-                        // 根据对话框类型处理点击
-                        if (this.isPageDialog) {
-                            // PageDialog 逻辑
-                            i = 1;
-                            while (i <= this.spiltCount + 1) {
-                                if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(this.d), i)) {
-                                    this.odc2.execute(this.p, this.vf.evaluate(this.p, this.current * this.spiltCount - this.spiltCount + i - 1), this);
-                                }
-                                i = i + 1;
-                            }
+						// 根据对话框类型处理点击
+						if (multiDialog.isPageDialog[pid]) {
+							// PageDialog 逻辑
+							i = 1;
+							while (i <= multiDialog.spiltCount[pid] + 1) {
+								if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[pid]), i)) {
+									multiDialog.odc2[pid].execute(multiDialog.p[pid], multiDialog.vf[pid].evaluate(multiDialog.p[pid], multiDialog.current[pid] * multiDialog.spiltCount[pid] - multiDialog.spiltCount[pid] + i - 1), inst);
+								}
+								i = i + 1;
+							}
 
-                            // 处理翻页按钮
-                            if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(this.d), 11)) {
-                                this.odc2.execute(this.p, -1, this);
-                            } else if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(this.d), 12)) {
-                                this.prePage();
-                                nextOrpre = 1;
-                            } else if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(this.d), 10)) {
-                                this.nextPage();
-                                nextOrpre = 2;
-                            }
-                            this.clearButtonData();
+							// 处理翻页按钮
+							if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[pid]), 11)) {
+								multiDialog.odc2[pid].execute(multiDialog.p[pid], -1, inst);
+							} else if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[pid]), 12)) {
+								inst.prePage();
+								nextOrpre = 1;
+							} else if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[pid]), 10)) {
+								inst.nextPage();
+								nextOrpre = 2;
+							}
+							inst.clearButtonData();
 
-                            if (nextOrpre != 0) {
-                                DialogClear(this.d);
-                                this.show();
-                            }
-                        } else {
-                            // 简单对话框逻辑
-                            i = 1;
-                            while (i <= this.num) {
-                                if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(this.d), i)) {
-                                    this.odc1.execute(this.p, LoadInteger(HASH_DIALOG, GetHandleId(clicked), 1), this);
-                                }
-                                i = i + 1;
-                            }
-                        }
+							if (nextOrpre != 0) {
+								DialogClear(multiDialog.playerDialogs[pid]);
+								inst.show();
+							}
+						} else {
+							// 简单对话框逻辑
+							i = 1;
+							while (i <= multiDialog.num[pid]) {
+								if (clicked == LoadButtonHandle(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[pid]), i)) {
+									multiDialog.odc1[pid].execute(multiDialog.p[pid], LoadInteger(HASH_DIALOG, GetHandleId(clicked), 1), inst);
+								}
+								i = i + 1;
+							}
+						}
 
-                        DialogDisplay(this.p, this.d, false);
-                        clicked = null;
-                    });
-                }
+						DialogDisplay(multiDialog.p[pid], multiDialog.playerDialogs[pid], false);
+						clicked = null;
+						dlg = null;
+					});
+				}
 			}
-			MultiDialog.initialized = true;
+			multiDialog.initialized = true;
 		}
 
 		// 给对话框绑单位,不能取大于1
 		public method bindUnitHandle(unit u, integer i) {
+			integer pid;
+			pid = this;
 			if (i == 1) {
 				BJDebugMsg("error : in the dialog binding 1!");
 			}
-			SaveUnitHandle(HASH_DIALOG, GetHandleId(this.d), i, u);
+			SaveUnitHandle(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[pid]), i, u);
 		}
 
 		public method getUnitHandle(integer i) -> unit {
-			return LoadUnitHandle(HASH_DIALOG, GetHandleId(this.d), i);
+			integer pid;
+			pid = this;
+			return LoadUnitHandle(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[pid]), i);
 		}
 
 		// 给对话框绑整数,不能取大于1
 		public method bindInteger(integer input, integer i) {
+			integer pid;
+			pid = this;
 			if (i == 1) {
 				BJDebugMsg("error : in the dialog binding 1!");
 			}
-			SaveInteger(HASH_DIALOG, GetHandleId(this.d), i, input);
+			SaveInteger(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[pid]), i, input);
 		}
 
 		public method getInteger(integer i) -> integer {
-			return LoadInteger(HASH_DIALOG, GetHandleId(this.d), i);
+			integer pid;
+			pid = this;
+			return LoadInteger(HASH_DIALOG, GetHandleId(multiDialog.playerDialogs[pid]), i);
 		}
 
 		public method show() {
-			if (this.isPageDialog) {
-				// 翻页对话框显示逻辑
-				integer i;
-				integer realI;
+			integer pid;
+			integer i;
+			integer realI;
+			dialog d;
 
-				i = this.current * this.spiltCount - this.spiltCount + 1;
+			pid = this;
+			d = multiDialog.playerDialogs[pid];
+
+			if (multiDialog.isPageDialog[pid]) {
+				// 翻页对话框显示逻辑
+				i = multiDialog.current[pid] * multiDialog.spiltCount[pid] - multiDialog.spiltCount[pid] + 1;
 				realI = 1;
 
-				while (i <= I3(this.current == this.GetPageCount(), this.num, this.current * this.spiltCount)) {
+				while (i <= I3(multiDialog.current[pid] == this.GetPageCount(), multiDialog.num[pid], multiDialog.current[pid] * multiDialog.spiltCount[pid])) {
 					realI = realI + 1;
-					SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), realI, DialogAddButtonBJ(this.d, this.sf.evaluate(this.p, i)));
+					SaveButtonHandle(HASH_DIALOG, GetHandleId(d), realI, DialogAddButtonBJ(d, multiDialog.sf[pid].evaluate(multiDialog.p[pid], i)));
 					i = i + 1;
 				}
 
 				if (this.GetPageCount() > 1) {
-					SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), 12, DialogAddButtonBJ(this.d, "上一页"));
-					SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), 10, DialogAddButtonBJ(this.d, "下一页"));
+					SaveButtonHandle(HASH_DIALOG, GetHandleId(d), 12, DialogAddButtonBJ(d, "上一页"));
+					SaveButtonHandle(HASH_DIALOG, GetHandleId(d), 10, DialogAddButtonBJ(d, "下一页"));
 				}
 
-				if (this.escable) {
-					SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), 11, DialogAddButton(this.d, "退出|cffff6800(Esc)|r", 512));
+				if (multiDialog.escable[pid]) {
+					SaveButtonHandle(HASH_DIALOG, GetHandleId(d), 11, DialogAddButton(d, "退出|cffff6800(Esc)|r", 512));
 				}
 
-				DialogSetMessage(this.d, this.title + S3(this.GetPageCount() > 1, "(" + I2S(this.current) + "/" + I2S(this.GetPageCount()) + ")", ""));
+				DialogSetMessage(d, multiDialog.title[pid] + S3(this.GetPageCount() > 1, "(" + I2S(multiDialog.current[pid]) + "/" + I2S(this.GetPageCount()) + ")", ""));
 			} else {
 				// 简单对话框显示逻辑
-				DialogSetMessage(this.d, this.title);
+				DialogSetMessage(d, multiDialog.title[pid]);
 			}
-			DialogDisplay(this.p, this.d, true);
+			DialogDisplay(multiDialog.p[pid], d, true);
+			d = null;
 		}
 
 		public method addButton(string s, integer value, integer hotKey) {
+			integer pid;
 			button bt;
+			dialog d;
 
-			bt = DialogAddButtonBJ(this.d, s);
-			this.num = this.num + 1;
+			pid = this;
+			d = multiDialog.playerDialogs[pid];
+			bt = DialogAddButtonBJ(d, s);
+			multiDialog.num[pid] = multiDialog.num[pid] + 1;
 			SaveInteger(HASH_DIALOG, GetHandleId(bt), 1, value);
-			SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), this.num, bt);
+			SaveButtonHandle(HASH_DIALOG, GetHandleId(d), multiDialog.num[pid], bt);
 			bt = null;
+			d = null;
 		}
 
 		public method addButtonHotKey(string s, integer value, integer hotKey) {
+			integer pid;
 			button bt;
+			dialog d;
 
-			bt = DialogAddButton(this.d, s, hotKey);
-			this.num = this.num + 1;
+			pid = this;
+			d = multiDialog.playerDialogs[pid];
+			bt = DialogAddButton(d, s, hotKey);
+			multiDialog.num[pid] = multiDialog.num[pid] + 1;
 			SaveInteger(HASH_DIALOG, GetHandleId(bt), 1, value);
-			SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), this.num, bt);
+			SaveButtonHandle(HASH_DIALOG, GetHandleId(d), multiDialog.num[pid], bt);
 			bt = null;
+			d = null;
 		}
 
 		// PageDialog 专用方法
 		public method GetPageCount() -> integer {
-			if (ModuloInteger(this.num, this.spiltCount) == 0) {
-				return this.num / this.spiltCount;
+			integer pid;
+			pid = this;
+			if (ModuloInteger(multiDialog.num[pid], multiDialog.spiltCount[pid]) == 0) {
+				return multiDialog.num[pid] / multiDialog.spiltCount[pid];
 			} else {
-				return this.num / this.spiltCount + 1;
+				return multiDialog.num[pid] / multiDialog.spiltCount[pid] + 1;
 			}
 		}
 
 		public method clearButtonData() {
+			integer pid;
 			integer i;
+			dialog d;
 
+			pid = this;
+			d = multiDialog.playerDialogs[pid];
 			i = 2;
 			while (i <= 11) {
-				RemoveSavedHandle(HASH_DIALOG, GetHandleId(this.d), i);
+				RemoveSavedHandle(HASH_DIALOG, GetHandleId(d), i);
 				i = i + 1;
 			}
+			d = null;
 		}
 
 		public method nextPage() {
-			this.current = I3(this.GetPageCount() == this.current, 1, this.current + 1);
+			integer pid;
+			pid = this;
+			multiDialog.current[pid] = I3(this.GetPageCount() == multiDialog.current[pid], 1, multiDialog.current[pid] + 1);
 		}
 
 		public method prePage() {
-			this.current = I3(this.current == 1, this.GetPageCount(), this.current - 1);
+			integer pid;
+			pid = this;
+			multiDialog.current[pid] = I3(multiDialog.current[pid] == 1, this.GetPageCount(), multiDialog.current[pid] - 1);
 		}
 
 		public method setEscable(boolean b) {
-			this.escable = b;
+			integer pid;
+			pid = this;
+			multiDialog.escable[pid] = b;
 		}
 
 		public method setSpiltCount(integer num) {
-			this.spiltCount = ILimit(num, 1, 8);
+			integer pid;
+			pid = this;
+			multiDialog.spiltCount[pid] = ILimit(num, 1, 8);
 		}
 
 		// 简单对话框构造（保留原 AlterDialog 参数）
-		public static method createSimple(player p, string title, OnAlterDialogClick odc) -> thistype {
-			thistype this;
+		public static method createSimple(player p, string title, OnAlterDialogClick odc) -> integer {
 			integer pid;
 
 			pid = GetConvertedPlayerId(p);
 			if (pid < 1 || pid > MAX_PLAYER_COUNT) { return 0; }
 
-			this = thistype.allocate();
-			this.d = DialogCreate();
-			this.p = p;
-			this.num = 0;
-			this.odc1 = odc;
-			this.title = title;
-			this.isPageDialog = false;
+			// 复用该玩家的常驻对话框
+			multiDialog.p[pid] = p;
+			multiDialog.num[pid] = 0;
+			multiDialog.odc1[pid] = odc;
+			multiDialog.title[pid] = title;
+			multiDialog.isPageDialog[pid] = false;
 
-			SaveInteger(HASH_DIALOG, GetHandleId(this.d), 1, this);
-
-			// 复用玩家单例触发器
-			TriggerRegisterDialogEvent(MultiDialog.playerTriggers[pid], this.d);
-
-			return this;
+			return pid;
 		}
 
 		// 翻页对话框构造（保留原 PageDialog 参数）
-		public static method createPaged(player p, string title, integer total, OnPageDialogClick odc, ValueFiller vf, StringFiller sf) -> thistype {
-			thistype this;
+		public static method createPaged(player p, string title, integer total, OnPageDialogClick odc, ValueFiller vf, StringFiller sf) -> integer {
 			integer pid;
 
 			pid = GetConvertedPlayerId(p);
 			if (pid < 1 || pid > MAX_PLAYER_COUNT) { return 0; }
 
-			this = thistype.allocate();
-			this.d = DialogCreate();
-			this.p = p;
-			this.num = total;
-			this.odc2 = odc;
-			this.vf = vf;
-			this.sf = sf;
-			this.spiltCount = 8;
-			this.title = title;
-			this.current = 1;
-			this.escable = false;
-			this.isPageDialog = true;
+			// 复用该玩家的常驻对话框
+			multiDialog.p[pid] = p;
+			multiDialog.num[pid] = total;
+			multiDialog.odc2[pid] = odc;
+			multiDialog.vf[pid] = vf;
+			multiDialog.sf[pid] = sf;
+			multiDialog.spiltCount[pid] = 8;
+			multiDialog.title[pid] = title;
+			multiDialog.current[pid] = 1;
+			multiDialog.escable[pid] = false;
+			multiDialog.isPageDialog[pid] = true;
 
-			SaveInteger(HASH_DIALOG, GetHandleId(this.d), 1, this);
-
-			// 复用玩家单例触发器
-			TriggerRegisterDialogEvent(MultiDialog.playerTriggers[pid], this.d);
-
-			return this;
+			return pid;
 		}
 
-		public method onDestroy() {
+		// 清理对话框（不销毁，仅重置状态供下次复用）
+		public method clear() {
+			integer pid;
 			integer i;
+			dialog d;
+
+			pid = this;
+			d = multiDialog.playerDialogs[pid];
 
 			// 隐藏对话框
-			DialogDisplay(this.p, this.d, false);
+			DialogDisplay(multiDialog.p[pid], d, false);
 
 			// 清理按钮哈希表
 			i = 1;
-			while (i <= I3(this.isPageDialog, 12, this.num)) {
-				FlushChildHashtable(HASH_DIALOG, GetHandleId(LoadButtonHandle(HASH_DIALOG, GetHandleId(this.d), i)));
+			while (i <= I3(multiDialog.isPageDialog[pid], 12, multiDialog.num[pid])) {
+				FlushChildHashtable(HASH_DIALOG, GetHandleId(LoadButtonHandle(HASH_DIALOG, GetHandleId(d), i)));
 				i = i + 1;
 			}
 
-			// 清理对话框哈希表
-			FlushChildHashtable(HASH_DIALOG, GetHandleId(this.d));
+			// 清理对话框哈希表（但不清理 key=1 的实例索引）
+			i = 2;
+			while (i <= 12) {
+				RemoveSavedHandle(HASH_DIALOG, GetHandleId(d), i);
+				i = i + 1;
+			}
 
-			// 清空 dialog（如需复用可移除此行）
-			DialogClear(this.d);
+			// 清空 dialog 内容
+			DialogClear(d);
 
-			// 清理成员（句柄不置 null，供复用）
-			SetDialoging(this.p, false);
-			this.p = null;
-			this.num = 0;
-			this.odc1 = 0;
-			this.odc2 = 0;
-			this.vf = 0;
-			this.sf = 0;
-			this.title = null;
+			// 重置成员状态
+			SetDialoging(multiDialog.p[pid], false);
+			multiDialog.p[pid] = null;
+			multiDialog.num[pid] = 0;
+			multiDialog.odc1[pid] = 0;
+			multiDialog.odc2[pid] = 0;
+			multiDialog.vf[pid] = 0;
+			multiDialog.sf[pid] = 0;
+			multiDialog.title[pid] = null;
+			multiDialog.isPageDialog[pid] = false;
+
+			d = null;
 		}
 	}
 
