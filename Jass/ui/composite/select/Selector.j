@@ -1,26 +1,22 @@
 #ifndef SelectIncluded
 #define SelectIncluded
 
-#include "edit/UI/DetailUI.j"
-#include "edit/UI/MessageUI.j"
-#include "edit/core/constant/Sound.j"
-
 //! zinc
 
 /*
 选择UI
 */
 
-library Select requires DetailUI,MsgUIHint,Sound,Icon {
+library Selector requires Tooltip,ToastHint,Music {
 
     public struct selectF [] {
         static integer pos = 0; //选择事件:选中了哪个
-        static select this = 0; //东西
+        static selector this = 0; //东西
     }
 
-    select SL[]; //玩家的单例选择
-    //选择事件
-    public struct select { //todo:做一下翻页功能
+    selector SL[]; //玩家的单例选择
+    //选择UI
+    public struct selector {
 
         #define SELECT_UI_MAX_COUNT 10    //一页图标的数量
         #define SIZE_ICON_SELECT    0.035 //图标大小
@@ -181,8 +177,7 @@ library Select requires DetailUI,MsgUIHint,Sound,Icon {
                     DzFrameSetScriptByCode(icon[i].btn,FRAME_MOUSE_UP,function (){
                         integer ui = DzGetTriggerUIEventFrame();
                         integer i;
-                        StartSound(snd_BtnClick);
-                        SetSoundPlayPosition(snd_BtnClick,0); //加上一条这个可以实现从头开始放
+                        music[MUSIC_INDEX_BTN_CLICK].play();
                         for (1 <= i <= 10) {
                             if (ui == icon[i].btn) {
                                 DzSyncData("SL","c"+I2S(i));
@@ -200,8 +195,7 @@ library Select requires DetailUI,MsgUIHint,Sound,Icon {
                 DzFrameSetAllPoints(uiFlashBtn,uiFlash);
                 DzFrameSetScriptByCode(uiFlashBtn,FRAME_MOUSE_UP,function (){
                     DzSyncData("SL","b");
-                    StartSound(snd_BtnClick);
-                    SetSoundPlayPosition(snd_BtnClick,0); //加上一条这个可以实现从头开始放
+                    music[MUSIC_INDEX_BTN_CLICK].play();
                 },false);
                 uiClose = CreateBackDrop(ui);
                 DzFrameSetTexture(uiClose,"ui\\image\\select_close.blp",0);
@@ -214,8 +208,7 @@ library Select requires DetailUI,MsgUIHint,Sound,Icon {
                 DzFrameSetScriptByCode(uiCloseBtn,FRAME_MOUSE_LEAVE,function detailF.leave,false);
                 DzFrameSetScriptByCode(uiCloseBtn,FRAME_MOUSE_UP,function (){
                     DzSyncData("SL","a");
-                    StartSound(snd_BtnClick);
-                    SetSoundPlayPosition(snd_BtnClick,0); //加上一条这个可以实现从头开始放
+                    music[MUSIC_INDEX_BTN_CLICK].play();
                 },false);
                 onResize();
                 DzFrameShow(ui,false);
@@ -248,8 +241,8 @@ library Select requires DetailUI,MsgUIHint,Sound,Icon {
                             }
                         } else { //刷新次数不足
                             if (GetLocalPlayer() == SL[index].p) {
-                                NewHintUI2(p,uiFlash,"|cffff0000没有刷新次数了!",0.03,ANCHOR_BOTTOMRIGHT,ANCHOR_TOPRIGHT);
-                                StartSound(snd_Error);
+                                toastHint.createAtMouse(p, "没有刷新次数了!");
+                                music[MUSIC_INDEX_ERROR].play();
                             }
                         }
                     }else if (flag == "c") { //点击按钮事件

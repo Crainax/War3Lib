@@ -13,11 +13,13 @@ library YDWETriggerEvent {
 #ifndef YDWE_DamageEventTrigger
 #define YDWE_DamageEventTrigger
     trigger yd_DamageEventTrigger = null;
+    triggeraction yd_DamageEventTriggerAction = null;
 #endif
 
     constant integer DAMAGE_EVENT_SWAP_TIMEOUT = 20;  // 每隔这个时间(秒), yd_DamageEventTrigger 会被移入销毁队列
     constant boolean DAMAGE_EVENT_SWAP_ENABLE = true;  // 若为 false 则不启用销毁机制
     trigger yd_DamageEventTriggerToDestory = null;
+    triggeraction yd_DamageEventTriggerActionToDestory = null;
 
     trigger DamageEventQueue[];
     integer DamageEventNumber = 0;
@@ -25,6 +27,7 @@ library YDWETriggerEvent {
     item bj_lastMovedItemInItemSlot = null;
 
     trigger MoveItemEventTrigger = null;
+    triggeraction MoveItemEventTriggerAction = null;
     trigger MoveItemEventQueue[];
     integer MoveItemEventNumber = 0;
 
@@ -86,16 +89,22 @@ library YDWETriggerEvent {
     public function YDWESyStemAnyUnitDamagedSwap() {
         DisableTrigger(yd_DamageEventTrigger);
         if (yd_DamageEventTriggerToDestory != null) {
+            // 先移除旧的 action 防止泄露
+            if (yd_DamageEventTriggerActionToDestory != null) {
+                TriggerRemoveAction(yd_DamageEventTriggerToDestory, yd_DamageEventTriggerActionToDestory);
+                yd_DamageEventTriggerActionToDestory = null;
+            }
             DestroyTrigger(yd_DamageEventTriggerToDestory);
         }
 
         yd_DamageEventTriggerToDestory = yd_DamageEventTrigger;
+        yd_DamageEventTriggerActionToDestory = yd_DamageEventTriggerAction;
         yd_DamageEventTrigger = CreateTrigger();
 
         // 始终启用新主触发器（不继承禁用状态）
         EnableTrigger(yd_DamageEventTrigger);
 
-        TriggerAddAction(yd_DamageEventTrigger, function YDWEAnyUnitDamagedTriggerAction);
+        yd_DamageEventTriggerAction = TriggerAddAction(yd_DamageEventTrigger, function YDWEAnyUnitDamagedTriggerAction);
         YDWEAnyUnitDamagedEnumUnit();
     }
 
@@ -106,7 +115,7 @@ library YDWETriggerEvent {
 
         if (DamageEventNumber == 0) {
             yd_DamageEventTrigger = CreateTrigger();
-            TriggerAddAction(yd_DamageEventTrigger, function YDWEAnyUnitDamagedTriggerAction);
+            yd_DamageEventTriggerAction = TriggerAddAction(yd_DamageEventTrigger, function YDWEAnyUnitDamagedTriggerAction);
             YDWEAnyUnitDamagedEnumUnit();
             YDWEAnyUnitDamagedRegistTriggerUnitEnter();
             if (DAMAGE_EVENT_SWAP_ENABLE) {
@@ -145,7 +154,7 @@ library YDWETriggerEvent {
 
         if (MoveItemEventNumber == 0) {
             MoveItemEventTrigger = CreateTrigger();
-            TriggerAddAction(MoveItemEventTrigger, function YDWESyStemItemUnmovableTriggerAction);
+            MoveItemEventTriggerAction = TriggerAddAction(MoveItemEventTrigger, function YDWESyStemItemUnmovableTriggerAction);
             TriggerRegisterAnyUnitEventBJ(MoveItemEventTrigger, EVENT_PLAYER_UNIT_ISSUED_TARGET_ORDER);
         }
 
@@ -212,10 +221,16 @@ library YDWETriggerEvent {
         DisableTrigger(yd_DamageEventTrigger);
         if (yd_DamageEventTriggerToDestory != null) {
             DzWriteLog("[YDWE] Destroying previous queued trigger: handle=" + I2S(GetHandleId(yd_DamageEventTriggerToDestory)));
+            // 先移除旧的 action 防止泄露
+            if (yd_DamageEventTriggerActionToDestory != null) {
+                TriggerRemoveAction(yd_DamageEventTriggerToDestory, yd_DamageEventTriggerActionToDestory);
+                yd_DamageEventTriggerActionToDestory = null;
+            }
             DestroyTrigger(yd_DamageEventTriggerToDestory);
         }
 
         yd_DamageEventTriggerToDestory = yd_DamageEventTrigger;
+        yd_DamageEventTriggerActionToDestory = yd_DamageEventTriggerAction;
         yd_DamageEventTrigger = CreateTrigger();
         DzWriteLog("[YDWE] New trigger created: handle=" + I2S(GetHandleId(yd_DamageEventTrigger)));
 
@@ -223,7 +238,13 @@ library YDWETriggerEvent {
         EnableTrigger(yd_DamageEventTrigger);
         DzWriteLog("[YDWE] New trigger forced enabled");
 
-        TriggerAddAction(yd_DamageEventTrigger, function YDWEAnyUnitDamagedTriggerAction);
+        // 先移除旧触发器的 action（如果存在）
+        if (yd_DamageEventTriggerActionToDestory != null) {
+            TriggerRemoveAction(yd_DamageEventTriggerToDestory, yd_DamageEventTriggerActionToDestory);
+            DzWriteLog("[YDWE] Removed old trigger action to prevent leak");
+        }
+
+        yd_DamageEventTriggerAction = TriggerAddAction(yd_DamageEventTrigger, function YDWEAnyUnitDamagedTriggerAction);
         YDWEAnyUnitDamagedEnumUnitWithLog();
         DzWriteLog("[YDWE] Swap complete");
     }

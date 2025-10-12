@@ -94,12 +94,14 @@ library Music {
 		method playFor (player p) {
 			if (GetLocalPlayer() == p) {
 				StartSound(snd);
+				SetSoundPlayPosition(snd,0); //加上一条这个可以实现从头开始放
 			}
 		}
 
 		//播放音效
 		method play () {
 			StartSound(snd);
+			SetSoundPlayPosition(snd,0); //加上一条这个可以实现从头开始放
 		}
 
 		static method onInit () {
