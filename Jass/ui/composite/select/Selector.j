@@ -28,10 +28,34 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
 
 
     private selectData currentSD; //回调参数
+    private selectData currentSDAsync; //回调参数(异步调用)
+    private integer currentPos; //点击位置
+    private integer currentPosAsync; //点击位置(异步调用)
+    private string currentContent; //当前文字(返回值)
 
     //当前触发的SelectData数据
-    public function GetCurrentSelectData () -> selectData {
+    public function GetSelectData () -> selectData {
         return currentSD;
+    }
+
+    //当前触发的SelectData数据
+    public function GetSelectDataAsync () -> selectData {
+        return currentSDAsync;
+    }
+
+    //当前触发的UI的对应位置
+    public function GetSelectPosAsync () -> integer {
+        return currentPosAsync;
+    }
+
+    //当前触发的UI的对应位置
+    public function GetSelectPos () -> integer {
+        return currentPos;
+    }
+
+    //写入返回值
+    public function CallbackSelectContent (string s) {
+        currentContent = s;
     }
 
     //选择UI对应的数据(同步调用)
@@ -39,7 +63,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
         integer count;      //一共多少个选择
         string  title;      //标题
         string  btn1Text;   //按钮1文字
-        trigger trRefData;  //映射关系:数据ID
         trigger trRefName;  //映射关系:图标文字
         trigger trRefIcon;  //映射关系:图标
         trigger trEnter;    //按钮进入事件触发器
@@ -61,13 +84,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
             this.btn1Text = null;
             this.uiSelector = 0;
             return this;
-        }
-
-        //映射关系:数据ID
-        method reflectData (code func)  -> nothing {
-            if (!this.isExist()) {return;}
-            if (trRefData == null) {trRefData = CreateTrigger();}
-            TriggerAddCondition(trRefData, Condition(func));
         }
 
         //映射关系:图标文字
@@ -129,7 +145,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
         method onDestroy () {
             if (!this.isExist()) {return;}
             this.count = 0;
-            if (trRefData != null) {DestroyTrigger(trRefData);trRefData = null;}
             if (trRefName != null) {DestroyTrigger(trRefName);trRefName = null;}
             if (trRefIcon != null) {DestroyTrigger(trRefIcon);trRefIcon = null;}
             if (trEnter != null) {DestroyTrigger(trEnter);trEnter = null;}
@@ -170,7 +185,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
 
         //创建选择支持异步调用
         static method create (player p,selectData sd) -> thistype {
-            integer i; integer createCount; integer row; integer col; integer colsInRow; integer rowCount;
+            integer i; integer createCount; integer row; integer col; integer colsInRow; integer rowCount; integer pos;
             real startX; real startY; real offsetX; real offsetY;
             thistype this = 0;
             if (!sd.isExist()) {
@@ -205,8 +220,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
 
             uiMain = uiImage.create(DzGetGameUI())
                 .setTexture("ui\\image\\bg_select.blp")
-                .exReSize(0.3196,0.19)
-                .setPoint(ANCHOR_TOP, DzGetGameUI(), ANCHOR_CENTER, 0, 0.04);
+                .setPoint(ANCHOR_TOP, DzGetGameUI(), ANCHOR_CENTER, 0, 0.035)
+                .exReSize(0.3196,0.19);
             uiTitle = uiText.create(uiMain.ui)
                 .setFontSize(7)
                 .setText(sd.title)
@@ -217,6 +232,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
 
             // 创建图标并布局
             for (1 <= i <= createCount) {
+                pos = i+(currentPage-1)*SELECT_UI_MAX_COUNT; //含页码的当前项
                 // 计算当前图标所在行列（从0开始）
                 row = (i - 1) / 6;
                 col = ModuloInteger(i - 1, 6);
@@ -242,64 +258,80 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
                 icon[i] = icon.create(uiMain.ui)
                     .enableResize()
                     .setSize(SIZE_ICON_SELECT, SIZE_ICON_SELECT)
-                    .setTexture("ReplaceableTextures\\PassiveButtons\\PASBTNGnollCommandAura.blp")
                     .show(true);
-
+                //居中排列
                 icon[i].mainImage.exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_CENTER, offsetX, offsetY);
+
+                currentSDAsync = sd;
+                currentPosAsync = pos;
+                TriggerEvaluate(sd.trRefIcon);
+                // 图标
+                icon[i].setTexture(currentContent);
 
                 // 注册事件
                 icon[i].getClickBtn()
                     .spEnter(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         integer pos = uiHashTable(frame).eventdata.get2();
-                        BJDebugMsg("spEnter:"+I2S(pos));
+                        currentSDAsync = sd;
+                        currentPosAsync = pos;
+                        TriggerEvaluate(sd.trEnter);
                         music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
                     .spLeave(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         integer pos = uiHashTable(frame).eventdata.get2();
-                        BJDebugMsg("spLeave:"+I2S(pos));
+                        currentSDAsync = sd;
+                        currentPosAsync = pos;
+                        TriggerEvaluate(sd.trLeave);
                     })
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         integer pos = uiHashTable(frame).eventdata.get2();
-                        BJDebugMsg("spClick:"+I2S(pos));
+                        DzSyncData("Select", "D"+I2S(StringLength(R2SW(this.sd, 0, 1))) + R2SW(this.sd, 0, 1) + R2SW(pos, 0, 1));
                         music[MUSIC_INDEX_BTN_CLICK].play();
                     });
                 uiHashTable(icon[i].getClickBtn().ui).eventdata.bind(this);
-                uiHashTable(icon[i].getClickBtn().ui).eventdata.bind2(i);
+                uiHashTable(icon[i].getClickBtn().ui).eventdata.bind2(pos);
 
-                // 创建文字
-                uisTxt[i] = uiText.create(uiMain.ui)
-                    .setFontSize(1)
-                    .setText("古道飘雪亦如胧")
-                    .setPoint(ANCHOR_TOP, icon[i].mainImage.ui, ANCHOR_BOTTOM, 0, -0.002);
+                if (sd.trRefName != null) {
+                    uisTxt[i] = uiText.create(uiMain.ui)
+                        .setFontSize(1)
+                        .setPoint(ANCHOR_TOP, icon[i].mainImage.ui, ANCHOR_BOTTOM, 0, -0.002);
+                    currentSDAsync = sd;
+                    currentPosAsync = pos;
+                    TriggerEvaluate(sd.trRefName);
+                    // 创建文字
+                    uisTxt[i].setText(currentContent);
+                }
             }
 
-            // 创建关闭按钮
-            uiCloseImage = uiImage.create(uiMain.ui)
-                .exReSize(0.029,0.029)
-                .setTexture("ui\\image\\select_close.blp")
-                .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_TOPRIGHT, -0.033,-0.048);
-            uiCloseButton = uiBtn.create(uiCloseImage.ui)
-                .setAllPoint(uiCloseImage.ui)
-                .spEnter(function(integer frame) {
-					thistype this = uiHashTable(frame).eventdata.get();
-                    if (uiTooltipClose != 0) { uiTooltipClose.destroy(); uiTooltipClose = 0; }
-                    uiTooltipClose = tooltip.create().layoutTitle("关闭选择");
-                    uiTooltipClose.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
-					music[MUSIC_INDEX_BTN_OVER_1].play();
-                })
-				.spLeave(function(integer frame) {
-					thistype this = uiHashTable(frame).eventdata.get();
-                    if (uiTooltipClose != 0) { uiTooltipClose.destroy(); uiTooltipClose = 0; }
-                })
-				.spClick(function(integer frame) {
-					thistype this = uiHashTable(frame).eventdata.get();
-                    DzSyncData("Select","C"+I2S(this.sd)); //触发数据传送
-                    music[MUSIC_INDEX_BTN_CLICK].play();
-                });
-			uiHashTable(uiCloseButton.ui).eventdata.bind(this);
+            if (sd.trClose != null) { // 创建关闭按钮
+                uiCloseImage = uiImage.create(uiMain.ui)
+                    .exReSize(0.029,0.029)
+                    .setTexture("ui\\image\\select_close.blp")
+                    .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_TOPRIGHT, -0.033,-0.048);
+                uiCloseButton = uiBtn.create(uiCloseImage.ui)
+                    .setAllPoint(uiCloseImage.ui)
+                    .spEnter(function(integer frame) {
+                        thistype this = uiHashTable(frame).eventdata.get();
+                        if (uiTooltipClose != 0) { uiTooltipClose.destroy(); uiTooltipClose = 0; }
+                        uiTooltipClose = tooltip.create().layoutTitle("关闭选择");
+                        uiTooltipClose.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
+                        music[MUSIC_INDEX_BTN_OVER_1].play();
+                    })
+                    .spLeave(function(integer frame) {
+                        thistype this = uiHashTable(frame).eventdata.get();
+                        if (uiTooltipClose != 0) { uiTooltipClose.destroy(); uiTooltipClose = 0; }
+                    })
+                    .spClick(function(integer frame) {
+                        thistype this = uiHashTable(frame).eventdata.get();
+                        DzSyncData("Select","C"+I2S(this.sd)); //触发数据传送
+                        music[MUSIC_INDEX_BTN_CLICK].play();
+                    });
+                uiHashTable(uiCloseButton.ui).eventdata.bind(this);
+            }
+
 
             return this;
         }
@@ -330,6 +362,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
             if (uiCloseButton != 0) { uiCloseButton.destroy(); uiCloseButton = 0; }
             if (uiCloseImage != 0) { uiCloseImage.destroy(); uiCloseImage = 0; }
             if (uiTooltipClose != 0) { uiTooltipClose.destroy(); uiTooltipClose = 0; }
+            if (uiMainButton != 0) { uiMainButton.destroy(); uiMainButton = 0; }
             if (uiMain != 0) { uiMain.destroy(); uiMain = 0; }
         }
 
@@ -343,11 +376,25 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
             player p = DzGetTriggerSyncPlayer();
             integer index = GetConvertedPlayerId(p);
             selectData sd; //对应的选择数据
+            integer length; integer pos;
+
             if (SubStringBJ(str,1,1) == "C") { //关闭
                 sd = S2I(SubStringBJ(str,2,StringLength(str)));
                 if (sd.isExist() && sd.trClose != null) { //
                     currentSD = sd;
                     TriggerEvaluate(sd.trClose);
+                }
+            } else if (SubStringBJ(str,1,1) == "D") { //点击
+
+                // 剔除了move前缀
+                length = S2I(SubStringBJ(str, 2, 2));
+                sd = S2I(SubStringBJ(str, 3, length + 2));
+                pos = S2I(SubStringBJ(str, length + 3, StringLength(str)));
+
+                if (sd.isExist() && sd.trClick != null) { //
+                    currentSD = sd;
+                    currentPos = pos;
+                    TriggerEvaluate(sd.trClick);
                 }
             }
             str = null;

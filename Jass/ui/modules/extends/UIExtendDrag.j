@@ -11,6 +11,7 @@
 UI拖拽功能库
 实现了UI框架的拖拽功能，可以通过鼠标拖动UI框架改变其位置
 子控件会通过父子关系自动跟随移动
+有BUG暂时别用
 */
 library UIExtendDrag requires UIExtendEvent {
 
@@ -120,11 +121,13 @@ library UIExtendDrag requires UIExtendEvent {
             uiLifeCycle.registerDestroy(function() {
                 integer frame = uiLifeCycle.agrsFrame;
                 uiDragger dragger;
-
                 // 检查并清理dragger实例
+                // BJDebugMsg("删除了拖拽器0:"+I2S(frame));
                 if (HaveSavedInteger(HASH_UI, frame, HASH_KEY_UI_EXTEND_DRAGGER)) {
                     dragger = LoadInteger(HASH_UI, frame, HASH_KEY_UI_EXTEND_DRAGGER);
+                    // BJDebugMsg("删除了拖拽器1:"+I2S(frame));
                     if (dragger != 0) {
+                        // BJDebugMsg("删除了拖拽器2:"+I2S(dragger));
                         dragger.destroy();
                     }
                 }
@@ -151,6 +154,7 @@ library UIExtendDrag requires UIExtendEvent {
                 dragger.bottomLimit = bottom;
             } else {
                 dragger = uiDragger.create(ui, mover, left, right, top, bottom);
+                // BJDebugMsg("注册了拖拽器:"+I2S(ui));
                 SaveInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER, dragger);
             }
 

@@ -20,8 +20,6 @@ library UTUIExtendDrag requires UIExtendDrag {
 		btn = uiBtn.create(img.ui)
 			.setAllPoint(img.ui)
 			.enableDrag(img.ui,0.1, 0.7, 0.2, 0.5);
-		// .setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
-		uiHashTable(btn.ui).eventdata.bind(8174);
 	}
 	function TTestUTUIExtendDrag2 (player p) {}
 	function TTestUTUIExtendDrag3 (player p) {}

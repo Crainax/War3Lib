@@ -36,64 +36,88 @@ library UTSelector requires Selector {
 		sd.title = "测试选择器";
 		sd.btn1Text = "刷新";
 
-		// 映射关系：数据ID (返回选择项的ID)
-		sd.reflectData(function () -> boolean {
-			integer index = 1;
-			BJDebugMsg("|cFF00FF00【数据ID】|r 选择项 " + I2S(index) + " 的数据ID: " + I2S(index * 100));
-			return true;
-		});
-
 		// 映射关系：图标文字 (返回选择项的名称)
 		sd.reflectName(function () -> boolean {
-			integer index = 1;
 			string names[];
-			names[0] = "武器";
-			names[1] = "护甲";
-			names[2] = "饰品";
-			names[3] = "消耗品";
-			names[4] = "材料";
-			if (index >= 1 && index <= 5) {
-				BJDebugMsg("|cFF00FF00【图标文字】|r 选择项 " + I2S(index) + " 的名称: " + names[index - 1]);
-			}
+			names[1] = "瑞雪";
+			names[2] = "苍穹";
+			names[3] = "青松";
+			names[4] = "星河";
+			names[5] = "碧波";
+			names[6] = "晨曦";
+			names[7] = "锦鲤";
+			names[8] = "翠竹";
+			names[9] = "飞鹤";
+			names[10] = "流云";
+			names[11] = "赤焰";
+			names[12] = "皓月";
+			names[13] = "绿藤";
+			names[14] = "玉珠";
+			names[15] = "青鸟";
+			names[16] = "寒梅";
+			names[17] = "金虎";
+			names[18] = "紫萱";
+			names[19] = "丹霞";
+			names[20] = "龙凤";
+			CallbackSelectContent(names[GetSelectPosAsync()]);
 			return true;
 		});
 
 		// 映射关系：图标 (返回选择项的图标路径)
 		sd.reflectIcon(function () -> boolean {
-			integer index = 1;
 			string icons[];
-			icons[0] = "ReplaceableTextures\\CommandButtons\\BTNReturnGoods.blp";
-			icons[1] = "ReplaceableTextures\\PassiveButtons\\PASBTNGnollCommandAura.blp";
-			icons[2] = "ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp";
-			icons[3] = "ReplaceableTextures\\PassiveButtons\\PASBTNThorns.blp";
-			icons[4] = "ReplaceableTextures\\CommandButtons\\BTNAntiMagicShell.blp";
-			if (index >= 1 && index <= 5) {
-				BJDebugMsg("|cFF00FF00【图标】|r 选择项 " + I2S(index) + " 的图标: " + icons[index - 1]);
-			}
+			icons[1] = "ReplaceableTextures\\CommandButtons\\BTNReturnGoods.blp";
+			icons[2] = "ReplaceableTextures\\PassiveButtons\\PASBTNGnollCommandAura.blp";
+			icons[3] = "ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp";
+			icons[4] = "ReplaceableTextures\\PassiveButtons\\PASBTNThorns.blp";
+			icons[5] = "ReplaceableTextures\\CommandButtons\\BTNAntiMagicShell.blp";
+			icons[6] = "ReplaceableTextures\\PassiveButtons\\PASBTNTrueShot.blp";
+			icons[7] = "ReplaceableTextures\\PassiveButtons\\PASBTNDevotion.blp";
+			icons[8] = "ReplaceableTextures\\PassiveButtons\\PASBTNBrilliance.blp";
+			icons[9] = "ReplaceableTextures\\CommandButtons\\BTNBloodLustOn.blp";
+			icons[10] = "ReplaceableTextures\\CommandButtons\\BTNFireForTheCannon.blp";
+			icons[11] = "ReplaceableTextures\\CommandButtons\\BTNBreathOfFrost.blp";
+			icons[12] = "ReplaceableTextures\\PassiveButtons\\PASBTNBash.blp";
+			icons[13] = "ReplaceableTextures\\CommandButtons\\BTNTheBlackArrowOnOff.blp";
+			icons[14] = "ReplaceableTextures\\CommandButtons\\BTNBloodLustOn.blp";
+			icons[15] = "ReplaceableTextures\\CommandButtons\\BTNBanish.blp";
+			icons[16] = "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp";
+			icons[17] = "ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp";
+			icons[18] = "ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp";
+			icons[19] = "ReplaceableTextures\\CommandButtons\\BTNCarrionSwarm.blp";
+			icons[20] = "ReplaceableTextures\\CommandButtons\\BTNFrostBolt.blp";
+			CallbackSelectContent(icons[GetSelectPosAsync()]);
 			return true;
 		});
 
 		// 注册按钮进入事件
 		sd.registerEnter(function () -> boolean {
-			BJDebugMsg("|cFF00FFFF【进入】|r 鼠标进入选择项");
+			selectData sd = GetSelectDataAsync();
+			integer pos =  GetSelectPosAsync();
+			BJDebugMsg("|cFF00FFFF【进入】|r 鼠标进入选择项" + I2S(sd) + " " + I2S(pos));
 			return true;
 		});
 
 		// 注册按钮离开事件
 		sd.registerLeave(function () -> boolean {
-			BJDebugMsg("|cFF00FFFF【离开】|r 鼠标离开选择项");
+			selectData sd = GetSelectDataAsync();
+			integer pos =  GetSelectPosAsync();
+			BJDebugMsg("|cFF00FFFF【离开】|r 鼠标离开选择项" + I2S(sd) + " " + I2S(pos));
 			return true;
 		});
 
 		// 注册按钮点击事件
 		sd.registerClick(function () -> boolean {
-			BJDebugMsg("|cFFFFFF00【点击】|r 点击了选择项");
+			selectData sd = GetSelectData();
+			integer pos =  GetSelectPos();
+			BJDebugMsg("|cFFFFFF00【点击】|r 点击了选择项" + I2S(sd) + " " + I2S(pos));
+			sd.destroy();
 			return true;
 		});
 
 		// 注册关闭事件
 		sd.registerClose(function () -> boolean {
-			GetCurrentSelectData().destroy();
+			GetSelectData().destroy();
 			return true;
 		});
 
