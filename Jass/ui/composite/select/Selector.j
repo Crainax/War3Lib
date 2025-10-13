@@ -24,9 +24,9 @@
 //# dependency:resource/ui/image/select_flash.blp
 //# dependency:resource/ui/image/bg_select.blp
 
-library Selector requires Tooltip,ToastHint,Music,Icon {
+library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
 
-
+    public hashtable HASH_SELECT = InitHashtable(); //存放数据
     private selectData currentSD; //回调参数
     private selectData currentSDAsync; //回调参数(异步调用)
     private integer currentPos; //点击位置
@@ -64,22 +64,22 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
         // UI组件内部共享方法及成员
         STRUCT_SHARED_INNER_UI(selector)
 
-        selectData sd;                            //数据绑定
-        icon       icon[SELECT_UI_MAX_COUNT];     //图标(最多12个)
-        uiText     uisTxt[SELECT_UI_MAX_COUNT];   //下方的文字
-        uiImage    uiMain;                        //UI整体框架（背景）
-        uiText     uiTitle;                       //标题
-        uiImage    uiBtn1Image;                   //刷新按钮图标
-        uiText     uiBtn1Text;                    //刷新按钮文字
-        uiBtn      uiBtn1Button;                  //刷新按钮
-        uiImage    uiCloseImage;                  //关闭图标
-        uiBtn      uiCloseButton;                 //关闭图标按钮
-        uiImage    uiPageUpImage;                 //上一页图标
-        uiImage    uiPageDownImage;               //下一页图标
-        uiBtn      uiPageUpButton;                //上一页按钮
-        uiBtn      uiPageDownButton;              //下一页按钮
-        integer    currentPage;                   //当前页码
-        integer    totalPage;                     //总页码
+        private selectData sd;                            //数据绑定
+        private icon       icon[SELECT_UI_MAX_COUNT];     //图标(最多12个)
+        private uiText     uisTxt[SELECT_UI_MAX_COUNT];   //下方的文字
+        private uiImage    uiMain;                        //UI整体框架（背景）
+        private uiText     uiTitle;                       //标题
+        private uiImage    uiBtn1Image;                   //刷新按钮图标
+        private uiText     uiBtn1Text;                    //刷新按钮文字
+        private uiBtn      uiBtn1Button;                  //刷新按钮
+        private uiImage    uiCloseImage;                  //关闭图标
+        private uiBtn      uiCloseButton;                 //关闭图标按钮
+        private uiImage    uiPageUpImage;                 //上一页图标
+        private uiImage    uiPageDownImage;               //下一页图标
+        private uiBtn      uiPageUpButton;                //上一页按钮
+        private uiBtn      uiPageDownButton;              //下一页按钮
+        private integer    currentPage;                   //当前页码
+        private integer    totalPage;                     //总页码
 
         static     tooltip    uiTooltipTemp = 0;  //关闭按钮提示
 
@@ -162,7 +162,32 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
                     }
                 }
             }
+
+            if (sd.trBtn1 == null && uiBtn1Image != 0) { //点了刷新按钮后可能要删除
+                uiBtn1Image.show(false);
+            }
+
         }
+
+        method showAllGIF (growdata gd) {
+            integer i; integer createCount;
+            if (!this.isExist()) {return;}
+
+            // 计算当前页的实际显示数量
+            if (sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT > SELECT_UI_MAX_COUNT) {
+                createCount = SELECT_UI_MAX_COUNT;
+            } else {
+                createCount = sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT;
+            }
+
+            // 只对当前显示的图标添加 GIF
+            for (1 <= i <= SELECT_UI_MAX_COUNT) {
+                if (i <= createCount) {
+                    imageAnim.gif(sd.owner, gd, icon[i].mainImage.ui);
+                }
+            }
+        }
+
 
         //创建选择支持异步调用
         static method create (player p,selectData sd) -> thistype {
@@ -181,7 +206,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
             }
             this = allocate();
             if (!this.isExist()) {
-                //todo:创建失败的回调处理,但是600个理论不会失败吧,失败了这是异步情况要直接触发回调
+                //创建失败的回调处理，通过异步触发
+                DzSyncData("Select","Z"+I2S(sd));
                 BJDebugMsg("selector.create: allocate failed");
                 return 0;
             }
@@ -411,18 +437,20 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
         trigger trClose;    //右上角的关闭事件触发回调
         trigger trBtn1;     //按钮事件1(下方的)
         trigger trFail;     //UI创建失败的回调触发器
+        player  owner;      //拥有者
         selector uiSelector;  //绑定的选择UI
 
         // UI组件内部共享方法及成员
         STRUCT_SHARED_INNER_UI(selectData)
 
-        static method create (integer count) -> thistype {
+        static method create (player p,integer count) -> thistype {
             thistype this = allocate();
             if (this <= 0) {return 0;}
             this.count = count;
             this.title = null;
             this.btn1Text = null;
             this.uiSelector = 0;
+            this.owner = p;
             return this;
         }
 
@@ -475,6 +503,14 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
             TriggerAddCondition(trBtn1, Condition(btn1));
         }
 
+        method destroyBtn1 () {
+            if (!this.isExist()) {return;}
+            if (trBtn1 != null) {DestroyTrigger(trBtn1);trBtn1 = null;}
+            if (uiSelector != 0 && GetLocalPlayer() == this.owner) {
+                uiSelector.refreshContent();
+            }
+        }
+
         //创建失败的回调触发器
         method registerFail (code fail)  -> nothing {
             if (!this.isExist()) {return;}
@@ -493,9 +529,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
             if (trBtn1 != null) {DestroyTrigger(trBtn1);trBtn1 = null;}
             if (trClick != null) {DestroyTrigger(trClick);trClick = null;}
             if (trFail != null) {DestroyTrigger(trFail);trFail = null;}
-            if (uiSelector != 0) { //理论来说这里问题不大,因为其他玩家这个必是0
+            if (uiSelector != 0 && GetLocalPlayer() == this.owner) {
                 uiSelector.destroy();uiSelector = 0;
             }
+            this.owner = null;
+            FlushChildHashtable(HASH_SELECT,this);
         }
     }
 
@@ -511,15 +549,21 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
 
             if (SubStringBJ(str,1,1) == "C") { //关闭
                 sd = S2I(SubStringBJ(str,2,StringLength(str)));
-                if (sd.isExist() && sd.trClose != null) { //
+                if (sd.isExist() && sd.trClose != null && sd.owner == p) { //
                     currentSD = sd;
                     TriggerEvaluate(sd.trClose);
                 }
             } else if (SubStringBJ(str,1,1) == "F") { //功能按钮
                 sd = S2I(SubStringBJ(str,2,StringLength(str)));
-                if (sd.isExist() && sd.trBtn1 != null) { //
+                if (sd.isExist() && sd.trBtn1 != null && sd.owner == p) { //
                     currentSD = sd;
                     TriggerEvaluate(sd.trBtn1);
+                }
+            } else if (SubStringBJ(str,1,1) == "Z") { //创建失败回调
+                sd = S2I(SubStringBJ(str,2,StringLength(str)));
+                if (sd.isExist() && sd.trFail != null && sd.owner == p) { //
+                    currentSD = sd;
+                    TriggerEvaluate(sd.trFail);
                 }
             } else if (SubStringBJ(str,1,1) == "D") { //点击
 
@@ -528,7 +572,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
                 sd = S2I(SubStringBJ(str, 3, length + 2));
                 pos = S2I(SubStringBJ(str, length + 3, StringLength(str)));
 
-                if (sd.isExist() && sd.trClick != null) { //
+                if (sd.isExist() && sd.trClick != null && sd.owner == p) { //
                     currentSD = sd;
                     currentPos = pos;
                     TriggerEvaluate(sd.trClick);
