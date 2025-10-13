@@ -7,129 +7,39 @@
 选择UI
 */
 
-#define SELECT_UI_MAX_COUNT 12    //一页图标的数量
-#define SIZE_ICON_SELECT    0.035 //图标大小
-#define SIZE_ICON_GAP_X     0.02  //图标间隔(横)
-#define SIZE_ICON_GAP_Y     0.02  //图标间隔(纵)
 library Selector requires Tooltip,ToastHint,Music,Icon {
 
-    //选择UI对应的数据(同步调用)
-    public struct selectData {
-        integer count;      //一共多少个选择
-        string  title;      //标题
-        string  btn1Text;   //按钮1文字
-        trigger trRefData;  //映射关系:数据ID
-        trigger trRefName;  //映射关系:图标文字
-        trigger trRefIcon;  //映射关系:图标
-        trigger trEnter;    //按钮进入事件触发器
-        trigger trLeave;    //按钮离开事件触发器
-        trigger trClick;    //按钮点击事件触发器
-        trigger trClose;    //右上角的关闭事件触发回调
-        trigger trBtn1;     //按钮事件1(下方的)
-        trigger trFail;     //UI创建失败的回调触发器
-
-        // UI组件内部共享方法及成员
-        STRUCT_SHARED_INNER_UI(selectData)
-
-        static method create (integer count) -> thistype {
-            thistype this = allocate();
-            if (this <= 0) {return 0;}
-            this.count = count;
-            this.title = null;
-            this.btn1Text = null;
-            return this;
-        }
-
-        //映射关系:数据ID
-        method reflectData (code func)  -> nothing {
-            if (!this.isExist()) {return;}
-            if (trRefData == null) {trRefData = CreateTrigger();}
-            TriggerAddCondition(trRefData, Condition(func));
-        }
-
-        //映射关系:图标文字
-        method reflectName (code func)  -> nothing {
-            if (!this.isExist()) {return;}
-            if (trRefName == null) {trRefName = CreateTrigger();}
-            TriggerAddCondition(trRefName, Condition(func));
-        }
-
-        //映射关系:图标
-        method reflectIcon (code func)  -> nothing {
-            if (!this.isExist()) {return;}
-            if (trRefIcon == null) {trRefIcon = CreateTrigger();}
-            TriggerAddCondition(trRefIcon, Condition(func));
-        }
-
-        //按钮进入事件触发器
-        method registerEnter (code enter)  -> nothing {
-            if (!this.isExist()) {return;}
-            if (trEnter == null) {trEnter = CreateTrigger();}
-            TriggerAddCondition(trEnter, Condition(enter));
-        }
-
-        //按钮离开事件触发器
-        method registerLeave (code leave)  -> nothing {
-            if (!this.isExist()) {return;}
-            if (trLeave == null) {trLeave = CreateTrigger();}
-            TriggerAddCondition(trLeave, Condition(leave));
-        }
-
-        //按钮点击事件触发器
-        method registerClick (code click)  -> nothing {
-            if (trClose == null) {trClose = CreateTrigger();}
-            TriggerAddCondition(trClick, Condition(click));
-        }
-
-        //按钮关闭事件触发器
-        method registerClose (code close)  -> nothing {
-            if (trClose == null) {trClose = CreateTrigger();}
-            TriggerAddCondition(trClose, Condition(close));
-        }
-
-        //按钮1事件触发器
-        method registerBtn1 (code btn1)  -> nothing {
-            if (trBtn1 == null) {trBtn1 = CreateTrigger();}
-            TriggerAddCondition(trBtn1, Condition(btn1));
-        }
-
-        //创建失败的回调触发器
-        method registerFail (code fail)  -> nothing {
-            if (trFail == null) {trFail = CreateTrigger();}
-            TriggerAddCondition(trFail, Condition(fail));
-        }
-
-        method onDestroy () {
-            if (!this.isExist()) {return;}
-            count = 0;
-            if (trRefData != null) {DestroyTrigger(trRefData);trRefData = null;}
-            if (trRefName != null) {DestroyTrigger(trRefName);trRefName = null;}
-            if (trRefIcon != null) {DestroyTrigger(trRefIcon);trRefIcon = null;}
-            if (trEnter != null) {DestroyTrigger(trEnter);trEnter = null;}
-            if (trLeave != null) {DestroyTrigger(trLeave);trLeave = null;}
-            if (trClose != null) {DestroyTrigger(trClose);trClose = null;}
-            if (trBtn1 != null) {DestroyTrigger(trBtn1);trBtn1 = null;}
-            if (trClick != null) {DestroyTrigger(trClick);trClick = null;}
-            if (trFail != null) {DestroyTrigger(trFail);trFail = null;}
-        }
+    public struct selectF [] {
+        static integer pos = 0; //选择事件:选中了哪个
+        static selector this = 0; //东西
     }
 
+    selector SL[]; //玩家的单例选择
     //选择UI
     public struct selector {
 
-        // UI组件内部共享方法及成员
-        STRUCT_SHARED_INNER_UI(selector)
+        #define SELECT_UI_MAX_COUNT 10    //一页图标的数量
+        #define SIZE_ICON_SELECT    0.035 //图标大小
+        #define SIZE_ICON_GAP_X     0.02  //图标间隔(横)
+        #define SIZE_ICON_GAP_Y     0.02  //图标间隔(纵)
 
-        static icon icon[SELECT_UI_MAX_COUNT];      //图标(最多12个)
-        static uiText uisTxt[SELECT_UI_MAX_COUNT];  //下方的文字
-        static uiImage ui        = 0;  //UI整体框架（背景）
-        static uiText uiTitle    = 0;  //标题
-        static uiImage uiFlash   = 0;  //刷新按钮图标
-        static uiText uiFlashTxt = 0;  //刷新按钮文字
-        static uiBtn uiFlashBtn  = 0;  //刷新按钮
-        static uiImage uiClose   = 0;  //关闭图标
-        static uiBtn uiCloseBtn  = 0;  //关闭图标按钮
-        static tooltip closeTip  = 0;  //关闭按钮提示
+        player p;        //选择玩家
+        boolean isClose; //可以关闭的选择
+        integer fTimes;  //刷新次数
+        integer size;    //选择项数量
+        trigger trFlash; //[同步回调]刷新事件
+        trigger trClick; //[同步回调]点击事件
+
+        static icon icon[];					//图标
+        static uiText uisTxt[];			//下方的文字
+        static uiImage ui			= 0;	//UI整体框架（背景）
+        static uiText uiTitle		= 0;	//标题
+        static uiImage uiFlash		= 0;	//刷新按钮图标
+        static uiText uiFlashTxt	= 0;	//刷新按钮文字
+        static uiBtn uiFlashBtn	= 0;	//刷新按钮
+        static uiImage uiClose		= 0;	//关闭图标
+        static uiBtn uiCloseBtn	= 0;	//关闭图标按钮
+        static tooltip closeTip	= 0;	//关闭按钮提示
 
         //重新布局1与6的位置(外部异步调用)
         method layout () {
@@ -162,20 +72,17 @@ library Selector requires Tooltip,ToastHint,Music,Icon {
             }
         }
 
-        //创建选择支持异步调用
-        static method create (player p,selectData sd) -> thistype {
+        method isExist () -> boolean {return (this != null && si__select_V[this] == -1);}
+        //创建选择,不能异步
+        static method create (player p,integer size) -> thistype {
             integer i,index = GetConvertedPlayerId(p);
             thistype this = 0;
-            if (!sd.isExist()) {
-                BJDebugMsg("selector.create: selectData not exist");
-                return 0;
-            }
+            if (SL[index].isExist()) return 0; //防重复创建,外面处理事件
             this = allocate();
-            if (!this.isExist()) {
-                //todo:创建失败的回调处理,但是600个理论不会失败吧,失败了这是异步情况要直接触发回调
-                BJDebugMsg("selector.create: allocate failed");
-                return 0;
-            }
+            this.p = p;
+            this.size = size;
+            this.fTimes = 0;
+            SL[index] = this;
             if (GetLocalPlayer() == p) { //异步显示UI
                 ui.show(true);
                 uiFlash.show(false);//默认隐藏一下关闭
