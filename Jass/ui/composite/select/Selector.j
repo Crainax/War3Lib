@@ -7,7 +7,7 @@
 选择UI
 */
 
-library Selector requires Tooltip,ToastHint,Music {
+library Selector requires Tooltip,ToastHint,Music,Icon {
 
     public struct selectF [] {
         static integer pos = 0; //选择事件:选中了哪个
@@ -31,14 +31,15 @@ library Selector requires Tooltip,ToastHint,Music {
         trigger trClick; //[同步回调]点击事件
 
         static icon icon[];					//图标
-        static integer uisTxt[];			//下方的文字
-        static integer ui			= 0;	//UI整体框架
-        static integer uiTitle		= 0;	//标题
-        static integer uiFlash		= 0;	//刷新按钮图标
-        static integer uiFlashTxt	= 0;	//刷新按钮文字
-        static integer uiFlashBtn	= 0;	//刷新按钮
-        static integer uiClose		= 0;	//关闭图标
-        static integer uiCloseBtn	= 0;	//关闭图标按钮
+        static uiText uisTxt[];			//下方的文字
+        static uiImage ui			= 0;	//UI整体框架（背景）
+        static uiText uiTitle		= 0;	//标题
+        static uiImage uiFlash		= 0;	//刷新按钮图标
+        static uiText uiFlashTxt	= 0;	//刷新按钮文字
+        static uiBtn uiFlashBtn	= 0;	//刷新按钮
+        static uiImage uiClose		= 0;	//关闭图标
+        static uiBtn uiCloseBtn	= 0;	//关闭图标按钮
+        static tooltip closeTip	= 0;	//关闭按钮提示
 
         //重新布局1与6的位置(外部异步调用)
         method layout () {
@@ -46,28 +47,28 @@ library Selector requires Tooltip,ToastHint,Music {
             real offY;
             if (size > 5) { //大于5的情况
                 offY = -0.021;
-                DzFrameSetSize(ui,0.3196*resizeX,0.19); //[比例:1.598]
-                DzFrameClearAllPoints(icon[1].ui);
-                DzFrameClearAllPoints(icon[6].ui);
-                DzFrameClearAllPoints(uiClose);
-                DzFrameClearAllPoints(uiTitle);
-                DzFrameClearAllPoints(ui);
-                DzFrameSetPoint(icon[1].ui,ANCHOR_BOTTOM,ui,ANCHOR_CENTER,(SIZE_ICON_GAP_X+SIZE_ICON_SELECT) * resizeX * -2,SIZE_ICON_GAP_Y * 0.5 + offY);
-                DzFrameSetPoint(icon[6].ui,ANCHOR_TOP,ui,ANCHOR_CENTER,(SIZE_ICON_GAP_X+SIZE_ICON_SELECT) * resizeX * (size - 6) * -0.5,SIZE_ICON_GAP_Y * -0.5 + offY);
-                DzFrameSetPoint(uiClose,ANCHOR_CENTER,ui,ANCHOR_TOPRIGHT,-0.01*resizeX,-0.02 + offY);
-                DzFrameSetPoint(uiTitle,ANCHOR_TOP,ui,ANCHOR_TOP,-0.008*resizeX,-0.027 + offY);
-                DzFrameSetPoint(ui,ANCHOR_TOP,DzGetGameUI(),ANCHOR_CENTER,0,0.04);
+                ui.setSize(0.3196*resizeX,0.19); //[比例:1.598]
+                icon[1].mainImage.clearPoint();
+                icon[6].mainImage.clearPoint();
+                uiClose.clearPoint();
+                uiTitle.clearPoint();
+                ui.clearPoint();
+                icon[1].mainImage.setPoint(ANCHOR_BOTTOM, ui.ui, ANCHOR_CENTER, (SIZE_ICON_GAP_X+SIZE_ICON_SELECT) * resizeX * -2, SIZE_ICON_GAP_Y * 0.5 + offY);
+                icon[6].mainImage.setPoint(ANCHOR_TOP, ui.ui, ANCHOR_CENTER, (SIZE_ICON_GAP_X+SIZE_ICON_SELECT) * resizeX * (size - 6) * -0.5, SIZE_ICON_GAP_Y * -0.5 + offY);
+                uiClose.setPoint(ANCHOR_CENTER, ui.ui, ANCHOR_TOPRIGHT, -0.01*resizeX, -0.02 + offY);
+                uiTitle.setPoint(ANCHOR_TOP, ui.ui, ANCHOR_TOP, -0.008*resizeX, -0.027 + offY);
+                ui.setPoint(ANCHOR_TOP, DzGetGameUI(), ANCHOR_CENTER, 0, 0.04);
             } else { //小于等于5的情况
                 offY = -0.012;
-                DzFrameClearAllPoints(icon[1].ui);
-                DzFrameClearAllPoints(uiClose);
-                DzFrameClearAllPoints(uiTitle);
-                DzFrameClearAllPoints(ui);
-                DzFrameSetPoint(icon[1].ui,ANCHOR_CENTER,ui,ANCHOR_CENTER,(SIZE_ICON_GAP_X+SIZE_ICON_SELECT) * resizeX * (size - 1) * -0.5,offY);
-                DzFrameSetSize(ui,0.3196*resizeX,0.12);
-                DzFrameSetPoint(uiClose,ANCHOR_CENTER,ui,ANCHOR_TOPRIGHT,-0.01*resizeX,-0.02+offY);
-                DzFrameSetPoint(uiTitle,ANCHOR_TOP,ui,ANCHOR_TOP,-0.008*resizeX,-0.02+offY);
-                DzFrameSetPoint(ui,ANCHOR_TOP,DzGetGameUI(),ANCHOR_CENTER,0,0);
+                icon[1].mainImage.clearPoint();
+                uiClose.clearPoint();
+                uiTitle.clearPoint();
+                ui.clearPoint();
+                icon[1].mainImage.setPoint(ANCHOR_CENTER, ui.ui, ANCHOR_CENTER, (SIZE_ICON_GAP_X+SIZE_ICON_SELECT) * resizeX * (size - 1) * -0.5, offY);
+                ui.setSize(0.3196*resizeX,0.12);
+                uiClose.setPoint(ANCHOR_CENTER, ui.ui, ANCHOR_TOPRIGHT, -0.01*resizeX, -0.02+offY);
+                uiTitle.setPoint(ANCHOR_TOP, ui.ui, ANCHOR_TOP, -0.008*resizeX, -0.02+offY);
+                ui.setPoint(ANCHOR_TOP, DzGetGameUI(), ANCHOR_CENTER, 0, 0);
             }
         }
 
@@ -83,17 +84,17 @@ library Selector requires Tooltip,ToastHint,Music {
             this.fTimes = 0;
             SL[index] = this;
             if (GetLocalPlayer() == p) { //异步显示UI
-                DzFrameShow(ui,true);
-                DzFrameShow(uiFlash,false);//默认隐藏一下关闭
-                DzFrameShow(uiClose,false);//默认隐藏一下刷新
+                ui.show(true);
+                uiFlash.show(false);//默认隐藏一下关闭
+                uiClose.show(false);//默认隐藏一下刷新
                 layout();//重新布局
                 for (1 <= i <= 10) {
                     if (i > size) { //后面的全隐藏
-                        DzFrameShow(icon[i].ui,false);
+                        icon[i].show(false);
                     } else { //显示
-                        DzFrameShow(icon[i].ui,true);
-                        DzFrameShow(icon[i].shade,false);//默认隐藏下标
-                        DzFrameShow(icon[i].shadow,false);//默认隐藏遮罩
+                        icon[i].show(true);
+                        icon[i].setShadow(false);
+                        icon[i].setCornerText(null);
                     }
                 }
             }
@@ -103,7 +104,7 @@ library Selector requires Tooltip,ToastHint,Music {
         //[同步使用]不要异步
         method canClose () {
             if (GetLocalPlayer() == p) {
-                DzFrameShow(uiClose,true);//显示一下关闭
+                uiClose.show(true);//显示一下关闭
             }
         }
 
@@ -114,8 +115,8 @@ library Selector requires Tooltip,ToastHint,Music {
             trFlash = CreateTrigger();
             TriggerAddCondition(trFlash, Condition(func));
             if (GetLocalPlayer() == p) {
-                DzFrameShow(uiFlash,true);//显示一下刷新
-                DzFrameSetText(uiFlashTxt,"刷新|cff00ff80("+I2S(flash)+")|r");
+                uiFlash.show(true);//显示一下刷新
+                uiFlashTxt.setText("刷新|cff00ff80("+I2S(flash)+")|r");
             }
         }
 
@@ -132,7 +133,8 @@ library Selector requires Tooltip,ToastHint,Music {
             if (trFlash != null) {DestroyTrigger(trFlash);trFlash = null;}
             if (trClick != null) {DestroyTrigger(trClick);trClick = null;}
             if (GetLocalPlayer() == p) { //异步处理UI的析构
-                DzFrameShow(ui,false);
+                ui.show(false);
+                if (closeTip != 0) { closeTip.destroy(); closeTip = 0; }
                 for (1 <= i <= size) {
                     icon[i].unGrow();
                 }
@@ -145,13 +147,13 @@ library Selector requires Tooltip,ToastHint,Music {
             real resizeX = GetResizeRate();
             integer i;
             integer index = GetConvertedPlayerId(GetLocalPlayer());
-            DzFrameSetSize(uiFlash,0.0724*resizeX,0.027); //[比例:2.684]
-            DzFrameSetSize(uiClose,0.029*resizeX,0.029); //[比例:1.]
+            uiFlash.setSize(0.0724*resizeX,0.027); //[比例:2.684]
+            uiClose.setSize(0.029*resizeX,0.029); //[比例:1.]
             for (1 <= i <= 10) { //位置的调整
-                icon[i].size(SIZE_ICON_SELECT*resizeX,SIZE_ICON_SELECT);
+                icon[i].setSize(SIZE_ICON_SELECT*resizeX,SIZE_ICON_SELECT);
                 if ((i > 1 && i <= 5) || (i > 6)) { //2-5 与 6-10 的部分
-                    DzFrameSetPoint(icon[i].ui,ANCHOR_LEFT,icon[i-1].ui,ANCHOR_RIGHT,SIZE_ICON_GAP_X * resizeX,0);
-                    DzFrameSetPoint(icon[i].ui,ANCHOR_LEFT,icon[i-1].ui,ANCHOR_RIGHT,SIZE_ICON_GAP_X * resizeX,0);
+                    icon[i].mainImage.setPoint(ANCHOR_LEFT, icon[i-1].mainImage.ui, ANCHOR_RIGHT, SIZE_ICON_GAP_X * resizeX, 0);
+                    icon[i].mainImage.setPoint(ANCHOR_LEFT, icon[i-1].mainImage.ui, ANCHOR_RIGHT, SIZE_ICON_GAP_X * resizeX, 0);
                 }
             }
             if (SL[index].isExist()) {
@@ -166,52 +168,53 @@ library Selector requires Tooltip,ToastHint,Music {
             TriggerAddCondition(tr,Condition(function (){
                 integer i;
                 real resizeX = GetResizeRate();
-                ui = CreateBackDrop(layer.ui2);
-                DzFrameSetTexture(ui,"ui\\image\\bg_select.blp",0);
-                uiTitle = NewTextXXL(ui);
-                DzFrameSetText(uiTitle,"选择栏的标题");
+                ui = uiImage.create(layer.ui2).setTexture("ui\\image\\bg_select.blp");
+                uiTitle = uiText.create(ui.ui).setFontSize(5);
+                uiTitle.setText("选择栏的标题");
                 for (1 <= i <= SELECT_UI_MAX_COUNT) {
-                    icon[i] = icon.create(ui,false,true);
-                    uisTxt[i] = NewTextL(icon[i].ui); //图标下方的文字
-                    DzFrameSetPoint(uisTxt[i],ANCHOR_TOP,icon[i].ui,ANCHOR_BOTTOM,0,-0.002);
-                    DzFrameSetScriptByCode(icon[i].btn,FRAME_MOUSE_UP,function (){
-                        integer ui = DzGetTriggerUIEventFrame();
-                        integer i;
+                    icon[i] = icon.create(ui.ui);
+                    uisTxt[i] = uiText.create(icon[i].mainImage.ui).setFontSize(3); //图标下方的文字
+                    uisTxt[i].setPoint(ANCHOR_TOP, icon[i].mainImage.ui, ANCHOR_BOTTOM, 0, -0.002);
+                    // 绑定按键事件（逐一比较事件源，保持原有语义）
+                    DzFrameSetScriptByCode(icon[i].getClickBtn().ui,FRAME_MOUSE_UP,function (){
+                        integer uih = DzGetTriggerUIEventFrame();
+                        integer k;
                         music[MUSIC_INDEX_BTN_CLICK].play();
-                        for (1 <= i <= 10) {
-                            if (ui == icon[i].btn) {
-                                DzSyncData("SL","c"+I2S(i));
+                        for (1 <= k <= 10) {
+                            if (uih == icon[k].getClickBtn().ui) {
+                                DzSyncData("SL","c"+I2S(k));
                                 return;
                             }
                         }
                     },false);
                 }
-                uiFlash = CreateBackDrop(ui);
-                DzFrameSetTexture(uiFlash,"UI\\image\\select_flash.blp",0);
-                DzFrameSetPoint(uiFlash,ANCHOR_CENTER,ui,ANCHOR_BOTTOM,0,0);
-                uiFlashTxt = NewTextXL(uiFlash);
-                DzFrameSetPoint(uiFlashTxt,ANCHOR_CENTER,uiFlash,ANCHOR_CENTER,0,0);
-                uiFlashBtn = CreateButton(uiFlash);
-                DzFrameSetAllPoints(uiFlashBtn,uiFlash);
-                DzFrameSetScriptByCode(uiFlashBtn,FRAME_MOUSE_UP,function (){
+                uiFlash = uiImage.create(ui.ui).setTexture("UI\\image\\select_flash.blp");
+                uiFlash.setPoint(ANCHOR_CENTER, ui.ui, ANCHOR_BOTTOM, 0, 0);
+                uiFlashTxt = uiText.create(uiFlash.ui).setFontSize(4);
+                uiFlashTxt.setPoint(ANCHOR_CENTER, uiFlash.ui, ANCHOR_CENTER, 0, 0);
+                uiFlashBtn = uiBtn.create(uiFlash.ui);
+                DzFrameSetAllPoints(uiFlashBtn.ui, uiFlash.ui);
+                DzFrameSetScriptByCode(uiFlashBtn.ui,FRAME_MOUSE_UP,function (){
                     DzSyncData("SL","b");
                     music[MUSIC_INDEX_BTN_CLICK].play();
                 },false);
-                uiClose = CreateBackDrop(ui);
-                DzFrameSetTexture(uiClose,"ui\\image\\select_close.blp",0);
-                uiCloseBtn = CreateButton(uiClose);
-                DzFrameSetAllPoints(uiCloseBtn,uiClose);
-                DzFrameSetScriptByCode(uiCloseBtn,FRAME_MOUSE_ENTER,function (){
-                    integer title = DetailUITitle("关闭选择");
-                    DzFrameSetPoint(title,ANCHOR_BOTTOM,uiClose,ANCHOR_TOP,0,0.01);
+                uiClose = uiImage.create(ui.ui).setTexture("ui\\image\\select_close.blp");
+                uiCloseBtn = uiBtn.create(uiClose.ui);
+                DzFrameSetAllPoints(uiCloseBtn.ui, uiClose.ui);
+                DzFrameSetScriptByCode(uiCloseBtn.ui,FRAME_MOUSE_ENTER,function (){
+                    if (closeTip != 0) { closeTip.destroy(); closeTip = 0; }
+                    closeTip = tooltip.create().layoutTitle("关闭选择");
+                    closeTip.setPoint(ANCHOR_BOTTOM, uiClose.ui, ANCHOR_TOP, 0, 0.01);
                 },false);
-                DzFrameSetScriptByCode(uiCloseBtn,FRAME_MOUSE_LEAVE,function detailF.leave,false);
-                DzFrameSetScriptByCode(uiCloseBtn,FRAME_MOUSE_UP,function (){
+                DzFrameSetScriptByCode(uiCloseBtn.ui,FRAME_MOUSE_LEAVE,function (){
+                    if (closeTip != 0) { closeTip.destroy(); closeTip = 0; }
+                },false);
+                DzFrameSetScriptByCode(uiCloseBtn.ui,FRAME_MOUSE_UP,function (){
                     DzSyncData("SL","a");
                     music[MUSIC_INDEX_BTN_CLICK].play();
                 },false);
                 onResize();
-                DzFrameShow(ui,false);
+                ui.show(false);
                 hardware.regResizeEvent(function thistype.onResize);
                 DestroyTrigger(GetTriggeringTrigger());
             }));
@@ -237,7 +240,7 @@ library Selector requires Tooltip,ToastHint,Music {
                                 selectF.this = 0;
                             }
                             if (GetLocalPlayer() == SL[index].p) {
-                                DzFrameSetText(uiFlashTxt,"刷新|cff00ff80("+I2S(SL[index].fTimes)+")|r");
+                                uiFlashTxt.setText("刷新|cff00ff80("+I2S(SL[index].fTimes)+")|r");
                             }
                         } else { //刷新次数不足
                             if (GetLocalPlayer() == SL[index].p) {
