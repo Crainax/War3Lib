@@ -26,7 +26,7 @@ library UTSelector requires Selector {
 		selectData sd; selector sel; integer i;
 
 		// 创建selectData，设置5个选择项
-		sd = selectData.create(13);
+		sd = selectData.create(20);
 		if (sd == 0) {
 			BJDebugMsg("|cFFFF0000【测试】|r selectData创建失败");
 			return;
