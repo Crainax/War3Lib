@@ -26,7 +26,7 @@ library UTSelector requires Selector {
 		selectData sd; selector sel; integer i;
 
 		// 创建selectData，设置5个选择项
-		sd = selectData.create(3);
+		sd = selectData.create(13);
 		if (sd == 0) {
 			BJDebugMsg("|cFFFF0000【测试】|r selectData创建失败");
 			return;
@@ -93,7 +93,7 @@ library UTSelector requires Selector {
 
 		// 注册关闭事件
 		sd.registerClose(function () -> boolean {
-			BJDebugMsg("|cFFFF0000【关闭】|r 关闭选择器");
+			GetCurrentSelectData().destroy();
 			return true;
 		});
 
