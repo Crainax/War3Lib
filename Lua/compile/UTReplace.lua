@@ -143,10 +143,16 @@ utr.copyResourceFiles = function()
 			fu.createDir(targetDir)
 		end
 
+		-- 检查目标文件是否已存在
+		local fileExisted = fu.fileExist(targetPath)
+
 		local success, msg = fu.copyFile(sourcePath, targetPath)
 		if success then
 			successCount = successCount + 1
-			table.insert(createdFiles, targetPath)
+			-- 只记录新创建的文件（原本不存在的文件）
+			if not fileExisted then
+				table.insert(createdFiles, targetPath)
+			end
 		else
 			table.insert(failedFiles, {path = relativePath, error = msg})
 		end
@@ -156,9 +162,13 @@ utr.copyResourceFiles = function()
 		print(string.format("    [临时资源] 成功: %d, 失败: %d", successCount, #failedFiles))
 	else
 		print(string.format("    [临时资源] 成功: %d, 失败: %d", successCount, #failedFiles))
-		print("    [临时资源] 成功文件列表:")
-		for _, file in ipairs(createdFiles) do
-			print(string.format("        %s", file))
+		if #createdFiles > 0 then
+			print("    [临时资源] 新创建文件列表:")
+			for _, file in ipairs(createdFiles) do
+				print(string.format("        %s", file))
+			end
+		else
+			print("    [临时资源] 所有文件都已存在，无需创建新文件")
 		end
 	end
 	if #failedFiles > 0 then

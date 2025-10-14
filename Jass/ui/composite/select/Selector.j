@@ -58,6 +58,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
         currentContent = s;
     }
 
+    //抽离开的共用函数
+    private function DestroyTooltip (integer temp) {
+        if (selector.uiTooltipTemp != 0) { selector.uiTooltipTemp.destroy(); selector.uiTooltipTemp = 0; }
+    }
+
     //选择UI
     public struct selector {
 
@@ -284,14 +289,12 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                     .setAllPoint(uiCloseImage.ui)
                     .spEnter(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
-                        if (uiTooltipTemp != 0) { uiTooltipTemp.destroy(); uiTooltipTemp = 0; }
+                        DestroyTooltip(frame);
                         uiTooltipTemp = tooltip.create().layoutTitle("关闭选择");
                         uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
                         music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
-                    .spLeave(function(integer frame) {
-                        if (uiTooltipTemp != 0) { uiTooltipTemp.destroy(); uiTooltipTemp = 0; }
-                    })
+                    .spLeave(uiEvent.DestroyTooltip)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         DzSyncData("Select","C"+I2S(this.sd)); //触发数据传送
@@ -309,15 +312,12 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                     .setAllPoint(uiPageUpImage.ui)
                     .spEnter(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
-                        if (uiTooltipTemp != 0) { uiTooltipTemp.destroy(); uiTooltipTemp = 0; }
+                        DestroyTooltip(frame);
                         uiTooltipTemp = tooltip.create().layoutTitle("上一页");
                         uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiPageUpImage.ui, ANCHOR_TOP, 0, 0.01);
                         music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
-                    .spLeave(function(integer frame) {
-                        thistype this = uiHashTable(frame).eventdata.get();
-                        if (uiTooltipTemp != 0) { uiTooltipTemp.destroy(); uiTooltipTemp = 0; }
-                    })
+                    .spLeave(uiEvent.DestroyTooltip)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         music[MUSIC_INDEX_BTN_CLICK].play();
@@ -340,15 +340,12 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                     .setAllPoint(uiPageDownImage.ui)
                     .spEnter(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
-                        if (uiTooltipTemp != 0) { uiTooltipTemp.destroy(); uiTooltipTemp = 0; }
+                        DestroyTooltip(frame);
                         uiTooltipTemp = tooltip.create().layoutTitle("下一页");
                         uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiPageDownImage.ui, ANCHOR_TOP, 0, 0.01);
                         music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
-                    .spLeave(function(integer frame) {
-                        thistype this = uiHashTable(frame).eventdata.get();
-                        if (uiTooltipTemp != 0) { uiTooltipTemp.destroy(); uiTooltipTemp = 0; }
-                    })
+                    .spLeave(uiEvent.DestroyTooltip)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         music[MUSIC_INDEX_BTN_CLICK].play();
