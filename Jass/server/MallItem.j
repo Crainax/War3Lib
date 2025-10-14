@@ -4,6 +4,8 @@
 // 常量配置
 #define MALLITEM_MAX_ITEMS      300
 #define MALLITEM_INIT_DELAY     2.0
+// 开放寻址哈希容量（必须 < 8192，选用素数以降低冲突）
+#define MALLITEM_HASH_CAP       1021
 
 #if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
 
@@ -59,8 +61,9 @@ library MallItem requires DzAPI{
         private static boolean ready = false;
         private static trigger readyTrigger = null;
 
-        // 数据表
-        private static hashtable table = null; // key 映射与临时使用
+        // 开放寻址哈希表（key -> index+1），0 表示空槽
+        // 容量受限于 JASS 数组上限（8192），本实现选用 1021
+        private static integer mapIdx[];
 
         // 商品列表与映射
         private static integer itemCount = 0;
@@ -82,18 +85,45 @@ library MallItem requires DzAPI{
 
         // ========== 内部：解析与映射 =========
         private static method getIndex(string key) ->integer {
-            integer stored; integer idx;
-            stored = LoadInteger(mallItem.table, 0, StringHash(key));
-            if (stored == 0) {
-                return -1;
+            integer slot; integer steps; integer cap; integer val; integer idx;
+            cap = MALLITEM_HASH_CAP;
+            slot = ModuloInteger(StringHash(key), cap);
+            if (slot < 0) { slot = slot + cap; }
+            steps = 0;
+            while (steps < cap) {
+                val = mallItem.mapIdx[slot];
+                if (val == 0) {
+                    return -1; // 空槽：查找失败
+                }
+                idx = val - 1;
+                if (idx >= 0 && idx < mallItem.itemCount && mallItem.itemKeys[idx] == key) {
+                    return idx; // 命中
+                }
+                slot = slot + 1;
+                if (slot >= cap) { slot = 0; }
+                steps = steps + 1;
             }
-            idx = stored - 1; // 存储时 +1，读取时 -1
-            if (idx < 0 || idx >= mallItem.itemCount) { return -1; }
-            return idx;
+            return -1;
         }
 
         private static method setIndex(string key, integer index) {
-            SaveInteger(mallItem.table, 0, StringHash(key), index + 1);
+            integer slot; integer steps; integer cap; integer val;
+            cap = MALLITEM_HASH_CAP;
+            slot = ModuloInteger(StringHash(key), cap);
+            if (slot < 0) { slot = slot + cap; }
+            steps = 0;
+            while (steps < cap) {
+                val = mallItem.mapIdx[slot];
+                if (val == 0) {
+                    mallItem.mapIdx[slot] = index + 1; // 写入 index+1
+                    return;
+                }
+                // 继续线性探测
+                slot = slot + 1;
+                if (slot >= cap) { slot = 0; }
+                steps = steps + 1;
+            }
+            // 表已满（理论上不会发生：MALLITEM_MAX_ITEMS << MALLITEM_HASH_CAP）
         }
 
         private static method addKey(string key) {
@@ -138,13 +168,20 @@ library MallItem requires DzAPI{
         // 初始化底层（在 map 启动时自动调用）
         static method onInit() {
             // 先声明
-            // 无句柄局部变量
+            integer i; integer cap;
 
             mallItem.initialized = false;
             mallItem.ready = false;
             mallItem.itemCount = 0;
-            mallItem.table = InitHashtable();
             mallItem.readyTrigger = CreateTrigger();
+
+            // 清空哈希槽位
+            // cap = MALLITEM_HASH_CAP;
+            // i = 0;
+            // while (i < cap) {
+            //     mallItem.mapIdx[i] = 0;
+            //     i = i + 1;
+            // }
         }
 
         // 外部初始化：每次只注册一个商品 key；首次调用时启动延迟扫描
