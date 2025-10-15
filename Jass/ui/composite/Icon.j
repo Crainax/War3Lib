@@ -152,17 +152,16 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
                     glowImage = uiImage.create(this.parent);
                 }
                 glowImage.setPoint(ANCHOR_CENTER, mainImage.ui, ANCHOR_CENTER, 0, 0);
-
                 this.updateGlowSize();
             }
             glowImage.show(true); // 显示流光
             if (gd != this.gd) {
                 this.gd = gd;
             }
-            if (!glowAnim.isExist()) {
-                glowAnim = baseanim.create(glowImage.ui);
-                glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
-            }
+            // 始终重建动画，避免在翻页/重用槽位后出现停帧
+            if (glowAnim.isExist()) { glowAnim.destroy(); glowAnim = 0; }
+            glowAnim = baseanim.create(glowImage.ui);
+            glowAnim.addSequ(gd.path, gd.max, gd.gap, true);
             this.updateGlowSize();
             return this;
         }
@@ -170,13 +169,13 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
         // 取消流光
         method unGrow() -> thistype {
             if (!this.isExist()) {return this;}
-            if (glowImage.isExist()) { //
-                glowImage.destroy();
-                glowImage = 0;
-            }
             if (glowAnim.isExist()) {
                 glowAnim.destroy();
                 glowAnim = 0;
+            }
+            if (glowImage.isExist()) { //
+                glowImage.destroy();
+                glowImage = 0;
             }
             return this;
         }
@@ -355,7 +354,7 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
             if (cornerText.isExist()) { cornerText.destroy(); cornerText = 0; }
             if (clickBtn.isExist()) { clickBtn.destroy(); clickBtn = 0; }
             if (glowImage.isExist()) { glowImage.destroy(); glowImage = 0; }
-            if (mainImage.isExist()) { mainImage.destroy(); mainImage = 0; }
+            if (!isSimple && mainImage.isExist()) { mainImage.destroy(); mainImage = 0; } // ✅ 仅非Simple销毁
         }
     }
 }

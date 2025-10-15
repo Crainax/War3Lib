@@ -96,6 +96,32 @@ library UTSelector requires Selector {
 			CallbackSelectContent(icons[LoadInteger(HASH_SELECT,sd,GetSelectPosAsync())]);
 		});
 
+		// 映射关系：shadow（布尔）
+		sd.reflectShadow(function ()  {
+			selectData sd = GetSelectDataAsync();
+			integer pos = GetSelectPosAsync();
+			// 示例：偶数位开启阴影，奇数位关闭
+			CallbackSelectShadow(ModuloInteger(pos, 5) == 0);
+		});
+
+		// 映射关系：grow 流光（通过 CallbackSelectContent 返回 growdata 索引）
+		sd.reflectGrow(function ()  {
+			selectData sd = GetSelectDataAsync();
+			integer pos = GetSelectPosAsync();
+			integer idx;
+			// 示例：前三个位置给不同流光，其余不设置（返回0）
+			if (pos == 1) {
+				idx = GIF_ICON_FLASH;
+			} else if (pos == 2) {
+				idx = GIF_ICON_FLASH; // 这里可替换为其它有效的 grow 常量
+			} else if (pos == 3) {
+				idx = GIF_ICON_FLASH; // 这里可替换为其它有效的 grow 常量
+			} else {
+				idx = 0;
+			}
+			CallbackSelectContent(I2S(idx));
+		});
+
 		// 注册按钮进入事件
 		sd.registerEnter(function ()  {
 			selectData sd = GetSelectDataAsync();

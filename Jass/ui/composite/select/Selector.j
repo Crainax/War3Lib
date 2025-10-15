@@ -32,6 +32,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
     private integer currentPos; //点击位置
     private integer currentPosAsync; //点击位置(异步调用)
     private string currentContent; //当前文字(返回值)
+    private boolean currentShadow; //当前阴影(返回值)
 
     //当前触发的SelectData数据
     public function GetSelectData () -> selectData {
@@ -56,6 +57,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
     //写入返回值
     public function CallbackSelectContent (string s) {
         currentContent = s;
+    }
+
+    //写入布尔返回值（用于shadow等布尔型映射）
+    public function CallbackSelectShadow (boolean b) {
+        currentShadow = b;
     }
 
     //抽离开的共用函数
@@ -94,7 +100,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
 
         //刷新UI内容（用于初始化和翻页）
         method refreshContent() {
-            integer i; integer createCount; integer row; integer col; integer colsInRow; integer rowCount; integer pos;
+            integer i; integer createCount; integer row; integer col; integer colsInRow; integer rowCount; integer pos;integer gifIndex;
             real startX; real startY; real offsetX; real offsetY;
 
             // 计算当前页的实际显示数量
@@ -149,6 +155,27 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                     TriggerEvaluate(sd.trRefIcon);
                     icon[i].setTexture(currentContent);
 
+                    // 映射：shadow（仅当存在映射触发器时才调用，避免无谓创建）
+                    if (sd.trRefShadow != null) {
+                        currentSDAsync = sd;
+                        currentPosAsync = pos;
+                        TriggerEvaluate(sd.trRefShadow);
+                        icon[i].setShadow(currentShadow);
+                    }
+
+                    // 映射：grow 流光（通过 CallbackSelectContent 返回 growdata 索引，仅当存在映射触发器时调用）
+                    if (sd.trRefGrow != null) {
+                        // 先清理一次，避免同一槽位在翻页后的残余/复用导致不一致
+                        icon[i].unGrow();
+                        currentSDAsync = sd;
+                        currentPosAsync = pos;
+                        TriggerEvaluate(sd.trRefGrow);
+                        gifIndex = S2I(currentContent);
+                        if (gifIndex > 0) {
+                            icon[i].grow(growdata[gifIndex]);
+                        }
+                    }
+
                     // 更新事件数据
                     uiHashTable(icon[i].getClickBtn().ui).eventdata.bind2(pos);
 
@@ -166,6 +193,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                 } else {
                     // 隐藏多余的图标
                     icon[i].show(false);
+                    // 同时取消可能残留的流光动画
+                    icon[i].unGrow();
                     if (uisTxt[i] != 0) {
                         uisTxt[i].show(false);
                     }
@@ -445,6 +474,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
         string  btn1Text;   //按钮1文字
         trigger trRefName;  //映射关系:图标文字
         trigger trRefIcon;  //映射关系:图标
+        trigger trRefShadow; //映射关系:阴影（布尔）
+        trigger trRefGrow;   //映射关系:流光（growdata 索引）
         trigger trEnter;    //按钮进入事件触发器
         trigger trLeave;    //按钮离开事件触发器
         trigger trClick;    //按钮点击事件触发器
@@ -471,49 +502,72 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
         //映射关系:图标文字
         method reflectName (code func)  -> nothing {
             if (!this.isExist()) {return;}
-            if (trRefName == null) {trRefName = CreateTrigger();}
+            if (trRefName != null) { DestroyTrigger(trRefName); trRefName = null; }
+            trRefName = CreateTrigger();
             TriggerAddCondition(trRefName, Condition(func));
         }
 
         //映射关系:图标
         method reflectIcon (code func)  -> nothing {
             if (!this.isExist()) {return;}
-            if (trRefIcon == null) {trRefIcon = CreateTrigger();}
+            if (trRefIcon != null) { DestroyTrigger(trRefIcon); trRefIcon = null; }
+            trRefIcon = CreateTrigger();
             TriggerAddCondition(trRefIcon, Condition(func));
+        }
+
+        //映射关系:shadow（布尔）
+        method reflectShadow (code func) -> nothing {
+            if (!this.isExist()) {return;}
+            if (trRefShadow != null) { DestroyTrigger(trRefShadow); trRefShadow = null; }
+            trRefShadow = CreateTrigger();
+            TriggerAddCondition(trRefShadow, Condition(func));
+        }
+
+        //映射关系:grow 流光（通过 CallbackSelectContent 返回 growdata 索引）
+        method reflectGrow (code func) -> nothing {
+            if (!this.isExist()) {return;}
+            if (trRefGrow != null) { DestroyTrigger(trRefGrow); trRefGrow = null; }
+            trRefGrow = CreateTrigger();
+            TriggerAddCondition(trRefGrow, Condition(func));
         }
 
         //按钮进入事件触发器
         method registerEnter (code enter)  -> nothing {
             if (!this.isExist()) {return;}
-            if (trEnter == null) {trEnter = CreateTrigger();}
+            if (trEnter != null) { DestroyTrigger(trEnter); trEnter = null; }
+            trEnter = CreateTrigger();
             TriggerAddCondition(trEnter, Condition(enter));
         }
 
         //按钮离开事件触发器
         method registerLeave (code leave)  -> nothing {
             if (!this.isExist()) {return;}
-            if (trLeave == null) {trLeave = CreateTrigger();}
+            if (trLeave != null) { DestroyTrigger(trLeave); trLeave = null; }
+            trLeave = CreateTrigger();
             TriggerAddCondition(trLeave, Condition(leave));
         }
 
         //按钮点击事件触发器
         method registerClick (code click)  -> nothing {
             if (!this.isExist()) {return;}
-            if (trClick == null) {trClick = CreateTrigger();}
+            if (trClick != null) { DestroyTrigger(trClick); trClick = null; }
+            trClick = CreateTrigger();
             TriggerAddCondition(trClick, Condition(click));
         }
 
         //按钮关闭事件触发器
         method registerClose (code close)  -> nothing {
             if (!this.isExist()) {return;}
-            if (trClose == null) {trClose = CreateTrigger();}
+            if (trClose != null) { DestroyTrigger(trClose); trClose = null; }
+            trClose = CreateTrigger();
             TriggerAddCondition(trClose, Condition(close));
         }
 
         //按钮1事件触发器
         method registerBtn1 (code btn1)  -> nothing {
             if (!this.isExist()) {return;}
-            if (trBtn1 == null) {trBtn1 = CreateTrigger();}
+            if (trBtn1 != null) { DestroyTrigger(trBtn1); trBtn1 = null; }
+            trBtn1 = CreateTrigger();
             TriggerAddCondition(trBtn1, Condition(btn1));
         }
 
@@ -528,7 +582,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
         //创建失败的回调触发器
         method registerFail (code fail)  -> nothing {
             if (!this.isExist()) {return;}
-            if (trFail == null) {trFail = CreateTrigger();}
+            if (trFail != null) { DestroyTrigger(trFail); trFail = null; }
+            trFail = CreateTrigger();
             TriggerAddCondition(trFail, Condition(fail));
         }
 
@@ -540,6 +595,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
             }
             if (trRefName != null) {DestroyTrigger(trRefName);trRefName = null;}
             if (trRefIcon != null) {DestroyTrigger(trRefIcon);trRefIcon = null;}
+            if (trRefShadow != null) {DestroyTrigger(trRefShadow);trRefShadow = null;}
+            if (trRefGrow != null) {DestroyTrigger(trRefGrow);trRefGrow = null;}
             if (trEnter != null) {DestroyTrigger(trEnter);trEnter = null;}
             if (trLeave != null) {DestroyTrigger(trLeave);trLeave = null;}
             if (trClose != null) {DestroyTrigger(trClose);trClose = null;}
