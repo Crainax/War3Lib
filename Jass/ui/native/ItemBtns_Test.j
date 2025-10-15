@@ -18,6 +18,20 @@ library UTItemBtns requires ItemBtns,UnitTestUIRuler {
 			integer pos = itemBtns.getCallbackPos();
 			BJDebugMsg("第" + I2S(pos) + "个物品离开2");
 		});
+		itemBtns.onItemUIChange(function () {
+			integer pos = itemBtns.getCallbackPos();
+			item it = itemBtns.getCallbackItem();
+			string itemName;
+
+			if (it != null) {
+				itemName = GetItemName(it);
+				BJDebugMsg("|cFF00FF00[物品变化]|r 第" + I2S(pos) + "槽: " + itemName);
+			} else {
+				BJDebugMsg("|cFFFF6666[物品变化]|r 第" + I2S(pos) + "槽: 已清空");
+			}
+
+			it = null;
+		});
 	}
 	// 测试1: 测试全部隐藏和全部显示的
 	function TTestUTItemBtns1 (player p) {

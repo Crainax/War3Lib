@@ -14,6 +14,7 @@ library ItemBtns requires Hardware,UIHashTable,Icon,UILayer,UnitSelect {
     public struct itemBtns []{
         static integer slot[]; // 使用slot表示物品栏位的UI,第1个是左上角,第6个是右下角
         static icon icons [];   // icon成员(非simple类型)-> 目前禁止getClickBtn搞其他东西,因为绑定的ClickBtn是Simple,其他全是非Simple
+        static item callbackItem = null; // 回调参数:当前变化槽位对应的物品
 
         // 私有变量
         private {
@@ -23,6 +24,11 @@ library ItemBtns requires Hardware,UIHashTable,Icon,UILayer,UnitSelect {
 
             static trigger trEnter = null;
             static trigger trLeave = null;
+
+            static trigger trRefresh = null; //刷新界面显示的物品回调
+
+            // 记录当前选择单位6个物品槽的上次状态
+            static item lastItems[];
 
             // 英雄切换相关
             static unit lastSelectedUnit = null; // 上次选中的单位
@@ -66,6 +72,51 @@ library ItemBtns requires Hardware,UIHashTable,Icon,UILayer,UnitSelect {
                 argsPos = currentHoverPos;
                 TriggerEvaluate(trEnter);
             }
+        }
+
+        //注册当前单位物品的UI刷新
+        static method onItemUIChange (code func) {
+            if (trRefresh == null) {
+                trRefresh = CreateTrigger();
+                hardware.regUpdateEvent(function() { //用这个来监控物品的变化
+                    integer i; unit u; item it; item prev;
+
+                    // 若无监听者则无需执行
+                    if (trRefresh == null) { return; }
+
+                    // 当前选择的主单位（英雄/领袖）
+                    u = DzGetSelectedLeaderUnit();
+
+                    // 遍历6个物品槽，检测变化
+                    for (1 <= i <= 6) {
+                        prev = lastItems[i];
+                        if (u != null) {
+                            it = UnitItemInSlot(u, i - 1);
+                        } else {
+                            it = null;
+                        }
+
+                        if (it != prev) {
+                            // 设置回调参数并触发
+                            argsPos = i;
+                            callbackItem = it;
+                            TriggerEvaluate(trRefresh);
+
+                            // 覆盖记录
+                            lastItems[i] = it;
+                        }
+                    }
+
+                    // 句柄置空
+                    prev = null; it = null; u = null;
+                });
+            }
+            TriggerAddCondition(trRefresh, Condition(func));
+        }
+
+        // 获取回调参数:变化的物品
+        static method getCallbackItem() -> item {
+            return callbackItem;
         }
 
         static method outside (integer pos) {
