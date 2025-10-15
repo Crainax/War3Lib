@@ -109,10 +109,10 @@ library Tooltip requires Icon {
 
             this.clear(); //清除老UI,除(如果有)
             text[2]   = uiText.create(border.ui)
-                .setFontSize(fontSize+1)
+                .setFontSize(fontSize)
                 .setText(descText);
             text[1]   = uiText.create(border.ui)
-                .setFontSize(fontSize)
+                .setFontSize(7)
                 .setText(titleText)
                 .setPoint(ANCHOR_BOTTOM,text[2].ui,ANCHOR_TOP,0,0.005);
             textCount     = 2;

@@ -21,6 +21,11 @@ library SpellUtils {
 		return YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_ABILITY, id, "Ubertip");
     }
 
+    //获取技能图标
+    public function GetAbilityArt (integer id)  -> string {
+		return YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_ABILITY, id, "Art");
+    }
+
     //获取提示工具 - 学习
     public function GetAbilityResearchTip (integer id)  -> string {
 		return YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_ABILITY, id, "ResearchTip");

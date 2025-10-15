@@ -86,6 +86,10 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
         private integer    currentPage;                   //当前页码
         private integer    totalPage;                     //总页码
 
+        // 悬停状态：进入后未离开，用于在销毁时补发 Leave
+        private boolean    enteredFlag;                   // 是否处于进入状态
+        private integer    enteredPos;                    // 最近一次进入的选择位置
+
         static     tooltip    uiTooltipTemp = 0;  //关闭按钮提示
 
         //刷新UI内容（用于初始化和翻页）
@@ -254,6 +258,9 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                         currentSDAsync = sd;
                         currentPosAsync = pos;
                         TriggerEvaluate(sd.trEnter);
+                        // 记录进入状态，供销毁时补发 Leave
+                        this.enteredFlag = true;
+                        this.enteredPos = pos;
                         music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
                     .spLeave(function(integer frame) {
@@ -262,6 +269,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                         currentSDAsync = sd;
                         currentPosAsync = pos;
                         TriggerEvaluate(sd.trLeave);
+                        // 离开后清除进入状态
+                        this.enteredFlag = false;
                     })
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
@@ -391,6 +400,14 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
         method onDestroy () { //析构()
             integer i,j;
             if (!this.isExist()) {return;}
+            // 若存在“进入未离开”的悬停，则在销毁前补发一次 Leave 回调
+            if (enteredFlag && sd != 0 && sd.trLeave != null) {
+                currentSDAsync = sd;
+                currentPosAsync = enteredPos;
+                TriggerEvaluate(sd.trLeave);
+            }
+            enteredFlag = false;
+            enteredPos = 0;
             // 销毁icon数组及下方文字
             for (1 <= j <= SELECT_UI_MAX_COUNT) {
                 if (icon[j] != 0) {
@@ -518,6 +535,9 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
         method onDestroy () {
             if (!this.isExist()) {return;}
             this.count = 0;
+            if (uiSelector != 0 && GetLocalPlayer() == this.owner) {
+                uiSelector.destroy();uiSelector = 0;
+            }
             if (trRefName != null) {DestroyTrigger(trRefName);trRefName = null;}
             if (trRefIcon != null) {DestroyTrigger(trRefIcon);trRefIcon = null;}
             if (trEnter != null) {DestroyTrigger(trEnter);trEnter = null;}
@@ -526,9 +546,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
             if (trBtn1 != null) {DestroyTrigger(trBtn1);trBtn1 = null;}
             if (trClick != null) {DestroyTrigger(trClick);trClick = null;}
             if (trFail != null) {DestroyTrigger(trFail);trFail = null;}
-            if (uiSelector != 0 && GetLocalPlayer() == this.owner) {
-                uiSelector.destroy();uiSelector = 0;
-            }
             this.owner = null;
             FlushChildHashtable(HASH_SELECT,this);
         }

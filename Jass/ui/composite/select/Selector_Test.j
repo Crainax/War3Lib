@@ -43,7 +43,7 @@ library UTSelector requires Selector {
 		sd.btn1Text = "刷新";
 
 		// 映射关系：图标文字 (返回选择项的名称)
-		sd.reflectName(function () -> boolean {
+		sd.reflectName(function ()  {
 			selectData sd = GetSelectDataAsync();
 			string names[];
 			names[1] = "春眠不觉晓";
@@ -67,11 +67,10 @@ library UTSelector requires Selector {
 			names[19] = "红豆生南国";
 			names[20] = "春来发几枝";
 			CallbackSelectContent(names[LoadInteger(HASH_SELECT,sd,GetSelectPosAsync())]);
-			return true;
 		});
 
 		// 映射关系：图标 (返回选择项的图标路径)
-		sd.reflectIcon(function () -> boolean {
+		sd.reflectIcon(function ()  {
 			selectData sd = GetSelectDataAsync();
 			string icons[];
 			icons[1] = "ReplaceableTextures\\CommandButtons\\BTNReturnGoods.blp";
@@ -95,42 +94,37 @@ library UTSelector requires Selector {
 			icons[19] = "ReplaceableTextures\\CommandButtons\\BTNCarrionSwarm.blp";
 			icons[20] = "ReplaceableTextures\\CommandButtons\\BTNFrostBolt.blp";
 			CallbackSelectContent(icons[LoadInteger(HASH_SELECT,sd,GetSelectPosAsync())]);
-			return true;
 		});
 
 		// 注册按钮进入事件
-		sd.registerEnter(function () -> boolean {
+		sd.registerEnter(function ()  {
 			selectData sd = GetSelectDataAsync();
 			integer pos =  GetSelectPosAsync();
 			BJDebugMsg("|cFF00FFFF【进入】|r 鼠标进入选择项" + I2S(sd) + " " + I2S(LoadInteger(HASH_SELECT,sd,pos)));
-			return true;
 		});
 
 		// 注册按钮离开事件
-		sd.registerLeave(function () -> boolean {
+		sd.registerLeave(function ()  {
 			selectData sd = GetSelectDataAsync();
 			integer pos =  GetSelectPosAsync();
 			BJDebugMsg("|cFF00FFFF【离开】|r 鼠标离开选择项" + I2S(sd) + " " + I2S(LoadInteger(HASH_SELECT,sd,pos)));
-			return true;
 		});
 
 		// 注册按钮点击事件
-		sd.registerClick(function () -> boolean {
+		sd.registerClick(function ()  {
 			selectData sd = GetSelectData();
 			integer pos =  GetSelectPos();
 			BJDebugMsg("|cFFFFFF00【点击】|r 点击了选择项" + I2S(sd) + " " + I2S(LoadInteger(HASH_SELECT,sd,pos)));
 			sd.destroy();
-			return true;
 		});
 
 		// 注册关闭事件
-		sd.registerClose(function () -> boolean {
+		sd.registerClose(function ()  {
 			GetSelectData().destroy();
-			return true;
 		});
 
 		// 注册按钮1事件
-		sd.registerBtn1(function () -> boolean {
+		sd.registerBtn1(function ()  {
 			integer i;
 			selectData sd = GetSelectData();
 			selector sel;
@@ -145,15 +139,13 @@ library UTSelector requires Selector {
 			sd.uiSelector.showAllGIF(growdata[GIF_ICON_FLASH]);
 
 			BJDebugMsg("刷新了");
-			return true;
 		});
 
 		// 注册创建失败事件
-		sd.registerFail(function () -> boolean {
+		sd.registerFail(function ()  {
 			selectData sd = GetSelectData();
 			BJDebugMsg("|cFFFF0000【失败】|r 选择器创建失败！selectData ID: " + I2S(sd));
 			sd.destroy();
-			return true;
 		});
 
 		// 创建selector实例

@@ -184,19 +184,19 @@ library Dialogs {
 			i = this.current * this.spiltCount - this.spiltCount + 1;
 			realI = 1;
 
-		if (this.current == this.GetPageCount()) {
-			while (i <= this.num) {
-				realI = realI + 1;
-				SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), realI, DialogAddButtonBJ(this.d, this.sf.evaluate(this.p, i)));
-				i = i + 1;
+			if (this.current == this.GetPageCount()) {
+				while (i <= this.num) {
+					realI = realI + 1;
+					SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), realI, DialogAddButtonBJ(this.d, this.sf.evaluate(this.p, i)));
+					i = i + 1;
+				}
+			} else {
+				while (i <= this.current * this.spiltCount) {
+					realI = realI + 1;
+					SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), realI, DialogAddButtonBJ(this.d, this.sf.evaluate(this.p, i)));
+					i = i + 1;
+				}
 			}
-		} else {
-			while (i <= this.current * this.spiltCount) {
-				realI = realI + 1;
-				SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), realI, DialogAddButtonBJ(this.d, this.sf.evaluate(this.p, i)));
-				i = i + 1;
-			}
-		}
 
 			if (this.GetPageCount() > 1) {
 				SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), 12, DialogAddButtonBJ(this.d, "上一页"));
@@ -207,11 +207,11 @@ library Dialogs {
 				SaveButtonHandle(HASH_DIALOG, GetHandleId(this.d), 11, DialogAddButton(this.d, "退出|cffff6800(Esc)|r", 512));
 			}
 
-		if (this.GetPageCount() > 1) {
-			DialogSetMessage(this.d, this.title + "(" + I2S(this.current) + "/" + I2S(this.GetPageCount()) + ")");
-		} else {
-			DialogSetMessage(this.d, this.title);
-		}
+			if (this.GetPageCount() > 1) {
+				DialogSetMessage(this.d, this.title + "(" + I2S(this.current) + "/" + I2S(this.GetPageCount()) + ")");
+			} else {
+				DialogSetMessage(this.d, this.title);
+			}
 			DialogDisplay(this.p, this.d, true);
 		}
 
@@ -342,6 +342,58 @@ library Dialogs {
 			this.title = null;
 		}
 	}
+
+
+	// 弹对话框
+	public function ShowGameHint(player p, string content) -> nothing {
+		dialog d; string s; trigger t;
+
+		d = DialogCreate();
+		s = "\n            " + content;
+
+		if (!IsDialoging(p)) {
+			t = CreateTrigger();
+			SetDialoging(p, true);
+			TriggerRegisterDialogEvent(t, d);
+			SavePlayerHandle(HASH_TRIGGER, GetHandleId(t), 1, p);
+			SaveDialogHandle(HASH_TRIGGER, GetHandleId(t), 2, d);
+			TriggerAddCondition(t, Condition(function () {
+				player p; dialog d; trigger tr;
+
+				p = LoadPlayerHandle(HASH_TRIGGER, GetHandleId(GetTriggeringTrigger()), 1);
+				d = LoadDialogHandle(HASH_TRIGGER, GetHandleId(GetTriggeringTrigger()), 2);
+				tr = GetTriggeringTrigger();
+
+				SetDialoging(p, false);
+				DialogClear(d);
+				DialogDestroy(d);
+				FlushChildHashtable(HASH_TRIGGER, GetHandleId(tr));
+				DestroyTrigger(tr);
+
+				p = null;
+				d = null;
+				tr = null;
+
+			}));
+			DialogSetMessage(d, s);
+			DialogAddButton(d, "我知道了|cffff6800(Esc)|r", 512);
+			DialogDisplay(p, d, true);
+			t = null;
+		}
+
+		d = null;
+		s = null;
+	}
+
+	// 弹对话框(全体玩家)
+	public function ShowGameHintAll(string content) -> nothing {
+		integer i;
+
+		for (1 <= i <= MAX_PLAYER_COUNT) {
+			ShowGameHint(ConvertedPlayer(i), content);
+		}
+	}
+
 }
 
 //! endzinc
