@@ -8,7 +8,7 @@
 
 // 原生的技能栏按钮和事件
 // 控制技能栏按钮的进入,离开,点击还有右键点击事件
-library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
+library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils,UnitSelect {
 
     public struct spellBtns {
         static integer grid [3][4];  // 使用grid表示技能格子Frame
@@ -39,6 +39,12 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             static integer mousePos     = 0;      //当前鼠标所在的位置
             static boolean rcStartOnUI  = false;  // 是否开始右键点击
             static integer rcStartPos   = 0;      // 右键点击开始时的鼠标位置
+
+            // 英雄切换相关
+            static unit lastSelectedUnit = null; // 上次选中的单位
+            static boolean isMouseOverSpellBar = false; // 鼠标是否在技能栏上
+            static integer currentHoverRow = 0; // 当前悬停的行
+            static integer currentHoverCol = 0; // 当前悬停的列
         }
 
         //回调参数(事件当前的技能id)
@@ -101,6 +107,38 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             TriggerAddCondition(trRightClickAbility, Condition(func));
         }
 
+        // 手动触发指定位置的leave和enter事件
+        static method triggerLeaveEnter() {
+            if (currentHoverRow < 1 || currentHoverRow > 3 || currentHoverCol < 1 || currentHoverCol > 4) { return; }
+
+            // 先触发leave事件
+            if (trLeave != null) {
+                argsRow = currentHoverRow;
+                argsCol = currentHoverCol;
+                TriggerEvaluate(trLeave);
+            }
+            if (trLeaveAbility != null) {
+                argsRow = currentHoverRow;
+                argsCol = currentHoverCol;
+                TriggerEvaluate(trLeaveAbility);
+            }
+
+            // 重新获取能力值（切换单位后能力可能不同）
+            stableAbility = GetCurrentXYAbility(currentHoverCol-1, currentHoverRow-1);
+
+            // 再触发enter事件
+            if (trEnter != null) {
+                argsRow = currentHoverRow;
+                argsCol = currentHoverCol;
+                TriggerEvaluate(trEnter);
+            }
+            if (trEnterAbility != null) {
+                argsRow = currentHoverRow;
+                argsCol = currentHoverCol;
+                TriggerEvaluate(trEnterAbility);
+            }
+        }
+
         // 把技能按钮移出屏幕外
         static method outside (integer row,integer col) {
             DzFrameClearAllPoints(grid[row][col]);
@@ -158,6 +196,9 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                         integer data = uiHashTable(frame).eventdata.get();
                         argsRow = (data - 1) / 4 + 1;
                         argsCol = ModuloInteger(data - 1,4) + 1;
+                        isMouseOverSpellBar = true;
+                        currentHoverRow = argsRow;
+                        currentHoverCol = argsCol;
                         // 进入时记录稳定能力值，供 Click/RightClick/Leave 使用
                         stableAbility = GetCurrentXYAbility(argsCol-1, argsRow-1);
                         if (trEnter != null) { TriggerEvaluate(trEnter); }
@@ -167,6 +208,9 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                         integer data = uiHashTable(frame).eventdata.get();
                         argsRow = (data - 1) / 4 + 1;
                         argsCol = ModuloInteger(data - 1,4) + 1;
+                        isMouseOverSpellBar = false;
+                        currentHoverRow = 0;
+                        currentHoverCol = 0;
                         if (trLeave != null) { TriggerEvaluate(trLeave); }
                         if (trLeaveAbility != null) { TriggerEvaluate(trLeaveAbility); }
                         // 离开后清空稳定能力值
@@ -199,6 +243,20 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                     uiHashTable(grid[row][col]).eventdata.bind(((row-1)*4)+col);
                 }
             }
+
+            // 注册异步选择单位事件，处理英雄切换时的技能栏事件
+            unitSelect.onAsync(function() {
+                unit newUnit = unitSelect.args;
+
+                // 如果鼠标在技能栏上且切换了单位，需要触发先leave再enter
+                if (isMouseOverSpellBar && newUnit != lastSelectedUnit && (currentHoverRow > 0 && currentHoverCol > 0)) {
+                    spellBtns.triggerLeaveEnter();
+                }
+
+                lastSelectedUnit = newUnit;
+                newUnit = null;
+            });
+
         }
 
     }

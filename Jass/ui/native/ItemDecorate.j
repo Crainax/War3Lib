@@ -26,6 +26,33 @@ library ItemDecorate requires ItemBtns,HashTable {
         SaveInteger(HASH_ITEM, id, HASH_KEY_ITEM_GLOW, gd);
     }
 
+    // 将一个物品的装饰数据转移到另一个物品上
+    public function TransferItemDecorate (item fromItem, item toItem) {
+        integer fromId; integer toId; string iconPath; integer gdId;
+
+        if (fromItem == null || toItem == null) { return; }
+
+        fromId = GetHandleId(fromItem);
+        toId = GetHandleId(toItem);
+
+        // 读取源物品的装饰数据
+        iconPath = LoadStr(HASH_ITEM, fromId, HASH_KEY_ITEM_ICON);
+        gdId = LoadInteger(HASH_ITEM, fromId, HASH_KEY_ITEM_GLOW);
+
+        // 将装饰数据写入目标物品
+        if (iconPath != null) {
+            SaveStr(HASH_ITEM, toId, HASH_KEY_ITEM_ICON, iconPath);
+        } else {
+            SaveStr(HASH_ITEM, toId, HASH_KEY_ITEM_ICON, "");
+        }
+
+        SaveInteger(HASH_ITEM, toId, HASH_KEY_ITEM_GLOW, gdId);
+
+        // 清除源物品的装饰数据
+        RemoveSavedString(HASH_ITEM, fromId, HASH_KEY_ITEM_ICON);
+        RemoveSavedInteger(HASH_ITEM, fromId, HASH_KEY_ITEM_GLOW);
+    }
+
     function onInit ()  {
         // 监听物品栏变化，更新对应槽位的装饰
         itemBtns.onItemUIChange(function () {
