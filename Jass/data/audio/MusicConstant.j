@@ -10,6 +10,7 @@
 #define MUSIC_INDEX_BTN_OVER_1 1002   //用于UI的音效:按钮悬停
 #define MUSIC_INDEX_BTN_OVER_2 1003   //用于UI的音效:按钮悬停
 #define MUSIC_INDEX_BTN_UP_1   1004   //用于UI的音效:按钮弹起
+#define MUSIC_INDEX_FLASH_1    1005   //用于UI的音效:刷新类型1
 
 #define MUSIC_INDEX_BASE_DMGED 5   //基地受击音效
 #define MUSIC_INDEX_BASE_DEATH 6   //基地死亡音效

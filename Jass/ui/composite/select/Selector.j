@@ -24,7 +24,7 @@
 //# dependency:resource/ui/image/select_flash.blp
 //# dependency:resource/ui/image/bg_select.blp
 
-library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
+library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
     public hashtable HASH_SELECT = InitHashtable(); //存放数据
     private selectData currentSD; //回调参数
@@ -245,7 +245,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
             this = allocate();
             if (!this.isExist()) {
                 //创建失败的回调处理，通过异步触发
-                DzSyncData("Select","Z"+I2S(sd));
+                syncBus.DzSyncDataEx("Select","Z"+I2S(sd));
                 BJDebugMsg("selector.create: allocate failed");
                 return 0;
             }
@@ -304,7 +304,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         integer pos = uiHashTable(frame).eventdata.get2();
-                        DzSyncData("Select", "D"+I2S(StringLength(R2SW(this.sd, 0, 1))) + R2SW(this.sd, 0, 1) + R2SW(pos, 0, 1));
+                        syncBus.DzSyncDataEx("Select", "D"+I2S(StringLength(R2SW(this.sd, 0, 1))) + R2SW(this.sd, 0, 1) + R2SW(pos, 0, 1));
                         music[MUSIC_INDEX_BTN_CLICK].play();
                     });
                 uiHashTable(icon[i].getClickBtn().ui).eventdata.bind(this);
@@ -335,7 +335,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                     .spLeave(uiEvent.DestroyTooltip)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
-                        DzSyncData("Select","C"+I2S(this.sd)); //触发数据传送
+                        syncBus.DzSyncDataEx("Select","C"+I2S(this.sd)); //触发数据传送
                         music[MUSIC_INDEX_BTN_CLICK].play();
                     });
                 uiHashTable(uiCloseButton.ui).eventdata.bind(this);
@@ -417,7 +417,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
                     .setAllPoint(uiBtn1Image.ui)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
-                        DzSyncData("Select","F"+I2S(this.sd)); //触发数据传送
+                        syncBus.DzSyncDataEx("Select","F"+I2S(this.sd)); //触发数据传送
                         music[MUSIC_INDEX_BTN_CLICK].play();
                     });
                 uiHashTable(uiBtn1Button.ui).eventdata.bind(this);
@@ -609,50 +609,45 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim {
     }
 
     function onInit () {
-        trigger t = CreateTrigger();
-        DzTriggerRegisterSyncData(t,"Select",false);
-        TriggerAddCondition(t, Condition(function () {
-            string str = DzGetTriggerSyncData();
-            player p = DzGetTriggerSyncPlayer();
-            integer index = GetConvertedPlayerId(p);
-            selectData sd; //对应的选择数据
-            integer length; integer pos;
+        // 使用单通道总线 Select
+        syncBus.onDataSync("Select", function () -> boolean {
+            string str; player p; integer index; selectData sd; integer length; integer pos;
+            str = syncBus.getPayload();
+            p = syncBus.getPlayer();
+            index = GetConvertedPlayerId(p);
 
             if (SubStringBJ(str,1,1) == "C") { //关闭
                 sd = S2I(SubStringBJ(str,2,StringLength(str)));
-                if (sd.isExist() && sd.trClose != null && sd.owner == p) { //
+                if (sd.isExist() && sd.trClose != null && sd.owner == p) {
                     currentSD = sd;
                     TriggerEvaluate(sd.trClose);
                 }
             } else if (SubStringBJ(str,1,1) == "F") { //功能按钮
                 sd = S2I(SubStringBJ(str,2,StringLength(str)));
-                if (sd.isExist() && sd.trBtn1 != null && sd.owner == p) { //
+                if (sd.isExist() && sd.trBtn1 != null && sd.owner == p) {
                     currentSD = sd;
                     TriggerEvaluate(sd.trBtn1);
                 }
             } else if (SubStringBJ(str,1,1) == "Z") { //创建失败回调
                 sd = S2I(SubStringBJ(str,2,StringLength(str)));
-                if (sd.isExist() && sd.trFail != null && sd.owner == p) { //
+                if (sd.isExist() && sd.trFail != null && sd.owner == p) {
                     currentSD = sd;
                     TriggerEvaluate(sd.trFail);
                 }
             } else if (SubStringBJ(str,1,1) == "D") { //点击
-
-                // 剔除了move前缀
                 length = S2I(SubStringBJ(str, 2, 2));
                 sd = S2I(SubStringBJ(str, 3, length + 2));
                 pos = S2I(SubStringBJ(str, length + 3, StringLength(str)));
-
-                if (sd.isExist() && sd.trClick != null && sd.owner == p) { //
+                if (sd.isExist() && sd.trClick != null && sd.owner == p) {
                     currentSD = sd;
                     currentPos = pos;
                     TriggerEvaluate(sd.trClick);
                 }
             }
-            str = null;
-            p = null;
-        }));
-        t = null;
+
+            str = null; p = null; sd = 0;
+            return true;
+        });
     }
 
 

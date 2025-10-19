@@ -29,7 +29,7 @@ library SpellUtils {
 
 	//获取冷却数值
 	public function GetAbilityCool (integer id,integer level)    -> real {
-		return YDWEGetObjectPropertyReal(YDWE_OBJECT_TYPE_ABILITY, id, "Cool"+I2S(level));
+		return YDWEGetObjectPropertyReal(YDWE_OBJECT_TYPE_ABILITY, id, "Cool1");
 	}
 
 	//获取技能介绍

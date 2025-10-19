@@ -6,6 +6,8 @@
 物品栏装饰
 */
 #include "Crainax/core/table/Hash_ItemDefine.j"
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+
 
 library ItemDecorate requires ItemBtns,HashTable {
 
