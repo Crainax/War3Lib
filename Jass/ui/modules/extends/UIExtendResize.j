@@ -85,7 +85,7 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
                 size          -= 1;
                 uID            = 0;
             }
-            #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST || CURRENT_BUILD_VERSION == VERSION_ALPHA)
+            #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
             if (size <= 0) {BJDebugMsg("UIExtendResize: 大小重组器已销毁");}
             #endif
         }
@@ -135,7 +135,7 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
                 size          -= 1;
                 uID            = 0;
             }
-            #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST || CURRENT_BUILD_VERSION == VERSION_ALPHA)
+            #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
             if (size <= 0) {BJDebugMsg("UIExtendResize: 位置重组器已销毁");}
             #endif
         }

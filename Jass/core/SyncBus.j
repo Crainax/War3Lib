@@ -5,6 +5,9 @@
 /*
 同步总线
 */
+
+#define SWITCH_SYNCBUS_LOG 1  //打开日志
+
 library SyncBus {
 
 	public struct syncBus [] {
@@ -56,6 +59,9 @@ library SyncBus {
 			string out;
 			out = tag + "|" + payload;
 			DzSyncData("OD", out);
+			#if SWITCH_SYNCBUS_LOG
+			DzWriteLog("[SyncBus] 发送数据: tag=" + tag + ", payload=" + payload);
+			#endif
 			out = null;
 		}
 
@@ -64,7 +70,7 @@ library SyncBus {
 			trigger t;
 			if (!thistype.initialized) { thistype.onInit(); }
 			t = thistype.getOrCreateTagTrigger(tag);
-			TriggerAddAction(t, cb);
+			TriggerAddCondition(t, Condition(cb));
 			t = null;
 		}
 
@@ -83,9 +89,17 @@ library SyncBus {
 				p = DzGetTriggerSyncPlayer();
 				pos = thistype.findChar(s, "|");
 
+				#if SWITCH_SYNCBUS_LOG
+				DzWriteLog("[SyncBus] 接收原始数据: " + s + ", 玩家=" + GetPlayerName(p));
+				#endif
+
 				if (pos > 0) {
 					tag = SubStringBJ(s, 1, pos - 1);
 					payload = SubStringBJ(s, pos + 1, StringLength(s));
+
+					#if SWITCH_SYNCBUS_LOG
+					DzWriteLog("[SyncBus] 解析数据: tag=" + tag + ", payload=" + payload);
+					#endif
 
 					// 设置回调上下文
 					thistype.cbPlayer = p;
@@ -96,13 +110,24 @@ library SyncBus {
 					idx = thistype.findTagIndex(tag);
 					if (idx >= 0) {
 						tg = thistype.regTrig[idx];
-						TriggerExecute(tg);
+						#if SWITCH_SYNCBUS_LOG
+						DzWriteLog("[SyncBus] 派发到触发器: tag=" + tag);
+						#endif
+						TriggerEvaluate(tg);
+					} else {
+						#if SWITCH_SYNCBUS_LOG
+						DzWriteLog("[SyncBus] 警告: 未找到标签对应的触发器: tag=" + tag);
+						#endif
 					}
 
 					// 清理上下文
 					thistype.cbPlayer = null;
 					thistype.cbTag = "";
 					thistype.cbPayload = "";
+				} else {
+					#if SWITCH_SYNCBUS_LOG
+					DzWriteLog("[SyncBus] 错误: 数据格式无效，未找到分隔符 '|'");
+					#endif
 				}
 
 				tg = null; tag = null; payload = null; s = null; p = null;

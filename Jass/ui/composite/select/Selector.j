@@ -304,7 +304,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         integer pos = uiHashTable(frame).eventdata.get2();
-                        syncBus.DzSyncDataEx("Select", "D"+I2S(StringLength(R2SW(this.sd, 0, 1))) + R2SW(this.sd, 0, 1) + R2SW(pos, 0, 1));
+                        syncBus.DzSyncDataEx("Select", "D"+I2S(StringLength(I2S(this.sd))) + I2S(this.sd) + I2S(pos));
                         music[MUSIC_INDEX_BTN_CLICK].play();
                     });
                 uiHashTable(icon[i].getClickBtn().ui).eventdata.bind(this);
