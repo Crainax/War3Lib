@@ -17,6 +17,11 @@ library UTSyncBus requires SyncBus {
         public static integer ut1Count = 0;
 
         public static integer ut2Count = 0;
+
+        // 防抖测试状态
+        public static integer utDebounceCount = 0;
+        public static boolean utDebounceFirstSent = false;
+        public static boolean utDebounceSecondSent = false;
     }
 
     private function RegisterRoutes() {
@@ -46,6 +51,12 @@ library UTSyncBus requires SyncBus {
         });
         syncBus.onDataSync("ut2", function () -> boolean {
             UTSyncBusState.ut2Count += 1;
+            return true;
+        });
+
+        // route: utDebounce (防抖测试)
+        syncBus.onDataSync("utDebounce", function () -> boolean {
+            UTSyncBusState.utDebounceCount += 1;
             return true;
         });
     }
@@ -139,8 +150,99 @@ library UTSyncBus requires SyncBus {
         }));
         tr = null; p = null;
     }
-	function TTestUTSyncBus3 (player p) {}
-	function TTestUTSyncBus4 (player p) {}
+	//输入 s3测试   测试防抖功能：第一次发送成功，第二次在冷却期内被阻止
+    function TTestUTSyncBus3 (player p) {
+        trigger tr; trigger sendTr;
+
+        RegisterRoutes();
+
+        // reset state
+        UTSyncBusState.utDebounceCount = 0;
+        UTSyncBusState.utDebounceFirstSent = false;
+        UTSyncBusState.utDebounceSecondSent = false;
+
+        // delay send slightly to avoid registration/send race
+        sendTr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(sendTr, 0.03);
+        TriggerAddCondition(sendTr, Condition(function () -> boolean {
+            // 第一次发送应该成功
+            UTSyncBusState.utDebounceFirstSent = syncBus.DzSyncDataExDebounce("utDebounce", "first", 10);
+            // 立即第二次发送应该被阻止（冷却期10个tick = 0.5秒）
+            UTSyncBusState.utDebounceSecondSent = syncBus.DzSyncDataExDebounce("utDebounce", "second", 10);
+            DestroyTrigger(GetTriggeringTrigger());
+            return true;
+        }));
+        sendTr = null;
+
+        // verify with a longer delay
+        tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr, 0.30);
+        TriggerAddCondition(tr, Condition(function () -> boolean {
+            boolean ok; string msg;
+            // 应该只有第一次发送成功，第二次被阻止
+            ok = (UTSyncBusState.utDebounceFirstSent && !UTSyncBusState.utDebounceSecondSent && UTSyncBusState.utDebounceCount == 1);
+            if (ok) {
+                msg = "[syncBus][utDebounce] PASS firstSent=" + B2S(UTSyncBusState.utDebounceFirstSent) + ", secondSent=" + B2S(UTSyncBusState.utDebounceSecondSent) + ", count=" + I2S(UTSyncBusState.utDebounceCount);
+            } else {
+                msg = "[syncBus][utDebounce] FAIL firstSent=" + B2S(UTSyncBusState.utDebounceFirstSent) + ", secondSent=" + B2S(UTSyncBusState.utDebounceSecondSent) + ", count=" + I2S(UTSyncBusState.utDebounceCount);
+            }
+            BJDebugMsg(msg);
+            DestroyTrigger(GetTriggeringTrigger());
+            msg = null;
+            return true;
+        }));
+        tr = null; p = null;
+    }
+	//输入 s4测试   测试防抖功能：冷却期结束后可以再次发送
+    function TTestUTSyncBus4 (player p) {
+        trigger tr; trigger sendTr1; trigger sendTr2;
+
+        RegisterRoutes();
+
+        // reset state
+        UTSyncBusState.utDebounceCount = 0;
+        UTSyncBusState.utDebounceFirstSent = false;
+        UTSyncBusState.utDebounceSecondSent = false;
+
+        // 第一次发送
+        sendTr1 = CreateTrigger();
+        TriggerRegisterTimerEventSingle(sendTr1, 0.03);
+        TriggerAddCondition(sendTr1, Condition(function () -> boolean {
+            UTSyncBusState.utDebounceFirstSent = syncBus.DzSyncDataExDebounce("utDebounce", "first", 5);
+            DestroyTrigger(GetTriggeringTrigger());
+            return true;
+        }));
+        sendTr1 = null;
+
+        // 等待冷却期结束后第二次发送
+        sendTr2 = CreateTrigger();
+        TriggerRegisterTimerEventSingle(sendTr2, 0.35); // 5个tick * 0.05秒 = 0.25秒，再加一点缓冲
+        TriggerAddCondition(sendTr2, Condition(function () -> boolean {
+            UTSyncBusState.utDebounceSecondSent = syncBus.DzSyncDataExDebounce("utDebounce", "second", 5);
+            DestroyTrigger(GetTriggeringTrigger());
+            return true;
+        }));
+        sendTr2 = null;
+
+        // verify with a longer delay
+        tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr, 0.60);
+        TriggerAddCondition(tr, Condition(function () -> boolean {
+            boolean ok; string msg;
+            // 两次发送都应该成功
+            ok = (UTSyncBusState.utDebounceFirstSent && UTSyncBusState.utDebounceSecondSent && UTSyncBusState.utDebounceCount == 2);
+            if (ok) {
+                msg = "[syncBus][utDebounce-delay] PASS firstSent=" + B2S(UTSyncBusState.utDebounceFirstSent) + ", secondSent=" + B2S(UTSyncBusState.utDebounceSecondSent) + ", count=" + I2S(UTSyncBusState.utDebounceCount);
+            } else {
+                msg = "[syncBus][utDebounce-delay] FAIL firstSent=" + B2S(UTSyncBusState.utDebounceFirstSent) + ", secondSent=" + B2S(UTSyncBusState.utDebounceSecondSent) + ", count=" + I2S(UTSyncBusState.utDebounceCount);
+            }
+            BJDebugMsg(msg);
+            DestroyTrigger(GetTriggeringTrigger());
+            msg = null;
+            return true;
+        }));
+        tr = null; p = null;
+    }
 	function TTestUTSyncBus5 (player p) {}
 	function TTestUTSyncBus6 (player p) {}
 	function TTestUTSyncBus7 (player p) {}

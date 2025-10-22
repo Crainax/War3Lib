@@ -7,6 +7,7 @@
 */
 
 #define SWITCH_SYNCBUS_LOG 1  //打开日志
+#define SWITCH_SYNCBUS_OOS_DETECH  //打开OOS探测日志
 
 library SyncBus {
 
@@ -18,6 +19,17 @@ library SyncBus {
 		private static integer regCount = 0;
 		private static string  regTags[];
 		private static trigger regTrig[];
+		// 防抖：每个已注册路由的剩余冷却时间（tick）
+		private static integer debounceRemain[];
+
+
+		#ifdef SWITCH_SYNCBUS_OOS_DETECH
+		// ===== OOS 探测 =====
+		private static integer oosLocalRand = 0;              // 本地每5秒滚动随机值
+		private static integer oosRecvValue[];                // 按玩家(1-based ConvertedID)记录最近一次收到的值
+		private static boolean oosPairNotified[MAX_PLAYER_COUNT][MAX_PLAYER_COUNT];           // 记录已广播的不一致对 (i,j)
+		private static integer oosTick = 0;                   // 5秒定时器计数器
+		#endif
 
 		// 回调上下文（避免哈希表冲突）
 		public static player cbPlayer = null;
@@ -56,13 +68,35 @@ library SyncBus {
 
 		// 统一发送（单通道 OData）
 		public static method DzSyncDataEx(string tag, string payload) {
-			string out;
+			string out; player lp; integer lpid; string lname;
 			out = tag + "|" + payload;
 			DzSyncData("OD", out);
 			#if SWITCH_SYNCBUS_LOG
-			DzWriteLog("[SyncBus] 发送数据: tag=" + tag + ", payload=" + payload);
+			lp = GetLocalPlayer();
+			lpid = GetConvertedPlayerId(lp);
+			lname = GetPlayerName(lp);
+			DzWriteLog("[SyncBus] 发送: tag=" + tag + ", payload=" + payload + ", local=" + lname + "(" + I2S(lpid) + ")");
 			#endif
-			out = null;
+			out = null; lp = null; lname = null;
+		}
+
+		// 防抖发送：相同功能接口，基于每路由冷却（tick）
+		public static method DzSyncDataExDebounce(string tag, string payload, integer cooldownTicks) -> boolean {
+			integer idx;
+			// 确保路由索引存在
+			idx = thistype.findTagIndex(tag);
+			if (idx < 0) {
+				thistype.getOrCreateTagTrigger(tag);
+				idx = thistype.findTagIndex(tag);
+			}
+			// 若仍找不到，放弃（极端情况）
+			if (idx < 0) { return false; }
+			// 冷却中则不发送
+			if (thistype.debounceRemain[idx] > 0) { return false; }
+			// 发送并设置冷却
+			thistype.DzSyncDataEx(tag, payload);
+			thistype.debounceRemain[idx] = cooldownTicks;
+			return true;
 		}
 
 		// 注册路由回调
@@ -83,23 +117,15 @@ library SyncBus {
 			DzTriggerRegisterSyncData(thistype.busTr, "OD", false);
 			TriggerAddAction(thistype.busTr, function () {
 				string s; player p; integer pos; string tag; string payload;
-				integer idx; trigger tg;
+				integer idx; trigger tg; string pName; integer pid; string status;
 
 				s = DzGetTriggerSyncData();
 				p = DzGetTriggerSyncPlayer();
 				pos = thistype.findChar(s, "|");
 
-				#if SWITCH_SYNCBUS_LOG
-				DzWriteLog("[SyncBus] 接收原始数据: " + s + ", 玩家=" + GetPlayerName(p));
-				#endif
-
 				if (pos > 0) {
 					tag = SubStringBJ(s, 1, pos - 1);
 					payload = SubStringBJ(s, pos + 1, StringLength(s));
-
-					#if SWITCH_SYNCBUS_LOG
-					DzWriteLog("[SyncBus] 解析数据: tag=" + tag + ", payload=" + payload);
-					#endif
 
 					// 设置回调上下文
 					thistype.cbPlayer = p;
@@ -110,15 +136,15 @@ library SyncBus {
 					idx = thistype.findTagIndex(tag);
 					if (idx >= 0) {
 						tg = thistype.regTrig[idx];
-						#if SWITCH_SYNCBUS_LOG
-						DzWriteLog("[SyncBus] 派发到触发器: tag=" + tag);
-						#endif
 						TriggerEvaluate(tg);
-					} else {
-						#if SWITCH_SYNCBUS_LOG
-						DzWriteLog("[SyncBus] 警告: 未找到标签对应的触发器: tag=" + tag);
-						#endif
 					}
+
+					#if SWITCH_SYNCBUS_LOG
+					pName = GetPlayerName(p);
+					pid = GetConvertedPlayerId(p);
+					if (idx >= 0) { status = "ok"; } else { status = "miss"; }
+					DzWriteLog("[SyncBus] 接收: player=" + pName + "(" + I2S(pid) + "), raw=" + s + ", tag=" + tag + ", payload=" + payload + ", dispatch=" + status);
+					#endif
 
 					// 清理上下文
 					thistype.cbPlayer = null;
@@ -126,12 +152,79 @@ library SyncBus {
 					thistype.cbPayload = "";
 				} else {
 					#if SWITCH_SYNCBUS_LOG
-					DzWriteLog("[SyncBus] 错误: 数据格式无效，未找到分隔符 '|'");
+					pName = GetPlayerName(p);
+					pid = GetConvertedPlayerId(p);
+					DzWriteLog("[SyncBus] 接收: player=" + pName + "(" + I2S(pid) + "), raw=" + s + ", error=no '|'" );
 					#endif
 				}
 
-				tg = null; tag = null; payload = null; s = null; p = null;
+				tg = null; tag = null; payload = null; s = null; p = null; pName = null; status = null;
 			});
+
+			// 全局tick：用于防抖冷却
+			TimerStart(CreateTimer(),0.05,true,function (){
+				integer i;
+				for (i = 0; i < thistype.regCount; i += 1) {
+					if (thistype.debounceRemain[i] > 0) {
+						thistype.debounceRemain[i] -= 1;
+					}
+				}
+			});
+
+			#ifdef SWITCH_SYNCBUS_OOS_DETECH
+			// 每5秒刷新本地随机值，每12次（60秒）进行OOS检查和发送
+			TimerStart(CreateTimer(),5.0,true,function (){
+				integer i; integer j; integer vi; integer vj; player pi; player pj;  string msg;
+
+				// 更新本地随机值
+				thistype.oosLocalRand = GetRandomInt(1,100000);
+				DzWriteLog("[OOS] 本地5s随机值更新: "+ I2S(thistype.oosLocalRand));
+
+				// 计数器+1
+				thistype.oosTick += 1;
+
+				// 每12次（60秒）执行一次检查和发送
+				if (thistype.oosTick >= 12) {
+					thistype.oosTick = 0;
+
+					// 遍历所有玩家对 (1..12)
+					for (i = 1; i <= MAX_PLAYER_COUNT; i += 1) {
+						for (j = i + 1; j <= MAX_PLAYER_COUNT; j += 1) {
+							vi = thistype.oosRecvValue[i];
+							vj = thistype.oosRecvValue[j];
+							if (vi != 0 && vj != 0 && vi != vj && !thistype.oosPairNotified[i][j]) {
+								// 首次发现 i 与 j 不一致，广播一次
+								pi = ConvertedPlayer(i);
+								pj = ConvertedPlayer(j);
+								msg = GetPlayerName(pi) + " 和 " + GetPlayerName(pj) + " 数据不同步";
+								BJDebugMsg(msg);
+								DzWriteLog("[OOS] " + msg + " (" + I2S(i) + " vs " + I2S(j) + ", v1=" + I2S(vi) + ", v2=" + I2S(vj) + ")");
+								thistype.oosPairNotified[i][j] = true;
+								thistype.oosPairNotified[j][i] = true;
+								pi = null; pj = null; msg = null;
+							}
+						}
+					}
+
+					// 发送本地值（路由: OOS）
+					thistype.DzSyncDataEx("OOS", I2S(thistype.oosLocalRand));
+				}
+			});
+
+			// 注册 OOS 接收路由
+			thistype.onDataSync("OOS", function () -> boolean {
+				player p; integer pid; string payload;
+				p = thistype.getPlayer();
+				pid = GetConvertedPlayerId(p);
+				payload = thistype.getPayload();
+				thistype.oosRecvValue[pid] = S2I(payload);
+				DzWriteLog("[OOS] 收到玩家(" + I2S(pid) + ") 值=" + payload);
+				p = null; payload = null;
+				return true;
+			});
+
+			#endif
+
 		}
 
 		// 回调内读取上下文
