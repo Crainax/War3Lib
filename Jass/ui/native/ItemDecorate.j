@@ -16,8 +16,11 @@ library ItemDecorate requires ItemBtns,HashTable {
         integer id;
         if (it == null) { return; }
         id = GetHandleId(it);
-        if (path == null) { path = ""; }
-        SaveStr(HASH_ITEM, id, HASH_KEY_ITEM_ICON, path);
+        if (path == null) {
+            RemoveSavedString(HASH_ITEM, id, HASH_KEY_ITEM_ICON);
+        } else {
+            SaveStr(HASH_ITEM, id, HASH_KEY_ITEM_ICON, path);
+        }
     }
 
     // 将装饰流光数据存入 HASH_ITEM（0 表示无流光）
@@ -25,7 +28,11 @@ library ItemDecorate requires ItemBtns,HashTable {
         integer id;
         if (it == null) { return; }
         id = GetHandleId(it);
-        SaveInteger(HASH_ITEM, id, HASH_KEY_ITEM_GLOW, gd);
+        if (gd == 0) {
+            RemoveSavedInteger(HASH_ITEM, id, HASH_KEY_ITEM_GLOW);
+        } else {
+            SaveInteger(HASH_ITEM, id, HASH_KEY_ITEM_GLOW, gd);
+        }
     }
 
     // 将一个物品的装饰数据转移到另一个物品上

@@ -187,21 +187,27 @@ library SyncBus {
 				if (thistype.oosTick >= 12) {
 					thistype.oosTick = 0;
 
-					// 遍历所有玩家对 (1..12)
+					// 遍历所有玩家对 (1..12) - 只检查在线玩家
 					for (i = 1; i <= MAX_PLAYER_COUNT; i += 1) {
-						for (j = i + 1; j <= MAX_PLAYER_COUNT; j += 1) {
-							vi = thistype.oosRecvValue[i];
-							vj = thistype.oosRecvValue[j];
-							if (vi != 0 && vj != 0 && vi != vj && !thistype.oosPairNotified[i][j]) {
-								// 首次发现 i 与 j 不一致，广播一次
-								pi = ConvertedPlayer(i);
-								pj = ConvertedPlayer(j);
-								msg = GetPlayerName(pi) + " 和 " + GetPlayerName(pj) + " 数据不同步";
-								BJDebugMsg(msg);
-								DzWriteLog("[OOS] " + msg + " (" + I2S(i) + " vs " + I2S(j) + ", v1=" + I2S(vi) + ", v2=" + I2S(vj) + ")");
-								thistype.oosPairNotified[i][j] = true;
-								thistype.oosPairNotified[j][i] = true;
-								pi = null; pj = null; msg = null;
+						// 只处理在线玩家
+						if (GetPlayerSlotState(ConvertedPlayer(i)) == PLAYER_SLOT_STATE_PLAYING && GetPlayerController(ConvertedPlayer(i)) == MAP_CONTROL_USER) {
+							for (j = i + 1; j <= MAX_PLAYER_COUNT; j += 1) {
+								// 只处理在线玩家
+								if (GetPlayerSlotState(ConvertedPlayer(j)) == PLAYER_SLOT_STATE_PLAYING && GetPlayerController(ConvertedPlayer(j)) == MAP_CONTROL_USER) {
+									vi = thistype.oosRecvValue[i];
+									vj = thistype.oosRecvValue[j];
+									if (vi != 0 && vj != 0 && vi != vj && !thistype.oosPairNotified[i][j]) {
+										// 首次发现 i 与 j 不一致，广播一次
+										pi = ConvertedPlayer(i);
+										pj = ConvertedPlayer(j);
+										msg = GetPlayerName(pi) + " 和 " + GetPlayerName(pj) + " 数据不同步，请确认网络状态(断线重连或异步)";
+										BJDebugMsg(msg);
+										DzWriteLog("[OOS] " + msg + " (" + I2S(i) + " vs " + I2S(j) + ", v1=" + I2S(vi) + ", v2=" + I2S(vj) + ")");
+										thistype.oosPairNotified[i][j] = true;
+										thistype.oosPairNotified[j][i] = true;
+										pi = null; pj = null; msg = null;
+									}
+								}
 							}
 						}
 					}
