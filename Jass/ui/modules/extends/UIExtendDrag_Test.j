@@ -9,19 +9,49 @@
 //自动生成的文件
 library UTUIExtendDrag requires UIExtendDrag {
 
-	uiBtn btn = 0;
-	uiImage img = 0;
+	uiBtn btn[];
+	uiImage img[];
+	integer btnCount = 0;
+	integer imgCount = 0;
 
 	function TTestUTUIExtendDrag1 (player p) {
-		img = uiImage.create(DzGetGameUI())
+		integer index;
+
+		// 创建新的 img
+		imgCount = imgCount + 1;
+		index = imgCount;
+		img[index] = uiImage.create(DzGetGameUI())
 			.setSize(0.1,0.1)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 			.setTexture("ReplaceableTextures\\CommandButtons\\BTNHealOn.blp");
-		btn = uiBtn.create(img.ui)
-			.setAllPoint(img.ui)
-			.enableDrag(img.ui,0.1, 0.7, 0.2, 0.5);
+
+		// 创建对应的 btn
+		btnCount = btnCount + 1;
+		btn[btnCount] = uiBtn.create(img[index].ui)
+			.setAllPoint(img[index].ui)
+			.enableDrag(img[index].ui,0.1, 0.7, 0.2, 0.5);
+
+		BJDebugMsg("创建了第 " + I2S(index) + " 个 img 和第 " + I2S(btnCount) + " 个 btn");
 	}
-	function TTestUTUIExtendDrag2 (player p) {}
+	function TTestUTUIExtendDrag2 (player p) {
+		// 删除所有 UI
+		integer i;
+		for (1 <= i <= btnCount) {
+			if (btn[i] != 0 && btn[i].isExist()) {
+				btn[i].destroy();
+				btn[i] = 0;
+			}
+		}
+		for (1 <= i <= imgCount) {
+			if (img[i] != 0 && img[i].isExist()) {
+				img[i].destroy();
+				img[i] = 0;
+			}
+		}
+		imgCount = 0;
+		btnCount = 0;
+		BJDebugMsg("已删除所有 UI");
+	}
 	function TTestUTUIExtendDrag3 (player p) {}
 	function TTestUTUIExtendDrag4 (player p) {}
 	function TTestUTUIExtendDrag5 (player p) {}
@@ -37,6 +67,8 @@ library UTUIExtendDrag requires UIExtendDrag {
 		string  paramS [];							   //所有参数S
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
+		integer pos;
+
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -53,10 +85,34 @@ library UTUIExtendDrag requires UIExtendDrag {
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
 
-		if (paramS[0] == "a") {
-
-		} else if (paramS[0] == "b") {
-
+		if (paramS[0] == "list") {
+			// 输出当前所有 btn 和 img 数量
+			BJDebugMsg("当前 img 数量: " + I2S(imgCount));
+			BJDebugMsg("当前 btn 数量: " + I2S(btnCount));
+			for (1 <= i <= imgCount) {
+				BJDebugMsg("第 " + I2S(i) + " 个 img 位置: " + I2S(img[i]));
+			}
+		} else if (paramS[0] == "a") {
+			// 删除指定位置的 UI
+			if (num >= 2) {
+				pos = paramI[1];
+				if (pos >= 1 && pos <= imgCount && img[pos] != 0 && img[pos].isExist()) {
+					img[pos].destroy();
+					img[pos] = 0;
+					BJDebugMsg("已删除第 " + I2S(pos) + " 个 img");
+				} else {
+					BJDebugMsg("第 " + I2S(pos) + " 个 img 不存在或已删除");
+				}
+				if (pos >= 1 && pos <= btnCount && btn[pos] != 0 && btn[pos].isExist()) {
+					btn[pos].destroy();
+					btn[pos] = 0;
+					BJDebugMsg("已删除第 " + I2S(pos) + " 个 btn");
+				} else {
+					BJDebugMsg("第 " + I2S(pos) + " 个 btn 不存在或已删除");
+				}
+			} else {
+				BJDebugMsg("用法: -a <索引>");
+			}
 		}
 
 		p = null;

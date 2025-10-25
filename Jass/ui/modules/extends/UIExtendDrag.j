@@ -122,12 +122,12 @@ library UIExtendDrag requires UIExtendEvent {
                 integer frame = uiLifeCycle.agrsFrame;
                 uiDragger dragger;
                 // 检查并清理dragger实例
-                // BJDebugMsg("删除了拖拽器0:"+I2S(frame));
+                BJDebugMsg("删除了拖拽器0:"+I2S(frame));
                 if (HaveSavedInteger(HASH_UI, frame, HASH_KEY_UI_EXTEND_DRAGGER)) {
                     dragger = LoadInteger(HASH_UI, frame, HASH_KEY_UI_EXTEND_DRAGGER);
-                    // BJDebugMsg("删除了拖拽器1:"+I2S(frame));
+                    BJDebugMsg("删除了拖拽器1:"+I2S(frame));
                     if (dragger != 0) {
-                        // BJDebugMsg("删除了拖拽器2:"+I2S(dragger));
+                        BJDebugMsg("删除了拖拽器2:"+I2S(dragger));
                         dragger.destroy();
                     }
                 }
@@ -154,7 +154,7 @@ library UIExtendDrag requires UIExtendEvent {
                 dragger.bottomLimit = bottom;
             } else {
                 dragger = uiDragger.create(ui, mover, left, right, top, bottom);
-                // BJDebugMsg("注册了拖拽器:"+I2S(ui));
+                BJDebugMsg("注册了拖拽器:"+I2S(ui));
                 SaveInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER, dragger);
             }
 

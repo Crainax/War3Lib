@@ -1,15 +1,15 @@
 #ifndef SelectIncluded
 #define SelectIncluded
 
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
+#include "Crainax/ui/constants/UIConstants.j" // UI常量
+#include "Crainax/data/audio/MusicConstant.j" // UI常量
+
 //! zinc
 
 /*
 选择UI
 */
-
-#include "Crainax/config/SharedMethod.h" // 结构体共用方法
-#include "Crainax/ui/constants/UIConstants.j" // UI常量
-#include "Crainax/data/audio/MusicConstant.j" // UI常量
 
 #define SELECT_UI_MAX_COUNT 12    //一页图标的数量
 #define SIZE_ICON_SELECT    0.035 //图标大小
