@@ -21,7 +21,7 @@ library UTUIExtendDrag requires UIExtendDrag {
 		imgCount = imgCount + 1;
 		index = imgCount;
 		img[index] = uiImage.create(DzGetGameUI())
-			.setSize(0.1,0.1)
+			.exReSize(0.1,0.1)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
 			.setTexture("ReplaceableTextures\\CommandButtons\\BTNHealOn.blp");
 
@@ -112,6 +112,44 @@ library UTUIExtendDrag requires UIExtendDrag {
 				}
 			} else {
 				BJDebugMsg("用法: -a <索引>");
+			}
+		} else if (paramS[0] == "p") {
+			// 设置第 pos 个控件的位置: -p <索引> <x> <y>
+			if (num >= 4) {
+				pos = paramI[1];
+				if (pos >= 1 && pos <= btnCount && btn[pos] != 0 && btn[pos].isExist()) {
+					btn[pos].setDragPosition(paramR[2], paramR[3]);
+					BJDebugMsg("已设置第 " + I2S(pos) + " 个 btn 位置为 (" + R2S(paramR[2]) + ", " + R2S(paramR[3]) + ")");
+				} else {
+					BJDebugMsg("第 " + I2S(pos) + " 个 btn 不存在或已删除");
+				}
+			} else {
+				BJDebugMsg("用法: -p <索引> <x> <y>");
+			}
+		} else if (paramS[0] == "b") {
+			// 设置第 pos 个控件的边界: -b <索引> <left> <right> <bottom> <top>
+			if (num >= 6) {
+				pos = paramI[1];
+				if (pos >= 1 && pos <= btnCount && btn[pos] != 0 && btn[pos].isExist()) {
+					btn[pos].setDragBounds(paramR[2], paramR[3], paramR[4], paramR[5]);
+					BJDebugMsg("已设置第 " + I2S(pos) + " 个 btn 边界");
+				} else {
+					BJDebugMsg("第 " + I2S(pos) + " 个 btn 不存在或已删除");
+				}
+			} else {
+				BJDebugMsg("用法: -b <索引> <left> <right> <bottom> <top>");
+			}
+		} else if (paramS[0] == "g") {
+			// 获取第 pos 个控件的当前位置: -g <索引>
+			if (num >= 2) {
+				pos = paramI[1];
+				if (pos >= 1 && pos <= btnCount && btn[pos] != 0 && btn[pos].isExist()) {
+					BJDebugMsg("第 " + I2S(pos) + " 个 btn 当前坐标: (" + R2S(btn[pos].getDragX()) + ", " + R2S(btn[pos].getDragY()) + ")");
+				} else {
+					BJDebugMsg("第 " + I2S(pos) + " 个 btn 不存在或已删除");
+				}
+			} else {
+				BJDebugMsg("用法: -g <索引>");
 			}
 		}
 

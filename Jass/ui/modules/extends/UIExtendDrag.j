@@ -122,12 +122,14 @@ library UIExtendDrag requires UIExtendEvent {
                 integer frame = uiLifeCycle.agrsFrame;
                 uiDragger dragger;
                 // 检查并清理dragger实例
-                BJDebugMsg("删除了拖拽器0:"+I2S(frame));
+                // BJDebugMsg("删除了拖拽器0:"+I2S(frame));
                 if (HaveSavedInteger(HASH_UI, frame, HASH_KEY_UI_EXTEND_DRAGGER)) {
                     dragger = LoadInteger(HASH_UI, frame, HASH_KEY_UI_EXTEND_DRAGGER);
-                    BJDebugMsg("删除了拖拽器1:"+I2S(frame));
+                    // BJDebugMsg("删除了拖拽器1:"+I2S(frame));
                     if (dragger != 0) {
-                        BJDebugMsg("删除了拖拽器2:"+I2S(dragger));
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                            BJDebugMsg("删除了拖拽器:"+I2S(dragger));
+                        #endif
                         dragger.destroy();
                     }
                 }
@@ -154,7 +156,7 @@ library UIExtendDrag requires UIExtendEvent {
                 dragger.bottomLimit = bottom;
             } else {
                 dragger = uiDragger.create(ui, mover, left, right, top, bottom);
-                BJDebugMsg("注册了拖拽器:"+I2S(ui));
+                // BJDebugMsg("注册了拖拽器:"+I2S(ui));
                 SaveInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER, dragger);
             }
 
@@ -172,6 +174,65 @@ library UIExtendDrag requires UIExtendEvent {
             });
 
             return this;
+        }
+
+        // 手动设置拖拽位置（中心点坐标），会按当前边界自动限制
+        method setDragPosition(real x, real y) -> thistype {
+            uiDragger dragger;
+            if (!this.isExist()) { return this; }
+
+            if (HaveSavedInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER)) {
+                dragger = LoadInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER);
+                if (dragger != 0) {
+                    dragger.setPosition(x, y);
+                }
+            }
+            return this;
+        }
+
+        // 更新拖拽可移动边界（left/right/bottom/top），并对当前坐标进行一次校正
+        method setDragBounds(real left, real right, real bottom, real top) -> thistype {
+            uiDragger dragger;
+            if (!this.isExist()) { return this; }
+
+            if (HaveSavedInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER)) {
+                dragger = LoadInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER);
+                if (dragger != 0) {
+                    dragger.leftLimit = left;
+                    dragger.rightLimit = right;
+                    dragger.bottomLimit = bottom;
+                    dragger.topLimit = top;
+                    // 用当前坐标做一次位置校正，确保落在新边界内
+                    dragger.setPosition(dragger.xPos, dragger.yPos);
+                }
+            }
+            return this;
+        }
+
+        // 读取当前拖拽中心点 X 坐标（未启用拖拽则返回 0.0）
+        method getDragX() -> real {
+            uiDragger dragger;
+            real rx;
+            if (!this.isExist()) { return 0.0; }
+            rx = 0.0;
+            if (HaveSavedInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER)) {
+                dragger = LoadInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER);
+                if (dragger != 0) { rx = dragger.xPos; }
+            }
+            return rx;
+        }
+
+        // 读取当前拖拽中心点 Y 坐标（未启用拖拽则返回 0.0）
+        method getDragY() -> real {
+            uiDragger dragger;
+            real ry;
+            if (!this.isExist()) { return 0.0; }
+            ry = 0.0;
+            if (HaveSavedInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER)) {
+                dragger = LoadInteger(HASH_UI, ui, HASH_KEY_UI_EXTEND_DRAGGER);
+                if (dragger != 0) { ry = dragger.yPos; }
+            }
+            return ry;
         }
     }
 }
