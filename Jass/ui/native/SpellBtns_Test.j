@@ -224,6 +224,28 @@ library UTSpellBtns requires SpellBtns {
 				BJDebugMsg("[Ability] 右键: id=" + YDWEId2S(a) + " 名称=" + GetAbilityName(a));
 			});
 
+			spellBtns.onAbilityUIChange(function () {
+				integer row = spellBtns.getCallbackRow();
+				integer col = spellBtns.getCallbackColumn();
+				integer abilCode = spellBtns.getCallbackAbility();
+				unit u; ability abil; string abilName;
+
+				u = DzGetSelectedLeaderUnit();
+				if (u != null && abilCode != 0) {
+					abil = EXGetUnitAbility(u, abilCode);
+					if (abil != null) {
+						abilName = GetAbilityName(abilCode);
+						BJDebugMsg("|cFF00AAFF[技能变化]|r 第" + I2S(row) + "行第" + I2S(col) + "列: " + abilName + " (id=" + YDWEId2S(abilCode) + ")");
+					} else {
+						BJDebugMsg("|cFFFF6666[技能变化]|r 第" + I2S(row) + "行第" + I2S(col) + "列: 无法获取技能句柄 (id=" + YDWEId2S(abilCode) + ")");
+					}
+				} else {
+					BJDebugMsg("|cFFFF6666[技能变化]|r 第" + I2S(row) + "行第" + I2S(col) + "列: 已清空");
+				}
+
+				abil = null; u = null;
+			});
+
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

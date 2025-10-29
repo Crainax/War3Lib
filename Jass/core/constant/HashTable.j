@@ -13,6 +13,7 @@ library HashTable {
         hashtable HASH_EFFECT  = InitHashtable();  // 特效哈希表
         hashtable HASH_TRIGGER = InitHashtable();  // 触发器哈希表
         hashtable HASH_ITEM    = InitHashtable();  // 触发器哈希表
+        hashtable HASH_ABILITY = InitHashtable();  // 触发器哈希表
     }
 
 }

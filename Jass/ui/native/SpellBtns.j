@@ -39,6 +39,10 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             static integer mousePos     = 0;      //当前鼠标所在的位置
             static boolean rcStartOnUI  = false;  // 是否开始右键点击
             static integer rcStartPos   = 0;      // 右键点击开始时的鼠标位置
+
+            // 技能栏UI刷新（12槽）
+            static trigger trAbilityRefresh = null; // 刷新界面显示的技能回调
+            static integer lastAbilities[3][4];      // 记录上一次显示的能力值
         }
 
         //回调参数(事件当前的技能id)
@@ -99,6 +103,38 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
         static method onRightClickAbility (code func) {
             if (trRightClickAbility == null) { trRightClickAbility = CreateTrigger(); }
             TriggerAddCondition(trRightClickAbility, Condition(func));
+        }
+
+        // 注册当前单位技能栏的UI刷新（12 槽检测变化）
+        static method onAbilityUIChange (code func) {
+            if (trAbilityRefresh == null) {
+                trAbilityRefresh = CreateTrigger();
+                hardware.regUpdateEvent(function() {
+                    integer row; integer col; integer nowAbil; integer prevAbil;
+
+                    // 若无监听者则无需执行
+                    if (trAbilityRefresh == null) { return; }
+
+                    // 遍历 3x4 技能槽
+                    for (1 <= row <= 3) {
+                        for (1 <= col <= 4) {
+                            prevAbil = lastAbilities[row][col];
+                            nowAbil  = GetCurrentXYAbility(col - 1, row - 1);
+
+                            if (nowAbil != prevAbil) {
+                                // 设置回调参数并触发
+                                argsRow = row;
+                                argsCol = col;
+                                TriggerEvaluate(trAbilityRefresh);
+
+                                // 覆盖记录
+                                lastAbilities[row][col] = nowAbil;
+                            }
+                        }
+                    }
+                });
+            }
+            TriggerAddCondition(trAbilityRefresh, Condition(func));
         }
 
         // 把技能按钮移出屏幕外
