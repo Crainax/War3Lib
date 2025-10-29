@@ -1,12 +1,10 @@
 #ifndef MTIncluded
 #define MTIncluded
 
-#include "Crainax/core/constant/Variable.j"
-
 //! zinc
 
 //模型测试
-library MT requires optional Variable {
+library MT requires UnitTestFramwork {
 
 	group g = null;
 	//单位模型
@@ -15,7 +13,7 @@ library MT requires optional Variable {
 		DzSetUnitModel(u,path);
 		// 这个是下面的变化,是异步的
 		if (GetConvertedPlayerId(p) == GetConvertedPlayerId(GetLocalPlayer())) {
-			DzSetUnitPortrait(u,path);
+			DzSetUnitModel(u,path);
 			SetCinematicScene('Hamg',GetPlayerColor(Player(0)),"","",.01,0);
 			EndCinematicScene();
 		}
@@ -28,30 +26,30 @@ library MT requires optional Variable {
 	function EfxB (string bind,string path) {
 		timer t = CreateTimer();
 		unit u = CreateUnit(Player(0),'Hblm',GetRandomReal(0,300),GetRandomReal(0,300),GetRandomReal(0,360));
-		SaveEffectHandle(TITable,GetHandleId(t),1,AddSpecialEffectTargetUnitBJ(bind,u,path));
-		SaveUnitHandle(TITable,GetHandleId(t),2,u);
+		SaveEffectHandle(HASH_TIMER,GetHandleId(t),1,AddSpecialEffectTargetUnitBJ(bind,u,path));
+		SaveUnitHandle(HASH_TIMER,GetHandleId(t),2,u);
 		TimerStart(t,5.0,false,function (){
 			timer t = GetExpiredTimer();
 			integer id = GetHandleId(t);
-			effect e = LoadEffectHandle(TITable,id,1);
-			unit u = LoadUnitHandle(TITable,id,2);
+			effect e = LoadEffectHandle(HASH_TIMER,id,1);
+			unit u = LoadUnitHandle(HASH_TIMER,id,2);
 			timer t2 = CreateTimer();
 			DestroyEffect(e);
-			SaveUnitHandle(TITable,GetHandleId(t2),1,u);
+			SaveUnitHandle(HASH_TIMER,GetHandleId(t2),1,u);
 			TimerStart(t2,3.0,false,function (){
 				timer t2 = GetExpiredTimer();
 				integer id = GetHandleId(t2);
-				unit u = LoadUnitHandle(TITable,id,1);
+				unit u = LoadUnitHandle(HASH_TIMER,id,1);
 				RemoveUnit(u);
 				PauseTimer(t2);
-				FlushChildHashtable(TITable,id);
+				FlushChildHashtable(HASH_TIMER,id);
 				DestroyTimer(t2);
 				t2 = null;
 				u = null;
 			});
 			t2 = null;
 			PauseTimer(t);
-			FlushChildHashtable(TITable,id);
+			FlushChildHashtable(HASH_TIMER,id);
 			DestroyTimer(t);
 			t = null;
 			e = null;
@@ -69,36 +67,36 @@ library MT requires optional Variable {
 		effect e     = AddSpecialEffect(path, cx,cy);
 		// EXEffectMatScale(e,2.0,2.0,2.0);
 		EXEffectMatRotateZ(e,GetFacing(cx,cy,dx,dy));
-		SaveEffectHandle(TITable,GetHandleId(t),1,e);
-		SaveReal(TITable,GetHandleId(t),2,cx);
-		SaveReal(TITable,GetHandleId(t),3,cy);
-		SaveReal(TITable,GetHandleId(t),4,dx);
-		SaveReal(TITable,GetHandleId(t),5,dy);
-		SaveReal(TITable,GetHandleId(t),6,cz);
-		SaveReal(TITable,GetHandleId(t),7,dz);
-		SaveReal(TITable,GetHandleId(t),8,speed*(RAbsBJ(dz-cz))/GetDistance(cx,cy,dx,dy));
-		SaveReal(TITable,GetHandleId(t),9,speed); //帧速度,乘间隔就是秒速
+		SaveEffectHandle(HASH_TIMER,GetHandleId(t),1,e);
+		SaveReal(HASH_TIMER,GetHandleId(t),2,cx);
+		SaveReal(HASH_TIMER,GetHandleId(t),3,cy);
+		SaveReal(HASH_TIMER,GetHandleId(t),4,dx);
+		SaveReal(HASH_TIMER,GetHandleId(t),5,dy);
+		SaveReal(HASH_TIMER,GetHandleId(t),6,cz);
+		SaveReal(HASH_TIMER,GetHandleId(t),7,dz);
+		SaveReal(HASH_TIMER,GetHandleId(t),8,speed*(RAbsBJ(dz-cz))/GetDistance(cx,cy,dx,dy));
+		SaveReal(HASH_TIMER,GetHandleId(t),9,speed); //帧速度,乘间隔就是秒速
 		TimerStart(t,0.02,true,function (){
 			timer   t     = GetExpiredTimer();
 			integer id    = GetHandleId(t);
-			effect  e     = LoadEffectHandle(TITable,id,1);
-			real    cx    = LoadReal(TITable,id,2), cy = LoadReal(TITable,id,3);
-			real    dx    = LoadReal(TITable,id,4), dy = LoadReal(TITable,id,5);
-			real    cz    = LoadReal(TITable,id,6), dz = LoadReal(TITable,id,7);
-			real    speed = LoadReal(TITable,id,9), zSpeed = LoadReal(TITable,id,8);
+			effect  e     = LoadEffectHandle(HASH_TIMER,id,1);
+			real    cx    = LoadReal(HASH_TIMER,id,2), cy = LoadReal(HASH_TIMER,id,3);
+			real    dx    = LoadReal(HASH_TIMER,id,4), dy = LoadReal(HASH_TIMER,id,5);
+			real    cz    = LoadReal(HASH_TIMER,id,6), dz = LoadReal(HASH_TIMER,id,7);
+			real    speed = LoadReal(HASH_TIMER,id,9), zSpeed = LoadReal(HASH_TIMER,id,8);
 			real    angle = GetFacing(cx,cy,dx,dy);
 			real    ncx   = YDWECoordinateX(cx + speed *CosBJ(angle)), ncy = YDWECoordinateY(cy + speed * SinBJ(angle)), ncz = zSpeed + cz;
 			if (GetDistance(cx,cy,dx,dy) > speed) {
 				//还行
-				SaveReal(TITable,GetHandleId(t),2,ncx);
-				SaveReal(TITable,GetHandleId(t),3,ncy);
-				SaveReal(TITable,GetHandleId(t),6,ncz);
+				SaveReal(HASH_TIMER,GetHandleId(t),2,ncx);
+				SaveReal(HASH_TIMER,GetHandleId(t),3,ncy);
+				SaveReal(HASH_TIMER,GetHandleId(t),6,ncz);
 				EXSetEffectXY(e,ncx,ncy);
 				EXSetEffectZ(e,ncz);
 			} else {
 				DestroyEffect(e);
 				PauseTimer(t);
-				FlushChildHashtable(TITable,id);
+				FlushChildHashtable(HASH_TIMER,id);
 				DestroyTimer(t);
 			}
 			t = null;
@@ -113,112 +111,70 @@ library MT requires optional Variable {
 	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
 	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
 	function TTestMT1 (player p) {
-		UnitModel(p,"qiuti_antusheng.mdl");
-		Efx("qiuti_antusheng.mdl");
-		EfxB("chest","qiuti_antusheng.mdl");
-		Danmu("qiuti_antusheng.mdl");
+		UnitModel(p,"rem_blast.mdl");
+		Efx("rem_blast.mdl");
+		EfxB("chest","rem_blast.mdl");
+		Danmu("rem_blast.mdl");
 	}
 	function TTestMT2 (player p) {
-		UnitModel(p,"e_summon (7).mdl");
-		Efx("e_summon (7).mdl");
-		EfxB("chest","e_summon (7).mdl");
-		Danmu("e_summon (7).mdl");
+		effect e = AddSpecialEffect("ram_blast.mdl",GetRandomReal(-300,300),GetRandomReal(-300,300));
+		DzSetEffectScale(e,0.15);
+		DestroyEffect(e);
+		e = null;
 	}
 	function TTestMT3 (player p) {
-		UnitModel(p,"e_summon (6).mdl");
-		Efx("e_summon (6).mdl");
-		EfxB("chest","e_summon (6).mdl");
-		Danmu("e_summon (6).mdl");
+		UnitModel(p,"ram_attract.mdl");
+		Efx("ram_attract.mdl");
+		EfxB("chest","ram_attract.mdl");
+		Danmu("ram_attract.mdl");
 	}
 	function TTestMT4 (player p) {
-		UnitModel(p,"e_summon (5).mdl");
-		Efx("e_summon (5).mdl");
-		EfxB("chest","e_summon (5).mdl");
-		Danmu("e_summon (5).mdl");
+		UnitModel(p,"Burnning.mdl");
+		Efx("Burnning.mdl");
+		EfxB("chest","Burnning.mdl");
+		Danmu("Burnning.mdl");
 	}
 	function TTestMT5 (player p) {
-		UnitModel(p,"e_summon (4).mdl");
-		Efx("e_summon (4).mdl");
-		EfxB("chest","e_summon (4).mdl");
-		Danmu("e_summon (4).mdl");
+		//replace
 	}
 	function TTestMT6 (player p) {
-		UnitModel(p,"e_summon (3).mdl");
-		Efx("e_summon (3).mdl");
-		EfxB("chest","e_summon (3).mdl");
-		Danmu("e_summon (3).mdl");
+		//replace
 	}
 	function TTestMT7 (player p) {
-		UnitModel(p,"e_summon (2).mdl");
-		Efx("e_summon (2).mdl");
-		EfxB("chest","e_summon (2).mdl");
-		Danmu("e_summon (2).mdl");
+		//replace
 	}
 	function TTestMT8 (player p) {
-		UnitModel(p,"e_summon (1).mdl");
-		Efx("e_summon (1).mdl");
-		EfxB("chest","e_summon (1).mdl");
-		Danmu("e_summon (1).mdl");
+		//replace
 	}
 	function TTestMT9 (player p) {
-		UnitModel(p,"e_pet_blink.mdl");
-		Efx("e_pet_blink.mdl");
-		EfxB("chest","e_pet_blink.mdl");
-		Danmu("e_pet_blink.mdl");
+		//replace
 	}
 	function TTestMT10 (player p) {
-		UnitModel(p,"effect_roar_langhun.mdl");
-		Efx("effect_roar_langhun.mdl");
-		EfxB("chest","effect_roar_langhun.mdl");
-		Danmu("effect_roar_langhun.mdl");
+		//replace
 	}
 	function TTestMT11 (player p) {
-		UnitModel(p,"effect_langhun_f_target.mdl");
-		Efx("effect_langhun_f_target.mdl");
-		EfxB("chest","effect_langhun_f_target.mdl");
-		Danmu("effect_langhun_f_target.mdl");
+		//replace
 	}
 	function TTestMT12 (player p) {
-		UnitModel(p,"effect_knight_w_blast.mdl");
-		Efx("effect_knight_w_blast.mdl");
-		EfxB("chest","effect_knight_w_blast.mdl");
-		Danmu("effect_knight_w_blast.mdl");
+		//replace
 	}
 	function TTestMT13 (player p) {
-		UnitModel(p,"effect_knight_w_1.mdl");
-		Efx("effect_knight_w_1.mdl");
-		EfxB("chest","effect_knight_w_1.mdl");
-		Danmu("effect_knight_w_1.mdl");
+		//replace
 	}
 	function TTestMT14 (player p) {
-		UnitModel(p,"effect_knight_r.mdl");
-		Efx("effect_knight_r.mdl");
-		EfxB("chest","effect_knight_r.mdl");
-		Danmu("effect_knight_r.mdl");
+		//replace
 	}
 	function TTestMT15 (player p) {
-		UnitModel(p,"effect_knight_q_1.mdl");
-		Efx("effect_knight_q_1.mdl");
-		EfxB("chest","effect_knight_q_1.mdl");
-		Danmu("effect_knight_q_1.mdl");
+		//replace
 	}
 	function TTestMT16 (player p) {
-		UnitModel(p,"effect_knight_f.mdl");
-		Efx("effect_knight_f.mdl");
-		EfxB("chest","effect_knight_f.mdl");
-		Danmu("effect_knight_f.mdl");
+		//replace
 	}
 	function TTestMT17 (player p) {
-		// UnitModel(p,"effect_knight_e_impact.mdl");
-		// Efx("effect_knight_e_impact.mdl");
-		EfxB("chest","effect_knight_e_impact.mdl");
-		// Danmu("effect_knight_e_impact.mdl");
+		//replace
 	}
 	function TTestMT18 (player p) {
-		// UnitModel(p,"effect_knight_e.mdl");
-		Efx("effect_knight_e.mdl");
-		// EfxB("chest","effect_knight_e.mdl");
-		// Danmu("effect_knight_e.mdl");
+		//replace
 	}
 	function TTestMT19 (player p) {
 		//replace
@@ -329,6 +285,7 @@ library MT requires optional Variable {
 			CreateFogModifierRectBJ( true, ConvertedPlayer(i), FOG_OF_WAR_VISIBLE, GetPlayableMapRect() );
 			SetCameraFieldForPlayer( ConvertedPlayer(i), CAMERA_FIELD_ZOFFSET, ( GetCameraTargetPositionZ() + 800.00 ), 0 );
 		}
+		#ifdef TestMode
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();
 			integer i = 1;
@@ -388,6 +345,7 @@ library MT requires optional Variable {
 
 		});
 
+		#endif
 		g = CreateGroup();
 	}
 

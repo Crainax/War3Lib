@@ -16,7 +16,7 @@ library UTUIImageBar requires UIImageBar {
 		// 创建进度条
 		bar = uiImageBar.create(DzGetGameUI())
 			.setProgress(0.5)
-			.setSize(0.2, 0.01)
+			.exReSize(0.2, 0.01)
 			.setBorder(1)
 			.setFillColor(1)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0,0);

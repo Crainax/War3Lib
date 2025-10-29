@@ -26,13 +26,13 @@
 
 library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
-    public hashtable HASH_SELECT = InitHashtable(); //存放数据
-    private selectData currentSD; //回调参数
-    private selectData currentSDAsync; //回调参数(异步调用)
-    private integer currentPos; //点击位置
-    private integer currentPosAsync; //点击位置(异步调用)
-    private string currentContent; //当前文字(返回值)
-    private boolean currentShadow; //当前阴影(返回值)
+    public  hashtable HASH_SELECT     = InitHashtable();  //存放数据
+    private selectData currentSD      = 0;                //回调参数
+    private selectData currentSDAsync = 0;                //回调参数(异步调用)
+    private integer currentPos        = 0;                //点击位置
+    private integer currentPosAsync   = 0;                //点击位置(异步调用)
+    private string currentContent     = null;             //当前文字(返回值)
+    private boolean currentShadow     = false;            //当前阴影(返回值)
 
     //当前触发的SelectData数据
     public function GetSelectData () -> selectData {
@@ -472,7 +472,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
     }
 
-
     //选择UI对应的数据(同步调用)
     public struct selectData {
         integer count;      //一共多少个选择
@@ -658,6 +657,14 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
 
 }
+
+#undef SELECT_UI_MAX_COUNT
+#undef SIZE_ICON_SELECT
+#undef SIZE_ICON_GAP_X
+#undef SIZE_ICON_GAP_Y
+#undef SIZE_OFFSET_X
+#undef SIZE_OFFSET_Y
+
 //! endzinc
 
 #endif

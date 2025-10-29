@@ -225,7 +225,7 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
                     cornerShade = uiBorder.createCornerBorder(this.parent);
                     cornerText = uiText.create(cornerShade.ui);
                 }
-                cornerText.setFontSize(2)
+                cornerText.setFontSize(1)
                     .setPoint(ANCHOR_BOTTOMRIGHT, mainImage.ui, ANCHOR_BOTTOMRIGHT, -0.003,0.003);
                 padding = 0.003;
                 cornerShade.setPoint(ANCHOR_TOPLEFT, cornerText.ui, ANCHOR_TOPLEFT, -padding, padding)

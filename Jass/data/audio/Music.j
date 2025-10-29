@@ -142,6 +142,16 @@ library Music {
 			thistype[MUSIC_INDEX_FLASH_1].snd = snd;
 			//# endcheck
 
+			//# check: music[1006]
+			//# dependency:sound/sound/click_pause.mp3
+			snd = CreateSound( "sound\\click_pause.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 166 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_CLICK_PAUSE].snd = snd;
+			//# endcheck
+
 			//# check: music[7]
 			snd = CreateSound("Sound\\Interface\\Warning\\Human\\KnightNoGold1.wav", false, false, false, 10, 10, "DefaultEAXON");
 			SetSoundDuration(snd, 1486);

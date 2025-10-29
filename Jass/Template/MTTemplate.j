@@ -1,18 +1,10 @@
 #ifndef MTIncluded
 #define MTIncluded
 
-#include "edit/Constant/JAPIConstant.j"
-#include "API/japi/YDWEJapiEffect.j"
-#include "API/japi/YDWEJapiUnit.j"
-#include "edit/Constant/Variable.j"
-#include "edit/Utils/EffectUtils.j"
-#include "edit/Base/CRBase.j"
-#include "API/Base/YDWEBase_common.j"
-
 //! zinc
 
 //模型测试
-library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
+library MT requires UnitTestFramwork {
 
 	group g = null;
 	//单位模型
@@ -34,30 +26,30 @@ library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
 	function EfxB (string bind,string path) {
 		timer t = CreateTimer();
 		unit u = CreateUnit(Player(0),'Hblm',GetRandomReal(0,300),GetRandomReal(0,300),GetRandomReal(0,360));
-		SaveEffectHandle(TITable,GetHandleId(t),1,AddSpecialEffectTargetUnitBJ(bind,u,path));
-		SaveUnitHandle(TITable,GetHandleId(t),2,u);
+		SaveEffectHandle(HASH_TIMER,GetHandleId(t),1,AddSpecialEffectTargetUnitBJ(bind,u,path));
+		SaveUnitHandle(HASH_TIMER,GetHandleId(t),2,u);
 		TimerStart(t,5.0,false,function (){
 			timer t = GetExpiredTimer();
 			integer id = GetHandleId(t);
-			effect e = LoadEffectHandle(TITable,id,1);
-			unit u = LoadUnitHandle(TITable,id,2);
+			effect e = LoadEffectHandle(HASH_TIMER,id,1);
+			unit u = LoadUnitHandle(HASH_TIMER,id,2);
 			timer t2 = CreateTimer();
 			DestroyEffect(e);
-			SaveUnitHandle(TITable,GetHandleId(t2),1,u);
+			SaveUnitHandle(HASH_TIMER,GetHandleId(t2),1,u);
 			TimerStart(t2,3.0,false,function (){
 				timer t2 = GetExpiredTimer();
 				integer id = GetHandleId(t2);
-				unit u = LoadUnitHandle(TITable,id,1);
+				unit u = LoadUnitHandle(HASH_TIMER,id,1);
 				RemoveUnit(u);
 				PauseTimer(t2);
-				FlushChildHashtable(TITable,id);
+				FlushChildHashtable(HASH_TIMER,id);
 				DestroyTimer(t2);
 				t2 = null;
 				u = null;
 			});
 			t2 = null;
 			PauseTimer(t);
-			FlushChildHashtable(TITable,id);
+			FlushChildHashtable(HASH_TIMER,id);
 			DestroyTimer(t);
 			t = null;
 			e = null;
@@ -75,36 +67,36 @@ library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
 		effect e     = AddSpecialEffect(path, cx,cy);
 		// EXEffectMatScale(e,2.0,2.0,2.0);
 		EXEffectMatRotateZ(e,GetFacing(cx,cy,dx,dy));
-		SaveEffectHandle(TITable,GetHandleId(t),1,e);
-		SaveReal(TITable,GetHandleId(t),2,cx);
-		SaveReal(TITable,GetHandleId(t),3,cy);
-		SaveReal(TITable,GetHandleId(t),4,dx);
-		SaveReal(TITable,GetHandleId(t),5,dy);
-		SaveReal(TITable,GetHandleId(t),6,cz);
-		SaveReal(TITable,GetHandleId(t),7,dz);
-		SaveReal(TITable,GetHandleId(t),8,speed*(RAbsBJ(dz-cz))/GetDistance(cx,cy,dx,dy));
-		SaveReal(TITable,GetHandleId(t),9,speed); //帧速度,乘间隔就是秒速
+		SaveEffectHandle(HASH_TIMER,GetHandleId(t),1,e);
+		SaveReal(HASH_TIMER,GetHandleId(t),2,cx);
+		SaveReal(HASH_TIMER,GetHandleId(t),3,cy);
+		SaveReal(HASH_TIMER,GetHandleId(t),4,dx);
+		SaveReal(HASH_TIMER,GetHandleId(t),5,dy);
+		SaveReal(HASH_TIMER,GetHandleId(t),6,cz);
+		SaveReal(HASH_TIMER,GetHandleId(t),7,dz);
+		SaveReal(HASH_TIMER,GetHandleId(t),8,speed*(RAbsBJ(dz-cz))/GetDistance(cx,cy,dx,dy));
+		SaveReal(HASH_TIMER,GetHandleId(t),9,speed); //帧速度,乘间隔就是秒速
 		TimerStart(t,0.02,true,function (){
 			timer   t     = GetExpiredTimer();
 			integer id    = GetHandleId(t);
-			effect  e     = LoadEffectHandle(TITable,id,1);
-			real    cx    = LoadReal(TITable,id,2), cy = LoadReal(TITable,id,3);
-			real    dx    = LoadReal(TITable,id,4), dy = LoadReal(TITable,id,5);
-			real    cz    = LoadReal(TITable,id,6), dz = LoadReal(TITable,id,7);
-			real    speed = LoadReal(TITable,id,9), zSpeed = LoadReal(TITable,id,8);
+			effect  e     = LoadEffectHandle(HASH_TIMER,id,1);
+			real    cx    = LoadReal(HASH_TIMER,id,2), cy = LoadReal(HASH_TIMER,id,3);
+			real    dx    = LoadReal(HASH_TIMER,id,4), dy = LoadReal(HASH_TIMER,id,5);
+			real    cz    = LoadReal(HASH_TIMER,id,6), dz = LoadReal(HASH_TIMER,id,7);
+			real    speed = LoadReal(HASH_TIMER,id,9), zSpeed = LoadReal(HASH_TIMER,id,8);
 			real    angle = GetFacing(cx,cy,dx,dy);
 			real    ncx   = YDWECoordinateX(cx + speed *CosBJ(angle)), ncy = YDWECoordinateY(cy + speed * SinBJ(angle)), ncz = zSpeed + cz;
 			if (GetDistance(cx,cy,dx,dy) > speed) {
 				//还行
-				SaveReal(TITable,GetHandleId(t),2,ncx);
-				SaveReal(TITable,GetHandleId(t),3,ncy);
-				SaveReal(TITable,GetHandleId(t),6,ncz);
+				SaveReal(HASH_TIMER,GetHandleId(t),2,ncx);
+				SaveReal(HASH_TIMER,GetHandleId(t),3,ncy);
+				SaveReal(HASH_TIMER,GetHandleId(t),6,ncz);
 				EXSetEffectXY(e,ncx,ncy);
 				EXSetEffectZ(e,ncz);
 			} else {
 				DestroyEffect(e);
 				PauseTimer(t);
-				FlushChildHashtable(TITable,id);
+				FlushChildHashtable(HASH_TIMER,id);
 				DestroyTimer(t);
 			}
 			t = null;
@@ -339,7 +331,7 @@ library MT requires optional Variable,EffectUtils,optional CRBase,YDWEJapiUnit {
 			else if(str == "s49") TTestMT49(GetTriggerPlayer());
 			else if(str == "s50") TTestMT50(GetTriggerPlayer());
 
-		}));
+		});
 
 		#endif
 		g = CreateGroup();
