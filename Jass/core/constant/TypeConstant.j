@@ -84,4 +84,12 @@
 #define UNIT_GOLD 17237227
 #define UNIT_EXP 17237718
 
+
+
+//技能ID:
+#define SPELL_MULTI_TIME_KEY    100001000    //多重施法间隔
+#define SPELL_MULTIABLE_KEY     100002000    //是否能多重施法
+#define SPELL_USE_TYPE_KEY      100003000    //使用类型
+#define SPELL_POINTER_KEY       100004000    //指针
+
 #endif

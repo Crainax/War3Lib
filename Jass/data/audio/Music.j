@@ -89,6 +89,22 @@ library Music {
 			SetSoundPlayPosition(snd,0); //加上一条这个可以实现从头开始放
 		}
 
+		// 按照镜头距离播放（非3D，基于摄像机距离的条件播放）
+		// 用途：play 能放而 playXY 不稳定时，按玩家镜头是否接近 (x,y) 决定是否播放
+		// 说明：不创建位置声源，仅在本地玩家镜头距离不超过阈值时播放 2D 声音
+		method playCameraXY (real x, real y) {
+			real cx = GetCameraTargetPositionX();
+			real cy = GetCameraTargetPositionY();
+			real dx = cx - x;
+			real dy = cy - y;
+			real dist = SquareRoot(dx*dx + dy*dy);
+			// 默认听觉半径（可按需调整）
+			if (dist <= 3500.0) {
+				StartSound(snd);
+				SetSoundPlayPosition(snd,0);
+			}
+		}
+
 		static method onInit () {
 			sound snd = null;
 
@@ -150,6 +166,36 @@ library Music {
 			SetSoundVolume( snd, 127 );
 			SetSoundPitch( snd, 1.0 );
 			thistype[MUSIC_INDEX_CLICK_PAUSE].snd = snd;
+			//# endcheck
+
+			//# check: music[2001]
+			//# dependency:sound/sound/blackhole.mp3
+			snd = CreateSound("sound\\blackhole.mp3", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 5670);
+			SetSoundChannel(snd, 0);
+			SetSoundVolume(snd, 127);
+			SetSoundPitch(snd, 1.0);
+			thistype[MUSIC_INDEX_BLACKHOLE].snd = snd;
+			//# endcheck
+
+			//# check: music[2002]
+			//# dependency:sound/sound/cure_1.mp3
+			snd = CreateSound("sound\\cure_1.mp3", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 3135);
+			SetSoundChannel(snd, 0);
+			SetSoundVolume(snd, 127);
+			SetSoundPitch(snd, 1.0);
+			thistype[MUSIC_INDEX_CURE_1].snd = snd;
+			//# endcheck
+
+			//# check: music[2003]
+			//# dependency:sound/sound/cure_2.mp3
+			snd = CreateSound("sound\\cure_2.mp3", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 4310);
+			SetSoundChannel(snd, 0);
+			SetSoundVolume(snd, 127);
+			SetSoundPitch(snd, 1.0);
+			thistype[MUSIC_INDEX_CURE_2].snd = snd;
 			//# endcheck
 
 			//# check: music[7]

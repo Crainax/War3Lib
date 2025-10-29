@@ -6,6 +6,7 @@
 
 //! zinc
 
+
 //自动生成的文件
 library UTMusic requires Music {
 
@@ -23,12 +24,12 @@ library UTMusic requires Music {
 			//music[13]
 		},null);
 		// YDUserDataSet(itemcode, 'esaz', "LL", integer, 23000);
+
 	}
 
 	// 测试1：旧方法（有内存泄露）- 在同一位置快速播放10次
 	function TTestUTMusic1 (player p) {
-		// music[1005].playFor(p);
-		music[1006].playFor(p);
+		music[2001].playCameraXY(0.0, 0.0);
 	}
 
 	// 测试2：新方法 - 使用堆叠音效在同一位置快速播放10次
@@ -39,7 +40,7 @@ library UTMusic requires Music {
 
 		BJDebugMsg("=== 测试2：新方法 playXY - 同一位置快速播放10次 ===");
 		for (1 <= i <= 10) {
-			music.playXY("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", x, y);
+			music.playXY("sound\\xiaoye.mp3", x, y);
 		}
 		BJDebugMsg("已在(0, 0)播放10次音效（新方法，无内存泄露）");
 	}
@@ -67,14 +68,14 @@ library UTMusic requires Music {
 		t = CreateTimer();
 		count = 0;
 
-		TimerStart(t, 0.01, true, function() {
+		TimerStart(t, 0.1, true, function() {
 			timer tt; integer hid; integer cnt; real rx; real ry;
 
 			tt = GetExpiredTimer();
 			hid = GetHandleId(tt);
 			cnt = LoadInteger(udg_hash, hid, 0);
 
-			if (cnt >= 1000) {
+			if (cnt >= 100) {
 				PauseTimer(tt);
 				FlushChildHashtable(udg_hash, hid);
 				DestroyTimer(tt);
@@ -86,7 +87,7 @@ library UTMusic requires Music {
 			// 在随机位置播放
 			rx = GetRandomReal(-1000.0, 1000.0);
 			ry = GetRandomReal(-1000.0, 1000.0);
-			music.playXY("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", rx, ry);
+			music.playXY("sound\\xiaoye.mp3", rx, ry);
 
 			SaveInteger(udg_hash, hid, 0, cnt + 1);
 			tt = null;

@@ -13,6 +13,10 @@
 #define MUSIC_INDEX_FLASH_1         1005   //用于UI的音效:刷新类型1
 #define MUSIC_INDEX_CLICK_PAUSE     1006   //用于UI的音效:暂停
 
+#define MUSIC_INDEX_BLACKHOLE       2001   //黑洞音效
+#define MUSIC_INDEX_CURE_1          2002   //治疗1音效
+#define MUSIC_INDEX_CURE_2          2003   //治疗2音效
+
 #define MUSIC_INDEX_BASE_DMGED      5   //基地受击音效
 #define MUSIC_INDEX_BASE_DEATH      6   //基地死亡音效
 #define MUSIC_INDEX_NO_GOLD         7   //金币不足音效
