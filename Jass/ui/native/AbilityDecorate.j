@@ -6,6 +6,8 @@
 技能栏装饰（Icon / Grow / CornerText）
 */
 #include "Crainax/core/table/Hash_AbilityDefine.j"
+#include "Crainax/core/table/Hash_UnitDefine.j"
+#include "Crainax/core/constant/TypeConstant.j"
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 
@@ -23,7 +25,39 @@ library AbilityDecorate requires SpellBtns,HashTable {
         return result;
     }
 
+    // 排除单位参与技能装饰处理
+    public function ExcludeUnitFromAbilityDecorate(unit u) {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, HASH_KEY_UNIT_EXCLUDE_ABILITY_DECORATE, true);
+    }
 
+    // 排除单位类型参与技能装饰处理
+    public function ExcludeUnitTypeFromAbilityDecorate(integer typeID) {
+        if (typeID == 0) { return; }
+        SaveBoolean(HASH_TYPEID, typeID, HASH_KEY_UNIT_EXCLUDE_ABILITY_DECORATE, true);
+    }
+
+    // 检查单位是否被排除（检查单位和单位类型）
+    private function IsUnitExcludedFromAbilityDecorate(unit u) -> boolean {
+        integer uid; integer typeID;
+        if (u == null) { return false; }
+
+        // 检查单位实例是否被排除
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, HASH_KEY_UNIT_EXCLUDE_ABILITY_DECORATE)) {
+            return LoadBoolean(HASH_UNIT, uid, HASH_KEY_UNIT_EXCLUDE_ABILITY_DECORATE);
+        }
+
+        // 检查单位类型是否被排除
+        typeID = GetUnitTypeId(u);
+        if (HaveSavedBoolean(HASH_TYPEID, typeID, HASH_KEY_UNIT_EXCLUDE_ABILITY_DECORATE)) {
+            return LoadBoolean(HASH_TYPEID, typeID, HASH_KEY_UNIT_EXCLUDE_ABILITY_DECORATE);
+        }
+
+        return false;
+    }
 
     // 将哈希中的装饰应用到指定槽位
     private function ApplyAbilityDecorToSlot(unit u, integer abilId, integer row, integer col) {
@@ -131,6 +165,14 @@ library AbilityDecorate requires SpellBtns,HashTable {
 
             // 获取当前选择单位
             u = DzGetSelectedLeaderUnit();
+
+            // 检查单位是否被排除
+            if (IsUnitExcludedFromAbilityDecorate(u)) {
+                // 被排除的单位，直接跳过处理
+                u = null;
+                return;
+            }
+
             if (u != null && abilCode != 0) {
                 ApplyAbilityDecorToSlot(u, abilCode, row, col);
             } else {

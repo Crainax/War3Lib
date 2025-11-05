@@ -16,6 +16,7 @@
 #define MUSIC_INDEX_BLACKHOLE       2001   //黑洞音效
 #define MUSIC_INDEX_CURE_1          2002   //治疗1音效
 #define MUSIC_INDEX_CURE_2          2003   //治疗2音效
+#define MUSIC_INDEX_XIAOYE_WORLD    2004   //小夜世界音效
 
 #define MUSIC_INDEX_BASE_DMGED      5   //基地受击音效
 #define MUSIC_INDEX_BASE_DEATH      6   //基地死亡音效

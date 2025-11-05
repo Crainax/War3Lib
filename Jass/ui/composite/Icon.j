@@ -131,7 +131,7 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
             return fromExistingUI(uiImage.createSimple(parent),parent);
         }
 
-        // 更新流光尺寸
+        // 更新流光尺寸c
         private method updateGlowSize () {
             if (glowImage.isExist()) {
                 if (isResize) {
