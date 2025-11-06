@@ -111,40 +111,25 @@ library MT requires UnitTestFramwork {
 	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
 	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
 	function TTestMT1 (player p) {
-		UnitModel(p,"xiaoye_hit.mdl");
-		Efx("xiaoye_hit.mdl");
-		EfxB("chest","xiaoye_hit.mdl");
-		Danmu("xiaoye_hit.mdl");
+		UnitModel(p,"hero_magnataur_n4s_w_missile.mdl");
+		Efx("hero_magnataur_n4s_w_missile.mdl");
+		EfxB("chest","hero_magnataur_n4s_w_missile.mdl");
+		Danmu("hero_magnataur_n4s_w_missile.mdl");
 	}
 	function TTestMT2 (player p) {
-		UnitModel(p,"xiaoye_buff.mdl");
-		Efx("xiaoye_buff.mdl");
-		EfxB("chest","xiaoye_buff.mdl");
-		Danmu("xiaoye_buff.mdl");
+		//replace
 	}
 	function TTestMT3 (player p) {
-		UnitModel(p,"saber_boom.mdl");
-		Efx("saber_boom.mdl");
-		EfxB("chest","saber_boom.mdl");
-		Danmu("saber_boom.mdl");
+		//replace
 	}
 	function TTestMT4 (player p) {
-		UnitModel(p,"lingmeng_boom.mdl");
-		Efx("lingmeng_boom.mdl");
-		EfxB("chest","lingmeng_boom.mdl");
-		Danmu("lingmeng_boom.mdl");
+		//replace
 	}
 	function TTestMT5 (player p) {
-		UnitModel(p,"lingmeng_blink_target.mdl");
-		Efx("lingmeng_blink_target.mdl");
-		EfxB("chest","lingmeng_blink_target.mdl");
-		Danmu("lingmeng_blink_target.mdl");
+		//replace
 	}
 	function TTestMT6 (player p) {
-		UnitModel(p,"lingmeng_blink_origin.mdl");
-		Efx("lingmeng_blink_origin.mdl");
-		EfxB("chest","lingmeng_blink_origin.mdl");
-		Danmu("lingmeng_blink_origin.mdl");
+		//replace
 	}
 	function TTestMT7 (player p) {
 		//replace
