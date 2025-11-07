@@ -4,6 +4,9 @@
 // 常量配置
 #define MALLITEM_MAX_ITEMS      300
 #define MALLITEM_INIT_DELAY     2.0
+// 消费后服务端回写存在延迟：本地预扣 + 轮询校验
+#define MALLITEM_VERIFY_DELAY    0.1
+#define MALLITEM_VERIFY_RETRY    8
 // 开放寻址哈希容量（必须 < 8192，选用素数以降低冲突）
 #define MALLITEM_HASH_CAP       1021
 
@@ -303,38 +306,102 @@ library MallItem requires DzAPI{
             p = null;
         }
 
-        // 消费次数型道具（带回调）：成功消费后调用回调并传入玩家参数
+        // 消费次数型道具（带延时回调）：
+        //  - 先本地预扣，阻止在服务器回写前的重复消费
+        //  - 启动计时器周期轮询，待服务器数值可见后再执行回调
         static method consumeTimes(player whichPlayer, string itemKey, integer count, code callback) ->boolean {
-            integer pid; integer idx; integer base; boolean ok; trigger tempTr;
+            integer pid; integer idx; integer base; integer beforeCount; integer targetCount; boolean ok; trigger cbTr; timer t; integer hid;
 
             pid = GetPlayerId(whichPlayer);
             if (pid < 0 || pid >= MAX_PLAYER_COUNT) { return false; }
             idx = mallItem.getIndex(itemKey);
             if (idx < 0) { return false; }
 
-            // 执行消费
+            base = pid * MALLITEM_MAX_ITEMS;
+
+            // 本地可用次数校验（阻止因服务器延迟导致的连点重复消费）
+            beforeCount = mallItem.uses[base + idx];
+            if (beforeCount < count) { return false; }
+
+            // 执行消费（服务器侧异步回写）
             ok = DzAPI_Map_ConsumeMallItem(whichPlayer, itemKey, count);
             if (ok) {
-                base = pid * MALLITEM_MAX_ITEMS;
-                // 刷新该玩家该商品缓存
-                mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(whichPlayer, itemKey);
-                mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(whichPlayer, itemKey);
+                // 1) 立即进行"本地预扣"，防止在服务器延迟期间被重复消费
+                targetCount = beforeCount - count;
+                if (targetCount < 0) { targetCount = 0; }
+                mallItem.uses[base + idx] = targetCount;
+                mallItem.owns[base + idx] = (targetCount > 0);
 
-                // 如果使用次数小于等于0，则认为该玩家没有这个道具了
-                if (mallItem.uses[base + idx] <= 0) {
-                    mallItem.owns[base + idx] = false;
-                }
+                // 2) 启动计时器，轮询服务器直至回写可见，然后再执行回调
+                //    保存上下文到 hashtable：pid(1), idx(2), target(3), retry(4), player(5), trigger(6)
+                t = CreateTimer();
+                hid = GetHandleId(t);
+                SaveInteger(HASH_TIMER, hid, 1, pid);
+                SaveInteger(HASH_TIMER, hid, 2, idx);
+                SaveInteger(HASH_TIMER, hid, 3, targetCount);
+                SaveInteger(HASH_TIMER, hid, 4, MALLITEM_VERIFY_RETRY);
+                SavePlayerHandle(HASH_TIMER, hid, 5, whichPlayer);
 
-                // 调用回调（传入玩家参数）
+                cbTr = null;
                 if (callback != null) {
-                    mallItem.callbackPlayer = whichPlayer;
-                    tempTr = CreateTrigger();
-                    TriggerAddCondition(tempTr, Condition(callback));
-                    TriggerEvaluate(tempTr);
-                    DestroyTrigger(tempTr);
-                    mallItem.callbackPlayer = null;
-                    tempTr = null;
+                    cbTr = CreateTrigger();
+                    TriggerAddCondition(cbTr, Condition(callback));
                 }
+                SaveTriggerHandle(HASH_TIMER, hid, 6, cbTr);
+
+                // 周期轮询，直至服务端数值 <= 目标值 或 重试次数耗尽
+                TimerStart(t, MALLITEM_VERIFY_DELAY, true, function () {
+                    timer tt; integer key; integer rPid; integer rIdx; integer rTarget; integer rRetry; player rp; trigger rTr;
+                    integer rBase; integer serverCount; boolean hasOwn;
+
+                    // 声明在前
+                    tt = GetExpiredTimer();
+                    key = GetHandleId(tt);
+
+                    rPid    = LoadInteger(HASH_TIMER, key, 1);
+                    rIdx    = LoadInteger(HASH_TIMER, key, 2);
+                    rTarget = LoadInteger(HASH_TIMER, key, 3);
+                    rRetry  = LoadInteger(HASH_TIMER, key, 4);
+                    rp      = LoadPlayerHandle(HASH_TIMER, key, 5);
+                    rTr     = LoadTriggerHandle(HASH_TIMER, key, 6);
+
+                    rBase = rPid * MALLITEM_MAX_ITEMS;
+                    serverCount = DzAPI_Map_GetMallItemCount(rp, mallItem.itemKeys[rIdx]);
+
+                    if (serverCount <= rTarget || rRetry <= 0) {
+                        // 以服务器结果为准刷新缓存
+                        mallItem.uses[rBase + rIdx] = serverCount;
+                        hasOwn = DzAPI_Map_HasMallItem(rp, mallItem.itemKeys[rIdx]);
+                        if (serverCount <= 0) {
+                            mallItem.owns[rBase + rIdx] = false;
+                        } else {
+                            mallItem.owns[rBase + rIdx] = hasOwn;
+                        }
+
+                        // 执行回调（保证此时读取到的是服务器已回写的次数）
+                        if (rTr != null) {
+                            mallItem.callbackPlayer = rp;
+                            TriggerEvaluate(rTr);
+                            DestroyTrigger(rTr);
+                            mallItem.callbackPlayer = null;
+                        }
+
+                        // 清理
+                        FlushChildHashtable(HASH_TIMER, key);
+                        PauseTimer(tt);
+                        DestroyTimer(tt);
+
+                        // 置空句柄
+                        rTr = null; rp = null; tt = null;
+                    } else {
+                        // 重试计数 -1，等待下一个周期
+                        rRetry = rRetry - 1;
+                        SaveInteger(HASH_TIMER, key, 4, rRetry);
+                    }
+                });
+
+                // handler 置空
+                cbTr = null; t = null;
             }
             return ok;
         }

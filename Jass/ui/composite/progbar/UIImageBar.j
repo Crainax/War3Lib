@@ -100,7 +100,15 @@ library UIImageBar requires UIImage {
 
         // 设置进度条的大小
         method setSize (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
             uiBackground.setSize(width,height);
+            return this;
+        }
+
+        // 设置进度条的大小
+        method exReSize (real width, real height) -> thistype {
+            if (!this.isExist()) {return this;}
+            uiBackground.exReSize(width,height);
             return this;
         }
 

@@ -26,13 +26,13 @@
 
 library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
-    public hashtable HASH_SELECT = InitHashtable(); //存放数据
-    private selectData currentSD; //回调参数
-    private selectData currentSDAsync; //回调参数(异步调用)
-    private integer currentPos; //点击位置
-    private integer currentPosAsync; //点击位置(异步调用)
-    private string currentContent; //当前文字(返回值)
-    private boolean currentShadow; //当前阴影(返回值)
+    public  hashtable HASH_SELECT     = InitHashtable();  //存放数据
+    private selectData currentSD      = 0;                //回调参数
+    private selectData currentSDAsync = 0;                //回调参数(异步调用)
+    private integer currentPos        = 0;                //点击位置
+    private integer currentPosAsync   = 0;                //点击位置(异步调用)
+    private string currentContent     = null;             //当前文字(返回值)
+    private boolean currentShadow     = false;            //当前阴影(返回值)
 
     //当前触发的SelectData数据
     public function GetSelectData () -> selectData {
@@ -79,6 +79,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         private icon       icon[SELECT_UI_MAX_COUNT];     //图标(最多12个)
         private uiText     uisTxt[SELECT_UI_MAX_COUNT];   //下方的文字
         private uiImage    uiMain;                        //UI整体框架（背景）
+        private uiBtn      uiMainButton;                  //UI整体框架按钮
         private uiText     uiTitle;                       //标题
         private uiImage    uiBtn1Image;                   //刷新按钮图标
         private uiText     uiBtn1Text;                    //刷新按钮文字
@@ -265,8 +266,12 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
             uiMain = uiImage.create(DzGetGameUI())
                 .setTexture("ui\\image\\bg_select.blp")
-                .setPoint(ANCHOR_TOP, DzGetGameUI(), ANCHOR_CENTER, 0, 0.035)
                 .exReSize(0.3196,0.19);
+            uiMainButton = uiBtn.createBlank(uiMain.ui)
+                .setAllPoint(uiMain.ui)
+                .enableDrag(uiMain.ui,0.15, 0.65, 0.25, 0.5)
+                .setDragPosition(0.4,0.25);
+
             uiTitle = uiText.create(uiMain.ui)
                 .setFontSize(7)
                 .exRePoint(ANCHOR_TOP, uiMain.ui, ANCHOR_TOP, -SIZE_OFFSET_X, -0.025-SIZE_OFFSET_Y);
@@ -461,11 +466,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             if (uiCloseButton != 0) { uiCloseButton.destroy(); uiCloseButton = 0; }
             if (uiCloseImage != 0) { uiCloseImage.destroy(); uiCloseImage = 0; }
             if (uiTooltipTemp != 0) { uiTooltipTemp.destroy(); uiTooltipTemp = 0; }
+            if (uiMainButton != 0) { uiMainButton.destroy(); uiMainButton = 0; }
             if (uiMain != 0) { uiMain.destroy(); uiMain = 0; }
         }
 
     }
-
 
     //选择UI对应的数据(同步调用)
     public struct selectData {
@@ -652,6 +657,14 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
 
 }
+
+#undef SELECT_UI_MAX_COUNT
+#undef SIZE_ICON_SELECT
+#undef SIZE_ICON_GAP_X
+#undef SIZE_ICON_GAP_Y
+#undef SIZE_OFFSET_X
+#undef SIZE_OFFSET_Y
+
 //! endzinc
 
 #endif

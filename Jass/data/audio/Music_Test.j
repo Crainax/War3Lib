@@ -6,6 +6,7 @@
 
 //! zinc
 
+
 //自动生成的文件
 library UTMusic requires Music {
 
@@ -23,10 +24,12 @@ library UTMusic requires Music {
 			//music[13]
 		},null);
 		// YDUserDataSet(itemcode, 'esaz', "LL", integer, 23000);
+
 	}
 
 	// 测试1：旧方法（有内存泄露）- 在同一位置快速播放10次
 	function TTestUTMusic1 (player p) {
+		music[2001].playCameraXY(0.0, 0.0);
 	}
 
 	// 测试2：新方法 - 使用堆叠音效在同一位置快速播放10次
@@ -35,9 +38,9 @@ library UTMusic requires Music {
 		real x = 0.0;
 		real y = 0.0;
 
-		BJDebugMsg("=== 测试2：新方法 playXYStacked - 同一位置快速播放10次 ===");
+		BJDebugMsg("=== 测试2：新方法 playXY - 同一位置快速播放10次 ===");
 		for (1 <= i <= 10) {
-			music.playXYStacked("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", x, y);
+			music.playXY("sound\\xiaoye.mp3", x, y);
 		}
 		BJDebugMsg("已在(0, 0)播放10次音效（新方法，无内存泄露）");
 	}
@@ -51,7 +54,7 @@ library UTMusic requires Music {
 		for (1 <= i <= 20) {
 			x = 500.0 * Cos(i * 18.0 * bj_DEGTORAD);
 			y = 500.0 * Sin(i * 18.0 * bj_DEGTORAD);
-			music.playXYStacked("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", x, y);
+			music.playXY("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", x, y);
 		}
 		BJDebugMsg("已在圆形路径上播放20次音效");
 	}
@@ -65,14 +68,14 @@ library UTMusic requires Music {
 		t = CreateTimer();
 		count = 0;
 
-		TimerStart(t, 0.01, true, function() {
+		TimerStart(t, 0.1, true, function() {
 			timer tt; integer hid; integer cnt; real rx; real ry;
 
 			tt = GetExpiredTimer();
 			hid = GetHandleId(tt);
 			cnt = LoadInteger(udg_hash, hid, 0);
 
-			if (cnt >= 1000) {
+			if (cnt >= 100) {
 				PauseTimer(tt);
 				FlushChildHashtable(udg_hash, hid);
 				DestroyTimer(tt);
@@ -84,7 +87,7 @@ library UTMusic requires Music {
 			// 在随机位置播放
 			rx = GetRandomReal(-1000.0, 1000.0);
 			ry = GetRandomReal(-1000.0, 1000.0);
-			music.playXYStacked("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", rx, ry);
+			music.playXY("sound\\xiaoye.mp3", rx, ry);
 
 			SaveInteger(udg_hash, hid, 0, cnt + 1);
 			tt = null;
@@ -97,11 +100,11 @@ library UTMusic requires Music {
 	// 测试5：对比测试 - 同时播放vs顺序播放
 	function TTestUTMusic5 (player p) {
 		BJDebugMsg("=== 测试5：5个音效几乎同时播放（测试堆叠效果）===");
-		music.playXYStacked("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
-		music.playXYStacked("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
-		music.playXYStacked("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
-		music.playXYStacked("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
-		music.playXYStacked("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
+		music.playXY("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
+		music.playXY("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
+		music.playXY("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
+		music.playXY("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
+		music.playXY("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
 		BJDebugMsg("应该听到5个音效叠加播放的效果");
 	}
 	//打印内存泄露情况
@@ -116,11 +119,13 @@ library UTMusic requires Music {
 
 		BJDebugMsg("=== 测试7：极限堆叠测试 - 瞬间播放30次（超过池大小20）===");
 		for (1 <= i <= 30) {
-			music.playXYStacked("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
+			music.playXY("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", 0.0, 0.0);
 		}
 		BJDebugMsg("已播放30次（池大小只有20，前10次会被打断重用）");
 	}
-	function TTestUTMusic8 (player p) {}
+	function TTestUTMusic8 (player p) {
+		music[1007].play();
+	}
 	function TTestUTMusic9 (player p) {}
 	function TTestUTMusic10 (player p) {}
 	function TTestActUTMusic1 (string str) {
@@ -130,6 +135,7 @@ library UTMusic requires Music {
 		string  paramS [];							   //所有参数S
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
+
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -147,9 +153,11 @@ library UTMusic requires Music {
 		num = num + 1;
 
 		if (paramS[0] == "a") {
-
+			music[paramI[1]].play();
+			BJDebugMsg("播放了"+I2S(paramI[1]));
 		} else if (paramS[0] == "b") {
-
+			music[1006].play();
+			BJDebugMsg("播放了1006");
 		}
 
 		p = null;

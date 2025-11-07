@@ -4,26 +4,29 @@ local lfs = require "lfs"
 local path = require "lua.path"
 local copy = require "lua.utils.copy"
 
+-- 初始化路径配置，确保 path.model 可用
+do
+    local cwd = lfs.currentdir()
+    local project = cwd:gsub("\\", "/")
+    local root = project
+    local libSuffix = "/Library/War3Lib"
+    if project:sub(-#libSuffix) == libSuffix then
+        root = project:sub(1, #project - #libSuffix)
+    else
+        local parent = project:match("(.+)/[^/]+$")
+        if parent then root = parent end
+    end
+    path.init(root, project, "edit")
+    -- 进入模型测试上下文（脚本仅依赖于 path.model.test.*，此调用可选但更语义化）
+    if path.initModelTest then path.initModelTest() end
+end
+
 local flag = {
-    ['path'] = [[D:\模型\模型测试\20221223]], -- 要处理的文件夹
+    ['path'] = [[D:\War3Asset\Model\Shangquemoxing\20251105\2]], -- 要处理的文件夹
     ['mdxTar'] = path.model.test.res, -- 移到这里
     ['type'] = function(name) -- 根据name分format
-        -- if name:match("missile") then
-        --     return 'Missile'
-        -- elseif name:match("n%d$") or name:match("portrait") then
-        --     return 'Unit'
-        -- elseif name:match("self") or name:match("target") then
-        --     return 'Bind'
-        -- else
-        --     return 'Efx'
-        -- end
-        -- return 'Unit' -- 单位
-        -- return 'Efx' -- 特效
-        -- return 'Bind' -- 绑定特效
-        -- if name:match("Flamestrike") then
-        --     return 'Efx'
-        -- end
-        -- return 'Missile' -- 飞弹类特效
+        -- 暂时不依赖分类，默认生成所有四种类型
+        return 'All' -- 返回一个特殊值，触发生成所有类型
     end
 }
 local prefix = {
@@ -45,7 +48,7 @@ function DeleteOldFile()
         local name, format = fu.GetFile(filePath)
         if not (name:lower() == "war3mapmap") then -- 唯一的一个文件就不删除,其他全删除
             os.remove(filePath)
-            print(gbk.toutf8("删除了文件:" .. filePath))
+            print("Deleted file: " .. filePath)
         end
     end, true)
 end
@@ -61,22 +64,22 @@ function MoveModel(mdlList)
             local dir = fu.GetDir(output) -- 对应的文件夹是否存在
             if not (fu.DirExist(dir)) then
                 fu.createDir(dir) -- 创建文件夹
-                print(gbk.toutf8("创建文件夹:" .. dir))
+                print("Created directory: " .. dir)
             end
             local sur, msg = copy.CopyBin(filePath, output)
             if sur then
-                print(gbk.toutf8(output .. ":移动成功！"))
+                print(output .. ": Move successful!")
             else
-                print(gbk.toutf8(output .. ":移动失败！" .. tostring(msg)))
+                print(output .. ": Move failed! " .. tostring(msg))
             end
         elseif format:lower() == "mdx" then
             local output = flag.mdxTar .. "/" .. name .. "." .. format
             local sur, msg = copy.CopyBin(filePath, output)
             table.insert(mdlList, name)
             if sur then
-                print(gbk.toutf8(output .. ":移动成功！"))
+                print(output .. ": Move successful!")
             else
-                print(gbk.toutf8(output .. ":移动失败！" .. tostring(msg)))
+                print(output .. ": Move failed! " .. tostring(msg))
             end
         end
     end, true)
@@ -91,23 +94,33 @@ function GenerateTest(mdxList)
             local mod = table.remove(mdxList)
             if mod then
                 local type = flag.type(mod)
-                if prefix[type] then
+                if type == 'All' then
+                    -- 生成所有四种类型的测试代码，参考 ModelTest.j 的格式
+                    return prefix['Unit'] .. mod .. suffix['Unit'] .. '\n' ..
+                           prefix['Efx'] .. mod .. suffix['Efx'] .. '\n' ..
+                           prefix['Bind'] .. mod .. suffix['Bind'] .. '\n' ..
+                           prefix['Missile'] .. mod .. suffix['Missile']
+                elseif prefix[type] then
                     return prefix[type] .. mod .. suffix[type]
                 else
-                    return prefix['Unit'] .. mod .. suffix['Unit'] .. '' .. -- 都生成下注释
-                    prefix['Efx'] .. mod .. suffix['Efx'] .. '' .. -- 都生成下注释
-                    prefix['Bind'] .. mod .. suffix['Bind'] .. '' .. -- 都生成下注释
-                    prefix['Missile'] .. mod .. suffix['Missile'] -- 都生成下注释
+                    -- 默认生成所有四种类型
+                    return prefix['Unit'] .. mod .. suffix['Unit'] .. '\n' ..
+                           prefix['Efx'] .. mod .. suffix['Efx'] .. '\n' ..
+                           prefix['Bind'] .. mod .. suffix['Bind'] .. '\n' ..
+                           prefix['Missile'] .. mod .. suffix['Missile']
                 end
             end
         end
         return line
     end)
+
     if #mdxList ~= 0 then
-        print(gbk.toutf8("还有" .. #mdxList .. "个没有解决的:"))
+        print("There are " .. #mdxList .. " unresolved models:")
         for index, value in ipairs(mdxList) do
             print(tostring(index) .. ':' .. tostring(value))
         end
+    else
+        print("All models processed successfully!")
     end
 end
 
@@ -115,4 +128,4 @@ local mdxList = {}
 DeleteOldFile() -- 删除旧的模型文件
 MoveModel(mdxList) -- 移动新的模型文件
 GenerateTest(mdxList) -- 生成测试文件
-print(gbk.toutf8("移动文件完成，请看ModelTest.j"))
+print("File move completed, check ModelTest.j")

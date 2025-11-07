@@ -96,8 +96,8 @@ function path.init(root, project, we)
     path.model.test.mapName  = 'ModelTest'                                       -- 模型测试的地图名字
     path.model.test.script   = path.project .. "/"..path.jassPathName .."/config/mtScript.j"         -- 打开模型测试后替换script
     path.model.test.res      = path.project .. "/ModelTest/resource"             -- 模型测试收集位置
-    path.model.test.template = path.project .. "/"..path.jassPathName .."/config/MTTemplate.j"       -- J模板
-    path.model.test.editJ    = path.project .. "/"..path.jassPathName .."/ModelTest.j"               -- J模板替换到的位置
+    path.model.test.template = path.libRoot .. "/Jass/template/MTTemplate.j"       -- J模板
+    path.model.test.editJ    = path.project .. "/"..path.jassPathName .."/config/ModelTest.j"       -- J模板替换到的位置
 end
 
 ---@param name string
