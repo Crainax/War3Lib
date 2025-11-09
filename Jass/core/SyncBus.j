@@ -27,7 +27,7 @@ library SyncBus {
 		// ===== OOS 探测 =====
 		private static integer oosLocalRand = 0;              // 本地每5秒滚动随机值
 		private static integer oosRecvValue[];                // 按玩家(1-based ConvertedID)记录最近一次收到的值
-		private static boolean oosPairNotified[MAX_PLAYER_COUNT][MAX_PLAYER_COUNT];           // 记录已广播的不一致对 (i,j)
+		private static boolean oosPlayerNotified[];           // 记录已对某玩家广播过“与其他玩家不同步”提示
 		private static integer oosTick = 0;                   // 5秒定时器计数器
 		#endif
 
@@ -174,7 +174,7 @@ library SyncBus {
 			#ifdef SWITCH_SYNCBUS_OOS_DETECH
 			// 每5秒刷新本地随机值，每12次（60秒）进行OOS检查和发送
 			TimerStart(CreateTimer(),5.0,true,function (){
-				integer i; integer j; integer vi; integer vj; player pi; player pj;  string msg;
+				integer i; integer j; integer vi; integer vj; integer diffCount; integer sameCount; player pi; player pj;  string msg;
 
 				// 更新本地随机值
 				thistype.oosLocalRand = GetRandomInt(1,100000);
@@ -187,26 +187,36 @@ library SyncBus {
 				if (thistype.oosTick >= 12) {
 					thistype.oosTick = 0;
 
-					// 遍历所有玩家对 (1..12) - 只检查在线玩家
+					// 改为"按玩家为单位"的提示：只对"少数派"玩家（与众数不同的玩家）显示提示
+					// 逻辑：对于每个玩家，统计"相同值玩家数"和"不同值玩家数"
+					// 如果"不同值玩家数" > "相同值玩家数"，说明该玩家是少数派，应该提示
 					for (i = 1; i <= MAX_PLAYER_COUNT; i += 1) {
 						// 只处理在线玩家
 						if (GetPlayerSlotState(ConvertedPlayer(i)) == PLAYER_SLOT_STATE_PLAYING && GetPlayerController(ConvertedPlayer(i)) == MAP_CONTROL_USER) {
-							for (j = i + 1; j <= MAX_PLAYER_COUNT; j += 1) {
-								// 只处理在线玩家
-								if (GetPlayerSlotState(ConvertedPlayer(j)) == PLAYER_SLOT_STATE_PLAYING && GetPlayerController(ConvertedPlayer(j)) == MAP_CONTROL_USER) {
-									vi = thistype.oosRecvValue[i];
-									vj = thistype.oosRecvValue[j];
-									if (vi != 0 && vj != 0 && vi != vj && !thistype.oosPairNotified[i][j]) {
-										// 首次发现 i 与 j 不一致，广播一次
-										pi = ConvertedPlayer(i);
-										pj = ConvertedPlayer(j);
-										msg = GetPlayerName(pi) + " 和 " + GetPlayerName(pj) + " 数据不同步，请确认网络状态(断线重连或异步)";
-										BJDebugMsg(msg);
-										DzWriteLog("[OOS] " + msg + " (" + I2S(i) + " vs " + I2S(j) + ", v1=" + I2S(vi) + ", v2=" + I2S(vj) + ")");
-										thistype.oosPairNotified[i][j] = true;
-										thistype.oosPairNotified[j][i] = true;
-										pi = null; pj = null; msg = null;
+							vi = thistype.oosRecvValue[i];
+							if (vi != 0 && !thistype.oosPlayerNotified[i]) {
+								diffCount = 0;  // 与玩家 i 值不同的玩家数
+								sameCount = 0;  // 与玩家 i 值相同的其他玩家数（不包括自己）
+								for (j = 1; j <= MAX_PLAYER_COUNT; j += 1) {
+									if (j != i && GetPlayerSlotState(ConvertedPlayer(j)) == PLAYER_SLOT_STATE_PLAYING && GetPlayerController(ConvertedPlayer(j)) == MAP_CONTROL_USER) {
+										vj = thistype.oosRecvValue[j];
+										if (vj != 0) {
+											if (vj == vi) {
+												sameCount += 1;
+											} else {
+												diffCount += 1;
+											}
+										}
 									}
+								}
+								// 如果"不同值玩家数" > "相同值玩家数"，说明该玩家是少数派，应该提示
+								if (diffCount > sameCount) {
+									pi = ConvertedPlayer(i);
+									msg = GetPlayerName(pi) + " 和 其他几位玩家之间数据不同步,可能是断线重连,游戏崩溃,或者游戏异步,请确认网络状态";
+									BJDebugMsg(msg);
+									DzWriteLog("[OOS] " + msg + " (pid=" + I2S(i) + ", v=" + I2S(vi) + ", same=" + I2S(sameCount) + ", diff=" + I2S(diffCount) + ")");
+									thistype.oosPlayerNotified[i] = true;
+									pi = null; msg = null;
 								}
 							}
 						}

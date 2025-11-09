@@ -4,48 +4,42 @@
 
 library LBKKPRE
 
-    native DzFrameSetIgnoreTrackEvents takes integer frame, boolean ignore returns nothing 
-    native DzFrameAddModel takes integer parent_frame returns integer 
-    native DzFrameSetModel2 takes integer model_frame, string model_file, integer team_color_id returns nothing 
-    native DzFrameAddModelEffect takes integer model_frame, string attach_point, string model_file returns integer 
-    native DzFrameRemoveModelEffect takes integer model_frame, integer effect_frame returns nothing 
-    native DzFrameSetModelAnimationByIndex takes integer model_frame, integer anim_index returns nothing 
-    native DzFrameSetModelAnimation takes integer model_frame, string animation returns nothing 
-    native DzFrameSetModelCameraSource takes integer model_frame, real x, real y, real z returns nothing 
-    native DzFrameSetModelCameraTarget takes integer model_frame, real x, real y, real z returns nothing 
-    native DzFrameSetModelSize takes integer model_frame, real size returns nothing 
-    native DzFrameGetModelSize takes integer model_frame returns real 
-    native DzFrameSetModelPosition takes integer model_frame, real x, real y, real z returns nothing
-    native DzFrameSetModelX takes integer model_frame, real x returns nothing 
-    native DzFrameGetModelX takes integer model_frame returns real 
-    native DzFrameSetModelY takes integer model_frame, real y returns nothing 
-    native DzFrameGetModelY takes integer model_frame returns real 
-    native DzFrameSetModelZ takes integer model_frame, real z returns nothing 
-    native DzFrameGetModelZ takes integer model_frame returns real 
-    native DzFrameSetModelSpeed takes integer model_frame, real speed returns nothing 
-    native DzFrameGetModelSpeed takes integer model_frame returns real 
-    native DzFrameSetModelScale takes integer model_frame, real x, real y, real z returns nothing 
-    native DzFrameSetModelMatReset takes integer model_frame returns nothing 
-    native DzFrameSetModelRotateX takes integer model_frame, real x returns nothing 
-    native DzFrameSetModelRotateY takes integer model_frame, real y returns nothing 
-    native DzFrameSetModelRotateZ takes integer model_frame, real z returns nothing 
-    native DzFrameSetModelColor takes integer model_frame, integer color returns nothing 
-    native DzFrameGetModelColor takes integer model_frame returns integer
-    native DzFrameSetModelTexture takes integer model_frame, string texture_file, integer replace_texutre_id returns nothing 
-    native DzFrameSetModelParticle2Size takes integer model_frame, real scale returns nothing 
-    native DzGetGlueUI takes nothing returns integer 
-    native DzFrameGetMouse takes nothing returns integer 
-    native DzFrameGetContext takes integer frame returns integer 
-    native DzFrameGetName takes integer frame returns string 
-    native DzFrameSetNameContext takes integer frame, string name, integer context returns nothing 
-    native DzFrameSetTextFontSpacing takes integer text_frame, real spacing returns nothing 
-    native KKCommandGetCooldownModel takes integer cmd_btn returns integer 
-    native KKCommandSetCooldownModelSize takes integer cmd_btn, real size returns nothing 
-    native KKCommandSetCooldownModelSize2 takes integer cmd_btn, real width, real height returns nothing 
-    native DzGetPlayerLastSelectedItem takes player p returns item 
-    native DzGetCacheModelCount takes nothing returns integer 
-    native DzSetMaxFps takes integer max_fps returns nothing 
     
+    native DzEnableDrawSkillPanel takes unit u, boolean is_enable returns nothing 
+    native DzEnableDrawSkillPanelByPlayer takes player p, boolean is_enable returns nothing 
+    native DzSetEffectFogVisible takes effect eff, boolean is_visible returns nothing 
+    native DzSetEffectMaskVisible takes effect eff, boolean is_visible returns nothing 
+
+    native DzFrameBindWidget takes integer frame, widget u, real world_x, real world_y, real world_z, real screen_x, real screen_y, boolean fog_visible, boolean unit_visible, boolean dead_visible returns nothing 
+    native DzFrameBindWorldPos takes integer frame, real world_x, real world_y, real world_z, real screen_x, real screen_y, boolean fog_visible returns nothing
+    native DzFrameUnBind takes integer frame returns nothing 
+
+    function KKFrameBindItem takes integer frame, widget u, real world_x, real world_y, real world_z, real screen_x, real screen_y, boolean fog_visible, boolean item_visible returns nothing 
+        call DzFrameBindWidget(frame, u, world_x, world_y, world_z, screen_x, screen_y, fog_visible, item_visible, false)
+    endfunction
+
+    native DzDisableUnitPreselectUi takes nothing returns nothing
+    native DzDisableItemPreselectUi takes nothing returns nothing
+    native DzFrameGetLowerLevelFrame takes nothing returns integer 
+    native DzFrameSetCheckBoxState takes integer check_box_frame, boolean checked returns nothing
+    native DzFrameGetCheckBoxState takes integer check_box_frame returns boolean
+    native DzFrameIsFocus takes integer frame returns boolean 
+    native DzFrameSetEditBoxActive takes integer frame, boolean is_active returns nothing 
+    native DzFrameSetEditBoxDisableIme takes integer frame, boolean is_disable returns nothing 
+
+    native DzIsWindowMode takes nothing returns boolean 
+    native DzIsWindowActive takes nothing returns boolean
+    native DzWindowSetPoint takes integer x, integer y returns nothing 
+    native DzWindowSetSize takes integer width, integer height returns nothing 
+    native DzGetSystemMetricsWidth takes nothing returns integer 
+    native DzGetSystemMetricsHeight takes nothing returns integer 
+
+    native DzGetDoodadsCount takes nothing returns integer 
+    native DzSetDoodadsMatScale takes integer doodads_index, real x, real y, real z returns nothing 
+    native DzSetDoodadsMatRotateX takes integer doodads_index, real x returns nothing 
+    native DzSetDoodadsMatRotateY takes integer doodads_index, real y returns nothing 
+    native DzSetDoodadsMatRotateZ takes integer doodads_index, real z returns nothing 
+    native DzSetDoodadsMatReset takes integer doodads_index returns nothing 
 endlibrary
 
 #endif
