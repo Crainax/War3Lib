@@ -212,8 +212,12 @@ library SyncBus {
 								// 如果"不同值玩家数" > "相同值玩家数"，说明该玩家是少数派，应该提示
 								if (diffCount > sameCount) {
 									pi = ConvertedPlayer(i);
-									msg = GetPlayerName(pi) + " 和 其他几位玩家之间数据不同步,可能是断线重连,游戏崩溃,或者游戏异步,请确认网络状态";
+									msg = GetPlayerName(pi) + "和其他几位玩家之间数据|cffff0000不同步|r,可能是断线重连,游戏崩溃,或者游戏异步,请确认网络状态.";
 									BJDebugMsg(msg);
+									BJDebugMsg(msg);
+									BJDebugMsg(msg);
+									BJDebugMsg("|cffff0000[tips]|r如果该玩家确认是异步,任务管理器关掉魔兽,然后重连可以回到正常游戏中.");
+									BJDebugMsg("|cffff0000[tips]|r其他玩家目前数据是同步的,请放心游戏.");
 									DzWriteLog("[OOS] " + msg + " (pid=" + I2S(i) + ", v=" + I2S(vi) + ", same=" + I2S(sameCount) + ", diff=" + I2S(diffCount) + ")");
 									thistype.oosPlayerNotified[i] = true;
 									pi = null; msg = null;

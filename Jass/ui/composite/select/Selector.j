@@ -17,6 +17,8 @@
 #define SIZE_ICON_GAP_Y     0.015  //图标间隔(纵)
 #define SIZE_OFFSET_X       0.008 //整体偏移
 #define SIZE_OFFSET_Y       0.025 //整体偏移
+#define SELECTDATA_FORCE_MAX    100  // 强制处理的 selectData 最大遍历上限
+#define SELECTOR_FORCE_CLEAN_MAX 10  // 本地清理的 selector 最大遍历上限
 
 //# dependency:resource/ui/image/select_left.blp
 //# dependency:resource/ui/image/select_right.blp
@@ -611,6 +613,41 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             this.owner = null;
             FlushChildHashtable(HASH_SELECT,this);
         }
+
+        // 对外接口：强制触发该玩家的选择并清理残留 UI
+        // 用途：修复小概率 UI 出现但点击无效的问题
+        static method forceClickAndCleanup(player p) {
+            integer i; integer j; selectData sd; selector ui;
+
+            // 先遍历固定上限范围内的 selectData
+            for (1 <= i <= SELECTDATA_FORCE_MAX) {
+                sd = i;
+                if (sd.isExist()) {
+                    if (sd.owner == p) {
+                        if (sd.trClick != null) {
+                            // 模拟一次点击（位置固定为1）
+                            currentSD = sd;
+                            currentPos = 1;
+                            TriggerEvaluate(sd.trClick);
+                        }
+                    }
+                }
+            }
+
+            // 仅在本地玩家为 p 时，尝试清理残留 UI（遍历少量 selector）
+            if (GetLocalPlayer() == p) {
+                for (1 <= j <= SELECTOR_FORCE_CLEAN_MAX) {
+                    ui = j;
+                    if (ui.isExist()) {
+                        ui.destroy();
+                        ui = 0;
+                    }
+                }
+            }
+
+            // 句柄置空
+            p = null; sd = 0; ui = 0;
+        }
     }
 
     function onInit () {
@@ -664,6 +701,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 #undef SIZE_ICON_GAP_Y
 #undef SIZE_OFFSET_X
 #undef SIZE_OFFSET_Y
+#undef SELECTDATA_FORCE_MAX
+#undef SELECTOR_FORCE_CLEAN_MAX
 
 //! endzinc
 
