@@ -15,6 +15,14 @@ library SpellUtils {
 		return S2I(EXExecuteScript("(require 'jass.message').button("+I2S(x)+", "+I2S(y)+")"));
 	}
 
+	//异步获取当前单位的指定xy位置的指令id（Lua 第二返回值）
+	// param x    x坐标
+	// param y    y坐标
+	// return 指令id
+	public function GetCurrentXYAbilityOrder (integer x,integer y)    -> integer {
+		return S2I(EXExecuteScript("select(2, (require 'jass.message').button("+I2S(x)+", "+I2S(y)+"))"));
+	}
+
 
 	//获取技能提示工具 - 扩展
 	//获取技能图标

@@ -40,7 +40,7 @@ library UTSpellUtils requires SpellUtils {
 
 	function TTestUTSpellUtils1 (player p) {
 		// 测试 GetCurrentXYAbility - 遍历技能ID和名字（不创建单位）
-		integer x, y, abilityId;
+		integer x, y, abilityId, orderId;
 		string abilityName;
 
 		DisplayTextToPlayer(p, 0, 0, "|cffffcc00=== SpellUtils 技能遍历测试开始 ==|r");
@@ -49,11 +49,12 @@ library UTSpellUtils requires SpellUtils {
 		for (0 <= x <= 3) {
 			for (0 <= y <= 2) {
 				abilityId = GetCurrentXYAbility(x, y);
+				orderId = GetCurrentXYAbilityOrder(x, y);
 				abilityName = GetObjectName(abilityId);
 				if (abilityName != null && abilityName != "") {
-					Trace("|cff00ff00技能坐标 (" + I2S(x) + "," + I2S(y) + "):|r  ID: " + YDWEId2S(abilityId) + "  名字: " + abilityName);
+					Trace("|cff00ff00技能坐标 (" + I2S(x) + "," + I2S(y) + "):|r  ID: " + YDWEId2S(abilityId) + "  名字: " + abilityName + "  指令ID: " + I2S(orderId));
 				} else {
-					Trace("|cff00ff00技能坐标 (" + I2S(x) + "," + I2S(y) + "):|r  ID: " + YDWEId2S(abilityId) + "  名字: [未找到或无效]");
+					Trace("|cff00ff00技能坐标 (" + I2S(x) + "," + I2S(y) + "):|r  ID: " + YDWEId2S(abilityId) + "  名字: [未找到或无效]  指令ID: " + I2S(orderId));
 				}
 			}
 		}

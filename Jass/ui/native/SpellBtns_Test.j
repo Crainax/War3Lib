@@ -16,17 +16,19 @@
 *   - 测试技能按钮的显示/隐藏
 *   - 测试技能按钮的高亮效果
 *   - 测试技能按钮的框架信息
+*   - 遍历并显示技能坐标的技能ID、名称和指令ID
 * ---------------------------------------------------------------------------
 * 测试命令:
 *   s1: 切换遮罩显示/隐藏
 *   s2: 切换技能按钮显示/隐藏
 *   s3: 测试技能按钮高亮效果
 *   s4: 显示技能按钮框架信息
+*   s5: 遍历并显示技能坐标的技能ID、名称和指令ID
 * ===========================================================================
 */
 
 //自动生成的文件
-library UTSpellBtns requires SpellBtns {
+library UTSpellBtns requires SpellBtns, SpellUtils {
 	boolean shadeVisible = false;
 	function TTestUTSpellBtns1 (player p) { //试试simpleButton能不能用,能用是能用
 		integer i;
@@ -90,7 +92,28 @@ library UTSpellBtns requires SpellBtns {
 			}
 		}
 	}
-	function TTestUTSpellBtns5 (player p) { //给原生遮罩里再创个按钮
+	function TTestUTSpellBtns5 (player p) {
+		// 测试 GetCurrentXYAbility - 遍历技能ID和名字（不创建单位）
+		integer x, y, abilityId, orderId;
+		string abilityName;
+
+		DisplayTextToPlayer(p, 0, 0, "|cffffcc00=== SpellUtils 技能遍历测试开始 ==|r");
+
+		// 遍历 x:0-3, y:0-2 的技能坐标
+		for (0 <= x <= 3) {
+			for (0 <= y <= 2) {
+				abilityId = GetCurrentXYAbility(x, y);
+				orderId = GetCurrentXYAbilityOrder(x, y);
+				abilityName = GetObjectName(abilityId);
+				if (abilityName != null && abilityName != "") {
+					Trace("|cff00ff00技能坐标 (" + I2S(x) + "," + I2S(y) + "):|r  ID: " + YDWEId2S(abilityId) + "  名字: " + abilityName + "  指令ID: " + I2S(orderId));
+				} else {
+					Trace("|cff00ff00技能坐标 (" + I2S(x) + "," + I2S(y) + "):|r  ID: " + YDWEId2S(abilityId) + "  名字: [未找到或无效]  指令ID: " + I2S(orderId));
+				}
+			}
+		}
+
+		DisplayTextToPlayer(p, 0, 0, "|cffffcc00=== SpellUtils 技能遍历测试完成 ==|r");
 	}
 	function TTestUTSpellBtns6 (player p) {}
 	function TTestUTSpellBtns7 (player p) {}
@@ -144,6 +167,7 @@ library UTSpellBtns requires SpellBtns {
 			BJDebugMsg("|cffffcc00s2|r - 切换技能按钮显示/隐藏");
 			BJDebugMsg("|cffffcc00s3|r - 测试技能按钮高亮效果");
 			BJDebugMsg("|cffffcc00s4|r - 显示技能按钮框架信息");
+			BJDebugMsg("|cffffcc00s5|r - 遍历并显示技能坐标的技能ID、名称和指令ID");
 
 			// 为玩家1创建测试英雄
 			hero = CreateUnit(Player(0), 'Hamg', 0, 0, 270); // 创建大法师在坐标(0,0)
@@ -175,6 +199,7 @@ library UTSpellBtns requires SpellBtns {
 			UnitAddAbility(hero, 'ACen'); // 诱捕
 			UnitAddAbility(hero, 'ANr3'); // 混乱之雨
 			UnitAddAbility(hero, 'AOhw'); // 医疗波
+			UnitAddAbility(hero, 'Aspb'); // 魔法书
 
 			// 创建一个中立的地精商店用于测试商品购买
 			goblinShop = CreateUnit(Player(PLAYER_NEUTRAL_PASSIVE), 'ngme', 800, 0, 270); // 创建地精商店

@@ -35,6 +35,8 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
 
             // 当前悬停按钮的能力值（Enter 时记录，Leave 后置 0）
             static integer stableAbility = 0;
+            static integer stableRow = 0;
+            static integer stableCol = 0;
 
             static integer mousePos     = 0;      //当前鼠标所在的位置
             static boolean rcStartOnUI  = false;  // 是否开始右键点击
@@ -53,9 +55,11 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             return argsCol;
         }
         public static method getCallbackAbility ()  -> integer {
-            // 优先返回稳定记录的能力值；若无则按当前行列即时获取
-            if (stableAbility != 0) { return stableAbility; }
-            return GetCurrentXYAbility(argsCol-1,argsRow-1);
+            // 若当前扫描位置与悬停位置一致，则返回稳定能力；否则返回当前位置即时能力
+            if (stableAbility != 0 && argsRow == stableRow && argsCol == stableCol) {
+                return stableAbility;
+            }
+            return GetCurrentXYAbility(argsCol - 1, argsRow - 1);
         }
 
         // 注册进入事件
@@ -137,6 +141,18 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             TriggerAddCondition(trAbilityRefresh, Condition(func));
         }
 
+        // 清空指定玩家的技能栏记录，下一帧会触发 onAbilityUIChange 回调
+        public static method clearLastAbilities (player p) {
+            integer row; integer col;
+            if (GetLocalPlayer() == p) {
+                for (1 <= row <= 3) {
+                    for (1 <= col <= 4) {
+                        lastAbilities[row][col] = 0;
+                    }
+                }
+            }
+        }
+
         // 把技能按钮移出屏幕外
         static method outside (integer row,integer col) {
             DzFrameClearAllPoints(grid[row][col]);
@@ -196,6 +212,8 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                         argsCol = ModuloInteger(data - 1,4) + 1;
                         // 进入时记录稳定能力值，供 Click/RightClick/Leave 使用
                         stableAbility = GetCurrentXYAbility(argsCol-1, argsRow-1);
+                        stableRow = argsRow;
+                        stableCol = argsCol;
                         if (trEnter != null) { TriggerEvaluate(trEnter); }
                         if (trEnterAbility != null) { TriggerEvaluate(trEnterAbility); }
                     });
@@ -207,6 +225,8 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                         if (trLeaveAbility != null) { TriggerEvaluate(trLeaveAbility); }
                         // 离开后清空稳定能力值
                         stableAbility = 0;
+                        stableRow = 0;
+                        stableCol = 0;
                     });
                     btn.spClick(function(integer frame) {
                         integer data = uiHashTable(frame).eventdata.get();
