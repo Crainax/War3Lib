@@ -147,6 +147,37 @@ library BigInteger {
 			if (hi > 0) { bigInteger.addAt(parent, 2, hi); }
 		}
 
+		// 从指定段开始减去一个（可能很大）的非负整数 subVal（按 1e9 进制，结果不能为负）
+		private static method subAt(integer parent, integer index, integer subVal) {
+			integer cnt; integer cur; integer chunk; integer borrow; integer total;
+			if (subVal <= 0) {
+				return;
+			}
+			while (subVal > 0) {
+				cnt = bigInteger.getCountByParent(parent);
+				if (index > cnt) {
+					// 被减数不足，结果不能为负，直接返回
+					return;
+				}
+				cur = bigInteger.readSeg(parent, index);
+
+				chunk = ModuloInteger(subVal, bigInteger.BASE);
+				borrow = subVal / bigInteger.BASE;
+
+				if (cur < chunk) {
+					// 需要借位
+					total = cur + bigInteger.BASE - chunk;
+					borrow = borrow + 1;
+				} else {
+					total = cur - chunk;
+				}
+				bigInteger.writeSeg(parent, index, total);
+
+				index = index + 1;
+				subVal = borrow;
+			}
+		}
+
 		// 将 src 累加到 dst（可跨玩家/父键）
 		public static method addBigInt(player dstP, integer dstKey, player srcP, integer srcKey) {
 			integer dParent; integer sParent; integer sCnt; integer i; integer v;
@@ -160,6 +191,51 @@ library BigInteger {
 				}
 			}
 		}
+
+		// 从 dst 减去 src（可跨玩家/父键，结果不能为负）
+		public static method subBigInt(player dstP, integer dstKey, player srcP, integer srcKey) {
+			integer dParent; integer sParent; integer sCnt; integer i; integer v;
+			dParent = bigInteger.parentKey(dstP, dstKey);
+			sParent = bigInteger.parentKey(srcP, srcKey);
+			sCnt = bigInteger.getCountByParent(sParent);
+			for (i = 1; i <= sCnt; i += 1) {
+				v = bigInteger.readSeg(sParent, i);
+				if (v > 0) {
+					bigInteger.subAt(dParent, i, v);
+				}
+			}
+			bigInteger.normalize(dParent);
+		}
+
+		// 减整数（非负）；负值按 0 处理，结果不能为负
+		public static method subInt(player p, integer baseKey, integer val) {
+			integer parent;
+			if (val <= 0) { return; }
+			parent = bigInteger.parentKey(p, baseKey);
+			bigInteger.subAt(parent, 1, val);
+			bigInteger.normalize(parent);
+		}
+
+		// 减实数（非负）；负值按 0 处理，结果不能为负
+		public static method subReal(player p, integer baseKey, real val) {
+			integer parent; integer hi; integer lo;
+			if (val <= 0.0) { return; }
+			parent = bigInteger.parentKey(p, baseKey);
+
+			if (val >= bigInteger.BASE_R) {
+				hi = R2I(val / bigInteger.BASE_R);
+				if (hi < 0) { hi = 2147483647; } // 保护：极大实数转换溢出时做上限夹逼
+				lo = R2I(ModuloReal(val, bigInteger.BASE_R));
+			} else {
+				hi = 0;
+				lo = R2I(val);
+			}
+
+			if (lo > 0) { bigInteger.subAt(parent, 1, lo); }
+			if (hi > 0) { bigInteger.subAt(parent, 2, hi); }
+			bigInteger.normalize(parent);
+		}
+
 
 		// 转实数（可能溢出，做上限夹逼）
 		public static method toReal(player p, integer baseKey) -> real {
@@ -250,6 +326,7 @@ library BigInteger {
 		// 与实数比较（非负）
 		public static method compareReal(player p, integer key, real val) -> integer {
 			integer parent; integer cnt; integer hi; integer lo; integer v2; integer v1;
+			real lowReal; boolean hasFrac;
 			parent = bigInteger.parentKey(p, key);
 			cnt = bigInteger.normCount(parent);
 
@@ -261,10 +338,14 @@ library BigInteger {
 			if (val >= bigInteger.BASE_R) {
 				hi = R2I(val / bigInteger.BASE_R);
 				if (hi < 0) { hi = 2147483647; } // 保护：极大实数转换溢出时做上限夹逼
-				lo = R2I(ModuloReal(val, bigInteger.BASE_R));
+				lowReal = ModuloReal(val, bigInteger.BASE_R);
+				lo = R2I(lowReal);
+				hasFrac = (lowReal > I2R(lo));
 			} else {
 				hi = 0;
+				lowReal = val;
 				lo = R2I(val);
+				hasFrac = (lowReal > I2R(lo));
 			}
 
 			if (cnt > 2) { return 1; }
@@ -285,6 +366,8 @@ library BigInteger {
 			if (v1 > lo) { return 1; }
 			if (v1 < lo) { return -1; }
 
+			// 段值相等时，若比较的实数仍有小数部分，则大整数比实数小
+			if (hasFrac) { return -1; }
 			return 0;
 		}
 

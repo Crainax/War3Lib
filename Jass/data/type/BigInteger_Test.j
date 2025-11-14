@@ -145,7 +145,8 @@ library UTBigInteger requires BigInteger {
 
 		// 百亿（约等显示）
 		bigInteger.reset(p, key);
-		bigInteger.addInt(p, key, 1545678901); // ≈ 154.6亿
+		// 注意：JASS 对过大的实数字面量（如 15456789010.0）解析可能溢出为 0，这里用较小实数相乘得到同一数值
+		bigInteger.addReal(p, key, 1545678901.0 * 10.0); // 约为 154.6亿
 		assert.String(bigInteger.toStringWithUnit(p, key), "154.6亿", "toStringWithUnit: 百亿显示");
 
 		// 接近上界：2.1e18 + 999,999,999 => 210.0京
@@ -153,6 +154,131 @@ library UTBigInteger requires BigInteger {
 		bigInteger.addReal(p, key, 2100000000.0 * 1000000000.0);
 		bigInteger.addInt(p, key, 999999999);
 		assert.String(bigInteger.toStringWithUnit(p, key), "210.0京", "toStringWithUnit: 京位显示");
+
+		p = null;
+	}
+
+	//==============================
+	// 7) 精度测试：大数值加减后精度不丢失
+	//==============================
+	private function Test_Precision() {
+		player p = P1();
+		integer key1 = K();
+		integer key2 = K() + 1000; // 使用不同的 key 避免冲突
+
+		// 测试：几百亿 + 2，然后扣掉几百亿，结果应该是 2（使用 subBigInt）
+		bigInteger.reset(p, key1);
+		bigInteger.reset(p, key2);
+
+		// key1 = 500亿 + 2
+		// 注意：JASS 实数字面量过大可能溢出，这里用较小实数相乘得到 500亿
+		bigInteger.addReal(p, key1, 500000000.0 * 100.0); // 500亿
+		bigInteger.addInt(p, key1, 2);
+
+		// key2 = 500亿（用于减法）
+		bigInteger.addReal(p, key2, 500000000.0 * 100.0); // 500亿
+
+		// 从 key1 减去 key2，结果应该是 2
+		bigInteger.subBigInt(p, key1, p, key2);
+		assert.Boolean(bigInteger.compareInt(p, key1, 2) == 0, "精度测试：500亿+2 减去 500亿 应等于 2");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "2", "精度测试：字符串应为 2");
+
+		// 测试更大的数值：2000亿 + 123，然后扣掉 2000亿（使用 subBigInt）
+		bigInteger.reset(p, key1);
+		bigInteger.reset(p, key2);
+
+		bigInteger.addReal(p, key1, 200000000.0 * 100.0 * 10.0); // 2000亿
+		bigInteger.addInt(p, key1, 123);
+
+		bigInteger.addReal(p, key2, 200000000.0 * 100.0 * 10.0); // 2000亿
+
+		bigInteger.subBigInt(p, key1, p, key2);
+		assert.Boolean(bigInteger.compareInt(p, key1, 123) == 0, "精度测试：2000亿+123 减去 2000亿 应等于 123");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "123", "精度测试：字符串应为 123");
+
+		// 测试：使用 subInt 方法（使用较小的值避免整数溢出）
+		bigInteger.reset(p, key1);
+		bigInteger.addInt(p, key1, 2147483647); // 使用最大整数
+		bigInteger.addInt(p, key1, 456);
+		bigInteger.subInt(p, key1, 2147483647); // 减去最大整数
+		assert.Boolean(bigInteger.compareInt(p, key1, 456) == 0, "精度测试：最大整数+456 减去 最大整数 应等于 456");
+
+		// 测试：addReal/subReal 同一个大实数，不丢精度
+		bigInteger.reset(p, key1);
+		// 500亿，仍然用分解乘法构造
+		bigInteger.addReal(p, key1, 500000000.0 * 100.0); // +500亿
+		bigInteger.subReal(p, key1, 500000000.0 * 100.0); // -500亿
+		assert.Boolean(bigInteger.compareInt(p, key1, 0) == 0, "精度测试：addReal(500亿) 后再 subReal(500亿) 应等于 0");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "0", "精度测试：addReal/subReal 后字符串应为 0");
+
+		// 再测：500亿 + 2，然后用 subReal 扣掉 500亿，剩下 2
+		bigInteger.reset(p, key1);
+		bigInteger.addReal(p, key1, 500000000.0 * 100.0); // 500亿
+		bigInteger.addInt(p, key1, 2);
+		bigInteger.subReal(p, key1, 500000000.0 * 100.0); // 扣 500亿
+		assert.Boolean(bigInteger.compareInt(p, key1, 2) == 0, "精度测试：addReal(500亿)+2 再 subReal(500亿) 应等于 2");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "2", "精度测试：addReal/subReal 后字符串应为 2");
+
+		p = null;
+	}
+
+	//==============================
+	// 8) 3段大整数测试：10e20+ 级别，验证3个键位的精度
+	//==============================
+	private function Test_ThreeSegmentBigInt() {
+		player p = P1();
+		integer key1 = K();
+		integer key2 = K() + 2000; // 使用不同的 key 避免冲突
+
+		// 测试1：10e20 (1000京) + 123，然后扣掉 10e20，结果应该是 123
+		// 10e20 = 10^20 = 100,000,000,000,000,000,000
+		// 需要3段：第3段 = 100, 第2段 = 0, 第1段 = 0
+		bigInteger.reset(p, key1);
+		bigInteger.reset(p, key2);
+
+		// 构造 10e20：直接使用乘法，避免循环产生大量字节码
+		bigInteger.addReal(p, key1, 10.0 * 1000000000.0 * 1000000000.0); // 10e20
+		bigInteger.addInt(p, key1, 123);
+
+		bigInteger.addReal(p, key2, 10.0 * 1000000000.0 * 1000000000.0); // 10e20
+
+		bigInteger.subBigInt(p, key1, p, key2);
+		assert.Boolean(bigInteger.compareInt(p, key1, 123) == 0, "3段测试：10e20+123 减去 10e20 应等于 123");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "123", "3段测试：10e20 精度测试字符串应为 123");
+
+		// 测试2：50e20 (5000京) + 456789，然后扣掉 50e20，结果应该是 456789
+		bigInteger.reset(p, key1);
+		bigInteger.reset(p, key2);
+
+		bigInteger.addReal(p, key1, 50.0 * 1000000000.0 * 1000000000.0); // 50e20
+		bigInteger.addInt(p, key1, 456789);
+
+		bigInteger.addReal(p, key2, 50.0 * 1000000000.0 * 1000000000.0); // 50e20
+
+		bigInteger.subBigInt(p, key1, p, key2);
+		assert.Boolean(bigInteger.compareInt(p, key1, 456789) == 0, "3段测试：50e20+456789 减去 50e20 应等于 456789");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "456789", "3段测试：50e20 精度测试字符串应为 456789");
+
+		// 测试3：使用 addReal/subReal 测试 100e20 (10000京)
+		bigInteger.reset(p, key1);
+		bigInteger.addReal(p, key1, 100.0 * 1000000000.0 * 1000000000.0); // 100e20
+		bigInteger.addInt(p, key1, 999);
+		bigInteger.subReal(p, key1, 100.0 * 1000000000.0 * 1000000000.0); // 扣 100e20
+		assert.Boolean(bigInteger.compareInt(p, key1, 999) == 0, "3段测试：addReal(100e20)+999 再 subReal(100e20) 应等于 999");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "999", "3段测试：100e20 精度测试字符串应为 999");
+
+		// 测试4：测试接近上限的3段大整数：150e20 (15000京)
+		bigInteger.reset(p, key1);
+		bigInteger.reset(p, key2);
+
+		bigInteger.addReal(p, key1, 150.0 * 1000000000.0 * 1000000000.0); // 150e20
+		bigInteger.addInt(p, key1, 888888);
+
+		bigInteger.addReal(p, key2, 150.0 * 1000000000.0 * 1000000000.0); // 150e20
+
+		bigInteger.subBigInt(p, key1, p, key2);
+		assert.Boolean(bigInteger.compareInt(p, key1, 888888) == 0, "3段测试：150e20+888888 减去 150e20 应等于 888888");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "888888", "3段测试：150e20 精度测试字符串应为 888888");
 
 		p = null;
 	}
@@ -214,6 +340,8 @@ library UTBigInteger requires BigInteger {
 			UnitTestAutoTimer(0.4, 0.1, function() { Trace("addBigInt"); Test_AddBigInt(); }, null);
 			UnitTestAutoTimer(0.5, 0.1, function() { Trace("compare"); Test_Compare(); }, null);
 			UnitTestAutoTimer(0.6, 0.1, function() { Trace("toString/toReal"); Test_ToString_And_ToReal(); }, null);
+			UnitTestAutoTimer(0.7, 0.1, function() { Trace("precision"); Test_Precision(); }, null);
+			UnitTestAutoTimer(0.8, 0.1, function() { Trace("3段大整数"); Test_ThreeSegmentBigInt(); }, null);
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -233,6 +361,8 @@ library UTBigInteger requires BigInteger {
 			else if (str == "s4") { Test_AddBigInt(); }
 			else if (str == "s5") { Test_Compare(); }
 			else if (str == "s6") { Test_ToString_And_ToReal(); }
+			else if (str == "s7") { Test_Precision(); }
+			else if (str == "s8") { Test_ThreeSegmentBigInt(); }
 		});
 
 	}
