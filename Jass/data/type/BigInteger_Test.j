@@ -133,27 +133,27 @@ library UTBigInteger requires BigInteger {
 		assert.String(bigInteger.toStringWithUnit(p, key), "5", "toStringWithUnit: 5");
 		assert.Boolean(R2I(bigInteger.toReal(p, key)) == 5, "toReal: 5");
 
-		// 百万级：仍直接显示
+		// 百万级：FormatNumber规则：大于等于10000会转换为单位显示
 		bigInteger.reset(p, key);
 		bigInteger.addInt(p, key, 1234567);
-		assert.String(bigInteger.toStringWithUnit(p, key), "1234567", "toStringWithUnit: 1234567");
+		assert.String(bigInteger.toStringWithUnit(p, key), "123万", "toStringWithUnit: 123万");
 
-		// 亿级：显示为 X.X亿
+		// 亿级：显示为 X.XX亿（FormatNumber规则：小于10显示2位小数）
 		bigInteger.reset(p, key);
 		bigInteger.addInt(p, key, 123456789);
-		assert.String(bigInteger.toStringWithUnit(p, key), "1.2亿", "toStringWithUnit: 1.2亿");
+		assert.String(bigInteger.toStringWithUnit(p, key), "1.23亿", "toStringWithUnit: 1.23亿");
 
-		// 百亿（约等显示）
+		// 百亿（FormatNumber规则：大于等于100显示整数，R2I向下取整）
 		bigInteger.reset(p, key);
 		// 注意：JASS 对过大的实数字面量（如 15456789010.0）解析可能溢出为 0，这里用较小实数相乘得到同一数值
-		bigInteger.addReal(p, key, 1545678901.0 * 10.0); // 约为 154.6亿
-		assert.String(bigInteger.toStringWithUnit(p, key), "154.6亿", "toStringWithUnit: 百亿显示");
+		bigInteger.addReal(p, key, 1545678901.0 * 10.0); // 约为 154.6亿，FormatNumber会显示为154亿（整数，向下取整）
+		assert.String(bigInteger.toStringWithUnit(p, key), "154亿", "toStringWithUnit: 百亿显示");
 
-		// 接近上界：2.1e18 + 999,999,999 => 210.0京
+		// 接近上界：2.1e18 + 999,999,999 => 210京（FormatNumber规则：大于等于100显示整数）
 		bigInteger.reset(p, key);
 		bigInteger.addReal(p, key, 2100000000.0 * 1000000000.0);
 		bigInteger.addInt(p, key, 999999999);
-		assert.String(bigInteger.toStringWithUnit(p, key), "210.0京", "toStringWithUnit: 京位显示");
+		assert.String(bigInteger.toStringWithUnit(p, key), "210京", "toStringWithUnit: 京位显示");
 
 		p = null;
 	}
@@ -257,7 +257,7 @@ library UTBigInteger requires BigInteger {
 
 		bigInteger.subBigInt(p, key1, p, key2);
 		assert.Boolean(bigInteger.compareInt(p, key1, 456789) == 0, "3段测试：50e20+456789 减去 50e20 应等于 456789");
-		assert.String(bigInteger.toStringWithUnit(p, key1), "456789", "3段测试：50e20 精度测试字符串应为 456789");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "45.7万", "3段测试：50e20 精度测试字符串应为 45.7万");
 
 		// 测试3：使用 addReal/subReal 测试 100e20 (10000京)
 		bigInteger.reset(p, key1);
@@ -278,7 +278,7 @@ library UTBigInteger requires BigInteger {
 
 		bigInteger.subBigInt(p, key1, p, key2);
 		assert.Boolean(bigInteger.compareInt(p, key1, 888888) == 0, "3段测试：150e20+888888 减去 150e20 应等于 888888");
-		assert.String(bigInteger.toStringWithUnit(p, key1), "888888", "3段测试：150e20 精度测试字符串应为 888888");
+		assert.String(bigInteger.toStringWithUnit(p, key1), "88.9万", "3段测试：150e20 精度测试字符串应为 88.9万");
 
 		p = null;
 	}

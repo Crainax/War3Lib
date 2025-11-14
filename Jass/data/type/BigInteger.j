@@ -14,7 +14,7 @@ high: 存储-2100000000到2100000000
 #define UNIT_TEN_YI 1000000000  // 10亿，作为进位基数
 #define MAX_HIGH    2100000000  // high的最大值：21亿
 
-library BigInteger {
+library BigInteger requires NumberFormatter {
 
 	//==============================
 	// Hashtable 版大整数（仅非负）
@@ -373,36 +373,9 @@ library BigInteger {
 
 		// 转字符串（单位：万/亿/兆/京）
 		public static method toStringWithUnit(player p, integer key) -> string {
-			integer parent; integer cnt; integer i; integer seg; integer level;
-			real v; string units;
-			parent = bigInteger.parentKey(p, key);
-			cnt = bigInteger.normCount(parent);
-			if (cnt == 0) { return "0"; }
-
-			// 折叠为实数（适度夹逼上限）
-			v = 0.0;
-			for (i = cnt; i >= 1; i -= 1) {
-				seg = bigInteger.readSeg(parent, i);
-				v = v * bigInteger.BASE_R + I2R(seg);
-			}
-
-			// 1000万以下直接显示整数
-			if (v < 10000000.0) {
-				return I2S(R2I(v));
-			}
-
-			level = 0;
-			while (v >= 10000.0 && level < 4) {
-				v = v / 10000.0;
-				level = level + 1;
-			}
-
-			if (level == 1) { units = "万"; }
-			else if (level == 2) { units = "亿"; }
-			else if (level == 3) { units = "兆"; }
-			else { units = "京"; }
-
-			return R2SW(v, 0, 1) + units;
+			real v;
+			v = bigInteger.toReal(p, key);
+			return FormatNumber(v);
 		}
 	}
 }
