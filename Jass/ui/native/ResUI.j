@@ -37,77 +37,145 @@
 #include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
+
+// 如果定义了 RES_UI_HIDE_X，则隐藏对应的资源UI
+// 注释掉下面的定义来显示对应的资源UI
+//#define RES_UI_HIDE_1
+#define RES_UI_HIDE_2
+#define RES_UI_HIDE_3
+
 //# dependency:resource/ui/image/black.blp
 
 library ResUI requires UIImage,UIText,Hardware,UIExtendResize {
 
-	// public constant boolean RES_UI_HIDE_3 = true;
 
 	public struct resUI []{
 
+		#ifndef RES_UI_HIDE_1
 		static uiImage uiRes1Icon = 0;
 		static uiText  uiRes1Text = 0;
+		#endif
+
+		#ifndef RES_UI_HIDE_2
 		static uiImage uiRes2Icon = 0;
 		static uiText  uiRes2Text = 0;
+		#endif
+
+		#ifndef RES_UI_HIDE_3
 		static uiImage uiRes3Icon = 0;
 		static uiText  uiRes3Text = 0;
+		#endif
 
 		private {
+			#ifndef RES_UI_HIDE_1
 			static trigger trEnter1 = null;
 			static trigger trLeave1 = null;
-			static trigger trEnter2 = null;
-			static trigger trLeave2 = null;
-			static trigger trEnter3 = null;
-			static trigger trLeave3 = null;
-
 			// 记录鼠标是否在各个资源UI内
 			static boolean isInRes1 = false;
+			#endif
+
+			#ifndef RES_UI_HIDE_2
+			static trigger trEnter2 = null;
+			static trigger trLeave2 = null;
 			static boolean isInRes2 = false;
+			#endif
+
+			#ifndef RES_UI_HIDE_3
+			static trigger trEnter3 = null;
+			static trigger trLeave3 = null;
 			static boolean isInRes3 = false;
+			#endif
 		}
 
 		// 设置进入事件,同步注册
 		static method onEnter(integer pos,code func) {
+			#ifndef RES_UI_HIDE_1
 			if (pos == 1) {
 				if (trEnter1 == null) {
 					trEnter1 = CreateTrigger();
 				}
 				TriggerAddCondition(trEnter1, Condition(func));
-			} else if (pos == 2) {
+			}
+			#endif
+			#ifndef RES_UI_HIDE_2
+			if (pos == 2) {
 				if (trEnter2 == null) {
 					trEnter2 = CreateTrigger();
 				}
 				TriggerAddCondition(trEnter2, Condition(func));
-			} else if (pos == 3) {
+			}
+			#endif
+			#ifndef RES_UI_HIDE_3
+			if (pos == 3) {
 				if (trEnter3 == null) {
 					trEnter3 = CreateTrigger();
 				}
 				TriggerAddCondition(trEnter3, Condition(func));
 			}
+			#endif
 		}
-		// 设置进入事件,同步注册
+		// 设置离开事件,同步注册
 		static method onLeave(integer pos,code func) {
+			#ifndef RES_UI_HIDE_1
 			if (pos == 1) {
 				if (trLeave1 == null) {
 					trLeave1 = CreateTrigger();
 				}
 				TriggerAddCondition(trLeave1, Condition(func));
-			} else if (pos == 2) {
+			}
+			#endif
+			#ifndef RES_UI_HIDE_2
+			if (pos == 2) {
 				if (trLeave2 == null) {
 					trLeave2 = CreateTrigger();
 				}
 				TriggerAddCondition(trLeave2, Condition(func));
-			} else if (pos == 3) {
+			}
+			#endif
+			#ifndef RES_UI_HIDE_3
+			if (pos == 3) {
 				if (trLeave3 == null) {
 					trLeave3 = CreateTrigger();
 				}
 				TriggerAddCondition(trLeave3, Condition(func));
+			}
+			#endif
+		}
+
+		// 设置资源文本
+		static method setText(player p, integer pos, string text) {
+			if (GetLocalPlayer() == p) {
+				#ifndef RES_UI_HIDE_1
+				if (pos == 1) {
+					if (uiRes1Text != 0) {
+						uiRes1Text.setText(text);
+					}
+					return;
+				}
+				#endif
+				#ifndef RES_UI_HIDE_2
+				if (pos == 2) {
+					if (uiRes2Text != 0) {
+						uiRes2Text.setText(text);
+					}
+					return;
+				}
+				#endif
+				#ifndef RES_UI_HIDE_3
+				if (pos == 3) {
+					if (uiRes3Text != 0) {
+						uiRes3Text.setText(text);
+					}
+					return;
+				}
+				#endif
 			}
 		}
 
 		private static method init() {
 			uiImage bg;
 
+			#ifndef RES_UI_HIDE_1
 			// Resource 1
 			bg = uiImage.create(DzGetGameUI())
 				.setSize(RES_WIDTH, RES_HEIGHT)
@@ -128,7 +196,9 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize {
 			} else {
 				uiRes1Icon.setTexture("UI\\Feedback\\Resources\\ResourceGold.blp");
 			}
+			#endif
 
+			#ifndef RES_UI_HIDE_2
 			// Resource 2
 			bg = uiImage.create(DzGetGameUI())
 				.setSize(RES_WIDTH, RES_HEIGHT)
@@ -149,30 +219,30 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize {
 			} else {
 				uiRes2Icon.setTexture("UI\\Feedback\\Resources\\ResourceLumber.blp");
 			}
+			#endif
 
-			static if (!RES_UI_HIDE_3) {
-				bg = uiImage.create(DzGetGameUI())
-					.setSize(RES_WIDTH, RES_HEIGHT)
-					.setAbsPoint(ANCHOR_BOTTOMLEFT,RES3_X, RES_Y)
-					.setTexture("ui\\image\\black.blp");
+			#ifndef RES_UI_HIDE_3
+			// Resource 3
+			bg = uiImage.create(DzGetGameUI())
+				.setSize(RES_WIDTH, RES_HEIGHT)
+				.setAbsPoint(ANCHOR_BOTTOMLEFT,RES3_X, RES_Y)
+				.setTexture("ui\\image\\black.blp");
 
-				uiRes3Icon = uiImage.create(bg.ui)
-					.exReSize(RES_ICON_SIZE, RES_ICON_SIZE)
-					.setPoint(ANCHOR_LEFT, bg.ui, ANCHOR_LEFT, 0.002, 0);
+			uiRes3Icon = uiImage.create(bg.ui)
+				.exReSize(RES_ICON_SIZE, RES_ICON_SIZE)
+				.setPoint(ANCHOR_LEFT, bg.ui, ANCHOR_LEFT, 0.002, 0);
 
-				uiRes3Text = uiText.create(bg.ui)
-					.setPoint(ANCHOR_RIGHT, bg.ui, ANCHOR_RIGHT, -0.005, 0)
-					.setText("0");
+			uiRes3Text = uiText.create(bg.ui)
+				.setPoint(ANCHOR_RIGHT, bg.ui, ANCHOR_RIGHT, -0.005, 0)
+				.setText("0");
 
-				//每个地图
-				static if (LIBRARY_DiyResUISupply) {
-					uiRes3Icon.setTexture(DIY_RES_UI_SUPPLY_STRING);
-				} else {
-					uiRes3Icon.setTexture("UI\\Feedback\\Resources\\ResourceSupply.blp");
-
-				}
-
+			//每个地图
+			static if (LIBRARY_DiyResUISupply) {
+				uiRes3Icon.setTexture(DIY_RES_UI_SUPPLY_STRING);
+			} else {
+				uiRes3Icon.setTexture("UI\\Feedback\\Resources\\ResourceSupply.blp");
 			}
+			#endif
 		}
 
 		static method onInit() {
@@ -187,6 +257,7 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize {
 			hardware.regMoveEvent(function() {
 				real x = hardware.getMouseX();
 				real y = hardware.getMouseY();
+				#ifndef RES_UI_HIDE_1
 				// 检查Res1
 				if (x >= RES1_X && x <= RES1_X + RES_WIDTH &&
 				y >= (RES_Y-0.004)) {
@@ -205,7 +276,9 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize {
 						}
 					}
 				}
+				#endif
 
+				#ifndef RES_UI_HIDE_2
 				// 检查Res2
 				if (x >= RES2_X && x <= RES2_X + RES_WIDTH &&
 				y >= (RES_Y-0.004)) {
@@ -223,26 +296,27 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize {
 						}
 					}
 				}
+				#endif
 
+				#ifndef RES_UI_HIDE_3
 				// 检查Res3
-				static if (!RES_UI_HIDE_3) {
-					if (x >= RES3_X && x <= RES3_X + RES_WIDTH &&
-					y >= (RES_Y-0.004)) {
-						if (!isInRes3) {
-							isInRes3 = true;
-							if (trEnter3 != null) {
-								TriggerEvaluate(trEnter3);
-							}
+				if (x >= RES3_X && x <= RES3_X + RES_WIDTH &&
+				y >= (RES_Y-0.004)) {
+					if (!isInRes3) {
+						isInRes3 = true;
+						if (trEnter3 != null) {
+							TriggerEvaluate(trEnter3);
 						}
-					} else {
-						if (isInRes3) {
-							isInRes3 = false;
-							if (trLeave3 != null) {
-								TriggerEvaluate(trLeave3);
-							}
+					}
+				} else {
+					if (isInRes3) {
+						isInRes3 = false;
+						if (trLeave3 != null) {
+							TriggerEvaluate(trLeave3);
 						}
 					}
 				}
+				#endif
 			});
 		}
 	}

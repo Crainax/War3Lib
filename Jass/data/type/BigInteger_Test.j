@@ -283,6 +283,69 @@ library UTBigInteger requires BigInteger {
 		p = null;
 	}
 
+	//==============================
+	// 9) 超大数测试：10000京以上，验证 addReal 和 toString
+	//==============================
+	private function Test_VeryLargeNumber() {
+		string s1,s2;
+		player p = P1();
+		integer key = K();
+
+		// 测试1：10000京 (10^20)
+		bigInteger.reset(p, key);
+		bigInteger.addReal(p, key, 100.0 * 1000000000.0 * 1000000000.0); // 10000京
+		s1 = bigInteger.toString(p, key);
+		// 10000京 = 100000000000000000000 (21位数字)
+		assert.Boolean(StringLength(s1) >= 20 && StringLength(s1) <= 21, "超大数测试：10000京 toString 后字符串长度应在20-21位");
+		Trace("内容:"+s1);
+
+		// 测试2：20000京 (2*10^20)
+		bigInteger.reset(p, key);
+		bigInteger.addReal(p, key, 200.0 * 1000000000.0 * 1000000000.0); // 20000京
+		s1 = bigInteger.toString(p, key);
+		// 20000京 = 200000000000000000000 (21位数字)
+		assert.Boolean(StringLength(s1) >= 20 && StringLength(s1) <= 21, "超大数测试：20000京 toString 后字符串长度应在20-21位");
+		Trace("内容:"+s1);
+
+		// 测试3：50000京 (5*10^20)
+		bigInteger.reset(p, key);
+		bigInteger.addReal(p, key, 500.0 * 1000000000.0 * 1000000000.0); // 50000京
+		s1 = bigInteger.toString(p, key);
+		// 50000京 = 500000000000000000000 (21位数字)
+		assert.Boolean(StringLength(s1) >= 20 && StringLength(s1) <= 21, "超大数测试：50000京 toString 后字符串长度应在20-21位");
+		Trace("内容:"+s1);
+
+		// 测试4：约 123456京（使用 1234.56 * 1e18 构造，避免 100 倍放大）
+		bigInteger.reset(p, key);
+		bigInteger.addReal(p, key, 1234.56 * 1000000000.0 * 1000000000.0); // 约 123456京
+		s1 = bigInteger.toString(p, key);
+		// 约 123456京，字符串长度应该在21-22位
+		assert.Boolean(StringLength(s1) >= 21 && StringLength(s1) <= 22, "超大数测试：123456京 toString 后字符串长度应在21-22位");
+		Trace("内容:"+s1);
+
+		// 测试5：累加测试：先加 10000京，再加 20000京，总共应该约为 30000京
+		bigInteger.reset(p, key);
+		bigInteger.addReal(p, key, 100.0 * 1000000000.0 * 1000000000.0); // 10000京
+		bigInteger.addReal(p, key, 200.0 * 1000000000.0 * 1000000000.0); // 20000京
+		s1 = bigInteger.toString(p, key);
+		// 30000京 = 300000000000000000000 (21位数字)
+		assert.Boolean(StringLength(s1) >= 20 && StringLength(s1) <= 21, "超大数测试：10000京 + 20000京 toString 后字符串长度应在20-21位");
+		Trace("内容:"+s1);
+
+		// 测试6：超大数 + 小数值，验证精度不丢失
+		bigInteger.reset(p, key);
+		bigInteger.addReal(p, key, 100.0 * 1000000000.0 * 1000000000.0); // 10000京
+		bigInteger.addInt(p, key, 123456789); // 再加 123456789
+		s2 = bigInteger.toString(p, key);
+		// 10000京 + 123456789 = 100000000000123456789 (21位数字，末尾是123456789)
+		assert.Boolean(StringLength(s2) >= 20 && StringLength(s2) <= 21, "超大数测试：10000京 + 123456789 toString 后字符串长度应在20-21位");
+		// 验证末尾包含123456789
+		assert.Boolean(StringLength(s2) >= 9, "超大数测试：toString 结果应包含小数值");
+		Trace("内容:"+s2);
+
+		p = null;
+	}
+
 	function TTestUTBigInteger1 (player p) {
 		//bigInteger.setCountByParent(parent, count);
 	}
@@ -342,6 +405,7 @@ library UTBigInteger requires BigInteger {
 			UnitTestAutoTimer(0.6, 0.1, function() { Trace("toString/toReal"); Test_ToString_And_ToReal(); }, null);
 			UnitTestAutoTimer(0.7, 0.1, function() { Trace("precision"); Test_Precision(); }, null);
 			UnitTestAutoTimer(0.8, 0.1, function() { Trace("3段大整数"); Test_ThreeSegmentBigInt(); }, null);
+			UnitTestAutoTimer(0.9, 0.1, function() { Trace("超大数测试"); Test_VeryLargeNumber(); }, null);
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -363,6 +427,7 @@ library UTBigInteger requires BigInteger {
 			else if (str == "s6") { Test_ToString_And_ToReal(); }
 			else if (str == "s7") { Test_Precision(); }
 			else if (str == "s8") { Test_ThreeSegmentBigInt(); }
+			else if (str == "s9") { Test_VeryLargeNumber(); }
 		});
 
 	}

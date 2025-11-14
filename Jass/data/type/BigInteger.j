@@ -16,11 +16,11 @@ high: 存储-2100000000到2100000000
 
 library BigInteger requires NumberFormatter {
 
-	//==============================
+        //==============================
 	// Hashtable 版大整数（仅非负）
 	// 存储按：父键 = baseKey + GetConvertedPlayerId(player)
 	// 子键 1 = 段数（1-based，最低位段为1），每段进制为 1e9
-	//==============================
+        //==============================
 	public struct bigInteger []{
 		// ====== 常量/静态成员 ======
 		private static hashtable biTable = InitHashtable();
@@ -36,7 +36,7 @@ library BigInteger requires NumberFormatter {
 
 		private static method getCountByParent(integer parent) -> integer {
 			return LoadInteger(bigInteger.biTable, parent, 1);
-		}
+            }
 
 		private static method setCountByParent(integer parent, integer count) {
 			SaveInteger(bigInteger.biTable, parent, 1, count);
@@ -44,11 +44,11 @@ library BigInteger requires NumberFormatter {
 
 		private static method readSeg(integer parent, integer index) -> integer {
 			return LoadInteger(bigInteger.biTable, parent, 1 + index);
-		}
+            }
 
 		private static method writeSeg(integer parent, integer index, integer value) {
 			SaveInteger(bigInteger.biTable, parent, 1 + index, value);
-		}
+            }
 
 		// 确保段数至少为 n（不强制写入 0 段，避免多余写操作）
 		private static method growTo(integer parent, integer n) {
@@ -78,7 +78,7 @@ library BigInteger requires NumberFormatter {
 				cnt = 0;
 			}
 			bigInteger.setCountByParent(parent, cnt);
-		}
+            }
 
 		// 从指定段开始累加一个（可能很大）的非负整数 addVal（按 1e9 进制）
 		private static method addAt(integer parent, integer index, integer addVal) {
@@ -101,13 +101,13 @@ library BigInteger requires NumberFormatter {
 				if (total >= bigInteger.BASE) {
 					bigInteger.writeSeg(parent, index, ModuloInteger(total, bigInteger.BASE));
 					carry = carry + (total / bigInteger.BASE);
-				} else {
+            } else {
 					bigInteger.writeSeg(parent, index, total);
-				}
+            }
 
 				index = index + 1;
 				addVal = carry;
-			}
+        }
 		}
 
 		// ====== 对外 API ======
@@ -117,7 +117,7 @@ library BigInteger requires NumberFormatter {
 			parent = bigInteger.parentKey(p, baseKey);
 			FlushChildHashtable(bigInteger.biTable, parent);
 			bigInteger.setCountByParent(parent, 0);
-		}
+        }
 
 		// 加整数（非负）；负值按 0 处理
 		public static method addInt(player p, integer baseKey, integer val) {
@@ -130,21 +130,33 @@ library BigInteger requires NumberFormatter {
 
 		// 加实数（非负）；负值按 0 处理
 		public static method addReal(player p, integer baseKey, real val) {
-			integer parent; integer hi; integer lo;
+			integer parent; integer idx; integer seg; integer safety;
+			real v; real segR;
 			if (val <= 0.0) { return; }
 			parent = bigInteger.parentKey(p, baseKey);
 
-			if (val >= bigInteger.BASE_R) {
-				hi = R2I(val / bigInteger.BASE_R);
-				if (hi < 0) { hi = 2147483647; } // 保护：极大实数转换溢出时做上限夹逼
-				lo = R2I(ModuloReal(val, bigInteger.BASE_R));
-			} else {
-				hi = 0;
-				lo = R2I(val);
-			}
+			v = val;
+			idx = 1;
+			safety = 0;
 
-			if (lo > 0) { bigInteger.addAt(parent, 1, lo); }
-			if (hi > 0) { bigInteger.addAt(parent, 2, hi); }
+			// 将实数按 1e9 进制拆分为多个段，避免 R2I 在极大数时溢出
+			while (v >= 1.0 && safety < 40) {
+				segR = ModuloReal(v, bigInteger.BASE_R);
+				if (segR < 0.0) {
+					segR = 0.0;
+                }
+				if (segR >= bigInteger.BASE_R) {
+					segR = bigInteger.BASE_R - 1.0;
+            }
+				seg = R2I(segR);
+				if (seg > 0) {
+					bigInteger.addAt(parent, idx, seg);
+            }
+
+				v = v / bigInteger.BASE_R;
+				idx = idx + 1;
+				safety = safety + 1;
+			}
 		}
 
 		// 从指定段开始减去一个（可能很大）的非负整数 subVal（按 1e9 进制，结果不能为负）
@@ -168,15 +180,15 @@ library BigInteger requires NumberFormatter {
 					// 需要借位
 					total = cur + bigInteger.BASE - chunk;
 					borrow = borrow + 1;
-				} else {
+            } else {
 					total = cur - chunk;
 				}
 				bigInteger.writeSeg(parent, index, total);
 
 				index = index + 1;
 				subVal = borrow;
-			}
-		}
+                }
+            }
 
 		// 将 src 累加到 dst（可跨玩家/父键）
 		public static method addBigInt(player dstP, integer dstKey, player srcP, integer srcKey) {
@@ -188,7 +200,7 @@ library BigInteger requires NumberFormatter {
 				v = bigInteger.readSeg(sParent, i);
 				if (v > 0) {
 					bigInteger.addAt(dParent, i, v);
-				}
+            }
 			}
 		}
 
@@ -202,7 +214,7 @@ library BigInteger requires NumberFormatter {
 				v = bigInteger.readSeg(sParent, i);
 				if (v > 0) {
 					bigInteger.subAt(dParent, i, v);
-				}
+                }
 			}
 			bigInteger.normalize(dParent);
 		}
@@ -218,23 +230,35 @@ library BigInteger requires NumberFormatter {
 
 		// 减实数（非负）；负值按 0 处理，结果不能为负
 		public static method subReal(player p, integer baseKey, real val) {
-			integer parent; integer hi; integer lo;
+			integer parent; integer idx; integer seg; integer safety;
+			real v; real segR;
 			if (val <= 0.0) { return; }
 			parent = bigInteger.parentKey(p, baseKey);
 
-			if (val >= bigInteger.BASE_R) {
-				hi = R2I(val / bigInteger.BASE_R);
-				if (hi < 0) { hi = 2147483647; } // 保护：极大实数转换溢出时做上限夹逼
-				lo = R2I(ModuloReal(val, bigInteger.BASE_R));
-			} else {
-				hi = 0;
-				lo = R2I(val);
-			}
+			v = val;
+			idx = 1;
+			safety = 0;
 
-			if (lo > 0) { bigInteger.subAt(parent, 1, lo); }
-			if (hi > 0) { bigInteger.subAt(parent, 2, hi); }
+			// 将实数按 1e9 进制拆分为多个段进行减法
+			while (v >= 1.0 && safety < 40) {
+				segR = ModuloReal(v, bigInteger.BASE_R);
+				if (segR < 0.0) {
+					segR = 0.0;
+                }
+				if (segR >= bigInteger.BASE_R) {
+					segR = bigInteger.BASE_R - 1.0;
+				}
+				seg = R2I(segR);
+				if (seg > 0) {
+					bigInteger.subAt(parent, idx, seg);
+                }
+
+				v = v / bigInteger.BASE_R;
+				idx = idx + 1;
+				safety = safety + 1;
+			}
 			bigInteger.normalize(parent);
-		}
+        }
 
 
 		// 转实数（可能溢出，做上限夹逼）
@@ -255,7 +279,7 @@ library BigInteger requires NumberFormatter {
 				}
 			}
 			return v;
-		}
+            }
 
 		// 归一化后的段数（不写回，仅用于比较/判断）
 		private static method normCount(integer parent) -> integer {
@@ -267,7 +291,7 @@ library BigInteger requires NumberFormatter {
 				cnt = cnt - 1;
 			}
 			return 0;
-		}
+            }
 
 		// 与另一大整数比较：1(大于)/0(等于)/-1(小于)
 		public static method compareBigInt(player p1, integer k1, player p2, integer k2) -> integer {
@@ -285,7 +309,7 @@ library BigInteger requires NumberFormatter {
 				if (va < vb) { return -1; }
 			}
 			return 0;
-		}
+                }
 
 		// 与 32 位整数比较
 		public static method compareInt(player p, integer key, integer val) -> integer {
@@ -321,7 +345,7 @@ library BigInteger requires NumberFormatter {
 			if (v1 < lo) { return -1; }
 
 			return 0;
-		}
+        }
 
 		// 与实数比较（非负）
 		public static method compareReal(player p, integer key, real val) -> integer {
@@ -352,7 +376,7 @@ library BigInteger requires NumberFormatter {
 
 			if (cnt >= 2) {
 				v2 = bigInteger.readSeg(parent, 2);
-			} else {
+            } else {
 				v2 = 0;
 			}
 			if (v2 > hi) { return 1; }
@@ -376,8 +400,39 @@ library BigInteger requires NumberFormatter {
 			real v;
 			v = bigInteger.toReal(p, key);
 			return FormatNumber(v);
-		}
-	}
+        }
+
+		// 转字符串（所有段拼接成完整数字字符串）
+		public static method toString(player p, integer key) -> string {
+			integer parent; integer cnt; integer i; integer seg; string result; string segStr;
+			parent = bigInteger.parentKey(p, key);
+			cnt = bigInteger.normCount(parent);
+
+			if (cnt <= 0) {
+				return "0";
+			}
+
+			result = "";
+			// 从最高段到最低段遍历
+			for (i = cnt; i >= 1; i -= 1) {
+				seg = bigInteger.readSeg(parent, i);
+				segStr = I2S(seg);
+
+				if (i == cnt) {
+					// 最高段直接拼接，不需要补零
+					result = result + segStr;
+				} else {
+					// 其他段需要补零到 9 位
+					while (StringLength(segStr) < 9) {
+						segStr = "0" + segStr;
+					}
+					result = result + segStr;
+				}
+			}
+
+			return result;
+        }
+    }
 }
 
 
