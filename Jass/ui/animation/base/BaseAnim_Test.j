@@ -15,6 +15,7 @@
 // s8  - 测试闪烁动画
 // s9  - 测试混合动画(扩大+透明度)
 // s10 - 测试混合动画(缩小+透明度)
+// s11 - 测试绝对坐标移动动画
 //
 // 特殊命令:
 // -destroy - 销毁所有测试实例
@@ -181,6 +182,13 @@ library UTBaseAnim requires BaseAnim {
 		t.ba.addAlpha(0,255,30);
 		BJDebugMsg("测试一下混合动画(缩小+透明度)");
 	}
+	function TTestUTBaseAnim11 (player p) {
+		test t = test.create();
+		// 绝对坐标从 (0.40, 0.40) 移动到 (0.60, 0.60)
+		t.ba.addAbsMove(ANCHOR_CENTER,0.40,0.40,0.60,0.60,60);
+		t.ba.addLife(60,DestroyUIFromBA);
+		BJDebugMsg("测试一下绝对坐标移动: (0.40,0.40) -> (0.60,0.60)");
+	}
 	function TTestActUTBaseAnim1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -247,6 +255,7 @@ library UTBaseAnim requires BaseAnim {
 			else if(str == "s8") TTestUTBaseAnim8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTBaseAnim9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTBaseAnim10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTBaseAnim11(GetTriggerPlayer());
 		});
 
 	}

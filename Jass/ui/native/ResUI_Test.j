@@ -17,8 +17,12 @@ library UTResUI requires ResUI,UnitTestUIRuler{
 		BJDebugMsg("测试一下最上的UI");
 		//答案:一坨  完全不知道是什么
 	}
-	function TTestUTResUI2 (player p) {}
-	function TTestUTResUI3 (player p) {}
+	function TTestUTResUI2 (player p) {
+		resUI.showGoldText(p, "|cffffff00$+1000000|r");
+	}
+	function TTestUTResUI3 (player p) {
+		resUI.showExpText(p, "|cff00a2ffExp+1000|r");
+	}
 	function TTestUTResUI4 (player p) {}
 	function TTestUTResUI5 (player p) {}
 	function TTestUTResUI6 (player p) {}

@@ -19,11 +19,11 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 	这里的动画不负责创建与删除,自行解决
 	算了还是不用UI为键了，哈希表式的还没做
 	*/
-	public struct baseanim {
+		public struct baseanim {
 
 
-		static thistype DList[] , MList[] , AList[] , ZList[] , SList[] , BList[] , LList[];
-		static integer DNum = 0 , MNum = 0 , ANum = 0 , ZNum = 0 , SNum = 0 , BNum = 0 , LNum = 0;
+		static thistype DList[] , MList[] , AMList[] , AList[] , ZList[] , SList[] , BList[] , LList[];
+		static integer DNum = 0 , MNum = 0 , AMNum = 0 , ANum = 0 , ZNum = 0 , SNum = 0 , BNum = 0 , LNum = 0;
 		static uianim UIA = 0; //利用上述创建的uianim特定个例
 		static integer size = 0; //统计数量
 
@@ -100,6 +100,44 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 				MList[mID].mID =mID;
 				MNum = MNum - 1;
 				mID = 0;
+			}
+		}
+
+		//绝对坐标移动组
+		integer amID,amTime,amNow,amAnchor;
+		real amStartX,amStartY,amEndX,amEndY;
+		//绝对坐标线性移动
+		// @param anchor 锚点
+		// @param startX 起始X坐标（绝对坐标）
+		// @param startY 起始Y坐标（绝对坐标）
+		// @param endX 结束X坐标（绝对坐标）
+		// @param endY 结束Y坐标（绝对坐标）
+		// @param time 时间(0.02为一帧)
+		method addAbsMove (integer anchor,real startX,real startY,real endX,real endY,integer time) {
+			if (time <= 0 || !(isExist())) {return;}
+			//数据设置都放这
+			this.amAnchor = anchor;
+			this.amStartX = startX;
+			this.amStartY = startY;
+			this.amEndX   = endX;
+			this.amEndY   = endY;
+			this.amTime   = time;
+			this.amNow    = 0;
+			if (amID == 0) { //这里是初始化时的设置内容,不需要改
+				AMNum         = AMNum + 1;
+				AMList[AMNum] = this;
+				amID          = AMNum;
+			}
+			DzFrameSetAbsolutePoint(ui,anchor,startX,startY);
+			UIA.reg(); //Add了后就调用了这个自动开始
+		}
+		private method delAbsMove () {
+			//数据解除都放这里
+			if (amID != 0) {
+				AMList[amID]      = AMList[AMNum];
+				AMList[amID].amID = amID;
+				AMNum             = AMNum - 1;
+				amID              = 0;
 			}
 		}
 
@@ -281,6 +319,7 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 			if (!isExist()) {return;}
 			delDelay();
 			delMove();
+			delAbsMove();
 			delZoom();
 			delAlpha();
 			delSequ();
@@ -298,6 +337,7 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 			string s = "";
 			s +="[DNum]" + I2S(DNum) + "->";
 			s +="[MNum]" + I2S(MNum) + "->";
+			s +="[AMNum]" + I2S(AMNum) + "->";
 			s +="[ANum]" + I2S(ANum) + "->";
 			s +="[ZNum]" + I2S(ZNum) + "->";
 			s +="[SNum]" + I2S(SNum) + "->";
@@ -341,6 +381,26 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 								mNow = mNow + 1;
 								DzFrameClearAllPoints(ui);
 								DzFrameSetPoint(ui,anchor1,align,anchor2,CosBJ(angle)*(off +dist * mNow / mTime),SinBJ(angle)*(off +dist * mNow / mTime));
+							}
+						} //还在延迟中不进行操作
+					}
+				}
+				if ( AMNum > 0 ) { //绝对坐标移动
+					for (1 <= i <= AMNum) {
+						//从结论来说i就是amID
+						this = AMList[i];
+						if (dID == 0) {
+							if (amNow >= amTime) { //结束了
+								DzFrameSetAbsolutePoint(ui,amAnchor,amEndX,amEndY);
+								AMList[i]       = AMList[AMNum];
+								AMList[i].amID  = i;
+								AMNum           = AMNum - 1;
+								i               = i - 1;
+								amID            = 0;
+							} else {
+								amNow = amNow + 1;
+								r     = I2R(amNow)/ amTime;
+								DzFrameSetAbsolutePoint(ui,amAnchor,amStartX + (amEndX - amStartX) * r,amStartY + (amEndY - amStartY) * r);
 							}
 						} //还在延迟中不进行操作
 					}
@@ -445,7 +505,7 @@ library BaseAnim requires UITocInit,UIHashTable,UILifeCycle,UIAnimTimer{
 					}
 				}
 
-				if (DNum <= 0 && MNum <= 0 && ANum <= 0 && ZNum <= 0 && SNum <= 0 && BNum <= 0 && LNum <= 0 ) {
+				if (DNum <= 0 && MNum <= 0 && AMNum <= 0 && ANum <= 0 && ZNum <= 0 && SNum <= 0 && BNum <= 0 && LNum <= 0 ) {
 					UIA.unreg(); //这里就删计时器吧
 					#if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
 					BJDebugMsg("baseanim停止了");

@@ -1,5 +1,5 @@
-#ifndef HASHUnitDefineIncluded
-#define HASHUnitDefineIncluded
+#ifndef HASHBIDefineIncluded
+#define HASHBIDefineIncluded
 
 /*
 大数哈希表定义
