@@ -204,9 +204,15 @@ library BigInteger requires NumberFormatter {
 			}
 		}
 
-		// 从 dst 减去 src（可跨玩家/父键，结果不能为负）
+		// 从 dst 减去 src（可跨玩家/父键，结果不能为负；不足则归零）
 		public static method subBigInt(player dstP, integer dstKey, player srcP, integer srcKey) {
-			integer dParent; integer sParent; integer sCnt; integer i; integer v;
+			integer dParent; integer sParent; integer sCnt; integer i; integer v; integer cmp;
+			// 若 dst 小于等于 src，则直接归零
+			cmp = bigInteger.compareBigInt(dstP, dstKey, srcP, srcKey);
+			if (cmp <= 0) {
+				bigInteger.reset(dstP, dstKey);
+				return;
+			}
 			dParent = bigInteger.parentKey(dstP, dstKey);
 			sParent = bigInteger.parentKey(srcP, srcKey);
 			sCnt = bigInteger.getCountByParent(sParent);
@@ -219,20 +225,42 @@ library BigInteger requires NumberFormatter {
 			bigInteger.normalize(dParent);
 		}
 
-		// 减整数（非负）；负值按 0 处理，结果不能为负
+		// 减整数（非负）；负值按 0 处理，结果不能为负；不足则归零
 		public static method subInt(player p, integer baseKey, integer val) {
-			integer parent;
+			integer parent; integer cmp;
 			if (val <= 0) { return; }
+			// 若当前值小于等于要减的整数，则直接归零，避免借位导致的环绕
+			cmp = bigInteger.compareInt(p, baseKey, val);
+			if (cmp <= 0) {
+				bigInteger.reset(p, baseKey);
+				return;
+			}
 			parent = bigInteger.parentKey(p, baseKey);
 			bigInteger.subAt(parent, 1, val);
 			bigInteger.normalize(parent);
 		}
 
-		// 减实数（非负）；负值按 0 处理，结果不能为负
+		// 减实数（非负）；负值按 0 处理，结果不能为负；不足则归零
 		public static method subReal(player p, integer baseKey, real val) {
-			integer parent; integer idx; integer seg; integer safety;
-			real v; real segR;
+			integer parent; integer idx; integer seg; integer safety; integer cmp;
+			real v; real segR; real cur;
 			if (val <= 0.0) { return; }
+			// 若当前值小于等于要减的实数，则直接归零
+			// 1) 优先使用 compareReal（在段数 <=2 时是精确的）
+			cmp = bigInteger.compareReal(p, baseKey, val);
+			if (cmp <= 0) {
+				bigInteger.reset(p, baseKey);
+				return;
+			}
+			// 2) 当段数较多（compareReal 会因为 cnt>2 而一律返回 1）时，
+			//    只在「val 明显大于当前值」的情况下才做兜底归零：
+			//    为了避免 float 精度导致的小差值（例如 +2、+999）被抹掉，
+			//    这里使用一个比较宽松的倍率阈值。
+			cur = bigInteger.toReal(p, baseKey);
+			if (val >= cur * 1.5) {
+				bigInteger.reset(p, baseKey);
+				return;
+			}
 			parent = bigInteger.parentKey(p, baseKey);
 
 			v = val;

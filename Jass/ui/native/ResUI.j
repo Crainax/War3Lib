@@ -196,6 +196,7 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize,BaseAnim {
 			if (goldText == 0) {
 				goldText = uiText.create(DzGetGameUI())
 					.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+					.setFontSize(2)
 					.setText("");
 			}
 
@@ -233,6 +234,7 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize,BaseAnim {
 			if (expText == 0) {
 				expText = uiText.create(DzGetGameUI())
 					.setAbsPoint(ANCHOR_CENTER, 0.45, 0.15)
+					.setFontSize(2)
 					.setText("");
 			}
 
@@ -249,7 +251,7 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize,BaseAnim {
 			DzFrameShow(expText.ui, true);
 
 			// 从 (0.45, 0.15) 移动到 (0.45, 0.16)，0.8 秒（40 帧），并从 255 渐隐到 0
-			expAnim.addAbsMove(ANCHOR_CENTER, 0.45, 0.11, 0.45, 0.12, 40);
+			expAnim.addAbsMove(ANCHOR_CENTER, 0.47, 0.105, 0.47, 0.115, 40);
 			expAnim.addAlpha(255, 0, 40);
 		}
 

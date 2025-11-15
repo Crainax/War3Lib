@@ -346,6 +346,130 @@ library UTBigInteger requires BigInteger {
 		p = null;
 	}
 
+	//==============================
+	// 10) sub 系列：超减时应归零
+	//==============================
+	private function Test_SubClampToZero() {
+		player p1 = P1();
+		player p2 = P2();
+		integer key1 = K();
+		integer key2 = K() + 3000; // 使用不同的 key 避免冲突
+
+		// subInt：250 - 500 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.addInt(p1, key1, 250);
+		bigInteger.subInt(p1, key1, 500);
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subInt: 250-500 应归零");
+		assert.String(bigInteger.toStringWithUnit(p1, key1), "0", "subInt: 归零后字符串应为 0");
+
+		// subInt：250 - 250 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.addInt(p1, key1, 250);
+		bigInteger.subInt(p1, key1, 250);
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subInt: 250-250 应归零");
+
+		// subReal：250.0 - 500.0 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.addReal(p1, key1, 250.0);
+		bigInteger.subReal(p1, key1, 500.0);
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subReal: 250-500 应归零");
+
+		// subBigInt：小数减大数 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.reset(p2, key2);
+		bigInteger.addInt(p1, key1, 250);
+		bigInteger.addInt(p2, key2, 500);
+		bigInteger.subBigInt(p1, key1, p2, key2);
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subBigInt: 250-500 应归零");
+
+		// subBigInt：相等时 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.reset(p2, key2);
+		bigInteger.addInt(p1, key1, 8888);
+		bigInteger.addInt(p2, key2, 8888);
+		bigInteger.subBigInt(p1, key1, p2, key2);
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subBigInt: 8888-8888 应归零");
+
+		// ====== 超大数减法测试 ======
+		// subInt：10亿 - 20亿 => 0（使用整数范围内的大值）
+		bigInteger.reset(p1, key1);
+		bigInteger.addInt(p1, key1, 1000000000); // 10亿
+		bigInteger.subInt(p1, key1, 2000000000); // 20亿（在整数范围内）
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subInt: 10亿-20亿 应归零");
+		assert.String(bigInteger.toStringWithUnit(p1, key1), "0", "subInt: 10亿-20亿 归零后字符串应为 0");
+
+		// subInt：10亿 - 10亿 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.addInt(p1, key1, 1000000000); // 10亿
+		bigInteger.subInt(p1, key1, 1000000000); // 10亿
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subInt: 10亿-10亿 应归零");
+
+		// subReal：50亿 - 100亿 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.addReal(p1, key1, 50.0 * 1000000000.0); // 50亿
+		bigInteger.subReal(p1, key1, 100.0 * 1000000000.0); // 100亿
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subReal: 50亿-100亿 应归零");
+		assert.String(bigInteger.toStringWithUnit(p1, key1), "0", "subReal: 50亿-100亿 归零后字符串应为 0");
+
+		// subReal：200亿 - 300亿 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.addReal(p1, key1, 200.0 * 1000000000.0); // 200亿
+		bigInteger.subReal(p1, key1, 300.0 * 1000000000.0); // 300亿
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subReal: 200亿-300亿 应归零");
+
+		// subBigInt：50亿 - 100亿 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.reset(p2, key2);
+		bigInteger.addReal(p1, key1, 50.0 * 1000000000.0); // 50亿
+		bigInteger.addReal(p2, key2, 100.0 * 1000000000.0); // 100亿
+		bigInteger.subBigInt(p1, key1, p2, key2);
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subBigInt: 50亿-100亿 应归零");
+		assert.String(bigInteger.toStringWithUnit(p1, key1), "0", "subBigInt: 50亿-100亿 归零后字符串应为 0");
+
+		// subBigInt：500亿 - 1000亿 => 0
+		bigInteger.reset(p1, key1);
+		bigInteger.reset(p2, key2);
+		bigInteger.addReal(p1, key1, 500.0 * 1000000000.0); // 500亿
+		bigInteger.addReal(p2, key2, 1000.0 * 1000000000.0); // 1000亿
+		bigInteger.subBigInt(p1, key1, p2, key2);
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subBigInt: 500亿-1000亿 应归零");
+
+		// subBigInt：超大数相等时 => 0（500亿 - 500亿）
+		bigInteger.reset(p1, key1);
+		bigInteger.reset(p2, key2);
+		bigInteger.addReal(p1, key1, 500.0 * 1000000000.0); // 500亿
+		bigInteger.addReal(p2, key2, 500.0 * 1000000000.0); // 500亿
+		bigInteger.subBigInt(p1, key1, p2, key2);
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subBigInt: 500亿-500亿 应归零");
+
+		// subReal：京级别超大数 - 更大数 => 0（10000京 - 20000京）
+		bigInteger.reset(p1, key1);
+		bigInteger.addReal(p1, key1, 100.0 * 1000000000.0 * 1000000000.0); // 10000京
+		bigInteger.subReal(p1, key1, 200.0 * 1000000000.0 * 1000000000.0); // 20000京
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subReal: 10000京-20000京 应归零");
+		assert.String(bigInteger.toStringWithUnit(p1, key1), "0", "subReal: 10000京-20000京 归零后字符串应为 0");
+
+		// subBigInt：京级别超大数 - 更大数 => 0（50000京 - 100000京）
+		bigInteger.reset(p1, key1);
+		bigInteger.reset(p2, key2);
+		bigInteger.addReal(p1, key1, 500.0 * 1000000000.0 * 1000000000.0); // 50000京
+		bigInteger.addReal(p2, key2, 1000.0 * 1000000000.0 * 1000000000.0); // 100000京
+		bigInteger.subBigInt(p1, key1, p2, key2);
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subBigInt: 50000京-100000京 应归零");
+		assert.String(bigInteger.toStringWithUnit(p1, key1), "0", "subBigInt: 50000京-100000京 归零后字符串应为 0");
+
+		// subInt：超大整数 - 更大整数 => 0（使用接近整数上限的值）
+		bigInteger.reset(p1, key1);
+		bigInteger.addInt(p1, key1, 2147483647); // 最大整数
+		bigInteger.addInt(p1, key1, 1000000000); // 再加 10亿
+		bigInteger.subInt(p1, key1, 2147483647); // 减去最大整数（仍小于当前值）
+		bigInteger.subInt(p1, key1, 2147483647); // 再减去最大整数（超过当前值，应归零）
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subInt: 超大整数-超大整数 应归零");
+
+		p1 = null;
+		p2 = null;
+	}
+
 	function TTestUTBigInteger1 (player p) {
 		//bigInteger.setCountByParent(parent, count);
 	}
@@ -406,6 +530,7 @@ library UTBigInteger requires BigInteger {
 			UnitTestAutoTimer(0.7, 0.1, function() { Trace("precision"); Test_Precision(); }, null);
 			UnitTestAutoTimer(0.8, 0.1, function() { Trace("3段大整数"); Test_ThreeSegmentBigInt(); }, null);
 			UnitTestAutoTimer(0.9, 0.1, function() { Trace("超大数测试"); Test_VeryLargeNumber(); }, null);
+			UnitTestAutoTimer(1.0, 0.1, function() { Trace("sub 超减归零"); Test_SubClampToZero(); }, null);
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -428,6 +553,7 @@ library UTBigInteger requires BigInteger {
 			else if (str == "s7") { Test_Precision(); }
 			else if (str == "s8") { Test_ThreeSegmentBigInt(); }
 			else if (str == "s9") { Test_VeryLargeNumber(); }
+			else if (str == "s10") { Test_SubClampToZero(); }
 		});
 
 	}
