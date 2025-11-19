@@ -13,18 +13,6 @@
 
 library AbilityDecorate requires SpellBtns,HashTable {
 
-
-    // 生成子键：位运算 + 质数，避免冲突且不溢出
-    private function AD_Key (unit u, integer abilId, integer salt) -> integer {
-        integer uid; integer result;
-        if (u == null || abilId == 0) { return 0; }
-        uid = GetHandleId(u);
-        // 使用位运算 + 质数组合，避免冲突
-        // uid 左移16位 + abilId 左移8位 + salt，再乘以质数
-        result = ((uid * 65536) + (abilId * 256) + salt) * 1009;
-        return result;
-    }
-
     // 排除单位参与技能装饰处理
     public function ExcludeUnitFromAbilityDecorate(unit u) {
         integer uid;
@@ -61,11 +49,14 @@ library AbilityDecorate requires SpellBtns,HashTable {
 
     // 将哈希中的装饰应用到指定槽位
     private function ApplyAbilityDecorToSlot(unit u, integer abilId, integer row, integer col) {
-        integer ck; string iconPath; integer gdId; growdata gd; string ctext;
+        integer parentKey; integer ck; string iconPath; integer gdId; growdata gd; string ctext;
+
+        parentKey = GetAbilityHashKey(u, abilId);
+        if (parentKey == 0) { return; }
 
         // 图标
-        ck = AD_Key(u, abilId, HASH_CHILD_SALT_ICON);
-        iconPath = LoadStr(HASH_ABILITY, HASH_PARENT_ABILITY_DECORATE, ck);
+        ck = HASH_CHILD_SALT_ICON;
+        iconPath = LoadStr(HASH_ABILITY, parentKey, ck);
         if (iconPath != null && StringLength(iconPath) > 0) {
             spellBtns.icons[row][col].setTexture(iconPath).show(true);
         } else {
@@ -73,8 +64,8 @@ library AbilityDecorate requires SpellBtns,HashTable {
         }
 
         // 流光
-        ck = AD_Key(u, abilId, HASH_CHILD_SALT_GLOW);
-        gdId = LoadInteger(HASH_ABILITY, HASH_PARENT_ABILITY_DECORATE, ck);
+        ck = HASH_CHILD_SALT_GLOW;
+        gdId = LoadInteger(HASH_ABILITY, parentKey, ck);
         if (gdId != 0) {
             gd = gdId;
             spellBtns.icons[row][col].grow(gd);
@@ -83,8 +74,8 @@ library AbilityDecorate requires SpellBtns,HashTable {
         }
 
         // 角落文字
-        ck = AD_Key(u, abilId, HASH_CHILD_SALT_CORNER);
-        ctext = LoadStr(HASH_ABILITY, HASH_PARENT_ABILITY_DECORATE, ck);
+        ck = HASH_CHILD_SALT_CORNER;
+        ctext = LoadStr(HASH_ABILITY, parentKey, ck);
         if (ctext != null && StringLength(ctext) > 0) {
             spellBtns.icons[row][col].setCornerText(ctext);
         } else {
@@ -110,45 +101,45 @@ library AbilityDecorate requires SpellBtns,HashTable {
         sel = null;
     }
 
-    // 将装饰图标路径存入 HASH_ABILITY（固定父键 + 复合子键）
+    // 将装饰图标路径存入 HASH_ABILITY（父键 = 单位+技能ID，子键 = ICON）
     public function SetAbilityDecorateIcon (unit u, integer abilityID, string path) {
-        integer ck;
-        ck = AD_Key(u, abilityID, HASH_CHILD_SALT_ICON);
-        if (ck == 0) { return; }
+        integer parentKey;
+        parentKey = GetAbilityHashKey(u, abilityID);
+        if (parentKey == 0) { return; }
         if (path == null) {
-            RemoveSavedString(HASH_ABILITY, HASH_PARENT_ABILITY_DECORATE, ck);
+            RemoveSavedString(HASH_ABILITY, parentKey, HASH_CHILD_SALT_ICON);
         } else {
-            SaveStr(HASH_ABILITY, HASH_PARENT_ABILITY_DECORATE, ck, path);
+            SaveStr(HASH_ABILITY, parentKey, HASH_CHILD_SALT_ICON, path);
         }
 
         // 即时刷新：若当前选中单位为目标单位，则更新对应技能槽(注意:异步操作)
         DoImmediateRefresh(u, abilityID);
     }
 
-    // 将装饰流光数据存入 HASH_ABILITY（0 表示无流光）
+    // 将装饰流光数据存入 HASH_ABILITY（0 表示无流光，父键 = 单位+技能ID，子键 = GLOW）
     public function SetAbilityDecorateGrow (unit u, integer abilityID, growdata gd) {
-        integer ck;
-        ck = AD_Key(u, abilityID, HASH_CHILD_SALT_GLOW);
-        if (ck == 0) { return; }
+        integer parentKey;
+        parentKey = GetAbilityHashKey(u, abilityID);
+        if (parentKey == 0) { return; }
         if (gd == 0) {
-            RemoveSavedInteger(HASH_ABILITY, HASH_PARENT_ABILITY_DECORATE, ck);
+            RemoveSavedInteger(HASH_ABILITY, parentKey, HASH_CHILD_SALT_GLOW);
         } else {
-            SaveInteger(HASH_ABILITY, HASH_PARENT_ABILITY_DECORATE, ck, gd);
+            SaveInteger(HASH_ABILITY, parentKey, HASH_CHILD_SALT_GLOW, gd);
         }
 
         // 即时刷新(注意:异步操作)
         DoImmediateRefresh(u, abilityID);
     }
 
-    // 将角落文字装饰存入 HASH_ABILITY（null 或空串表示移除）
+    // 将角落文字装饰存入 HASH_ABILITY（null 或空串表示移除，父键 = 单位+技能ID，子键 = CORNER）
     public function SetAbilityDecorateCornerText (unit u, integer abilityID, string text) {
-        integer ck;
-        ck = AD_Key(u, abilityID, HASH_CHILD_SALT_CORNER);
-        if (ck == 0) { return; }
+        integer parentKey;
+        parentKey = GetAbilityHashKey(u, abilityID);
+        if (parentKey == 0) { return; }
         if (text == null || StringLength(text) == 0) {
-            RemoveSavedString(HASH_ABILITY, HASH_PARENT_ABILITY_DECORATE, ck);
+            RemoveSavedString(HASH_ABILITY, parentKey, HASH_CHILD_SALT_CORNER);
         } else {
-            SaveStr(HASH_ABILITY, HASH_PARENT_ABILITY_DECORATE, ck, text);
+            SaveStr(HASH_ABILITY, parentKey, HASH_CHILD_SALT_CORNER, text);
         }
 
         // 即时刷新(注意:异步操作)

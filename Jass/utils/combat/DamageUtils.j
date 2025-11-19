@@ -17,6 +17,13 @@ library DamageUtils requires UnitFilter,GroupUtils {
     private unit    lsSource[];
     private real    lsTotal[];
 
+    // --------------------
+    // 模拟普攻终伤倍率栈（用于在伤害系统中追加 (1.0 + fd)）
+    // --------------------
+    private integer basicAtkTop = -1;
+    private unit    basicAtkSource[];
+    private real    basicAtkFD[];
+
     private function LS_begin(unit src) {
         lsTop += 1;
         lsSource[lsTop] = src;
@@ -109,9 +116,32 @@ library DamageUtils requires UnitFilter,GroupUtils {
     }
 
 
-    //模拟普攻(最后一个参数代表额外的终伤,0)
+    //模拟普攻(最后一个参数代表额外的终伤,默认传0)
     public function SimulateBasicAttack (unit u,unit target,real fd) {
-        UnitDamageTarget( u, target, GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE))*(1.0+fd), true, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
+        // 入栈：记录本次模拟普攻的终伤倍率 fd（只在伤害系统里使用）
+        basicAtkTop += 1;
+        basicAtkSource[basicAtkTop] = u;
+        basicAtkFD[basicAtkTop] = fd;
+
+        // 这里只按基础攻强造成一次攻击伤害，所有加成留给 DamageSystem 统一处理
+        UnitDamageTarget( u, target, GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)) * 1.0, true, false, ATTACK_TYPE_SIEGE, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS );
+
+        // 出栈：清理本次上下文
+        basicAtkSource[basicAtkTop] = null;
+        basicAtkFD[basicAtkTop] = 0.0;
+        basicAtkTop -= 1;
+    }
+
+    // 是否存在当前模拟普攻终伤上下文（并且来源匹配）
+    public function SimulateBasicAttackFDIsActive(unit src) -> boolean {
+        if (basicAtkTop < 0) return false;
+        return basicAtkSource[basicAtkTop] == src && basicAtkFD[basicAtkTop] != 0.0;
+    }
+
+    // 获取当前模拟普攻的终伤倍率 fd（无上下文时返回 0.0）
+    public function SimulateBasicAttackFDGet() -> real {
+        if (basicAtkTop < 0) return 0.0;
+        return basicAtkFD[basicAtkTop];
     }
 
     // 伤害参数结构体
