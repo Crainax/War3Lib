@@ -9,6 +9,41 @@
 //自动生成的文件
 library UTMuseum requires Museum {
 
+	// 初始化若干测试用的图鉴 Tab
+	function InitTabs() {
+		museumData md1; museumData md2;
+
+		// 测试图鉴 A
+		md1 = museumData.registerAlbum("测试图鉴A");
+		md1.registerClick(function () -> boolean {
+			museumData cur;
+			cur = museumData.getCallbackData();
+			BJDebugMsg("[Museum] 打开: " + cur.name);
+			return true;
+		});
+		md1.registerClose(function () -> boolean {
+			museumData cur;
+			cur = museumData.getCallbackData();
+			BJDebugMsg("[Museum] 关闭: " + cur.name);
+			return true;
+		});
+
+		// 测试图鉴 B
+		md2 = museumData.registerAlbum("测试图鉴B");
+		md2.registerClick(function () -> boolean {
+			museumData cur;
+			cur = museumData.getCallbackData();
+			BJDebugMsg("[Museum] 打开: " + cur.name);
+			return true;
+		});
+		md2.registerClose(function () -> boolean {
+			museumData cur;
+			cur = museumData.getCallbackData();
+			BJDebugMsg("[Museum] 关闭: " + cur.name);
+			return true;
+		});
+	}
+
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
@@ -18,12 +53,19 @@ library UTMuseum requires Museum {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//assert.Boolean(true, "测试1");
 		},null);
+
+		// 初始化测试用的图鉴 Tab
+		InitTabs();
 	}
 
 	function TTestUTMuseum1 (player p) {
-		// museumData.registerAlbum
+		// s1：打开博物馆 UI
+		museumUI.show(p);
 	}
-	function TTestUTMuseum2 (player p) {}
+	function TTestUTMuseum2 (player p) {
+		// s2：关闭博物馆 UI
+		museumUI.hide(p);
+	}
 	function TTestUTMuseum3 (player p) {}
 	function TTestUTMuseum4 (player p) {}
 	function TTestUTMuseum5 (player p) {}

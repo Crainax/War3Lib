@@ -1,5 +1,5 @@
-#ifndef MusiumIncluded
-#define MusiumIncluded
+#ifndef MuseumIncluded
+#define MuseumIncluded
 
 #include "Crainax/config/SharedMethod.h"       // 结构体共用方法、I3 等工具
 #include "Crainax/ui/constants/UIConstants.j"  // UI 常量
@@ -19,7 +19,7 @@
 #define MUSEUM_TAB_HEIGHT      0.026  // 左侧按钮高度
 #define MUSEUM_TAB_GAP_Y       0.004  // 左侧按钮纵向间距
 
-library Musium requires Music,Icon {
+library Museum requires Music,Icon {
 
     //==========================================================================
     // 图鉴数据：永久存在，仅负责“哪几类图鉴、各自名称和回调”
@@ -29,6 +29,8 @@ library Musium requires Music,Icon {
         trigger trClick;     // 打开 / 选中时的回调
         trigger trClose;     // 关闭 / 取消选中时的回调
         integer index;       // 在全局列表中的索引（1-based）
+
+        STRUCT_SHARED_INNER_UI(museumData)
 
         // 全局列表
         private static thistype list[];
@@ -110,23 +112,6 @@ library Musium requires Music,Icon {
         public static method clearCallbackData() {
             thistype.callbackData = 0;
         }
-
-        method onDestroy() {
-            if (!this.isExist()) { return; }
-
-            if (this.trClick != null) {
-                DestroyTrigger(this.trClick);
-                this.trClick = null;
-            }
-
-            if (this.trClose != null) {
-                DestroyTrigger(this.trClose);
-                this.trClose = null;
-            }
-
-            this.name  = null;
-            this.index = 0;
-        }
     }
 
     //==========================================================================
@@ -139,9 +124,9 @@ library Musium requires Music,Icon {
         private static uiBtn   uiCloseButton = 0;   // 右上角关闭按钮
 
         // 左侧分类按钮
-        private static uiImage tabImage[MUSEUM_TAB_MAX_COUNT];
-        private static uiBtn   tabButton[MUSEUM_TAB_MAX_COUNT];
-        private static uiText  tabLabel[MUSEUM_TAB_MAX_COUNT];
+        private static uiImage tabImage[];
+        private static uiBtn   tabButton[];
+        private static uiText  tabLabel[];
         private static integer tabCount = 0;
 
         // 状态
@@ -173,10 +158,13 @@ library Musium requires Music,Icon {
             tabCount = 0;
         }
 
-        // 供外部调用：打开 UI（单例）
+        // 供外部调用：打开 UI（单例，完全本地状态）
         public static method show(player p) {
             integer i; integer size; real offsetY;
             museumData md;
+
+            // 仅在本地玩家为 p 时处理 UI 状态
+            if (GetLocalPlayer() != p) { return; }
 
             if (isOpen) { return; }
 
@@ -185,38 +173,43 @@ library Musium requires Music,Icon {
 
             size = museumData.getSize();
 
-            // 仅在本地玩家为 p 时创建 UI
-            if (GetLocalPlayer() == p) {
-                uiMain = uiImage.create(DzGetGameUI())
-                    .setTexture("ui\\image\\bg_select.blp")
-                    .exReSize(MUSEUM_MAIN_WIDTH, MUSEUM_MAIN_HEIGHT)
-                    .exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+            uiMain = uiImage.create(DzGetGameUI())
+                .setTexture("ui\\image\\bg_select.blp")
+                .exReSize(MUSEUM_MAIN_WIDTH, MUSEUM_MAIN_HEIGHT)
+                .exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
 
-                // 右上角关闭按钮
-                uiCloseImage = uiImage.create(uiMain.ui)
-                    .exReSize(0.029, 0.029)
-                    .setTexture("ui\\image\\select_close.blp")
-                    .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_TOPRIGHT, -0.015, -0.015);
+            // 右上角关闭按钮
+            uiCloseImage = uiImage.create(uiMain.ui)
+                .exReSize(0.029, 0.029)
+                .setTexture("ui\\image\\select_close.blp")
+                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_TOPRIGHT, -0.015, -0.015);
 
-                uiCloseButton = uiBtn.create(uiCloseImage.ui)
-                    .setAllPoint(uiCloseImage.ui)
-                    .spClick(function(integer frame) {
-                        // 这里只需要关闭当前 UI 即可
-                        museumUI.onCloseClick();
-                    });
+            uiCloseButton = uiBtn.create(uiCloseImage.ui)
+                .setAllPoint(uiCloseImage.ui)
+                .spClick(function(integer frame) {
+                    if (!isOpen) {
+                        return;
+                    }
 
-                // 左侧按钮数量：受限于 MUSEUM_TAB_MAX_COUNT
-                if (size > MUSEUM_TAB_MAX_COUNT) {
-                    tabCount = MUSEUM_TAB_MAX_COUNT;
-                } else {
-                    tabCount = size;
-                }
+                    if (owner != null) {
+                        museumUI.hide(owner);
+                    } else {
+                        museumUI.hide(GetLocalPlayer());
+                    }
+                });
 
-                // 左侧按钮从上到下排列
-                for (1 <= i <= tabCount) {
-                    md = museumData.getByIndex(i);
-                    if (md == 0) { continue; }
+            // 左侧按钮数量：受限于 MUSEUM_TAB_MAX_COUNT
+            if (size > MUSEUM_TAB_MAX_COUNT) {
+                tabCount = MUSEUM_TAB_MAX_COUNT;
+            } else {
+                tabCount = size;
+            }
 
+            // 左侧按钮从上到下排列
+            for (1 <= i <= tabCount) {
+                md = museumData.getByIndex(i);
+
+                if (md != 0) {
                     // 计算纵向偏移：从主框架左上角往下排
                     offsetY = -0.045 - (i - 1) * (MUSEUM_TAB_HEIGHT + MUSEUM_TAB_GAP_Y);
 
@@ -231,7 +224,25 @@ library Musium requires Music,Icon {
                             museumData mdLocal;
 
                             mdLocal = uiHashTable(frame).eventdata.get();
-                            museumUI.onTabClick(mdLocal);
+                            if (mdLocal == 0 || !mdLocal.isExist()) {
+                                return;
+                            }
+
+                            // 先调用当前图鉴 a 的关闭事件
+                            if (currentAlbum != 0 && currentAlbum.trClose != null) {
+                                museumData.setCallbackData(currentAlbum);
+                                TriggerEvaluate(currentAlbum.trClose);
+                                museumData.clearCallbackData();
+                            }
+
+                            // 再切换为新的图鉴 b，并调用其点击事件
+                            currentAlbum = mdLocal;
+
+                            if (currentAlbum.trClick != null) {
+                                museumData.setCallbackData(currentAlbum);
+                                TriggerEvaluate(currentAlbum.trClick);
+                                museumData.clearCallbackData();
+                            }
                         });
 
                     uiHashTable(tabButton[i].ui).eventdata.bind(md);
@@ -245,8 +256,11 @@ library Musium requires Music,Icon {
             }
         }
 
-        // 供外部调用：关闭 UI（会先触发当前图鉴的关闭回调）
+        // 供外部调用：关闭 UI（会先触发当前图鉴的关闭回调，完全本地状态）
         public static method hide(player p) {
+            // 仅在本地玩家为 p 时处理 UI 状态
+            if (GetLocalPlayer() != p) { return; }
+
             if (!isOpen) { return; }
 
             // 先调用当前图鉴的关闭事件
@@ -258,85 +272,37 @@ library Musium requires Music,Icon {
 
             currentAlbum = 0;
 
-            // 销毁 UI（仅本地玩家）
-            if (GetLocalPlayer() == p) {
-                destroyTabs();
+            // 销毁 UI
+            destroyTabs();
 
-                if (uiCloseButton != 0) {
-                    uiCloseButton.destroy();
-                    uiCloseButton = 0;
-                }
+            if (uiCloseButton != 0) {
+                uiCloseButton.destroy();
+                uiCloseButton = 0;
+            }
 
-                if (uiCloseImage != 0) {
-                    uiCloseImage.destroy();
-                    uiCloseImage = 0;
-                }
+            if (uiCloseImage != 0) {
+                uiCloseImage.destroy();
+                uiCloseImage = 0;
+            }
 
-                if (uiMain != 0) {
-                    uiMain.destroy();
-                    uiMain = 0;
-                }
+            if (uiMain != 0) {
+                uiMain.destroy();
+                uiMain = 0;
             }
 
             owner = null;
             isOpen = false;
         }
 
-        // 左侧按钮点击：先关闭当前，再打开目标
-        public static method onTabClick(museumData target) {
-            if (target == 0 || !target.isExist()) { return; }
-
-            // 先调用当前图鉴 a 的关闭事件
-            if (currentAlbum != 0 && currentAlbum.trClose != null) {
-                museumData.setCallbackData(currentAlbum);
-                TriggerEvaluate(currentAlbum.trClose);
-                museumData.clearCallbackData();
-            }
-
-            // 再切换为新的图鉴 b，并调用其点击事件
-            currentAlbum = target;
-
-            if (currentAlbum.trClick != null) {
-                museumData.setCallbackData(currentAlbum);
-                TriggerEvaluate(currentAlbum.trClick);
-                museumData.clearCallbackData();
-            }
-        }
-
-        // 右上角关闭按钮：先调用当前图鉴关闭事件，再整体关闭 UI
-        public static method onCloseClick() {
-            if (!isOpen) { return; }
-
-            if (owner != null) {
-                thistype.hide(owner);
-            } else {
-                // 没有记录 owner 时，仍尝试在本地直接销毁 UI
-                thistype.hide(GetLocalPlayer());
-            }
-        }
     }
 
     //==========================================================================
     // 对外接口
     //==========================================================================
 
-    // 注册一个新的图鉴分类
-    public function RegisterMuseumAlbum(string name) -> museumData {
-        return museumData.registerAlbum(name);
-    }
-
     // 回调中获取当前触发的 museumData
     public function GetMuseumEventData() -> museumData {
         return museumData.getCallbackData();
-    }
-
-    // 打开博物馆 UI（单例）
-    public function OpenMuseum(player p) {
-        museumUI.show(p);
-    }
-
-    // 当前版本不需要在 onInit 中做额外初始化
-    function onInit() {
     }
 }
 
