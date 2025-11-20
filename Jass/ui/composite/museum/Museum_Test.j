@@ -7,7 +7,9 @@
 //! zinc
 
 //自动生成的文件
-library UTMuseum requires Museum {
+library UTMuseum requires Museum,Keyboard {
+
+	private boolean utMuseumOpen = false; // F2 开关状态
 
 	// 初始化若干测试用的图鉴 Tab
 	function InitTabs() {
@@ -59,12 +61,24 @@ library UTMuseum requires Museum {
 	}
 
 	function TTestUTMuseum1 (player p) {
-		// s1：打开博物馆 UI
-		museumUI.show(p);
+		// s1：注册 F2 按键，用于切换博物馆 UI 的开启/关闭
+		keyboard.regKeyDownEvent(KEY_F2, function (){
+			player lp;
+			lp = GetLocalPlayer();
+
+			if (!utMuseumOpen) {
+				museumUI.show(lp);
+				utMuseumOpen = true;
+			} else {
+				museumUI.hide(lp);
+				utMuseumOpen = false;
+			}
+
+			lp = null;
+		});
 	}
 	function TTestUTMuseum2 (player p) {
-		// s2：关闭博物馆 UI
-		museumUI.hide(p);
+		// 保留空实现（原来用于 s2：关闭），现在主要通过 F2 切换
 	}
 	function TTestUTMuseum3 (player p) {}
 	function TTestUTMuseum4 (player p) {}
