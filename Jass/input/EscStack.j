@@ -9,7 +9,10 @@ Esc栈
 */
 library EscStack requires Keyboard {
 
+#ifndef ESC_STACK_FUNC_DEFINED
+#define ESC_STACK_FUNC_DEFINED
     public type escStackFunc extends function(player);
+#endif
 
     private struct EscStackData {
         escStackFunc func;

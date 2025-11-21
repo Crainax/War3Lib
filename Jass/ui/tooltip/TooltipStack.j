@@ -9,7 +9,10 @@ Tooltip栈,保证每次进出都删除所有Tooltip,防止那些没读取到onLe
 */
 library ToolTipStack {
 
+#ifndef ESC_STACK_FUNC_DEFINED
+#define ESC_STACK_FUNC_DEFINED
     public type escStackFunc extends function(player);
+#endif
 
     private struct TipData {
         escStackFunc func;

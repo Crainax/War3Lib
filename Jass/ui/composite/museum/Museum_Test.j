@@ -43,9 +43,7 @@
 //# dependency:resource/ui/image/select_right.blp
 //# dependency:resource/ui/image/museum_search.blp
 
-library UTMuseum requires Museum,Keyboard,UIEditbox {
-
-	private boolean utMuseumOpen = false; // F2 开关状态
+library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 
 	private struct albumAUI [] {
 		private static uiImage   contentArea = 0;
@@ -59,8 +57,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 		private static integer   currentIdx = 0;
 		private static integer   lastIdx = 0;
 
-		private static uiImage   iconBg[];
-		private static uiBtn     iconBtn[];
+		private static icon      iconSlots[];
 		private static integer   iconSlotValue[];
 		private static integer   totalCount = 0;
 		private static integer   page = 1;
@@ -96,22 +93,55 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 			return contentArea;
 		}
 
-		public static method init() {
-			if (albumAUI.getParent() == 0) { return; }
-			albumAUI.ensureData();
-			if (tabBg[1] == 0) {
-				albumAUI.createTabs();
+
+		private static method refreshIcons() {
+			integer perPage; integer startIdx; integer endIdx; integer i; integer actual;
+			if (currentIdx < 1 || currentIdx > ALBUM_A_SUBBTN_COUNT) {
+				currentIdx = 1;
 			}
-			if (iconBg[1] == 0) {
-				albumAUI.createIconSlots();
+			totalCount = tabCounts[currentIdx];
+			perPage = ALBUM_A_ICON_COLS * ALBUM_A_ICON_ROWS;
+			if (perPage <= 0) { perPage = 1; }
+			pageCount = (totalCount + perPage - 1) / perPage;
+			if (pageCount <= 0) { pageCount = 1; }
+
+			if (page > pageCount) { page = pageCount; }
+			if (page < 1) { page = 1; }
+
+			startIdx = (page - 1) * perPage + 1;
+			endIdx = startIdx + perPage - 1;
+			if (endIdx > totalCount) { endIdx = totalCount; }
+
+			for (1 <= i <= ALBUM_A_ICON_MAX) {
+				actual = startIdx + i - 1;
+				if (actual <= endIdx) {
+					iconSlotValue[i] = actual;
+					iconSlots[i].setTexture("ReplaceableTextures\\CommandButtons\\BTNSell.blp")
+						.show(true);
+				} else {
+					iconSlotValue[i] = 0;
+					iconSlots[i].show(false);
+				}
 			}
-			if (pageText == 0) {
-				albumAUI.createFooter();
+
+			if (pageCount > 1) {
+				pageText.setText("第 " + I2S(page) + "/" + I2S(pageCount) + " 页")
+					.show(true);
+				pagePrevImage.show(true);
+				pageNextImage.show(true);
+			} else {
+				pageText.show(false);
+				pagePrevImage.show(false);
+				pageNextImage.show(false);
 			}
-			if (lastIdx < 1 || lastIdx > ALBUM_A_SUBBTN_COUNT) {
-				lastIdx = 1;
-			}
-			albumAUI.selectTab(lastIdx, true);
+		}
+
+		private static method changePage(integer delta) {
+			if (pageCount <= 1) { return; }
+			page += delta;
+			if (page < 1) { page = pageCount; }
+			if (page > pageCount) { page = 1; }
+			albumAUI.refreshIcons();
 		}
 
 		private static method createTabs() {
@@ -178,14 +208,14 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 				posX = startX + col * stepX;
 				posY = ALBUM_A_ICON_START_Y - row * stepY;
 
-				iconBg[i] = uiImage.create(contentArea.ui)
-					.exReSize(ALBUM_A_ICON_SIZE, ALBUM_A_ICON_SIZE)
+				iconSlots[i] = icon.create(contentArea.ui)
+					.enableResize()
+					.setSize(ALBUM_A_ICON_SIZE, ALBUM_A_ICON_SIZE)
 					.setTexture("ui\\image\\select_flash.blp")
-					.exRePoint(ANCHOR_TOP, contentArea.ui, ANCHOR_TOP, posX, posY)
+					.setPoint(ANCHOR_TOP, contentArea.ui, ANCHOR_TOP, posX, posY)
 					.show(false);
 
-				iconBtn[i] = uiBtn.create(iconBg[i].ui)
-					.setAllPoint(iconBg[i].ui)
+				iconSlots[i].getClickBtn()
 					.spClick(function(integer frame) {
 						integer slot; integer actual; integer cat;
 						slot = uiHashTable(frame).eventdata.get();
@@ -195,7 +225,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 							BJDebugMsg("[图鉴A] " + albumAUI.tabNames[cat] + " 分类 点击条目 #" + I2S(actual));
 						}
 					});
-				uiHashTable(iconBtn[i].ui).eventdata.bind(i);
+				uiHashTable(iconSlots[i].getClickBtn().ui).eventdata.bind(i);
 			}
 		}
 
@@ -284,56 +314,22 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 			}
 		}
 
-		private static method refreshIcons() {
-			integer perPage; integer startIdx; integer endIdx; integer i; integer actual;
-			if (currentIdx < 1 || currentIdx > ALBUM_A_SUBBTN_COUNT) {
-				currentIdx = 1;
+		public static method init() {
+			if (albumAUI.getParent() == 0) { return; }
+			albumAUI.ensureData();
+			if (tabBg[1] == 0) {
+				albumAUI.createTabs();
 			}
-			totalCount = tabCounts[currentIdx];
-			perPage = ALBUM_A_ICON_COLS * ALBUM_A_ICON_ROWS;
-			if (perPage <= 0) { perPage = 1; }
-			pageCount = (totalCount + perPage - 1) / perPage;
-			if (pageCount <= 0) { pageCount = 1; }
-
-			if (page > pageCount) { page = pageCount; }
-			if (page < 1) { page = 1; }
-
-			startIdx = (page - 1) * perPage + 1;
-			endIdx = startIdx + perPage - 1;
-			if (endIdx > totalCount) { endIdx = totalCount; }
-
-			for (1 <= i <= ALBUM_A_ICON_MAX) {
-				actual = startIdx + i - 1;
-				if (actual <= endIdx) {
-					iconSlotValue[i] = actual;
-					iconBg[i].setTexture("ReplaceableTextures\\CommandButtons\\BTNSell.blp")
-						.show(true);
-					iconBtn[i].show(true);
-				} else {
-					iconSlotValue[i] = 0;
-					iconBg[i].show(false);
-					iconBtn[i].show(false);
-				}
+			if (iconSlots[1] == 0) {
+				albumAUI.createIconSlots();
 			}
-
-			if (pageCount > 1) {
-				pageText.setText("第 " + I2S(page) + "/" + I2S(pageCount) + " 页")
-					.show(true);
-				pagePrevImage.show(true);
-				pageNextImage.show(true);
-			} else {
-				pageText.show(false);
-				pagePrevImage.show(false);
-				pageNextImage.show(false);
+			if (pageText == 0) {
+				albumAUI.createFooter();
 			}
-		}
-
-		private static method changePage(integer delta) {
-			if (pageCount <= 1) { return; }
-			page += delta;
-			if (page < 1) { page = pageCount; }
-			if (page > pageCount) { page = 1; }
-			albumAUI.refreshIcons();
+			if (lastIdx < 1 || lastIdx > ALBUM_A_SUBBTN_COUNT) {
+				lastIdx = 1;
+			}
+			albumAUI.selectTab(lastIdx, true);
 		}
 
 		public static method destroy1() {
@@ -347,8 +343,10 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 			if (subTabIndicator != 0) { subTabIndicator.destroy(); subTabIndicator = 0; }
 
 			for (1 <= i <= ALBUM_A_ICON_MAX) {
-				if (iconBtn[i] != 0) { iconBtn[i].destroy(); iconBtn[i] = 0; }
-				if (iconBg[i] != 0) { iconBg[i].destroy(); iconBg[i] = 0; }
+				if (iconSlots[i] != 0) {
+					iconSlots[i].destroy();
+					iconSlots[i] = 0;
+				}
 				iconSlotValue[i] = 0;
 			}
 
@@ -429,12 +427,10 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 			player lp;
 			lp = GetLocalPlayer();
 
-			if (!utMuseumOpen) {
+			if (!museumUI.isShow()) {
 				museumUI.show(lp);
-				utMuseumOpen = true;
 			} else {
 				museumUI.hide(lp);
-				utMuseumOpen = false;
 			}
 
 			lp = null;

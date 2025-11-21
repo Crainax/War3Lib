@@ -533,6 +533,11 @@ library Museum requires Music,Icon,Tooltip,EscStack {
             return uiContentArea;
         }
 
+        // 判断 UI 是否正在显示
+        public static method isShow() -> boolean {
+            return isOpen;
+        }
+
     }
 
     //==========================================================================
