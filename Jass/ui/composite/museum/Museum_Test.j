@@ -6,44 +6,388 @@
 
 //! zinc
 
-//自动生成的文件
-library UTMuseum requires Museum,Keyboard {
+// 自动生成的文件
+#define TEST_ALBUM_TOTAL          16
+#define ALBUM_A_SUBBTN_COUNT      5
+#define ALBUM_A_SUBBTN_WIDTH      0.07
+#define ALBUM_A_SUBBTN_HEIGHT     0.024
+#define ALBUM_A_SUBBTN_GAP_X      0.010
+#define ALBUM_A_SUBBTN_OFFSET_Y  -0.015
+#define ALBUM_A_SUBBTN_SELECTED_SCALE 1.12
+#define ALBUM_A_SUBBTN_FONT_NORMAL    6
+#define ALBUM_A_SUBBTN_FONT_SELECTED  7
+
+#define ALBUM_A_ICON_COLS         7
+#define ALBUM_A_ICON_ROWS         4
+#define ALBUM_A_ICON_GAP_X        0.015
+#define ALBUM_A_ICON_GAP_Y        0.015
+#define ALBUM_A_ICON_START_Y     -0.065
+#define ALBUM_A_ICON_SIZE         0.048
+#define ALBUM_A_ICON_MAX         (ALBUM_A_ICON_COLS * ALBUM_A_ICON_ROWS)
+
+#define ALBUM_A_PAGE_TEXT_OFFSET_Y 0.018
+#define ALBUM_A_PAGE_BTN_SIZE      0.02
+#define ALBUM_A_PAGE_BTN_OFFSET_X  0.03
+
+#define ALBUM_A_SEARCH_ICON_OFFSET_X 0.020
+#define ALBUM_A_SEARCH_ICON_OFFSET_Y 0.020
+#define ALBUM_A_SEARCH_ICON_SIZE     0.022
+#define ALBUM_A_SEARCH_EDIT_OFFSET_X 0.055
+#define ALBUM_A_SEARCH_EDIT_OFFSET_Y 0.020
+#define ALBUM_A_SEARCH_BOX_WIDTH     0.065
+#define ALBUM_A_SEARCH_BOX_HEIGHT    0.03
+
+//# dependency:resource/ui/image/select_left.blp
+//# dependency:resource/ui/image/select_right.blp
+
+library UTMuseum requires Museum,Keyboard,UIEditbox {
 
 	private boolean utMuseumOpen = false; // F2 开关状态
 
-	// 初始化若干测试用的图鉴 Tab
+	private struct albumAUI [] {
+		private static uiImage   contentArea = 0;
+		private static uiImage   tabBg[];
+		private static uiBtn     tabBtn[];
+		private static uiText    tabLabel[];
+		private static real      tabPosX[];
+		private static string    tabNames[];
+		private static integer   tabCounts[];
+		private static integer   currentIdx = 0;
+		private static integer   lastIdx = 0;
+
+		private static uiImage   iconBg[];
+		private static uiBtn     iconBtn[];
+		private static integer   iconSlotValue[];
+		private static integer   totalCount = 0;
+		private static integer   page = 1;
+		private static integer   pageCount = 1;
+
+		private static uiText    pageText = 0;
+		private static uiImage   pagePrevImage = 0;
+		private static uiBtn     pagePrevBtn = 0;
+		private static uiImage   pageNextImage = 0;
+		private static uiBtn     pageNextBtn = 0;
+
+		private static uiImage   searchIcon = 0;
+		private static uiEditbox searchBox = 0;
+		private static integer   searchLevel = 1;
+
+		private static method ensureData() {
+			if (tabNames[1] != null) { return; }
+			tabNames[1] = "普通";
+			tabNames[2] = "稀有";
+			tabNames[3] = "史诗";
+			tabNames[4] = "传说";
+			tabNames[5] = "神话";
+
+			tabCounts[1] = 12;
+			tabCounts[2] = 18;
+			tabCounts[3] = 24;
+			tabCounts[4] = 30;
+			tabCounts[5] = 36;
+		}
+
+		private static method getParent() -> uiImage {
+			contentArea = museumUI.getContentArea();
+			return contentArea;
+		}
+
+		public static method init() {
+			if (albumAUI.getParent() == 0) { return; }
+			albumAUI.ensureData();
+			if (tabBg[1] == 0) {
+				albumAUI.createTabs();
+			}
+			if (iconBg[1] == 0) {
+				albumAUI.createIconSlots();
+			}
+			if (pageText == 0) {
+				albumAUI.createFooter();
+			}
+			if (lastIdx < 1 || lastIdx > ALBUM_A_SUBBTN_COUNT) {
+				lastIdx = 1;
+			}
+			albumAUI.selectTab(lastIdx, true);
+		}
+
+		private static method createTabs() {
+			integer i;
+			real totalWidth;
+			real startX;
+			real posX;
+
+			totalWidth = ALBUM_A_SUBBTN_COUNT * ALBUM_A_SUBBTN_WIDTH + (ALBUM_A_SUBBTN_COUNT - 1) * ALBUM_A_SUBBTN_GAP_X;
+			startX = 0.0 - totalWidth / 2.0 + ALBUM_A_SUBBTN_WIDTH / 2.0;
+
+			for (1 <= i <= ALBUM_A_SUBBTN_COUNT) {
+				posX = startX + (i - 1) * (ALBUM_A_SUBBTN_WIDTH + ALBUM_A_SUBBTN_GAP_X);
+				tabPosX[i] = posX;
+
+				tabBg[i] = uiImage.create(contentArea.ui)
+					.exReSize(ALBUM_A_SUBBTN_WIDTH, ALBUM_A_SUBBTN_HEIGHT)
+					.setTexture(UI_STRING_PATH_BLANK)
+					.exRePoint(ANCHOR_TOP, contentArea.ui, ANCHOR_TOP, posX, ALBUM_A_SUBBTN_OFFSET_Y);
+
+				tabBtn[i] = uiBtn.create(tabBg[i].ui)
+					.setAllPoint(tabBg[i].ui)
+					.spEnter(function(integer frame) {
+						music[MUSIC_INDEX_BTN_OVER_1].play();
+					})
+					.spClick(function(integer frame) {
+						integer idx;
+						idx = uiHashTable(frame).eventdata.get();
+						music[MUSIC_INDEX_BTN_CLICK].play();
+						albumAUI.selectTab(idx, true);
+					});
+				uiHashTable(tabBtn[i].ui).eventdata.bind(i);
+
+				tabLabel[i] = uiText.create(tabBg[i].ui)
+					.setAllPoint(tabBg[i].ui)
+					.setAlign(4)
+					.setFontSize(ALBUM_A_SUBBTN_FONT_NORMAL)
+					.setText(tabNames[i]);
+			}
+		}
+
+		private static method createIconSlots() {
+			integer i; integer col; integer row;
+			real totalWidth; real startX; real posX; real posY;
+			real stepX; real stepY;
+
+			totalWidth = ALBUM_A_ICON_COLS * ALBUM_A_ICON_SIZE + (ALBUM_A_ICON_COLS - 1) * ALBUM_A_ICON_GAP_X;
+			startX = 0.0 - totalWidth / 2.0 + ALBUM_A_ICON_SIZE / 2.0;
+			stepX = ALBUM_A_ICON_SIZE + ALBUM_A_ICON_GAP_X;
+			stepY = ALBUM_A_ICON_SIZE + ALBUM_A_ICON_GAP_Y;
+
+			for (1 <= i <= ALBUM_A_ICON_MAX) {
+				col = ModuloInteger(i - 1, ALBUM_A_ICON_COLS);
+				row = (i - 1) / ALBUM_A_ICON_COLS;
+				posX = startX + col * stepX;
+				posY = ALBUM_A_ICON_START_Y - row * stepY;
+
+				iconBg[i] = uiImage.create(contentArea.ui)
+					.exReSize(ALBUM_A_ICON_SIZE, ALBUM_A_ICON_SIZE)
+					.setTexture("ui\\image\\select_flash.blp")
+					.exRePoint(ANCHOR_TOP, contentArea.ui, ANCHOR_TOP, posX, posY)
+					.show(false);
+
+				iconBtn[i] = uiBtn.create(iconBg[i].ui)
+					.setAllPoint(iconBg[i].ui)
+					.spClick(function(integer frame) {
+						integer slot; integer actual; integer cat;
+						slot = uiHashTable(frame).eventdata.get();
+						actual = albumAUI.iconSlotValue[slot];
+						if (actual > 0) {
+							cat = albumAUI.currentIdx;
+							BJDebugMsg("[图鉴A] " + albumAUI.tabNames[cat] + " 分类 点击条目 #" + I2S(actual));
+						}
+					});
+				uiHashTable(iconBtn[i].ui).eventdata.bind(i);
+			}
+		}
+
+		private static method createFooter() {
+			pageText = uiText.create(contentArea.ui)
+				.setAlign(4)
+				.setFontSize(6)
+				.setPoint(ANCHOR_BOTTOM, contentArea.ui, ANCHOR_BOTTOM, 0.0, ALBUM_A_PAGE_TEXT_OFFSET_Y)
+				.show(false);
+
+			pagePrevImage = uiImage.create(contentArea.ui)
+				.exReSize(ALBUM_A_PAGE_BTN_SIZE, ALBUM_A_PAGE_BTN_SIZE)
+				.setTexture("ui\\image\\select_left.blp")
+				.exRePoint(ANCHOR_RIGHT, pageText.ui, ANCHOR_LEFT, -ALBUM_A_PAGE_BTN_OFFSET_X, 0.0)
+				.show(false);
+
+			pagePrevBtn = uiBtn.create(pagePrevImage.ui)
+				.setAllPoint(pagePrevImage.ui)
+				.spEnter(function(integer frame) {
+					if (albumAUI.pageCount > 1) {
+						music[MUSIC_INDEX_BTN_OVER_1].play();
+					}
+				})
+				.spClick(function(integer frame) {
+					albumAUI.changePage(-1);
+				});
+
+			pageNextImage = uiImage.create(contentArea.ui)
+				.exReSize(ALBUM_A_PAGE_BTN_SIZE, ALBUM_A_PAGE_BTN_SIZE)
+				.setTexture("ui\\image\\select_right.blp")
+				.exRePoint(ANCHOR_LEFT, pageText.ui, ANCHOR_RIGHT, ALBUM_A_PAGE_BTN_OFFSET_X, 0.0)
+				.show(false);
+
+			pageNextBtn = uiBtn.create(pageNextImage.ui)
+				.setAllPoint(pageNextImage.ui)
+				.spEnter(function(integer frame) {
+					if (albumAUI.pageCount > 1) {
+						music[MUSIC_INDEX_BTN_OVER_1].play();
+					}
+				})
+				.spClick(function(integer frame) {
+					albumAUI.changePage(1);
+				});
+
+			searchIcon = uiImage.create(contentArea.ui)
+				.exReSize(ALBUM_A_SEARCH_ICON_SIZE, ALBUM_A_SEARCH_ICON_SIZE)
+				.setTexture("ReplaceableTextures\\CommandButtons\\BTNSell.blp")
+				.exRePoint(ANCHOR_LEFT, contentArea.ui, ANCHOR_BOTTOMLEFT, ALBUM_A_SEARCH_ICON_OFFSET_X, ALBUM_A_SEARCH_ICON_OFFSET_Y);
+
+			searchBox = uiEditbox.create(contentArea.ui)
+				.setSize(ALBUM_A_SEARCH_BOX_WIDTH, ALBUM_A_SEARCH_BOX_HEIGHT)
+				.setPoint(ANCHOR_LEFT, contentArea.ui, ANCHOR_BOTTOMLEFT, ALBUM_A_SEARCH_EDIT_OFFSET_X, ALBUM_A_SEARCH_EDIT_OFFSET_Y)
+				.setText("1");
+		}
+
+		private static method selectTab(integer idx, boolean triggerRefresh) {
+			integer i; real scale;
+			if (idx == currentIdx && !triggerRefresh) { return; }
+
+			currentIdx = idx;
+			lastIdx = idx;
+
+			for (1 <= i <= ALBUM_A_SUBBTN_COUNT) {
+				if (tabBg[i] != 0) {
+					scale = R3(i == currentIdx, ALBUM_A_SUBBTN_SELECTED_SCALE, 1.0);
+					tabBg[i].exReSize(ALBUM_A_SUBBTN_WIDTH * scale, ALBUM_A_SUBBTN_HEIGHT * scale)
+						.exRePoint(ANCHOR_TOP, contentArea.ui, ANCHOR_TOP, tabPosX[i], ALBUM_A_SUBBTN_OFFSET_Y);
+					if (tabLabel[i] != 0) {
+						tabLabel[i].setFontSize(I3(i == currentIdx, ALBUM_A_SUBBTN_FONT_SELECTED, ALBUM_A_SUBBTN_FONT_NORMAL));
+					}
+				}
+			}
+
+			page = I3(page < 1, 1, page);
+			if (triggerRefresh) {
+				albumAUI.refreshIcons();
+			}
+		}
+
+		private static method refreshIcons() {
+			integer perPage; integer startIdx; integer endIdx; integer i; integer actual;
+			if (currentIdx < 1 || currentIdx > ALBUM_A_SUBBTN_COUNT) {
+				currentIdx = 1;
+			}
+			totalCount = tabCounts[currentIdx];
+			perPage = ALBUM_A_ICON_COLS * ALBUM_A_ICON_ROWS;
+			if (perPage <= 0) { perPage = 1; }
+			pageCount = (totalCount + perPage - 1) / perPage;
+			if (pageCount <= 0) { pageCount = 1; }
+
+			if (page > pageCount) { page = pageCount; }
+			if (page < 1) { page = 1; }
+
+			startIdx = (page - 1) * perPage + 1;
+			endIdx = startIdx + perPage - 1;
+			if (endIdx > totalCount) { endIdx = totalCount; }
+
+			for (1 <= i <= ALBUM_A_ICON_MAX) {
+				actual = startIdx + i - 1;
+				if (actual <= endIdx) {
+					iconSlotValue[i] = actual;
+					iconBg[i].setTexture("ReplaceableTextures\\CommandButtons\\BTNSell.blp")
+						.show(true);
+					iconBtn[i].show(true);
+				} else {
+					iconSlotValue[i] = 0;
+					iconBg[i].show(false);
+					iconBtn[i].show(false);
+				}
+			}
+
+			if (pageCount > 1) {
+				pageText.setText("第 " + I2S(page) + "/" + I2S(pageCount) + " 页")
+					.show(true);
+				pagePrevImage.show(true);
+				pageNextImage.show(true);
+			} else {
+				pageText.show(false);
+				pagePrevImage.show(false);
+				pageNextImage.show(false);
+			}
+		}
+
+		private static method changePage(integer delta) {
+			if (pageCount <= 1) { return; }
+			page += delta;
+			if (page < 1) { page = pageCount; }
+			if (page > pageCount) { page = 1; }
+			albumAUI.refreshIcons();
+		}
+
+		public static method destroy1() {
+			integer i;
+
+			for (1 <= i <= ALBUM_A_SUBBTN_COUNT) {
+				if (tabBtn[i] != 0) { tabBtn[i].destroy(); tabBtn[i] = 0; }
+				if (tabLabel[i] != 0) { tabLabel[i].destroy(); tabLabel[i] = 0; }
+				if (tabBg[i] != 0) { tabBg[i].destroy(); tabBg[i] = 0; }
+			}
+
+			for (1 <= i <= ALBUM_A_ICON_MAX) {
+				if (iconBtn[i] != 0) { iconBtn[i].destroy(); iconBtn[i] = 0; }
+				if (iconBg[i] != 0) { iconBg[i].destroy(); iconBg[i] = 0; }
+				iconSlotValue[i] = 0;
+			}
+
+			if (pageText != 0) { pageText.destroy(); pageText = 0; }
+			if (pagePrevBtn != 0) { pagePrevBtn.destroy(); pagePrevBtn = 0; }
+			if (pagePrevImage != 0) { pagePrevImage.destroy(); pagePrevImage = 0; }
+			if (pageNextBtn != 0) { pageNextBtn.destroy(); pageNextBtn = 0; }
+			if (pageNextImage != 0) { pageNextImage.destroy(); pageNextImage = 0; }
+
+			if (searchBox != 0) { searchBox.destroy(); searchBox = 0; }
+			if (searchIcon != 0) { searchIcon.destroy(); searchIcon = 0; }
+
+			contentArea = 0;
+			page = 1;
+			pageCount = 1;
+			totalCount = 0;
+			currentIdx = 0;
+		}
+	}
+
+	// 初始化若干测试用的图鉴 Tab（添加到 TEST_ALBUM_TOTAL 个）
 	function InitTabs() {
-		museumData md1; museumData md2;
+		museumData md[]; integer i; string title;
 
-		// 测试图鉴 A
-		md1 = museumData.registerAlbum("测试图鉴A");
-		md1.registerClick(function () -> boolean {
-			museumData cur;
-			cur = museumData.getCallbackData();
-			BJDebugMsg("[Museum] 打开: " + cur.name);
-			return true;
-		});
-		md1.registerClose(function () -> boolean {
-			museumData cur;
-			cur = museumData.getCallbackData();
-			BJDebugMsg("[Museum] 关闭: " + cur.name);
-			return true;
-		});
+		for (1 <= i <= TEST_ALBUM_TOTAL) {
+			if (i == 1) {
+				title = "图鉴A";
+			} else {
+				title = "测试图鉴" + I2S(i);
+			}
 
-		// 测试图鉴 B
-		md2 = museumData.registerAlbum("测试图鉴B");
-		md2.registerClick(function () -> boolean {
-			museumData cur;
-			cur = museumData.getCallbackData();
-			BJDebugMsg("[Museum] 打开: " + cur.name);
-			return true;
-		});
-		md2.registerClose(function () -> boolean {
-			museumData cur;
-			cur = museumData.getCallbackData();
-			BJDebugMsg("[Museum] 关闭: " + cur.name);
-			return true;
-		});
+			md[i] = museumData.registerAlbum(title);
+			if (i == 1) {
+				md[i].registerClick(function () -> boolean {
+					museumData cur;
+					cur = museumData.getCallbackData();
+					BJDebugMsg("[Museum] 打开: " + cur.name);
+					albumAUI.init();
+					return true;
+				});
+				md[i].registerClose(function () -> boolean {
+					museumData cur;
+					cur = museumData.getCallbackData();
+					BJDebugMsg("[Museum] 关闭: " + cur.name);
+					albumAUI.destroy1();
+					return true;
+				});
+			} else {
+				md[i].registerClick(function () -> boolean {
+					museumData cur;
+					cur = museumData.getCallbackData();
+					BJDebugMsg("[Museum] 打开: " + cur.name);
+					return true;
+				});
+				md[i].registerClose(function () -> boolean {
+					museumData cur;
+					cur = museumData.getCallbackData();
+					BJDebugMsg("[Museum] 关闭: " + cur.name);
+					return true;
+				});
+			}
+		}
 	}
 
 	function Init () {
@@ -58,10 +402,8 @@ library UTMuseum requires Museum,Keyboard {
 
 		// 初始化测试用的图鉴 Tab
 		InitTabs();
-	}
 
-	function TTestUTMuseum1 (player p) {
-		// s1：注册 F2 按键，用于切换博物馆 UI 的开启/关闭
+		// 注册 F2 按键，用于切换博物馆 UI 的开启/关闭
 		keyboard.regKeyDownEvent(KEY_F2, function (){
 			player lp;
 			lp = GetLocalPlayer();
@@ -76,6 +418,12 @@ library UTMuseum requires Museum,Keyboard {
 
 			lp = null;
 		});
+		keyboard.regKeyUpEvent(KEY_F2, null);
+
+	}
+
+	function TTestUTMuseum1 (player p) {
+
 	}
 	function TTestUTMuseum2 (player p) {
 		// 保留空实现（原来用于 s2：关闭），现在主要通过 F2 切换
@@ -155,5 +503,32 @@ library UTMuseum requires Museum,Keyboard {
 
 }
 //! endzinc
+
+#undef TEST_ALBUM_TOTAL
+#undef ALBUM_A_SUBBTN_COUNT
+#undef ALBUM_A_SUBBTN_WIDTH
+#undef ALBUM_A_SUBBTN_HEIGHT
+#undef ALBUM_A_SUBBTN_GAP_X
+#undef ALBUM_A_SUBBTN_OFFSET_Y
+#undef ALBUM_A_SUBBTN_SELECTED_SCALE
+#undef ALBUM_A_SUBBTN_FONT_NORMAL
+#undef ALBUM_A_SUBBTN_FONT_SELECTED
+#undef ALBUM_A_ICON_COLS
+#undef ALBUM_A_ICON_ROWS
+#undef ALBUM_A_ICON_GAP_X
+#undef ALBUM_A_ICON_GAP_Y
+#undef ALBUM_A_ICON_START_Y
+#undef ALBUM_A_ICON_SIZE
+#undef ALBUM_A_ICON_MAX
+#undef ALBUM_A_PAGE_TEXT_OFFSET_Y
+#undef ALBUM_A_PAGE_BTN_SIZE
+#undef ALBUM_A_PAGE_BTN_OFFSET_X
+#undef ALBUM_A_SEARCH_ICON_OFFSET_X
+#undef ALBUM_A_SEARCH_ICON_OFFSET_Y
+#undef ALBUM_A_SEARCH_ICON_SIZE
+#undef ALBUM_A_SEARCH_EDIT_OFFSET_X
+#undef ALBUM_A_SEARCH_EDIT_OFFSET_Y
+#undef ALBUM_A_SEARCH_BOX_WIDTH
+#undef ALBUM_A_SEARCH_BOX_HEIGHT
 
 #endif

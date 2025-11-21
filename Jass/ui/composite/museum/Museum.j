@@ -12,14 +12,26 @@
 */
 
 #define MUSEUM_MAIN_WIDTH      0.64   // 主 UI 宽
-#define MUSEUM_MAIN_HEIGHT     0.36   // 主 UI 高
+#define MUSEUM_MAIN_HEIGHT     0.37   // 主 UI 高
 
-#define MUSEUM_TAB_MAX_COUNT       20     // 左侧最多可显示的图鉴分类数量
-#define MUSEUM_TAB_WIDTH           0.077  // 左侧按钮宽度（缩小约 30%）
-#define MUSEUM_TAB_HEIGHT          0.018  // 左侧按钮高度（缩小约 30%）
-#define MUSEUM_TAB_GAP_Y           0.004  // 左侧按钮纵向间距
-#define MUSEUM_TAB_SELECTED_OFFSET_X 0.008 // 选中时整体左移偏移
+#define MUSEUM_TAB_MAX_COUNT       16       // 左侧最多可显示的图鉴分类数量
+#define MUSEUM_TAB_WIDTH           0.077    // 左侧按钮宽度（缩小约 30%）
+#define MUSEUM_TAB_HEIGHT          0.018    // 左侧按钮高度（缩小约 30%）
+#define MUSEUM_TAB_GAP_Y           0.002    // 左侧按钮纵向间距
+#define MUSEUM_TAB_SELECTED_OFFSET_X 0.008  // 选中时整体左移偏移
+#define MUSEUM_TAB_START_Y -0.035            // 左侧按钮起始 Y 坐标
 
+// 顶部标题相关常量
+#define MUSEUM_TITLE_HEIGHT       0.026   // 标题高度
+#define MUSEUM_TITLE_OFFSET_Y     -0.015   // 标题图片离 main 的 Y 偏移
+#define MUSEUM_TITLE_WIDTH_RATIO  465.0 / 48.0  // 标题宽高比（465:48）
+
+// 右侧内容区域与整体的边距 / Top 起点（基于标题高度和间距计算得出）
+#define MUSEUM_CONTENT_MARGIN_X    0.005
+#define MUSEUM_CONTENT_MARGIN_Y    0.005
+#define MUSEUM_CONTENT_TOP_Y      -0.041  // 标题底部 (-0.02 - 0.032/2) 再往下 0.005
+
+// 顶部标题与 Tab 文字颜色
 #define MUSEUM_TITLE_TEXT          "异度图鉴"
 #define MUSEUM_TAB_COLOR_NORMAL    "|cFFFFFFFF"
 #define MUSEUM_TAB_COLOR_SELECTED  "|cFFFFCC00"
@@ -28,10 +40,11 @@
 //# dependency:resource/ui/image/select_flash.blp
 //# dependency:resource/ui/image/black.blp
 //# dependency:resource/ui/image/select_close.blp
-//# dependency:resource/ui/image/select_right.blp
+//# dependency:resource/ui/image/vertical_divider.blp
+//# dependency:resource/ui/image/museum_title_465x48.blp
+//# dependency:resource/ui/image/arrow_right_101x72.blp
 
-
-library Museum requires Music,Icon {
+library Museum requires Music,Icon,Tooltip {
 
     //==========================================================================
     // 图鉴数据：永久存在，仅负责“哪几类图鉴、各自名称和回调”
@@ -143,6 +156,10 @@ library Museum requires Music,Icon {
         private static uiImage tabIndicator[];      // 左侧选中标记
         private static integer tabCount = 0;
 
+        // 右侧内容区域与分隔线
+        private static uiImage uiContentArea = 0;   // 供外部内容布局使用的区域
+        private static uiImage uiDivider    = 0;    // 左侧 Tab 与右侧内容之间的竖线
+
         // 状态
         private static museumData currentAlbum   = 0; // 当前激活图鉴
         private static museumData lastAlbum      = 0; // 上一次激活图鉴（用于记忆）
@@ -151,8 +168,11 @@ library Museum requires Music,Icon {
         private static player     owner           = null;
 
         // 标题
-        private static uiImage uiTitleBg = 0;
+        private static uiImage uiTitleBg   = 0;
         private static uiText  uiTitleText = 0;
+
+        // Tooltip
+        private static tooltip uiTooltipTemp = 0;
 
         // 内部工具：销毁所有左侧按钮
         private static method destroyTabs() {
@@ -208,12 +228,17 @@ library Museum requires Music,Icon {
             lastAlbum       = target;
             currentTabIndex = idx;
 
+            // 更新标题显示为当前选中的 Tab 名称
+            if (uiTitleText != 0) {
+                uiTitleText.setText(target.name);
+            }
+
             // 更新左侧 Tab 高亮与位置
             for (1 <= i <= tabCount) {
                 md = museumData.getByIndex(i);
                 if (md != 0 && tabImage[i] != 0) {
                     // 计算纵向偏移：从主框架左上角往下排
-                    offsetY = -0.045 - (i - 1) * (MUSEUM_TAB_HEIGHT + MUSEUM_TAB_GAP_Y);
+                    offsetY = MUSEUM_TAB_START_Y - (i - 1) * (MUSEUM_TAB_HEIGHT + MUSEUM_TAB_GAP_Y);
                     offsetX = 0.015;
                     if (i == currentTabIndex) {
                         offsetX -= MUSEUM_TAB_SELECTED_OFFSET_X;
@@ -285,14 +310,14 @@ library Museum requires Music,Icon {
             // 主背景拖拽按钮
             uiMainButton = uiBtn.createBlank(uiMain.ui)
                 .setAllPoint(uiMain.ui)
-                .enableDrag(uiMain.ui, 0.25, 0.55, 0.3, 0.5)
+                .enableDrag(uiMain.ui, 0.25, 0.55, 0.32, 0.5)
                 .setDragPosition(0.4, 0.25);
 
-            // 中部标题
+            // 中部标题（保持比例 465:48，基于高度宏常量计算宽度）
             uiTitleBg = uiImage.create(uiMain.ui)
-                .exReSize(0.22, 0.032)
-                .setTexture("ui\\image\\black11.blp")
-                .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_TOP, 0.0, -0.02);
+                .exReSize(MUSEUM_TITLE_HEIGHT * MUSEUM_TITLE_WIDTH_RATIO, MUSEUM_TITLE_HEIGHT)
+                .setTexture("ui\\image\\museum_title_465x48.blp")
+                .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_TOP, 0.0, MUSEUM_TITLE_OFFSET_Y);
 
             uiTitleText = uiText.create(uiTitleBg.ui)
                 .setAllPoint(uiTitleBg.ui)
@@ -302,16 +327,33 @@ library Museum requires Music,Icon {
 
             // 右上角关闭按钮
             uiCloseImage = uiImage.create(uiMain.ui)
-                .exReSize(0.029, 0.029)
+                .exReSize(0.026, 0.026)
                 .setTexture("ui\\image\\select_close.blp")
-                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_TOPRIGHT, -0.005, -0.005);
+                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_TOPRIGHT, -0.003, -0.003);
 
             uiCloseButton = uiBtn.create(uiCloseImage.ui)
                 .setAllPoint(uiCloseImage.ui)
+                .spEnter(function(integer frame) {
+                    if (uiTooltipTemp != 0) {
+                        uiTooltipTemp.destroy();
+                        uiTooltipTemp = 0;
+                    }
+                    uiTooltipTemp = tooltip.create().layoutTitle("关闭界面|cffff9900(快捷键:Esc)|r");
+                    uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
+                    music[MUSIC_INDEX_BTN_OVER_1].play();
+                })
+                .spLeave(function(integer frame) {
+                    if (uiTooltipTemp != 0) {
+                        uiTooltipTemp.destroy();
+                        uiTooltipTemp = 0;
+                    }
+                })
                 .spClick(function(integer frame) {
                     if (!isOpen) {
                         return;
                     }
+
+                    music[MUSIC_INDEX_BTN_CLICK].play();
 
                     if (owner != null) {
                         museumUI.hide(owner);
@@ -333,7 +375,7 @@ library Museum requires Music,Icon {
 
                 if (md != 0) {
                     // 计算纵向偏移：从主框架左上角往下排
-                    offsetY = -0.045 - (i - 1) * (MUSEUM_TAB_HEIGHT + MUSEUM_TAB_GAP_Y);
+                    offsetY = MUSEUM_TAB_START_Y - (i - 1) * (MUSEUM_TAB_HEIGHT + MUSEUM_TAB_GAP_Y);
 
                     tabImage[i] = uiImage.create(uiMain.ui)
                         .exReSize(MUSEUM_TAB_WIDTH, MUSEUM_TAB_HEIGHT)
@@ -342,6 +384,9 @@ library Museum requires Music,Icon {
 
                     tabButton[i] = uiBtn.create(tabImage[i].ui)
                         .setAllPoint(tabImage[i].ui)
+                        .spEnter(function(integer frame) {
+                            music[MUSIC_INDEX_BTN_OVER_1].play();
+                        })
                         .spClick(function(integer frame) {
                             museumData mdLocal; integer idx;
 
@@ -351,6 +396,7 @@ library Museum requires Music,Icon {
                                 return;
                             }
 
+                            music[MUSIC_INDEX_BTN_CLICK].play();
                             museumUI.selectTab(mdLocal, idx, true);
                         });
 
@@ -363,13 +409,29 @@ library Museum requires Music,Icon {
                         .setFontSize(6)
                         .setText(md.name);
 
-                    // 左侧选中标记（初始隐藏）
+                    // 左侧选中标记（初始隐藏，保持比例 72:101，高度 MUSEUM_TAB_HEIGHT 不变，计算宽度）
                     tabIndicator[i] = uiImage.create(uiMain.ui)
-                        .exReSize(MUSEUM_TAB_WIDTH * 0.4, MUSEUM_TAB_HEIGHT)
-                        .setTexture("ui\\image\\select_right.blp")
+                        .exReSize(MUSEUM_TAB_HEIGHT * 101.0 / 72.0, MUSEUM_TAB_HEIGHT)
+                        .setTexture("ui\\image\\arrow_right_101x72.blp")
                         .exRePoint(ANCHOR_RIGHT, tabImage[i].ui, ANCHOR_LEFT, -0.004, 0.0);
                     tabIndicator[i].show(false);
                 }
+            }
+
+            // 右侧内容区域：以 Tab 右侧 + 标题下方为左上起点，以整体右下角留出 0.005 边距为右下终点
+            if (tabCount > 0) {
+                uiContentArea = uiImage.create(uiMain.ui)
+                    .setTexture(UI_STRING_PATH_BLANK)
+                    .setPoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, 0.015 + MUSEUM_TAB_WIDTH + MUSEUM_CONTENT_MARGIN_X, MUSEUM_CONTENT_TOP_Y)
+                    .setPoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_BOTTOMRIGHT, -MUSEUM_CONTENT_MARGIN_X, MUSEUM_CONTENT_MARGIN_Y);
+            }
+
+            // Tab 右侧的竖线分隔（位于 Tab 和 uiContentArea 之间的间隙内，高度基本和外框UI一样）
+            if (tabCount > 0) {
+                uiDivider = uiImage.create(uiMain.ui)
+                    .exReSize(0.002, MUSEUM_MAIN_HEIGHT - 0.01)
+                    .setTexture("ui\\image\\vertical_divider.blp")
+                    .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, 0.015 + MUSEUM_TAB_WIDTH + MUSEUM_CONTENT_MARGIN_X / 2.0, MUSEUM_CONTENT_TOP_Y);
             }
 
             // 初次进入或重新打开时，自动选中一个 Tab
@@ -397,6 +459,16 @@ library Museum requires Music,Icon {
             // 销毁 UI
             destroyTabs();
 
+            if (uiContentArea != 0) {
+                uiContentArea.destroy();
+                uiContentArea = 0;
+            }
+
+            if (uiDivider != 0) {
+                uiDivider.destroy();
+                uiDivider = 0;
+            }
+
             if (uiCloseButton != 0) {
                 uiCloseButton.destroy();
                 uiCloseButton = 0;
@@ -422,6 +494,11 @@ library Museum requires Music,Icon {
                 uiTitleBg = 0;
             }
 
+            if (uiTooltipTemp != 0) {
+                uiTooltipTemp.destroy();
+                uiTooltipTemp = 0;
+            }
+
             if (uiMain != 0) {
                 uiMain.destroy();
                 uiMain = 0;
@@ -429,6 +506,10 @@ library Museum requires Music,Icon {
 
             owner = null;
             isOpen = false;
+        }
+
+        public static method getContentArea() -> uiImage {
+            return uiContentArea;
         }
 
     }
