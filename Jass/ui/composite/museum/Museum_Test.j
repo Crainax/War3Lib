@@ -11,34 +11,37 @@
 #define ALBUM_A_SUBBTN_COUNT      5
 #define ALBUM_A_SUBBTN_WIDTH      0.07
 #define ALBUM_A_SUBBTN_HEIGHT     0.024
+#define ALBUM_A_SUBBTN_INDICATOR_WIDTH     0.016
 #define ALBUM_A_SUBBTN_GAP_X      0.010
 #define ALBUM_A_SUBBTN_OFFSET_Y  -0.015
 #define ALBUM_A_SUBBTN_SELECTED_SCALE 1.12
 #define ALBUM_A_SUBBTN_FONT_NORMAL    6
 #define ALBUM_A_SUBBTN_FONT_SELECTED  7
 
-#define ALBUM_A_ICON_COLS         7
-#define ALBUM_A_ICON_ROWS         4
-#define ALBUM_A_ICON_GAP_X        0.015
-#define ALBUM_A_ICON_GAP_Y        0.015
+#define ALBUM_A_ICON_COLS         12
+#define ALBUM_A_ICON_ROWS         6
+#define ALBUM_A_ICON_GAP_X        0.005
+#define ALBUM_A_ICON_GAP_Y        0.005
 #define ALBUM_A_ICON_START_Y     -0.065
-#define ALBUM_A_ICON_SIZE         0.048
+#define ALBUM_A_ICON_SIZE         0.030
 #define ALBUM_A_ICON_MAX         (ALBUM_A_ICON_COLS * ALBUM_A_ICON_ROWS)
 
-#define ALBUM_A_PAGE_TEXT_OFFSET_Y 0.018
+#define ALBUM_A_PAGE_TEXT_OFFSET_Y 0.015
 #define ALBUM_A_PAGE_BTN_SIZE      0.02
 #define ALBUM_A_PAGE_BTN_OFFSET_X  0.03
 
 #define ALBUM_A_SEARCH_ICON_OFFSET_X 0.020
 #define ALBUM_A_SEARCH_ICON_OFFSET_Y 0.020
 #define ALBUM_A_SEARCH_ICON_SIZE     0.022
-#define ALBUM_A_SEARCH_EDIT_OFFSET_X 0.055
+#define ALBUM_A_SEARCH_EDIT_OFFSET_X 0.040
 #define ALBUM_A_SEARCH_EDIT_OFFSET_Y 0.020
-#define ALBUM_A_SEARCH_BOX_WIDTH     0.065
+#define ALBUM_A_SEARCH_BOX_WIDTH     0.04
 #define ALBUM_A_SEARCH_BOX_HEIGHT    0.03
 
+//# dependency:resource/ui/image/arrow_down_101x72.blp
 //# dependency:resource/ui/image/select_left.blp
 //# dependency:resource/ui/image/select_right.blp
+//# dependency:resource/ui/image/museum_search.blp
 
 library UTMuseum requires Museum,Keyboard,UIEditbox {
 
@@ -49,6 +52,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 		private static uiImage   tabBg[];
 		private static uiBtn     tabBtn[];
 		private static uiText    tabLabel[];
+		private static uiImage   subTabIndicator = 0; // 指示当前选中的子按钮
 		private static real      tabPosX[];
 		private static string    tabNames[];
 		private static integer   tabCounts[];
@@ -74,17 +78,17 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 
 		private static method ensureData() {
 			if (tabNames[1] != null) { return; }
-			tabNames[1] = "普通";
-			tabNames[2] = "稀有";
-			tabNames[3] = "史诗";
-			tabNames[4] = "传说";
-			tabNames[5] = "神话";
+			tabNames[1] = "|cff00ff00普通品质|r";
+			tabNames[2] = "|cff00ccff稀有品质|r";
+			tabNames[3] = "|cffff00ff史诗品质|r";
+			tabNames[4] = "|cffff9900传说品质|r";
+			tabNames[5] = "|cffff0000神话品质|r";
 
 			tabCounts[1] = 12;
-			tabCounts[2] = 18;
-			tabCounts[3] = 24;
-			tabCounts[4] = 30;
-			tabCounts[5] = 36;
+			tabCounts[2] = 36;
+			tabCounts[3] = 48;
+			tabCounts[4] = 65;
+			tabCounts[5] = 75;
 		}
 
 		private static method getParent() -> uiImage {
@@ -125,7 +129,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 
 				tabBg[i] = uiImage.create(contentArea.ui)
 					.exReSize(ALBUM_A_SUBBTN_WIDTH, ALBUM_A_SUBBTN_HEIGHT)
-					.setTexture(UI_STRING_PATH_BLANK)
+					.setTexture("ui\\image\\select_flash.blp")
 					.exRePoint(ANCHOR_TOP, contentArea.ui, ANCHOR_TOP, posX, ALBUM_A_SUBBTN_OFFSET_Y);
 
 				tabBtn[i] = uiBtn.create(tabBg[i].ui)
@@ -146,6 +150,15 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 					.setAlign(4)
 					.setFontSize(ALBUM_A_SUBBTN_FONT_NORMAL)
 					.setText(tabNames[i]);
+			}
+
+			// 创建子按钮的选中指示箭头（初始隐藏，比例与左侧 Tab 一致，高度使用子按钮高度）
+			if (subTabIndicator == 0) {
+				subTabIndicator = uiImage.create(contentArea.ui)
+					.exReSize(ALBUM_A_SUBBTN_INDICATOR_WIDTH , ALBUM_A_SUBBTN_INDICATOR_WIDTH * 101.0 / 72.0)
+					.setTexture("ui\\image\\arrow_down_101x72.blp")
+					.exRePoint(ANCHOR_BOTTOM, tabBg[1].ui, ANCHOR_TOP, 0.0, 0.002);
+				subTabIndicator.show(false);
 			}
 		}
 
@@ -229,11 +242,12 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 
 			searchIcon = uiImage.create(contentArea.ui)
 				.exReSize(ALBUM_A_SEARCH_ICON_SIZE, ALBUM_A_SEARCH_ICON_SIZE)
-				.setTexture("ReplaceableTextures\\CommandButtons\\BTNSell.blp")
+				.setTexture("ui\\image\\museum_search.blp")
 				.exRePoint(ANCHOR_LEFT, contentArea.ui, ANCHOR_BOTTOMLEFT, ALBUM_A_SEARCH_ICON_OFFSET_X, ALBUM_A_SEARCH_ICON_OFFSET_Y);
 
 			searchBox = uiEditbox.create(contentArea.ui)
 				.setSize(ALBUM_A_SEARCH_BOX_WIDTH, ALBUM_A_SEARCH_BOX_HEIGHT)
+				.setFontSize(4)
 				.setPoint(ANCHOR_LEFT, contentArea.ui, ANCHOR_BOTTOMLEFT, ALBUM_A_SEARCH_EDIT_OFFSET_X, ALBUM_A_SEARCH_EDIT_OFFSET_Y)
 				.setText("1");
 		}
@@ -254,6 +268,14 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 						tabLabel[i].setFontSize(I3(i == currentIdx, ALBUM_A_SUBBTN_FONT_SELECTED, ALBUM_A_SUBBTN_FONT_NORMAL));
 					}
 				}
+			}
+
+			// 将指示箭头移动到当前选中的子按钮顶部中央
+			if (subTabIndicator != 0 && currentIdx >= 1 && currentIdx <= ALBUM_A_SUBBTN_COUNT && tabBg[currentIdx] != 0) {
+				subTabIndicator.exRePoint(ANCHOR_BOTTOM, tabBg[currentIdx].ui, ANCHOR_TOP, 0.0, 0.002);
+				subTabIndicator.show(true);
+			} else if (subTabIndicator != 0) {
+				subTabIndicator.show(false);
 			}
 
 			page = I3(page < 1, 1, page);
@@ -322,6 +344,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 				if (tabLabel[i] != 0) { tabLabel[i].destroy(); tabLabel[i] = 0; }
 				if (tabBg[i] != 0) { tabBg[i].destroy(); tabBg[i] = 0; }
 			}
+			if (subTabIndicator != 0) { subTabIndicator.destroy(); subTabIndicator = 0; }
 
 			for (1 <= i <= ALBUM_A_ICON_MAX) {
 				if (iconBtn[i] != 0) { iconBtn[i].destroy(); iconBtn[i] = 0; }
@@ -352,7 +375,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 
 		for (1 <= i <= TEST_ALBUM_TOTAL) {
 			if (i == 1) {
-				title = "图鉴A";
+				title = "查询装备";
 			} else {
 				title = "测试图鉴" + I2S(i);
 			}
@@ -362,14 +385,12 @@ library UTMuseum requires Museum,Keyboard,UIEditbox {
 				md[i].registerClick(function () -> boolean {
 					museumData cur;
 					cur = museumData.getCallbackData();
-					BJDebugMsg("[Museum] 打开: " + cur.name);
 					albumAUI.init();
 					return true;
 				});
 				md[i].registerClose(function () -> boolean {
 					museumData cur;
 					cur = museumData.getCallbackData();
-					BJDebugMsg("[Museum] 关闭: " + cur.name);
 					albumAUI.destroy1();
 					return true;
 				});

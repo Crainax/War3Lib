@@ -44,7 +44,7 @@
 //# dependency:resource/ui/image/museum_title_465x48.blp
 //# dependency:resource/ui/image/arrow_right_101x72.blp
 
-library Museum requires Music,Icon,Tooltip {
+library Museum requires Music,Icon,Tooltip,EscStack {
 
     //==========================================================================
     // 图鉴数据：永久存在，仅负责“哪几类图鉴、各自名称和回调”
@@ -153,7 +153,7 @@ library Museum requires Music,Icon,Tooltip {
         private static uiImage tabImage[];
         private static uiBtn   tabButton[];
         private static uiText  tabLabel[];
-        private static uiImage tabIndicator[];      // 左侧选中标记
+        private static uiImage tabIndicator = 0;    // 左侧选中标记（只创建一个，跟随当前选中 Tab）
         private static integer tabCount = 0;
 
         // 右侧内容区域与分隔线
@@ -174,6 +174,9 @@ library Museum requires Music,Icon,Tooltip {
         // Tooltip
         private static tooltip uiTooltipTemp = 0;
 
+        // Esc 栈 ID
+        private static integer escStackId = 0;
+
         // 内部工具：销毁所有左侧按钮
         private static method destroyTabs() {
             integer i;
@@ -193,11 +196,11 @@ library Museum requires Music,Icon,Tooltip {
                     tabImage[i].destroy();
                     tabImage[i] = 0;
                 }
+            }
 
-                if (tabIndicator[i] != 0) {
-                    tabIndicator[i].destroy();
-                    tabIndicator[i] = 0;
-                }
+            if (tabIndicator != 0) {
+                tabIndicator.destroy();
+                tabIndicator = 0;
             }
 
             tabCount = 0;
@@ -246,11 +249,6 @@ library Museum requires Music,Icon,Tooltip {
 
                     tabImage[i].exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, offsetX, offsetY);
 
-                    // 选中标记显示/隐藏
-                    if (tabIndicator[i] != 0) {
-                        tabIndicator[i].show(i == currentTabIndex);
-                    }
-
                     // 文字颜色
                     if (tabLabel[i] != 0) {
                         if (i == currentTabIndex) {
@@ -260,6 +258,14 @@ library Museum requires Music,Icon,Tooltip {
                         }
                     }
                 }
+            }
+
+            // 将单个选中标记移动到当前选中的 Tab 左侧
+            if (tabIndicator != 0 && currentTabIndex >= 1 && currentTabIndex <= tabCount && tabImage[currentTabIndex] != 0) {
+                tabIndicator.exRePoint(ANCHOR_RIGHT, tabImage[currentTabIndex].ui, ANCHOR_LEFT, -0.004, 0.0);
+                tabIndicator.show(true);
+            } else if (tabIndicator != 0) {
+                tabIndicator.show(false);
             }
 
             // 触发点击回调，初始化右侧内容
@@ -408,14 +414,16 @@ library Museum requires Music,Icon,Tooltip {
                         .setAlign(4)
                         .setFontSize(6)
                         .setText(md.name);
-
-                    // 左侧选中标记（初始隐藏，保持比例 72:101，高度 MUSEUM_TAB_HEIGHT 不变，计算宽度）
-                    tabIndicator[i] = uiImage.create(uiMain.ui)
-                        .exReSize(MUSEUM_TAB_HEIGHT * 101.0 / 72.0, MUSEUM_TAB_HEIGHT)
-                        .setTexture("ui\\image\\arrow_right_101x72.blp")
-                        .exRePoint(ANCHOR_RIGHT, tabImage[i].ui, ANCHOR_LEFT, -0.004, 0.0);
-                    tabIndicator[i].show(false);
                 }
+            }
+
+            // 创建单个选中标记（初始隐藏，保持比例 101:72，高度 MUSEUM_TAB_HEIGHT 不变，计算宽度）
+            if (tabCount > 0) {
+                tabIndicator = uiImage.create(uiMain.ui)
+                    .exReSize(MUSEUM_TAB_HEIGHT * 101.0 / 72.0, MUSEUM_TAB_HEIGHT)
+                    .setTexture("ui\\image\\arrow_right_101x72.blp")
+                    .exRePoint(ANCHOR_RIGHT, uiMain.ui, ANCHOR_TOPLEFT, 0.015 - 0.004, MUSEUM_TAB_START_Y);
+                tabIndicator.show(false);
             }
 
             // 右侧内容区域：以 Tab 右侧 + 标题下方为左上起点，以整体右下角留出 0.005 边距为右下终点
@@ -429,7 +437,7 @@ library Museum requires Music,Icon,Tooltip {
             // Tab 右侧的竖线分隔（位于 Tab 和 uiContentArea 之间的间隙内，高度基本和外框UI一样）
             if (tabCount > 0) {
                 uiDivider = uiImage.create(uiMain.ui)
-                    .exReSize(0.002, MUSEUM_MAIN_HEIGHT - 0.01)
+                    .exReSize(0.003, MUSEUM_MAIN_HEIGHT - 0.01 + MUSEUM_TAB_START_Y)
                     .setTexture("ui\\image\\vertical_divider.blp")
                     .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, 0.015 + MUSEUM_TAB_WIDTH + MUSEUM_CONTENT_MARGIN_X / 2.0, MUSEUM_CONTENT_TOP_Y);
             }
@@ -437,6 +445,13 @@ library Museum requires Music,Icon,Tooltip {
             // 初次进入或重新打开时，自动选中一个 Tab
             if (tabCount > 0 && startAlbum != 0) {
                 museumUI.selectTab(startAlbum, startIndex, true);
+            }
+
+            // 注册 ESC 关闭
+            if (escStackId == 0) {
+                escStackId = escStack.push(function(player p) {
+                    museumUI.hide(p);
+                });
             }
         }
 
@@ -502,6 +517,12 @@ library Museum requires Music,Icon,Tooltip {
             if (uiMain != 0) {
                 uiMain.destroy();
                 uiMain = 0;
+            }
+
+            // 移除 ESC 栈
+            if (escStackId != 0) {
+                escStack.remove(escStackId);
+                escStackId = 0;
             }
 
             owner = null;
