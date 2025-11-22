@@ -6,6 +6,57 @@ inject_code.new_table = {}
 inject_code.old_table = {}
 inject_code.chain_table = {} -- 链式依赖
 inject_code.detect_cache = {} -- 结果缓存
+inject_code.obj_files = {
+    ability = {},
+    item = {},
+    unit = {}
+}
+
+local obj_seen = {
+    ability = {},
+    item = {},
+    unit = {}
+}
+
+local function reset_obj_files()
+    for key in pairs(inject_code.obj_files) do
+        inject_code.obj_files[key] = {}
+        obj_seen[key] = {}
+    end
+end
+
+local function add_obj_file(kind, file_path)
+    if not obj_seen[kind][file_path] then
+        table.insert(inject_code.obj_files[kind], file_path)
+        obj_seen[kind][file_path] = true
+    end
+end
+
+local function build_obj_files_from_result(result)
+    reset_obj_files()
+    if not result then
+        return
+    end
+    local mapping = {
+        ability = ".w3a",
+        item = ".w3i",
+        unit = ".w3u"
+    }
+    for file_path in pairs(result) do
+        if type(file_path) == "string" then
+            local base = file_path:gsub("%.j$", "")
+            if base ~= file_path then
+                for kind, ext in pairs(mapping) do
+                    local candidate = base .. ext
+                    local attr = lfs.attributes(candidate)
+                    if attr and attr.mode == "file" then
+                        add_obj_file(kind, candidate)
+                    end
+                end
+            end
+        end
+    end
+end
 
 -- 辅助函数：获取文件扩展名
 local function get_extension(filename)
@@ -154,6 +205,7 @@ function inject_code:detect(path)
     local cache_entry = self.detect_cache[cache_key]
     if cache_entry then
         -- 命中缓存
+        build_obj_files_from_result(cache_entry)
         local end_time_cached = os.clock()
         print(string.format("函数检测用时: %.3f 秒", end_time_cached - start_time))
         return cache_entry
@@ -225,6 +277,8 @@ function inject_code:detect(path)
 
     -- 写入缓存
     self.detect_cache[cache_key] = result
+
+    build_obj_files_from_result(result)
 
     -- 添加结束时间记录和输出
     local end_time = os.clock()

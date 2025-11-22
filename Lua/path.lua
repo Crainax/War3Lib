@@ -107,7 +107,14 @@ path.setMapName	= function(name)
     path.package 			= path.project .. "/" .. path.mapName  -- 地图包
     path.mapJ				= path.package .. "/map/war3map.j"     -- 正式地图的War3mapJ文件
     path.resource			= path.package .. "/resource"          -- 地图资源
+    -- 根据当前地图名更新物编路径（保持与 init 中的结构一致）
     path.table.root			= path.package .. "/table"             -- 物编的根目录
+    path.table.unit        = path.table.root .. "/unit.ini"      -- 物编的单位
+    path.table.item        = path.table.root .. "/item.ini"      -- 物编的物品
+    path.table.ability     = path.table.root .. "/ability.ini"   -- 物编的技能
+    path.table.upgrade     = path.table.root .. "/upgrade.ini"   -- 物编的科技
+    path.table.buff        = path.table.root .. "/buff.ini"      -- 物编的BUFF
+    path.table.misc        = path.table.root .. "/misc.ini"      -- 一些特殊设置
     path.backup.resource	= path.package .. "/table"             -- 需要备份的路径
     path.injectCache        = path.package .. "/config/cacheInject.cfg" -- 缓存注入文件库 防止注入太慢
 end

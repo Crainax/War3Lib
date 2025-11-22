@@ -212,7 +212,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 					.enableResize()
 					.setSize(ALBUM_A_ICON_SIZE, ALBUM_A_ICON_SIZE)
 					.setTexture("ui\\image\\select_flash.blp")
-					.setPoint(ANCHOR_TOP, contentArea.ui, ANCHOR_TOP, posX, posY)
+					.exRePoint(ANCHOR_TOP, contentArea.ui, ANCHOR_TOP, posX, posY)
 					.show(false);
 
 				iconSlots[i].getClickBtn()
@@ -233,7 +233,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 			pageText = uiText.create(contentArea.ui)
 				.setAlign(4)
 				.setFontSize(6)
-				.setPoint(ANCHOR_BOTTOM, contentArea.ui, ANCHOR_BOTTOM, 0.0, ALBUM_A_PAGE_TEXT_OFFSET_Y)
+				.exRePoint(ANCHOR_BOTTOM, contentArea.ui, ANCHOR_BOTTOM, 0.0, ALBUM_A_PAGE_TEXT_OFFSET_Y)
 				.show(false);
 
 			pagePrevImage = uiImage.create(contentArea.ui)
@@ -278,7 +278,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 			searchBox = uiEditbox.create(contentArea.ui)
 				.setSize(ALBUM_A_SEARCH_BOX_WIDTH, ALBUM_A_SEARCH_BOX_HEIGHT)
 				.setFontSize(4)
-				.setPoint(ANCHOR_LEFT, contentArea.ui, ANCHOR_BOTTOMLEFT, ALBUM_A_SEARCH_EDIT_OFFSET_X, ALBUM_A_SEARCH_EDIT_OFFSET_Y)
+				.setPointFix(ANCHOR_LEFT, contentArea.ui, ANCHOR_BOTTOMLEFT, ALBUM_A_SEARCH_EDIT_OFFSET_X, ALBUM_A_SEARCH_EDIT_OFFSET_Y)
 				.setText("1");
 		}
 

@@ -325,6 +325,25 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
             return this;
         }
 
+        // 动态位置（支持分辨率缩放），对外暴露 UIExtendResize 的 exRePoint
+        method exRePoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            if (isSimple) {
+                // 原生图标：清除旧锚点，再用 exRePoint 设置，并记录位置用于 show/hide
+                mainImage.clearPoint()
+                    .exRePoint(anchor,relative,relativeAnchor,offsetX,offsetY);
+                this.spAnchor         = anchor;
+                this.spRelative       = relative;
+                this.spRelativeAnchor = relativeAnchor;
+                this.spOffsetX        = offsetX;
+                this.spOffsetY        = offsetY;
+            } else {
+                // 非原生图标：直接把 exRePoint 代理给内部的 uiImage
+                mainImage.exRePoint(anchor,relative,relativeAnchor,offsetX,offsetY);
+            }
+            return this;
+        }
+
         // 显示/隐藏整个图标(Simple无效)
         method show(boolean flag) -> thistype {
             if (!this.isExist()) {return this;}

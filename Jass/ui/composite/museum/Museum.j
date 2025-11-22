@@ -316,7 +316,7 @@ library Museum requires Music,Icon,Tooltip,EscStack {
             // 主背景拖拽按钮
             uiMainButton = uiBtn.createBlank(uiMain.ui)
                 .setAllPoint(uiMain.ui)
-                .enableDrag(uiMain.ui, 0.25, 0.55, 0.32, 0.5)
+                .enableDrag(uiMain.ui, 0.25, 0.55, 0.34, 0.5)
                 .setDragPosition(0.4, 0.25);
 
             // 中部标题（保持比例 465:48，基于高度宏常量计算宽度）

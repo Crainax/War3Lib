@@ -15,7 +15,7 @@
 //! zinc
 
 //自动生成的文件
-library UTSpellUtils requires SpellUtils {
+library UTSpellUtils requires SpellUtils, LBKKAPI {
 
 	// 全局测试单位引用和技能跟踪
 	private unit testUnits[3];
@@ -29,8 +29,10 @@ library UTSpellUtils requires SpellUtils {
 			testUnits[1] = CreateUnit(Player(0), 'hrif', 100, 100, 0); // 步枪兵
 			testUnits[2] = CreateUnit(Player(0), 'hkni', 200, 200, 0); // 骑士
 
+			UnitAddAbility(testUnits[0], 'AJB0');
+
 			BJDebugMsg("[SpellUtils] 测试单位已创建");
-		}, function() {
+			}, function() {
 			// 可选：清理测试单位（目前保留供测试使用）
 		});
 		UnitTestAutoTimer(0.1, 2.0, function() {
@@ -160,11 +162,120 @@ library UTSpellUtils requires SpellUtils {
 		DisplayTextToPlayer(p, 0, 0, "|cffffcc00=== 单位魔法书测试完成 ==|r");
 	}
 
-	function TTestUTSpellUtils4 (player p) {}
-	function TTestUTSpellUtils5 (player p) {}
-	function TTestUTSpellUtils6 (player p) {}
-	function TTestUTSpellUtils7 (player p) {}
-	function TTestUTSpellUtils8 (player p) {}
+	function TTestUTSpellUtils4 (player p) {
+		// Trace(GetAbilityUberTip('AJB0')); //测试一下异度的字符串
+		BJDebugMsg(GetObjectName('AJB0'));
+	}
+	function TTestUTSpellUtils5 (player p) {
+		BJDebugMsg(GetAbilityArt('AJB0'));
+	}
+	function TTestUTSpellUtils6 (player p) {
+		// 打印 ability['AJB0'] 子表的所有字段
+		integer abilityId;
+		string abilityIdStr;
+		string luaScript;
+		string result;
+		integer i;
+		string lines[];
+		integer lineCount;
+		integer pos;
+		integer len;
+		integer start;
+		string key;
+		string value;
+
+		abilityId = 'AJB0';
+		abilityIdStr = YDWEId2S(abilityId);
+
+		DisplayTextToPlayer(p, 0, 0, "=== 打印 ability['" + abilityIdStr + "'] 子表 ===");
+
+		// 构造 Lua 脚本：遍历 ability['AJB0'] 表的所有键值对
+		// 返回格式: "KEY1|VALUE1||KEY2|VALUE2||..." (使用 || 分隔每个键值对，| 分隔键和值)
+		// 注意：将值中的 | 转义为 ||，避免与分隔符冲突
+		luaScript = "(function() local slk = require'jass.slk'; local ability = slk.ability; local id = " + I2S(abilityId) + "; local data = ability[id]; if not data then return 'ERROR:ability not found'; end; local result = {}; for k, v in pairs(data) do local val = tostring(v); if type(v) == 'string' then val = val:gsub('|', '||'); end; table.insert(result, tostring(k) .. '|' .. val); end; return table.concat(result, '||') end)()";
+
+		result = EXExecuteScript(luaScript);
+
+		// 解析结果：格式为 "KEY1|VALUE1||KEY2|VALUE2||..."
+		if (result != null && result != "") {
+			if (DzStringFind(result, "ERROR:", 0, true) >= 0) {
+				BJDebugMsg("错误: " + result);
+			} else {
+				// 解析 || 分隔的键值对
+				lineCount = 0;
+				len = StringLength(result);
+				start = 0;
+
+				for (0 <= i <= len - 1) {
+					// 检查是否是 || 分隔符（需要检查两个连续的 |）
+					if (i < len - 1 && SubString(result, i, i + 1) == "|" && SubString(result, i + 1, i + 2) == "|") {
+						// 找到键值对分隔符 ||
+						if (i > start) {
+							lines[lineCount] = SubString(result, start, i);
+							lineCount = lineCount + 1;
+						}
+						start = i + 2;
+						i = i + 1; // 跳过第二个 |
+					} else if (i == len - 1) {
+						// 最后一个键值对
+						if (i >= start) {
+							lines[lineCount] = SubString(result, start, len);
+							lineCount = lineCount + 1;
+						}
+					}
+				}
+
+				// 输出所有字段（无颜色代码，清晰易读）
+				BJDebugMsg("ability['" + abilityIdStr + "'] 共有 " + I2S(lineCount) + " 个字段:");
+				for (0 <= i <= lineCount - 1) {
+					// 解析每个键值对：KEY|VALUE
+					pos = DzStringFind(lines[i], "|", 0, true);
+					if (pos >= 0) {
+						len = StringLength(lines[i]);
+						key = SubString(lines[i], 0, pos);
+						value = SubString(lines[i], pos + 1, len);
+						// 恢复被转义的 | 符号
+						value = DzStringReplace(value, "||", "|", true);
+						// 输出无颜色代码的键值对
+						BJDebugMsg("  " + key + " = " + value);
+					} else {
+						BJDebugMsg("  " + lines[i]);
+					}
+				}
+			}
+		} else {
+			BJDebugMsg("错误：EXExecuteScript 返回空结果");
+		}
+
+		DisplayTextToPlayer(p, 0, 0, "=== 打印完成 ===");
+	}
+	function TTestUTSpellUtils7 (player p) {
+		// 测试 GetAbilityUberTip 按等级获取功能（只打印长度，避免长字符串导致闪退）
+		integer abilityId;
+		integer level;
+		string result;
+		integer i;
+
+		abilityId = 'AJB0';
+
+		Trace("=== 测试 GetAbilityUberTip('AJB0', level) 1-20级（只显示长度） ===");
+
+		for (1 <= i <= 20) {
+			level = i;
+			result = GetAbilityUberTip(abilityId, level);
+
+			if (result != null && result != "") {
+				BJDebugMsg(result);
+			} else {
+				BJDebugMsg("空");
+			}
+		}
+
+		Trace("=== 测试完成 ===");
+	}
+	function TTestUTSpellUtils8 (player p) {
+		BJDebugMsg(GetAbilityUberTip('AJB0',12));
+	}
 	function TTestUTSpellUtils9 (player p) {}
 	function TTestUTSpellUtils10 (player p) {}
 	function TTestActUTSpellUtils1 (string str) {
@@ -229,6 +340,7 @@ library UTSpellUtils requires SpellUtils {
 			else if(str == "s9") TTestUTSpellUtils9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTSpellUtils10(GetTriggerPlayer());
 		});
+		DzUnlockOpCodeLimit(true);
 
 	}
 
