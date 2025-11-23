@@ -180,9 +180,9 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                 shadeBtn = uiBtn.createSimple(DzFrameGetParent(spellBtns.grid[3][4])) //这样也没用,全都挡不住,但是全能hover
                     .setPoint(ANCHOR_TOPLEFT, shadeImg.ui, ANCHOR_TOPLEFT, 0.0, 0.0)
                     .setPoint(ANCHOR_BOTTOMRIGHT, shadeImg.ui, ANCHOR_BOTTOMRIGHT, 0.0, 0.0)
-                    .onMouseEnter(function() {BJDebugMsg("enter"); })
-                    .onMouseLeave(function() {BJDebugMsg("leave"); })
-                    .onMouseClick(function() {BJDebugMsg("click"); });
+                    .onEnter(function() {BJDebugMsg("enter"); })
+                    .onLeave(function() {BJDebugMsg("leave"); })
+                    .onClick(function() {BJDebugMsg("click"); });
             }
 
             if (show) {

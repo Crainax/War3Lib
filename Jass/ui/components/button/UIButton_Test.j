@@ -38,9 +38,9 @@ library UTUIButton requires UIButton {
 			currentBtn = uiBtn.create(DzGetGameUI())
 				.setSize(0.04,0.04)
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-				.onMouseEnter(function() { BJDebugMsg("鼠标进入按钮"); })
-				.onMouseLeave(function() { BJDebugMsg("鼠标离开按钮"); })
-				.onMouseClick(function() { BJDebugMsg("点击按钮"); });
+				.onEnter(function() { BJDebugMsg("鼠标进入按钮"); })
+				.onLeave(function() { BJDebugMsg("鼠标离开按钮"); })
+				.onClick(function() { BJDebugMsg("点击按钮"); });
 			BJDebugMsg("创建了一个带事件的按钮UI");
 		}
 	}
@@ -49,9 +49,9 @@ library UTUIButton requires UIButton {
 	function TTestUTUIButton3 (player p) {
 		uiBtn blankBtn = uiBtn.createBlank(DzGetGameUI()).setSize(0.04,0.04)
 			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-			.onMouseEnter(function() { BJDebugMsg("鼠标进入按钮"); })
-			.onMouseLeave(function() { BJDebugMsg("鼠标离开按钮"); })
-			.onMouseClick(function() { BJDebugMsg("点击按钮"); })
+			.onEnter(function() { BJDebugMsg("鼠标进入按钮"); })
+			.onLeave(function() { BJDebugMsg("鼠标离开按钮"); })
+			.onClick(function() { BJDebugMsg("点击按钮"); })
 			.onMouseWheel(function (){BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()));})
 			.onMouseDoubleClick(function (){BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()));});
 		uiImage img = uiImage.create(DzGetGameUI())
@@ -78,9 +78,9 @@ library UTUIButton requires UIButton {
 			currentBtn = uiBtn.createRC(DzGetGameUI())
 				.setSize(0.04,0.04)
 				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
-				.onMouseEnter(function() { BJDebugMsg("鼠标进入按钮"); })
-				.onMouseLeave(function() { BJDebugMsg("鼠标离开按钮"); })
-				.onMouseClick(function() { BJDebugMsg("点击按钮"); });
+				.onEnter(function() { BJDebugMsg("鼠标进入按钮"); })
+				.onLeave(function() { BJDebugMsg("鼠标离开按钮"); })
+				.onClick(function() { BJDebugMsg("点击按钮"); });
 			BJDebugMsg("创建了一个带事件的按钮UI");
 		}
 	}

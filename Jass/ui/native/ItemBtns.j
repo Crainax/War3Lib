@@ -162,14 +162,14 @@ library ItemBtns requires Hardware,UIHashTable,Icon,UILayer,UnitSelect {
             for(1 <= i <= 6) {
                 slot[i] = DzFrameGetItemBarButton(i - 1);
                 btn = uiBtn.bindCreated(slot[i]);
-                btn.onMouseEnter(function() {
+                btn.onEnter(function() {
                     integer frame = DzGetTriggerUIEventFrame();
                     argsPos = uiHashTable(frame).eventdata.get();
                     isMouseOverItemBar = true;
                     currentHoverPos = argsPos;
                     TriggerEvaluate(trEnter);
                 });
-                btn.onMouseLeave(function() {
+                btn.onLeave(function() {
                     integer frame = DzGetTriggerUIEventFrame();
                     argsPos = uiHashTable(frame).eventdata.get();
                     isMouseOverItemBar = false;

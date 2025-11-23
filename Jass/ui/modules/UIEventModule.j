@@ -11,13 +11,13 @@ library UIEventModule {
     // 定义共用的方法结构
     public module uiEventModule {
         // 鼠标进入事件
-        method onMouseEnter (code fun) -> thistype {
+        method onEnter (code fun) -> thistype {
             if (!this.isExist()) {return this;}
             DzFrameSetScriptByCode(ui,FRAME_MOUSE_ENTER,fun,false);
             return this;
         }
         // 鼠标离开事件
-        method onMouseLeave (code fun) -> thistype {
+        method onLeave (code fun) -> thistype {
             if (!this.isExist()) {return this;}
             DzFrameSetScriptByCode(ui,FRAME_MOUSE_LEAVE,fun,false);
             return this;
@@ -29,7 +29,7 @@ library UIEventModule {
         //     return this;
         // }
         // 鼠标点击事件(效果和FRAME_MOUSE_UP一样,注释掉上面这个了)
-        method onMouseClick (code fun) -> thistype {
+        method onClick (code fun) -> thistype {
             if (!this.isExist()) {return this;}
             DzFrameSetScriptByCode(ui,FRAME_MOUSE_DOWN,fun,false);
             return this;

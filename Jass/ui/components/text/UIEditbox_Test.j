@@ -19,9 +19,9 @@ library UTUIEditbox requires UIEditbox {
 				.setText("这是一个测试文本"+I2S(currentEditbox.id)+"\n测试一下事件功能")
 				// .setAlign(5)  // 这个函数没用
 				.onChange(function (){BJDebugMsg("文本改变:"+DzFrameGetText(DzGetTriggerUIEventFrame()));})
-				.onMouseEnter(function (){BJDebugMsg("鼠标进入:"+I2S(DzGetTriggerUIEventFrame()));})
-				.onMouseLeave(function (){BJDebugMsg("鼠标离开:"+I2S(DzGetTriggerUIEventFrame()));})
-				.onMouseClick(function (){BJDebugMsg("鼠标点击:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onEnter(function (){BJDebugMsg("鼠标进入:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onLeave(function (){BJDebugMsg("鼠标离开:"+I2S(DzGetTriggerUIEventFrame()));})
+				.onClick(function (){BJDebugMsg("鼠标点击:"+I2S(DzGetTriggerUIEventFrame()));})
 				.onMouseWheel(function (){BJDebugMsg("鼠标滚轮:"+I2S(DzGetTriggerUIEventFrame()));})
 				.onMouseDoubleClick(function (){BJDebugMsg("鼠标双击:"+I2S(DzGetTriggerUIEventFrame()));});
 			BJDebugMsg("创建了一个文本UI，测试事件系统");

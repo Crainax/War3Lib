@@ -18,9 +18,9 @@ library UTUIExtendEvent requires UIExtendEvent {
 			.setTexture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
 		btn = uiBtn.create(DzGetGameUI())
 			.setAllPoint(img.ui)
-			.onMouseEnter(function() {BJDebugMsg("enter");})
-			.onMouseLeave(function() {BJDebugMsg("leave");})
-			.onMouseClick(function() {BJDebugMsg("click");})
+			.onEnter(function() {BJDebugMsg("enter");})
+			.onLeave(function() {BJDebugMsg("leave");})
+			.onClick(function() {BJDebugMsg("click");})
 			.exLeftDown(function(integer frame) {BJDebugMsg("leftDown");})
 			.exLeftUp(function(integer frame) {BJDebugMsg("leftUp");});
 	}

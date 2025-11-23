@@ -339,7 +339,7 @@ library Museum requires Music,Icon,Tooltip,EscStack {
 
             uiCloseButton = uiBtn.create(uiCloseImage.ui)
                 .setAllPoint(uiCloseImage.ui)
-                .spEnter(function(integer frame) {
+                .onEnter(function() {
                     if (uiTooltipTemp != 0) {
                         uiTooltipTemp.destroy();
                         uiTooltipTemp = 0;
@@ -348,13 +348,13 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                     uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
                     music[MUSIC_INDEX_BTN_OVER_1].play();
                 })
-                .spLeave(function(integer frame) {
+                .onLeave(function() {
                     if (uiTooltipTemp != 0) {
                         uiTooltipTemp.destroy();
                         uiTooltipTemp = 0;
                     }
                 })
-                .spClick(function(integer frame) {
+                .onClick(function() {
                     if (!isOpen) {
                         return;
                     }
@@ -390,7 +390,7 @@ library Museum requires Music,Icon,Tooltip,EscStack {
 
                     tabButton[i] = uiBtn.create(tabImage[i].ui)
                         .setAllPoint(tabImage[i].ui)
-                        .spEnter(function(integer frame) {
+                        .onEnter(function() {
                             music[MUSIC_INDEX_BTN_OVER_1].play();
                         })
                         .spClick(function(integer frame) {
