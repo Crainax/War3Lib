@@ -32,9 +32,6 @@ library StringUtils {
         return temp;
     }
 
-    //判断一个字符串是否有东西
-    public function IsNotEmpty (string s)  -> boolean {return (s != null && s != "");}
-
     // 数字转字符串,首位自动填充0
     // 不支持负数
     // 比如12,3   -> 012

@@ -98,4 +98,24 @@
 #define SPELL_USE_TYPE_KEY      100003000    //使用类型
 #define SPELL_POINTER_KEY       100004000    //指针
 
+
+//异度用:   10000-100000之间不重复
+
+
+// 英雄类型/属性在 HASH_TYPEID 中的子键（后续可在常量表中统一调整）
+#define HERO_TYPE_ID_KEY              10000   // 英雄枚举 ID
+#define HERO_TYPE_IS_MAN_KEY          10010   // 是否男英雄
+#define HERO_TYPE_IS_STR_KEY          10020   // 是否力量主属性
+#define HERO_TYPE_IS_AGI_KEY          10030   // 是否敏捷主属性
+#define HERO_TYPE_IS_INT_KEY          10040   // 是否智力主属性
+#define HERO_TYPE_IS_NORMAL_KEY       10050   // 是否近战英雄
+#define HERO_TYPE_IS_MISSILE_KEY      10060   // 是否远程英雄
+#define HERO_TYPE_BELONG_SPELL_KEY    10070   // 专属技能 ID
+#define HERO_TYPE_NAME_KEY            10080   // 英雄名字
+#define HERO_TYPE_DESC_KEY            10090   // 英雄描述
+#define HERO_TYPE_TALENT_SPELL_KEY    10100   // 天赋技能 ID
+
+#define HASH_KEY_TYPE_ABILITY_ACHIEVEMENT 10110  //技能的绑定成就ID
+
+
 #endif
