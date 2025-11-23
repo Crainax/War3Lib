@@ -11,8 +11,12 @@
 整体为单例 UI，左侧为图鉴分类按钮，右侧由外部回调自行渲染内容。
 */
 
-#define MUSEUM_MAIN_WIDTH      0.64   // 主 UI 宽
-#define MUSEUM_MAIN_HEIGHT     0.37   // 主 UI 高
+#define MUSEUM_MAIN_WIDTH      0.68   // 主 UI 宽
+#define MUSEUM_MAIN_HEIGHT     0.36   // 主 UI 高
+
+// 大图总宽高（4 张 512x512 图片拼成 2416x1220，保持比例，宽固定 0.8）
+#define MUSEUM_BG_FULL_WIDTH     0.75
+#define MUSEUM_BG_FULL_HEIGHT    (MUSEUM_BG_FULL_WIDTH * 828.0 / 1528.0)
 
 #define MUSEUM_TAB_MAX_COUNT       16       // 左侧最多可显示的图鉴分类数量
 #define MUSEUM_TAB_WIDTH           0.077    // 左侧按钮宽度（缩小约 30%）
@@ -41,8 +45,11 @@
 //# dependency:resource/ui/image/black.blp
 //# dependency:resource/ui/image/select_close.blp
 //# dependency:resource/ui/image/vertical_divider.blp
-//# dependency:resource/ui/image/museum_title_465x48.blp
 //# dependency:resource/ui/image/arrow_right_101x72.blp
+//# dependency:resource/ui/image/museum_01.blp
+//# dependency:resource/ui/image/museum_02.blp
+//# dependency:resource/ui/image/museum_03.blp
+//# dependency:resource/ui/image/museum_04.blp
 
 library Museum requires Music,Icon,Tooltip,EscStack {
 
@@ -149,6 +156,12 @@ library Museum requires Music,Icon,Tooltip,EscStack {
         private static uiImage uiCloseImage = 0;    // 右上角关闭图标
         private static uiBtn   uiCloseButton = 0;   // 右上角关闭按钮
 
+        // 主背景大图（拆成 4 份拼接，保持整体比例）
+        private static uiImage bgImage1 = 0; // 右下
+        private static uiImage bgImage2 = 0; // 左下
+        private static uiImage bgImage3 = 0; // 右上
+        private static uiImage bgImage4 = 0; // 左上
+
         // 左侧分类按钮
         private static uiImage tabImage[];
         private static uiBtn   tabButton[];
@@ -168,7 +181,6 @@ library Museum requires Music,Icon,Tooltip,EscStack {
         private static player     owner           = null;
 
         // 标题
-        private static uiImage uiTitleBg   = 0;
         private static uiText  uiTitleText = 0;
 
         // Tooltip
@@ -319,14 +331,33 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                 .enableDrag(uiMain.ui, 0.25, 0.55, 0.34, 0.5)
                 .setDragPosition(0.4, 0.25);
 
-            // 中部标题（保持比例 465:48，基于高度宏常量计算宽度）
-            uiTitleBg = uiImage.create(uiMain.ui)
-                .exReSize(MUSEUM_TITLE_HEIGHT * MUSEUM_TITLE_WIDTH_RATIO, MUSEUM_TITLE_HEIGHT)
-                .setTexture("ui\\image\\museum_title_465x48.blp")
-                .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_TOP, 0.0, MUSEUM_TITLE_OFFSET_Y);
+            // 拼接 4 张大图碎片（总宽 0.8，高按 2416x1220 比例计算），锚点都对齐到 uiMain 中心，每张向中心偏移 0.001 避免缝隙
+            // 竖线：左右向中心靠拢（右侧X+0.001，左侧X-0.001）
+            // 横线：上下向中心靠拢（上方Y+0.001，下方Y-0.001）
+            bgImage1 = uiImage.create(uiMain.ui)
+                .exReSize(MUSEUM_BG_FULL_WIDTH * 0.5, MUSEUM_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\museum_01.blp")
+                .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, -0.001);
 
-            uiTitleText = uiText.create(uiTitleBg.ui)
-                .setAllPoint(uiTitleBg.ui)
+            bgImage2 = uiImage.create(uiMain.ui)
+                .exReSize(MUSEUM_BG_FULL_WIDTH * 0.5, MUSEUM_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\museum_02.blp")
+                .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, -0.001);
+
+            bgImage3 = uiImage.create(uiMain.ui)
+                .exReSize(MUSEUM_BG_FULL_WIDTH * 0.5, MUSEUM_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\museum_03.blp")
+                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, 0.001);
+
+            bgImage4 = uiImage.create(uiMain.ui)
+                .exReSize(MUSEUM_BG_FULL_WIDTH * 0.5, MUSEUM_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\museum_04.blp")
+                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, 0.001);
+
+            // 中部标题
+            uiTitleText = uiText.create(uiMain.ui)
+                .exReSize(MUSEUM_TITLE_HEIGHT * MUSEUM_TITLE_WIDTH_RATIO, MUSEUM_TITLE_HEIGHT)
+                .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_TOP, 0.0, MUSEUM_TITLE_OFFSET_Y)
                 .setAlign(4)
                 .setFontSize(7)
                 .setText(MUSEUM_TITLE_TEXT);
@@ -504,14 +535,29 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                 uiTitleText = 0;
             }
 
-            if (uiTitleBg != 0) {
-                uiTitleBg.destroy();
-                uiTitleBg = 0;
-            }
-
             if (uiTooltipTemp != 0) {
                 uiTooltipTemp.destroy();
                 uiTooltipTemp = 0;
+            }
+
+            if (bgImage1 != 0) {
+                bgImage1.destroy();
+                bgImage1 = 0;
+            }
+
+            if (bgImage2 != 0) {
+                bgImage2.destroy();
+                bgImage2 = 0;
+            }
+
+            if (bgImage3 != 0) {
+                bgImage3.destroy();
+                bgImage3 = 0;
+            }
+
+            if (bgImage4 != 0) {
+                bgImage4.destroy();
+                bgImage4 = 0;
             }
 
             if (uiMain != 0) {
@@ -554,6 +600,8 @@ library Museum requires Music,Icon,Tooltip,EscStack {
 
 #undef MUSEUM_MAIN_WIDTH
 #undef MUSEUM_MAIN_HEIGHT
+#undef MUSEUM_BG_FULL_WIDTH
+#undef MUSEUM_BG_FULL_HEIGHT
 #undef MUSEUM_TAB_MAX_COUNT
 #undef MUSEUM_TAB_WIDTH
 #undef MUSEUM_TAB_HEIGHT
