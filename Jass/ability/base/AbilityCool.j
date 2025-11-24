@@ -72,6 +72,13 @@ library AbilityCool requires HashTable {
                             u = null;
                         }
                     }
+
+                    // 队列为空时，停止并释放计时器，方便下次懒加载
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                    }
                 });
             }
         }
@@ -105,6 +112,13 @@ library AbilityCool requires HashTable {
                     thistype.uList[last]    = null;
                     thistype.abilList[last] = 0;
                     thistype.size -= 1;
+                }
+
+                // 当队列已空时，停止并释放计时器，优化性能
+                if (thistype.size <= 0 && thistype.tickTimer != null) {
+                    PauseTimer(thistype.tickTimer);
+                    DestroyTimer(thistype.tickTimer);
+                    thistype.tickTimer = null;
                 }
 
                 // 同步清理哈希记录

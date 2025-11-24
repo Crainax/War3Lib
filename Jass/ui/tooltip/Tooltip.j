@@ -42,6 +42,8 @@ library Tooltip requires Icon {
         //[私有方法]清除内部UI
         private method clear () {
             integer i;
+
+            // 清理图标
             for (1 <= i <= iconCount) {
                 if (ic[i] != 0) {
                     ic[i].destroy();
@@ -49,6 +51,8 @@ library Tooltip requires Icon {
                 }
             }
             iconCount = 0;
+
+            // 清理文字
             for (1 <= i <= textCount) {
                 if (text[i] != 0) {
                     text[i].destroy();
@@ -56,6 +60,13 @@ library Tooltip requires Icon {
                 }
             }
             textCount = 0;
+
+            // 重置对齐标记与锚点，避免不同布局之间相互“串场”
+            for (1 <= i <= TOOL_CHILD_MAX) {
+                alignWidth[i] = false;
+            }
+            relative = 0;
+            relativeTop = 0;
         }
 
 
@@ -110,9 +121,11 @@ library Tooltip requires Icon {
             this.clear(); //清除老UI,除(如果有)
             text[2]   = uiText.create(border.ui)
                 .setFontSize(fontSize)
+                .setAlign(3)
                 .setText(descText);
             text[1]   = uiText.create(border.ui)
                 .setFontSize(7)
+                .setAlign(4)
                 .setText(titleText)
                 .setPoint(ANCHOR_BOTTOM,text[2].ui,ANCHOR_TOP,0,0.005);
             textCount     = 2;
