@@ -111,22 +111,28 @@ library MT requires UnitTestFramwork {
 	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
 	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
 	function TTestMT1 (player p) {
-		UnitModel(p,"smallboom.mdl");
-		Efx("smallboom.mdl");
-		EfxB("chest","smallboom.mdl");
-		Danmu("smallboom.mdl");
+		UnitModel(p,"A (25).mdl");
+		Efx("A (25).mdl");
+		EfxB("chest","A (25).mdl");
+		Danmu("A (25).mdl");
 	}
 	function TTestMT2 (player p) {
-		UnitModel(p,"fengwuBoom.mdl");
-		Efx("fengwuBoom.mdl");
-		EfxB("chest","fengwuBoom.mdl");
-		Danmu("fengwuBoom.mdl");
+		UnitModel(p,"A (194).mdl");
+		Efx("A (194).mdl");
+		EfxB("chest","A (194).mdl");
+		Danmu("A (194).mdl");
 	}
 	function TTestMT3 (player p) {
-		//replace
+		UnitModel(p,"A (25).mdl");
+		Efx("A (25).mdl");
+		EfxB("chest","A (25).mdl");
+		Danmu("A (25).mdl");
 	}
 	function TTestMT4 (player p) {
-		//replace
+		UnitModel(p,"A (194).mdl");
+		Efx("A (194).mdl");
+		EfxB("chest","A (194).mdl");
+		Danmu("A (194).mdl");
 	}
 	function TTestMT5 (player p) {
 		//replace

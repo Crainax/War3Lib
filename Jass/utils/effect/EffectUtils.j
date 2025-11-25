@@ -5,15 +5,20 @@
 /*
 特效工具库
 */
-library EffectUtils {
+library EffectUtils requires YDWEJapiEffect {
 
+    // 基础缩放函数：对已有特效应用缩放矩阵
+    public function SetEffectScale (effect e, real scale) {
+        EXEffectMatScale(e, scale, scale, scale);
+    }
+
+    // 立即创建一个缩放后的短暂特效（创建后立刻销毁）
     public function ShowEffectScale (string path, real x, real y,real scale){
         effect e = AddSpecialEffect(path, x, y);
-        DzSetEffectScale(e, scale);
+        SetEffectScale(e, scale);
         DestroyEffect(e);
         e = null;
     }
-
 
     //---------------------------------------------------------------------------------------------------
     /*
@@ -96,6 +101,110 @@ library EffectUtils {
 
     public function CreateLightning(unit u1, unit u2, real time, string lType) {
         CreateLightningXY(GetUnitX(u1), GetUnitY(u1), GetUnitX(u2), GetUnitY(u2), time, lType);
+    }
+
+    //---------------------------------------------------------------------------------------------------
+    /*
+        中央计时器管理的短暂特效
+        通过队列统一递减存活时间，到期自动 DestroyEffect
+    */
+    private struct EffectQueue [] {
+        private static effect list[];
+        private static real   remain[];
+        private static integer size = 0;
+        private static timer  tickTimer = null;
+
+        // 确保中央计时器已创建并运行
+        private static method ensureTimer() {
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.02, true, function () {
+                    integer i; integer last;
+                    real t;
+                    effect e;
+
+                    // 遍历所有特效，按 0.02 秒衰减存活时间
+                    for (i = 0; i < thistype.size; i += 1) {
+                        t = thistype.remain[i] - 0.02;
+                        if (t <= 0.0) {
+                            // 时间到，销毁特效并从队列移除（尾部交换法，保持数组紧凑）
+                            e = thistype.list[i];
+                            DestroyEffect(e);
+                            e = null;
+
+                            last = thistype.size - 1;
+                            if (i != last) {
+                                thistype.list[i]   = thistype.list[last];
+                                thistype.remain[i] = thistype.remain[last];
+                            }
+                            thistype.list[last]   = null;
+                            thistype.remain[last] = 0.0;
+                            thistype.size -= 1;
+                            i -= 1;
+                        } else {
+                            thistype.remain[i] = t;
+                        }
+                    }
+
+                    // 队列为空时，停止并释放计时器，方便下次懒加载
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                    }
+                });
+            }
+        }
+
+        // 将一个特效加入队列统一管理
+        public static method add(effect e, real time) {
+            if (time <= 0.0) {
+                // 存活时间非法，直接销毁传入特效
+                DestroyEffect(e);
+                e = null;
+                return;
+            }
+
+            thistype.ensureTimer();
+
+            if (thistype.size >= 8190) {
+                BJDebugMsg("|cFFFF0000[EffectUtils] EffectQueue 队列已满，无法继续添加特效！|r");
+                DestroyEffect(e);
+                e = null;
+                return;
+            }
+
+            thistype.list[thistype.size]   = e;
+            thistype.remain[thistype.size] = time;
+            thistype.size += 1;
+            e = null;
+        }
+    }
+
+    // 外部接口：创建一个带缩放与动画的短暂特效
+    // path: 模型路径
+    // x,y : 世界坐标
+    // scale: 缩放倍数
+    // time: 存活时间（秒），到期自动 DestroyEffect
+    public function CreateEffectScaleAnim (string path, real x, real y, real scale,  real time) {
+        effect e;
+
+        e = AddSpecialEffect(path, x, y);
+        if (e == null) {
+            return;
+        }
+
+        // 缩放：复用上面的缩放函数逻辑
+        SetEffectScale(e, scale);
+
+        // 播放指定动画，附加链接名使用空字符串
+        // DzPlayEffectAnimation(e, anim, "");
+
+        // 交给 EffectQueue 统一管理存活时间与销毁
+        EffectQueue.add(e, time);
+
+        // 本地引用置空，避免句柄悬挂
+        e = null;
     }
 
 }

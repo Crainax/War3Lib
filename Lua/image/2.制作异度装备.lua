@@ -90,9 +90,12 @@ for filename in io.popen(list_files_cmd):lines() do
     local input_path = '"' .. source_dir .. filename .. '"'
 
     local magick_command, output_path, output_filename
+    local normal_output_path = nil
 
     if generate_flags.normal then
-        output_filename = "btn" .. filename; output_path = '"' .. output_dir .. output_filename .. '"'
+        output_filename = "btn" .. filename
+        normal_output_path = output_dir .. output_filename
+        output_path = '"' .. normal_output_path .. '"'
         local quality_path = paths.quality[quality_level]
         local glow_path = paths.glow[quality_level]
 
@@ -151,10 +154,25 @@ for filename in io.popen(list_files_cmd):lines() do
         os.execute(magick_command)
     end
     if generate_flags.disabled then
-        output_filename = "disbtn" .. filename; output_path = '"' .. output_dir .. output_filename .. '"'
-        magick_command = string.format(
-        'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite %s',
-            input_path, size_str, size_str, paths.dis, size_str, output_path)
+        output_filename = "disbtn" .. filename
+        output_path = '"' .. output_dir .. output_filename .. '"'
+
+        if normal_output_path then
+            -- 基于已生成的普通图标叠加失效遮罩
+            local normal_input = '"' .. normal_output_path .. '"'
+            magick_command = string.format(
+                'magick convert %s ( "%s" -resize %s ) -gravity center -composite %s',
+                normal_input, paths.dis, size_str, output_path
+            )
+        else
+            -- 如果未生成普通图标, 退回到旧的基于原图的方案
+            print("  [警告] 未生成常规图标, 失效图标将从原始图片生成（不包含光晕/品质）。")
+            magick_command = string.format(
+                'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite %s',
+                input_path, size_str, size_str, paths.dis, size_str, output_path
+            )
+        end
+
         print("  -> 生成 (失效): " .. output_filename)
         os.execute(magick_command)
     end
