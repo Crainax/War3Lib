@@ -24,6 +24,14 @@
 4. `kkwe`里的`jass/`挑选出.j文件移到War3Lib的API里研究.
 5. 修改`share/script/ydwe_on_save.lua`里的`wave:compile(compile_t)`复制多一份移到inject前面,实行两次预处理.
 
+                    we.show_progress(_("KKWE SaveMap"), 5, _("Execute Wave"))
+                    -- Wave预处理
+                    if not wave:compile(compile_t) then
+                        return nil
+                    end
+                    compile_t.input = compile_t.output
+最下面这句也要复制过去(被坑惨了)
+
 
 
 ## 换了新电脑后，需要处理的事情

@@ -22,7 +22,7 @@ library AbilityCool requires HashTable {
         private static method ensureTimer() {
             if (thistype.tickTimer == null) {
                 thistype.tickTimer = CreateTimer();
-                TimerStart(thistype.tickTimer, 0.10, true, function () {
+                TimerStart(thistype.tickTimer, 0.02, true, function () {
                     integer i; integer last; unit u; integer abilId; integer parentKey; real cd;
 
                     // 单次遍历 + 尾部交换，O(n)
@@ -45,9 +45,9 @@ library AbilityCool requires HashTable {
                             i -= 1;
                             u = null;
                         } else {
-                            cd = LoadReal(HASH_ABILITY, parentKey, HASH_CHILD_SALT_ABILITY_COOLDOWN) - 0.10;
+                            cd = LoadReal(HASH_ABILITY, parentKey, HASH_CHILD_SALT_ABILITY_COOLDOWN) - 0.02;
 
-                            if (cd <= 0.10) {
+                            if (cd <= 0.02) {
                                 // 冷却结束：删除哈希记录并从队列移除
                                 RemoveSavedReal(HASH_ABILITY, parentKey, HASH_CHILD_SALT_ABILITY_COOLDOWN);
 

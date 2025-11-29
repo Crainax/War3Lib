@@ -22,9 +22,17 @@ library UTEffectUtils requires EffectUtils {
 
 	function TTestUTEffectUtils1 (player p) {
 		//CreateEffectScaleAnim
+		CreateLightningXY(0,0,1000,1000,2.0,"DRAM");
+		BJDebugMsg("闪电效果");
 	}
-	function TTestUTEffectUtils2 (player p) {}
-	function TTestUTEffectUtils3 (player p) {}
+	function TTestUTEffectUtils2 (player p) {
+		CreateLightningXY(0,0,1000,1000,2.0,"OBN5");
+		BJDebugMsg("闪电效果2");
+	}
+	function TTestUTEffectUtils3 (player p) {
+		CreateLightningXY(-10000,10000,10000,-10000,2.0,"OBN5");
+		BJDebugMsg("闪电效果3-长链");
+	}
 	function TTestUTEffectUtils4 (player p) {}
 	function TTestUTEffectUtils5 (player p) {}
 	function TTestUTEffectUtils6 (player p) {}
@@ -95,6 +103,8 @@ library UTEffectUtils requires EffectUtils {
 			else if(str == "s10") TTestUTEffectUtils10(GetTriggerPlayer());
 		});
 
+
+		cameraControl.openWheel();
 	}
 
 }

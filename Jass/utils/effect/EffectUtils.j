@@ -5,6 +5,12 @@
 /*
 特效工具库
 */
+
+//骨法闪电链:OBN5
+
+//# dependency:map/splats/lightningdata.slk
+//# dependency:resource/Textures/Hero_Oblivion_N5_light1.blp
+
 library EffectUtils requires YDWEJapiEffect {
 
     // 基础缩放函数：对已有特效应用缩放矩阵
