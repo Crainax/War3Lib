@@ -10,6 +10,8 @@
 #define UNITPANEL_ICON_TEXTURE_INT    "ui\\console\\unitpanel\\origin_int.blp"
 #define UNITPANEL_ICON_TEXTURE_ATTACK "ui\\console\\unitpanel\\origin_attack.blp"
 #define UNITPANEL_ICON_TEXTURE_ARMOR  "ui\\console\\unitpanel\\origin_armor.blp"
+#define UnitPanelShowBuilding
+#define UnitPanelShowMonster
 
 #define TOOLTIP_DEFAULT_X 0.786
 #define TOOLTIP_DEFAULT_Y 0.1375

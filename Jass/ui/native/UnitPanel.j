@@ -65,17 +65,26 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
     public struct unitPanel []{
 
         static icon iconAttack  = 0; static icon iconArmor    = 0;
-        static icon iconHero    = 0; static icon iconBuilding = 0;
+        static icon iconHero    = 0;
+        #ifdef UnitPanelShowBuilding
+        static icon iconBuilding = 0;
+        #endif
+        #ifdef UnitPanelShowMonster
         static icon iconMonster = 0;
+        #endif
 
         static uiText textAttack   = 0; static uiText  textAttackValue   = 0;static uiText  textAttackExtra   = 0;  //攻击相关
         static uiText textArmor    = 0; static uiText  textArmorValue    = 0;static uiText  textArmorExtra    = 0;  //防御相关
         static uiText textStr      = 0; static uiText  textStrValue      = 0;static uiText  textStrExtra      = 0;  //力量
         static uiText textAgi      = 0; static uiText  textAgiValue      = 0;static uiText  textAgiExtra      = 0;  //敏捷
         static uiText textInt      = 0; static uiText  textIntValue      = 0;static uiText  textIntExtra      = 0;  //智力
+        #ifdef UnitPanelShowBuilding
         static uiText textBuilding = 0; static uiText  textBuildingValue = 0;
+        #endif
+        #ifdef UnitPanelShowMonster
         static uiText textGold     = 0; static uiText  textGoldValue     = 0;
         static uiText textExp      = 0; static uiText  textExpValue      = 0;
+        #endif
 
         // 事件触发器
         private {
@@ -85,10 +94,14 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             static trigger trArmorClick    = null; static trigger trArmorRightClick    = null;
             static trigger trHeroEnter     = null; static trigger trHeroLeave          = null;
             static trigger trHeroClick     = null; static trigger trHeroRightClick     = null;
+            #ifdef UnitPanelShowBuilding
             static trigger trBuildingEnter = null; static trigger trBuildingLeave      = null;
             static trigger trBuildingClick = null; static trigger trBuildingRightClick = null;
+            #endif
+            #ifdef UnitPanelShowMonster
             static trigger trMonsterEnter  = null; static trigger trMonsterLeave       = null;
             static trigger trMonsterClick  = null; static trigger trMonsterRightClick  = null;
+            #endif
         }
 
         #define onUnitPanelTrigger(name,evt) \
@@ -106,8 +119,12 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         onUnitPanelAllEvents(Attack)
         onUnitPanelAllEvents(Armor)
         onUnitPanelAllEvents(Hero)
+        #ifdef UnitPanelShowBuilding
         onUnitPanelAllEvents(Building)
+        #endif
+        #ifdef UnitPanelShowMonster
         onUnitPanelAllEvents(Monster)
+        #endif
 
         #undef onUnitPanelTrigger
         #undef onUnitPanelAllEvents
@@ -205,6 +222,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             textIntExtra = uiText.createSimple(parent)
                 .setPoint(ANCHOR_LEFT, textIntValue.ui, ANCHOR_RIGHT, 0.002, 0.0);
 
+            #ifdef UnitPanelShowBuilding
             //建筑小框架相关
             parent = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7); //建筑的父框架(放弃了因为频繁拉回来的原因)
             child = DzCreateFrameByTagName("SIMPLEFRAME", "upBuilding", parent, "单位面板框架", 2);
@@ -224,7 +242,9 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             textBuildingValue = uiText.bindSimple("单位面板数值", 2)
                 .setPoint(ANCHOR_BOTTOMLEFT, iconBuilding.mainImage.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
                 .setText("1");
+            #endif
 
+            #ifdef UnitPanelShowMonster
             //怪物属性框架
             iconMonster = icon.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
                 .setSize(0.027, 0.027)
@@ -250,19 +270,13 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             textExpValue = uiText.createSimple(DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2))
                 .setPoint(ANCHOR_TOPLEFT, textExp.ui, ANCHOR_BOTTOMLEFT, 0.005, -0.001)
                 .setText("|cffffffff20|r");
+            #endif
         }
 
+        #ifdef UnitPanelShowBuilding
         // 友方建筑单位的金币之类的东西(会频繁重置,需要在选择单位时就重新处理)
         static method moveOutBuilding (){
             integer ui = DzSimpleFrameFindByName("SimpleInfoPanelIconAlly", 7);
-            DzFrameSetSize( ui, 0.02, 0.02 );
-            DzFrameClearAllPoints( ui );
-            DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
-        }
-
-        // 怪物的科技原生面板(会频繁重置,需要在选择单位时就重新处理)
-        static method moveOutMonster () {
-            integer ui = DzSimpleFrameFindByName("SimpleInfoPanelIconRank", 3);
             DzFrameSetSize( ui, 0.02, 0.02 );
             DzFrameClearAllPoints( ui );
             DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
@@ -287,6 +301,17 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
                 }
             });
         }
+        #endif
+
+        #ifdef UnitPanelShowMonster
+        // 怪物的科技原生面板(会频繁重置,需要在选择单位时就重新处理)
+        static method moveOutMonster () {
+            integer ui = DzSimpleFrameFindByName("SimpleInfoPanelIconRank", 3);
+            DzFrameSetSize( ui, 0.02, 0.02 );
+            DzFrameClearAllPoints( ui );
+            DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
+        }
+        #endif
 
         //隐藏/显示额外数值显示
         #define SHOW_EXTRA_VALUE(name) \

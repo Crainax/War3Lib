@@ -34,8 +34,11 @@
 library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 
 	public function Init2 () {
+		#ifdef UnitPanelShowBuilding
 		unitPanel.registerBuilding(); //注册建筑单位的单位面板刷新机制
+		#endif
 
+		#ifdef UnitPanelShowMonster
 		unitSelect.onAsync(function () {
 			if (GetUnitTypeId(unitSelect.args) == 'hsor' || GetUnitTypeId(unitSelect.args) == 'hmpr') {
 				unitPanel.iconMonster.show(true);
@@ -46,6 +49,7 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 				unitPanel.iconMonster.show(false);
 			}
 		});
+		#endif
 	}
 
 	integer testCount = 0;
@@ -62,8 +66,12 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		testInit2In(Attack)
 		testInit2In(Armor)
 		testInit2In(Hero)
+		#ifdef UnitPanelShowBuilding
 		testInit2In(Building)
+		#endif
+		#ifdef UnitPanelShowMonster
 		testInit2In(Monster)
+		#endif
 
 		Init2();
 
@@ -114,8 +122,12 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		unitPanel.iconArmor.startCooldown(0,0);
 	}
 	function TTestUTUnitPanel5 (player p) {
+		#ifdef UnitPanelShowBuilding
 		unitPanel.moveOutBuilding();
+		#endif
+		#ifdef UnitPanelShowMonster
 		unitPanel.moveOutMonster();
+		#endif
 		BJDebugMsg("移走");
 	}
 	function TTestUTUnitPanel6 (player p) {}

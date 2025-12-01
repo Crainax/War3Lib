@@ -114,10 +114,6 @@ library UnitUtils {
         } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
 		SetUnitMoveSpeed(u,value);
     }
-    // 初始化突破移速
-    public function InitUnitSpeed (unit u) {
-        SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,R2I(GetUnitMoveSpeed(u)));
-    }
 
     //射程(还会+警戒范围)
     public function GetUnitAttackRange(unit u) -> real {
