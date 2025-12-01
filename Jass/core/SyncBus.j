@@ -7,6 +7,7 @@
 */
 
 #define SWITCH_SYNCBUS_LOG 1  //打开日志
+#define SYNC_BUS_OOS_CHECK_INTERVAL 12  //打开日志
 #define SWITCH_SYNCBUS_OOS_DETECH  //打开OOS探测日志
 
 library SyncBus {
@@ -184,7 +185,7 @@ library SyncBus {
 				thistype.oosTick += 1;
 
 				// 每12次（60秒）执行一次检查和发送
-				if (thistype.oosTick >= 12) {
+				if (thistype.oosTick >= SYNC_BUS_OOS_CHECK_INTERVAL) {
 					thistype.oosTick = 0;
 
 					// 改为"按玩家为单位"的提示：只对"少数派"玩家（与众数不同的玩家）显示提示
