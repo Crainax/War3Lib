@@ -4,27 +4,79 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/units/attr/UnitAttrShow.j"
+
+//# dependency:resource/ui/console/unitpanel/yidu_str.blp
+//# dependency:resource/ui/console/unitpanel/yidu_agi.blp
+//# dependency:resource/ui/console/unitpanel/yidu_int.blp
+//# dependency:resource/ui/console/unitpanel/yidu_Atk.blp
+//# dependency:resource/ui/console/unitpanel/yidu_Def.blp
 
 //! zinc
 
 //自动生成的文件
-library UTUnitAttrShow requires UnitAttrShow {
+library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 
-	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start,这里是0.1秒后调用的内容
-			}, function() {
-			//end,这里是2秒后调用的内容
-		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-		},null);
+
+	// 创建普通测试单位
+	private function CreateTestUnit(player p) {
+		if (testUnit != null) {
+			RemoveUnit(testUnit);
+		}
+		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		SelectUnit(testUnit, true);
+		BJDebugMsg("已创建普通测试单位");
 	}
 
-	function TTestUTUnitAttrShow1 (player p) {}
-	function TTestUTUnitAttrShow2 (player p) {}
-	function TTestUTUnitAttrShow3 (player p) {}
+	// 创建英雄测试单位
+	private function CreateTestHero(player p) {
+		if (testHero != null) {
+			RemoveUnit(testHero);
+		}
+		testHero = CreateUnit(p, 'Hpal', 0, 0, 0);
+		SelectUnit(testHero, true);
+		BJDebugMsg("已创建英雄测试单位");
+	}
+
+
+	function Init () {
+		player p = Player(0);
+		BJDebugMsg("=== UnitAttrShow测试系统已加载 ===");
+		BJDebugMsg("测试命令说明:");
+		BJDebugMsg("-unit : 创建普通测试单位");
+		BJDebugMsg("-hero : 创建英雄测试单位");
+		BJDebugMsg("-atk [value] : 设置攻击力");
+		BJDebugMsg("-addatk [value] : 增加攻击力");
+		BJDebugMsg("-def [value] : 设置防御力");
+		BJDebugMsg("-adddef [value] : 增加防御力");
+		BJDebugMsg("-str [value] : 设置力量(英雄)");
+		BJDebugMsg("-addstr [value] : 增加力量(英雄)");
+		BJDebugMsg("-agi [value] : 设置敏捷(英雄)");
+		BJDebugMsg("-addagi [value] : 增加敏捷(英雄)");
+		BJDebugMsg("-int [value] : 设置智力(英雄)");
+		BJDebugMsg("-addint [value] : 增加智力(英雄)");
+
+		// 自动创建测试单位
+		UnitTestAutoTimer(0.1, 0, function() {
+			CreateTestUnit(Player(0));
+		}, null);
+
+		p = null;
+	}
+
+	private unit testUnit = null;
+	private unit testHero = null;
+
+	function TTestUTUnitAttrShow1 (player p) {
+		CreateTestUnit(p);
+	}
+
+	function TTestUTUnitAttrShow2 (player p) {
+		CreateTestHero(p);
+	}
+
+	function TTestUTUnitAttrShow3 (player p) {
+		//unitAttrShow
+	}
 	function TTestUTUnitAttrShow4 (player p) {}
 	function TTestUTUnitAttrShow5 (player p) {}
 	function TTestUTUnitAttrShow6 (player p) {}
@@ -32,6 +84,7 @@ library UTUnitAttrShow requires UnitAttrShow {
 	function TTestUTUnitAttrShow8 (player p) {}
 	function TTestUTUnitAttrShow9 (player p) {}
 	function TTestUTUnitAttrShow10 (player p) {}
+
 	function TTestActUTUnitAttrShow1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -39,6 +92,12 @@ library UTUnitAttrShow requires UnitAttrShow {
 		string  paramS [];							   //所有参数S
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
+		unit    u;
+		integer currentStr;
+		integer currentAgi;
+		integer currentInt;
+
+		// 解析参数
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -55,12 +114,116 @@ library UTUnitAttrShow requires UnitAttrShow {
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
 
-		if (paramS[0] == "a") {
-
-		} else if (paramS[0] == "b") {
-
+		// 获取当前选中的单位
+		u = DzGetSelectedLeaderUnit();
+		if (u == null) {
+			BJDebugMsg("请先选择一个单位");
+			p = null;
+			return;
 		}
 
+		// 创建单位命令
+		if (paramS[0] == "unit") {
+			CreateTestUnit(p);
+			p = null;
+			return;
+		} else if (paramS[0] == "hero") {
+			CreateTestHero(p);
+			p = null;
+			return;
+		}
+
+		// 攻击力相关命令
+		if (paramS[0] == "atk") {
+			// 设置攻击力
+			if (num >= 2) {
+				SetUnitAttack(u, paramR[1]);
+				BJDebugMsg("设置攻击力为: " + R2S(paramR[1]));
+			}
+		} else if (paramS[0] == "addatk") {
+			// 增加攻击力
+			if (num >= 2) {
+				AddUnitAttack(u, paramR[1]);
+				BJDebugMsg("增加攻击力: " + R2S(paramR[1]));
+				BJDebugMsg("当前攻击力: " + R2S(GetUnitAttack(u)));
+			}
+		}
+		// 防御力相关命令
+		else if (paramS[0] == "def") {
+			// 设置防御力
+			if (num >= 2) {
+				SetUnitDefense(u, paramR[1]);
+				BJDebugMsg("设置防御力为: " + R2S(paramR[1]));
+			}
+		} else if (paramS[0] == "adddef") {
+			// 增加防御力
+			if (num >= 2) {
+				AddUnitDefense(u, paramR[1]);
+				BJDebugMsg("增加防御力: " + R2S(paramR[1]));
+				BJDebugMsg("当前防御力: " + R2S(GetUnitDefense(u)));
+			}
+		}
+		// 英雄属性相关命令（仅对英雄有效）
+		else if (paramS[0] == "str") {
+			// 设置力量
+			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
+				SetHeroStr(u, paramI[1], true);
+				BJDebugMsg("设置力量为: " + I2S(paramI[1]));
+				BJDebugMsg("当前力量: " + I2S(GetHeroStr(u, true)));
+			} else {
+				BJDebugMsg("该单位不是英雄");
+			}
+		} else if (paramS[0] == "addstr") {
+			// 增加力量
+			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
+				currentStr = GetHeroStr(u, true);
+				SetHeroStr(u, currentStr + paramI[1], true);
+				BJDebugMsg("增加力量: " + I2S(paramI[1]));
+				BJDebugMsg("当前力量: " + I2S(GetHeroStr(u, true)));
+			} else {
+				BJDebugMsg("该单位不是英雄");
+			}
+		} else if (paramS[0] == "agi") {
+			// 设置敏捷
+			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
+				SetHeroAgi(u, paramI[1], true);
+				BJDebugMsg("设置敏捷为: " + I2S(paramI[1]));
+				BJDebugMsg("当前敏捷: " + I2S(GetHeroAgi(u, true)));
+			} else {
+				BJDebugMsg("该单位不是英雄");
+			}
+		} else if (paramS[0] == "addagi") {
+			// 增加敏捷
+			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
+				currentAgi = GetHeroAgi(u, true);
+				SetHeroAgi(u, currentAgi + paramI[1], true);
+				BJDebugMsg("增加敏捷: " + I2S(paramI[1]));
+				BJDebugMsg("当前敏捷: " + I2S(GetHeroAgi(u, true)));
+			} else {
+				BJDebugMsg("该单位不是英雄");
+			}
+		} else if (paramS[0] == "int") {
+			// 设置智力
+			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
+				SetHeroInt(u, paramI[1], true);
+				BJDebugMsg("设置智力为: " + I2S(paramI[1]));
+				BJDebugMsg("当前智力: " + I2S(GetHeroInt(u, true)));
+			} else {
+				BJDebugMsg("该单位不是英雄");
+			}
+		} else if (paramS[0] == "addint") {
+			// 增加智力
+			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
+				currentInt = GetHeroInt(u, true);
+				SetHeroInt(u, currentInt + paramI[1], true);
+				BJDebugMsg("增加智力: " + I2S(paramI[1]));
+				BJDebugMsg("当前智力: " + I2S(GetHeroInt(u, true)));
+			} else {
+				BJDebugMsg("该单位不是英雄");
+			}
+		}
+
+		u = null;
 		p = null;
 	}
 
