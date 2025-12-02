@@ -26,8 +26,23 @@ library UnitUtils {
     }
 
     //获取单位的攻击力/防御/生命/魔法值
-    public function GetUnitAttack(unit u) -> integer {
-        return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
+    // 支持超过 21 亿的扩展攻击力：
+    //  - 当攻击力大于 10 亿时，内部会自动按 10 的 n 次方进行缩放存储，
+    //    实际存入引擎的攻击值为 attack / pow(10, n)，并在 HASH_UNIT 中记录 n 与 10^n
+    //  - 此处读取时会将引擎中的攻击值乘以 10^n 还原为真实攻击力
+    public function GetUnitAttack(unit u) -> real {
+        real base; integer uid; real factor;
+
+        uid = GetHandleId(u);
+        base = GetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE));
+
+        // 如果存在攻击扩展倍数，则还原为真实攻击力
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR)) {
+            factor = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR);
+            return base * factor;
+        }
+
+        return base;
     }
 
     public function GetUnitDefense(unit u) -> integer {
@@ -42,13 +57,66 @@ library UnitUtils {
         return GetUnitState(u,UNIT_STATE_MAX_MANA);
     }
 
-    //设置攻击力
-    public function SetUnitAttack(unit u, real attack) -> nothing {
-        SetUnitState(u,ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE),attack);
+    // 获取当前单位攻击力的扩展倍数（10 的 n 次方，使用 real 存储）
+    //  - 当未使用扩展（即攻击力未超过 10 亿时），直接返回 0.0
+    //  - 当返回值 > 0 时，表示真实攻击力 = 引擎攻击值 * 返回值
+    public function GetUnitAttackMult(unit u) -> real {
+        integer uid;
+
+        uid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR)) {
+            return 0.0;
+        }
+
+        return LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR);
     }
-    //增加攻击力
+
+    //设置攻击力（支持超过 21 亿）
+    public function SetUnitAttack(unit u, real attack) -> nothing {
+        real value; integer uid; integer n; integer i; real factor;
+
+        uid = GetHandleId(u);
+        value = attack;
+        n = 0;
+
+        // 大于 10 亿才开始缩放，避免不必要的精度损失
+        if (value > 1000000000.0) {
+            // 每次 /10，直到不大于 10 亿，或达到安全指数上限
+            while (value > 1000000000.0 && n < 30) {
+                value = value / 10.0;
+                n = n + 1;
+            }
+        }
+
+        // 根据 n 计算 10^n 的倍数（real），并保存
+        if (n > 0) {
+            factor = 1.0;
+            i = 0;
+            while (i < n) {
+                factor = factor * 10.0;
+                i = i + 1;
+            }
+
+            // 保存扩展信息：指数 n 和倍数 10^n（real）
+            SaveInteger(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_EXP, n);
+            SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR, factor);
+        } else {
+            // 没有扩展时，清理掉之前的扩展记录
+            if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_EXP)) {
+                RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_EXP);
+            }
+            if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR)) {
+                RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR);
+            }
+        }
+
+        // 实际写入引擎的攻击值（已缩放）
+        SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), value);
+    }
+
+    //增加攻击力（支持超过 21 亿）
     public function AddUnitAttack(unit u, real attack) -> nothing {
-        SetUnitAttack(u,GetUnitAttack(u) + attack);
+        SetUnitAttack(u, GetUnitAttack(u) + attack);
     }
 
     //设置防御

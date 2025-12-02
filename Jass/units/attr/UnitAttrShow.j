@@ -38,6 +38,15 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             return GetUnitAbilityLevel(u, 'Amim') > 0 || GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) > 0;
         }
 
+        // 内部：格式化数值显示（>100万用FormatNumber，否则用I2S(R2I)）
+        private static method formatValue (real val) -> string {
+            if (val > 1000000.0) {
+                return FormatNumber(val);
+            } else {
+                return I2S(R2I(val));
+            }
+        }
+
         // 内部：更新攻击 / 防御显示
         private static method updateAttackDefense (unit u, real atk, integer def) {
             boolean isInvul; boolean isMagicImm; string armorText;
@@ -49,7 +58,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             // 更新攻击显示
             if (!inited || RAbsBJ(atk - lastAttack) > 0.001) {
                 lastAttack = atk;
-                unitPanel.textAttackValue.setText(FormatNumber(atk));
+                unitPanel.textAttackValue.setText(unitAttrShow.formatValue(atk));
             }
 
             // 更新防御显示（处理无敌和魔免状态）
@@ -63,10 +72,10 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
                     armorText = "|cffff0000无敌的|r";
                 } else if (isMagicImm) {
                     // 魔免：显示"防御值/魔免"（魔免用绿色）
-                    armorText = FormatNumber(def) + "/|cff00ff00魔免|r";
+                    armorText = unitAttrShow.formatValue(I2R(def)) + "/|cff00ff00魔免|r";
                 } else {
                     // 正常显示防御值
-                    armorText = FormatNumber(def);
+                    armorText = unitAttrShow.formatValue(I2R(def));
                 }
                 unitPanel.textArmorValue.setText(armorText);
             }
@@ -76,17 +85,17 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static method updatePrimaryAttrs (unit u, real strVal, real agiVal, real intVal) {
             if (!inited || RAbsBJ(strVal - lastStr) > 0.001) {
                 lastStr = strVal;
-                unitPanel.textStrValue.setText(FormatNumber(strVal));
+                unitPanel.textStrValue.setText(unitAttrShow.formatValue(strVal));
             }
 
             if (!inited || RAbsBJ(agiVal - lastAgi) > 0.001) {
                 lastAgi = agiVal;
-                unitPanel.textAgiValue.setText(FormatNumber(agiVal));
+                unitPanel.textAgiValue.setText(unitAttrShow.formatValue(agiVal));
             }
 
             if (!inited || RAbsBJ(intVal - lastInt) > 0.001) {
                 lastInt = intVal;
-                unitPanel.textIntValue.setText(FormatNumber(intVal));
+                unitPanel.textIntValue.setText(unitAttrShow.formatValue(intVal));
             }
         }
 

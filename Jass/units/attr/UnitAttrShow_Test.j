@@ -160,15 +160,15 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		if (paramS[0] == "atk") {
 			// 设置攻击力
 			if (num >= 2) {
-				SetUnitAttack(u, paramR[1]);
-				BJDebugMsg("设置攻击力为: " + R2S(paramR[1]));
+				SetUnitAttack(u, ParseReal(paramS[1]));
+				BJDebugMsg("设置攻击力为: " + FormatNumber(ParseReal(paramS[1])));
 			}
 		} else if (paramS[0] == "addatk") {
 			// 增加攻击力
 			if (num >= 2) {
-				AddUnitAttack(u, paramR[1]);
-				BJDebugMsg("增加攻击力: " + R2S(paramR[1]));
-				BJDebugMsg("当前攻击力: " + R2S(GetUnitAttack(u)));
+				AddUnitAttack(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加攻击力: " + FormatNumber(ParseReal(paramS[1])));
+				BJDebugMsg("当前攻击力: " + FormatNumber(GetUnitAttack(u)));
 			}
 		}
 		// 防御力相关命令

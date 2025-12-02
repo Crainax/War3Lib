@@ -50,8 +50,12 @@
 
 // 2400开始可继续添加新的键值定义...
 
-#define KEY_UNIT_MOVE_SPEED 237960560 //单位的移速记录
-#define KEY_UNIT_ATTACK_INTERVAL_CACHE        255610124 // 攻击间隔小于地图设置的缓存值
+#define KEY_UNIT_MOVE_SPEED                  237960560 //单位的移速记录
+#define KEY_UNIT_ATTACK_INTERVAL_CACHE       255610124 // 攻击间隔小于地图设置的缓存值
+
+// 单位攻击力扩展键值（支持超过 21 亿的攻击力）
+#define KEY_UNIT_ATTACK_SCALE_EXP            255610125 // 攻击力扩展缩放指数 n
+#define KEY_UNIT_ATTACK_SCALE_FACTOR         255610126 // 攻击力扩展缩放倍数 10^n
 
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物

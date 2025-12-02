@@ -11,6 +11,9 @@
 library UTUnitUtils requires UnitUtils {
 
 	function Init () {
+		// 注册全局单位选中事件，打印当前攻击力与攻击倍数
+		trigger selTr;
+		integer i;
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
 			}, function() {
@@ -20,9 +23,46 @@ library UTUnitUtils requires UnitUtils {
 			//assert.Boolean(true, "测试1");
 			//GetUnitAttackInterval
 		},null);
+
+		selTr = CreateTrigger();
+		for (0 <= i <= 11) {
+			TriggerRegisterPlayerUnitEvent(selTr, Player(i), EVENT_PLAYER_UNIT_SELECTED, null);
+		}
+		TriggerAddCondition(selTr, Condition(function () -> boolean {
+			unit u; real atk; real mult;
+			u    = GetTriggerUnit();
+			atk  = GetUnitAttack(u);
+			mult = GetUnitAttackMult(u);
+			BJDebugMsg("[UnitUtils] 选中单位攻击=" + R2S(atk) + "  倍数=" + R2S(mult));
+			u = null;
+			return false;
+		}));
+		selTr = null;
 	}
 
-	function TTestUTUnitUtils1 (player p) {}
+	function TTestUTUnitUtils1 (player p) {
+		integer i;
+		unit u;
+		real x; real y;
+		integer startLoc;
+
+		startLoc = GetPlayerStartLocation(p);
+		x = GetStartLocationX(startLoc);
+		y = GetStartLocationY(startLoc);
+
+		// 创建 3 个步兵，分别设置不同量级的攻击力（含超过 21 亿的情况）
+		for (0 <= i <= 2) {
+			u = CreateUnit(p, 'hfoo', x + 150.0 * I2R(i), y, 270.0);
+			if (i == 0) {
+				SetUnitAttack(u, 500000000.0);      // 5e8，不触发扩展
+			} else if (i == 1) {
+				SetUnitAttack(u, 250000000.0*10.0);     // 2.5e9，触发扩展
+			} else {
+				SetUnitAttack(u, 9999999.0  * 19999.0);    // 9.999e10，更大数
+			}
+			u = null;
+		}
+	}
 	function TTestUTUnitUtils2 (player p) {}
 	function TTestUTUnitUtils3 (player p) {}
 	function TTestUTUnitUtils4 (player p) {}
