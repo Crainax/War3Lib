@@ -20,6 +20,8 @@
 #undef UnitPanelShowBuilding
 #undef UnitPanelShowMonster
 
+#define IsUnitBigInteger(u)   IsHeroUnitId(GetUnitTypeId(u))   //应用高精度大数的单位
+
 //魔免技能(隐藏图标的)
 #define MAGIC_IMMUNITY_SPELL_ID 'A04e'
 

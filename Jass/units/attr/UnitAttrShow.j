@@ -24,6 +24,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         // 上一次的状态（用于判断是否需要更新显示）
         private static boolean lastIsInvulnerable = false;
         private static boolean lastIsMagicImmune = false;
+        private static integer lastMainAttrType = -1; // 上一次的主属性类型（-1表示未初始化）
 
         // 是否已初始化过（第一次刷新时强制更新）
         private static boolean inited = false;
@@ -83,6 +84,24 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
 
         // 内部：更新三围显示（只在目标为英雄时调用）
         private static method updatePrimaryAttrs (unit u, real strVal, real agiVal, real intVal) {
+            integer mainAttrType;
+
+            // 更新主属性图标
+            mainAttrType = GetUnitMainAttrType(u);
+            if (!inited || mainAttrType != lastMainAttrType) {
+                lastMainAttrType = mainAttrType;
+                if (mainAttrType == 0) {
+                    // STR - 力量
+                    unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_STR);
+                } else if (mainAttrType == 1) {
+                    // AGI - 敏捷
+                    unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_AGI);
+                } else if (mainAttrType == 2) {
+                    // INT - 智力
+                    unitPanel.iconHero.setTexture(UNITPANEL_ICON_TEXTURE_INT);
+                }
+            }
+
             if (!inited || RAbsBJ(strVal - lastStr) > 0.001) {
                 lastStr = strVal;
                 unitPanel.textStrValue.setText(unitAttrShow.formatValue(strVal));

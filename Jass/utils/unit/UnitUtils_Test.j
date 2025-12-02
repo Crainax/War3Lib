@@ -4,11 +4,53 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
+#include "japi/YDWEJapiScript.j"
 
 //! zinc
 
 //自动生成的文件
 library UTUnitUtils requires UnitUtils {
+
+	// BigInteger 攻击链路测试
+	private function Test_BigIntAttack() {
+		player p;
+		unit hero;
+		real big;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+
+		// 保证起始攻击与欠款为 0
+		bigInteger.reset(p, HASH_KEY_BIGINT_ATTACK);
+		bigInteger.reset(p, HASH_KEY_BIGINT_ATTACK_CACHE);
+		SetUnitAttack(hero, 0.0);
+
+		// 先加 1000 攻击
+		AddUnitAttack(hero, 1000.0);
+
+		// 再加超大攻击，再减回去，检查是否仍为 1000
+		big = 1000000000.0 * 1000000000.0;
+		AddUnitAttack(hero, big);
+		AddUnitAttack(hero, -big);
+		assert.Boolean(GetUnitAttack(hero) == 1000.0, "BigInt 攻击大数加减后应仍为 1000");
+		assert.Boolean(bigInteger.compareInt(p, HASH_KEY_BIGINT_ATTACK_CACHE, 0) == 0, "BigInt 大数加减后欠款应为 0");
+
+		// 欠款缓存测试：1000 - 10000 => 欠 9000，再 +11000 => 攻击应为 2000，且欠款清零
+		bigInteger.reset(p, HASH_KEY_BIGINT_ATTACK);
+		bigInteger.reset(p, HASH_KEY_BIGINT_ATTACK_CACHE);
+		SetUnitAttack(hero, 1000.0);
+		AddUnitAttack(hero, -10000.0);
+		assert.Boolean(GetUnitAttack(hero) == 0.0, "BigInt 1000-10000 攻击应为 0");
+		assert.Boolean(bigInteger.compareInt(p, HASH_KEY_BIGINT_ATTACK_CACHE, 9000) == 0, "BigInt 1000-10000 欠款应为 9000");
+
+		AddUnitAttack(hero, 11000.0);
+		assert.Boolean(GetUnitAttack(hero) == 2000.0, "BigInt 1000-10000+11000 攻击应为 2000");
+		assert.Boolean(bigInteger.compareInt(p, HASH_KEY_BIGINT_ATTACK_CACHE, 0) == 0, "BigInt 欠款应归零");
+		Trace("1");
+
+		hero = null;
+		p = null;
+	}
 
 	function Init () {
 		// 注册全局单位选中事件，打印当前攻击力与攻击倍数
@@ -23,6 +65,12 @@ library UTUnitUtils requires UnitUtils {
 			//assert.Boolean(true, "测试1");
 			//GetUnitAttackInterval
 		},null);
+
+		// 自动执行 BigInteger 攻击链路测试
+		UnitTestAutoTimer(0.3, 0.1, function() {
+			Trace("UnitUtils BigIntAttack 测试");
+			Test_BigIntAttack();
+		}, null);
 
 		selTr = CreateTrigger();
 		for (0 <= i <= 11) {

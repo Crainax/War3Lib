@@ -57,6 +57,9 @@
 #define KEY_UNIT_ATTACK_SCALE_EXP            255610125 // 攻击力扩展缩放指数 n
 #define KEY_UNIT_ATTACK_SCALE_FACTOR         255610126 // 攻击力扩展缩放倍数 10^n
 
+// 英雄主属性类型（0 力量 / 1 敏捷 / 2 智力），优先从此键读取，可被其他系统覆盖
+#define KEY_UNIT_MAIN_ATTR_TYPE              255610127
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物
