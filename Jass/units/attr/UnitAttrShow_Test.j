@@ -4,7 +4,6 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-
 //# dependency:resource/ui/console/unitpanel/yidu_str.blp
 //# dependency:resource/ui/console/unitpanel/yidu_agi.blp
 //# dependency:resource/ui/console/unitpanel/yidu_int.blp
@@ -24,6 +23,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		}
 		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
 		SelectUnit(testUnit, true);
+		UnitAddAbility(testUnit, 'A02o');
 		BJDebugMsg("已创建普通测试单位");
 	}
 
@@ -34,12 +34,13 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		}
 		testHero = CreateUnit(p, 'Hpal', 0, 0, 0);
 		SelectUnit(testHero, true);
+		UnitAddAbility(testHero, 'A02o');
 		BJDebugMsg("已创建英雄测试单位");
 	}
 
-
 	function Init () {
-		player p = Player(0);
+		player p;
+		p = Player(0);
 		BJDebugMsg("=== UnitAttrShow测试系统已加载 ===");
 		BJDebugMsg("测试命令说明:");
 		BJDebugMsg("-unit : 创建普通测试单位");
@@ -54,10 +55,31 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		BJDebugMsg("-addagi [value] : 增加敏捷(英雄)");
 		BJDebugMsg("-int [value] : 设置智力(英雄)");
 		BJDebugMsg("-addint [value] : 增加智力(英雄)");
+		BJDebugMsg("-invul : 添加无敌状态");
+		BJDebugMsg("-noinvul : 移除无敌状态");
+		BJDebugMsg("-magic : 添加魔免状态");
+		BJDebugMsg("-nomagic : 移除魔免状态");
+		BJDebugMsg("-silence : 添加沉默状态");
+		BJDebugMsg("-nosilence : 移除沉默状态");
 
 		// 自动创建测试单位
 		UnitTestAutoTimer(0.1, 0, function() {
 			CreateTestUnit(Player(0));
+			CreateTestHero(Player(0));
+		}, null);
+
+		// 在 (2000, 2000) 位置创建玩家11的英雄和步兵，方便测试沉默
+		UnitTestAutoTimer(0.2, 0, function() {
+			player enemyP; unit enemyUnit; unit enemyHero;
+			enemyP = Player(11);
+			// 创建敌方步兵
+			enemyUnit = CreateUnit(enemyP, 'hfoo', 2000.0, 2000.0, 270.0);
+			// 创建敌方英雄
+			enemyHero = CreateUnit(enemyP, 'Hpal', 2000.0, 2050.0, 270.0);
+			BJDebugMsg("已在 (2000, 2000) 位置创建玩家11的步兵和英雄，用于测试沉默");
+			enemyUnit = null;
+			enemyHero = null;
+			enemyP = null;
 		}, null);
 
 		p = null;
@@ -96,6 +118,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		integer currentStr;
 		integer currentAgi;
 		integer currentInt;
+		boolean removed;
 
 		// 解析参数
 		for (0 <= i <= len - 1) {
@@ -115,7 +138,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		num = num + 1;
 
 		// 获取当前选中的单位
-		u = DzGetSelectedLeaderUnit();
+		u = unitSelect.currentU[index];
 		if (u == null) {
 			BJDebugMsg("请先选择一个单位");
 			p = null;
@@ -220,6 +243,50 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 				BJDebugMsg("当前智力: " + I2S(GetHeroInt(u, true)));
 			} else {
 				BJDebugMsg("该单位不是英雄");
+			}
+		}
+		// 无敌相关命令
+		else if (paramS[0] == "invul") {
+			// 添加无敌技能
+			if (GetUnitAbilityLevel(u, 'Avul') == 0) {
+				UnitAddAbility(u, 'Avul');
+				BJDebugMsg("已添加无敌状态");
+			} else {
+				BJDebugMsg("单位已经有无敌状态");
+			}
+		} else if (paramS[0] == "noinvul") {
+			// 移除无敌技能
+			if (GetUnitAbilityLevel(u, 'Avul') > 0) {
+				UnitRemoveAbility(u, 'Avul');
+				BJDebugMsg("已移除无敌状态");
+			} else {
+				BJDebugMsg("单位没有无敌状态");
+			}
+		}
+		// 魔免相关命令
+		else if (paramS[0] == "magic") {
+			// 添加魔免技能（优先使用 Amim，如果没有则使用 MAGIC_IMMUNITY_SPELL_ID）
+			if (GetUnitAbilityLevel(u, 'Amim') == 0 && GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) == 0) {
+				UnitAddAbility(u, 'Amim');
+				BJDebugMsg("已添加魔免状态");
+			} else {
+				BJDebugMsg("单位已经有魔免状态");
+			}
+		} else if (paramS[0] == "nomagic") {
+			// 移除魔免技能
+			removed = false;
+			if (GetUnitAbilityLevel(u, 'Amim') > 0) {
+				UnitRemoveAbility(u, 'Amim');
+				removed = true;
+			}
+			if (GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) > 0) {
+				UnitRemoveAbility(u, MAGIC_IMMUNITY_SPELL_ID);
+				removed = true;
+			}
+			if (removed) {
+				BJDebugMsg("已移除魔免状态");
+			} else {
+				BJDebugMsg("单位没有魔免状态");
 			}
 		}
 

@@ -4,27 +4,63 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/learn/UnitState.j"
-
 //! zinc
 
 //自动生成的文件
 library UTUnitState requires UnitState {
 
+	// 测试单位
+	private unit myPeasant = null;      // 我方农民
+	private unit enemyPeasant = null;   // 敌方农民
+
 	function Init () {
+		player p; player enemyP;  // 局部变量声明在前
 		//sdfkjsdjklfslkfslkfdl
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start,这里是0.1秒后调用的内容
-			}, function() {
-			//end,这里是2秒后调用的内容
-		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-		},null);
+
+		// 创建我方农民（玩家1）
+		p = Player(0);
+		myPeasant = CreateUnit(p, 'hpea', 0.0, 0.0, 270.0);
+		p = null;
+
+		// 创建敌方农民（玩家2）
+		enemyP = Player(10);
+		enemyPeasant = CreateUnit(enemyP, 'hpea', 500.0, 0.0, 270.0);
+		enemyP = null;
+
+		BJDebugMsg("[UnitState] 测试单位已创建：我方农民和敌方农民");
 	}
 
 	function TTestUTUnitState1 (player p) {
+		unit summonedPeasant; player enemyP; integer pid;  // 局部变量声明在前
 
+		if (myPeasant == null || enemyPeasant == null) {
+			BJDebugMsg("[UnitState] 错误：测试单位未初始化");
+			return;
+		}
+
+		pid = GetConvertedPlayerId(p);
+		// 获取敌方玩家（如果当前是玩家1，则敌方是玩家2，否则敌方是玩家1）
+		if (pid == 1) {
+			enemyP = ConvertedPlayer(11);
+		} else {
+			enemyP = ConvertedPlayer(1);
+		}
+
+		// 召唤敌方农民
+		summonedPeasant = CreateUnit(enemyP, 'hpea', GetUnitX(myPeasant) + 200.0, GetUnitY(myPeasant), 270.0);
+
+		// 添加沉默技能 'A02o'
+		UnitAddAbility(summonedPeasant, 'A02o');
+		UnitAddAbility(myPeasant, 'A02o');
+
+		// 对我方农民释放沉默（852075 是沉默技能 ACsi 的 OrderId）
+		IssueTargetOrderById(summonedPeasant, 852075, myPeasant);
+
+		BJDebugMsg("[UnitState] 已召唤敌方农民并对我方农民释放沉默");
+
+		// 清理句柄
+		summonedPeasant = null;
+		enemyP = null;
 	}
 	function TTestUTUnitState2 (player p) {}
 	function TTestUTUnitState3 (player p) {}

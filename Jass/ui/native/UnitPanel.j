@@ -136,7 +136,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
 
             //攻击小框架相关
             //todo:config.h
-            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2); //防御的父框架
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0); //防御的父框架
             child = DzCreateFrameByTagName("SIMPLEFRAME", "upAttack", parent, "单位面板框架", 0);
             DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
             iconAttack = icon.fromExistingUI(uiImage.bindSimple("单位面板图标", 0), parent)
@@ -158,6 +158,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
                 .setPoint(ANCHOR_LEFT, textAttackValue.ui, ANCHOR_RIGHT, 0.002, 0.0);
 
             //防御小框架相关
+            parent = DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2); //防御的父框架
             child = DzCreateFrameByTagName("SIMPLEFRAME", "upArmor", parent, "单位面板框架", 1);
             DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起
             iconArmor = icon.fromExistingUI(uiImage.bindSimple("单位面板图标", 1), parent)
@@ -171,7 +172,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
                 .spRightClick(function(integer frame) {if (trArmorRightClick != null) TriggerEvaluate(trArmorRightClick);});
             textArmor = uiText.bindSimple("单位面板属性名", 1)
                 .setPoint(ANCHOR_TOPLEFT, iconArmor.mainImage.ui, ANCHOR_TOPRIGHT, 0.003, -0.003)
-                .setText("防御:");
+                .setText("护甲:");
             textArmorValue = uiText.bindSimple("单位面板数值", 1)
                 .setPoint(ANCHOR_BOTTOMLEFT, iconArmor.mainImage.ui, ANCHOR_BOTTOMRIGHT, 0.008, 0.003)
                 .setText("20");

@@ -20,6 +20,9 @@
 #undef UnitPanelShowBuilding
 #undef UnitPanelShowMonster
 
+//魔免技能(隐藏图标的)
+#define MAGIC_IMMUNITY_SPELL_ID 'A04e'
+
 #define TOOLTIP_DEFAULT_X 0.786
 #define TOOLTIP_DEFAULT_Y 0.1375
 

@@ -51,9 +51,7 @@
 // 2400开始可继续添加新的键值定义...
 
 #define KEY_UNIT_MOVE_SPEED 237960560 //单位的移速记录
-#define KEY_UNIT_ATTACK_INTERVAL_CACHE        255610124 //
-
-
+#define KEY_UNIT_ATTACK_INTERVAL_CACHE        255610124 // 攻击间隔小于地图设置的缓存值
 
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物

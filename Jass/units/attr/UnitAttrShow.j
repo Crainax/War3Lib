@@ -10,7 +10,7 @@
 */
 library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
 
-    // 用于缓存“当前主单位”的上一次属性值，只在本地 UI 使用
+    // 用于缓存"当前主单位"的上一次属性值，只在本地 UI 使用
     public struct unitAttrShow []{
 
         // 上一次显示的数值
@@ -21,21 +21,54 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static real lastAgi = 0.0;
         private static real lastInt = 0.0;
 
+        // 上一次的状态（用于判断是否需要更新显示）
+        private static boolean lastIsInvulnerable = false;
+        private static boolean lastIsMagicImmune = false;
+
         // 是否已初始化过（第一次刷新时强制更新）
         private static boolean inited = false;
 
+        // 内部：检查单位是否无敌
+        private static method isInvulnerable (unit u) -> boolean {
+            return GetUnitAbilityLevel(u, 'Avul') > 0 || GetUnitAbilityLevel(u, 'BHds') > 0;
+        }
+
+        // 内部：检查单位是否魔免
+        private static method isMagicImmune (unit u) -> boolean {
+            return GetUnitAbilityLevel(u, 'Amim') > 0 || GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) > 0;
+        }
+
         // 内部：更新攻击 / 防御显示
         private static method updateAttackDefense (unit u, real atk, integer def) {
-            // 攻击
+            boolean isInvul; boolean isMagicImm; string armorText;
+
+            // 检查状态
+            isInvul = unitAttrShow.isInvulnerable(u);
+            isMagicImm = unitAttrShow.isMagicImmune(u);
+
+            // 更新攻击显示
             if (!inited || RAbsBJ(atk - lastAttack) > 0.001) {
                 lastAttack = atk;
                 unitPanel.textAttackValue.setText(FormatNumber(atk));
             }
 
-            // 防御
-            if (!inited || def != lastDefense) {
+            // 更新防御显示（处理无敌和魔免状态）
+            if (!inited || def != lastDefense || isInvul != lastIsInvulnerable || isMagicImm != lastIsMagicImmune) {
                 lastDefense = def;
-                unitPanel.textArmorValue.setText(FormatNumber(def));
+                lastIsInvulnerable = isInvul;
+                lastIsMagicImmune = isMagicImm;
+
+                if (isInvul) {
+                    // 无敌：显示红色"无敌的"
+                    armorText = "|cffff0000无敌的|r";
+                } else if (isMagicImm) {
+                    // 魔免：显示"防御值/魔免"（魔免用绿色）
+                    armorText = FormatNumber(def) + "/|cff00ff00魔免|r";
+                } else {
+                    // 正常显示防御值
+                    armorText = FormatNumber(def);
+                }
+                unitPanel.textArmorValue.setText(armorText);
             }
         }
 
