@@ -1,0 +1,24 @@
+[A02o]
+_parent = "ACsi"
+-- 影响区域
+Area = 900.0
+-- 魔法施放时间间隔
+Cool = 0.0
+-- 魔法消耗
+Cost = 0
+-- 禁止类型
+DataA = 11
+-- 持续时间 - 普通
+Dur = 20.0
+-- 编辑器后缀
+EditorSuffix = ""
+-- 持续时间 - 英雄
+HeroDur = 8.0
+-- 名字
+Name = "沉默"
+-- 施法距离
+Rng = 99999.0
+-- 提示工具 - 普通 - 扩展
+Ubertip = "在几秒内阻止一定区域内所有敌人施放魔法。"
+-- 目标允许
+targs = "enemies,ground,mechanical,structure,air,organic,neutral"
