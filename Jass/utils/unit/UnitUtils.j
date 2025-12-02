@@ -9,7 +9,7 @@
 /*
 单位有关的增强功能
 */
-library UnitUtils requires BigInteger {
+library UnitUtils requires BigInteger,MathUtils {
 
     public struct unitAttrObserver [] {
 
@@ -26,34 +26,124 @@ library UnitUtils requires BigInteger {
 
     }
 
-    // 将 BigInteger 中的真实攻击值同步到引擎攻击值与 10^n 扩展键
-    private function SyncBigIntAttackToEngine(unit u) -> nothing {
-        player p; real total; real value; integer uid; integer n; integer i; real factor;
+    //=====================
+    // 攻击扩展工具函数
+    //=====================
 
-        if (u == null) { return; }
+    // 获取单位攻击增幅（real）
+    private function GetUnitAttackUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
 
-        p = GetOwningPlayer(u);
-        total = bigInteger.toReal(p, HASH_KEY_BIGINT_ATTACK);
-        p = null;
+    // 获取单位攻击减幅（real）
+    private function GetUnitAttackDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return down;
+    }
+
+    // 获取单位攻击固定加成（非 BigInteger 路径，real）
+    private function GetUnitAttackBonusReal(unit u) -> real {
+        integer uid; real bonus;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BONUS_REAL)) {
+            bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BONUS_REAL);
+        } else {
+            bonus = 0.0;
+        }
+        return bonus;
+    }
+
+    // 获取当前单位攻击总倍率：(1 + up) * (1 - down)，默认 1.0
+    public function GetUnitAttackFinalPercent(unit u) -> real {
+        real up; real down; real rate;
+        if (u == null) { return 1.0; }
+        up = GetUnitAttackUpRate(u);
+        down = GetUnitAttackDownRate(u);
+        rate = (1.0 + up) * (1.0 - down);
+        return rate;
+    }
+
+    // 获取单位“基础攻击”（不含增减幅与定值）
+    public function GetUnitBaseAttack(unit u) -> real {
+        player p; real base; real cur; real factor;
+        integer uid;
+
+        if (u == null) { return 0.0; }
+
+        if (IsUnitBigInteger(u)) {
+            p = GetOwningPlayer(u);
+            base = bigInteger.toReal(p, HASH_KEY_BIGINT_ATTACK);
+            p = null;
+            return base;
+        }
 
         uid = GetHandleId(u);
 
-        // 没有攻击或攻击小于等于 0 时，重置缩放信息与引擎攻击
-        if (total <= 0.0) {
-            SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), 0.0);
-            if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_EXP)) {
-                RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_EXP);
-            }
-            if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR)) {
-                RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR);
-            }
-            return;
+        // 若已缓存基础攻击，则直接返回
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BASE_REAL)) {
+            return LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BASE_REAL);
         }
 
-        value = total;
+        // 首次使用：以当前总攻击作为基础攻击进行缓存
+        cur = GetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE));
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR)) {
+            factor = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR);
+        } else {
+            factor = 1.0;
+        }
+        base = cur * factor;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BASE_REAL, base);
+
+        return base;
+    }
+
+    // 计算单位当前“最终攻击”（基础 * 总倍率 + 定值）
+    private function CalcUnitFinalAttackReal(unit u) -> real {
+        real base; real rate; real bonus; player p;
+
+        if (u == null) { return 0.0; }
+
+        base = GetUnitBaseAttack(u);
+        rate = GetUnitAttackFinalPercent(u);
+
+        if (IsUnitBigInteger(u)) {
+            p = GetOwningPlayer(u);
+            bonus = bigInteger.toReal(p, HASH_KEY_BIGINT_ATTACK_BONUS);
+            p = null;
+        } else {
+            bonus = GetUnitAttackBonusReal(u);
+        }
+
+        return base * rate + bonus;
+    }
+
+    // 非 BigInteger 单位：按 10^n 规则写入引擎攻击与扩展倍数
+    private function ApplyAttackScaling(unit u, real attack) -> nothing {
+        real value; integer uid; integer n; integer i; real factor;
+
+        if (u == null) { return; }
+
+        uid = GetHandleId(u);
+        value = attack;
         n = 0;
 
-        // 按 10 的 n 次方缩放，保证写入引擎的攻击值不超过约 10 亿
+        // 大于 10 亿才开始缩放，避免不必要的精度损失
         if (value > 1000000000.0) {
             while (value > 1000000000.0 && n < 30) {
                 value = value / 10.0;
@@ -61,7 +151,6 @@ library UnitUtils requires BigInteger {
             }
         }
 
-        // 根据 n 计算 10^n 的倍数并保存到 HASH_UNIT
         if (n > 0) {
             factor = 1.0;
             i = 0;
@@ -80,21 +169,47 @@ library UnitUtils requires BigInteger {
             }
         }
 
-        // 写入经过缩放后的引擎攻击值
         SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), value);
     }
 
-    //获取单位的攻击力/防御/生命/魔法值
-    // 普通单位：从引擎状态 + 10^n 扩展倍数还原
-    // BigInteger 单位：从 bigInteger 中读取真实攻击值，避免超大数精度丢失
-    public function GetUnitAttack(unit u) -> real {
-        real base; integer uid; real factor; player p; real total;
+    // 将 BigInteger 中的最终攻击值同步到引擎攻击值与 10^n 扩展键
+    private function SyncBigIntAttackToEngine(unit u) -> nothing {
+        real total;
+        if (u == null) { return; }
+
+        total = CalcUnitFinalAttackReal(u);
+
+        if (total <= 0.0) {
+            ApplyAttackScaling(u, 0.0);
+            return;
+        }
+
+        ApplyAttackScaling(u, total);
+    }
+
+    //重新计算单位当前攻击（应用增减幅与定值）
+    private function RecalcUnitAttack(unit u) -> nothing {
+        real total;
+        if (u == null) { return; }
+
+        total = CalcUnitFinalAttackReal(u);
 
         if (IsUnitBigInteger(u)) {
-            p = GetOwningPlayer(u);
-            total = bigInteger.toReal(p, HASH_KEY_BIGINT_ATTACK);
-            p = null;
-            return total;
+            // BigInteger 单位统一通过 SyncBigIntAttackToEngine 写回
+            SyncBigIntAttackToEngine(u);
+        } else {
+            ApplyAttackScaling(u, total);
+        }
+    }
+
+    //获取单位的攻击力/防御/生命/魔法值
+    // 普通单位：从引擎状态 + 10^n 扩展倍数还原（已经包含增减幅与定值）
+    // BigInteger 单位：返回 CalcUnitFinalAttackReal 计算出的最终攻击
+    public function GetUnitAttack(unit u) -> real {
+        real base; integer uid; real factor;
+
+        if (IsUnitBigInteger(u)) {
+            return CalcUnitFinalAttackReal(u);
         }
 
         uid = GetHandleId(u);
@@ -206,7 +321,7 @@ library UnitUtils requires BigInteger {
 
     //设置攻击力（支持超过 21 亿；BigInteger 单位走大整数链路）
     public function SetUnitAttack(unit u, real attack) -> nothing {
-        real value; integer uid; integer n; integer i; real factor; player p;
+        real value; integer uid; player p;
 
         if (IsUnitBigInteger(u)) {
             if (u == null) { return; }
@@ -223,41 +338,9 @@ library UnitUtils requires BigInteger {
 
         uid = GetHandleId(u);
         value = attack;
-        n = 0;
 
-        // 大于 10 亿才开始缩放，避免不必要的精度损失
-        if (value > 1000000000.0) {
-            // 每次 /10，直到不大于 10 亿，或达到安全指数上限
-            while (value > 1000000000.0 && n < 30) {
-                value = value / 10.0;
-                n = n + 1;
-            }
-        }
-
-        // 根据 n 计算 10^n 的倍数（real），并保存
-        if (n > 0) {
-            factor = 1.0;
-            i = 0;
-            while (i < n) {
-                factor = factor * 10.0;
-                i = i + 1;
-            }
-
-            // 保存扩展信息：指数 n 和倍数 10^n（real）
-            SaveInteger(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_EXP, n);
-            SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR, factor);
-        } else {
-            // 没有扩展时，清理掉之前的扩展记录
-            if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_EXP)) {
-                RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_EXP);
-            }
-            if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR)) {
-                RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR);
-            }
-        }
-
-        // 实际写入引擎的攻击值（已缩放）
-        SetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE), value);
+        // 非 BigInteger：直接设置基础攻击，并重算最终攻击写回引擎
+        ApplyAttackScaling(u, value);
     }
 
     //增加攻击力（支持超过 21 亿；BigInteger 单位使用大整数 add/sub 逻辑）
@@ -303,7 +386,60 @@ library UnitUtils requires BigInteger {
             return;
         }
 
+        // 普通单位：直接修改当前总攻击
         SetUnitAttack(u, GetUnitAttack(u) + attack);
+    }
+
+    // 增加攻击增幅（百分比形式，value 为小数，如 0.2 表示 +20%）
+    public function AddUnitAttackUpPercent(unit u, real value) -> nothing {
+        integer uid; real up;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        up = GetUnitAttackUpRate(u);
+        up = up + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_UP_RATE, up);
+
+        RecalcUnitAttack(u);
+    }
+
+    // 增加攻击减幅（value 为小数，如 0.3 表示 -30%）
+    public function AddUnitAttackDownPercent(unit u, real value) -> nothing {
+        integer uid; real down;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        down = GetUnitAttackDownRate(u);
+        down = RealAdd(down, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_DOWN_RATE, down);
+
+        RecalcUnitAttack(u);
+    }
+
+    // 增加固定攻击值（不受增减幅影响）
+    public function AddUnitAttackBonus(unit u, real value) -> nothing {
+        integer uid; real bonus; player p;
+
+        if (u == null || value == 0.0) { return; }
+
+        if (IsUnitBigInteger(u)) {
+            p = GetOwningPlayer(u);
+            if (value > 0.0) {
+                bigInteger.addReal(p, HASH_KEY_BIGINT_ATTACK_BONUS, value);
+            } else {
+                bigInteger.subReal(p, HASH_KEY_BIGINT_ATTACK_BONUS, -value);
+            }
+            p = null;
+        } else {
+            uid = GetHandleId(u);
+            bonus = GetUnitAttackBonusReal(u);
+            bonus = bonus + value;
+            SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BONUS_REAL, bonus);
+        }
+
+        RecalcUnitAttack(u);
     }
 
     //设置防御
@@ -358,7 +494,6 @@ library UnitUtils requires BigInteger {
         }
         else {return R2I(GetUnitMoveSpeed(u));}
     }
-    //todo: 这个UNTable其他地图需要兼容
     // 增加移速
     public function AddUnitSpeed (unit u,integer speed) {
         integer value;

@@ -46,7 +46,136 @@ library UTUnitUtils requires UnitUtils {
 		AddUnitAttack(hero, 11000.0);
 		assert.Boolean(GetUnitAttack(hero) == 2000.0, "BigInt 1000-10000+11000 攻击应为 2000");
 		assert.Boolean(bigInteger.compareInt(p, HASH_KEY_BIGINT_ATTACK_CACHE, 0) == 0, "BigInt 欠款应归零");
-		Trace("1");
+
+		hero = null;
+		p = null;
+	}
+
+	// 普通单位（步兵）攻击增幅/减幅/定值测试
+	private function Test_NormalUnitAttackPercent() {
+		player p;
+		unit footman;
+		real base; real expected; real actual; real rate;
+
+		p = ConvertedPlayer(1);
+		footman = CreateUnit(p, 'hfoo', 0.0, 0.0, 270.0);
+
+		// 测试1：设置基础攻击 1000
+		SetUnitAttack(footman, 1000.0);
+		base = GetUnitBaseAttack(footman);
+		assert.Real(base, 1000.0, "普通单位基础攻击应为 1000");
+		assert.Real(GetUnitAttackFinalPercent(footman), 1.0, "普通单位初始倍率应为 1.0");
+		assert.Real(GetUnitAttack(footman), 1000.0, "普通单位初始攻击应为 1000");
+
+		// 测试2：添加 50% 增幅
+		AddUnitAttackUpPercent(footman, 0.5);
+		rate = GetUnitAttackFinalPercent(footman);
+		expected = 1000.0 * 1.5;
+		actual = GetUnitAttack(footman);
+		assert.Real(rate, 1.5, "普通单位 50% 增幅后倍率应为 1.5");
+		assert.Real(actual, expected, "普通单位 50% 增幅后攻击应为 1500");
+		Trace("actual:" + R2S(actual) + " expected:" + R2S(expected));
+
+		// 测试3：再添加 20% 减幅
+		AddUnitAttackDownPercent(footman, 0.2);
+		rate = GetUnitAttackFinalPercent(footman);
+		expected = 1000.0 * 1.5 * 0.8;
+		actual = GetUnitAttack(footman);
+		assert.Real(rate, 1.2, "普通单位 50% 增幅 + 20% 减幅后倍率应为 1.2");
+		assert.Real(actual, expected, "普通单位 50% 增幅 + 20% 减幅后攻击应为 1200");
+
+		// 测试4：添加 500 定值
+		AddUnitAttackBonus(footman, 500.0);
+		expected = 1000.0 * 1.2 + 500.0;
+		actual = GetUnitAttack(footman);
+		assert.Real(actual, expected, "普通单位添加 500 定值后攻击应为 1700");
+
+		// 测试5：验证基础攻击未变
+		base = GetUnitBaseAttack(footman);
+		assert.Real(base, 1000.0, "普通单位基础攻击应仍为 1000（不受增幅/定值影响）");
+
+		// 测试6：再添加 30% 增幅，验证倍率叠加
+		AddUnitAttackUpPercent(footman, 0.3);
+		rate = GetUnitAttackFinalPercent(footman);
+		expected = 1000.0 * 1.8 * 0.8 + 500.0;
+		actual = GetUnitAttack(footman);
+		assert.Real(rate, 1.44, "普通单位总增幅 80% + 减幅 20% 后倍率应为 1.44");
+		assert.Real(actual, expected, "普通单位最终攻击应为 1940");
+
+		footman = null;
+		p = null;
+	}
+
+	// BigInteger 单位（英雄）攻击增幅/减幅/定值测试
+	private function Test_BigIntUnitAttackPercent() {
+		player p;
+		unit hero;
+		real base; real expected; real actual; real rate; real big;
+		real bonusReal;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+
+		// 保证起始攻击与欠款为 0
+		bigInteger.reset(p, HASH_KEY_BIGINT_ATTACK);
+		bigInteger.reset(p, HASH_KEY_BIGINT_ATTACK_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_ATTACK_BONUS);
+		SetUnitAttack(hero, 0.0);
+
+		// 测试1：设置基础攻击 1000
+		SetUnitAttack(hero, 1000.0);
+		base = GetUnitBaseAttack(hero);
+		assert.Real(base, 1000.0, "BigInt 单位基础攻击应为 1000");
+		assert.Real(GetUnitAttackFinalPercent(hero), 1.0, "BigInt 单位初始倍率应为 1.0");
+		assert.Real(GetUnitAttack(hero), 1000.0, "BigInt 单位初始攻击应为 1000");
+
+		// 测试2：添加 50% 增幅
+		AddUnitAttackUpPercent(hero, 0.5);
+		rate = GetUnitAttackFinalPercent(hero);
+		expected = 1000.0 * 1.5;
+		actual = GetUnitAttack(hero);
+		assert.Real(rate, 1.5, "BigInt 单位 50% 增幅后倍率应为 1.5");
+		assert.Real(actual, expected, "BigInt 单位 50% 增幅后攻击应为 1500");
+
+		// 测试3：再添加 20% 减幅
+		AddUnitAttackDownPercent(hero, 0.2);
+		rate = GetUnitAttackFinalPercent(hero);
+		expected = 1000.0 * 1.5 * 0.8;
+		actual = GetUnitAttack(hero);
+		assert.Real(rate, 1.2, "BigInt 单位 50% 增幅 + 20% 减幅后倍率应为 1.2");
+		assert.Real(actual, expected, "BigInt 单位 50% 增幅 + 20% 减幅后攻击应为 1200");
+
+		// 测试4：添加 500 定值（使用 BigInteger 存储）
+		AddUnitAttackBonus(hero, 500.0);
+		expected = 1000.0 * 1.2 + 500.0;
+		actual = GetUnitAttack(hero);
+		assert.Real(actual, expected, "BigInt 单位添加 500 定值后攻击应为 1700");
+
+		// 测试5：验证基础攻击未变
+		base = GetUnitBaseAttack(hero);
+		assert.Real(base, 1000.0, "BigInt 单位基础攻击应仍为 1000（不受增幅/定值影响）");
+
+		// 测试6：大数测试：基础攻击 + 超大数，再加减，验证倍率和定值仍正确
+		big = 1000000000.0 * 1000000000.0;
+		AddUnitAttack(hero, big);
+		AddUnitAttack(hero, -big);
+		base = GetUnitBaseAttack(hero);
+		expected = 1000.0 * 1.2 + 500.0;
+		actual = GetUnitAttack(hero);
+		assert.Real(base, 1000.0, "BigInt 单位大数加减后基础攻击应仍为 1000");
+		assert.Real(actual, expected, "BigInt 单位大数加减后最终攻击应仍为 1700");
+
+		// 测试7：再添加 30% 增幅，验证倍率叠加
+		AddUnitAttackUpPercent(hero, 0.3);
+		rate = GetUnitAttackFinalPercent(hero);
+		expected = 1000.0 * 1.8 * 0.8 + 500.0;
+		actual = GetUnitAttack(hero);
+		assert.Real(rate, 1.44, "BigInt 单位总增幅 80% + 减幅 20% 后倍率应为 1.44");
+		assert.Real(actual, expected, "BigInt 单位最终攻击应为 1940");
+
+		// 测试8：验证 BigInteger 定值存储正确
+		bonusReal = bigInteger.toReal(p, HASH_KEY_BIGINT_ATTACK_BONUS);
+		assert.Real(bonusReal, 500.0, "BigInt 单位定值应正确存储在 BigInteger 中");
 
 		hero = null;
 		p = null;
@@ -70,6 +199,18 @@ library UTUnitUtils requires UnitUtils {
 		UnitTestAutoTimer(0.3, 0.1, function() {
 			Trace("UnitUtils BigIntAttack 测试");
 			Test_BigIntAttack();
+		}, null);
+
+		// 自动执行普通单位攻击增幅/减幅/定值测试
+		UnitTestAutoTimer(0.4, 0.1, function() {
+			Trace("UnitUtils 普通单位攻击百分比测试");
+			Test_NormalUnitAttackPercent();
+		}, null);
+
+		// 自动执行 BigInteger 单位攻击增幅/减幅/定值测试
+		UnitTestAutoTimer(0.5, 0.1, function() {
+			Trace("UnitUtils BigInteger 单位攻击百分比测试");
+			Test_BigIntUnitAttackPercent();
 		}, null);
 
 		selTr = CreateTrigger();
@@ -111,8 +252,16 @@ library UTUnitUtils requires UnitUtils {
 			u = null;
 		}
 	}
-	function TTestUTUnitUtils2 (player p) {}
-	function TTestUTUnitUtils3 (player p) {}
+	function TTestUTUnitUtils2 (player p) {
+		// 普通单位攻击增幅/减幅/定值测试
+		Test_NormalUnitAttackPercent();
+		BJDebugMsg("[UnitUtils] 普通单位攻击百分比测试完成");
+	}
+	function TTestUTUnitUtils3 (player p) {
+		// BigInteger 单位攻击增幅/减幅/定值测试
+		Test_BigIntUnitAttackPercent();
+		BJDebugMsg("[UnitUtils] BigInteger 单位攻击百分比测试完成");
+	}
 	function TTestUTUnitUtils4 (player p) {}
 	function TTestUTUnitUtils5 (player p) {}
 	function TTestUTUnitUtils6 (player p) {}

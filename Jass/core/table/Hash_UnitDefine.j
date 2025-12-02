@@ -57,8 +57,14 @@
 #define KEY_UNIT_ATTACK_SCALE_EXP            255610125 // 攻击力扩展缩放指数 n
 #define KEY_UNIT_ATTACK_SCALE_FACTOR         255610126 // 攻击力扩展缩放倍数 10^n
 
+// 单位攻击基础值与百分比/定值加成（实数缓存）
+#define KEY_UNIT_ATTACK_BASE_REAL            255610127 // 单位基础攻击缓存（real）
+#define KEY_UNIT_ATTACK_UP_RATE              255610128 // 单位攻击增幅累计值（real）
+#define KEY_UNIT_ATTACK_DOWN_RATE            255610129 // 单位攻击减幅累计值（real）
+#define KEY_UNIT_ATTACK_BONUS_REAL           255610130 // 单位攻击固定加成（real，仅用于非 BigInteger 链路）
+
 // 英雄主属性类型（0 力量 / 1 敏捷 / 2 智力），优先从此键读取，可被其他系统覆盖
-#define KEY_UNIT_MAIN_ATTR_TYPE              255610127
+#define KEY_UNIT_MAIN_ATTR_TYPE              255610131
 
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物

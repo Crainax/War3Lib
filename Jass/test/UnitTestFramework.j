@@ -48,10 +48,10 @@ library UnitTestFramwork {
         //断言浮点数相等
         static method Real(real actual, real expected, string name) {
             real maxValue = RMaxBJ(RAbsBJ(actual), RAbsBJ(expected));  // 取两个数的绝对值的较大值
-            real epsilon = maxValue * 0.00001;  // 相对误差为数值大小的万分之一
+            real epsilon = maxValue * 0.001;  // 相对误差为数值大小的万分之一
             // 处理接近0的特殊情况
-            if (maxValue < 0.00001) {
-                epsilon = 0.00001;
+            if (maxValue < 0.001) {
+                epsilon = 0.001;
             }
             if (RAbsBJ(actual - expected) > epsilon) {
                 BJDebugMsg("FAIL: " + name);

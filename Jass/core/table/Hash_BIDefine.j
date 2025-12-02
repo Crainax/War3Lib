@@ -14,6 +14,7 @@
 
 #define HASH_KEY_BIGINT_ATTACK        41   // BigInteger: 每个玩家当前真实攻击力（非负大整数）
 #define HASH_KEY_BIGINT_ATTACK_CACHE  51   // BigInteger: 攻击力欠款缓存（正数，记录还欠多少攻击）
+#define HASH_KEY_BIGINT_ATTACK_BONUS  61   // BigInteger: 攻击力定值
 
 
 #endif
