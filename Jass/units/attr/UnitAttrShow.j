@@ -21,6 +21,12 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static real lastAgi = 0.0;
         private static real lastInt = 0.0;
 
+        // 攻击扩展显示缓存
+        private static real    lastAttackRate       = 1.0;   // 上一次的总倍率
+        private static real    lastAttackExtra      = 0.0;   // 上一次的额外攻击（绿/红字）
+        private static boolean lastShowAttackExtra  = false; // 上一次是否显示额外攻击
+        private static boolean lastShowAttackRate   = false; // 上一次是否显示攻击百分比
+
         // 上一次的状态（用于判断是否需要更新显示）
         private static boolean lastIsInvulnerable = false;
         private static boolean lastIsMagicImmune = false;
@@ -51,16 +57,72 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         // 内部：更新攻击 / 防御显示
         private static method updateAttackDefense (unit u, real atk, integer def) {
             boolean isInvul; boolean isMagicImm; string armorText;
+            real baseAtk; real extraAtk; boolean showExtra;
+            string extraText;
+            real rate; real deltaRate; boolean showRate;
+            string atkLabel; real percentAbs; string percentStr;
 
-            // 检查状态
+            // === 攻击倍率显示（在“攻击:”后显示 (+xx.x%) / (-xx.x%)） ===
+            rate = GetUnitAttackFinalPercent(u);
+            deltaRate = rate - 1.0;
+            showRate = RAbsBJ(deltaRate) > 0.01;
+
+            if (showRate) {
+                percentAbs = RAbsBJ(deltaRate * 100.0);
+                percentStr = I2S(R2I(percentAbs));
+                if (deltaRate > 0.0) {
+                    atkLabel = "攻击:|cff00ff00(+" + percentStr + "%)";
+                } else {
+                    atkLabel = "攻击:|cffff0000(-" + percentStr + "%)";
+                }
+            } else {
+                atkLabel = "攻击:";
+            }
+
+            if (!inited || RAbsBJ(rate - lastAttackRate) > 0.001 || showRate != lastShowAttackRate) {
+                unitPanel.textAttack.setText(atkLabel);
+                lastAttackRate = rate;
+                lastShowAttackRate = showRate;
+            }
+
+            // === 攻击数值拆分：基础攻击 + 额外攻击（绿/红字） ===
+            baseAtk = GetUnitBaseAttack(u);
+            extraAtk = atk - baseAtk;
+            showExtra = RAbsBJ(extraAtk) > 0.01;
+
+            // 更新基础攻击显示
+            if (!inited || RAbsBJ(baseAtk - lastAttack) > 0.001) {
+                lastAttack = baseAtk;
+                unitPanel.textAttackValue.setText(unitAttrShow.formatValue(baseAtk));
+            }
+
+            // 更新额外攻击显示
+            if (showExtra) {
+                percentAbs = RAbsBJ(extraAtk);
+                percentStr = unitAttrShow.formatValue(percentAbs);
+                if (extraAtk > 0.0) {
+                    extraText = "|cff00ff00+" + percentStr;
+                } else {
+                    extraText = "|cffff0000-" + percentStr;
+                }
+
+                if (!inited || !lastShowAttackExtra || RAbsBJ(extraAtk - lastAttackExtra) > 0.001) {
+                    unitPanel.showAttackExtra(true);
+                    unitPanel.textAttackExtra.setText(extraText);
+                    lastAttackExtra = extraAtk;
+                    lastShowAttackExtra = true;
+                }
+            } else {
+                if (!inited || lastShowAttackExtra) {
+                    unitPanel.showAttackExtra(false);
+                    lastShowAttackExtra = false;
+                    lastAttackExtra = 0.0;
+                }
+            }
+
+            // 检查状态（无敌 / 魔免，用于防御显示）
             isInvul = unitAttrShow.isInvulnerable(u);
             isMagicImm = unitAttrShow.isMagicImmune(u);
-
-            // 更新攻击显示
-            if (!inited || RAbsBJ(atk - lastAttack) > 0.001) {
-                lastAttack = atk;
-                unitPanel.textAttackValue.setText(unitAttrShow.formatValue(atk));
-            }
 
             // 更新防御显示（处理无敌和魔免状态）
             if (!inited || def != lastDefense || isInvul != lastIsInvulnerable || isMagicImm != lastIsMagicImmune) {

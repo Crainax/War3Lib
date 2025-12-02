@@ -10,6 +10,9 @@
 //# dependency:resource/ui/console/unitpanel/yidu_Atk.blp
 //# dependency:resource/ui/console/unitpanel/yidu_Def.blp
 
+#include "japi/YDWEJapiScript.j"
+
+
 //! zinc
 
 //自动生成的文件
@@ -22,6 +25,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			RemoveUnit(testUnit);
 		}
 		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
+		AddUnitAttack(testUnit,0);
 		SelectUnit(testUnit, true);
 		UnitAddAbility(testUnit, 'A02o');
 		BJDebugMsg("已创建普通测试单位");
@@ -33,6 +37,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			RemoveUnit(testHero);
 		}
 		testHero = CreateUnit(p, 'Hpal', 0, 0, 0);
+		AddUnitAttack(testHero,GetUnitState(testHero, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
 		SelectUnit(testHero, true);
 		UnitAddAbility(testHero, 'A02o');
 		BJDebugMsg("已创建英雄测试单位");
@@ -47,6 +52,9 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		BJDebugMsg("-hero : 创建英雄测试单位");
 		BJDebugMsg("-atk [value] : 设置攻击力");
 		BJDebugMsg("-addatk [value] : 增加攻击力");
+		BJDebugMsg("-atkup [value] : 增加攻击增幅(小数,如0.2=20%)");
+		BJDebugMsg("-atkdown [value] : 增加攻击减幅(小数)");
+		BJDebugMsg("-atkbonus [value] : 增加攻击定值");
 		BJDebugMsg("-def [value] : 设置防御力");
 		BJDebugMsg("-adddef [value] : 增加防御力");
 		BJDebugMsg("-str [value] : 设置力量(英雄)");
@@ -74,8 +82,10 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			enemyP = Player(11);
 			// 创建敌方步兵
 			enemyUnit = CreateUnit(enemyP, 'hfoo', 2000.0, 2000.0, 270.0);
+			AddUnitAttack(enemyUnit,0);
 			// 创建敌方英雄
 			enemyHero = CreateUnit(enemyP, 'Hpal', 2000.0, 2050.0, 270.0);
+			AddUnitAttack(enemyHero,GetUnitState(enemyHero, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
 			BJDebugMsg("已在 (2000, 2000) 位置创建玩家11的步兵和英雄，用于测试沉默");
 			enemyUnit = null;
 			enemyHero = null;
@@ -168,6 +178,29 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			if (num >= 2) {
 				AddUnitAttack(u, ParseReal(paramS[1]));
 				BJDebugMsg("增加攻击力: " + FormatNumber(ParseReal(paramS[1])));
+				BJDebugMsg("当前攻击力: " + FormatNumber(GetUnitAttack(u)));
+			}
+		} else if (paramS[0] == "atkup") {
+			// 增加攻击增幅
+			if (num >= 2) {
+				AddUnitAttackUpPercent(u, paramR[1]);
+				BJDebugMsg("增加攻击增幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前攻击倍率: " + R2S(GetUnitAttackFinalPercent(u)));
+				BJDebugMsg("当前攻击力: " + FormatNumber(GetUnitAttack(u)));
+			}
+		} else if (paramS[0] == "atkdown") {
+			// 增加攻击减幅
+			if (num >= 2) {
+				AddUnitAttackDownPercent(u, paramR[1]);
+				BJDebugMsg("增加攻击减幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前攻击倍率: " + R2S(GetUnitAttackFinalPercent(u)));
+				BJDebugMsg("当前攻击力: " + FormatNumber(GetUnitAttack(u)));
+			}
+		} else if (paramS[0] == "atkbonus") {
+			// 增加攻击定值
+			if (num >= 2) {
+				AddUnitAttackBonus(u, paramR[1]);
+				BJDebugMsg("增加攻击定值: " + FormatNumber(paramR[1]));
 				BJDebugMsg("当前攻击力: " + FormatNumber(GetUnitAttack(u)));
 			}
 		}

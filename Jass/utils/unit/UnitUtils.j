@@ -80,6 +80,7 @@ library UnitUtils requires BigInteger,MathUtils {
     }
 
     // 获取单位“基础攻击”（不含增减幅与定值）
+    // 注意：此函数不做任何写入操作，基础攻击的初始化放在 Set/Add 等写入函数中完成，避免 OOS 风险
     public function GetUnitBaseAttack(unit u) -> real {
         player p; real base; real cur; real factor;
         integer uid;
@@ -100,7 +101,7 @@ library UnitUtils requires BigInteger,MathUtils {
             return LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BASE_REAL);
         }
 
-        // 首次使用：以当前总攻击作为基础攻击进行缓存
+        // 未初始化时，仅根据当前总攻击（引擎状态 + 缩放倍数）计算并返回，但不写入哈希表
         cur = GetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE));
         if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR)) {
             factor = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR);
@@ -108,7 +109,6 @@ library UnitUtils requires BigInteger,MathUtils {
             factor = 1.0;
         }
         base = cur * factor;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BASE_REAL, base);
 
         return base;
     }
@@ -141,6 +141,11 @@ library UnitUtils requires BigInteger,MathUtils {
 
         uid = GetHandleId(u);
         value = attack;
+
+        // 保护下限，避免引擎攻击小于 0
+        if (value < 0.0) {
+            value = 0.0;
+        }
         n = 0;
 
         // 大于 10 亿才开始缩放，避免不必要的精度损失
@@ -189,8 +194,23 @@ library UnitUtils requires BigInteger,MathUtils {
 
     //重新计算单位当前攻击（应用增减幅与定值）
     private function RecalcUnitAttack(unit u) -> nothing {
-        real total;
+        real total; integer uid; real cur; real factor; real base;
         if (u == null) { return; }
+
+        // 懒初始化普通单位的基础攻击缓存（避免在 Get 函数中写入，防 OOS）
+        if (!IsUnitBigInteger(u)) {
+            uid = GetHandleId(u);
+            if (!HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BASE_REAL)) {
+                cur = GetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE));
+                if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR)) {
+                    factor = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SCALE_FACTOR);
+                } else {
+                    factor = 1.0;
+                }
+                base = cur * factor;
+                SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BASE_REAL, base);
+            }
+        }
 
         total = CalcUnitFinalAttackReal(u);
 
@@ -336,16 +356,19 @@ library UnitUtils requires BigInteger,MathUtils {
             return;
         }
 
+        if (u == null) { return; }
+
         uid = GetHandleId(u);
         value = attack;
 
-        // 非 BigInteger：直接设置基础攻击，并重算最终攻击写回引擎
-        ApplyAttackScaling(u, value);
+        // 普通单位：直接设置基础攻击，并按照当前增减幅/定值重算最终攻击
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BASE_REAL, value);
+        RecalcUnitAttack(u);
     }
 
     //增加攻击力（支持超过 21 亿；BigInteger 单位使用大整数 add/sub 逻辑）
     public function AddUnitAttack(unit u, real attack) -> nothing {
-        player p; real delta; real debt; real cur; real dec; real over; real remain;
+        player p; real delta; real debt; real cur; real dec; real over; real remain; real base; integer uid;
 
         if (IsUnitBigInteger(u)) {
             if (u == null) { return; }
@@ -386,8 +409,14 @@ library UnitUtils requires BigInteger,MathUtils {
             return;
         }
 
-        // 普通单位：直接修改当前总攻击
-        SetUnitAttack(u, GetUnitAttack(u) + attack);
+        if (u == null || attack == 0.0) { return; }
+
+        // 普通单位：修改基础攻击，然后用增减幅/定值重算
+        uid = GetHandleId(u);
+        base = GetUnitBaseAttack(u);
+        base = base + attack;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BASE_REAL, base);
+        RecalcUnitAttack(u);
     }
 
     // 增加攻击增幅（百分比形式，value 为小数，如 0.2 表示 +20%）
