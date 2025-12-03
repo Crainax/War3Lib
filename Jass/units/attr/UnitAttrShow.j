@@ -78,7 +78,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
 
             if (showRate) {
                 percentAbs = RAbsBJ(deltaRate * 100.0);
-                percentStr = I2S(R2I(percentAbs));
+                percentStr = I2S(R2I(percentAbs + 0.5));
                 if (deltaRate > 0.0) {
                     atkLabel = "攻击:|cff00ff00(+" + percentStr + "%)";
                 } else {
@@ -171,7 +171,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
                     // 额外防御通过 textArmorExtra 显示
                     if (showDefExtra) {
                         if (extraDef > 0) {
-                        defExtraText = "|cff00ff00+" + unitAttrShow.formatValue(I2R(extraDef)) + "|r";
+                            defExtraText = "|cff00ff00+" + unitAttrShow.formatValue(I2R(extraDef)) + "|r";
                         } else {
                             defExtraText = "|cffff0000-" + unitAttrShow.formatValue(I2R(-extraDef)) + "|r";
                         }

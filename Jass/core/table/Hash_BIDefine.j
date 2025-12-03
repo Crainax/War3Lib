@@ -16,5 +16,22 @@
 #define HASH_KEY_BIGINT_ATTACK_CACHE  51   // BigInteger: 攻击力欠款缓存（正数，记录还欠多少攻击）
 #define HASH_KEY_BIGINT_ATTACK_BONUS  61   // BigInteger: 攻击力定值
 
+#define HASH_KEY_BIGINT_STR        71   // BigInteger: 每个玩家当前真实力量（非负大整数）
+#define HASH_KEY_BIGINT_STR_CACHE  81   // BigInteger: 力量欠款缓存（正数，记录还欠多少攻击）
+#define HASH_KEY_BIGINT_STR_BONUS  91   // BigInteger: 力量定值
+
+#define HASH_KEY_BIGINT_AGI        101   // BigInteger: 每个玩家当前真实敏捷（非负大整数）
+#define HASH_KEY_BIGINT_AGI_CACHE  111   // BigInteger: 敏捷欠款缓存（正数，记录还欠多少攻击）
+#define HASH_KEY_BIGINT_AGI_BONUS  121   // BigInteger: 敏捷定值
+
+#define HASH_KEY_BIGINT_INT        131   // BigInteger: 每个玩家当前真实智力（非负大整数）
+#define HASH_KEY_BIGINT_INT_CACHE  141   // BigInteger: 智力欠款缓存（正数，记录还欠多少攻击）
+#define HASH_KEY_BIGINT_INT_BONUS  151   // BigInteger: 智力定值
+
+#define HASH_KEY_BIGINT_MAIN        161  // BigInteger: 每个玩家当前真实主属性
+#define HASH_KEY_BIGINT_MAIN_BONUS  171  // BigInteger: 主属性定值
+#define HASH_KEY_BIGINT_SUB        181   // BigInteger: 每个玩家当前真实次属性
+#define HASH_KEY_BIGINT_SUB_BONUS  171   // BigInteger: 次属性定值
+
 
 #endif
