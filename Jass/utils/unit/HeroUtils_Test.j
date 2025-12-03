@@ -313,9 +313,9 @@ library UTHeroUtils requires HeroUtils {
 		p = null;
 	}
 
-	// 测试7：三维属性 Set/Add 操作
+	// 测试7：三维属性 Set/Add 操作（含欠款缓存逻辑）
 	private function Test_AttrSetAdd() {
-		player p; unit hero; real str; real agi; real intVal;
+		player p; unit hero; real str; real agi; real intVal; real cache;
 
 		p = ConvertedPlayer(1);
 		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
@@ -351,6 +351,44 @@ library UTHeroUtils requires HeroUtils {
 		intVal = bigInteger.toReal(p, HASH_KEY_BIGINT_INT);
 		assert.Real(intVal, 100.0, "AddUnitInt 40 后应为 100");
 
+		// 测试3：力量欠款缓存逻辑：+100 -200 +1000 = 900
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR);
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR_CACHE);
+
+		AddUnitStr(hero, 100.0);
+		str = bigInteger.toReal(p, HASH_KEY_BIGINT_STR);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
+		assert.Real(str, 100.0, "欠款测试：首次 +100 后力量应为 100");
+		assert.Real(cache, 0.0, "欠款测试：首次 +100 后欠款应为 0");
+
+		AddUnitStr(hero, -200.0);
+		str = bigInteger.toReal(p, HASH_KEY_BIGINT_STR);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
+		assert.Real(str, 0.0, "欠款测试：+100 -200 后力量应为 0");
+		assert.Real(cache, 100.0, "欠款测试：+100 -200 后欠款应为 100");
+
+		AddUnitStr(hero, 1000.0);
+		str = bigInteger.toReal(p, HASH_KEY_BIGINT_STR);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
+		assert.Real(str, 900.0, "欠款测试：+100 -200 +1000 后力量应为 900");
+		assert.Real(cache, 0.0, "欠款测试：+100 -200 +1000 后欠款应被清空");
+
+		// 测试4：大数欠款测试：-1亿 +2亿 = 1亿
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR);
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR_CACHE);
+
+		AddUnitStr(hero, -100000000.0);
+		str = bigInteger.toReal(p, HASH_KEY_BIGINT_STR);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
+		assert.Real(str, 0.0, "大数欠款测试：-1亿 后力量应为 0");
+		assert.Real(cache, 100000000.0, "大数欠款测试：-1亿 后欠款应为 1亿");
+
+		AddUnitStr(hero, 200000000.0);
+		str = bigInteger.toReal(p, HASH_KEY_BIGINT_STR);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
+		assert.Real(str, 100000000.0, "大数欠款测试：-1亿 +2亿 后力量应为 1亿");
+		assert.Real(cache, 0.0, "大数欠款测试：-1亿 +2亿 后欠款应被清空");
+
 		hero = null;
 		p = null;
 	}
@@ -363,15 +401,15 @@ library UTHeroUtils requires HeroUtils {
 		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
 		uid = GetHandleId(hero);
 
-		// 清理倍率和 Bonus
-		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_UP_RATE)) {
-			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_UP_RATE);
+		// 清理倍率和 Bonus（力量相关）
+		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_STR_UP_RATE)) {
+			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_STR_UP_RATE);
 		}
-		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_DOWN_RATE)) {
-			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_DOWN_RATE);
+		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_STR_DOWN_RATE)) {
+			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_STR_DOWN_RATE);
 		}
-		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BONUS_REAL)) {
-			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BONUS_REAL);
+		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_STR_BONUS_REAL)) {
+			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_STR_BONUS_REAL);
 		}
 
 		// 测试1：力量 Up/Down/Bonus
@@ -385,18 +423,18 @@ library UTHeroUtils requires HeroUtils {
 		assert.Real(finalPercent, expected, "力量 Down 10% 后倍率应为 1.125");
 
 		AddUnitStrBonus(hero, 50.0);
-		bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BONUS_REAL);
+		bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_STR_BONUS_REAL);
 		assert.Real(bonus, 50.0, "力量 Bonus 50 后应正确存储");
 
 		// 测试2：敏捷 Up/Down/Bonus
-		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_UP_RATE)) {
-			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_UP_RATE);
+		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_AGI_UP_RATE)) {
+			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_AGI_UP_RATE);
 		}
-		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_DOWN_RATE)) {
-			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_DOWN_RATE);
+		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_AGI_DOWN_RATE)) {
+			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_AGI_DOWN_RATE);
 		}
-		if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER)) {
-			RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER);
+		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_AGI_BONUS_REAL)) {
+			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_AGI_BONUS_REAL);
 		}
 
 		AddUnitAgiUpPercent(hero, 0.18);
@@ -406,18 +444,18 @@ library UTHeroUtils requires HeroUtils {
 		assert.Real(finalPercent, expected, "敏捷 Up 18% Down 6% 后倍率应为 " + R2S(expected));
 
 		AddUnitAgiBonus(hero, 30.0);
-		bonus = I2R(LoadInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER));
+		bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_AGI_BONUS_REAL);
 		assert.Real(bonus, 30.0, "敏捷 Bonus 30 后应正确存储");
 
 		// 测试3：智力 Up/Down/Bonus
-		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE)) {
-			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE);
+		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_INT_UP_RATE)) {
+			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_INT_UP_RATE);
 		}
-		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE)) {
-			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE);
+		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_INT_DOWN_RATE)) {
+			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_INT_DOWN_RATE);
 		}
-		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_BONUS_REAL)) {
-			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_BONUS_REAL);
+		if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_INT_BONUS_REAL)) {
+			RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_INT_BONUS_REAL);
 		}
 
 		AddUnitIntUpPercent(hero, 0.22);
@@ -427,7 +465,7 @@ library UTHeroUtils requires HeroUtils {
 		assert.Real(finalPercent, expected, "智力 Up 22% Down 8% 后倍率应为 " + R2S(expected));
 
 		AddUnitIntBonus(hero, 40.0);
-		bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_BONUS_REAL);
+		bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_INT_BONUS_REAL);
 		assert.Real(bonus, 40.0, "智力 Bonus 40 后应正确存储");
 
 		hero = null;

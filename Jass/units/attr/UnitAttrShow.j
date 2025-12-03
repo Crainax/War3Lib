@@ -17,9 +17,16 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static real    lastAttack  = 0.0;
         private static integer lastDefense = 0;
 
+        // 力敏智基础值与额外值
         private static real lastStr = 0.0;
         private static real lastAgi = 0.0;
         private static real lastInt = 0.0;
+        private static real lastStrExtra = 0.0;
+        private static real lastAgiExtra = 0.0;
+        private static real lastIntExtra = 0.0;
+        private static boolean lastShowStrExtra = false;
+        private static boolean lastShowAgiExtra = false;
+        private static boolean lastShowIntExtra = false;
 
         // 攻击扩展显示缓存
         private static real    lastAttackRate       = 1.0;   // 上一次的总倍率
@@ -32,6 +39,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static integer lastDefenseExtra      = 0;     // 上一次的额外防御（绿/红字）
         private static boolean lastShowDefenseExtra  = false; // 上一次是否显示额外防御
         private static boolean lastShowDefenseRate   = false; // 上一次是否显示防御百分比
+
 
         // 上一次的状态（用于判断是否需要更新显示）
         private static boolean lastIsInvulnerable = false;
@@ -197,6 +205,11 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         // 内部：更新三围显示（只在目标为英雄时调用）
         private static method updatePrimaryAttrs (unit u, real strVal, real agiVal, real intVal) {
             integer mainAttrType;
+            boolean isBig;
+            real baseStr; real totalStr; real extraStr; boolean showStrExtra;
+            real baseAgi; real totalAgi; real extraAgi; boolean showAgiExtra;
+            real baseInt; real totalInt; real extraInt; boolean showIntExtra;
+            real percentAbs; string percentStr; string label;
 
             // 更新主属性图标
             mainAttrType = GetUnitMainAttrType(u);
@@ -214,19 +227,128 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
                 }
             }
 
-            if (!inited || RAbsBJ(strVal - lastStr) > 0.001) {
-                lastStr = strVal;
-                unitPanel.textStrValue.setText(unitAttrShow.formatValue(strVal));
+            // 是否为 BigInteger 英雄
+            isBig = IsUnitBigInteger(u);
+
+            // ========= 力量 =========
+            if (isBig) {
+                baseStr = GetUnitBaseStr(u);
+                totalStr = GetUnitStr(u);
+            } else {
+                baseStr = strVal;
+                totalStr = strVal;
             }
 
-            if (!inited || RAbsBJ(agiVal - lastAgi) > 0.001) {
-                lastAgi = agiVal;
-                unitPanel.textAgiValue.setText(unitAttrShow.formatValue(agiVal));
+            // 力量基础 + 额外值
+            extraStr = totalStr - baseStr;
+            showStrExtra = RAbsBJ(extraStr) > 0.01;
+
+            if (!inited || RAbsBJ(baseStr - lastStr) > 0.001) {
+                lastStr = baseStr;
+                unitPanel.textStrValue.setText(unitAttrShow.formatValue(baseStr));
             }
 
-            if (!inited || RAbsBJ(intVal - lastInt) > 0.001) {
-                lastInt = intVal;
-                unitPanel.textIntValue.setText(unitAttrShow.formatValue(intVal));
+            if (showStrExtra) {
+                percentAbs = RAbsBJ(extraStr);
+                percentStr = unitAttrShow.formatValue(percentAbs);
+                if (extraStr > 0.0) {
+                    label = "|cff00ff00+" + percentStr;
+                } else {
+                    label = "|cffff0000-" + percentStr;
+                }
+
+                if (!inited || !lastShowStrExtra || RAbsBJ(extraStr - lastStrExtra) > 0.001) {
+                    unitPanel.showStrExtra(true);
+                    unitPanel.textStrExtra.setText(label);
+                    lastStrExtra = extraStr;
+                    lastShowStrExtra = true;
+                }
+            } else {
+                if (!inited || lastShowStrExtra) {
+                    unitPanel.showStrExtra(false);
+                    lastShowStrExtra = false;
+                    lastStrExtra = 0.0;
+                }
+            }
+
+            // ========= 敏捷 =========
+            if (isBig) {
+                baseAgi = GetUnitBaseAgi(u);
+                totalAgi = GetUnitAgi(u);
+            } else {
+                baseAgi = agiVal;
+                totalAgi = agiVal;
+            }
+
+            extraAgi = totalAgi - baseAgi;
+            showAgiExtra = RAbsBJ(extraAgi) > 0.01;
+
+            if (!inited || RAbsBJ(baseAgi - lastAgi) > 0.001) {
+                lastAgi = baseAgi;
+                unitPanel.textAgiValue.setText(unitAttrShow.formatValue(baseAgi));
+            }
+
+            if (showAgiExtra) {
+                percentAbs = RAbsBJ(extraAgi);
+                percentStr = unitAttrShow.formatValue(percentAbs);
+                if (extraAgi > 0.0) {
+                    label = "|cff00ff00+" + percentStr;
+                } else {
+                    label = "|cffff0000-" + percentStr;
+                }
+
+                if (!inited || !lastShowAgiExtra || RAbsBJ(extraAgi - lastAgiExtra) > 0.001) {
+                    unitPanel.showAgiExtra(true);
+                    unitPanel.textAgiExtra.setText(label);
+                    lastAgiExtra = extraAgi;
+                    lastShowAgiExtra = true;
+                }
+            } else {
+                if (!inited || lastShowAgiExtra) {
+                    unitPanel.showAgiExtra(false);
+                    lastShowAgiExtra = false;
+                    lastAgiExtra = 0.0;
+                }
+            }
+
+            // ========= 智力 =========
+            if (isBig) {
+                baseInt = GetUnitBaseInt(u);
+                totalInt = GetUnitInt(u);
+            } else {
+                baseInt = intVal;
+                totalInt = intVal;
+            }
+
+            extraInt = totalInt - baseInt;
+            showIntExtra = RAbsBJ(extraInt) > 0.01;
+
+            if (!inited || RAbsBJ(baseInt - lastInt) > 0.001) {
+                lastInt = baseInt;
+                unitPanel.textIntValue.setText(unitAttrShow.formatValue(baseInt));
+            }
+
+            if (showIntExtra) {
+                percentAbs = RAbsBJ(extraInt);
+                percentStr = unitAttrShow.formatValue(percentAbs);
+                if (extraInt > 0.0) {
+                    label = "|cff00ff00+" + percentStr;
+                } else {
+                    label = "|cffff0000-" + percentStr;
+                }
+
+                if (!inited || !lastShowIntExtra || RAbsBJ(extraInt - lastIntExtra) > 0.001) {
+                    unitPanel.showIntExtra(true);
+                    unitPanel.textIntExtra.setText(label);
+                    lastIntExtra = extraInt;
+                    lastShowIntExtra = true;
+                }
+            } else {
+                if (!inited || lastShowIntExtra) {
+                    unitPanel.showIntExtra(false);
+                    lastShowIntExtra = false;
+                    lastIntExtra = 0.0;
+                }
             }
         }
 

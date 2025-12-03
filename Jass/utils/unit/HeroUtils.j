@@ -19,7 +19,7 @@ library HeroUtils requires UnitUtils {
     // 获取英雄的主属性类型：
     //  - 返回值：0=力量(STR)，1=敏捷(AGI)，2=智力(INT)，0 也作为默认/未知值
     //  - 优先从 HASH_UNIT/KEY_UNIT_MAIN_ATTR_TYPE 中读取，可被其他系统覆盖
-    //  - 若未缓存，则通过对象编辑器字段 Primary 读取并缓存
+    //  - 若未缓存，则通过对象编辑器字段 Primary 读取并返回（不写入，避免 OOS 风险）
     public function GetUnitMainAttrType(unit u) -> integer {
         integer uid; integer attrType; integer unitTypeId; string primary;
 
@@ -50,11 +50,49 @@ library HeroUtils requires UnitUtils {
             attrType = 0;
         }
 
+        // 注意：不在 Get 函数中写入，避免 OOS 风险
+        // 如需缓存，请在初始化时调用 CacheUnitMainAttrType 或使用 SetUnitMainAttrType
+
+        primary = null;
+        return attrType;
+    }
+
+    // 缓存英雄的主属性类型（从对象编辑器读取并写入哈希表）
+    // 用于初始化时预先缓存，避免在 Get 函数中写入导致 OOS 风险
+    public function CacheUnitMainAttrType(unit u) {
+        integer uid; integer attrType; integer unitTypeId; string primary;
+
+        if (u == null) { return; }
+
+        uid = GetHandleId(u);
+
+        // 如果已缓存，直接返回
+        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_TYPE)) {
+            return;
+        }
+
+        unitTypeId = GetUnitTypeId(u);
+        if (!IsHeroUnitId(unitTypeId)) {
+            return;
+        }
+
+        // 通过对象编辑器获取 Primary 字段（STR/AGI/INT）
+        primary = YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_UNIT, unitTypeId, "Primary");
+
+        if (primary == "STR") {
+            attrType = 0;
+        } else if (primary == "AGI") {
+            attrType = 1;
+        } else if (primary == "INT") {
+            attrType = 2;
+        } else {
+            attrType = 0;
+        }
+
         // 缓存结果，避免频繁读取对象编辑器
         SaveInteger(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_TYPE, attrType);
 
         primary = null;
-        return attrType;
     }
 
     // 手动设置英雄主属性类型（0 力量 / 1 敏捷 / 2 智力）
@@ -416,8 +454,8 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return 0.0; }
 
         uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_UP_RATE)) {
-            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_UP_RATE);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_STR_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_STR_UP_RATE);
         } else {
             up = 0.0;
         }
@@ -432,8 +470,8 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return 0.0; }
 
         uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_DOWN_RATE)) {
-            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_DOWN_RATE);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_STR_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_STR_DOWN_RATE);
         } else {
             down = 0.0;
         }
@@ -448,8 +486,8 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return 0.0; }
 
         uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BONUS_REAL)) {
-            bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BONUS_REAL);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_STR_BONUS_REAL)) {
+            bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_STR_BONUS_REAL);
         } else {
             bonus = 0.0;
         }
@@ -466,7 +504,7 @@ library HeroUtils requires UnitUtils {
         uid = GetHandleId(u);
         up = GetUnitStrUpRate(u);
         up = up + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_UP_RATE, up);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_STR_UP_RATE, up);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(0);
@@ -481,7 +519,7 @@ library HeroUtils requires UnitUtils {
         uid = GetHandleId(u);
         down = GetUnitStrDownRate(u);
         down = down + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_DOWN_RATE, down);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_STR_DOWN_RATE, down);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(0);
@@ -496,7 +534,7 @@ library HeroUtils requires UnitUtils {
         uid = GetHandleId(u);
         bonus = GetUnitStrBonusReal(u);
         bonus = bonus + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_BONUS_REAL, bonus);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_STR_BONUS_REAL, bonus);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(0);
@@ -510,8 +548,8 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return 0.0; }
 
         uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_UP_RATE)) {
-            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_UP_RATE);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_AGI_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_AGI_UP_RATE);
         } else {
             up = 0.0;
         }
@@ -526,8 +564,8 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return 0.0; }
 
         uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_DOWN_RATE)) {
-            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_DOWN_RATE);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_AGI_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_AGI_DOWN_RATE);
         } else {
             down = 0.0;
         }
@@ -536,15 +574,14 @@ library HeroUtils requires UnitUtils {
     }
 
     private function GetUnitAgiBonusReal(unit u) -> real {
-        integer uid; integer bonusI; real bonus;
+        integer uid; real bonus;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
 
         uid = GetHandleId(u);
-        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER)) {
-            bonusI = LoadInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER);
-            bonus = I2R(bonusI);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_AGI_BONUS_REAL)) {
+            bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_AGI_BONUS_REAL);
         } else {
             bonus = 0.0;
         }
@@ -561,7 +598,7 @@ library HeroUtils requires UnitUtils {
         uid = GetHandleId(u);
         up = GetUnitAgiUpRate(u);
         up = up + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_UP_RATE, up);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_AGI_UP_RATE, up);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(1);
@@ -576,26 +613,22 @@ library HeroUtils requires UnitUtils {
         uid = GetHandleId(u);
         down = GetUnitAgiDownRate(u);
         down = down + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_DOWN_RATE, down);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_AGI_DOWN_RATE, down);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(1);
     }
 
     public function AddUnitAgiBonus(unit u, real value) {
-        integer uid; integer bonusI;
+        integer uid; real bonus;
 
         if (u == null || value == 0.0) { return; }
         if (!IsUnitBigInteger(u)) { return; }
 
         uid = GetHandleId(u);
-        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER)) {
-            bonusI = LoadInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER);
-        } else {
-            bonusI = 0;
-        }
-        bonusI = bonusI + R2I(value);
-        SaveInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER, bonusI);
+        bonus = GetUnitAgiBonusReal(u);
+        bonus = bonus + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_AGI_BONUS_REAL, bonus);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(1);
@@ -609,8 +642,8 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return 0.0; }
 
         uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE)) {
-            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_INT_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_INT_UP_RATE);
         } else {
             up = 0.0;
         }
@@ -625,8 +658,8 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return 0.0; }
 
         uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE)) {
-            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_INT_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_INT_DOWN_RATE);
         } else {
             down = 0.0;
         }
@@ -641,8 +674,8 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return 0.0; }
 
         uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_BONUS_REAL)) {
-            bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_BONUS_REAL);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_INT_BONUS_REAL)) {
+            bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_INT_BONUS_REAL);
         } else {
             bonus = 0.0;
         }
@@ -659,7 +692,7 @@ library HeroUtils requires UnitUtils {
         uid = GetHandleId(u);
         up = GetUnitIntUpRate(u);
         up = up + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE, up);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_INT_UP_RATE, up);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(2);
@@ -674,7 +707,7 @@ library HeroUtils requires UnitUtils {
         uid = GetHandleId(u);
         down = GetUnitIntDownRate(u);
         down = down + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE, down);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_INT_DOWN_RATE, down);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(2);
@@ -689,7 +722,7 @@ library HeroUtils requires UnitUtils {
         uid = GetHandleId(u);
         bonus = GetUnitIntBonusReal(u);
         bonus = bonus + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_BONUS_REAL, bonus);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_INT_BONUS_REAL, bonus);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(2);
@@ -879,18 +912,42 @@ library HeroUtils requires UnitUtils {
     }
 
     public function AddUnitStr(unit u, real value) {
-        player p;
+        player p; real delta; real debt; real cur; real dec; real over; real remain;
 
         if (u == null) { return; }
         if (!IsUnitBigInteger(u)) { return; }
         if (value == 0.0) { return; }
 
         p = GetOwningPlayer(u);
-        if (value > 0.0) {
-            bigInteger.addReal(p, HASH_KEY_BIGINT_STR, value);
+        delta = value;
+
+        if (delta > 0.0) {
+            // 加力量：优先偿还欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
+            if (debt > 0.0) {
+                if (delta <= debt) {
+                    bigInteger.subReal(p, HASH_KEY_BIGINT_STR_CACHE, delta);
+                } else {
+                    remain = delta - debt;
+                    bigInteger.reset(p, HASH_KEY_BIGINT_STR_CACHE);
+                    bigInteger.addReal(p, HASH_KEY_BIGINT_STR, remain);
+                }
+            } else {
+                bigInteger.addReal(p, HASH_KEY_BIGINT_STR, delta);
+            }
         } else {
-            bigInteger.subReal(p, HASH_KEY_BIGINT_STR, -value);
+            // 减力量：可能产生欠款
+            dec = -delta;
+            cur = bigInteger.toReal(p, HASH_KEY_BIGINT_STR);
+            if (cur >= dec) {
+                bigInteger.subReal(p, HASH_KEY_BIGINT_STR, dec);
+            } else {
+                over = dec - cur;
+                bigInteger.reset(p, HASH_KEY_BIGINT_STR);
+                bigInteger.addReal(p, HASH_KEY_BIGINT_STR_CACHE, over);
+            }
         }
+
         p = null;
 
         heroAttrObserver.argsU = u;
@@ -940,18 +997,42 @@ library HeroUtils requires UnitUtils {
     }
 
     public function AddUnitAgi(unit u, real value) {
-        player p;
+        player p; real delta; real debt; real cur; real dec; real over; real remain;
 
         if (u == null) { return; }
         if (!IsUnitBigInteger(u)) { return; }
         if (value == 0.0) { return; }
 
         p = GetOwningPlayer(u);
-        if (value > 0.0) {
-            bigInteger.addReal(p, HASH_KEY_BIGINT_AGI, value);
+        delta = value;
+
+        if (delta > 0.0) {
+            // 加敏捷：优先偿还欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_AGI_CACHE);
+            if (debt > 0.0) {
+                if (delta <= debt) {
+                    bigInteger.subReal(p, HASH_KEY_BIGINT_AGI_CACHE, delta);
+                } else {
+                    remain = delta - debt;
+                    bigInteger.reset(p, HASH_KEY_BIGINT_AGI_CACHE);
+                    bigInteger.addReal(p, HASH_KEY_BIGINT_AGI, remain);
+                }
+            } else {
+                bigInteger.addReal(p, HASH_KEY_BIGINT_AGI, delta);
+            }
         } else {
-            bigInteger.subReal(p, HASH_KEY_BIGINT_AGI, -value);
+            // 减敏捷：可能产生欠款
+            dec = -delta;
+            cur = bigInteger.toReal(p, HASH_KEY_BIGINT_AGI);
+            if (cur >= dec) {
+                bigInteger.subReal(p, HASH_KEY_BIGINT_AGI, dec);
+            } else {
+                over = dec - cur;
+                bigInteger.reset(p, HASH_KEY_BIGINT_AGI);
+                bigInteger.addReal(p, HASH_KEY_BIGINT_AGI_CACHE, over);
+            }
         }
+
         p = null;
 
         heroAttrObserver.argsU = u;
@@ -1001,22 +1082,64 @@ library HeroUtils requires UnitUtils {
     }
 
     public function AddUnitInt(unit u, real value) {
-        player p;
+        player p; real delta; real debt; real cur; real dec; real over; real remain;
 
         if (u == null) { return; }
         if (!IsUnitBigInteger(u)) { return; }
         if (value == 0.0) { return; }
 
         p = GetOwningPlayer(u);
-        if (value > 0.0) {
-            bigInteger.addReal(p, HASH_KEY_BIGINT_INT, value);
+        delta = value;
+
+        if (delta > 0.0) {
+            // 加智力：优先偿还欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_INT_CACHE);
+            if (debt > 0.0) {
+                if (delta <= debt) {
+                    bigInteger.subReal(p, HASH_KEY_BIGINT_INT_CACHE, delta);
+                } else {
+                    remain = delta - debt;
+                    bigInteger.reset(p, HASH_KEY_BIGINT_INT_CACHE);
+                    bigInteger.addReal(p, HASH_KEY_BIGINT_INT, remain);
+                }
+            } else {
+                bigInteger.addReal(p, HASH_KEY_BIGINT_INT, delta);
+            }
         } else {
-            bigInteger.subReal(p, HASH_KEY_BIGINT_INT, -value);
+            // 减智力：可能产生欠款
+            dec = -delta;
+            cur = bigInteger.toReal(p, HASH_KEY_BIGINT_INT);
+            if (cur >= dec) {
+                bigInteger.subReal(p, HASH_KEY_BIGINT_INT, dec);
+            } else {
+                over = dec - cur;
+                bigInteger.reset(p, HASH_KEY_BIGINT_INT);
+                bigInteger.addReal(p, HASH_KEY_BIGINT_INT_CACHE, over);
+            }
         }
+
         p = null;
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(2);
+    }
+
+
+    //初始化上述属性
+    public function InitAllUnitAttr (unit u ) {
+        if (IsUnitBigInteger(u)) {
+            // 预先缓存主属性类型，避免后续 Get 函数频繁读取对象编辑器
+            CacheUnitMainAttrType(u);
+            AddUnitAttack(u,GetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
+            SetUnitStr(u,GetHeroStr(u,false));
+            SetUnitAgi(u,GetHeroAgi(u,false));
+            SetUnitInt(u,GetHeroInt(u,false));
+        } else {
+            AddUnitAttack(u,0);
+        }
+        AddUnitDefense(u,0);
+        AddUnitHP(u,0);
+        AddUnitMP(u,0);
     }
 
     /*

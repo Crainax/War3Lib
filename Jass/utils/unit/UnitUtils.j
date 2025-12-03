@@ -911,18 +911,6 @@ library UnitUtils requires BigInteger,MathUtils {
     }
 
 
-    //初始化上述属性
-    public function InitAllUnitAttr (unit u ) {
-        if (IsUnitBigInteger(u)) {
-            AddUnitAttack(u,GetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
-        } else {
-            AddUnitAttack(u,0);
-        }
-        AddUnitDefense(u,0);
-        AddUnitHP(u,0);
-        AddUnitMP(u,0);
-    }
-
 
     //回蓝(定值)
     public function RegenUnitMP(unit u, real volume) -> nothing {

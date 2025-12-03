@@ -70,12 +70,30 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		BJDebugMsg("-mpup [value] : 增加魔法增幅(小数,如0.2=20%)");
 		BJDebugMsg("-mpdown [value] : 增加魔法减幅(小数)");
 		BJDebugMsg("-mpbonus [value] : 增加魔法定值");
-		BJDebugMsg("-str [value] : 设置力量(英雄)");
-		BJDebugMsg("-addstr [value] : 增加力量(英雄)");
-		BJDebugMsg("-agi [value] : 设置敏捷(英雄)");
-		BJDebugMsg("-addagi [value] : 增加敏捷(英雄)");
-		BJDebugMsg("-int [value] : 设置智力(英雄)");
-		BJDebugMsg("-addint [value] : 增加智力(英雄)");
+		BJDebugMsg("-str [value] : 设置虚拟力量(英雄)");
+		BJDebugMsg("-addstr [value] : 增加虚拟力量(英雄)");
+		BJDebugMsg("-strup [value] : 增加虚拟力量增幅(小数,如0.2=20%)");
+		BJDebugMsg("-strdown [value] : 增加虚拟力量减幅(小数)");
+		BJDebugMsg("-strbonus [value] : 增加虚拟力量定值");
+		BJDebugMsg("-agi [value] : 设置虚拟敏捷(英雄)");
+		BJDebugMsg("-addagi [value] : 增加虚拟敏捷(英雄)");
+		BJDebugMsg("-agiup [value] : 增加虚拟敏捷增幅(小数,如0.2=20%)");
+		BJDebugMsg("-agidown [value] : 增加虚拟敏捷减幅(小数)");
+		BJDebugMsg("-agibonus [value] : 增加虚拟敏捷定值");
+		BJDebugMsg("-int [value] : 设置虚拟智力(英雄)");
+		BJDebugMsg("-addint [value] : 增加虚拟智力(英雄)");
+		BJDebugMsg("-intup [value] : 增加虚拟智力增幅(小数,如0.2=20%)");
+		BJDebugMsg("-intdown [value] : 增加虚拟智力减幅(小数)");
+		BJDebugMsg("-intbonus [value] : 增加虚拟智力定值");
+		BJDebugMsg("-main [value] : 增加主属性数值");
+		BJDebugMsg("-mainup [value] : 增加主属性增幅(小数)");
+		BJDebugMsg("-maindown [value] : 增加主属性减幅(小数)");
+		BJDebugMsg("-mainbonus [value] : 增加主属性定值");
+		BJDebugMsg("-sub [value] : 增加次属性数值");
+		BJDebugMsg("-subup [value] : 增加次属性增幅(小数)");
+		BJDebugMsg("-subdown [value] : 增加次属性减幅(小数)");
+		BJDebugMsg("-subbonus [value] : 增加次属性定值");
+		BJDebugMsg("-maintype [0/1/2] : 设置主属性类型(0=力,1=敏,2=智)");
 		BJDebugMsg("-invul : 添加无敌状态");
 		BJDebugMsg("-noinvul : 移除无敌状态");
 		BJDebugMsg("-magic : 添加魔免状态");
@@ -143,6 +161,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		integer currentInt;
 		boolean removed;
 		integer defBonusValue;
+		integer mainType;
 
 		// 解析参数
 		for (0 <= i <= len - 1) {
@@ -261,15 +280,15 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		else if (paramS[0] == "hp") {
 			// 设置生命最大值
 			if (num >= 2) {
-				SetUnitHP(u, paramR[1]);
-				BJDebugMsg("设置生命最大值为: " + FormatNumber(paramR[1]));
+				SetUnitHP(u, ParseReal(paramS[1]));
+				BJDebugMsg("设置生命最大值为: " + FormatNumber(ParseReal(paramS[1])));
 				BJDebugMsg("当前生命最大值: " + FormatNumber(GetUnitHP(u)));
 			}
 		} else if (paramS[0] == "addhp") {
 			// 增加生命最大值
 			if (num >= 2) {
-				AddUnitHP(u, paramR[1]);
-				BJDebugMsg("增加生命最大值: " + FormatNumber(paramR[1]));
+				AddUnitHP(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加生命最大值: " + FormatNumber(ParseReal(paramS[1])));
 				BJDebugMsg("当前生命最大值: " + FormatNumber(GetUnitHP(u)));
 			}
 		} else if (paramS[0] == "hpup") {
@@ -291,8 +310,8 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		} else if (paramS[0] == "hpbonus") {
 			// 增加生命定值
 			if (num >= 2) {
-				AddUnitHPBonus(u, paramR[1]);
-				BJDebugMsg("增加生命定值: " + FormatNumber(paramR[1]));
+				AddUnitHPBonus(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加生命定值: " + FormatNumber(ParseReal(paramS[1])));
 				BJDebugMsg("当前生命最大值: " + FormatNumber(GetUnitHP(u)));
 			}
 		}
@@ -335,63 +354,144 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 				BJDebugMsg("当前魔法最大值: " + FormatNumber(GetUnitMP(u)));
 			}
 		}
-		// 英雄属性相关命令（仅对英雄有效）
+		// 虚拟三维属性相关命令（BigInteger 英雄）
 		else if (paramS[0] == "str") {
-			// 设置力量
-			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
-				SetHeroStr(u, paramI[1], true);
-				BJDebugMsg("设置力量为: " + I2S(paramI[1]));
-				BJDebugMsg("当前力量: " + I2S(GetHeroStr(u, true)));
-			} else {
-				BJDebugMsg("该单位不是英雄");
+			if (num >= 2) {
+				SetUnitStr(u, ParseReal(paramS[1]));
+				BJDebugMsg("设置虚拟力量基础值为: " + R2S(ParseReal(paramS[1])));
+				BJDebugMsg("当前虚拟力量: " + R2S(GetUnitStr(u)));
 			}
 		} else if (paramS[0] == "addstr") {
-			// 增加力量
-			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
-				currentStr = GetHeroStr(u, true);
-				SetHeroStr(u, currentStr + paramI[1], true);
-				BJDebugMsg("增加力量: " + I2S(paramI[1]));
-				BJDebugMsg("当前力量: " + I2S(GetHeroStr(u, true)));
-			} else {
-				BJDebugMsg("该单位不是英雄");
+			if (num >= 2) {
+				AddUnitStr(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加虚拟力量基础值: " + R2S(ParseReal(paramS[1])));
+				BJDebugMsg("当前虚拟力量: " + R2S(GetUnitStr(u)));
+			}
+		} else if (paramS[0] == "strup") {
+			if (num >= 2) {
+				AddUnitStrUpPercent(u, paramR[1]);
+				BJDebugMsg("增加虚拟力量增幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前虚拟力量倍率: " + R2S(GetUnitStrFinalPercent(u)));
+			}
+		} else if (paramS[0] == "strdown") {
+			if (num >= 2) {
+				AddUnitStrDownPercent(u, paramR[1]);
+				BJDebugMsg("增加虚拟力量减幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前虚拟力量倍率: " + R2S(GetUnitStrFinalPercent(u)));
+			}
+		} else if (paramS[0] == "strbonus") {
+			if (num >= 2) {
+				AddUnitStrBonus(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加虚拟力量定值: " + R2S(ParseReal(paramS[1])));
+				BJDebugMsg("当前虚拟力量: " + R2S(GetUnitStr(u)));
 			}
 		} else if (paramS[0] == "agi") {
-			// 设置敏捷
-			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
-				SetHeroAgi(u, paramI[1], true);
-				BJDebugMsg("设置敏捷为: " + I2S(paramI[1]));
-				BJDebugMsg("当前敏捷: " + I2S(GetHeroAgi(u, true)));
-			} else {
-				BJDebugMsg("该单位不是英雄");
+			if (num >= 2) {
+				SetUnitAgi(u, ParseReal(paramS[1]));
+				BJDebugMsg("设置虚拟敏捷基础值为: " + R2S(ParseReal(paramS[1])));
+				BJDebugMsg("当前虚拟敏捷: " + R2S(GetUnitAgi(u)));
 			}
 		} else if (paramS[0] == "addagi") {
-			// 增加敏捷
-			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
-				currentAgi = GetHeroAgi(u, true);
-				SetHeroAgi(u, currentAgi + paramI[1], true);
-				BJDebugMsg("增加敏捷: " + I2S(paramI[1]));
-				BJDebugMsg("当前敏捷: " + I2S(GetHeroAgi(u, true)));
-			} else {
-				BJDebugMsg("该单位不是英雄");
+			if (num >= 2) {
+				AddUnitAgi(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加虚拟敏捷基础值: " + R2S(ParseReal(paramS[1])));
+				BJDebugMsg("当前虚拟敏捷: " + R2S(GetUnitAgi(u)));
+			}
+		} else if (paramS[0] == "agiup") {
+			if (num >= 2) {
+				AddUnitAgiUpPercent(u, paramR[1]);
+				BJDebugMsg("增加虚拟敏捷增幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前虚拟敏捷倍率: " + R2S(GetUnitAgiFinalPercent(u)));
+			}
+		} else if (paramS[0] == "agidown") {
+			if (num >= 2) {
+				AddUnitAgiDownPercent(u, paramR[1]);
+				BJDebugMsg("增加虚拟敏捷减幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前虚拟敏捷倍率: " + R2S(GetUnitAgiFinalPercent(u)));
+			}
+		} else if (paramS[0] == "agibonus") {
+			if (num >= 2) {
+				AddUnitAgiBonus(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加虚拟敏捷定值: " + R2S(ParseReal(paramS[1])));
+				BJDebugMsg("当前虚拟敏捷: " + R2S(GetUnitAgi(u)));
 			}
 		} else if (paramS[0] == "int") {
-			// 设置智力
-			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
-				SetHeroInt(u, paramI[1], true);
-				BJDebugMsg("设置智力为: " + I2S(paramI[1]));
-				BJDebugMsg("当前智力: " + I2S(GetHeroInt(u, true)));
-			} else {
-				BJDebugMsg("该单位不是英雄");
+			if (num >= 2) {
+				SetUnitInt(u, ParseReal(paramS[1]));
+				BJDebugMsg("设置虚拟智力基础值为: " + R2S(ParseReal(paramS[1])));
+				BJDebugMsg("当前虚拟智力: " + R2S(GetUnitInt(u)));
 			}
 		} else if (paramS[0] == "addint") {
-			// 增加智力
-			if (num >= 2 && IsHeroUnitId(GetUnitTypeId(u))) {
-				currentInt = GetHeroInt(u, true);
-				SetHeroInt(u, currentInt + paramI[1], true);
-				BJDebugMsg("增加智力: " + I2S(paramI[1]));
-				BJDebugMsg("当前智力: " + I2S(GetHeroInt(u, true)));
-			} else {
-				BJDebugMsg("该单位不是英雄");
+			if (num >= 2) {
+				AddUnitInt(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加虚拟智力基础值: " + R2S(ParseReal(paramS[1])));
+				BJDebugMsg("当前虚拟智力: " + R2S(GetUnitInt(u)));
+			}
+		} else if (paramS[0] == "intup") {
+			if (num >= 2) {
+				AddUnitIntUpPercent(u, paramR[1]);
+				BJDebugMsg("增加虚拟智力增幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前虚拟智力倍率: " + R2S(GetUnitIntFinalPercent(u)));
+			}
+		} else if (paramS[0] == "intdown") {
+			if (num >= 2) {
+				AddUnitIntDownPercent(u, paramR[1]);
+				BJDebugMsg("增加虚拟智力减幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前虚拟智力倍率: " + R2S(GetUnitIntFinalPercent(u)));
+			}
+		} else if (paramS[0] == "intbonus") {
+			if (num >= 2) {
+				AddUnitIntBonus(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加虚拟智力定值: " + R2S(ParseReal(paramS[1])));
+				BJDebugMsg("当前虚拟智力: " + R2S(GetUnitInt(u)));
+			}
+		}
+		// 主 / 次属性相关命令
+		else if (paramS[0] == "main") {
+			if (num >= 2) {
+				AddUnitMainAttrValue(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加主属性数值: " + R2S(ParseReal(paramS[1])));
+			}
+		} else if (paramS[0] == "mainup") {
+			if (num >= 2) {
+				AddUnitMainAttrUpPercent(u, paramR[1]);
+				BJDebugMsg("增加主属性增幅: " + R2S(paramR[1]));
+			}
+		} else if (paramS[0] == "maindown") {
+			if (num >= 2) {
+				AddUnitMainAttrDownPercent(u, paramR[1]);
+				BJDebugMsg("增加主属性减幅: " + R2S(paramR[1]));
+			}
+		} else if (paramS[0] == "mainbonus") {
+			if (num >= 2) {
+				AddUnitMainAttrBonus(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加主属性定值: " + R2S(ParseReal(paramS[1])));
+			}
+		} else if (paramS[0] == "sub") {
+			if (num >= 2) {
+				AddUnitSubAttrValue(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加次属性数值: " + R2S(ParseReal(paramS[1])));
+			}
+		} else if (paramS[0] == "subup") {
+			if (num >= 2) {
+				AddUnitSubAttrUpPercent(u, paramR[1]);
+				BJDebugMsg("增加次属性增幅: " + R2S(paramR[1]));
+			}
+		} else if (paramS[0] == "subdown") {
+			if (num >= 2) {
+				AddUnitSubAttrDownPercent(u, paramR[1]);
+				BJDebugMsg("增加次属性减幅: " + R2S(paramR[1]));
+			}
+		} else if (paramS[0] == "subbonus") {
+			if (num >= 2) {
+				AddUnitSubAttrBonus(u, ParseReal(paramS[1]));
+				BJDebugMsg("增加次属性定值: " + R2S(ParseReal(paramS[1])));
+			}
+		} else if (paramS[0] == "maintype") {
+			if (num >= 2) {
+				SetUnitMainAttrType(u, paramI[1]);
+				mainType = GetUnitMainAttrType(u);
+				BJDebugMsg("当前主属性类型: " + I2S(mainType));
 			}
 		}
 		// 无敌相关命令

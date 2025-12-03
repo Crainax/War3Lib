@@ -90,6 +90,17 @@
 #define KEY_UNIT_SUB_ATTR_UP_RATE            255610146 // 次属性增幅累计值（real）
 #define KEY_UNIT_SUB_ATTR_DOWN_RATE          255610147 // 次属性减幅累计值（real）
 
+// 英雄三维属性（力量/敏捷/智力）增减幅与定值加成（独立于攻击/防御/魔法值）
+#define KEY_UNIT_STR_UP_RATE                 255610148 // 力量增幅累计值（real）
+#define KEY_UNIT_STR_DOWN_RATE               255610149 // 力量减幅累计值（real）
+#define KEY_UNIT_STR_BONUS_REAL              255610150 // 力量固定加成（real）
+#define KEY_UNIT_AGI_UP_RATE                 255610151 // 敏捷增幅累计值（real）
+#define KEY_UNIT_AGI_DOWN_RATE               255610152 // 敏捷减幅累计值（real）
+#define KEY_UNIT_AGI_BONUS_REAL              255610153 // 敏捷固定加成（real）
+#define KEY_UNIT_INT_UP_RATE                 255610154 // 智力增幅累计值（real）
+#define KEY_UNIT_INT_DOWN_RATE               255610155 // 智力减幅累计值（real）
+#define KEY_UNIT_INT_BONUS_REAL              255610156 // 智力固定加成（real）
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物
