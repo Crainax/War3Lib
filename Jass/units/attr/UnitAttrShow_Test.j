@@ -25,7 +25,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			RemoveUnit(testUnit);
 		}
 		testUnit = CreateUnit(p, 'hfoo', 0, 0, 0);
-		AddUnitAttack(testUnit,0);
+		InitAllUnitAttr(testUnit);
 		SelectUnit(testUnit, true);
 		UnitAddAbility(testUnit, 'A02o');
 		BJDebugMsg("已创建普通测试单位");
@@ -37,7 +37,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			RemoveUnit(testHero);
 		}
 		testHero = CreateUnit(p, 'Hpal', 0, 0, 0);
-		AddUnitAttack(testHero,GetUnitState(testHero, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
+		InitAllUnitAttr(testHero);
 		SelectUnit(testHero, true);
 		UnitAddAbility(testHero, 'A02o');
 		BJDebugMsg("已创建英雄测试单位");
@@ -57,6 +57,19 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		BJDebugMsg("-atkbonus [value] : 增加攻击定值");
 		BJDebugMsg("-def [value] : 设置防御力");
 		BJDebugMsg("-adddef [value] : 增加防御力");
+		BJDebugMsg("-defup [value] : 增加防御增幅(小数,如0.2=20%)");
+		BJDebugMsg("-defdown [value] : 增加防御减幅(小数)");
+		BJDebugMsg("-defbonus [value] : 增加防御定值");
+		BJDebugMsg("-hp [value] : 设置生命最大值");
+		BJDebugMsg("-addhp [value] : 增加生命最大值");
+		BJDebugMsg("-hpup [value] : 增加生命增幅(小数,如0.2=20%)");
+		BJDebugMsg("-hpdown [value] : 增加生命减幅(小数)");
+		BJDebugMsg("-hpbonus [value] : 增加生命定值");
+		BJDebugMsg("-mp [value] : 设置魔法最大值");
+		BJDebugMsg("-addmp [value] : 增加魔法最大值");
+		BJDebugMsg("-mpup [value] : 增加魔法增幅(小数,如0.2=20%)");
+		BJDebugMsg("-mpdown [value] : 增加魔法减幅(小数)");
+		BJDebugMsg("-mpbonus [value] : 增加魔法定值");
 		BJDebugMsg("-str [value] : 设置力量(英雄)");
 		BJDebugMsg("-addstr [value] : 增加力量(英雄)");
 		BJDebugMsg("-agi [value] : 设置敏捷(英雄)");
@@ -82,10 +95,10 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			enemyP = Player(11);
 			// 创建敌方步兵
 			enemyUnit = CreateUnit(enemyP, 'hfoo', 2000.0, 2000.0, 270.0);
-			AddUnitAttack(enemyUnit,0);
+			InitAllUnitAttr(enemyUnit);
 			// 创建敌方英雄
 			enemyHero = CreateUnit(enemyP, 'Hpal', 2000.0, 2050.0, 270.0);
-			AddUnitAttack(enemyHero,GetUnitState(enemyHero, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
+			InitAllUnitAttr(enemyHero);
 			BJDebugMsg("已在 (2000, 2000) 位置创建玩家11的步兵和英雄，用于测试沉默");
 			enemyUnit = null;
 			enemyHero = null;
@@ -129,6 +142,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		integer currentAgi;
 		integer currentInt;
 		boolean removed;
+		integer defBonusValue;
 
 		// 解析参数
 		for (0 <= i <= len - 1) {
@@ -217,6 +231,108 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 				AddUnitDefense(u, paramR[1]);
 				BJDebugMsg("增加防御力: " + R2S(paramR[1]));
 				BJDebugMsg("当前防御力: " + R2S(GetUnitDefense(u)));
+			}
+		} else if (paramS[0] == "defup") {
+			// 增加防御增幅
+			if (num >= 2) {
+				AddUnitDefenseUpPercent(u, paramR[1]);
+				BJDebugMsg("增加防御增幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前防御倍率: " + R2S(GetUnitDefenseFinalPercent(u)));
+				BJDebugMsg("当前防御力: " + R2S(GetUnitDefense(u)));
+			}
+		} else if (paramS[0] == "defdown") {
+			// 增加防御减幅
+			if (num >= 2) {
+				AddUnitDefenseDownPercent(u, paramR[1]);
+				BJDebugMsg("增加防御减幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前防御倍率: " + R2S(GetUnitDefenseFinalPercent(u)));
+				BJDebugMsg("当前防御力: " + R2S(GetUnitDefense(u)));
+			}
+		} else if (paramS[0] == "defbonus") {
+			// 增加防御定值
+			if (num >= 2) {
+				defBonusValue = R2I(paramR[1]);
+				AddUnitDefenseBonus(u, defBonusValue);
+				BJDebugMsg("增加防御定值: " + I2S(defBonusValue));
+				BJDebugMsg("当前防御力: " + R2S(GetUnitDefense(u)));
+			}
+		}
+		// 生命值相关命令
+		else if (paramS[0] == "hp") {
+			// 设置生命最大值
+			if (num >= 2) {
+				SetUnitHP(u, paramR[1]);
+				BJDebugMsg("设置生命最大值为: " + FormatNumber(paramR[1]));
+				BJDebugMsg("当前生命最大值: " + FormatNumber(GetUnitHP(u)));
+			}
+		} else if (paramS[0] == "addhp") {
+			// 增加生命最大值
+			if (num >= 2) {
+				AddUnitHP(u, paramR[1]);
+				BJDebugMsg("增加生命最大值: " + FormatNumber(paramR[1]));
+				BJDebugMsg("当前生命最大值: " + FormatNumber(GetUnitHP(u)));
+			}
+		} else if (paramS[0] == "hpup") {
+			// 增加生命增幅
+			if (num >= 2) {
+				AddUnitHPUpPercent(u, paramR[1]);
+				BJDebugMsg("增加生命增幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前生命倍率: " + R2S(GetUnitHPFinalPercent(u)));
+				BJDebugMsg("当前生命最大值: " + FormatNumber(GetUnitHP(u)));
+			}
+		} else if (paramS[0] == "hpdown") {
+			// 增加生命减幅
+			if (num >= 2) {
+				AddUnitHPDownPercent(u, paramR[1]);
+				BJDebugMsg("增加生命减幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前生命倍率: " + R2S(GetUnitHPFinalPercent(u)));
+				BJDebugMsg("当前生命最大值: " + FormatNumber(GetUnitHP(u)));
+			}
+		} else if (paramS[0] == "hpbonus") {
+			// 增加生命定值
+			if (num >= 2) {
+				AddUnitHPBonus(u, paramR[1]);
+				BJDebugMsg("增加生命定值: " + FormatNumber(paramR[1]));
+				BJDebugMsg("当前生命最大值: " + FormatNumber(GetUnitHP(u)));
+			}
+		}
+		// 魔法值相关命令
+		else if (paramS[0] == "mp") {
+			// 设置魔法最大值
+			if (num >= 2) {
+				SetUnitMP(u, paramR[1]);
+				BJDebugMsg("设置魔法最大值为: " + FormatNumber(paramR[1]));
+				BJDebugMsg("当前魔法最大值: " + FormatNumber(GetUnitMP(u)));
+			}
+		} else if (paramS[0] == "addmp") {
+			// 增加魔法最大值
+			if (num >= 2) {
+				AddUnitMP(u, paramR[1]);
+				BJDebugMsg("增加魔法最大值: " + FormatNumber(paramR[1]));
+				BJDebugMsg("当前魔法最大值: " + FormatNumber(GetUnitMP(u)));
+			}
+		} else if (paramS[0] == "mpup") {
+			// 增加魔法增幅
+			if (num >= 2) {
+				AddUnitMPUpPercent(u, paramR[1]);
+				BJDebugMsg("增加魔法增幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前魔法倍率: " + R2S(GetUnitMPFinalPercent(u)));
+				BJDebugMsg("当前魔法最大值: " + FormatNumber(GetUnitMP(u)));
+			}
+		} else if (paramS[0] == "mpdown") {
+			// 增加魔法减幅
+			if (num >= 2) {
+				AddUnitMPDownPercent(u, paramR[1]);
+				BJDebugMsg("增加魔法减幅: " + R2S(paramR[1]));
+				BJDebugMsg("当前魔法倍率: " + R2S(GetUnitMPFinalPercent(u)));
+				BJDebugMsg("当前魔法最大值: " + FormatNumber(GetUnitMP(u)));
+			}
+		} else if (paramS[0] == "mpbonus") {
+			// 增加魔法定值
+			if (num >= 2) {
+				AddUnitMPBonus(u, paramR[1]);
+				BJDebugMsg("增加魔法定值: " + FormatNumber(paramR[1]));
+				BJDebugMsg("当前魔法最大值: " + FormatNumber(GetUnitMP(u)));
 			}
 		}
 		// 英雄属性相关命令（仅对英雄有效）

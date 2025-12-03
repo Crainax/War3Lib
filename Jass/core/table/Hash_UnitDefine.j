@@ -66,6 +66,24 @@
 // 英雄主属性类型（0 力量 / 1 敏捷 / 2 智力），优先从此键读取，可被其他系统覆盖
 #define KEY_UNIT_MAIN_ATTR_TYPE              255610131
 
+// 单位防御基础值与百分比/定值加成
+#define KEY_UNIT_DEFENSE_BASE_INTEGER        255610132 // 单位基础防御缓存（integer）
+#define KEY_UNIT_DEFENSE_UP_RATE             255610133 // 单位防御增幅累计值（real）
+#define KEY_UNIT_DEFENSE_DOWN_RATE           255610134 // 单位防御减幅累计值（real）
+#define KEY_UNIT_DEFENSE_BONUS_INTEGER       255610135 // 单位防御固定加成（integer）
+
+// 单位生命值基础值与百分比/定值加成
+#define KEY_UNIT_HP_BASE_REAL                255610136 // 单位基础生命值缓存（real）
+#define KEY_UNIT_HP_UP_RATE                  255610137 // 单位生命值增幅累计值（real）
+#define KEY_UNIT_HP_DOWN_RATE                255610138 // 单位生命值减幅累计值（real）
+#define KEY_UNIT_HP_BONUS_REAL               255610139 // 单位生命值固定加成（real）
+
+// 单位魔法值基础值与百分比/定值加成
+#define KEY_UNIT_MP_BASE_REAL                255610140 // 单位基础魔法值缓存（real）
+#define KEY_UNIT_MP_UP_RATE                  255610141 // 单位魔法值增幅累计值（real）
+#define KEY_UNIT_MP_DOWN_RATE                255610142 // 单位魔法值减幅累计值（real）
+#define KEY_UNIT_MP_BONUS_REAL               255610143 // 单位魔法值固定加成（real）
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物

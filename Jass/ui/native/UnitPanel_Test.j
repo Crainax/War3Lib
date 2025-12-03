@@ -22,12 +22,11 @@
 
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
-//# dependency:resource/ui/console/unitpanel/origin_agi.blp
-//# dependency:resource/ui/console/unitpanel/origin_armor.blp
-//# dependency:resource/ui/console/unitpanel/origin_attack.blp
-//# dependency:resource/ui/console/unitpanel/origin_int.blp
-//# dependency:resource/ui/console/unitpanel/origin_str.blp
-
+//# dependency:resource/ui/console/unitpanel/yidu_str.blp
+//# dependency:resource/ui/console/unitpanel/yidu_agi.blp
+//# dependency:resource/ui/console/unitpanel/yidu_int.blp
+//# dependency:resource/ui/console/unitpanel/yidu_Atk.blp
+//# dependency:resource/ui/console/unitpanel/yidu_Def.blp
 //! zinc
 
 //自动生成的文件
@@ -130,7 +129,10 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		#endif
 		BJDebugMsg("移走");
 	}
-	function TTestUTUnitPanel6 (player p) {}
+	function TTestUTUnitPanel6 (player p) {
+
+
+	}
 	function TTestUTUnitPanel7 (player p) {}
 	function TTestUTUnitPanel8 (player p) {}
 	function TTestUTUnitPanel9 (player p) {}

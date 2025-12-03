@@ -27,6 +27,12 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static boolean lastShowAttackExtra  = false; // 上一次是否显示额外攻击
         private static boolean lastShowAttackRate   = false; // 上一次是否显示攻击百分比
 
+        // 防御扩展显示缓存
+        private static real    lastDefenseRate       = 1.0;   // 上一次的总倍率
+        private static integer lastDefenseExtra      = 0;     // 上一次的额外防御（绿/红字）
+        private static boolean lastShowDefenseExtra  = false; // 上一次是否显示额外防御
+        private static boolean lastShowDefenseRate   = false; // 上一次是否显示防御百分比
+
         // 上一次的状态（用于判断是否需要更新显示）
         private static boolean lastIsInvulnerable = false;
         private static boolean lastIsMagicImmune = false;
@@ -61,6 +67,9 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             string extraText;
             real rate; real deltaRate; boolean showRate;
             string atkLabel; real percentAbs; string percentStr;
+            integer baseDef; integer extraDef; boolean showDefExtra;
+            string defLabel; string defExtraText; string defValueText;
+
 
             // === 攻击倍率显示（在“攻击:”后显示 (+xx.x%) / (-xx.x%)） ===
             rate = GetUnitAttackFinalPercent(u);
@@ -124,23 +133,64 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             isInvul = unitAttrShow.isInvulnerable(u);
             isMagicImm = unitAttrShow.isMagicImmune(u);
 
+            // === 防御数值拆分：基础防御 + 额外防御（绿/红字） ===
+            baseDef = GetUnitBaseDefense(u);
+            extraDef = def - baseDef;
+            showDefExtra = extraDef != 0;
+
+            // 更新防御标签（包含魔免状态）
+            if (!inited || isMagicImm != lastIsMagicImmune) {
+                lastIsMagicImmune = isMagicImm;
+                if (isMagicImm) {
+                    // 魔免：显示"护甲:|cff00ff00(魔免)|r"
+                    unitPanel.textArmor.setText("护甲:|cff00ff00(魔免)|r");
+                } else {
+                    // 正常显示
+                    unitPanel.textArmor.setText("护甲:");
+                }
+            }
+
             // 更新防御显示（处理无敌和魔免状态）
-            if (!inited || def != lastDefense || isInvul != lastIsInvulnerable || isMagicImm != lastIsMagicImmune) {
+            if (!inited || def != lastDefense || isInvul != lastIsInvulnerable) {
+
                 lastDefense = def;
                 lastIsInvulnerable = isInvul;
-                lastIsMagicImmune = isMagicImm;
 
                 if (isInvul) {
                     // 无敌：显示红色"无敌的"
                     armorText = "|cffff0000无敌的|r";
-                } else if (isMagicImm) {
-                    // 魔免：显示"防御值/魔免"（魔免用绿色）
-                    armorText = unitAttrShow.formatValue(I2R(def)) + "/|cff00ff00魔免|r";
+                    unitPanel.textArmorValue.setText(armorText);
+                    unitPanel.showArmorExtra(false);
+                    lastShowDefenseExtra = false;
+                    lastDefenseExtra = 0;
                 } else {
-                    // 正常显示防御值
-                    armorText = unitAttrShow.formatValue(I2R(def));
+                    // 正常显示：基础防御
+                    defValueText = unitAttrShow.formatValue(I2R(baseDef));
+                    unitPanel.textArmorValue.setText(defValueText);
+
+                    // 额外防御通过 textArmorExtra 显示
+                    if (showDefExtra) {
+                        if (extraDef > 0) {
+                        defExtraText = "|cff00ff00+" + unitAttrShow.formatValue(I2R(extraDef)) + "|r";
+                        } else {
+                            defExtraText = "|cffff0000-" + unitAttrShow.formatValue(I2R(-extraDef)) + "|r";
+                        }
+
+                        // 参考攻击逻辑：只有在第一次或数值变化时才刷新额外文本
+                        if (!inited || !lastShowDefenseExtra || extraDef != lastDefenseExtra) {
+                            unitPanel.showArmorExtra(true);
+                            unitPanel.textArmorExtra.setText(defExtraText);
+                            lastDefenseExtra = extraDef;
+                            lastShowDefenseExtra = true;
+                        }
+                    } else {
+                        if (!inited || lastShowDefenseExtra) {
+                            unitPanel.showArmorExtra(false);
+                            lastShowDefenseExtra = false;
+                            lastDefenseExtra = 0;
+                        }
+                    }
                 }
-                unitPanel.textArmorValue.setText(armorText);
             }
         }
 

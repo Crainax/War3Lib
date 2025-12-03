@@ -244,85 +244,325 @@ library UnitUtils requires BigInteger,MathUtils {
         return base;
     }
 
+    //=====================
+    // 防御扩展工具函数
+    //=====================
+
+    // 获取单位防御增幅（real）
+    private function GetUnitDefenseUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
+
+    // 获取单位防御减幅（real）
+    private function GetUnitDefenseDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return down;
+    }
+
+    // 获取单位防御固定加成（integer）
+    private function GetUnitDefenseBonusInteger(unit u) -> integer {
+        integer uid; integer bonus;
+        if (u == null) { return 0; }
+        uid = GetHandleId(u);
+        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER)) {
+            bonus = LoadInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER);
+        } else {
+            bonus = 0;
+        }
+        return bonus;
+    }
+
+    // 获取当前单位防御总倍率：(1 + up) * (1 - down)，默认 1.0
+    public function GetUnitDefenseFinalPercent(unit u) -> real {
+        real up; real down; real rate;
+        if (u == null) { return 1.0; }
+        up = GetUnitDefenseUpRate(u);
+        down = GetUnitDefenseDownRate(u);
+        rate = (1.0 + up) * (1.0 - down);
+        return rate;
+    }
+
+    // 获取单位"基础防御"（不含增减幅与定值）
+    public function GetUnitBaseDefense(unit u) -> integer {
+        integer uid; integer base; integer cur;
+
+        if (u == null) { return 0; }
+
+        uid = GetHandleId(u);
+
+        // 若已缓存基础防御，则直接返回
+        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BASE_INTEGER)) {
+            return LoadInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BASE_INTEGER);
+        }
+
+        // 未初始化时，仅根据当前总防御计算并返回，但不写入哈希表
+        cur = R2I(GetUnitState(u, ConvertUnitState(UNIT_STATE_ARMOR)));
+        base = cur;
+
+        return base;
+    }
+
+    // 计算单位当前"最终防御"（基础 * 总倍率 + 定值）
+    private function CalcUnitFinalDefenseInteger(unit u) -> integer {
+        integer base; real rate; integer bonus;
+
+        if (u == null) { return 0; }
+
+        base = GetUnitBaseDefense(u);
+        rate = GetUnitDefenseFinalPercent(u);
+        bonus = GetUnitDefenseBonusInteger(u);
+
+        return R2I(I2R(base) * rate) + bonus;
+    }
+
+    //重新计算单位当前防御（应用增减幅与定值）
+    private function RecalcUnitDefense(unit u) -> nothing {
+        integer total; integer uid; integer cur; integer base;
+        if (u == null) { return; }
+
+        // 懒初始化单位的基础防御缓存
+        uid = GetHandleId(u);
+        if (!HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BASE_INTEGER)) {
+            cur = R2I(GetUnitState(u, ConvertUnitState(UNIT_STATE_ARMOR)));
+            base = cur;
+            SaveInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BASE_INTEGER, base);
+        }
+
+        total = CalcUnitFinalDefenseInteger(u);
+        SetUnitState(u, ConvertUnitState(UNIT_STATE_ARMOR), I2R(total));
+    }
+
     public function GetUnitDefense(unit u) -> integer {
         return R2I(GetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR)));
+    }
+
+    //=====================
+    // 生命值扩展工具函数
+    //=====================
+
+    // 获取单位生命值增幅（real）
+    private function GetUnitHPUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HP_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_HP_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
+
+    // 获取单位生命值减幅（real）
+    private function GetUnitHPDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HP_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_HP_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return down;
+    }
+
+    // 获取单位生命值固定加成（real）
+    private function GetUnitHPBonusReal(unit u) -> real {
+        integer uid; real bonus;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HP_BONUS_REAL)) {
+            bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_HP_BONUS_REAL);
+        } else {
+            bonus = 0.0;
+        }
+        return bonus;
+    }
+
+    // 获取当前单位生命值总倍率：(1 + up) * (1 - down)，默认 1.0
+    public function GetUnitHPFinalPercent(unit u) -> real {
+        real up; real down; real rate;
+        if (u == null) { return 1.0; }
+        up = GetUnitHPUpRate(u);
+        down = GetUnitHPDownRate(u);
+        rate = (1.0 + up) * (1.0 - down);
+        return rate;
+    }
+
+    // 获取单位"基础生命值"（不含增减幅与定值）
+    public function GetUnitBaseHP(unit u) -> real {
+        integer uid; real base; real cur;
+
+        if (u == null) { return 0.0; }
+
+        uid = GetHandleId(u);
+
+        // 若已缓存基础生命值，则直接返回
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HP_BASE_REAL)) {
+            return LoadReal(HASH_UNIT, uid, KEY_UNIT_HP_BASE_REAL);
+        }
+
+        // 未初始化时，仅根据当前总生命值计算并返回，但不写入哈希表
+        cur = GetUnitState(u, UNIT_STATE_MAX_LIFE);
+        base = cur;
+
+        return base;
+    }
+
+    // 计算单位当前"最终生命值"（基础 * 总倍率 + 定值）
+    private function CalcUnitFinalHPReal(unit u) -> real {
+        real base; real rate; real bonus;
+
+        if (u == null) { return 0.0; }
+
+        base = GetUnitBaseHP(u);
+        rate = GetUnitHPFinalPercent(u);
+        bonus = GetUnitHPBonusReal(u);
+
+        return base * rate + bonus;
+    }
+
+    //重新计算单位当前生命值（应用增减幅与定值）
+    private function RecalcUnitHP(unit u) -> nothing {
+        real total; integer uid; real cur; real base;
+        if (u == null) { return; }
+
+        // 懒初始化单位的基础生命值缓存
+        uid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HP_BASE_REAL)) {
+            cur = GetUnitState(u, UNIT_STATE_MAX_LIFE);
+            base = cur;
+            SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_BASE_REAL, base);
+        }
+
+        total = CalcUnitFinalHPReal(u);
+        SetUnitState(u, UNIT_STATE_MAX_LIFE, RMaxBJ(total, 2.0));
     }
 
     public function GetUnitHP(unit u) -> real {
         return GetUnitState(u,UNIT_STATE_MAX_LIFE);
     }
 
-    public function GetUnitMP(unit u) -> real {
-        return GetUnitState(u,UNIT_STATE_MAX_MANA);
+    //=====================
+    // 魔法值扩展工具函数
+    //=====================
+
+    // 获取单位魔法值增幅（real）
+    private function GetUnitMPUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
     }
 
-    // 获取英雄的主属性类型：
-    //  - 返回值：0=力量(STR)，1=敏捷(AGI)，2=智力(INT)，0 也作为默认/未知值
-    //  - 优先从 HASH_UNIT/KEY_UNIT_MAIN_ATTR_TYPE 中读取，可被其他系统覆盖
-    //  - 若未缓存，则通过对象编辑器字段 Primary 读取并缓存
-    public function GetUnitMainAttrType(unit u) -> integer {
-        integer uid; integer attrType; integer unitTypeId; string primary;
+    // 获取单位魔法值减幅（real）
+    private function GetUnitMPDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return down;
+    }
 
-        if (u == null) { return 0; }
+    // 获取单位魔法值固定加成（real）
+    private function GetUnitMPBonusReal(unit u) -> real {
+        integer uid; real bonus;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_BONUS_REAL)) {
+            bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_BONUS_REAL);
+        } else {
+            bonus = 0.0;
+        }
+        return bonus;
+    }
+
+    // 获取当前单位魔法值总倍率：(1 + up) * (1 - down)，默认 1.0
+    public function GetUnitMPFinalPercent(unit u) -> real {
+        real up; real down; real rate;
+        if (u == null) { return 1.0; }
+        up = GetUnitMPUpRate(u);
+        down = GetUnitMPDownRate(u);
+        rate = (1.0 + up) * (1.0 - down);
+        return rate;
+    }
+
+    // 获取单位"基础魔法值"（不含增减幅与定值）
+    public function GetUnitBaseMP(unit u) -> real {
+        integer uid; real base; real cur;
+
+        if (u == null) { return 0.0; }
 
         uid = GetHandleId(u);
 
-        // 优先：哈希表中的自定义主属性类型
-        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_TYPE)) {
-            return LoadInteger(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_TYPE);
+        // 若已缓存基础魔法值，则直接返回
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_BASE_REAL)) {
+            return LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_BASE_REAL);
         }
 
-        unitTypeId = GetUnitTypeId(u);
-        if (!IsHeroUnitId(unitTypeId)) {
-            return 0;
-        }
+        // 未初始化时，仅根据当前总魔法值计算并返回，但不写入哈希表
+        cur = GetUnitState(u, UNIT_STATE_MAX_MANA);
+        base = cur;
 
-        // 通过对象编辑器获取 Primary 字段（STR/AGI/INT）
-        primary = YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_UNIT, unitTypeId, "Primary");
-
-        if (primary == "STR") {
-            attrType = 0;
-        } else if (primary == "AGI") {
-            attrType = 1;
-        } else if (primary == "INT") {
-            attrType = 2;
-        } else {
-            attrType = 0;
-        }
-
-        // 缓存结果，避免频繁读取对象编辑器
-        SaveInteger(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_TYPE, attrType);
-
-        primary = null;
-        return attrType;
+        return base;
     }
 
-    // 获取英雄当前主属性数值（整数）：
-    //  - 根据 GetUnitMainAttrType 返回的类型，读取对应的力量/敏捷/智力
-    //  - 非英雄或未知类型返回 0
-    public function GetUnitMainAttrValue(unit u) -> integer {
-        integer unitTypeId; integer attrType; integer value;
+    // 计算单位当前"最终魔法值"（基础 * 总倍率 + 定值）
+    private function CalcUnitFinalMPReal(unit u) -> real {
+        real base; real rate; real bonus;
 
-        if (u == null) { return 0; }
+        if (u == null) { return 0.0; }
 
-        unitTypeId = GetUnitTypeId(u);
-        if (!IsHeroUnitId(unitTypeId)) {
-            return 0;
+        base = GetUnitBaseMP(u);
+        rate = GetUnitMPFinalPercent(u);
+        bonus = GetUnitMPBonusReal(u);
+
+        return base * rate + bonus;
+    }
+
+    //重新计算单位当前魔法值（应用增减幅与定值）
+    private function RecalcUnitMP(unit u) -> nothing {
+        real total; integer uid; real cur; real base;
+        if (u == null) { return; }
+
+        // 懒初始化单位的基础魔法值缓存
+        uid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_BASE_REAL)) {
+            cur = GetUnitState(u, UNIT_STATE_MAX_MANA);
+            base = cur;
+            SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_BASE_REAL, base);
         }
 
-        attrType = GetUnitMainAttrType(u);
+        total = CalcUnitFinalMPReal(u);
+        SetUnitState(u, UNIT_STATE_MAX_MANA, total);
+    }
 
-        if (attrType == 0) {
-            value = R2I(GetHeroStr(u, true));
-        } else if (attrType == 1) {
-            value = R2I(GetHeroAgi(u, true));
-        } else if (attrType == 2) {
-            value = R2I(GetHeroInt(u, true));
-        } else {
-            value = 0;
-        }
-
-        return value;
+    public function GetUnitMP(unit u) -> real {
+        return GetUnitState(u,UNIT_STATE_MAX_MANA);
     }
 
     // 获取当前单位攻击力的扩展倍数（10 的 n 次方，使用 real 存储）
@@ -473,21 +713,129 @@ library UnitUtils requires BigInteger,MathUtils {
 
     //设置防御
     public function SetUnitDefense(unit u, real defense) -> nothing {
-        SetUnitState(u,ConvertUnitState(UNIT_STATE_ARMOR),defense);
+        integer value; integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        value = R2I(defense);
+        // 直接设置基础防御，并按照当前增减幅/定值重算最终防御
+        SaveInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BASE_INTEGER, value);
+        RecalcUnitDefense(u);
     }
-    //增加防御
+    //增加防御（只加基础值）
     public function AddUnitDefense(unit u, real defense) -> nothing {
-        SetUnitDefense(u,GetUnitDefense(u)+defense);
+        integer base; integer uid;
+        if (u == null || defense == 0.0) { return; }
+        uid = GetHandleId(u);
+        base = GetUnitBaseDefense(u);
+        base = base + R2I(defense);
+        SaveInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BASE_INTEGER, base);
+        RecalcUnitDefense(u);
+    }
+
+    // 增加防御增幅（百分比形式，value 为小数，如 0.2 表示 +20%）
+    public function AddUnitDefenseUpPercent(unit u, real value) -> nothing {
+        integer uid; real up;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        up = GetUnitDefenseUpRate(u);
+        up = up + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_UP_RATE, up);
+
+        RecalcUnitDefense(u);
+    }
+
+    // 增加防御减幅（value 为小数，如 0.3 表示 -30%）
+    public function AddUnitDefenseDownPercent(unit u, real value) -> nothing {
+        integer uid; real down;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        down = GetUnitDefenseDownRate(u);
+        down = RealAdd(down, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_DEFENSE_DOWN_RATE, down);
+
+        RecalcUnitDefense(u);
+    }
+
+    // 增加固定防御值（不受增减幅影响）
+    public function AddUnitDefenseBonus(unit u, integer value) -> nothing {
+        integer uid; integer bonus;
+
+        if (u == null || value == 0) { return; }
+
+        uid = GetHandleId(u);
+        bonus = GetUnitDefenseBonusInteger(u);
+        bonus = bonus + value;
+        SaveInteger(HASH_UNIT, uid, KEY_UNIT_DEFENSE_BONUS_INTEGER, bonus);
+
+        RecalcUnitDefense(u);
     }
 
     //修改生命最大值
     public function SetUnitHP(unit u, real hp) -> nothing {
-        SetUnitState(u,UNIT_STATE_MAX_LIFE,RMaxBJ(hp,2.0));
+        real value; integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        value = hp;
+        // 直接设置基础生命值，并按照当前增减幅/定值重算最终生命值
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_BASE_REAL, value);
+        RecalcUnitHP(u);
     }
-    //增加生命最大值
+    //增加生命最大值（只加基础值）
     public function AddUnitHP(unit u,real hp ) {
-        SetUnitHP(u,RMaxBJ(GetUnitHP(u)+hp,10.0));
+        real base; integer uid;
+        if (u == null || hp == 0.0) { return; }
+        uid = GetHandleId(u);
+        base = GetUnitBaseHP(u);
+        base = base + hp;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_BASE_REAL, base);
+        RecalcUnitHP(u);
         if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
+    }
+
+    // 增加生命值增幅（百分比形式，value 为小数，如 0.2 表示 +20%）
+    public function AddUnitHPUpPercent(unit u, real value) -> nothing {
+        integer uid; real up;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        up = GetUnitHPUpRate(u);
+        up = up + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_UP_RATE, up);
+
+        RecalcUnitHP(u);
+    }
+
+    // 增加生命值减幅（value 为小数，如 0.3 表示 -30%）
+    public function AddUnitHPDownPercent(unit u, real value) -> nothing {
+        integer uid; real down;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        down = GetUnitHPDownRate(u);
+        down = RealAdd(down, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_DOWN_RATE, down);
+
+        RecalcUnitHP(u);
+    }
+
+    // 增加固定生命值（不受增减幅影响）
+    public function AddUnitHPBonus(unit u, real value) -> nothing {
+        integer uid; real bonus;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        bonus = GetUnitHPBonusReal(u);
+        bonus = bonus + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_BONUS_REAL, bonus);
+
+        RecalcUnitHP(u);
     }
     //回血(定值)
     public function RegenUnitHP(unit u, real volume) -> nothing {
@@ -500,13 +848,82 @@ library UnitUtils requires BigInteger,MathUtils {
 
     //设置魔法最大值
     public function SetUnitMP(unit u, real mp) -> nothing {
-        SetUnitState(u,UNIT_STATE_MAX_MANA,mp);
+        real value; integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        value = mp;
+        // 直接设置基础魔法值，并按照当前增减幅/定值重算最终魔法值
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_BASE_REAL, value);
+        RecalcUnitMP(u);
     }
-    //增加魔法最大值
+    //增加魔法最大值（只加基础值）
     public function AddUnitMP(unit u,real mp ) {
-        SetUnitMP(u,GetUnitMP(u)+mp);
+        real base; integer uid;
+        if (u == null || mp == 0.0) { return; }
+        uid = GetHandleId(u);
+        base = GetUnitBaseMP(u);
+        base = base + mp;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_BASE_REAL, base);
+        RecalcUnitMP(u);
         if (mp > 0) {SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+mp);}
     }
+
+    // 增加魔法值增幅（百分比形式，value 为小数，如 0.2 表示 +20%）
+    public function AddUnitMPUpPercent(unit u, real value) -> nothing {
+        integer uid; real up;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        up = GetUnitMPUpRate(u);
+        up = up + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE, up);
+
+        RecalcUnitMP(u);
+    }
+
+    // 增加魔法值减幅（value 为小数，如 0.3 表示 -30%）
+    public function AddUnitMPDownPercent(unit u, real value) -> nothing {
+        integer uid; real down;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        down = GetUnitMPDownRate(u);
+        down = RealAdd(down, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE, down);
+
+        RecalcUnitMP(u);
+    }
+
+    // 增加固定魔法值（不受增减幅影响）
+    public function AddUnitMPBonus(unit u, real value) -> nothing {
+        integer uid; real bonus;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        bonus = GetUnitMPBonusReal(u);
+        bonus = bonus + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_BONUS_REAL, bonus);
+
+        RecalcUnitMP(u);
+    }
+
+
+    //初始化上述属性
+    public function InitAllUnitAttr (unit u ) {
+        if (IsUnitBigInteger(u)) {
+            AddUnitAttack(u,GetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_DAMAGE_BASE)));
+        } else {
+            AddUnitAttack(u,0);
+        }
+        AddUnitDefense(u,0);
+        AddUnitHP(u,0);
+        AddUnitMP(u,0);
+    }
+
+
     //回蓝(定值)
     public function RegenUnitMP(unit u, real volume) -> nothing {
         SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+volume);
