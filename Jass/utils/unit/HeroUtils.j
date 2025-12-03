@@ -103,64 +103,54 @@ library HeroUtils requires UnitUtils {
     }
 
     //=====================
-    // 三维基础属性（虚拟基础值）
+    // 基础三维原始值（仅 BigInteger，兜底 0）
     //=====================
 
-    // 仅负责读取基础值，不做写入
-    private function GetUnitBaseStr(unit u) -> real {
-        player p; real base;
+    private function GetUnitBaseStrRaw(unit u) -> real {
+        player p; real value;
 
         if (u == null) { return 0.0; }
-
-        if (!IsUnitBigInteger(u)) {
-            return GetHeroStr(u, true);
-        }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
 
         p = GetOwningPlayer(u);
-        base = bigInteger.toReal(p, HASH_KEY_BIGINT_STR);
+        value = bigInteger.toReal(p, HASH_KEY_BIGINT_STR);
         p = null;
 
-        return base;
+        return value;
     }
 
-    private function GetUnitBaseAgi(unit u) -> real {
-        player p; real base;
+    private function GetUnitBaseAgiRaw(unit u) -> real {
+        player p; real value;
 
         if (u == null) { return 0.0; }
-
-        if (!IsUnitBigInteger(u)) {
-            return GetHeroAgi(u, true);
-        }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
 
         p = GetOwningPlayer(u);
-        base = bigInteger.toReal(p, HASH_KEY_BIGINT_AGI);
+        value = bigInteger.toReal(p, HASH_KEY_BIGINT_AGI);
         p = null;
 
-        return base;
+        return value;
     }
 
-    private function GetUnitBaseInt(unit u) -> real {
-        player p; real base;
+    private function GetUnitBaseIntRaw(unit u) -> real {
+        player p; real value;
 
         if (u == null) { return 0.0; }
-
-        if (!IsUnitBigInteger(u)) {
-            return GetHeroInt(u, true);
-        }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
 
         p = GetOwningPlayer(u);
-        base = bigInteger.toReal(p, HASH_KEY_BIGINT_INT);
+        value = bigInteger.toReal(p, HASH_KEY_BIGINT_INT);
         p = null;
 
-        return base;
+        return value;
     }
 
     //=====================
-    // 主/次属性（虚拟数值与倍率）
+    // 主/次属性（虚拟数值与倍率，外部只暴露 Add 系列）
     //=====================
 
-    // 主属性当前数值（只对大数英雄生效）
-    public function GetUnitMainAttrValue(unit u) -> real {
+    // 主属性当前数值（内部使用）
+    private function GetMainAttrValueReal(unit u) -> real {
         player p; real value;
 
         if (u == null) { return 0.0; }
@@ -173,23 +163,51 @@ library HeroUtils requires UnitUtils {
         return value;
     }
 
-    public function SetUnitMainAttrValue(unit u, real value) {
-        player p;
+    private function GetMainAttrBonusReal(unit u) -> real {
+        player p; real bonus;
 
-        if (u == null) { return; }
-        if (!IsUnitBigInteger(u)) { return; }
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
 
         p = GetOwningPlayer(u);
-        bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
-        if (value > 0.0) {
-            bigInteger.addReal(p, HASH_KEY_BIGINT_MAIN, value);
-        }
+        bonus = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_BONUS);
         p = null;
 
-        heroAttrObserver.argsU = u;
-        heroAttrObserver.fire(-1);
+        return bonus;
     }
 
+    // 主属性增减幅（real，累积，内部）
+    private function GetMainAttrUpRate(unit u) -> real {
+        integer uid; real up;
+
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
+
+    private function GetMainAttrDownRate(unit u) -> real {
+        integer uid; real down;
+
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return down;
+    }
+
+    // 仅保留 Add 系列给外部调用
     public function AddUnitMainAttrValue(unit u, real value) {
         player p;
 
@@ -207,19 +225,6 @@ library HeroUtils requires UnitUtils {
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(-1);
-    }
-
-    public function GetUnitMainAttrBonus(unit u) -> real {
-        player p; real bonus;
-
-        if (u == null) { return 0.0; }
-        if (!IsUnitBigInteger(u)) { return 0.0; }
-
-        p = GetOwningPlayer(u);
-        bonus = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_BONUS);
-        p = null;
-
-        return bonus;
     }
 
     public function AddUnitMainAttrBonus(unit u, real value) {
@@ -241,39 +246,6 @@ library HeroUtils requires UnitUtils {
         heroAttrObserver.fire(-1);
     }
 
-    // 主属性增减幅（real，累积）
-    private function GetUnitMainAttrUpRate(unit u) -> real {
-        integer uid; real up;
-
-        if (u == null) { return 0.0; }
-        if (!IsUnitBigInteger(u)) { return 0.0; }
-
-        uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HP_UP_RATE)) {
-            // 复用生命 up 键不合适，这里可扩展新键；先返回 0.0 占位
-            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_HP_UP_RATE);
-        } else {
-            up = 0.0;
-        }
-        return up;
-    }
-
-    private function GetUnitMainAttrDownRate(unit u) -> real {
-        integer uid; real down;
-
-        if (u == null) { return 0.0; }
-        if (!IsUnitBigInteger(u)) { return 0.0; }
-
-        uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HP_DOWN_RATE)) {
-            // 同上，仅为占位，后续可独立键位
-            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_HP_DOWN_RATE);
-        } else {
-            down = 0.0;
-        }
-        return down;
-    }
-
     public function AddUnitMainAttrUpPercent(unit u, real value) {
         integer uid; real up;
 
@@ -281,9 +253,9 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return; }
 
         uid = GetHandleId(u);
-        up = GetUnitMainAttrUpRate(u);
+        up = GetMainAttrUpRate(u);
         up = up + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_UP_RATE, up);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_UP_RATE, up);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(-1);
@@ -296,30 +268,16 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return; }
 
         uid = GetHandleId(u);
-        down = GetUnitMainAttrDownRate(u);
+        down = GetMainAttrDownRate(u);
         down = down + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_DOWN_RATE, down);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MAIN_ATTR_DOWN_RATE, down);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(-1);
     }
 
-    // 主属性自己的最终倍率
-    public function GetUnitMainAttrFinalPercent(unit u) -> real {
-        real up; real down; real rate;
-
-        if (u == null) { return 1.0; }
-        if (!IsUnitBigInteger(u)) { return 1.0; }
-
-        up = GetUnitMainAttrUpRate(u);
-        down = GetUnitMainAttrDownRate(u);
-        rate = (1.0 + up) * (1.0 - down);
-
-        return rate;
-    }
-
-    // 次属性（两种次属性共用一套）
-    public function GetUnitSubAttrValue(unit u) -> real {
+    // 次属性（两种次属性共用一套，内部使用）
+    private function GetSubAttrValueReal(unit u) -> real {
         player p; real value;
 
         if (u == null) { return 0.0; }
@@ -332,23 +290,53 @@ library HeroUtils requires UnitUtils {
         return value;
     }
 
-    public function SetUnitSubAttrValue(unit u, real value) {
-        player p;
+    private function GetSubAttrBonusReal(unit u) -> real {
+        player p; real bonus;
 
-        if (u == null) { return; }
-        if (!IsUnitBigInteger(u)) { return; }
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
 
         p = GetOwningPlayer(u);
-        bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
-        if (value > 0.0) {
-            bigInteger.addReal(p, HASH_KEY_BIGINT_SUB, value);
-        }
+        bonus = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_BONUS);
         p = null;
 
-        heroAttrObserver.argsU = u;
-        heroAttrObserver.fire(-1);
+        return bonus;
     }
 
+    // 次属性增减幅（内部）
+    private function GetSubAttrUpRate(unit u) -> real {
+        integer uid; real up;
+
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_SUB_ATTR_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_SUB_ATTR_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+
+        return up;
+    }
+
+    private function GetSubAttrDownRate(unit u) -> real {
+        integer uid; real down;
+
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_SUB_ATTR_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_SUB_ATTR_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+
+        return down;
+    }
+
+    // 次属性对外仅暴露 Add 系列
     public function AddUnitSubAttrValue(unit u, real value) {
         player p;
 
@@ -366,19 +354,6 @@ library HeroUtils requires UnitUtils {
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(-1);
-    }
-
-    public function GetUnitSubAttrBonus(unit u) -> real {
-        player p; real bonus;
-
-        if (u == null) { return 0.0; }
-        if (!IsUnitBigInteger(u)) { return 0.0; }
-
-        p = GetOwningPlayer(u);
-        bonus = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_BONUS);
-        p = null;
-
-        return bonus;
     }
 
     public function AddUnitSubAttrBonus(unit u, real value) {
@@ -400,38 +375,6 @@ library HeroUtils requires UnitUtils {
         heroAttrObserver.fire(-1);
     }
 
-    private function GetUnitSubAttrUpRate(unit u) -> real {
-        integer uid; real up;
-
-        if (u == null) { return 0.0; }
-        if (!IsUnitBigInteger(u)) { return 0.0; }
-
-        uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE)) {
-            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE);
-        } else {
-            up = 0.0;
-        }
-
-        return up;
-    }
-
-    private function GetUnitSubAttrDownRate(unit u) -> real {
-        integer uid; real down;
-
-        if (u == null) { return 0.0; }
-        if (!IsUnitBigInteger(u)) { return 0.0; }
-
-        uid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE)) {
-            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE);
-        } else {
-            down = 0.0;
-        }
-
-        return down;
-    }
-
     public function AddUnitSubAttrUpPercent(unit u, real value) {
         integer uid; real up;
 
@@ -439,9 +382,9 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return; }
 
         uid = GetHandleId(u);
-        up = GetUnitSubAttrUpRate(u);
+        up = GetSubAttrUpRate(u);
         up = up + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_UP_RATE, up);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_SUB_ATTR_UP_RATE, up);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(-1);
@@ -454,25 +397,12 @@ library HeroUtils requires UnitUtils {
         if (!IsUnitBigInteger(u)) { return; }
 
         uid = GetHandleId(u);
-        down = GetUnitSubAttrDownRate(u);
+        down = GetSubAttrDownRate(u);
         down = down + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_MP_DOWN_RATE, down);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_SUB_ATTR_DOWN_RATE, down);
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(-1);
-    }
-
-    public function GetUnitSubAttrFinalPercent(unit u) -> real {
-        real up; real down; real rate;
-
-        if (u == null) { return 1.0; }
-        if (!IsUnitBigInteger(u)) { return 1.0; }
-
-        up = GetUnitSubAttrUpRate(u);
-        down = GetUnitSubAttrDownRate(u);
-        rate = (1.0 + up) * (1.0 - down);
-
-        return rate;
     }
 
     //=====================
@@ -766,42 +696,169 @@ library HeroUtils requires UnitUtils {
     }
 
     //=====================
+    // 三维属性基础值（基础 + 主/次属性数值）
+    //=====================
+
+    public function GetUnitBaseStr(unit u) -> real {
+        integer mainType; real base; real mainVal; real subVal;
+
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
+
+        mainType = GetUnitMainAttrType(u);
+        base = GetUnitBaseStrRaw(u);
+        mainVal = GetMainAttrValueReal(u);
+        subVal = GetSubAttrValueReal(u);
+
+        if (mainType == 0) {
+            return base + mainVal;
+        }
+
+        return base + subVal;
+    }
+
+    public function GetUnitBaseAgi(unit u) -> real {
+        integer mainType; real base; real mainVal; real subVal;
+
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
+
+        mainType = GetUnitMainAttrType(u);
+        base = GetUnitBaseAgiRaw(u);
+        mainVal = GetMainAttrValueReal(u);
+        subVal = GetSubAttrValueReal(u);
+
+        if (mainType == 1) {
+            return base + mainVal;
+        }
+
+        return base + subVal;
+    }
+
+    public function GetUnitBaseInt(unit u) -> real {
+        integer mainType; real base; real mainVal; real subVal;
+
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
+
+        mainType = GetUnitMainAttrType(u);
+        base = GetUnitBaseIntRaw(u);
+        mainVal = GetMainAttrValueReal(u);
+        subVal = GetSubAttrValueReal(u);
+
+        if (mainType == 2) {
+            return base + mainVal;
+        }
+
+        return base + subVal;
+    }
+
+    //=====================
+    // 三维属性最终倍率 (1+attrUp+subUp)*(1-attrDown)*(1-subDown)
+    //=====================
+
+    private function GetUnitStrFinalPercentInternal(unit u) -> real {
+        integer mainType; real attrUp; real attrDown; real layerUp; real layerDown;
+
+        if (u == null) { return 1.0; }
+        if (!IsUnitBigInteger(u)) { return 1.0; }
+
+        mainType = GetUnitMainAttrType(u);
+        attrUp = GetUnitStrUpRate(u);
+        attrDown = GetUnitStrDownRate(u);
+
+        if (mainType == 0) {
+            layerUp = GetMainAttrUpRate(u);
+            layerDown = GetMainAttrDownRate(u);
+        } else {
+            layerUp = GetSubAttrUpRate(u);
+            layerDown = GetSubAttrDownRate(u);
+        }
+
+        return (1.0 + attrUp + layerUp) * (1.0 - attrDown) * (1.0 - layerDown);
+    }
+
+    public function GetUnitStrFinalPercent(unit u) -> real {
+        return GetUnitStrFinalPercentInternal(u);
+    }
+
+    private function GetUnitAgiFinalPercentInternal(unit u) -> real {
+        integer mainType; real attrUp; real attrDown; real layerUp; real layerDown;
+
+        if (u == null) { return 1.0; }
+        if (!IsUnitBigInteger(u)) { return 1.0; }
+
+        mainType = GetUnitMainAttrType(u);
+        attrUp = GetUnitAgiUpRate(u);
+        attrDown = GetUnitAgiDownRate(u);
+
+        if (mainType == 1) {
+            layerUp = GetMainAttrUpRate(u);
+            layerDown = GetMainAttrDownRate(u);
+        } else {
+            layerUp = GetSubAttrUpRate(u);
+            layerDown = GetSubAttrDownRate(u);
+        }
+
+        return (1.0 + attrUp + layerUp) * (1.0 - attrDown) * (1.0 - layerDown);
+    }
+
+    public function GetUnitAgiFinalPercent(unit u) -> real {
+        return GetUnitAgiFinalPercentInternal(u);
+    }
+
+    private function GetUnitIntFinalPercentInternal(unit u) -> real {
+        integer mainType; real attrUp; real attrDown; real layerUp; real layerDown;
+
+        if (u == null) { return 1.0; }
+        if (!IsUnitBigInteger(u)) { return 1.0; }
+
+        mainType = GetUnitMainAttrType(u);
+        attrUp = GetUnitIntUpRate(u);
+        attrDown = GetUnitIntDownRate(u);
+
+        if (mainType == 2) {
+            layerUp = GetMainAttrUpRate(u);
+            layerDown = GetMainAttrDownRate(u);
+        } else {
+            layerUp = GetSubAttrUpRate(u);
+            layerDown = GetSubAttrDownRate(u);
+        }
+
+        return (1.0 + attrUp + layerUp) * (1.0 - attrDown) * (1.0 - layerDown);
+    }
+
+    public function GetUnitIntFinalPercent(unit u) -> real {
+        return GetUnitIntFinalPercentInternal(u);
+    }
+
+    //=====================
     // 三维属性 set/add/get（大数英雄专用）
     //=====================
 
     public function GetUnitStr(unit u) -> real {
-        integer mainType; real base; real valueMain; real valueSub; real bonusMain; real bonusAttr; real upAttr; real downAttr; real upMain; real downMain; real upSub; real downSub; real finalPercent;
+        integer mainType; real baseRaw; real mainVal; real subVal; real bonusAttr; real bonusOther; real finalPercent;
 
         if (u == null) { return 0.0; }
-
-        if (!IsUnitBigInteger(u)) {
-            return GetHeroStr(u, true);
-        }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
 
-        base = GetUnitBaseStr(u);
+        baseRaw = GetUnitBaseStrRaw(u);
+        mainVal = GetMainAttrValueReal(u);
+        subVal = GetSubAttrValueReal(u);
+
         bonusAttr = GetUnitStrBonusReal(u);
-        upAttr = GetUnitStrUpRate(u);
-        downAttr = GetUnitStrDownRate(u);
-
-        valueMain = GetUnitMainAttrValue(u);
-        bonusMain = GetUnitMainAttrBonus(u);
-        upMain = GetUnitMainAttrUpRate(u);
-        downMain = GetUnitMainAttrDownRate(u);
-
-        valueSub = GetUnitSubAttrValue(u);
-        upSub = GetUnitSubAttrUpRate(u);
-        downSub = GetUnitSubAttrDownRate(u);
 
         if (mainType == 0) {
-            finalPercent = (1.0 + upAttr + upMain) * (1.0 - downAttr) * (1.0 - downMain);
-            return (base + valueMain) * finalPercent + (bonusAttr + bonusMain);
+            bonusOther = GetMainAttrBonusReal(u);
+            finalPercent = GetUnitStrFinalPercentInternal(u);
+            return (baseRaw + mainVal) * finalPercent + (bonusAttr + bonusOther);
         }
 
-        // 力量作为次属性
-        finalPercent = (1.0 + upAttr + upSub) * (1.0 - downAttr) * (1.0 - downSub);
-        return (base + valueSub) * finalPercent + (bonusAttr + GetUnitSubAttrBonus(u));
+        bonusOther = GetSubAttrBonusReal(u);
+        finalPercent = GetUnitStrFinalPercentInternal(u);
+        return (baseRaw + subVal) * finalPercent + (bonusAttr + bonusOther);
     }
 
     public function SetUnitStr(unit u, real value) {
@@ -841,37 +898,28 @@ library HeroUtils requires UnitUtils {
     }
 
     public function GetUnitAgi(unit u) -> real {
-        integer mainType; real base; real valueMain; real valueSub; real bonusMain; real bonusAttr; real upAttr; real downAttr; real upMain; real downMain; real upSub; real downSub; real finalPercent;
+        integer mainType; real baseRaw; real mainVal; real subVal; real bonusAttr; real bonusOther; real finalPercent;
 
         if (u == null) { return 0.0; }
-
-        if (!IsUnitBigInteger(u)) {
-            return GetHeroAgi(u, true);
-        }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
 
-        base = GetUnitBaseAgi(u);
+        baseRaw = GetUnitBaseAgiRaw(u);
+        mainVal = GetMainAttrValueReal(u);
+        subVal = GetSubAttrValueReal(u);
+
         bonusAttr = GetUnitAgiBonusReal(u);
-        upAttr = GetUnitAgiUpRate(u);
-        downAttr = GetUnitAgiDownRate(u);
-
-        valueMain = GetUnitMainAttrValue(u);
-        bonusMain = GetUnitMainAttrBonus(u);
-        upMain = GetUnitMainAttrUpRate(u);
-        downMain = GetUnitMainAttrDownRate(u);
-
-        valueSub = GetUnitSubAttrValue(u);
-        upSub = GetUnitSubAttrUpRate(u);
-        downSub = GetUnitSubAttrDownRate(u);
 
         if (mainType == 1) {
-            finalPercent = (1.0 + upAttr + upMain) * (1.0 - downAttr) * (1.0 - downMain);
-            return (base + valueMain) * finalPercent + (bonusAttr + bonusMain);
+            bonusOther = GetMainAttrBonusReal(u);
+            finalPercent = GetUnitAgiFinalPercentInternal(u);
+            return (baseRaw + mainVal) * finalPercent + (bonusAttr + bonusOther);
         }
 
-        finalPercent = (1.0 + upAttr + upSub) * (1.0 - downAttr) * (1.0 - downSub);
-        return (base + valueSub) * finalPercent + (bonusAttr + GetUnitSubAttrBonus(u));
+        bonusOther = GetSubAttrBonusReal(u);
+        finalPercent = GetUnitAgiFinalPercentInternal(u);
+        return (baseRaw + subVal) * finalPercent + (bonusAttr + bonusOther);
     }
 
     public function SetUnitAgi(unit u, real value) {
@@ -911,37 +959,28 @@ library HeroUtils requires UnitUtils {
     }
 
     public function GetUnitInt(unit u) -> real {
-        integer mainType; real base; real valueMain; real valueSub; real bonusMain; real bonusAttr; real upAttr; real downAttr; real upMain; real downMain; real upSub; real downSub; real finalPercent;
+        integer mainType; real baseRaw; real mainVal; real subVal; real bonusAttr; real bonusOther; real finalPercent;
 
         if (u == null) { return 0.0; }
-
-        if (!IsUnitBigInteger(u)) {
-            return GetHeroInt(u, true);
-        }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
 
-        base = GetUnitBaseInt(u);
+        baseRaw = GetUnitBaseIntRaw(u);
+        mainVal = GetMainAttrValueReal(u);
+        subVal = GetSubAttrValueReal(u);
+
         bonusAttr = GetUnitIntBonusReal(u);
-        upAttr = GetUnitIntUpRate(u);
-        downAttr = GetUnitIntDownRate(u);
-
-        valueMain = GetUnitMainAttrValue(u);
-        bonusMain = GetUnitMainAttrBonus(u);
-        upMain = GetUnitMainAttrUpRate(u);
-        downMain = GetUnitMainAttrDownRate(u);
-
-        valueSub = GetUnitSubAttrValue(u);
-        upSub = GetUnitSubAttrUpRate(u);
-        downSub = GetUnitSubAttrDownRate(u);
 
         if (mainType == 2) {
-            finalPercent = (1.0 + upAttr + upMain) * (1.0 - downAttr) * (1.0 - downMain);
-            return (base + valueMain) * finalPercent + (bonusAttr + bonusMain);
+            bonusOther = GetMainAttrBonusReal(u);
+            finalPercent = GetUnitIntFinalPercentInternal(u);
+            return (baseRaw + mainVal) * finalPercent + (bonusAttr + bonusOther);
         }
 
-        finalPercent = (1.0 + upAttr + upSub) * (1.0 - downAttr) * (1.0 - downSub);
-        return (base + valueSub) * finalPercent + (bonusAttr + GetUnitSubAttrBonus(u));
+        bonusOther = GetSubAttrBonusReal(u);
+        finalPercent = GetUnitIntFinalPercentInternal(u);
+        return (baseRaw + subVal) * finalPercent + (bonusAttr + bonusOther);
     }
 
     public function SetUnitInt(unit u, real value) {
@@ -983,8 +1022,8 @@ library HeroUtils requires UnitUtils {
     /*
     使用说明简要：
       1. 调用 SetUnitMainAttrType(u, 0/1/2) 手动指定英雄主属性类型。
-      2. 使用 Set/AddUnitMainAttrValue / SubAttrValue / *Bonus / *UpPercent / *DownPercent
-         配置主属性与次属性整体加成。
+      2. 使用 AddUnitMainAttrValue / AddUnitSubAttrValue / *Bonus / *UpPercent / *DownPercent
+         配置主属性与次属性整体加成（仅对 BigInteger 英雄生效）。
       3. 使用 Set/AddUnitStr/Agi/Int 以及对应的 Up/Down/Bonus 操作三维属性本体。
       4. 外部系统通过 heroAttrObserver.registerAttrChanged 注册回调，
          在回调中使用 heroAttrObserver.argsU 与 argsAttrType 以及

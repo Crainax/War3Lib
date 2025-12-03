@@ -84,6 +84,12 @@
 #define KEY_UNIT_MP_DOWN_RATE                255610142 // 单位魔法值减幅累计值（real）
 #define KEY_UNIT_MP_BONUS_REAL               255610143 // 单位魔法值固定加成（real）
 
+// 主 / 次属性增减幅（英雄虚拟属性扩展用）
+#define KEY_UNIT_MAIN_ATTR_UP_RATE           255610144 // 主属性增幅累计值（real）
+#define KEY_UNIT_MAIN_ATTR_DOWN_RATE         255610145 // 主属性减幅累计值（real）
+#define KEY_UNIT_SUB_ATTR_UP_RATE            255610146 // 次属性增幅累计值（real）
+#define KEY_UNIT_SUB_ATTR_DOWN_RATE          255610147 // 次属性减幅累计值（real）
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物
