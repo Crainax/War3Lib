@@ -141,6 +141,136 @@ library HeroUtils requires UnitUtils {
     }
 
     //=====================
+    // 属性禁用与跨属性共享开关（内部布尔读取）
+    //=====================
+
+    private function isUnitStrDisabled(unit u) -> boolean {
+        integer uid;
+
+        if (u == null) { return false; }
+        if (!IsUnitBigInteger(u)) { return false; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, KEY_UNIT_STR_DISABLED)) {
+            return LoadBoolean(HASH_UNIT, uid, KEY_UNIT_STR_DISABLED);
+        }
+
+        return false;
+    }
+
+    private function isUnitAgiDisabled(unit u) -> boolean {
+        integer uid;
+
+        if (u == null) { return false; }
+        if (!IsUnitBigInteger(u)) { return false; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, KEY_UNIT_AGI_DISABLED)) {
+            return LoadBoolean(HASH_UNIT, uid, KEY_UNIT_AGI_DISABLED);
+        }
+
+        return false;
+    }
+
+    private function isUnitIntDisabled(unit u) -> boolean {
+        integer uid;
+
+        if (u == null) { return false; }
+        if (!IsUnitBigInteger(u)) { return false; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, KEY_UNIT_INT_DISABLED)) {
+            return LoadBoolean(HASH_UNIT, uid, KEY_UNIT_INT_DISABLED);
+        }
+
+        return false;
+    }
+
+    private function isStrToAgiShare(unit u) -> boolean {
+        integer uid;
+
+        if (u == null) { return false; }
+        if (!IsUnitBigInteger(u)) { return false; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, KEY_UNIT_STR_TO_AGI_SHARE)) {
+            return LoadBoolean(HASH_UNIT, uid, KEY_UNIT_STR_TO_AGI_SHARE);
+        }
+
+        return false;
+    }
+
+    private function isStrToIntShare(unit u) -> boolean {
+        integer uid;
+
+        if (u == null) { return false; }
+        if (!IsUnitBigInteger(u)) { return false; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, KEY_UNIT_STR_TO_INT_SHARE)) {
+            return LoadBoolean(HASH_UNIT, uid, KEY_UNIT_STR_TO_INT_SHARE);
+        }
+
+        return false;
+    }
+
+    private function isAgiToStrShare(unit u) -> boolean {
+        integer uid;
+
+        if (u == null) { return false; }
+        if (!IsUnitBigInteger(u)) { return false; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, KEY_UNIT_AGI_TO_STR_SHARE)) {
+            return LoadBoolean(HASH_UNIT, uid, KEY_UNIT_AGI_TO_STR_SHARE);
+        }
+
+        return false;
+    }
+
+    private function isAgiToIntShare(unit u) -> boolean {
+        integer uid;
+
+        if (u == null) { return false; }
+        if (!IsUnitBigInteger(u)) { return false; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, KEY_UNIT_AGI_TO_INT_SHARE)) {
+            return LoadBoolean(HASH_UNIT, uid, KEY_UNIT_AGI_TO_INT_SHARE);
+        }
+
+        return false;
+    }
+
+    private function isIntToStrShare(unit u) -> boolean {
+        integer uid;
+
+        if (u == null) { return false; }
+        if (!IsUnitBigInteger(u)) { return false; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, KEY_UNIT_INT_TO_STR_SHARE)) {
+            return LoadBoolean(HASH_UNIT, uid, KEY_UNIT_INT_TO_STR_SHARE);
+        }
+
+        return false;
+    }
+
+    private function isIntToAgiShare(unit u) -> boolean {
+        integer uid;
+
+        if (u == null) { return false; }
+        if (!IsUnitBigInteger(u)) { return false; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedBoolean(HASH_UNIT, uid, KEY_UNIT_INT_TO_AGI_SHARE)) {
+            return LoadBoolean(HASH_UNIT, uid, KEY_UNIT_INT_TO_AGI_SHARE);
+        }
+
+        return false;
+    }
+
+    //=====================
     // 基础三维原始值（仅 BigInteger，兜底 0）
     //=====================
 
@@ -729,77 +859,299 @@ library HeroUtils requires UnitUtils {
     }
 
     //=====================
+    // 属性禁用与跨属性共享开关（对外接口）
+    //=====================
+
+    // 关闭/开启虚拟力量属性：true=禁用，本体相关接口返回 0，但仍可作为共享来源
+    public function SetUnitStrDisabled(unit u, boolean flag) {
+        integer uid;
+
+        if (u == null) { return; }
+        if (!IsUnitBigInteger(u)) { return; }
+
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, KEY_UNIT_STR_DISABLED, flag);
+
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(0);
+    }
+
+    // 关闭/开启虚拟敏捷属性：true=禁用，本体相关接口返回 0，但仍可作为共享来源
+    public function SetUnitAgiDisabled(unit u, boolean flag) {
+        integer uid;
+
+        if (u == null) { return; }
+        if (!IsUnitBigInteger(u)) { return; }
+
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, KEY_UNIT_AGI_DISABLED, flag);
+
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(1);
+    }
+
+    // 关闭/开启虚拟智力属性：true=禁用，本体相关接口返回 0，但仍可作为共享来源
+    public function SetUnitIntDisabled(unit u, boolean flag) {
+        integer uid;
+
+        if (u == null) { return; }
+        if (!IsUnitBigInteger(u)) { return; }
+
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, KEY_UNIT_INT_DISABLED, flag);
+
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(2);
+    }
+
+    // 力量计入敏捷
+    public function SetUnitStrShareToAgi(unit u, boolean flag) {
+        integer uid;
+
+        if (u == null) { return; }
+        if (!IsUnitBigInteger(u)) { return; }
+
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, KEY_UNIT_STR_TO_AGI_SHARE, flag);
+
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(1);
+    }
+
+    // 力量计入智力
+    public function SetUnitStrShareToInt(unit u, boolean flag) {
+        integer uid;
+
+        if (u == null) { return; }
+        if (!IsUnitBigInteger(u)) { return; }
+
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, KEY_UNIT_STR_TO_INT_SHARE, flag);
+
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(2);
+    }
+
+    // 敏捷计入力量
+    public function SetUnitAgiShareToStr(unit u, boolean flag) {
+        integer uid;
+
+        if (u == null) { return; }
+        if (!IsUnitBigInteger(u)) { return; }
+
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, KEY_UNIT_AGI_TO_STR_SHARE, flag);
+
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(0);
+    }
+
+    // 敏捷计入智力
+    public function SetUnitAgiShareToInt(unit u, boolean flag) {
+        integer uid;
+
+        if (u == null) { return; }
+        if (!IsUnitBigInteger(u)) { return; }
+
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, KEY_UNIT_AGI_TO_INT_SHARE, flag);
+
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(2);
+    }
+
+    // 智力计入力量
+    public function SetUnitIntShareToStr(unit u, boolean flag) {
+        integer uid;
+
+        if (u == null) { return; }
+        if (!IsUnitBigInteger(u)) { return; }
+
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, KEY_UNIT_INT_TO_STR_SHARE, flag);
+
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(0);
+    }
+
+    // 智力计入敏捷
+    public function SetUnitIntShareToAgi(unit u, boolean flag) {
+        integer uid;
+
+        if (u == null) { return; }
+        if (!IsUnitBigInteger(u)) { return; }
+
+        uid = GetHandleId(u);
+        SaveBoolean(HASH_UNIT, uid, KEY_UNIT_INT_TO_AGI_SHARE, flag);
+
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(1);
+    }
+
+    //=====================
     // 三维属性基础值（基础 + 主/次属性数值）
     //=====================
 
     public function GetUnitBaseStr(unit u) -> real {
-        integer mainType; real base; real mainVal; real subVal;
+        integer mainType;
+        real base; real mainVal; real subVal;
+        real result; real shareBase;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
+        if (isUnitStrDisabled(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
         base = GetUnitBaseStrRaw(u);
         mainVal = GetMainAttrValueReal(u);
         subVal = GetSubAttrValueReal(u);
 
+        // 自身基础值
         if (mainType == 0) {
-            return base + mainVal;
+            result = base + mainVal;
+        } else {
+            result = base + subVal;
         }
 
-        return base + subVal;
+        // AGI -> STR 共享
+        if (isAgiToStrShare(u)) {
+            shareBase = GetUnitBaseAgiRaw(u);
+            if (mainType == 1) {
+                shareBase = shareBase + mainVal;
+            } else {
+                shareBase = shareBase + subVal;
+            }
+            result = result + shareBase;
+        }
+
+        // INT -> STR 共享
+        if (isIntToStrShare(u)) {
+            shareBase = GetUnitBaseIntRaw(u);
+            if (mainType == 2) {
+                shareBase = shareBase + mainVal;
+            } else {
+                shareBase = shareBase + subVal;
+            }
+            result = result + shareBase;
+        }
+
+        return result;
     }
 
     public function GetUnitBaseAgi(unit u) -> real {
-        integer mainType; real base; real mainVal; real subVal;
+        integer mainType;
+        real base; real mainVal; real subVal;
+        real result; real shareBase;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
+        if (isUnitAgiDisabled(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
         base = GetUnitBaseAgiRaw(u);
         mainVal = GetMainAttrValueReal(u);
         subVal = GetSubAttrValueReal(u);
 
+        // 自身基础值
         if (mainType == 1) {
-            return base + mainVal;
+            result = base + mainVal;
+        } else {
+            result = base + subVal;
         }
 
-        return base + subVal;
+        // STR -> AGI 共享
+        if (isStrToAgiShare(u)) {
+            shareBase = GetUnitBaseStrRaw(u);
+            if (mainType == 0) {
+                shareBase = shareBase + mainVal;
+            } else {
+                shareBase = shareBase + subVal;
+            }
+            result = result + shareBase;
+        }
+
+        // INT -> AGI 共享
+        if (isIntToAgiShare(u)) {
+            shareBase = GetUnitBaseIntRaw(u);
+            if (mainType == 2) {
+                shareBase = shareBase + mainVal;
+            } else {
+                shareBase = shareBase + subVal;
+            }
+            result = result + shareBase;
+        }
+
+        return result;
     }
 
     public function GetUnitBaseInt(unit u) -> real {
-        integer mainType; real base; real mainVal; real subVal;
+        integer mainType;
+        real base; real mainVal; real subVal;
+        real result; real shareBase;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
+        if (isUnitIntDisabled(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
         base = GetUnitBaseIntRaw(u);
         mainVal = GetMainAttrValueReal(u);
         subVal = GetSubAttrValueReal(u);
 
+        // 自身基础值
         if (mainType == 2) {
-            return base + mainVal;
+            result = base + mainVal;
+        } else {
+            result = base + subVal;
         }
 
-        return base + subVal;
+        // STR -> INT 共享
+        if (isStrToIntShare(u)) {
+            shareBase = GetUnitBaseStrRaw(u);
+            if (mainType == 0) {
+                shareBase = shareBase + mainVal;
+            } else {
+                shareBase = shareBase + subVal;
+            }
+            result = result + shareBase;
+        }
+
+        // AGI -> INT 共享
+        if (isAgiToIntShare(u)) {
+            shareBase = GetUnitBaseAgiRaw(u);
+            if (mainType == 1) {
+                shareBase = shareBase + mainVal;
+            } else {
+                shareBase = shareBase + subVal;
+            }
+            result = result + shareBase;
+        }
+
+        return result;
     }
 
     //=====================
-    // 三维属性最终倍率 (1+attrUp+subUp)*(1-attrDown)*(1-subDown)
+    // 三维属性最终倍率
+    //  - 基本公式：(1 + Σ(up)) * Π(1 - down)
+    //  - up = 本属性 up + 对应层 up（主/次属性）
+    //  - 若存在跨属性共享，则叠加共享来源的 up/down/layerUp/layerDown
     //=====================
 
     private function GetUnitStrFinalPercentInternal(unit u) -> real {
-        integer mainType; real attrUp; real attrDown; real layerUp; real layerDown;
+        integer mainType;
+        real attrUp; real attrDown; real layerUp; real layerDown;
+        real upSum; real downMul;
+        real otherAttrUp; real otherAttrDown; real otherLayerUp; real otherLayerDown;
 
         if (u == null) { return 1.0; }
         if (!IsUnitBigInteger(u)) { return 1.0; }
+        if (isUnitStrDisabled(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
+
+        // 自身 up/down
         attrUp = GetUnitStrUpRate(u);
         attrDown = GetUnitStrDownRate(u);
-
         if (mainType == 0) {
             layerUp = GetMainAttrUpRate(u);
             layerDown = GetMainAttrDownRate(u);
@@ -808,7 +1160,40 @@ library HeroUtils requires UnitUtils {
             layerDown = GetSubAttrDownRate(u);
         }
 
-        return (1.0 + attrUp + layerUp) * (1.0 - attrDown) * (1.0 - layerDown);
+        upSum = attrUp + layerUp;
+        downMul = (1.0 - attrDown) * (1.0 - layerDown);
+
+        // AGI -> STR 共享
+        if (isAgiToStrShare(u)) {
+            otherAttrUp = GetUnitAgiUpRate(u);
+            otherAttrDown = GetUnitAgiDownRate(u);
+            if (mainType == 1) {
+                otherLayerUp = GetMainAttrUpRate(u);
+                otherLayerDown = GetMainAttrDownRate(u);
+            } else {
+                otherLayerUp = GetSubAttrUpRate(u);
+                otherLayerDown = GetSubAttrDownRate(u);
+            }
+            upSum = upSum + otherAttrUp + otherLayerUp;
+            downMul = downMul * (1.0 - otherAttrDown) * (1.0 - otherLayerDown);
+        }
+
+        // INT -> STR 共享
+        if (isIntToStrShare(u)) {
+            otherAttrUp = GetUnitIntUpRate(u);
+            otherAttrDown = GetUnitIntDownRate(u);
+            if (mainType == 2) {
+                otherLayerUp = GetMainAttrUpRate(u);
+                otherLayerDown = GetMainAttrDownRate(u);
+            } else {
+                otherLayerUp = GetSubAttrUpRate(u);
+                otherLayerDown = GetSubAttrDownRate(u);
+            }
+            upSum = upSum + otherAttrUp + otherLayerUp;
+            downMul = downMul * (1.0 - otherAttrDown) * (1.0 - otherLayerDown);
+        }
+
+        return (1.0 + upSum) * downMul;
     }
 
     public function GetUnitStrFinalPercent(unit u) -> real {
@@ -816,15 +1201,20 @@ library HeroUtils requires UnitUtils {
     }
 
     private function GetUnitAgiFinalPercentInternal(unit u) -> real {
-        integer mainType; real attrUp; real attrDown; real layerUp; real layerDown;
+        integer mainType;
+        real attrUp; real attrDown; real layerUp; real layerDown;
+        real upSum; real downMul;
+        real otherAttrUp; real otherAttrDown; real otherLayerUp; real otherLayerDown;
 
         if (u == null) { return 1.0; }
         if (!IsUnitBigInteger(u)) { return 1.0; }
+        if (isUnitAgiDisabled(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
+
+        // 自身 up/down
         attrUp = GetUnitAgiUpRate(u);
         attrDown = GetUnitAgiDownRate(u);
-
         if (mainType == 1) {
             layerUp = GetMainAttrUpRate(u);
             layerDown = GetMainAttrDownRate(u);
@@ -833,7 +1223,40 @@ library HeroUtils requires UnitUtils {
             layerDown = GetSubAttrDownRate(u);
         }
 
-        return (1.0 + attrUp + layerUp) * (1.0 - attrDown) * (1.0 - layerDown);
+        upSum = attrUp + layerUp;
+        downMul = (1.0 - attrDown) * (1.0 - layerDown);
+
+        // STR -> AGI 共享
+        if (isStrToAgiShare(u)) {
+            otherAttrUp = GetUnitStrUpRate(u);
+            otherAttrDown = GetUnitStrDownRate(u);
+            if (mainType == 0) {
+                otherLayerUp = GetMainAttrUpRate(u);
+                otherLayerDown = GetMainAttrDownRate(u);
+            } else {
+                otherLayerUp = GetSubAttrUpRate(u);
+                otherLayerDown = GetSubAttrDownRate(u);
+            }
+            upSum = upSum + otherAttrUp + otherLayerUp;
+            downMul = downMul * (1.0 - otherAttrDown) * (1.0 - otherLayerDown);
+        }
+
+        // INT -> AGI 共享
+        if (isIntToAgiShare(u)) {
+            otherAttrUp = GetUnitIntUpRate(u);
+            otherAttrDown = GetUnitIntDownRate(u);
+            if (mainType == 2) {
+                otherLayerUp = GetMainAttrUpRate(u);
+                otherLayerDown = GetMainAttrDownRate(u);
+            } else {
+                otherLayerUp = GetSubAttrUpRate(u);
+                otherLayerDown = GetSubAttrDownRate(u);
+            }
+            upSum = upSum + otherAttrUp + otherLayerUp;
+            downMul = downMul * (1.0 - otherAttrDown) * (1.0 - otherLayerDown);
+        }
+
+        return (1.0 + upSum) * downMul;
     }
 
     public function GetUnitAgiFinalPercent(unit u) -> real {
@@ -841,15 +1264,20 @@ library HeroUtils requires UnitUtils {
     }
 
     private function GetUnitIntFinalPercentInternal(unit u) -> real {
-        integer mainType; real attrUp; real attrDown; real layerUp; real layerDown;
+        integer mainType;
+        real attrUp; real attrDown; real layerUp; real layerDown;
+        real upSum; real downMul;
+        real otherAttrUp; real otherAttrDown; real otherLayerUp; real otherLayerDown;
 
         if (u == null) { return 1.0; }
         if (!IsUnitBigInteger(u)) { return 1.0; }
+        if (isUnitIntDisabled(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
+
+        // 自身 up/down
         attrUp = GetUnitIntUpRate(u);
         attrDown = GetUnitIntDownRate(u);
-
         if (mainType == 2) {
             layerUp = GetMainAttrUpRate(u);
             layerDown = GetMainAttrDownRate(u);
@@ -858,7 +1286,40 @@ library HeroUtils requires UnitUtils {
             layerDown = GetSubAttrDownRate(u);
         }
 
-        return (1.0 + attrUp + layerUp) * (1.0 - attrDown) * (1.0 - layerDown);
+        upSum = attrUp + layerUp;
+        downMul = (1.0 - attrDown) * (1.0 - layerDown);
+
+        // STR -> INT 共享
+        if (isStrToIntShare(u)) {
+            otherAttrUp = GetUnitStrUpRate(u);
+            otherAttrDown = GetUnitStrDownRate(u);
+            if (mainType == 0) {
+                otherLayerUp = GetMainAttrUpRate(u);
+                otherLayerDown = GetMainAttrDownRate(u);
+            } else {
+                otherLayerUp = GetSubAttrUpRate(u);
+                otherLayerDown = GetSubAttrDownRate(u);
+            }
+            upSum = upSum + otherAttrUp + otherLayerUp;
+            downMul = downMul * (1.0 - otherAttrDown) * (1.0 - otherLayerDown);
+        }
+
+        // AGI -> INT 共享
+        if (isAgiToIntShare(u)) {
+            otherAttrUp = GetUnitAgiUpRate(u);
+            otherAttrDown = GetUnitAgiDownRate(u);
+            if (mainType == 1) {
+                otherLayerUp = GetMainAttrUpRate(u);
+                otherLayerDown = GetMainAttrDownRate(u);
+            } else {
+                otherLayerUp = GetSubAttrUpRate(u);
+                otherLayerDown = GetSubAttrDownRate(u);
+            }
+            upSum = upSum + otherAttrUp + otherLayerUp;
+            downMul = downMul * (1.0 - otherAttrDown) * (1.0 - otherLayerDown);
+        }
+
+        return (1.0 + upSum) * downMul;
     }
 
     public function GetUnitIntFinalPercent(unit u) -> real {
@@ -870,28 +1331,53 @@ library HeroUtils requires UnitUtils {
     //=====================
 
     public function GetUnitStr(unit u) -> real {
-        integer mainType; real baseRaw; real mainVal; real subVal; real bonusAttr; real bonusOther; real finalPercent;
+        integer mainType;
+        real baseTotal; real finalPercent;
+        real totalBonus;
+        real bonusAttr; real bonusOther;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
+        if (isUnitStrDisabled(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
 
-        baseRaw = GetUnitBaseStrRaw(u);
-        mainVal = GetMainAttrValueReal(u);
-        subVal = GetSubAttrValueReal(u);
+        // 基础值：已包含跨属性共享
+        baseTotal = GetUnitBaseStr(u);
 
+        // 自身 Bonus
         bonusAttr = GetUnitStrBonusReal(u);
-
         if (mainType == 0) {
             bonusOther = GetMainAttrBonusReal(u);
-            finalPercent = GetUnitStrFinalPercentInternal(u);
-            return (baseRaw + mainVal) * finalPercent + (bonusAttr + bonusOther);
+        } else {
+            bonusOther = GetSubAttrBonusReal(u);
+        }
+        totalBonus = bonusAttr + bonusOther;
+
+        // 来自敏捷的共享 Bonus
+        if (isAgiToStrShare(u)) {
+            bonusAttr = GetUnitAgiBonusReal(u);
+            if (mainType == 1) {
+                bonusOther = GetMainAttrBonusReal(u);
+            } else {
+                bonusOther = GetSubAttrBonusReal(u);
+            }
+            totalBonus = totalBonus + bonusAttr + bonusOther;
         }
 
-        bonusOther = GetSubAttrBonusReal(u);
+        // 来自智力的共享 Bonus
+        if (isIntToStrShare(u)) {
+            bonusAttr = GetUnitIntBonusReal(u);
+            if (mainType == 2) {
+                bonusOther = GetMainAttrBonusReal(u);
+            } else {
+                bonusOther = GetSubAttrBonusReal(u);
+            }
+            totalBonus = totalBonus + bonusAttr + bonusOther;
+        }
+
         finalPercent = GetUnitStrFinalPercentInternal(u);
-        return (baseRaw + subVal) * finalPercent + (bonusAttr + bonusOther);
+        return baseTotal * finalPercent + totalBonus;
     }
 
     public function SetUnitStr(unit u, real value) {
@@ -909,6 +1395,14 @@ library HeroUtils requires UnitUtils {
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(0);
+        // 如果力量计入敏捷，触发敏捷回调
+        if (isStrToAgiShare(u)) {
+            heroAttrObserver.fire(1);
+        }
+        // 如果力量计入智力，触发智力回调
+        if (isStrToIntShare(u)) {
+            heroAttrObserver.fire(2);
+        }
     }
 
     public function AddUnitStr(unit u, real value) {
@@ -952,31 +1446,64 @@ library HeroUtils requires UnitUtils {
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(0);
+        // 如果力量计入敏捷，触发敏捷回调
+        if (isStrToAgiShare(u)) {
+            heroAttrObserver.fire(1);
+        }
+        // 如果力量计入智力，触发智力回调
+        if (isStrToIntShare(u)) {
+            heroAttrObserver.fire(2);
+        }
     }
 
     public function GetUnitAgi(unit u) -> real {
-        integer mainType; real baseRaw; real mainVal; real subVal; real bonusAttr; real bonusOther; real finalPercent;
+        integer mainType;
+        real baseTotal; real finalPercent;
+        real totalBonus;
+        real bonusAttr; real bonusOther;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
+        if (isUnitAgiDisabled(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
 
-        baseRaw = GetUnitBaseAgiRaw(u);
-        mainVal = GetMainAttrValueReal(u);
-        subVal = GetSubAttrValueReal(u);
+        // 基础值：已包含跨属性共享
+        baseTotal = GetUnitBaseAgi(u);
 
+        // 自身 Bonus
         bonusAttr = GetUnitAgiBonusReal(u);
-
         if (mainType == 1) {
             bonusOther = GetMainAttrBonusReal(u);
-            finalPercent = GetUnitAgiFinalPercentInternal(u);
-            return (baseRaw + mainVal) * finalPercent + (bonusAttr + bonusOther);
+        } else {
+            bonusOther = GetSubAttrBonusReal(u);
+        }
+        totalBonus = bonusAttr + bonusOther;
+
+        // 来自力量的共享 Bonus
+        if (isStrToAgiShare(u)) {
+            bonusAttr = GetUnitStrBonusReal(u);
+            if (mainType == 0) {
+                bonusOther = GetMainAttrBonusReal(u);
+            } else {
+                bonusOther = GetSubAttrBonusReal(u);
+            }
+            totalBonus = totalBonus + bonusAttr + bonusOther;
         }
 
-        bonusOther = GetSubAttrBonusReal(u);
+        // 来自智力的共享 Bonus
+        if (isIntToAgiShare(u)) {
+            bonusAttr = GetUnitIntBonusReal(u);
+            if (mainType == 2) {
+                bonusOther = GetMainAttrBonusReal(u);
+            } else {
+                bonusOther = GetSubAttrBonusReal(u);
+            }
+            totalBonus = totalBonus + bonusAttr + bonusOther;
+        }
+
         finalPercent = GetUnitAgiFinalPercentInternal(u);
-        return (baseRaw + subVal) * finalPercent + (bonusAttr + bonusOther);
+        return baseTotal * finalPercent + totalBonus;
     }
 
     public function SetUnitAgi(unit u, real value) {
@@ -994,6 +1521,14 @@ library HeroUtils requires UnitUtils {
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(1);
+        // 如果敏捷计入力量，触发力量回调
+        if (isAgiToStrShare(u)) {
+            heroAttrObserver.fire(0);
+        }
+        // 如果敏捷计入智力，触发智力回调
+        if (isAgiToIntShare(u)) {
+            heroAttrObserver.fire(2);
+        }
     }
 
     public function AddUnitAgi(unit u, real value) {
@@ -1037,31 +1572,64 @@ library HeroUtils requires UnitUtils {
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(1);
+        // 如果敏捷计入力量，触发力量回调
+        if (isAgiToStrShare(u)) {
+            heroAttrObserver.fire(0);
+        }
+        // 如果敏捷计入智力，触发智力回调
+        if (isAgiToIntShare(u)) {
+            heroAttrObserver.fire(2);
+        }
     }
 
     public function GetUnitInt(unit u) -> real {
-        integer mainType; real baseRaw; real mainVal; real subVal; real bonusAttr; real bonusOther; real finalPercent;
+        integer mainType;
+        real baseTotal; real finalPercent;
+        real totalBonus;
+        real bonusAttr; real bonusOther;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
+        if (isUnitIntDisabled(u)) { return 0.0; }
 
         mainType = GetUnitMainAttrType(u);
 
-        baseRaw = GetUnitBaseIntRaw(u);
-        mainVal = GetMainAttrValueReal(u);
-        subVal = GetSubAttrValueReal(u);
+        // 基础值：已包含跨属性共享
+        baseTotal = GetUnitBaseInt(u);
 
+        // 自身 Bonus
         bonusAttr = GetUnitIntBonusReal(u);
-
         if (mainType == 2) {
             bonusOther = GetMainAttrBonusReal(u);
-            finalPercent = GetUnitIntFinalPercentInternal(u);
-            return (baseRaw + mainVal) * finalPercent + (bonusAttr + bonusOther);
+        } else {
+            bonusOther = GetSubAttrBonusReal(u);
+        }
+        totalBonus = bonusAttr + bonusOther;
+
+        // 来自力量的共享 Bonus
+        if (isStrToIntShare(u)) {
+            bonusAttr = GetUnitStrBonusReal(u);
+            if (mainType == 0) {
+                bonusOther = GetMainAttrBonusReal(u);
+            } else {
+                bonusOther = GetSubAttrBonusReal(u);
+            }
+            totalBonus = totalBonus + bonusAttr + bonusOther;
         }
 
-        bonusOther = GetSubAttrBonusReal(u);
+        // 来自敏捷的共享 Bonus
+        if (isAgiToIntShare(u)) {
+            bonusAttr = GetUnitAgiBonusReal(u);
+            if (mainType == 1) {
+                bonusOther = GetMainAttrBonusReal(u);
+            } else {
+                bonusOther = GetSubAttrBonusReal(u);
+            }
+            totalBonus = totalBonus + bonusAttr + bonusOther;
+        }
+
         finalPercent = GetUnitIntFinalPercentInternal(u);
-        return (baseRaw + subVal) * finalPercent + (bonusAttr + bonusOther);
+        return baseTotal * finalPercent + totalBonus;
     }
 
     public function SetUnitInt(unit u, real value) {
@@ -1079,6 +1647,14 @@ library HeroUtils requires UnitUtils {
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(2);
+        // 如果智力计入力量，触发力量回调
+        if (isIntToStrShare(u)) {
+            heroAttrObserver.fire(0);
+        }
+        // 如果智力计入敏捷，触发敏捷回调
+        if (isIntToAgiShare(u)) {
+            heroAttrObserver.fire(1);
+        }
     }
 
     public function AddUnitInt(unit u, real value) {
@@ -1122,6 +1698,14 @@ library HeroUtils requires UnitUtils {
 
         heroAttrObserver.argsU = u;
         heroAttrObserver.fire(2);
+        // 如果智力计入力量，触发力量回调
+        if (isIntToStrShare(u)) {
+            heroAttrObserver.fire(0);
+        }
+        // 如果智力计入敏捷，触发敏捷回调
+        if (isIntToAgiShare(u)) {
+            heroAttrObserver.fire(1);
+        }
     }
 
 
@@ -1156,3 +1740,4 @@ library HeroUtils requires UnitUtils {
 
 //! endzinc
 #endif
+

@@ -242,7 +242,7 @@ library UTHeroUtils requires HeroUtils {
 		p = null;
 	}
 
-	// 测试6：三维属性完整计算（基础+主/次属性）* 倍率 + Bonus
+	// 测试6：三维属性完整计算（基础+主/次属性）* 倍率 + Bonus（无禁用/共享）
 	private function Test_FullAttrCalculation() {
 		player p; unit hero; real str; real agi; real intVal; real expected;
 
@@ -308,6 +308,123 @@ library UTHeroUtils requires HeroUtils {
 		expected = (60.0 + 30.0) * (1.0 + 0.12 + 0.1) * (1.0 - 0.02) + (8.0 + 15.0);
 		intVal = GetUnitInt(hero);
 		assert.Real(intVal, expected, "智力完整计算应正确");
+
+		hero = null;
+		p = null;
+	}
+
+	// 测试6-1：属性禁用开关（Str/Agi/Int）
+	private function Test_AttrDisable() {
+		player p; unit hero; real val; real baseVal; real percent;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		SetUnitMainAttrType(hero, 0); // 力量为主属性
+
+		// 初始化基础值
+		SetUnitStr(hero, 100.0);
+		SetUnitAgi(hero, 80.0);
+		SetUnitInt(hero, 60.0);
+
+		// 确认未禁用时为正常值
+		baseVal = GetUnitBaseStr(hero);
+		val = GetUnitStr(hero);
+		percent = GetUnitStrFinalPercent(hero);
+		assert.Boolean(baseVal > 0.0, "未禁用时 GetUnitBaseStr 应大于 0");
+		assert.Boolean(val > 0.0, "未禁用时 GetUnitStr 应大于 0");
+		assert.Boolean(percent > 0.0, "未禁用时 GetUnitStrFinalPercent 应大于 0");
+
+		// 禁用力量
+		SetUnitStrDisabled(hero, true);
+		baseVal = GetUnitBaseStr(hero);
+		val = GetUnitStr(hero);
+		percent = GetUnitStrFinalPercent(hero);
+		assert.Real(baseVal, 0.0, "禁用力量后 GetUnitBaseStr 应为 0");
+		assert.Real(val, 0.0, "禁用力量后 GetUnitStr 应为 0");
+		assert.Real(percent, 0.0, "禁用力量后 GetUnitStrFinalPercent 应为 0");
+
+		// 重新开启力量
+		SetUnitStrDisabled(hero, false);
+		baseVal = GetUnitBaseStr(hero);
+		val = GetUnitStr(hero);
+		percent = GetUnitStrFinalPercent(hero);
+		assert.Boolean(baseVal > 0.0, "重新开启力量后 GetUnitBaseStr 应恢复大于 0");
+		assert.Boolean(val > 0.0, "重新开启力量后 GetUnitStr 应恢复大于 0");
+		assert.Boolean(percent > 0.0, "重新开启力量后 GetUnitStrFinalPercent 应恢复大于 0");
+
+		// 禁用敏捷
+		SetUnitAgiDisabled(hero, true);
+		baseVal = GetUnitBaseAgi(hero);
+		val = GetUnitAgi(hero);
+		percent = GetUnitAgiFinalPercent(hero);
+		assert.Real(baseVal, 0.0, "禁用敏捷后 GetUnitBaseAgi 应为 0");
+		assert.Real(val, 0.0, "禁用敏捷后 GetUnitAgi 应为 0");
+		assert.Real(percent, 0.0, "禁用敏捷后 GetUnitAgiFinalPercent 应为 0");
+		SetUnitAgiDisabled(hero, false);
+
+		// 禁用智力
+		SetUnitIntDisabled(hero, true);
+		baseVal = GetUnitBaseInt(hero);
+		val = GetUnitInt(hero);
+		percent = GetUnitIntFinalPercent(hero);
+		assert.Real(baseVal, 0.0, "禁用智力后 GetUnitBaseInt 应为 0");
+		assert.Real(val, 0.0, "禁用智力后 GetUnitInt 应为 0");
+		assert.Real(percent, 0.0, "禁用智力后 GetUnitIntFinalPercent 应为 0");
+
+		hero = null;
+		p = null;
+	}
+
+	// 测试6-2：跨属性共享基础值与倍率（以 STR->AGI 和 INT->AGI 为例）
+	private function Test_AttrShareBasicAndPercent() {
+		player p; unit hero; real baseAgi; real percentAgi; real expected;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+
+		// 力量为主属性
+		SetUnitMainAttrType(hero, 0);
+
+		// 清理 BigInteger
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR);
+		bigInteger.reset(p, HASH_KEY_BIGINT_AGI);
+		bigInteger.reset(p, HASH_KEY_BIGINT_INT);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
+
+		// 基础三维：STR=100, AGI=80, INT=60
+		SetUnitStr(hero, 100.0);
+		SetUnitAgi(hero, 80.0);
+		SetUnitInt(hero, 60.0);
+
+		// 主属性数值=50，次属性数值=30
+		AddUnitMainAttrValue(hero, 50.0);
+		AddUnitSubAttrValue(hero, 30.0);
+
+		// 无共享时：AGI 基础 = 80 + 次属性 30 = 110
+		baseAgi = GetUnitBaseAgi(hero);
+		expected = 80.0 + 30.0;
+		assert.Real(baseAgi, expected, "无共享时敏捷基础应为 110");
+
+		// 开启 STR->AGI 共享：
+		// 力量为主属性：共享部分 = 100 + 主属性 50 = 150
+		SetUnitStrShareToAgi(hero, true);
+		baseAgi = GetUnitBaseAgi(hero);
+		expected = (80.0 + 30.0) + (100.0 + 50.0);
+		assert.Real(baseAgi, expected, "开启 STR->AGI 后敏捷基础应为 110+150");
+
+		// 添加倍率：敏捷 up=0.15，次属性 up=0.1
+		AddUnitAgiUpPercent(hero, 0.15);
+		AddUnitSubAttrUpPercent(hero, 0.1);
+		percentAgi = GetUnitAgiFinalPercent(hero);
+		// 自身 up 累积：0.15 + 0.1
+		// 共享自力量 up：假设力量 up=0.2，主属性 up=0.1
+		AddUnitStrUpPercent(hero, 0.2);
+		AddUnitMainAttrUpPercent(hero, 0.1);
+		percentAgi = GetUnitAgiFinalPercent(hero);
+		expected = (1.0 + (0.15 + 0.1 + 0.2 + 0.1));
+		// 此处 down 为 0，仅验证 up 聚合
+		assert.Real(percentAgi, expected, "开启 STR->AGI 后敏捷倍率 up 聚合应正确");
 
 		hero = null;
 		p = null;
@@ -534,6 +651,16 @@ library UTHeroUtils requires HeroUtils {
 		UnitTestAutoTimer(0.8, 0.1, function() {
 			Trace("HeroUtils 完整属性计算测试");
 			Test_FullAttrCalculation();
+		}, null);
+
+		UnitTestAutoTimer(0.81, 0.1, function() {
+			Trace("HeroUtils 属性禁用测试");
+			Test_AttrDisable();
+		}, null);
+
+		UnitTestAutoTimer(0.82, 0.1, function() {
+			Trace("HeroUtils 属性共享基础与倍率测试");
+			Test_AttrShareBasicAndPercent();
 		}, null);
 
 		UnitTestAutoTimer(0.9, 0.1, function() {

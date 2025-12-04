@@ -101,6 +101,19 @@
 #define KEY_UNIT_INT_DOWN_RATE               255610155 // 智力减幅累计值（real）
 #define KEY_UNIT_INT_BONUS_REAL              255610156 // 智力固定加成（real）
 
+// 英雄三维属性禁用与跨属性共享开关（布尔标记）
+#define KEY_UNIT_STR_DISABLED                255610157 // 力量属性是否被禁用（boolean）
+#define KEY_UNIT_AGI_DISABLED                255610158 // 敏捷属性是否被禁用（boolean）
+#define KEY_UNIT_INT_DISABLED                255610159 // 智力属性是否被禁用（boolean）
+
+// 跨属性共享：X 属性是否计入 Y 属性
+#define KEY_UNIT_STR_TO_AGI_SHARE            255610160 // 力量是否计入敏捷（boolean）
+#define KEY_UNIT_STR_TO_INT_SHARE            255610161 // 力量是否计入智力（boolean）
+#define KEY_UNIT_AGI_TO_STR_SHARE            255610162 // 敏捷是否计入力量（boolean）
+#define KEY_UNIT_AGI_TO_INT_SHARE            255610163 // 敏捷是否计入智力（boolean）
+#define KEY_UNIT_INT_TO_STR_SHARE            255610164 // 智力是否计入力量（boolean）
+#define KEY_UNIT_INT_TO_AGI_SHARE            255610165 // 智力是否计入敏捷（boolean）
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物

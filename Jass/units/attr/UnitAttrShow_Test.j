@@ -94,6 +94,15 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		BJDebugMsg("-subdown [value] : 增加次属性减幅(小数)");
 		BJDebugMsg("-subbonus [value] : 增加次属性定值");
 		BJDebugMsg("-maintype [0/1/2] : 设置主属性类型(0=力,1=敏,2=智)");
+		BJDebugMsg("-strdisable [0/1] : 禁用/启用虚拟力量(0=启用,1=禁用)");
+		BJDebugMsg("-agidisable [0/1] : 禁用/启用虚拟敏捷(0=启用,1=禁用)");
+		BJDebugMsg("-intdisable [0/1] : 禁用/启用虚拟智力(0=启用,1=禁用)");
+		BJDebugMsg("-strtoagi [0/1] : 力量计入敏捷开关(0=关闭,1=开启)");
+		BJDebugMsg("-strtoint [0/1] : 力量计入智力开关(0=关闭,1=开启)");
+		BJDebugMsg("-agitostr [0/1] : 敏捷计入力量开关(0=关闭,1=开启)");
+		BJDebugMsg("-agitoint [0/1] : 敏捷计入智力开关(0=关闭,1=开启)");
+		BJDebugMsg("-inttostr [0/1] : 智力计入力量开关(0=关闭,1=开启)");
+		BJDebugMsg("-inttoagi [0/1] : 智力计入敏捷开关(0=关闭,1=开启)");
 		BJDebugMsg("-invul : 添加无敌状态");
 		BJDebugMsg("-noinvul : 移除无敌状态");
 		BJDebugMsg("-magic : 添加魔免状态");
@@ -162,6 +171,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		boolean removed;
 		integer defBonusValue;
 		integer mainType;
+		boolean flagValue;
 
 		// 解析参数
 		for (0 <= i <= len - 1) {
@@ -492,6 +502,91 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 				SetUnitMainAttrType(u, paramI[1]);
 				mainType = GetUnitMainAttrType(u);
 				BJDebugMsg("当前主属性类型: " + I2S(mainType));
+			}
+		}
+		// 属性禁用相关命令
+		else if (paramS[0] == "strdisable") {
+			if (num >= 2) {
+				flagValue = paramI[1] != 0;
+				SetUnitStrDisabled(u, flagValue);
+				BJDebugMsg(S3(flagValue, "已禁用虚拟力量", "已启用虚拟力量"));
+				BJDebugMsg("当前虚拟力量: " + R2S(GetUnitStr(u)));
+				BJDebugMsg("当前虚拟力量基础值: " + R2S(GetUnitBaseStr(u)));
+				BJDebugMsg("当前虚拟力量倍率: " + R2S(GetUnitStrFinalPercent(u)));
+			}
+		} else if (paramS[0] == "agidisable") {
+			if (num >= 2) {
+				flagValue = paramI[1] != 0;
+				SetUnitAgiDisabled(u, flagValue);
+				BJDebugMsg(S3(flagValue, "已禁用虚拟敏捷", "已启用虚拟敏捷"));
+				BJDebugMsg("当前虚拟敏捷: " + R2S(GetUnitAgi(u)));
+				BJDebugMsg("当前虚拟敏捷基础值: " + R2S(GetUnitBaseAgi(u)));
+				BJDebugMsg("当前虚拟敏捷倍率: " + R2S(GetUnitAgiFinalPercent(u)));
+			}
+		} else if (paramS[0] == "intdisable") {
+			if (num >= 2) {
+				flagValue = paramI[1] != 0;
+				SetUnitIntDisabled(u, flagValue);
+				BJDebugMsg(S3(flagValue, "已禁用虚拟智力", "已启用虚拟智力"));
+				BJDebugMsg("当前虚拟智力: " + R2S(GetUnitInt(u)));
+				BJDebugMsg("当前虚拟智力基础值: " + R2S(GetUnitBaseInt(u)));
+				BJDebugMsg("当前虚拟智力倍率: " + R2S(GetUnitIntFinalPercent(u)));
+			}
+		}
+		// 跨属性共享相关命令
+		else if (paramS[0] == "strtoagi") {
+			if (num >= 2) {
+				flagValue = paramI[1] != 0;
+				SetUnitStrShareToAgi(u, flagValue);
+				BJDebugMsg(S3(flagValue, "已开启力量计入敏捷", "已关闭力量计入敏捷"));
+				BJDebugMsg("当前虚拟敏捷: " + R2S(GetUnitAgi(u)));
+				BJDebugMsg("当前虚拟敏捷基础值: " + R2S(GetUnitBaseAgi(u)));
+				BJDebugMsg("当前虚拟敏捷倍率: " + R2S(GetUnitAgiFinalPercent(u)));
+			}
+		} else if (paramS[0] == "strtoint") {
+			if (num >= 2) {
+				flagValue = paramI[1] != 0;
+				SetUnitStrShareToInt(u, flagValue);
+				BJDebugMsg(S3(flagValue, "已开启力量计入智力", "已关闭力量计入智力"));
+				BJDebugMsg("当前虚拟智力: " + R2S(GetUnitInt(u)));
+				BJDebugMsg("当前虚拟智力基础值: " + R2S(GetUnitBaseInt(u)));
+				BJDebugMsg("当前虚拟智力倍率: " + R2S(GetUnitIntFinalPercent(u)));
+			}
+		} else if (paramS[0] == "agitostr") {
+			if (num >= 2) {
+				flagValue = paramI[1] != 0;
+				SetUnitAgiShareToStr(u, flagValue);
+				BJDebugMsg(S3(flagValue, "已开启敏捷计入力量", "已关闭敏捷计入力量"));
+				BJDebugMsg("当前虚拟力量: " + R2S(GetUnitStr(u)));
+				BJDebugMsg("当前虚拟力量基础值: " + R2S(GetUnitBaseStr(u)));
+				BJDebugMsg("当前虚拟力量倍率: " + R2S(GetUnitStrFinalPercent(u)));
+			}
+		} else if (paramS[0] == "agitoint") {
+			if (num >= 2) {
+				flagValue = paramI[1] != 0;
+				SetUnitAgiShareToInt(u, flagValue);
+				BJDebugMsg(S3(flagValue, "已开启敏捷计入智力", "已关闭敏捷计入智力"));
+				BJDebugMsg("当前虚拟智力: " + R2S(GetUnitInt(u)));
+				BJDebugMsg("当前虚拟智力基础值: " + R2S(GetUnitBaseInt(u)));
+				BJDebugMsg("当前虚拟智力倍率: " + R2S(GetUnitIntFinalPercent(u)));
+			}
+		} else if (paramS[0] == "inttostr") {
+			if (num >= 2) {
+				flagValue = paramI[1] != 0;
+				SetUnitIntShareToStr(u, flagValue);
+				BJDebugMsg(S3(flagValue, "已开启智力计入力量", "已关闭智力计入力量"));
+				BJDebugMsg("当前虚拟力量: " + R2S(GetUnitStr(u)));
+				BJDebugMsg("当前虚拟力量基础值: " + R2S(GetUnitBaseStr(u)));
+				BJDebugMsg("当前虚拟力量倍率: " + R2S(GetUnitStrFinalPercent(u)));
+			}
+		} else if (paramS[0] == "inttoagi") {
+			if (num >= 2) {
+				flagValue = paramI[1] != 0;
+				SetUnitIntShareToAgi(u, flagValue);
+				BJDebugMsg(S3(flagValue, "已开启智力计入敏捷", "已关闭智力计入敏捷"));
+				BJDebugMsg("当前虚拟敏捷: " + R2S(GetUnitAgi(u)));
+				BJDebugMsg("当前虚拟敏捷基础值: " + R2S(GetUnitBaseAgi(u)));
+				BJDebugMsg("当前虚拟敏捷倍率: " + R2S(GetUnitAgiFinalPercent(u)));
 			}
 		}
 		// 无敌相关命令
