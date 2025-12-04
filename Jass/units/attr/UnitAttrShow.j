@@ -232,7 +232,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
 
             // ========= 力量 =========
             if (isBig) {
-                baseStr = GetUnitBaseStr(u);
+                baseStr = RMaxBJ(0,GetUnitBaseStr(u));
                 totalStr = GetUnitStr(u);
             } else {
                 baseStr = strVal;
@@ -273,7 +273,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
 
             // ========= 敏捷 =========
             if (isBig) {
-                baseAgi = GetUnitBaseAgi(u);
+                baseAgi = RMaxBJ(0,GetUnitBaseAgi(u));
                 totalAgi = GetUnitAgi(u);
             } else {
                 baseAgi = agiVal;
@@ -313,7 +313,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
 
             // ========= 智力 =========
             if (isBig) {
-                baseInt = GetUnitBaseInt(u);
+                baseInt = RMaxBJ(0,GetUnitBaseInt(u));
                 totalInt = GetUnitInt(u);
             } else {
                 baseInt = intVal;

@@ -31,8 +31,10 @@
 // 主 / 次属性（按玩家维度）
 #define HASH_KEY_BIGINT_MAIN        161  // BigInteger: 每个玩家当前真实主属性
 #define HASH_KEY_BIGINT_MAIN_BONUS  171  // BigInteger: 主属性定值
+#define HASH_KEY_BIGINT_MAIN_CACHE  201  // BigInteger: 主属性欠款缓存（正数，记录还欠多少主属性）
 #define HASH_KEY_BIGINT_SUB         181  // BigInteger: 每个玩家当前真实次属性
 #define HASH_KEY_BIGINT_SUB_BONUS   191  // BigInteger: 次属性定值
+#define HASH_KEY_BIGINT_SUB_CACHE   211  // BigInteger: 次属性欠款缓存（正数，记录还欠多少次属性）
 
 
 #endif

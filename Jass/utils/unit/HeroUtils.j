@@ -377,18 +377,42 @@ library HeroUtils requires UnitUtils {
 
     // 仅保留 Add 系列给外部调用
     public function AddUnitMainAttrValue(unit u, real value) {
-        player p;
+        player p; real delta; real debt; real cur; real dec; real over; real remain;
 
         if (u == null) { return; }
         if (!IsUnitBigInteger(u)) { return; }
         if (value == 0.0) { return; }
 
         p = GetOwningPlayer(u);
-        if (value > 0.0) {
-            bigInteger.addReal(p, HASH_KEY_BIGINT_MAIN, value);
+        delta = value;
+
+        if (delta > 0.0) {
+            // 加主属性：优先偿还欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+            if (debt > 0.0) {
+                if (delta <= debt) {
+                    bigInteger.subReal(p, HASH_KEY_BIGINT_MAIN_CACHE, delta);
+                } else {
+                    remain = delta - debt;
+                    bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_CACHE);
+                    bigInteger.addReal(p, HASH_KEY_BIGINT_MAIN, remain);
+                }
+            } else {
+                bigInteger.addReal(p, HASH_KEY_BIGINT_MAIN, delta);
+            }
         } else {
-            bigInteger.subReal(p, HASH_KEY_BIGINT_MAIN, -value);
+            // 减主属性：可能产生欠款
+            dec = -delta;
+            cur = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN);
+            if (cur >= dec) {
+                bigInteger.subReal(p, HASH_KEY_BIGINT_MAIN, dec);
+            } else {
+                over = dec - cur;
+                bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
+                bigInteger.addReal(p, HASH_KEY_BIGINT_MAIN_CACHE, over);
+            }
         }
+
         p = null;
 
         heroAttrObserver.argsU = u;
@@ -506,18 +530,42 @@ library HeroUtils requires UnitUtils {
 
     // 次属性对外仅暴露 Add 系列
     public function AddUnitSubAttrValue(unit u, real value) {
-        player p;
+        player p; real delta; real debt; real cur; real dec; real over; real remain;
 
         if (u == null) { return; }
         if (!IsUnitBigInteger(u)) { return; }
         if (value == 0.0) { return; }
 
         p = GetOwningPlayer(u);
-        if (value > 0.0) {
-            bigInteger.addReal(p, HASH_KEY_BIGINT_SUB, value);
+        delta = value;
+
+        if (delta > 0.0) {
+            // 加次属性：优先偿还欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+            if (debt > 0.0) {
+                if (delta <= debt) {
+                    bigInteger.subReal(p, HASH_KEY_BIGINT_SUB_CACHE, delta);
+                } else {
+                    remain = delta - debt;
+                    bigInteger.reset(p, HASH_KEY_BIGINT_SUB_CACHE);
+                    bigInteger.addReal(p, HASH_KEY_BIGINT_SUB, remain);
+                }
+            } else {
+                bigInteger.addReal(p, HASH_KEY_BIGINT_SUB, delta);
+            }
         } else {
-            bigInteger.subReal(p, HASH_KEY_BIGINT_SUB, -value);
+            // 减次属性：可能产生欠款
+            dec = -delta;
+            cur = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB);
+            if (cur >= dec) {
+                bigInteger.subReal(p, HASH_KEY_BIGINT_SUB, dec);
+            } else {
+                over = dec - cur;
+                bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
+                bigInteger.addReal(p, HASH_KEY_BIGINT_SUB_CACHE, over);
+            }
         }
+
         p = null;
 
         heroAttrObserver.argsU = u;
@@ -989,18 +1037,21 @@ library HeroUtils requires UnitUtils {
     }
 
     //=====================
-    // 三维属性基础值（基础 + 主/次属性数值）
+    // 三维属性基础值（基础 + 主/次属性数值）  会扣欠款,返回值可能为负,自行判断
     //=====================
 
     public function GetUnitBaseStr(unit u) -> real {
         integer mainType;
+        player p;
         real base; real mainVal; real subVal;
         real result; real shareBase;
+        real debt;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
         if (isUnitStrDisabled(u)) { return 0.0; }
 
+        p = GetOwningPlayer(u);
         mainType = GetUnitMainAttrType(u);
         base = GetUnitBaseStrRaw(u);
         mainVal = GetMainAttrValueReal(u);
@@ -1009,18 +1060,37 @@ library HeroUtils requires UnitUtils {
         // 自身基础值
         if (mainType == 0) {
             result = base + mainVal;
+            // 减去主属性欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+            result = result - debt;
         } else {
             result = base + subVal;
+            // 减去次属性欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+            result = result - debt;
         }
+
+        // 减去自身欠款
+        debt = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
+        result = result - debt;
 
         // AGI -> STR 共享
         if (isAgiToStrShare(u)) {
             shareBase = GetUnitBaseAgiRaw(u);
             if (mainType == 1) {
                 shareBase = shareBase + mainVal;
+                // 减去主属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+                shareBase = shareBase - debt;
             } else {
                 shareBase = shareBase + subVal;
+                // 减去次属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+                shareBase = shareBase - debt;
             }
+            // 减去 AGI 的欠款（因为共享来源的欠款也要扣除）
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_AGI_CACHE);
+            shareBase = shareBase - debt;
             result = result + shareBase;
         }
 
@@ -1029,24 +1099,38 @@ library HeroUtils requires UnitUtils {
             shareBase = GetUnitBaseIntRaw(u);
             if (mainType == 2) {
                 shareBase = shareBase + mainVal;
+                // 减去主属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+                shareBase = shareBase - debt;
             } else {
                 shareBase = shareBase + subVal;
+                // 减去次属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+                shareBase = shareBase - debt;
             }
+            // 减去 INT 的欠款（因为共享来源的欠款也要扣除）
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_INT_CACHE);
+            shareBase = shareBase - debt;
             result = result + shareBase;
         }
+
+        p = null;
 
         return result;
     }
 
     public function GetUnitBaseAgi(unit u) -> real {
         integer mainType;
+        player p;
         real base; real mainVal; real subVal;
         real result; real shareBase;
+        real debt;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
         if (isUnitAgiDisabled(u)) { return 0.0; }
 
+        p = GetOwningPlayer(u);
         mainType = GetUnitMainAttrType(u);
         base = GetUnitBaseAgiRaw(u);
         mainVal = GetMainAttrValueReal(u);
@@ -1055,18 +1139,37 @@ library HeroUtils requires UnitUtils {
         // 自身基础值
         if (mainType == 1) {
             result = base + mainVal;
+            // 减去主属性欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+            result = result - debt;
         } else {
             result = base + subVal;
+            // 减去次属性欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+            result = result - debt;
         }
+
+        // 减去自身欠款
+        debt = bigInteger.toReal(p, HASH_KEY_BIGINT_AGI_CACHE);
+        result = result - debt;
 
         // STR -> AGI 共享
         if (isStrToAgiShare(u)) {
             shareBase = GetUnitBaseStrRaw(u);
             if (mainType == 0) {
                 shareBase = shareBase + mainVal;
+                // 减去主属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+                shareBase = shareBase - debt;
             } else {
                 shareBase = shareBase + subVal;
+                // 减去次属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+                shareBase = shareBase - debt;
             }
+            // 减去 STR 的欠款（因为共享来源的欠款也要扣除）
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
+            shareBase = shareBase - debt;
             result = result + shareBase;
         }
 
@@ -1075,24 +1178,38 @@ library HeroUtils requires UnitUtils {
             shareBase = GetUnitBaseIntRaw(u);
             if (mainType == 2) {
                 shareBase = shareBase + mainVal;
+                // 减去主属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+                shareBase = shareBase - debt;
             } else {
                 shareBase = shareBase + subVal;
+                // 减去次属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+                shareBase = shareBase - debt;
             }
+            // 减去 INT 的欠款（因为共享来源的欠款也要扣除）
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_INT_CACHE);
+            shareBase = shareBase - debt;
             result = result + shareBase;
         }
+
+        p = null;
 
         return result;
     }
 
     public function GetUnitBaseInt(unit u) -> real {
         integer mainType;
+        player p;
         real base; real mainVal; real subVal;
         real result; real shareBase;
+        real debt;
 
         if (u == null) { return 0.0; }
         if (!IsUnitBigInteger(u)) { return 0.0; }
         if (isUnitIntDisabled(u)) { return 0.0; }
 
+        p = GetOwningPlayer(u);
         mainType = GetUnitMainAttrType(u);
         base = GetUnitBaseIntRaw(u);
         mainVal = GetMainAttrValueReal(u);
@@ -1101,18 +1218,37 @@ library HeroUtils requires UnitUtils {
         // 自身基础值
         if (mainType == 2) {
             result = base + mainVal;
+            // 减去主属性欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+            result = result - debt;
         } else {
             result = base + subVal;
+            // 减去次属性欠款
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+            result = result - debt;
         }
+
+        // 减去自身欠款
+        debt = bigInteger.toReal(p, HASH_KEY_BIGINT_INT_CACHE);
+        result = result - debt;
 
         // STR -> INT 共享
         if (isStrToIntShare(u)) {
             shareBase = GetUnitBaseStrRaw(u);
             if (mainType == 0) {
                 shareBase = shareBase + mainVal;
+                // 减去主属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+                shareBase = shareBase - debt;
             } else {
                 shareBase = shareBase + subVal;
+                // 减去次属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+                shareBase = shareBase - debt;
             }
+            // 减去 STR 的欠款（因为共享来源的欠款也要扣除）
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
+            shareBase = shareBase - debt;
             result = result + shareBase;
         }
 
@@ -1121,11 +1257,22 @@ library HeroUtils requires UnitUtils {
             shareBase = GetUnitBaseAgiRaw(u);
             if (mainType == 1) {
                 shareBase = shareBase + mainVal;
+                // 减去主属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+                shareBase = shareBase - debt;
             } else {
                 shareBase = shareBase + subVal;
+                // 减去次属性欠款
+                debt = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+                shareBase = shareBase - debt;
             }
+            // 减去 AGI 的欠款（因为共享来源的欠款也要扣除）
+            debt = bigInteger.toReal(p, HASH_KEY_BIGINT_AGI_CACHE);
+            shareBase = shareBase - debt;
             result = result + shareBase;
         }
+
+        p = null;
 
         return result;
     }
@@ -1377,7 +1524,7 @@ library HeroUtils requires UnitUtils {
         }
 
         finalPercent = GetUnitStrFinalPercentInternal(u);
-        return baseTotal * finalPercent + totalBonus;
+        return RMaxBJ(0.0,baseTotal * finalPercent + totalBonus);
     }
 
     public function SetUnitStr(unit u, real value) {
@@ -1503,7 +1650,7 @@ library HeroUtils requires UnitUtils {
         }
 
         finalPercent = GetUnitAgiFinalPercentInternal(u);
-        return baseTotal * finalPercent + totalBonus;
+        return RMaxBJ(0.0,baseTotal * finalPercent + totalBonus);
     }
 
     public function SetUnitAgi(unit u, real value) {
@@ -1629,7 +1776,7 @@ library HeroUtils requires UnitUtils {
         }
 
         finalPercent = GetUnitIntFinalPercentInternal(u);
-        return baseTotal * finalPercent + totalBonus;
+        return RMaxBJ(0.0,baseTotal * finalPercent + totalBonus);
     }
 
     public function SetUnitInt(unit u, real value) {

@@ -510,6 +510,154 @@ library UTHeroUtils requires HeroUtils {
 		p = null;
 	}
 
+	// 测试7-1：主/次属性欠款缓存逻辑
+	private function Test_MainSubAttrDebt() {
+		player p; unit hero; real mainVal; real subVal; real cache; real baseStr; real baseAgi; real baseInt; real expected;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		SetUnitMainAttrType(hero, 0); // 力量为主属性
+
+		// 清理 BigInteger
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR);
+		bigInteger.reset(p, HASH_KEY_BIGINT_AGI);
+		bigInteger.reset(p, HASH_KEY_BIGINT_INT);
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_AGI_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_INT_CACHE);
+
+		// 设置基础三维值
+		SetUnitStr(hero, 100.0);
+		SetUnitAgi(hero, 80.0);
+		SetUnitInt(hero, 60.0);
+
+		// 测试1：主属性欠款缓存逻辑：+100 -200 +1000 = 900
+		AddUnitMainAttrValue(hero, 100.0);
+		mainVal = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		assert.Real(mainVal, 100.0, "主属性欠款测试：首次 +100 后主属性应为 100");
+		assert.Real(cache, 0.0, "主属性欠款测试：首次 +100 后欠款应为 0");
+
+		AddUnitMainAttrValue(hero, -200.0);
+		mainVal = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		assert.Real(mainVal, 0.0, "主属性欠款测试：+100 -200 后主属性应为 0");
+		assert.Real(cache, 100.0, "主属性欠款测试：+100 -200 后欠款应为 100");
+
+		AddUnitMainAttrValue(hero, 1000.0);
+		mainVal = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		assert.Real(mainVal, 900.0, "主属性欠款测试：+100 -200 +1000 后主属性应为 900");
+		assert.Real(cache, 0.0, "主属性欠款测试：+100 -200 +1000 后欠款应被清空");
+
+		// 测试2：次属性欠款缓存逻辑：+100 -200 +1000 = 900
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB_CACHE);
+
+		AddUnitSubAttrValue(hero, 100.0);
+		subVal = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+		assert.Real(subVal, 100.0, "次属性欠款测试：首次 +100 后次属性应为 100");
+		assert.Real(cache, 0.0, "次属性欠款测试：首次 +100 后欠款应为 0");
+
+		AddUnitSubAttrValue(hero, -200.0);
+		subVal = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+		assert.Real(subVal, 0.0, "次属性欠款测试：+100 -200 后次属性应为 0");
+		assert.Real(cache, 100.0, "次属性欠款测试：+100 -200 后欠款应为 100");
+
+		AddUnitSubAttrValue(hero, 1000.0);
+		subVal = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+		assert.Real(subVal, 900.0, "次属性欠款测试：+100 -200 +1000 后次属性应为 900");
+		assert.Real(cache, 0.0, "次属性欠款测试：+100 -200 +1000 后欠款应被清空");
+
+		// 测试3：验证在 GetUnitBaseStr/Agi/Int 时正确减去主/次属性欠款
+		// 设置基础值
+		SetUnitStr(hero, 100.0);
+		SetUnitAgi(hero, 80.0);
+		SetUnitInt(hero, 60.0);
+		SetUnitMainAttrType(hero, 0); // 力量为主属性
+
+		// 清理并设置主属性值
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		AddUnitMainAttrValue(hero, 50.0);
+		AddUnitMainAttrValue(hero, -150.0); // 产生 100 欠款
+
+		// 验证力量基础值：100 + 0 - 100(欠款) = 0
+		baseStr = GetUnitBaseStr(hero);
+		expected = 100.0 + 0.0 - 100.0;
+		assert.Real(baseStr, expected, "主属性欠款影响测试：力量基础值应减去主属性欠款");
+
+		// 清理并设置次属性值
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB_CACHE);
+		AddUnitSubAttrValue(hero, 30.0);
+		AddUnitSubAttrValue(hero, -80.0); // 产生 50 欠款
+
+		// 验证敏捷基础值：80 + 0 - 50(欠款) = 30
+		baseAgi = GetUnitBaseAgi(hero);
+		expected = 80.0 + 0.0 - 50.0;
+		assert.Real(baseAgi, expected, "次属性欠款影响测试：敏捷基础值应减去次属性欠款");
+
+		// 验证智力基础值：60 + 0 - 50(欠款) = 10
+		baseInt = GetUnitBaseInt(hero);
+		expected = 60.0 + 0.0 - 50.0;
+		assert.Real(baseInt, expected, "次属性欠款影响测试：智力基础值应减去次属性欠款");
+
+		// 测试4：切换主属性类型后验证欠款影响
+		SetUnitMainAttrType(hero, 1); // 敏捷为主属性
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		AddUnitMainAttrValue(hero, 40.0);
+		AddUnitMainAttrValue(hero, -90.0); // 产生 50 欠款
+
+		// 验证敏捷基础值：80 + 0 - 50(主属性欠款) = 30
+		baseAgi = GetUnitBaseAgi(hero);
+		expected = 80.0 + 0.0 - 50.0;
+		assert.Real(baseAgi, expected, "主属性切换后欠款影响测试：敏捷基础值应减去主属性欠款");
+
+		// 测试5：大数欠款测试：主属性 -1亿 +2亿 = 1亿
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_CACHE);
+
+		AddUnitMainAttrValue(hero, -100000000.0);
+		mainVal = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		assert.Real(mainVal, 0.0, "主属性大数欠款测试：-1亿 后主属性应为 0");
+		assert.Real(cache, 100000000.0, "主属性大数欠款测试：-1亿 后欠款应为 1亿");
+
+		AddUnitMainAttrValue(hero, 200000000.0);
+		mainVal = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		assert.Real(mainVal, 100000000.0, "主属性大数欠款测试：-1亿 +2亿 后主属性应为 1亿");
+		assert.Real(cache, 0.0, "主属性大数欠款测试：-1亿 +2亿 后欠款应被清空");
+
+		// 测试6：大数欠款测试：次属性 -1亿 +2亿 = 1亿
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB_CACHE);
+
+		AddUnitSubAttrValue(hero, -100000000.0);
+		subVal = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+		assert.Real(subVal, 0.0, "次属性大数欠款测试：-1亿 后次属性应为 0");
+		assert.Real(cache, 100000000.0, "次属性大数欠款测试：-1亿 后欠款应为 1亿");
+
+		AddUnitSubAttrValue(hero, 200000000.0);
+		subVal = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB);
+		cache = bigInteger.toReal(p, HASH_KEY_BIGINT_SUB_CACHE);
+		assert.Real(subVal, 100000000.0, "次属性大数欠款测试：-1亿 +2亿 后次属性应为 1亿");
+		assert.Real(cache, 0.0, "次属性大数欠款测试：-1亿 +2亿 后欠款应被清空");
+
+		hero = null;
+		p = null;
+	}
+
 	// 测试8：三维属性 Up/Down/Bonus 操作
 	private function Test_AttrUpDownBonus() {
 		player p; unit hero; real finalPercent; real expected; integer uid; real bonus;
@@ -668,6 +816,11 @@ library UTHeroUtils requires HeroUtils {
 			Test_AttrSetAdd();
 		}, null);
 
+		UnitTestAutoTimer(0.91, 0.1, function() {
+			Trace("HeroUtils 主/次属性欠款测试");
+			Test_MainSubAttrDebt();
+		}, null);
+
 		UnitTestAutoTimer(1.0, 0.1, function() {
 			Trace("HeroUtils 属性 Up/Down/Bonus 测试");
 			Test_AttrUpDownBonus();
@@ -707,6 +860,10 @@ library UTHeroUtils requires HeroUtils {
 		Test_AttrSetAdd();
 		BJDebugMsg("[HeroUtils] 属性 Set/Add 测试完成");
 	}
+	function TTestUTHeroUtils7_1 (player p) {
+		Test_MainSubAttrDebt();
+		BJDebugMsg("[HeroUtils] 主/次属性欠款测试完成");
+	}
 	function TTestUTHeroUtils8 (player p) {
 		Test_AttrUpDownBonus();
 		BJDebugMsg("[HeroUtils] 属性 Up/Down/Bonus 测试完成");
@@ -724,6 +881,7 @@ library UTHeroUtils requires HeroUtils {
 		Test_FinalPercent();
 		Test_FullAttrCalculation();
 		Test_AttrSetAdd();
+		Test_MainSubAttrDebt();
 		Test_AttrUpDownBonus();
 		Test_NonBigIntegerUnit();
 		BJDebugMsg("[HeroUtils] 所有测试完成");
@@ -786,6 +944,7 @@ library UTHeroUtils requires HeroUtils {
 			else if(str == "s5") TTestUTHeroUtils5(GetTriggerPlayer());
 			else if(str == "s6") TTestUTHeroUtils6(GetTriggerPlayer());
 			else if(str == "s7") TTestUTHeroUtils7(GetTriggerPlayer());
+			else if(str == "s71") TTestUTHeroUtils7_1(GetTriggerPlayer());
 			else if(str == "s8") TTestUTHeroUtils8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTHeroUtils9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTHeroUtils10(GetTriggerPlayer());
