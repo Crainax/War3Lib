@@ -114,6 +114,10 @@
 #define KEY_UNIT_INT_TO_STR_SHARE            255610164 // 智力是否计入力量（boolean）
 #define KEY_UNIT_INT_TO_AGI_SHARE            255610165 // 智力是否计入敏捷（boolean）
 
+// 单位魔法抗性（Resist）增减幅
+#define KEY_UNIT_RESIST_UP_RATE              255610166 // 魔抗减伤 Up（0~1，使用 RealAdd 归一叠加）
+#define KEY_UNIT_RESIST_DOWN_RATE            255610167 // 魔抗易伤 Down（线性累加）
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物

@@ -59,7 +59,7 @@ library HeroUtils requires UnitUtils {
 
     // 缓存英雄的主属性类型（从对象编辑器读取并写入哈希表）
     // 用于初始化时预先缓存，避免在 Get 函数中写入导致 OOS 风险
-    public function CacheUnitMainAttrType(unit u) {
+    private function CacheUnitMainAttrType(unit u) {
         integer uid; integer attrType; integer unitTypeId; string primary;
 
         if (u == null) { return; }
@@ -112,6 +112,18 @@ library HeroUtils requires UnitUtils {
             heroAttrObserver.argsAttrType = -1; // -1 表示整体刷新
             TriggerEvaluate(heroAttrObserver.onAttrChangedCB);
         }
+    }
+
+    public function IsUnitStr (unit u)  -> boolean {
+        return GetUnitMainAttrType(u) == 0;
+    }
+
+    public function IsUnitAgi (unit u)  -> boolean {
+        return GetUnitMainAttrType(u) == 1;
+    }
+
+    public function IsUnitInt (unit u)  -> boolean {
+        return GetUnitMainAttrType(u) == 2;
     }
 
     //=====================
@@ -1523,7 +1535,7 @@ library HeroUtils requires UnitUtils {
             totalBonus = totalBonus + bonusAttr + bonusOther;
         }
 
-        finalPercent = GetUnitStrFinalPercentInternal(u);
+        finalPercent = RMaxBJ(0.0,GetUnitStrFinalPercentInternal(u));
         return RMaxBJ(0.0,baseTotal * finalPercent + totalBonus);
     }
 
@@ -1649,7 +1661,7 @@ library HeroUtils requires UnitUtils {
             totalBonus = totalBonus + bonusAttr + bonusOther;
         }
 
-        finalPercent = GetUnitAgiFinalPercentInternal(u);
+        finalPercent = RMaxBJ(0.0,GetUnitAgiFinalPercentInternal(u));
         return RMaxBJ(0.0,baseTotal * finalPercent + totalBonus);
     }
 
@@ -1775,7 +1787,7 @@ library HeroUtils requires UnitUtils {
             totalBonus = totalBonus + bonusAttr + bonusOther;
         }
 
-        finalPercent = GetUnitIntFinalPercentInternal(u);
+        finalPercent = RMaxBJ(0.0,GetUnitIntFinalPercentInternal(u));
         return RMaxBJ(0.0,baseTotal * finalPercent + totalBonus);
     }
 
@@ -1856,6 +1868,12 @@ library HeroUtils requires UnitUtils {
     }
 
 
+    public function AddUnit3W (unit u,real value) {
+        AddUnitStr(u,value);
+        AddUnitAgi(u,value);
+        AddUnitInt(u,value);
+    }
+
     //初始化上述属性
     public function InitAllUnitAttr (unit u ) {
         if (IsUnitBigInteger(u)) {
@@ -1871,6 +1889,25 @@ library HeroUtils requires UnitUtils {
         AddUnitDefense(u,0);
         AddUnitHP(u,0);
         AddUnitMP(u,0);
+    }
+
+    // 获取一个英雄的主属性（根据 GetUnitMainAttrType 返回对应的虚拟属性值）
+    public function GetUnitMain(unit u) -> real {
+        integer mainType;
+
+        if (u == null) { return 0.0; }
+        if (!IsUnitBigInteger(u)) { return 0.0; }
+
+        mainType = GetUnitMainAttrType(u);
+        if (mainType == 0) {
+            return GetUnitStr(u);
+        } else if (mainType == 1) {
+            return GetUnitAgi(u);
+        } else if (mainType == 2) {
+            return GetUnitInt(u);
+        }
+
+        return 0.0;
     }
 
     /*

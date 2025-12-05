@@ -107,6 +107,10 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		BJDebugMsg("-noinvul : 移除无敌状态");
 		BJDebugMsg("-magic : 添加魔免状态");
 		BJDebugMsg("-nomagic : 移除魔免状态");
+		BJDebugMsg("-resistup [value] : 增加魔抗减伤(小数,如0.5=50%减伤)");
+		BJDebugMsg("-resistdown [value] : 增加魔抗易伤(小数,如0.5=50%易伤)");
+		BJDebugMsg("-resetresistup : 重置魔抗减伤");
+		BJDebugMsg("-resetresistdown : 重置魔抗易伤");
 		BJDebugMsg("-silence : 添加沉默状态");
 		BJDebugMsg("-nosilence : 移除沉默状态");
 
@@ -632,6 +636,36 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			} else {
 				BJDebugMsg("单位没有魔免状态");
 			}
+		}
+		// 魔抗相关命令
+		else if (paramS[0] == "resistup") {
+			// 增加魔抗减伤
+			if (num >= 2) {
+				AddUnitResistUp(u, paramR[1]);
+				BJDebugMsg("增加魔抗减伤: " + R2S(paramR[1]));
+				BJDebugMsg("当前魔抗最终值: " + R2S(GetUnitResistFinal(u)));
+				BJDebugMsg("当前魔抗显示值: " + R2S(1.0 - GetUnitResistFinal(u)));
+			}
+		} else if (paramS[0] == "resistdown") {
+			// 增加魔抗易伤
+			if (num >= 2) {
+				AddUnitResistDown(u, paramR[1]);
+				BJDebugMsg("增加魔抗易伤: " + R2S(paramR[1]));
+				BJDebugMsg("当前魔抗最终值: " + R2S(GetUnitResistFinal(u)));
+				BJDebugMsg("当前魔抗显示值: " + R2S(1.0 - GetUnitResistFinal(u)));
+			}
+		} else if (paramS[0] == "resetresistup") {
+			// 重置魔抗减伤
+			ResetUnitResistUp(u);
+			BJDebugMsg("已重置魔抗减伤");
+			BJDebugMsg("当前魔抗最终值: " + R2S(GetUnitResistFinal(u)));
+			BJDebugMsg("当前魔抗显示值: " + R2S(1.0 - GetUnitResistFinal(u)));
+		} else if (paramS[0] == "resetresistdown") {
+			// 重置魔抗易伤
+			ResetUnitResistDown(u);
+			BJDebugMsg("已重置魔抗易伤");
+			BJDebugMsg("当前魔抗最终值: " + R2S(GetUnitResistFinal(u)));
+			BJDebugMsg("当前魔抗显示值: " + R2S(1.0 - GetUnitResistFinal(u)));
 		}
 
 		u = null;

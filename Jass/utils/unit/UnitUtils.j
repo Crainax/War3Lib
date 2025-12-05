@@ -352,6 +352,96 @@ library UnitUtils requires BigInteger,MathUtils {
     }
 
     //=====================
+    // 魔抗（Resist）扩展工具函数
+    //=====================
+
+    // 获取单位魔抗减伤 Up（0~1，使用 RealAdd 归一叠加）
+    private function GetUnitResistUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
+
+    // 获取单位魔抗易伤 Down（线性累加）
+    private function GetUnitResistDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_RESIST_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return down;
+    }
+
+    // 重置单位魔抗减伤 Up（直接归 0）
+    public function ResetUnitResistUp(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE);
+        }
+    }
+
+    // 重置单位魔抗易伤 Down（直接归 0）
+    public function ResetUnitResistDown(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_DOWN_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_DOWN_RATE);
+        }
+    }
+
+    // 增加魔抗减伤 Up（0~1，使用 RealAdd 归一叠加，永远不会到 1）
+    public function AddUnitResistUp(unit u, real value) -> nothing {
+        integer uid; real up;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        up = GetUnitResistUpRate(u);
+        up = RealAdd(up, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE, up);
+    }
+
+    // 增加魔抗易伤 Down（线性加法累加）
+    public function AddUnitResistDown(unit u, real value) -> nothing {
+        integer uid; real down;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        down = GetUnitResistDownRate(u);
+        down = down + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_RESIST_DOWN_RATE, down);
+    }
+
+    // 获取魔抗最终结果：
+    //  - Up 的两次 0.5 过程：RealAdd(0.5, 0.5) = 0.75
+    //  - Down 的两次 0.6 过程：0.6 + 0.6 = 1.2
+    //  - Final 计算公式：(1 - up) * (1.0 + down)
+    public function GetUnitResistFinal(unit u) -> real {
+        real up; real down; real final;
+
+        if (u == null) { return 0.0; }
+
+        up = GetUnitResistUpRate(u);
+        down = GetUnitResistDownRate(u);
+
+        final = (1.0 - up) * (1.0 + down);
+        return final;
+    }
+
+    //=====================
     // 生命值扩展工具函数
     //=====================
 
@@ -929,13 +1019,16 @@ library UnitUtils requires BigInteger,MathUtils {
         else {return R2I(GetUnitMoveSpeed(u));}
     }
     // 增加移速
-    public function AddUnitSpeed (unit u,integer speed) {
+    public function AddUnitSpeed (unit u,real speed) {
         integer value;
         if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
             value  = LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
-            value += speed;
+            value += R2I(speed);
             SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
-        } else {value = R2I(GetUnitMoveSpeed(u)) + speed;}
+        } else {
+            value = R2I(GetUnitMoveSpeed(u)) + R2I(speed);
+            SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
+        }
 		SetUnitMoveSpeed(u,value);
     }
 

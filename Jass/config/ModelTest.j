@@ -111,58 +111,34 @@ library MT requires UnitTestFramwork {
 	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
 	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
 	function TTestMT1 (player p) {
-		UnitModel(p,"hero_sandking_n8s_r_storm.mdl");
-		Efx("hero_sandking_n8s_r_storm.mdl");
-		EfxB("chest","hero_sandking_n8s_r_storm.mdl");
-		Danmu("hero_sandking_n8s_r_storm.mdl");
+		UnitModel(p,"A (167).mdl");
+		Efx("A (167).mdl");
+		EfxB("chest","A (167).mdl");
+		Danmu("A (167).mdl");
 	}
 	function TTestMT2 (player p) {
-		UnitModel(p,"hero_sandking_n8s_l_target.mdl");
-		Efx("hero_sandking_n8s_l_target.mdl");
-		EfxB("chest","hero_sandking_n8s_l_target.mdl");
-		Danmu("hero_sandking_n8s_l_target.mdl");
+		//replace
 	}
 	function TTestMT3 (player p) {
-		UnitModel(p,"hero_sandking_n8s_l_boom.mdl");
-		Efx("hero_sandking_n8s_l_boom.mdl");
-		EfxB("chest","hero_sandking_n8s_l_boom.mdl");
-		Danmu("hero_sandking_n8s_l_boom.mdl");
+		//replace
 	}
 	function TTestMT4 (player p) {
-		UnitModel(p,"hero_sandking_n8s_e_target.mdl");
-		Efx("hero_sandking_n8s_e_target.mdl");
-		EfxB("chest","hero_sandking_n8s_e_target.mdl");
-		Danmu("hero_sandking_n8s_e_target.mdl");
+		//replace
 	}
 	function TTestMT5 (player p) {
-		UnitModel(p,"hero_sandking_n8s_e_misslie.mdl");
-		Efx("hero_sandking_n8s_e_misslie.mdl");
-		EfxB("chest","hero_sandking_n8s_e_misslie.mdl");
-		Danmu("hero_sandking_n8s_e_misslie.mdl");
+		//replace
 	}
 	function TTestMT6 (player p) {
-		UnitModel(p,"hero_sandking_n8s_c_small.mdl");
-		Efx("hero_sandking_n8s_c_small.mdl");
-		EfxB("chest","hero_sandking_n8s_c_small.mdl");
-		Danmu("hero_sandking_n8s_c_small.mdl");
+		//replace
 	}
 	function TTestMT7 (player p) {
-		UnitModel(p,"hero_sandking_n8s_c_midium.mdl");
-		Efx("hero_sandking_n8s_c_midium.mdl");
-		EfxB("chest","hero_sandking_n8s_c_midium.mdl");
-		Danmu("hero_sandking_n8s_c_midium.mdl");
+		//replace
 	}
 	function TTestMT8 (player p) {
-		UnitModel(p,"hero_sandking_n8s_c_big.mdl");
-		Efx("hero_sandking_n8s_c_big.mdl");
-		EfxB("chest","hero_sandking_n8s_c_big.mdl");
-		Danmu("hero_sandking_n8s_c_big.mdl");
+		//replace
 	}
 	function TTestMT9 (player p) {
-		UnitModel(p,"hero_sandking_n8s_aghanim_1.mdl");
-		Efx("hero_sandking_n8s_aghanim_1.mdl");
-		EfxB("chest","hero_sandking_n8s_aghanim_1.mdl");
-		Danmu("hero_sandking_n8s_aghanim_1.mdl");
+		//replace
 	}
 	function TTestMT10 (player p) {
 		//replace

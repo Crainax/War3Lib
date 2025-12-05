@@ -40,6 +40,10 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static boolean lastShowDefenseExtra  = false; // 上一次是否显示额外防御
         private static boolean lastShowDefenseRate   = false; // 上一次是否显示防御百分比
 
+        // 魔抗显示缓存
+        private static real    lastResistValue       = 0.0;   // 上一次的魔抗值（1.0 - final）
+        private static boolean lastShowResist        = false; // 上一次是否显示魔抗
+
 
         // 上一次的状态（用于判断是否需要更新显示）
         private static boolean lastIsInvulnerable = false;
@@ -77,7 +81,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             string atkLabel; real percentAbs; string percentStr;
             integer baseDef; integer extraDef; boolean showDefExtra;
             string defLabel; string defExtraText; string defValueText;
-
+            real resistFinal; real resistValue; integer resistPercent; string resistText; boolean showResist;
 
             // === 攻击倍率显示（在“攻击:”后显示 (+xx.x%) / (-xx.x%)） ===
             rate = GetUnitAttackFinalPercent(u);
@@ -146,16 +150,43 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             extraDef = def - baseDef;
             showDefExtra = extraDef != 0;
 
-            // 更新防御标签（包含魔免状态）
+            // 更新防御标签（包含魔免和魔抗状态，顺序：魔免 > 魔抗）
             if (!inited || isMagicImm != lastIsMagicImmune) {
                 lastIsMagicImmune = isMagicImm;
+            }
+
+            // 计算魔抗值（仅在非魔免时计算）
+            if (isMagicImm) {
+                showResist = false;
+                resistValue = 0.0;
+            } else {
+                resistFinal = GetUnitResistFinal(u);
+                resistValue = 1.0 - resistFinal;
+                showResist = RAbsBJ(resistValue) >= 0.01;
+            }
+
+            // 更新防御标签显示
+            if (!inited || isMagicImm != lastIsMagicImmune || showResist != lastShowResist || (showResist && RAbsBJ(resistValue - lastResistValue) > 0.001)) {
                 if (isMagicImm) {
                     // 魔免：显示"护甲:|cff00ff00(魔免)|r"
                     unitPanel.textArmor.setText("护甲:|cff00ff00(魔免)|r");
+                } else if (showResist) {
+                    // 魔抗：根据正负值显示不同颜色
+                    resistPercent = R2I((RAbsBJ(resistValue) * 100.0) + 0.05);
+                    if (resistValue >= 0.01) {
+                        // 正数：绿色显示 (15%魔抗)
+                        resistText = "护甲:|cff00ff00(" + I2S(resistPercent) + "%魔抗)|r";
+                    } else {
+                        // 负数：红色显示，用正数 (50%魔易)
+                        resistText = "护甲:|cffff0000(" + I2S(resistPercent) + "%魔易)|r";
+                    }
+                    unitPanel.textArmor.setText(resistText);
                 } else {
                     // 正常显示
                     unitPanel.textArmor.setText("护甲:");
                 }
+                lastResistValue = resistValue;
+                lastShowResist = showResist;
             }
 
             // 更新防御显示（处理无敌和魔免状态）
