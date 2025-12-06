@@ -12,7 +12,7 @@
 // 基本参数（默认值，可通过 PierceCfg 结构体覆盖）
 #define PIERCE_TICK              0.03
 #define PIERCE_SPEED             900.0
-#define PIERCE_CLIFF_Z           128.0
+#define PIERCE_CLIFF_Z           32.0
 #define PIERCE_MODEL_PATH        "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdl"
 
 // 伤害类型常量
@@ -29,6 +29,7 @@ library Pierce requires DamageUtils {
         public static real    scale         = 1.0;                   // 模型缩放
         public static string  hitEffectPath = "";                    // 击中特效模型
         public static integer damageType    = PIERCE_DMG_MAGIC;      // 伤害类型
+        public static real    heightOffset  = 0.0;                   // 投射物高度偏移（相对地形），默认 0
         public static trigger trMatch       = null;                  // 全局匹配到单位的回调（模板）
 
         static method registerMatchEnemy(code func) {
@@ -76,27 +77,25 @@ library Pierce requires DamageUtils {
         group hitGrp;
         group enumGrp;
         real speed;
-        integer damageType;
-        string hitEffectPath;
+        real heightOffset;
         trigger matchTr;
 
         t = GetExpiredTimer();
         id = GetHandleId(t);
 
-        caster    = LoadUnitHandle(HASH_TIMER, id, 1);
-        e         = LoadEffectHandle(HASH_TIMER, id, 2);
-        x         = LoadReal(HASH_TIMER, id, 3);
-        y         = LoadReal(HASH_TIMER, id, 4);
-        facing    = LoadReal(HASH_TIMER, id, 5);
-        damage    = LoadReal(HASH_TIMER, id, 6);
-        radius    = LoadReal(HASH_TIMER, id, 7);
-        range     = LoadReal(HASH_TIMER, id, 8);
-        travelled     = LoadReal(HASH_TIMER, id, 9);
-        hitGrp        = LoadGroupHandle(HASH_TIMER, id, 10);
-        speed         = LoadReal(HASH_TIMER, id, 11);
-        damageType    = LoadInteger(HASH_TIMER, id, 13);
-        hitEffectPath = LoadStr(HASH_TIMER, id, 14);
-        matchTr       = LoadTriggerHandle(HASH_TIMER, id, 15);
+        caster       = LoadUnitHandle(HASH_TIMER, id, 1);
+        e            = LoadEffectHandle(HASH_TIMER, id, 2);
+        x            = LoadReal(HASH_TIMER, id, 3);
+        y            = LoadReal(HASH_TIMER, id, 4);
+        facing       = LoadReal(HASH_TIMER, id, 5);
+        damage       = LoadReal(HASH_TIMER, id, 6);
+        radius       = LoadReal(HASH_TIMER, id, 7);
+        range        = LoadReal(HASH_TIMER, id, 8);
+        travelled    = LoadReal(HASH_TIMER, id, 9);
+        hitGrp       = LoadGroupHandle(HASH_TIMER, id, 10);
+        speed        = LoadReal(HASH_TIMER, id, 11);
+        heightOffset = LoadReal(HASH_TIMER, id, 16);
+        matchTr      = LoadTriggerHandle(HASH_TIMER, id, 15);
 
         // 失效或超出射程：清理
         if (caster == null || e == null || travelled >= range) {
@@ -106,15 +105,19 @@ library Pierce requires DamageUtils {
             if (hitGrp != null) {
                 DestroyGroup(hitGrp);
             }
+            if (matchTr != null) {
+                DestroyTrigger(matchTr);
+            }
 
             FlushChildHashtable(HASH_TIMER, id);
             PauseTimer(t);
             DestroyTimer(t);
 
-            e      = null;
-            caster = null;
-            hitGrp = null;
-            t      = null;
+            e       = null;
+            caster  = null;
+            hitGrp   = null;
+            matchTr  = null;
+            t       = null;
             return;
         }
 
@@ -131,7 +134,7 @@ library Pierce requires DamageUtils {
         SaveReal(HASH_TIMER, id, 9, travelled);
 
         // 根据当前地形高度设置 Z（类似 AJZ2_CLIFF_Z）
-        z = I2R(GetTerrainCliffLevel(x, y)) * PIERCE_CLIFF_Z + 50.0;
+        z = I2R(GetTerrainCliffLevel(x, y)) * PIERCE_CLIFF_Z + heightOffset;
         EXSetEffectXY(e, x, y);
         EXSetEffectZ(e, z);
 
@@ -141,8 +144,8 @@ library Pierce requires DamageUtils {
         pierceCbCaster        = caster;
         pierceCbHitGrp        = hitGrp;
         pierceCbDamage        = damage;
-        pierceCbDamageType    = damageType;
-        pierceCbHitEffectPath = hitEffectPath;
+        pierceCbDamageType    = LoadInteger(HASH_TIMER, id, 13);
+        pierceCbHitEffectPath = LoadStr(HASH_TIMER, id, 14);
         pierceCbMatchTr       = matchTr;
 
         GroupEnumUnitsInRangeEx(enumGrp, x, y, radius, Filter(function () -> boolean{
@@ -204,15 +207,16 @@ library Pierce requires DamageUtils {
         DestroyGroup(enumGrp);
         enumGrp = null;
 
-        pierceCbCaster = null;
-        pierceCbHitGrp = null;
-        pierceCbDamage = 0.0;
+        pierceCbCaster  = null;
+        pierceCbHitGrp  = null;
+        pierceCbDamage  = 0.0;
 
         caster = null;
         e      = null;
         hitGrp = null;
         enumGrp = null;
         t      = null;
+        matchTr = null;
     }
 
     // 对外入口：
@@ -233,6 +237,7 @@ library Pierce requires DamageUtils {
         real cfgScale;
         string cfgHitPath;
         integer cfgDmgType;
+        real cfgHeight;
         trigger cfgMatchTr;
 
         if (caster == null || range <= 0.0 || radius <= 0.0 || damage <= 0.0) {
@@ -242,15 +247,17 @@ library Pierce requires DamageUtils {
         x = YDWECoordinateX(x);
         y = YDWECoordinateY(y);
 
-        z = I2R(GetTerrainCliffLevel(x, y)) * PIERCE_CLIFF_Z + 50.0;
-
         // 读取本次 Cast 的配置（一次配置只影响一次 Cast）
         cfgSpeed   = PierceCfg.speed;
         cfgModel   = PierceCfg.modelPath;
         cfgScale   = PierceCfg.scale;
         cfgHitPath = PierceCfg.hitEffectPath;
         cfgDmgType = PierceCfg.damageType;
+        cfgHeight  = PierceCfg.heightOffset;
         cfgMatchTr = PierceCfg.trMatch;
+
+        // 初始高度
+        z = I2R(GetTerrainCliffLevel(x, y)) * PIERCE_CLIFF_Z + cfgHeight;
 
         // 使用结构体数组配置的模型与缩放
         e = AddSpecialEffect(cfgModel, x, y);
@@ -279,6 +286,7 @@ library Pierce requires DamageUtils {
         SaveReal(HASH_TIMER, id, 12, cfgScale);
         SaveInteger(HASH_TIMER, id, 13, cfgDmgType);
         SaveStr(HASH_TIMER, id, 14, cfgHitPath);
+        SaveReal(HASH_TIMER, id, 16, cfgHeight);
         if (cfgMatchTr != null) {
             SaveTriggerHandle(HASH_TIMER, id, 15, cfgMatchTr);
         }
@@ -289,14 +297,17 @@ library Pierce requires DamageUtils {
         PierceCfg.scale         = 1.0;
         PierceCfg.hitEffectPath = "";
         PierceCfg.damageType    = PIERCE_DMG_MAGIC;
+        PierceCfg.heightOffset  = 0.0;
+        PierceCfg.trMatch       = null;
 
         TimerStart(t, PIERCE_TICK, true, function PierceTimer);
 
-        e         = null;
-        hitGrp    = null;
-        cfgModel  = null;
+        e          = null;
+        hitGrp     = null;
+        cfgModel   = null;
         cfgHitPath = null;
-        t         = null;
+        t          = null;
+        cfgMatchTr = null;
     }
 }
 

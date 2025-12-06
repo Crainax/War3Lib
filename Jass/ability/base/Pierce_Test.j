@@ -17,54 +17,9 @@ library UTPierce requires Pierce {
 	// 回调测试模式：0=无，1=打印不截断，2=打印并截断默认伤害/特效
 	private integer utMatchMode = 0;
 	private boolean utMatchCbInited = false;
+	private integer utCastMode = 1;         // 1~4：对应四种施放方式
+	private trigger utCastTr = null;
 
-	private function initUnits() {
-		player p1;
-		player p11;
-		integer i;
-		real centerX;
-		real centerY;
-		real radius;
-		real angle;
-		real angleStep;
-		real unitX;
-		real unitY;
-
-		if (utCaster != null) {
-			return;
-		}
-
-		p1  = Player(0);   // 玩家1
-		p11 = Player(10);  // 玩家11（敌方）
-
-		// 创建友方施法者在地图中央
-		centerX = 0.0;
-		centerY = 0.0;
-		utCaster = CreateUnit(p1, 'Hpal', centerX, centerY, 0.0);
-		UnitAddAbility(utCaster, 'A000');
-
-		// 创建100个敌方单位（hpea）呈环形分布
-		radius = 700.0;  // 环形半径
-		angleStep = 360.0 / 100.0;  // 每个单位的角度间隔（3.6度）
-
-		for (0 <= i <= 99) {
-			angle = angleStep * I2R(i);
-			unitX = centerX + radius * CosBJ(angle);
-			unitY = centerY + radius * SinBJ(angle);
-
-			utEnemies[i] = CreateUnit(p11, 'hpea', unitX, unitY, angle);
-
-			// 第一个单位作为 utEnemy（用于测试函数中的朝向计算）
-			if (i == 0) {
-				utEnemy = utEnemies[i];
-			}
-		}
-
-		BJDebugMsg("[PierceTest] 已创建100个环形分布的敌方单位（hpea）");
-
-		p1  = null;
-		p11 = null;
-	}
 
 	// 注册一次全局匹配回调：根据 utMatchMode 控制是否截断默认伤害/特效
 	private function ensureMatchCallback() {
@@ -98,6 +53,131 @@ library UTPierce requires Pierce {
 
 		utMatchCbInited = true;
 	}
+
+	private function initUnits() {
+		player p1;
+		player p11;
+		integer i;
+		real centerX;
+		real centerY;
+		real radius;
+		real angle;
+		real angleStep;
+		real unitX;
+		real unitY;
+		trigger tr;
+
+		if (utCaster != null) {
+			return;
+		}
+
+		p1  = Player(0);   // 玩家1
+		p11 = Player(10);  // 玩家11（敌方）
+
+		// 创建友方施法者在地图中央
+		centerX = 0.0;
+		centerY = 0.0;
+		utCaster = CreateUnit(p1, 'Hpal', centerX, centerY, 0.0);
+		UnitAddAbility(utCaster, 'A000');
+
+		// 创建100个敌方单位（hpea）呈环形分布
+		radius = 700.0;  // 环形半径
+		angleStep = 360.0 / 100.0;  // 每个单位的角度间隔（3.6度）
+
+		for (0 <= i <= 99) {
+			angle = angleStep * I2R(i);
+			unitX = centerX + radius * CosBJ(angle);
+			unitY = centerY + radius * SinBJ(angle);
+
+			utEnemies[i] = CreateUnit(p11, 'hpea', unitX, unitY, angle);
+
+			// 第一个单位作为 utEnemy（用于测试函数中的朝向计算）
+			if (i == 0) {
+				utEnemy = utEnemies[i];
+			}
+		}
+
+		BJDebugMsg("[PierceTest] 已创建100个环形分布的敌方单位（hpea）");
+
+		// 注册施法触发器：英雄施放 A000 时，根据 utCastMode 调用 PierceCast
+		if (utCastTr == null) {
+			tr = CreateTrigger();
+			utCastTr = tr;
+			TriggerRegisterUnitEvent(tr, utCaster, EVENT_UNIT_SPELL_EFFECT);
+			TriggerAddCondition(tr, Condition(function () -> boolean {
+				unit u;
+				real sx;
+				real sy;
+				real tx;
+				real ty;
+				real facing;
+
+				u = GetTriggerUnit();
+				if (GetSpellAbilityId() != 'A000') {
+					u = null;
+					return false;
+				}
+
+				sx = GetUnitX(u);
+				sy = GetUnitY(u);
+				tx = GetSpellTargetX();
+				ty = GetSpellTargetY();
+				facing = GetFacing(sx, sy, tx, ty);
+
+				// 根据当前模式配置 PierceCfg，并决定回调模式
+				if (utCastMode == 1) {
+					// 无击中特效，无回调
+					PierceCfg.speed         = 900.0;
+					PierceCfg.modelPath     = PIERCE_MODEL_PATH;
+					PierceCfg.scale         = 1.0;
+					PierceCfg.hitEffectPath = "";
+					PierceCfg.damageType    = PIERCE_DMG_MAGIC;
+					PierceCfg.heightOffset  = 0.0;
+					utMatchMode = 0;
+				} else if (utCastMode == 2) {
+					// 有击中特效，无回调
+					PierceCfg.speed         = 900.0;
+					PierceCfg.modelPath     = PIERCE_MODEL_PATH;
+					PierceCfg.scale         = 1.0;
+					PierceCfg.hitEffectPath = "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdl";
+					PierceCfg.damageType    = PIERCE_DMG_MAGIC;
+					PierceCfg.heightOffset  = 0.0;
+					utMatchMode = 0;
+				} else if (utCastMode == 3) {
+					// 有回调（打印），不截断
+					ensureMatchCallback();
+					PierceCfg.speed         = 900.0;
+					PierceCfg.modelPath     = PIERCE_MODEL_PATH;
+					PierceCfg.scale         = 1.0;
+					PierceCfg.hitEffectPath = "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdl";
+					PierceCfg.damageType    = PIERCE_DMG_MAGIC;
+					PierceCfg.heightOffset  = 0.0;
+					utMatchMode = 1;
+				} else if (utCastMode == 4) {
+					// 有回调（打印），截断默认伤害/特效
+					ensureMatchCallback();
+					PierceCfg.speed         = 900.0;
+					PierceCfg.modelPath     = PIERCE_MODEL_PATH;
+					PierceCfg.scale         = 1.0;
+					PierceCfg.hitEffectPath = "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdl";
+					PierceCfg.damageType    = PIERCE_DMG_MAGIC;
+					PierceCfg.heightOffset  = 0.0;
+					utMatchMode = 2;
+				}
+
+				BJDebugMsg("[PierceTest] 英雄施放 A000, 模式=" + I2S(utCastMode));
+				PierceCast(u, sx, sy, facing, 200.0, 150.0, 1200.0);
+
+				u = null;
+				return true;
+			}));
+		}
+
+		p1  = null;
+		p11 = null;
+		tr  = null;
+	}
+
 
 	// 1) 不带 hitEffectPath、不带回调
 	function TTestUTPierce1 (player p) {
@@ -155,7 +235,7 @@ library UTPierce requires Pierce {
 		PierceCfg.speed         = 900.0;
 		PierceCfg.modelPath     = PIERCE_MODEL_PATH;
 		PierceCfg.scale         = 1.0;
-		PierceCfg.hitEffectPath = "Abilities\\Spells\\Other\\Stampede\\MissileDeath.mdl";
+		PierceCfg.hitEffectPath = "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdl";
 		PierceCfg.damageType    = PIERCE_DMG_MAGIC;
 
 		utMatchMode = 0;
@@ -189,7 +269,7 @@ library UTPierce requires Pierce {
 		PierceCfg.speed         = 900.0;
 		PierceCfg.modelPath     = PIERCE_MODEL_PATH;
 		PierceCfg.scale         = 1.0;
-		PierceCfg.hitEffectPath = "Abilities\\Spells\\Other\\Stampede\\MissileDeath.mdl";
+		PierceCfg.hitEffectPath = "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdl";
 		PierceCfg.damageType    = PIERCE_DMG_MAGIC;
 
 		utMatchMode = 1; // 打印但不截断
@@ -223,7 +303,7 @@ library UTPierce requires Pierce {
 		PierceCfg.speed         = 900.0;
 		PierceCfg.modelPath     = PIERCE_MODEL_PATH;
 		PierceCfg.scale         = 1.0;
-		PierceCfg.hitEffectPath = "Abilities\\Spells\\Other\\Stampede\\MissileDeath.mdl";
+		PierceCfg.hitEffectPath = "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdl";
 		PierceCfg.damageType    = PIERCE_DMG_MAGIC;
 
 		utMatchMode = 2; // 打印并截断默认处理
@@ -289,10 +369,24 @@ library UTPierce requires Pierce {
 				TTestActUTPierce1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTPierce1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTPierce2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTPierce3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTPierce4(GetTriggerPlayer());
+
+			// s1-s4：切换施放模式；实际施放由英雄使用 A000 完成
+			if (str == "s1") {
+				utCastMode = 1;
+				BJDebugMsg("[PierceTest] 模式切换到 1：无击中特效，无回调");
+			}
+			else if(str == "s2") {
+				utCastMode = 2;
+				BJDebugMsg("[PierceTest] 模式切换到 2：有击中特效，无回调");
+			}
+			else if(str == "s3") {
+				utCastMode = 3;
+				BJDebugMsg("[PierceTest] 模式切换到 3：有回调，打印，不截断");
+			}
+			else if(str == "s4") {
+				utCastMode = 4;
+				BJDebugMsg("[PierceTest] 模式切换到 4：有回调，打印，截断默认伤害/特效");
+			}
 			else if(str == "s5") TTestUTPierce5(GetTriggerPlayer());
 			else if(str == "s6") TTestUTPierce6(GetTriggerPlayer());
 			else if(str == "s7") TTestUTPierce7(GetTriggerPlayer());
