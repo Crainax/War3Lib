@@ -4,42 +4,59 @@
 //! zinc
 /*
 穿刺型技能模拟
-使用计时器 + HASH_TIMER + 共享枚举 Group，实现直线穿透弹道。
-首版：固定模型，魔法伤害，每单位最多命中一次。
+使用计时器 + HASH_TIMER + 枚举 Group，实现直线穿透弹道。
+首版：通过结构体数组配置速度/模型/缩放/击中特效/伤害类型，每单位最多命中一次。
 */
+
+
+// 基本参数（默认值，可通过 PierceCfg 结构体覆盖）
+#define PIERCE_TICK              0.03
+#define PIERCE_SPEED             900.0
+#define PIERCE_CLIFF_Z           128.0
+#define PIERCE_MODEL_PATH        "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdl"
+
+// 伤害类型常量
+#define PIERCE_DMG_PHYSICAL      1
+#define PIERCE_DMG_MAGIC         2
+#define PIERCE_DMG_PURE          3
+
 library Pierce requires DamageUtils {
 
-    // 基本参数
-    #define PIERCE_TICK          0.03
-    #define PIERCE_SPEED         900.0
-    #define PIERCE_CLIFF_Z       128.0
-    #define PIERCE_MODEL_PATH    "effects\\pierce.mdl"
+    // 公共配置结构体数组：先修改这些静态成员，再调用 PierceCast（一次配置只影响一次 Cast）
+    public struct PierceCfg []{
+        public static real    speed         = PIERCE_SPEED;          // 弹道速度
+        public static string  modelPath     = PIERCE_MODEL_PATH;     // 投射物模型
+        public static real    scale         = 1.0;                   // 模型缩放
+        public static string  hitEffectPath = "";                    // 击中特效模型
+        public static integer damageType    = PIERCE_DMG_MAGIC;      // 伤害类型
+        public static trigger trMatch       = null;                  // 全局匹配到单位的回调（模板）
 
-    // 共享枚举 Group（全局复用，避免每帧创建/销毁）
-    private group pierceEnumGroup = null;
+        static method registerMatchEnemy(code func) {
+            if (trMatch == null) {
+                trMatch = CreateTrigger();
+            }
+            TriggerAddCondition(trMatch, Condition(func));
+        }
+    }
+
+    // 匹配回调时使用的参数结构体（全局静态变量作为回调上下文，回调结束后会自动清空）
+    public struct PierceMatchArgs []{
+        public static unit caster = null;
+        public static unit target = null;
+        public static real damage = 0.0;
+        public static boolean allowDefault = true; // 默认执行内置伤害与特效逻辑，回调中可改为 false
+    }
+
+    // 兼容函数：获取当前匹配到的单位
+    public function PierceMatchEnemy () -> unit { return PierceMatchArgs.target;}
 
     // 回调参数（枚举 Filter 使用静态成员传参，避免哈希表冲突）
-    private unit  pierceCbCaster  = null;
-    private group pierceCbHitGrp  = null;
-    private real  pierceCbDamage  = 0.0;
-
-    // 穿刺枚举 Filter：只对还没被该弹道命中的敌单位造成一次伤害
-    private function PierceFilter() -> boolean {
-        unit u;
-
-        u = GetFilterUnit();
-        if (u != null && IsEnemy(u, GetOwningPlayer(pierceCbCaster))) {
-            if (!IsUnitInGroup(u, pierceCbHitGrp)) {
-                GroupAddUnit(pierceCbHitGrp, u);
-                ApplyMagicDamage(pierceCbCaster, u, pierceCbDamage);
-                u = null;
-                return true;
-            }
-        }
-
-        u = null;
-        return false;
-    }
+    private unit    pierceCbCaster        = null;
+    private group   pierceCbHitGrp        = null;
+    private real    pierceCbDamage        = 0.0;
+    private integer pierceCbDamageType    = 0;
+    private string  pierceCbHitEffectPath = "";
+    private trigger pierceCbMatchTr       = null;
 
     // 计时器回调：推进弹道、枚举单位、结束时清理
     private function PierceTimer() {
@@ -57,6 +74,11 @@ library Pierce requires DamageUtils {
         real step;
         real z;
         group hitGrp;
+        group enumGrp;
+        real speed;
+        integer damageType;
+        string hitEffectPath;
+        trigger matchTr;
 
         t = GetExpiredTimer();
         id = GetHandleId(t);
@@ -69,8 +91,12 @@ library Pierce requires DamageUtils {
         damage    = LoadReal(HASH_TIMER, id, 6);
         radius    = LoadReal(HASH_TIMER, id, 7);
         range     = LoadReal(HASH_TIMER, id, 8);
-        travelled = LoadReal(HASH_TIMER, id, 9);
-        hitGrp    = LoadGroupHandle(HASH_TIMER, id, 10);
+        travelled     = LoadReal(HASH_TIMER, id, 9);
+        hitGrp        = LoadGroupHandle(HASH_TIMER, id, 10);
+        speed         = LoadReal(HASH_TIMER, id, 11);
+        damageType    = LoadInteger(HASH_TIMER, id, 13);
+        hitEffectPath = LoadStr(HASH_TIMER, id, 14);
+        matchTr       = LoadTriggerHandle(HASH_TIMER, id, 15);
 
         // 失效或超出射程：清理
         if (caster == null || e == null || travelled >= range) {
@@ -92,8 +118,8 @@ library Pierce requires DamageUtils {
             return;
         }
 
-        // 前进一小步
-        step = PIERCE_SPEED * PIERCE_TICK;
+        // 前进一小步（每个弹道独立速度）
+        step = speed * PIERCE_TICK;
         x = x + step * CosBJ(facing);
         y = y + step * SinBJ(facing);
         x = YDWECoordinateX(x);
@@ -105,22 +131,78 @@ library Pierce requires DamageUtils {
         SaveReal(HASH_TIMER, id, 9, travelled);
 
         // 根据当前地形高度设置 Z（类似 AJZ2_CLIFF_Z）
-        z = I2R(GetTerrainCliffLevel(x, y)) * PIERCE_CLIFF_Z + GetUnitFlyHeight(caster) + 50.0;
+        z = I2R(GetTerrainCliffLevel(x, y)) * PIERCE_CLIFF_Z + 50.0;
         EXSetEffectXY(e, x, y);
         EXSetEffectZ(e, z);
 
-        // 用共享 Group 枚举周围单位，每个单位只命中一次
-        if (pierceEnumGroup == null) {
-            pierceEnumGroup = CreateGroup();
-        } else {
-            GroupClear(pierceEnumGroup);
-        }
+        // 临时 Group 枚举周围单位，每个单位只命中一次
+        enumGrp = CreateGroup();
 
-        pierceCbCaster = caster;
-        pierceCbHitGrp = hitGrp;
-        pierceCbDamage = damage;
+        pierceCbCaster        = caster;
+        pierceCbHitGrp        = hitGrp;
+        pierceCbDamage        = damage;
+        pierceCbDamageType    = damageType;
+        pierceCbHitEffectPath = hitEffectPath;
+        pierceCbMatchTr       = matchTr;
 
-        GroupEnumUnitsInRangeEx(pierceEnumGroup, x, y, radius, Filter(function PierceFilter));
+        GroupEnumUnitsInRangeEx(enumGrp, x, y, radius, Filter(function () -> boolean{
+            // 穿刺枚举 Filter：只对还没被该弹道命中的敌单位造成一次伤害
+            unit u;
+            effect he;
+
+            u = GetFilterUnit();
+            if (u != null && IsEnemy(u, GetOwningPlayer(pierceCbCaster))) {
+                if (!IsUnitInGroup(u, pierceCbHitGrp)) {
+                    GroupAddUnit(pierceCbHitGrp, u);
+
+                    // 设置回调上下文（可在回调中修改 damage / allowDefault）
+                    PierceMatchArgs.caster = pierceCbCaster;
+                    PierceMatchArgs.target = u;
+                    PierceMatchArgs.damage = pierceCbDamage;
+                    PierceMatchArgs.allowDefault = true;
+
+                    // 如果注册了匹配回调，先执行回调逻辑
+                    if (pierceCbMatchTr != null) {
+                        TriggerEvaluate(pierceCbMatchTr);
+                    }
+
+                    // 根据回调结果决定是否继续执行默认伤害与特效
+                    if (PierceMatchArgs.allowDefault) {
+                        // 根据配置的伤害类型结算伤害（允许回调修改伤害值）
+                        if (pierceCbDamageType == PIERCE_DMG_PHYSICAL) {
+                            ApplyPhysicalDamage(pierceCbCaster, u, PierceMatchArgs.damage);
+                        } else if (pierceCbDamageType == PIERCE_DMG_PURE) {
+                            ApplyPureDamage(pierceCbCaster, u, PierceMatchArgs.damage);
+                        } else {
+                            ApplyMagicDamage(pierceCbCaster, u, PierceMatchArgs.damage);
+                        }
+
+                        // 击中特效（可选，允许回调修改路径）
+                        if (pierceCbHitEffectPath != "") {
+                            he = AddSpecialEffect(pierceCbHitEffectPath, GetUnitX(u), GetUnitY(u));
+                            DestroyEffect(he);
+                            he = null;
+                        }
+                    }
+
+                    // 清理回调上下文
+                    PierceMatchArgs.caster = null;
+                    PierceMatchArgs.target = null;
+                    PierceMatchArgs.damage = 0.0;
+                    PierceMatchArgs.allowDefault = true;
+
+                    u = null;
+                    return true;
+                }
+            }
+
+            u = null;
+            return false;
+
+        }));
+
+        DestroyGroup(enumGrp);
+        enumGrp = null;
 
         pierceCbCaster = null;
         pierceCbHitGrp = null;
@@ -129,6 +211,7 @@ library Pierce requires DamageUtils {
         caster = null;
         e      = null;
         hitGrp = null;
+        enumGrp = null;
         t      = null;
     }
 
@@ -145,6 +228,12 @@ library Pierce requires DamageUtils {
         effect e;
         group hitGrp;
         real z;
+        real cfgSpeed;
+        string cfgModel;
+        real cfgScale;
+        string cfgHitPath;
+        integer cfgDmgType;
+        trigger cfgMatchTr;
 
         if (caster == null || range <= 0.0 || radius <= 0.0 || damage <= 0.0) {
             return;
@@ -153,11 +242,22 @@ library Pierce requires DamageUtils {
         x = YDWECoordinateX(x);
         y = YDWECoordinateY(y);
 
-        z = I2R(GetTerrainCliffLevel(x, y)) * PIERCE_CLIFF_Z + GetUnitFlyHeight(caster) + 50.0;
+        z = I2R(GetTerrainCliffLevel(x, y)) * PIERCE_CLIFF_Z + 50.0;
 
-        // 首版用固定模型，后续可以通过“结构体数组配置”扩展不同模型、特效等
-        e = AddSpecialEffect(PIERCE_MODEL_PATH, x, y);
+        // 读取本次 Cast 的配置（一次配置只影响一次 Cast）
+        cfgSpeed   = PierceCfg.speed;
+        cfgModel   = PierceCfg.modelPath;
+        cfgScale   = PierceCfg.scale;
+        cfgHitPath = PierceCfg.hitEffectPath;
+        cfgDmgType = PierceCfg.damageType;
+        cfgMatchTr = PierceCfg.trMatch;
+
+        // 使用结构体数组配置的模型与缩放
+        e = AddSpecialEffect(cfgModel, x, y);
         EXEffectMatRotateZ(e, facing);
+        if (cfgScale != 1.0) {
+            EXEffectMatScale(e, cfgScale, cfgScale, cfgScale);
+        }
         EXSetEffectZ(e, z);
 
         hitGrp = CreateGroup();
@@ -175,16 +275,28 @@ library Pierce requires DamageUtils {
         SaveReal(HASH_TIMER, id, 8, range);
         SaveReal(HASH_TIMER, id, 9, 0.0); // travelled
         SaveGroupHandle(HASH_TIMER, id, 10, hitGrp);
+        SaveReal(HASH_TIMER, id, 11, cfgSpeed);
+        SaveReal(HASH_TIMER, id, 12, cfgScale);
+        SaveInteger(HASH_TIMER, id, 13, cfgDmgType);
+        SaveStr(HASH_TIMER, id, 14, cfgHitPath);
+        if (cfgMatchTr != null) {
+            SaveTriggerHandle(HASH_TIMER, id, 15, cfgMatchTr);
+        }
+
+        // Cast 结束后恢复配置为默认值（避免影响后续 Cast）
+        PierceCfg.speed         = PIERCE_SPEED;
+        PierceCfg.modelPath     = PIERCE_MODEL_PATH;
+        PierceCfg.scale         = 1.0;
+        PierceCfg.hitEffectPath = "";
+        PierceCfg.damageType    = PIERCE_DMG_MAGIC;
 
         TimerStart(t, PIERCE_TICK, true, function PierceTimer);
 
-        e      = null;
-        hitGrp = null;
-        t      = null;
-    }
-
-    function onInit ()  {
-        // 共享 Group 懒初始化即可，这里不强制创建
+        e         = null;
+        hitGrp    = null;
+        cfgModel  = null;
+        cfgHitPath = null;
+        t         = null;
     }
 }
 

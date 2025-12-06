@@ -1,0 +1,44 @@
+[A000]
+_parent = "ANcl"
+-- 影响区域
+Area = 600.0
+-- 按钮位置 - 普通 (X)
+Buttonpos_1 = 1
+-- 按钮位置 - 普通 (Y)
+Buttonpos_2 = 1
+-- 效果 - 施法者
+CasterArt = ""
+-- 效果 - 施法者附加点1
+Casterattach = ""
+-- 魔法施放时间间隔
+Cool = 2.0
+-- 施法持续时间
+DataA = 0.0
+-- 目标类型
+DataB = 2
+-- 选项
+DataC = 1
+-- 动作持续时间
+DataD = 0.0
+-- 使其他技能无效
+DataE = 0
+-- 基础命令ID
+DataF = "chainlightning"
+-- 效果 - 目标点
+EffectArt = ""
+-- 热键 - 普通
+Hotkey = "Z"
+-- 名字
+Name = "一键丢弃"
+-- 命令串 - 使用/打开
+Order = "chainlightning"
+-- 施法距离
+Rng = 99999.0
+-- 效果 - 目标
+TargetArt = ""
+-- 效果 - 目标附加点1
+Targetattach = ""
+-- 英雄技能
+hero = 0
+-- 等级
+levels = 1
