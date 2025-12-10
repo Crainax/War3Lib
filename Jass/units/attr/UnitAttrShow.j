@@ -17,16 +17,10 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static real    lastAttack  = 0.0;
         private static integer lastDefense = 0;
 
-        // 力敏智基础值与额外值
+        // 力敏智缓存（仅用于避免重复刷新，显示总属性值）
         private static real lastStr = 0.0;
         private static real lastAgi = 0.0;
         private static real lastInt = 0.0;
-        private static real lastStrExtra = 0.0;
-        private static real lastAgiExtra = 0.0;
-        private static real lastIntExtra = 0.0;
-        private static boolean lastShowStrExtra = false;
-        private static boolean lastShowAgiExtra = false;
-        private static boolean lastShowIntExtra = false;
 
         // 攻击扩展显示缓存
         private static real    lastAttackRate       = 1.0;   // 上一次的总倍率
@@ -65,7 +59,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
 
         // 内部：格式化数值显示（>100万用FormatNumber，否则用I2S(R2I)）
         private static method formatValue (real val) -> string {
-            if (val > 1000000.0) {
+            if (val > 10000.0) {
                 return FormatNumber(val);
             } else {
                 return I2S(R2I(val));
@@ -107,9 +101,10 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             }
 
             // === 攻击数值拆分：基础攻击 + 额外攻击（绿/红字） ===
+            // 仅当额外值的绝对值大于基础值的千分之一时才认为有“额外攻击”，避免实数精度造成的小数误差
             baseAtk = GetUnitBaseAttack(u);
             extraAtk = atk - baseAtk;
-            showExtra = RAbsBJ(extraAtk) > 0.01;
+            showExtra = RAbsBJ(extraAtk) >= RMaxBJ(1.0,RAbsBJ(baseAtk) * 0.001);
 
             // 更新基础攻击显示
             if (!inited || RAbsBJ(baseAtk - lastAttack) > 0.001) {
@@ -150,11 +145,6 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             extraDef = def - baseDef;
             showDefExtra = extraDef != 0;
 
-            // 更新防御标签（包含魔免和魔抗状态，顺序：魔免 > 魔抗）
-            if (!inited || isMagicImm != lastIsMagicImmune) {
-                lastIsMagicImmune = isMagicImm;
-            }
-
             // 计算魔抗值（仅在非魔免时计算）
             if (isMagicImm) {
                 showResist = false;
@@ -165,7 +155,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
                 showResist = RAbsBJ(resistValue) >= 0.01;
             }
 
-            // 更新防御标签显示
+            // 更新防御标签显示（包含魔免和魔抗状态，顺序：魔免 > 魔抗）
             if (!inited || isMagicImm != lastIsMagicImmune || showResist != lastShowResist || (showResist && RAbsBJ(resistValue - lastResistValue) > 0.001)) {
                 if (isMagicImm) {
                     // 魔免：显示"护甲:|cff00ff00(魔免)|r"
@@ -185,6 +175,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
                     // 正常显示
                     unitPanel.textArmor.setText("护甲:");
                 }
+                lastIsMagicImmune = isMagicImm;
                 lastResistValue = resistValue;
                 lastShowResist = showResist;
             }
@@ -234,13 +225,11 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         }
 
         // 内部：更新三围显示（只在目标为英雄时调用）
+        // 仅显示总属性值（不再拆分 base / extra），与 Attr.j 中的 Tooltip 保持语义一致
         private static method updatePrimaryAttrs (unit u, real strVal, real agiVal, real intVal) {
             integer mainAttrType;
             boolean isBig;
-            real baseStr; real totalStr; real extraStr; boolean showStrExtra;
-            real baseAgi; real totalAgi; real extraAgi; boolean showAgiExtra;
-            real baseInt; real totalInt; real extraInt; boolean showIntExtra;
-            real percentAbs; string percentStr; string label;
+            real totalStr; real totalAgi; real totalInt;
 
             // 更新主属性图标
             mainAttrType = GetUnitMainAttrType(u);
@@ -263,124 +252,45 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
 
             // ========= 力量 =========
             if (isBig) {
-                baseStr = RMaxBJ(0,GetUnitBaseStr(u));
+                // BigInteger 英雄：直接读取当前属性作为总值
                 totalStr = GetUnitStr(u);
             } else {
-                baseStr = strVal;
+                // 普通英雄：使用传入的当前属性值
                 totalStr = strVal;
             }
 
-            // 力量基础 + 额外值
-            extraStr = totalStr - baseStr;
-            showStrExtra = RAbsBJ(extraStr) > 0.01;
-
-            if (!inited || RAbsBJ(baseStr - lastStr) > 0.001) {
-                lastStr = baseStr;
-                unitPanel.textStrValue.setText(unitAttrShow.formatValue(baseStr));
+            if (!inited || RAbsBJ(totalStr - lastStr) > 0.001) {
+                lastStr = totalStr;
+                unitPanel.textStrValue.setText(unitAttrShow.formatValue(totalStr));
             }
-
-            if (showStrExtra) {
-                percentAbs = RAbsBJ(extraStr);
-                percentStr = unitAttrShow.formatValue(percentAbs);
-                if (extraStr > 0.0) {
-                    label = "|cff00ff00+" + percentStr;
-                } else {
-                    label = "|cffff0000-" + percentStr;
-                }
-
-                if (!inited || !lastShowStrExtra || RAbsBJ(extraStr - lastStrExtra) > 0.001) {
-                    unitPanel.showStrExtra(true);
-                    unitPanel.textStrExtra.setText(label);
-                    lastStrExtra = extraStr;
-                    lastShowStrExtra = true;
-                }
-            } else {
-                if (!inited || lastShowStrExtra) {
-                    unitPanel.showStrExtra(false);
-                    lastShowStrExtra = false;
-                    lastStrExtra = 0.0;
-                }
-            }
+            // 不再显示单独的额外值
+            unitPanel.showStrExtra(false);
 
             // ========= 敏捷 =========
             if (isBig) {
-                baseAgi = RMaxBJ(0,GetUnitBaseAgi(u));
                 totalAgi = GetUnitAgi(u);
             } else {
-                baseAgi = agiVal;
                 totalAgi = agiVal;
             }
 
-            extraAgi = totalAgi - baseAgi;
-            showAgiExtra = RAbsBJ(extraAgi) > 0.01;
-
-            if (!inited || RAbsBJ(baseAgi - lastAgi) > 0.001) {
-                lastAgi = baseAgi;
-                unitPanel.textAgiValue.setText(unitAttrShow.formatValue(baseAgi));
+            if (!inited || RAbsBJ(totalAgi - lastAgi) > 0.001) {
+                lastAgi = totalAgi;
+                unitPanel.textAgiValue.setText(unitAttrShow.formatValue(totalAgi));
             }
-
-            if (showAgiExtra) {
-                percentAbs = RAbsBJ(extraAgi);
-                percentStr = unitAttrShow.formatValue(percentAbs);
-                if (extraAgi > 0.0) {
-                    label = "|cff00ff00+" + percentStr;
-                } else {
-                    label = "|cffff0000-" + percentStr;
-                }
-
-                if (!inited || !lastShowAgiExtra || RAbsBJ(extraAgi - lastAgiExtra) > 0.001) {
-                    unitPanel.showAgiExtra(true);
-                    unitPanel.textAgiExtra.setText(label);
-                    lastAgiExtra = extraAgi;
-                    lastShowAgiExtra = true;
-                }
-            } else {
-                if (!inited || lastShowAgiExtra) {
-                    unitPanel.showAgiExtra(false);
-                    lastShowAgiExtra = false;
-                    lastAgiExtra = 0.0;
-                }
-            }
+            unitPanel.showAgiExtra(false);
 
             // ========= 智力 =========
             if (isBig) {
-                baseInt = RMaxBJ(0,GetUnitBaseInt(u));
                 totalInt = GetUnitInt(u);
             } else {
-                baseInt = intVal;
                 totalInt = intVal;
             }
 
-            extraInt = totalInt - baseInt;
-            showIntExtra = RAbsBJ(extraInt) > 0.01;
-
-            if (!inited || RAbsBJ(baseInt - lastInt) > 0.001) {
-                lastInt = baseInt;
-                unitPanel.textIntValue.setText(unitAttrShow.formatValue(baseInt));
+            if (!inited || RAbsBJ(totalInt - lastInt) > 0.001) {
+                lastInt = totalInt;
+                unitPanel.textIntValue.setText(unitAttrShow.formatValue(totalInt));
             }
-
-            if (showIntExtra) {
-                percentAbs = RAbsBJ(extraInt);
-                percentStr = unitAttrShow.formatValue(percentAbs);
-                if (extraInt > 0.0) {
-                    label = "|cff00ff00+" + percentStr;
-                } else {
-                    label = "|cffff0000-" + percentStr;
-                }
-
-                if (!inited || !lastShowIntExtra || RAbsBJ(extraInt - lastIntExtra) > 0.001) {
-                    unitPanel.showIntExtra(true);
-                    unitPanel.textIntExtra.setText(label);
-                    lastIntExtra = extraInt;
-                    lastShowIntExtra = true;
-                }
-            } else {
-                if (!inited || lastShowIntExtra) {
-                    unitPanel.showIntExtra(false);
-                    lastShowIntExtra = false;
-                    lastIntExtra = 0.0;
-                }
-            }
+            unitPanel.showIntExtra(false);
         }
 
         // 每帧监控当前主单位的属性变化（攻击 / 防御 / 力敏智）

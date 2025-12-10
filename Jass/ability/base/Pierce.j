@@ -12,7 +12,7 @@
 // 基本参数（默认值，可通过 PierceCfg 结构体覆盖）
 #define PIERCE_TICK              0.03
 #define PIERCE_SPEED             900.0
-#define PIERCE_CLIFF_Z           32.0
+#define PIERCE_CLIFF_Z           128.0
 #define PIERCE_MODEL_PATH        "Abilities\\Spells\\Undead\\CarrionSwarm\\CarrionSwarmMissile.mdl"
 
 // 伤害类型常量

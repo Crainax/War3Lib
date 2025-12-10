@@ -10,8 +10,6 @@
 //# dependency:resource/ui/console/unitpanel/yidu_Atk.blp
 //# dependency:resource/ui/console/unitpanel/yidu_Def.blp
 
-#include "japi/YDWEJapiScript.j"
-
 
 //! zinc
 
@@ -152,6 +150,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 
 	function TTestUTUnitAttrShow3 (player p) {
 		//unitAttrShow
+		//EXExecuteScript
 	}
 	function TTestUTUnitAttrShow4 (player p) {}
 	function TTestUTUnitAttrShow5 (player p) {}

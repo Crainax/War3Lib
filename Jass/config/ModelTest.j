@@ -111,19 +111,28 @@ library MT requires UnitTestFramwork {
 	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
 	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
 	function TTestMT1 (player p) {
-		UnitModel(p,"A (167).mdl");
-		Efx("A (167).mdl");
-		EfxB("chest","A (167).mdl");
-		Danmu("A (167).mdl");
+		UnitModel(p,"umr5.mdl");
+		Efx("umr5.mdl");
+		EfxB("chest","umr5.mdl");
+		Danmu("umr5.mdl");
 	}
 	function TTestMT2 (player p) {
-		//replace
+		UnitModel(p,"hero_stealthassassin_n1s_e_target.mdl");
+		Efx("hero_stealthassassin_n1s_e_target.mdl");
+		EfxB("chest","hero_stealthassassin_n1s_e_target.mdl");
+		Danmu("hero_stealthassassin_n1s_e_target.mdl");
 	}
 	function TTestMT3 (player p) {
-		//replace
+		UnitModel(p,"blink_xiaoan_target.mdl");
+		Efx("blink_xiaoan_target.mdl");
+		EfxB("chest","blink_xiaoan_target.mdl");
+		Danmu("blink_xiaoan_target.mdl");
 	}
 	function TTestMT4 (player p) {
-		//replace
+		UnitModel(p,"blink_xiaoan_start.mdl");
+		Efx("blink_xiaoan_start.mdl");
+		EfxB("chest","blink_xiaoan_start.mdl");
+		Danmu("blink_xiaoan_start.mdl");
 	}
 	function TTestMT5 (player p) {
 		//replace

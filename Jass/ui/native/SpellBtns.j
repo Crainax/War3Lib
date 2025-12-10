@@ -45,6 +45,7 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             // 技能栏UI刷新（12槽）
             static trigger trAbilityRefresh = null; // 刷新界面显示的技能回调
             static integer lastAbilities[3][4];      // 记录上一次显示的能力值
+            static unit lastSelectedLeader = null;   // 上一帧本地选中的主控单位
         }
 
         //回调参数(事件当前的技能id)
@@ -109,15 +110,23 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             TriggerAddCondition(trRightClickAbility, Condition(func));
         }
 
-        // 注册当前单位技能栏的UI刷新（12 槽检测变化）
+        // 注册当前单位技能栏的UI刷新（12 槽检测变化 + 选中单位变化）
         static method onAbilityUIChange (code func) {
             if (trAbilityRefresh == null) {
                 trAbilityRefresh = CreateTrigger();
                 hardware.regUpdateEvent(function() {
                     integer row; integer col; integer nowAbil; integer prevAbil;
+                    boolean forceAll;
 
                     // 若无监听者则无需执行
                     if (trAbilityRefresh == null) { return; }
+
+                    // 选中主控单位发生变化：本帧强制 12 槽全部回调一次
+                    forceAll = false;
+                    if (DzGetSelectedLeaderUnit() != lastSelectedLeader) {
+                        lastSelectedLeader = DzGetSelectedLeaderUnit();
+                        forceAll = true;
+                    }
 
                     // 遍历 3x4 技能槽
                     for (1 <= row <= 3) {
@@ -125,7 +134,8 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                             prevAbil = lastAbilities[row][col];
                             nowAbil  = GetCurrentXYAbility(col - 1, row - 1);
 
-                            if (nowAbil != prevAbil) {
+                            // 能力本身变化，或者选中单位变化时强制视为变化
+                            if (forceAll || nowAbil != prevAbil) {
                                 // 设置回调参数并触发
                                 argsRow = row;
                                 argsCol = col;
@@ -262,3 +272,4 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
 //! endzinc
 
 #endif
+
