@@ -81,7 +81,6 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         // 头像下方生命 / 魔法数值文本
         static uiText textHP       = 0;
         static uiText textMP       = 0;
-        static timer  hpmpTimer    = null;
 
         #ifdef UnitPanelShowBuilding
         static uiText textBuilding = 0; static uiText  textBuildingValue = 0;
@@ -363,6 +362,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
     }
 
+    static boolean firstTimeHPMP = false; //是否进行了初始化(HP)
     // 更新头像下方生命 / 魔法文本（基于当前玩家的主选中单位）
     static method updateHPMPText () {
         unit u;
@@ -370,6 +370,8 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         real rReal; real gReal;
         integer r; integer g;
         string hpText; string mpText;
+
+        if(!firstTimeHPMP) return;
 
         u = DzGetSelectedLeaderUnit();
 
@@ -471,14 +473,6 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
                 .setAlign(4);
         }
 
-        // 定时刷新当前选中单位的生命 / 魔法
-        if (hpmpTimer == null) {
-            hpmpTimer = CreateTimer();
-            TimerStart(hpmpTimer, 0.25, true, function () {
-                unitPanel.updateHPMPText();
-            });
-        }
-
         // 初始化时先刷新一次
         unitPanel.updateHPMPText();
     }
@@ -491,25 +485,23 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         TriggerAddCondition(tr,Condition(function (){
             moveOutAll(); // 把所有原生UI移走
             mapInit(); // 初始化单位按钮面板
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-
-        //在游戏开始1.0秒后再调用
-        tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,2.0);
-        TriggerAddCondition(tr,Condition(function (){
-
-            InitHPMPUI();
 
             // 单位选择同步取消时，立即刷新一次生命 / 魔法显示，避免延迟
-            unitSelect.onSyncUn(function () {
+            unitSelect.onAsync(function () {
+                if(!firstTimeHPMP){
+                    InitHPMPUI();
+                    firstTimeHPMP = true;
+                }
+                unitPanel.updateHPMPText();
+            });
+
+            // 定时刷新当前选中单位的生命 / 魔法
+            TimerStart(CreateTimer(), 0.25, true, function () {
                 unitPanel.updateHPMPText();
             });
 
             DestroyTrigger(GetTriggeringTrigger());
         }));
-        tr = null;
-
         tr = null;
     }
 
