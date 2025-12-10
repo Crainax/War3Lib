@@ -325,8 +325,50 @@ library UTUIText requires UIText {
 			.setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.0295, -0.037)
 			.setText("防御123:");
 	}
-	function TTestUTUIText7 (player p) {}
-	function TTestUTUIText8 (player p) {}
+
+	// 使用 uiText.create 测试 DzFrameSetTextColor（固定颜色）
+	function TTestUTUIText7 (player p) {
+		uiText t;
+
+		if (GetLocalPlayer() == p) {
+			t = uiText.create(DzGetGameUI())
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.25)
+				.setText("uiText.create + DzFrameSetTextColor 测试（红色）");
+
+			// 记录当前操作对象，方便使用 -align / -text / -destroy 命令
+			currentText = t;
+
+			// 设置为纯红色文本
+			DzFrameSetTextColor(t.ui, DzGetColor(255,255,0, 0));
+		}
+
+		t = 0;
+	}
+
+	// 使用 uiText.createSimple 测试 DzFrameSetTextColor（随机颜色）
+	function TTestUTUIText8 (player p) {
+		integer parent;
+		integer r;
+		integer g;
+		integer b;
+
+		parent = DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2); // 防御的父框架
+
+		if (GetLocalPlayer() == p) {
+			// 生成随机 RGB 颜色
+			r = GetRandomInt(0, 255);
+			g = GetRandomInt(0, 255);
+			b = GetRandomInt(0, 255);
+
+			currentText = uiText.createSimple(parent)
+				.setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.10, -0.037)
+				.setText("createSimple 随机颜色: R=" + I2S(r) + " G=" + I2S(g) + " B=" + I2S(b));
+
+			// 随机颜色测试
+			DzFrameSetTextColor(currentText.ui, DzGetColor(r, g, b, 255));
+		}
+	}
+
 	function TTestUTUIText9 (player p) {}
 	function TTestUTUIText10 (player p) {}
 

@@ -130,10 +130,34 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		BJDebugMsg("移走");
 	}
 	function TTestUTUnitPanel6 (player p) {
+		integer portrait; integer hpUI; integer mpUI;
 
+		// 获取大头像句柄
+		portrait = DzFrameGetPortrait();
+		if (portrait == 0) {
+			BJDebugMsg("[UnitPanel] 无法获取大头像句柄");
+			return;
+		}
 
+		// 通过内存偏移获取生命值UI和魔法值UI
+		hpUI = DzFrameGetAlpha(DzFrameGetPortrait() + 0x194);
+		mpUI = DzFrameGetAlpha(DzFrameGetPortrait() + 0x198);
+
+		// 将生命值UI移出屏幕外
+		DzFrameSetSize(hpUI, 0.02, 0.02);
+		DzFrameClearAllPoints(hpUI);
+		DzFrameSetPoint(hpUI, 4, DzGetGameUI(), 4, 0.80, -0.60);
+
+		// 将魔法值UI移出屏幕外
+		DzFrameSetSize(mpUI, 0.02, 0.02);
+		DzFrameClearAllPoints(mpUI);
+		DzFrameSetPoint(mpUI, 4, DzGetGameUI(), 4, 0.80, -0.60);
+
+		BJDebugMsg("[UnitPanel] 已将原生生命值和魔法值UI移出屏幕外");
 	}
-	function TTestUTUnitPanel7 (player p) {}
+	function TTestUTUnitPanel7 (player p) {
+		unitPanel.InitHPMPUI();
+	}
 	function TTestUTUnitPanel8 (player p) {}
 	function TTestUTUnitPanel9 (player p) {}
 	function TTestUTUnitPanel10 (player p) {}
@@ -192,6 +216,9 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 
 			// 创建一个建筑单位用于测试12个技能
 			building = CreateUnit(Player(0), 'hcas', 400, 0, 270); // 创建人族城堡
+
+
+			CreateItem('rag1', -300, 200); // 敏捷便鞋
 
 			// 为建筑添加12个技能
 			UnitAddAbility(building, 'AHbz'); // 暴风雪

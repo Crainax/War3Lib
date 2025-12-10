@@ -78,6 +78,11 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         static uiText textStr      = 0; static uiText  textStrValue      = 0;static uiText  textStrExtra      = 0;  //力量
         static uiText textAgi      = 0; static uiText  textAgiValue      = 0;static uiText  textAgiExtra      = 0;  //敏捷
         static uiText textInt      = 0; static uiText  textIntValue      = 0;static uiText  textIntExtra      = 0;  //智力
+        // 头像下方生命 / 魔法数值文本
+        static uiText textHP       = 0;
+        static uiText textMP       = 0;
+        static timer  hpmpTimer    = null;
+
         #ifdef UnitPanelShowBuilding
         static uiText textBuilding = 0; static uiText  textBuildingValue = 0;
         #endif
@@ -358,6 +363,126 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
     }
 
+    // 更新头像下方生命 / 魔法文本（基于当前玩家的主选中单位）
+    static method updateHPMPText () {
+        unit u;
+        real curHP; real maxHP; real hp; real curMP; real maxMP;
+        real rReal; real gReal;
+        integer r; integer g;
+        string hpText; string mpText;
+
+        u = DzGetSelectedLeaderUnit();
+
+        if (u != null) {
+            maxHP = GetUnitState(u, UNIT_STATE_MAX_LIFE);
+            curHP = GetUnitState(u, UNIT_STATE_LIFE);
+            maxMP = GetUnitState(u, UNIT_STATE_MAX_MANA);
+            curMP = GetUnitState(u, UNIT_STATE_MANA);
+
+            // ===== 生命值文本与颜色 =====
+            if (maxHP > 0.00) {
+                hp = curHP / maxHP;
+
+                if (hp > 0.6) {
+                    // 高血量：从绿到黄
+                    rReal = 255.0 - (255.0 * (hp - 0.5) / 0.5);
+                    gReal = 255.0;
+                } else if (hp > 0.3) {
+                    // 中等血量：从黄到绿
+                    rReal = 255.0;
+                    gReal = 255.0 * (hp / 0.8);
+                } else {
+                    // 低血量：从红到暗
+                    rReal = 255.0;
+                    gReal = 255.0 * (hp / 0.6);
+                }
+
+                if (rReal < 0.0) rReal = 0.0;
+                if (rReal > 255.0) rReal = 255.0;
+                if (gReal < 0.0) gReal = 0.0;
+                if (gReal > 255.0) gReal = 255.0;
+
+                r = R2I(rReal);
+                g = R2I(gReal);
+
+                hpText = FormatNumber(curHP) + " / " + FormatNumber(maxHP);
+                DzFrameSetText(textHP.ui, hpText);
+                DzFrameSetTextColor(textHP.ui, DzGetColor(255,r, g, 0));
+            } else {
+                DzFrameSetText(textHP.ui, "");
+            }
+
+            // ===== 魔法值文本与颜色 =====
+            if (maxMP > 0.00) {
+                mpText = FormatNumber(curMP) + " / " + FormatNumber(maxMP);
+                DzFrameSetText(textMP.ui, mpText);
+            } else {
+                DzFrameSetText(textMP.ui, "");
+            }
+
+            // 固定魔法值颜色：ARGB(255,195,219,255)
+            DzFrameSetTextColor(textMP.ui, DzGetColor(255,195, 219, 255));
+        } else {
+            // 没有选中单位时清空显示
+            DzFrameSetText(textHP.ui, "");
+            DzFrameSetText(textMP.ui, "");
+        }
+
+        u = null;
+    }
+
+    // 移走生命 / 魔法 UI 并在原位置创建自定义文本
+    static method InitHPMPUI () {
+        integer portrait; integer hpUI; integer mpUI;
+        integer console;
+
+        portrait = DzFrameGetPortrait();
+
+        // 通过内存偏移获取原生生命 / 魔法条 UI，并移出屏幕外
+        hpUI = DzFrameGetAlpha(portrait + 0x194);
+        mpUI = DzFrameGetAlpha(portrait + 0x198);
+		DzFrameSetSize(hpUI, 0.02, 0.02);
+        DzFrameClearAllPoints(hpUI);
+        DzFrameSetPoint(hpUI, 4, DzGetGameUI(), 4, 0.80, -0.60);
+		DzFrameSetSize(mpUI, 0.02, 0.02);
+        DzFrameClearAllPoints(mpUI);
+        DzFrameSetPoint(mpUI, 4, DzGetGameUI(), 4, 0.80, -0.60);
+
+        // 在 ConsoleUI 上创建两个文本，占用原生命 / 魔法条矩形区域
+        console = DzSimpleFrameFindByName("ConsoleUI", 0);
+
+        // 生命值文本：宽高 0.078125 x 0.011875，中心锚点
+        // 从 TOPLEFT 改为 CENTER：X偏移 + 宽度/2，Y偏移 - 高度/2
+        // 原偏移 (0.214375, 0.0276) -> 新偏移 (0.214375 + 0.0390625, 0.0276 - 0.0059375) = (0.2534375, 0.0216625)
+        if (textHP == 0) {
+            textHP = uiText.create(DzGetGameUI())
+                .setPoint(ANCHOR_CENTER, console, ANCHOR_BOTTOMLEFT, 0.2534375, 0.0216625)
+                .setFontSize(6)      // 0.011 字号
+                .setAlign(4);        // 居中
+        }
+
+        // 魔法值文本：宽高同生命条，中心锚点
+        // 从 TOPLEFT 改为 CENTER：X偏移 + 宽度/2，Y偏移 - 高度/2
+        // 原偏移 (0.214375, 0.01375) -> 新偏移 (0.214375 + 0.0390625, 0.01375 - 0.0059375) = (0.2534375, 0.0078125)
+        if (textMP == 0) {
+            textMP = uiText.create(DzGetGameUI())
+                .setPoint(ANCHOR_CENTER, console, ANCHOR_BOTTOMLEFT, 0.2534375, 0.0078125)
+                .setFontSize(6)
+                .setAlign(4);
+        }
+
+        // 定时刷新当前选中单位的生命 / 魔法
+        if (hpmpTimer == null) {
+            hpmpTimer = CreateTimer();
+            TimerStart(hpmpTimer, 0.25, true, function () {
+                unitPanel.updateHPMPText();
+            });
+        }
+
+        // 初始化时先刷新一次
+        unitPanel.updateHPMPText();
+    }
+
     //初始化单位按钮面板
     private static method onInit () {
         //在游戏开始0.0秒后再调用
@@ -368,6 +493,23 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             mapInit(); // 初始化单位按钮面板
             DestroyTrigger(GetTriggeringTrigger());
         }));
+
+        //在游戏开始1.0秒后再调用
+        tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,2.0);
+        TriggerAddCondition(tr,Condition(function (){
+
+            InitHPMPUI();
+
+            // 单位选择同步取消时，立即刷新一次生命 / 魔法显示，避免延迟
+            unitSelect.onSyncUn(function () {
+                unitPanel.updateHPMPText();
+            });
+
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
+
         tr = null;
     }
 
