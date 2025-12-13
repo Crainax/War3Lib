@@ -7,35 +7,36 @@ local iu = require "lua.image.ImageUtils"
 local BlpLab = iu.BlpLab
 
 local flag = {
-	['path'] = [[D:\War3\War3HDMod\png]], -- Òª´¦ÀíµÄÎÄ¼ş¼Ğ
-	['tarPath'] = [[D:\War3\War3HDMod\png]] -- ÒÆµ½ÄÄÀï
+	['path'] = [[D:\War3\War3HDMod\png]], -- è¦å¤„ç†çš„æ–‡ä»¶å¤¹
+	['tarPath'] = [[D:\War3\War3HDMod\png]], -- ç§»åˆ°è¿™é‡Œ
+	['isPrint'] = true                    -- æ˜¯å¦æ‰“å°å‘½ä»¤
 }
 
 local function ConvertPNG(filePath, output)
 	local cmd = 'magick convert \
 	' .. fu.PathString(filePath) .. ' \
 	' .. fu.PathString(output)
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîĞĞ·½±ã»»ĞĞ
-	-- Êä³öÎÄ¼şÃû
+	cmd = string.gsub(cmd, '[\n\t]', '') -- å°†æ¢è¡Œç¬¦æ›¿æ¢æ‰
+	-- æ‰“å°å‘½ä»¤
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+		print(gbk.toutf8(cmd)) -- æ‰“å°ä¸€ä¸‹
 	end
 	os.execute(cmd)
-	print(gbk.toutf8("´¦ÀíÖĞ..." .. output))
+	print(gbk.toutf8("è½¬æ¢å®Œæˆ..." .. output))
 end
 
 local function Resize(filePath)
-    -- -resize "512x512>" \   ÒÆµ½ÏÂÃæ¿ÉÒÔÇ¿ÖÆ±äÍ¼Æ¬´óĞ¡
+	-- -resize "512x512>" \   ç§»åˆ°è¿™é‡Œï¼Œè¿™æ˜¯å¼ºåˆ¶æŠŠå›¾ç‰‡ç¼©å°
 	local cmd = 'magick mogrify \
     -resize 50% \
 	' .. fu.PathString(filePath)
-	cmd = string.gsub(cmd, '[\n\t]', '') -- ÃüÁîĞĞ·½±ã»»ĞĞ
-	-- Êä³öÎÄ¼şÃû
+	cmd = string.gsub(cmd, '[\n\t]', '') -- å°†æ¢è¡Œç¬¦æ›¿æ¢æ‰
+	-- æ‰“å°å‘½ä»¤
 	if flag.isPrint then
-		print(gbk.toutf8(cmd)) -- ´òÓ¡Ò»´Î
+		print(gbk.toutf8(cmd)) -- æ‰“å°ä¸€ä¸‹
 	end
 	os.execute(cmd)
-	print(gbk.toutf8("´óĞ¡´¦ÀíÖĞ..." .. filePath))
+	print(gbk.toutf8("ç¼©å°å®Œæˆäº†..." .. filePath))
 end
 
 local function Convert()
@@ -54,9 +55,8 @@ local function ResizePNG()
 			Resize(filePath)
 		end
 	end, false)
-
 end
 
 -- Convert()
 ResizePNG()
-print(gbk.toutf8("´¦ÀíÍê±Ï"))
+print(gbk.toutf8("å¤„ç†å®Œæˆ"))
