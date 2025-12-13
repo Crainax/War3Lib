@@ -111,10 +111,10 @@ library MT requires UnitTestFramwork {
 	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
 	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
 	function TTestMT1 (player p) {
-		UnitModel(p,"5.mdl");
-		Efx("5.mdl");
-		EfxB("chest","5.mdl");
-		Danmu("5.mdl");
+		UnitModel(p,"xiaoren.mdl");
+		Efx("xiaoren.mdl");
+		EfxB("chest","xiaoren.mdl");
+		Danmu("xiaoren.mdl");
 	}
 	function TTestMT2 (player p) {
 		//replace

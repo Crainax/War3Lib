@@ -1,10 +1,3 @@
-local fu = require "lua.utils.FileUtils"
-local lfs = require "lfs"
-local gbk = require "gbk"
-local path = require "lua.path"
-local copy = require "lua.utils.copy"
-local iu = require "lua.image.ImageUtils"
-
 local flag = {
 	['path'] = [[D:\War3Asset\Model\ShangqueDIY\XIaoren_2\text5\5.mdl]],        -- 要处理的文件名
 	['output'] = [[D:\War3Asset\Model\Shangquemoxing\20251105\Zhende\A (169).txt]] -- Debug输出的位置
@@ -131,9 +124,31 @@ local function OptimizeMDL()
 	local rotKeyframeCount = 0  -- Rotation 实际保留的关键帧数量
 
 	print("Processing file: " .. flag.path)
-	fu.WriteOver(flag.output, "")
+	-- 保持原行为：清空 Debug 输出文件（即使后续不写入）
+	do
+		local dbg = io.open(flag.output, "w")
+		if dbg then dbg:close() end
+	end
 
-	fu.ExecuteFile(flag.path, function(line)
+	-- 打开输入文件
+	local fileIn = io.open(flag.path, "r")
+	if not fileIn then
+		print("Error: Cannot open input file: " .. flag.path)
+		return
+	end
+
+	-- 就地覆盖写回：先写临时文件，最后替换原文件（Windows 下更安全）
+	local tmpPath = flag.path .. ".tmp"
+	local fileOut = io.open(tmpPath, "w")
+	if not fileOut then
+		fileIn:close()
+		print("Error: Cannot open temp output file: " .. tmpPath)
+		return
+	end
+
+	-- 逐行读取并处理
+	local line = fileIn:read()
+	while line do
 		stats.totalLines = stats.totalLines + 1
 
 		-- 删除缩放.[骨骼模型不需要缩放]
@@ -276,8 +291,28 @@ local function OptimizeMDL()
 			print(string.format("  Processed %d lines...", stats.totalLines))
 		end
 
-		return line
-	end)
+		-- 如果处理后的行不为 nil，写入输出文件
+		if line then
+			fileOut:write(line)
+			fileOut:write("\n")
+		end
+
+		-- 读取下一行
+		line = fileIn:read()
+	end
+
+	-- 关闭文件
+	fileIn:close()
+	fileOut:close()
+
+	-- 替换回原文件
+	collectgarbage() -- 尽量确保无残留句柄（Windows 有时需要）
+	os.remove(flag.path) -- 忽略返回值：不存在/占用会导致 rename 失败并保留 tmp 以便排查
+	local ok, err = os.rename(tmpPath, flag.path)
+	if not ok then
+		print("Error: Cannot replace original file. Temp kept: " .. tmpPath .. " | err=" .. tostring(err))
+		return
+	end
 
 	-- 打印统计结果
 	print("\n========== Processing Complete ==========")

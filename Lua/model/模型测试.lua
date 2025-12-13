@@ -22,7 +22,7 @@ do
 end
 
 local flag = {
-    ['path'] = [[D:\War3Asset\Model\ShangqueDIY\XIaoren_2\text5]], -- 要处理的文件夹
+    ['path'] = [[D:\War3Asset\Model\ShangqueDIY\XIaoren_2\release]], -- 要处理的文件夹
     ['mdxTar'] = path.model.test.res, -- 移到这里
     ['type'] = function(name) -- 根据name分format
         -- 暂时不依赖分类，默认生成所有四种类型
