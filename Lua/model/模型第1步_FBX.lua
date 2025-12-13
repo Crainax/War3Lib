@@ -14,6 +14,20 @@ local os = os
 local string = string
 local table = table
 
+local flag = {
+	-- 要处理的模型文件夹路径（包含 .x / .dds）
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\zima]],
+
+	-- 工具路径（脚本独立运行也能用）
+	['jump2fbxDir'] = [[D:\Program Files (x86)\Jump2FBX]], -- 目录内应包含 jump2fbx.exe
+	['blplabDir'] = [[D:\War3\tools\BLPLAB]],           -- 目录内应包含 blplab.exe + blplab.ini（按需改）
+
+	-- 输出配置
+	['isPrint'] = true, -- 是否打印命令
+	['size'] = 512,    -- dds 导出大小（正方形）
+	['convertBLP'] = true -- 是否在最后把 temp/png 批量转成 blp（需要 BLPLAB）
+}
+
 -- 路径加引号（Windows cmd 友好）
 local function Q(str)
 	if str == nil then
@@ -124,20 +138,6 @@ local function IniSet(iniPath, key, value)
 	w:close()
 	return true
 end
-
-local flag = {
-	-- 要处理的模型文件夹路径（包含 .x / .dds）
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\XIaoren_2]],
-
-	-- 工具路径（脚本独立运行也能用）
-	['jump2fbxDir'] = [[D:\Program Files (x86)\Jump2FBX]], -- 目录内应包含 jump2fbx.exe
-	['blplabDir'] = [[D:\War3\tools\BLPLAB]],              -- 目录内应包含 blplab.exe + blplab.ini（按需改）
-
-	-- 输出配置
-	['isPrint'] = true, -- 是否打印命令
-	['size'] = 512,     -- dds 导出大小（正方形）
-	['convertBLP'] = true -- 是否在最后把 temp/png 批量转成 blp（需要 BLPLAB）
-}
 
 -- 将模型的 X 文件转换为 FBX
 local function ConvertX(filePath)
