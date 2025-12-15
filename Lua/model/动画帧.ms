@@ -1,11 +1,9 @@
-
 (
     clearListener()
 
-    -- 定义动画片段结构
     struct AnimSegment (name, oldStart, oldEnd, newStart, newEnd)
 
-    -- 你的动画数据
+    -- ===== 最新时间映射 =====
     local anims = #(
         AnimSegment "Stand"     3    43   10   50,
         AnimSegment "Attack 1"  47   92   60   105,
@@ -17,318 +15,190 @@
         AnimSegment "Stand 2"   946  1100 362  516
     )
 
-    -- 收集一个控制器在指定帧的所有 key 信息
-    fn collectControllerKeys ctrl oldStart oldEnd newStart =
+    local finalMaxFrame = 516
+
+    -- 判断是否是 Biped 骨骼节点
+    fn isBipedNode n =
     (
-        local keyData = #()
-        if ctrl == undefined do return keyData
-        if not isKindOf ctrl KeyframedController do return keyData
-
-        local numK = numKeys ctrl
-        if numK == 0 do return keyData
-
-        for i = 1 to numK do
+        try
         (
-            local k = getKey ctrl i
-            local t = k.time.frame as integer
-
-            -- 检查是否在目标范围内
-            if t >= oldStart and t <= oldEnd do
-            (
-                local newTime = newStart + (t - oldStart)
-                local kValue = k.value
-                append keyData #(newTime, kValue)
-            )
+            (isProperty n #isBipedObject and n.isBipedObject == true) or
+            (classOf n.controller == Biped_Slave_Control)
         )
-        return keyData
+        catch(false)
     )
 
-    -- 从子控制器（如 Bezier Position 的 X/Y/Z）收集 keys
-    fn collectSubControllerKeys ctrl oldStart oldEnd newStart =
+    -- 逐帧采样并重建关键帧（只对普通骨骼）
+    fn retimeBySampling nodes segs maxFrame =
     (
-        local keyData = #()
-        if ctrl == undefined do return keyData
-
-        -- 尝试获取子控制器数量
-        local subCount = 0
-        try ( subCount = ctrl.numsubs ) catch ( subCount = 0 )
-
-        if subCount > 0 then
+        if nodes.count == 0 do
         (
-            for s = 1 to subCount do
+            messageBox "先选中要处理的骨骼（可以多选）" title:"提示"
+            return()
+        )
+
+        local allBones   = for n in nodes collect n
+        local bipedBones = for n in allBones where isBipedNode n collect n
+        local bones      = for n in allBones where not isBipedNode n collect n
+
+        if bipedBones.count > 0 do
+        (
+            format "检测到 Biped 节点（以下会被跳过）：\n"
+            for b in bipedBones do format "  %\n" b.name
+        )
+
+        if bones.count == 0 do
+        (
+            messageBox "当前选择全是 Biped 节点，本脚本只会处理普通骨骼。\n\n建议：先把 Biped 动画烘焙到普通骨架再运行脚本。" title:"提示"
+            return()
+        )
+
+        local boneCount = bones.count
+        format "参与处理的普通骨骼数量：% 个。\n" boneCount
+
+        -- 为每个骨骼准备一个数据表： #( #(time, pos, rot, scl), ... )
+        local animData = for i = 1 to boneCount collect #()
+
+        -- ===== 第一步：从“旧时间轴”采样动画，并映射到“新时间轴”的时间 =====
+        progressStart "采样动画..."
+        for seg in segs do
+        (
+            local oS = seg.oldStart
+            local oE = seg.oldEnd
+            local nS = seg.newStart
+
+            for f = oS to oE do
             (
-                try
+                local newF = nS + (f - oS)
+
+                at time f
                 (
-                    local subCtrl = ctrl[s].controller
-                    if subCtrl != undefined and isKindOf subCtrl KeyframedController do
+                    for i = 1 to boneCount do
                     (
-                        local numK = numKeys subCtrl
-                        for i = 1 to numK do
-                        (
-                            local k = getKey subCtrl i
-                            local t = k.time.frame as integer
-                            if t >= oldStart and t <= oldEnd do
-                            (
-                                local newTime = newStart + (t - oldStart)
-                                append keyData #(s, newTime, k.value)
-                            )
-                        )
+                        local b = bones[i]
+                        local p = b.position
+                        local r = b.rotation
+                        local sc = b.scale
+
+                        append animData[i] #(newF, p, r, sc)
                     )
-                ) catch ()
+                )
             )
         )
-        return keyData
-    )
+        progressEnd()
 
-    -- 主处理函数
-    fn processAnimation objs animList =
-    (
-        format "开始处理 % 个对象...\n" objs.count
+        format "采样完成。\n"
 
-        -- 用于存储所有需要保留的关键帧数据
-        -- 格式: #(obj, property, subIndex, newTime, value)
-        local allKeyData = #()
-
-        -- 第一步：收集所有需要保留的关键帧
-        for obj in objs do
+        -- ===== 第二步：删除这些骨骼原有的所有关键帧 =====
+        format "删除旧关键帧...\n"
+        for b in bones do
         (
-            format "  收集: %\n" obj.name
-
-            for anim in animList do
-            (
-                local oS = anim.oldStart
-                local oE = anim.oldEnd
-                local nS = anim.newStart
-
-                -- Position
-                try
-                (
-                    local posCtrl = obj.position.controller
-                    if posCtrl != undefined do
-                    (
-                        -- 尝试直接获取 keys
-                        if isKindOf posCtrl KeyframedController do
-                        (
-                            local numK = numKeys posCtrl
-                            for i = 1 to numK do
-                            (
-                                local k = getKey posCtrl i
-                                local t = k.time.frame as integer
-                                if t >= oS and t <= oE do
-                                (
-                                    local newTime = nS + (t - oS)
-                                    append allKeyData #(obj, #pos, 0, newTime, k.value)
-                                )
-                            )
-                        )
-
-                        -- 尝试子控制器 (X/Y/Z)
-                        for s = 1 to 3 do
-                        (
-                            try
-                            (
-                                local subCtrl = posCtrl[s].controller
-                                if subCtrl != undefined and isKindOf subCtrl KeyframedController do
-                                (
-                                    local numK = numKeys subCtrl
-                                    for i = 1 to numK do
-                                    (
-                                        local k = getKey subCtrl i
-                                        local t = k.time.frame as integer
-                                        if t >= oS and t <= oE do
-                                        (
-                                            local newTime = nS + (t - oS)
-                                            append allKeyData #(obj, #posSub, s, newTime, k.value)
-                                        )
-                                    )
-                                )
-                            ) catch ()
-                        )
-                    )
-                ) catch ()
-
-                -- Rotation
-                try
-                (
-                    local rotCtrl = obj.rotation.controller
-                    if rotCtrl != undefined do
-                    (
-                        if isKindOf rotCtrl KeyframedController do
-                        (
-                            local numK = numKeys rotCtrl
-                            for i = 1 to numK do
-                            (
-                                local k = getKey rotCtrl i
-                                local t = k.time.frame as integer
-                                if t >= oS and t <= oE do
-                                (
-                                    local newTime = nS + (t - oS)
-                                    append allKeyData #(obj, #rot, 0, newTime, k.value)
-                                )
-                            )
-                        )
-
-                        -- Euler 子控制器
-                        for s = 1 to 3 do
-                        (
-                            try
-                            (
-                                local subCtrl = rotCtrl[s].controller
-                                if subCtrl != undefined and isKindOf subCtrl KeyframedController do
-                                (
-                                    local numK = numKeys subCtrl
-                                    for i = 1 to numK do
-                                    (
-                                        local k = getKey subCtrl i
-                                        local t = k.time.frame as integer
-                                        if t >= oS and t <= oE do
-                                        (
-                                            local newTime = nS + (t - oS)
-                                            append allKeyData #(obj, #rotSub, s, newTime, k.value)
-                                        )
-                                    )
-                                )
-                            ) catch ()
-                        )
-                    )
-                ) catch ()
-
-                -- Scale
-                try
-                (
-                    local scaleCtrl = obj.scale.controller
-                    if scaleCtrl != undefined do
-                    (
-                        if isKindOf scaleCtrl KeyframedController do
-                        (
-                            local numK = numKeys scaleCtrl
-                            for i = 1 to numK do
-                            (
-                                local k = getKey scaleCtrl i
-                                local t = k.time.frame as integer
-                                if t >= oS and t <= oE do
-                                (
-                                    local newTime = nS + (t - oS)
-                                    append allKeyData #(obj, #scale, 0, newTime, k.value)
-                                )
-                            )
-                        )
-                    )
-                ) catch ()
-            )
+            try ( deleteKeys b #allKeys ) catch()
         )
 
-        format "共收集到 % 个关键帧\n" allKeyData.count
-
-        -- 第二步：删除所有旧的关键帧
-        format "清理旧关键帧...\n"
-        for obj in objs do
-        (
-            try ( deleteKeys obj #allKeys ) catch ()
-        )
-
-        -- 第三步：在新位置创建关键帧
-        format "创建新关键帧...\n"
+        -- ===== 第三步：在“新时间轴”上重新烘焙关键帧 =====
+        format "在新时间轴重建关键帧...\n"
         with animate on
         (
-            for kd in allKeyData do
+            for i = 1 to boneCount do
             (
-                local obj = kd[1]
-                local prop = kd[2]
-                local subIdx = kd[3]
-                local newTime = kd[4]
-                local val = kd[5]
+                local b = bones[i]
+                local data = animData[i]
 
-                at time (newTime as time)
+                for k in data do
                 (
-                    try
+                    local t  = k[1]
+                    local p  = k[2]
+                    local r  = k[3]
+                    local sc = k[4]
+
+                    at time t
                     (
-                        case prop of
-                        (
-                            #pos: ( obj.position = val )
-                            #posSub:
-                            (
-                                case subIdx of
-                                (
-                                    1: obj.position.x = val
-                                    2: obj.position.y = val
-                                    3: obj.position.z = val
-                                )
-                            )
-                            #rot: ( obj.rotation = val )
-                            #rotSub:
-                            (
-                                local ctrl = obj.rotation.controller
-                                if isKindOf ctrl Euler_XYZ do
-                                (
-                                    case subIdx of
-                                    (
-                                        1: ctrl.X_Rotation = val
-                                        2: ctrl.Y_Rotation = val
-                                        3: ctrl.Z_Rotation = val
-                                    )
-                                )
-                            )
-                            #scale: ( obj.scale = val )
-                        )
-                    ) catch ()
+                        b.position = p
+                        b.rotation = r
+                        b.scale    = sc
+                    )
                 )
             )
         )
 
-        format "关键帧处理完成！\n"
+        -- ===== 第四步：删掉 maxFrame 之后所有关键帧 =====
+        if maxFrame != undefined do
+        (
+            local tStart = (maxFrame + 1) as time
+            for b in bones do
+            (
+                try ( deleteKeys b.controller (interval tStart 100000f) #allKeys ) catch()
+            )
+        )
+
+        format "重排完成（普通骨骼）。\n"
     )
 
-    -- 创建 Note Track (在选中的第一个对象上，或者 Global Tracks)
-    fn createNoteMarkers animList =
+    -- 在“对象-备注”里为某个节点创建 Note Track
+    fn createObjectNoteTrack target segs =
     (
-        format "创建 Note Track 标记...\n"
+        if target == undefined then return()
 
-        -- 在 Global Tracks 上创建
-        -- 先删除已有的 Note Track
-        while numNoteTracks globalTracks > 0 do
+        -- 确保有 NoteTrack
+        if numNoteTracks target == 0 do
         (
-            deleteNoteTrack globalTracks (getNoteTrack globalTracks 1)
+            addNoteTrack target (noteTrack "Actions")
+        )
+        local nt = getNoteTrack target 1
+
+        -- 清空旧 Note
+        deleteKeys nt #allKeys
+
+        local tpf = ticksPerFrame as float
+
+        for seg in segs do
+        (
+            local tStart = seg.newStart as time
+            local idx = addNewNoteKey nt tStart    -- 注意：返回的是索引
+            local k   = getNoteKey nt idx         -- 这里才是真正的 key 对象
+            k.value   = seg.name
+
+            -- 设为一条横跨整个动画段的黄条
+            local dur = (seg.newEnd - seg.newStart + 1) * tpf
+            setNoteKeyDuration nt idx dur
         )
 
-        -- 创建新的 Note Track
-        local nt = noteTrack "Animations"
-        addNoteTrack globalTracks nt
-
-        -- 添加每个动画的标记
-        for anim in animList do
-        (
-            -- 在起始帧添加 Note Key
-            local nk = addNewNoteKey nt (anim.newStart as time)
-            nk.value = anim.name
-            format "  添加标记: % @ 帧 %\n" anim.name anim.newStart
-        )
-
-        format "Note Track 创建完成！\n"
+        format "已在节点 '%' 上创建 NoteTrack。\n" target.name
     )
 
-    -- === 主执行 ===
+    -- ===== 主执行入口 =====
     if selection.count > 0 then
     (
-        undo "Retime Animation v3" on
+        undo "RetimingBySampling_v4_1" on
         (
-            -- 处理动画
-            processAnimation selection anims
+            local allSel = selection as array
 
-            -- 创建 Note Track
-            createNoteMarkers anims
+            retimeBySampling allSel anims finalMaxFrame
+
+            -- 找一个不是 Biped 的节点，用来挂“对象-备注”
+            local noteOwner = undefined
+            for n in allSel where not isBipedNode n do
+            (
+                noteOwner = n
+                exit
+            )
+
+            if noteOwner != undefined then
+                createObjectNoteTrack noteOwner anims
+            else
+                format "没有找到普通骨骼节点，未创建对象 NoteTrack。\n"
 
             -- 设置时间轴范围
-            animationRange = interval 0 520
-
-            -- 刷新视图
+            animationRange = interval 0 finalMaxFrame
+            sliderTime = 0
             redrawViews()
         )
 
-        messageBox "处理完成！\n\n请打开【轨迹视图-摄影表】查看结果。\n全局轨迹 -> Animations 中有动作标记。" title:"成功"
+        messageBox "处理完成：\n\n1. 已对普通骨骼按新时间段重排并烘焙动画；\n2. 对这些骨骼 516 帧之后的关键帧已删除；\n3. 在一个普通骨骼节点的“对象-备注”中创建了各动作标记；\n4. 若有 Biped 节点，它们仅被检测并在 Listener 中提示，没有改动。" title:"成功"
     )
     else
     (
-        messageBox "请先选中所有骨骼！" title:"错误" beep:true
+        messageBox "请先选中要处理的骨骼（可以多选）。" title:"错误" beep:true
     )
 )

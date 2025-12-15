@@ -1,5 +1,5 @@
 local flag = {
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\XIaoren_2\text5\5.mdl]],        -- 要处理的文件名
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\aniya\test1\1.mdl]],            -- 要处理的文件名
 	['output'] = [[D:\War3Asset\Model\Shangquemoxing\20251105\Zhende\A (169).txt]] -- Debug输出的位置
 }
 

@@ -1,0 +1,20 @@
+========== Attachment 添加完成 ==========
+骨骼 ObjectId:
+  Head: 27
+  Spine2: 3
+  R Hand: 8
+  L Hand: 45
+
+最大 ObjectId: 120
+新增 ObjectId: 121 到 126
+
+新增的 Attachment:
+  "Origin Ref": ObjectId 121, 坐标 { 0, 0, 0 }
+  "Overhead Ref": ObjectId 122, 坐标 { -3.70047, -1.62018, 155.405 }
+  "Head Ref": ObjectId 123, 坐标 { -3.70047, -1.62018, 105.405 }
+  "Chest Ref": ObjectId 124, 坐标 { -1.45019, -1.79052, 89.3574 }
+  "Hand Right Ref": ObjectId 125, 坐标 { 18.7934, -26.8464, 80.2803 }
+  "Hand Left Ref": ObjectId 126, 坐标 { 4.53867, 24.9372, 75.6788 }
+
+PivotPoints 数量: 121 -> 127
+==============================

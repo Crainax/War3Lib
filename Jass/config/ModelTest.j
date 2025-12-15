@@ -11,6 +11,7 @@ library MT requires UnitTestFramwork {
 	function UnitModel (player p,string path) {
 		unit u = CreateUnit(Player(0),'Hamg',GetRandomReal(0,300),GetRandomReal(0,300),GetRandomReal(0,360));
 		DzSetUnitModel(u,path);
+		DzSetUnitPortrait(u,path);
 		// 这个是下面的变化,是异步的
 		if (GetConvertedPlayerId(p) == GetConvertedPlayerId(GetLocalPlayer())) {
 			DzSetUnitModel(u,path);
@@ -111,10 +112,10 @@ library MT requires UnitTestFramwork {
 	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
 	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
 	function TTestMT1 (player p) {
-		UnitModel(p,"xiaoren.mdl");
-		Efx("xiaoren.mdl");
-		EfxB("chest","xiaoren.mdl");
-		Danmu("xiaoren.mdl");
+		UnitModel(p,"1.mdl");
+		Efx("1.mdl");
+		EfxB("chest","1.mdl");
+		Danmu("1.mdl");
 	}
 	function TTestMT2 (player p) {
 		//replace

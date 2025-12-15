@@ -1,12 +1,6 @@
-local fu = require "lua.utils.FileUtils"
-local lfs = require "lfs"
-local gbk = require "gbk"
-local path = require "lua.path"
-local copy = require "lua.utils.copy"
-
 local flag = {
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\XIaoren_2\text5\5.mdl]], -- 要处理的文件名
-	['output'] = [[D:\War3Asset\Model\创世轨迹\安徒生\Antusheng_attachment.txt]] -- Debug输出的位置
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\aniya\test1\1.mdl]], -- 要处理的文件名
+	['output'] = [[D:\War3\Library\War3Lib\Lua\model\output.log]] -- Debug输出的位置
 }
 
 -- ====== 配置常量 ======
@@ -22,6 +16,7 @@ local ATTACHMENT_NAMES = {
 local BONE_PATTERNS = {
 	head = { exact = "Bip001 Head", fuzzy = "Head" },
 	spine2 = { exact = nil, fuzzy = "Spine2" },
+	spine1 = { exact = nil, fuzzy = "Spine1" },
 	rhand = { exact = nil, fuzzy = "R Hand" },
 	lhand = { exact = nil, fuzzy = "L Hand" }
 }
@@ -81,6 +76,7 @@ local function AddAttachments()
 	local boneObjectIds = {
 		head = nil,
 		spine2 = nil,
+		spine1 = nil,
 		rhand = nil,
 		lhand = nil
 	}
@@ -93,7 +89,15 @@ local function AddAttachments()
 
 	print("第一遍扫描：收集骨骼和 PivotPoints 信息...")
 
-	fu.ReadFile(flag.path, function(line, lineNum)
+	-- 使用 io 库读取文件
+	local file = io.open(flag.path, "r")
+	if not file then
+		error("无法打开文件: " .. flag.path)
+	end
+
+	local lineNum = 0
+	for line in file:lines() do
+		lineNum = lineNum + 1
 		-- 收集 Bone ObjectId
 		local boneName = extractBoneName(line)
 		if boneName then
@@ -119,6 +123,13 @@ local function AddAttachments()
 				if not boneObjectIds.spine2 and currentBoneName then
 					if string.lower(currentBoneName):find(string.lower(BONE_PATTERNS.spine2.fuzzy), 1, true) then
 						boneObjectIds.spine2 = objId
+					end
+				end
+
+				-- Spine1: 模糊匹配（作为 Spine2 的备选）
+				if not boneObjectIds.spine1 and currentBoneName then
+					if string.lower(currentBoneName):find(string.lower(BONE_PATTERNS.spine1.fuzzy), 1, true) then
+						boneObjectIds.spine1 = objId
 					end
 				end
 
@@ -173,12 +184,22 @@ local function AddAttachments()
 		if objId then
 			maxObjectId = math.max(maxObjectId, objId)
 		end
-	end)
+	end
+
+	file:close()
+
+	-- 确定最终使用的 Spine 骨骼（优先 Spine2，如果没有则用 Spine1）
+	local spineBoneId = boneObjectIds.spine2 or boneObjectIds.spine1
+	local spineBoneName = boneObjectIds.spine2 and "Spine2" or (boneObjectIds.spine1 and "Spine1" or nil)
 
 	-- 验证找到的骨骼
 	print("\n========== 骨骼查找结果 ==========")
 	print(string.format("Head: %s", boneObjectIds.head and ("ObjectId " .. boneObjectIds.head) or "未找到"))
 	print(string.format("Spine2: %s", boneObjectIds.spine2 and ("ObjectId " .. boneObjectIds.spine2) or "未找到"))
+	print(string.format("Spine1: %s", boneObjectIds.spine1 and ("ObjectId " .. boneObjectIds.spine1) or "未找到"))
+	if spineBoneId then
+		print(string.format("使用骨骼: %s (ObjectId %d)", spineBoneName, spineBoneId))
+	end
 	print(string.format("R Hand: %s", boneObjectIds.rhand and ("ObjectId " .. boneObjectIds.rhand) or "未找到"))
 	print(string.format("L Hand: %s", boneObjectIds.lhand and ("ObjectId " .. boneObjectIds.lhand) or "未找到"))
 	print(string.format("最大 ObjectId: %d", maxObjectId))
@@ -188,8 +209,8 @@ local function AddAttachments()
 	if not boneObjectIds.head then
 		error("错误：未找到 Head 骨骼！")
 	end
-	if not boneObjectIds.spine2 then
-		error("错误：未找到 Spine2 骨骼！")
+	if not spineBoneId then
+		error("错误：未找到 Spine2 或 Spine1 骨骼！")
 	end
 	if not boneObjectIds.rhand then
 		error("错误：未找到 R Hand 骨骼！")
@@ -201,7 +222,7 @@ local function AddAttachments()
 	-- 检查 PivotPoints 是否足够
 	local requiredPivotCount = math.max(
 		boneObjectIds.head + 1,
-		boneObjectIds.spine2 + 1,
+		spineBoneId + 1,
 		boneObjectIds.rhand + 1,
 		boneObjectIds.lhand + 1
 	)
@@ -247,13 +268,13 @@ local function AddAttachments()
 	-- Overhead Ref: Head 的 Z + 50
 	attachmentPoints["Overhead Ref"] = { headPoint[1], headPoint[2], headPoint[3] + 50 }
 
-	-- Chest Ref: 从 PivotPoints 取 Spine2 的点
-	local spine2PivotIndex = boneObjectIds.spine2 + 1
-	local spine2Point = pivotPoints[spine2PivotIndex]
-	if not spine2Point then
-		error(string.format("错误：无法从 PivotPoints 获取 Spine2 点（索引 %d）", spine2PivotIndex))
+	-- Chest Ref: 从 PivotPoints 取 Spine 的点（优先 Spine2，如果没有则用 Spine1）
+	local spinePivotIndex = spineBoneId + 1
+	local spinePoint = pivotPoints[spinePivotIndex]
+	if not spinePoint then
+		error(string.format("错误：无法从 PivotPoints 获取 %s 点（索引 %d）", spineBoneName, spinePivotIndex))
 	end
-	attachmentPoints["Chest Ref"] = { spine2Point[1], spine2Point[2], spine2Point[3] }
+	attachmentPoints["Chest Ref"] = { spinePoint[1], spinePoint[2], spinePoint[3] }
 
 	-- Hand Right Ref: 从 PivotPoints 取 R Hand 的点
 	local rhandPivotIndex = boneObjectIds.rhand + 1
@@ -296,7 +317,7 @@ local function AddAttachments()
 		if name == "Head Ref" then
 			block = block .. string.format("\n\tParent %d,", boneObjectIds.head)
 		elseif name == "Chest Ref" then
-			block = block .. string.format("\n\tParent %d,", boneObjectIds.spine2)
+			block = block .. string.format("\n\tParent %d,", spineBoneId)
 		elseif name == "Hand Right Ref" then
 			block = block .. string.format("\n\tParent %d,", boneObjectIds.rhand)
 		elseif name == "Hand Left Ref" then
@@ -331,44 +352,75 @@ local function AddAttachments()
 	local inPivotBlock = false
 	local pivotPointsInserted = false
 
-	fu.ExecuteFile(flag.path, function(line)
+	-- 使用 io 库读取文件
+	local inputFile = io.open(flag.path, "r")
+	if not inputFile then
+		error("无法打开文件: " .. flag.path)
+	end
+
+	-- 读取所有行
+	local lines = {}
+	for line in inputFile:lines() do
+		table.insert(lines, line)
+	end
+	inputFile:close()
+
+	-- 处理每一行
+	local outputLines = {}
+	for _, line in ipairs(lines) do
 		-- 在 PivotPoints 块之前插入 Attachment 块
 		if not attachmentInserted and line:match("PivotPoints%s+%d+%s*{") then
 			attachmentInserted = true
 			inPivotBlock = true
-			-- 插入 Attachment 块并更新 PivotPoints 数量
-			local result = ""
+			-- 插入 Attachment 块（每个块按行拆分）
 			for _, block in ipairs(attachmentBlocks) do
-				result = result .. block .. "\n"
+				for blockLine in block:gmatch("([^\n]+)") do
+					table.insert(outputLines, blockLine)
+				end
 			end
 			-- 更新 PivotPoints 数量
 			local updatedLine = line:gsub("PivotPoints%s+%d+", "PivotPoints " .. newPivotCount)
-			return result .. updatedLine
-		end
-
+			table.insert(outputLines, updatedLine)
 		-- 跟踪 PivotPoints 块状态
-		if inPivotBlock then
+		elseif inPivotBlock then
 			if line:match("^%s*}%s*$") then
 				-- PivotPoints 块结束，在结束前插入新点
 				if not pivotPointsInserted then
 					pivotPointsInserted = true
 					inPivotBlock = false
-					return table.concat(newPivotLines, "\n") .. "\n" .. line
+					-- 插入新的 PivotPoints 行
+					for _, pivotLine in ipairs(newPivotLines) do
+						table.insert(outputLines, pivotLine)
+					end
+					table.insert(outputLines, line)
 				else
 					inPivotBlock = false
+					table.insert(outputLines, line)
 				end
+			else
+				table.insert(outputLines, line)
 			end
+		else
+			table.insert(outputLines, line)
 		end
+	end
 
-		return line
-	end)
+	-- 写回文件
+	local outputFile = io.open(flag.path, "w")
+	if not outputFile then
+		error("无法写入文件: " .. flag.path)
+	end
+	for _, line in ipairs(outputLines) do
+		outputFile:write(line, "\n")
+	end
+	outputFile:close()
 
 	-- 输出日志
 	local logContent = string.format([[
 ========== Attachment 添加完成 ==========
 骨骼 ObjectId:
   Head: %d
-  Spine2: %d
+  %s: %d
   R Hand: %d
   L Hand: %d
 
@@ -378,7 +430,8 @@ local function AddAttachments()
 新增的 Attachment:
 ]],
 		boneObjectIds.head,
-		boneObjectIds.spine2,
+		spineBoneName,
+		spineBoneId,
 		boneObjectIds.rhand,
 		boneObjectIds.lhand,
 		maxObjectId,
@@ -395,7 +448,13 @@ local function AddAttachments()
 	logContent = logContent .. string.format("\nPivotPoints 数量: %d -> %d\n", #pivotPoints, newPivotCount)
 	logContent = logContent .. "==============================\n"
 
-	fu.WriteOver(flag.output, logContent)
+	-- 使用 io 库写入文件
+	local logFile = io.open(flag.output, "w")
+	if not logFile then
+		error("无法写入日志文件: " .. flag.output)
+	end
+	logFile:write(logContent)
+	logFile:close()
 	print(logContent)
 end
 

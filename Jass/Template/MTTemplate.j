@@ -11,6 +11,7 @@ library MT requires UnitTestFramwork {
 	function UnitModel (player p,string path) {
 		unit u = CreateUnit(Player(0),'Hamg',GetRandomReal(0,300),GetRandomReal(0,300),GetRandomReal(0,360));
 		DzSetUnitModel(u,path);
+		DzSetUnitPortrait(u,path);
 		// 这个是下面的变化,是异步的
 		if (GetConvertedPlayerId(p) == GetConvertedPlayerId(GetLocalPlayer())) {
 			DzSetUnitModel(u,path);
