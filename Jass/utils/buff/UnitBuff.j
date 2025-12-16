@@ -13,6 +13,7 @@
 // 无敌特效路径
 #define IMMUTE_EFFECT_PATH "Abilities\\Spells\\Human\\DivineShield\\DivineShieldTarget.mdl"
 #define IMMUTE_EFFECT_POINT "origin"
+
 library UnitBuff requires UnitUtils, HashTable, BindEffect {
 
     // 无敌队列：集中管理所有处于无敌中的单位
@@ -75,7 +76,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect {
                             // 单位已失效，尾部交换移除
                             i = thistype.removeAt(i);
                             u = null;
-                        } else if (!HaveSavedReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT)) {
+                        } else if (!HaveSavedReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT)) {
                             // 检查哈希中是否还有记录（外部可能已清理）
                             // 外部已清理，移除 Avul 技能（如果还存在）并移出队列
                             if (GetUnitAbilityLevel(u, 'Avul') >= 1) {
@@ -88,23 +89,23 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect {
                         } else if (GetUnitAbilityLevel(u, 'Avul') < 1) {
                             // 检查单位是否还有无敌技能（如果没有则移出队列）
                             // 无敌技能被外部移除，清理哈希并移出队列
-                            RemoveSavedReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT);
+                            RemoveSavedReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT);
                             // 解绑无敌特效
                             bindEffect.detachUnique(u, IMMUTE_EFFECT_PATH);
                             i = thistype.removeAt(i);
                             u = null;
                         } else {
                             // 读取剩余时间
-                            timeLeft = LoadReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT);
+                            timeLeft = LoadReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT);
 
                             if (timeLeft > 0.0) {
                                 // 时间未到，递减
                                 timeLeft = timeLeft - 0.02;
-                                SaveReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT, timeLeft);
+                                SaveReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT, timeLeft);
                             } else {
                                 // 时间到了（包括 0 秒无敌窗），移除无敌
                                 UnitRemoveAbility(u, 'Avul');
-                                RemoveSavedReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT);
+                                RemoveSavedReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT);
                                 // 解绑无敌特效
                                 bindEffect.detachUnique(u, IMMUTE_EFFECT_PATH);
                                 // 尾部交换移除当前元素
@@ -137,14 +138,14 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect {
 
         hid = GetHandleId(u);
 
-        if (HaveSavedReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT)) {
+        if (HaveSavedReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT)) {
             // 已存在无敌，取最大值（叠加）
-            oldTime = LoadReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT);
-            SaveReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT, RMaxBJ(oldTime, time));
+            oldTime = LoadReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT);
+            SaveReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT, RMaxBJ(oldTime, time));
         } else {
             // 第一次添加无敌
             UnitAddAbility(u, 'Avul');
-            SaveReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT, time);
+            SaveReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT, time);
             ImmuteQueue.addUnit(u);
 
             // 绑定无敌特效
@@ -165,19 +166,19 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect {
 
         hid = GetHandleId(u);
 
-        if (HaveSavedReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT)) {
+        if (HaveSavedReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT)) {
             // 已存在无敌，不做缩短（保持原值），确保不产生提前移除
-            oldTime = LoadReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT);
+            oldTime = LoadReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT);
             if (oldTime < 0.0) {
                 // 如果当前时间小于0（不应该发生，但保险起见），设为0
-                SaveReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT, 0.0);
+                SaveReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT, 0.0);
             }
             // 否则保持原值，不缩短
         } else {
             // 第一次添加0秒无敌
             UnitAddAbility(u, 'Avul');
             // 双重保险：保存哈希记录（0.0），队列tick也会检查
-            SaveReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT, 0.0);
+            SaveReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT, 0.0);
             ImmuteQueue.addUnit(u);
 
             // 使用0秒计时器立即移除（真正的0秒无敌）
@@ -198,8 +199,8 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect {
                         UnitRemoveAbility(u, 'Avul');
                     }
                     // 清理哈希记录
-                    if (HaveSavedReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT)) {
-                        RemoveSavedReal(HASH_UNIT, hid, KEY_IMMUTE_UNIT_TIME_LEFT);
+                    if (HaveSavedReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT)) {
+                        RemoveSavedReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT);
                     }
                 }
 
@@ -211,6 +212,71 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect {
                 t = null;
             });
             t = null;
+        }
+    }
+
+    // 破防(带时间的)
+    public function ReduceDefense(unit u, integer defense) {
+        timer t;
+        integer old;
+
+        t = null;
+        old = 0;
+
+        if (!IsUnitAliveBJ(u)) {
+            return;
+        }
+
+        old = LoadInteger(HASH_UNIT, GetHandleId(u), KEY_DEFENSE_REDUCE_VALUE);
+        if (defense > old) {
+            t = CreateTimer();
+            SaveInteger(HASH_UNIT, GetHandleId(u), KEY_DEFENSE_REDUCE_VALUE, defense);
+            SaveUnitHandle(HASH_TIMER, GetHandleId(t), 1, u);
+            bindEffect.attachUnique(u, "Abilities\\Spells\\NightElf\\FaerieFire\\FaerieFireTarget.mdl", "head");
+            AddUnitDefense(u, (defense - old) * -1);
+            TimerStart(t, 3, false, function () {
+                timer t;
+                integer id;
+                unit u;
+                integer defense;
+                effect e;
+
+                t = GetExpiredTimer();
+                id = GetHandleId(t);
+                u = LoadUnitHandle(HASH_TIMER, id, 1);
+                defense = LoadInteger(HASH_UNIT, GetHandleId(u), KEY_DEFENSE_REDUCE_VALUE);
+                e = LoadEffectHandle(HASH_TIMER, GetHandleId(t), 2);
+
+                DestroyEffect(e);
+                AddUnitDefense(u, defense);
+                RemoveSavedInteger(HASH_UNIT, GetHandleId(u), KEY_DEFENSE_REDUCE_VALUE);
+                bindEffect.detachUnique(u,"Abilities\\Spells\\NightElf\\FaerieFire\\FaerieFireTarget.mdl");
+                PauseTimer(t);
+                FlushChildHashtable(HASH_TIMER, id);
+                DestroyTimer(t);
+                t = null;
+                u = null;
+                e = null;
+            });
+            t = null;
+        }
+    }
+
+    // 破防
+    public function ReduceDefensePermanently(unit u, real rate) {
+        integer defense;
+
+        defense = 0;
+
+        if (!IsUnitAliveBJ(u)) {
+            return;
+        }
+
+        if (!HaveSavedInteger(HASH_UNIT, GetHandleId(u), KEY_DEFENSE_REDUCE_VALUE)) {
+            defense = R2I(GetUnitDefense(u) * rate);
+            SaveInteger(HASH_UNIT, GetHandleId(u), KEY_DEFENSE_REDUCE_VALUE, defense);
+            bindEffect.attachUnique(u, "Abilities\\Spells\\NightElf\\FaerieFire\\FaerieFireTarget.mdl", "head");
+            AddUnitDefense(u, defense * -1);
         }
     }
 

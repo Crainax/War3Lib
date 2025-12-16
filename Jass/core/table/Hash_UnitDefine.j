@@ -51,7 +51,9 @@
 #define HASH_UNIT_EFFECT_20    120    // 特效存储位 20
 
 //BUFF位置:
-#define KEY_IMMUTE_UNIT_TIME_LEFT  130 // 单位无敌时间剩余
+#define HASH_UNIT_IMMUTE_TIME_LEFT  130 // 单位无敌时间剩余
+
+#define HASH_UNIT_DEFENSE_REDUCE_VALUE 131  //破防效果1-10 (131-140都用了)
 
 
 
