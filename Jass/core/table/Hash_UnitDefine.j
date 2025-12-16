@@ -27,7 +27,7 @@
 
 //--------------------------------------------------------
 
-// BindEffect 特效存储键位（共21个）
+// BindEffect 特效存储键位（共21个）  100-300都不要用
 #define HASH_UNIT_EFFECT_COUNT 100    // 特效数量(100-120)
 #define HASH_UNIT_EFFECT_1     101    // 特效存储位 1
 #define HASH_UNIT_EFFECT_2     102    // 特效存储位 2
@@ -51,9 +51,8 @@
 #define HASH_UNIT_EFFECT_20    120    // 特效存储位 20
 
 //BUFF位置:
-#define HASH_UNIT_IMMUTE_TIME_LEFT  130 // 单位无敌时间剩余
-
-#define HASH_UNIT_DEFENSE_REDUCE_VALUE 131  //破防效果1-10 (131-140都用了)
+#define HASH_UNIT_IMMUTE_TIME_LEFT  300 // 单位无敌时间剩余
+#define HASH_UNIT_DEFENSE_REDUCE_VALUE 301  //破防效果1-10 (201-210都用了)
 
 
 
