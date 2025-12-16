@@ -44,8 +44,7 @@ library Pierce requires DamageUtils {
     public struct PierceMatchArgs []{
         public static unit caster = null;
         public static unit target = null;
-        public static real damage = 0.0;
-        public static boolean allowDefault = true; // 默认执行内置伤害与特效逻辑，回调中可改为 false
+        public static real damage = 0.0; // 回调中可修改伤害值，只有 damage >= 1.0 时才会造成伤害
     }
 
     // 兼容函数：获取当前匹配到的单位
@@ -158,19 +157,18 @@ library Pierce requires DamageUtils {
                 if (!IsUnitInGroup(u, pierceCbHitGrp)) {
                     GroupAddUnit(pierceCbHitGrp, u);
 
-                    // 设置回调上下文（可在回调中修改 damage / allowDefault）
+                    // 设置回调上下文（可在回调中修改 damage）
                     PierceMatchArgs.caster = pierceCbCaster;
                     PierceMatchArgs.target = u;
                     PierceMatchArgs.damage = pierceCbDamage;
-                    PierceMatchArgs.allowDefault = true;
 
                     // 如果注册了匹配回调，先执行回调逻辑
                     if (pierceCbMatchTr != null) {
                         TriggerEvaluate(pierceCbMatchTr);
                     }
 
-                    // 根据回调结果决定是否继续执行默认伤害与特效
-                    if (PierceMatchArgs.allowDefault) {
+                    // 只有 damage >= 1.0 时才造成伤害与特效
+                    if (PierceMatchArgs.damage >= 1.0) {
                         // 根据配置的伤害类型结算伤害（允许回调修改伤害值）
                         if (pierceCbDamageType == PIERCE_DMG_PHYSICAL) {
                             ApplyPhysicalDamage(pierceCbCaster, u, PierceMatchArgs.damage);
@@ -192,7 +190,6 @@ library Pierce requires DamageUtils {
                     PierceMatchArgs.caster = null;
                     PierceMatchArgs.target = null;
                     PierceMatchArgs.damage = 0.0;
-                    PierceMatchArgs.allowDefault = true;
 
                     u = null;
                     return true;
