@@ -434,7 +434,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
     }
 
     // 移走生命 / 魔法 UI 并在原位置创建自定义文本
-    static method InitHPMPUI () {
+    static method initHPMPUI () {
         integer portrait; integer hpUI; integer mpUI;
         integer console;
 
@@ -456,7 +456,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         // 生命值文本：宽高 0.078125 x 0.011875，中心锚点
         // 从 TOPLEFT 改为 CENTER：X偏移 + 宽度/2，Y偏移 - 高度/2
         // 原偏移 (0.214375, 0.0276) -> 新偏移 (0.214375 + 0.0390625, 0.0276 - 0.0059375) = (0.2534375, 0.0216625)
-        if (textHP == 0) {
+        if (!textHP.isExist()) {
             textHP = uiText.create(DzGetGameUI())
                 .setPoint(ANCHOR_CENTER, console, ANCHOR_BOTTOMLEFT, 0.2534375, 0.0216625)
                 .setFontSize(6)      // 0.011 字号
@@ -466,7 +466,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         // 魔法值文本：宽高同生命条，中心锚点
         // 从 TOPLEFT 改为 CENTER：X偏移 + 宽度/2，Y偏移 - 高度/2
         // 原偏移 (0.214375, 0.01375) -> 新偏移 (0.214375 + 0.0390625, 0.01375 - 0.0059375) = (0.2534375, 0.0078125)
-        if (textMP == 0) {
+        if (!textMP.isExist()) {
             textMP = uiText.create(DzGetGameUI())
                 .setPoint(ANCHOR_CENTER, console, ANCHOR_BOTTOMLEFT, 0.2534375, 0.0078125)
                 .setFontSize(6)
@@ -489,7 +489,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             // 单位选择同步取消时，立即刷新一次生命 / 魔法显示，避免延迟
             unitSelect.onAsync(function () {
                 if(!firstTimeHPMP){
-                    InitHPMPUI();
+                    initHPMPUI();
                     firstTimeHPMP = true;
                 }
                 unitPanel.updateHPMPText();

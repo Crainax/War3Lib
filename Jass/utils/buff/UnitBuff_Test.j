@@ -4,8 +4,6 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/utils/buff/UnitBuff.j"
-
 //! zinc
 
 //自动生成的文件
@@ -22,11 +20,83 @@ library UTUnitBuff requires UnitBuff {
 		},null);
 	}
 
-	function TTestUTUnitBuff1 (player p) {}
-	function TTestUTUnitBuff2 (player p) {}
-	function TTestUTUnitBuff3 (player p) {}
-	function TTestUTUnitBuff4 (player p) {}
-	function TTestUTUnitBuff5 (player p) {}
+	// 测试1：ImmuteDamageTime 基本功能
+	function TTestUTUnitBuff1 (player p) {
+		unit u; player owner;
+
+		owner = GetTriggerPlayer();
+		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+		SelectUnit(u, true);
+		BJDebugMsg("[UnitBuffTest] s1: 给单位添加2秒无敌（带特效）");
+		ImmuteDamageTime(u, 2.0, true);
+		BJDebugMsg("[UnitBuffTest] 单位应有 'Avul' 技能，2秒后自动移除");
+		u = null;
+		owner = null;
+	}
+
+	// 测试2：ImmuteDamageOnce 基本功能（0秒无敌窗）
+	function TTestUTUnitBuff2 (player p) {
+		unit u; player owner;
+
+		owner = GetTriggerPlayer();
+		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+		SelectUnit(u, true);
+		BJDebugMsg("[UnitBuffTest] s2: 给单位添加0秒无敌窗");
+		ImmuteDamageOnce(u);
+		BJDebugMsg("[UnitBuffTest] 单位应有 'Avul' 技能，0秒计时器立即移除");
+		u = null;
+		owner = null;
+	}
+
+	// 测试3：ImmuteDamageTime 叠加功能
+	function TTestUTUnitBuff3 (player p) {
+		unit u; player owner;
+
+		owner = GetTriggerPlayer();
+		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+		SelectUnit(u, true);
+		BJDebugMsg("[UnitBuffTest] s3: 先添加1秒无敌，再添加3秒无敌（应取最大值3秒）");
+		ImmuteDamageTime(u, 1.0, false);
+		ImmuteDamageTime(u, 3.0, false);
+		BJDebugMsg("[UnitBuffTest] 单位应有 'Avul' 技能，3秒后自动移除（不会提前结束）");
+		u = null;
+		owner = null;
+	}
+
+	// 测试4：ImmuteDamageTime + ImmuteDamageOnce 同单位冲突测试
+	function TTestUTUnitBuff4 (player p) {
+		unit u; player owner;
+
+		owner = GetTriggerPlayer();
+		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+		SelectUnit(u, true);
+		BJDebugMsg("[UnitBuffTest] s4: 先添加2秒无敌，再调用Once（不应缩短时间）");
+		ImmuteDamageTime(u, 2.0, false);
+		ImmuteDamageOnce(u);
+		BJDebugMsg("[UnitBuffTest] 单位应有 'Avul' 技能，仍应在2秒后移除（不会提前）");
+		u = null;
+		owner = null;
+	}
+
+	// 测试5：连续多次调用 ImmuteDamageOnce，队列清空后timer应停止
+	function TTestUTUnitBuff5 (player p) {
+		unit u1; unit u2; unit u3; player owner;
+
+		owner = GetTriggerPlayer();
+		u1 = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+		u2 = CreateUnit(owner, 'hpea', 100.0, 0.0, 0.0);
+		u3 = CreateUnit(owner, 'hpea', 200.0, 0.0, 0.0);
+		SelectUnit(u1, true);
+		BJDebugMsg("[UnitBuffTest] s5: 给3个单位添加0秒无敌窗，然后等待队列清空");
+		ImmuteDamageOnce(u1);
+		ImmuteDamageOnce(u2);
+		ImmuteDamageOnce(u3);
+		BJDebugMsg("[UnitBuffTest] 3个单位应在0秒计时器后移除，队列清空后timer应自动停止");
+		u1 = null;
+		u2 = null;
+		u3 = null;
+		owner = null;
+	}
 	function TTestUTUnitBuff6 (player p) {}
 	function TTestUTUnitBuff7 (player p) {}
 	function TTestUTUnitBuff8 (player p) {}

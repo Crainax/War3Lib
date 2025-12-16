@@ -156,7 +156,7 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 		BJDebugMsg("[UnitPanel] 已将原生生命值和魔法值UI移出屏幕外");
 	}
 	function TTestUTUnitPanel7 (player p) {
-		unitPanel.InitHPMPUI();
+		unitPanel.initHPMPUI();
 	}
 	function TTestUTUnitPanel8 (player p) {}
 	function TTestUTUnitPanel9 (player p) {}

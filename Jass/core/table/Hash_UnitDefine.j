@@ -5,6 +5,28 @@
 单位哈希表定义
 */
 
+//-------------------这些都是暂时用不到的-------------------
+#define HASH_KEY_UNIT_UNITATTR  -1 //储存的单位属性结构体
+#define HASH_KEY_UNIT_HEROATTR  -2 //储存的英雄属性结构体
+#define HASH_KEY_UNIT_UNITREGEN -3 //储存的单位回复属性结构体
+#define HASH_KEY_UNIT_MONSTER   -4 //储存的怪物结构体
+#define HASH_KEY_UNIT_UNITSPELL  -5 //储存的单位技能结构体
+
+// 怪物掉落相关键值 (预留20个空间 1800-1819)
+#define HASH_KEY_UNIT_DROP_TYPES    -6 //怪物掉落物品类型数组起始键值
+// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
+#define HASH_KEY_UNIT_DROP_CHANCES  -7 //怪物掉落物品概率数组起始键值
+// 怪物掉落数量键值
+#define HASH_KEY_UNIT_DROP_COUNT    -8 //怪物掉落物品数量
+
+// 单位技能相关键值 (预留200个空间 1800-1999)
+#define HASH_KEY_UNIT_UNITSPELL_IDS    -9 //单位技能ID数组起始键值
+
+#define HASH_KEY_UNIT_SIMPLESPELL_IDS    -10 //单位技能(简单)ID数组起始键值
+#define HASH_KEY_UNIT_SIMPLESPELL_LEVELS  -11 //单位简单技能等级数组起始键值
+
+//--------------------------------------------------------
+
 // BindEffect 特效存储键位（共21个）
 #define HASH_UNIT_EFFECT_COUNT 100    // 特效数量(100-120)
 #define HASH_UNIT_EFFECT_1     101    // 特效存储位 1
@@ -28,25 +50,10 @@
 #define HASH_UNIT_EFFECT_19    119    // 特效存储位 19
 #define HASH_UNIT_EFFECT_20    120    // 特效存储位 20
 
+//BUFF位置:
+#define KEY_IMMUTE_UNIT_TIME_LEFT  130 // 单位无敌时间剩余
 
-#define HASH_KEY_UNIT_UNITATTR  1726 //储存的单位属性结构体
-#define HASH_KEY_UNIT_HEROATTR  1727 //储存的英雄属性结构体
-#define HASH_KEY_UNIT_UNITREGEN 1728 //储存的单位回复属性结构体
-#define HASH_KEY_UNIT_MONSTER   1729 //储存的怪物结构体
-#define HASH_KEY_UNIT_UNITSPELL  1730 //储存的单位技能结构体
 
-// 怪物掉落相关键值 (预留20个空间 1800-1819)
-#define HASH_KEY_UNIT_DROP_TYPES    1800 //怪物掉落物品类型数组起始键值
-// 怪物掉落概率相关键值 (预留20个空间 1820-1839)
-#define HASH_KEY_UNIT_DROP_CHANCES  1820 //怪物掉落物品概率数组起始键值
-// 怪物掉落数量键值
-#define HASH_KEY_UNIT_DROP_COUNT    1840 //怪物掉落物品数量
-
-// 单位技能相关键值 (预留200个空间 1800-1999)
-#define HASH_KEY_UNIT_UNITSPELL_IDS    1800 //单位技能ID数组起始键值
-
-#define HASH_KEY_UNIT_SIMPLESPELL_IDS    2000 //单位技能(简单)ID数组起始键值
-#define HASH_KEY_UNIT_SIMPLESPELL_LEVELS  2200 //单位简单技能等级数组起始键值
 
 // 2400开始可继续添加新的键值定义...
 
