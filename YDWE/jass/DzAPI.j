@@ -749,6 +749,11 @@ library DzAPI
         return RequestExtraIntegerData(115, whichPlayer, null, null, false, mapId, 0, 0)
     endfunction
 
+    //  IsPinned, // 获取是否已经置顶
+    function KKApiIsPinned takes player whichPlayer returns boolean
+        return RequestExtraBooleanData(117, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+
 endlibrary
 
 #endif

@@ -1270,10 +1270,11 @@ type = real
 [[.args]]
 type = real
 
+
 [DzSetUnitAbilityRange]
 title = "技能 - 设置技能施法距离（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的施法距离${range}"
-comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的施法距离 ${range} "
+comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1284,8 +1285,8 @@ type = real
 
 [DzSetUnitAbilityArea]
 title = "技能 - 设置技能施法范围（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的施法范围${area}"
-comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的施法范围 ${area} "
+comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1296,8 +1297,8 @@ type = real
 
 [DzSetUnitAbilityCool]
 title = "技能 - 设置技能冷却时间（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的当前冷却时间${cool}/最大冷却时间${max_cool}"
-comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的当前冷却时间 ${cool} /最大冷却时间 ${max_cool} "
+comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1312,8 +1313,8 @@ type = real
 
 [DzSetUnitAbilityDataA]
 title = "技能 - 设置技能数据A（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的数据A${DataA}"
-comment = [[通魔的数据A是施法持续时间;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据A ${DataA} "
+comment = [[通魔的数据A是施法持续时间;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1326,8 +1327,8 @@ type = real
 
 [DzSetUnitAbilityDataB]
 title = "技能 - 设置技能数据B（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的数据B${DataB}"
-comment = [[通魔的数据B是目标类型;0无目标;1目标单位;2目标点;3目标单位或点;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据B ${DataB} "
+comment = [[通魔的数据B是目标类型;0无目标;1目标单位;2目标点;3目标单位或点;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1339,8 +1340,8 @@ type = real
 
 [DzSetUnitAbilityDataC]
 title = "技能 - 设置技能数据C（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的数据C${DataC}"
-comment = [[通魔的数据C是选项;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据C ${DataC} "
+comment = [[通魔的数据C是选项;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1352,8 +1353,8 @@ type = real
 
 [DzSetUnitAbilityDataD]
 title = "技能 - 设置技能数据D（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的数据D${DataD}"
-comment = [[通魔的数据D是动作持续时间;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据D ${DataD} "
+comment = [[通魔的数据D是动作持续时间;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1365,8 +1366,8 @@ type = real
 
 [DzSetUnitAbilityDataE]
 title = "技能 - 设置技能数据E（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的数据E${DataE}"
-comment = [[通魔的数据E是否使其他技能失效;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据E ${DataE} "
+comment = [[通魔的数据E是否使其他技能失效;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1377,8 +1378,8 @@ type = real
 
 [DzSetUnitAbilityButtonPos]
 title = "技能 - 设置技能按钮位置（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的按钮X轴${X}, Y轴${Y}"
-comment = [[x轴0~3, y轴0~2且 y轴-11可以隐藏技能;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的按钮X轴 ${X} , Y轴 ${Y} "
+comment = [[x轴0~3, y轴0~2且 y轴-11可以隐藏技能;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1392,8 +1393,8 @@ type = integer
 
 [DzSetUnitAbilityHotkey]
 title = "技能 - 设置技能快捷键（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的按钮快捷键${Hotkey}"
-comment = [[必须显示在按钮上的技能才有效,单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的按钮快捷键 ${Hotkey} "
+comment = [[必须显示在按钮上的技能才有效,单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1405,8 +1406,8 @@ type = string
 
 [DzSetUnitAbilityTargs]
 title = "技能 - 设置技能目标允许（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的目标允许${Targs}"
-comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的目标允许 ${Targs} "
+comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1418,8 +1419,8 @@ type = integer
 
 [DzSetUnitAbilityCost]
 title = "技能 - 设置技能魔法消耗（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的魔法消耗${Cost}"
-comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的魔法消耗 ${Cost} "
+comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1430,8 +1431,8 @@ type = integer
 
 [DzSetUnitAbilityReqLevel]
 title = "技能 - 设置技能等级要求（通魔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的等级要求${ReqLevel}"
-comment = [[2级以上可以无视魔法免疫;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以升级降级技能刷新]]
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的等级要求 ${ReqLevel} "
+comment = [[2级以上可以无视魔法免疫;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
 [[.args]]
 type = unit
@@ -1443,7 +1444,7 @@ type = integer
 
 [DzSetUnitAbilityUnitId]
 title = "技能 - 设置建造技能单位ID（象牙塔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的单位id${UnitId}"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的单位id ${UnitId} "
 comment = [[用在象牙塔或变身类技能;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;]]
 category = TC_KKAPI
 [[.args]]
@@ -1455,7 +1456,7 @@ type = integer
 
 [DzSetUnitAbilityBuildOrderId]
 title = "技能 - 设置建造技能命令ID（象牙塔）"
-description = "设置单位${unit} 当前拥有的技能${id} 的命令id${OrderId}"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的命令id ${OrderId} "
 comment = [[用在象牙塔类的技能;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;]]
 category = TC_KKAPI
 [[.args]]
@@ -1467,7 +1468,7 @@ type = ordercode
 
 [DzSetUnitAbilityBuildModel]
 title = "技能 - 设置建造技能模型（象牙塔）"
-description = "设置单位${unit} 当前拥有的技能${id} 模型${model} 缩放${scale}"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 模型 ${model} 缩放 ${scale} "
 comment = [[修改建造时鼠标模型，不改单位;用在象牙塔类的技能;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;]]
 category = TC_KKAPI
 [[.args]]
@@ -1482,7 +1483,7 @@ type = real
 
 [KKDestroyCommandButton]
 title = "技能按钮 - 删除技能按钮"
-description = "删除技能按钮${技能按钮}"
+description = "删除技能按钮 ${技能按钮} "
 comment = [[只能是来自“创建技能按钮控件”的控件,不能删原生哈。]]
 category = TC_KKAPI
 [[.args]]
@@ -1490,7 +1491,7 @@ type = frame
 
 [KKCommandButtonClick]
 title = "技能按钮 - 鼠标点击技能按钮 (无目标施法 或 激活目标指示器)"
-description = "点击技能按钮${技能按钮}, 按照鼠标${鼠标类型}类型来点击"
+description = "点击技能按钮 ${技能按钮} , 按照鼠标 ${鼠标类型} 类型来点击"
 comment = [[鼠标类型1是左键，4是右键，无目标技能左键之后可以释放，目标类技能左键后会激活目标指示器]]
 category = TC_KKAPI
 [[.args]]
@@ -1500,7 +1501,7 @@ type = integer
 
 [KKCommandTargetClick]
 title = "技能按钮 - 目标指示器点击目标单位"
-description = "鼠标${鼠标类型}类型点击目标${单位}"
+description = "鼠标 ${鼠标类型} 类型点击目标 ${单位} "
 comment = [[需要先激活目标指示器后, 鼠标类型1是左键点击目标，4是右键取消]]
 category = TC_KKAPI
 [[.args]]
@@ -1511,7 +1512,7 @@ type = unit
 
 [KKCommandTargetItemClick]
 title = "技能按钮 - 目标指示器点击目标物品"
-description = "鼠标${鼠标类型}类型点击目标${物品}"
+description = "鼠标 ${鼠标类型} 类型点击目标 ${物品} "
 comment = [[需要先激活目标指示器后, 鼠标类型1是左键点击目标，4是右键取消]]
 category = TC_KKAPI
 script_name = "DzCommandTargetClick"
@@ -1524,7 +1525,7 @@ type = item
 
 [KKCommandTerrainClick]
 title = "技能按钮 - 目标指示器点击地面坐标"
-description = "鼠标${鼠标类型}类型点击坐标 x轴${X}, y轴${Y}, z轴${Z}"
+description = "鼠标 ${鼠标类型} 类型点击坐标 x轴 ${X} , y轴 ${Y} , z轴 ${Z} "
 comment = [[坐标类的技能 需要先激活点或范围指示器后, 鼠标类型1是左键点击目标，4是右键取消]]
 category = TC_KKAPI
 [[.args]]
@@ -1542,7 +1543,7 @@ default = 0
 
 [KKSetCommandUnitAbility]
 title = "技能按钮 - 绑定单位技能"
-description = "技能按钮${技能按钮} 绑定单位${单位}的技能${技能id}"
+description = "技能按钮 ${技能按钮} 绑定单位 ${单位} 的技能 ${技能id} "
 comment = [[需要 先添加单位技能， 然后改按钮y轴-11隐藏, 然后再计时器循环0.1秒绑定, 技能id填0是取消绑定。]]
 category = TC_KKAPI
 [[.args]]
@@ -1555,7 +1556,7 @@ type = abilcode
 
 [DzItemSetSize]
 title = "物品 - 物品大小"
-description = "物品${物品} 按照${大小}进行缩放"
+description = "物品 ${物品} 按照 ${大小} 进行缩放"
 comment = [[]]
 category = TC_KKAPI
 [[.args]]
@@ -1566,7 +1567,7 @@ type = real
 
 [DzItemMatRotateX]
 title = "物品 - 模型按照X轴旋转"
-description = "物品${物品} 按照X轴${X}进行旋转"
+description = "物品 ${物品} 按照X轴 ${X} 进行旋转"
 comment = [[多次调用是会乘法累计旋转的, 拾取丢弃物品会重置]]
 category = TC_KKAPI
 [[.args]]
@@ -1576,7 +1577,7 @@ type = real
 
 [DzItemMatRotateY]
 title = "物品 - 模型按照Y轴旋转"
-description = "物品${物品} 按照Y轴${Y}进行旋转"
+description = "物品 ${物品} 按照Y轴 ${Y} 进行旋转"
 comment = [[多次调用是会乘法累计旋转的, 拾取丢弃物品会重置]]
 category = TC_KKAPI
 [[.args]]
@@ -1586,7 +1587,7 @@ type = real
 
 [DzItemMatRotateZ]
 title = "物品 - 模型按照Z轴旋转"
-description = "物品${物品} 按照Z轴${Z}进行旋转"
+description = "物品 ${物品} 按照Z轴 ${Z} 进行旋转"
 comment = [[多次调用是会乘法累计旋转的, 拾取丢弃物品会重置]]
 category = TC_KKAPI
 [[.args]]
@@ -1597,7 +1598,7 @@ type = real
 
 [DzItemMatScale]
 title = "物品 - 模型按照XYZ轴缩放"
-description = "物品${物品} 按照X轴${X},Y轴${Y},Z轴${Z} 进行缩放"
+description = "物品 ${物品} 按照X轴 ${X} ,Y轴 ${Y} ,Z轴 ${Z} 进行缩放"
 comment = [[多次调用是会乘法累计缩放的, 拾取丢弃物品会重置]]
 category = TC_KKAPI
 [[.args]]
@@ -1611,7 +1612,7 @@ type = real
 
 [DzItemMatReset]
 title = "物品 - 模型重置旋转缩"
-description = "物品${物品} 模型重置旋转缩"
+description = "物品 ${物品} 模型重置旋转缩"
 comment = [[旋转清零,缩放重置为1]]
 category = TC_KKAPI
 [[.args]]
@@ -1621,7 +1622,7 @@ type = item
 
 [DzSetPariticle2SizeItem]
 title = "物品 - 模型粒子2的缩放倍数"
-description = "物品${物品} 模型粒子2的缩放 ${倍数}倍数"
+description = "物品 ${物品} 模型粒子2的缩放 ${倍数} 倍数"
 comment = [[每次调用是乘法计算 需要填大于0的数值，填0会直接导致之后的计算失效]]
 category = TC_KKAPI
 script_name = DzSetPariticle2Size
@@ -1634,7 +1635,7 @@ type = real
 
 [DzSetPariticle2SizeEffect]
 title = "特效 - 模型粒子2的缩放倍数"
-description = "特效${特效} 模型粒子2的缩放 ${倍数}倍数"
+description = "特效 ${特效} 模型粒子2的缩放 ${倍数} 倍数"
 comment = [[每次调用是乘法计算 需要填大于0的数值，填0会直接导致之后的计算失效]]
 category = TC_KKAPI
 script_name = DzSetPariticle2Size
@@ -1645,7 +1646,7 @@ type = real
 
 [DzSetPariticle2SizeUnit]
 title = "单位 - 模型粒子2的缩放倍数"
-description = "单位${单位} 模型粒子2的缩放 ${倍数}倍数"
+description = "单位 ${单位} 模型粒子2的缩放 ${倍数} 倍数"
 comment = [[每次调用是乘法计算 需要填大于0的数值，填0会直接导致之后的计算失效]]
 category = TC_KKAPI
 script_name = DzSetPariticle2Size
@@ -1657,7 +1658,7 @@ type = real
 
 [DzSetUnitCollisionSize]
 title = "单位 - 修改单位碰撞体积"
-description = "修改单位${单位} 的碰撞体积为${碰撞体积}"
+description = "修改单位 ${单位} 的碰撞体积为 ${碰撞体积} "
 comment = [[修改之后移动一下单位或者重新设置一下位置就会刷新了]]
 category = TC_KKAPI
 [[.args]]
@@ -1668,7 +1669,7 @@ type = real
 
 --[DzSetWidgetTextureUnit]
 --title = "单位 - 替换单位贴图"
---description = "替换单位${单位} 新的贴图${贴图} 为指定 TexId${texId}"
+--description = "替换单位 ${单位} 新的贴图 ${贴图} 为指定 TexId ${texId} "
 --comment = "只能替换模型中有Replaceable ID x 贴图的模型，ID为索引。不会替换大头像中的模型"
 --category = TC_KKAPI
 --script_name = DzSetWidgetTexture
@@ -1682,7 +1683,7 @@ type = real
 
 [DzSetWidgetTextureItem]
 title = "物品 - 替换物品贴图"
-description = "替换物品${物品} 新的贴图${贴图} 为指定 TexId${texId}"
+description = "替换物品 ${物品} 新的贴图 ${贴图} 为指定 TexId ${texId} "
 comment = "只能替换模型中有Replaceable ID x 贴图的模型，ID为索引。不会替换大头像中的模型"
 category = TC_KKAPI
 script_name = DzSetWidgetTexture
@@ -1696,7 +1697,7 @@ type = integer
 
 [DzSetWidgetTextureEffect]
 title = "特效 - 替换特效贴图"
-description = "替换特效${特效} 新的贴图${贴图} 为指定 TexId${texId}"
+description = "替换特效 ${特效} 新的贴图 ${贴图} 为指定 TexId ${texId} "
 comment = ""
 category = TC_KKAPI
 script_name = DzSetWidgetTexture
@@ -1710,7 +1711,7 @@ type = integer
 
 [DzSetUnitSelectScale]
 title = "单位 - 修改单位选择圈缩放"
-description = "修改单位${单位} 的选择圈缩放为${缩放}"
+description = "修改单位 ${单位} 的选择圈缩放为 ${缩放} "
 comment = [[可以0隐藏或者显示修改指定单位的选择圈大小]]
 category = TC_KKAPI
 [[.args]]
@@ -1720,7 +1721,7 @@ type = real
 
 [DzSetUnitHitIgnore]
 title = "单位 - 设置单位是否忽略点击"
-description = "设置单位${单位} 的点击球是否忽略${忽略}"
+description = "设置单位 ${单位} 的点击球是否忽略 ${忽略} "
 comment = [[true为忽略, false会恢复，删除蝗虫技能后, 隐藏显示单位, 再设置忽略点击false, 关闭打开碰撞 即完美删除蝗虫。]]
 category = TC_KKAPI
 [[.args]]
@@ -1733,7 +1734,7 @@ type = boolean
 
 [DzEffectBindEffect]
 title = "特效 - 特效绑定特效"
-description = "给特效${特效}的附加点${附加点} 绑定特效 ${特效}"
+description = "给特效 ${特效} 的附加点 ${附加点} 绑定特效 ${特效} "
 comment = ""
 category = TC_KKAPI
 [[.args]]
@@ -1747,7 +1748,7 @@ type = effect
 
 [DzFrameSetIgnoreTrackEvents]
 title = "界面 - 设置Frame控件忽略点击事件"
-description = "设置Frame控件${frame}忽略点击事件为${是否}"
+description = "设置Frame控件 ${frame} 忽略点击事件为 ${是否} "
 comment = "只能用在Frame类型的控件, 对SimpleFrame类型的控件无效, 忽略后可以鼠标穿透地面, 不忽略则会挡住鼠标点击。"
 category = TC_KKAPI
 [[.args]]
@@ -1759,7 +1760,7 @@ type = boolean
 
 [DzFrameSetModel2]
 title = "界面 - ui模型 - 设置模型文件"
-description = "设置ui模型控件${model_frame}的文件路径为${model_path}, 队伍颜色id为${color_id}"
+description = "设置ui模型控件 ${model_frame} 的文件路径为 ${model_path} , 队伍颜色id为 ${color_id} "
 comment = "只能是ui模型控件, 队伍颜色id是0~15 0为红色"
 category = TC_KKAPI
 [[.args]]
@@ -1772,7 +1773,7 @@ type = integer
 
 [DzFrameRemoveModelEffect]
 title = "界面 - ui模型 - 移除绑定特效"
-description = "为ui模型控件${model_frame}移除绑定的特效${effect_frame}"
+description = "为ui模型控件 ${model_frame} 移除绑定的特效 ${effect_frame} "
 comment = "effect_frame只能是ui模型添加绑定特效的返回值"
 category = TC_KKAPI
 [[.args]]
@@ -1783,7 +1784,7 @@ type = frame
 
 [DzFrameSetModelAnimationByIndex]
 title = "界面 - ui模型 - 播放动画指定索引"
-description = "ui模型控件${model_frame}播放动画指定索引${anim_index}"
+description = "ui模型控件 ${model_frame} 播放动画指定索引 ${anim_index} "
 comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1793,7 +1794,7 @@ type = integer
 
 [DzFrameSetModelAnimation]
 title = "界面 - ui模型 - 播放动画指定动画名"
-description = "ui模型控件${model_frame}播放动画指定动画名${animation}"
+description = "ui模型控件 ${model_frame} 播放动画指定动画名 ${animation} "
 comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1803,7 +1804,7 @@ type = string
 
 [DzFrameSetModelCameraSource]
 title = "界面 - ui模型 - 设置场景内镜头源点"
-description = "ui模型控件${model_frame} 设置镜头源点 x轴${x轴},y轴${y轴},z轴${z轴}"
+description = "ui模型控件 ${model_frame} 设置镜头源点 x轴 ${x轴} ,y轴 ${y轴} ,z轴 ${z轴} "
 comment = "只能是ui模型控件"
 category = TC_KKAPI
 [[.args]]
@@ -1818,7 +1819,7 @@ type = real
 
 [DzFrameSetModelCameraTarget]
 title = "界面 - ui模型 - 设置场景内镜头目标点"
-description = "ui模型控件${model_frame}设置镜头目标点 x轴${x轴},y轴${y轴},z轴${z轴}"
+description = "ui模型控件 ${model_frame} 设置镜头目标点 x轴 ${x轴} ,y轴 ${y轴} ,z轴 ${z轴} "
 comment = "只能是ui模型控件"
 category = TC_KKAPI
 [[.args]]
@@ -1832,7 +1833,7 @@ type = real
 
 [DzFrameSetModelSize]
 title = "界面 - ui模型 - 设置缩放大小"
-description = "ui模型控件${model_frame} 设置 缩放${size}"
+description = "ui模型控件 ${model_frame} 设置 缩放 ${size} "
 comment = "设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1842,7 +1843,7 @@ type = real
 
 [DzFrameSetModelPosition]
 title = "界面 - ui模型 - 设置场景内的坐标(X Y Z)"
-description = "ui模型控件${model_frame} 设置 X轴${X轴}, Y轴${Y轴}, Z轴${Z轴}"
+description = "ui模型控件 ${model_frame} 设置 X轴 ${X轴} , Y轴 ${Y轴} , Z轴 ${Z轴} "
 comment = "设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1856,7 +1857,7 @@ type = real
 
 [DzFrameSetModelX]
 title = "界面 - ui模型 - 设置场景内的坐标X轴"
-description = "ui模型控件${model_frame} 设置 X轴${X轴}"
+description = "ui模型控件 ${model_frame} 设置 X轴 ${X轴} "
 comment = "设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1866,7 +1867,7 @@ type = real
 
 [DzFrameSetModelY]
 title = "界面 - ui模型 - 设置场景内的坐标Y轴"
-description = "ui模型控件${model_frame} 设置 Y轴${Y轴}"
+description = "ui模型控件 ${model_frame} 设置 Y轴 ${Y轴} "
 comment = "设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1876,7 +1877,7 @@ type = real
 
 [DzFrameSetModelZ]
 title = "界面 - ui模型 - 设置场景内的坐标Z轴"
-description = "ui模型控件${model_frame} 设置 Z轴${Z轴}"
+description = "ui模型控件 ${model_frame} 设置 Z轴 ${Z轴} "
 comment = "设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1888,7 +1889,7 @@ type = real
 
 [DzFrameSetModelSpeed]
 title = "界面 - ui模型 - 设置动画播放速度"
-description = "ui模型控件${model_frame} 设置 动画播放速度${倍率}"
+description = "ui模型控件 ${model_frame} 设置 动画播放速度 ${倍率} "
 comment = "设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1900,7 +1901,7 @@ type = real
 
 [DzFrameSetModelScale]
 title = "界面 - ui模型 - 设置矩阵缩放"
-description = "ui模型控件${model_frame} 设置 矩阵缩放 (X轴${x轴}, Y轴${y轴}, Z轴${z轴}) "
+description = "ui模型控件 ${model_frame} 设置 矩阵缩放 (X轴 ${x轴} , Y轴 ${y轴} , Z轴 ${z轴})"
 comment = "每次调用累计乘法计算缩放, 设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件 "
 category = TC_KKAPI
 [[.args]]
@@ -1917,7 +1918,7 @@ default = 1.0
 
 [DzFrameSetModelMatReset]
 title = "界面 - ui模型 - 设置矩阵重置"
-description = "ui模型控件${model_frame} 设置矩阵重置"
+description = "ui模型控件 ${model_frame} 设置矩阵重置"
 comment = "缩放重置为1, 旋转清零, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1926,7 +1927,7 @@ type = frame
 
 [DzFrameSetModelRotateX]
 title = "界面 - ui模型 - 设置矩阵旋转X轴"
-description = "ui模型控件${model_frame} 设置矩阵旋转X轴${X轴}"
+description = "ui模型控件 ${model_frame} 设置矩阵旋转X轴 ${X轴} "
 comment = "每次调用累计乘法计算, 不想累计的重置后再设置, 设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1937,7 +1938,7 @@ type = real
 
 [DzFrameSetModelRotateY]
 title = "界面 - ui模型 - 设置矩阵旋转Y轴"
-description = "ui模型控件${model_frame} 设置矩阵旋转Y轴${Y轴}"
+description = "ui模型控件 ${model_frame} 设置矩阵旋转Y轴 ${Y轴} "
 comment = "每次调用累计乘法计算, 不想累计的重置后再设置, 设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1947,7 +1948,7 @@ type = real
 
 [DzFrameSetModelRotateZ]
 title = "界面 - ui模型 - 设置矩阵旋转Z轴"
-description = "ui模型控件${model_frame} 设置矩阵旋转Z轴${Z轴}"
+description = "ui模型控件 ${model_frame} 设置矩阵旋转Z轴 ${Z轴} "
 comment = "每次调用累计乘法计算, 不想累计的重置后再设置, 设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1958,7 +1959,7 @@ type = real
 
 [DzFrameSetModelColor]
 title = "界面 - ui模型 - 设置模型颜色"
-description = "ui模型控件${model_frame} 设置模型颜色${color}"
+description = "ui模型控件 ${model_frame} 设置模型颜色 ${color} "
 comment = "包含透明通道, 设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1970,7 +1971,7 @@ default = "DzGetColor"
 
 [DzFrameSetModelTexture]
 title = "界面 - ui模型 - 替换模型id贴图"
-description = "ui模型控件${model_frame} 设置贴图路径${texture_file}, 指定id${id}"
+description = "ui模型控件 ${model_frame} 设置贴图路径 ${texture_file} , 指定id ${id} "
 comment = "id是指模型里指定的纹理id, 设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1983,7 +1984,7 @@ type = integer
 
 [DzFrameSetModelParticle2Size]
 title = "界面 - ui模型 - 设置粒子2缩放大小"
-description = "ui模型控件${model_frame} 设置粒子2缩放大小${scale}"
+description = "ui模型控件 ${model_frame} 设置粒子2缩放大小 ${scale} "
 comment = "必须是有粒子2的模型, 缩放是乘法计算需要大于0, 设置模型后会重置, 可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 [[.args]]
@@ -1993,7 +1994,7 @@ type = real
 
 [DzFrameSetNameContext]
 title = "界面 - 设置控件全局名字跟绑定整数"
-description = "设置控件${frame} 全局名字${name} 绑定整数${context}"
+description = "设置控件 ${frame} 全局名字 ${name} 绑定整数 ${context} "
 comment = "相当于修改 <<新建Frame [Tag]:DzCreateFrameByTagName>> 函数的第2个参数，跟最后一个参数,全局名字不能重复，否则退出游戏时会崩溃，可以使用修改后的名字跟整数查找控件，支持Frame、SimpleFrame、SimpleTexture、SimpleStringFont"
 category = TC_KKAPI
 [[.args]]
@@ -2006,7 +2007,7 @@ type = integer
 
 [DzFrameSetTextFontSpacing]
 title = "界面 - 设置文本控件字间距"
-description = "设置文本控件${frame} 设置字间距${spacint}"
+description = "设置文本控件 ${frame} 设置字间距 ${spacint} "
 comment = "只能TEXT类型控件使用"
 category = TC_KKAPI
 [[.args]]
@@ -2018,7 +2019,7 @@ type = real
 
 [KKCommandSetCooldownModelSize]
 title = "界面 - 设置技能/物品按钮的冷却模型缩放大小"
-description = "设置技能/物品按钮${comand_button}的冷却模型缩放大小${size}"
+description = "设置技能/物品按钮 ${comand_button} 的冷却模型缩放大小 ${size} "
 comment = "只能技能/物品按钮使用, 修改按钮大小后，需要手动缩放一次cd模型的缩放比例"
 category = TC_KKAPI
 [[.args]]
@@ -2029,7 +2030,7 @@ type = real
 
 [KKCommandSetCooldownModelSize2]
 title = "界面 - 设置技能/物品按钮的冷却模型缩放指定宽高比例"
-description = "设置技能/物品按钮${comand_button}的冷却模型缩放宽比例${width_size}, 高比例${height_size}"
+description = "设置技能/物品按钮 ${comand_button} 的冷却模型缩放宽比例 ${width_size} , 高比例 ${height_size} "
 comment = "只能技能/物品按钮使用, 修改按钮大小后，需要手动缩放一次cd模型的缩放比例"
 category = TC_KKAPI
 [[.args]]
@@ -2045,7 +2046,7 @@ default = 1
 
 [DzSetMaxFps]
 title = "游戏 - 限制最高帧数"
-description = "限制最高帧数 为${max_fps}"
+description = "限制最高帧数 为 ${max_fps} "
 comment = "跟解锁上限不同，只能60之内, 例如30帧用来模拟卡顿的游戏环境"
 category = TC_KKAPI
 [[.args]]
@@ -2054,11 +2055,12 @@ min = 1
 default = 30
 
 
+
 [DzEnableDrawSkillPanel]
 title = "允许查看指定单位技能"
-description = "允许查看指定单位${单位}的技能, 是否开启${enable}"
+description = "允许查看指定单位 ${单位} 的技能, 是否开启 ${enable} "
 comment = "开启后可以看友军或敌军单位的技能"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2066,9 +2068,9 @@ type = boolean
 
 [DzEnableDrawSkillPanelByPlayer]
 title = "允许查看指定玩家单位技能"
-description = "允许查看指定玩家${玩家}的单位技能, 是否开启${enable}"
+description = "允许查看指定玩家 ${玩家} 的单位技能, 是否开启 ${enable} "
 comment = "开启后可以看友军或敌军单位的技能"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = player
 [[.args]]
@@ -2076,9 +2078,9 @@ type = boolean
 
 [DzSetEffectFogVisible]
 title = "特效 - 设置特效迷雾可见"
-description = "设置特效 ${特效} 在迷雾里可见 ${enable}"
+description = "设置特效 ${特效} 在迷雾里可见 ${enable} "
 comment = "只能对创建到地面的特效使用。迷雾即非视野 非黑色阴影的区域"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = effect
 [[.args]]
@@ -2087,9 +2089,9 @@ type = boolean
 
 [DzSetEffectMaskVisible]
 title = "特效 - 设置特效黑色阴影可见"
-description = "设置特效 ${特效} 在黑色阴影里可见 ${enable}"
+description = "设置特效 ${特效} 在黑色阴影里可见 ${enable} "
 comment = "只能对创建到地面的特效使用。 黑色阴影即未解锁的区域"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = effect
 [[.args]]
@@ -2098,9 +2100,9 @@ type = boolean
 
 [DzFrameBindWidget]
 title = "世界坐标 - 绑定Frame到单位实时位置"
-description = "绑定Frame${frame} 到单位${unit}的实时位置, 偏移世界坐标(X${X}, Y${Y}, Z${Z}) 偏移屏幕坐标(X${SX}, Y${SY}) 战争迷雾可见${fog_visible} 有单位视野可见${unit_visible} 单位死亡可见${dead_visible}"
+description = "绑定Frame ${frame} 到单位 ${unit} 的实时位置, 偏移世界坐标(X ${X} , Y ${Y} , Z ${Z})偏移屏幕坐标(X ${SX} , Y ${SY})战争迷雾可见 ${fog_visible} 有单位视野可见 ${unit_visible} 单位死亡可见 ${dead_visible} "
 comment = "绑定后会清除控件锚点, 每帧设置控件中心坐标为 世界坐标+偏移 转屏幕坐标 +偏移后的位置, 超出屏幕，或者不满足条件的情况下会对控件隐藏, 在删除单位，或者删除控件前解除绑定。"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = frame
 [[.args]]
@@ -2133,9 +2135,9 @@ default = 'false'
 
 [KKFrameBindItem]
 title = "世界坐标 - 绑定Frame到物品实时位置"
-description = "绑定Frame${frame} 到物品${item}的实时位置, 偏移世界坐标(X${X}, Y${Y}, Z${Z}) 偏移屏幕坐标(X${SX}, Y${SY}) 战争迷雾可见${fog_visible} 物品隐藏时一起隐藏${item_visible} "
+description = "绑定Frame ${frame} 到物品 ${item} 的实时位置, 偏移世界坐标(X ${X} , Y ${Y} , Z ${Z})偏移屏幕坐标(X ${SX} , Y ${SY})战争迷雾可见 ${fog_visible} 物品隐藏时一起隐藏 ${item_visible} "
 comment = "绑定后会清除控件锚点, 每帧设置控件中心坐标为 世界坐标+偏移 转屏幕坐标 +偏移后的位置, 超出屏幕，或者不满足条件的情况下会对控件隐藏, 在删除物品，或者删除控件前解除绑定。"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = frame
 [[.args]]
@@ -2167,9 +2169,9 @@ default = 'true'
 
 [DzFrameBindWorldPos]
 title = "世界坐标 - 绑定Frame到世界坐标实时位置"
-description = "绑定Frame${frame} 世界坐标(X${X}, Y${Y}, Z${Z}) 偏移屏幕坐标(X${SX}, Y${SY}) 战争迷雾可见${fog_visible} "
+description = "绑定Frame ${frame} 世界坐标(X ${X} , Y ${Y} , Z ${Z})偏移屏幕坐标(X ${SX} , Y ${SY})战争迷雾可见 ${fog_visible} "
 comment = "绑定后会清除控件锚点, 每帧设置控件中心坐标为 世界坐标 转屏幕坐标 +偏移后的位置, 超出屏幕，或者不满足条件的情况下会对控件隐藏, 在删除控件前解除绑定。"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = frame
 [[.args]]
@@ -2194,9 +2196,9 @@ default = 'false'
 
 [DzFrameUnBind]
 title = "世界坐标 - 解除Frame的绑定"
-description = "解除Frame${frame}的绑定"
+description = "解除Frame ${frame} 的绑定"
 comment = "解除绑定后不会再刷新位置跟改变隐藏显示"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = frame
 
@@ -2204,19 +2206,19 @@ type = frame
 title = "界面 - 屏蔽所有单位指向UI跟血条"
 description = "屏蔽所有单位指向UI跟血条"
 comment = "屏蔽会保留选择圈，开局调用一次后即可屏蔽所有单位的，以便重写血条"
-category = TC_KKPRE
+category = TC_KKAPI
 
 [DzDisableItemPreselectUi]
 title = "界面 - 屏蔽所有物品指向UI"
 description = "屏蔽所有物品指向UI"
 comment = "屏蔽会保留选择圈，开局调用一次后即可屏蔽所有物品的，以便写物品地面UI"
-category = TC_KKPRE
+category = TC_KKAPI
 
 [DzFrameSetCheckBoxState]
 title = "界面 - 设置复选框勾选状态"
-description = "设置复选框${check_box}的勾选状态为${checked}"
+description = "设置复选框 ${check_box} 的勾选状态为 ${checked} "
 comment = "只能对CHECKBOX、GLUECHECKBOX 类型使用"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = frame
 [[.args]]
@@ -2224,9 +2226,9 @@ type = boolean
 
 [DzFrameSetEditBoxActive]
 title = "界面 - 设置编辑框激活状态"
-description = "设置编辑框${editbox} 激活状态${active}"
+description = "设置编辑框 ${editbox} 激活状态 ${active} "
 comment = "true可以主动调用激活焦点的同时激活输入法, false关闭输入法, 只能对EDITBOX、GLUEEDITBOX类型使用"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = frame
 [[.args]]
@@ -2235,9 +2237,9 @@ type = boolean
 
 [DzFrameSetEditBoxDisableIme]
 title = "界面 - 设置编辑框禁用输入法"
-description = "设置编辑框${editbox} 是否禁用输入法 ${disable}"
+description = "设置编辑框 ${editbox} 是否禁用输入法 ${disable} "
 comment = "true禁用输入法, 禁用后只能输入英文字母跟数字, 不禁用可以打中文, 只能对EDITBOX、GLUEEDITBOX类型使用"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = frame
 [[.args]]
@@ -2246,9 +2248,9 @@ type = boolean
 
 [DzWindowSetPoint]
 title = "硬件 - 设置游戏窗口位置"
-description = "设置游戏窗口位置 屏幕X轴${X轴}, 屏幕Y轴${Y轴}"
+description = "设置游戏窗口位置 屏幕X轴 ${X轴} , 屏幕Y轴 ${Y轴} "
 comment = "只有窗口模式才有效，屏幕XY轴是指用户屏幕 0,0 为右上角"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
 [[.args]]
@@ -2257,9 +2259,9 @@ type = integer
 
 [DzWindowSetSize]
 title = "硬件 - 设置游戏窗口大小"
-description = "设置游戏窗口大小 屏幕宽度${width}, 高度${height}"
+description = "设置游戏窗口大小 屏幕宽度 ${width} , 高度 ${height} "
 comment = "只有窗口模式才有效, 改变大小之后 可以通过屏幕大小 设置窗口位置来居中"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
 [[.args]]
@@ -2269,9 +2271,9 @@ type = integer
 
 [DzSetDoodadsMatScale]
 title = "装饰物 - 设置地形装饰物矩阵缩放"
-description = "装饰物${doodads} 设置 X轴${X轴}, Y轴${Y轴}, Z轴${Z轴}缩放"
+description = "装饰物 ${doodads} 设置 X轴 ${X轴} , Y轴 ${Y轴} , Z轴 ${Z轴} 缩放"
 comment = "每次调用是乘法计算， 需要填大于0的数值，填0会直接导致之后的计算失效"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
 [[.args]]
@@ -2284,9 +2286,9 @@ type = real
 
 [DzSetDoodadsMatRotateX]
 title = "装饰物 - 设置地形装饰物矩阵旋转X轴"
-description = "装饰物${doodads} 设置 X轴${X轴}旋转"
+description = "装饰物 ${doodads} 设置 X轴 ${X轴} 旋转"
 comment = "每次调用是乘法计算"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
 [[.args]]
@@ -2295,9 +2297,9 @@ type = real
 
 [DzSetDoodadsMatRotateY]
 title = "装饰物 - 设置地形装饰物矩阵旋转Y轴"
-description = "装饰物${doodads} 设置 Y轴${Y轴}旋转"
+description = "装饰物 ${doodads} 设置 Y轴 ${Y轴} 旋转"
 comment = "每次调用是乘法计算"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
 [[.args]]
@@ -2305,9 +2307,9 @@ type = real
 
 [DzSetDoodadsMatRotateZ]
 title = "装饰物 - 设置装饰物矩阵旋转Z轴"
-description = "装饰物${doodads} 设置 Z轴${Z轴}旋转"
+description = "装饰物 ${doodads} 设置 Z轴 ${Z轴} 旋转"
 comment = "每次调用是乘法计算"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
 [[.args]]
@@ -2316,9 +2318,175 @@ type = real
 
 [DzSetDoodadsMatReset]
 title = "装饰物 - 设置地形装饰物矩阵重置"
-description = "装饰物${doodads}矩阵重置"
+description = "装饰物 ${doodads} 矩阵重置"
 comment = "将缩放重置为1，将旋转角度重置为0"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
+
+
+[DzSetUnitAbilityArt]
+title = "技能 - 设置技能图标"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的图标为 ${art_path} "
+comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = imagefile
+
+
+[DzSetUnitAbilityTip]
+title = "技能 - 设置技能提示"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的提示为 ${tip} "
+comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = string
+
+
+[DzSetUnitAbilityUberTip]
+title = "技能 - 设置技能提示扩展"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的提示扩展为 ${ubertip} "
+comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = string
+
+
+
+[DzSetUnitAbilityUpdate]
+title = "技能 - 设置刷新数据"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 数据刷新"
+comment = [[不能异步调用。用来替代升级降级的刷新数据用的, 1级技能也能用。]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+[DzSetUnitAbilityOrderId]
+title = "技能 - 设置技能命令ID"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的命令ID ${order_id} "
+comment = [[可以动态修改大部分技能的命令ID，让同类型技能不冲突。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = integer
+
+
+[DzSetUnitAbilitySpellBookList]
+title = "技能 - 设置魔法书的技能列表"
+description = "设置单位 ${unit} 当前拥有的魔法书技能 ${id} 的技能列表 ${list} 是否保留cd ${save_cool} "
+comment = [[保留cd的话， 同ID技能在修改列表后才能保持cd， 列表超过12个无效, 单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = string
+[[.args]]
+type = boolean
+default = "false"
+
+[DzSetUnitAbilityMissileArt]
+title = "技能 - 设置技能投射物模型"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的投射物模型 ${missile_art} "
+comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = modelfile
+
+[DzSetUnitAbilityMissileSpeed]
+title = "技能 - 设置技能投射物速度"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的投射物速度 ${missile_speed} "
+comment = [[弹道飞行速度。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = real
+
+
+[DzSetUnitAbilityMissileArc]
+title = "技能 - 设置技能投射物弧度"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的投射物弧度 ${missile_arc} "
+comment = [[抛物线的弧度。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = real
+
+
+[DzSetUnitAbilityMissileHoming]
+title = "技能 - 设置技能投射物允许自导"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的投射物允许自导 ${missile_homing} "
+comment = [[true相当于发射投射物后，目标单位移动了会持续追踪的意思, false则不追踪会砸到地面。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = boolean
+
+
+[DzSetUnitAbilityMissileCount]
+title = "技能 - 设置技能投射物数量 (弹幕攻击)"
+description = "设置单位 ${unit} 当前拥有的弹幕攻击技能 ${id} 的投射物数量 ${missile_count} "
+comment = [[只对Aroc弹幕攻击技能生效, 修改DataC也能改变数量，但此函数数量更精准。 单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = integer
+
+
+
+[DzSetUnitAbilityMissileDamage]
+title = "技能 - 设置技能投射物伤害 (弹幕攻击)"
+description = "设置单位 ${unit} 当前拥有的弹幕攻击技能 ${id} 的投射物单目标伤害 ${damage} 多目标伤害限制 ${max_damage} 攻击类型 ${attacktype} 伤害类型 ${damagetype} "
+comment = [[只对Aroc弹幕攻击技能生效, damage等同修正原物编DataA无效项, max_damage等同修改原物编DataB。该伤害对主目标无效，只对弹幕分裂目标有效。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = attacktype
+default = "AttackTypeHero"
+[[.args]]
+type = damagetype
+default = "DamageTypeNormal"
+
 

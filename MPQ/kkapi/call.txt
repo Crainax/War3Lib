@@ -1011,7 +1011,7 @@ type = string
 
 [DzXlsxWorksheetGetColumnCount]
 title = "工作表的总列数 [NEW]"
-description = " ${docHandle} 里 ${sheetName} 的列数"
+description = " ${docHandle} 里 ${sheetName} 页的总列数"
 comment = ""
 category = TC_KKAPI
 returns = integer
@@ -1191,7 +1191,7 @@ type = sound
 
 [DzGetUnitAbilityRange]
 title = "技能 - 获取技能施法距离（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的施法距离"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的施法距离"
 comment = ""
 category = TC_KKAPI
 returns = real
@@ -1202,7 +1202,7 @@ type = abilcode
 
 [DzGetUnitAbilityArea]
 title = "技能 - 获取技能施法范围（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的施法范围"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的施法范围"
 comment = ""
 category = TC_KKAPI
 returns = real
@@ -1213,7 +1213,7 @@ type = abilcode
 
 [DzGetUnitAbilityCool]
 title = "技能 - 获取技能当前冷却时间（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的当前冷却时间"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的当前冷却时间"
 comment = ""
 category = TC_KKAPI
 returns = real
@@ -1224,7 +1224,7 @@ type = abilcode
 
 [DzGetUnitAbilityMaxCool]
 title = "技能 - 获取技能最大冷却时间（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的最大冷却时间"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的最大冷却时间"
 comment = ""
 category = TC_KKAPI
 returns = real
@@ -1235,7 +1235,7 @@ type = abilcode
 
 [DzGetUnitAbilityDataA]
 title = "技能 - 获取技能数据A（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的数据A"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据A"
 comment = ""
 category = TC_KKAPI
 returns = real
@@ -1246,7 +1246,7 @@ type = abilcode
 
 [DzGetUnitAbilityDataB]
 title = "技能 - 获取技能数据B（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的数据B"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据B"
 comment = ""
 category = TC_KKAPI
 returns = real
@@ -1257,7 +1257,7 @@ type = abilcode
 
 [DzGetUnitAbilityDataC]
 title = "技能 - 获取技能数据C（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的数据C"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据C"
 comment = ""
 category = TC_KKAPI
 returns = real
@@ -1269,7 +1269,7 @@ type = abilcode
 
 [DzGetUnitAbilityDataD]
 title = "技能 - 获取技能数据D（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的数据D"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据D"
 comment = ""
 category = TC_KKAPI
 returns = real
@@ -1280,7 +1280,7 @@ type = abilcode
 
 [DzGetUnitAbilityDataE]
 title = "技能 - 获取技能数据E（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的数据E"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据E"
 comment = ""
 category = TC_KKAPI
 returns = real
@@ -1291,7 +1291,7 @@ type = abilcode
 
 [DzConvertTargs2Str]
 title = "转化 - 目标允许整数转字符串"
-description = "转换 ${目标允许}为字符串"
+description = "转换 ${目标允许} 为字符串"
 comment = ""
 category = TC_KKAPI
 returns = string
@@ -1300,7 +1300,7 @@ type = integer
 
 [DzConvertStr2Targs]
 title = "转化 - 目标允许字符串转整数"
-description = "转换 ${目标允许}为整数"
+description = "转换 ${目标允许} 为整数"
 comment = "例如“ground,friend,vuln,invu”"
 category = TC_KKAPI
 returns = integer
@@ -1309,7 +1309,7 @@ type = string
 
 [KKConvertInt2AbilId]
 title = "转化 - 整数为技能ID"
-description = "转换 ${整数}为技能ID"
+description = "转换 ${整数} 为技能ID"
 comment = ""
 category = TC_KKAPI
 returns = abilcode
@@ -1318,7 +1318,7 @@ type = integer
 
 [KKConvertAbilId2Int]
 title = "转化 - 技能ID为整数"
-description = "转换 ${技能ID}为整数"
+description = "转换 ${技能ID} 为整数"
 comment = ""
 category = TC_KKAPI
 returns = integer
@@ -1328,7 +1328,7 @@ type = abilcode
 
 [DzGetUnitAbilityTargs]
 title = "技能 - 获取技能目标允许（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的目标允许"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的目标允许"
 comment = ""
 category = TC_KKAPI
 returns = integer
@@ -1339,7 +1339,7 @@ type = abilcode
 
 [DzGetUnitAbilityCost]
 title = "技能 - 获取技能魔法消耗（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的魔法消耗"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的魔法消耗"
 comment = ""
 category = TC_KKAPI
 returns = integer
@@ -1350,7 +1350,7 @@ type = abilcode
 
 [DzGetUnitAbilityReqLevel]
 title = "技能 - 获取技能等级要求（通魔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的等级要求"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的等级要求"
 comment = ""
 category = TC_KKAPI
 returns = integer
@@ -1361,7 +1361,7 @@ type = abilcode
 
 [DzGetUnitAbilityUnitId]
 title = "技能 - 获取建造技能单位ID（象牙塔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的单位ID"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的单位ID"
 comment = "象牙塔或者变身类技能有效"
 category = TC_KKAPI
 returns = integer
@@ -1372,7 +1372,7 @@ type = abilcode
 
 [DzGetUnitAbilityBuildOrderId]
 title = "技能 - 获取建造技能命令ID（象牙塔）"
-description = "获取 单位${unit} 当前拥有的技能${id} 的命令ID"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的命令ID"
 comment = "象牙塔类的技能有效"
 category = TC_KKAPI
 returns = integer
@@ -1391,7 +1391,7 @@ returns = frame
 
 [DzUnitHasAbility]
 title = "技能 - 判断单位是否拥有技能 (包含模版技能)"
-description = "单位${单位}是否拥有技能 ${技能id}"
+description = "单位 ${单位} 是否拥有技能 ${技能id} "
 comment = "单位拥有指定id 或者 指定模板id, 真实的模板技能id在 编辑器里units\abilitydata.slk 里面的code列里"
 category = TC_KKAPI
 returns = boolean
@@ -1461,7 +1461,7 @@ type = unit
 
 [DzFrameAddModel]
 title = "界面 - 创建ui模型控件"
-description = "创建ui模型控件 指定父控件${parent}"
+description = "创建ui模型控件 指定父控件 ${parent} "
 comment = "用来显示3d模型用的，需要手动设置镜头参数，旋转缩放才能正确显示。"
 category = TC_KKAPI
 returns = frame
@@ -1470,7 +1470,7 @@ type = frame
 
 [DzFrameAddModelEffect]
 title = "界面 - ui模型 - 添加绑定特效"
-description = "为ui模型控件${model_frame}绑定特效, 附加点${attach_point}, 特效模型文件路径${model_path}"
+description = "为ui模型控件 ${model_frame} 绑定特效, 附加点 ${attach_point} , 特效模型文件路径 ${model_path} "
 comment = "重置模型后自动失效，只能是ui模型控件, 返回effect_frame"
 category = TC_KKAPI
 returns = frame
@@ -1483,7 +1483,7 @@ type = modelfile
 
 [DzFrameGetModelSize]
 title = "界面 - ui模型 - 获取缩放大小"
-description = "获取ui模型控件${model_frame}的缩放大小"
+description = "获取ui模型控件 ${model_frame} 的缩放大小"
 comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 returns = real
@@ -1493,7 +1493,7 @@ type = frame
 
 [DzFrameGetModelX]
 title = "界面 - ui模型 - 获取场景内的坐标X轴"
-description = "获取ui模型控件${model_frame}场景内的坐标X轴"
+description = "获取ui模型控件 ${model_frame} 场景内的坐标X轴"
 comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 returns = real
@@ -1502,7 +1502,7 @@ type = frame
 
 [DzFrameGetModelY]
 title = "界面 - ui模型 - 获取场景内的坐标Y轴"
-description = "获取ui模型控件${model_frame}场景内的坐标Y轴"
+description = "获取ui模型控件 ${model_frame} 场景内的坐标Y轴"
 comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 returns = real
@@ -1511,7 +1511,7 @@ type = frame
 
 [DzFrameGetModelZ]
 title = "界面 - ui模型 - 获取场景内的坐标Z轴"
-description = "获取ui模型控件${model_frame}场景内的坐标Z轴"
+description = "获取ui模型控件 ${model_frame} 场景内的坐标Z轴"
 comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 returns = real
@@ -1520,7 +1520,7 @@ type = frame
 
 [DzFrameGetModelSpeed]
 title = "界面 - ui模型 - 获取动画播放速度"
-description = "获取ui模型控件${model_frame}场景内的动画播放速度"
+description = "获取ui模型控件 ${model_frame} 场景内的动画播放速度"
 comment = "可以是ui模型控件、SPRITE、MODEL类型的控件"
 category = TC_KKAPI
 returns = real
@@ -1556,7 +1556,7 @@ returns = frame
 
 [DzFrameGetContext]
 title = "界面 - 获取控件绑定的整数"
-description = "获取控件${frame}绑定的整数"
+description = "获取控件 ${frame} 绑定的整数"
 comment = "相当于获取 <<新建Frame [Tag]:DzCreateFrameByTagName>> 函数最后一个参数"
 category = TC_KKAPI
 returns = integer
@@ -1565,7 +1565,7 @@ type = frame
 
 [DzFrameGetName]
 title = "界面 - 获取控件的全局名字"
-description = "获取控件${frame}的全局名字"
+description = "获取控件 ${frame} 的全局名字"
 comment = "相当于获取 <<新建Frame [Tag]:DzCreateFrameByTagName>> 函数第2个参数"
 category = TC_KKAPI
 returns = string
@@ -1575,7 +1575,7 @@ type = frame
 
 [KKCommandGetCooldownModel]
 title = "界面 - 获取技能/物品按钮的冷却模型控件"
-description = "获取技能/物品按钮${command_button}的冷却模型控件"
+description = "获取技能/物品按钮 ${command_button} 的冷却模型控件"
 comment = "获取技能或者物品按钮上面的 冷却模型控件，相当于是SPRITE类型的控件"
 category = TC_KKAPI
 returns = frame
@@ -1585,7 +1585,7 @@ type = frame
 
 [DzGetPlayerLastSelectedItem]
 title = "物品 - 玩家当前选择的物品(同步)"
-description = "获取玩家${玩家}当前选择的物品(同步)"
+description = "获取玩家 ${玩家} 当前选择的物品(同步)"
 comment = "返回值是同步的。每次选择物品后会延迟0.1秒刷新返回值。"
 category = TC_KKAPI
 returns = item
@@ -1600,18 +1600,19 @@ comment = "返回值异步的，用来检测当前游戏模型数量用的"
 category = TC_KKAPI
 returns = integer
 
+
 [DzFrameGetLowerLevelFrame]
 title = "界面 - 获取低于控制台的底层Frame"
 description = "获取低于控制台的底层Frame"
 comment = "返回FRAME控件，用来创建比控制台大头像更低级的ui, 例如控制台背景, 血条等。"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = frame
 
 [DzFrameGetCheckBoxState]
 title = "界面 - 获取复选框勾选状态"
-description = "获取复选框${checkbox}勾选状态"
+description = "获取复选框 ${checkbox} 勾选状态"
 comment = "只能对CHECKBOX、GLUECHECKBOX 类型使用"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = boolean
 [[.args]]
 type = frame
@@ -1619,9 +1620,9 @@ type = frame
 
 [DzFrameIsFocus]
 title = "界面 - 获取控件是否焦点"
-description = "获取控件${frame}是否焦点"
+description = "获取控件 ${frame} 是否焦点"
 comment = "支持Frame控件使用, 不支持SimpleFrame"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = boolean
 [[.args]]
 type = frame
@@ -1630,14 +1631,14 @@ type = frame
 title = "硬件 - 当前游戏是否窗口化模式"
 description = "当前游戏是否窗口化模式"
 comment = "判断启动参数是否带-window 返回值是异步的，因为每个玩家的窗口都不同"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = boolean
 
 [DzIsWindowActive]
 title = "硬件 - 当前游戏窗口是否活动窗口"
 description = "当前游戏窗口是否活动窗口"
 comment = "切游戏出去后会返回false, 返回值是异步的，因为每个玩家的窗口都不同"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = boolean
 
 
@@ -1645,7 +1646,7 @@ returns = boolean
 title = "硬件 - 获取屏幕设备宽度"
 description = "获取屏幕设备宽度"
 comment = "返回值是异步的，因为每个玩家都不同"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = integer
 
 
@@ -1653,12 +1654,150 @@ returns = integer
 title = "硬件 - 获取屏幕设备高度"
 description = "获取屏幕设备高度"
 comment = "返回值是异步的，因为每个玩家都不同"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = integer
 
 [DzGetDoodadsCount]
 title = "装饰物 - 获取当前地形装饰物数量"
 description = "获取当前地形装饰物数量"
 comment = "返回值地形上的装饰物数量"
+category = TC_KKAPI
+returns = integer
+
+[DzGetUnitAbilityArt]
+title = "技能 - 获取技能图标"
+description = "获取单位 ${单位} 当前的技能 ${技能id} 的技能图标"
+comment = "返回当前技能图标"
+category = TC_KKPRE
+returns = string
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityTip]
+title = "技能 - 获取技能提示"
+description = "获取单位 ${单位} 当前的技能 ${技能id} 的技能提示"
+comment = "返回当前技能提示tip"
+category = TC_KKPRE
+returns = string
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+[DzGetUnitAbilityUberTip]
+title = "技能 - 获取技能提示扩展"
+description = "获取单位 ${单位} 当前的技能 ${技能id} 的技能提示扩展"
+comment = "返回当前技能提示扩展ubertip"
+category = TC_KKPRE
+returns = string
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+
+[DzGetUnitAbilityOrderId]
+title = "技能 - 获取技能命令ID"
+description = "获取单位 ${单位} 当前的技能 ${技能id} 的当前的命令ID"
+comment = "返回当前使用的命令ID"
 category = TC_KKPRE
 returns = integer
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+[DzGetUnitAbilitySpellBookList]
+title = "技能 - 获取魔法书的技能列表"
+description = "获取单位 ${单位} 的魔法书技能 ${技能id} 的技能列表"
+comment = "返回当前魔法书的技能列表"
+category = TC_KKPRE
+returns = string
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityMissileArt]
+title = "技能 - 获取技能投射物模型"
+description = "获取单位 ${单位} 的技能 ${技能id} 的投射物模型"
+comment = "返回技能投射物的路径"
+category = TC_KKPRE
+returns = string
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityMissileSpeed]
+title = "技能 - 获取技能投射物速度"
+description = "获取单位 ${单位} 的技能 ${技能id} 的投射物速度"
+comment = "返回技能投射物的速度"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityMissileArc]
+title = "技能 - 获取技能投射物弧度"
+description = "获取单位 ${单位} 的技能 ${技能id} 的投射物弧度"
+comment = "返回技能投射物的弧度"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+[DzGetUnitAbilityMissileHoming]
+title = "技能 - 获取技能投射物允许自导"
+description = "获取单位 ${单位} 的技能 ${技能id} 的投射物允许自导"
+comment = "返回技能投射物是否允许自导"
+category = TC_KKPRE
+returns = boolean
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityMissileCount]
+title = "技能 - 获取技能投射物数量 (弹幕攻击)"
+description = "获取单位 ${单位} 的弹幕攻击技能 ${技能id} 的投射物数量"
+comment = "返回Aroc弹幕攻击的技能投射物数量"
+category = TC_KKPRE
+returns = integer
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityMissileDamage]
+title = "技能 - 获取技能投射物伤害 (弹幕攻击)"
+description = "获取单位 ${单位} 的弹幕攻击技能 ${技能id} 的投射物伤害"
+comment = "返回Aroc弹幕攻击的技能投射物伤害"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityMissileMaxDamage]
+title = "技能 - 获取技能投射物最大伤害 (弹幕攻击)"
+description = "获取单位 ${单位} 的弹幕攻击技能 ${技能id} 的投射物最大伤害"
+comment = "返回Aroc弹幕攻击的技能投射物最大伤害"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+

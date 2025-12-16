@@ -18,6 +18,7 @@ SoundChannel=0,0,0,声音通道,integer
 [TriggerParams]
 typename01_framepoints=0,typename,122,界面锚点
 typename01_xlsxworksheet=0,typename,133,工作表
+typename40_ability=0,typename,40,技能
 
 ShowHideShow=0,showhideoption,true,WESTRING_SHOWHIDE_SHOW
 ShowHideHide=0,showhideoption,false,WESTRING_SHOWHIDE_HIDE

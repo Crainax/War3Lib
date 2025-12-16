@@ -914,7 +914,7 @@ type = player
 [KKApiConsumeLevel]
 title = "获取玩家在指定地图会员等级[new]"
 description = "获取 ${whichPlayer} 在地图 ${mapId} 的会员等级"
-comment = "该功能需要在作者之家后台申请开启权限，否则返回值都是0"
+comment = ""
 category = TC_DZAPI
 returns = integer
 [[.args]]
@@ -922,3 +922,11 @@ type = player
 [[.args]]
 type = integer
 
+[KKApiIsPinned]
+title = "判断玩家当前地图在游戏大厅置顶状态[new]"
+description = " ${whichPlayer} 当前地图在游戏大厅置顶状态"
+comment = "玩家在游戏大厅首页置顶该地图后返回true"
+category = TC_DZAPI
+returns = boolean
+[[.args]]
+type = player
