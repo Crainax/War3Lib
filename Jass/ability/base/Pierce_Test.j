@@ -16,12 +16,16 @@ library UTPierce requires Pierce {
 
 	// 回调测试模式：0=无，1=打印不截断，2=打印并截断默认伤害/特效
 	private integer utMatchMode = 0;
+	private boolean utMatchCbInited = false;
 	private integer utCastMode = 1;         // 1~4：对应四种施放方式
 	private trigger utCastTr = null;
 
 
 	// 注册一次全局匹配回调：根据 utMatchMode 控制是否截断默认伤害/特效
 	private function ensureMatchCallback() {
+		if (utMatchCbInited) {
+			return;
+		}
 
 		PierceCfg.registerMatchEnemy(function () -> boolean {
 			unit c;
@@ -46,6 +50,8 @@ library UTPierce requires Pierce {
 			u = null;
 			return true;
 		});
+
+		utMatchCbInited = true;
 	}
 
 	private function initUnits() {
