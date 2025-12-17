@@ -464,6 +464,55 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         }
     }
 
+    // 眩晕单位
+    public function PauseUnitEx(unit u, real time, string loc, string effx) {
+        timer t;
+
+        t = null;
+
+        if (!IsUnitAliveBJ(u)) {
+            return;
+        }
+
+        if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL)) {
+            SaveReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL, RMaxBJ(LoadReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL), time));
+        } else {
+            EXPauseUnit(u, true);
+            SaveReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL, time);
+            t = CreateTimer();
+            SaveUnitHandle(HASH_TIMER, GetHandleId(t), 1, u);
+            SaveEffectHandle(HASH_TIMER, GetHandleId(t), 2, AddSpecialEffectTargetUnitBJ(loc, u, effx));
+            TimerStart(t, 0.1, true, function () {
+                timer t;
+                integer id;
+                unit u;
+                real time;
+
+                t = GetExpiredTimer();
+                id = GetHandleId(t);
+                u = LoadUnitHandle(HASH_TIMER, GetHandleId(t), 1);
+                time = LoadReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL);
+
+                if (time >= 0 && u != null) {
+                    time = time - 0.1;
+                    SaveReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL, time);
+                } else {
+                    if (u != null) {
+                        EXPauseUnit(u, false);
+                        RemoveSavedReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL);
+                    }
+                    DestroyEffect(LoadEffectHandle(HASH_TIMER, GetHandleId(t), 2));
+                    PauseTimer(t);
+                    FlushChildHashtable(HASH_TIMER, id);
+                    DestroyTimer(t);
+                }
+
+                t = null;
+                u = null;
+            });
+            t = null;
+        }
+    }
 
 }
 
