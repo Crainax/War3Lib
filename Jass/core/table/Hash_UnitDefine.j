@@ -135,6 +135,10 @@
 #define KEY_UNIT_PAUSE_EFFX                  255610171 // 眩晕特效路径（string）
 #define KEY_UNIT_PAUSE_LOC                   255610172 // 眩晕特效挂点（string）
 
+//吸怪系统:返回位置
+#define KEY_UNIT_BACK_X 255610173 // 返回位置X
+#define KEY_UNIT_BACK_Y 255610174 // 返回位置Y
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物
