@@ -25,6 +25,10 @@
 //魔免技能(隐藏图标的)
 #define MAGIC_IMMUNITY_SPELL_ID 'A04e'
 
+//吸怪相关的配置
+#define ATTRACTION_COMEBACK_EFX      "Abilities\\Spells\\Human\\HolyBolt\\HolyBoltSpecialArt.mdl"
+#define ATTRACTION_DUMMY_UNIT_ID     'h005'
+
 #define TOOLTIP_DEFAULT_X 0.786
 #define TOOLTIP_DEFAULT_Y 0.1375
 

@@ -135,9 +135,20 @@
 #define KEY_UNIT_PAUSE_EFFX                  255610171 // 眩晕特效路径（string）
 #define KEY_UNIT_PAUSE_LOC                   255610172 // 眩晕特效挂点（string）
 
-//吸怪系统:返回位置
-#define KEY_UNIT_BACK_X 255610173 // 返回位置X
-#define KEY_UNIT_BACK_Y 255610174 // 返回位置Y
+//吸怪系统:返回位置与抗性/免疫
+#define KEY_UNIT_BACK_X                  255610173 // 返回位置X
+#define KEY_UNIT_BACK_Y                  255610174 // 返回位置Y
+#define KEY_UNIT_ATTRACT_RESIST_UP_RATE  255610175 // 吸怪抗性（0~1，RealAdd 归一叠加）
+#define KEY_UNIT_ATTRACT_IMMUNE          255610176 // 吸怪免疫标记（boolean/int）
+
+// 限时跟随漂浮文字（TexttagUtils.ShowUnitHintTextTag）
+// 说明：以 unit 的 handleId 作为父键，将“倒计时/偏移/texttag 句柄”存入 HASH_UNIT
+// - KEY_UNIT_HINT_TIME:   剩余时间（real）
+// - KEY_UNIT_HINT_OFFSET: X 偏移（real）
+// - KEY_UNIT_HINT_TEXTTAG:文本标签句柄（texttag）
+#define KEY_UNIT_HINT_TEXTTAG            255610177
+#define KEY_UNIT_HINT_TIME               255610178
+#define KEY_UNIT_HINT_OFFSET             255610179
 
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物

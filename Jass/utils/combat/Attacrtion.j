@@ -1,6 +1,7 @@
 #ifndef AttractionIncluded
 #define AttractionIncluded
 
+#include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/core/table/Hash_UnitDefine.j"
 
 //! zinc
@@ -8,14 +9,15 @@
 吸怪共通库
 */
 
-#define KEY_TIMER_ATTRACT_THIS  801234561
+#define KEY_TIMER_ATTRACT_THIS       801234561
+#define ATTRACTION_STOP_DISTANCE     50.0
 
-library Attraction {
+library Attraction requires UnitUtils {
 
     /*
     引力（可选回返）
     */
-    public struct Attraction {
+    public struct attraction {
         private unit caster;
         private real radius;
         private real interval;
@@ -27,7 +29,7 @@ library Attraction {
         private group comebackGroup;
 
         // UI组件内部共享方法及成员
-        STRUCT_SHARED_INNER_UI(Attraction)
+        STRUCT_SHARED_METHODS(attraction)
 
         static method create(unit caster, real radius, real interval, real speed) -> thistype {
             thistype this;
@@ -95,6 +97,9 @@ library Attraction {
                 real y2;
                 real facing;
                 real distance;
+                real resist;
+                real effSpeed;
+                real step;
                 thistype this;
                 group l_group;
                 unit l_unit;
@@ -110,23 +115,37 @@ library Attraction {
                             break;
                         }
                         GroupRemoveUnit(l_group, l_unit);
-                        if (IsEnemyUnit(l_unit, this.caster) && (GetUnitMoveSpeed(l_unit) > 0) && !(this.forbitHero && IsUnitType(l_unit, UNIT_TYPE_HERO)) && GetUnitAbilityLevel(l_unit, 'A04m') < 1 && !IsUnitBoss(l_unit)) {
-                            if (this.enableComeback && this.comebackGroup != null) {
-                                if (!HaveSavedReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_X)) {
-                                    SaveReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_X, GetUnitX(l_unit));
-                                    SaveReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_Y, GetUnitY(l_unit));
-                                    GroupAddUnit(this.comebackGroup, l_unit);
-                                }
-                            }
+                        if (IsEnemyUnit(l_unit, this.caster) && (GetUnitMoveSpeed(l_unit) > 0) && !(this.forbitHero && IsUnitType(l_unit, UNIT_TYPE_HERO)) && !IsUnitAttractImmune(l_unit)) {
                             x2 = GetUnitX(l_unit);
                             y2 = GetUnitY(l_unit);
                             x1 = GetUnitX(this.caster);
                             y1 = GetUnitY(this.caster);
                             distance = SquareRoot((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-                            if (distance > 80) {
-                                facing = Atan2BJ(y1 - y2, x1 - x2);
-                                SetUnitX(l_unit, YDWECoordinateX(x2 + CosBJ(facing) * this.speed));
-                                SetUnitY(l_unit, YDWECoordinateY(y2 + SinBJ(facing) * this.speed));
+                            resist = GetUnitAttractResist(l_unit);
+                            effSpeed = this.speed * (1.0 - resist);
+
+                            if (effSpeed > 0.0) {
+                                if (distance > ATTRACTION_STOP_DISTANCE) {
+                                    if (this.enableComeback && this.comebackGroup != null) {
+                                        if (!HaveSavedReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_X)) {
+                                            SaveReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_X, GetUnitX(l_unit));
+                                            SaveReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_Y, GetUnitY(l_unit));
+                                            GroupAddUnit(this.comebackGroup, l_unit);
+                                        }
+                                    }
+                                    step = effSpeed;
+                                    if (distance - ATTRACTION_STOP_DISTANCE < step) {
+                                        step = distance - ATTRACTION_STOP_DISTANCE;
+                                    }
+                                    facing = Atan2BJ(y1 - y2, x1 - x2);
+                                    SetUnitX(l_unit, YDWECoordinateX(x2 + CosBJ(facing) * step));
+                                    SetUnitY(l_unit, YDWECoordinateY(y2 + SinBJ(facing) * step));
+                                }
+                            } else if (effSpeed < 0.0) {
+                                step = -effSpeed;
+                                facing = Atan2BJ(y2 - y1, x2 - x1); // 反向推开
+                                SetUnitX(l_unit, YDWECoordinateX(x2 + CosBJ(facing) * step));
+                                SetUnitY(l_unit, YDWECoordinateY(y2 + SinBJ(facing) * step));
                             }
                         }
                     }
@@ -161,7 +180,7 @@ library Attraction {
                     if (HaveSavedReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_X)) {
                         SetUnitX(l_unit, LoadReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_X));
                         SetUnitY(l_unit, LoadReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_Y));
-                        DestroyEffect(AddSpecialEffect("effects\\comeback.mdl", GetUnitX(l_unit), GetUnitY(l_unit)));
+                        DestroyEffect(AddSpecialEffect(ATTRACTION_COMEBACK_EFX, GetUnitX(l_unit), GetUnitY(l_unit)));
                         RemoveSavedReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_Y);
                         RemoveSavedReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_X);
                     }
@@ -198,10 +217,10 @@ library Attraction {
     */
     public function CreateAttractionAt(unit caster, real x, real y, real radius, real yinli, real time, boolean b) {
         unit u;
-        Attraction attract;
+        attraction attract;
 
-        u = CreateUnit(GetOwningPlayer(caster), 'h005', x, y, 0);
-        attract = Attraction.createBack(u, radius, yinli);
+        u = CreateUnit(GetOwningPlayer(caster), ATTRACTION_DUMMY_UNIT_ID, x, y, 0);
+        attract = attraction.createBack(u, radius, yinli);
         UnitApplyTimedLifeBJ(time, 'BHwe', u);
         if (b) {
             attract.SetForbitHero();
@@ -210,7 +229,22 @@ library Attraction {
         u = null;
     }
 
-    //面向前面100吸怪
+    // 斥力：将敌人从指定点推开（speed 传正数或负数，内部取正后反向推开）
+    public function CreateRepulsionAt(unit caster, real x, real y, real radius, real speed, real time, boolean b) {
+        unit u;
+        attraction attract;
+
+        u = CreateUnit(GetOwningPlayer(caster), ATTRACTION_DUMMY_UNIT_ID, x, y, 0);
+        attract = attraction.create(u, radius, 0.05, -RAbsBJ(speed));
+        UnitApplyTimedLifeBJ(time, 'BHwe', u);
+        if (b) {
+            attract.SetForbitHero();
+        }
+        attract.start();
+        u = null;
+    }
+
+    //面向前面100吸怪(caster是施法单位,英雄之类的)
     public function CreateAttractionForCaster(unit caster, real radius, real time) {
         real rad;
         real tx;

@@ -1,0 +1,38 @@
+[h005]
+_parent = "hpea"
+-- 可建造建筑
+Builds = ""
+-- 名字 - 编辑器后缀
+EditorSuffix = "短暂吸怪"
+-- 生命最大值
+HP = 1
+-- 名字
+Name = ""
+-- 普通
+abilList = "Aloc,Avul"
+-- 碰撞体积
+collision = 0.0
+-- 占用人口
+fused = 0
+-- 高度
+moveHeight = 50.0
+-- 类型
+movetp = "fly"
+-- 视野范围(夜晚)
+nsight = 100
+-- 单位附加值
+points = 0
+-- 生命回复
+regenHP = 0.0
+-- 视野范围(白天)
+sight = 100
+-- 基础速度
+spd = 10
+-- 单位类别
+type = ""
+-- 阴影图像(单位)
+unitShadow = ""
+-- 使用科技
+upgrades = ""
+-- 允许攻击模式
+weapsOn = 0

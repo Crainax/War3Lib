@@ -504,6 +504,69 @@ library UnitUtils requires BigInteger,MathUtils {
     }
 
     //=====================
+    // 吸怪抗性 / 免疫
+    //=====================
+
+    // 获取吸怪抗性（0~1，RealAdd 归一叠加）
+    public function GetUnitAttractResist(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTRACT_RESIST_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTRACT_RESIST_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
+
+    // 增加吸怪抗性（RealAdd 叠加，永远小于 1）
+    public function AddUnitAttractResistUp(unit u, real value) -> nothing {
+        integer uid; real up;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        up = GetUnitAttractResist(u);
+        up = RealAdd(up, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_ATTRACT_RESIST_UP_RATE, up);
+    }
+
+    // 重置吸怪抗性
+    public function ResetUnitAttractResistUp(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTRACT_RESIST_UP_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTRACT_RESIST_UP_RATE);
+        }
+    }
+
+    // 设置吸怪免疫
+    public function SetUnitAttractImmune(unit u, boolean flag) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (flag) {
+            SaveInteger(HASH_UNIT, uid, KEY_UNIT_ATTRACT_IMMUNE, 1);
+        } else {
+            if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_ATTRACT_IMMUNE)) {
+                RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_ATTRACT_IMMUNE);
+            }
+        }
+    }
+
+    // 查询吸怪免疫
+    public function IsUnitAttractImmune(unit u) -> boolean {
+        integer uid;
+        if (u == null) { return false; }
+        uid = GetHandleId(u);
+        if (!HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_ATTRACT_IMMUNE)) {
+            return false;
+        }
+        return LoadInteger(HASH_UNIT, uid, KEY_UNIT_ATTRACT_IMMUNE) != 0;
+    }
+
+
+    //=====================
     // 生命值扩展工具函数
     //=====================
 
