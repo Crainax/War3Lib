@@ -584,7 +584,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
     }
 
     // 眩晕单位（队列 + 尾部交换）
-    public function PauseUnitEx(unit u, real time, string loc, string effx) {
+    public function StunUnit(unit u, real time, string loc, string effx) {
         integer hid; real resist; real effective; real oldTime; boolean hasTime; string oldEffx; string oldLoc; boolean effValid;
 
         if (u == null || !IsUnitAliveBJ(u)) { return; }
@@ -634,6 +634,16 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
             EXPauseUnit(u, true);
             PauseQueue.addUnit(u);
         }
+    }
+
+    // 判断单位是否处于眩晕中（根据剩余时间键位）
+    public function IsUnitStunning(unit u) -> boolean {
+        integer hid; real left;
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+        hid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) { return false; }
+        left = LoadReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
+        return left > 0.0;
     }
 
 }

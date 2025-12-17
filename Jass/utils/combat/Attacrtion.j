@@ -1,12 +1,12 @@
-#ifndef UnitHPShowIncluded
-#define UnitHPShowIncluded
+#ifndef library_nameIncluded
+#define library_nameIncluded
 
 #include "edit/Base/CRBase.j"
 //! zinc
 /*
-单位的生命值显示
+库名
 */
-library UnitHPShow requires CRBase {
+library library_name requires CRBase {
 
     function onInit ()  {
         // body ...

@@ -1,15 +1,15 @@
-#ifndef UTUnitHPShowIncluded
-#define UTUnitHPShowIncluded
+#ifndef UTAttacrtionIncluded
+#define UTAttacrtionIncluded
 
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/units/attr/UnitHPShow.j"
+#include "D:/War3/Library/War3Lib/Jass/utils/combat/Attacrtion.j"
 
 //! zinc
 
 //自动生成的文件
-library UTUnitHPShow requires UnitHPShow {
+library UTAttacrtion requires Attacrtion {
 
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
@@ -22,17 +22,17 @@ library UTUnitHPShow requires UnitHPShow {
 		},null);
 	}
 
-	function TTestUTUnitHPShow1 (player p) {}
-	function TTestUTUnitHPShow2 (player p) {}
-	function TTestUTUnitHPShow3 (player p) {}
-	function TTestUTUnitHPShow4 (player p) {}
-	function TTestUTUnitHPShow5 (player p) {}
-	function TTestUTUnitHPShow6 (player p) {}
-	function TTestUTUnitHPShow7 (player p) {}
-	function TTestUTUnitHPShow8 (player p) {}
-	function TTestUTUnitHPShow9 (player p) {}
-	function TTestUTUnitHPShow10 (player p) {}
-	function TTestActUTUnitHPShow1 (string str) {
+	function TTestUTAttacrtion1 (player p) {}
+	function TTestUTAttacrtion2 (player p) {}
+	function TTestUTAttacrtion3 (player p) {}
+	function TTestUTAttacrtion4 (player p) {}
+	function TTestUTAttacrtion5 (player p) {}
+	function TTestUTAttacrtion6 (player p) {}
+	function TTestUTAttacrtion7 (player p) {}
+	function TTestUTAttacrtion8 (player p) {}
+	function TTestUTAttacrtion9 (player p) {}
+	function TTestUTAttacrtion10 (player p) {}
+	function TTestActUTAttacrtion1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
 		integer i,	 num = 0, len = StringLength(str); //获取范围式数字
@@ -69,7 +69,7 @@ library UTUnitHPShow requires UnitHPShow {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			BJDebugMsg("[UnitHPShow] 单元测试已加载");
+			BJDebugMsg("[Attacrtion] 单元测试已加载");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -80,19 +80,19 @@ library UTUnitHPShow requires UnitHPShow {
 			integer i = 1;
 
 			if (SubStringBJ(str,1,1) == "-") {
-				TTestActUTUnitHPShow1(SubStringBJ(str,2,StringLength(str)));
+				TTestActUTAttacrtion1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
-			if (str == "s1") TTestUTUnitHPShow1(GetTriggerPlayer());
-			else if(str == "s2") TTestUTUnitHPShow2(GetTriggerPlayer());
-			else if(str == "s3") TTestUTUnitHPShow3(GetTriggerPlayer());
-			else if(str == "s4") TTestUTUnitHPShow4(GetTriggerPlayer());
-			else if(str == "s5") TTestUTUnitHPShow5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUnitHPShow6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUnitHPShow7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUnitHPShow8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUnitHPShow9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUnitHPShow10(GetTriggerPlayer());
+			if (str == "s1") TTestUTAttacrtion1(GetTriggerPlayer());
+			else if(str == "s2") TTestUTAttacrtion2(GetTriggerPlayer());
+			else if(str == "s3") TTestUTAttacrtion3(GetTriggerPlayer());
+			else if(str == "s4") TTestUTAttacrtion4(GetTriggerPlayer());
+			else if(str == "s5") TTestUTAttacrtion5(GetTriggerPlayer());
+			else if(str == "s6") TTestUTAttacrtion6(GetTriggerPlayer());
+			else if(str == "s7") TTestUTAttacrtion7(GetTriggerPlayer());
+			else if(str == "s8") TTestUTAttacrtion8(GetTriggerPlayer());
+			else if(str == "s9") TTestUTAttacrtion9(GetTriggerPlayer());
+			else if(str == "s10") TTestUTAttacrtion10(GetTriggerPlayer());
 		});
 
 	}
