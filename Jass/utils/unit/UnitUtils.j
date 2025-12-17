@@ -442,6 +442,68 @@ library UnitUtils requires BigInteger,MathUtils {
     }
 
     //=====================
+    // 眩晕抗性 / 免疫
+    //=====================
+
+    // 获取眩晕抗性（RealAdd 归一叠加，0~1）
+    public function GetUnitStunResist(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_STUN_RESIST_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_STUN_RESIST_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
+
+    // 增加眩晕抗性（RealAdd 叠加）
+    public function AddUnitStunResistUp(unit u, real value) -> nothing {
+        integer uid; real up;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        up = GetUnitStunResist(u);
+        up = RealAdd(up, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_STUN_RESIST_UP_RATE, up);
+    }
+
+    // 重置眩晕抗性
+    public function ResetUnitStunResistUp(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_STUN_RESIST_UP_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_STUN_RESIST_UP_RATE);
+        }
+    }
+
+    // 设置眩晕免疫
+    public function SetUnitStunImmune(unit u, boolean flag) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (flag) {
+            SaveInteger(HASH_UNIT, uid, KEY_UNIT_STUN_IMMUNE, 1);
+        } else {
+            if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_STUN_IMMUNE)) {
+                RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_STUN_IMMUNE);
+            }
+        }
+    }
+
+    // 查询眩晕免疫
+    public function IsUnitStunImmune(unit u) -> boolean {
+        integer uid;
+        if (u == null) { return false; }
+        uid = GetHandleId(u);
+        if (!HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_STUN_IMMUNE)) {
+            return false;
+        }
+        return LoadInteger(HASH_UNIT, uid, KEY_UNIT_STUN_IMMUNE) != 0;
+    }
+
+    //=====================
     // 生命值扩展工具函数
     //=====================
 

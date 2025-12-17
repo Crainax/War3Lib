@@ -128,6 +128,13 @@
 #define KEY_UNIT_RESIST_UP_RATE              255610166 // 魔抗减伤 Up（0~1，使用 RealAdd 归一叠加）
 #define KEY_UNIT_RESIST_DOWN_RATE            255610167 // 魔抗易伤 Down（线性累加）
 
+// 眩晕系统键值
+#define KEY_UNIT_STUN_RESIST_UP_RATE         255610168 // 眩晕抗性（0~1，RealAdd 归一叠加）
+#define KEY_UNIT_STUN_IMMUNE                 255610169 // 眩晕免疫标记（boolean/int）
+#define KEY_UNIT_PAUSE_TIME_LEFT             255610170 // 眩晕剩余时间
+#define KEY_UNIT_PAUSE_EFFX                  255610171 // 眩晕特效路径（string）
+#define KEY_UNIT_PAUSE_LOC                   255610172 // 眩晕特效挂点（string）
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物

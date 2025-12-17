@@ -18,6 +18,48 @@
 //自动生成的文件
 library UTUnitBuff requires UnitBuff {
 
+    // 眩晕测试用单位记录，避免重复创建导致多选
+    private unit stunTestUnits[];
+
+    private function SetStunTestUnit(integer idx, unit u) {
+        if (stunTestUnits[idx] != null) {
+            RemoveUnit(stunTestUnits[idx]);
+            stunTestUnits[idx] = null;
+        }
+        stunTestUnits[idx] = u;
+    }
+
+    // 眩晕测试检查回调（使用 hashtable 传参，避免闭包捕获）
+    private function StunTestCheck() {
+        timer t; integer id; integer mode; unit u; real left;
+
+        t = GetExpiredTimer();
+        id = GetHandleId(t);
+        mode = LoadInteger(HASH_TIMER, id, 2);
+        u = LoadUnitHandle(HASH_TIMER, id, 1);
+
+        if (mode == 11) {
+            if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_PAUSE_TIME_LEFT)) {
+                BJDebugMsg("|cFFFF0000[UnitBuffTest] s11 失败：眩晕未清理|r");
+            } else {
+                BJDebugMsg("[UnitBuffTest] s11 完成：眩晕已清理");
+            }
+        } else if (mode == 12) {
+            if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_PAUSE_TIME_LEFT)) {
+                left = LoadReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_PAUSE_TIME_LEFT);
+                BJDebugMsg("|cFFFF0000[UnitBuffTest] s12 失败：抗性未生效，剩余 " + R2S(left) + "|r");
+            } else {
+                BJDebugMsg("[UnitBuffTest] s12 完成：约 1 秒后已清理眩晕");
+            }
+        }
+
+        FlushChildHashtable(HASH_TIMER, id);
+        PauseTimer(t);
+        DestroyTimer(t);
+        u = null;
+        t = null;
+    }
+
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
@@ -196,6 +238,74 @@ library UTUnitBuff requires UnitBuff {
 		u = null;
 		owner = null;
 	}
+
+    // 测试11：基础眩晕 2 秒（带特效）
+    function TTestUTUnitBuff11 (player p) {
+        unit u; player owner;
+        timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(1, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s11: 眩晕 2 秒，带特效");
+        PauseUnitEx(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        SaveInteger(HASH_TIMER, tid, 2, 11);
+        TimerStart(t, 2.5, false, function () {
+            StunTestCheck();
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
+    // 测试12：眩晕抗性缩短时长
+    function TTestUTUnitBuff12 (player p) {
+        unit u; player owner; real left;
+        timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(2, u);
+        SelectUnit(u, true);
+        AddUnitStunResistUp(u, 0.5);
+        BJDebugMsg("[UnitBuffTest] s12: 眩晕 2 秒，抗性 0.5，应约 1 秒结束");
+        PauseUnitEx(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        SaveInteger(HASH_TIMER, tid, 2, 12);
+        TimerStart(t, 1.5, false, function () {
+            StunTestCheck();
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
+    // 测试13：眩晕免疫直接跳过
+    function TTestUTUnitBuff13 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SelectUnit(u, true);
+        SetUnitStunImmune(u, true);
+        BJDebugMsg("[UnitBuffTest] s13: 设置眩晕免疫后调用 PauseUnitEx，应跳过");
+        PauseUnitEx(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_PAUSE_TIME_LEFT)) {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s13 失败：仍然保存了眩晕时间|r");
+        } else {
+            BJDebugMsg("[UnitBuffTest] s13 完成：未保存眩晕时间，免疫生效");
+        }
+        u = null;
+        owner = null;
+    }
 	function TTestActUTUnitBuff1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -292,11 +402,15 @@ library UTUnitBuff requires UnitBuff {
 			else if(str == "s8") TTestUTUnitBuff8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTUnitBuff9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTUnitBuff10(GetTriggerPlayer());
+            else if(str == "s11") TTestUTUnitBuff11(GetTriggerPlayer());
+            else if(str == "s12") TTestUTUnitBuff12(GetTriggerPlayer());
+            else if(str == "s13") TTestUTUnitBuff13(GetTriggerPlayer());
 		});
 
 		//unitAttrShow
 		//EXExecuteScript
 		//YDWECoordinateY
+		// EXPauseUnit
 	}
 
 }

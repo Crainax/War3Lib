@@ -134,6 +134,125 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         }
     }
 
+    // 眩晕队列：集中管理处于眩晕中的单位
+    private struct PauseQueue [] {
+        private static unit uList[];
+        private static integer size = 0;
+        private static timer tickTimer = null;
+
+        // 尾部交换移除指定索引
+        private static method removeAt(integer index) -> integer {
+            integer last;
+            if (index < 0 || index >= thistype.size) { return index; }
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.uList[index] = thistype.uList[last];
+            }
+            thistype.uList[last] = null;
+            thistype.size -= 1;
+            return index - 1;
+        }
+
+        // 将单位加入队列（若不在队列）
+        public static method addUnit(unit u) {
+            integer i;
+            if (u == null) { return; }
+
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { return; }
+            }
+
+            if (thistype.size >= 8190) {
+                BJDebugMsg("|cFFFF0000[PauseQueue] 队列已满，无法继续添加眩晕单位！|r");
+                return;
+            }
+
+            thistype.uList[thistype.size] = u;
+            thistype.size += 1;
+
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.02, true, function () {
+                    integer i; integer hid; unit u; real timeLeft; string effx; string loc;
+
+                    for (i = 0; i < thistype.size; i += 1) {
+                        u = thistype.uList[i];
+                        if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                            // 单位无效，清理记录
+                            if (u != null) {
+                                hid = GetHandleId(u);
+                                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
+                                    effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                    if (effx != "") {
+                                        bindEffect.detachUnique(u, effx);
+                                    }
+                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
+                                    effx = "";
+                                }
+                                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
+                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
+                                }
+                                EXPauseUnit(u, false);
+                            }
+                            i = thistype.removeAt(i);
+                            u = null;
+                        } else {
+                            hid = GetHandleId(u);
+                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
+                                // 外部已清理，解除暂停并移出
+                                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
+                                    effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                    if (effx != "") {
+                                        bindEffect.detachUnique(u, effx);
+                                    }
+                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
+                                    effx = "";
+                                }
+                                EXPauseUnit(u, false);
+                                i = thistype.removeAt(i);
+                                u = null;
+                            } else {
+                                timeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
+                                if (timeLeft > 0.0) {
+                                    timeLeft = timeLeft - 0.02;
+                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, timeLeft);
+                                    u = null;
+                                } else {
+                                    // 到期，解除眩晕与特效
+                                    EXPauseUnit(u, false);
+                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
+                                    if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
+                                        effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                        if (effx != "") {
+                                            bindEffect.detachUnique(u, effx);
+                                        }
+                                        RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                    }
+                                    if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC)) {
+                                        RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
+                                    }
+                                    i = thistype.removeAt(i);
+                                    u = null;
+                                }
+                            }
+                        }
+                    }
+
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        if (thistype.size <= 0) {BJDebugMsg("PauseQueue: 眩晕队列已销毁");}
+                        #endif
+                    }
+                });
+            }
+        }
+    }
+
     // 能叠加的无敌(计算)
     public function ImmuteDamageTime(unit u, real time, boolean eff) {
         integer hid; real oldTime;
@@ -464,53 +583,56 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         }
     }
 
-    // 眩晕单位
+    // 眩晕单位（队列 + 尾部交换）
     public function PauseUnitEx(unit u, real time, string loc, string effx) {
-        timer t;
+        integer hid; real resist; real effective; real oldTime; boolean hasTime; string oldEffx; string oldLoc; boolean effValid;
 
-        t = null;
+        if (u == null || !IsUnitAliveBJ(u)) { return; }
 
-        if (!IsUnitAliveBJ(u)) {
-            return;
+        // 眩晕免疫直接跳过
+        if (IsUnitStunImmune(u)) { return; }
+
+        resist = GetUnitStunResist(u);
+        effective = time * (1.0 - resist);
+        if (effective <= 0.0) { return; }
+
+        hid = GetHandleId(u);
+        hasTime = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
+        if (hasTime) {
+            oldTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, RMaxBJ(oldTime, effective));
+        } else {
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, effective);
         }
 
-        if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL)) {
-            SaveReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL, RMaxBJ(LoadReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL), time));
-        } else {
-            EXPauseUnit(u, true);
-            SaveReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL, time);
-            t = CreateTimer();
-            SaveUnitHandle(HASH_TIMER, GetHandleId(t), 1, u);
-            SaveEffectHandle(HASH_TIMER, GetHandleId(t), 2, AddSpecialEffectTargetUnitBJ(loc, u, effx));
-            TimerStart(t, 0.1, true, function () {
-                timer t;
-                integer id;
-                unit u;
-                real time;
+        // 处理眩晕特效（仅当参数有效时覆盖）
+        effValid = (effx != "" && loc != "");
+        if (effValid) {
+            if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
+                oldEffx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+            } else {
+                oldEffx = "";
+            }
+            if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC)) {
+                oldLoc = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
+            } else {
+                oldLoc = "";
+            }
 
-                t = GetExpiredTimer();
-                id = GetHandleId(t);
-                u = LoadUnitHandle(HASH_TIMER, GetHandleId(t), 1);
-                time = LoadReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL);
-
-                if (time >= 0 && u != null) {
-                    time = time - 0.1;
-                    SaveReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL, time);
-                } else {
-                    if (u != null) {
-                        EXPauseUnit(u, false);
-                        RemoveSavedReal(HASH_UNIT, GetHandleId(u), KEY_PAUSE_UNIT_REAL);
-                    }
-                    DestroyEffect(LoadEffectHandle(HASH_TIMER, GetHandleId(t), 2));
-                    PauseTimer(t);
-                    FlushChildHashtable(HASH_TIMER, id);
-                    DestroyTimer(t);
+            if (oldEffx == "" || oldEffx != effx || oldLoc != loc) {
+                if (oldEffx != "") {
+                    bindEffect.detachUnique(u, oldEffx);
                 }
+                bindEffect.attachUnique(u, effx, loc);
+                SaveStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX, effx);
+                SaveStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC, loc);
+            }
+        }
 
-                t = null;
-                u = null;
-            });
-            t = null;
+        // 首次进入眩晕：暂停并入队
+        if (!hasTime) {
+            EXPauseUnit(u, true);
+            PauseQueue.addUnit(u);
         }
     }
 
