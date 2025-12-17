@@ -383,6 +383,59 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect {
         }
     }
 
+    //中毒效果
+    public function PoisonTime(unit source, unit u, real damage) {
+        timer t;
+
+        if (!IsUnitAliveBJ(u)) {
+            return;
+        }
+
+        if (!HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_POSION_DAMAGE)) {
+            t = CreateTimer();
+            UnitDamageTargetEx(source, u, damage, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS);
+            SaveReal(HASH_UNIT, GetHandleId(u), KEY_POSION_DAMAGE, damage);
+            SaveInteger(HASH_TIMER, GetHandleId(t), 1, 1);
+            SaveUnitHandle(HASH_TIMER, GetHandleId(t), 3, u);
+            SaveUnitHandle(HASH_TIMER, GetHandleId(t), 4, source);
+            bindEffect.attachUnique(u, "Abilities\\Spells\\NightElf\\shadowstrike\\shadowstrike.mdl", "head");
+            TimerStart(t, 1, true, function () {
+
+                timer t;
+                integer id;
+                integer i;
+                unit u;
+                real damage;
+                unit source;
+
+                t = GetExpiredTimer();
+                id = GetHandleId(t);
+                i = LoadInteger(HASH_TIMER, id, 1);
+                u = LoadUnitHandle(HASH_TIMER, id, 3);
+                damage = LoadReal(HASH_UNIT, GetHandleId(u), KEY_POSION_DAMAGE);
+                source = LoadUnitHandle(HASH_TIMER, id, 4);
+
+                if (i <= 3) {
+                    i = i + 1;
+                    UnitDamageTargetEx(source, u, damage, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS);
+                    SaveInteger(HASH_TIMER, id, 1, i);
+                } else {
+                    RemoveSavedReal(HASH_UNIT, GetHandleId(u), KEY_POSION_DAMAGE);
+                    PauseTimer(t);
+                    FlushChildHashtable(HASH_TIMER, id);
+                    DestroyTimer(t);
+                    bindEffect.detachUnique(u,"Abilities\\Spells\\NightElf\\shadowstrike\\shadowstrike.mdl");
+                }
+
+                t = null;
+                u = null;
+                source = null;
+
+            });
+            t = null;
+        }
+    }
+
 
 }
 
