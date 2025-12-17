@@ -52,7 +52,9 @@
 
 //BUFF位置:
 #define HASH_UNIT_IMMUTE_TIME_LEFT  300 // 单位无敌时间剩余
-#define HASH_UNIT_DEFENSE_REDUCE_VALUE 301  //破防效果1-10 (201-210都用了)
+#define HASH_UNIT_DEFENSE_REDUCE_VALUE 301  //破防效果1-10 (301-310都用了)
+#define HASH_UNIT_POISON_DAMAGE 320  //中毒伤害
+
 
 
 

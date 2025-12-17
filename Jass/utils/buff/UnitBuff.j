@@ -18,7 +18,7 @@
 #define DEFENSE_REDUCE_EFFECT_PATH "Abilities\\Spells\\NightElf\\FaerieFire\\FaerieFireTarget.mdl"
 #define DEFENSE_REDUCE_EFFECT_POINT "head"
 
-library UnitBuff requires UnitUtils, HashTable, BindEffect {
+library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
 
     // 无敌队列：集中管理所有处于无敌中的单位
     private struct ImmuteQueue [] {
@@ -384,18 +384,25 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect {
     }
 
     //中毒效果
-    public function PoisonTime(unit source, unit u, real damage) {
+    public function PoisonTime(unit source, unit u, real damage, integer duration) {
         timer t;
+        integer uid;
+        integer remain;
 
-        if (!IsUnitAliveBJ(u)) {
+        if (u == null || !IsUnitAliveBJ(u)) {
+            return;
+        }
+        if (duration <= 0) {
             return;
         }
 
-        if (!HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_POSION_DAMAGE)) {
+        uid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, uid, HASH_UNIT_POISON_DAMAGE)) {
             t = CreateTimer();
-            UnitDamageTargetEx(source, u, damage, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS);
-            SaveReal(HASH_UNIT, GetHandleId(u), KEY_POSION_DAMAGE, damage);
-            SaveInteger(HASH_TIMER, GetHandleId(t), 1, 1);
+            ApplyPureDamage(source, u, damage);
+            SaveReal(HASH_UNIT, uid, HASH_UNIT_POISON_DAMAGE, damage);
+            remain = duration - 1; // 已经立即结算一次伤害，剩余次数 = duration - 1
+            SaveInteger(HASH_TIMER, GetHandleId(t), 1, remain);
             SaveUnitHandle(HASH_TIMER, GetHandleId(t), 3, u);
             SaveUnitHandle(HASH_TIMER, GetHandleId(t), 4, source);
             bindEffect.attachUnique(u, "Abilities\\Spells\\NightElf\\shadowstrike\\shadowstrike.mdl", "head");
@@ -403,28 +410,49 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect {
 
                 timer t;
                 integer id;
-                integer i;
+                integer remain;
                 unit u;
+                integer uid;
                 real damage;
                 unit source;
+                boolean invalid;
 
                 t = GetExpiredTimer();
                 id = GetHandleId(t);
-                i = LoadInteger(HASH_TIMER, id, 1);
+                remain = LoadInteger(HASH_TIMER, id, 1);
                 u = LoadUnitHandle(HASH_TIMER, id, 3);
-                damage = LoadReal(HASH_UNIT, GetHandleId(u), KEY_POSION_DAMAGE);
                 source = LoadUnitHandle(HASH_TIMER, id, 4);
 
-                if (i <= 3) {
-                    i = i + 1;
-                    UnitDamageTargetEx(source, u, damage, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS);
-                    SaveInteger(HASH_TIMER, id, 1, i);
-                } else {
-                    RemoveSavedReal(HASH_UNIT, GetHandleId(u), KEY_POSION_DAMAGE);
+                // 单位已死亡/被移除/句柄失效：提前清理计时器
+                invalid = (u == null);
+                if (!invalid) {
+                    invalid = (GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u));
+                }
+
+                if (invalid) {
+                    if (u != null) {
+                        uid = GetHandleId(u);
+                        RemoveSavedReal(HASH_UNIT, uid, HASH_UNIT_POISON_DAMAGE);
+                        bindEffect.detachUnique(u, "Abilities\\Spells\\NightElf\\shadowstrike\\shadowstrike.mdl");
+                    }
                     PauseTimer(t);
                     FlushChildHashtable(HASH_TIMER, id);
                     DestroyTimer(t);
-                    bindEffect.detachUnique(u,"Abilities\\Spells\\NightElf\\shadowstrike\\shadowstrike.mdl");
+                } else {
+                    uid = GetHandleId(u);
+                    damage = LoadReal(HASH_UNIT, uid, HASH_UNIT_POISON_DAMAGE);
+
+                    if (remain > 0) {
+                        remain = remain - 1;
+                        ApplyPureDamage(source, u, damage);
+                        SaveInteger(HASH_TIMER, id, 1, remain);
+                    } else {
+                        RemoveSavedReal(HASH_UNIT, uid, HASH_UNIT_POISON_DAMAGE);
+                        PauseTimer(t);
+                        FlushChildHashtable(HASH_TIMER, id);
+                        DestroyTimer(t);
+                        bindEffect.detachUnique(u, "Abilities\\Spells\\NightElf\\shadowstrike\\shadowstrike.mdl");
+                    }
                 }
 
                 t = null;

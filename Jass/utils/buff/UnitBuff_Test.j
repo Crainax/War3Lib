@@ -116,7 +116,7 @@ library UTUnitBuff requires UnitBuff {
 		def = GetUnitDefense(u);
 		BJDebugMsg("[UnitBuffTest] s6: 给单位添加时间破防（slot=1, defense=10, time=3秒）");
 		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefense(u, 1, 10, 3.0);
+		ReduceDefenseTime(u, 1, 10, 3.0);
 		BJDebugMsg("[UnitBuffTest] 单位应有破防特效，防御应减少10，3秒后自动恢复");
 		u = null;
 		owner = null;
@@ -132,9 +132,9 @@ library UTUnitBuff requires UnitBuff {
 		def = GetUnitDefense(u);
 		BJDebugMsg("[UnitBuffTest] s7: 同一 slot 取最大值测试（slot=1, 先10后20，应取20）");
 		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefense(u, 1, 10, 3.0);
+		ReduceDefenseTime(u, 1, 10, 3.0);
 		BJDebugMsg("[UnitBuffTest] 第一次：破防10，防御应减少10");
-		ReduceDefense(u, 1, 20, 3.0);
+		ReduceDefenseTime(u, 1, 20, 3.0);
 		BJDebugMsg("[UnitBuffTest] 第二次：破防20（最大值），防御应再减少10（总共减少20）");
 		BJDebugMsg("[UnitBuffTest] 3秒后防御应恢复20");
 		u = null;
@@ -151,9 +151,9 @@ library UTUnitBuff requires UnitBuff {
 		def = GetUnitDefense(u);
 		BJDebugMsg("[UnitBuffTest] s8: 不同 slot 独立测试（slot=1和slot=2同时存在）");
 		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefense(u, 1, 10, 3.0);
+		ReduceDefenseTime(u, 1, 10, 3.0);
 		BJDebugMsg("[UnitBuffTest] slot=1: 破防10，防御应减少10");
-		ReduceDefense(u, 2, 15, 2.0);
+		ReduceDefenseTime(u, 2, 15, 2.0);
 		BJDebugMsg("[UnitBuffTest] slot=2: 破防15，防御应再减少15（总共减少25）");
 		BJDebugMsg("[UnitBuffTest] slot=2的2秒后恢复15，slot=1的3秒后恢复10");
 		u = null;
@@ -170,9 +170,9 @@ library UTUnitBuff requires UnitBuff {
 		def = GetUnitDefense(u);
 		BJDebugMsg("[UnitBuffTest] s9: 剩余时间刷新测试（先3秒，再刷新到5秒，应取最大值5秒）");
 		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefense(u, 1, 10, 3.0);
+		ReduceDefenseTime(u, 1, 10, 3.0);
 		BJDebugMsg("[UnitBuffTest] 第一次：破防10，剩余时间3秒");
-		ReduceDefense(u, 1, 10, 5.0);
+		ReduceDefenseTime(u, 1, 10, 5.0);
 		BJDebugMsg("[UnitBuffTest] 第二次：刷新剩余时间为5秒（取最大值），防御不变");
 		BJDebugMsg("[UnitBuffTest] 5秒后防御应恢复10");
 		u = null;
@@ -189,9 +189,9 @@ library UTUnitBuff requires UnitBuff {
 		def = GetUnitDefense(u);
 		BJDebugMsg("[UnitBuffTest] s10: 永久破防测试（slot=1, defense=15）");
 		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefensePermanently(u, 1, 15);
+		ReduceDefenseForever(u, 1, 15);
 		BJDebugMsg("[UnitBuffTest] 单位应有破防特效，防御应减少15，永久生效");
-		ReduceDefensePermanently(u, 1, 20);
+		ReduceDefenseForever(u, 1, 20);
 		BJDebugMsg("[UnitBuffTest] 再次调用（最大值20），防御应再减少5（总共减少20）");
 		u = null;
 		owner = null;
@@ -229,7 +229,7 @@ library UTUnitBuff requires UnitBuff {
 					def = GetUnitDefense(u);
 					BJDebugMsg("[UnitBuffTest] 时间破防测试: slot=" + I2S(paramI[1]) + ", defense=" + I2S(paramI[2]) + ", time=" + R2S(paramR[3]));
 					BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-					ReduceDefense(u, paramI[1], paramI[2], paramR[3]);
+					ReduceDefenseTime(u, paramI[1], paramI[2], paramR[3]);
 					BJDebugMsg("[UnitBuffTest] 破防已应用");
 				} else {
 					BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
@@ -248,7 +248,7 @@ library UTUnitBuff requires UnitBuff {
 					def = GetUnitDefense(u);
 					BJDebugMsg("[UnitBuffTest] 永久破防测试: slot=" + I2S(paramI[1]) + ", defense=" + I2S(paramI[2]));
 					BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-					ReduceDefensePermanently(u, paramI[1], paramI[2]);
+					ReduceDefenseForever(u, paramI[1], paramI[2]);
 					BJDebugMsg("[UnitBuffTest] 永久破防已应用");
 				} else {
 					BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
@@ -296,6 +296,7 @@ library UTUnitBuff requires UnitBuff {
 
 		//unitAttrShow
 		//EXExecuteScript
+		//YDWECoordinateY
 	}
 
 }
