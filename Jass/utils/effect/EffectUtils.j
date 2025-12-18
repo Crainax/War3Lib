@@ -213,6 +213,25 @@ library EffectUtils requires YDWEJapiEffect {
         e = null;
     }
 
+    // 外部接口：创建一个带缩放 + 朝向旋转的短暂特效
+    // facing: 角度（度），参考 EXEffectMatRotateZ / GetFacing
+    public function CreateEffectScaleAnimFacing (string path, real x, real y, real scale, real time, real facing) {
+        effect e;
+
+        e = AddSpecialEffect(path, x, y);
+        if (e == null) {
+            return;
+        }
+
+        // 变换矩阵：先重置，再缩放，再旋转（参考 AJZ2Fengbu 的写法）
+        EXEffectMatReset(e);
+        SetEffectScale(e, scale);
+        EXEffectMatRotateZ(e, facing);
+
+        EffectQueue.add(e, time);
+        e = null;
+    }
+
 }
 
 //! endzinc
