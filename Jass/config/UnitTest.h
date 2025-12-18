@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/ability/dash/Dashing_Test.j"
+#include "D:/War3/Library/War3Lib/Jass/ability/base/Mover_Test.j"
 
 
 
