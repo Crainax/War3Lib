@@ -134,8 +134,7 @@ library Pierce requires DamageUtils {
 
         // 根据当前地形高度设置 Z（类似 AJZ2_CLIFF_Z）
         z = I2R(GetTerrainCliffLevel(x, y)) * PIERCE_CLIFF_Z + heightOffset;
-        EXSetEffectXY(e, x, y);
-        EXSetEffectZ(e, z);
+        DzSetEffectPos(e, x, y, z);
 
         // 临时 Group 枚举周围单位，每个单位只命中一次
         enumGrp = CreateGroup();
@@ -262,7 +261,7 @@ library Pierce requires DamageUtils {
         if (cfgScale != 1.0) {
             EXEffectMatScale(e, cfgScale, cfgScale, cfgScale);
         }
-        EXSetEffectZ(e, z);
+        DzSetEffectPos(e, x, y, z);
 
         hitGrp = CreateGroup();
 

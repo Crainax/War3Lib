@@ -145,8 +145,7 @@ library Mover requires HashTable, DamageUtils, Geometry {
 
             // 根据当前地形高度设置 Z
             z = I2R(GetTerrainCliffLevel(x, y)) * EFFECTMOVE_CLIFF_Z + heightOffset;
-            EXSetEffectXY(e, x, y);
-            EXSetEffectZ(e, z);
+            DzSetEffectPos(e, x, y, z);
 
             // 检查是否到达目标
             if (GetDistance(x, y, targetX, targetY) <= step) {
@@ -154,8 +153,7 @@ library Mover requires HashTable, DamageUtils, Geometry {
                 y = targetY;
                 SaveReal(HASH_TIMER, id, 3, x);
                 SaveReal(HASH_TIMER, id, 4, y);
-                EXSetEffectXY(e, x, y);
-                EXSetEffectZ(e, I2R(GetTerrainCliffLevel(x, y)) * EFFECTMOVE_CLIFF_Z + heightOffset);
+                DzSetEffectPos(e, x, y, I2R(GetTerrainCliffLevel(x, y)) * EFFECTMOVE_CLIFF_Z + heightOffset);
                 b = true;
             }
 
@@ -327,7 +325,7 @@ library Mover requires HashTable, DamageUtils, Geometry {
         if (cfgScale != 1.0) {
             EXEffectMatScale(e, cfgScale, cfgScale, cfgScale);
         }
-        EXSetEffectZ(e, z);
+        DzSetEffectPos(e, startX, startY, z);
 
         t = CreateTimer();
         id = GetHandleId(t);
