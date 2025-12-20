@@ -13,6 +13,16 @@
 
 library EffectUtils requires YDWEJapiEffect {
 
+
+	// 环绕特效
+	public function ShowCircleEffect(real x, real y, real radius, integer count, string s) {
+		integer i;
+
+		for (1 <= i <= count) {
+			DestroyEffect(AddSpecialEffect(s, YDWECoordinateX(x + radius * CosBJ(i * 360.0 / count)), YDWECoordinateY(y + radius * SinBJ(i * 360.0 / count))));
+		}
+	}
+
     // 基础缩放函数：对已有特效应用缩放矩阵
     public function SetEffectScale (effect e, real scale) {
         EXEffectMatScale(e, scale, scale, scale);

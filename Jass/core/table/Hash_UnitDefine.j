@@ -154,6 +154,7 @@
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_BOSS_PLAYER 10003 // 子键:是否属于BOSS
+#define KEY_UNIT_TM_TRANSPORTING 10004 // TM副本的传送对象
 
 
 
