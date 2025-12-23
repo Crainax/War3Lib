@@ -4,8 +4,6 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "japi/YDWEJapiScript.j"
-
 //! zinc
 
 //自动生成的文件
@@ -256,13 +254,18 @@ library UTUnitUtils requires UnitUtils {
 		// 普通单位攻击增幅/减幅/定值测试
 		Test_NormalUnitAttackPercent();
 		BJDebugMsg("[UnitUtils] 普通单位攻击百分比测试完成");
-	}
+	} 0
 	function TTestUTUnitUtils3 (player p) {
 		// BigInteger 单位攻击增幅/减幅/定值测试
 		Test_BigIntUnitAttackPercent();
 		BJDebugMsg("[UnitUtils] BigInteger 单位攻击百分比测试完成");
 	}
-	function TTestUTUnitUtils4 (player p) {}
+	function TTestUTUnitUtils4 (player p) {
+		unit u = CreateUnit(p,'hpea',0,0,0);
+		AddUnitDefense(u,-1000);
+		BJDebugMsg("测试负甲");
+		u = null;
+	}
 	function TTestUTUnitUtils5 (player p) {}
 	function TTestUTUnitUtils6 (player p) {}
 	function TTestUTUnitUtils7 (player p) {}

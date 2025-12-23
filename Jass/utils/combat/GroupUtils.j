@@ -150,6 +150,49 @@ library GroupUtils requires UnitFilter {
         return result;
     }
 
+    // 用于存储最小生命值单位的临时变量
+    unit tempMinLifeUnit = null;
+    real tempMinLife = 0.0;
+
+    //返回范围内生命值最低的随机敌方单位
+    public function GetRandomMinLifeEnemy (player p, real x, real y, real radius) -> unit {
+        group enemyGroup; unit result;
+
+        // 重置临时变量
+        tempMinLifeUnit = null;
+        tempMinLife = 999999999.0;
+        tempP = p;
+
+        // 创建临时单位组
+        enemyGroup = CreateGroup();
+        GroupEnumUnitsInRangeEx(enemyGroup, x, y, radius, Filter(function () -> boolean {
+            real currentLife;
+
+            if (!IsEnemy(GetFilterUnit(), tempP)) {
+                return false;
+            }
+
+            // 检查是否是生命值更低的单位
+            currentLife = GetUnitState(GetFilterUnit(), UNIT_STATE_LIFE);
+            if (tempMinLifeUnit == null || currentLife < tempMinLife) {
+                tempMinLife = currentLife;
+                tempMinLifeUnit = GetFilterUnit();
+            }
+
+            return true;
+        }));
+
+        // 获取结果并清理
+        result = tempMinLifeUnit;
+        tempMinLifeUnit = null;
+        tempMinLife = 0.0;
+        tempP = null;
+        DestroyGroup(enemyGroup);
+        enemyGroup = null;
+
+        return result;
+    }
+
     //获取矩形区域内的所有敌方单位
     public function GetRectAllEnemy (rect r, player p) -> group {
         tempG = CreateGroup();

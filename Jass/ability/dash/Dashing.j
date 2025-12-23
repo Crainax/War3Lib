@@ -41,179 +41,6 @@ library Dashing requires HashTable,DamageUtils {
         return DashingArgs.times;
     }
 
-    // 统一的计时器回调（合并 DashI 和 DashII 的逻辑）
-    private function DashTimer() {
-        timer t;
-        integer id;
-        integer i;
-        real facing;
-        real x;
-        real y;
-        real speed;
-        unit u;
-        real xp;
-        real yp;
-        real max;
-        group hitGrp;
-        group enumGrp;
-        real damage;
-        real radius;
-        integer damageType;
-        trigger trComplete;
-        trigger trStep;
-        boolean b;
-        unit l_unit;
-        integer maxTicks;
-
-        t = GetExpiredTimer();
-        id = GetHandleId(t);
-
-        // 读取上下文
-        i = LoadInteger(HASH_TIMER, id, 1);
-        facing = LoadReal(HASH_TIMER, id, 2);
-        x = LoadReal(HASH_TIMER, id, 3);
-        y = LoadReal(HASH_TIMER, id, 4);
-        speed = LoadReal(HASH_TIMER, id, 5);
-        u = LoadUnitHandle(HASH_TIMER, id, 6);
-        max = LoadReal(HASH_TIMER, id, 7);
-        hitGrp = LoadGroupHandle(HASH_TIMER, id, 10);
-        damage = LoadReal(HASH_TIMER, id, 11);
-        radius = LoadReal(HASH_TIMER, id, 12);
-        damageType = LoadInteger(HASH_TIMER, id, 16);
-        trComplete = LoadTriggerHandle(HASH_TIMER, id, 13);
-        trStep = LoadTriggerHandle(HASH_TIMER, id, 14);
-        enumGrp = LoadGroupHandle(HASH_TIMER, id, 15);
-
-        b = false;
-        l_unit = null;
-
-        // 失效检查
-        if (u == null) {
-            b = true;
-        } else {
-            // 计算下一位置
-            xp = YDWECoordinateX(GetUnitX(u) + speed * CosBJ(facing));
-            yp = YDWECoordinateY(GetUnitY(u) + speed * SinBJ(facing));
-
-            // 根据是否有伤害逻辑决定最大 tick 数（有伤害: 300, 无伤害: 600）
-            if (damage >= 1.0 && radius > 0.0) {
-                maxTicks = 300;
-            } else {
-                maxTicks = 600;
-            }
-
-            // 检查是否继续冲刺
-            if (i <= maxTicks && !IsTerrainPathable(xp, yp, PATHING_TYPE_WALKABILITY)) {
-                i = i + 1;
-                SaveInteger(HASH_TIMER, id, 1, i);
-
-                // 检查是否到达目标或超出最大距离
-                if (GetDistance(xp, yp, x, y) < speed) {
-                    SetUnitX(u, x);
-                    SetUnitY(u, y);
-                    b = true;
-                } else {
-                    SetUnitX(u, xp);
-                    SetUnitY(u, yp);
-                    if (i * speed >= max) {
-                        b = true;
-                    }
-                }
-
-                // 如果有伤害逻辑，执行伤害枚举（radius > 0 且 damage >= 1.0）
-                if (!b && damage >= 1.0 && radius > 0.0 && hitGrp != null && enumGrp != null) {
-                    GroupClear(enumGrp);
-                    GroupEnumUnitsInRangeEx(enumGrp, GetUnitX(u), GetUnitY(u), radius, null);
-                    while (true) {
-                        l_unit = FirstOfGroup(enumGrp);
-                        if (l_unit == null) {
-                            break;
-                        }
-                        GroupRemoveUnit(enumGrp, l_unit);
-                        if (!IsUnitInGroup(l_unit, hitGrp) && IsEnemyMagicUnit(l_unit, u)) {
-                            // 根据配置的伤害类型结算伤害
-                            if (damageType == DASHING_DMG_PHYSICAL) {
-                                ApplyPhysicalDamage(u, l_unit, damage);
-                            } else if (damageType == DASHING_DMG_PURE) {
-                                ApplyPureDamage(u, l_unit, damage);
-                            } else {
-                                ApplyMagicDamage(u, l_unit, damage);
-                            }
-                            GroupAddUnit(hitGrp, l_unit);
-                        }
-                    }
-                    l_unit = null;
-                }
-
-                // 触发 step 回调
-                if (trStep != null) {
-                    DashingArgs.t = t;
-                    DashingArgs.u = u;
-                    DashingArgs.times = i;
-                    TriggerEvaluate(trStep);
-                    DashingArgs.t = null;
-                    DashingArgs.u = null;
-                    DashingArgs.times = 0;
-                }
-            } else {
-                // 遇到地形障碍，停止
-                b = true;
-            }
-        }
-
-        // 如果结束，执行清理
-        if (b) {
-            // 触发 complete 回调
-            if (trComplete != null) {
-                DashingArgs.t = t;
-                DashingArgs.u = u;
-                DashingArgs.times = i;
-                TriggerEvaluate(trComplete);
-                DashingArgs.t = null;
-                DashingArgs.u = null;
-                DashingArgs.times = 0;
-            }
-
-            // 恢复单位移动命令
-            if (u != null) {
-                IssuePointOrder(u, "move", GetUnitX(u), GetUnitY(u));
-            }
-
-            // 清理资源
-            if (trComplete != null) {
-                DestroyTrigger(trComplete);
-            }
-            if (trStep != null) {
-                DestroyTrigger(trStep);
-            }
-            if (hitGrp != null) {
-                DestroyGroup(hitGrp);
-            }
-            if (enumGrp != null) {
-                DestroyGroup(enumGrp);
-            }
-
-            FlushChildHashtable(HASH_TIMER, id);
-            PauseTimer(t);
-            DestroyTimer(t);
-
-            t = null;
-            u = null;
-            hitGrp = null;
-            enumGrp = null;
-            trComplete = null;
-            trStep = null;
-        } else {
-            // 继续运行，只清理局部变量（句柄对象仍在 HASH_TIMER 中保存）
-            t = null;
-            u = null;
-            enumGrp = null;
-            hitGrp = null;
-            trComplete = null;
-            trStep = null;
-        }
-    }
-
     // StartDashing: 统一的冲刺函数（合并 DashI 和 DashII）
     // radius > 0 且 damage >= 1.0 时才会造成伤害
     public function StartDashing(unit caster, real x, real y, real speed, real max, code onComplete, code onStep, real radius, real damage) -> timer {
@@ -291,7 +118,177 @@ library Dashing requires HashTable,DamageUtils {
         SaveTriggerHandle(HASH_TIMER, id, 14, trStep);
 
         // 启动计时器
-        TimerStart(t, 0.02, true, function DashTimer);
+        TimerStart(t, 0.02, true, function () {
+            timer t;
+            integer id;
+            integer i;
+            real facing;
+            real x;
+            real y;
+            real speed;
+            unit u;
+            real xp;
+            real yp;
+            real max;
+            group hitGrp;
+            group enumGrp;
+            real damage;
+            real radius;
+            integer damageType;
+            trigger trComplete;
+            trigger trStep;
+            boolean b;
+            unit l_unit;
+            integer maxTicks;
+
+            t = GetExpiredTimer();
+            id = GetHandleId(t);
+
+            // 读取上下文
+            i = LoadInteger(HASH_TIMER, id, 1);
+            facing = LoadReal(HASH_TIMER, id, 2);
+            x = LoadReal(HASH_TIMER, id, 3);
+            y = LoadReal(HASH_TIMER, id, 4);
+            speed = LoadReal(HASH_TIMER, id, 5);
+            u = LoadUnitHandle(HASH_TIMER, id, 6);
+            max = LoadReal(HASH_TIMER, id, 7);
+            hitGrp = LoadGroupHandle(HASH_TIMER, id, 10);
+            damage = LoadReal(HASH_TIMER, id, 11);
+            radius = LoadReal(HASH_TIMER, id, 12);
+            damageType = LoadInteger(HASH_TIMER, id, 16);
+            trComplete = LoadTriggerHandle(HASH_TIMER, id, 13);
+            trStep = LoadTriggerHandle(HASH_TIMER, id, 14);
+            enumGrp = LoadGroupHandle(HASH_TIMER, id, 15);
+
+            b = false;
+            l_unit = null;
+
+            // 失效检查
+            if (u == null) {
+                b = true;
+            } else {
+                // 计算下一位置
+                xp = YDWECoordinateX(GetUnitX(u) + speed * CosBJ(facing));
+                yp = YDWECoordinateY(GetUnitY(u) + speed * SinBJ(facing));
+
+                // 根据是否有伤害逻辑决定最大 tick 数（有伤害: 300, 无伤害: 600）
+                if (damage >= 1.0 && radius > 0.0) {
+                    maxTicks = 300;
+                } else {
+                    maxTicks = 600;
+                }
+
+                // 检查是否继续冲刺
+                if (i <= maxTicks && !IsTerrainPathable(xp, yp, PATHING_TYPE_WALKABILITY)) {
+                    i = i + 1;
+                    SaveInteger(HASH_TIMER, id, 1, i);
+
+                    // 检查是否到达目标或超出最大距离
+                    if (GetDistance(xp, yp, x, y) < speed) {
+                        SetUnitX(u, x);
+                        SetUnitY(u, y);
+                        b = true;
+                    } else {
+                        SetUnitX(u, xp);
+                        SetUnitY(u, yp);
+                        if (i * speed >= max) {
+                            b = true;
+                        }
+                    }
+
+                    // 如果有伤害逻辑，执行伤害枚举（radius > 0 且 damage >= 1.0）
+                    if (!b && damage >= 1.0 && radius > 0.0 && hitGrp != null && enumGrp != null) {
+                        GroupClear(enumGrp);
+                        GroupEnumUnitsInRangeEx(enumGrp, GetUnitX(u), GetUnitY(u), radius, null);
+                        while (true) {
+                            l_unit = FirstOfGroup(enumGrp);
+                            if (l_unit == null) {
+                                break;
+                            }
+                            GroupRemoveUnit(enumGrp, l_unit);
+                            if (!IsUnitInGroup(l_unit, hitGrp) && IsEnemyMagicUnit(l_unit, u)) {
+                                // 根据配置的伤害类型结算伤害
+                                if (damageType == DASHING_DMG_PHYSICAL) {
+                                    ApplyPhysicalDamage(u, l_unit, damage);
+                                } else if (damageType == DASHING_DMG_PURE) {
+                                    ApplyPureDamage(u, l_unit, damage);
+                                } else {
+                                    ApplyMagicDamage(u, l_unit, damage);
+                                }
+                                GroupAddUnit(hitGrp, l_unit);
+                            }
+                        }
+                        l_unit = null;
+                    }
+
+                    // 触发 step 回调
+                    if (trStep != null) {
+                        DashingArgs.t = t;
+                        DashingArgs.u = u;
+                        DashingArgs.times = i;
+                        TriggerEvaluate(trStep);
+                        DashingArgs.t = null;
+                        DashingArgs.u = null;
+                        DashingArgs.times = 0;
+                    }
+                } else {
+                    // 遇到地形障碍，停止
+                    b = true;
+                }
+            }
+
+            // 如果结束，执行清理
+            if (b) {
+                // 触发 complete 回调
+                if (trComplete != null) {
+                    DashingArgs.t = t;
+                    DashingArgs.u = u;
+                    DashingArgs.times = i;
+                    TriggerEvaluate(trComplete);
+                    DashingArgs.t = null;
+                    DashingArgs.u = null;
+                    DashingArgs.times = 0;
+                }
+
+                // 恢复单位移动命令
+                if (u != null) {
+                    IssuePointOrder(u, "move", GetUnitX(u), GetUnitY(u));
+                }
+
+                // 清理资源
+                if (trComplete != null) {
+                    DestroyTrigger(trComplete);
+                }
+                if (trStep != null) {
+                    DestroyTrigger(trStep);
+                }
+                if (hitGrp != null) {
+                    DestroyGroup(hitGrp);
+                }
+                if (enumGrp != null) {
+                    DestroyGroup(enumGrp);
+                }
+
+                FlushChildHashtable(HASH_TIMER, id);
+                PauseTimer(t);
+                DestroyTimer(t);
+
+                t = null;
+                u = null;
+                hitGrp = null;
+                enumGrp = null;
+                trComplete = null;
+                trStep = null;
+            } else {
+                // 继续运行，只清理局部变量（句柄对象仍在 HASH_TIMER 中保存）
+                t = null;
+                u = null;
+                enumGrp = null;
+                hitGrp = null;
+                trComplete = null;
+                trStep = null;
+            }
+        });
 
         // 保存返回值
         result = t;

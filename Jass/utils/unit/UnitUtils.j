@@ -1008,7 +1008,7 @@ library UnitUtils requires BigInteger,MathUtils {
         base = base + hp;
         SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_BASE_REAL, base);
         RecalcUnitHP(u);
-        if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
+        if (hp > 0 && IsUnitAliveBJ(u)) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
     }
 
     // 增加生命值增幅（百分比形式，value 为小数，如 0.2 表示 +20%）

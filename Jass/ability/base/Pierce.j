@@ -50,6 +50,25 @@ library Pierce requires DamageUtils {
     // 兼容函数：获取当前匹配到的单位
     public function PierceMatchEnemy () -> unit { return PierceMatchArgs.target;}
 
+    // 完成回调用上下文（类似 Mover 的 EffectMoveArgs）
+    public struct PierceCompleteArgs []{
+        public static timer t = null;
+        public static real x = 0.0;
+        public static real y = 0.0;
+    }
+
+    public function PierceCompleteGetTimer() -> timer {
+        return PierceCompleteArgs.t;
+    }
+
+    public function PierceCompleteGetX() -> real {
+        return PierceCompleteArgs.x;
+    }
+
+    public function PierceCompleteGetY() -> real {
+        return PierceCompleteArgs.y;
+    }
+
     // 回调参数（枚举 Filter 使用静态成员传参，避免哈希表冲突）
     private unit    pierceCbCaster        = null;
     private group   pierceCbHitGrp        = null;
@@ -78,6 +97,9 @@ library Pierce requires DamageUtils {
         real speed;
         real heightOffset;
         trigger matchTr;
+        trigger trComplete;
+        real endX;
+        real endY;
 
         t = GetExpiredTimer();
         id = GetHandleId(t);
@@ -95,9 +117,23 @@ library Pierce requires DamageUtils {
         speed        = LoadReal(HASH_TIMER, id, 11);
         heightOffset = LoadReal(HASH_TIMER, id, 16);
         matchTr      = LoadTriggerHandle(HASH_TIMER, id, 15);
+        trComplete   = LoadTriggerHandle(HASH_TIMER, id, 18);
+        endX         = LoadReal(HASH_TIMER, id, 20);
+        endY         = LoadReal(HASH_TIMER, id, 21);
 
         // 失效或超出射程：清理
         if (caster == null || e == null || travelled >= range) {
+            // 完成回调（如果有）：优先回调，再清理 HASH_TIMER
+            if (trComplete != null) {
+                PierceCompleteArgs.t = t;
+                PierceCompleteArgs.x = endX;
+                PierceCompleteArgs.y = endY;
+                TriggerEvaluate(trComplete);
+                PierceCompleteArgs.t = null;
+                PierceCompleteArgs.x = 0.0;
+                PierceCompleteArgs.y = 0.0;
+            }
+
             if (e != null) {
                 DestroyEffect(e);
             }
@@ -106,6 +142,9 @@ library Pierce requires DamageUtils {
             }
             if (matchTr != null) {
                 DestroyTrigger(matchTr);
+            }
+            if (trComplete != null) {
+                DestroyTrigger(trComplete);
             }
 
             FlushChildHashtable(HASH_TIMER, id);
@@ -116,6 +155,7 @@ library Pierce requires DamageUtils {
             caster  = null;
             hitGrp   = null;
             matchTr  = null;
+            trComplete = null;
             t       = null;
             return;
         }
@@ -213,6 +253,7 @@ library Pierce requires DamageUtils {
         enumGrp = null;
         t      = null;
         matchTr = null;
+        trComplete = null;
     }
 
     // 对外入口：
@@ -304,6 +345,124 @@ library Pierce requires DamageUtils {
         cfgHitPath = null;
         t          = null;
         cfgMatchTr = null;
+    }
+
+    // 点到点穿刺入口（类似 Mover.StartEffectMove 的 onComplete）：
+    // 从 (startX,startY) 直线飞到 (targetX,targetY)，沿途每单位最多命中一次，结束时触发 onComplete。
+    // 说明：onComplete 回调中可用 PierceCompleteGetTimer() 取回 timer，并通过 HASH_TIMER 读取你自存的参数。
+    public function PierceCastToPoint(unit caster, real startX, real startY, real targetX, real targetY, real damage, real radius, code onComplete) -> timer {
+        timer t;
+        timer result;
+        integer id;
+        effect e;
+        group hitGrp;
+        real z;
+        real cfgSpeed;
+        string cfgModel;
+        real cfgScale;
+        string cfgHitPath;
+        integer cfgDmgType;
+        real cfgHeight;
+        trigger cfgMatchTr;
+        trigger trComplete;
+        real dx;
+        real dy;
+        real facing;
+        real range;
+
+        if (caster == null || radius <= 0.0 || damage <= 0.0) {
+            return null;
+        }
+
+        startX = YDWECoordinateX(startX);
+        startY = YDWECoordinateY(startY);
+        targetX = YDWECoordinateX(targetX);
+        targetY = YDWECoordinateY(targetY);
+
+        dx = targetX - startX;
+        dy = targetY - startY;
+        range = SquareRoot(dx * dx + dy * dy);
+        if (range <= 0.0) {
+            return null;
+        }
+        facing = Atan2(dy, dx) * bj_RADTODEG;
+
+        // 读取本次 Cast 的配置（一次配置只影响一次 Cast）
+        cfgSpeed   = PierceCfg.speed;
+        cfgModel   = PierceCfg.modelPath;
+        cfgScale   = PierceCfg.scale;
+        cfgHitPath = PierceCfg.hitEffectPath;
+        cfgDmgType = PierceCfg.damageType;
+        cfgHeight  = PierceCfg.heightOffset;
+        cfgMatchTr = PierceCfg.trMatch;
+
+        // 初始高度
+        z = I2R(GetTerrainCliffLevel(startX, startY)) * PIERCE_CLIFF_Z + cfgHeight;
+
+        // 使用结构体数组配置的模型与缩放
+        e = AddSpecialEffect(cfgModel, startX, startY);
+        EXEffectMatRotateZ(e, facing);
+        if (cfgScale != 1.0) {
+            EXEffectMatScale(e, cfgScale, cfgScale, cfgScale);
+        }
+        DzSetEffectPos(e, startX, startY, z);
+
+        hitGrp = CreateGroup();
+
+        t = CreateTimer();
+        id = GetHandleId(t);
+
+        SaveUnitHandle(HASH_TIMER, id, 1, caster);
+        SaveEffectHandle(HASH_TIMER, id, 2, e);
+        SaveReal(HASH_TIMER, id, 3, startX);
+        SaveReal(HASH_TIMER, id, 4, startY);
+        SaveReal(HASH_TIMER, id, 5, facing);
+        SaveReal(HASH_TIMER, id, 6, damage);
+        SaveReal(HASH_TIMER, id, 7, radius);
+        SaveReal(HASH_TIMER, id, 8, range);
+        SaveReal(HASH_TIMER, id, 9, 0.0); // travelled
+        SaveGroupHandle(HASH_TIMER, id, 10, hitGrp);
+        SaveReal(HASH_TIMER, id, 11, cfgSpeed);
+        SaveReal(HASH_TIMER, id, 12, cfgScale);
+        SaveInteger(HASH_TIMER, id, 13, cfgDmgType);
+        SaveStr(HASH_TIMER, id, 14, cfgHitPath);
+        SaveReal(HASH_TIMER, id, 16, cfgHeight);
+        if (cfgMatchTr != null) {
+            SaveTriggerHandle(HASH_TIMER, id, 15, cfgMatchTr);
+        }
+
+        // 保存“期望结束点”（给完成回调使用）
+        SaveReal(HASH_TIMER, id, 20, targetX);
+        SaveReal(HASH_TIMER, id, 21, targetY);
+
+        // 包装完成回调为 trigger（与 Mover 风格一致）
+        trComplete = null;
+        if (onComplete != null) {
+            trComplete = CreateTrigger();
+            TriggerAddCondition(trComplete, Condition(onComplete));
+            SaveTriggerHandle(HASH_TIMER, id, 18, trComplete);
+        }
+
+        // Cast 结束后恢复配置为默认值（避免影响后续 Cast）
+        PierceCfg.speed         = PIERCE_SPEED;
+        PierceCfg.modelPath     = PIERCE_MODEL_PATH;
+        PierceCfg.scale         = 1.0;
+        PierceCfg.hitEffectPath = "";
+        PierceCfg.damageType    = PIERCE_DMG_MAGIC;
+        PierceCfg.heightOffset  = 0.0;
+        PierceCfg.trMatch       = null;
+
+        TimerStart(t, PIERCE_TICK, true, function PierceTimer);
+        result = t;
+
+        e          = null;
+        hitGrp     = null;
+        cfgModel   = null;
+        cfgHitPath = null;
+        cfgMatchTr = null;
+        trComplete = null;
+        t          = null;
+        return result;
     }
 }
 

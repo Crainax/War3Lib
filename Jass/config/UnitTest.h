@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/ability/base/Pierce_Test.j"
+#include "D:/War3/Library/War3Lib/Jass/utils/unit/UnitUtils_Test.j"
 
 
 
