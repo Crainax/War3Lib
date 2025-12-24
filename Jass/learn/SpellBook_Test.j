@@ -58,7 +58,7 @@ library UTSpellBook requires SpellBook, LBKKPRE,UnitUtils,SpellUtils {
 		//这里添加外面有的技能无效
 
 		// A001：圣骑士经典 5 技能
-		DzSetUnitAbilitySpellBookList(u, 'A002', "AEbl,AEfk,AEsh,AEsv", true);
+		DzSetUnitAbilitySpellBookList(u, 'A002', "AEfk,AEbl,AEsh,AEsv", true);
 		DzSetUnitAbilityUpdate(u, 'A002');
 		//这里添加外面有的技能无效
 
@@ -113,6 +113,7 @@ library UTSpellBook requires SpellBook, LBKKPRE,UnitUtils,SpellUtils {
 				start = i + 1;
 			}
 		}
+		//851975
 	}
 
 	function Init () {
@@ -148,6 +149,7 @@ library UTSpellBook requires SpellBook, LBKKPRE,UnitUtils,SpellUtils {
 		// s2：打印玩家（测试圣骑士）两本魔法书里所有技能的等级
 		printSpellBookListLevels(p, u, 'A000');
 		printSpellBookListLevels(p, u, 'A001');
+		printSpellBookListLevels(p, u, 'A002');
 		u = null;
 	}
 
@@ -170,8 +172,22 @@ library UTSpellBook requires SpellBook, LBKKPRE,UnitUtils,SpellUtils {
 			}
 		}
 	}
-	function TTestUTSpellBook4 (player p) {}
-	function TTestUTSpellBook5 (player p) {}
+	function TTestUTSpellBook4 (player p) {
+		unit u;
+		u = getOrCreateTestPaladin(p);
+		// A000：包含 A001 + 4 个英雄技能（山丘之王 4 技能）
+		DzSetUnitAbilitySpellBookList(u, 'A000', "AHtc,AHfs,AHbn,AHdr,A001", true);
+		DzSetUnitAbilityUpdate(u, 'A000');
+	}
+	function TTestUTSpellBook5 (player p) {
+		unit u;
+
+		u = getOrCreateTestPaladin(p);
+		// A001：圣骑士经典 5 技能
+		DzSetUnitAbilitySpellBookList(u, 'A002', "AEsh,AEsv", true);
+		DzSetUnitAbilityUpdate(u, 'A002');
+		//这里添加外面有的技能无效
+	}
 	function TTestUTSpellBook6 (player p) {}
 	function TTestUTSpellBook7 (player p) {}
 	function TTestUTSpellBook8 (player p) {}

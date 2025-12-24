@@ -4,12 +4,44 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/ability/talent/Talent.j"
+#include "KKPRE.j"
+#include "Crainax/core/constant/JapiConstant.j"
+
 
 //! zinc
 
 //自动生成的文件
 library UTTalent requires Talent {
+
+	private unit talentTestUnit[];
+
+	private function getOrCreateTalentUnit(player p) -> unit {
+		integer pid;
+		unit u = null;
+		real x;
+		real y;
+
+		if (p == null) {
+			return null;
+		}
+
+		pid = GetConvertedPlayerId(p);
+		if (pid < 1 || pid > MAX_PLAYER_COUNT) {
+			return null;
+		}
+
+		u = talentTestUnit[pid];
+		if (u == null) {
+			x = GetStartLocationX(GetPlayerStartLocation(p));
+			y = GetStartLocationY(GetPlayerStartLocation(p));
+			u = CreateUnit(p, 'Hpal', x, y, 270.0);
+			SetHeroLevel(u, 10, false);
+			AddUnitHP(u, 10000);
+			AddUnitMP(u, 10000);
+			talentTestUnit[pid] = u;
+		}
+		return u;
+	}
 
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
@@ -34,11 +66,14 @@ library UTTalent requires Talent {
 	function TTestUTTalent10 (player p) {}
 	function TTestActUTTalent1 (string str) {
 		player  p	 = GetTriggerPlayer();
-		integer index = GetConvertedPlayerId(p);
 		integer i,	 num = 0, len = StringLength(str); //获取范围式数字
 		string  paramS [];							   //所有参数S
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
+		unit	u = null;
+		integer abilId = 0;
+		real	value = 0.0;
+		boolean ok = false;
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -55,12 +90,71 @@ library UTTalent requires Talent {
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
 
-		if (paramS[0] == "a") {
-
-		} else if (paramS[0] == "b") {
-
+		if (paramS[0] == "bind") {
+			u = getOrCreateTalentUnit(p);
+			if (u != null) {
+				talent.bindUnit(p, u);
+				DisplayTextToPlayer(p, 0, 0, "[TalentTest] 已绑定测试英雄。");
+			}
+		} else if (paramS[0] == "add") {
+			if (num >= 2) {
+				abilId = YDWES2Id(paramS[1]);
+				if (abilId != 0) {
+					ok = talent.addSpellId(p, abilId);
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] add " + paramS[1] + " => " + S3(ok, "成功", "失败"));
+				} else {
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] 无效技能ID。");
+				}
+			} else {
+				DisplayTextToPlayer(p, 0, 0, "[TalentTest] 用法：-add 技能ID");
+			}
+		} else if (paramS[0] == "rm") {
+			if (num >= 2) {
+				abilId = YDWES2Id(paramS[1]);
+				if (abilId != 0) {
+					ok = talent.removeSpellId(p, abilId);
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] rm " + paramS[1] + " => " + S3(ok, "成功", "失败"));
+				} else {
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] 无效技能ID。");
+				}
+			} else {
+				DisplayTextToPlayer(p, 0, 0, "[TalentTest] 用法：-rm 技能ID");
+			}
+		} else if (paramS[0] == "show") {
+			talent.debugPrintList(p);
+		} else if (paramS[0] == "clear") {
+			talent.clearAll(p);
+			DisplayTextToPlayer(p, 0, 0, "[TalentTest] 已清空技能列表。");
+		} else if (paramS[0] == "check") {
+			DisplayTextToPlayer(p, 0, 0, "[TalentTest] isInSpellBookLocal=" + S3(talent.isInSpellBookLocal(p), "true", "false"));
+		} else if (paramS[0] == "cdset") {
+			if (num >= 3) {
+				abilId = YDWES2Id(paramS[1]);
+				value = S2R(paramS[2]);
+				u = getOrCreateTalentUnit(p);
+				if (u != null && abilId != 0) {
+					YDWESetUnitAbilityState(u, abilId, ABILITY_STATE_COOLDOWN, value);
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] 已设置 " + paramS[1] + " 冷却=" + R2S(value));
+				}
+			} else {
+				DisplayTextToPlayer(p, 0, 0, "[TalentTest] 用法：-cdset 技能ID 秒数");
+			}
+		} else if (paramS[0] == "cdget") {
+			if (num >= 2) {
+				abilId = YDWES2Id(paramS[1]);
+				u = getOrCreateTalentUnit(p);
+				if (u != null && abilId != 0) {
+					value = YDWEGetUnitAbilityState(u, abilId, ABILITY_STATE_COOLDOWN);
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] 当前冷却=" + R2S(value));
+				}
+			} else {
+				DisplayTextToPlayer(p, 0, 0, "[TalentTest] 用法：-cdget 技能ID");
+			}
+		} else {
+			DisplayTextToPlayer(p, 0, 0, "[TalentTest] 未知命令。");
 		}
 
+		u = null;
 		p = null;
 	}
 
@@ -95,6 +189,7 @@ library UTTalent requires Talent {
 			else if(str == "s10") TTestUTTalent10(GetTriggerPlayer());
 		});
 
+		//YDWEGetUnitAbilityState
 	}
 
 }
