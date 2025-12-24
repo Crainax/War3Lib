@@ -31,14 +31,6 @@ library Talent requires AbilityCool {
         private static real snapCd[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
         private static timer restoreTimer[];
 
-        private static integer pendingRestoreCount[];
-        private static integer pendingRestoreAbil[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
-        private static real pendingRestoreCd[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
-
-        private static integer virtualCount[];
-        private static integer virtualAbil[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
-        private static real virtualCd[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
-
         private static method getPid(player p) -> integer {
             integer pid;
             if (p == null) {
@@ -134,21 +126,6 @@ library Talent requires AbilityCool {
             return thistype.joinRange(pid, 21, total);
         }
 
-        private static method ensureBookAbility(unit u, integer bookId, boolean enable) {
-            if (u == null) { return; }
-            if (enable) {
-                if (GetUnitAbilityLevel(u, bookId) == 0) {
-                    UnitAddAbility(u, bookId);
-                }
-            } else {
-                if (GetUnitAbilityLevel(u, bookId) > 0) {
-                    DzSetUnitAbilitySpellBookList(u, bookId, "", true);
-                    DzSetUnitAbilityUpdate(u, bookId);
-                    UnitRemoveAbility(u, bookId);
-                }
-            }
-        }
-
         private static method snapshotRange(integer pid, unit u, integer startIdx, integer endIdx) {
             integer i;
             integer abilId;
@@ -178,58 +155,6 @@ library Talent requires AbilityCool {
             }
         }
 
-        private static method saveVirtualCd(integer pid, integer abilId, real cd) {
-            integer i;
-
-            if (cd <= 0.0) { return; }
-            for (1 <= i <= thistype.virtualCount[pid]) {
-                if (thistype.virtualAbil[pid][i] == abilId) {
-                    thistype.virtualCd[pid][i] = cd;
-                    return;
-                }
-            }
-            thistype.virtualCount[pid] += 1;
-            thistype.virtualAbil[pid][thistype.virtualCount[pid]] = abilId;
-            thistype.virtualCd[pid][thistype.virtualCount[pid]] = cd;
-        }
-
-        private static method takeVirtualCd(integer pid, integer abilId) -> real {
-            integer i;
-            real val;
-            if (thistype.virtualCount[pid] <= 0) {
-                return 0.0;
-            }
-            for (1 <= i <= thistype.virtualCount[pid]) {
-                if (thistype.virtualAbil[pid][i] == abilId) {
-                    val = thistype.virtualCd[pid][i];
-                    thistype.virtualAbil[pid][i] = thistype.virtualAbil[pid][thistype.virtualCount[pid]];
-                    thistype.virtualCd[pid][i] = thistype.virtualCd[pid][thistype.virtualCount[pid]];
-                    thistype.virtualAbil[pid][thistype.virtualCount[pid]] = 0;
-                    thistype.virtualCd[pid][thistype.virtualCount[pid]] = 0.0;
-                    thistype.virtualCount[pid] -= 1;
-                    return val;
-                }
-            }
-            return 0.0;
-        }
-
-        private static method queuePendingRestore(integer pid, integer abilId, real cd) {
-            integer i;
-
-            if (cd <= 0.0) { return; }
-
-            for (1 <= i <= thistype.pendingRestoreCount[pid]) {
-                if (thistype.pendingRestoreAbil[pid][i] == abilId) {
-                    thistype.pendingRestoreCd[pid][i] = cd;
-                    return;
-                }
-            }
-
-            thistype.pendingRestoreCount[pid] += 1;
-            thistype.pendingRestoreAbil[pid][thistype.pendingRestoreCount[pid]] = abilId;
-            thistype.pendingRestoreCd[pid][thistype.pendingRestoreCount[pid]] = cd;
-        }
-
         private static method restoreCooldownNow(integer pid, unit u) {
             integer i;
 
@@ -243,16 +168,7 @@ library Talent requires AbilityCool {
                 thistype.snapCd[pid][i] = 0.0;
             }
 
-            for (1 <= i <= thistype.pendingRestoreCount[pid]) {
-                if (thistype.pendingRestoreAbil[pid][i] != 0 && thistype.pendingRestoreCd[pid][i] > 0.0) {
-                    YDWESetUnitAbilityState(u, thistype.pendingRestoreAbil[pid][i], ABILITY_STATE_COOLDOWN, thistype.pendingRestoreCd[pid][i]);
-                }
-                thistype.pendingRestoreAbil[pid][i] = 0;
-                thistype.pendingRestoreCd[pid][i] = 0.0;
-            }
-
             thistype.snapCount[pid] = 0;
-            thistype.pendingRestoreCount[pid] = 0;
         }
 
         private static method rebuild(integer pid, boolean fo) {
@@ -297,9 +213,9 @@ library Talent requires AbilityCool {
                 return;
             }
 
-            thistype.ensureBookAbility(u, BOOK1, true);
-            // thistype.ensureBookAbility(u, BOOK2, enable2);
-            // thistype.ensureBookAbility(u, BOOK3, enable3);
+            if (GetUnitAbilityLevel(u, BOOK1) == 0) {
+                UnitAddAbility(u, BOOK1);
+            }
 
             thistype.snapCount[pid] = 0;
             if (set1) {
@@ -331,7 +247,7 @@ library Talent requires AbilityCool {
             thistype.lastEnable2[pid] = enable2;
             thistype.lastEnable3[pid] = enable3;
 
-            if (thistype.snapCount[pid] > 0 || thistype.pendingRestoreCount[pid] > 0) {
+            if (thistype.snapCount[pid] > 0) {
                 thistype.restoreCooldownNow(pid, u);
             }
         }
@@ -404,7 +320,8 @@ library Talent requires AbilityCool {
 
         public static method addSpellId(player p, integer abilId) -> boolean {
             integer pid;
-            real cdVirt;
+            unit u;
+            real cd;
 
             pid = thistype.getPid(p);
             if (pid == 0 || abilId == 0) { return false; }
@@ -421,12 +338,17 @@ library Talent requires AbilityCool {
             thistype.skillCount[pid] += 1;
             thistype.skills[pid][thistype.skillCount[pid]] = abilId;
 
-            cdVirt = thistype.takeVirtualCd(pid, abilId);
-            if (cdVirt > 0.0) {
-                thistype.queuePendingRestore(pid, abilId, cdVirt);
-            }
-
             thistype.rebuild(pid, false);
+
+            // 若该技能此前被移出技能书但仍处于冷却中，则从 AbilityCool 取剩余CD并写回真实CD
+            u = thistype.bookUnit[pid];
+            if (u != null) {
+                cd = GetAbilityCD(u, abilId);
+                if (cd > 0.0) {
+                    YDWESetUnitAbilityState(u, abilId, ABILITY_STATE_COOLDOWN, cd);
+                }
+            }
+            u = null;
             return true;
         }
 
@@ -449,10 +371,10 @@ library Talent requires AbilityCool {
             if (u != null) {
                 cd = YDWEGetUnitAbilityState(u, abilId, ABILITY_STATE_COOLDOWN);
                 if (cd > 0.0) {
-                    thistype.saveVirtualCd(pid, abilId, cd);
                     SetAbilityCD(u, abilId, cd);
                 }
             }
+            u = null;
 
             for (idx <= i <= thistype.skillCount[pid] - 1) {
                 thistype.skills[pid][i] = thistype.skills[pid][i + 1];

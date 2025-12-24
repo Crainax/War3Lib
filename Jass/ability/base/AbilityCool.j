@@ -175,6 +175,29 @@ library AbilityCool requires HashTable {
         return false;
     }
 
+    // 获取技能逻辑冷却剩余时间（秒）。若无记录则返回 0.0
+    public function GetAbilityCD(unit u, integer abilityID) -> real {
+        integer parentKey; real cd;
+
+        if (u == null || abilityID == 0) { return 0.0; }
+
+        parentKey = GetAbilityHashKey(u, abilityID);
+        if (parentKey == 0) { return 0.0; }
+
+        if (!HaveSavedReal(HASH_ABILITY, parentKey, HASH_CHILD_SALT_ABILITY_COOLDOWN)) {
+            return 0.0;
+        }
+
+        cd = LoadReal(HASH_ABILITY, parentKey, HASH_CHILD_SALT_ABILITY_COOLDOWN);
+        if (cd <= 0.0) {
+            // 冷却记录已到期，顺手清理
+            RemoveSavedReal(HASH_ABILITY, parentKey, HASH_CHILD_SALT_ABILITY_COOLDOWN);
+            return 0.0;
+        }
+
+        return cd;
+    }
+
     // 设置技能逻辑冷却时间（秒）
     public function SetAbilityCD(unit u, integer abilityID, real value) {
         if (u == null || abilityID == 0) { return; }

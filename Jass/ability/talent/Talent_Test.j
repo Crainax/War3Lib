@@ -206,6 +206,7 @@ library UTTalent requires Talent {
 		real	value = 0.0;
 		boolean ok = false;
 		integer pid;
+		integer level = 0;
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -285,6 +286,35 @@ library UTTalent requires Talent {
 				}
 			} else {
 				DisplayTextToPlayer(p, 0, 0, "[TalentTest] 用法：-cdget 技能ID");
+			}
+		} else if (paramS[0] == "level" || paramS[0] == "levelset") {
+			if (num >= 3) {
+				abilId = YDWES2Id(paramS[1]);
+				level = paramI[2];
+				u = getOrCreateTalentUnit(p);
+				if (u != null && abilId != 0 && level >= 1) {
+					SetUnitAbilityLevel(u, abilId, level);
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] 已设置 " + paramS[1] + " 等级=" + I2S(level));
+				} else if (level < 1) {
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] 等级必须 >= 1");
+				} else {
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] 无效技能ID或单位未绑定");
+				}
+			} else {
+				DisplayTextToPlayer(p, 0, 0, "[TalentTest] 用法：-level 技能ID 等级");
+			}
+		} else if (paramS[0] == "levelget") {
+			if (num >= 2) {
+				abilId = YDWES2Id(paramS[1]);
+				u = getOrCreateTalentUnit(p);
+				if (u != null && abilId != 0) {
+					level = GetUnitAbilityLevel(u, abilId);
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] " + paramS[1] + " 当前等级=" + I2S(level));
+				} else {
+					DisplayTextToPlayer(p, 0, 0, "[TalentTest] 无效技能ID或单位未绑定");
+				}
+			} else {
+				DisplayTextToPlayer(p, 0, 0, "[TalentTest] 用法：-levelget 技能ID");
 			}
 		} else {
 			DisplayTextToPlayer(p, 0, 0, "[TalentTest] 未知命令。");
