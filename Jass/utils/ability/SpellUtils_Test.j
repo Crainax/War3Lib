@@ -15,7 +15,7 @@
 //! zinc
 
 //自动生成的文件
-library UTSpellUtils requires SpellUtils, LBKKAPI {
+library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
 
 	// 全局测试单位引用和技能跟踪
 	private unit testUnits[3];
