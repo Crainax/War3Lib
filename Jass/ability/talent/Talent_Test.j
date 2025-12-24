@@ -14,6 +14,8 @@
 library UTTalent requires Talent {
 
 	private unit talentTestUnit[];
+	private integer testSkillIndex[];  // 每个玩家的当前技能指针
+	private integer testSkillList[37]; // 37个测试技能ID
 
 	private function getOrCreateTalentUnit(player p) -> unit {
 		integer pid;
@@ -43,6 +45,55 @@ library UTTalent requires Talent {
 		return u;
 	}
 
+	private function initTestSkillList() {
+		// 直接赋值37个技能ID（0-36索引）
+		// 第1组: AEbl,AEfk,AEsh,AEsv
+		testSkillList[0] = 'AEbl';
+		testSkillList[1] = 'AEfk';
+		testSkillList[2] = 'AEsh';
+		testSkillList[3] = 'AEsv';
+		// 第2组: AHhb,AHds,AHre,AHad
+		testSkillList[4] = 'AHhb';
+		testSkillList[5] = 'AHds';
+		testSkillList[6] = 'AHre';
+		// 第3组: AHfs,AHbn,AHdr,AHpx
+		testSkillList[7] = 'AHfs';
+		testSkillList[8] = 'AHbn';
+		testSkillList[9] = 'AHdr';
+		testSkillList[10] = 'AHpx';
+		// 第4组: AHbz,AHab,AHwe,AHmt
+		testSkillList[11] = 'AHbz';
+		testSkillList[12] = 'AHwe';
+		testSkillList[13] = 'AHmt';
+		// 第5组: AHtc,AHtb,AHbh,AHav
+		testSkillList[14] = 'AHtc';
+		testSkillList[15] = 'AHtb';
+		testSkillList[16] = 'AHav';
+		// 第6组: ANfl,ANfa,ANms,ANto
+		testSkillList[17] = 'ANfl';
+		testSkillList[18] = 'ANfa';
+		testSkillList[19] = 'ANms';
+		testSkillList[20] = 'ANto';
+		// 第7组: AHca,AEst,AEar,AEsf
+		testSkillList[21] = 'AHca';
+		testSkillList[22] = 'AEst';
+		testSkillList[23] = 'AEsf';
+		// 第8组: ACs7,AOcl,AEsh,ANr2
+		testSkillList[24] = 'ACs7';
+		testSkillList[25] = 'AOcl';
+		testSkillList[26] = 'ANr2';
+		// 第9组: ANhs,ANab,ANcr,ANtm
+		testSkillList[27] = 'ANhs';
+		testSkillList[28] = 'ANab';
+		testSkillList[29] = 'ANcr';
+		testSkillList[30] = 'ANtm';
+		// 第10组: AOwk,AOcr,AOmi,AOww
+		testSkillList[31] = 'AOwk';
+		testSkillList[32] = 'AOcr';
+		testSkillList[33] = 'AOmi';
+		testSkillList[34] = 'AOww';
+	}
+
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
@@ -52,10 +103,90 @@ library UTTalent requires Talent {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//assert.Boolean(true, "测试1");
 		},null);
+		initTestSkillList();
 	}
 
-	function TTestUTTalent1 (player p) {}
-	function TTestUTTalent2 (player p) {}
+	function TTestUTTalent1 (player p) {
+		integer pid;
+		integer abilId;
+		boolean ok;
+		unit u;
+
+		pid = GetConvertedPlayerId(p);
+		if (pid < 1 || pid > MAX_PLAYER_COUNT) {
+			return;
+		}
+
+		// 确保已绑定单位
+		u = getOrCreateTalentUnit(p);
+		if (u != null) {
+			talent.bindUnit(p, u);
+		}
+
+		// 检查是否还有技能可添加
+		if (testSkillIndex[pid] >= 37) {
+			DisplayTextToPlayer(p, 0, 0, "[TalentTest] 所有技能已添加完毕，使用 -clear 重置。");
+			u = null;
+			return;
+		}
+
+		// 添加1个技能
+		abilId = testSkillList[testSkillIndex[pid]];
+		ok = talent.addSpellId(p, abilId);
+		if (ok) {
+			testSkillIndex[pid] += 1;
+			DisplayTextToPlayer(p, 0, 0, "[TalentTest] s1: 已添加 " + YDWEId2S(abilId) + " (索引 " + I2S(testSkillIndex[pid]) + "/37)");
+		} else {
+			DisplayTextToPlayer(p, 0, 0, "[TalentTest] s1: 添加失败 " + YDWEId2S(abilId));
+		}
+
+		u = null;
+	}
+
+	function TTestUTTalent2 (player p) {
+		integer pid;
+		integer i;
+		integer abilId;
+		integer added;
+		boolean ok;
+		unit u;
+
+		pid = GetConvertedPlayerId(p);
+		if (pid < 1 || pid > MAX_PLAYER_COUNT) {
+			return;
+		}
+
+		// 确保已绑定单位
+		u = getOrCreateTalentUnit(p);
+		if (u != null) {
+			talent.bindUnit(p, u);
+		}
+
+		// 检查是否还有技能可添加
+		if (testSkillIndex[pid] >= 37) {
+			DisplayTextToPlayer(p, 0, 0, "[TalentTest] 所有技能已添加完毕，使用 -clear 重置。");
+			u = null;
+			return;
+		}
+
+		// 添加3个技能
+		added = 0;
+		for (1 <= i <= 3) {
+			if (testSkillIndex[pid] >= 37) {
+				break;
+			}
+			abilId = testSkillList[testSkillIndex[pid]];
+			ok = talent.addSpellId(p, abilId);
+			if (ok) {
+				testSkillIndex[pid] += 1;
+				added += 1;
+			}
+		}
+
+		DisplayTextToPlayer(p, 0, 0, "[TalentTest] s2: 已添加 " + I2S(added) + " 个技能 (索引 " + I2S(testSkillIndex[pid]) + "/37)");
+
+		u = null;
+	}
 	function TTestUTTalent3 (player p) {}
 	function TTestUTTalent4 (player p) {}
 	function TTestUTTalent5 (player p) {}
@@ -74,6 +205,7 @@ library UTTalent requires Talent {
 		integer abilId = 0;
 		real	value = 0.0;
 		boolean ok = false;
+		integer pid;
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -123,8 +255,12 @@ library UTTalent requires Talent {
 		} else if (paramS[0] == "show") {
 			talent.debugPrintList(p);
 		} else if (paramS[0] == "clear") {
+			pid = GetConvertedPlayerId(p);
+			if (pid >= 1 && pid <= MAX_PLAYER_COUNT) {
+				testSkillIndex[pid] = 0;
+			}
 			talent.clearAll(p);
-			DisplayTextToPlayer(p, 0, 0, "[TalentTest] 已清空技能列表。");
+			DisplayTextToPlayer(p, 0, 0, "[TalentTest] 已清空技能列表并重置指针。");
 		} else if (paramS[0] == "check") {
 			DisplayTextToPlayer(p, 0, 0, "[TalentTest] isInSpellBookLocal=" + S3(talent.isInSpellBookLocal(p), "true", "false"));
 		} else if (paramS[0] == "cdset") {

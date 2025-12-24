@@ -1,0 +1,84 @@
+[A000]
+_parent = "Aspb"
+-- 按钮位置 - 普通 (Y)
+Buttonpos_2 = 1
+-- 共享法术CD间隔
+DataB = 0
+-- 最小法术数量
+DataC = 11
+-- 最大法术数量
+DataD = 11
+-- 基础命令ID
+DataE = "blight"
+DataA = "" -- 法术列表
+-- 热键 - 普通
+Hotkey = "G"
+-- 名字
+Name = "|cffccffcc天赋技能树|r"
+-- 提示工具 - 普通
+Tip = "|cffccffcc天赋技能树|r(|cffffcc00G|r)"
+-- 提示工具 - 普通 - 扩展
+Ubertip = [=[
+你可以在本局游戏中不断强化你的天赋效果,打造独一无二的属性效果!
+
+|cffffff00★|r|cff00ccff天赋总上限为11个
+|r|cffff9900★|r|cffffffff每次学习你的天赋时,随机从天赋池中挑选几个天赋来选择学习.
+|r|cffffff00★|r|cff95ff95每达到一定的条件即可解锁天赋树位置|r]=]
+-- 物品技能
+item = 0
+-- 种族
+race = "human"
+
+[A001]
+_parent = "Aspb"
+-- 按钮位置 - 普通 (Y)
+Buttonpos_1 = 1
+Buttonpos_2 = 1
+-- 共享法术CD间隔
+DataA = ""
+DataB = 0
+-- 最小法术数量
+DataC = 11
+-- 最大法术数量
+DataD = 11
+-- 基础命令ID
+DataE = "resumebuild"
+-- 热键 - 普通
+Hotkey = "T"
+-- 名字
+Name = "|cffccffcc天赋技能树2|r"
+-- 提示工具 - 普通
+Tip = "|cffccffcc天赋技能树2|r(|cffffcc00G|r)"
+-- 提示工具 - 普通 - 扩展
+Ubertip = [=[天赋技能树2]=]
+-- 物品技能
+item = 0
+-- 种族
+race = "human"
+
+[A002]
+_parent = "Aspb"
+-- 按钮位置 - 普通 (Y)
+Buttonpos_1 = 1
+Buttonpos_2 = 1
+-- 共享法术CD间隔
+DataA = ""
+DataB = 0
+-- 最小法术数量
+DataC = 11
+-- 最大法术数量
+DataD = 11
+-- 基础命令ID
+DataE = "selfdestructoff"
+-- 热键 - 普通
+Hotkey = "T"
+-- 名字
+Name = "|cffccffcc天赋技能树3|r"
+-- 提示工具 - 普通
+Tip = "|cffccffcc天赋技能树3|r(|cffffcc00G|r)"
+-- 提示工具 - 普通 - 扩展
+Ubertip = [=[天赋技能树2]=]
+-- 物品技能
+item = 0
+-- 种族
+race = "human"

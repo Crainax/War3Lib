@@ -230,54 +230,29 @@ library Talent requires AbilityCool {
             thistype.pendingRestoreCd[pid][thistype.pendingRestoreCount[pid]] = cd;
         }
 
-        private static method startRestoreTimer(integer pid) {
-            if (thistype.restoreTimer[pid] == null) {
-                thistype.restoreTimer[pid] = CreateTimer();
-            } else {
-                PauseTimer(thistype.restoreTimer[pid]);
+        private static method restoreCooldownNow(integer pid, unit u) {
+            integer i;
+
+            if (u == null) { return; }
+
+            for (1 <= i <= thistype.snapCount[pid]) {
+                if (thistype.snapAbil[pid][i] != 0 && thistype.snapCd[pid][i] > 0.0) {
+                    YDWESetUnitAbilityState(u, thistype.snapAbil[pid][i], ABILITY_STATE_COOLDOWN, thistype.snapCd[pid][i]);
+                }
+                thistype.snapAbil[pid][i] = 0;
+                thistype.snapCd[pid][i] = 0.0;
             }
-            TimerStart(thistype.restoreTimer[pid], 0.03, false, function () {
-                timer t;
-                integer pid; integer i;
-                unit u;
-                real cd;
 
-                t = GetExpiredTimer();
-                pid = 0;
-                for (1 <= i <= MAX_PLAYER_COUNT) {
-                    if (thistype.restoreTimer[i] == t) {
-                        pid = i;
-                        break;
-                    }
+            for (1 <= i <= thistype.pendingRestoreCount[pid]) {
+                if (thistype.pendingRestoreAbil[pid][i] != 0 && thistype.pendingRestoreCd[pid][i] > 0.0) {
+                    YDWESetUnitAbilityState(u, thistype.pendingRestoreAbil[pid][i], ABILITY_STATE_COOLDOWN, thistype.pendingRestoreCd[pid][i]);
                 }
+                thistype.pendingRestoreAbil[pid][i] = 0;
+                thistype.pendingRestoreCd[pid][i] = 0.0;
+            }
 
-                if (pid == 0) {
-                    return;
-                }
-
-                u = thistype.bookUnit[pid];
-
-                if (u != null) {
-                    for (1 <= i <= thistype.snapCount[pid]) {
-                        if (thistype.snapAbil[pid][i] != 0 && thistype.snapCd[pid][i] > 0.0) {
-                            YDWESetUnitAbilityState(u, thistype.snapAbil[pid][i], ABILITY_STATE_COOLDOWN, thistype.snapCd[pid][i]);
-                        }
-                        thistype.snapAbil[pid][i] = 0;
-                        thistype.snapCd[pid][i] = 0.0;
-                    }
-
-                    for (1 <= i <= thistype.pendingRestoreCount[pid]) {
-                        if (thistype.pendingRestoreAbil[pid][i] != 0 && thistype.pendingRestoreCd[pid][i] > 0.0) {
-                            YDWESetUnitAbilityState(u, thistype.pendingRestoreAbil[pid][i], ABILITY_STATE_COOLDOWN, thistype.pendingRestoreCd[pid][i]);
-                        }
-                        thistype.pendingRestoreAbil[pid][i] = 0;
-                        thistype.pendingRestoreCd[pid][i] = 0.0;
-                    }
-                }
-
-                thistype.snapCount[pid] = 0;
-                thistype.pendingRestoreCount[pid] = 0;
-            });
+            thistype.snapCount[pid] = 0;
+            thistype.pendingRestoreCount[pid] = 0;
         }
 
         private static method rebuild(integer pid, boolean fo) {
@@ -323,8 +298,8 @@ library Talent requires AbilityCool {
             }
 
             thistype.ensureBookAbility(u, BOOK1, true);
-            thistype.ensureBookAbility(u, BOOK2, enable2);
-            thistype.ensureBookAbility(u, BOOK3, enable3);
+            // thistype.ensureBookAbility(u, BOOK2, enable2);
+            // thistype.ensureBookAbility(u, BOOK3, enable3);
 
             thistype.snapCount[pid] = 0;
             if (set1) {
@@ -357,7 +332,7 @@ library Talent requires AbilityCool {
             thistype.lastEnable3[pid] = enable3;
 
             if (thistype.snapCount[pid] > 0 || thistype.pendingRestoreCount[pid] > 0) {
-                thistype.startRestoreTimer(pid);
+                thistype.restoreCooldownNow(pid, u);
             }
         }
 
