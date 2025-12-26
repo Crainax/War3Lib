@@ -9,6 +9,7 @@
 //自动生成的文件
 library UTUnitSelect requires UnitSelect {
 
+	unit priest = null;
 	function TTestUTUnitSelect1 (player p) {
 		unitSelect.onSync(function (){ //同步时选中单位调用
 			unit u = unitSelect.argsSync;
@@ -59,7 +60,12 @@ library UTUnitSelect requires UnitSelect {
 		}
 	}
 
-	function TTestUTUnitSelect4 (player p) {}
+	function TTestUTUnitSelect4 (player p) {
+		if (GetLocalPlayer() == p) {
+			ClearSelection();
+			SelectUnit(priest, true);
+		}
+	}
 	function TTestUTUnitSelect5 (player p) {}
 	function TTestUTUnitSelect6 (player p) {}
 	function TTestUTUnitSelect7 (player p) {}
@@ -103,7 +109,7 @@ library UTUnitSelect requires UnitSelect {
 		trigger tr = CreateTrigger();
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
-			unit hero, building, footman1, footman2, archer, priest;
+			unit hero, building, footman1, footman2, archer;
 
 			BJDebugMsg("[UnitSelect] 单元测试已加载");
 

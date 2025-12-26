@@ -2,9 +2,9 @@
 #define TalentIncluded
 
 #define SKILL_LIMIT_PER_PLAYER     31
-#define BOOK1                      'A000'
-#define BOOK2                      'A001'
-#define BOOK3                      'A002'
+#define TALENT_BOOK1_SPELLID       'A000'
+#define TALENT_BOOK2_SPELLID       'A001'
+#define TALENT_BOOK3_SPELLID       'A002'
 #define ORDERID_IN_SPELLBOOK       851975
 
 #include "Crainax/core/constant/JapiConstant.j"
@@ -13,7 +13,7 @@
 /*
 新版异度上的天赋系统
 */
-library Talent requires AbilityCool {
+library Talent requires AbilityCool, Hardware {
 
     public struct talent [] {
         private static unit bookUnit[];
@@ -30,6 +30,11 @@ library Talent requires AbilityCool {
         private static integer snapAbil[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
         private static real snapCd[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
         private static timer restoreTimer[];
+
+        private static trigger trSpellBookEnter = null;
+        private static trigger trSpellBookLeave = null;
+        private static boolean localSpellBookEntered = false;
+        private static boolean spellBookWatcherReady = false;
 
         private static method getPid(player p) -> integer {
             integer pid;
@@ -92,7 +97,7 @@ library Talent requires AbilityCool {
             }
 
             list = thistype.joinRange(pid, 1, 10);
-            bridge = YDWEId2S(BOOK2);
+            bridge = YDWEId2S(TALENT_BOOK2_SPELLID);
             if (list == "") {
                 return bridge;
             }
@@ -112,7 +117,7 @@ library Talent requires AbilityCool {
             }
 
             list = thistype.joinRange(pid, 11, 20);
-            bridge = YDWEId2S(BOOK3);
+            bridge = YDWEId2S(TALENT_BOOK3_SPELLID);
             if (list == "") {
                 return bridge;
             }
@@ -213,8 +218,8 @@ library Talent requires AbilityCool {
                 return;
             }
 
-            if (GetUnitAbilityLevel(u, BOOK1) == 0) {
-                UnitAddAbility(u, BOOK1);
+            if (GetUnitAbilityLevel(u, TALENT_BOOK1_SPELLID) == 0) {
+                UnitAddAbility(u, TALENT_BOOK1_SPELLID);
             }
 
             thistype.snapCount[pid] = 0;
@@ -227,18 +232,18 @@ library Talent requires AbilityCool {
             }
 
             if (set1) {
-                DzSetUnitAbilitySpellBookList(u, BOOK1, list1, true);
-                DzSetUnitAbilityUpdate(u, BOOK1);
+                DzSetUnitAbilitySpellBookList(u, TALENT_BOOK1_SPELLID, list1, true);
+                DzSetUnitAbilityUpdate(u, TALENT_BOOK1_SPELLID);
             }
 
             if (set2 && enable2) {
-                DzSetUnitAbilitySpellBookList(u, BOOK2, list2, true);
-                DzSetUnitAbilityUpdate(u, BOOK2);
+                DzSetUnitAbilitySpellBookList(u, TALENT_BOOK2_SPELLID, list2, true);
+                DzSetUnitAbilityUpdate(u, TALENT_BOOK2_SPELLID);
             }
 
             if (set3 && enable3) {
-                DzSetUnitAbilitySpellBookList(u, BOOK3, list3, true);
-                DzSetUnitAbilityUpdate(u, BOOK3);
+                DzSetUnitAbilitySpellBookList(u, TALENT_BOOK3_SPELLID, list3, true);
+                DzSetUnitAbilityUpdate(u, TALENT_BOOK3_SPELLID);
             }
 
             thistype.lastList1[pid] = list1;
@@ -251,6 +256,7 @@ library Talent requires AbilityCool {
                 thistype.restoreCooldownNow(pid, u);
             }
         }
+
 
         public static method bindUnit(player p, unit u) {
             integer pid;
@@ -296,12 +302,12 @@ library Talent requires AbilityCool {
                 return;
             }
 
-            list = DzGetUnitAbilitySpellBookList(u, BOOK1);
-            DisplayTextToPlayer(p, 0, 0, "BOOK1: " + S3(list == null, "", list));
-            list = DzGetUnitAbilitySpellBookList(u, BOOK2);
-            DisplayTextToPlayer(p, 0, 0, "BOOK2: " + S3(list == null, "", list));
-            list = DzGetUnitAbilitySpellBookList(u, BOOK3);
-            DisplayTextToPlayer(p, 0, 0, "BOOK3: " + S3(list == null, "", list));
+            list = DzGetUnitAbilitySpellBookList(u, TALENT_BOOK1_SPELLID);
+            DisplayTextToPlayer(p, 0, 0, "TALENT_BOOK1_SPELLID: " + S3(list == null, "", list));
+            list = DzGetUnitAbilitySpellBookList(u, TALENT_BOOK2_SPELLID);
+            DisplayTextToPlayer(p, 0, 0, "TALENT_BOOK2_SPELLID: " + S3(list == null, "", list));
+            list = DzGetUnitAbilitySpellBookList(u, TALENT_BOOK3_SPELLID);
+            DisplayTextToPlayer(p, 0, 0, "TALENT_BOOK3_SPELLID: " + S3(list == null, "", list));
         }
 
         public static method clearAll(player p) {
@@ -386,30 +392,139 @@ library Talent requires AbilityCool {
             return true;
         }
 
-        public static method isInSpellBookLocal(player p) -> boolean {
+        public static method isInSpellBookLocal() -> boolean {
             integer pid;
             integer abilId;
             integer orderId;
+            unit selected;
 
-            pid = thistype.getPid(p);
+            pid = thistype.getPid(GetLocalPlayer());
             if (pid == 0) { return false; }
+
+            selected = DzGetSelectedLeaderUnit();
+            if (selected != thistype.bookUnit[pid]) {
+                selected = null;
+                return false;
+            }
 
             abilId = GetCurrentXYAbility(0, 0);
             orderId = GetCurrentXYAbilityOrder(3, 2);
 
             if (orderId != ORDERID_IN_SPELLBOOK) {
+                selected = null;
                 return false;
             }
 
             if (abilId == 0) {
+                selected = null;
                 return false;
             }
 
+            selected = null;
             return thistype.indexOf(pid, abilId) != 0;
         }
+
+
+        private static method ensureSpellBookWatcher() {
+            if (thistype.spellBookWatcherReady) {
+                return;
+            }
+            thistype.spellBookWatcherReady = true;
+
+            hardware.regUpdateEvent(function () {
+                player lp;
+                integer pid;
+                unit selectedBind;
+                integer orderId;
+                integer abilId;
+                boolean shouldLeave;
+
+                if (thistype.trSpellBookEnter == null && thistype.trSpellBookLeave == null) {
+                    return;
+                }
+
+                lp = GetLocalPlayer();
+                pid = thistype.getPid(lp);
+                if (pid == 0) {
+                    thistype.localSpellBookEntered = false;
+                    lp = null;
+                    return;
+                }
+
+                selectedBind = thistype.bookUnit[pid];
+
+                if (!thistype.localSpellBookEntered) {
+                    if (selectedBind != null && thistype.isInSpellBookLocal()) {
+                        thistype.localSpellBookEntered = true;
+                        if (thistype.trSpellBookEnter != null) {
+                            TriggerEvaluate(thistype.trSpellBookEnter);
+                        }
+                    }
+                } else {
+                    shouldLeave = false;
+
+                    if (selectedBind == null || DzGetSelectedLeaderUnit() != selectedBind) {
+                        shouldLeave = true;
+                    } else {
+                        orderId = GetCurrentXYAbilityOrder(3, 2);
+                        if (orderId == ORDERID_IN_SPELLBOOK || orderId == 851979) {
+                            abilId = GetCurrentXYAbility(0, 0);
+                            if (abilId != 0 && thistype.indexOf(pid, abilId) == 0) {
+                                shouldLeave = true;
+                            }
+                        } else {
+                            shouldLeave = true;
+                        }
+                    }
+
+                    if (shouldLeave) {
+                        thistype.localSpellBookEntered = false;
+                        if (thistype.trSpellBookLeave != null) {
+                            TriggerEvaluate(thistype.trSpellBookLeave);
+                        }
+
+                        selectedBind = thistype.bookUnit[pid];
+                        if (selectedBind != null && thistype.isInSpellBookLocal()) {
+                            thistype.localSpellBookEntered = true;
+                            if (thistype.trSpellBookEnter != null) {
+                                TriggerEvaluate(thistype.trSpellBookEnter);
+                            }
+                        }
+                    }
+                }
+
+                selectedBind = null;
+                lp = null;
+            });
+        }
+
+        public static method onSpellBookEnter(code func) {
+            if (func == null) { return; }
+            if (thistype.trSpellBookEnter == null) {
+                thistype.trSpellBookEnter = CreateTrigger();
+            }
+            TriggerAddCondition(thistype.trSpellBookEnter, Condition(func));
+            thistype.ensureSpellBookWatcher();
+        }
+
+        public static method onSpellBookLeave(code func) {
+            if (func == null) { return; }
+            if (thistype.trSpellBookLeave == null) {
+                thistype.trSpellBookLeave = CreateTrigger();
+            }
+            TriggerAddCondition(thistype.trSpellBookLeave, Condition(func));
+            thistype.ensureSpellBookWatcher();
+        }
+
     }
 
 }
+
+#undef SKILL_LIMIT_PER_PLAYER
+#undef TALENT_BOOK1_SPELLID
+#undef TALENT_BOOK2_SPELLID
+#undef TALENT_BOOK3_SPELLID
+#undef ORDERID_IN_SPELLBOOK
 
 //! endzinc
 #endif

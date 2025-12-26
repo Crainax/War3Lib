@@ -10,6 +10,51 @@
 
 //! zinc
 
+/*
+ * ========================================
+ * Talent 系统测试指令说明
+ * ========================================
+ *
+ * 【快捷指令】（直接输入）
+ *   s1          - 添加1个测试技能（按顺序）
+ *   s2          - 添加3个测试技能（按顺序）
+ *   s3-s10      - 预留测试指令（未实现）
+ *
+ * 【命令指令】（以 - 开头）
+ *   -bind                    - 绑定/创建测试英雄单位
+ *   -add <技能ID>            - 添加指定技能到技能书
+ *                              示例：-add AHbz
+ *   -rm <技能ID>             - 从技能书移除指定技能
+ *                              示例：-rm AHbz
+ *   -show                    - 显示当前技能列表和技能书状态
+ *   -clear                   - 清空所有技能并重置测试指针
+ *   -check                   - 检查当前鼠标悬停的技能是否在技能书中
+ *
+ * 【冷却相关指令】
+ *   -cdset <技能ID> <秒数>   - 设置指定技能的真实冷却时间
+ *                              示例：-cdset AHbz 5.0
+ *   -cdget <技能ID>          - 获取指定技能的真实冷却时间
+ *                              示例：-cdget AHbz
+ *
+ * 【等级相关指令】
+ *   -level <技能ID> <等级>    - 设置指定技能的等级（>= 1）
+ *   -levelset <技能ID> <等级> - 同上，设置技能等级
+ *                              示例：-level AHbz 3
+ *   -levelget <技能ID>       - 获取指定技能的当前等级
+ *                              示例：-levelget AHbz
+ *
+ * 【测试流程建议】
+ *   1. 输入 -bind 绑定测试英雄
+ *   2. 输入 s1 或 s2 添加测试技能，或使用 -add <技能ID> 添加特定技能
+ *   3. 使用 -cdset 设置技能冷却，测试冷却恢复功能
+ *   4. 使用 -rm 移除技能，验证冷却是否在 AbilityCool 中继续计时
+ *   5. 使用 -add 重新添加技能，验证冷却是否正确恢复
+ *   6. 使用 -show 查看当前技能列表状态
+ *   7. 使用 -clear 清空所有技能并重置
+ *
+ * ========================================
+ */
+
 //自动生成的文件
 library UTTalent requires Talent {
 
@@ -104,6 +149,15 @@ library UTTalent requires Talent {
 			//assert.Boolean(true, "测试1");
 		},null);
 		initTestSkillList();
+
+		talent.onSpellBookEnter(function () -> boolean {
+			BJDebugMsg("[TalentTest] SpellBook Enter");
+			return true;
+		});
+		talent.onSpellBookLeave(function () -> boolean {
+			BJDebugMsg("[TalentTest] SpellBook Leave");
+			return true;
+		});
 	}
 
 	function TTestUTTalent1 (player p) {
@@ -262,8 +316,6 @@ library UTTalent requires Talent {
 			}
 			talent.clearAll(p);
 			DisplayTextToPlayer(p, 0, 0, "[TalentTest] 已清空技能列表并重置指针。");
-		} else if (paramS[0] == "check") {
-			DisplayTextToPlayer(p, 0, 0, "[TalentTest] isInSpellBookLocal=" + S3(talent.isInSpellBookLocal(p), "true", "false"));
 		} else if (paramS[0] == "cdset") {
 			if (num >= 3) {
 				abilId = YDWES2Id(paramS[1]);
