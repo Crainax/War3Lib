@@ -150,12 +150,25 @@
 #define KEY_UNIT_HINT_TIME               255610178
 #define KEY_UNIT_HINT_OFFSET             255610179
 
+// 超级速度系统键值（BeyondSpeed）
+#define KEY_UNIT_SUPERSPEED_BONUS        255610180 // 累计加速值（integer，<=0 视为停止）
+#define KEY_UNIT_SUPERSPEED_DISABLED     255610181 // 暂停补位移标记（boolean/integer，true=暂停）
+#define KEY_UNIT_SUPERSPEED_EFX_PATH     255610182 // 残影特效路径（string）
+// 运行态（每单位一份，用于采样和补位移计算）
+#define KEY_UNIT_SUPERSPEED_X0           255610183 // 上一采样点X坐标（real）
+#define KEY_UNIT_SUPERSPEED_Y0           255610184 // 上一采样点Y坐标（real）
+#define KEY_UNIT_SUPERSPEED_X1           255610185 // 当前采样点X坐标（real）
+#define KEY_UNIT_SUPERSPEED_Y1           255610186 // 当前采样点Y坐标（real）
+#define KEY_UNIT_SUPERSPEED_N            255610187 // 特效播放计数（integer）
+#define KEY_UNIT_SUPERSPEED_N2           255610188 // 采样间隔累计（real）
+#define KEY_UNIT_SUPERSPEED_INTJ         255610189 // 采样间隔（real，默认0.02）
+
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_BOSS_PLAYER 10003 // 子键:是否属于BOSS
 #define KEY_UNIT_TM_TRANSPORTING 10004 // TM副本的传送对象
-
 
 
 #endif
