@@ -7,7 +7,6 @@
     通过 SetUnitX/Y 补位移模拟更高速度（突破 522 上限）
 */
 
-#define MAX_SUPER_SPEED 1000
 
 //! zinc
 library BeyondSpeed requires HashTable, UnitHashTable {

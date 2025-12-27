@@ -40,4 +40,5 @@
 //冲刺最大槽位数
 #define MAX_COUNT_DASH 10
 
+#define MAX_SUPER_SPEED 1000 //最大超级移速
 
