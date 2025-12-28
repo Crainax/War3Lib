@@ -67,7 +67,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
             // 确保定时器运行
             if (thistype.tickTimer == null) {
                 thistype.tickTimer = CreateTimer();
-                TimerStart(thistype.tickTimer, 0.02, true, function () {
+                TimerStart(thistype.tickTimer, 0.05, true, function () {
                     integer i; integer last; integer hid; unit u; real timeLeft;
 
                     // 单次遍历 + 尾部交换，O(n)
@@ -104,7 +104,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
 
                             if (timeLeft > 0.0) {
                                 // 时间未到，递减
-                                timeLeft = timeLeft - 0.02;
+                                timeLeft = timeLeft - 0.05;
                                 SaveReal(HASH_UNIT, hid, HASH_UNIT_IMMUTE_TIME_LEFT, timeLeft);
                             } else {
                                 // 时间到了（包括 0 秒无敌窗），移除无敌
@@ -172,8 +172,8 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
 
             if (thistype.tickTimer == null) {
                 thistype.tickTimer = CreateTimer();
-                TimerStart(thistype.tickTimer, 0.02, true, function () {
-                    integer i; integer hid; unit u; real timeLeft; real cdLeft; string effx; string loc; boolean hasStun; boolean hasCd;
+                TimerStart(thistype.tickTimer, 0.05, true, function () {
+                    integer i; integer hid; unit u; real timeLeft; string effx; string loc; boolean hasStun;
 
                     for (i = 0; i < thistype.size; i += 1) {
                         u = thistype.uList[i];
@@ -193,9 +193,6 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                                 if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
                                     RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
                                 }
-                                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT)) {
-                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
-                                }
                                 EXPauseUnit(u, false);
                             }
                             i = thistype.removeAt(i);
@@ -203,7 +200,6 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                         } else {
                             hid = GetHandleId(u);
                             hasStun = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
-                            hasCd = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
 
                             // 处理眩晕剩余时间
                             if (hasStun) {
@@ -211,7 +207,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                                 if (timeLeft > 0.0) {
                                     // 眩晕期间持续强制暂停，防止被外部解除暂停
                                     EXPauseUnit(u, true);
-                                    timeLeft = timeLeft - 0.02;
+                                    timeLeft = timeLeft - 0.05;
                                     SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, timeLeft);
                                 } else {
                                     // 眩晕到期，解除暂停与特效
@@ -243,21 +239,8 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                                 EXPauseUnit(u, false);
                             }
 
-                            // 处理CD剩余时间
-                            if (hasCd) {
-                                cdLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
-                                if (cdLeft > 0.0) {
-                                    cdLeft = cdLeft - 0.02;
-                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT, cdLeft);
-                                } else {
-                                    // CD到期，移除键位
-                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
-                                    hasCd = false;
-                                }
-                            }
-
-                            // 仅当眩晕和CD都不存在时，才从队列中移除
-                            if (!hasStun && !hasCd) {
+                            // 仅当眩晕不存在时，才从队列中移除（CD 由 StunCdQueue 独立管理）
+                            if (!hasStun) {
                                 i = thistype.removeAt(i);
                             }
                             u = null;
@@ -270,6 +253,94 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                         thistype.tickTimer = null;
                         #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
                         if (thistype.size <= 0) {BJDebugMsg("PauseQueue: 眩晕队列已销毁");}
+                        #endif
+                    }
+                });
+            }
+        }
+    }
+
+    // 眩晕CD队列：集中管理处于“眩晕CD”中的单位（独立计时器，仅递减 KEY_UNIT_STUN_CD_LEFT）
+    private struct StunCdQueue [] {
+        private static unit uList[];
+        private static integer size = 0;
+        private static timer tickTimer = null;
+
+        // 尾部交换移除指定索引
+        private static method removeAt(integer index) -> integer {
+            integer last;
+            if (index < 0 || index >= thistype.size) { return index; }
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.uList[index] = thistype.uList[last];
+            }
+            thistype.uList[last] = null;
+            thistype.size -= 1;
+            return index - 1;
+        }
+
+        // 将单位加入队列（若不在队列）
+        public static method addUnit(unit u) {
+            integer i;
+            if (u == null) { return; }
+
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { return; }
+            }
+
+            if (thistype.size >= 8190) {
+                BJDebugMsg("|cFFFF0000[StunCdQueue] 队列已满，无法继续添加眩晕CD单位！|r");
+                return;
+            }
+
+            thistype.uList[thistype.size] = u;
+            thistype.size += 1;
+
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.05, true, function () {
+                    integer i; integer hid; unit u; real cdLeft;
+
+                    for (i = 0; i < thistype.size; i += 1) {
+                        u = thistype.uList[i];
+                        if (u == null || GetUnitTypeId(u) == 0) {
+                            // 单位无效：清理CD并移出
+                            if (u != null) {
+                                hid = GetHandleId(u);
+                                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT)) {
+                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
+                                }
+                            }
+                            i = thistype.removeAt(i);
+                            u = null;
+                        } else {
+                            hid = GetHandleId(u);
+                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT)) {
+                                // 外部已清理CD：移出
+                                i = thistype.removeAt(i);
+                                u = null;
+                            } else {
+                                cdLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
+                                if (cdLeft > 0.0) {
+                                    cdLeft = cdLeft - 0.05;
+                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT, cdLeft);
+                                    u = null;
+                                } else {
+                                    // CD到期：清理并移出
+                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
+                                    i = thistype.removeAt(i);
+                                    u = null;
+                                }
+                            }
+                        }
+                    }
+
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        if (thistype.size <= 0) {BJDebugMsg("StunCdQueue: 眩晕CD队列已销毁");}
                         #endif
                     }
                 });
@@ -645,6 +716,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         // 如果未禁用CD，设置CD = effective * 10
         if (!cdDisabled) {
             SaveReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT, effective * 10.0);
+            StunCdQueue.addUnit(u);
         }
 
         // 处理眩晕特效（仅当参数有效时覆盖）
@@ -678,6 +750,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         if (!hasTime) {
             IssueImmediateOrder(u, "stop");
         }
+        BJDebugMsg("Pause/true:0");
         EXPauseUnit(u, true);
         PauseQueue.addUnit(u);
     }

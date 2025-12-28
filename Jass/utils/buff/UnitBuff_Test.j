@@ -404,9 +404,9 @@ library UTUnitBuff requires UnitBuff {
 
             if (u != null) {
                 // CD应已结束，再次眩晕应生效
-                StunUnit(u, 0.5, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+                StunUnit(u, 5, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
                 timeLeft = LoadReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_PAUSE_TIME_LEFT);
-                if (timeLeft > 0.4 && timeLeft < 0.6) {
+                if (timeLeft > 4.9 && timeLeft < 5.1) {
                     Trace("[UnitBuffTest] s16 完成：CD结束后再次眩晕生效，剩余时间 " + R2S(timeLeft));
                 } else {
                     Trace("|cFFFF0000[UnitBuffTest] s16 失败：CD结束后眩晕未生效，剩余时间 " + R2S(timeLeft) + "|r");
