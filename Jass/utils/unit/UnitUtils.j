@@ -503,6 +503,31 @@ library UnitUtils requires BigInteger,MathUtils {
         return LoadInteger(HASH_UNIT, uid, KEY_UNIT_STUN_IMMUNE) != 0;
     }
 
+    // 设置眩晕CD禁用（flag=true 表示禁用CD，无限眩晕）
+    public function SetUnitStunCdDisabled(unit u, boolean flag) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (flag) {
+            SaveInteger(HASH_UNIT, uid, KEY_UNIT_STUN_CD_DISABLED, 1);
+        } else {
+            if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_STUN_CD_DISABLED)) {
+                RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_STUN_CD_DISABLED);
+            }
+        }
+    }
+
+    // 查询眩晕CD是否禁用
+    public function IsUnitStunCdDisabled(unit u) -> boolean {
+        integer uid;
+        if (u == null) { return false; }
+        uid = GetHandleId(u);
+        if (!HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_STUN_CD_DISABLED)) {
+            return false;
+        }
+        return LoadInteger(HASH_UNIT, uid, KEY_UNIT_STUN_CD_DISABLED) != 0;
+    }
+
     //=====================
     // 吸怪抗性 / 免疫
     //=====================

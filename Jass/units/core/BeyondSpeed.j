@@ -3,8 +3,8 @@
 
 #include "Crainax/core/table/Hash_UnitDefine.j"
 /*
-    超级速度
-    通过 SetUnitX/Y 补位移模拟更高速度（突破 522 上限）
+超级速度
+通过 SetUnitX/Y 补位移模拟更高速度（突破 522 上限）
 */
 
 
@@ -218,6 +218,9 @@ library BeyondSpeed requires HashTable, UnitHashTable {
                         PauseTimer(thistype.tickTimer);
                         DestroyTimer(thistype.tickTimer);
                         thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        BJDebugMsg("SuperSpeedQueue: 超级速度队列已销毁");
+                        #endif
                     }
                 });
             }

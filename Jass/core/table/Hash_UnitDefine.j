@@ -134,6 +134,8 @@
 #define KEY_UNIT_PAUSE_TIME_LEFT             255610170 // 眩晕剩余时间
 #define KEY_UNIT_PAUSE_EFFX                  255610171 // 眩晕特效路径（string）
 #define KEY_UNIT_PAUSE_LOC                   255610172 // 眩晕特效挂点（string）
+#define KEY_UNIT_STUN_CD_LEFT                255610190 // 眩晕CD剩余时间（real）
+#define KEY_UNIT_STUN_CD_DISABLED            255610191 // 眩晕CD禁用标记（boolean/int，true=禁用CD，无限眩晕）
 
 //吸怪系统:返回位置与抗性/免疫
 #define KEY_UNIT_BACK_X                  255610173 // 返回位置X

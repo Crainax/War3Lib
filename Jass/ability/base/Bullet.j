@@ -344,6 +344,7 @@ library Bullet requires HashTable, DamageUtils, Geometry, GroupUtils {
         return t;
     }
 
+    //# check: BulletCastToPoint
     // 点到点子弹入口（类似 Mover.StartEffectMove 的 onComplete）：
     // 从 (startX,startY) 直线飞到 (targetX,targetY)，命中第一个敌人即结束，或到达目标点强制结束，结束时触发 onComplete。
     // 说明：onComplete 回调中可用 BulletCompleteGetTimer() 取回 timer，并通过 HASH_TIMER 读取你自存的参数。
@@ -448,6 +449,7 @@ library Bullet requires HashTable, DamageUtils, Geometry, GroupUtils {
         t          = null;
         return result;
     }
+    //# endcheck
 }
 
 //! endzinc

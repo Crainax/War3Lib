@@ -173,7 +173,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
             if (thistype.tickTimer == null) {
                 thistype.tickTimer = CreateTimer();
                 TimerStart(thistype.tickTimer, 0.02, true, function () {
-                    integer i; integer hid; unit u; real timeLeft; string effx; string loc;
+                    integer i; integer hid; unit u; real timeLeft; real cdLeft; string effx; string loc; boolean hasStun; boolean hasCd;
 
                     for (i = 0; i < thistype.size; i += 1) {
                         u = thistype.uList[i];
@@ -193,34 +193,28 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                                 if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
                                     RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
                                 }
+                                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT)) {
+                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
+                                }
                                 EXPauseUnit(u, false);
                             }
                             i = thistype.removeAt(i);
                             u = null;
                         } else {
                             hid = GetHandleId(u);
-                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
-                                // 外部已清理，解除暂停并移出
-                                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
-                                    effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                    if (effx != "") {
-                                        bindEffect.detachUnique(u, effx);
-                                    }
-                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
-                                    effx = "";
-                                }
-                                EXPauseUnit(u, false);
-                                i = thistype.removeAt(i);
-                                u = null;
-                            } else {
+                            hasStun = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
+                            hasCd = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
+
+                            // 处理眩晕剩余时间
+                            if (hasStun) {
                                 timeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
                                 if (timeLeft > 0.0) {
+                                    // 眩晕期间持续强制暂停，防止被外部解除暂停
+                                    EXPauseUnit(u, true);
                                     timeLeft = timeLeft - 0.02;
                                     SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, timeLeft);
-                                    u = null;
                                 } else {
-                                    // 到期，解除眩晕与特效
+                                    // 眩晕到期，解除暂停与特效
                                     EXPauseUnit(u, false);
                                     RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
                                     if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
@@ -233,10 +227,40 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                                     if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC)) {
                                         RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
                                     }
-                                    i = thistype.removeAt(i);
-                                    u = null;
+                                    hasStun = false;
+                                }
+                            } else {
+                                // 外部已清理眩晕，解除暂停
+                                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
+                                    effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                    if (effx != "") {
+                                        bindEffect.detachUnique(u, effx);
+                                    }
+                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
+                                    effx = "";
+                                }
+                                EXPauseUnit(u, false);
+                            }
+
+                            // 处理CD剩余时间
+                            if (hasCd) {
+                                cdLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
+                                if (cdLeft > 0.0) {
+                                    cdLeft = cdLeft - 0.02;
+                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT, cdLeft);
+                                } else {
+                                    // CD到期，移除键位
+                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
+                                    hasCd = false;
                                 }
                             }
+
+                            // 仅当眩晕和CD都不存在时，才从队列中移除
+                            if (!hasStun && !hasCd) {
+                                i = thistype.removeAt(i);
+                            }
+                            u = null;
                         }
                     }
 
@@ -585,24 +609,42 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
 
     // 眩晕单位（队列 + 尾部交换）
     public function StunUnit(unit u, real time, string loc, string effx) {
-        integer hid; real resist; real effective; real oldTime; boolean hasTime; string oldEffx; string oldLoc; boolean effValid;
+        integer hid; real resist; real effective; real oldTime; boolean hasTime; string oldEffx; string oldLoc; boolean effValid; real cdLeft; boolean cdDisabled;
 
         if (u == null || !IsUnitAliveBJ(u)) { return; }
 
         // 眩晕免疫直接跳过
         if (IsUnitStunImmune(u)) { return; }
 
+        // 魔免直接跳过
+        if (GetUnitAbilityLevel(u, 'Amim') > 0 || GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) > 0) { return; }
+
         resist = GetUnitStunResist(u);
         effective = time * (1.0 - resist);
         if (effective <= 0.0) { return; }
 
         hid = GetHandleId(u);
+        // 检查CD是否禁用
+        cdDisabled = IsUnitStunCdDisabled(u);
+        // 如果未禁用CD且CD>0，直接返回（不能续晕/刷新）
+        if (!cdDisabled) {
+            if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT)) {
+                cdLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT);
+                if (cdLeft > 0.0) { return; }
+            }
+        }
+
         hasTime = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
         if (hasTime) {
             oldTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
             SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, RMaxBJ(oldTime, effective));
         } else {
             SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, effective);
+        }
+
+        // 如果未禁用CD，设置CD = effective * 10
+        if (!cdDisabled) {
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT, effective * 10.0);
         }
 
         // 处理眩晕特效（仅当参数有效时覆盖）
@@ -629,11 +671,15 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
             }
         }
 
-        // 首次进入眩晕：暂停并入队
+        // 眩晕生效：强制停止当前命令并暂停，确保立刻停住
+        // 说明：
+        // - 部分情况下 pause 不会立刻打断“已在执行的移动指令”，先 stop 可避免“有特效但还能走几秒”
+        // - 同时持续强制 pause（见 PauseQueue tick）以对抗外部解除暂停
         if (!hasTime) {
-            EXPauseUnit(u, true);
-            PauseQueue.addUnit(u);
+            IssueImmediateOrder(u, "stop");
         }
+        EXPauseUnit(u, true);
+        PauseQueue.addUnit(u);
     }
 
     // 判断单位是否处于眩晕中（根据剩余时间键位）
@@ -646,6 +692,38 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         return left > 0.0;
     }
 
+    // 立即清除单位的眩晕状态
+    public function ClearStun(unit u) {
+        integer hid; string effx;
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        // 立即解除暂停
+        EXPauseUnit(u, false);
+        // 清理眩晕时间
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
+        }
+        // 清理特效
+        if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
+            effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+            if (effx != "") {
+                bindEffect.detachUnique(u, effx);
+            }
+            RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+            effx = "";
+        }
+        if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC)) {
+            RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
+        }
+    }
+
+    //# check: PauseUnitEx
+    // PauseUnitEx 兼容包装（用于向后兼容）
+    public function PauseUnitEx(unit u, real time, string loc, string effx) {
+        StunUnit(u, time, loc, effx);
+    }
+    //# endcheck
 }
 
 //! endzinc
