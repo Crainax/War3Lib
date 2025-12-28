@@ -249,7 +249,7 @@ library UTUnitBuff requires UnitBuff {
         SetStunTestUnit(1, u);
         SelectUnit(u, true);
         BJDebugMsg("[UnitBuffTest] s11: 眩晕 2 秒，带特效");
-        PauseUnitEx(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        StunUnit(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
 
         t = CreateTimer();
         tid = GetHandleId(t);
@@ -274,7 +274,7 @@ library UTUnitBuff requires UnitBuff {
         SelectUnit(u, true);
         AddUnitStunResistUp(u, 0.5);
         BJDebugMsg("[UnitBuffTest] s12: 眩晕 2 秒，抗性 0.5，应约 1 秒结束");
-        PauseUnitEx(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        StunUnit(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
 
         t = CreateTimer();
         tid = GetHandleId(t);
@@ -297,7 +297,7 @@ library UTUnitBuff requires UnitBuff {
         SelectUnit(u, true);
         SetUnitStunImmune(u, true);
         BJDebugMsg("[UnitBuffTest] s13: 设置眩晕免疫后调用 PauseUnitEx，应跳过");
-        PauseUnitEx(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        StunUnit(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
         if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_PAUSE_TIME_LEFT)) {
             BJDebugMsg("|cFFFF0000[UnitBuffTest] s13 失败：仍然保存了眩晕时间|r");
         } else {
@@ -423,6 +423,57 @@ library UTUnitBuff requires UnitBuff {
         u = null;
         owner = null;
     }
+
+    // 测试18：CD禁用测试 - SetUnitStunCdDisabled 置 true 后应允许连续眩晕
+    function TTestUTUnitBuff18 (player p) {
+        unit u; player owner; real timeLeft; real cdLeft;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(6, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s18: 设置CD禁用后，连续眩晕应不被阻挡");
+
+        // 先设置CD禁用（在第一次眩晕之前）
+        SetUnitStunCdDisabled(u, true);
+        BJDebugMsg("[UnitBuffTest] CD已禁用");
+
+        // 第一次眩晕 0.5 秒（CD被禁用，所以不会设置CD）
+        StunUnit(u, 0.5, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        BJDebugMsg("[UnitBuffTest] 第一次眩晕已应用（0.5秒）");
+
+        // 检查CD是否未设置（因为CD被禁用，所以不应该设置CD）
+        if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_STUN_CD_LEFT)) {
+            cdLeft = LoadReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_STUN_CD_LEFT);
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s18 失败：CD被禁用时不应设置CD，但检测到CD剩余 " + R2S(cdLeft) + " 秒|r");
+        } else {
+            BJDebugMsg("[UnitBuffTest] CD未设置（符合预期，因为CD被禁用）");
+        }
+
+        // 立即再次眩晕 2.0 秒，应不被CD阻挡（因为CD已禁用）
+        StunUnit(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        timeLeft = LoadReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_PAUSE_TIME_LEFT);
+
+        // 验证第二次眩晕生效（剩余时间应为2.0秒，取最大值）
+        if (timeLeft > 1.9 && timeLeft < 2.1) {
+            BJDebugMsg("[UnitBuffTest] 第二次眩晕生效，剩余时间 " + R2S(timeLeft) + "（应为2.0秒，取最大值）");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s18 失败：第二次眩晕未生效或被阻挡，剩余时间 " + R2S(timeLeft) + "|r");
+        }
+
+        // 验证CD仍然未设置（因为CD被禁用，所以不应该设置CD）
+        if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_STUN_CD_LEFT)) {
+            cdLeft = LoadReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_STUN_CD_LEFT);
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s18 失败：CD被禁用时不应设置CD，但检测到CD剩余 " + R2S(cdLeft) + " 秒|r");
+        } else {
+            BJDebugMsg("[UnitBuffTest] CD仍然未设置（符合预期）");
+        }
+
+        BJDebugMsg("[UnitBuffTest] s18 完成：CD禁用后连续眩晕正常工作");
+        u = null;
+        owner = null;
+    }
+
 	function TTestActUTUnitBuff1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -525,6 +576,7 @@ library UTUnitBuff requires UnitBuff {
             else if(str == "s14") TTestUTUnitBuff14(GetTriggerPlayer());
             else if(str == "s15") TTestUTUnitBuff15(GetTriggerPlayer());
             else if(str == "s16") TTestUTUnitBuff16(GetTriggerPlayer());
+            else if(str == "s18") TTestUTUnitBuff18(GetTriggerPlayer());
 		});
 
 		//unitAttrShow

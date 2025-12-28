@@ -172,8 +172,8 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
 
             if (thistype.tickTimer == null) {
                 thistype.tickTimer = CreateTimer();
-                TimerStart(thistype.tickTimer, 0.05, true, function () {
-                    integer i; integer hid; unit u; real timeLeft; string effx; string loc; boolean hasStun;
+                TimerStart(thistype.tickTimer, 0.02, true, function () {
+                    integer i; integer hid; unit u; real timeLeft; string effx; string loc;
 
                     for (i = 0; i < thistype.size; i += 1) {
                         u = thistype.uList[i];
@@ -199,18 +199,28 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                             u = null;
                         } else {
                             hid = GetHandleId(u);
-                            hasStun = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
-
-                            // 处理眩晕剩余时间
-                            if (hasStun) {
+                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
+                                // 外部已清理，解除暂停并移出
+                                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
+                                    effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                    if (effx != "") {
+                                        bindEffect.detachUnique(u, effx);
+                                    }
+                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
+                                    effx = "";
+                                }
+                                EXPauseUnit(u, false);
+                                i = thistype.removeAt(i);
+                                u = null;
+                            } else {
                                 timeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
                                 if (timeLeft > 0.0) {
-                                    // 眩晕期间持续强制暂停，防止被外部解除暂停
-                                    EXPauseUnit(u, true);
-                                    timeLeft = timeLeft - 0.05;
+                                    timeLeft = timeLeft - 0.02;
                                     SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, timeLeft);
+                                    u = null;
                                 } else {
-                                    // 眩晕到期，解除暂停与特效
+                                    // 到期，解除眩晕与特效
                                     EXPauseUnit(u, false);
                                     RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
                                     if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
@@ -223,27 +233,10 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                                     if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC)) {
                                         RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
                                     }
-                                    hasStun = false;
+                                    i = thistype.removeAt(i);
+                                    u = null;
                                 }
-                            } else {
-                                // 外部已清理眩晕，解除暂停
-                                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
-                                    effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                    if (effx != "") {
-                                        bindEffect.detachUnique(u, effx);
-                                    }
-                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
-                                    effx = "";
-                                }
-                                EXPauseUnit(u, false);
                             }
-
-                            // 仅当眩晕不存在时，才从队列中移除（CD 由 StunCdQueue 独立管理）
-                            if (!hasStun) {
-                                i = thistype.removeAt(i);
-                            }
-                            u = null;
                         }
                     }
 
@@ -259,6 +252,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
             }
         }
     }
+
 
     // 眩晕CD队列：集中管理处于“眩晕CD”中的单位（独立计时器，仅递减 KEY_UNIT_STUN_CD_LEFT）
     private struct StunCdQueue [] {
@@ -750,7 +744,6 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         if (!hasTime) {
             IssueImmediateOrder(u, "stop");
         }
-        BJDebugMsg("Pause/true:0");
         EXPauseUnit(u, true);
         PauseQueue.addUnit(u);
     }
@@ -790,13 +783,6 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
             RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
         }
     }
-
-    //# check: PauseUnitEx
-    // PauseUnitEx 兼容包装（用于向后兼容）
-    public function PauseUnitEx(unit u, real time, string loc, string effx) {
-        StunUnit(u, time, loc, effx);
-    }
-    //# endcheck
 }
 
 //! endzinc
