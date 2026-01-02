@@ -536,6 +536,26 @@ library UTUnitBuff requires UnitBuff {
 				BJDebugMsg("[UnitBuffTest] 用法: -reduceP slot defense");
 				BJDebugMsg("[UnitBuffTest] 示例: -reduceP 1 15");
 			}
+		} else if (paramS[0] == "pause") {
+			// 测试暂停单位: -pause
+			u = unitSelect.currentU[index];
+			if (u != null) {
+				EXPauseUnit(u, true);
+				BJDebugMsg("[UnitBuffTest] 单位已暂停");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			}
+			u = null;
+		} else if (paramS[0] == "restore") {
+			// 测试恢复单位: -restore
+			u = unitSelect.currentU[index];
+			if (u != null) {
+				EXPauseUnit(u, false);
+				BJDebugMsg("[UnitBuffTest] 单位已恢复");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			}
+			u = null;
 		}
 
 		p = null;

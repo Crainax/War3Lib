@@ -18,7 +18,7 @@
 #define DEFENSE_REDUCE_EFFECT_PATH "Abilities\\Spells\\NightElf\\FaerieFire\\FaerieFireTarget.mdl"
 #define DEFENSE_REDUCE_EFFECT_POINT "head"
 
-library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
+library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFilter, GroupUtils {
 
     // 无敌队列：集中管理所有处于无敌中的单位
     private struct ImmuteQueue [] {
@@ -140,16 +140,46 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         private static integer size = 0;
         private static timer tickTimer = null;
 
-        // 尾部交换移除指定索引
+        // 尾部交换移除指定索引（注意：解除暂停与清理也统一在这里做，避免循环里频繁设置）
         private static method removeAt(integer index) -> integer {
-            integer last;
+            integer last; unit ru; integer hid; string effx;
             if (index < 0 || index >= thistype.size) { return index; }
+
+            // 先取出要移除的单位（必须在交换前拿到）
+            ru = thistype.uList[index];
+
+            // 统一做清理/解除暂停：只在移除时做一次
+            if (ru != null) {
+                hid = GetHandleId(ru);
+
+                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
+                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
+                }
+
+                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
+                    effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                    if (effx != "") {
+                        bindEffect.detachUnique(ru, effx);
+                    }
+                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
+                    effx = "";
+                }
+
+                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC)) {
+                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
+                }
+
+                EXPauseUnit(ru, false);
+                // BJDebugMsg(I2S(GetHandleId(ru))+"pause:false");
+            }
+
             last = thistype.size - 1;
             if (index != last) {
                 thistype.uList[index] = thistype.uList[last];
             }
             thistype.uList[last] = null;
             thistype.size -= 1;
+            ru = null;
             return index - 1;
         }
 
@@ -173,44 +203,18 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
             if (thistype.tickTimer == null) {
                 thistype.tickTimer = CreateTimer();
                 TimerStart(thistype.tickTimer, 0.02, true, function () {
-                    integer i; integer hid; unit u; real timeLeft; string effx; string loc;
+                    integer i; integer hid; unit u; real timeLeft;
 
                     for (i = 0; i < thistype.size; i += 1) {
                         u = thistype.uList[i];
                         if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
-                            // 单位无效，清理记录
-                            if (u != null) {
-                                hid = GetHandleId(u);
-                                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
-                                    effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                    if (effx != "") {
-                                        bindEffect.detachUnique(u, effx);
-                                    }
-                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
-                                    effx = "";
-                                }
-                                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
-                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
-                                }
-                                EXPauseUnit(u, false);
-                            }
+                            // 单位无效：移出（解除暂停与清理都在 removeAt 内做）
                             i = thistype.removeAt(i);
                             u = null;
                         } else {
                             hid = GetHandleId(u);
                             if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
-                                // 外部已清理，解除暂停并移出
-                                if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
-                                    effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                    if (effx != "") {
-                                        bindEffect.detachUnique(u, effx);
-                                    }
-                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                    RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
-                                    effx = "";
-                                }
-                                EXPauseUnit(u, false);
+                                // 外部已清理：直接移出（解除暂停与清理都在 removeAt 内做）
                                 i = thistype.removeAt(i);
                                 u = null;
                             } else {
@@ -220,19 +224,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                                     SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, timeLeft);
                                     u = null;
                                 } else {
-                                    // 到期，解除眩晕与特效
-                                    EXPauseUnit(u, false);
-                                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
-                                    if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX)) {
-                                        effx = LoadStr(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                        if (effx != "") {
-                                            bindEffect.detachUnique(u, effx);
-                                        }
-                                        RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_EFFX);
-                                    }
-                                    if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC)) {
-                                        RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
-                                    }
+                                    // 到期：移出（解除暂停与清理都在 removeAt 内做）
                                     i = thistype.removeAt(i);
                                     u = null;
                                 }
@@ -333,6 +325,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
                         PauseTimer(thistype.tickTimer);
                         DestroyTimer(thistype.tickTimer);
                         thistype.tickTimer = null;
+                        // #if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
                         #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
                         if (thistype.size <= 0) {BJDebugMsg("StunCdQueue: 眩晕CD队列已销毁");}
                         #endif
@@ -742,9 +735,8 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         // - 部分情况下 pause 不会立刻打断“已在执行的移动指令”，先 stop 可避免“有特效但还能走几秒”
         // - 同时持续强制 pause（见 PauseQueue tick）以对抗外部解除暂停
         if (!hasTime) {
-            IssueImmediateOrder(u, "stop");
+            EXPauseUnit(u, true); //好鸡巴坑啊  这玩意不能重复设 不然会出大事,必须要有hasTime包着
         }
-        EXPauseUnit(u, true);
         PauseQueue.addUnit(u);
     }
 
@@ -782,6 +774,44 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect,DamageUtils {
         if (HaveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC)) {
             RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
         }
+    }
+
+    // 范围眩晕参数（静态成员变量传递）
+    private unit stunAreaSource = null;
+    private real stunAreaTime = 0.0;
+    private string stunAreaEffLoc = "";
+    private string stunAreaEfx = "";
+
+    // 范围眩晕
+    public function StunArea(unit u, real x, real y, real radius, real time, string effLoc, string efx) {
+        group g; unit filterUnit;
+
+        stunAreaSource = u;
+        stunAreaTime = time;
+        stunAreaEffLoc = effLoc;
+        stunAreaEfx = efx;
+
+        g = CreateGroup();
+        GroupEnumUnitsInRangeEx(g, x, y, radius, Filter(function () -> boolean {
+            unit filterUnit;
+
+            filterUnit = GetFilterUnit();
+            if (IsEnemyUnit(filterUnit, stunAreaSource)) {
+                StunUnit(filterUnit, stunAreaTime, stunAreaEffLoc, stunAreaEfx);
+                filterUnit = null;
+                return true;
+            }
+
+            filterUnit = null;
+            return false;
+        }));
+
+        DestroyGroup(g);
+        g = null;
+        stunAreaSource = null;
+        stunAreaTime = 0.0;
+        stunAreaEffLoc = "";
+        stunAreaEfx = "";
     }
 }
 

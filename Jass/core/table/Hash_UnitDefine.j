@@ -61,6 +61,10 @@
 // 2400开始可继续添加新的键值定义...
 
 #define KEY_UNIT_MOVE_SPEED                  237960560 //单位的移速记录
+#define KEY_UNIT_MOVE_SPEED_BASE_REAL        237960561 // 单位基础移速缓存（real）
+#define KEY_UNIT_MOVE_SPEED_UP_RATE          237960562 // 单位移速增幅累计值（real）
+#define KEY_UNIT_MOVE_SPEED_DOWN_RATE        237960563 // 单位移速减幅累计值（real）
+#define KEY_UNIT_MOVE_SPEED_BONUS_REAL       237960564 // 单位移速固定加成（real）
 #define KEY_UNIT_ATTACK_INTERVAL_CACHE       255610124 // 攻击间隔小于地图设置的缓存值
 
 // 单位攻击力扩展键值（支持超过 21 亿的攻击力）

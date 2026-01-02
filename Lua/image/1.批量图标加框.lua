@@ -14,7 +14,7 @@ chcp 65001
 -- 1. 基础路径配置
 local paths = {
     -- [重要] 图标的基础目录, 也是传递给BLPLab的参数
-    icon_base_dir = "D:\\War3Asset\\Asset\\Xlimon\\Icon\\20251221\\1\\",
+    icon_base_dir = "D:\\War3Asset\\Asset\\Xlimon\\Icon\\202512229\\2\\",
 
     -- 各种叠加图片的路径
     btn           = "D:\\War3\\tools\\Image\\btn.png",
@@ -35,7 +35,7 @@ local image_size = 64
 -- 3. 生成开关
 local generate_flags = {
     normal = true,
-    passive = false,
+    passive = true,
     disabled = true
 }
 local paoguang_flag = true

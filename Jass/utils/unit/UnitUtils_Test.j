@@ -254,7 +254,7 @@ library UTUnitUtils requires UnitUtils {
 		// 普通单位攻击增幅/减幅/定值测试
 		Test_NormalUnitAttackPercent();
 		BJDebugMsg("[UnitUtils] 普通单位攻击百分比测试完成");
-	} 0
+	}
 	function TTestUTUnitUtils3 (player p) {
 		// BigInteger 单位攻击增幅/减幅/定值测试
 		Test_BigIntUnitAttackPercent();

@@ -1033,7 +1033,7 @@ library UnitUtils requires BigInteger,MathUtils {
         base = base + hp;
         SaveReal(HASH_UNIT, uid, KEY_UNIT_HP_BASE_REAL, base);
         RecalcUnitHP(u);
-        if (hp > 0 && IsUnitAliveBJ(u)) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
+        if (hp > 0) {SetUnitLifeBJ(u,GetUnitState(u,UNIT_STATE_LIFE)+hp);}
     }
 
     // 增加生命值增幅（百分比形式，value 为小数，如 0.2 表示 +20%）
@@ -1161,25 +1161,180 @@ library UnitUtils requires BigInteger,MathUtils {
         SetUnitManaBJ(u,GetUnitState(u,UNIT_STATE_MANA)+GetUnitMP(u)*rate);
     }
 
+    //=====================
+    // 移速扩展工具函数
+    //=====================
+
+    // 获取单位移速增幅（real）
+    private function GetUnitSpeedUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
+
+    // 获取单位移速减幅（real）
+    private function GetUnitSpeedDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return down;
+    }
+
+    // 获取单位移速固定加成（real）
+    private function GetUnitSpeedBonusReal(unit u) -> real {
+        integer uid; real bonus;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL)) {
+            bonus = LoadReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL);
+        } else {
+            bonus = 0.0;
+        }
+        return bonus;
+    }
+
+    // 获取当前单位移速总倍率：(1 + up) * (1 - down)，默认 1.0
+    public function GetUnitSpeedFinalPercent(unit u) -> real {
+        real up; real down; real rate;
+        if (u == null) { return 1.0; }
+        up = GetUnitSpeedUpRate(u);
+        down = GetUnitSpeedDownRate(u);
+        rate = (1.0 + up) * (1.0 - down);
+        return rate;
+    }
+
+    // 获取单位"基础移速"（不含增减幅与定值）
+    public function GetUnitBaseSpeed(unit u) -> real {
+        integer uid; real base; real cur;
+
+        if (u == null) { return 0.0; }
+
+        uid = GetHandleId(u);
+
+        // 若已缓存基础移速，则直接返回
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL)) {
+            return LoadReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL);
+        }
+
+        // 未初始化时，仅根据当前移速计算并返回，但不写入哈希表
+        cur = GetUnitMoveSpeed(u);
+        base = cur;
+
+        return base;
+    }
+
+    // 计算单位当前"最终移速"（基础 * 总倍率 + 定值）
+    private function CalcUnitFinalSpeedReal(unit u) -> real {
+        real base; real rate; real bonus;
+
+        if (u == null) { return 0.0; }
+
+        base = GetUnitBaseSpeed(u);
+        rate = GetUnitSpeedFinalPercent(u);
+        bonus = GetUnitSpeedBonusReal(u);
+
+        return base * rate + bonus;
+    }
+
     // 获取移速
     public function GetUnitSpeed (unit u)  -> integer {
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            return LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
+        integer uid; real total;
+        if (u == null) { return 0; }
+        uid = GetHandleId(u);
+
+        // 纯读取：突破522与0的移速的 Hook 优先读缓存
+        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED)) {
+            return LoadInteger(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED);
         }
-        else {return R2I(GetUnitMoveSpeed(u));}
+
+        // 若存在移速扩展数据：仅计算，不写入（避免读函数写入导致 OOS）
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL)) {
+            total = CalcUnitFinalSpeedReal(u);
+            total = RMaxBJ(total, 0.0);
+            return R2I(total);
+        }
+
+        return R2I(GetUnitMoveSpeed(u));
     }
-    // 增加移速
-    public function AddUnitSpeed (unit u,real speed) {
-        integer value;
-        if (HaveSavedInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED)) { //突破522与0的移速的Hook
-            value  = LoadInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED);
-            value += R2I(speed);
-            SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
-        } else {
-            value = R2I(GetUnitMoveSpeed(u)) + R2I(speed);
-            SaveInteger(HASH_UNIT,GetHandleId(u),KEY_UNIT_MOVE_SPEED,value);
+
+    // 重新计算单位当前移速（应用增减幅与定值，并写入 KEY_UNIT_MOVE_SPEED 供 Hook 读取）
+    private function RecalcUnitSpeed(unit u) -> nothing {
+        real total; integer uid; real cur; real base; integer value;
+        if (u == null) { return; }
+
+        // 懒初始化单位的基础移速缓存
+        uid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL)) {
+            cur = GetUnitMoveSpeed(u);
+            base = cur;
+            SaveReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL, base);
         }
-		SetUnitMoveSpeed(u,value);
+
+        total = CalcUnitFinalSpeedReal(u);
+        total = RMaxBJ(total, 0.0);
+        value = R2I(total);
+
+        // 突破 522/0 的 Hook：把最终值缓存到 KEY_UNIT_MOVE_SPEED
+        SaveInteger(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED, value);
+        SetUnitMoveSpeed(u, value);
+    }
+
+    // 增加移速基础值（会吃到增减幅：最终移速 = (base + delta) * percent + bonus）
+    public function AddUnitSpeedBase(unit u, real speed) -> nothing {
+        integer uid; real base;
+        if (u == null || speed == 0.0) { return; }
+        uid = GetHandleId(u);
+        base = GetUnitBaseSpeed(u);
+        base = base + speed;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL, base);
+        RecalcUnitSpeed(u);
+    }
+
+    // 增加移速增幅（百分比形式，value 为小数，如 0.2 表示 +20%）
+    public function AddUnitSpeedUpPercent(unit u, real value) -> nothing {
+        integer uid; real up;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        up = GetUnitSpeedUpRate(u);
+        up = up + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE, up);
+        RecalcUnitSpeed(u);
+    }
+
+    // 增加移速减幅（value 为小数，如 0.3 表示 -30%）
+    public function AddUnitSpeedDownPercent(unit u, real value) -> nothing {
+        integer uid; real down;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        down = GetUnitSpeedDownRate(u);
+        down = RealAdd(down, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE, down);
+        RecalcUnitSpeed(u);
+    }
+
+    // 增加固定移速（不受增减幅影响）
+    public function AddUnitSpeedBonus(unit u, real value) -> nothing {
+        integer uid; real bonus;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        bonus = GetUnitSpeedBonusReal(u);
+        bonus = bonus + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL, bonus);
+        RecalcUnitSpeed(u);
     }
 
     //射程(还会+警戒范围)
