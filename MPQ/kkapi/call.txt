@@ -1011,7 +1011,7 @@ type = string
 
 [DzXlsxWorksheetGetColumnCount]
 title = "工作表的总列数 [NEW]"
-description = " ${docHandle} 里 ${sheetName} 页的总列数"
+description = " ${docHandle} 里 ${sheetName} 的列数"
 comment = ""
 category = TC_KKAPI
 returns = integer
@@ -1800,4 +1800,202 @@ returns = real
 type = unit
 [[.args]]
 type = abilcode
+
+
+
+[DzUnitCanPlaceAround]
+title = "单位 - 是否可以被放置到坐标"
+description = "判断单位 ${单位} 是否可以放置到该坐标(${X轴}, ${Y轴})"
+comment = "判断地面通行条件以及碰撞范围"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = unit
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+
+[KKUnitCanPlaceAroundLoc]
+title = "单位 - 是否可以被放置到点"
+description = "判断单位 ${单位} 是否可以放置到该点 ${location}"
+comment = "判断地面通行条件以及碰撞范围"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = unit
+[[.args]]
+type = location
+
+
+[kkUnitCanPlaceAroundItem]
+title = "物品 - 是否可以被放置到坐标"
+description = "判断物品 ${物品} 是否可以放置到该坐标(${X轴}, ${Y轴})"
+comment = "判断地面通行条件以及碰撞范围"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = item
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+
+[KKUnitCanPlaceAroundLocItem]
+title = "物品 - 是否可以被放置到点"
+description = "判断物品 ${物品} 是否可以放置到该点 ${location}"
+comment = "判断地面通行条件以及碰撞范围"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = item
+[[.args]]
+type = location
+
+
+[DzPositionCanPlaceAround]
+title = "坐标 - 是否可以能够通过物体"
+description = "判断 地形坐标(${X轴}, ${Y轴}) 是否可以能够通过 碰撞范围 ${collision} 碰撞类型 ${collision_type} 的物体"
+comment = "根据碰撞范围 碰撞类型判断地面通行条件"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 32
+[[.args]]
+type = CollisionType
+default='CollisionType_foot'
+
+[KKPositionCanPlaceAroundLoc]
+title = "点 - 是否可以能够通过物体"
+description = "判断 地形点 ${location} 是否可以能够通过 碰撞范围 ${collision} 碰撞类型 ${collision_type} 的物体"
+comment = "根据碰撞范围 碰撞类型判断地面通行条件"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = location
+[[.args]]
+type = real
+default = 32
+[[.args]]
+type = CollisionType
+default='CollisionType_foot'
+
+
+[DzGetTerrainZ]
+title = "坐标 - 获取地形Z轴高度"
+description = "获取 地形坐标(${X轴}, ${Y轴}) 的Z轴高度"
+comment = "跟GetLocationZ获取的结果一致, 地形z轴在某些特殊情况下可能会是异步的，请小心使用。"
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = real
+default = 0
+[[.args]]
+type = real
+default = 0
+
+
+[DzGetUnitZ]
+title = "单位 - 获取单位Z轴高度"
+description = "获取 单位 ${unit} 地形Z轴高度"
+comment = "相当于 飞行高度+GetLocationZ, 地形z轴在某些特殊情况下可能会是异步的，请小心使用。"
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+
+
+[DzGetUnitOverheadOffset]
+title = "单位 - 获取单位头顶高度偏移"
+description = "获取 单位 ${unit} 头顶高度偏移"
+comment = "加上单位z轴高度 相当于血条高度, 头顶高度偏移,因本地模型可能不一致结果可能是异步的,请小心使用"
+category = TC_KKAPI
+returns = real
+[[.args]]
+type = unit
+
+
+[DzGetUnitAbilityIsDisabled]
+title = "技能 - 获取当前是否禁用状态"
+description = "获取单位 ${单位} 的技能 ${技能id} 当前是否禁用状态"
+comment = "默被禁用后返回true"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityDisabledCount]
+title = "技能 - 获取当前禁用的内部计数"
+description = "获取单位 ${单位} 的技能 ${技能id} 当前禁用的内部计数"
+comment = "大于0是禁用状态，否则是开启状态"
+category = TC_KKAPI
+returns = integer
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityTechReach]
+title = "技能 - 获取当前科技条件是否达成"
+description = "获取单位 ${单位} 的技能 ${技能id} 当前科技条件是否达成"
+comment = "true是已经解锁，false是未解锁科技"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzAsyncGetCurrentBuildingAbilityId]
+title = "建造 - 异步获取当前正在建造的技能Id"
+description = "异步获取当前正在建造的技能Id"
+comment = "默认返回0,准备建造状态下 返回技能id, 注意该函数返回值是异步的，请谨慎使用。"
+category = TC_KKAPI
+returns = abilcode
+
+[DzAsyncGetCurrentBuildingUnitId]
+title = "建造 - 异步获取当前正在建造的单位Id"
+description = "异步获取当前正在建造的单位Id"
+comment = "默认返回0,准备建造状态下 返回单位id, 注意该函数返回值是异步的，请谨慎使用。"
+category = TC_KKAPI
+returns = unitcode
+
+[KKSimpleFrameIsVisible]
+title = "界面 - 判断SimpleFrame类型控件是否显示"
+description = "判断SimpleFrame类型控件 ${SimpleFrame} 是否显示"
+comment = "支持SimpleFrame、SimpleTexture、SimpleFontString及其扩展控件, 以及判断聊天框控件是否显示"
+category = TC_KKAPI
+returns = boolean
+[[.args]]
+type = frame
+
+
+[DzFrameGetChatEditBar]
+title = "界面 - 原生 - 获取聊天输入栏控件"
+description = "获取聊天输入栏控件"
+comment = "返回回车键按下时打开的聊天输入框控件。"
+category = TC_KKAPI
+returns = frame
+
+[DzGetLocalChatRecipient]
+title = "玩家 - 获取本地玩家的聊天频道"
+description = "获取本地玩家的聊天频道"
+comment = "返回值是异步的, 用在发生聊天消息时 获取玩家当前的聊天频道"
+category = TC_KKAPI
+returns = ChatRecipient
+
+
 

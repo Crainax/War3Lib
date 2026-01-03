@@ -2325,11 +2325,12 @@ category = TC_KKAPI
 type = integer
 
 
+
 [DzSetUnitAbilityArt]
 title = "技能 - 设置技能图标"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的图标为 ${art_path} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2342,7 +2343,7 @@ type = imagefile
 title = "技能 - 设置技能提示"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的提示为 ${tip} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2355,7 +2356,7 @@ type = string
 title = "技能 - 设置技能提示扩展"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的提示扩展为 ${ubertip} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2369,7 +2370,7 @@ type = string
 title = "技能 - 设置刷新数据"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 数据刷新"
 comment = [[不能异步调用。用来替代升级降级的刷新数据用的, 1级技能也能用。]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2380,7 +2381,7 @@ type = abilcode
 title = "技能 - 设置技能命令ID"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的命令ID ${order_id} "
 comment = [[可以动态修改大部分技能的命令ID，让同类型技能不冲突。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2393,7 +2394,7 @@ type = integer
 title = "技能 - 设置魔法书的技能列表"
 description = "设置单位 ${unit} 当前拥有的魔法书技能 ${id} 的技能列表 ${list} 是否保留cd ${save_cool} "
 comment = [[保留cd的话， 同ID技能在修改列表后才能保持cd， 列表超过12个无效, 单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2408,7 +2409,7 @@ default = "false"
 title = "技能 - 设置技能投射物模型"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的投射物模型 ${missile_art} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2420,7 +2421,7 @@ type = modelfile
 title = "技能 - 设置技能投射物速度"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的投射物速度 ${missile_speed} "
 comment = [[弹道飞行速度。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2433,7 +2434,7 @@ type = real
 title = "技能 - 设置技能投射物弧度"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的投射物弧度 ${missile_arc} "
 comment = [[抛物线的弧度。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2446,7 +2447,7 @@ type = real
 title = "技能 - 设置技能投射物允许自导"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的投射物允许自导 ${missile_homing} "
 comment = [[true相当于发射投射物后，目标单位移动了会持续追踪的意思, false则不追踪会砸到地面。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2459,7 +2460,7 @@ type = boolean
 title = "技能 - 设置技能投射物数量 (弹幕攻击)"
 description = "设置单位 ${unit} 当前拥有的弹幕攻击技能 ${id} 的投射物数量 ${missile_count} "
 comment = [[只对Aroc弹幕攻击技能生效, 修改DataC也能改变数量，但此函数数量更精准。 单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2473,7 +2474,7 @@ type = integer
 title = "技能 - 设置技能投射物伤害 (弹幕攻击)"
 description = "设置单位 ${unit} 当前拥有的弹幕攻击技能 ${id} 的投射物单目标伤害 ${damage} 多目标伤害限制 ${max_damage} 攻击类型 ${attacktype} 伤害类型 ${damagetype} "
 comment = [[只对Aroc弹幕攻击技能生效, damage等同修正原物编DataA无效项, max_damage等同修改原物编DataB。该伤害对主目标无效，只对弹幕分裂目标有效。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2489,4 +2490,138 @@ default = "AttackTypeHero"
 type = damagetype
 default = "DamageTypeNormal"
 
+
+
+[DzSendKeyboard]
+title = "游戏 - 模拟按键 (窗口消息)"
+description = "让玩家 ${player} 发送窗口消息 模拟键盘 ${key_code} 进行 ${is_down} 的消息"
+comment = [[会触发响应同步事件, 发送模拟按键窗口消息给魔兽, 相当于SendMessage, 点击记得释放, 不然可能会键盘按键会在下一次失效, 聊天框显示时不执行]]
+category = TC_KKPRE
+[[.args]]
+type = player
+[[.args]]
+type = gamekey
+default = "GameKey_A"
+[[.args]]
+type = gamekeyaction
+default = "GameKeyAction_Press"
+
+
+[DzForceUiKeyboard]
+title = "游戏 - 模拟按键 (游戏UI消息)"
+description = "让玩家 ${player} 发送游戏UI消息 模拟键盘 ${key_code} 进行 ${is_down} 的消息"
+comment = [[发送UI按键消息给魔兽GameUI, 不会触发响应同步事件, 相当于自带ForceUiKey函数支持更多按键的版本, 某些特殊键无效。]]
+category = TC_KKPRE
+[[.args]]
+type = player
+[[.args]]
+type = gamekey
+default = "GameKey_A"
+[[.args]]
+type = gamekeyaction
+default = "GameKeyAction_Press"
+
+
+[DzDisableWindowKeyboard]
+title = "游戏 - 屏蔽按键 (窗口消息)"
+description = "让玩家 ${player} 屏蔽窗口键盘 ${key_code} 的消息"
+comment = [[会屏蔽硬件同步事件, 聊天框显示时不屏蔽]]
+category = TC_KKPRE
+[[.args]]
+type = player
+[[.args]]
+type = gamekey
+default = "GameKey_A"
+
+[DzDisableGameUIKeyboard]
+title = "游戏 - 屏蔽按键 (游戏UI消息)"
+description = "让玩家 ${player} 屏蔽游戏UI按键 ${key_code} 的消息"
+comment = [[在屏蔽游戏UI的按键消息, 某些特殊键无效。 dz的硬件同步事件依旧会执行]]
+category = TC_KKPRE
+[[.args]]
+type = player
+[[.args]]
+type = gamekey
+default = "GameKey_A"
+
+
+[DzFrameSetModelEnableWideScreen]
+title = "界面 - ui模型 - 设置宽屏补丁"
+description = "设置ui模型控件 ${model_frame} 强制开启或关闭 ${is_enable} 宽屏补丁"
+comment = "只能是ui模型控件, true时强制指定ui模型开启宽屏补丁, false时强制指定ui模型关闭宽屏补丁。"
+category = TC_KKPRE
+[[.args]]
+type = frame
+[[.args]]
+type = boolean
+
+
+
+[DzSetUnitAbilityEnable]
+title = "技能 - 设置技能启用"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的启用状态 "
+comment = [[内部有累计次数， 只有次数为小于等于0的时候才会真的启用。 单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+[DzSetUnitAbilityDisable]
+title = "技能 - 设置技能禁用"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 禁用状态"
+comment = [[内部有累计次数， 只有次数大于0的时候才会真的禁用。 单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+[DzSetUnitAbilityTechReach]
+title = "技能 - 设置技能科技条件达成"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的科技条件是否 ${reach} 达成"
+comment = [[支持大部分技能、魔法书内技能、收费技能等。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = boolean
+
+
+[DzSetUnitAbilityTechReachTip]
+title = "技能 - 设置技能科技条件文本"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的科技条件的文本为 ${tip}"
+comment = [[只有当科技未达成时才会显示,支持大部分技能、魔法书内技能、收费技能等。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = string
+
+[DzFrameUnlockMouseRectLimit]
+title = "界面 - 解锁右下角区域鼠标焦点限制"
+description = "解锁右下角区域鼠标焦点限制 是否解锁 ${is_unlock} "
+comment = [[解锁后右下角技能栏附近的Frame进入离开事件跟焦点可以生效。开局调用一次即可]]
+category = TC_KKPRE
+[[.args]]
+type = boolean
+
+[DzPlayerSendChat]
+title = "玩家 - 发送聊天消息(触发同步事件)"
+description = "玩家 ${player} 发送聊天消息 ${message} 使用聊天频道 ${recipient} "
+comment = [[player在异步事件里可以使用本地玩家, 在同步事件里可以指定玩家, 该函数会进行网络同步, 同步后会响应所有触发器聊天事件, 由于有同步请不要高频率执行。]]
+category = TC_KKPRE
+[[.args]]
+type = player
+[[.args]]
+type = string
+[[.args]]
+type = ChatRecipient
+default ='DzGetLocalChatRecipient'
 
