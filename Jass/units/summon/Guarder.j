@@ -30,12 +30,6 @@ library Guarder requires Dashing, Geometry, GroupUtils, UnitFilter {
     private integer STATE_RETURN_DASH = 4;
     private integer STATE_PAUSED = 5;
 
-    // 回调参数传递（避免哈希表冲突）
-    public struct GuarderCallback []{
-        public static integer callbackPid = 0;
-        public static integer callbackIdx = 0;
-        public static unit callbackPet = null;
-    }
 
     // 数据结构：按玩家紧凑数组
     private struct GuarderData []{
@@ -68,12 +62,35 @@ library Guarder requires Dashing, Geometry, GroupUtils, UnitFilter {
 
         // 检查玩家ID有效性
         private static method isValidPid(integer pid) -> boolean {
-            return pid >= 1 && pid <= 12;
+            return pid >= 1 && pid <= MAX_PLAYER_COUNT;
         }
 
         // 检查索引有效性
         private static method isValidIdx(integer pid, integer idx) -> boolean {
             return GuarderData.isValidPid(pid) && idx >= 1 && idx <= GuarderData.size[pid];
+        }
+
+        // Dashing 回调：通过 Dashing 的 timer id 在 HASH_TIMER 里读取 pid/idx（Dashing 清理 hashtable 在回调之后执行）
+        private static method onDashComplete() -> boolean {
+            timer t;
+            integer id;
+            integer pid;
+            integer idx;
+
+            t = DashingGetTimer();
+            if (t != null) {
+                id = GetHandleId(t);
+                pid = LoadInteger(HASH_TIMER, id, 90);
+                idx = LoadInteger(HASH_TIMER, id, 91);
+
+                if (GuarderData.isValidIdx(pid, idx)) {
+                    GuarderData.dashTimer[pid][idx] = null;
+                    GuarderData.state[pid][idx] = STATE_NONE;
+                }
+            }
+
+            t = null;
+            return true;
         }
 
         // 初始化主人单位
@@ -284,6 +301,7 @@ library Guarder requires Dashing, Geometry, GroupUtils, UnitFilter {
         // 处理单个 pet 的 AI
         private static method updatePetAI(integer pid, integer idx) {
             unit petUnit; unit ownerUnit; unit targetUnit; integer state; timer dashT; boolean isIdle; real px; real py; real ox; real oy; real tx; real ty; real dist; real distToOwner; real angle; real nx; real ny; real vx; real vy; real vr;
+            integer tid;
 
             if (!GuarderData.isValidIdx(pid, idx)) { return; }
 
@@ -338,34 +356,14 @@ library Guarder requires Dashing, Geometry, GroupUtils, UnitFilter {
                 if (state != STATE_RETURN_DASH && isIdle && dashT == null) {
                     GuarderData.state[pid][idx] = STATE_RETURN_DASH;
                     GuarderData.target[pid][idx] = null;
-                    // 设置回调参数
-                    GuarderCallback.callbackPid = pid;
-                    GuarderCallback.callbackIdx = idx;
-                    GuarderCallback.callbackPet = petUnit;
                     // 使用 Dashing 冲回主人附近
-                    dashT = StartDashing(petUnit, ox, oy, GUARD_DASH_SPEED, GUARD_DASH_MAX, function () -> boolean {
-                        integer cbPid; integer cbIdx; unit cbPet;
-
-                        cbPid = GuarderCallback.callbackPid;
-                        cbIdx = GuarderCallback.callbackIdx;
-                        cbPet = GuarderCallback.callbackPet;
-
-                        if (GuarderData.isValidIdx(cbPid, cbIdx) && GuarderData.pet[cbPid][cbIdx] == cbPet) {
-                            GuarderData.dashTimer[cbPid][cbIdx] = null;
-                            GuarderData.state[cbPid][cbIdx] = STATE_NONE;
-                        }
-
-                        GuarderCallback.callbackPid = 0;
-                        GuarderCallback.callbackIdx = 0;
-                        GuarderCallback.callbackPet = null;
-
-                        cbPet = null;
-                        return true;
-                    }, null, 0.0, 0.0);
+                    dashT = StartDashing(petUnit, ox, oy, GUARD_DASH_SPEED, GUARD_DASH_MAX, function GuarderData.onDashComplete, null, 0.0, 0.0);
                     GuarderData.dashTimer[pid][idx] = dashT;
-                    GuarderCallback.callbackPid = 0;
-                    GuarderCallback.callbackIdx = 0;
-                    GuarderCallback.callbackPet = null;
+                    if (dashT != null) {
+                        tid = GetHandleId(dashT);
+                        SaveInteger(HASH_TIMER, tid, 90, pid);
+                        SaveInteger(HASH_TIMER, tid, 91, idx);
+                    }
                 }
                 petUnit = null;
                 ownerUnit = null;
@@ -448,34 +446,14 @@ library Guarder requires Dashing, Geometry, GroupUtils, UnitFilter {
                         }
 
                         // 使用 Dashing 冲向目标附近
-                        GuarderCallback.callbackPid = pid;
-                        GuarderCallback.callbackIdx = idx;
-                        GuarderCallback.callbackPet = petUnit;
-
-                        dashT = StartDashing(petUnit, nx, ny, GUARD_DASH_SPEED, GUARD_DASH_MAX, function () -> boolean {
-                            integer cbPid; integer cbIdx; unit cbPet;
-
-                            cbPid = GuarderCallback.callbackPid;
-                            cbIdx = GuarderCallback.callbackIdx;
-                            cbPet = GuarderCallback.callbackPet;
-
-                            if (GuarderData.isValidIdx(cbPid, cbIdx) && GuarderData.pet[cbPid][cbIdx] == cbPet) {
-                                GuarderData.dashTimer[cbPid][cbIdx] = null;
-                                GuarderData.state[cbPid][cbIdx] = STATE_NONE; // 下次 tick 会重新判断
-                            }
-
-                            GuarderCallback.callbackPid = 0;
-                            GuarderCallback.callbackIdx = 0;
-                            GuarderCallback.callbackPet = null;
-
-                            cbPet = null;
-                            return true;
-                        }, null, 0.0, 0.0);
+                        dashT = StartDashing(petUnit, nx, ny, GUARD_DASH_SPEED, GUARD_DASH_MAX, function GuarderData.onDashComplete, null, 0.0, 0.0);
 
                         GuarderData.dashTimer[pid][idx] = dashT;
-                        GuarderCallback.callbackPid = 0;
-                        GuarderCallback.callbackIdx = 0;
-                        GuarderCallback.callbackPet = null;
+                        if (dashT != null) {
+                            tid = GetHandleId(dashT);
+                            SaveInteger(HASH_TIMER, tid, 90, pid);
+                            SaveInteger(HASH_TIMER, tid, 91, idx);
+                        }
                     }
                 }
             }
@@ -487,27 +465,22 @@ library Guarder requires Dashing, Geometry, GroupUtils, UnitFilter {
         }
 
         // 周期 tick 主循环
-        private static method onTick() {
-            integer pid; integer idx;
-
-            for (1 <= pid <= 12) {
-                if (GuarderData.owner[pid] != null) {
-                    // 清理死亡的 pet
-                    GuarderData.cleanDeadPets(pid);
-
-                    // 遍历该玩家的所有 pet
-                    for (1 <= idx <= GuarderData.size[pid]) {
-                        GuarderData.updatePetAI(pid, idx);
-                    }
-                }
-            }
-        }
-
-        // 初始化
         static method onInit() {
             GuarderData.tickTimer = CreateTimer();
             TimerStart(GuarderData.tickTimer, GUARD_TICK, true, function () {
-                GuarderData.onTick();
+                integer pid; integer idx;
+
+                for (1 <= pid <= MAX_PLAYER_COUNT) {
+                    if (GuarderData.owner[pid] != null && (GetPlayerSlotState(ConvertedPlayer(pid)) == PLAYER_SLOT_STATE_PLAYING) && (GetPlayerController(ConvertedPlayer(pid)) == MAP_CONTROL_USER)) {
+                        // 清理死亡的 pet
+                        GuarderData.cleanDeadPets(pid);
+
+                        // 遍历该玩家的所有 pet
+                        for (1 <= idx <= GuarderData.size[pid]) {
+                            GuarderData.updatePetAI(pid, idx);
+                        }
+                    }
+                }
             });
         }
     }

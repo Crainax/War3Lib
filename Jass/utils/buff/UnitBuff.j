@@ -335,6 +335,169 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         }
     }
 
+    // TimerBuff 队列：集中管理所有定时器 BUFF
+    private struct TimerBuffQueue [] {
+        private static timer timers[];      // timer 列表（每个 BUFF 的独立 timer）
+        private static unit units[];        // 单位列表
+        private static real lefts[];        // 剩余时间列表
+        private static integer size = 0;    // 当前元素数量
+        private static timer tickTimer = null; // 驱动队列的定时器
+
+        // 删除 init() 方法
+
+        // 尾部交换移除指定索引的元素（完全清理，包括销毁资源）
+        private static method removeAt(integer index) -> integer {
+            integer last; timer buffT; trigger cbTr; integer tid;
+            if (index < 0 || index >= thistype.size) { return index; }
+
+            // 获取要移除的元素
+            buffT = thistype.timers[index];
+            tid = GetHandleId(buffT);
+
+            // 清理回调 trigger（改为使用 HASH_TIMER）
+            if (HaveSavedHandle(HASH_TIMER, tid, 1)) {
+                cbTr = LoadTriggerHandle(HASH_TIMER, tid, 1);
+                if (cbTr != null) {
+                    DestroyTrigger(cbTr);
+                    cbTr = null;
+                }
+                // FlushChildHashtable 会清理所有数据，不需要单独 RemoveSavedHandle
+            }
+
+            // 清理外部 HASH_TIMER 数据（包括 trigger）
+            FlushChildHashtable(HASH_TIMER, tid);
+
+            // 销毁 timer
+            if (buffT != null) {
+                PauseTimer(buffT);
+                DestroyTimer(buffT);
+                buffT = null;
+            }
+
+            // 尾部交换
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.timers[index] = thistype.timers[last];
+                thistype.units[index] = thistype.units[last];
+                thistype.lefts[index] = thistype.lefts[last];
+            }
+            thistype.timers[last] = null;
+            thistype.units[last] = null;
+            thistype.lefts[last] = 0.0;
+            thistype.size -= 1;
+
+            return index - 1;
+        }
+
+        // 添加定时器 BUFF
+        public static method add(unit u, real time, code fun) -> timer {
+            timer buffT; trigger cbTr; integer tid;
+
+            if (u == null || time <= 0.0 || fun == null) { return null; }
+
+            // 检查队列容量
+            if (thistype.size >= 8190) {
+                BJDebugMsg("|cFFFF0000[TimerBuffQueue] 队列已满，无法继续添加定时器 BUFF！|r");
+                return null;
+            }
+
+            // 创建独立的 timer（供外部存参和回调时 GetExpiredTimer 使用）
+            buffT = CreateTimer();
+            tid = GetHandleId(buffT);
+
+            // 创建回调 trigger 并绑定 fun（改为使用 HASH_TIMER）
+            cbTr = CreateTrigger();
+            TriggerAddCondition(cbTr, Condition(fun));
+            SaveTriggerHandle(HASH_TIMER, tid, 1, cbTr);
+            cbTr = null;
+
+            // 加入队列
+            thistype.timers[thistype.size] = buffT;
+            thistype.units[thistype.size] = u;
+            thistype.lefts[thistype.size] = time;
+            thistype.size += 1;
+
+            // 确保定时器运行
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.05, true, function () {
+                    integer i; timer buffT; unit u; real timeLeft; trigger cbTr; integer tid;
+
+                    // 单次遍历 + 尾部交换，O(n)
+                    for (i = 0; i < thistype.size; i += 1) {
+                        buffT = thistype.timers[i];
+                        u = thistype.units[i];
+                        timeLeft = thistype.lefts[i];
+
+                        // 检查单位是否有效
+                        if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                            // 单位已失效，提前清理该 BUFF
+                            i = thistype.removeAt(i);
+                            u = null;
+                            buffT = null;
+                        } else {
+                            // 递减剩余时间
+                            timeLeft = timeLeft - 0.05;
+
+                            if (timeLeft <= 0.0) {
+                                // 时间到了，先从队列移除（不销毁资源）
+                                tid = GetHandleId(buffT);
+                                i = thistype.removeAt(i);
+
+                                // 用 0 秒启动该 timer，确保回调里 GetExpiredTimer() 是 buffT
+                                TimerStart(buffT, 0.00, false, function () {
+                                    timer t; integer id; trigger cbTr;
+
+                                    t = GetExpiredTimer();
+                                    id = GetHandleId(t);
+
+                                    // 执行回调（改为使用 HASH_TIMER）
+                                    if (HaveSavedHandle(HASH_TIMER, id, 1)) {
+                                        cbTr = LoadTriggerHandle(HASH_TIMER, id, 1);
+                                        if (cbTr != null) {
+                                            TriggerEvaluate(cbTr);
+                                            DestroyTrigger(cbTr);
+                                            cbTr = null;
+                                        }
+                                        // FlushChildHashtable 会清理所有数据，不需要单独 RemoveSavedHandle
+                                    }
+
+                                    // 清理外部 HASH_TIMER 数据（包括 trigger）
+                                    FlushChildHashtable(HASH_TIMER, id);
+
+                                    // 销毁 timer
+                                    PauseTimer(t);
+                                    DestroyTimer(t);
+                                    t = null;
+                                });
+
+                                u = null;
+                                buffT = null;
+                            } else {
+                                // 更新剩余时间
+                                thistype.lefts[i] = timeLeft;
+                                u = null;
+                                buffT = null;
+                            }
+                        }
+                    }
+
+                    // 队列为空时，停止并释放计时器
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        if (thistype.size <= 0) {BJDebugMsg("TimerBuffQueue: 定时器 BUFF 队列已销毁");}
+                        #endif
+                    }
+                });
+            }
+
+            return buffT;
+        }
+    }
+
     // 能叠加的无敌(计算)
     public function ImmuteDamageTime(unit u, real time, boolean eff) {
         integer hid; real oldTime;
@@ -813,6 +976,12 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         stunAreaEffLoc = "";
         stunAreaEfx = "";
     }
+
+
+    public function StartTimerBuff(unit u, real time, code fun) -> timer {
+        return TimerBuffQueue.add(u, time, fun);
+    }
+
 }
 
 //! endzinc

@@ -424,6 +424,78 @@ library UTUnitBuff requires UnitBuff {
         owner = null;
     }
 
+    // 测试19：StartTimerBuff 基本功能 - 外部存参，回调中读取
+    function TTestUTUnitBuff19 (player p) {
+        unit u; player owner; timer bt; timer checkT; integer checkId;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s19: StartTimerBuff 测试 - 外部存参，回调中读取");
+
+        // 创建定时器 BUFF，回调中读取外部存储的参数
+        bt = StartTimerBuff(u, 2.30, function () -> boolean {
+            timer t; integer id; integer v;
+
+            t = GetExpiredTimer();
+            id = GetHandleId(t);
+            v = LoadInteger(HASH_TIMER, id, 100);
+
+            if (v == 100000) {
+                BJDebugMsg("[UnitBuffTest] s19 完成：回调中成功读取到外部存储的参数 " + I2S(v));
+            } else {
+                BJDebugMsg("|cFFFF0000[UnitBuffTest] s19 失败：回调中读取的参数不正确，期望 100000，实际 " + I2S(v) + "|r");
+            }
+
+            t = null;
+            return true;
+        });
+
+        if (bt == null) {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s19 失败：StartTimerBuff 返回 null|r");
+            u = null;
+            owner = null;
+            return;
+        }
+
+        // 外部存储参数到返回的 timer
+        SaveInteger(HASH_TIMER, GetHandleId(bt), 100, 100000);
+        BJDebugMsg("[UnitBuffTest] 已存储参数到 timer，键=100，值=100000");
+
+        // 0.6 秒后检查清理是否生效
+        checkT = CreateTimer();
+        checkId = GetHandleId(checkT);
+        SaveTimerHandle(HASH_TIMER, checkId, 1, bt);
+        TimerStart(checkT, 2.4, false, function () {
+            timer t; integer id; timer bt; boolean hasData;
+
+            t = GetExpiredTimer();
+            id = GetHandleId(t);
+            bt = LoadTimerHandle(HASH_TIMER, id, 1);
+
+            if (bt != null) {
+                hasData = HaveSavedInteger(HASH_TIMER, GetHandleId(bt), 100);
+                if (!hasData) {
+                    BJDebugMsg("[UnitBuffTest] s19 完成：回调执行后，HASH_TIMER 数据已清理");
+                } else {
+                    BJDebugMsg("|cFFFF0000[UnitBuffTest] s19 警告：回调执行后，HASH_TIMER 数据未清理|r");
+                }
+            } else {
+                BJDebugMsg("[UnitBuffTest] s19 完成：timer 已是null");
+            }
+
+            FlushChildHashtable(HASH_TIMER, id);
+            PauseTimer(t);
+            DestroyTimer(t);
+            bt = null;
+            t = null;
+        });
+        checkT = null;
+
+        u = null;
+        owner = null;
+    }
+
     // 测试18：CD禁用测试 - SetUnitStunCdDisabled 置 true 后应允许连续眩晕
     function TTestUTUnitBuff18 (player p) {
         unit u; player owner; real timeLeft; real cdLeft;
@@ -597,6 +669,7 @@ library UTUnitBuff requires UnitBuff {
             else if(str == "s15") TTestUTUnitBuff15(GetTriggerPlayer());
             else if(str == "s16") TTestUTUnitBuff16(GetTriggerPlayer());
             else if(str == "s18") TTestUTUnitBuff18(GetTriggerPlayer());
+            else if(str == "s19") TTestUTUnitBuff19(GetTriggerPlayer());
 		});
 
 		//unitAttrShow

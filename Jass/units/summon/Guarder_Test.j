@@ -96,7 +96,25 @@ library UTGuarder requires Guarder {
 		BJDebugMsg("[Guarder] 已添加 " + I2S(petCount) + " 个巡逻单位，它们将自动围绕主人并攻击敌人");
 	}
 
-	function TTestUTGuarder2 (player p) {}
+	function TTestUTGuarder2 (player p) {
+		real centerX; real centerY; real x; real y; unit u; boolean ok;
+
+		if (testHero == null) {
+			BJDebugMsg("[Guarder] 错误：主人单位不存在，请先初始化");
+			return;
+		}
+
+		centerX = GetUnitX(testHero);
+		centerY = GetUnitY(testHero);
+		x = centerX + 200.0;
+		y = centerY;
+
+		u = CreateUnit(p, 'hfoo', x, y, 0.0);
+		ok = GuarderAddPet(p, u);
+		BJDebugMsg("[Guarder] s2: 添加 1 个步兵守卫 => " + S3(ok, "成功", "失败"));
+
+		u = null;
+	}
 	function TTestUTGuarder3 (player p) {}
 	function TTestUTGuarder4 (player p) {}
 	function TTestUTGuarder5 (player p) {}
