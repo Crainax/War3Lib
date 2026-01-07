@@ -169,6 +169,9 @@
 #define KEY_UNIT_SUPERSPEED_N2           255610188 // 采样间隔累计（real）
 #define KEY_UNIT_SUPERSPEED_INTJ         255610189 // 采样间隔（real，默认0.02）
 
+// Guarder 守卫系统键值
+#define KEY_UNIT_GUARD_ATTACK_RANGE      255610192 // 守卫单位独立攻击范围（real，码）
+
 
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物

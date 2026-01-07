@@ -42,3 +42,4 @@
 
 #define MAX_SUPER_SPEED 1000 //最大超级移速
 
+#define ISVALID_PLAYER_ID(pid) (pid >= 1 && pid <= MAX_PLAYER_COUNT)

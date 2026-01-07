@@ -11,6 +11,8 @@
 
 #include "Crainax/config/SharedMethod.h"
 
+#define DASH_ISVALID_POS(pos) (pos >= 1 && pos <= MAX_COUNT_DASH)
+
 library Dash {
 
     // 实例结构体：每个 dash 实例持有自身配置
@@ -44,21 +46,14 @@ library Dash {
         static thistype dArgs = 0;
         static player pArgs = null;
 
-        // ===== 工具：边界 =====
-        private static method isValidPlayer(integer pid1) -> boolean {
-            return pid1 >= 1 && pid1 <= MAX_PLAYER_COUNT;
-        }
 
-        private static method isValidPos(integer pos) -> boolean {
-            return pos >= 1 && pos <= MAX_COUNT_DASH;
-        }
 
         // ===== 生命周期 =====
         public static method create (player p) -> thistype {
             integer pid1; integer pos;
             thistype this;
             pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer(pid1)) { return 0; }
+            if (!ISVALID_PLAYER_ID(pid1)) { return 0; }
             this = allocate();
             this.name = null;
             this.max = 0.0;
@@ -110,7 +105,7 @@ library Dash {
             }
             // 从玩家列表移除
             pid1 = this.ownerPid1;
-            if (dash.isValidPlayer(pid1) && this.playerListIndex != 0) {
+            if (ISVALID_PLAYER_ID(pid1) && this.playerListIndex != 0) {
                 plast = dash.playerSize[pid1];
                 if (this.playerListIndex != plast) {
                     dash.playerLists[pid1][this.playerListIndex] = dash.playerLists[pid1][plast];
@@ -155,8 +150,8 @@ library Dash {
         method getPlayerDashCount() -> integer { if (this.ownerPid1 <= 0) { return 0; } return dash.playerSize[this.ownerPid1]; }
         static method getPlayerDashByIndex(player p, integer pos) -> thistype {
             integer pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer(pid1)) { return 0; }
-            if (!dash.isValidPos(pos)) { return 0; }
+            if (!ISVALID_PLAYER_ID(pid1)) { return 0; }
+            if (!DASH_ISVALID_POS(pos)) { return 0; }
             return dash.playerLists[pid1][pos];
         }
 
@@ -164,7 +159,7 @@ library Dash {
         static method getPlayerAvailableDashCount(player p) -> integer {
             integer pid1; integer i; integer count; thistype inst;
             pid1 = GetConvertedPlayerId(p);
-            if (!dash.isValidPlayer(pid1)) { return 0; }
+            if (!ISVALID_PLAYER_ID(pid1)) { return 0; }
             count = 0;
             for (1 <= i <= dash.playerSize[pid1]) {
                 inst = dash.playerLists[pid1][i];

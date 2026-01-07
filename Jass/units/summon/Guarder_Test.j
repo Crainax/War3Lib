@@ -20,6 +20,7 @@
  *   -clear      - 清空所有守卫
  *   -pause 1    - 暂停所有守卫
  *   -pause 0    - 恢复所有守卫
+ *   -add xxx    - 增加玩家守卫搜索半径（xxx 为实数，可为负）
  *
  * 测试场景：
  *   1. 基础环绕：s1 后观察守卫围绕主人形成环形阵型
@@ -51,7 +52,7 @@ library UTGuarder requires Guarder {
 
 		// 中心点创建圣骑士（主人单位）
 		testHero = CreateUnit(p0, 'Hpal', centerX, centerY, 0.0);
-		GuarderInitOwner(p0, testHero);
+		guarder.initOwner(p0, testHero);
 		BJDebugMsg("[Guarder] 已创建主人单位：圣骑士");
 
 		// 周围2000码位置创建一些敌方农民
@@ -96,7 +97,7 @@ library UTGuarder requires Guarder {
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
 			u = CreateUnit(p, 'hfoo', x, y, angle);
-			ok = GuarderAddPet(p, u);
+			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加步兵 " + I2S(i) + " 到守卫系统");
 			} else {
@@ -112,7 +113,7 @@ library UTGuarder requires Guarder {
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
 			u = CreateUnit(p, 'hkni', x, y, angle);
-			ok = GuarderAddPet(p, u);
+			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加骑士 " + I2S(i) + " 到守卫系统");
 			} else {
@@ -138,7 +139,7 @@ library UTGuarder requires Guarder {
 		y = centerY;
 
 		u = CreateUnit(p, 'hfoo', x, y, 0.0);
-		ok = GuarderAddPet(p, u);
+		ok =  guarder.addPet(p, u);
 		BJDebugMsg("[Guarder] s2: 添加 1 个步兵守卫 => " + S3(ok, "成功", "失败"));
 
 		u = null;
@@ -161,7 +162,7 @@ library UTGuarder requires Guarder {
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
 			u = CreateUnit(p, 'hmpr', x, y, angle);
-			ok = GuarderAddPet(p, u);
+			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加牧师 " + I2S(i) + " 到守卫系统");
 			} else {
@@ -176,7 +177,7 @@ library UTGuarder requires Guarder {
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
 			u = CreateUnit(p, 'hsor', x, y, angle);
-			ok = GuarderAddPet(p, u);
+			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加女巫 " + I2S(i) + " 到守卫系统");
 			} else {
@@ -234,13 +235,19 @@ library UTGuarder requires Guarder {
 
 		if (paramS[0] == "clear") {
 			// 清空所有召唤物
-			GuarderClear(p);
+			guarder.clear(p);
 			BJDebugMsg("[Guarder] 已清空所有召唤物");
 		} else if (paramS[0] == "pause") {
 			// 暂停/恢复
 			if (num >= 2) {
-				GuarderSetPaused(p, paramI[1] != 0);
+				guarder.setPaused(p, paramI[1] != 0);
 				BJDebugMsg("[Guarder] 已" + S3(paramI[1] != 0, "暂停", "恢复"));
+			}
+		} else if (paramS[0] == "add") {
+			// 增加守卫搜索半径（召回半径同样复用）
+			if (num >= 2) {
+				guarder.addPlayerSearchRadius(p, paramR[1]);
+				BJDebugMsg("[Guarder] 已增加搜索半径 delta=" + R2S(paramR[1]) + "（当前搜索半径已更新）");
 			}
 		}
 
