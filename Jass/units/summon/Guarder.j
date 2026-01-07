@@ -9,38 +9,29 @@
 */
 
 // 可调参数
-#define GUARD_TICK                   0.20
-#define GUARD_SEARCH_RADIUS          1200.0
-#define GUARD_ATTACK_RANGE           200.0
-#define GUARD_RING_RADIUS            400.0
-#define GUARD_SUPER_SPEED_BONUS      800
-#define GUARD_MOVE_POINT_EPS         50.0
-#define GUARD_MAX_PETS_PER_PLAYER    1300
+#define GUARD_TICK                   0.20   // AI 更新周期（秒）：每 0.20 秒执行一次守卫 AI 逻辑
+#define GUARD_SEARCH_RADIUS          1200.0 // 敌人搜索半径（码）：以主人为中心，在此范围内搜索敌人
+#define GUARD_ATTACK_RANGE           500.0  // 攻击判定范围（码）：守卫与敌人距离 ≤ 此值时，下达 attack 命令
+#define GUARD_RING_RADIUS            400.0  // 环形站位半径（码）：无敌人时，守卫围绕主人形成环形阵型的半径
+#define GUARD_SUPER_SPEED_BONUS      800    // 超级移速加成（整数）：守卫加入时获得的额外移速（突破 522 上限）
+#define GUARD_MOVE_POINT_EPS         50.0   // 移动指令更新阈值（码）：move 目标点变化超过此值才重新下达 move 命令（避免频繁刷屏）
+#define GUARD_MAX_PETS_PER_PLAYER    1300   // 每玩家最大守卫数量：单个玩家最多可拥有的守卫数量上限
+#define GUARD_FREE_RADIUS            600.0  // 主人附近自由活动半径：主人在这个距离内小范围移动时，pet 不需要重新排队跟着转
+#define GUARD_RETURN_RADIUS          1200.0 // 超过这个距离开始“正常跑回”主人附近
+#define GUARD_TELEPORT_RADIUS        2200.0 // 超过这个距离不再跑，直接瞬移回主人附近
+#define GUARD_TELEPORT_OFFSET        150.0  // 瞬移回主人附近的随机偏移半径，避免所有宠物叠在一个点
+#define GUARD_IDLE_OWNER_MOVE_EPS    400.0  // 主人小幅移动时，idle 环绕不更新的阈值
 
-// 主人附近自由活动半径：主人在这个距离内小范围移动时，pet 不需要重新排队跟着转
-#define GUARD_FREE_RADIUS            600.0
 
-// 超过这个距离开始“正常跑回”主人附近
-#define GUARD_RETURN_RADIUS          1200.0
+// 状态枚举
+#define GUARDER_STATE_NONE  0
+#define GUARDER_STATE_IDLE_RING  1
+#define GUARDER_STATE_MOVE  2
+#define GUARDER_STATE_ATTACK  3
+#define GUARDER_STATE_PAUSED  4
 
-// 超过这个距离不再跑，直接瞬移回主人附近
-#define GUARD_TELEPORT_RADIUS        2200.0
-
-// 瞬移回主人附近的随机偏移半径，避免所有宠物叠在一个点
-#define GUARD_TELEPORT_OFFSET        150.0
-
-// 主人小幅移动时，idle 环绕不更新的阈值
-#define GUARD_IDLE_OWNER_MOVE_EPS    400.0
 
 library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
-
-    // 状态枚举
-    private integer STATE_NONE = 0;
-    private integer STATE_IDLE_RING = 1;
-    private integer STATE_MOVE = 2;
-    private integer STATE_ATTACK = 3;
-    private integer STATE_PAUSED = 4;
-
 
     // 数据结构：按玩家紧凑数组
     private struct GuarderData []{
@@ -122,7 +113,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             GuarderData.size[pid] = GuarderData.size[pid] + 1;
             idx = GuarderData.size[pid];
             GuarderData.pet[pid][idx] = petUnit;
-            GuarderData.state[pid][idx] = STATE_NONE;
+            GuarderData.state[pid][idx] = GUARDER_STATE_NONE;
             GuarderData.target[pid][idx] = null;
             GuarderData.moveX[pid][idx] = 0.0;
             GuarderData.moveY[pid][idx] = 0.0;
@@ -158,7 +149,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                     }
                     // 清空最后位置
                     GuarderData.pet[pid][last] = null;
-                    GuarderData.state[pid][last] = STATE_NONE;
+                    GuarderData.state[pid][last] = GUARDER_STATE_NONE;
                     GuarderData.target[pid][last] = null;
                     GuarderData.moveX[pid][last] = 0.0;
                     GuarderData.moveY[pid][last] = 0.0;
@@ -184,7 +175,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                     AddUnitSuperSpeed(GuarderData.pet[pid][idx], -GUARD_SUPER_SPEED_BONUS);
                     GuarderData.pet[pid][idx] = null;
                 }
-                GuarderData.state[pid][idx] = STATE_NONE;
+                GuarderData.state[pid][idx] = GUARDER_STATE_NONE;
                 GuarderData.target[pid][idx] = null;
                 GuarderData.moveX[pid][idx] = 0.0;
                 GuarderData.moveY[pid][idx] = 0.0;
@@ -277,9 +268,9 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
             ownerPaused = GuarderData.paused[pid] || IsUnitPaused(ownerUnit);
             if (ownerPaused) {
-                if (state != STATE_PAUSED) {
+                if (state != GUARDER_STATE_PAUSED) {
                     PauseUnit(petUnit, true);
-                    GuarderData.state[pid][idx] = STATE_PAUSED;
+                    GuarderData.state[pid][idx] = GUARDER_STATE_PAUSED;
                     GuarderData.target[pid][idx] = null;
                 }
                 petUnit = null;
@@ -301,7 +292,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 SetUnitX(petUnit, nx);
                 SetUnitY(petUnit, ny);
 
-                GuarderData.state[pid][idx] = STATE_IDLE_RING;
+                GuarderData.state[pid][idx] = GUARDER_STATE_IDLE_RING;
                 GuarderData.target[pid][idx] = null;
                 GuarderData.moveX[pid][idx] = 0.0;
                 GuarderData.moveY[pid][idx] = 0.0;
@@ -319,7 +310,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 angle = GuarderData.getRingAngle(pid, idx);
                 nx = ox + Cos(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
                 ny = oy + Sin(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
-                GuarderData.orderMove(pid, idx, petUnit, nx, ny, STATE_MOVE, null);
+                GuarderData.orderMove(pid, idx, petUnit, nx, ny, GUARDER_STATE_MOVE, null);
                 petUnit = null;
                 ownerUnit = null;
                 targetUnit = null;
@@ -330,8 +321,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 // 自由区：主人小范围移动时，不要重算环绕并下达新的 move
                 if (distToOwner <= GUARD_FREE_RADIUS) {
                     // 如果之前在路上，打断一次避免“跟着跑”
-                    if (state == STATE_MOVE) {
-                        GuarderData.orderStop(pid, idx, petUnit, STATE_IDLE_RING);
+                    if (state == GUARDER_STATE_MOVE) {
+                        GuarderData.orderStop(pid, idx, petUnit, GUARDER_STATE_IDLE_RING);
                     }
                     petUnit = null;
                     ownerUnit = null;
@@ -341,7 +332,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
                 // 可选加强：主人相对上次环绕中心移动不大，则不更新环绕
                 ownerMoveDist = GetDistance(ox, oy, GuarderData.ringOwnerX[pid], GuarderData.ringOwnerY[pid]);
-                if (state == STATE_IDLE_RING && ownerMoveDist <= GUARD_IDLE_OWNER_MOVE_EPS) {
+                if (state == GUARDER_STATE_IDLE_RING && ownerMoveDist <= GUARD_IDLE_OWNER_MOVE_EPS) {
                     petUnit = null;
                     ownerUnit = null;
                     targetUnit = null;
@@ -351,7 +342,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 angle = GuarderData.getRingAngle(pid, idx);
                 nx = ox + Cos(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
                 ny = oy + Sin(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
-                GuarderData.orderMove(pid, idx, petUnit, nx, ny, STATE_IDLE_RING, null);
+                GuarderData.orderMove(pid, idx, petUnit, nx, ny, GUARDER_STATE_IDLE_RING, null);
                 GuarderData.ringOwnerX[pid] = ox;
                 GuarderData.ringOwnerY[pid] = oy;
                 petUnit = null;
@@ -398,14 +389,14 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 angle = GuarderData.getRingAngle(pid, idx);
                 nx = ox + Cos(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
                 ny = oy + Sin(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
-                GuarderData.orderMove(pid, idx, petUnit, nx, ny, STATE_IDLE_RING, null);
+                GuarderData.orderMove(pid, idx, petUnit, nx, ny, GUARDER_STATE_IDLE_RING, null);
                 GuarderData.ringOwnerX[pid] = ox;
                 GuarderData.ringOwnerY[pid] = oy;
             } else {
                 dist = GetDistance(px, py, GetUnitX(bestTarget), GetUnitY(bestTarget));
                 if (dist <= GUARD_ATTACK_RANGE) {
-                    if (state != STATE_ATTACK || targetUnit != bestTarget) {
-                        GuarderData.state[pid][idx] = STATE_ATTACK;
+                    if (state != GUARDER_STATE_ATTACK || targetUnit != bestTarget) {
+                        GuarderData.state[pid][idx] = GUARDER_STATE_ATTACK;
                         GuarderData.target[pid][idx] = bestTarget;
                         GuarderData.moveX[pid][idx] = 0.0;
                         GuarderData.moveY[pid][idx] = 0.0;
@@ -415,7 +406,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                     // D3 风格：不再用 activity 半径限制目标（只在超出 RETURN_RADIUS 时由召回区强制拉回）
                     nx = GetUnitX(bestTarget);
                     ny = GetUnitY(bestTarget);
-                    GuarderData.orderMove(pid, idx, petUnit, nx, ny, STATE_MOVE, bestTarget);
+                    GuarderData.orderMove(pid, idx, petUnit, nx, ny, GUARDER_STATE_MOVE, bestTarget);
                 }
             }
 
@@ -508,6 +499,13 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
         GuarderData.setPaused(p, paused);
     }
 }
+
+
+#undef GUARDER_STATE_NONE
+#undef GUARDER_STATE_IDLE_RING
+#undef GUARDER_STATE_MOVE
+#undef GUARDER_STATE_ATTACK
+#undef GUARDER_STATE_PAUSED
 
 //! endzinc
 #endif

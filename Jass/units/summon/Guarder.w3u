@@ -1,0 +1,15 @@
+[hfoo]
+_parent = "hfoo"
+dmgpt1 = 0.001 -- 攻击 1 - 动画伤害点
+
+[hkni]
+_parent = "hkni"
+dmgpt1 = 0.001 -- 攻击 1 - 动画伤害点
+
+[hmpr]
+_parent = "hmpr"
+dmgpt1 = 0.001 -- 攻击 1 - 动画伤害点
+
+[hsor]
+_parent = "hsor"
+dmgpt1 = 0.001 -- 攻击 1 - 动画伤害点
