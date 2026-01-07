@@ -6,6 +6,32 @@
 
 //! zinc
 
+/*
+ * Guarder 系统测试指令说明
+ * ========================
+ *
+ * 基础测试：
+ *   s1  - 添加 4 个守卫（2 步兵 + 2 骑士），测试基础环绕和攻击行为
+ *   s2  - 添加 1 个步兵守卫
+ *   s3  - 添加远程守卫（3 牧师 + 3 女巫），测试远程守卫的 AI 行为
+ *   s4  - 将主人瞬移到远方（+4500, +0），测试守卫的回归/瞬移逻辑
+ *
+ * 控制指令（使用 - 前缀）：
+ *   -clear      - 清空所有守卫
+ *   -pause 1    - 暂停所有守卫
+ *   -pause 0    - 恢复所有守卫
+ *
+ * 测试场景：
+ *   1. 基础环绕：s1 后观察守卫围绕主人形成环形阵型
+ *   2. 攻击行为：s1 后让主人靠近敌方农民，观察守卫自动攻击
+ *   3. 远程守卫：s3 后观察牧师/女巫的远程攻击行为
+ *   4. 距离分段：
+ *      - 自由区（≤600）：主人小范围移动，守卫保持当前行为
+ *      - 召回区（600-1200）：守卫跑回主人附近
+ *      - 瞬移区（>2200）：守卫直接瞬移回主人附近
+ *   5. 瞬移测试：s4 后观察守卫是否在超过 2200 码时瞬移回主人
+ */
+
 //自动生成的文件
 library UTGuarder requires Guarder {
 
@@ -41,6 +67,8 @@ library UTGuarder requires Guarder {
 
 		BJDebugMsg("[Guarder] 测试环境初始化完成");
 		BJDebugMsg("[Guarder] 输入 s1 添加巡逻单位（步兵、骑士等）");
+		BJDebugMsg("[Guarder] 输入 s3 添加远程守卫（牧师、女巫），测试远程守卫的 AI 行为");
+		BJDebugMsg("[Guarder] 输入 s4 将主人瞬移到远方，测试守卫的回归/瞬移逻辑");
 
 		p0 = null;
 		p11 = null;
@@ -115,8 +143,65 @@ library UTGuarder requires Guarder {
 
 		u = null;
 	}
-	function TTestUTGuarder3 (player p) {}
-	function TTestUTGuarder4 (player p) {}
+	function TTestUTGuarder3 (player p) {
+		real centerX; real centerY; real angle; real dist; real x; real y; integer i; unit u; boolean ok;
+
+		if (testHero == null) {
+			BJDebugMsg("[Guarder] 错误：主人单位不存在，请先初始化");
+			return;
+		}
+
+		centerX = GetUnitX(testHero);
+		centerY = GetUnitY(testHero);
+		dist = 300.0; // 距离中心 300 码
+
+		// 创建 3 个牧师并添加为守卫
+		for (1 <= i <= 3) {
+			angle = 120.0 * i; // 每个单位间隔 120 度
+			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
+			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
+			u = CreateUnit(p, 'hmpr', x, y, angle);
+			ok = GuarderAddPet(p, u);
+			if (ok) {
+				BJDebugMsg("[Guarder] 已添加牧师 " + I2S(i) + " 到守卫系统");
+			} else {
+				BJDebugMsg("[Guarder] 添加牧师 " + I2S(i) + " 失败");
+			}
+			u = null;
+		}
+
+		// 创建 3 个女巫并添加为守卫
+		for (1 <= i <= 3) {
+			angle = 120.0 * (i + 3); // 继续间隔 120 度
+			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
+			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
+			u = CreateUnit(p, 'hsor', x, y, angle);
+			ok = GuarderAddPet(p, u);
+			if (ok) {
+				BJDebugMsg("[Guarder] 已添加女巫 " + I2S(i) + " 到守卫系统");
+			} else {
+				BJDebugMsg("[Guarder] 添加女巫 " + I2S(i) + " 失败");
+			}
+			u = null;
+		}
+
+		BJDebugMsg("[Guarder] s3: 已添加 3 牧师 + 3 女巫作为远程守卫，测试远程守卫的 AI 行为");
+	}
+
+	function TTestUTGuarder4 (player p) {
+		real x; real y;
+
+		if (testHero == null) {
+			BJDebugMsg("[Guarder] 错误：主人单位不存在，请先初始化");
+			return;
+		}
+
+		x = GetUnitX(testHero) + 4500.0;
+		y = GetUnitY(testHero) + 0.0;
+		SetUnitX(testHero, x);
+		SetUnitY(testHero, y);
+		BJDebugMsg("[Guarder] s4: 主人已瞬移到 (" + R2S(x) + ", " + R2S(y) + ")，观察守卫回归/瞬移效果");
+	}
 	function TTestUTGuarder5 (player p) {}
 	function TTestUTGuarder6 (player p) {}
 	function TTestUTGuarder7 (player p) {}
