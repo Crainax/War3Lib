@@ -12,17 +12,18 @@
 */
 
 // 可调参数
-#define GUARD_TICK                   0.20   // AI 更新周期（秒）：每 0.20 秒执行一次守卫 AI 逻辑
-#define GUARD_SEARCH_RADIUS          1200.0 // 敌人搜索半径（码）：以主人为中心，在此范围内搜索敌人
-#define GUARD_ATTACK_RANGE           500.0  // 攻击判定范围（码）：守卫与敌人距离 ≤ 此值时，下达 attack 命令
-#define GUARD_RING_RADIUS            400.0  // 环形站位半径（码）：无敌人时，守卫围绕主人形成环形阵型的半径
-#define GUARD_SUPER_SPEED_BONUS      800    // 超级移速加成（整数）：守卫加入时获得的额外移速（突破 522 上限）
-#define GUARD_MOVE_POINT_EPS         100.0  // 移动指令更新阈值（码）：move 目标点变化超过此值才重新下达 move 命令（避免频繁刷屏）
-#define GUARD_MAX_PETS_PER_PLAYER    1300   // 每玩家最大守卫数量：单个玩家最多可拥有的守卫数量上限
-#define GUARD_FREE_RADIUS            600.0  // 主人附近自由活动半径：主人在这个距离内小范围移动时，pet 不需要重新排队跟着转
-#define GUARD_TELEPORT_RADIUS        1000.0 // 额外瞬移阈值（码）：瞬移触发距离 = 搜索半径 + 本值
-#define GUARD_TELEPORT_OFFSET        150.0  // 瞬移回主人附近的随机偏移半径，避免所有宠物叠在一个点
-#define GUARD_IDLE_OWNER_MOVE_EPS    400.0  // 主人小幅移动时，idle 环绕不更新的阈值
+#define GUARD_TICK                      0.20   // AI 更新周期（秒）：每 0.20 秒执行一次守卫 AI 逻辑
+#define GUARD_SEARCH_RADIUS             1200.0 // 敌人搜索半径（码）：以主人为中心，在此范围内搜索敌人
+#define GUARD_ATTACK_RANGE              500.0  // 攻击判定范围（码）：守卫与敌人距离 ≤ 此值时，下达 attack 命令
+#define GUARD_RING_RADIUS               400.0  // 环形站位半径（码）：无敌人时，守卫围绕主人形成环形阵型的半径
+#define GUARD_SUPER_SPEED_BONUS         800    // 超级移速加成（整数）：守卫加入时获得的额外移速（突破 522 上限）
+#define GUARD_MOVE_POINT_EPS            100.0  // 移动指令更新阈值（码）：move 目标点变化超过此值才重新下达 move 命令（避免频繁刷屏）
+#define GUARD_MAX_PETS_PER_PLAYER       1300   // 每玩家最大守卫数量：单个玩家最多可拥有的守卫数量上限
+#define GUARD_FREE_RADIUS               600.0  // 主人附近自由活动半径：主人在这个距离内小范围移动时，pet 不需要重新排队跟着转
+#define GUARD_TELEPORT_RADIUS           1000.0 // 额外瞬移阈值（码）：瞬移触发距离 = 搜索半径 + 本值
+#define GUARD_TELEPORT_OFFSET           150.0  // 瞬移回主人附近的随机偏移半径，避免所有宠物叠在一个点
+#define GUARD_IDLE_OWNER_MOVE_EPS       400.0  // 主人小幅移动时，idle 环绕不更新的阈值
+#define GUARD_ATTACK_TELEPORT_DISTANCE  1800.0 // 攻击瞬移距离（码）：守卫与目标距离超过此值时，瞬移到目标附近
 
 //复用工具类函数
 #define GUARDER_ISVALID_IDX(pid, idx) (ISVALID_PLAYER_ID(pid) && idx >= 1 && idx <= guarder.size[pid])   //检查索引有效性
@@ -371,6 +372,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             real bestDist; real dist; real dx; real dy; boolean ownerPaused;
             real ownerMoveDist;
             real searchRadius; real teleportDist; real attackRange;
+            real vx; real vy; real vr; real targetX; real targetY;
 
             if (!GUARDER_ISVALID_IDX(pid, idx)) { return; }
 
@@ -525,7 +527,9 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 guarder.ringOwnerX[pid] = ox;
                 guarder.ringOwnerY[pid] = oy;
             } else {
-                dist = GetDistance(px, py, GetUnitX(bestTarget), GetUnitY(bestTarget));
+                targetX = GetUnitX(bestTarget);
+                targetY = GetUnitY(bestTarget);
+                dist = GetDistance(px, py, targetX, targetY);
                 if (dist <= attackRange) {
                     if (state != GUARDER_STATE_ATTACK || targetUnit != bestTarget) {
                         guarder.state[pid][idx] = GUARDER_STATE_ATTACK;
@@ -534,10 +538,41 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                         guarder.moveY[pid][idx] = 0.0;
                         IssueTargetOrder(petUnit, "attack", bestTarget);
                     }
+                } else if (dist > GUARD_ATTACK_TELEPORT_DISTANCE) {
+                    // 过远：瞬移到目标附近，同时保证仍在搜索半径内
+                    angle = GetRandomReal(0.0, 360.0);
+                    dx = Cos(angle * bj_DEGTORAD) * 200.0;
+                    dy = Sin(angle * bj_DEGTORAD) * 200.0;
+                    nx = targetX + dx;
+                    ny = targetY + dy;
+
+                    // 将瞬移落点限制在搜索半径内（以主人为中心）
+                    vx = nx - ox;
+                    vy = ny - oy;
+                    vr = SquareRoot(vx * vx + vy * vy);
+                    if (vr > searchRadius) {
+                        vx = vx / vr * searchRadius;
+                        vy = vy / vr * searchRadius;
+                        nx = ox + vx;
+                        ny = oy + vy;
+                    }
+
+
+                    DestroyEffect(AddSpecialEffect("Abilities\\Spells\\NightElf\\Blink\\BlinkCaster.mdl", GetUnitX(petUnit),GetUnitY(petUnit) ));
+                    SetUnitX(petUnit, nx);
+                    SetUnitY(petUnit, ny);
+                    DestroyEffect(AddSpecialEffect("Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdl", nx,ny ));
+
+                    // 瞬移后直接攻击
+                    guarder.state[pid][idx] = GUARDER_STATE_ATTACK;
+                    guarder.target[pid][idx] = bestTarget;
+                    guarder.moveX[pid][idx] = 0.0;
+                    guarder.moveY[pid][idx] = 0.0;
+                    IssueTargetOrder(petUnit, "attack", bestTarget);
                 } else {
-                    // D3 风格：不再用活动半径限制目标（只在超出“搜索半径”时由召回区强制拉回）
-                    nx = GetUnitX(bestTarget);
-                    ny = GetUnitY(bestTarget);
+                    // D3 风格：不再用活动半径限制目标（只在超出"搜索半径"时由召回区强制拉回）
+                    nx = targetX;
+                    ny = targetY;
                     guarder.orderMove(pid, idx, petUnit, nx, ny, GUARDER_STATE_MOVE, bestTarget);
                 }
             }
