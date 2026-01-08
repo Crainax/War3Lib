@@ -174,10 +174,14 @@
 
 
 //异度用键位
-#define KEY_UNIT_ARENA_PLAYER 10001 // 子键:属于玩家几的竞技场怪物
-#define KEY_UNIT_GUAI_PLAYER 10002 // 子键:属于玩家几的竞技场怪物
-#define KEY_UNIT_BOSS_PLAYER 10003 // 子键:是否属于BOSS
-#define KEY_UNIT_TM_TRANSPORTING 10004 // TM副本的传送对象
+#define KEY_UNIT_ARENA_PLAYER 10001     // 子键:属于玩家几的竞技场怪物
+#define KEY_UNIT_GUAI_PLAYER 10002      // 子键:属于玩家几的竞技场怪物
+#define KEY_UNIT_BOSS_PLAYER 10003      // 子键:是否属于BOSS
+#define KEY_UNIT_TM_TRANSPORTING 10004  // TM副本的传送对象
+#define KEY_MOSHOU_BINDING_ITEM 10005   // 魔兽绑定的物品
+#define KEY_MOSHOU_BINDING_LEVEL 10006  // 魔兽绑定的等级
+#define KEY_MOSHOU_BINDING_BUFF 10007   // 魔兽绑定的buff
+
 
 
 #endif

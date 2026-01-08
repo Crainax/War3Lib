@@ -21,6 +21,7 @@
  *   -pause 1    - 暂停所有守卫
  *   -pause 0    - 恢复所有守卫
  *   -add xxx    - 增加玩家守卫搜索半径（xxx 为实数，可为负）
+ *   -print      - 打印玩家的所有守卫信息（名称、ID、索引等）
  *
  * 测试场景：
  *   1. 基础环绕：s1 后观察守卫围绕主人形成环形阵型
@@ -249,6 +250,28 @@ library UTGuarder requires Guarder {
 				guarder.addPlayerSearchRadius(p, paramR[1]);
 				BJDebugMsg("[Guarder] 已增加搜索半径 delta=" + R2S(paramR[1]) + "（当前搜索半径已更新）");
 			}
+		} else if (paramS[0] == "print") {
+			// 打印玩家的所有守卫
+			integer count; integer i; unit pet; string unitName; integer unitId;
+			count = guarder.getSize(p);
+			BJDebugMsg("[Guarder] ========== 玩家守卫列表 ==========");
+			BJDebugMsg("[Guarder] 守卫总数: " + I2S(count));
+			if (count <= 0) {
+				BJDebugMsg("[Guarder] 当前没有守卫");
+			} else {
+				for (1 <= i <= count) {
+					pet = guarder.getPetByIndex(p, i);
+					if (pet != null && GetUnitTypeId(pet) != 0) {
+						unitId = GetUnitTypeId(pet);
+						unitName = GetUnitName(pet);
+						BJDebugMsg("[Guarder] [" + I2S(i) + "/" + I2S(count) + "] " + unitName + " (ID: " + I2S(unitId) + ")");
+					} else {
+						BJDebugMsg("[Guarder] [" + I2S(i) + "/" + I2S(count) + "] <空位>");
+					}
+					pet = null;
+				}
+			}
+			BJDebugMsg("[Guarder] ====================================");
 		}
 
 		p = null;

@@ -34,6 +34,122 @@
 #define GUARDER_STATE_ATTACK  3
 #define GUARDER_STATE_PAUSED  4
 
+/*
+ * ========================================
+ * Guarder 系统公共 API 方法说明
+ * ========================================
+ */
+
+// guarder.initOwner(player p, unit ownerUnit)
+// 功能：初始化指定玩家的主人单位
+// 参数：
+//   - p: 玩家句柄，不能为 null
+//   - ownerUnit: 主人单位句柄，不能为 null
+// 说明：
+//   - 每个玩家只能有一个主人单位，后续添加的守卫会围绕此单位行动
+//   - 如果该玩家的搜索半径未初始化（<=0），会自动设置为默认值 GUARD_SEARCH_RADIUS
+//   - 使用示例：guarder.initOwner(p0, testHero);
+
+// guarder.addPet(player p, unit petUnit) -> boolean
+// 功能：将单位添加为指定玩家的守卫
+// 参数：
+//   - p: 玩家句柄，不能为 null
+//   - petUnit: 要添加的守卫单位句柄，不能为 null
+// 返回值：
+//   - true: 添加成功
+//   - false: 添加失败（单位已存在、容量已满、参数无效等）
+// 说明：
+//   - 添加成功后会为守卫单位添加超级移速加成（突破 522 上限）
+//   - 会为守卫设置默认攻击范围（可通过 HASH_UNIT 系统修改）
+//   - 守卫会自动围绕主人形成环形阵型，并在搜索范围内自动攻击敌人
+//   - 使用示例：guarder.addPet(p, u);
+
+// guarder.removePet(player p, unit petUnit) -> boolean
+// 功能：从指定玩家的守卫系统中移除单个守卫单位
+// 参数：
+//   - p: 玩家句柄，不能为 null
+//   - petUnit: 要移除的守卫单位句柄，不能为 null
+// 返回值：
+//   - true: 移除成功
+//   - false: 移除失败（单位不存在、参数无效等）
+// 说明：
+//   - 移除时会恢复守卫的移速（减去超级移速加成）
+//   - 会清理守卫的独立攻击范围数据
+//   - 使用紧凑数组删除，保证 O(1) 时间复杂度
+
+// guarder.clear(player p)
+// 功能：清空指定玩家的所有守卫（不删除单位，仅解绑系统）
+// 参数：
+//   - p: 玩家句柄，不能为 null
+// 说明：
+//   - 会恢复所有守卫的移速（减去超级移速加成）
+//   - 会清理所有守卫的独立攻击范围数据
+//   - 清空后该玩家的守卫数量为 0，但主人单位仍然保留
+//   - 使用示例：guarder.clear(p); // 清空所有召唤物
+
+// guarder.setPaused(player p, boolean paused)
+// 功能：外部控制暂停/恢复指定玩家的所有守卫 AI
+// 参数：
+//   - p: 玩家句柄，不能为 null
+//   - paused: true=暂停，false=恢复
+// 说明：
+//   - 暂停时守卫会被暂停（PauseUnit），停止所有 AI 行为
+//   - 恢复时守卫会解除暂停，继续执行 AI 逻辑
+//   - 适用于特殊剧情、复活等场景需要临时停止守卫行为
+//   - 使用示例：guarder.setPaused(p, true); // 暂停所有守卫
+
+// guarder.addPlayerSearchRadius(player p, real delta)
+// 功能：动态增加/减少指定玩家的守卫搜索半径（召回半径同样复用此值）
+// 参数：
+//   - p: 玩家句柄，不能为 null
+//   - delta: 半径变化量（可为正数或负数）
+// 说明：
+//   - 搜索半径影响：敌人搜索范围、召回触发距离
+//   - 瞬移触发距离 = 搜索半径 + GUARD_TELEPORT_RADIUS
+//   - 最终半径不会小于 0（会自动限制）
+//   - 如果当前半径未初始化（<=0），会先设置为默认值 GUARD_SEARCH_RADIUS 再加 delta
+//   - 使用示例：guarder.addPlayerSearchRadius(p, 200.0); // 增加 200 码搜索半径
+
+// guarder.getSize(player p) -> integer
+// 功能：获取指定玩家的守卫数量
+// 参数：
+//   - p: 玩家句柄，不能为 null
+// 返回值：
+//   - 该玩家的守卫数量（0 表示没有守卫）
+// 说明：
+//   - 返回值为紧凑数组的有效元素数量
+//   - 使用示例：integer count = guarder.getSize(p);
+
+// guarder.getPetByIndex(player p, integer index) -> unit
+// 功能：获取指定玩家第 index 个位置的守卫单位（用于遍历）
+// 参数：
+//   - p: 玩家句柄，不能为 null
+//   - index: 索引位置（从 1 开始，1-based）
+// 返回值：
+//   - unit: 守卫单位句柄，如果索引无效或位置为空则返回 null
+// 说明：
+//   - 索引范围：1 到 getSize(p)
+//   - 使用紧凑数组，所有有效守卫都在 1..size 范围内
+//   - 使用示例：见下方遍历示例
+
+/*
+ * ========================================
+ * 遍历守卫示例
+ * ========================================
+ *
+ * // 遍历指定玩家的所有守卫
+ * integer i; integer count; unit pet;
+ * count = guarder.getSize(p);
+ * for (1 <= i <= count) {
+ *     pet = guarder.getPetByIndex(p, i);
+ *     if (pet != null && GetUnitTypeId(pet) != 0) {
+ *         // 处理守卫逻辑
+ *         BJDebugMsg("守卫 " + I2S(i) + ": " + GetUnitName(pet));
+ *     }
+ *     pet = null;
+ * }
+ */
+
 library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
     // 数据结构：按玩家紧凑数组
@@ -485,7 +601,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
         // 增加/减少某玩家的守卫搜索半径（召回半径同样复用此值）
         // delta 可为负数；最终半径不会小于 0
-        static method addPlayerSearchRadius(player p, real delta) {
+        public static method addPlayerSearchRadius(player p, real delta) {
             integer pid;
             real r;
             if (p == null) { return; }
@@ -497,6 +613,25 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             r = r + delta;
             if (r < 0.0) { r = 0.0; }
             guarder.searchRadius[pid] = r;
+        }
+
+        // 获取指定玩家的守卫数量
+        public static method getSize(player p) -> integer {
+            integer pid;
+            if (p == null) { return 0; }
+            pid = GetConvertedPlayerId(p);
+            if (!ISVALID_PLAYER_ID(pid)) { return 0; }
+            return guarder.size[pid];
+        }
+
+        // 获取指定玩家第 index 个位置的守卫单位（用于遍历）
+        public static method getPetByIndex(player p, integer index) -> unit {
+            integer pid;
+            if (p == null) { return null; }
+            pid = GetConvertedPlayerId(p);
+            if (!ISVALID_PLAYER_ID(pid)) { return null; }
+            if (index < 1 || index > guarder.size[pid]) { return null; }
+            return guarder.pet[pid][index];
         }
 
         // 周期 tick 主循环
