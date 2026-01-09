@@ -171,7 +171,11 @@
 
 // Guarder 守卫系统键值
 #define KEY_UNIT_GUARD_ATTACK_RANGE      255610192 // 守卫单位独立攻击范围（real，码）
+#define KEY_UNIT_GUARD_PAUSE_AVUL_ADDED  255610193 // 是否由 Guarder.pause 添加过 Avul（integer 0/1）
 
+// 单位面板攻击图标自定义显示
+#define KEY_UNIT_ATK_CORNER_TEXT         255610194 // 攻击图标角标文本（string）
+#define KEY_UNIT_ATK_TEXTURE             255610195 // 攻击图标自定义贴图路径（string）
 
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001     // 子键:属于玩家几的竞技场怪物
@@ -181,6 +185,7 @@
 #define KEY_MOSHOU_BINDING_ITEM 10005   // 魔兽绑定的物品
 #define KEY_MOSHOU_BINDING_LEVEL 10006  // 魔兽绑定的等级
 #define KEY_MOSHOU_BINDING_BUFF 10007   // 魔兽绑定的buff
+#define KEY_MOSHOU_BINDING_RATE 10008   // 魔兽绑定的伤害比例
 
 
 

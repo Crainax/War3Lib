@@ -7,6 +7,7 @@
 //# dependency:resource/ui/console/unitpanel/yidu_str.blp
 //# dependency:resource/ui/console/unitpanel/yidu_agi.blp
 //# dependency:resource/ui/console/unitpanel/yidu_int.blp
+//# dependency:resource/ui/console/unitpanel/yidu_magic.blp
 //# dependency:resource/ui/console/unitpanel/yidu_Atk.blp
 //# dependency:resource/ui/console/unitpanel/yidu_Def.blp
 
@@ -111,6 +112,10 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		BJDebugMsg("-resetresistdown : 重置魔抗易伤");
 		BJDebugMsg("-silence : 添加沉默状态");
 		BJDebugMsg("-nosilence : 移除沉默状态");
+		BJDebugMsg("-atkicon on : 启用攻击图标自定义显示(角标+贴图)");
+		BJDebugMsg("-atkicon off : 禁用攻击图标自定义显示");
+		BJDebugMsg("-atkcorner [text] : 设置攻击图标角标文本");
+		BJDebugMsg("-atktex [path] : 设置攻击图标自定义贴图路径");
 
 		// 自动创建测试单位
 		UnitTestAutoTimer(0.1, 0, function() {
@@ -665,6 +670,42 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			BJDebugMsg("已重置魔抗易伤");
 			BJDebugMsg("当前魔抗最终值: " + R2S(GetUnitResistFinal(u)));
 			BJDebugMsg("当前魔抗显示值: " + R2S(1.0 - GetUnitResistFinal(u)));
+		}
+		// 攻击图标自定义显示相关命令
+		else if (paramS[0] == "atkicon") {
+			if (num >= 2 && paramS[1] == "on") {
+				// 启用自定义显示
+				SetUnitAtkCornerText(u, "Magic");
+				SetUnitAtkTexture(u, "ui\\console\\unitpanel\\yidu_Magic.blp");
+				BJDebugMsg("已启用攻击图标自定义显示");
+				BJDebugMsg("角标: Magic");
+				BJDebugMsg("贴图: ui\\console\\unitpanel\\yidu_Magic.blp");
+			} else if (num >= 2 && paramS[1] == "off") {
+				// 禁用自定义显示
+				ClearUnitAtkCornerText(u);
+				ClearUnitAtkTexture(u);
+				BJDebugMsg("已禁用攻击图标自定义显示，恢复默认");
+			}
+		} else if (paramS[0] == "atkcorner") {
+			// 设置角标文本
+			if (num >= 2) {
+				SetUnitAtkCornerText(u, paramS[1]);
+				BJDebugMsg("已设置攻击图标角标: " + paramS[1]);
+			} else {
+				// 清除角标
+				ClearUnitAtkCornerText(u);
+				BJDebugMsg("已清除攻击图标角标");
+			}
+		} else if (paramS[0] == "atktex") {
+			// 设置贴图路径
+			if (num >= 2) {
+				SetUnitAtkTexture(u, paramS[1]);
+				BJDebugMsg("已设置攻击图标贴图: " + paramS[1]);
+			} else {
+				// 清除贴图
+				ClearUnitAtkTexture(u);
+				BJDebugMsg("已清除攻击图标自定义贴图，恢复默认");
+			}
 		}
 
 		u = null;

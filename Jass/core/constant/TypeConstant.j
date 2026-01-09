@@ -114,8 +114,9 @@
 #define HERO_TYPE_NAME_KEY            10080   // 英雄名字
 #define HERO_TYPE_DESC_KEY            10090   // 英雄描述
 #define HERO_TYPE_TALENT_SPELL_KEY    10100   // 天赋技能 ID
-
 #define HASH_KEY_TYPE_ABILITY_ACHIEVEMENT 10110  //技能的绑定成就ID
+#define MOSHOU_KEY_DAMAGE_TYPE 10111  // 魔兽:伤害类型(物理或魔法)
+#define MOSHOU_KEY_DAMAGE_RATE 10112  // 魔兽:伤害百分比(小数)
 
 
 #endif

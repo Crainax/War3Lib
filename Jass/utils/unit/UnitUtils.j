@@ -1401,6 +1401,92 @@ library UnitUtils requires BigInteger,MathUtils {
         }
 	}
 
+    //=====================
+    // 攻击图标自定义显示（角标与贴图）
+    //=====================
+
+    // 设置单位攻击图标角标文本
+    public function SetUnitAtkCornerText(unit u, string value) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        // 空字符串视为无效，等同于清除
+        if (value == null || value == "") {
+            if (HaveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_CORNER_TEXT)) {
+                RemoveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_CORNER_TEXT);
+            }
+        } else {
+            SaveStr(HASH_UNIT, uid, KEY_UNIT_ATK_CORNER_TEXT, value);
+        }
+    }
+
+    // 获取单位攻击图标角标文本（无效时返回 null）
+    public function GetUnitAtkCornerText(unit u) -> string {
+        integer uid; string value;
+        if (u == null) { return null; }
+        uid = GetHandleId(u);
+        if (HaveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_CORNER_TEXT)) {
+            value = LoadStr(HASH_UNIT, uid, KEY_UNIT_ATK_CORNER_TEXT);
+            // 空字符串视为无效
+            if (value == "") {
+                return null;
+            }
+            return value;
+        }
+        return null;
+    }
+
+    // 清除单位攻击图标角标文本
+    public function ClearUnitAtkCornerText(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_CORNER_TEXT)) {
+            RemoveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_CORNER_TEXT);
+        }
+    }
+
+    // 设置单位攻击图标自定义贴图路径
+    public function SetUnitAtkTexture(unit u, string value) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        // 空字符串视为无效，等同于清除
+        if (value == null || value == "") {
+            if (HaveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_TEXTURE)) {
+                RemoveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_TEXTURE);
+            }
+        } else {
+            SaveStr(HASH_UNIT, uid, KEY_UNIT_ATK_TEXTURE, value);
+        }
+    }
+
+    // 获取单位攻击图标自定义贴图路径（无效时返回 null）
+    public function GetUnitAtkTexture(unit u) -> string {
+        integer uid; string value;
+        if (u == null) { return null; }
+        uid = GetHandleId(u);
+        if (HaveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_TEXTURE)) {
+            value = LoadStr(HASH_UNIT, uid, KEY_UNIT_ATK_TEXTURE);
+            // 空字符串视为无效
+            if (value == "") {
+                return null;
+            }
+            return value;
+        }
+        return null;
+    }
+
+    // 清除单位攻击图标自定义贴图路径
+    public function ClearUnitAtkTexture(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_TEXTURE)) {
+            RemoveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_TEXTURE);
+        }
+    }
+
     //传送单位(带特效与镜头转换)
     public function TransportUnit (unit u,real x,real y,boolean camera) {
         if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);

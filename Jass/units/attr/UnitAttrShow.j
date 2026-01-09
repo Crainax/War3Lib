@@ -38,6 +38,11 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static real    lastResistValue       = 0.0;   // 上一次的魔抗值（1.0 - final）
         private static boolean lastShowResist        = false; // 上一次是否显示魔抗
 
+        // 攻击图标自定义显示缓存
+        private static string  lastAtkCornerText     = null;  // 上一次的角标文本
+        private static string  lastAtkTexture        = null;  // 上一次的贴图路径
+        private static boolean lastShowAtkCornerText = false; // 上一次是否显示角标
+        private static boolean lastShowAtkTexture   = false; // 上一次是否使用自定义贴图
 
         // 上一次的状态（用于判断是否需要更新显示）
         private static boolean lastIsInvulnerable = false;
@@ -293,6 +298,48 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             unitPanel.showIntExtra(false);
         }
 
+        // 内部：更新攻击图标自定义显示（角标与贴图）
+        private static method updateAttackIcon (unit u) {
+            string cornerText; string texture; boolean showCorner; boolean showTexture;
+            boolean cornerChanged; boolean textureChanged;
+
+            // 读取角标文本
+            cornerText = GetUnitAtkCornerText(u);
+            showCorner = (cornerText != null);
+            cornerChanged = (!inited || showCorner != lastShowAtkCornerText || (showCorner && cornerText != lastAtkCornerText));
+
+            // 读取贴图路径
+            texture = GetUnitAtkTexture(u);
+            showTexture = (texture != null);
+            textureChanged = (!inited || showTexture != lastShowAtkTexture || (showTexture && texture != lastAtkTexture));
+
+            // 更新角标
+            if (cornerChanged) {
+                if (showCorner) {
+                    unitPanel.iconAttack.setCornerText(cornerText);
+                    lastAtkCornerText = cornerText;
+                    lastShowAtkCornerText = true;
+                } else {
+                    unitPanel.iconAttack.setCornerText(null);
+                    lastAtkCornerText = null;
+                    lastShowAtkCornerText = false;
+                }
+            }
+
+            // 更新贴图
+            if (textureChanged) {
+                if (showTexture) {
+                    unitPanel.iconAttack.setTexture(texture);
+                    lastAtkTexture = texture;
+                    lastShowAtkTexture = true;
+                } else {
+                    unitPanel.iconAttack.setTexture(UNITPANEL_ICON_TEXTURE_ATTACK);
+                    lastAtkTexture = null;
+                    lastShowAtkTexture = false;
+                }
+            }
+        }
+
         // 每帧监控当前主单位的属性变化（攻击 / 防御 / 力敏智）
         private static method setupWatcher () {
             hardware.regUpdateEvent(function () {
@@ -323,6 +370,9 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
 
                         unitAttrShow.updatePrimaryAttrs(u, strVal, agiVal, intVal);
                     }
+
+                    // 更新攻击图标自定义显示（角标与贴图）
+                    unitAttrShow.updateAttackIcon(u);
 
                     inited = true;
                 }

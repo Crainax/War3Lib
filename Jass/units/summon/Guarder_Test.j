@@ -15,6 +15,7 @@
 *   s2  - 添加 1 个步兵守卫
 *   s3  - 添加远程守卫（3 牧师 + 3 女巫），测试远程守卫的 AI 行为
 *   s4  - 将主人瞬移到远方（+4500, +0），测试守卫的回归/瞬移逻辑
+ *   s5  - 杀死主人单位（测试：主人死亡后守卫 AI 是否仍正常）
 *
 * 控制指令（使用 - 前缀）：
 *   -clear      - 清空所有守卫
@@ -71,6 +72,7 @@ library UTGuarder requires Guarder {
 		BJDebugMsg("[Guarder] 输入 s1 添加巡逻单位（步兵、骑士等）");
 		BJDebugMsg("[Guarder] 输入 s3 添加远程守卫（牧师、女巫），测试远程守卫的 AI 行为");
 		BJDebugMsg("[Guarder] 输入 s4 将主人瞬移到远方，测试守卫的回归/瞬移逻辑");
+		BJDebugMsg("[Guarder] 输入 s5 杀死主人单位，测试主人死亡后守卫 AI");
 
 		p0 = null;
 		p11 = null;
@@ -204,7 +206,14 @@ library UTGuarder requires Guarder {
 		SetUnitY(testHero, y);
 		BJDebugMsg("[Guarder] s4: 主人已瞬移到 (" + R2S(x) + ", " + R2S(y) + ")，观察守卫回归/瞬移效果");
 	}
-	function TTestUTGuarder5 (player p) {}
+	function TTestUTGuarder5 (player p) {
+		if (testHero == null) {
+			BJDebugMsg("[Guarder] 错误：主人单位不存在，请先初始化");
+			return;
+		}
+		KillUnit(testHero);
+		BJDebugMsg("[Guarder] s5: 已杀死主人单位，观察守卫 AI 是否仍正常");
+	}
 	function TTestUTGuarder6 (player p) {}
 	function TTestUTGuarder7 (player p) {}
 	function TTestUTGuarder8 (player p) {}

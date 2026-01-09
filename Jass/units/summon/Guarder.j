@@ -304,7 +304,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
         // 外部强制暂停/恢复
         public static method setPaused(player p, boolean paused) {
-            integer pid;
+            integer pid; integer idx; unit u; integer hid;
 
             if (p == null) { return; }
 
@@ -312,6 +312,30 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             if (!ISVALID_PLAYER_ID(pid)) { return; }
 
             guarder.paused[pid] = paused;
+
+            // 立即对现有守卫同步 Pause + Avul（只移除由本系统添加的 Avul）
+            for (1 <= idx <= guarder.size[pid]) {
+                u = guarder.pet[pid][idx];
+                if (u != null && GetUnitTypeId(u) != 0) {
+                    hid = GetHandleId(u);
+                    if (paused) {
+                        if (GetUnitAbilityLevel(u, 'Avul') == 0) {
+                            UnitAddAbility(u, 'Avul');
+                            SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED, 1);
+                        }
+                        PauseUnit(u, true);
+                        guarder.state[pid][idx] = GUARDER_STATE_PAUSED;
+                        guarder.target[pid][idx] = null;
+                    } else {
+                        if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) == 1) {
+                            UnitRemoveAbility(u, 'Avul');
+                            RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED);
+                        }
+                        PauseUnit(u, false);
+                    }
+                }
+                u = null;
+            }
         }
 
         // 记录 move 指令，避免重复下达
@@ -373,6 +397,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             real ownerMoveDist;
             real searchRadius; real teleportDist; real attackRange;
             real vx; real vy; real vr; real targetX; real targetY;
+            integer hid,hid2;
+
 
             if (!GUARDER_ISVALID_IDX(pid, idx)) { return; }
 
@@ -380,7 +406,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             if (petUnit == null || GetUnitTypeId(petUnit) == 0) { return; }
 
             ownerUnit = guarder.owner[pid];
-            if (ownerUnit == null || !IsUnitAliveBJ(ownerUnit)) {
+            // 主人死亡不影响守卫 AI：只在句柄失效时才退出/解绑
+            if (ownerUnit == null || GetUnitTypeId(ownerUnit) == 0) {
                 guarder.removePet(ConvertedPlayer(pid), petUnit);
                 petUnit = null;
                 ownerUnit = null;
@@ -402,6 +429,14 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                     PauseUnit(petUnit, true);
                     guarder.state[pid][idx] = GUARDER_STATE_PAUSED;
                     guarder.target[pid][idx] = null;
+                    // 外部 pause 时给守卫 Avul（只在 guarder.paused=true 时处理，避免影响其他系统的 PauseUnit）
+                    if (guarder.paused[pid]) {
+                        hid = GetHandleId(petUnit);
+                        if (GetUnitAbilityLevel(petUnit, 'Avul') == 0) {
+                            UnitAddAbility(petUnit, 'Avul');
+                            SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED, 1);
+                        }
+                    }
                 }
                 petUnit = null;
                 ownerUnit = null;
@@ -409,6 +444,12 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 return;
             } else if (IsUnitPaused(petUnit)) {
                 PauseUnit(petUnit, false);
+                // 从外部 pause 恢复时，如果 Avul 是 Guarder 添加的，则移除
+                hid2 = GetHandleId(petUnit);
+                if (HaveSavedInteger(HASH_UNIT, hid2, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) && LoadInteger(HASH_UNIT, hid2, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) == 1) {
+                    UnitRemoveAbility(petUnit, 'Avul');
+                    RemoveSavedInteger(HASH_UNIT, hid2, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED);
+                }
             }
 
             enemyCount = guarder.enemyCount;
@@ -591,7 +632,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             real radius;
 
             ownerUnit = guarder.owner[pid];
-            if (ownerUnit == null || !IsUnitAliveBJ(ownerUnit)) { return; }
+            // 主人死亡不影响守卫 AI：只在句柄失效时才退出
+            if (ownerUnit == null || GetUnitTypeId(ownerUnit) == 0) { return; }
 
             ownerPlayer = GetOwningPlayer(ownerUnit);
             ox = GetUnitX(ownerUnit);
