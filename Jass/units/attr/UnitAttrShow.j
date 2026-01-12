@@ -27,6 +27,9 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         private static real    lastAttackExtra      = 0.0;   // 上一次的额外攻击（绿/红字）
         private static boolean lastShowAttackExtra  = false; // 上一次是否显示额外攻击
         private static boolean lastShowAttackRate   = false; // 上一次是否显示攻击百分比
+        // 攻击数值自定义显示缓存
+        private static string  lastAttackValueStr   = null;  // 上一次的自定义攻击显示文本
+        private static boolean lastShowAttackValueStr = false; // 上一次是否使用自定义攻击显示
 
         // 防御扩展显示缓存
         private static real    lastDefenseRate       = 1.0;   // 上一次的总倍率
@@ -76,6 +79,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             boolean isInvul; boolean isMagicImm; string armorText;
             real baseAtk; real extraAtk; boolean showExtra;
             string extraText;
+            string atkValueStr; boolean showAtkValueStr;
             real rate; real deltaRate; boolean showRate;
             string atkLabel; real percentAbs; string percentStr;
             integer baseDef; integer extraDef; boolean showDefExtra;
@@ -111,14 +115,40 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             extraAtk = atk - baseAtk;
             showExtra = RAbsBJ(extraAtk) >= RMaxBJ(1.0,RAbsBJ(baseAtk) * 0.001);
 
-            // 更新基础攻击显示
-            if (!inited || RAbsBJ(baseAtk - lastAttack) > 0.001) {
-                lastAttack = baseAtk;
-                unitPanel.textAttackValue.setText(unitAttrShow.formatValue(baseAtk));
+            // 攻击数值：若存在自定义字符串，则优先显示，并强制隐藏 extra
+            atkValueStr = GetUnitAtkValueStr(u);
+            showAtkValueStr = (atkValueStr != null);
+
+            if (showAtkValueStr) {
+                if (!inited || !lastShowAttackValueStr || atkValueStr != lastAttackValueStr) {
+                    unitPanel.textAttackValue.setText(atkValueStr);
+                    lastAttackValueStr = atkValueStr;
+                    lastShowAttackValueStr = true;
+                }
+                // 强制隐藏额外攻击显示
+                if (!inited || lastShowAttackExtra) {
+                    unitPanel.showAttackExtra(false);
+                    lastShowAttackExtra = false;
+                    lastAttackExtra = 0.0;
+                }
+            } else {
+                // 从“自定义显示”切回“数值显示”时，强制刷新一次
+                if (!inited || lastShowAttackValueStr) {
+                    lastAttackValueStr = null;
+                    lastShowAttackValueStr = false;
+                    lastAttack = baseAtk;
+                    unitPanel.textAttackValue.setText(unitAttrShow.formatValue(baseAtk));
+                } else {
+                    // 正常数值显示：只在变化时刷新
+                    if (RAbsBJ(baseAtk - lastAttack) > 0.001) {
+                        lastAttack = baseAtk;
+                        unitPanel.textAttackValue.setText(unitAttrShow.formatValue(baseAtk));
+                    }
+                }
             }
 
             // 更新额外攻击显示
-            if (showExtra) {
+            if (!showAtkValueStr && showExtra) {
                 percentAbs = RAbsBJ(extraAtk);
                 percentStr = unitAttrShow.formatValue(percentAbs);
                 if (extraAtk > 0.0) {

@@ -1487,6 +1487,51 @@ library UnitUtils requires BigInteger,MathUtils {
         }
     }
 
+    //=====================
+    // 攻击数值自定义显示（ValueStr）
+    //=====================
+
+    // 设置单位攻击数值自定义显示文本
+    public function SetUnitAtkValueStr(unit u, string value) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        // 空字符串视为无效，等同于清除
+        if (value == null || value == "") {
+            if (HaveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_VALUE_STR)) {
+                RemoveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_VALUE_STR);
+            }
+        } else {
+            SaveStr(HASH_UNIT, uid, KEY_UNIT_ATK_VALUE_STR, value);
+        }
+    }
+
+    // 获取单位攻击数值自定义显示文本（无效时返回 null）
+    public function GetUnitAtkValueStr(unit u) -> string {
+        integer uid; string value;
+        if (u == null) { return null; }
+        uid = GetHandleId(u);
+        if (HaveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_VALUE_STR)) {
+            value = LoadStr(HASH_UNIT, uid, KEY_UNIT_ATK_VALUE_STR);
+            // 空字符串视为无效
+            if (value == "") {
+                return null;
+            }
+            return value;
+        }
+        return null;
+    }
+
+    // 清除单位攻击数值自定义显示文本
+    public function ClearUnitAtkValueStr(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_VALUE_STR)) {
+            RemoveSavedString(HASH_UNIT, uid, KEY_UNIT_ATK_VALUE_STR);
+        }
+    }
+
     //传送单位(带特效与镜头转换)
     public function TransportUnit (unit u,real x,real y,boolean camera) {
         if (camera) PanCameraToTimedForPlayer(GetOwningPlayer(u),x,y,0.2);

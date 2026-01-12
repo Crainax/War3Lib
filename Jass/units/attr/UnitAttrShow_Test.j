@@ -116,6 +116,8 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		BJDebugMsg("-atkicon off : 禁用攻击图标自定义显示");
 		BJDebugMsg("-atkcorner [text] : 设置攻击图标角标文本");
 		BJDebugMsg("-atktex [path] : 设置攻击图标自定义贴图路径");
+		BJDebugMsg("-atkval [text] : 设置攻击数值自定义显示文本(优先显示并强制隐藏额外攻击)");
+		BJDebugMsg("-atkval off : 关闭攻击数值自定义显示");
 
 		// 自动创建测试单位
 		UnitTestAutoTimer(0.1, 0, function() {
@@ -705,6 +707,18 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 				// 清除贴图
 				ClearUnitAtkTexture(u);
 				BJDebugMsg("已清除攻击图标自定义贴图，恢复默认");
+			}
+		} else if (paramS[0] == "atkval") {
+			// 设置攻击数值自定义显示
+			if (num >= 2 && paramS[1] == "off") {
+				ClearUnitAtkValueStr(u);
+				BJDebugMsg("已关闭攻击数值自定义显示，恢复默认数值显示");
+			} else if (num >= 2) {
+				SetUnitAtkValueStr(u, paramS[1]);
+				BJDebugMsg("已设置攻击数值自定义显示: " + paramS[1]);
+			} else {
+				ClearUnitAtkValueStr(u);
+				BJDebugMsg("已关闭攻击数值自定义显示，恢复默认数值显示");
 			}
 		}
 

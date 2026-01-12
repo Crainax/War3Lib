@@ -14,33 +14,37 @@ chcp 65001
 -- 1. 基础路径配置
 local paths = {
     -- [重要] 图标的基础目录, 也是传递给BLPLab的参数
-    icon_base_dir = "D:\\War3Asset\\Asset\\Xlimon\\Equitment\\5\\",
+    icon_base_dir = [[D:\War3Asset\Asset\Xlimon\Icon\20260110\3\legendary\]],
 
     -- 各种叠加图片的路径
-    btn           = "D:\\War3\\tools\\Image\\btn.png",
-    paoguang      = "D:\\War3\\tools\\Image\\Paoguangx4.png",
-    dis           = "D:\\War3\\tools\\Image\\dis.png",
+    btn           = [[D:\War3\tools\Image\btn.png]],
+    paoguang      = [[D:\War3\tools\Image\Paoguangx4.png]],
+    dis           = [[D:\War3\tools\Image\dis.png]],
 
     -- 品质图片路径 (0-6)
     quality = {
-        [0] = "D:\\War3\\tools\\Image\\bj0.png",
-        [1] = "D:\\War3\\tools\\Image\\bj1.png",
-        [2] = "D:\\War3\\tools\\Image\\bj2.png",
-        [3] = "D:\\War3\\tools\\Image\\bj3.png",
-        [4] = "D:\\War3\\tools\\Image\\bj4.png",
-        [5] = "D:\\War3\\tools\\Image\\bj5.png",
-        [6] = "D:\\War3\\tools\\Image\\bj6.png"
+        [0] = [[D:\War3\tools\Image\bj0.png]],
+        [1] = [[D:\War3\tools\Image\bj1.png]],
+        [2] = [[D:\War3\tools\Image\bj2.png]],
+        [3] = [[D:\War3\tools\Image\bj3.png]],
+        [4] = [[D:\War3\tools\Image\bj4.png]],
+        [5] = [[D:\War3\tools\Image\bj5.png]],
+        [6] = [[D:\War3\tools\Image\bj6.png]]
     },
 
     -- 光晕图片路径 (0-6, 根据品质等级选择)
     glow = {
-        [0] = "D:\\War3\\tools\\Image\\fg4_glowCyan.png",
-        [1] = "D:\\War3\\tools\\Image\\fg4_glowGreen.png",
-        [2] = "D:\\War3\\tools\\Image\\fg4_glowBlue.png",
-        [3] = "D:\\War3\\tools\\Image\\fg4_glowMagenta.png",
-        [4] = "D:\\War3\\tools\\Image\\fg4_glowMagenta.png",
-        [5] = "D:\\War3\\tools\\Image\\fg4_glowOrange.png",
-        [6] = "D:\\War3\\tools\\Image\\fg4_glowRed.png"
+        -- [0] = [[D:\War3\tools\Image\fg4_glowCyan.png]],
+        [0] = [[D:\War3\tools\Image\old_1.png]],
+        [1] = [[D:\War3\tools\Image\fg4_glowGreen.png]],
+        -- [2] = [[D:\War3\tools\Image\fg4_glowBlue.png]],
+        [2] = [[D:\War3\tools\Image\old_2.png]],
+        [3] = [[D:\War3\tools\Image\fg4_glowMagenta.png]],
+        -- [4] = [[D:\War3\tools\Image\fg4_glowMagenta.png]],
+        [4] = [[D:\War3\tools\Image\old_3.png]],
+        -- [5] = [[D:\War3\tools\Image\fg4_glowOrange.png]],
+        [5] = [[D:\War3\tools\Image\old_4.png]],
+        [6] = [[D:\War3\tools\Image\fg4_glowRed.png]]
     }
 }
 
@@ -61,7 +65,7 @@ local generate_flags = {
 local paoguang_flag = false
 
 -- 4. 品质等级配置 (0-6, 当前使用的品质等级)
-local quality_level = 6
+local quality_level = 5
 
 -- 5. [新功能] magick处理完成后是否自动运行BLPLab脚本
 local run_blplab_after = true

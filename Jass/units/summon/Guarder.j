@@ -3,6 +3,7 @@
 
 // Guarder 需要使用 HASH_UNIT 存储单位属性（独立攻击范围）
 #include "Crainax/core/table/Hash_UnitDefine.j"
+#include "Crainax/core/constant/JapiConstant.j"
 
 //! zinc
 /*
@@ -379,12 +380,15 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
         private static method getAttackRange(unit u) -> real {
             integer hid;
+            real r;
             if (u == null) { return GUARD_ATTACK_RANGE; }
             hid = GetHandleId(u);
             if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE)) {
                 return LoadReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE);
             }
-            return GUARD_ATTACK_RANGE;
+            // 自动取默认值与单位真实射程的最大值（远程单位不会被默认值压低）
+            r = GetUnitState(u, ConvertUnitState(UNIT_STATE_ATTACK1_RANGE));
+            return RMaxBJ(GUARD_ATTACK_RANGE, r);
         }
 
         // 处理单个 pet 的 AI
@@ -397,6 +401,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             real ownerMoveDist;
             real searchRadius; real teleportDist; real attackRange;
             real vx; real vy; real vr; real targetX; real targetY;
+            real buffer; real want; real ang;
             integer hid,hid2;
 
 
@@ -611,9 +616,12 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                     guarder.moveY[pid][idx] = 0.0;
                     IssueTargetOrder(petUnit, "attack", bestTarget);
                 } else {
-                    // D3 风格：不再用活动半径限制目标（只在超出"搜索半径"时由召回区强制拉回）
-                    nx = targetX;
-                    ny = targetY;
+                    // 方案B：移动到“射程外圈”，避免远程守卫还要跑到目标脚下
+                    buffer = 80.0; // 预留距离，避免来回抖动/贴脸
+                    want = RMaxBJ(attackRange - buffer, 100.0);
+                    ang = Atan2(py - targetY, px - targetX); // 从目标指向守卫
+                    nx = targetX + Cos(ang) * want;
+                    ny = targetY + Sin(ang) * want;
                     guarder.orderMove(pid, idx, petUnit, nx, ny, GUARDER_STATE_MOVE, bestTarget);
                 }
             }
@@ -691,6 +699,20 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             if (r < 0.0) { r = 0.0; }
             guarder.searchRadius[pid] = r;
         }
+
+        //返回指定玩家的搜索半径
+        public static method getPlayerSearchRadius(player p) -> real {
+            integer pid;
+            real r;
+            if (p == null) { return GUARD_SEARCH_RADIUS; }
+            pid = GetConvertedPlayerId(p);
+            if (!ISVALID_PLAYER_ID(pid)) { return GUARD_SEARCH_RADIUS; }
+
+            r = guarder.searchRadius[pid];
+            if (r <= 0.0) { return GUARD_SEARCH_RADIUS; }
+            return r;
+        }
+
 
         // 获取指定玩家的守卫数量
         public static method getSize(player p) -> integer {

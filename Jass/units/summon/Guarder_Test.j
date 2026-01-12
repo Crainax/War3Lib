@@ -4,6 +4,9 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
+// 需要用 HASH_UNIT 写入 Guarder 的“独立攻击范围”测试
+#include "Crainax/core/table/Hash_UnitDefine.j"
+
 //! zinc
 
 /*
@@ -36,7 +39,7 @@
 */
 
 //自动生成的文件
-library UTGuarder requires Guarder {
+library UTGuarder requires Guarder, UnitUtils {
 
 	private unit testHero = null;
 	private unit testPets[];
@@ -214,7 +217,34 @@ library UTGuarder requires Guarder {
 		KillUnit(testHero);
 		BJDebugMsg("[Guarder] s5: 已杀死主人单位，观察守卫 AI 是否仍正常");
 	}
-	function TTestUTGuarder6 (player p) {}
+	function TTestUTGuarder6 (player p) {
+		real centerX; real centerY; real x; real y; unit u; boolean ok;
+		integer hid;
+
+		if (testHero == null) {
+			BJDebugMsg("[Guarder] 错误：主人单位不存在，请先初始化");
+			return;
+		}
+
+		centerX = GetUnitX(testHero);
+		centerY = GetUnitY(testHero);
+		x = centerX + 200.0;
+		y = centerY + 0.0;
+
+		// 创建 1 个女巫作为守卫，并将射程设置为 1500
+		u = CreateUnit(p, 'hsor', x, y, 0.0);
+		ok = guarder.addPet(p, u);
+		if (ok) {
+			SetUnitAttackRange(u, 1500.0);
+			// 同步 Guarder 独立攻击范围（AI 用 HASH_UNIT 读取）
+			hid = GetHandleId(u);
+			SaveReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE, 1500.0);
+			BJDebugMsg("[Guarder] s6: 已创建 1 个女巫守卫并设置射程=1500");
+		} else {
+			BJDebugMsg("[Guarder] s6: 创建女巫守卫失败");
+		}
+		u = null;
+	}
 	function TTestUTGuarder7 (player p) {}
 	function TTestUTGuarder8 (player p) {}
 	function TTestUTGuarder9 (player p) {}

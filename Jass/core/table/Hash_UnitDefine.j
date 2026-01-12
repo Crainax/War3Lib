@@ -176,6 +176,8 @@
 // 单位面板攻击图标自定义显示
 #define KEY_UNIT_ATK_CORNER_TEXT         255610194 // 攻击图标角标文本（string）
 #define KEY_UNIT_ATK_TEXTURE             255610195 // 攻击图标自定义贴图路径（string）
+// 单位面板攻击数值自定义显示
+#define KEY_UNIT_ATK_VALUE_STR           255610196 // 攻击数值自定义显示文本（string）
 
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001     // 子键:属于玩家几的竞技场怪物
@@ -186,6 +188,9 @@
 #define KEY_MOSHOU_BINDING_LEVEL 10006  // 魔兽绑定的等级
 #define KEY_MOSHOU_BINDING_BUFF 10007   // 魔兽绑定的buff
 #define KEY_MOSHOU_BINDING_RATE 10008   // 魔兽绑定的伤害比例
+#define KEY_MOSHOU_BINDING_MIRROR 10009   // 魔兽是不是分身
+#define KEY_UNIT_IS_GUARDER 10010        // 是否登记为 Guarder 守卫
+#define KEY_MOSHOU_BINDING_MIRROR_UNIT 10011   // 本体魔兽的分身单位句柄
 
 
 
