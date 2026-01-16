@@ -192,6 +192,9 @@
 #define KEY_UNIT_IS_GUARDER 10010        // 是否登记为 Guarder 守卫
 #define KEY_MOSHOU_BINDING_MIRROR_UNIT 10011   // 本体魔兽的分身单位句柄
 
+// 魔兽直伤：存储的“总伤害量”（real）。当 MOSHOU_DAMAGE_TYPE_*_DIRECT 使用该键直接造成伤害
+#define KEY_MOSHOU_BINDING_TOTAL_DAMAGE 10012   // 魔兽直伤总伤害量（real）
+
 
 
 #endif

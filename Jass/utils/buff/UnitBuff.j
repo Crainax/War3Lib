@@ -345,6 +345,24 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
         // 删除 init() 方法
 
+        // 尾部交换移除指定索引的元素（仅从队列移除，不销毁/不 Flush；用于“到期后仍需执行回调”的场景）
+        private static method removeAtOnly(integer index) -> integer {
+            integer last;
+            if (index < 0 || index >= thistype.size) { return index; }
+
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.timers[index] = thistype.timers[last];
+                thistype.units[index] = thistype.units[last];
+                thistype.lefts[index] = thistype.lefts[last];
+            }
+            thistype.timers[last] = null;
+            thistype.units[last] = null;
+            thistype.lefts[last] = 0.0;
+            thistype.size -= 1;
+            return index - 1;
+        }
+
         // 尾部交换移除指定索引的元素（完全清理，包括销毁资源）
         private static method removeAt(integer index) -> integer {
             integer last; timer buffT; trigger cbTr; integer tid;
@@ -442,7 +460,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                             if (timeLeft <= 0.0) {
                                 // 时间到了，先从队列移除（不销毁资源）
                                 tid = GetHandleId(buffT);
-                                i = thistype.removeAt(i);
+                                i = thistype.removeAtOnly(i);
 
                                 // 用 0 秒启动该 timer，确保回调里 GetExpiredTimer() 是 buffT
                                 TimerStart(buffT, 0.00, false, function () {

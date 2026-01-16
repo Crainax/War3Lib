@@ -441,6 +441,7 @@ library UTUnitBuff requires UnitBuff {
             id = GetHandleId(t);
             v = LoadInteger(HASH_TIMER, id, 100);
 
+            BJDebugMsg("内部测试了");
             if (v == 100000) {
                 BJDebugMsg("[UnitBuffTest] s19 完成：回调中成功读取到外部存储的参数 " + I2S(v));
             } else {

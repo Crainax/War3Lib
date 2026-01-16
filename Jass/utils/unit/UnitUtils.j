@@ -1179,7 +1179,7 @@ library UnitUtils requires BigInteger,MathUtils {
     }
 
     // 获取单位移速减幅（real）
-    private function GetUnitSpeedDownRate(unit u) -> real {
+    public function GetUnitSpeedDownRate(unit u) -> real {
         integer uid; real down;
         if (u == null) { return 0.0; }
         uid = GetHandleId(u);
@@ -1190,6 +1190,7 @@ library UnitUtils requires BigInteger,MathUtils {
         }
         return down;
     }
+
 
     // 获取单位移速固定加成（real）
     private function GetUnitSpeedBonusReal(unit u) -> real {
