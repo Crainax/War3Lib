@@ -336,31 +336,17 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
     }
 
     // TimerBuff 队列：集中管理所有定时器 BUFF
-    private struct TimerBuffQueue [] {
+    public struct TimerBuffQueue [] {
         private static timer timers[];      // timer 列表（每个 BUFF 的独立 timer）
         private static unit units[];        // 单位列表
         private static real lefts[];        // 剩余时间列表
         private static integer size = 0;    // 当前元素数量
         private static timer tickTimer = null; // 驱动队列的定时器
+        static timer expireTimer = null;
 
-        // 删除 init() 方法
-
-        // 尾部交换移除指定索引的元素（仅从队列移除，不销毁/不 Flush；用于“到期后仍需执行回调”的场景）
-        private static method removeAtOnly(integer index) -> integer {
-            integer last;
-            if (index < 0 || index >= thistype.size) { return index; }
-
-            last = thistype.size - 1;
-            if (index != last) {
-                thistype.timers[index] = thistype.timers[last];
-                thistype.units[index] = thistype.units[last];
-                thistype.lefts[index] = thistype.lefts[last];
-            }
-            thistype.timers[last] = null;
-            thistype.units[last] = null;
-            thistype.lefts[last] = 0.0;
-            thistype.size -= 1;
-            return index - 1;
+        //回调
+        public static method getExpireTimer ()  -> timer {
+            return expireTimer;
         }
 
         // 尾部交换移除指定索引的元素（完全清理，包括销毁资源）
@@ -460,34 +446,21 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                             if (timeLeft <= 0.0) {
                                 // 时间到了，先从队列移除（不销毁资源）
                                 tid = GetHandleId(buffT);
-                                i = thistype.removeAtOnly(i);
 
-                                // 用 0 秒启动该 timer，确保回调里 GetExpiredTimer() 是 buffT
-                                TimerStart(buffT, 0.00, false, function () {
-                                    timer t; integer id; trigger cbTr;
-
-                                    t = GetExpiredTimer();
-                                    id = GetHandleId(t);
-
-                                    // 执行回调（改为使用 HASH_TIMER）
-                                    if (HaveSavedHandle(HASH_TIMER, id, 1)) {
-                                        cbTr = LoadTriggerHandle(HASH_TIMER, id, 1);
-                                        if (cbTr != null) {
-                                            TriggerEvaluate(cbTr);
-                                            DestroyTrigger(cbTr);
-                                            cbTr = null;
-                                        }
-                                        // FlushChildHashtable 会清理所有数据，不需要单独 RemoveSavedHandle
+                                // 执行回调（改为使用 HASH_TIMER）
+                                if (HaveSavedHandle(HASH_TIMER, tid, 1)) {
+                                    cbTr = LoadTriggerHandle(HASH_TIMER, tid, 1);
+                                    if (cbTr != null) {
+                                        expireTimer = buffT;
+                                        TriggerEvaluate(cbTr);
+                                        DestroyTrigger(cbTr);
+                                        cbTr = null;
+                                        expireTimer = null;
                                     }
+                                    // FlushChildHashtable 会清理所有数据，不需要单独 RemoveSavedHandle
+                                }
 
-                                    // 清理外部 HASH_TIMER 数据（包括 trigger）
-                                    FlushChildHashtable(HASH_TIMER, id);
-
-                                    // 销毁 timer
-                                    PauseTimer(t);
-                                    DestroyTimer(t);
-                                    t = null;
-                                });
+                                i = thistype.removeAt(i);
 
                                 u = null;
                                 buffT = null;

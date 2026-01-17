@@ -437,7 +437,7 @@ library UTUnitBuff requires UnitBuff {
         bt = StartTimerBuff(u, 2.30, function () -> boolean {
             timer t; integer id; integer v;
 
-            t = GetExpiredTimer();
+            t = TimerBuffQueue.getExpireTimer();
             id = GetHandleId(t);
             v = LoadInteger(HASH_TIMER, id, 100);
 
