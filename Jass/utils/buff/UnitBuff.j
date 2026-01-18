@@ -434,8 +434,28 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                         timeLeft = thistype.lefts[i];
 
                         // 检查单位是否有效
-                        if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
-                            // 单位已失效，提前清理该 BUFF
+                        if (u == null || GetUnitTypeId(u) == 0) {
+                            // 单位不存在，直接清理该 BUFF（不调用回调）
+                            i = thistype.removeAt(i);
+                            u = null;
+                            buffT = null;
+                        } else if (!IsUnitAliveBJ(u)) {
+                            // 单位死亡，调用回调后清理
+                            tid = GetHandleId(buffT);
+
+                            // 执行回调（改为使用 HASH_TIMER）
+                            if (HaveSavedHandle(HASH_TIMER, tid, 1)) {
+                                cbTr = LoadTriggerHandle(HASH_TIMER, tid, 1);
+                                if (cbTr != null) {
+                                    expireTimer = buffT;
+                                    TriggerEvaluate(cbTr);
+                                    DestroyTrigger(cbTr);
+                                    cbTr = null;
+                                    expireTimer = null;
+                                }
+                                // FlushChildHashtable 会清理所有数据，不需要单独 RemoveSavedHandle
+                            }
+
                             i = thistype.removeAt(i);
                             u = null;
                             buffT = null;

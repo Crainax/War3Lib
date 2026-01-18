@@ -14,7 +14,7 @@ chcp 65001
 -- 1. 基础路径配置
 local paths = {
     -- [重要] 图标的基础目录, 也是传递给BLPLab的参数
-    icon_base_dir = [[D:\War3Asset\Asset\Xlimon\Icon\20260110\3\legendary\]],
+    icon_base_dir = [[D:\War3Asset\Asset\Xlimon\Icon\20260110\3\rare\]],
 
     -- 各种叠加图片的路径
     btn           = [[D:\War3\tools\Image\btn.png]],
@@ -65,7 +65,7 @@ local generate_flags = {
 local paoguang_flag = false
 
 -- 4. 品质等级配置 (0-6, 当前使用的品质等级)
-local quality_level = 5
+local quality_level = 2
 
 -- 5. [新功能] magick处理完成后是否自动运行BLPLab脚本
 local run_blplab_after = true
