@@ -16,7 +16,7 @@
 
 //todo: 那个按钮看下要不要onResize
 
-library UISlider requires UIId,UITocInit,UIBaseModule {
+library UISlider requires STRUCT_SHARED_REQUIRE_UI {
 
     // 滑块的功能回调(异步)
     public type funSlider extends function(uiSlider);
@@ -25,20 +25,18 @@ library UISlider requires UIId,UITocInit,UIBaseModule {
         static thistype List [];  //内容列表
         static integer size = 0;  //现在有几个东西
         integer uID;               //[成员]池子ID,遍历用
-        integer ui;                //frameID
-        integer id;                //可以回收的ID名(为了销毁时ID不重复)
         funSlider fun;            //回调函数
         real oldValue;            //旧值(和现有值对比不相等才调用回调函数)
 
-        STRUCT_SHARED_METHODS(uiSlider)
-
-        module uiBaseModule; // UI控件的共用方法
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiSlider)
 
         // 创建竖滑条
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER,0);
+            STRUCT_SHARED_UI_ONCREATE(uiSlider)
 
             if (uID == 0) { //这里是初始化时的设置内容,不需要改
                 size       += 1;
@@ -53,6 +51,7 @@ library UISlider requires UIId,UITocInit,UIBaseModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER_HORIZONTAL,0);
+            STRUCT_SHARED_UI_ONCREATE(uiSlider)
 
             if (uID == 0) { //这里是初始化时的设置内容,不需要改
                 size       += 1;
@@ -67,6 +66,7 @@ library UISlider requires UIId,UITocInit,UIBaseModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER_WAR3,0);
+            STRUCT_SHARED_UI_ONCREATE(uiSlider)
 
             if (uID == 0) { //这里是初始化时的设置内容,不需要改
                 size       += 1;
@@ -81,6 +81,7 @@ library UISlider requires UIId,UITocInit,UIBaseModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER_WAR3_H,0);
+            STRUCT_SHARED_UI_ONCREATE(uiSlider)
 
             if (uID == 0) { //这里是初始化时的设置内容,不需要改
                 size       += 1;
@@ -151,6 +152,7 @@ library UISlider requires UIId,UITocInit,UIBaseModule {
         // 销毁
         method onDestroy () {
             if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiSlider)
             DzDestroyFrame(ui);
             uiId.recycle(id);
 

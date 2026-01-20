@@ -10,27 +10,38 @@
 左侧 6x4 网格 + 滑块，右侧留空，由外部扩展。
 */
 
-#define HEROSEL_MAIN_WIDTH      0.68
-#define HEROSEL_MAIN_HEIGHT     0.36
+#define HEROSEL_MAIN_WIDTH      0.72
+#define HEROSEL_MAIN_HEIGHT     0.3812
 
 // 大图总宽高（4 张 512x512 图片拼成 2416x1220，保持比例，宽固定 0.75）
-#define HEROSEL_BG_FULL_WIDTH     0.75
+#define HEROSEL_BG_FULL_WIDTH     0.7941
 #define HEROSEL_BG_FULL_HEIGHT    (HEROSEL_BG_FULL_WIDTH * 828.0 / 1528.0)
 
 // 左侧网格
-#define HEROSEL_GRID_COLS 6
+#define HEROSEL_GRID_COLS 7
 #define HEROSEL_GRID_ROWS 4
-#define HEROSEL_CELL_SIZE 0.0650
+#define HEROSEL_CELL_SIZE 0.0580
 #define HEROSEL_CELL_GAP_X 0.008
-#define HEROSEL_CELL_GAP_Y 0.008
+#define HEROSEL_CELL_GAP_Y 0.020
 #define HEROSEL_GRID_OFFSET_X 0.020
 #define HEROSEL_GRID_OFFSET_Y -0.045
+#define HEROSEL_TEXT_GAP_Y 0.004
+#define HEROSEL_TEXT_LINE_GAP_Y 0.002
 
 // 滑块
 #define HEROSEL_SLIDER_WIDTH      0.0074*2
 #define HEROSEL_SLIDER_HEIGHT     0.29
 #define HEROSEL_SLIDER_GAP_X      0.008
 #define HEROSEL_SLIDER_BTN_SCALE  2.5
+
+// 标题
+#define HEROSEL_TITLE_HEIGHT      0.022
+#define HEROSEL_TITLE_OFFSET_Y    -0.018
+
+// 底部按钮
+#define HEROSEL_BOTTOM_BTN_WIDTH   0.1
+#define HEROSEL_BOTTOM_BTN_HEIGHT  (0.1 * 0.029 / 0.0724)
+#define HEROSEL_BOTTOM_BTN_GAP_X   0.075
 
 // 右侧占位区域
 #define HEROSEL_CONTENT_MARGIN_X 0.008
@@ -45,48 +56,34 @@
 //# dependency:resource/ui/image/museum_03.blp
 //# dependency:resource/ui/image/museum_04.blp
 
-library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable {
+library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon {
 
     //==========================================================================
     // 英雄数据（集中放置）
     //==========================================================================
-    public struct heroData {
-        integer heroId;
-        string  name;
-        string  icon;
-        integer index;
-
-        STRUCT_SHARED_INNER_UI(heroData)
-
-        private static thistype list[];
-        private static integer size = 0;
+    // 结构体数组：不需要 allocate/register，不涉及销毁
+    // 使用方式：heroData[1].name / heroData[1].icon / heroData[1].text2
+    public struct heroData []{
+        public string  name;
+        public string  icon;
+        public string  text2;
+        public static integer size = 0;
         private static thistype callbackData = 0;
 
-        public static method registerHero(integer id, string n, string iconPath) -> thistype {
-            thistype this = allocate();
-            if (this <= 0) {
-                return 0;
-            }
-
-            this.heroId = id;
-            this.name   = n;
-            this.icon   = iconPath;
-
-            thistype.size += 1;
-            this.index = thistype.size;
-            thistype.list[thistype.size] = this;
-            return this;
-        }
-
-        public static method getSize() -> integer {
-            return thistype.size;
+        // 设置某个位置的数据（会自动更新 size）
+        public static method set(integer idx, string n, string iconPath, string t2) {
+            if (idx < 1) { return; }
+            heroData[idx].name  = n;
+            heroData[idx].icon  = iconPath;
+            heroData[idx].text2 = t2;
+            thistype.size = IMaxBJ(thistype.size, idx);
         }
 
         public static method getByIndex(integer idx) -> thistype {
             if (idx < 1 || idx > thistype.size) {
                 return 0;
             }
-            return thistype.list[idx];
+            return heroData[idx];
         }
 
         public static method setCallbackData(thistype hd) {
@@ -114,19 +111,96 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable {
         private static uiImage bgImage3 = 0; // 右上
         private static uiImage bgImage4 = 0; // 左上
 
-        private static uiImage slotBg[HEROSEL_GRID_ROWS][HEROSEL_GRID_COLS];
-        private static uiBtn   slotBtn[HEROSEL_GRID_ROWS][HEROSEL_GRID_COLS];
+        private static icon   slotIcon[HEROSEL_GRID_ROWS][HEROSEL_GRID_COLS];
+        private static uiText slotTxt1[HEROSEL_GRID_ROWS][HEROSEL_GRID_COLS];
+        private static uiText slotTxt2[HEROSEL_GRID_ROWS][HEROSEL_GRID_COLS];
 
         private static uiSlider leftSlider = 0;
+
+        private static uiText uiTitleText = 0;
+        private static uiImage uiBtn1Image = 0;
+        private static uiText uiBtn1Text = 0;
+        private static uiBtn uiBtn1Button = 0;
+        private static uiImage uiBtn2Image = 0;
+        private static uiText uiBtn2Text = 0;
+        private static uiBtn uiBtn2Button = 0;
 
         private static uiImage uiDivider = 0;
         private static uiImage uiRightArea = 0;
 
         private static boolean isOpen = false;
         private static player owner = null;
+        private static integer currentPage = 1;
+        private static integer totalPage = 1;
+
+        private static method refreshLeftGrid() {
+            integer r; integer c; integer idx;
+            integer pos; heroData hd;
+
+            idx = 0;
+            for (1 <= r <= HEROSEL_GRID_ROWS) {
+                for (1 <= c <= HEROSEL_GRID_COLS) {
+                    idx += 1;
+                    pos = (currentPage - 1) * HEROSEL _GRID_COLS + idx;
+                    if (pos <= heroData.size) {
+                        hd = heroData[pos];
+                        if (hd != 0 && slotIcon[r][c] != 0) {
+                            slotIcon[r][c].setTexture(S3(hd.icon != null, hd.icon, UI_STRING_PATH_BLANK));
+                            slotIcon[r][c].show(true);
+                            uiHashTable(slotIcon[r][c].getClickBtn().ui).eventdata.bind(pos);
+                        }
+                        if (slotTxt1[r][c] != 0) {
+                            slotTxt1[r][c].setText("1字:+" + I2S(pos));
+                            slotTxt1[r][c].show(true);
+                        }
+                        if (slotTxt2[r][c] != 0) {
+                            slotTxt2[r][c].setText(S3(hd.text2 != null, hd.text2, "文本2"));
+                            slotTxt2[r][c].show(true);
+                        }
+                    } else {
+                        if (slotIcon[r][c] != 0) { slotIcon[r][c].show(true); }
+                        if (slotTxt1[r][c] != 0) { slotTxt1[r][c].show(true); }
+                        if (slotTxt2[r][c] != 0) { slotTxt2[r][c].show(true); }
+                    }
+                }
+            }
+        }
+
+        private static method onSliderChange(uiSlider s) {
+            integer v;
+            if (!isOpen || s == 0) { return; }
+            v = R2I(s.getValue());
+            currentPage = totalPage - v + 1;
+            if (currentPage < 1) { currentPage = 1; }
+            if (currentPage > totalPage) { currentPage = totalPage; }
+            refreshLeftGrid();
+        }
+
+        private static method onMouseWheel() {
+            real delta;
+            integer targetPage;
+            integer sliderValue;
+
+            if (!isOpen || totalPage <= 1) { return; }
+            delta = DzGetWheelDelta();
+            if (delta < 0) {
+                targetPage = IMinBJ(currentPage + 1, totalPage);
+            } else {
+                targetPage = IMaxBJ(currentPage - 1, 1);
+            }
+            if (targetPage == currentPage) { return; }
+            currentPage = targetPage;
+            sliderValue = totalPage - currentPage + 1;
+            if (leftSlider != 0) {
+                leftSlider.setValue(sliderValue);
+            } else {
+                refreshLeftGrid();
+            }
+        }
 
         public static method show(player p) {
             integer r; integer c; integer idx;
+            integer totalRows;
             real offsetX; real offsetY;
             real leftGridWidth; real sliderX;
             real contentLeftX;
@@ -145,28 +219,39 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable {
             uiMainButton = uiBtn.createBlank(uiMain.ui)
                 .setAllPoint(uiMain.ui)
                 .enableDrag(uiMain.ui, 0.25, 0.55, 0.34, 0.5)
-                .setDragPosition(0.4, 0.25);
+                .setDragPosition(0.4, 0.25)
+                .onMouseWheel(function() {
+                    heroSelectorUI.onMouseWheel();
+                });
 
             // 背景拼图
-            bgImage1 = uiImage.create(uiMain.ui)
-                .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-                .setTexture("ui\\image\\museum_01.blp")
-                .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, -0.001);
+            // bgImage1 = uiImage.create(uiMain.ui)
+            //     .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
+            //     .setTexture("ui\\image\\museum_01.blp")
+            //     .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, -0.001);
 
-            bgImage2 = uiImage.create(uiMain.ui)
-                .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-                .setTexture("ui\\image\\museum_02.blp")
-                .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, -0.001);
+            // bgImage2 = uiImage.create(uiMain.ui)
+            //     .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
+            //     .setTexture("ui\\image\\museum_02.blp")
+            //     .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, -0.001);
 
-            bgImage3 = uiImage.create(uiMain.ui)
-                .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-                .setTexture("ui\\image\\museum_03.blp")
-                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, 0.001);
+            // bgImage3 = uiImage.create(uiMain.ui)
+            //     .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
+            //     .setTexture("ui\\image\\museum_03.blp")
+            //     .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, 0.001);
 
-            bgImage4 = uiImage.create(uiMain.ui)
-                .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-                .setTexture("ui\\image\\museum_04.blp")
-                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, 0.001);
+            // bgImage4 = uiImage.create(uiMain.ui)
+            //     .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
+            //     .setTexture("ui\\image\\museum_04.blp")
+            //     .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, 0.001);
+
+            // 左侧网格标题
+            uiTitleText = uiText.create(uiMain.ui)
+                .exReSize(HEROSEL_GRID_COLS * HEROSEL_CELL_SIZE, HEROSEL_TITLE_HEIGHT)
+                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, HEROSEL_GRID_OFFSET_X, HEROSEL_TITLE_OFFSET_Y)
+                .setAlign(4)
+                .setFontSize(7)
+                .setText("|cffff9900选择英雄|r");
 
             // 左侧网格
             idx = 0;
@@ -176,45 +261,90 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable {
                     offsetX = HEROSEL_GRID_OFFSET_X + (c - 1) * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_X);
                     offsetY = HEROSEL_GRID_OFFSET_Y - (r - 1) * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_Y);
 
-                    slotBg[r][c] = uiImage.create(uiMain.ui)
-                        .exReSize(HEROSEL_CELL_SIZE, HEROSEL_CELL_SIZE)
+                    slotIcon[r][c] = icon.create(uiMain.ui)
+                        .enableResize()
                         .setTexture("ui\\image\\select_flash.blp")
+                        .setSize(HEROSEL_CELL_SIZE, HEROSEL_CELL_SIZE)
                         .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, offsetX, offsetY);
+                    slotIcon[r][c].show(false);
 
-                    slotBtn[r][c] = uiBtn.create(slotBg[r][c].ui)
-                        .setAllPoint(slotBg[r][c].ui)
+                    slotIcon[r][c].getClickBtn()
                         .spClick(function(integer frame) {
                             integer pos = uiHashTable(frame).eventdata.get();
                             pos = pos; // 预留：后续接入 heroData 映射
                         });
+                    uiHashTable(slotIcon[r][c].getClickBtn().ui).eventdata.bind(idx);
 
-                    uiHashTable(slotBtn[r][c].ui).eventdata.bind(idx);
+                    slotTxt1[r][c] = uiText.create(uiMain.ui)
+                        .setAlign(4)
+                        .setFontSize(5)
+                        .setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, -HEROSEL_TEXT_GAP_Y)
+                        .show(false);
+
+                    slotTxt2[r][c] = uiText.create(uiMain.ui)
+                        .setAlign(4)
+                        .setFontSize(5)
+                        .setPoint(ANCHOR_TOP, slotTxt1[r][c].ui, ANCHOR_BOTTOM, 0, -HEROSEL_TEXT_LINE_GAP_Y)
+                        .show(false);
                 }
             }
 
             leftGridWidth = HEROSEL_GRID_COLS * HEROSEL_CELL_SIZE + (HEROSEL_GRID_COLS - 1) * HEROSEL_CELL_GAP_X;
             sliderX = HEROSEL_GRID_OFFSET_X + leftGridWidth + HEROSEL_SLIDER_GAP_X;
 
+            totalRows = (heroData.size + HEROSEL_GRID_COLS - 1) / HEROSEL_GRID_COLS;
+            totalPage = IMaxBJ(1, totalRows - HEROSEL_GRID_ROWS + 1);
+            currentPage = 1;
+
             leftSlider = uiSlider.create(uiMain.ui)
-                .setSize(HEROSEL_SLIDER_WIDTH, HEROSEL_SLIDER_HEIGHT)
-                .setMinMaxValue(1.0, 1.0)
+                .exReSize(HEROSEL_SLIDER_WIDTH, HEROSEL_SLIDER_HEIGHT)
+                .setMinMaxValue(1.0, totalPage)
                 .setStep(1.0)
-                .setValue(1.0)
+                .setValue(totalPage)
                 .setThumbScale(HEROSEL_SLIDER_BTN_SCALE)
-                .setPoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, sliderX, HEROSEL_GRID_OFFSET_Y)
-                .onChange(function(uiSlider s) {});
+                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, sliderX, HEROSEL_GRID_OFFSET_Y)
+                .onChange(function(uiSlider s) {
+                    heroSelectorUI.onSliderChange(s);
+                });
+
+            refreshLeftGrid();
 
             // 右侧空白区域占位
             contentLeftX = sliderX + HEROSEL_SLIDER_WIDTH + HEROSEL_CONTENT_MARGIN_X;
             uiRightArea = uiImage.create(uiMain.ui)
+                // .setTexture("")
                 .setTexture(UI_STRING_PATH_BLANK)
-                .setPoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX, HEROSEL_GRID_OFFSET_Y)
-                .setPoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_BOTTOMRIGHT, -HEROSEL_CONTENT_MARGIN_X, HEROSEL_CONTENT_MARGIN_Y);
+                .setPointFix(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX, HEROSEL_GRID_OFFSET_Y)
+                .setPointFix(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_BOTTOMRIGHT, -HEROSEL_CONTENT_MARGIN_X, HEROSEL_CONTENT_MARGIN_Y);
 
             uiDivider = uiImage.create(uiMain.ui)
                 .exReSize(0.003, HEROSEL_MAIN_HEIGHT - 0.01 + HEROSEL_GRID_OFFSET_Y)
                 .setTexture("ui\\image\\vertical_divider.blp")
                 .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX - HEROSEL_CONTENT_MARGIN_X * 0.5, HEROSEL_GRID_OFFSET_Y);
+
+            uiBtn1Image = uiImage.create(uiMain.ui)
+                .exReSize(HEROSEL_BOTTOM_BTN_WIDTH, HEROSEL_BOTTOM_BTN_HEIGHT)
+                .setTexture("ui\\image\\select_flash.blp")
+                .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_BOTTOM, -HEROSEL_BOTTOM_BTN_GAP_X * 0.5 - HEROSEL_BOTTOM_BTN_WIDTH * 0.5, 0);
+            uiBtn1Text = uiText.create(uiBtn1Image.ui)
+                .setAllPoint(uiBtn1Image.ui)
+                .setFontSize(7)
+                .setAlign(4)
+                .setText("按钮1");
+            uiBtn1Button = uiBtn.create(uiBtn1Image.ui)
+                .setAllPoint(uiBtn1Image.ui);
+
+            uiBtn2Image = uiImage.create(uiMain.ui)
+                .exReSize(HEROSEL_BOTTOM_BTN_WIDTH, HEROSEL_BOTTOM_BTN_HEIGHT)
+                .setTexture("ui\\image\\select_flash.blp")
+                .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_BOTTOM, HEROSEL_BOTTOM_BTN_GAP_X * 0.5 + HEROSEL_BOTTOM_BTN_WIDTH * 0.5, 0);
+            uiBtn2Text = uiText.create(uiBtn2Image.ui)
+                .setAllPoint(uiBtn2Image.ui)
+                .setFontSize(7)
+                .setAlign(4)
+                .setText("按钮2");
+            uiBtn2Button = uiBtn.create(uiBtn2Image.ui)
+                .setAllPoint(uiBtn2Image.ui);
         }
 
         public static method hide(player p) {
@@ -224,12 +354,20 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable {
 
             for (1 <= r <= HEROSEL_GRID_ROWS) {
                 for (1 <= c <= HEROSEL_GRID_COLS) {
-                    if (slotBtn[r][c] != 0) { slotBtn[r][c].destroy(); slotBtn[r][c] = 0; }
-                    if (slotBg[r][c] != 0) { slotBg[r][c].destroy(); slotBg[r][c] = 0; }
+                    if (slotTxt2[r][c] != 0) { slotTxt2[r][c].destroy(); slotTxt2[r][c] = 0; }
+                    if (slotTxt1[r][c] != 0) { slotTxt1[r][c].destroy(); slotTxt1[r][c] = 0; }
+                    if (slotIcon[r][c] != 0) { slotIcon[r][c].destroy(); slotIcon[r][c] = 0; }
                 }
             }
 
             if (leftSlider != 0) { leftSlider.destroy(); leftSlider = 0; }
+            if (uiBtn2Button != 0) { uiBtn2Button.destroy(); uiBtn2Button = 0; }
+            if (uiBtn2Text != 0) { uiBtn2Text.destroy(); uiBtn2Text = 0; }
+            if (uiBtn2Image != 0) { uiBtn2Image.destroy(); uiBtn2Image = 0; }
+            if (uiBtn1Button != 0) { uiBtn1Button.destroy(); uiBtn1Button = 0; }
+            if (uiBtn1Text != 0) { uiBtn1Text.destroy(); uiBtn1Text = 0; }
+            if (uiBtn1Image != 0) { uiBtn1Image.destroy(); uiBtn1Image = 0; }
+            if (uiTitleText != 0) { uiTitleText.destroy(); uiTitleText = 0; }
             if (uiDivider != 0) { uiDivider.destroy(); uiDivider = 0; }
             if (uiRightArea != 0) { uiRightArea.destroy(); uiRightArea = 0; }
             if (uiMainButton != 0) { uiMainButton.destroy(); uiMainButton = 0; }
@@ -241,6 +379,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable {
 
             owner = null;
             isOpen = false;
+            currentPage = 1;
+            totalPage = 1;
         }
 
         // 判断 UI 是否正在显示
@@ -268,9 +408,16 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable {
 #undef HEROSEL_CELL_GAP_Y
 #undef HEROSEL_GRID_OFFSET_X
 #undef HEROSEL_GRID_OFFSET_Y
+#undef HEROSEL_TEXT_GAP_Y
+#undef HEROSEL_TEXT_LINE_GAP_Y
 #undef HEROSEL_SLIDER_WIDTH
 #undef HEROSEL_SLIDER_HEIGHT
 #undef HEROSEL_SLIDER_GAP_X
+#undef HEROSEL_TITLE_HEIGHT
+#undef HEROSEL_TITLE_OFFSET_Y
+#undef HEROSEL_BOTTOM_BTN_WIDTH
+#undef HEROSEL_BOTTOM_BTN_HEIGHT
+#undef HEROSEL_BOTTOM_BTN_GAP_X
 #undef HEROSEL_CONTENT_MARGIN_X
 #undef HEROSEL_CONTENT_MARGIN_Y
 

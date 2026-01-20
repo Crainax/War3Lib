@@ -18,6 +18,46 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//assert.Boolean(true, "测试1");
 		},null);
+
+// ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp
+// ReplaceableTextures\\CommandButtons\\BTNMetamorphosis.blp
+// ReplaceableTextures\\CommandButtons\\BTNEvilIllidan.blp
+// ReplaceableTextures\\CommandButtons\\BTNMetamorphosis.blp
+// ReplaceableTextures\\CommandButtons\\BTNFurion.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp
+// ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp
+// ReplaceableTextures\\CommandButtons\\BTNKeeperGhostBlue.blp
+// ReplaceableTextures\\CommandButtons\\BTNFurion.blp
+// ReplaceableTextures\\CommandButtons\\BTNFurion.blp
+// ReplaceableTextures\\CommandButtons\\BTNPriestessOfTheMoon.blp
+// ReplaceableTextures\\CommandButtons\\BTNPriestessOfTheMoon.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroWarden.blp
+// ReplaceableTextures\\CommandButtons\\BTNWarden2.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroArchMage.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroArchMage.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
+// ReplaceableTextures\\CommandButtons\\BTNArthas.blp
+// ReplaceableTextures\\CommandButtons\\BTNArthas.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroBloodElfPrince.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
+// ReplaceableTextures\\CommandButtons\\BTNGhostMage.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
+// ReplaceableTextures\\CommandButtons\\BTNJaina.blp
+// ReplaceableTextures\\CommandButtons\\BTNBloodMage2.blp
+// ReplaceableTextures\\CommandButtons\\BTNGarithos.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
+// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
+// ReplaceableTextures\\CommandButtons\\BTNNagaSeaWitch.blp
+
+
 	}
 
 	function TTestUTHeroSelector1 (player p) {}

@@ -2,9 +2,6 @@
 #define TalentIncluded
 
 #define SKILL_LIMIT_PER_PLAYER     31
-#define TALENT_BOOK1_SPELLID       'A000'
-#define TALENT_BOOK2_SPELLID       'A001'
-#define TALENT_BOOK3_SPELLID       'A002'
 #define ORDERID_IN_SPELLBOOK       851975
 
 #include "Crainax/core/constant/JapiConstant.j"

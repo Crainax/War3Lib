@@ -40,6 +40,12 @@
 //冲刺最大槽位数
 #define MAX_COUNT_DASH 10
 
+//新版魔法书的翻页ID
+#define TALENT_BOOK1_SPELLID   'A000'
+#define TALENT_BOOK2_SPELLID   'A001'
+#define TALENT_BOOK3_SPELLID   'A002'
+
+
 #define MAX_SUPER_SPEED 1000 //最大超级移速
 
 #define ISVALID_PLAYER_ID(pid) (pid >= 1 && pid <= MAX_PLAYER_COUNT)

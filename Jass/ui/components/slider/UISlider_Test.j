@@ -80,7 +80,21 @@ library UTUISlider requires UISlider {
 			});
 		BJDebugMsg("创建了横的滑块(魔兽风格)。");
 	}
-	function TTestUTUISlider5 (player p) {}
+	function TTestUTUISlider5 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		if (uiSliderTest != null) {uiSliderTest.destroy();}
+		uiSliderTest = uiSlider.create(DzGetGameUI())
+			.exReSize(0.0074*2,0.22006*2)
+			.setStep(1)
+			.setValue(50)
+			.setMinMaxValue(1,100)
+			.setThumbScale(2.5)
+			.exRePoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0)
+			.onChange(function (uiSlider ui) {
+				BJDebugMsg("滑块值:"+R2S(ui.getValue()));
+			});
+		BJDebugMsg("创建了竖的滑块(自适应)。");
+	}
 	function TTestUTUISlider6 (player p) {}
 	function TTestUTUISlider7 (player p) {}
 	function TTestUTUISlider8 (player p) {}
