@@ -19,44 +19,118 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 			//assert.Boolean(true, "测试1");
 		},null);
 
-// ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp
-// ReplaceableTextures\\CommandButtons\\BTNMetamorphosis.blp
-// ReplaceableTextures\\CommandButtons\\BTNEvilIllidan.blp
-// ReplaceableTextures\\CommandButtons\\BTNMetamorphosis.blp
-// ReplaceableTextures\\CommandButtons\\BTNFurion.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp
-// ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp
-// ReplaceableTextures\\CommandButtons\\BTNKeeperGhostBlue.blp
-// ReplaceableTextures\\CommandButtons\\BTNFurion.blp
-// ReplaceableTextures\\CommandButtons\\BTNFurion.blp
-// ReplaceableTextures\\CommandButtons\\BTNPriestessOfTheMoon.blp
-// ReplaceableTextures\\CommandButtons\\BTNPriestessOfTheMoon.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroWarden.blp
-// ReplaceableTextures\\CommandButtons\\BTNWarden2.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroArchMage.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroArchMage.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
-// ReplaceableTextures\\CommandButtons\\BTNArthas.blp
-// ReplaceableTextures\\CommandButtons\\BTNArthas.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroBloodElfPrince.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
-// ReplaceableTextures\\CommandButtons\\BTNGhostMage.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
-// ReplaceableTextures\\CommandButtons\\BTNJaina.blp
-// ReplaceableTextures\\CommandButtons\\BTNBloodMage2.blp
-// ReplaceableTextures\\CommandButtons\\BTNGarithos.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
-// ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp
-// ReplaceableTextures\\CommandButtons\\BTNNagaSeaWitch.blp
-
+		heroData[1].icon = "ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp";
+		heroData[2].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp";
+		heroData[3].icon = "ReplaceableTextures\\CommandButtons\\BTNMetamorphosis.blp";
+		heroData[4].icon = "ReplaceableTextures\\CommandButtons\\BTNEvilIllidan.blp";
+		heroData[5].icon = "ReplaceableTextures\\CommandButtons\\BTNMetamorphosis.blp";
+		heroData[6].icon = "ReplaceableTextures\\CommandButtons\\BTNFurion.blp";
+		heroData[7].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp";
+		heroData[8].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp";
+		heroData[9].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp";
+		heroData[10].icon = "ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp";
+		heroData[11].icon = "ReplaceableTextures\\CommandButtons\\BTNKeeperGhostBlue.blp";
+		heroData[12].icon = "ReplaceableTextures\\CommandButtons\\BTNFurion.blp";
+		heroData[13].icon = "ReplaceableTextures\\CommandButtons\\BTNFurion.blp";
+		heroData[14].icon = "ReplaceableTextures\\CommandButtons\\BTNPriestessOfTheMoon.blp";
+		heroData[15].icon = "ReplaceableTextures\\CommandButtons\\BTNPriestessOfTheMoon.blp";
+		heroData[16].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroWarden.blp";
+		heroData[17].icon = "ReplaceableTextures\\CommandButtons\\BTNWarden2.blp";
+		heroData[18].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroArchMage.blp";
+		heroData[19].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroArchMage.blp";
+		heroData[20].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
+		heroData[21].icon = "ReplaceableTextures\\CommandButtons\\BTNArthas.blp";
+		heroData[22].icon = "ReplaceableTextures\\CommandButtons\\BTNArthas.blp";
+		heroData[23].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroBloodElfPrince.blp";
+		heroData[24].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
+		heroData[25].icon = "ReplaceableTextures\\CommandButtons\\BTNGhostMage.blp";
+		heroData[26].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
+		heroData[27].icon = "ReplaceableTextures\\CommandButtons\\BTNJaina.blp";
+		heroData[28].icon = "ReplaceableTextures\\CommandButtons\\BTNBloodMage2.blp";
+		heroData[29].icon = "ReplaceableTextures\\CommandButtons\\BTNGarithos.blp";
+		heroData[30].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp";
+		heroData[31].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
+		heroData[32].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp";
+		heroData[33].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
+		heroData[34].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
+		heroData[35].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
+		heroData[36].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
+		heroData[37].icon = "ReplaceableTextures\\CommandButtons\\BTNNagaSeaWitch.blp";
+		heroData[1].name = "阿利亚之笛";
+		heroData[2].name = "古之忍耐姜歌";
+		heroData[3].name = "召唤护身符";
+		heroData[4].name = "远古雕像";
+		heroData[5].name = "重生十字章";
+		heroData[6].name = "神秘卷轴";
+		heroData[7].name = "芒硝护盾";
+		heroData[8].name = "刺客佩刀";
+		heroData[9].name = "先祖权杖";
+		heroData[10].name = "埃苏尼之心";
+		heroData[11].name = "奎尔萨拉斯之靴";
+		heroData[12].name = "血羽之心";
+		heroData[13].name = "巨人力量腰带";
+		heroData[14].name = "剑刃护甲";
+		heroData[15].name = "神秘腰带";
+		heroData[16].name = "敏捷腰带";
+		heroData[17].name = "速度之靴";
+		heroData[18].name = "战斗标准";
+		heroData[19].name = "空瓶";
+		heroData[20].name = "盛满泉水的瓶子";
+		heroData[21].name = "统治权杖";
+		heroData[22].name = "奶酪";
+		heroData[23].name = "法师长袍";
+		heroData[24].name = "国王之冠";
+		heroData[25].name = "火焰风衣";
+		heroData[26].name = "影子风衣";
+		heroData[27].name = "赛纳留斯的号角";
+		heroData[28].name = "贵族圆环";
+		heroData[29].name = "灵魂之球";
+		heroData[30].name = "死亡领主皇冠";
+		heroData[31].name = "水晶球";
+		heroData[32].name = "科勒恩的逃脱匕首";
+		heroData[33].name = "雷霆水桶";
+		heroData[34].name = "雷霆凤凰蛋";
+		heroData[35].name = "德鲁伊布袋";
+		heroData[36].name = "召唤钻石";
+		heroData[37].name = "雷电花芯";
+		heroData[1].text2 = "力量/1捷";
+		heroData[2].text2 = "力量/2捷";
+		heroData[3].text2 = "力量/3捷";
+		heroData[4].text2 = "力量/4捷";
+		heroData[5].text2 = "力量/5捷";
+		heroData[6].text2 = "力量/6捷";
+		heroData[7].text2 = "力量/7捷";
+		heroData[8].text2 = "力量/8捷";
+		heroData[9].text2 = "力量/9捷";
+		heroData[10].text2 = "力量/10捷";
+		heroData[11].text2 = "力量/11捷";
+		heroData[12].text2 = "力量/12捷";
+		heroData[13].text2 = "力量/13捷";
+		heroData[14].text2 = "力量/14捷";
+		heroData[15].text2 = "力量/15捷";
+		heroData[16].text2 = "力量/16捷";
+		heroData[17].text2 = "力量/17捷";
+		heroData[18].text2 = "力量/18捷";
+		heroData[19].text2 = "力量/19捷";
+		heroData[20].text2 = "力量/20捷";
+		heroData[21].text2 = "力量/21捷";
+		heroData[22].text2 = "力量/22捷";
+		heroData[23].text2 = "力量/23捷";
+		heroData[24].text2 = "力量/24捷";
+		heroData[25].text2 = "力量/25捷";
+		heroData[26].text2 = "力量/26捷";
+		heroData[27].text2 = "力量/27捷";
+		heroData[28].text2 = "力量/28捷";
+		heroData[29].text2 = "力量/29捷";
+		heroData[30].text2 = "力量/30捷";
+		heroData[31].text2 = "力量/31捷";
+		heroData[32].text2 = "力量/32捷";
+		heroData[33].text2 = "力量/33捷";
+		heroData[34].text2 = "力量/34捷";
+		heroData[35].text2 = "力量/35捷";
+		heroData[36].text2 = "力量/36捷";
+		heroData[37].text2 = "力量/37捷";
+		heroData.size = 37;
 
 	}
 

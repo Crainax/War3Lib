@@ -79,13 +79,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             thistype.size = IMaxBJ(thistype.size, idx);
         }
 
-        public static method getByIndex(integer idx) -> thistype {
-            if (idx < 1 || idx > thistype.size) {
-                return 0;
-            }
-            return heroData[idx];
-        }
-
         public static method setCallbackData(thistype hd) {
             thistype.callbackData = hd;
         }
@@ -141,7 +134,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             for (1 <= r <= HEROSEL_GRID_ROWS) {
                 for (1 <= c <= HEROSEL_GRID_COLS) {
                     idx += 1;
-                    pos = (currentPage - 1) * HEROSEL _GRID_COLS + idx;
+                    pos = (currentPage - 1) * HEROSEL_GRID_COLS + idx;
                     if (pos <= heroData.size) {
                         hd = heroData[pos];
                         if (hd != 0 && slotIcon[r][c] != 0) {
@@ -158,9 +151,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                             slotTxt2[r][c].show(true);
                         }
                     } else {
-                        if (slotIcon[r][c] != 0) { slotIcon[r][c].show(true); }
-                        if (slotTxt1[r][c] != 0) { slotTxt1[r][c].show(true); }
-                        if (slotTxt2[r][c] != 0) { slotTxt2[r][c].show(true); }
+                        if (slotIcon[r][c] != 0) { slotIcon[r][c].show(false); }
+                        if (slotTxt1[r][c] != 0) { slotTxt1[r][c].show(false); }
+                        if (slotTxt2[r][c] != 0) { slotTxt2[r][c].show(false); }
                     }
                 }
             }
@@ -219,10 +212,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             uiMainButton = uiBtn.createBlank(uiMain.ui)
                 .setAllPoint(uiMain.ui)
                 .enableDrag(uiMain.ui, 0.25, 0.55, 0.34, 0.5)
-                .setDragPosition(0.4, 0.25)
-                .onMouseWheel(function() {
-                    heroSelectorUI.onMouseWheel();
-                });
+                .setDragPosition(0.4, 0.3)
+                .onMouseWheel(function heroSelectorUI.onMouseWheel);
 
             // 背景拼图
             // bgImage1 = uiImage.create(uiMain.ui)
@@ -277,13 +268,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
 
                     slotTxt1[r][c] = uiText.create(uiMain.ui)
                         .setAlign(4)
-                        .setFontSize(5)
+                        .setFontSize(2)
                         .setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, -HEROSEL_TEXT_GAP_Y)
                         .show(false);
 
                     slotTxt2[r][c] = uiText.create(uiMain.ui)
                         .setAlign(4)
-                        .setFontSize(5)
+                        .setFontSize(2)
                         .setPoint(ANCHOR_TOP, slotTxt1[r][c].ui, ANCHOR_BOTTOM, 0, -HEROSEL_TEXT_LINE_GAP_Y)
                         .show(false);
                 }
