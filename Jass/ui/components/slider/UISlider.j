@@ -150,21 +150,35 @@ library UISlider requires STRUCT_SHARED_REQUIRE_UI {
         }
 
         // 销毁
+        // 改进后的 onDestroy
         method onDestroy () {
             if (!this.isExist()) {return;}
-            STRUCT_SHARED_UI_ONDESTROY(uiSlider)
-            DzDestroyFrame(ui);
-            uiId.recycle(id);
 
+            // 清理回调函数
+            fun = 0;
+            oldValue = 0.;
+
+            // 共享销毁逻辑
+            STRUCT_SHARED_UI_ONDESTROY(uiSlider)
+
+            // 销毁UI资源
+            DzDestroyFrame(ui);
+            ui = 0;  // 显式清空
+
+            // 回收ID
+            uiId.recycle(id);
+            id = 0;  // 显式清空
+
+            // 从列表中移除
             if (uID != 0) {
-                //这个其实就是将List的[2]设成5  假设2是删  5是最长
-                //然后实例5的trID设成了2(之后再新建的话又是5了  这个基本也是独立)
-                //但是实例[2]本身的内容已经被清除. 循环读的是List不受影响(虽然List[5]还是5但是无影响)
                 List[uID]      = List[size];
                 List[uID].uID  = uID;
                 size          -= 1;
                 uID            = 0;
             }
+
+            // 释放结构体内存（如果需要）
+            // deallocate();  // 根据你的框架决定是否需要
         }
 
         static method onInit () { //初始化就同步创建,不要异步删除计时器

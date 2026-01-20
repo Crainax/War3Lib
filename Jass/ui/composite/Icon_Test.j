@@ -19,8 +19,13 @@
 * s6 - 测试CD显示(10秒)
 * s7 - 显示/隐藏图标
 * s8 - 开启自动尺寸
+* s9 - 循环切换右下角文字大小(2-5)
+* s10 - 切换右下角边框开关
 * -destroy - 销毁图标
 * -size(x,y) - 设置图标大小,如: -size 0.04 0.04
+* -cornersize <size> - 设置右下角文字大小,如: -cornersize 3
+* -cornerpadding <padding> - 设置角落文字内边距,如: -cornerpadding 0.005
+* -topright <text> <size> - 设置右上角文字,如: -topright 新 3
 *
 * 使用方法:
 * 1. 首先使用s1创建基础图标
@@ -41,6 +46,8 @@ library UTIcon requires Icon {
 	private boolean isTest3Active = false;
 	private boolean isTest4Active = false;
 	private boolean isTest7Active = false;
+	private boolean isTest10Active = false;
+	private integer currentTextSize = 2;
 
 	// 基础图标创建和显示测试
 	function TTestUTIcon1 (player p) {
@@ -186,8 +193,43 @@ library UTIcon requires Icon {
 		BJDebugMsg("大小调整已开启");
 	}
 
-	function TTestUTIcon9 (player p) {}
-	function TTestUTIcon10 (player p) {}
+	// 右下角文字大小测试
+	function TTestUTIcon9 (player p) {
+		if (!testIcon1.isExist()) {
+			BJDebugMsg("请先使用s1创建基础图标");
+			return;
+		}
+
+		// 循环切换文字大小 2->3->4->5->2
+		currentTextSize = currentTextSize + 1;
+		if (currentTextSize > 5) {
+			currentTextSize = 2;
+		}
+
+		testIcon1.setCornerTextSize(currentTextSize);
+		testIcon1.setCornerText("99"); // 确保有文字显示
+		BJDebugMsg("右下角文字大小已设置为: " + I2S(currentTextSize));
+	}
+
+	// 右下角边框开关测试
+	function TTestUTIcon10 (player p) {
+		if (!testIcon1.isExist()) {
+			BJDebugMsg("请先使用s1创建基础图标");
+			return;
+		}
+
+		if (!isTest10Active) {
+			testIcon1.enableCornerBorder(false);
+			testIcon1.setCornerText("88"); // 重新设置以触发重建
+			isTest10Active = true;
+			BJDebugMsg("右下角边框已禁用(使用纯背景) - 输入s10可恢复");
+		} else {
+			testIcon1.enableCornerBorder(true);
+			testIcon1.setCornerText("88"); // 重新设置以触发重建
+			isTest10Active = false;
+			BJDebugMsg("右下角边框已启用");
+		}
+	}
 	function TTestActUTIcon1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -274,6 +316,77 @@ library UTIcon requires Icon {
 			return;
 		}
 
+		// 处理cornersize命令
+		if (paramS[0] == "cornersize") {
+			if (!testIcon1.isExist()) {
+				BJDebugMsg("请先使用s1创建基础图标");
+				p = null;
+				return;
+			}
+
+			if (num < 2) {
+				BJDebugMsg("参数不足,请使用格式: -cornersize <size>");
+				BJDebugMsg("例如: -cornersize 3");
+				p = null;
+				return;
+			}
+
+			testIcon1.setCornerTextSize(paramI[1]);
+			testIcon1.setCornerText("99"); // 确保有文字显示
+			BJDebugMsg("右下角文字大小已设置为: " + I2S(paramI[1]));
+			p = null;
+			return;
+		}
+
+		// 处理cornerpadding命令
+		if (paramS[0] == "cornerpadding") {
+			if (!testIcon1.isExist()) {
+				BJDebugMsg("请先使用s1创建基础图标");
+				p = null;
+				return;
+			}
+
+			if (num < 2) {
+				BJDebugMsg("参数不足,请使用格式: -cornerpadding <padding>");
+				BJDebugMsg("例如: -cornerpadding 0.005");
+				p = null;
+				return;
+			}
+
+			testIcon1.setCornerPadding(paramR[1]);
+			testIcon1.setCornerText("99"); // 确保有文字显示以查看效果
+			testIcon1.setTopRightText("新", 3); // 右上角也会受影响
+			BJDebugMsg("角落文字内边距已设置为: " + R2S(paramR[1]));
+			p = null;
+			return;
+		}
+
+		// 处理topright命令
+		if (paramS[0] == "topright") {
+			if (!testIcon1.isExist()) {
+				BJDebugMsg("请先使用s1创建基础图标");
+				p = null;
+				return;
+			}
+
+			if (num < 3) {
+				BJDebugMsg("参数不足,请使用格式: -topright <text> <size>");
+				BJDebugMsg("例如: -topright 新 3 或 -topright null 0 删除");
+				p = null;
+				return;
+			}
+
+			if (paramS[1] == "null") {
+				testIcon1.setTopRightText(null, 0);
+				BJDebugMsg("右上角文字已删除");
+			} else {
+				testIcon1.setTopRightText(paramS[1], paramI[2]);
+				BJDebugMsg("右上角文字已设置为: " + paramS[1] + ", 大小: " + I2S(paramI[2]));
+			}
+			p = null;
+			return;
+		}
+
 		p = null;
 	}
 
@@ -293,8 +406,13 @@ library UTIcon requires Icon {
 			BJDebugMsg("s6 - 测试CD显示(10秒)");
 			BJDebugMsg("s7 - 显示/隐藏图标");
 			BJDebugMsg("s8 - 开启自动尺寸");
+			BJDebugMsg("s9 - 循环切换右下角文字大小(2-5)");
+			BJDebugMsg("s10 - 切换右下角边框开关");
 			BJDebugMsg("-destroy - 销毁图标");
 			BJDebugMsg("-size(x,y) - 设置图标大小,如: -size 0.04 0.04");
+			BJDebugMsg("-cornersize <size> - 设置右下角文字大小,如: -cornersize 3");
+			BJDebugMsg("-cornerpadding <padding> - 设置角落文字内边距,如: -cornerpadding 0.005");
+			BJDebugMsg("-topright <text> <size> - 设置右上角文字,如: -topright 新 3");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;

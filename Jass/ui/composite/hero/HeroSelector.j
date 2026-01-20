@@ -129,16 +129,49 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
         private static method refreshLeftGrid() {
             integer r; integer c; integer idx;
             integer pos; heroData hd;
+            integer globalRowIndex; integer totalRows; integer rowIconCount;
+            real baseOffsetX; real offsetX; real offsetY;
+
+            // 计算总行数
+            totalRows = (heroData.size + HEROSEL_GRID_COLS - 1) / HEROSEL_GRID_COLS;
 
             idx = 0;
             for (1 <= r <= HEROSEL_GRID_ROWS) {
+                // 计算当前显示行对应的全局行号（从1开始）
+                globalRowIndex = currentPage + r - 1;
+
+                // 计算当前行有多少个图标（基于全局行号）
+                if (globalRowIndex <= totalRows) {
+                    // 如果是最后一行，计算实际icon数量
+                    if (globalRowIndex == totalRows) {
+                        rowIconCount = heroData.size - (globalRowIndex - 1) * HEROSEL_GRID_COLS;
+                    } else {
+                        rowIconCount = HEROSEL_GRID_COLS;
+                    }
+                } else {
+                    rowIconCount = 0;
+                }
+
+                // 计算当前行的起始X偏移（使该行居中）
+                if (rowIconCount > 0 && rowIconCount < HEROSEL_GRID_COLS) {
+                    // 最后一行不满时居中
+                    baseOffsetX = HEROSEL_GRID_OFFSET_X + ((HEROSEL_GRID_COLS - rowIconCount) * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_X)) / 2.0;
+                } else {
+                    baseOffsetX = HEROSEL_GRID_OFFSET_X;
+                }
+
                 for (1 <= c <= HEROSEL_GRID_COLS) {
                     idx += 1;
                     pos = (currentPage - 1) * HEROSEL_GRID_COLS + idx;
-                    if (pos <= heroData.size) {
+
+                    offsetX = baseOffsetX + (c - 1) * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_X);
+                    offsetY = HEROSEL_GRID_OFFSET_Y - (r - 1) * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_Y);
+
+                    if (pos <= heroData.size && c <= rowIconCount) {
                         hd = heroData[pos];
                         if (hd != 0 && slotIcon[r][c] != 0) {
                             slotIcon[r][c].setTexture(S3(hd.icon != null, hd.icon, UI_STRING_PATH_BLANK));
+                            slotIcon[r][c].exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, offsetX, offsetY);
                             slotIcon[r][c].show(true);
                             uiHashTable(slotIcon[r][c].getClickBtn().ui).eventdata.bind(pos);
                         }
@@ -260,6 +293,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                     slotIcon[r][c].show(false);
 
                     slotIcon[r][c].getClickBtn()
+                        .onMouseWheel(function heroSelectorUI.onMouseWheel)
                         .spClick(function(integer frame) {
                             integer pos = uiHashTable(frame).eventdata.get();
                             pos = pos; // 预留：后续接入 heroData 映射
@@ -297,6 +331,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 .onChange(function(uiSlider s) {
                     heroSelectorUI.onSliderChange(s);
                 });
+
+            // 如果不需要翻页则隐藏slider
+            if (totalPage <= 1) {
+                leftSlider.show(false);
+            }
 
             refreshLeftGrid();
 

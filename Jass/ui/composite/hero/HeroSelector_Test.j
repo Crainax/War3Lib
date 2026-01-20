@@ -130,7 +130,7 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 		heroData[35].text2 = "力量/35捷";
 		heroData[36].text2 = "力量/36捷";
 		heroData[37].text2 = "力量/37捷";
-		heroData.size = 37;
+		heroData.size = 23;
 
 	}
 

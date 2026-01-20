@@ -35,6 +35,7 @@
 
 //# dependency:resource/ui/model/cooldown_center.mdx
 
+#define ICON_PADDING_CORNER 0.003  // 角落文字的默认内边距
 
 //! zinc
 /*
@@ -70,6 +71,17 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
         real spOffsetX;
         real spOffsetY;
         uiImage cdSpriteImage; // 用于CD显示的辅助图片
+
+        // 右下角文字配置
+        integer cornerTextSize;           // 右下角文字大小
+        boolean cornerBorderEnabled;      // 是否启用右下角边框
+        uiImage cornerShadeImage;         // 右下角背景图片(不使用边框时)
+        real cornerPadding;               // 角落文字的内边距
+
+        // 右上角文字
+        uiImage topRightShade;            // 右上角背景图片
+        uiText topRightText;              // 右上角文字
+
         STRUCT_SHARED_METHODS(icon)
 
         // 私有的初始化方法
@@ -91,6 +103,16 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
             // 尺寸初始化为0
             sizeX    = 0.04;
             sizeY    = 0.04;
+
+            // 右下角配置
+            cornerTextSize      = 2;
+            cornerBorderEnabled = true;
+            cornerShadeImage    = 0;
+            cornerPadding       = ICON_PADDING_CORNER;
+
+            // 右上角
+            topRightShade = 0;
+            topRightText  = 0;
         }
 
         // 普通创建方法
@@ -211,29 +233,150 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
             if (value == null) {
                 if (cornerText.isExist()) {
                     cornerText.show(false);
-                    cornerShade.show(false);
+                    if (cornerBorderEnabled && cornerShade.isExist()) {
+                        cornerShade.show(false);
+                    } else if (!cornerBorderEnabled && cornerShadeImage.isExist()) {
+                        cornerShadeImage.show(false);
+                    }
                 }
                 return this;
             }
 
             // 创建或更新cornerText
             if (!cornerText.isExist()) {
-                if (isSimple) {
-                    cornerShade = uiBorder.createCornerBorder(uilayer.lv[1]);
-                    cornerText = uiText.create(cornerShade.ui);
+                padding = cornerPadding;
+                if (cornerBorderEnabled) {
+                    // 使用边框模式
+                    if (isSimple) {
+                        cornerShade = uiBorder.createCornerBorder(uilayer.lv[1]);
+                        cornerText = uiText.create(cornerShade.ui);
+                    } else {
+                        cornerShade = uiBorder.createCornerBorder(this.parent);
+                        cornerText = uiText.create(cornerShade.ui);
+                    }
+                    cornerText.setFontSize(cornerTextSize)
+                        .setPoint(ANCHOR_BOTTOMRIGHT, mainImage.ui, ANCHOR_BOTTOMRIGHT, -padding, padding);
+                    cornerShade.setPoint(ANCHOR_TOPLEFT, cornerText.ui, ANCHOR_TOPLEFT, -padding, padding)
+                        .setPoint(ANCHOR_BOTTOMRIGHT, cornerText.ui, ANCHOR_BOTTOMRIGHT, padding, -padding);
                 } else {
-                    cornerShade = uiBorder.createCornerBorder(this.parent);
-                    cornerText = uiText.create(cornerShade.ui);
+                    // 使用纯图片背景模式
+                    if (isSimple) {
+                        cornerShadeImage = uiImage.create(uilayer.lv[1]);
+                    } else {
+                        cornerShadeImage = uiImage.create(this.parent);
+                    }
+                    cornerShadeImage.setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+                    cornerText = uiText.create(cornerShadeImage.ui);
+                    cornerText.setFontSize(cornerTextSize)
+                        .setPoint(ANCHOR_BOTTOMRIGHT, mainImage.ui, ANCHOR_BOTTOMRIGHT, -padding, padding);
+                    cornerShadeImage.setPoint(ANCHOR_TOPLEFT, cornerText.ui, ANCHOR_TOPLEFT, -padding, padding)
+                        .setPoint(ANCHOR_BOTTOMRIGHT, cornerText.ui, ANCHOR_BOTTOMRIGHT, padding, -padding);
                 }
-                cornerText.setFontSize(2)
-                    .setPoint(ANCHOR_BOTTOMRIGHT, mainImage.ui, ANCHOR_BOTTOMRIGHT, -0.003,0.003);
-                padding = 0.003;
-                cornerShade.setPoint(ANCHOR_TOPLEFT, cornerText.ui, ANCHOR_TOPLEFT, -padding, padding)
-                    .setPoint(ANCHOR_BOTTOMRIGHT, cornerText.ui, ANCHOR_BOTTOMRIGHT, padding, -padding);
             }
             cornerText.setText(value);
             cornerText.show(true);
-            cornerShade.show(true);
+            if (cornerBorderEnabled) {
+                cornerShade.show(true);
+            } else {
+                cornerShadeImage.show(true);
+            }
+            return this;
+        }
+
+        // 设置右下角文字大小
+        method setCornerTextSize(integer size) -> thistype {
+            if (!this.isExist()) {return this;}
+            this.cornerTextSize = size;
+            if (cornerText.isExist()) {
+                cornerText.setFontSize(size);
+            }
+            return this;
+        }
+
+        // 设置角落文字的内边距
+        method setCornerPadding(real padding) -> thistype {
+            if (!this.isExist()) {return this;}
+            this.cornerPadding = padding;
+            // 如果已创建cornerText，需要重建以应用新的padding
+            if (cornerText.isExist()) {
+                cornerText.destroy();
+                if (cornerShade.isExist()) {
+                    cornerShade.destroy();
+                    cornerShade = 0;
+                }
+                if (cornerShadeImage.isExist()) {
+                    cornerShadeImage.destroy();
+                    cornerShadeImage = 0;
+                }
+                cornerText = 0;
+            }
+            // 如果已创建topRightText，也需要重建
+            if (topRightText.isExist()) {
+                topRightText.destroy();
+                topRightShade.destroy();
+                topRightText = 0;
+                topRightShade = 0;
+            }
+            return this;
+        }
+
+        // 启用或禁用右下角边框
+        method enableCornerBorder(boolean flag) -> thistype {
+            if (!this.isExist()) {return this;}
+            this.cornerBorderEnabled = flag;
+            // 如果已创建cornerText，需要重建
+            if (cornerText.isExist()) {
+                // 销毁旧的，标记需要重建
+                cornerText.destroy();
+                if (cornerShade.isExist()) {
+                    cornerShade.destroy();
+                    cornerShade = 0;
+                }
+                if (cornerShadeImage.isExist()) {
+                    cornerShadeImage.destroy();
+                    cornerShadeImage = 0;
+                }
+                cornerText = 0;
+            }
+            return this;
+        }
+
+        // 设置右上角文字
+        method setTopRightText(string value, integer fontSize) -> thistype {
+            real padding;
+            if (!this.isExist()) {return this;}
+
+            // 如果value为null，隐藏组件
+            if (value == null) {
+                if (topRightText.isExist()) {
+                    topRightText.show(false);
+                    topRightShade.show(false);
+                }
+                return this;
+            }
+
+            // 懒加载创建
+            if (!topRightText.isExist()) {
+                padding = cornerPadding;
+                if (isSimple) {
+                    topRightShade = uiImage.create(uilayer.lv[1]);
+                } else {
+                    topRightShade = uiImage.create(this.parent);
+                }
+                topRightShade.setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp");
+
+                topRightText = uiText.create(topRightShade.ui);
+                topRightText.setPoint(ANCHOR_TOPRIGHT, mainImage.ui, ANCHOR_TOPRIGHT, -padding, -padding);
+
+                topRightShade.setPoint(ANCHOR_TOPLEFT, topRightText.ui, ANCHOR_TOPLEFT, -padding, padding)
+                    .setPoint(ANCHOR_BOTTOMRIGHT, topRightText.ui, ANCHOR_BOTTOMRIGHT, padding, -padding);
+            }
+
+            topRightText.setFontSize(fontSize)
+                .setText(value)
+                .show(true);
+            topRightShade.show(true);
+
             return this;
         }
 
@@ -370,7 +513,10 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
             if (cdSpriteImage.isExist()) { cdSpriteImage.destroy(); cdSpriteImage = 0; }
             if (shadowImage.isExist()) { shadowImage.destroy(); shadowImage = 0; }
             if (cornerShade.isExist()) { cornerShade.destroy(); cornerShade = 0; }
+            if (cornerShadeImage.isExist()) { cornerShadeImage.destroy(); cornerShadeImage = 0; }
             if (cornerText.isExist()) { cornerText.destroy(); cornerText = 0; }
+            if (topRightShade.isExist()) { topRightShade.destroy(); topRightShade = 0; }
+            if (topRightText.isExist()) { topRightText.destroy(); topRightText = 0; }
             if (clickBtn.isExist()) { clickBtn.destroy(); clickBtn = 0; }
             if (glowImage.isExist()) { glowImage.destroy(); glowImage = 0; }
             if (!isSimple && mainImage.isExist()) { mainImage.destroy(); mainImage = 0; } // ✅ 仅非Simple销毁
