@@ -3,6 +3,7 @@
 
 #include "Crainax/config/SharedMethod.h"       // 结构体共用方法、I3 等工具
 #include "Crainax/ui/constants/UIConstants.j"  // UI 常量
+#include "Crainax/ui/constants/GrowConstants.j"  // UI 常量
 
 //! zinc
 /*
@@ -68,28 +69,46 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
         public string  icon;
         public string  text2;
         public static integer size = 0;
-        private static thistype callbackData = 0;
 
-        // 设置某个位置的数据（会自动更新 size）
-        public static method set(integer idx, string n, string iconPath, string t2) {
-            if (idx < 1) { return; }
-            heroData[idx].name  = n;
-            heroData[idx].icon  = iconPath;
-            heroData[idx].text2 = t2;
-            thistype.size = IMaxBJ(thistype.size, idx);
-        }
 
-        public static method setCallbackData(thistype hd) {
-            thistype.callbackData = hd;
-        }
+        public integer talentCount;   //天赋数量
+        public static string  talentIcon  [500][5];  //天赋的图标
 
-        public static method getCallbackData() -> thistype {
-            return thistype.callbackData;
-        }
+        public integer giftCount;     //赠礼Count
+        public static string  giftIcon  [500][5];  //赠礼的图标
 
-        public static method clearCallbackData() {
-            thistype.callbackData = 0;
-        }
+        public integer skillCount;     //建议的技能Count
+        public static string  skillIcon  [500][5];  //建议的技能
+
+        public integer equitCount; //装备Count
+        public static string  equitIcon  [500][10]; //装备的图标
+
+        public static real progresss [MAX_PLAYER_COUNT][500];   //进度条(熟练度)
+
+        public static trigger trRightEnter = null;   //介绍鼠标进入触发事件(异步)
+        public static trigger trRightLeave = null;   //介绍鼠标进入触发事件(异步)
+        public static integer argsHeroIndex = 0; //英雄索引(回调参数)
+        public static integer argsEventType = 0; //事件类型(回调参数) 1:天赋技能 2:赠礼 3:建议的技能 4:装备
+        public static integer argsEventIndex = 0; //事件类型(回调参数)  1-10事件的位置
+
+        public static trigger trBtn1Click = null;    //按钮1点击(数据已同步的回调)
+        public static trigger trBtn2Click = null;    //按钮2点击(数据已同步的回调)
+    }
+
+    //==========================================================================
+    // 传参
+    //==========================================================================
+    private integer currentPos     = 0;                //点击位置
+    private player currentP        = null;                //点击位置
+
+    //当前触发的UI的对应位置
+    public function GetHeroSelectorPos () -> integer {
+        return currentPos;
+    }
+
+    //当前触发的UI的对应位置
+    public function GetHeroSelectorPlayer () -> player {
+        return currentP;
     }
 
     //==========================================================================
@@ -125,6 +144,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
         private static player owner = null;
         private static integer currentPage = 1;
         private static integer totalPage = 1;
+        private static integer selectedPos = 0; // 当前选中的位置
 
         private static method refreshLeftGrid() {
             integer r; integer c; integer idx;
@@ -174,6 +194,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                             slotIcon[r][c].exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, offsetX, offsetY);
                             slotIcon[r][c].show(true);
                             uiHashTable(slotIcon[r][c].getClickBtn().ui).eventdata.bind(pos);
+
+                            // 选中高亮：如果当前位置是选中的位置，则高亮
+                            if (selectedPos == pos) {
+                                slotIcon[r][c].grow(growdata[ICONGROW_15]);
+                            } else {
+                                slotIcon[r][c].unGrow();
+                            }
                         }
                         if (slotTxt1[r][c] != 0) {
                             slotTxt1[r][c].setText("1字:+" + I2S(pos));
@@ -296,7 +323,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                         .onMouseWheel(function heroSelectorUI.onMouseWheel)
                         .spClick(function(integer frame) {
                             integer pos = uiHashTable(frame).eventdata.get();
-                            pos = pos; // 预留：后续接入 heroData 映射
+                            // 更新选中位置并刷新显示
+                            selectedPos = pos;
+                            refreshLeftGrid();
                         });
                     uiHashTable(slotIcon[r][c].getClickBtn().ui).eventdata.bind(idx);
 
@@ -342,7 +371,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             // 右侧空白区域占位
             contentLeftX = sliderX + HEROSEL_SLIDER_WIDTH + HEROSEL_CONTENT_MARGIN_X;
             uiRightArea = uiImage.create(uiMain.ui)
-                // .setTexture("")
+            // .setTexture("")
                 .setTexture(UI_STRING_PATH_BLANK)
                 .setPointFix(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX, HEROSEL_GRID_OFFSET_Y)
                 .setPointFix(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_BOTTOMRIGHT, -HEROSEL_CONTENT_MARGIN_X, HEROSEL_CONTENT_MARGIN_Y);
@@ -362,7 +391,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 .setAlign(4)
                 .setText("按钮1");
             uiBtn1Button = uiBtn.create(uiBtn1Image.ui)
-                .setAllPoint(uiBtn1Image.ui);
+                .setAllPoint(uiBtn1Image.ui)
+                .spClick(function(integer frame) {
+                    // button1 点击：不需要传 pos
+                    syncBus.DzSyncDataEx("HSelect","L");
+                });
 
             uiBtn2Image = uiImage.create(uiMain.ui)
                 .exReSize(HEROSEL_BOTTOM_BTN_WIDTH, HEROSEL_BOTTOM_BTN_HEIGHT)
@@ -374,7 +407,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 .setAlign(4)
                 .setText("按钮2");
             uiBtn2Button = uiBtn.create(uiBtn2Image.ui)
-                .setAllPoint(uiBtn2Image.ui);
+                .setAllPoint(uiBtn2Image.ui)
+                .spClick(function(integer frame) {
+                    // button2 点击：传当前选择的位置 pos
+                    syncBus.DzSyncDataEx("HSelect","R"+I2S(selectedPos));
+                });
         }
 
         public static method hide(player p) {
@@ -411,6 +448,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             isOpen = false;
             currentPage = 1;
             totalPage = 1;
+            selectedPos = 0;
         }
 
         // 判断 UI 是否正在显示
@@ -420,8 +458,29 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
 
     }
 
-    public function GetHeroSelectorEventData() -> heroData {
-        return heroData.getCallbackData();
+    function onInit () {
+        // 使用单通道总线
+        syncBus.onDataSync("HSelect", function () -> boolean {
+            string str; player p; integer pos;
+            str = syncBus.getPayload();
+            p = syncBus.getPlayer();
+            if (SubStringBJ(str, 1, 1) == "L") { // button1 点击（随机）
+                if (heroData.trBtn1Click != null) {
+                    currentP = p;
+                    TriggerEvaluate(heroData.trBtn1Click);
+                }
+            } else if (SubStringBJ(str, 1, 1) == "R") { // button2 点击（确认选择）
+                pos = S2I(SubStringBJ(str, 2, StringLength(str)));
+                if (heroData.trBtn2Click != null) {
+                    currentP = p;
+                    currentPos = pos;
+                    TriggerEvaluate(heroData.trBtn2Click);
+                }
+            }
+
+            str = null; p = null;
+            return true;
+        });
     }
 }
 

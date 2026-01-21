@@ -130,7 +130,20 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 		heroData[35].text2 = "力量/35捷";
 		heroData[36].text2 = "力量/36捷";
 		heroData[37].text2 = "力量/37捷";
-		heroData.size = 23;
+		heroData.size = 37;
+
+		heroData.trBtn1Click = CreateTrigger();
+		TriggerAddCondition(heroData.trBtn1Click, Condition(function (){
+			player p = GetHeroSelectorPlayer();
+			toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮1（随机选择）");
+		}));
+
+		heroData.trBtn2Click = CreateTrigger();
+		TriggerAddCondition(heroData.trBtn2Click, Condition(function (){
+			integer pos = GetHeroSelectorPos();
+			player p = GetHeroSelectorPlayer();
+			toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮2，选择位置: " + I2S(pos));
+		}));
 
 	}
 
