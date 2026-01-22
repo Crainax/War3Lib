@@ -45,7 +45,9 @@
 #define TALENT_BOOK2_SPELLID   'A001'
 #define TALENT_BOOK3_SPELLID   'A002'
 
-
 #define MAX_SUPER_SPEED 1000 //最大超级移速
+
+//选择英雄时的货币图标
+#define HEROSEL_CURRENCY_ICON "ReplaceableTextures\\CommandButtons\\BTNStaffOfPreservation.blp"
 
 #define ISVALID_PLAYER_ID(pid) (pid >= 1 && pid <= MAX_PLAYER_COUNT)

@@ -93,43 +93,43 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 		heroData[35].name = "德鲁伊布袋";
 		heroData[36].name = "召唤钻石";
 		heroData[37].name = "雷电花芯";
-		heroData[1].text2 = "力量/1捷";
-		heroData[2].text2 = "力量/2捷";
-		heroData[3].text2 = "力量/3捷";
-		heroData[4].text2 = "力量/4捷";
-		heroData[5].text2 = "力量/5捷";
-		heroData[6].text2 = "力量/6捷";
-		heroData[7].text2 = "力量/7捷";
-		heroData[8].text2 = "力量/8捷";
-		heroData[9].text2 = "力量/9捷";
-		heroData[10].text2 = "力量/10捷";
-		heroData[11].text2 = "力量/11捷";
-		heroData[12].text2 = "力量/12捷";
-		heroData[13].text2 = "力量/13捷";
-		heroData[14].text2 = "力量/14捷";
-		heroData[15].text2 = "力量/15捷";
-		heroData[16].text2 = "力量/16捷";
-		heroData[17].text2 = "力量/17捷";
-		heroData[18].text2 = "力量/18捷";
-		heroData[19].text2 = "力量/19捷";
-		heroData[20].text2 = "力量/20捷";
-		heroData[21].text2 = "力量/21捷";
-		heroData[22].text2 = "力量/22捷";
-		heroData[23].text2 = "力量/23捷";
-		heroData[24].text2 = "力量/24捷";
-		heroData[25].text2 = "力量/25捷";
-		heroData[26].text2 = "力量/26捷";
-		heroData[27].text2 = "力量/27捷";
-		heroData[28].text2 = "力量/28捷";
-		heroData[29].text2 = "力量/29捷";
-		heroData[30].text2 = "力量/30捷";
-		heroData[31].text2 = "力量/31捷";
-		heroData[32].text2 = "力量/32捷";
-		heroData[33].text2 = "力量/33捷";
-		heroData[34].text2 = "力量/34捷";
-		heroData[35].text2 = "力量/35捷";
-		heroData[36].text2 = "力量/36捷";
-		heroData[37].text2 = "力量/37捷";
+		heroData[1].text2 = "力量英雄/近战";
+		heroData[2].text2 = "力量英雄/近战";
+		heroData[3].text2 = "力量英雄/近战";
+		heroData[4].text2 = "力量英雄/近战";
+		heroData[5].text2 = "力量英雄/近战";
+		heroData[6].text2 = "力量英雄/近战";
+		heroData[7].text2 = "力量英雄/近战";
+		heroData[8].text2 = "力量英雄/近战";
+		heroData[9].text2 = "力量英雄/近战";
+		heroData[10].text2 = "力量英雄/近战";
+		heroData[11].text2 = "力量英雄/近战";
+		heroData[12].text2 = "力量英雄/近战";
+		heroData[13].text2 = "力量英雄/近战";
+		heroData[14].text2 = "力量英雄/近战";
+		heroData[15].text2 = "力量英雄/近战";
+		heroData[16].text2 = "力量英雄/近战";
+		heroData[17].text2 = "力量英雄/近战";
+		heroData[18].text2 = "力量英雄/近战";
+		heroData[19].text2 = "力量英雄/近战";
+		heroData[20].text2 = "力量英雄/近战";
+		heroData[21].text2 = "力量英雄/近战";
+		heroData[22].text2 = "力量英雄/近战";
+		heroData[23].text2 = "力量英雄/近战";
+		heroData[24].text2 = "力量英雄/近战";
+		heroData[25].text2 = "力量英雄/近战";
+		heroData[26].text2 = "力量英雄/近战";
+		heroData[27].text2 = "力量英雄/近战";
+		heroData[28].text2 = "力量英雄/近战";
+		heroData[29].text2 = "力量英雄/近战";
+		heroData[30].text2 = "力量英雄/近战";
+		heroData[31].text2 = "力量英雄/近战";
+		heroData[32].text2 = "力量英雄/近战";
+		heroData[33].text2 = "力量英雄/近战";
+		heroData[34].text2 = "力量英雄/近战";
+		heroData[35].text2 = "力量英雄/近战";
+		heroData[36].text2 = "力量英雄/近战";
+		heroData[37].text2 = "力量英雄/近战";
 		heroData.size = 37;
 
 		heroData.trBtn1Click = CreateTrigger();
@@ -145,9 +145,42 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 			toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮2，选择位置: " + I2S(pos));
 		}));
 
+		heroData.trHeroCondition = CreateTrigger();
+		TriggerAddCondition(heroData.trHeroCondition, Condition(function () -> boolean {
+			integer pos = GetHeroConditionPosAsync();
+			// pos 取余数为 1 的返回 false
+			return ModuloInteger(pos, 2) != 1;
+		}));
+
+		heroData.trHeroBtn1String = CreateTrigger();
+		TriggerAddCondition(heroData.trHeroBtn1String, Condition(function () -> boolean {
+			integer pos = GetHeroConditionPosAsync();
+			// 根据位置返回不同的字符串
+			CallbackHeroBtn1String("位置" + I2S(pos) + "的描述");
+			return true;
+		}));
+
+		heroData.trBpEnter = CreateTrigger();
+		TriggerAddCondition(heroData.trBpEnter, Condition(function () -> boolean {
+			player p = GetLocalPlayer();
+			toastHint.createAtMouse(p, "[HSelect] 鼠标进入左下角BP区域");
+			return true;
+		}));
+
+		heroData.trBpLeave = CreateTrigger();
+		TriggerAddCondition(heroData.trBpLeave, Condition(function () -> boolean {
+			player p = GetLocalPlayer();
+			toastHint.createAtMouse(p, "[HSelect] 鼠标离开左下角BP区域");
+			return true;
+		}));
+
 	}
 
-	function TTestUTHeroSelector1 (player p) {}
+	function TTestUTHeroSelector1 (player p) {
+		// 测试setBtn1Text方法
+		heroSelectorUI.setBtn1Text(p, "测试按钮1文本");
+		toastHint.createAtMouse(p, "[HSelect] 已设置按钮1文本为: 测试按钮1文本");
+	}
 	function TTestUTHeroSelector2 (player p) {}
 	function TTestUTHeroSelector3 (player p) {}
 	function TTestUTHeroSelector4 (player p) {}
