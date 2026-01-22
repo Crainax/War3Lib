@@ -1,4 +1,4 @@
-[A000]
+[AT00]
 _parent = "Aspb"
 -- 按钮位置 - 普通 (Y)
 Buttonpos_2 = 1
@@ -29,7 +29,7 @@ item = 0
 -- 种族
 race = "human"
 
-[A001]
+[AT01]
 _parent = "Aspb"
 -- 按钮位置 - 普通 (Y)
 Buttonpos_1 = 1
@@ -56,7 +56,7 @@ item = 0
 -- 种族
 race = "human"
 
-[A002]
+[AT02]
 _parent = "Aspb"
 -- 按钮位置 - 普通 (Y)
 Buttonpos_1 = 1

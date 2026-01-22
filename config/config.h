@@ -41,13 +41,15 @@
 #define MAX_COUNT_DASH 10
 
 //新版魔法书的翻页ID
-#define TALENT_BOOK1_SPELLID   'A000'
-#define TALENT_BOOK2_SPELLID   'A001'
-#define TALENT_BOOK3_SPELLID   'A002'
+#define TALENT_BOOK1_SPELLID   'AT00'
+#define TALENT_BOOK2_SPELLID   'AT01'
+#define TALENT_BOOK3_SPELLID   'AT02'
 
 #define MAX_SUPER_SPEED 1000 //最大超级移速
 
 //选择英雄时的货币图标
 #define HEROSEL_CURRENCY_ICON "ReplaceableTextures\\CommandButtons\\BTNStaffOfPreservation.blp"
+#define HEROSEL_BTN1_TEXT_DEFAULT "选择技能"
+#define HEROSEL_BTN2_TEXT_DEFAULT "选择英雄"
 
 #define ISVALID_PLAYER_ID(pid) (pid >= 1 && pid <= MAX_PLAYER_COUNT)

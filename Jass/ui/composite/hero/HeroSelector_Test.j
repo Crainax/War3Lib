@@ -174,14 +174,30 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 			return true;
 		}));
 
+		heroData.trBottomTextControl = CreateTrigger();
+		TriggerAddCondition(heroData.trBottomTextControl, Condition(function () -> boolean {
+			integer pos = GetHeroConditionPosAsync();
+			// 取余数3 = 1 才隐藏（即返回false），否则显示
+			boolean show = ModuloInteger(pos, 3) != 1;
+			// 显示的内容和pos有关
+			if (show) {
+				CallbackHeroBtn1String("位置" + I2S(pos) + "的底部文本");
+			}
+			return show;
+		}));
+
 	}
 
 	function TTestUTHeroSelector1 (player p) {
 		// 测试setBtn1Text方法
-		heroSelectorUI.setBtn1Text(p, "测试按钮1文本");
-		toastHint.createAtMouse(p, "[HSelect] 已设置按钮1文本为: 测试按钮1文本");
+		heroSelectorUI.setBtn1Text(p, "选择技能");
+		toastHint.createAtMouse(p, "[HSelect] 已设置按钮1文本为: 选择技能");
 	}
-	function TTestUTHeroSelector2 (player p) {}
+	function TTestUTHeroSelector2 (player p) {
+		// 测试setBtn1Text方法
+		heroSelectorUI.setBtn1Text(p, "已选择:\n古道飘雪亦如胧");
+		toastHint.createAtMouse(p, "[HSelect] 已设置按钮1文本为");
+	}
 	function TTestUTHeroSelector3 (player p) {}
 	function TTestUTHeroSelector4 (player p) {}
 	function TTestUTHeroSelector5 (player p) {}

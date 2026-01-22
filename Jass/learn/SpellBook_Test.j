@@ -4,8 +4,6 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "KKPRE.j"
-
 // 使用方式
 // 输入 s1：创建/复用圣骑士并配置 A000/A001，并示例设定两个技能等级
 // 输入 s2：打印该玩家测试圣骑士 两本魔法书里所有技能的等级

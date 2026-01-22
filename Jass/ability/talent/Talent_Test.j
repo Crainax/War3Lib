@@ -4,7 +4,6 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "KKPRE.j"
 #include "Crainax/core/constant/JapiConstant.j"
 
 

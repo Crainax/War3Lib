@@ -119,7 +119,7 @@
 #define HASH_KEY_TYPE_ABILITY_ACHIEVEMENT 10110  //技能的绑定成就ID
 #define MOSHOU_KEY_DAMAGE_TYPE 10111  // 魔兽:伤害类型(物理或魔法)
 #define MOSHOU_KEY_DAMAGE_RATE 10112  // 魔兽:伤害百分比(小数)
-// 魔兽/召唤物：是否在 guarder.getPetByIndex 等遍历中被忽略（写入 HASH_TYPEID，值>0 则忽略）
+// 魔兽/召唤物：
 #define MOSHOU_KEY_GUARDER_TRAVERSE_EXCLUDE 10113
 
 
