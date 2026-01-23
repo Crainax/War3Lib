@@ -62,7 +62,7 @@
 #define HEROSEL_RIGHT_ICON_GAP_X 0.005  // 右侧图标水平间距
 #define HEROSEL_RIGHT_ICON_GAP_Y 0.005  // 右侧图标垂直间距
 #define HEROSEL_RIGHT_TEXT_GAP_Y 0.003  // 标题文字与图标网格的垂直间距
-#define HEROSEL_RIGHT_SECTION_GAP_Y 0.020  // 各个区块之间的垂直间距
+#define HEROSEL_RIGHT_SECTION_GAP_Y 0.010  // 各个区块之间的垂直间距
 #define HEROSEL_RIGHT_START_OFFSET_X 0.010  // 右侧内容起始X偏移
 #define HEROSEL_RIGHT_START_OFFSET_Y 0.030  // 右侧内容起始Y偏移（相对于左侧网格）
 #define HEROSEL_TALENT_COUNT 5  // 天赋技能图标数量
@@ -97,15 +97,19 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
 
         public integer talentCount;   //天赋数量
         public static string  talentIcon  [500][5];  //天赋的图标
+        public static integer talentValue [500][5];  //天赋的值
 
         public integer giftCount;     //赠礼Count
         public static string  giftIcon  [500][5];  //赠礼的图标
+        public static integer giftValue [500][5];  //赠礼的值
 
         public integer skillCount;     //建议的技能Count
         public static string  skillIcon  [500][5];  //建议的技能
+        public static integer skillValue [500][5];  //建议的技能的值
 
         public integer equitCount; //装备Count
         public static string  equitIcon  [500][10]; //装备的图标
+        public static integer equitValue [500][10]; //装备的值
 
         public static real progresss [MAX_PLAYER_COUNT][500];   //进度条(熟练度)
 
@@ -206,6 +210,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
         private static icon rightSkillIcon[HEROSEL_SKILL_COUNT];  // 推荐技能图标数组
         private static uiText rightEquipText = 0;  // "推荐装备" 文字
         private static icon rightEquipIcon[HEROSEL_EQUIP_COUNT];  // 推荐装备图标数组
+        private static uiText rightEmptyText = 0;  // "暂无" 占位文本
 
         private static boolean isOpen = false;
         private static player owner = null;
@@ -219,6 +224,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             integer globalRowIndex; integer totalRows; integer rowIconCount;
             real baseOffsetX; real offsetX; real offsetY;
             boolean showBg = true; // 默认显示背景
+            boolean unlocked = true;
 
             // 计算总行数
             totalRows = (heroData.size + HEROSEL_GRID_COLS - 1) / HEROSEL_GRID_COLS;
@@ -276,11 +282,12 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                                 slotIcon[r][c].unGrow();
                             }
 
-                            // 判断位置解锁条件，动态调整 slotTxt1Bg 的位置
+                            // 判断位置解锁条件，动态调整 slotTxt1Bg 的位置和 slotTxt1 的文本
                             if (heroData.trHeroCondition != null) {
                                 currentPosAsync = pos;
+                                unlocked = TriggerEvaluate(heroData.trHeroCondition);
                                 if (slotTxt1Bg[r][c] != 0) {
-                                    if (!TriggerEvaluate(heroData.trHeroCondition)) {
+                                    if (!unlocked) {
                                         // 未解锁：背景覆盖整个 icon（TOP 对齐 icon 的 TOP）
                                         slotTxt1Bg[r][c].setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_TOP, 0, 0);
                                     } else {
@@ -289,18 +296,24 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                                     }
                                 }
                             }
-                        }
-                        // slotTxt1Bg 始终显示，通过位置变化实现遮挡效果
-                        if (slotTxt1Bg[r][c] != 0) {
-                            slotTxt1Bg[r][c].show(true);
-                        }
-                        if (slotTxt1[r][c] != 0) {
-                            slotTxt1[r][c].setText("1字:+" + I2S(pos));
-                            slotTxt1[r][c].show(true); // 文字始终显示
-                        }
-                        if (slotTxt2[r][c] != 0) {
-                            slotTxt2[r][c].setText(S3(hd.text2 != null, hd.text2, "文本2"));
-                            slotTxt2[r][c].show(true);
+                            // slotTxt1Bg 始终显示，通过位置变化实现遮挡效果
+                            if (slotTxt1Bg[r][c] != 0) {
+                                slotTxt1Bg[r][c].show(true);
+                            }
+                            if (slotTxt1[r][c] != 0) {
+                                if (unlocked) {
+                                    // 已解锁：显示英雄名称
+                                    slotTxt1[r][c].setText(S3(hd.name != null, hd.name, ""));
+                                } else {
+                                    // 未解锁：显示红色两行文本
+                                    slotTxt1[r][c].setText("|cffff0000未解锁|r\n|cffff0000" + S3(hd.name != null, hd.name, "") + "|r");
+                                }
+                                slotTxt1[r][c].show(true); // 文字始终显示
+                            }
+                            if (slotTxt2[r][c] != 0) {
+                                slotTxt2[r][c].setText(S3(hd.text2 != null, hd.text2, "文本2"));
+                                slotTxt2[r][c].show(true);
+                            }
                         }
                     } else {
                         if (slotIcon[r][c] != 0) { slotIcon[r][c].show(false); }
@@ -313,13 +326,17 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             }
         }
 
-        // 创建右侧图标网格（支持居中布局）
+        // 创建右侧图标网格（支持居中布局，第3个图标在中心）
         // arrayType: 0=天赋技能, 1=联结赠礼, 2=推荐技能, 3=推荐装备
         private static method createRightIconGrid(integer parentUI, real startX, real startY, integer iconCount, integer colsPerRow, integer arrayType) -> real {
             integer i; integer r; integer c;
             integer totalRows; integer rowIconCount;
-            real baseOffsetX; real offsetX; real offsetY;
+            real centerCol; real offsetX; real offsetY;
             real nextY;
+            integer eventType; integer encoded; uiBtn btn;
+
+            // 事件类型映射：0=天赋(1), 1=赠礼(2), 2=建议技能(3), 3=装备(4)
+            eventType = arrayType + 1;
 
             // 计算总行数
             totalRows = (iconCount + colsPerRow - 1) / colsPerRow;
@@ -337,47 +354,115 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                     rowIconCount = colsPerRow;
                 }
 
-                // 计算当前行的起始X偏移（使该行居中）
-                if (rowIconCount > 0 && rowIconCount < colsPerRow) {
-                    // 最后一行不满时居中
-                    baseOffsetX = ((colsPerRow - rowIconCount) * (HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_X)) / 2.0;
-                } else {
-                    baseOffsetX = 0.0;
-                }
+                // 计算当前行的中心列（第3个图标在中心）
+                centerCol = (rowIconCount + 1) / 2.0;
 
-                offsetX = startX + baseOffsetX + (c - 1) * (HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_X);
+                // 计算相对于中心的X偏移（第3个图标在中心，左边2个负x轴，右边2个正x轴）
+                offsetX = (c - centerCol) * (HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_X);
                 offsetY = startY - (r - 1) * (HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_Y);
 
-                // 创建图标
+                // 编码 eventdata：eventType * 10 + eventIndex（当 eventIndex 为 1-9）
+                // 或 eventType * 100 + 10（当 eventIndex 为 10）
+                if (i == 10) {
+                    encoded = eventType * 100 + 10;
+                } else {
+                    encoded = eventType * 10 + i;
+                }
+
+                // 创建图标（使用 ANCHOR_TOP 和 ANCHOR_CENTER 实现居中布局）
                 if (arrayType == 0) {
                     rightTalentIcon[i] = icon.create(parentUI)
                         .enableResize()
                         .setTexture(HEROSEL_CURRENCY_ICON)
                         .setSize(HEROSEL_RIGHT_ICON_SIZE, HEROSEL_RIGHT_ICON_SIZE)
-                        .exRePoint(ANCHOR_TOPLEFT, parentUI, ANCHOR_TOPLEFT, offsetX, offsetY);
-                    rightTalentIcon[i].show(true);
+                        .exRePoint(ANCHOR_TOP, parentUI, ANCHOR_TOP, offsetX, offsetY);
+                    rightTalentIcon[i].show(false);
+                    btn = rightTalentIcon[i].getClickBtn();
                 } else if (arrayType == 1) {
                     rightGiftIcon[i] = icon.create(parentUI)
                         .enableResize()
                         .setTexture(HEROSEL_CURRENCY_ICON)
                         .setSize(HEROSEL_RIGHT_ICON_SIZE, HEROSEL_RIGHT_ICON_SIZE)
-                        .exRePoint(ANCHOR_TOPLEFT, parentUI, ANCHOR_TOPLEFT, offsetX, offsetY);
-                    rightGiftIcon[i].show(true);
+                        .exRePoint(ANCHOR_TOP, parentUI, ANCHOR_TOP, offsetX, offsetY);
+                    rightGiftIcon[i].show(false);
+                    btn = rightGiftIcon[i].getClickBtn();
                 } else if (arrayType == 2) {
                     rightSkillIcon[i] = icon.create(parentUI)
                         .enableResize()
                         .setTexture(HEROSEL_CURRENCY_ICON)
                         .setSize(HEROSEL_RIGHT_ICON_SIZE, HEROSEL_RIGHT_ICON_SIZE)
-                        .exRePoint(ANCHOR_TOPLEFT, parentUI, ANCHOR_TOPLEFT, offsetX, offsetY);
-                    rightSkillIcon[i].show(true);
+                        .exRePoint(ANCHOR_TOP, parentUI, ANCHOR_TOP, offsetX, offsetY);
+                    rightSkillIcon[i].show(false);
+                    btn = rightSkillIcon[i].getClickBtn();
                 } else {
                     rightEquipIcon[i] = icon.create(parentUI)
                         .enableResize()
                         .setTexture(HEROSEL_CURRENCY_ICON)
                         .setSize(HEROSEL_RIGHT_ICON_SIZE, HEROSEL_RIGHT_ICON_SIZE)
-                        .exRePoint(ANCHOR_TOPLEFT, parentUI, ANCHOR_TOPLEFT, offsetX, offsetY);
-                    rightEquipIcon[i].show(true);
+                        .exRePoint(ANCHOR_TOP, parentUI, ANCHOR_TOP, offsetX, offsetY);
+                    rightEquipIcon[i].show(false);
+                    btn = rightEquipIcon[i].getClickBtn();
                 }
+
+                // 绑定 eventdata 并注册事件回调
+                uiHashTable(btn.ui).eventdata.bind(encoded);
+                btn.spEnter(function(integer frame) {
+                    integer encodedData; integer eventTypeDecoded; integer eventIndexDecoded;
+                    encodedData = uiHashTable(frame).eventdata.get();
+                    // 解码
+                    if (encodedData >= 100) {
+                        eventTypeDecoded = encodedData / 100;
+                        eventIndexDecoded = ModuloInteger(encodedData, 100);
+                    } else {
+                        eventTypeDecoded = encodedData / 10;
+                        eventIndexDecoded = ModuloInteger(encodedData, 10);
+                    }
+                    // 写入回调参数
+                    heroData.argsHeroIndex = selectedPos;
+                    heroData.argsEventType = eventTypeDecoded;
+                    heroData.argsEventIndex = eventIndexDecoded;
+                    // 触发回调
+                    if (heroData.trRightEnter != null) {
+                        TriggerEvaluate(heroData.trRightEnter);
+                    }
+                })
+                    .spLeave(function(integer frame) {
+                        integer encodedData; integer eventTypeDecoded; integer eventIndexDecoded;
+                        encodedData = uiHashTable(frame).eventdata.get();
+                        // 解码
+                        if (encodedData >= 100) {
+                            eventTypeDecoded = encodedData / 100;
+                            eventIndexDecoded = ModuloInteger(encodedData, 100);
+                        } else {
+                            eventTypeDecoded = encodedData / 10;
+                            eventIndexDecoded = ModuloInteger(encodedData, 10);
+                        }
+                    // 写入回调参数
+                    heroData.argsHeroIndex = selectedPos;
+                    heroData.argsEventType = eventTypeDecoded;
+                    heroData.argsEventIndex = eventIndexDecoded;
+                    // 触发回调
+                    if (heroData.trRightLeave != null) {
+                        TriggerEvaluate(heroData.trRightLeave);
+                    }
+                })
+                    .spClick(function(integer frame) {
+                        integer encodedData; integer eventTypeDecoded; integer eventIndexDecoded;
+                        encodedData = uiHashTable(frame).eventdata.get();
+                        // 解码
+                        if (encodedData >= 100) {
+                            eventTypeDecoded = encodedData / 100;
+                            eventIndexDecoded = ModuloInteger(encodedData, 100);
+                        } else {
+                            eventTypeDecoded = encodedData / 10;
+                            eventIndexDecoded = ModuloInteger(encodedData, 10);
+                        }
+                    // 写入回调参数（预留扩展）
+                    heroData.argsHeroIndex = selectedPos;
+                    heroData.argsEventType = eventTypeDecoded;
+                    heroData.argsEventIndex = eventIndexDecoded;
+                });
+                btn = 0;
             }
 
             // 返回下一个区块的起始Y坐标
@@ -414,6 +499,99 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 leftSlider.setValue(sliderValue);
             } else {
                 refreshLeftGrid();
+            }
+        }
+
+        // 刷新右侧内容（根据选中的英雄索引）
+        private static method refreshRightContent(integer heroIndex) {
+            heroData hd;
+            integer i;
+            boolean hasAnyIcon = false;
+            string iconPath;
+
+            if (heroIndex <= 0 || heroIndex > heroData.size) {
+                // 无效索引，隐藏所有图标，显示"暂无"
+                for (1 <= i <= HEROSEL_TALENT_COUNT) {
+                    if (rightTalentIcon[i] != 0) { rightTalentIcon[i].show(false); }
+                }
+                for (1 <= i <= HEROSEL_GIFT_COUNT) {
+                    if (rightGiftIcon[i] != 0) { rightGiftIcon[i].show(false); }
+                }
+                for (1 <= i <= HEROSEL_SKILL_COUNT) {
+                    if (rightSkillIcon[i] != 0) { rightSkillIcon[i].show(false); }
+                }
+                for (1 <= i <= HEROSEL_EQUIP_COUNT) {
+                    if (rightEquipIcon[i] != 0) { rightEquipIcon[i].show(false); }
+                }
+                if (rightEmptyText != 0) { rightEmptyText.show(true); }
+                return;
+            }
+
+            hd = heroData[heroIndex];
+            if (hd == 0) {
+                if (rightEmptyText != 0) { rightEmptyText.show(true); }
+                return;
+            }
+
+            // 更新天赋技能图标
+            for (1 <= i <= HEROSEL_TALENT_COUNT) {
+                if (rightTalentIcon[i] != 0) {
+                    if (i <= hd.talentCount && heroData.talentIcon[heroIndex][i] != null) {
+                        iconPath = heroData.talentIcon[heroIndex][i];
+                        rightTalentIcon[i].setTexture(S3(iconPath != null, iconPath, UI_STRING_PATH_BLANK));
+                        rightTalentIcon[i].show(true);
+                        hasAnyIcon = true;
+                    } else {
+                        rightTalentIcon[i].show(false);
+                    }
+                }
+            }
+
+            // 更新联结赠礼图标
+            for (1 <= i <= HEROSEL_GIFT_COUNT) {
+                if (rightGiftIcon[i] != 0) {
+                    if (i <= hd.giftCount && heroData.giftIcon[heroIndex][i] != null) {
+                        iconPath = heroData.giftIcon[heroIndex][i];
+                        rightGiftIcon[i].setTexture(S3(iconPath != null, iconPath, UI_STRING_PATH_BLANK));
+                        rightGiftIcon[i].show(true);
+                        hasAnyIcon = true;
+                    } else {
+                        rightGiftIcon[i].show(false);
+                    }
+                }
+            }
+
+            // 更新推荐技能图标
+            for (1 <= i <= HEROSEL_SKILL_COUNT) {
+                if (rightSkillIcon[i] != 0) {
+                    if (i <= hd.skillCount && heroData.skillIcon[heroIndex][i] != null) {
+                        iconPath = heroData.skillIcon[heroIndex][i];
+                        rightSkillIcon[i].setTexture(S3(iconPath != null, iconPath, UI_STRING_PATH_BLANK));
+                        rightSkillIcon[i].show(true);
+                        hasAnyIcon = true;
+                    } else {
+                        rightSkillIcon[i].show(false);
+                    }
+                }
+            }
+
+            // 更新推荐装备图标
+            for (1 <= i <= HEROSEL_EQUIP_COUNT) {
+                if (rightEquipIcon[i] != 0) {
+                    if (i <= hd.equitCount && heroData.equitIcon[heroIndex][i] != null) {
+                        iconPath = heroData.equitIcon[heroIndex][i];
+                        rightEquipIcon[i].setTexture(S3(iconPath != null, iconPath, UI_STRING_PATH_BLANK));
+                        rightEquipIcon[i].show(true);
+                        hasAnyIcon = true;
+                    } else {
+                        rightEquipIcon[i].show(false);
+                    }
+                }
+            }
+
+            // 根据是否有图标显示来控制"暂无"文本
+            if (rightEmptyText != 0) {
+                rightEmptyText.show(!hasAnyIcon);
             }
         }
 
@@ -498,6 +676,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                             pos = uiHashTable(frame).eventdata.get();
                             // 更新选中位置并刷新显示
                             selectedPos = pos;
+                            // 刷新右侧内容
+                            refreshRightContent(pos);
                             // 调用字符串回调并设置uiBtn2Text
                             if (heroData.trHeroBtn1String != null) {
                                 currentPosAsync = pos;
@@ -594,56 +774,64 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 .setTexture("ui\\image\\vertical_divider.blp")
                 .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX - HEROSEL_CONTENT_MARGIN_X * 0.5, HEROSEL_GRID_OFFSET_Y);
 
-            // 右侧内容
-            rightStartX = contentLeftX + HEROSEL_RIGHT_START_OFFSET_X;
-            rightCurrentY = HEROSEL_GRID_OFFSET_Y + HEROSEL_RIGHT_START_OFFSET_Y;
+            // 右侧内容（相对于 uiRightArea）
+            rightStartX = HEROSEL_RIGHT_START_OFFSET_X;
+            rightCurrentY = HEROSEL_RIGHT_START_OFFSET_Y;
 
             // 创建 "天赋技能" 文字
-            rightTalentText = uiText.create(uiMain.ui)
-                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, rightStartX, rightCurrentY)
-                .setAlign(1)  // 左对齐
+            rightTalentText = uiText.create(uiRightArea.ui)
+                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
+                .setAlign(4)  // 居中对齐
                 .setFontSize(7)
                 .setText("|cffff9900天赋技能|r");
             rightCurrentY = rightCurrentY - HEROSEL_TITLE_HEIGHT - HEROSEL_RIGHT_TEXT_GAP_Y;
 
             // 创建天赋技能图标（5个，单行）
-            rightNextY = createRightIconGrid(uiMain.ui, rightStartX, rightCurrentY, HEROSEL_TALENT_COUNT, HEROSEL_TALENT_COUNT, 0);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightStartX, rightCurrentY, HEROSEL_TALENT_COUNT, HEROSEL_TALENT_COUNT, 0);
             rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
 
             // 创建 "联结赠礼" 文字
-            rightGiftText = uiText.create(uiMain.ui)
-                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, rightStartX, rightCurrentY)
-                .setAlign(1)  // 左对齐
+            rightGiftText = uiText.create(uiRightArea.ui)
+                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
+                .setAlign(4)  // 居中对齐
                 .setFontSize(7)
                 .setText("|cffff9900联结赠礼|r");
             rightCurrentY = rightCurrentY - HEROSEL_TITLE_HEIGHT - HEROSEL_RIGHT_TEXT_GAP_Y;
 
             // 创建联结赠礼图标（5个，单行）
-            rightNextY = createRightIconGrid(uiMain.ui, rightStartX, rightCurrentY, HEROSEL_GIFT_COUNT, HEROSEL_GIFT_COUNT, 1);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightStartX, rightCurrentY, HEROSEL_GIFT_COUNT, HEROSEL_GIFT_COUNT, 1);
             rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
 
             // 创建 "推荐技能" 文字
-            rightSkillText = uiText.create(uiMain.ui)
-                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, rightStartX, rightCurrentY)
-                .setAlign(1)  // 左对齐
+            rightSkillText = uiText.create(uiRightArea.ui)
+                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
+                .setAlign(4)  // 居中对齐
                 .setFontSize(7)
                 .setText("|cffff9900推荐技能|r");
             rightCurrentY = rightCurrentY - HEROSEL_TITLE_HEIGHT - HEROSEL_RIGHT_TEXT_GAP_Y;
 
             // 创建推荐技能图标（5个，单行）
-            rightNextY = createRightIconGrid(uiMain.ui, rightStartX, rightCurrentY, HEROSEL_SKILL_COUNT, HEROSEL_SKILL_COUNT, 2);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightStartX, rightCurrentY, HEROSEL_SKILL_COUNT, HEROSEL_SKILL_COUNT, 2);
             rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
 
             // 创建 "推荐装备" 文字
-            rightEquipText = uiText.create(uiMain.ui)
-                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, rightStartX, rightCurrentY)
-                .setAlign(1)  // 左对齐
+            rightEquipText = uiText.create(uiRightArea.ui)
+                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
+                .setAlign(4)  // 居中对齐
                 .setFontSize(7)
                 .setText("|cffff9900推荐装备|r");
             rightCurrentY = rightCurrentY - HEROSEL_TITLE_HEIGHT - HEROSEL_RIGHT_TEXT_GAP_Y;
 
             // 创建推荐装备图标（10个，2行5列）
-            rightNextY = createRightIconGrid(uiMain.ui, rightStartX, rightCurrentY, HEROSEL_EQUIP_COUNT, HEROSEL_EQUIP_COLS, 3);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightStartX, rightCurrentY, HEROSEL_EQUIP_COUNT, HEROSEL_EQUIP_COLS, 3);
+
+            // 创建"暂无"占位文本（居中显示）
+            rightEmptyText = uiText.create(uiRightArea.ui)
+                .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_CENTER, 0, 0)
+                .setAlign(4)  // 居中对齐
+                .setFontSize(7)
+                .setText("|cff808080暂无|r")
+                .show(true);  // 默认显示
 
             // 底部按钮上方的文本（x轴位置与第4列图标对齐，默认隐藏）
             uiBottomText = uiText.create(uiMain.ui)
@@ -749,6 +937,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 if (rightTalentIcon[i] != 0) { rightTalentIcon[i].destroy(); rightTalentIcon[i] = 0; }
             }
             if (rightTalentText != 0) { rightTalentText.destroy(); rightTalentText = 0; }
+            if (rightEmptyText != 0) { rightEmptyText.destroy(); rightEmptyText = 0; }
 
             if (uiBpButton != 0) { uiBpButton.destroy(); uiBpButton = 0; }
             if (uiBtn2Button != 0) { uiBtn2Button.destroy(); uiBtn2Button = 0; }

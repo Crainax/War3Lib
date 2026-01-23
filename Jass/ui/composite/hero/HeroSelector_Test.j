@@ -10,6 +10,8 @@
 library UTHeroSelector requires HeroSelector,Keyboard {
 
 	function Init () {
+		integer j; integer i; integer max;
+
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
 			}, function() {
@@ -23,39 +25,39 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 		heroData[2].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp";
 		heroData[3].icon = "ReplaceableTextures\\CommandButtons\\BTNMetamorphosis.blp";
 		heroData[4].icon = "ReplaceableTextures\\CommandButtons\\BTNEvilIllidan.blp";
-		heroData[5].icon = "ReplaceableTextures\\CommandButtons\\BTNMetamorphosis.blp";
-		heroData[6].icon = "ReplaceableTextures\\CommandButtons\\BTNFurion.blp";
-		heroData[7].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp";
-		heroData[8].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp";
-		heroData[9].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroDemonHunter.blp";
-		heroData[10].icon = "ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp";
-		heroData[11].icon = "ReplaceableTextures\\CommandButtons\\BTNKeeperGhostBlue.blp";
-		heroData[12].icon = "ReplaceableTextures\\CommandButtons\\BTNFurion.blp";
-		heroData[13].icon = "ReplaceableTextures\\CommandButtons\\BTNFurion.blp";
-		heroData[14].icon = "ReplaceableTextures\\CommandButtons\\BTNPriestessOfTheMoon.blp";
-		heroData[15].icon = "ReplaceableTextures\\CommandButtons\\BTNPriestessOfTheMoon.blp";
-		heroData[16].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroWarden.blp";
-		heroData[17].icon = "ReplaceableTextures\\CommandButtons\\BTNWarden2.blp";
-		heroData[18].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroArchMage.blp";
-		heroData[19].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroArchMage.blp";
-		heroData[20].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
-		heroData[21].icon = "ReplaceableTextures\\CommandButtons\\BTNArthas.blp";
-		heroData[22].icon = "ReplaceableTextures\\CommandButtons\\BTNArthas.blp";
-		heroData[23].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroBloodElfPrince.blp";
-		heroData[24].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
-		heroData[25].icon = "ReplaceableTextures\\CommandButtons\\BTNGhostMage.blp";
-		heroData[26].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
-		heroData[27].icon = "ReplaceableTextures\\CommandButtons\\BTNJaina.blp";
-		heroData[28].icon = "ReplaceableTextures\\CommandButtons\\BTNBloodMage2.blp";
-		heroData[29].icon = "ReplaceableTextures\\CommandButtons\\BTNGarithos.blp";
-		heroData[30].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp";
-		heroData[31].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
-		heroData[32].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp";
-		heroData[33].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
-		heroData[34].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
-		heroData[35].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
-		heroData[36].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
-		heroData[37].icon = "ReplaceableTextures\\CommandButtons\\BTNNagaSeaWitch.blp";
+		heroData[5].icon = "ReplaceableTextures\\CommandButtons\\BTNFurion.blp";
+		heroData[6].icon = "ReplaceableTextures\\CommandButtons\\BTNKeeperGhostBlue.blp";
+		heroData[7].icon = "ReplaceableTextures\\CommandButtons\\BTNPriestessOfTheMoon.blp";
+		heroData[8].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroWarden.blp";
+		heroData[9].icon = "ReplaceableTextures\\CommandButtons\\BTNWarden2.blp";
+		heroData[10].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroArchMage.blp";
+		heroData[11].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroPaladin.blp";
+		heroData[12].icon = "ReplaceableTextures\\CommandButtons\\BTNArthas.blp";
+		heroData[13].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroBloodElfPrince.blp";
+		heroData[14].icon = "ReplaceableTextures\\CommandButtons\\BTNGhostMage.blp";
+		heroData[15].icon = "ReplaceableTextures\\CommandButtons\\BTNJaina.blp";
+		heroData[16].icon = "ReplaceableTextures\\CommandButtons\\BTNBloodMage2.blp";
+		heroData[17].icon = "ReplaceableTextures\\CommandButtons\\BTNGarithos.blp";
+		heroData[18].icon = "ReplaceableTextures\\CommandButtons\\BTNHeroMountainKing.blp";
+		heroData[19].icon = "ReplaceableTextures\\CommandButtons\\BTNNagaSeaWitch.blp";
+		heroData[20].icon = "ReplaceableTextures\\CommandButtons\\BTNReturnGoods.blp";
+		heroData[21].icon = "ReplaceableTextures\\PassiveButtons\\PASBTNGnollCommandAura.blp";
+		heroData[22].icon = "ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp";
+		heroData[23].icon = "ReplaceableTextures\\PassiveButtons\\PASBTNThorns.blp";
+		heroData[24].icon = "ReplaceableTextures\\CommandButtons\\BTNAntiMagicShell.blp";
+		heroData[25].icon = "ReplaceableTextures\\PassiveButtons\\PASBTNTrueShot.blp";
+		heroData[26].icon = "ReplaceableTextures\\PassiveButtons\\PASBTNDevotion.blp";
+		heroData[27].icon = "ReplaceableTextures\\PassiveButtons\\PASBTNBrilliance.blp";
+		heroData[28].icon = "ReplaceableTextures\\CommandButtons\\BTNBloodLustOn.blp";
+		heroData[29].icon = "ReplaceableTextures\\CommandButtons\\BTNFireForTheCannon.blp";
+		heroData[30].icon = "ReplaceableTextures\\CommandButtons\\BTNBreathOfFrost.blp";
+		heroData[31].icon = "ReplaceableTextures\\PassiveButtons\\PASBTNBash.blp";
+		heroData[32].icon = "ReplaceableTextures\\CommandButtons\\BTNTheBlackArrowOnOff.blp";
+		heroData[33].icon = "ReplaceableTextures\\CommandButtons\\BTNBanish.blp";
+		heroData[34].icon = "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp";
+		heroData[35].icon = "ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp";
+		heroData[36].icon = "ReplaceableTextures\\CommandButtons\\BTNCarrionSwarm.blp";
+		heroData[37].icon = "ReplaceableTextures\\CommandButtons\\BTNFrostBolt.blp";
 		heroData[1].name = "阿利亚之笛";
 		heroData[2].name = "古之忍耐姜歌";
 		heroData[3].name = "召唤护身符";
@@ -93,43 +95,36 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 		heroData[35].name = "德鲁伊布袋";
 		heroData[36].name = "召唤钻石";
 		heroData[37].name = "雷电花芯";
-		heroData[1].text2 = "力量英雄/近战";
-		heroData[2].text2 = "力量英雄/近战";
-		heroData[3].text2 = "力量英雄/近战";
-		heroData[4].text2 = "力量英雄/近战";
-		heroData[5].text2 = "力量英雄/近战";
-		heroData[6].text2 = "力量英雄/近战";
-		heroData[7].text2 = "力量英雄/近战";
-		heroData[8].text2 = "力量英雄/近战";
-		heroData[9].text2 = "力量英雄/近战";
-		heroData[10].text2 = "力量英雄/近战";
-		heroData[11].text2 = "力量英雄/近战";
-		heroData[12].text2 = "力量英雄/近战";
-		heroData[13].text2 = "力量英雄/近战";
-		heroData[14].text2 = "力量英雄/近战";
-		heroData[15].text2 = "力量英雄/近战";
-		heroData[16].text2 = "力量英雄/近战";
-		heroData[17].text2 = "力量英雄/近战";
-		heroData[18].text2 = "力量英雄/近战";
-		heroData[19].text2 = "力量英雄/近战";
-		heroData[20].text2 = "力量英雄/近战";
-		heroData[21].text2 = "力量英雄/近战";
-		heroData[22].text2 = "力量英雄/近战";
-		heroData[23].text2 = "力量英雄/近战";
-		heroData[24].text2 = "力量英雄/近战";
-		heroData[25].text2 = "力量英雄/近战";
-		heroData[26].text2 = "力量英雄/近战";
-		heroData[27].text2 = "力量英雄/近战";
-		heroData[28].text2 = "力量英雄/近战";
-		heroData[29].text2 = "力量英雄/近战";
-		heroData[30].text2 = "力量英雄/近战";
-		heroData[31].text2 = "力量英雄/近战";
-		heroData[32].text2 = "力量英雄/近战";
-		heroData[33].text2 = "力量英雄/近战";
-		heroData[34].text2 = "力量英雄/近战";
-		heroData[35].text2 = "力量英雄/近战";
-		heroData[36].text2 = "力量英雄/近战";
-		heroData[37].text2 = "力量英雄/近战";
+		for (1 <= i <= 37) {
+			heroData[i].talentCount = ModuloInteger(i, 6);
+			heroData[i].text2 = "力量英雄/近战";
+			heroData[i].giftCount = ModuloInteger(i+1, 6);
+			heroData[i].skillCount = ModuloInteger(i+2, 6);
+			heroData[i].equitCount = ModuloInteger(i+3, 11);
+			max = heroData[i].talentCount;
+			if (heroData[i].giftCount > max) max = heroData[i].giftCount;
+			if (heroData[i].skillCount > max) max = heroData[i].skillCount;
+			if (heroData[i].equitCount > max) max = heroData[i].equitCount;
+			for (1 <= j <= max) {
+				if (j <= heroData[i].talentCount) {
+					heroData.talentIcon[i][j]  = heroData[ModuloInteger(i+j-1, 37)+1].icon;
+					heroData.talentValue[i][j] = j * 10;
+				}
+				if (j <= heroData[i].giftCount) {
+					heroData.giftIcon[i][j]    = heroData[ModuloInteger(i+j, 37)+1].icon;
+					heroData.giftValue[i][j]   = j * 20;
+				}
+				if (j <= heroData[i].skillCount) {
+					heroData.skillIcon[i][j]   = heroData[ModuloInteger(i+j+1, 37)+1].icon;
+					heroData.skillValue[i][j]  = j * 30;
+				}
+				if (j <= heroData[i].equitCount) {
+					heroData.equitIcon[i][j]   = heroData[ModuloInteger(i+j+2, 37)+1].icon;
+					heroData.equitValue[i][j]  = j * 40;
+				}
+			}
+		}
+
 		heroData.size = 37;
 
 		heroData.trBtn1Click = CreateTrigger();
@@ -184,6 +179,84 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 				CallbackHeroBtn1String("位置" + I2S(pos) + "的底部文本");
 			}
 			return show;
+		}));
+
+		heroData.trRightEnter = CreateTrigger();
+		TriggerAddCondition(heroData.trRightEnter, Condition(function () -> boolean {
+			integer hero; integer eventType; integer eventIndex; integer value;
+			player p;
+			p = GetLocalPlayer();
+			hero = heroData.argsHeroIndex;
+			eventType = heroData.argsEventType;
+			eventIndex = heroData.argsEventIndex;
+			if (hero > 0 && hero <= heroData.size && eventIndex > 0) {
+				if (eventType == 1) {
+					// 天赋技能
+					if (eventIndex <= heroData[hero].talentCount) {
+						value = heroData.talentValue[hero][eventIndex];
+						toastHint.createAtMouse(p, "[HSelect] Enter: 天赋技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
+					}
+				} else if (eventType == 2) {
+					// 赠礼
+					if (eventIndex <= heroData[hero].giftCount) {
+						value = heroData.giftValue[hero][eventIndex];
+						toastHint.createAtMouse(p, "[HSelect] Enter: 赠礼 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
+					}
+				} else if (eventType == 3) {
+					// 建议的技能
+					if (eventIndex <= heroData[hero].skillCount) {
+						value = heroData.skillValue[hero][eventIndex];
+						toastHint.createAtMouse(p, "[HSelect] Enter: 建议的技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
+					}
+				} else if (eventType == 4) {
+					// 装备
+					if (eventIndex <= heroData[hero].equitCount) {
+						value = heroData.equitValue[hero][eventIndex];
+						toastHint.createAtMouse(p, "[HSelect] Enter: 装备 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
+					}
+				}
+			}
+			p = null;
+			return true;
+		}));
+
+		heroData.trRightLeave = CreateTrigger();
+		TriggerAddCondition(heroData.trRightLeave, Condition(function () -> boolean {
+			integer hero; integer eventType; integer eventIndex; integer value;
+			player p;
+			p = GetLocalPlayer();
+			hero = heroData.argsHeroIndex;
+			eventType = heroData.argsEventType;
+			eventIndex = heroData.argsEventIndex;
+			if (hero > 0 && hero <= heroData.size && eventIndex > 0) {
+				if (eventType == 1) {
+					// 天赋技能
+					if (eventIndex <= heroData[hero].talentCount) {
+						value = heroData.talentValue[hero][eventIndex];
+						toastHint.createAtMouse(p, "[HSelect] Leave: 天赋技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
+					}
+				} else if (eventType == 2) {
+					// 赠礼
+					if (eventIndex <= heroData[hero].giftCount) {
+						value = heroData.giftValue[hero][eventIndex];
+						toastHint.createAtMouse(p, "[HSelect] Leave: 赠礼 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
+					}
+				} else if (eventType == 3) {
+					// 建议的技能
+					if (eventIndex <= heroData[hero].skillCount) {
+						value = heroData.skillValue[hero][eventIndex];
+						toastHint.createAtMouse(p, "[HSelect] Leave: 建议的技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
+					}
+				} else if (eventType == 4) {
+					// 装备
+					if (eventIndex <= heroData[hero].equitCount) {
+						value = heroData.equitValue[hero][eventIndex];
+						toastHint.createAtMouse(p, "[HSelect] Leave: 装备 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
+					}
+				}
+			}
+			p = null;
+			return true;
 		}));
 
 	}
