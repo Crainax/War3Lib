@@ -43,9 +43,10 @@
 
 // 底部按钮
 #define HEROSEL_BOTTOM_BTN_WIDTH   0.1
-#define HEROSEL_BOTTOM_BTN_HEIGHT  (0.1 * 0.029 / 0.0724)
+#define HEROSEL_BOTTOM_BTN_HEIGHT  0.038
 #define HEROSEL_BOTTOM_BTN_GAP_X   0.075
 #define HEROSEL_BOTTOM_TEXT_GAP_Y  0.005  // 底部按钮上方文本与按钮的Y轴距离
+#define HEROSEL_GROW_BTN_SIZE      0.075 // 底部按钮流光方形边长（方便修改）
 
 // 右侧占位区域
 #define HEROSEL_CONTENT_MARGIN_X 0.008
@@ -71,6 +72,12 @@
 #define HEROSEL_EQUIP_COUNT 10  // 推荐装备图标数量
 #define HEROSEL_EQUIP_COLS 5  // 推荐装备每行图标数
 
+// 右侧进度条（装备区块下方）
+#define HEROSEL_PROGRESS_BAR_WIDTH 0.16
+#define HEROSEL_PROGRESS_BAR_HEIGHT 0.007
+#define HEROSEL_PROGRESS_BAR_TEXT_GAP_Y 0.004
+#define HEROSEL_PROGRESS_TEXT_BAR_GAP_Y 0.015
+
 //# dependency:resource/ui/image/black.blp
 //# dependency:resource/ui/image/select_close.blp
 //# dependency:resource/ui/image/vertical_divider.blp
@@ -80,7 +87,7 @@
 //# dependency:resource/ui/image/museum_03.blp
 //# dependency:resource/ui/image/museum_04.blp
 
-library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon {
+library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,UIImageBar,BaseAnim,GrowData {
 
     //==========================================================================
     // 英雄数据（集中放置）
@@ -111,7 +118,10 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
         public static string  equitIcon  [500][10]; //装备的图标
         public static integer equitValue [500][10]; //装备的值
 
-        public static real progresss [MAX_PLAYER_COUNT][500];   //进度条(熟练度)
+        public static integer progressHero [MAX_PLAYER_COUNT][500];     //进度条(英雄熟练度-当前)
+        public static integer progressHeroMax [MAX_PLAYER_COUNT][500];  //进度条(英雄熟练度-最大)
+        public static integer progressAll [];     //进度条(全英雄熟练度-当前),所有英雄共通,只取玩家索引
+        public static integer progressAllMax [];  //进度条(全英雄熟练度-最大),所有英雄共通,只取玩家索引
 
         public static trigger trRightEnter = null;   //介绍鼠标进入触发事件(异步)
         public static trigger trRightLeave = null;   //介绍鼠标进入触发事件(异步)
@@ -123,9 +133,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
         public static trigger trBpEnter        = null;  //左下角BP鼠标进入触发事件
         public static trigger trBpLeave        = null;  //左下角BP鼠标离开触发事件
         public static trigger trBottomTextControl = null;    //底部文本显示控制触发器（return true显示，false隐藏）
-
-        public static trigger trBtn1Click      = null;  //按钮1点击(数据已同步的回调)
-        public static trigger trBtn2Click      = null;  //按钮2点击(数据已同步的回调)
 
     }
 
@@ -193,6 +200,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
         private static uiText uiBtn2Text = 0;
         private static uiBtn uiBtn2Button = 0;
 
+        // 底部按钮流光（单例，在 uiBtn1/uiBtn2 处，由 setGrowBtnPos 移动、enableGrowBtn 创建/删除）
+        private static uiImage growBtnImage = 0;
+        private static baseanim growBtnAnim = 0;
+        private static integer growBtnPos = 1;  // 1=uiBtn1Image, 2=uiBtn2Image
+
         private static uiImage uiDivider = 0;
         private static uiImage uiRightArea = 0;
 
@@ -218,6 +230,12 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
         private static icon rightEquipIcon[HEROSEL_EQUIP_COUNT];  // 推荐装备图标数组
         private static uiText rightEquipEmptyText = 0;  // 推荐装备区块 "暂无"
         private static real rightEquipGridY = 0;
+
+        // 装备区块下方进度条与文字
+        private static uiImageBar rightProgBar1 = 0;
+        private static uiText rightProgText1 = 0;
+        private static uiImageBar rightProgBar2 = 0;
+        private static uiText rightProgText2 = 0;
 
         private static boolean isOpen = false;
         private static player owner = null;
@@ -516,6 +534,10 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             string iconPath;
             integer totalRows; integer r; integer c; integer rowIconCount;
             real centerCol; real offsetX; real offsetY;
+            integer pid;
+            integer heroCur; integer heroMax;
+            integer allCur; integer allMax;
+            real ratio;
 
             if (heroIndex <= 0 || heroIndex > heroData.size) {
                 // 无效索引，隐藏所有图标，显示各区块"暂无"
@@ -535,6 +557,12 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(true); }
                 if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(true); }
                 if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(true); }
+
+                // 隐藏进度条与文字
+                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgText1 != 0) { rightProgText1.show(false); }
+                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
+                if (rightProgText2 != 0) { rightProgText2.show(false); }
                 return;
             }
 
@@ -544,6 +572,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(true); }
                 if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(true); }
                 if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(true); }
+
+                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgText1 != 0) { rightProgText1.show(false); }
+                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
+                if (rightProgText2 != 0) { rightProgText2.show(false); }
                 return;
             }
 
@@ -636,6 +669,58 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 }
             }
             if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(hd.equitCount <= 0); }
+
+            // 更新装备区块下方进度条（按玩家索引与当前选中 pos）
+            pid = GetConvertedPlayerId(GetLocalPlayer());
+            if (pid < 1 || pid > MAX_PLAYER_COUNT) {
+                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgText1 != 0) { rightProgText1.show(false); }
+                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
+                if (rightProgText2 != 0) { rightProgText2.show(false); }
+                return;
+            }
+
+            heroCur = heroData.progressHero[pid][heroIndex];
+            heroMax = heroData.progressHeroMax[pid][heroIndex];
+            allCur = heroData.progressAll[pid];
+            allMax = heroData.progressAllMax[pid];
+
+            // 两个 Max 都为 0 时隐藏这 4 个 UI
+            if (heroMax <= 0 && allMax <= 0) {
+                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgText1 != 0) { rightProgText1.show(false); }
+                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
+                if (rightProgText2 != 0) { rightProgText2.show(false); }
+                return;
+            }
+
+            // 1) 英雄亲密度
+            if (heroMax > 0 && rightProgBar1 != 0 && rightProgText1 != 0) {
+                ratio = I2R(heroCur) / I2R(heroMax);
+                if (ratio < 0.0) { ratio = 0.0; }
+                if (ratio > 1.0) { ratio = 1.0; }
+                rightProgBar1.setProgress(ratio);
+                rightProgBar1.uiBackground.show(true);
+                rightProgBar1.uiFill.show(true);
+                rightProgText1.setText("英雄亲密度(" + I2S(heroCur) + "/" + I2S(heroMax) + ")").setFontSize(3).show(true);
+            } else {
+                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgText1 != 0) { rightProgText1.show(false); }
+            }
+
+            // 2) 全英雄亲密度
+            if (allMax > 0 && rightProgBar2 != 0 && rightProgText2 != 0) {
+                ratio = I2R(allCur) / I2R(allMax);
+                if (ratio < 0.0) { ratio = 0.0; }
+                if (ratio > 1.0) { ratio = 1.0; }
+                rightProgBar2.setProgress(ratio);
+                rightProgBar2.uiBackground.show(true);
+                rightProgBar2.uiFill.show(true);
+                rightProgText2.setText("全英雄亲密度(" + I2S(allCur) + "/" + I2S(allMax) + ")").setFontSize(3).show(true);
+            } else {
+                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
+                if (rightProgText2 != 0) { rightProgText2.show(false); }
+            }
         }
 
         public static method show(player p) {
@@ -645,6 +730,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             real leftGridWidth; real sliderX;
             real contentLeftX;
             real rightStartX; real rightCurrentY; real rightNextY;
+            real progY; real textY;
 
             if (GetLocalPlayer() != p) { return; }
             if (isOpen) { return; }
@@ -660,29 +746,29 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             uiMainButton = uiBtn.createBlank(uiMain.ui)
                 .setAllPoint(uiMain.ui)
                 .enableDrag(uiMain.ui, 0.25, 0.55, 0.34, 0.5)
-                .setDragPosition(0.4, 0.3)
+                .setDragPosition(0.4, 0.35)
                 .onMouseWheel(function heroSelectorUI.onMouseWheel);
 
             // 背景拼图
-            // bgImage1 = uiImage.create(uiMain.ui)
-            //     .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-            //     .setTexture("ui\\image\\museum_01.blp")
-            //     .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, -0.001);
+            bgImage1 = uiImage.create(uiMain.ui)
+                .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\museum_01.blp")
+                .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, -0.001);
 
-            // bgImage2 = uiImage.create(uiMain.ui)
-            //     .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-            //     .setTexture("ui\\image\\museum_02.blp")
-            //     .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, -0.001);
+            bgImage2 = uiImage.create(uiMain.ui)
+                .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\museum_02.blp")
+                .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, -0.001);
 
-            // bgImage3 = uiImage.create(uiMain.ui)
-            //     .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-            //     .setTexture("ui\\image\\museum_03.blp")
-            //     .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, 0.001);
+            bgImage3 = uiImage.create(uiMain.ui)
+                .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\museum_03.blp")
+                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, 0.001);
 
-            // bgImage4 = uiImage.create(uiMain.ui)
-            //     .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-            //     .setTexture("ui\\image\\museum_04.blp")
-            //     .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, 0.001);
+            bgImage4 = uiImage.create(uiMain.ui)
+                .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\museum_04.blp")
+                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, 0.001);
 
             // 左侧网格标题
             uiTitleText = uiText.create(uiMain.ui)
@@ -897,6 +983,41 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
                 .setText("|cff808080暂无|r")
                 .show(true);
 
+            // 装备区块下方：2 个进度条 + 2 个文本（居中，从上到下：bar1/text1/bar2/text2）
+            progY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
+            rightProgBar1 = uiImageBar.create(uiRightArea.ui)
+                .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
+                .setFillColor(0)
+                .setPoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
+                .setProgress(0.0);
+            rightProgBar1.uiBackground.show(false);
+            rightProgBar1.uiFill.show(false);
+
+            textY = progY - HEROSEL_PROGRESS_BAR_HEIGHT - HEROSEL_PROGRESS_BAR_TEXT_GAP_Y;
+            rightProgText1 = uiText.create(uiRightArea.ui)
+                .setAlign(4)
+                .setFontSize(7)
+                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY)
+                .setText("")
+                .show(false);
+
+            progY = textY - HEROSEL_PROGRESS_TEXT_BAR_GAP_Y;
+            rightProgBar2 = uiImageBar.create(uiRightArea.ui)
+                .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
+                .setFillColor(2)
+                .setPoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
+                .setProgress(0.0);
+            rightProgBar2.uiBackground.show(false);
+            rightProgBar2.uiFill.show(false);
+
+            textY = progY - HEROSEL_PROGRESS_BAR_HEIGHT - HEROSEL_PROGRESS_BAR_TEXT_GAP_Y;
+            rightProgText2 = uiText.create(uiRightArea.ui)
+                .setAlign(4)
+                .setFontSize(7)
+                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY)
+                .setText("")
+                .show(false);
+
             // 底部按钮上方的文本（x轴位置与第4列图标对齐，默认隐藏）
             uiBottomText = uiText.create(uiMain.ui)
                 .exRePoint(ANCHOR_BOTTOM, uiMain.ui, ANCHOR_BOTTOMLEFT, HEROSEL_GRID_OFFSET_X + 3 * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_X) + HEROSEL_CELL_SIZE * 0.5, HEROSEL_BOTTOM_BTN_HEIGHT * 0.5 + HEROSEL_BOTTOM_TEXT_GAP_Y)
@@ -1006,6 +1127,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             if (rightSkillEmptyText != 0) { rightSkillEmptyText.destroy(); rightSkillEmptyText = 0; }
             if (rightEquipEmptyText != 0) { rightEquipEmptyText.destroy(); rightEquipEmptyText = 0; }
 
+            if (rightProgText2 != 0) { rightProgText2.destroy(); rightProgText2 = 0; }
+            if (rightProgBar2 != 0) { rightProgBar2.destroy(); rightProgBar2 = 0; }
+            if (rightProgText1 != 0) { rightProgText1.destroy(); rightProgText1 = 0; }
+            if (rightProgBar1 != 0) { rightProgBar1.destroy(); rightProgBar1 = 0; }
+
+            if (growBtnAnim != 0) { growBtnAnim.destroy(); growBtnAnim = 0; }
+            if (growBtnImage != 0) { growBtnImage.destroy(); growBtnImage = 0; }
             if (uiBpButton != 0) { uiBpButton.destroy(); uiBpButton = 0; }
             if (uiBtn2Button != 0) { uiBtn2Button.destroy(); uiBtn2Button = 0; }
             if (uiBtn2Text != 0) { uiBtn2Text.destroy(); uiBtn2Text = 0; }
@@ -1047,31 +1175,40 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
             }
         }
 
-    }
-
-    function onInit () {
-        // 使用单通道总线
-        syncBus.onDataSync("HSelect", function () -> boolean {
-            string str; player p; integer pos;
-            str = syncBus.getPayload();
-            p = syncBus.getPlayer();
-            if (SubStringBJ(str, 1, 1) == "L") { // button1 点击（随机）
-                if (heroData.trBtn1Click != null) {
-                    currentP = p;
-                    TriggerEvaluate(heroData.trBtn1Click);
-                }
-            } else if (SubStringBJ(str, 1, 1) == "R") { // button2 点击（确认选择）
-                pos = S2I(SubStringBJ(str, 2, StringLength(str)));
-                if (heroData.trBtn2Click != null) {
-                    currentP = p;
-                    currentPos = pos;
-                    TriggerEvaluate(heroData.trBtn2Click);
-                }
+        // 移动底部流光到按钮1(1)或按钮2(2)
+        public static method setGrowBtnPos(integer pos) {
+            if (!isOpen) { return; }
+            growBtnPos = pos;
+            if (growBtnImage == 0) { return; }
+            if (pos == 1 && uiBtn1Image != 0) {
+                growBtnImage.setPoint(ANCHOR_CENTER, uiBtn1Image.ui, ANCHOR_CENTER, growdata[ICONGROW_BTN].offsetX* growdata[ICONGROW_BTN].scale, growdata[ICONGROW_BTN].offsetY* growdata[ICONGROW_BTN].scale);
+            } else if (pos == 2 && uiBtn2Image != 0) {
+                growBtnImage.setPoint(ANCHOR_CENTER, uiBtn2Image.ui, ANCHOR_CENTER, growdata[ICONGROW_BTN].offsetX* growdata[ICONGROW_BTN].scale, growdata[ICONGROW_BTN].offsetY* growdata[ICONGROW_BTN].scale);
             }
+        }
 
-            str = null; p = null;
-            return true;
-        });
+        // 通过创建/删除控制底部流光显示，默认不创建
+        public static method enableGrowBtn(boolean enable) {
+            growdata gd;
+            if (!isOpen) { return; }
+            if (enable) {
+                if (growBtnImage != 0) { return; }  // 已创建则不重复
+                gd = growdata[ICONGROW_BTN];
+                growBtnImage = uiImage.create(uiMain.ui);
+                if (growBtnPos == 1 && uiBtn1Image != 0) {
+                    growBtnImage.setPoint(ANCHOR_CENTER, uiBtn1Image.ui, ANCHOR_CENTER, gd.offsetX* gd.scale, gd.offsetY* gd.scale);
+                } else if (uiBtn2Image != 0) {
+                    growBtnImage.setPoint(ANCHOR_CENTER, uiBtn2Image.ui, ANCHOR_CENTER, gd.offsetX* gd.scale, gd.offsetY* gd.scale);
+                }
+                growBtnImage.exReSize(HEROSEL_GROW_BTN_SIZE* gd.scale, HEROSEL_GROW_BTN_SIZE* gd.scale);
+                growBtnAnim = baseanim.create(growBtnImage.ui);
+                growBtnAnim.addSequ(gd.path, gd.max, gd.gap, true);
+            } else {
+                if (growBtnAnim != 0) { growBtnAnim.destroy(); growBtnAnim = 0; }
+                if (growBtnImage != 0) { growBtnImage.destroy(); growBtnImage = 0; }
+            }
+        }
+
     }
 }
 
@@ -1100,6 +1237,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon 
 #undef HEROSEL_BOTTOM_BTN_HEIGHT
 #undef HEROSEL_BOTTOM_BTN_GAP_X
 #undef HEROSEL_BOTTOM_TEXT_GAP_Y
+#undef HEROSEL_GROW_BTN_SIZE
 #undef HEROSEL_CONTENT_MARGIN_X
 #undef HEROSEL_CONTENT_MARGIN_Y
 #undef HEROSEL_BP_ICON_SIZE

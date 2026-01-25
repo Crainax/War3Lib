@@ -17,14 +17,16 @@ library GrowData {
             integer gap;//播放间隔
             real scale; //UI放大的倍数
             string path;//文件路径
+            real offsetX; //偏移X
+            real offsetY; //偏移Y
         }
         static method onInit () {
 
             #define GROWDATA_DEFINE(index, maxValue, gapValue, scaleValue, pathValue) \
-                thistype[index].max = maxValue; \
-                thistype[index].gap = gapValue; \
-                thistype[index].scale = scaleValue; \
-                thistype[index].path = pathValue;
+            thistype[index].max = maxValue; \
+            thistype[index].gap = gapValue; \
+            thistype[index].scale = scaleValue; \
+            thistype[index].path = pathValue;
 
             //# check: growdata[1]
             //# sequence: resource/ui/icongrow/ig1_{0-63}.blp
@@ -108,7 +110,9 @@ library GrowData {
 
             //# check: growdata[19]
             //# sequence: resource/ui/efx/ig102_{0-11}.blp
-            GROWDATA_DEFINE(ICONGROW_BTN, 11, 3, 1.3, "ui\\efx\\ig102_")
+            GROWDATA_DEFINE(ICONGROW_BTN, 11, 4, 1.55, "ui\\efx\\ig102_")
+            thistype[ICONGROW_BTN].offsetX = -0.001;
+            thistype[ICONGROW_BTN].offsetY = 0.0015;
             //# endcheck
 
             //# check: growdata[14]

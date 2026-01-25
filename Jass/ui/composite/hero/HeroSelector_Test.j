@@ -7,7 +7,7 @@
 //! zinc
 
 //自动生成的文件
-library UTHeroSelector requires HeroSelector,Keyboard {
+library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 
 	function Init () {
 		integer j; integer i; integer max;
@@ -127,18 +127,24 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 
 		heroData.size = 37;
 
-		heroData.trBtn1Click = CreateTrigger();
-		TriggerAddCondition(heroData.trBtn1Click, Condition(function (){
-			player p = GetHeroSelectorPlayer();
-			toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮1（随机选择）");
-		}));
-
-		heroData.trBtn2Click = CreateTrigger();
-		TriggerAddCondition(heroData.trBtn2Click, Condition(function (){
-			integer pos = GetHeroSelectorPos();
-			player p = GetHeroSelectorPlayer();
-			toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮2，选择位置: " + I2S(pos));
-		}));
+		// 进度条测试数据：随机填充（按玩家 pid=1..MAX_PLAYER_COUNT，英雄 pos=1..heroData.size）
+		for (1 <= i <= MAX_PLAYER_COUNT) {
+			// 全英雄亲密度（共通，只取玩家索引）
+			heroData.progressAllMax[i] = 1000;
+			heroData.progressAll[i] = GetRandomInt(0, heroData.progressAllMax[i]);
+		}
+		for (1 <= i <= heroData.size) {
+			for (1 <= j <= MAX_PLAYER_COUNT) {
+				// 英雄亲密度（按玩家+英雄）
+				if (GetRandomInt(0, 1) == 0) {
+					heroData.progressHeroMax[j][i] = 0;
+					heroData.progressHero[j][i] = 0;
+				} else {
+					heroData.progressHeroMax[j][i] = 200;
+					heroData.progressHero[j][i] = GetRandomInt(0, heroData.progressHeroMax[j][i]);
+				}
+			}
+		}
 
 		heroData.trHeroCondition = CreateTrigger();
 		TriggerAddCondition(heroData.trHeroCondition, Condition(function () -> boolean {
@@ -271,10 +277,22 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 		heroSelectorUI.setBtn1Text(p, "已选择:\n古道飘雪亦如胧");
 		toastHint.createAtMouse(p, "[HSelect] 已设置按钮1文本为");
 	}
-	function TTestUTHeroSelector3 (player p) {}
-	function TTestUTHeroSelector4 (player p) {}
-	function TTestUTHeroSelector5 (player p) {}
-	function TTestUTHeroSelector6 (player p) {}
+	function TTestUTHeroSelector3 (player p) {
+		heroSelectorUI.enableGrowBtn(true);
+		toastHint.createAtMouse(p, "[HSelect] 已开启底部流光 GrowBtn（先 F3 打开 UI 后有效）");
+	}
+	function TTestUTHeroSelector4 (player p) {
+		heroSelectorUI.enableGrowBtn(false);
+		toastHint.createAtMouse(p, "[HSelect] 已关闭底部流光 GrowBtn");
+	}
+	function TTestUTHeroSelector5 (player p) {
+		heroSelectorUI.setGrowBtnPos(1);
+		toastHint.createAtMouse(p, "[HSelect] 流光已移动到按钮1");
+	}
+	function TTestUTHeroSelector6 (player p) {
+		heroSelectorUI.setGrowBtnPos(2);
+		toastHint.createAtMouse(p, "[HSelect] 流光已移动到按钮2");
+	}
 	function TTestUTHeroSelector7 (player p) {}
 	function TTestUTHeroSelector8 (player p) {}
 	function TTestUTHeroSelector9 (player p) {}
@@ -312,8 +330,24 @@ library UTHeroSelector requires HeroSelector,Keyboard {
 	}
 
 	function onInit () {
-		//在游戏开始0.0秒后再调用
 		trigger tr = CreateTrigger();
+
+		// 直接在此实现 HSelect 数据接收，不再通过 HeroSelector 内部回调
+		syncBus.onDataSync("HSelect", function () -> boolean {
+			string str; player p; integer pos;
+			str = syncBus.getPayload();
+			p = syncBus.getPlayer();
+			if (SubStringBJ(str, 1, 1) == "L") {
+				toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮1（随机选择）");
+			} else if (SubStringBJ(str, 1, 1) == "R") {
+				pos = S2I(SubStringBJ(str, 2, StringLength(str)));
+				toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮2，选择位置: " + I2S(pos));
+			}
+			str = null; p = null;
+			return true;
+		});
+
+		//在游戏开始0.0秒后再调用
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
 			BJDebugMsg("[HeroSelector] 单元测试已加载");
