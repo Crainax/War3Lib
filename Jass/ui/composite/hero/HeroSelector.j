@@ -6,9 +6,23 @@
 #include "Crainax/ui/constants/GrowConstants.j"  // UI 常量
 
 //! zinc
-/*
-英雄选择 UI（新框架）
-左侧 6x4 网格 + 滑块，右侧留空，由外部扩展。
+
+/**
+* HeroSelector - 英雄选择UI系统
+*
+* ## 使用方法
+* 1. 先通过 heroData 填充英雄数据
+* 2. 调用 heroSelectorUI.show(player) 显示UI
+* 3. 监听 syncBus 的 "HSelect" 频道处理选择事件
+*
+* ## 同步安全
+* - UI显示/隐藏：异步安全（仅本地操作）
+* - 点击事件：通过 syncBus 同步
+* - ⚠️ trHeroCondition 等触发器在异步环境执行
+*
+* ## 内存管理
+* - 每次 show() 创建所有UI组件
+* - hide() 销毁所有组件，可反复调用 show/hide
 */
 
 #define HEROSEL_MAIN_WIDTH      0.72
@@ -38,8 +52,8 @@
 #define HEROSEL_SLIDER_BTN_SCALE  1.0
 
 // 标题
-#define HEROSEL_TITLE_HEIGHT      0.022
-#define HEROSEL_TITLE_OFFSET_Y    -0.018
+#define HEROSEL_TITLE_HEIGHT      0.052
+#define HEROSEL_TITLE_OFFSET_Y    0.012
 
 // 底部按钮
 #define HEROSEL_BOTTOM_BTN_WIDTH   0.1
@@ -62,7 +76,7 @@
 #define HEROSEL_RIGHT_ICON_SIZE 0.03  // 右侧图标大小（复用左侧）
 #define HEROSEL_RIGHT_ICON_GAP_X 0.005  // 右侧图标水平间距
 #define HEROSEL_RIGHT_ICON_GAP_Y 0.005  // 右侧图标垂直间距
-#define HEROSEL_RIGHT_TEXT_GAP_Y 0.003  // 标题文字与图标网格的垂直间距
+#define HEROSEL_RIGHT_TEXT_GAP_Y 0.025  // 标题文字与图标网格的垂直间距
 #define HEROSEL_RIGHT_SECTION_GAP_Y 0.010  // 各个区块之间的垂直间距
 #define HEROSEL_RIGHT_START_OFFSET_X 0.010  // 右侧内容起始X偏移
 #define HEROSEL_RIGHT_START_OFFSET_Y 0.030  // 右侧内容起始Y偏移（相对于左侧网格）
@@ -88,6 +102,7 @@
 //# dependency:resource/ui/image/heroui_bg3.blp
 //# dependency:resource/ui/image/heroui_bg4.blp
 //# dependency:resource/ui/image/hero_border.blp
+//# dependency:resource/ui/image/title_hero_ui.blp
 
 library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,UIImageBar,BaseAnim,GrowData {
 
@@ -102,7 +117,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public string  text2;
         public static integer size = 0;
 
-        public static trigger trHeroCondition = null; //位置的解锁条件
+        // ⚠️ 警告：该触发器在异步环境中执行（本地 UI 回调），禁止修改任何同步状态（单位/计时器/全局游戏数据等）！
+        // 只允许读取本地状态或写入本 struct 的回调参数。
+        public static trigger trHeroCondition = null; //位置的解锁条件 [ASYNC-SAFE]
 
         public integer talentCount;   //天赋数量
         public static string  talentIcon  [500][5];  //天赋的图标
@@ -125,8 +142,10 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public static integer progressAll [];     //进度条(全英雄熟练度-当前),所有英雄共通,只取玩家索引
         public static integer progressAllMax [];  //进度条(全英雄熟练度-最大),所有英雄共通,只取玩家索引
 
-        public static trigger trRightEnter = null;   //介绍鼠标进入触发事件(异步)
-        public static trigger trRightLeave = null;   //介绍鼠标进入触发事件(异步)
+        // ⚠️ 警告：该触发器在异步环境中执行（本地 UI 回调），禁止修改任何同步状态！
+        public static trigger trRightEnter = null;   //介绍鼠标进入触发事件(异步) [ASYNC-SAFE]
+        // ⚠️ 警告：该触发器在异步环境中执行（本地 UI 回调），禁止修改任何同步状态！
+        public static trigger trRightLeave = null;   //介绍鼠标离开触发事件(异步) [ASYNC-SAFE]
         public static integer argsHeroIndex = 0; //英雄索引(回调参数)
         public static integer argsEventType = 0; //事件类型(回调参数) 1:天赋技能 2:赠礼 3:建议的技能 4:装备
         public static integer argsEventIndex = 0; //事件类型(回调参数)  1-10事件的位置
@@ -193,7 +212,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
         private static uiSlider leftSlider = 0;
 
-        private static uiText uiTitleText = 0;
+        private static uiImage uiTitleText = 0;
         public static uiText uiBottomText = 0;  // 底部按钮上方的文本（public，方便外部修改）
         private static uiImage uiBtn1Image = 0;
         private static uiText uiBtn1Text = 0;
@@ -244,6 +263,62 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         private static integer currentPage = 1;
         private static integer totalPage = 1;
         private static integer selectedPos = 0; // 当前选中的位置
+
+        //======================================================================
+        // 右侧布局缓存（减少 refreshRightContent 的重复计算）
+        //======================================================================
+        private static boolean rightLayoutCacheInited = false;
+        // 1..5 的居中 offsetX：offsetX_1_5[count][i]，count=0..5，i=1..5
+        private static real rightOffsetX_1_5[6][6];
+        // 装备（1..10）相对坐标缓存：equipOffsetX[count][i] / equipOffsetY[count][i]
+        // offsetY 为相对 rightEquipGridY 的偏移（第1行=0，第2行为负）
+        private static real rightEquipOffsetX[11][11];
+        private static real rightEquipOffsetY[11][11];
+
+        private static method initRightLayoutCache() {
+            integer count; integer i;
+            integer totalRows; integer r; integer c; integer rowIconCount;
+            real centerCol; real stepX; real stepY;
+            if (rightLayoutCacheInited) { return; }
+            rightLayoutCacheInited = true;
+
+            stepX = HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_X;
+            stepY = HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_Y;
+
+            // 1..5：按 count 居中
+            for (count = 0; count <= 5; count += 1) {
+                centerCol = (count + 1) / 2.0;
+                for (i = 1; i <= 5; i += 1) {
+                    if (i <= count) {
+                        rightOffsetX_1_5[count][i] = (i - centerCol) * stepX;
+                    } else {
+                        rightOffsetX_1_5[count][i] = 0.0;
+                    }
+                }
+            }
+
+            // 1..10（2 行 5 列）：最后一行不足时居中
+            for (count = 0; count <= 10; count += 1) {
+                totalRows = (count + HEROSEL_EQUIP_COLS - 1) / HEROSEL_EQUIP_COLS;
+                for (i = 1; i <= 10; i += 1) {
+                    if (i <= count && count > 0) {
+                        r = (i - 1) / HEROSEL_EQUIP_COLS + 1;
+                        c = ModuloInteger(i - 1, HEROSEL_EQUIP_COLS) + 1;
+                        if (r == totalRows) {
+                            rowIconCount = count - (r - 1) * HEROSEL_EQUIP_COLS;
+                        } else {
+                            rowIconCount = HEROSEL_EQUIP_COLS;
+                        }
+                        centerCol = (rowIconCount + 1) / 2.0;
+                        rightEquipOffsetX[count][i] = (c - centerCol) * stepX;
+                        rightEquipOffsetY[count][i] = -(r - 1) * stepY;
+                    } else {
+                        rightEquipOffsetX[count][i] = 0.0;
+                        rightEquipOffsetY[count][i] = 0.0;
+                    }
+                }
+            }
+        }
 
         private static method refreshLeftGrid() {
             integer r; integer c; integer idx;
@@ -355,7 +430,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
         // 创建右侧图标网格（支持居中布局，第3个图标在中心）
         // arrayType: 0=天赋技能, 1=联结赠礼, 2=推荐技能, 3=推荐装备
-        private static method createRightIconGrid(integer parentUI, real startX, real startY, integer iconCount, integer colsPerRow, integer arrayType) -> real {
+        private static method createRightIconGrid(integer parentUI, real startY, integer iconCount, integer colsPerRow, integer arrayType) -> real {
             integer i; integer r; integer c;
             integer totalRows; integer rowIconCount;
             real centerCol; real offsetX; real offsetY;
@@ -524,8 +599,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             heroData hd;
             integer i;
             string iconPath;
-            integer totalRows; integer r; integer c; integer rowIconCount;
-            real centerCol; real offsetX; real offsetY;
+            integer count;
+            real offsetX; real offsetY;
             integer pid;
             integer heroCur; integer heroMax;
             integer allCur; integer allMax;
@@ -572,19 +647,19 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 return;
             }
 
+            initRightLayoutCache();
+
             // 更新天赋技能图标
+            count = hd.talentCount;
+            if (count < 0) { count = 0; }
+            if (count > HEROSEL_TALENT_COUNT) { count = HEROSEL_TALENT_COUNT; }
             for (1 <= i <= HEROSEL_TALENT_COUNT) {
                 if (rightTalentIcon[i] != 0) {
-                    if (i <= hd.talentCount && heroData.talentIcon[heroIndex][i] != null) {
+                    if (i <= count && heroData.talentIcon[heroIndex][i] != null) {
                         iconPath = heroData.talentIcon[heroIndex][i];
                         rightTalentIcon[i].setTexture(S3(iconPath != null, iconPath, UI_STRING_PATH_BLANK));
-                        // 不满 5 个时按中心重新排布
-                        totalRows = (hd.talentCount + HEROSEL_TALENT_COUNT - 1) / HEROSEL_TALENT_COUNT; // 单行
-                        r = 1;
-                        rowIconCount = hd.talentCount;
-                        centerCol = (rowIconCount + 1) / 2.0;
-                        c = i;
-                        offsetX = (c - centerCol) * (HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_X);
+                        // 不满 5 个时按中心重新排布（offsetX 走缓存）
+                        offsetX = rightOffsetX_1_5[count][i];
                         offsetY = rightTalentGridY;
                         rightTalentIcon[i].exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, offsetX, offsetY);
                         rightTalentIcon[i].show(true);
@@ -593,18 +668,18 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     }
                 }
             }
-            if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(hd.talentCount <= 0); }
+            if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(count <= 0); }
 
             // 更新联结赠礼图标
+            count = hd.giftCount;
+            if (count < 0) { count = 0; }
+            if (count > HEROSEL_GIFT_COUNT) { count = HEROSEL_GIFT_COUNT; }
             for (1 <= i <= HEROSEL_GIFT_COUNT) {
                 if (rightGiftIcon[i] != 0) {
-                    if (i <= hd.giftCount && heroData.giftIcon[heroIndex][i] != null) {
+                    if (i <= count && heroData.giftIcon[heroIndex][i] != null) {
                         iconPath = heroData.giftIcon[heroIndex][i];
                         rightGiftIcon[i].setTexture(S3(iconPath != null, iconPath, UI_STRING_PATH_BLANK));
-                        rowIconCount = hd.giftCount;
-                        centerCol = (rowIconCount + 1) / 2.0;
-                        c = i;
-                        offsetX = (c - centerCol) * (HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_X);
+                        offsetX = rightOffsetX_1_5[count][i];
                         offsetY = rightGiftGridY;
                         rightGiftIcon[i].exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, offsetX, offsetY);
                         rightGiftIcon[i].show(true);
@@ -613,18 +688,18 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     }
                 }
             }
-            if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(hd.giftCount <= 0); }
+            if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(count <= 0); }
 
             // 更新推荐技能图标
+            count = hd.skillCount;
+            if (count < 0) { count = 0; }
+            if (count > HEROSEL_SKILL_COUNT) { count = HEROSEL_SKILL_COUNT; }
             for (1 <= i <= HEROSEL_SKILL_COUNT) {
                 if (rightSkillIcon[i] != 0) {
-                    if (i <= hd.skillCount && heroData.skillIcon[heroIndex][i] != null) {
+                    if (i <= count && heroData.skillIcon[heroIndex][i] != null) {
                         iconPath = heroData.skillIcon[heroIndex][i];
                         rightSkillIcon[i].setTexture(S3(iconPath != null, iconPath, UI_STRING_PATH_BLANK));
-                        rowIconCount = hd.skillCount;
-                        centerCol = (rowIconCount + 1) / 2.0;
-                        c = i;
-                        offsetX = (c - centerCol) * (HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_X);
+                        offsetX = rightOffsetX_1_5[count][i];
                         offsetY = rightSkillGridY;
                         rightSkillIcon[i].exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, offsetX, offsetY);
                         rightSkillIcon[i].show(true);
@@ -633,26 +708,20 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     }
                 }
             }
-            if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(hd.skillCount <= 0); }
+            if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(count <= 0); }
 
             // 更新推荐装备图标
+            count = hd.equitCount;
+            if (count < 0) { count = 0; }
+            if (count > HEROSEL_EQUIP_COUNT) { count = HEROSEL_EQUIP_COUNT; }
             for (1 <= i <= HEROSEL_EQUIP_COUNT) {
                 if (rightEquipIcon[i] != 0) {
-                    if (i <= hd.equitCount && heroData.equitIcon[heroIndex][i] != null) {
+                    if (i <= count && heroData.equitIcon[heroIndex][i] != null) {
                         iconPath = heroData.equitIcon[heroIndex][i];
                         rightEquipIcon[i].setTexture(S3(iconPath != null, iconPath, UI_STRING_PATH_BLANK));
-                        // 2 行 5 列，最后一行不足时也按中心排布
-                        totalRows = (hd.equitCount + HEROSEL_EQUIP_COLS - 1) / HEROSEL_EQUIP_COLS;
-                        r = (i - 1) / HEROSEL_EQUIP_COLS + 1;
-                        c = ModuloInteger(i - 1, HEROSEL_EQUIP_COLS) + 1;
-                        if (r == totalRows) {
-                            rowIconCount = hd.equitCount - (r - 1) * HEROSEL_EQUIP_COLS;
-                        } else {
-                            rowIconCount = HEROSEL_EQUIP_COLS;
-                        }
-                        centerCol = (rowIconCount + 1) / 2.0;
-                        offsetX = (c - centerCol) * (HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_X);
-                        offsetY = rightEquipGridY - (r - 1) * (HEROSEL_RIGHT_ICON_SIZE + HEROSEL_RIGHT_ICON_GAP_Y);
+                        // 2 行 5 列，最后一行不足时也按中心排布（offset 走缓存）
+                        offsetX = rightEquipOffsetX[count][i];
+                        offsetY = rightEquipGridY + rightEquipOffsetY[count][i];
                         rightEquipIcon[i].exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, offsetX, offsetY);
                         rightEquipIcon[i].show(true);
                     } else {
@@ -660,7 +729,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     }
                 }
             }
-            if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(hd.equitCount <= 0); }
+            if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(count <= 0); }
 
             // 更新装备区块下方进度条（按玩家索引与当前选中 pos）
             pid = GetConvertedPlayerId(GetLocalPlayer());
@@ -722,7 +791,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             real leftGridWidth; real sliderX;
             real contentLeftX;
             real rightAreaWidth; real rightAreaHeight;
-            real rightStartX; real rightCurrentY; real rightNextY;
+            real rightCurrentY; real rightNextY;
             real progY; real textY;
 
             if (GetLocalPlayer() != p) { return; }
@@ -763,12 +832,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setTexture("ui\\image\\heroui_bg4.blp")
                 .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, 0.001);
 
-            // 左侧网格标题
-            uiTitleText = uiText.create(uiMain.ui)
-                .exRePoint(ANCHOR_TOP, uiMain.ui, ANCHOR_TOPLEFT, HEROSEL_GRID_OFFSET_X + 3 * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_X) + HEROSEL_CELL_SIZE * 0.5, HEROSEL_TITLE_OFFSET_Y)
-                .setAlign(4)
-                .setFontSize(7)
-                .setText("|cffff9900选择英雄|r");
+            // 左侧网格标题（512*128图片，比例4:1，高度0.022，宽度0.088）
+            uiTitleText = uiImage.create(uiMain.ui)
+                .setTexture("ui\\image\\title_hero_ui.blp")
+                .exReSize(HEROSEL_TITLE_HEIGHT* 4, HEROSEL_TITLE_HEIGHT)
+                .exRePoint(ANCHOR_TOP, uiMain.ui, ANCHOR_TOPLEFT, HEROSEL_GRID_OFFSET_X + 3 * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_X) + HEROSEL_CELL_SIZE * 0.5, HEROSEL_TITLE_OFFSET_Y);
 
             // 左侧网格
             idx = 0;
@@ -905,7 +973,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX - HEROSEL_CONTENT_MARGIN_X * 0.5, HEROSEL_GRID_OFFSET_Y);
 
             // 右侧内容（相对于 uiRightArea）
-            rightStartX = HEROSEL_RIGHT_START_OFFSET_X;
             rightCurrentY = HEROSEL_RIGHT_START_OFFSET_Y;
 
             // 创建 "天赋技能" 文字
@@ -914,11 +981,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setAlign(4)  // 居中对齐
                 .setFontSize(7)
                 .setText("|c00ff9900天赋技能|r");
-            rightCurrentY = rightCurrentY - HEROSEL_TITLE_HEIGHT - HEROSEL_RIGHT_TEXT_GAP_Y;
+            rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
 
             // 创建天赋技能图标（5个，单行）
             rightTalentGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightStartX, rightCurrentY, HEROSEL_TALENT_COUNT, HEROSEL_TALENT_COUNT, 0);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_TALENT_COUNT, HEROSEL_TALENT_COUNT, 0);
             rightTalentEmptyText = uiText.create(uiRightArea.ui)
                 .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightTalentGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
                 .setAlign(4)
@@ -933,11 +1000,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setAlign(4)  // 居中对齐
                 .setFontSize(7)
                 .setText("|cffff9900联结赠礼|r");
-            rightCurrentY = rightCurrentY - HEROSEL_TITLE_HEIGHT - HEROSEL_RIGHT_TEXT_GAP_Y;
+            rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
 
             // 创建联结赠礼图标（5个，单行）
             rightGiftGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightStartX, rightCurrentY, HEROSEL_GIFT_COUNT, HEROSEL_GIFT_COUNT, 1);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_GIFT_COUNT, HEROSEL_GIFT_COUNT, 1);
             rightGiftEmptyText = uiText.create(uiRightArea.ui)
                 .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightGiftGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
                 .setAlign(4)
@@ -952,11 +1019,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setAlign(4)  // 居中对齐
                 .setFontSize(7)
                 .setText("|cffff9900推荐技能|r");
-            rightCurrentY = rightCurrentY - HEROSEL_TITLE_HEIGHT - HEROSEL_RIGHT_TEXT_GAP_Y;
+            rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
 
             // 创建推荐技能图标（5个，单行）
             rightSkillGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightStartX, rightCurrentY, HEROSEL_SKILL_COUNT, HEROSEL_SKILL_COUNT, 2);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_SKILL_COUNT, HEROSEL_SKILL_COUNT, 2);
             rightSkillEmptyText = uiText.create(uiRightArea.ui)
                 .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightSkillGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
                 .setAlign(4)
@@ -971,11 +1038,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setAlign(4)  // 居中对齐
                 .setFontSize(7)
                 .setText("|cffff9900推荐装备|r");
-            rightCurrentY = rightCurrentY - HEROSEL_TITLE_HEIGHT - HEROSEL_RIGHT_TEXT_GAP_Y;
+            rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
 
             // 创建推荐装备图标（10个，2行5列）
             rightEquipGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightStartX, rightCurrentY, HEROSEL_EQUIP_COUNT, HEROSEL_EQUIP_COLS, 3);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_EQUIP_COUNT, HEROSEL_EQUIP_COLS, 3);
             // 推荐装备区块的"暂无"（两行区域居中）
             rightEquipEmptyText = uiText.create(uiRightArea.ui)
                 .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightEquipGridY - (HEROSEL_RIGHT_ICON_SIZE * 2.0 + HEROSEL_RIGHT_ICON_GAP_Y) * 0.5)
@@ -1135,7 +1202,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
             if (growBtnAnim != 0) { growBtnAnim.destroy(); growBtnAnim = 0; }
             if (growBtnImage != 0) { growBtnImage.destroy(); growBtnImage = 0; }
-            if (uiBpButton != 0) { uiBpButton.destroy(); uiBpButton = 0; }
             if (uiBtn2Button != 0) { uiBtn2Button.destroy(); uiBtn2Button = 0; }
             if (uiBtn2Text != 0) { uiBtn2Text.destroy(); uiBtn2Text = 0; }
             if (uiBtn2Image != 0) { uiBtn2Image.destroy(); uiBtn2Image = 0; }
