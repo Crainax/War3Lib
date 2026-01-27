@@ -70,6 +70,7 @@
 #define TEMPLATE_TEXT_EVENT          "T2"                // 标准文字模板(有事件)
 #define TEMPLATE_SLIDER              "SB1V"              // 竖滑条(异度风格)
 #define TEMPLATE_SLIDER_HORIZONTAL   "SB1H"              // 横滑条(异度风格)
+#define TEMPLATE_SLIDER_SB2V         "SB2V"              // 竖滑条2(异度风格)
 #define TEMPLATE_SLIDER_WAR3         "Base1SB1V"         // 竖滑条(魔兽风格)
 #define TEMPLATE_SLIDER_WAR3_H       "Base1SB1H"         // 横滑条(魔兽风格)
 #define TEMPLATE_CHECKBOX            "CBTemplate"

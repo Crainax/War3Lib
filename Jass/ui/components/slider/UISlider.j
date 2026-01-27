@@ -13,7 +13,10 @@
 //# dependency:resource/ui/slider/slider_handle.blp
 //# dependency:resource/ui/slider/nandu_slider_bg.blp
 //# dependency:resource/ui/slider/nandu_slider_button.blp
-
+//# dependency:resource/ui/slider/nandu_slider_button.blp
+//# dependency:resource/ui/slider/nandu_slider_button.blp
+//# dependency:resource/ui/slider/slider_handle_2.blp
+//# dependency:resource/ui/slider/nandu_slider_bg_vertical.blp
 //todo: 那个按钮看下要不要onResize
 
 library UISlider requires STRUCT_SHARED_REQUIRE_UI {
@@ -81,6 +84,21 @@ library UISlider requires STRUCT_SHARED_REQUIRE_UI {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER_WAR3_H,0);
+            STRUCT_SHARED_UI_ONCREATE(uiSlider)
+
+            if (uID == 0) { //这里是初始化时的设置内容,不需要改
+                size       += 1;
+                List[size]  = this;
+                uID         = size;
+            }
+            return this;
+        }
+
+        // 创建竖滑条2(异度风格)
+        static method createSB2V (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("SLIDER",STRING_SLIDER + I2S(id),parent,TEMPLATE_SLIDER_SB2V,0);
             STRUCT_SHARED_UI_ONCREATE(uiSlider)
 
             if (uID == 0) { //这里是初始化时的设置内容,不需要改

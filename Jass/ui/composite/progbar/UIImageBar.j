@@ -14,7 +14,7 @@
 #define DEFAULT_COLOR_FILL "ReplaceableTextures\\TeamColor\\TeamColor02.blp"
 #define DEFAULT_COLOR_BACKGROUND "ReplaceableTextures\\TeamColor\\TeamColor15.blp"
 
-library UIImageBar requires UIImage {
+library UIImageBar requires UIImage, UIExtendResize {
 
     public struct uiImageBar {
 
@@ -95,6 +95,13 @@ library UIImageBar requires UIImage {
         method setPoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
             if (!this.isExist()) {return this;}
             DzFrameSetPoint(uiBackground.ui,anchor,relative,relativeAnchor,offsetX,offsetY);
+            return this;
+        }
+
+        // 动态位置（支持分辨率缩放&窗口变化时重设）
+        method exRePoint (integer anchor, integer relative, integer relativeAnchor, real offsetX, real offsetY) -> thistype {
+            if (!this.isExist()) {return this;}
+            uiBackground.exRePoint(anchor, relative, relativeAnchor, offsetX, offsetY);
             return this;
         }
 

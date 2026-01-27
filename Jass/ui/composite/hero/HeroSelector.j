@@ -21,13 +21,13 @@
 // 左侧网格
 #define HEROSEL_GRID_COLS 7
 #define HEROSEL_GRID_ROWS 4
-#define HEROSEL_CELL_SIZE 0.0580
+#define HEROSEL_CELL_SIZE 0.0560
 #define HEROSEL_ICON_BORDER_SIZE (HEROSEL_CELL_SIZE + 0.006)
-#define HEROSEL_CELL_GAP_X 0.008
-#define HEROSEL_CELL_GAP_Y 0.015
+#define HEROSEL_CELL_GAP_X 0.011
+#define HEROSEL_CELL_GAP_Y 0.018
 #define HEROSEL_GRID_OFFSET_X 0.020
 #define HEROSEL_GRID_OFFSET_Y -0.045
-#define HEROSEL_TEXT_GAP_Y 0.003
+#define HEROSEL_TEXT_GAP_Y 0.006
 #define HEROSEL_TEXT_LINE_GAP_Y 0.002
 #define HEROSEL_TEXT_BG_HEIGHT 0.014
 
@@ -35,7 +35,7 @@
 #define HEROSEL_SLIDER_WIDTH      0.0074*2
 #define HEROSEL_SLIDER_HEIGHT     0.29
 #define HEROSEL_SLIDER_GAP_X      0.008
-#define HEROSEL_SLIDER_BTN_SCALE  2.5
+#define HEROSEL_SLIDER_BTN_SCALE  1.0
 
 // 标题
 #define HEROSEL_TITLE_HEIGHT      0.022
@@ -44,7 +44,7 @@
 // 底部按钮
 #define HEROSEL_BOTTOM_BTN_WIDTH   0.1
 #define HEROSEL_BOTTOM_BTN_HEIGHT  0.038
-#define HEROSEL_BOTTOM_BTN_GAP_X   0.075
+#define HEROSEL_BOTTOM_BTN_GAP_X   0.065
 #define HEROSEL_BOTTOM_TEXT_GAP_Y  0.005  // 底部按钮上方文本与按钮的Y轴距离
 #define HEROSEL_GROW_BTN_SIZE      0.075 // 底部按钮流光方形边长（方便修改）
 
@@ -80,12 +80,14 @@
 
 //# dependency:resource/ui/image/black.blp
 //# dependency:resource/ui/image/select_close.blp
+//# dependency:resource/ui/image/button_choose_hero.blp
 //# dependency:resource/ui/image/vertical_divider.blp
 //# dependency:resource/ui/image/select_flash.blp
-//# dependency:resource/ui/image/museum_01.blp
-//# dependency:resource/ui/image/museum_02.blp
-//# dependency:resource/ui/image/museum_03.blp
-//# dependency:resource/ui/image/museum_04.blp
+//# dependency:resource/ui/image/heroui_bg1.blp
+//# dependency:resource/ui/image/heroui_bg2.blp
+//# dependency:resource/ui/image/heroui_bg3.blp
+//# dependency:resource/ui/image/heroui_bg4.blp
+//# dependency:resource/ui/image/hero_border.blp
 
 library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,UIImageBar,BaseAnim,GrowData {
 
@@ -495,16 +497,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             return nextY;
         }
 
-        private static method onSliderChange(uiSlider s) {
-            integer v;
-            if (!isOpen || s == 0) { return; }
-            v = R2I(s.getValue());
-            currentPage = totalPage - v + 1;
-            if (currentPage < 1) { currentPage = 1; }
-            if (currentPage > totalPage) { currentPage = totalPage; }
-            refreshLeftGrid();
-        }
-
         private static method onMouseWheel() {
             real delta;
             integer targetPage;
@@ -729,6 +721,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             real offsetX; real offsetY;
             real leftGridWidth; real sliderX;
             real contentLeftX;
+            real rightAreaWidth; real rightAreaHeight;
             real rightStartX; real rightCurrentY; real rightNextY;
             real progY; real textY;
 
@@ -752,22 +745,22 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             // 背景拼图
             bgImage1 = uiImage.create(uiMain.ui)
                 .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-                .setTexture("ui\\image\\museum_01.blp")
+                .setTexture("ui\\image\\heroui_bg1.blp")
                 .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, -0.001);
 
             bgImage2 = uiImage.create(uiMain.ui)
                 .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-                .setTexture("ui\\image\\museum_02.blp")
+                .setTexture("ui\\image\\heroui_bg2.blp")
                 .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, -0.001);
 
             bgImage3 = uiImage.create(uiMain.ui)
                 .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-                .setTexture("ui\\image\\museum_03.blp")
+                .setTexture("ui\\image\\heroui_bg3.blp")
                 .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, 0.001);
 
             bgImage4 = uiImage.create(uiMain.ui)
                 .exReSize(HEROSEL_BG_FULL_WIDTH * 0.5, HEROSEL_BG_FULL_HEIGHT * 0.5)
-                .setTexture("ui\\image\\museum_04.blp")
+                .setTexture("ui\\image\\heroui_bg4.blp")
                 .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, 0.001);
 
             // 左侧网格标题
@@ -785,18 +778,18 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     offsetX = HEROSEL_GRID_OFFSET_X + (c - 1) * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_X);
                     offsetY = HEROSEL_GRID_OFFSET_Y - (r - 1) * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_Y);
 
-                    // 创建图标边框（在slotIcon之前）
-                    slotIconBorder[r][c] = uiImage.create(uiMain.ui)
-                        .setTexture("ui\\image\\select_flash.blp")
-                        .exReSize(HEROSEL_ICON_BORDER_SIZE, HEROSEL_ICON_BORDER_SIZE)
-                        .show(false);
-
                     slotIcon[r][c] = icon.create(uiMain.ui)
                         .enableResize()
                         .setTexture("ui\\image\\select_flash.blp")
                         .setSize(HEROSEL_CELL_SIZE, HEROSEL_CELL_SIZE)
                         .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, offsetX, offsetY);
                     slotIcon[r][c].show(false);
+
+                    // 创建图标边框（在slotIcon之前）
+                    slotIconBorder[r][c] = uiImage.create(uiMain.ui)
+                        .setTexture("ui\\image\\hero_border.blp")
+                        .exReSize(HEROSEL_ICON_BORDER_SIZE, HEROSEL_ICON_BORDER_SIZE)
+                        .show(false);
 
                     slotIcon[r][c].getClickBtn()
                         .onMouseWheel(function heroSelectorUI.onMouseWheel)
@@ -872,7 +865,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             totalPage = IMaxBJ(1, totalRows - HEROSEL_GRID_ROWS + 1);
             currentPage = 1;
 
-            leftSlider = uiSlider.create(uiMain.ui)
+            leftSlider = uiSlider.createSB2V(uiMain.ui)
                 .exReSize(HEROSEL_SLIDER_WIDTH, HEROSEL_SLIDER_HEIGHT)
                 .setMinMaxValue(1.0, totalPage)
                 .setStep(1.0)
@@ -880,7 +873,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setThumbScale(HEROSEL_SLIDER_BTN_SCALE)
                 .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, sliderX, HEROSEL_GRID_OFFSET_Y)
                 .onChange(function(uiSlider s) {
-                    heroSelectorUI.onSliderChange(s);
+                    integer v;
+                    if (!isOpen || s == 0) { return; }
+                    v = R2I(s.getValue());
+                    currentPage = totalPage - v + 1;
+                    if (currentPage < 1) { currentPage = 1; }
+                    if (currentPage > totalPage) { currentPage = totalPage; }
+                    refreshLeftGrid();
                 });
 
             // 如果不需要翻页则隐藏slider
@@ -892,11 +891,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
             // 右侧空白区域占位
             contentLeftX = sliderX + HEROSEL_SLIDER_WIDTH + HEROSEL_CONTENT_MARGIN_X;
+
+            // 右侧区域：用 exRePoint/exReSize 注册到 UIExtendResize，分辨率变化时可重设
+            rightAreaWidth = HEROSEL_MAIN_WIDTH - contentLeftX - HEROSEL_CONTENT_MARGIN_X;
+            rightAreaHeight = HEROSEL_MAIN_HEIGHT + HEROSEL_GRID_OFFSET_Y - HEROSEL_CONTENT_MARGIN_Y;
             uiRightArea = uiImage.create(uiMain.ui)
-            // .setTexture("")
-                .setTexture(UI_STRING_PATH_BLANK)
-                .setPointFix(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX, HEROSEL_GRID_OFFSET_Y)
-                .setPointFix(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_BOTTOMRIGHT, -HEROSEL_CONTENT_MARGIN_X, HEROSEL_CONTENT_MARGIN_Y);
+                .exReSize(rightAreaWidth, rightAreaHeight)
+                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX, HEROSEL_GRID_OFFSET_Y);
 
             uiDivider = uiImage.create(uiMain.ui)
                 .exReSize(0.003, HEROSEL_MAIN_HEIGHT - 0.01 + HEROSEL_GRID_OFFSET_Y)
@@ -912,7 +913,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
                 .setAlign(4)  // 居中对齐
                 .setFontSize(7)
-                .setText("|cffff9900天赋技能|r");
+                .setText("|c00ff9900天赋技能|r");
             rightCurrentY = rightCurrentY - HEROSEL_TITLE_HEIGHT - HEROSEL_RIGHT_TEXT_GAP_Y;
 
             // 创建天赋技能图标（5个，单行）
@@ -988,7 +989,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             rightProgBar1 = uiImageBar.create(uiRightArea.ui)
                 .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
                 .setFillColor(0)
-                .setPoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
+                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
                 .setProgress(0.0);
             rightProgBar1.uiBackground.show(false);
             rightProgBar1.uiFill.show(false);
@@ -1005,7 +1006,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             rightProgBar2 = uiImageBar.create(uiRightArea.ui)
                 .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
                 .setFillColor(2)
-                .setPoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
+                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
                 .setProgress(0.0);
             rightProgBar2.uiBackground.show(false);
             rightProgBar2.uiFill.show(false);
@@ -1027,7 +1028,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
             uiBtn1Image = uiImage.create(uiMain.ui)
                 .exReSize(HEROSEL_BOTTOM_BTN_WIDTH, HEROSEL_BOTTOM_BTN_HEIGHT)
-                .setTexture("ui\\image\\select_flash.blp")
+                .setTexture("ui\\image\\button_choose_hero.blp")
                 .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_BOTTOM, -HEROSEL_BOTTOM_BTN_GAP_X * 0.5 - HEROSEL_BOTTOM_BTN_WIDTH * 0.5, 0);
             uiBtn1Text = uiText.create(uiBtn1Image.ui)
                 .setAllPoint(uiBtn1Image.ui)
@@ -1042,7 +1043,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
             uiBtn2Image = uiImage.create(uiMain.ui)
                 .exReSize(HEROSEL_BOTTOM_BTN_WIDTH, HEROSEL_BOTTOM_BTN_HEIGHT)
-                .setTexture("ui\\image\\select_flash.blp")
+                .setTexture("ui\\image\\button_choose_hero.blp")
                 .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_BOTTOM, HEROSEL_BOTTOM_BTN_GAP_X * 0.5 + HEROSEL_BOTTOM_BTN_WIDTH * 0.5, 0);
             uiBtn2Text = uiText.create(uiBtn2Image.ui)
                 .setAllPoint(uiBtn2Image.ui)

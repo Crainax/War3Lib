@@ -95,7 +95,21 @@ library UTUISlider requires UISlider {
 			});
 		BJDebugMsg("创建了竖的滑块(自适应)。");
 	}
-	function TTestUTUISlider6 (player p) {}
+	function TTestUTUISlider6 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		if (uiSliderTest != null) {uiSliderTest.destroy();}
+		uiSliderTest = uiSlider.createSB2V(DzGetGameUI())
+			.setSize(0.007*2,0.26*2)
+			.setStep(1)
+			.setValue(50)
+			.setMinMaxValue(1,100)
+			.setThumbScale(1)
+			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0)
+			.onChange(function (uiSlider ui) {
+				BJDebugMsg("SB2V竖滑块值:"+R2S(ui.getValue()));
+			});
+		BJDebugMsg("创建了竖的滑块2(异度风格)。");
+	}
 	function TTestUTUISlider7 (player p) {}
 	function TTestUTUISlider8 (player p) {}
 	function TTestUTUISlider9 (player p) {}
@@ -141,6 +155,7 @@ library UTUISlider requires UISlider {
 			BJDebugMsg("s2 - 创建水平滑块");
 			BJDebugMsg("s3 - 创建魔兽风格竖直滑块");
 			BJDebugMsg("s4 - 创建魔兽风格水平滑块");
+			BJDebugMsg("s6 - 创建竖滑条2(异度风格)");
 			BJDebugMsg("支持鼠标滚轮控制滑块值");
 			BJDebugMsg("------------------------------");
 			DestroyTrigger(GetTriggeringTrigger());
