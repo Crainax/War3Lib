@@ -1,6 +1,6 @@
 ---
+name: zinc-dual-index-pattern
 description: Zinc 双重索引数据结构模式 - 高效的实例管理数据结构，支持全局遍历和分组管理
-globs: *.j
 ---
 
 # Zinc 双重索引数据结构模式
