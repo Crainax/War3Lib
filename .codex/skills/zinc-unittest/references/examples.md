@@ -1,35 +1,49 @@
-## 单元测试/断言测试示例（精简）
+## 常用片段
 
-### 宏保护
-
-```jass
-#if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
-// 测试代码放这里
-#endif
-```
-
-### 聊天指令入口（示例）
+### 1) 宏保护（写在业务库时）
 
 ```jass
 #if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
-private function ContRegisterChat() {
+private function RegisterUnitTestHooks() {
     UnitTestRegisterChatEvent(function () {
-        string s = GetEventPlayerChatString();
-        if (s == "qdt") {
-            ContAssertTests(GetTriggerPlayer());
+        if (GetEventPlayerChatString() == "qdt") {
+            Trace("[Xxx] run qdt")
         }
-    });
+    })
 }
 #endif
 ```
 
-### onInit 中注册（示例）
+### 2) `Init` 中分时执行
 
 ```jass
-function onInit() {
-    #if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
-    ContRegisterChat();
-    #endif
+function Init() {
+    UnitTestAutoTimer(0.3, 0.1, function() {
+        Trace("[Xxx] smoke")
+        assert.Boolean(true, "Xxx smoke should pass")
+    }, null)
 }
 ```
 
+### 3) `_Test.j` 入口模式
+
+```jass
+function TTestUTXxx1(player p) {
+    Test_Smoke()
+}
+
+function onInit() {
+    trigger tr = CreateTrigger()
+    TriggerRegisterTimerEventSingle(tr, 0.5)
+    TriggerAddCondition(tr, Condition(function () {
+        Init()
+        DestroyTrigger(GetTriggeringTrigger())
+    }))
+    tr = null
+
+    UnitTestRegisterChatEvent(function () {
+        string str = GetEventPlayerChatString()
+        if (str == "s1") TTestUTXxx1(GetTriggerPlayer())
+    })
+}
+```
