@@ -1,0 +1,4 @@
+interface:
+  display_name: "War3 UI Async Separation"
+  short_description: "Enforce War3 UI async/event separation rules"
+  default_prompt: "Analyze and implement War3 UI code with strict UI/data separation and async sync-bus event patterns."
