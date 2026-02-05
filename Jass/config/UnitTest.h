@@ -4,6 +4,7 @@
 #define EmptyMapUnitTestMode
 
 #include "D:/War3/Library/War3Lib/Jass/ui/composite/hero/HeroSelector_Test.j"
+#include "D:/War3/Library/War3Lib/Jass/ui/composite/checkin/SevenDaySign_Test.j"
 
 
 
@@ -16,4 +17,3 @@
 // lua_print: 空白地图
 
 #endif //
-
