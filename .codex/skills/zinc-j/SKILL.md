@@ -13,6 +13,7 @@ description: 本项目 .j 文件中的 Zinc（//! zinc ... //! endzinc）语法�
 - 数组声明一律用 `type name[];`，不要写大小（例如 `integer a[10]` 是错的）。
 - 返回类型用 `-> type` 写在参数列表后；无返回可省略。
 - 局部变量统一在函数/匿名函数开头声明：先基础类型，后句柄类型。
+- `library` 作用域只允许 `function` 与普通全局变量；不要写 `static method`、`method`、`private static integer` 这类结构体语法。需要 `method/static` 时请放进 `struct`。
 
 ## 匿名函数（无闭包）
 
@@ -43,4 +44,3 @@ description: 本项目 .j 文件中的 Zinc（//! zinc ... //! endzinc）语法�
 - `references/anonymous-functions.md`
 - `references/callback-params.md`
 - `references/method-syntax.md`
-

@@ -20,9 +20,9 @@
  */
 library UTSevenDaySign requires SevenDaySign {
 
-    private static integer testNow = 1700000000;
+    private integer testNow = 1700000000;
 
-    private static method applyTestNow(integer t) {
+    private function applyTestNow(integer t) {
         testNow = t;
         sevenDaySignData.setTestNow(t);
         BJDebugMsg("[UTSevenDaySign] setTime=" + I2S(t) + ", dayId=" + I2S(sevenDaySignData.getBeijingDayId()));
