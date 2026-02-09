@@ -21,6 +21,7 @@ library UTAbilityDecorate requires AbilityDecorate {
         SetAbilityDecorateIcon(testHero1, 'ACbc', "ReplaceableTextures\\CommandButtons\\BTNBreathOfFire.blp");
         SetAbilityDecorateGrow(testHero1, 'ACbc', growdata[ICONGROW_13]);
         SetAbilityDecorateCornerText(testHero1, 'ACbc', "1");
+        SetAbilityDecorateShadow(testHero1, 'ACbc', true);
 
         SetAbilityDecorateIcon(testHero1, 'ACbf', "ReplaceableTextures\\CommandButtons\\BTNFreezingBreath.blp");
         SetAbilityDecorateGrow(testHero1, 'ACbf', growdata[ICONGROW_14]);
@@ -46,6 +47,7 @@ library UTAbilityDecorate requires AbilityDecorate {
         SetAbilityDecorateIcon(testHero2, 'AHbz', "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp");
         SetAbilityDecorateGrow(testHero2, 'AHbz', growdata[ICONGROW_13]);
         SetAbilityDecorateCornerText(testHero2, 'AHbz', "Q");
+        SetAbilityDecorateShadow(testHero2, 'AHbz', true);
 
         SetAbilityDecorateIcon(testHero2, 'AHwe', "ReplaceableTextures\\CommandButtons\\BTNWaterElemental.blp");
         SetAbilityDecorateGrow(testHero2, 'AHwe', growdata[ICONGROW_14]);
@@ -98,6 +100,7 @@ library UTAbilityDecorate requires AbilityDecorate {
             SetAbilityDecorateIcon(u, 'ACbc', "ReplaceableTextures\\CommandButtons\\BTNChestOfGold.blp");
             SetAbilityDecorateGrow(u, 'ACbc', growdata[ICONGROW_13]);
             SetAbilityDecorateCornerText(u, 'ACbc', "★");
+            SetAbilityDecorateShadow(u, 'ACbc', true);
             Trace("|cFF00FF00[测试1]|r 已为火焰呼吸技能添加装饰");
         }
 		abil = null; u = null;
@@ -208,6 +211,7 @@ library UTAbilityDecorate requires AbilityDecorate {
             SetAbilityDecorateIcon(u, abilCodes[i], "");
             SetAbilityDecorateGrow(u, abilCodes[i], 0);
             SetAbilityDecorateCornerText(u, abilCodes[i], "");
+            SetAbilityDecorateShadow(u, abilCodes[i], false);
         }
 		Trace("|cFF00FF00[测试9]|r 已清除当前英雄所有技能的装饰");
 		abil = null; u = null;
@@ -218,6 +222,32 @@ library UTAbilityDecorate requires AbilityDecorate {
 		Init();
 		Trace("|cFF00FF00[测试10]|r 已重新初始化所有技能装饰");
 		//YDWEId2S
+	}
+
+	// 测试11: 技能暗图层开关与哈希键验证
+	function TTestUTAbilityDecorate11 (player p) {
+		unit u; integer key; boolean hasShadow;
+		u = DzGetSelectedLeaderUnit();
+		if (u == null) { return; }
+
+		key = GetAbilityHashKey(u, 'ACbc');
+		SetAbilityDecorateShadow(u, 'ACbc', true);
+		hasShadow = HaveSavedBoolean(HASH_ABILITY, key, HASH_CHILD_SALT_SHADOW);
+        if (hasShadow) {
+		    Trace("|cFF00FF00[测试11]|r 打开暗图层, hasShadow=true");
+        } else {
+		    Trace("|cFFFF5555[测试11]|r 打开暗图层, hasShadow=false");
+        }
+
+		SetAbilityDecorateShadow(u, 'ACbc', false);
+		hasShadow = HaveSavedBoolean(HASH_ABILITY, key, HASH_CHILD_SALT_SHADOW);
+        if (!hasShadow) {
+		    Trace("|cFF00FF00[测试11]|r 关闭暗图层, hasShadow=false");
+        } else {
+		    Trace("|cFFFF5555[测试11]|r 关闭暗图层, hasShadow=true");
+        }
+
+		u = null;
 	}
 
 	function TTestActUTAbilityDecorate1 (string str) {
@@ -307,6 +337,7 @@ library UTAbilityDecorate requires AbilityDecorate {
 			else if(str == "s8") TTestUTAbilityDecorate8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTAbilityDecorate9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTAbilityDecorate10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTAbilityDecorate11(GetTriggerPlayer());
 		});
 
 	}

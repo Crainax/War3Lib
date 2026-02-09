@@ -49,7 +49,7 @@ library AbilityDecorate requires SpellBtns,HashTable {
 
     // 将哈希中的装饰应用到指定槽位
     private function ApplyAbilityDecorToSlot(unit u, integer abilId, integer row, integer col) {
-        integer parentKey; integer ck; string iconPath; integer gdId; growdata gd; string ctext;
+        integer parentKey; integer ck; string iconPath; integer gdId; growdata gd; string ctext; boolean shadow;
 
         parentKey = GetAbilityHashKey(u, abilId);
         if (parentKey == 0) { return; }
@@ -81,6 +81,14 @@ library AbilityDecorate requires SpellBtns,HashTable {
         } else {
             spellBtns.icons[row][col].setCornerText(null);
         }
+
+        // 暗图层（默认不显示）
+        ck = HASH_CHILD_SALT_SHADOW;
+        shadow = false;
+        if (HaveSavedBoolean(HASH_ABILITY, parentKey, ck)) {
+            shadow = LoadBoolean(HASH_ABILITY, parentKey, ck);
+        }
+        spellBtns.icons[row][col].setShadow(shadow);
     }
 
 
@@ -146,6 +154,21 @@ library AbilityDecorate requires SpellBtns,HashTable {
         DoImmediateRefresh(u, abilityID);
     }
 
+    // 将暗图层开关存入 HASH_ABILITY（默认 false，不显示）
+    public function SetAbilityDecorateShadow (unit u, integer abilityID, boolean flag) {
+        integer parentKey;
+        parentKey = GetAbilityHashKey(u, abilityID);
+        if (parentKey == 0) { return; }
+        if (flag) {
+            SaveBoolean(HASH_ABILITY, parentKey, HASH_CHILD_SALT_SHADOW, true);
+        } else {
+            RemoveSavedBoolean(HASH_ABILITY, parentKey, HASH_CHILD_SALT_SHADOW);
+        }
+
+        // 即时刷新(注意:异步操作)
+        DoImmediateRefresh(u, abilityID);
+    }
+
     function onInit ()  {
         // 监听技能栏变化，更新对应槽位的装饰
         spellBtns.onAbilityUIChange(function () {
@@ -171,6 +194,7 @@ library AbilityDecorate requires SpellBtns,HashTable {
                 spellBtns.icons[row][col].setTexture(UI_STRING_PATH_BLANK).show(false);
                 spellBtns.icons[row][col].unGrow();
                 spellBtns.icons[row][col].setCornerText(null);
+                spellBtns.icons[row][col].setShadow(false);
             }
             u = null;
         });
@@ -179,5 +203,4 @@ library AbilityDecorate requires SpellBtns,HashTable {
 
 //! endzinc
 #endif
-
 
