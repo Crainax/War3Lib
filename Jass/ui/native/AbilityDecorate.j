@@ -54,13 +54,21 @@ library AbilityDecorate requires SpellBtns,HashTable {
         parentKey = GetAbilityHashKey(u, abilId);
         if (parentKey == 0) { return; }
 
+        // 暗图层（默认不显示）
+        ck = HASH_CHILD_SALT_SHADOW;
+        shadow = false;
+        if (HaveSavedBoolean(HASH_ABILITY, parentKey, ck)) {
+            shadow = LoadBoolean(HASH_ABILITY, parentKey, ck);
+        }
+
         // 图标
         ck = HASH_CHILD_SALT_ICON;
         iconPath = LoadStr(HASH_ABILITY, parentKey, ck);
         if (iconPath != null && StringLength(iconPath) > 0) {
             spellBtns.icons[row][col].setTexture(iconPath).show(true);
         } else {
-            spellBtns.icons[row][col].setTexture(UI_STRING_PATH_BLANK).show(false);
+            // 无自定义图标时：若需要显示暗图层，保持图标层可见（空图即可）
+            spellBtns.icons[row][col].setTexture(UI_STRING_PATH_BLANK).show(shadow);
         }
 
         // 流光
@@ -82,12 +90,6 @@ library AbilityDecorate requires SpellBtns,HashTable {
             spellBtns.icons[row][col].setCornerText(null);
         }
 
-        // 暗图层（默认不显示）
-        ck = HASH_CHILD_SALT_SHADOW;
-        shadow = false;
-        if (HaveSavedBoolean(HASH_ABILITY, parentKey, ck)) {
-            shadow = LoadBoolean(HASH_ABILITY, parentKey, ck);
-        }
         spellBtns.icons[row][col].setShadow(shadow);
     }
 

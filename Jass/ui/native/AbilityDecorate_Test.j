@@ -92,16 +92,23 @@ library UTAbilityDecorate requires AbilityDecorate {
 		Trace("|cFFFFCC00[AbilityDecorate]|r 选中英雄可查看技能装饰效果");
 	}
 
-	// 测试1: 为技能动态添加装饰
+	// 测试1: 为技能动态添加装饰 + 火焰呼吸暗图层切换（当前开→关，当前关→开）
 	function TTestUTAbilityDecorate1 (player p) {
-		unit u; ability abil;
+		unit u; ability abil; integer key; boolean nowOn;
         u = DzGetSelectedLeaderUnit();
         if (u != null) {
             SetAbilityDecorateIcon(u, 'ACbc', "ReplaceableTextures\\CommandButtons\\BTNChestOfGold.blp");
             SetAbilityDecorateGrow(u, 'ACbc', growdata[ICONGROW_13]);
             SetAbilityDecorateCornerText(u, 'ACbc', "★");
-            SetAbilityDecorateShadow(u, 'ACbc', true);
-            Trace("|cFF00FF00[测试1]|r 已为火焰呼吸技能添加装饰");
+            key = GetAbilityHashKey(u, 'ACbc');
+            nowOn = HaveSavedBoolean(HASH_ABILITY, key, HASH_CHILD_SALT_SHADOW);
+            if (nowOn) {
+                SetAbilityDecorateShadow(u, 'ACbc', false);
+                Trace("|cFF00FF00[测试1]|r 火焰呼吸暗图层：当前开启 → 已关闭");
+            } else {
+                SetAbilityDecorateShadow(u, 'ACbc', true);
+                Trace("|cFF00FF00[测试1]|r 火焰呼吸暗图层：当前关闭 → 已开启");
+            }
         }
 		abil = null; u = null;
 	}
