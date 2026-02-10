@@ -40,7 +40,7 @@ UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层�
 //# dependency:resource/ui/image/black.blp
 //# dependency:resource/ui/image/select_close.blp
 
-library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag,Server {
+library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag {
 
     //==========================================================================
     // 数据层：存档 + 配置
@@ -115,8 +115,8 @@ library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag,S
             integer pid;
             pid = GetConvertedPlayerId(p);
             if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
-            claimMask[pid] = server.loadInteger(p, SIGN7_CLAIM_MASK_KEY);
-            lastDayId[pid] = server.loadInteger(p, SIGN7_LAST_DAYID_KEY);
+            claimMask[pid] = DzAPI_Map_GetStoredInteger(p, SIGN7_CLAIM_MASK_KEY);
+            lastDayId[pid] = DzAPI_Map_GetStoredInteger(p, SIGN7_LAST_DAYID_KEY);
         }
 
         public static method registerClaimCallback(code func) {
@@ -201,8 +201,8 @@ library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag,S
             claimMask[pid] = mask;
             lastDayId[pid] = nowId;
 
-            server.saveInteger(p, SIGN7_CLAIM_MASK_KEY, mask);
-            server.saveInteger(p, SIGN7_LAST_DAYID_KEY, nowId);
+            DzAPI_Map_StoreInteger(p, SIGN7_CLAIM_MASK_KEY, mask);
+            DzAPI_Map_StoreInteger(p, SIGN7_LAST_DAYID_KEY, nowId);
 
             // 回调传参
             claimPlayer = p;
@@ -226,24 +226,19 @@ library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag,S
         }
 
         static method onInit() {
-            integer i;
-
-            server.init(SERVER_TYPE_INTEGER, SIGN7_LAST_DAYID_KEY);
-            server.init(SERVER_TYPE_INTEGER, SIGN7_CLAIM_MASK_KEY);
-
+            timer t;
             thistype.initDefaultRewards();
 
-            // 初始化缓存（server ready 前读取一次）
-            for (1 <= i <= MAX_PLAYER_COUNT) {
-                thistype.refreshPlayer(ConvertedPlayer(i));
-            }
-
-            server.onReady(function() {
+            // 延时一次性初始化本地缓存，避免和其他系统启动时序冲突
+            t = CreateTimer();
+            TimerStart(t, 0.30, false, function() {
                 integer j;
                 for (1 <= j <= MAX_PLAYER_COUNT) {
                     thistype.refreshPlayer(ConvertedPlayer(j));
                 }
+                DestroyTimer(GetExpiredTimer());
             });
+            t = null;
         }
     }
 
