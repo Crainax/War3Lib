@@ -1,0 +1,4 @@
+interface:
+  display_name: "Xlimon 物编地图"
+  short_description: "地图物编INI生成与ID冲突校验"
+  default_prompt: "Use $xlimon-objeditor-map to create or modify Warcraft III object-editor INI entries with safe ID and Order checks."
