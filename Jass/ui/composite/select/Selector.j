@@ -229,6 +229,31 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             }
         }
 
+        // 滚轮翻页：到边界后停住，不循环
+        private method pageByWheel(real delta) {
+            integer targetPage;
+
+            if (!this.isExist() || totalPage <= 1) { return; }
+            if (delta < 0) {
+                targetPage = IMinBJ(currentPage + 1, totalPage);
+            } else if (delta > 0) {
+                targetPage = IMaxBJ(currentPage - 1, 1);
+            } else {
+                return;
+            }
+            if (targetPage == currentPage) { return; }
+            currentPage = targetPage;
+            this.refreshContent();
+        }
+
+        // 统一滚轮入口：从触发 frame 取到 this，再调用本地翻页
+        private static method onMouseWheelFrame() {
+            integer frame = DzGetTriggerUIEventFrame();
+            thistype this = uiHashTable(frame).eventdata.get();
+            if (!this.isExist()) { return; }
+            this.pageByWheel(DzGetWheelDelta());
+        }
+
 
         //创建选择支持异步调用
         static method create (player p,selectData sd) -> thistype {
@@ -272,7 +297,9 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             uiMainButton = uiBtn.createBlank(uiMain.ui)
                 .setAllPoint(uiMain.ui)
                 .enableDrag(uiMain.ui,0.15, 0.65, 0.25, 0.5)
-                .setDragPosition(0.4,0.25);
+                .setDragPosition(0.4,0.25)
+                .onMouseWheel(function selector.onMouseWheelFrame);
+            uiHashTable(uiMainButton.ui).eventdata.bind(this);
 
             uiTitle = uiText.create(uiMain.ui)
                 .setFontSize(7)
@@ -308,6 +335,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                         // 离开后清除进入状态
                         this.enteredFlag = false;
                     })
+                    .onMouseWheel(function selector.onMouseWheelFrame)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         integer pos = uiHashTable(frame).eventdata.get2();
@@ -363,6 +391,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                         music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
                     .onLeave(function DestroyTooltip)
+                    .onMouseWheel(function selector.onMouseWheelFrame)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         music[MUSIC_INDEX_BTN_CLICK].play();
@@ -391,6 +420,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                         music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
                     .onLeave(function DestroyTooltip)
+                    .onMouseWheel(function selector.onMouseWheelFrame)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         music[MUSIC_INDEX_BTN_CLICK].play();
