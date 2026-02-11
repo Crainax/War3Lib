@@ -7,45 +7,54 @@
 //! zinc
 
 //自动生成的文件
-library UTAbilityDecorate requires AbilityDecorate {
+library UTAbilityDecorate requires AbilityDecorate,UnitUtils {
 
 	// 测试用的英雄和技能
 	unit testHero1; // 大法师
 	unit testHero2; // 血法师
+	integer ABIL_BOOK_MAIN = 'A0DA';     // AbilityDecorate.w3a: 魔法书
+	integer ABIL_BOOK_SKILL1 = 'A0DB';   // AbilityDecorate.w3a: 书内技能1
+	integer ABIL_BOOK_SKILL2 = 'A0DC';   // AbilityDecorate.w3a: 书内技能2
+	integer ABIL_BOOK_SKILL3 = 'A0DD';   // AbilityDecorate.w3a: 书内技能3
+	integer ABIL_BOOK_SKILL4 = 'A0DE';   // AbilityDecorate.w3a: 书内技能4
+
+	private function SetupTestSpellBook(unit u) {
+		UnitAddAbility(u, ABIL_BOOK_MAIN);
+		DzSetUnitAbilitySpellBookList(u, ABIL_BOOK_MAIN, "A0DB,A0DC,A0DD,A0DE", true);
+		DzSetUnitAbilityUpdate(u, ABIL_BOOK_MAIN);
+	}
 
 	function Init () {
         integer key;
 
-        // 为英雄添加技能并设置装饰
-        // 大法师的技能装饰
-        SetAbilityDecorateIcon(testHero1, 'ACbc', "ReplaceableTextures\\CommandButtons\\BTNBreathOfFire.blp");
-        SetAbilityDecorateGrow(testHero1, 'ACbc', growdata[ICONGROW_13]);
-        SetAbilityDecorateCornerText(testHero1, 'ACbc', "1");
+        // 魔法书本体装饰（验证：角标 + 流光 + 暗图层）
+        SetAbilityDecorateIcon(testHero1, ABIL_BOOK_MAIN, "ReplaceableTextures\\CommandButtons\\BTNSpellBookBLS.blp");
+        SetAbilityDecorateGrow(testHero1, ABIL_BOOK_MAIN, growdata[ICONGROW_16]);
+        SetAbilityDecorateCornerText(testHero1, ABIL_BOOK_MAIN, "书");
+        SetAbilityDecorateShadow(testHero1, ABIL_BOOK_MAIN, true);
 
-        SetAbilityDecorateIcon(testHero1, 'ACbf', "ReplaceableTextures\\CommandButtons\\BTNFreezingBreath.blp");
-        SetAbilityDecorateGrow(testHero1, 'ACbf', growdata[ICONGROW_14]);
-        SetAbilityDecorateCornerText(testHero1, 'ACbf', "2");
+        // 书内技能装饰（验证：角标 + 流光）
+        SetAbilityDecorateIcon(testHero1, ABIL_BOOK_SKILL1, "ReplaceableTextures\\CommandButtons\\BTNHealOn.blp");
+        SetAbilityDecorateGrow(testHero1, ABIL_BOOK_SKILL1, growdata[ICONGROW_13]);
+        SetAbilityDecorateCornerText(testHero1, ABIL_BOOK_SKILL1, "Q");
 
-        SetAbilityDecorateIcon(testHero1, 'ACpy', "ReplaceableTextures\\CommandButtons\\BTNPolymorph.blp");
-        SetAbilityDecorateGrow(testHero1, 'ACpy', growdata[ICONGROW_15]);
-        SetAbilityDecorateCornerText(testHero1, 'ACpy', "3");
+        SetAbilityDecorateIcon(testHero1, ABIL_BOOK_SKILL2, "ReplaceableTextures\\CommandButtons\\BTNWaterElemental.blp");
+        SetAbilityDecorateGrow(testHero1, ABIL_BOOK_SKILL2, growdata[ICONGROW_14]);
+        SetAbilityDecorateCornerText(testHero1, ABIL_BOOK_SKILL2, "W");
 
-        SetAbilityDecorateIcon(testHero1, 'AOhx', "ReplaceableTextures\\CommandButtons\\BTNHex.blp");
-        SetAbilityDecorateGrow(testHero1, 'AOhx', growdata[ICONGROW_16]);
-        SetAbilityDecorateCornerText(testHero1, 'AOhx', "4");
+        SetAbilityDecorateIcon(testHero1, ABIL_BOOK_SKILL3, "ReplaceableTextures\\CommandButtons\\BTNFlameStrike.blp");
+        SetAbilityDecorateGrow(testHero1, ABIL_BOOK_SKILL3, growdata[ICONGROW_15]);
+        SetAbilityDecorateCornerText(testHero1, ABIL_BOOK_SKILL3, "E");
 
-        SetAbilityDecorateIcon(testHero1, 'ACdv', "ReplaceableTextures\\CommandButtons\\BTNDevour.blp");
-        SetAbilityDecorateGrow(testHero1, 'ACdv', growdata[ICONGROW_17]);
-        SetAbilityDecorateCornerText(testHero1, 'ACdv', "5");
+        SetAbilityDecorateIcon(testHero1, ABIL_BOOK_SKILL4, "ReplaceableTextures\\CommandButtons\\BTNBlink.blp");
+        SetAbilityDecorateGrow(testHero1, ABIL_BOOK_SKILL4, growdata[ICONGROW_16]);
+        SetAbilityDecorateCornerText(testHero1, ABIL_BOOK_SKILL4, "R");
 
-        SetAbilityDecorateIcon(testHero1, 'ACen', "ReplaceableTextures\\CommandButtons\\BTNEnsnare.blp");
-        SetAbilityDecorateGrow(testHero1, 'ACen', growdata[ICONGROW_18]);
-        SetAbilityDecorateCornerText(testHero1, 'ACen', "6");
-
-		// 血法师的技能装饰
+			// 血法师的技能装饰
         SetAbilityDecorateIcon(testHero2, 'AHbz', "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp");
         SetAbilityDecorateGrow(testHero2, 'AHbz', growdata[ICONGROW_13]);
         SetAbilityDecorateCornerText(testHero2, 'AHbz', "Q");
+        SetAbilityDecorateShadow(testHero2, 'AHbz', true);
 
         SetAbilityDecorateIcon(testHero2, 'AHwe', "ReplaceableTextures\\CommandButtons\\BTNWaterElemental.blp");
         SetAbilityDecorateGrow(testHero2, 'AHwe', growdata[ICONGROW_14]);
@@ -68,88 +77,92 @@ library UTAbilityDecorate requires AbilityDecorate {
         SetAbilityDecorateCornerText(testHero2, 'AHbn', "Y");
 
         // 输出部分典型散列键，方便观察哈希分布（父键 = GetAbilityHashKey(unit, abilityId)）
-        key = GetAbilityHashKey(testHero1, 'ACbc');
-        Trace("|cFF99FFCC[HashTest]|r H1 'ACbc' key = " + I2S(key));
+        key = GetAbilityHashKey(testHero1, ABIL_BOOK_MAIN);
+        Trace("|cFF99FFCC[HashTest]|r H1 魔法书A0DA key = " + I2S(key));
 
-        key = GetAbilityHashKey(testHero1, 'ACbf');
-        Trace("|cFF99FFCC[HashTest]|r H1 'ACbf' key = " + I2S(key));
+        key = GetAbilityHashKey(testHero1, ABIL_BOOK_SKILL1);
+        Trace("|cFF99FFCC[HashTest]|r H1 书内A0DB key = " + I2S(key));
 
-        key = GetAbilityHashKey(testHero1, 'ACpy');
-        Trace("|cFF99FFCC[HashTest]|r H1 'ACpy' key = " + I2S(key));
+        key = GetAbilityHashKey(testHero1, ABIL_BOOK_SKILL2);
+        Trace("|cFF99FFCC[HashTest]|r H1 书内A0DC key = " + I2S(key));
 
-        key = GetAbilityHashKey(testHero2, 'AHbz');
-        Trace("|cFF99FFCC[HashTest]|r H2 'AHbz' key = " + I2S(key));
+        key = GetAbilityHashKey(testHero1, ABIL_BOOK_SKILL3);
+        Trace("|cFF99FFCC[HashTest]|r H1 书内A0DD key = " + I2S(key));
 
-        key = GetAbilityHashKey(testHero2, 'AHwe');
-        Trace("|cFF99FFCC[HashTest]|r H2 'AHwe' key = " + I2S(key));
+        key = GetAbilityHashKey(testHero1, ABIL_BOOK_SKILL4);
+        Trace("|cFF99FFCC[HashTest]|r H1 书内A0DE key = " + I2S(key));
 
-        key = GetAbilityHashKey(testHero2, 'AHab');
-        Trace("|cFF99FFCC[HashTest]|r H2 'AHab' key = " + I2S(key));
+			Trace("|cFFFFCC00[AbilityDecorate]|r 已设置魔法书本体 + 书内4技能装饰");
+			Trace("|cFFFFCC00[AbilityDecorate]|r 选中大法师后先看魔法书按钮，再点开魔法书查看书内技能装饰");
+		}
 
-		Trace("|cFFFFCC00[AbilityDecorate]|r 已为两个英雄的技能设置装饰");
-		Trace("|cFFFFCC00[AbilityDecorate]|r 选中英雄可查看技能装饰效果");
-	}
-
-	// 测试1: 为技能动态添加装饰
+	// 测试1: 魔法书本体动态装饰 + 暗图层切换
 	function TTestUTAbilityDecorate1 (player p) {
-		unit u; ability abil;
+		unit u; ability abil; integer key; boolean nowOn;
         u = DzGetSelectedLeaderUnit();
         if (u != null) {
-            SetAbilityDecorateIcon(u, 'ACbc', "ReplaceableTextures\\CommandButtons\\BTNChestOfGold.blp");
-            SetAbilityDecorateGrow(u, 'ACbc', growdata[ICONGROW_13]);
-            SetAbilityDecorateCornerText(u, 'ACbc', "★");
-            Trace("|cFF00FF00[测试1]|r 已为火焰呼吸技能添加装饰");
+            SetAbilityDecorateIcon(u, ABIL_BOOK_MAIN, "ReplaceableTextures\\CommandButtons\\BTNChestOfGold.blp");
+            SetAbilityDecorateGrow(u, ABIL_BOOK_MAIN, growdata[ICONGROW_18]);
+            SetAbilityDecorateCornerText(u, ABIL_BOOK_MAIN, "书★");
+            key = GetAbilityHashKey(u, ABIL_BOOK_MAIN);
+            nowOn = HaveSavedBoolean(HASH_ABILITY, key, HASH_CHILD_SALT_SHADOW);
+            if (nowOn) {
+                SetAbilityDecorateShadow(u, ABIL_BOOK_MAIN, false);
+                Trace("|cFF00FF00[测试1]|r 魔法书暗图层：当前开启 -> 已关闭");
+            } else {
+                SetAbilityDecorateShadow(u, ABIL_BOOK_MAIN, true);
+                Trace("|cFF00FF00[测试1]|r 魔法书暗图层：当前关闭 -> 已开启");
+            }
         }
 		abil = null; u = null;
 	}
 
-	// 测试2: 移除技能装饰（设为空）
+	// 测试2: 移除书内技能1装饰（设为空）
 	function TTestUTAbilityDecorate2 (player p) {
 		unit u; ability abil;
         u = DzGetSelectedLeaderUnit();
         if (u != null) {
-            SetAbilityDecorateIcon(u, 'ACbf', "");
-            SetAbilityDecorateGrow(u, 'ACbf', 0);
-            SetAbilityDecorateCornerText(u, 'ACbf', "");
-            Trace("|cFF00FF00[测试2]|r 已移除霜冻闪电技能的装饰");
+            SetAbilityDecorateIcon(u, ABIL_BOOK_SKILL1, "");
+            SetAbilityDecorateGrow(u, ABIL_BOOK_SKILL1, 0);
+            SetAbilityDecorateCornerText(u, ABIL_BOOK_SKILL1, "");
+            Trace("|cFF00FF00[测试2]|r 已移除书内技能A0DB的装饰");
         }
 		abil = null; u = null;
 	}
 
-	// 测试3: 修改技能装饰
+	// 测试3: 修改书内技能2装饰
 	function TTestUTAbilityDecorate3 (player p) {
 		unit u; ability abil;
         u = DzGetSelectedLeaderUnit();
         if (u != null) {
-            SetAbilityDecorateIcon(u, 'ACpy', "ReplaceableTextures\\CommandButtons\\BTNCrystalBall.blp");
-            SetAbilityDecorateGrow(u, 'ACpy', growdata[ICONGROW_18]);
-            SetAbilityDecorateCornerText(u, 'ACpy', "★");
-            Trace("|cFF00FF00[测试3]|r 已修改变形术技能的装饰");
+            SetAbilityDecorateIcon(u, ABIL_BOOK_SKILL2, "ReplaceableTextures\\CommandButtons\\BTNCrystalBall.blp");
+            SetAbilityDecorateGrow(u, ABIL_BOOK_SKILL2, growdata[ICONGROW_17]);
+            SetAbilityDecorateCornerText(u, ABIL_BOOK_SKILL2, "W★");
+            Trace("|cFF00FF00[测试3]|r 已修改书内技能A0DC的装饰");
         }
 		abil = null; u = null;
 	}
 
-	// 测试4: 批量设置技能装饰
+	// 测试4: 批量设置魔法书本体+书内技能装饰
 	function TTestUTAbilityDecorate4 (player p) {
 		unit u; ability abil; integer i; integer abilCodes[]; string icons[]; string texts[];
 
 		u = DzGetSelectedLeaderUnit();
 		if (u == null) { return; }
 
-		// 设置技能ID数组
-		abilCodes[1] = 'ACbc'; icons[1] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[1] = "A";
-		abilCodes[2] = 'ACbf'; icons[2] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[2] = "B";
-		abilCodes[3] = 'ACpy'; icons[3] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[3] = "C";
-		abilCodes[4] = 'AOhx'; icons[4] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[4] = "D";
-		abilCodes[5] = 'ACdv'; icons[5] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[5] = "E";
-		abilCodes[6] = 'ACen'; icons[6] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[6] = "F";
+		// 设置技能ID数组（1本魔法书 + 4个书内技能）
+		abilCodes[1] = ABIL_BOOK_MAIN; icons[1] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[1] = "书";
+		abilCodes[2] = ABIL_BOOK_SKILL1; icons[2] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[2] = "Q";
+		abilCodes[3] = ABIL_BOOK_SKILL2; icons[3] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[3] = "W";
+		abilCodes[4] = ABIL_BOOK_SKILL3; icons[4] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[4] = "E";
+		abilCodes[5] = ABIL_BOOK_SKILL4; icons[5] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[5] = "R";
 
-        for (1 <= i <= 6) {
+        for (1 <= i <= 5) {
             SetAbilityDecorateIcon(u, abilCodes[i], icons[i]);
             SetAbilityDecorateGrow(u, abilCodes[i], growdata[ICONGROW_13 + ModuloInteger(i - 1, 6)]);
             SetAbilityDecorateCornerText(u, abilCodes[i], texts[i]);
         }
-		Trace("|cFF00FF00[测试4]|r 已批量设置6个技能的装饰");
+		Trace("|cFF00FF00[测试4]|r 已批量设置魔法书本体和书内技能装饰");
 		abil = null; u = null;
 	}
 
@@ -158,8 +171,8 @@ library UTAbilityDecorate requires AbilityDecorate {
 		unit u; ability abil;
         u = DzGetSelectedLeaderUnit();
         if (u != null) {
-            SetAbilityDecorateIcon(u, 'AHbz', "ReplaceableTextures\\CommandButtons\\BTNPhoenixEgg.blp");
-            Trace("|cFF00FF00[测试5]|r 已为暴风雪技能设置自定义图标");
+            SetAbilityDecorateIcon(u, ABIL_BOOK_MAIN, "ReplaceableTextures\\CommandButtons\\BTNPhoenixEgg.blp");
+            Trace("|cFF00FF00[测试5]|r 已为魔法书本体设置自定义图标");
         }
 		abil = null; u = null;
 	}
@@ -169,8 +182,8 @@ library UTAbilityDecorate requires AbilityDecorate {
 		unit u; ability abil;
         u = DzGetSelectedLeaderUnit();
         if (u != null) {
-            SetAbilityDecorateGrow(u, 'AHwe', growdata[ICONGROW_17]);
-            Trace("|cFF00FF00[测试6]|r 已为水元素技能设置流光效果");
+            SetAbilityDecorateGrow(u, ABIL_BOOK_SKILL1, growdata[ICONGROW_17]);
+            Trace("|cFF00FF00[测试6]|r 已为书内技能A0DB设置流光效果");
         }
 		abil = null; u = null;
 	}
@@ -180,8 +193,8 @@ library UTAbilityDecorate requires AbilityDecorate {
 		unit u; ability abil;
         u = DzGetSelectedLeaderUnit();
         if (u != null) {
-            SetAbilityDecorateCornerText(u, 'AHab', "★");
-            Trace("|cFF00FF00[测试7]|r 已为闪现技能设置角落文字");
+            SetAbilityDecorateCornerText(u, ABIL_BOOK_SKILL2, "角标★");
+            Trace("|cFF00FF00[测试7]|r 已为书内技能A0DC设置角标");
         }
 		abil = null; u = null;
 	}
@@ -201,15 +214,16 @@ library UTAbilityDecorate requires AbilityDecorate {
 		u = DzGetSelectedLeaderUnit();
 		if (u == null) { return; }
 
-		abilCodes[1] = 'ACbc'; abilCodes[2] = 'ACbf'; abilCodes[3] = 'ACpy';
-		abilCodes[4] = 'AOhx'; abilCodes[5] = 'ACdv'; abilCodes[6] = 'ACen';
+		abilCodes[1] = ABIL_BOOK_MAIN; abilCodes[2] = ABIL_BOOK_SKILL1;
+		abilCodes[3] = ABIL_BOOK_SKILL2; abilCodes[4] = ABIL_BOOK_SKILL3; abilCodes[5] = ABIL_BOOK_SKILL4;
 
-        for (1 <= i <= 6) {
+        for (1 <= i <= 5) {
             SetAbilityDecorateIcon(u, abilCodes[i], "");
             SetAbilityDecorateGrow(u, abilCodes[i], 0);
             SetAbilityDecorateCornerText(u, abilCodes[i], "");
+            SetAbilityDecorateShadow(u, abilCodes[i], false);
         }
-		Trace("|cFF00FF00[测试9]|r 已清除当前英雄所有技能的装饰");
+		Trace("|cFF00FF00[测试9]|r 已清除当前英雄魔法书本体与书内技能装饰");
 		abil = null; u = null;
 	}
 
@@ -218,6 +232,47 @@ library UTAbilityDecorate requires AbilityDecorate {
 		Init();
 		Trace("|cFF00FF00[测试10]|r 已重新初始化所有技能装饰");
 		//YDWEId2S
+	}
+
+	// 测试11: 技能暗图层开关与哈希键验证
+	function TTestUTAbilityDecorate11 (player p) {
+		unit u; integer key; boolean hasShadow;
+		u = DzGetSelectedLeaderUnit();
+		if (u == null) { return; }
+
+		key = GetAbilityHashKey(u, ABIL_BOOK_MAIN);
+		SetAbilityDecorateShadow(u, ABIL_BOOK_MAIN, true);
+		hasShadow = HaveSavedBoolean(HASH_ABILITY, key, HASH_CHILD_SALT_SHADOW);
+        if (hasShadow) {
+		    Trace("|cFF00FF00[测试11]|r 打开暗图层, hasShadow=true");
+        } else {
+		    Trace("|cFFFF5555[测试11]|r 打开暗图层, hasShadow=false");
+        }
+
+		SetAbilityDecorateShadow(u, ABIL_BOOK_MAIN, false);
+		hasShadow = HaveSavedBoolean(HASH_ABILITY, key, HASH_CHILD_SALT_SHADOW);
+        if (!hasShadow) {
+		    Trace("|cFF00FF00[测试11]|r 关闭暗图层, hasShadow=false");
+        } else {
+		    Trace("|cFFFF5555[测试11]|r 关闭暗图层, hasShadow=true");
+        }
+
+		u = null;
+	}
+
+	// 测试12: 书内技能4（A0DE）装饰测试
+	function TTestUTAbilityDecorate12 (player p) {
+		unit u;
+		u = DzGetSelectedLeaderUnit();
+		if (u == null) { return; }
+
+		SetAbilityDecorateIcon(u, ABIL_BOOK_SKILL4, "ReplaceableTextures\\CommandButtons\\BTNArcaneTower.blp");
+		SetAbilityDecorateGrow(u, ABIL_BOOK_SKILL4, growdata[ICONGROW_18]);
+		SetAbilityDecorateCornerText(u, ABIL_BOOK_SKILL4, "R★");
+		SetAbilityDecorateShadow(u, ABIL_BOOK_SKILL4, true);
+		Trace("|cFF00FF00[测试12]|r 已设置书内技能A0DE装饰（图标/流光/角标/暗图层）");
+
+		u = null;
 	}
 
 	function TTestActUTAbilityDecorate1 (string str) {
@@ -258,6 +313,7 @@ library UTAbilityDecorate requires AbilityDecorate {
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
 			real x = 0, y = 0;
+			real mpMax = 5000.0;
 
 			Trace("[AbilityDecorate] 单元测试已加载");
 
@@ -265,7 +321,14 @@ library UTAbilityDecorate requires AbilityDecorate {
 			testHero1 = CreateUnit(Player(0), 'Hamg', x, y, 270); // 创建大法师在坐标(0,0)
 			testHero2 = CreateUnit(Player(0), 'Hblm', x + 200, y, 270); // 创建血法师在坐标(200,0)
 
+			// 提高魔法值上限，方便连续施法测试（来自 UnitUtils）
+			SetUnitMP(testHero1, mpMax);
+			SetUnitState(testHero1, UNIT_STATE_MANA, GetUnitState(testHero1, UNIT_STATE_MAX_MANA));
+			SetUnitMP(testHero2, mpMax);
+			SetUnitState(testHero2, UNIT_STATE_MANA, GetUnitState(testHero2, UNIT_STATE_MAX_MANA));
+
 			// 为英雄添加一些技能用于测试
+			SetupTestSpellBook(testHero1); // 魔法书 + 书内技能
 			UnitAddAbility(testHero1, 'ACbc'); // 火焰呼吸
 			UnitAddAbility(testHero1, 'ACbf'); // 霜冻闪电
 			UnitAddAbility(testHero1, 'ACpy'); // 变形术
@@ -280,8 +343,8 @@ library UTAbilityDecorate requires AbilityDecorate {
 			UnitAddAbility(testHero2, 'AHfs'); // 烈焰风暴
 			UnitAddAbility(testHero2, 'AHbn'); // 驱逐魔法
 
-			Trace("|cFFFFCC00[AbilityDecorate]|r 已创建两个测试英雄：大法师和血法师");
-			Trace("|cFFFFCC00[AbilityDecorate]|r 选中英雄可测试技能装饰效果");
+			Trace("|cFFFFCC00[AbilityDecorate]|r 已创建两个测试英雄并注入魔法书物编技能（含第4个书内技能A0DE）");
+			Trace("|cFFFFCC00[AbilityDecorate]|r 选中大法师：先看魔法书按钮角标/流光，再点开魔法书看书内技能角标/流光");
 
 			Init();
 
@@ -307,8 +370,11 @@ library UTAbilityDecorate requires AbilityDecorate {
 			else if(str == "s8") TTestUTAbilityDecorate8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTAbilityDecorate9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTAbilityDecorate10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTAbilityDecorate11(GetTriggerPlayer());
+			else if(str == "s12") TTestUTAbilityDecorate12(GetTriggerPlayer());
 		});
 
+		//B2S
 	}
 
 }

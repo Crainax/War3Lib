@@ -16,6 +16,7 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
 
 
         private {
+            static boolean inAbilityRefreshDispatch = false;
             static integer argsCol = 0; // 回调参数:列
             static integer argsRow = 0; // 回调参数:行
 
@@ -45,6 +46,7 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             // 技能栏UI刷新（12槽）
             static trigger trAbilityRefresh = null; // 刷新界面显示的技能回调
             static integer lastAbilities[3][4];      // 记录上一次显示的能力值
+            static integer lastAbilityHashKeys[3][4];// 记录上一次显示的单位+技能哈希键
             static unit lastSelectedLeader = null;   // 上一帧本地选中的主控单位
         }
 
@@ -56,11 +58,17 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             return argsCol;
         }
         public static method getCallbackAbility ()  -> integer {
+            integer raw;
+            raw = GetCurrentXYAbility(argsCol - 1, argsRow - 1);
+            // UI刷新回调期间必须使用实时能力值，避免 stableAbility 导致旧能力残留
+            if (inAbilityRefreshDispatch) {
+                return raw;
+            }
             // 若当前扫描位置与悬停位置一致，则返回稳定能力；否则返回当前位置即时能力
             if (stableAbility != 0 && argsRow == stableRow && argsCol == stableCol) {
                 return stableAbility;
             }
-            return GetCurrentXYAbility(argsCol - 1, argsRow - 1);
+            return raw;
         }
 
         // 注册进入事件
@@ -115,16 +123,18 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             if (trAbilityRefresh == null) {
                 trAbilityRefresh = CreateTrigger();
                 hardware.regUpdateEvent(function() {
-                    integer row; integer col; integer nowAbil; integer prevAbil;
+                    integer row; integer col; integer nowAbil; integer prevAbil; integer nowHashKey; integer prevHashKey;
                     boolean forceAll;
+                    unit sel;
 
                     // 若无监听者则无需执行
                     if (trAbilityRefresh == null) { return; }
 
                     // 选中主控单位发生变化：本帧强制 12 槽全部回调一次
                     forceAll = false;
-                    if (DzGetSelectedLeaderUnit() != lastSelectedLeader) {
-                        lastSelectedLeader = DzGetSelectedLeaderUnit();
+                    sel = DzGetSelectedLeaderUnit();
+                    if (sel != lastSelectedLeader) {
+                        lastSelectedLeader = sel;
                         forceAll = true;
                     }
 
@@ -132,20 +142,29 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                     for (1 <= row <= 3) {
                         for (1 <= col <= 4) {
                             prevAbil = lastAbilities[row][col];
+                            prevHashKey = lastAbilityHashKeys[row][col];
                             nowAbil  = GetCurrentXYAbility(col - 1, row - 1);
+                            nowHashKey = 0;
+                            if (sel != null && nowAbil != 0) {
+                                nowHashKey = GetAbilityHashKey(sel, nowAbil);
+                            }
 
-                            // 能力本身变化，或者选中单位变化时强制视为变化
-                            if (forceAll || nowAbil != prevAbil) {
+                            // 能力本身变化、哈希键变化，或选中单位变化时触发刷新
+                            if (forceAll || nowAbil != prevAbil || nowHashKey != prevHashKey) {
                                 // 设置回调参数并触发
                                 argsRow = row;
                                 argsCol = col;
+                                inAbilityRefreshDispatch = true;
                                 TriggerEvaluate(trAbilityRefresh);
+                                inAbilityRefreshDispatch = false;
 
                                 // 覆盖记录
                                 lastAbilities[row][col] = nowAbil;
+                                lastAbilityHashKeys[row][col] = nowHashKey;
                             }
                         }
                     }
+                    sel = null;
                 });
             }
             TriggerAddCondition(trAbilityRefresh, Condition(func));
@@ -158,8 +177,10 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                 for (1 <= row <= 3) {
                     for (1 <= col <= 4) {
                         lastAbilities[row][col] = 0;
+                        lastAbilityHashKeys[row][col] = 0;
                     }
                 }
+                lastSelectedLeader = null;
             }
         }
 

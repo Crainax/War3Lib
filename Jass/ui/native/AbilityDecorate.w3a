@@ -1,0 +1,113 @@
+[A0DA]
+_parent = "Aspb"
+-- 图标 - 普通
+Art = "ReplaceableTextures\\CommandButtons\\BTNSpellBookBLS.blp"
+-- 按钮位置 - 普通 (X)
+Buttonpos_1 = 0
+-- 按钮位置 - 普通 (Y)
+Buttonpos_2 = 1
+-- 共享法术CD间隔
+DataA = ""
+DataB = 0
+-- 最小法术数量
+DataC = 4
+-- 最大法术数量
+DataD = 4
+-- 基础命令ID
+DataE = "resumebuild"
+-- 热键 - 普通
+Hotkey = "V"
+-- 名字
+Name = "装饰测试魔法书"
+-- 提示工具 - 普通
+Tip = "装饰测试魔法书(|cffffcc00V|r)"
+-- 提示工具 - 普通 - 扩展
+Ubertip = [=[用于 AbilityDecorate 单元测试：验证魔法书本体和书内技能装饰。]=]
+-- 物品技能
+item = 0
+-- 种族
+race = "human"
+
+[A0DB]
+_parent = "AHhb"
+-- 图标 - 普通
+Art = "ReplaceableTextures\\CommandButtons\\BTNHolyBolt.blp"
+-- 按钮位置 - 普通 (X)
+Buttonpos_1 = 0
+-- 按钮位置 - 普通 (Y)
+Buttonpos_2 = 0
+-- 热键 - 普通
+Hotkey = "Q"
+-- 名字
+Name = "测试书内技能-圣光"
+-- 提示工具 - 普通
+Tip = "测试书内技能-圣光(|cffffcc00Q|r)"
+-- 提示工具 - 普通 - 扩展
+Ubertip = "AbilityDecorate 测试技能 1。"
+-- 英雄技能
+hero = 0
+-- 等级
+levels = 1
+
+[A0DC]
+_parent = "AHwe"
+-- 图标 - 普通
+Art = "ReplaceableTextures\\CommandButtons\\BTNWaterElemental.blp"
+-- 按钮位置 - 普通 (X)
+Buttonpos_1 = 1
+-- 按钮位置 - 普通 (Y)
+Buttonpos_2 = 0
+-- 热键 - 普通
+Hotkey = "W"
+-- 名字
+Name = "测试书内技能-水元素"
+-- 提示工具 - 普通
+Tip = "测试书内技能-水元素(|cffffcc00W|r)"
+-- 提示工具 - 普通 - 扩展
+Ubertip = "AbilityDecorate 测试技能 2。"
+-- 英雄技能
+hero = 0
+-- 等级
+levels = 1
+
+[A0DD]
+_parent = "AHfs"
+-- 图标 - 普通
+Art = "ReplaceableTextures\\CommandButtons\\BTNFlameStrike.blp"
+-- 按钮位置 - 普通 (X)
+Buttonpos_1 = 2
+-- 按钮位置 - 普通 (Y)
+Buttonpos_2 = 0
+-- 热键 - 普通
+Hotkey = "E"
+-- 名字
+Name = "测试书内技能-烈焰"
+-- 提示工具 - 普通
+Tip = "测试书内技能-烈焰(|cffffcc00E|r)"
+-- 提示工具 - 普通 - 扩展
+Ubertip = "AbilityDecorate 测试技能 3。"
+-- 英雄技能
+hero = 0
+-- 等级
+levels = 1
+
+[A0DE]
+_parent = "AHab"
+-- 图标 - 普通
+Art = "ReplaceableTextures\\CommandButtons\\BTNBlink.blp"
+-- 按钮位置 - 普通 (X)
+Buttonpos_1 = 3
+-- 按钮位置 - 普通 (Y)
+Buttonpos_2 = 0
+-- 热键 - 普通
+Hotkey = "R"
+-- 名字
+Name = "测试书内技能-闪烁"
+-- 提示工具 - 普通
+Tip = "测试书内技能-闪烁(|cffffcc00R|r)"
+-- 提示工具 - 普通 - 扩展
+Ubertip = "AbilityDecorate 测试技能 4。"
+-- 英雄技能
+hero = 0
+-- 等级
+levels = 1
