@@ -10,9 +10,9 @@ Buttonpos_2 = 1
 DataA = ""
 DataB = 0
 -- 最小法术数量
-DataC = 3
+DataC = 4
 -- 最大法术数量
-DataD = 3
+DataD = 4
 -- 基础命令ID
 DataE = "resumebuild"
 -- 热键 - 普通
@@ -86,6 +86,27 @@ Name = "测试书内技能-烈焰"
 Tip = "测试书内技能-烈焰(|cffffcc00E|r)"
 -- 提示工具 - 普通 - 扩展
 Ubertip = "AbilityDecorate 测试技能 3。"
+-- 英雄技能
+hero = 0
+-- 等级
+levels = 1
+
+[A0DE]
+_parent = "AHab"
+-- 图标 - 普通
+Art = "ReplaceableTextures\\CommandButtons\\BTNBlink.blp"
+-- 按钮位置 - 普通 (X)
+Buttonpos_1 = 3
+-- 按钮位置 - 普通 (Y)
+Buttonpos_2 = 0
+-- 热键 - 普通
+Hotkey = "R"
+-- 名字
+Name = "测试书内技能-闪烁"
+-- 提示工具 - 普通
+Tip = "测试书内技能-闪烁(|cffffcc00R|r)"
+-- 提示工具 - 普通 - 扩展
+Ubertip = "AbilityDecorate 测试技能 4。"
 -- 英雄技能
 hero = 0
 -- 等级

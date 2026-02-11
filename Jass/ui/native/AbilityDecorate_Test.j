@@ -7,7 +7,7 @@
 //! zinc
 
 //自动生成的文件
-library UTAbilityDecorate requires AbilityDecorate {
+library UTAbilityDecorate requires AbilityDecorate,UnitUtils {
 
 	// 测试用的英雄和技能
 	unit testHero1; // 大法师
@@ -16,10 +16,11 @@ library UTAbilityDecorate requires AbilityDecorate {
 	integer ABIL_BOOK_SKILL1 = 'A0DB';   // AbilityDecorate.w3a: 书内技能1
 	integer ABIL_BOOK_SKILL2 = 'A0DC';   // AbilityDecorate.w3a: 书内技能2
 	integer ABIL_BOOK_SKILL3 = 'A0DD';   // AbilityDecorate.w3a: 书内技能3
+	integer ABIL_BOOK_SKILL4 = 'A0DE';   // AbilityDecorate.w3a: 书内技能4
 
 	private function SetupTestSpellBook(unit u) {
 		UnitAddAbility(u, ABIL_BOOK_MAIN);
-		DzSetUnitAbilitySpellBookList(u, ABIL_BOOK_MAIN, "A0DB,A0DC,A0DD", true);
+		DzSetUnitAbilitySpellBookList(u, ABIL_BOOK_MAIN, "A0DB,A0DC,A0DD,A0DE", true);
 		DzSetUnitAbilityUpdate(u, ABIL_BOOK_MAIN);
 	}
 
@@ -44,6 +45,10 @@ library UTAbilityDecorate requires AbilityDecorate {
         SetAbilityDecorateIcon(testHero1, ABIL_BOOK_SKILL3, "ReplaceableTextures\\CommandButtons\\BTNFlameStrike.blp");
         SetAbilityDecorateGrow(testHero1, ABIL_BOOK_SKILL3, growdata[ICONGROW_15]);
         SetAbilityDecorateCornerText(testHero1, ABIL_BOOK_SKILL3, "E");
+
+        SetAbilityDecorateIcon(testHero1, ABIL_BOOK_SKILL4, "ReplaceableTextures\\CommandButtons\\BTNBlink.blp");
+        SetAbilityDecorateGrow(testHero1, ABIL_BOOK_SKILL4, growdata[ICONGROW_16]);
+        SetAbilityDecorateCornerText(testHero1, ABIL_BOOK_SKILL4, "R");
 
 			// 血法师的技能装饰
         SetAbilityDecorateIcon(testHero2, 'AHbz', "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp");
@@ -84,7 +89,10 @@ library UTAbilityDecorate requires AbilityDecorate {
         key = GetAbilityHashKey(testHero1, ABIL_BOOK_SKILL3);
         Trace("|cFF99FFCC[HashTest]|r H1 书内A0DD key = " + I2S(key));
 
-			Trace("|cFFFFCC00[AbilityDecorate]|r 已设置魔法书本体 + 书内3技能装饰");
+        key = GetAbilityHashKey(testHero1, ABIL_BOOK_SKILL4);
+        Trace("|cFF99FFCC[HashTest]|r H1 书内A0DE key = " + I2S(key));
+
+			Trace("|cFFFFCC00[AbilityDecorate]|r 已设置魔法书本体 + 书内4技能装饰");
 			Trace("|cFFFFCC00[AbilityDecorate]|r 选中大法师后先看魔法书按钮，再点开魔法书查看书内技能装饰");
 		}
 
@@ -142,13 +150,14 @@ library UTAbilityDecorate requires AbilityDecorate {
 		u = DzGetSelectedLeaderUnit();
 		if (u == null) { return; }
 
-		// 设置技能ID数组（1本魔法书 + 3个书内技能）
+		// 设置技能ID数组（1本魔法书 + 4个书内技能）
 		abilCodes[1] = ABIL_BOOK_MAIN; icons[1] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[1] = "书";
 		abilCodes[2] = ABIL_BOOK_SKILL1; icons[2] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[2] = "Q";
 		abilCodes[3] = ABIL_BOOK_SKILL2; icons[3] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[3] = "W";
 		abilCodes[4] = ABIL_BOOK_SKILL3; icons[4] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[4] = "E";
+		abilCodes[5] = ABIL_BOOK_SKILL4; icons[5] = "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp"; texts[5] = "R";
 
-        for (1 <= i <= 4) {
+        for (1 <= i <= 5) {
             SetAbilityDecorateIcon(u, abilCodes[i], icons[i]);
             SetAbilityDecorateGrow(u, abilCodes[i], growdata[ICONGROW_13 + ModuloInteger(i - 1, 6)]);
             SetAbilityDecorateCornerText(u, abilCodes[i], texts[i]);
@@ -206,9 +215,9 @@ library UTAbilityDecorate requires AbilityDecorate {
 		if (u == null) { return; }
 
 		abilCodes[1] = ABIL_BOOK_MAIN; abilCodes[2] = ABIL_BOOK_SKILL1;
-		abilCodes[3] = ABIL_BOOK_SKILL2; abilCodes[4] = ABIL_BOOK_SKILL3;
+		abilCodes[3] = ABIL_BOOK_SKILL2; abilCodes[4] = ABIL_BOOK_SKILL3; abilCodes[5] = ABIL_BOOK_SKILL4;
 
-        for (1 <= i <= 4) {
+        for (1 <= i <= 5) {
             SetAbilityDecorateIcon(u, abilCodes[i], "");
             SetAbilityDecorateGrow(u, abilCodes[i], 0);
             SetAbilityDecorateCornerText(u, abilCodes[i], "");
@@ -251,6 +260,21 @@ library UTAbilityDecorate requires AbilityDecorate {
 		u = null;
 	}
 
+	// 测试12: 书内技能4（A0DE）装饰测试
+	function TTestUTAbilityDecorate12 (player p) {
+		unit u;
+		u = DzGetSelectedLeaderUnit();
+		if (u == null) { return; }
+
+		SetAbilityDecorateIcon(u, ABIL_BOOK_SKILL4, "ReplaceableTextures\\CommandButtons\\BTNArcaneTower.blp");
+		SetAbilityDecorateGrow(u, ABIL_BOOK_SKILL4, growdata[ICONGROW_18]);
+		SetAbilityDecorateCornerText(u, ABIL_BOOK_SKILL4, "R★");
+		SetAbilityDecorateShadow(u, ABIL_BOOK_SKILL4, true);
+		Trace("|cFF00FF00[测试12]|r 已设置书内技能A0DE装饰（图标/流光/角标/暗图层）");
+
+		u = null;
+	}
+
 	function TTestActUTAbilityDecorate1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -289,12 +313,19 @@ library UTAbilityDecorate requires AbilityDecorate {
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
 			real x = 0, y = 0;
+			real mpMax = 5000.0;
 
 			Trace("[AbilityDecorate] 单元测试已加载");
 
 			// 为玩家1创建两个测试英雄
 			testHero1 = CreateUnit(Player(0), 'Hamg', x, y, 270); // 创建大法师在坐标(0,0)
 			testHero2 = CreateUnit(Player(0), 'Hblm', x + 200, y, 270); // 创建血法师在坐标(200,0)
+
+			// 提高魔法值上限，方便连续施法测试（来自 UnitUtils）
+			SetUnitMP(testHero1, mpMax);
+			SetUnitState(testHero1, UNIT_STATE_MANA, GetUnitState(testHero1, UNIT_STATE_MAX_MANA));
+			SetUnitMP(testHero2, mpMax);
+			SetUnitState(testHero2, UNIT_STATE_MANA, GetUnitState(testHero2, UNIT_STATE_MAX_MANA));
 
 			// 为英雄添加一些技能用于测试
 			SetupTestSpellBook(testHero1); // 魔法书 + 书内技能
@@ -312,7 +343,7 @@ library UTAbilityDecorate requires AbilityDecorate {
 			UnitAddAbility(testHero2, 'AHfs'); // 烈焰风暴
 			UnitAddAbility(testHero2, 'AHbn'); // 驱逐魔法
 
-			Trace("|cFFFFCC00[AbilityDecorate]|r 已创建两个测试英雄并注入魔法书物编技能");
+			Trace("|cFFFFCC00[AbilityDecorate]|r 已创建两个测试英雄并注入魔法书物编技能（含第4个书内技能A0DE）");
 			Trace("|cFFFFCC00[AbilityDecorate]|r 选中大法师：先看魔法书按钮角标/流光，再点开魔法书看书内技能角标/流光");
 
 			Init();
@@ -340,8 +371,10 @@ library UTAbilityDecorate requires AbilityDecorate {
 			else if(str == "s9") TTestUTAbilityDecorate9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTAbilityDecorate10(GetTriggerPlayer());
 			else if(str == "s11") TTestUTAbilityDecorate11(GetTriggerPlayer());
+			else if(str == "s12") TTestUTAbilityDecorate12(GetTriggerPlayer());
 		});
 
+		//B2S
 	}
 
 }

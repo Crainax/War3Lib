@@ -12,7 +12,6 @@
 
 
 library AbilityDecorate requires SpellBtns,HashTable {
-
     // 排除单位参与技能装饰处理
     public function ExcludeUnitFromAbilityDecorate(unit u) {
         integer uid;
