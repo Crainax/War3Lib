@@ -8,8 +8,9 @@
 
 /*
  * SevenDaySign UI 测试清单
- * s1  打开UI（本地玩家）
- * s2  关闭UI（本地玩家）
+ * F2  切换 UI 显示/隐藏（本地玩家）
+ * s1  打开UI（本地玩家，兼容保留）
+ * s2  关闭UI（本地玩家，兼容保留）
  * s3  刷新UI（本地玩家）
  * s4  写入占位奖励配置（7天）
  * s5  时间推进一天（+86400）
@@ -18,7 +19,11 @@
  * -d <dayId>      设置测试 dayId（按北京时间换算）
  * -open / -close / -refresh  快捷操作
  */
-library UTSevenDaySign requires SevenDaySign {
+
+ // 已处理: 运行时签到判定改为依赖内存缓存，避免局中 Dz 读取覆盖；测试时间 setTestNow 不受影响。
+ // 好像还是没解决这个问题:
+
+library UTSevenDaySign requires SevenDaySign,Keyboard {
 
     private integer testNow = 1700000000;
 
@@ -148,6 +153,24 @@ library UTSevenDaySign requires SevenDaySign {
             else if(str == "s9") TTestUTSevenDaySign9(GetTriggerPlayer());
             else if(str == "s10") TTestUTSevenDaySign10(GetTriggerPlayer());
         });
+
+        // 注册 F2：切换签到 UI 显示/隐藏
+        keyboard.regKeyDownEvent(KEY_F2, function (){
+            player lp;
+            lp = GetLocalPlayer();
+
+            if (!sevenDaySignUI.isShow()) {
+                sevenDaySignUI.show(lp);
+            } else {
+                sevenDaySignUI.hide(lp);
+            }
+
+            lp = null;
+        });
+        keyboard.regKeyUpEvent(KEY_F2, null);
+
+        //DzAPI_Map_GetStoredInteger
+        // DzAPI_Map_StoreInteger.
     }
 
     //I3

@@ -4,6 +4,7 @@
 #include "Crainax/config/SharedMethod.h"       // 结构体共用方法、I3 等工具
 #include "Crainax/ui/constants/UIConstants.j"  // UI 常量
 #include "Crainax/data/audio/MusicConstant.j"  // 音效常量
+#include "Crainax/ui/constants/GrowConstants.j"  // UI 常量
 
 //! zinc
 /*
@@ -66,11 +67,11 @@ library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag {
         }
 
         #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
-            private static integer testNow = 0;
-            public static method setTestNow(integer t) { testNow = t; }
-            public static method getTimeNow() -> integer { return testNow; }
+        private static integer testNow = 0;
+        public static method setTestNow(integer t) { testNow = t; }
+        public static method getTimeNow() -> integer { return testNow; }
         #else
-            public static method getTimeNow() -> integer { return DzAPI_Map_GetGameStartTime(); }
+        public static method getTimeNow() -> integer { return DzAPI_Map_GetGameStartTime(); }
         #endif
 
         private static method getBit(integer day) -> integer {
@@ -358,7 +359,7 @@ library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag {
             uiMainButton = uiBtn.createBlank(uiMain.ui)
                 .setAllPoint(uiMain.ui)
                 .enableDrag(uiMain.ui, 0.2, 0.8, 0.2, 0.8)
-                .setDragPosition(0.4, 0.25);
+                .setDragPosition(0.4, 0.35);
 
             uiCloseImage = uiImage.create(uiMain.ui)
                 .exReSize(0.026, 0.026)
@@ -383,7 +384,7 @@ library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag {
                     } else {
                         sevenDaySignUI.hide(GetLocalPlayer());
                     }
-                });
+            });
 
             // slots
             startX = 0.0 - (SIGN7_TOTAL_DAYS - 1) * (SIGN7_SLOT_SIZE + SIGN7_SLOT_GAP_X) / 2.0;
@@ -473,8 +474,8 @@ library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag {
                     } else {
                         music[MUSIC_INDEX_ERROR].play();
                     }
-                    lp = null;
-                });
+                lp = null;
+            });
 
             sevenDaySignUI.refreshForPlayer(p);
         }
@@ -510,31 +511,50 @@ library SevenDaySign requires Tooltip,Music,SyncBus,UIExtendEvent,UIExtendDrag {
             if (uiMainButton != 0) { uiMainButton.destroy(); uiMainButton = 0; }
             if (uiMain != 0) { uiMain.destroy(); uiMain = 0; }
         }
+
+        // 判断 UI 是否正在显示
+        public static method isShow() -> boolean {
+            return isOpen;
+        }
     }
 
     //==========================================================================
     // SyncBus：从本地事件进入同步层
     //==========================================================================
-    private function onSyncClaim() {
-        string payload;
-        player p;
-        boolean ok;
-
-        payload = syncBus.cbPayload;
-        if (payload != "C") { return; }
-
-        p = syncBus.cbPlayer;
-        if (p == null) { return; }
-
-        ok = sevenDaySignData.handleClaim(p);
-        if (ok && GetLocalPlayer() == p) {
-            sevenDaySignUI.refreshForPlayer(p);
-        }
-        p = null;
-    }
-
     private function onInit() {
-        syncBus.onDataSync(SIGN7_SYNC_CHANNEL, function onSyncClaim);
+        syncBus.onDataSync(SIGN7_SYNC_CHANNEL, function () {
+            string payload;
+            player p;
+            boolean ok;
+            integer day;
+
+            payload = syncBus.cbPayload;
+            if (payload != "C") { return; }
+
+            p = syncBus.cbPlayer;
+            if (p == null) { return; }
+
+            day = sevenDaySignData.getNextClaimDay(sevenDaySignData.getClaimedDay(p));
+            ok = sevenDaySignData.handleClaim(p);
+            if (GetLocalPlayer() == p) {
+                if (ok) {
+                    sevenDaySignUI.refreshForPlayer(p);
+                    toastHint.createAtMouse(p, "领取成功:第" + I2S(day) + "的奖励!");
+                } else {
+                    toastHint.createAtMouse(p, "今日已领取,请明日再来!");
+                }
+            }
+            p = null;
+        });
+
+        //在游戏开始0.2秒后再调用
+        trigger tr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(tr,0.2);
+        TriggerAddCondition(tr,Condition(function (){
+            //todo:DzAPI_Map_GetStoredInteger应该放在这个阶段(因为 DzAPI_Map_GetStoredInteger  返回的值永远是本局最初从服务器获取的数值,所以不能通过StoreInteger再更新这个新值.目前实时更新的结果就是签到后再次关闭打开UI后还是不会显示签到成功,)
+            DestroyTrigger(GetTriggeringTrigger());
+        }));
+        tr = null;
     }
 }
 
