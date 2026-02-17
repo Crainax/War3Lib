@@ -278,20 +278,16 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 		toastHint.createAtMouse(p, "[HSelect] 已设置按钮1文本为");
 	}
 	function TTestUTHeroSelector3 (player p) {
-		heroSelectorUI.enableGrowBtn(true);
-		toastHint.createAtMouse(p, "[HSelect] 已开启底部流光 GrowBtn（先 F3 打开 UI 后有效）");
+		toastHint.createAtMouse(p, "[HSelect] 新规则: 打开UI后默认btn1流光");
 	}
 	function TTestUTHeroSelector4 (player p) {
-		heroSelectorUI.enableGrowBtn(false);
-		toastHint.createAtMouse(p, "[HSelect] 已关闭底部流光 GrowBtn");
+		toastHint.createAtMouse(p, "[HSelect] 新规则: 首次按btn1会先关闭btn1流光,再发同步");
 	}
 	function TTestUTHeroSelector5 (player p) {
-		heroSelectorUI.setGrowBtnPos(1);
-		toastHint.createAtMouse(p, "[HSelect] 流光已移动到按钮1");
+		toastHint.createAtMouse(p, "[HSelect] 新规则: 选中任意hero icon后,btn2流光(覆盖btn1)");
 	}
 	function TTestUTHeroSelector6 (player p) {
-		heroSelectorUI.setGrowBtnPos(2);
-		toastHint.createAtMouse(p, "[HSelect] 流光已移动到按钮2");
+		toastHint.createAtMouse(p, "[HSelect] 新规则: 流光状态仅内部控制,不再对外开放");
 	}
 	function TTestUTHeroSelector7 (player p) {}
 	function TTestUTHeroSelector8 (player p) {}
