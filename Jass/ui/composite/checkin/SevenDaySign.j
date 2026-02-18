@@ -16,7 +16,6 @@ UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层�
 #define SIGN7_SYNC_CHANNEL      "SevenDaySign"
 #define SIGN7_LAST_DAYID_KEY    "SIGN7_LAST_DAYID"
 #define SIGN7_CLAIM_DAY_KEY     "SIGN7_CLAIM_DAY"
-#define SIGN7_CLAIM_MASK_KEY    "SIGN7_CLAIM_MASK" // 兼容旧位图存档（迁移读）
 // 后端限制提醒：SIGN7_CLAIM_DAY_KEY 仅允许单次请求 +1，禁止跳跃写入/回退写入。
 // 运行时判定提醒：UI/领奖判定统一依赖内存缓存，不依赖局中 DzAPI 再读取。
 
@@ -85,19 +84,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return day <= claimedDay;
         }
 
-        // 旧位图数据迁移：0,1,3,7,15,31,63,127 -> 0..7
-        private static method legacyMaskToDay(integer mask) -> integer {
-            if (mask <= 0) { return 0; }
-            if (mask == 1) { return 1; }
-            if (mask == 3) { return 2; }
-            if (mask == 7) { return 3; }
-            if (mask == 15) { return 4; }
-            if (mask == 31) { return 5; }
-            if (mask == 63) { return 6; }
-            if (mask == 127) { return 7; }
-            return 0;
-        }
-
         public static method getNextClaimDay(integer claimedDay) -> integer {
             if (claimedDay >= SIGN7_TOTAL_DAYS) { return 0; }
             return claimedDay + 1;
@@ -124,21 +110,11 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         public static method refreshPlayer(player p) {
             integer pid;
             integer d;
-            integer legacyMask;
             pid = GetConvertedPlayerId(p);
             if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
             d = DzAPI_Map_GetStoredInteger(p, SIGN7_CLAIM_DAY_KEY);
             if (d < 0) { d = 0; }
             if (d > SIGN7_TOTAL_DAYS) { d = SIGN7_TOTAL_DAYS; }
-
-            // 若新键还没有值，尝试从旧位图键迁移一次
-            if (d == 0) {
-                legacyMask = DzAPI_Map_GetStoredInteger(p, SIGN7_CLAIM_MASK_KEY);
-                d = thistype.legacyMaskToDay(legacyMask);
-                if (d > 0) {
-                    DzAPI_Map_StoreInteger(p, SIGN7_CLAIM_DAY_KEY, d);
-                }
-            }
 
             claimedDay[pid] = d;
             lastDayId[pid] = DzAPI_Map_GetStoredInteger(p, SIGN7_LAST_DAYID_KEY);
@@ -149,14 +125,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 claimTr = CreateTrigger();
             }
             TriggerAddCondition(claimTr, Condition(func));
-        }
-
-        public static method getClaimPlayer() -> player {
-            return claimPlayer;
-        }
-
-        public static method getClaimDay() -> integer {
-            return cbClaimDay;
         }
 
         public static method setReward(integer day, string iconPath, string name, string tipTitle, string tipDesc) {
@@ -239,7 +207,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         }
 
         static method onInit() {
-            timer t;
             integer i;
             for (1 <= i <= SIGN7_TOTAL_DAYS) {
                 rewardIcon[i] = "ui\\image\\select_flash.blp";
@@ -248,8 +215,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 rewardTipDesc[i] = "这是占位奖励内容";
             }
 
-            //在游戏开始0.3秒后再调用
-            //todo:DzAPI_Map_GetStoredInteger应该放在这个阶段(因为 DzAPI_Map_GetStoredInteger  返回的值永远是本局最初从服务器获取的数值,所以不能通过StoreInteger再更新这个新值.目前实时更新的结果就是签到后再次关闭打开UI后还是不会显示签到成功,)
+            // 在游戏开始 0.3 秒后初始化缓存：UI 操作期间不再触发 DzAPI 读写。
             trigger tr = CreateTrigger();
             TriggerRegisterTimerEventSingle(tr,0.3);
             TriggerAddCondition(tr,Condition(function (){
@@ -300,29 +266,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 uiTooltipTemp = 0;
             }
 
-            private static method refreshSlots(player p) {
-                integer i;
-                integer claimedDay;
-                boolean claimed;
-                string name;
-                claimedDay = sevenDaySignData.getClaimedDay(p);
-
-                for (1 <= i <= SIGN7_TOTAL_DAYS) {
-                    claimed = sevenDaySignData.isClaimed(claimedDay, i);
-                    name = sevenDaySignData.getRewardName(i);
-                    if (slotMask[i] != 0) { slotMask[i].show(claimed); }
-                    if (slotCheck[i] != 0) { slotCheck[i].show(claimed); }
-                    if (slotClaimed[i] != 0) { slotClaimed[i].show(claimed); }
-                    if (slotName[i] != 0) {
-                        if (claimed) {
-                            slotName[i].setText("|cff888888" + name + "|r");
-                        } else {
-                            slotName[i].setText(name);
-                        }
-                    }
-                }
-            }
-
             private static method setClaimGrow(boolean enable) {
                 growdata gd;
                 if (enable) {
@@ -339,52 +282,49 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 }
             }
 
-            private static method refreshStatus(player p) {
+            public static method refreshForPlayer(player p) {
+                integer i;
                 integer day;
                 integer lastId;
                 integer nowId;
-
-                if (statusText == 0) { return; }
-
-                day = sevenDaySignData.getClaimedDay(p);
-                if (sevenDaySignData.isAllClaimed(day)) {
-                    statusText.setText("|cffffcc00已完成|r");
-                    return;
-                }
-
-                lastId = sevenDaySignData.getLastDayId(p);
-                nowId = sevenDaySignData.getBeijingDayId();
-
-                if (nowId <= lastId) {
-                    statusText.setText("|cffaaaaaa今日已领取|r");
-                } else {
-                    statusText.setText("|cff00ff00今日可领取|r");
-                }
-            }
-
-            private static method refreshButton(player p) {
                 boolean canClaim;
-                canClaim = sevenDaySignData.canClaim(p);
-                thistype.setClaimGrow(canClaim);
+                boolean claimed;
+                string name;
 
-                if (btnImage != 0) {
-                    btnImage.setAlpha(I3(canClaim, 255, 160));
-                }
-                if (btnText != 0) {
-                    if (canClaim) {
-                        btnText.setText("|cffffcc00领取奖励|r");
-                    } else {
-                        btnText.setText("|cff999999领取奖励|r");
-                    }
-                }
-            }
-
-            public static method refreshForPlayer(player p) {
                 if (!isOpen) { return; }
                 if (GetLocalPlayer() != p) { return; }
-                refreshSlots(p);
-                refreshStatus(p);
-                refreshButton(p);
+
+                day = sevenDaySignData.getClaimedDay(p);
+                for (1 <= i <= SIGN7_TOTAL_DAYS) {
+                    claimed = sevenDaySignData.isClaimed(day, i);
+                    name = sevenDaySignData.getRewardName(i);
+                    if (slotMask[i] != 0) { slotMask[i].show(claimed); }
+                    if (slotCheck[i] != 0) { slotCheck[i].show(claimed); }
+                    if (slotClaimed[i] != 0) { slotClaimed[i].show(claimed); }
+                    if (slotName[i] != 0) {
+                        if (claimed) { slotName[i].setText("|cff888888" + name + "|r"); }
+                        else { slotName[i].setText(name); }
+                    }
+                }
+
+                if (statusText != 0) {
+                    if (sevenDaySignData.isAllClaimed(day)) {
+                        statusText.setText("|cffffcc00已完成|r");
+                    } else {
+                        lastId = sevenDaySignData.getLastDayId(p);
+                        nowId = sevenDaySignData.getBeijingDayId();
+                        if (nowId <= lastId) { statusText.setText("|cffaaaaaa今日已领取|r"); }
+                        else { statusText.setText("|cff00ff00今日可领取|r"); }
+                    }
+                }
+
+                canClaim = sevenDaySignData.canClaim(p);
+                thistype.setClaimGrow(canClaim);
+                if (btnImage != 0) { btnImage.setAlpha(I3(canClaim, 255, 160)); }
+                if (btnText != 0) {
+                    if (canClaim) { btnText.setText("|cffffcc00领取奖励|r"); }
+                    else { btnText.setText("|cff999999领取奖励|r"); }
+                }
             }
 
             public static method show(player p) {
@@ -400,8 +340,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
                 isOpen = true;
                 owner = p;
-                // 仅在打开时做一次后端->缓存同步，后续逻辑全部使用缓存避免局中 DzAPI 旧值覆盖。
-                sevenDaySignData.refreshPlayer(p);
 
                 uiMain = uiImage.create(DzGetGameUI())
                     .setTexture("ui\\image\\black.blp")
