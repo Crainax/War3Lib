@@ -221,10 +221,10 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         private static uiText uiBtn2Text = 0;
         private static uiBtn uiBtn2Button = 0;
 
-        // 底部按钮流光（单例，在 uiBtn1/uiBtn2 处，由 setGrowBtnPos 移动、enableGrowBtn 创建/删除）
+        // 底部按钮流光（内部状态机：0=关闭，1=btn1，2=btn2）
         private static uiImage growBtnImage = 0;
         private static baseanim growBtnAnim = 0;
-        private static integer growBtnPos = 1;  // 1=uiBtn1Image, 2=uiBtn2Image
+        private static integer growBtnPos = 0;  // 0=off, 1=uiBtn1Image, 2=uiBtn2Image
 
         private static uiImage uiDivider = 0;
         private static uiImage uiRightArea = 0;
@@ -425,6 +425,33 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                         if (slotTxt2[r][c] != 0) { slotTxt2[r][c].show(false); }
                     }
                 }
+            }
+        }
+
+        // 内部切换底部流光：0=关闭，1=btn1，2=btn2
+        private static method setGrowBtnState(integer pos) {
+            growdata gd;
+            if (pos < 0 || pos > 2) { return; }
+            growBtnPos = pos;
+            if (!isOpen) { return; }
+
+            if (pos == 0) {
+                if (growBtnAnim != 0) { growBtnAnim.destroy(); growBtnAnim = 0; }
+                if (growBtnImage != 0) { growBtnImage.destroy(); growBtnImage = 0; }
+                return;
+            }
+
+            gd = growdata[ICONGROW_BTN];
+            if (growBtnImage == 0) {
+                growBtnImage = uiImage.create(uiMain.ui);
+                growBtnImage.exReSize(HEROSEL_GROW_BTN_SIZE * gd.scale, HEROSEL_GROW_BTN_SIZE * gd.scale);
+                growBtnAnim = baseanim.create(growBtnImage.ui);
+                growBtnAnim.addSequ(gd.path, gd.max, gd.gap, true);
+            }
+            if (pos == 1 && uiBtn1Image != 0) {
+                growBtnImage.setPoint(ANCHOR_CENTER, uiBtn1Image.ui, ANCHOR_CENTER, gd.offsetX * gd.scale, gd.offsetY * gd.scale);
+            } else if (pos == 2 && uiBtn2Image != 0) {
+                growBtnImage.setPoint(ANCHOR_CENTER, uiBtn2Image.ui, ANCHOR_CENTER, gd.offsetX * gd.scale, gd.offsetY * gd.scale);
             }
         }
 
@@ -894,6 +921,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                                 }
                             }
                         }
+                        // 选中任意英雄后，流光优先切到按钮2
+                        setGrowBtnState(2);
                         refreshLeftGrid();
                     });
                     uiHashTable(slotIcon[r][c].getClickBtn().ui).eventdata.bind(idx);
@@ -1105,6 +1134,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             uiBtn1Button = uiBtn.create(uiBtn1Image.ui)
                 .setAllPoint(uiBtn1Image.ui)
                 .onClick(function() {
+                    // 先关闭按钮1流光，再发送同步数据
+                    setGrowBtnState(0);
                     syncBus.DzSyncDataEx("HSelect","L");
                 });
 
@@ -1122,6 +1153,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .onClick(function() {
                     syncBus.DzSyncDataEx("HSelect","R"+I2S(selectedPos));
                 });
+
+            // 默认阶段1：按钮1流光
+            setGrowBtnState(1);
 
             // 左下角BP图标和文字
             uiBpIcon = uiImage.create(uiMain.ui)
@@ -1227,6 +1261,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             currentPage = 1;
             totalPage = 1;
             selectedPos = 0;
+            growBtnPos = 0;
         }
 
         // 判断 UI 是否正在显示
@@ -1239,40 +1274,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             if (GetLocalPlayer() != p) { return; }
             if (uiBtn1Text != 0) {
                 uiBtn1Text.setText(text);
-            }
-        }
-
-        // 移动底部流光到按钮1(1)或按钮2(2)
-        public static method setGrowBtnPos(integer pos) {
-            if (!isOpen) { return; }
-            growBtnPos = pos;
-            if (growBtnImage == 0) { return; }
-            if (pos == 1 && uiBtn1Image != 0) {
-                growBtnImage.setPoint(ANCHOR_CENTER, uiBtn1Image.ui, ANCHOR_CENTER, growdata[ICONGROW_BTN].offsetX* growdata[ICONGROW_BTN].scale, growdata[ICONGROW_BTN].offsetY* growdata[ICONGROW_BTN].scale);
-            } else if (pos == 2 && uiBtn2Image != 0) {
-                growBtnImage.setPoint(ANCHOR_CENTER, uiBtn2Image.ui, ANCHOR_CENTER, growdata[ICONGROW_BTN].offsetX* growdata[ICONGROW_BTN].scale, growdata[ICONGROW_BTN].offsetY* growdata[ICONGROW_BTN].scale);
-            }
-        }
-
-        // 通过创建/删除控制底部流光显示，默认不创建
-        public static method enableGrowBtn(boolean enable) {
-            growdata gd;
-            if (!isOpen) { return; }
-            if (enable) {
-                if (growBtnImage != 0) { return; }  // 已创建则不重复
-                gd = growdata[ICONGROW_BTN];
-                growBtnImage = uiImage.create(uiMain.ui);
-                if (growBtnPos == 1 && uiBtn1Image != 0) {
-                    growBtnImage.setPoint(ANCHOR_CENTER, uiBtn1Image.ui, ANCHOR_CENTER, gd.offsetX* gd.scale, gd.offsetY* gd.scale);
-                } else if (uiBtn2Image != 0) {
-                    growBtnImage.setPoint(ANCHOR_CENTER, uiBtn2Image.ui, ANCHOR_CENTER, gd.offsetX* gd.scale, gd.offsetY* gd.scale);
-                }
-                growBtnImage.exReSize(HEROSEL_GROW_BTN_SIZE* gd.scale, HEROSEL_GROW_BTN_SIZE* gd.scale);
-                growBtnAnim = baseanim.create(growBtnImage.ui);
-                growBtnAnim.addSequ(gd.path, gd.max, gd.gap, true);
-            } else {
-                if (growBtnAnim != 0) { growBtnAnim.destroy(); growBtnAnim = 0; }
-                if (growBtnImage != 0) { growBtnImage.destroy(); growBtnImage = 0; }
             }
         }
 
