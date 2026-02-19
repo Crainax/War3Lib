@@ -150,10 +150,10 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public static integer argsEventType = 0; //事件类型(回调参数) 1:天赋技能 2:赠礼 3:建议的技能 4:装备
         public static integer argsEventIndex = 0; //事件类型(回调参数)  1-10事件的位置
 
-        public static trigger trHeroBtn1String = null;  //根据位置返回字符串的触发器
-        public static trigger trBpEnter        = null;  //左下角BP鼠标进入触发事件
-        public static trigger trBpLeave        = null;  //左下角BP鼠标离开触发事件
-        public static trigger trBottomTextControl = null;    //底部文本显示控制触发器（return true显示，false隐藏）
+        public static trigger trHeroBtn1String    = null;  //根据位置返回字符串的触发器
+        public static trigger trBpEnter           = null;  //左下角BP鼠标进入触发事件
+        public static trigger trBpLeave           = null;  //左下角BP鼠标离开触发事件
+        public static trigger trBottomTextControl = null;  //底部文本显示控制触发器（return true显示，false隐藏）
 
     }
 
@@ -634,7 +634,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             real ratio;
 
             if (heroIndex <= 0 || heroIndex > heroData.size) {
-                // 无效索引，隐藏所有图标，显示各区块"暂无"
+                // 无效索引，隐藏所有图标及右侧8个文本UI
                 for (1 <= i <= HEROSEL_TALENT_COUNT) {
                     if (rightTalentIcon[i] != 0) { rightTalentIcon[i].show(false); }
                 }
@@ -647,10 +647,15 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 for (1 <= i <= HEROSEL_EQUIP_COUNT) {
                     if (rightEquipIcon[i] != 0) { rightEquipIcon[i].show(false); }
                 }
-                if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(true); }
-                if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(true); }
-                if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(true); }
-                if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(true); }
+                // 隐藏右侧8个标题/暂无文本
+                if (rightTalentText != 0) { rightTalentText.show(false); }
+                if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(false); }
+                if (rightGiftText != 0) { rightGiftText.show(false); }
+                if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(false); }
+                if (rightSkillText != 0) { rightSkillText.show(false); }
+                if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(false); }
+                if (rightEquipText != 0) { rightEquipText.show(false); }
+                if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(false); }
 
                 // 隐藏进度条与文字
                 if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
@@ -675,6 +680,37 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             }
 
             initRightLayoutCache();
+
+            // 当4类内容均为空时，隐藏右侧8个文本UI并直接返回
+            if (hd.talentCount <= 0 && hd.giftCount <= 0 && hd.skillCount <= 0 && hd.equitCount <= 0) {
+                for (1 <= i <= HEROSEL_TALENT_COUNT) {
+                    if (rightTalentIcon[i] != 0) { rightTalentIcon[i].show(false); }
+                }
+                for (1 <= i <= HEROSEL_GIFT_COUNT) {
+                    if (rightGiftIcon[i] != 0) { rightGiftIcon[i].show(false); }
+                }
+                for (1 <= i <= HEROSEL_SKILL_COUNT) {
+                    if (rightSkillIcon[i] != 0) { rightSkillIcon[i].show(false); }
+                }
+                for (1 <= i <= HEROSEL_EQUIP_COUNT) {
+                    if (rightEquipIcon[i] != 0) { rightEquipIcon[i].show(false); }
+                }
+                if (rightTalentText != 0) { rightTalentText.show(false); }
+                if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(false); }
+                if (rightGiftText != 0) { rightGiftText.show(false); }
+                if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(false); }
+                if (rightSkillText != 0) { rightSkillText.show(false); }
+                if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(false); }
+                if (rightEquipText != 0) { rightEquipText.show(false); }
+                if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(false); }
+                // 进度条部分继续用下面的逻辑处理，此处不 return，让进度条代码正常执行
+            } else {
+                // 恢复4个标题文本可见（若之前被隐藏过）
+                if (rightTalentText != 0) { rightTalentText.show(true); }
+                if (rightGiftText != 0) { rightGiftText.show(true); }
+                if (rightSkillText != 0) { rightSkillText.show(true); }
+                if (rightEquipText != 0) { rightEquipText.show(true); }
+            }
 
             // 更新天赋技能图标
             count = hd.talentCount;
@@ -889,13 +925,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     slotIcon[r][c].getClickBtn()
                         .onMouseWheel(function heroSelectorUI.onMouseWheel)
                         .spClick(function(integer frame) {
-                            integer pos; boolean showText;
+                            integer pos; boolean showText; boolean conditionPassed;
                             pos = uiHashTable(frame).eventdata.get();
                             // 更新选中位置并刷新显示
                             selectedPos = pos;
                             // 刷新右侧内容
                             refreshRightContent(pos);
-                            // 调用字符串回调并设置uiBtn2Text
+                            // 调用字符串回调并设置uiBtn2Text（先执行，可被condition覆盖）
                             if (heroData.trHeroBtn1String != null) {
                                 currentPosAsync = pos;
                                 currentBtn1StringResult = "";
@@ -903,6 +939,17 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                                 if (uiBtn2Text != 0 && currentBtn1StringResult != null) {
                                     uiBtn2Text.setText(currentBtn1StringResult);
                                 }
+                        }
+                        // 调用 trHeroCondition 判断解锁状态，最终决定 btn2 文本
+                        // false=未解锁显示UNLOCK，true=已解锁显示DEFAULT
+                        if (heroData.trHeroCondition != null && uiBtn2Text != 0) {
+                            currentPosAsync = pos;
+                            conditionPassed = TriggerEvaluate(heroData.trHeroCondition);
+                            if (conditionPassed) {
+                                uiBtn2Text.setText(HEROSEL_BTN2_TEXT_DEFAULT);
+                            } else {
+                                uiBtn2Text.setText(HEROSEL_BTN2_TEXT_UNLOCK);
+                            }
                         }
                         // 调用底部文本控制回调
                         if (heroData.trBottomTextControl != null) {
@@ -949,7 +996,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     // slotTxt2 移到旧的 slotTxt1 的位置（相对于 icon 底部）
                     slotTxt2[r][c] = uiText.create(uiMain.ui)
                         .setAlign(4)
-                        .setFontSize(2)
+                        .setFontSize(1)
                         .setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, -HEROSEL_TEXT_GAP_Y)
                         .show(false);
                 }

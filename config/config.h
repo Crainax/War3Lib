@@ -51,5 +51,6 @@
 #define HEROSEL_CURRENCY_ICON "ReplaceableTextures\\CommandButtons\\BTNStaffOfPreservation.blp"
 #define HEROSEL_BTN1_TEXT_DEFAULT "选择技能"
 #define HEROSEL_BTN2_TEXT_DEFAULT "选择英雄"
+#define HEROSEL_BTN2_TEXT_UNLOCK "|cffff0000确认解锁|r"
 
 #define ISVALID_PLAYER_ID(pid) (pid >= 1 && pid <= MAX_PLAYER_COUNT)
