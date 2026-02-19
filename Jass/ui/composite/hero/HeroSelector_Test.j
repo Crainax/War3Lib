@@ -58,6 +58,7 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 		heroData[35].icon = "ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp";
 		heroData[36].icon = "ReplaceableTextures\\CommandButtons\\BTNCarrionSwarm.blp";
 		heroData[37].icon = "ReplaceableTextures\\CommandButtons\\BTNFrostBolt.blp";
+		heroData[38].icon = "ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp";
 		heroData[1].name = "阿利亚之笛";
 		heroData[2].name = "古之忍耐姜歌";
 		heroData[3].name = "召唤护身符";
@@ -95,6 +96,7 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 		heroData[35].name = "德鲁伊布袋";
 		heroData[36].name = "召唤钻石";
 		heroData[37].name = "雷电花芯";
+		heroData[38].name = "奥术之链";
 		for (1 <= i <= 37) {
 			heroData[i].talentCount = ModuloInteger(i, 6);
 			heroData[i].text2 = "力量英雄/近战";
@@ -125,7 +127,14 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 			}
 		}
 
-		heroData.size = 37;
+		// index=38：全 Count 为 0 的测试英雄（用于验证空分页显示逻辑）
+		heroData[38].talentCount = 0;
+		heroData[38].giftCount   = 0;
+		heroData[38].skillCount  = 0;
+		heroData[38].equitCount  = 0;
+		heroData[38].text2       = "力量英雄/近战";
+
+		heroData.size = 38;
 
 		// 进度条测试数据：随机填充（按玩家 pid=1..MAX_PLAYER_COUNT，英雄 pos=1..heroData.size）
 		for (1 <= i <= MAX_PLAYER_COUNT) {
@@ -133,7 +142,7 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 			heroData.progressAllMax[i] = 1000;
 			heroData.progressAll[i] = GetRandomInt(0, heroData.progressAllMax[i]);
 		}
-		for (1 <= i <= heroData.size) {
+		for (1 <= i <= (heroData.size-1)) {
 			for (1 <= j <= MAX_PLAYER_COUNT) {
 				// 英雄亲密度（按玩家+英雄）
 				if (GetRandomInt(0, 1) == 0) {
