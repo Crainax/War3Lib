@@ -7,14 +7,14 @@
 //! zinc
 
 /*
- * UIButton组件测试文件
- * 测试命令:
- * s1 - 创建带图像的基础按钮
- * s2 - 测试按钮事件系统
- * s3 - 测试空白按钮（可以与图像组合）
- * s4 - 测试按钮销毁功能
- * s5 - 测试RC按钮（右键点击按钮）
- */
+* UIButton组件测试文件
+* 测试命令:
+* s1 - 创建带图像的基础按钮
+* s2 - 测试按钮事件系统
+* s3 - 测试空白按钮（可以与图像组合）
+* s4 - 测试按钮销毁功能
+* s5 - 测试RC按钮（右键点击按钮）
+*/
 library UTUIButton requires UIButton {
 
 	uiBtn currentBtn = 0;
@@ -86,6 +86,20 @@ library UTUIButton requires UIButton {
 	}
 
 	function TTestUTUIButton6 (player p) {
+		if (GetLocalPlayer() == p) {
+			if (currentBtn != 0) {
+				currentBtn.destroy();
+				currentBtn = 0;
+			}
+			// 使用魔兽原生对话框风格按钮
+			currentBtn = uiBtn.createWar3Dialog(DzGetGameUI())
+				.setSize(0.228, 0.035)
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+				.onEnter(function() { BJDebugMsg("鼠标进入原生对话框按钮"); })
+				.onLeave(function() { BJDebugMsg("鼠标离开原生对话框按钮"); })
+				.onClick(function() { BJDebugMsg("点击了原生对话框风格按钮2"); });
+			BJDebugMsg("创建了魔兽原生对话框风格按钮");
+		}
 	}
 	function TTestUTUIButton7 (player p) {}
 	function TTestUTUIButton8 (player p) {}

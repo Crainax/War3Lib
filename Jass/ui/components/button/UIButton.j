@@ -48,6 +48,15 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             return this;
         }
 
+        //魔兽原生对话框风格按钮
+        static method createWar3Dialog (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("GLUEBUTTON",STRING_BUTTON + I2S(id),parent,TEMPLATE_WAR3_DIALOG_BUTTON,0);
+            STRUCT_SHARED_UI_ONCREATE(uiBtn)
+            return this;
+        }
+
         // 创建空白按钮
         // parent: 父级框架
         static method createBlank (integer parent) -> thistype {

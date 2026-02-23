@@ -68,7 +68,18 @@ library UTUIBorder requires UIBorder {
 			BJDebugMsg("创建了一个基础边框UI:种类4");
 		}
 	}
-	function TTestUTUIBorder7 (player p) {}
+	function TTestUTUIBorder7 (player p) {
+		if (GetLocalPlayer() == p) {
+			if (currentBorder != 0) {
+				currentBorder.destroy();
+				currentBorder = 0;
+			}
+			currentBorder = uiBorder.createType5(DzGetGameUI())
+				.setSize(0.3, 0.2)
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+			BJDebugMsg("创建了魔兽原生对话框风格边框(种类5)");
+		}
+	}
 	function TTestUTUIBorder8 (player p) {}
 	function TTestUTUIBorder9 (player p) {}
 	function TTestUTUIBorder10 (player p) {}

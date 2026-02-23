@@ -51,6 +51,9 @@
 //# dependency:resource/ui/image/museum_03.blp
 //# dependency:resource/ui/image/museum_04.blp
 
+//todo: 帮我扩展一下:现在是只有16个tab,而且是自动加tab,但是超过16个tab时,可能不适配,我希望在museumData新增添加到第几页的方法: (string n,integer page),默认是第1页,第2页就是16+x,第3页就是16+X,以此类推,然后museumUI中的话,目前的显示方法在保持调用方式不变的情况下是显示第1页的1-16  而新增一个方法可以打开对应页码的方法:比如调用2时可以打开UI,但是左边是17-32,(当然还是保证同时只有一个UI.) 实现后在 Test单元测试中添加测试用例我测试看看.
+//todo: 然后添加一个方法以实现打开UI后直接切换到某个museumData的功能,比如打开UI后直接切换到第2页的第17个tab,实现后在 Test单元测试中添加测试用例我测试看看.
+
 library Museum requires Music,Icon,Tooltip,EscStack {
 
     //==========================================================================
@@ -375,29 +378,29 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                         uiTooltipTemp.destroy();
                         uiTooltipTemp = 0;
                     }
-                    uiTooltipTemp = tooltip.create().layoutTitle("关闭界面|cffff9900(快捷键:Esc)|r");
-                    uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
-                    music[MUSIC_INDEX_BTN_OVER_1].play();
-                })
+                uiTooltipTemp = tooltip.create().layoutTitle("关闭界面|cffff9900(快捷键:Esc)|r");
+                uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
+                music[MUSIC_INDEX_BTN_OVER_1].play();
+            })
                 .onLeave(function() {
                     if (uiTooltipTemp != 0) {
                         uiTooltipTemp.destroy();
                         uiTooltipTemp = 0;
                     }
-                })
+            })
                 .onClick(function() {
                     if (!isOpen) {
                         return;
                     }
 
-                    music[MUSIC_INDEX_BTN_CLICK].play();
+                music[MUSIC_INDEX_BTN_CLICK].play();
 
-                    if (owner != null) {
-                        museumUI.hide(owner);
-                    } else {
-                        museumUI.hide(GetLocalPlayer());
-                    }
-                });
+                if (owner != null) {
+                    museumUI.hide(owner);
+                } else {
+                    museumUI.hide(GetLocalPlayer());
+                }
+            });
 
             // 左侧按钮数量：受限于 MUSEUM_TAB_MAX_COUNT
             if (size > MUSEUM_TAB_MAX_COUNT) {
@@ -433,9 +436,9 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                                 return;
                             }
 
-                            music[MUSIC_INDEX_BTN_CLICK].play();
-                            museumUI.selectTab(mdLocal, idx, true);
-                        });
+                        music[MUSIC_INDEX_BTN_CLICK].play();
+                        museumUI.selectTab(mdLocal, idx, true);
+                    });
 
                     uiHashTable(tabButton[i].ui).eventdata.bind(md);
                     uiHashTable(tabButton[i].ui).eventdata.bind2(i);

@@ -59,6 +59,16 @@ library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
             return this;
         }
 
+        // 创建边框种类5:魔兽原生对话框风格
+        // parent: 父级框架
+        static method createType5 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_BORDER5,0);
+            STRUCT_SHARED_UI_ONCREATE(uiBorder)
+            return this;
+        }
+
         // 创建工具提示背景图片(种类1)
         // parent: 父级框架
         static method createToolTips (integer parent) -> thistype {
