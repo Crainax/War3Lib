@@ -154,6 +154,10 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public static trigger trBpEnter           = null;  //左下角BP鼠标进入触发事件
         public static trigger trBpLeave           = null;  //左下角BP鼠标离开触发事件
         public static trigger trBottomTextControl = null;  //底部文本显示控制触发器（return true显示，false隐藏）
+        public static trigger trHeroBtn1String    = null;  //根据位置返回字符串的触发器
+        public static trigger trBpEnter           = null;  //左下角BP鼠标进入触发事件
+        public static trigger trBpLeave           = null;  //左下角BP鼠标离开触发事件
+        public static trigger trBottomTextControl = null;  //底部文本显示控制触发器（return true显示，false隐藏）
 
     }
 
@@ -635,6 +639,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
             if (heroIndex <= 0 || heroIndex > heroData.size) {
                 // 无效索引，隐藏所有图标及右侧8个文本UI
+                // 无效索引，隐藏所有图标及右侧8个文本UI
                 for (1 <= i <= HEROSEL_TALENT_COUNT) {
                     if (rightTalentIcon[i] != 0) { rightTalentIcon[i].show(false); }
                 }
@@ -647,6 +652,15 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 for (1 <= i <= HEROSEL_EQUIP_COUNT) {
                     if (rightEquipIcon[i] != 0) { rightEquipIcon[i].show(false); }
                 }
+                // 隐藏右侧8个标题/暂无文本
+                if (rightTalentText != 0) { rightTalentText.show(false); }
+                if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(false); }
+                if (rightGiftText != 0) { rightGiftText.show(false); }
+                if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(false); }
+                if (rightSkillText != 0) { rightSkillText.show(false); }
+                if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(false); }
+                if (rightEquipText != 0) { rightEquipText.show(false); }
+                if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(false); }
                 // 隐藏右侧8个标题/暂无文本
                 if (rightTalentText != 0) { rightTalentText.show(false); }
                 if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(false); }
@@ -931,11 +945,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                         .onMouseWheel(function heroSelectorUI.onMouseWheel)
                         .spClick(function(integer frame) {
                             integer pos; boolean showText; boolean conditionPassed;
+                            integer pos; boolean showText; boolean conditionPassed;
                             pos = uiHashTable(frame).eventdata.get();
                             // 更新选中位置并刷新显示
                             selectedPos = pos;
                             // 刷新右侧内容
                             refreshRightContent(pos);
+                            // 调用字符串回调并设置uiBtn2Text（先执行，可被condition覆盖）
                             // 调用字符串回调并设置uiBtn2Text（先执行，可被condition覆盖）
                             if (heroData.trHeroBtn1String != null) {
                                 currentPosAsync = pos;
@@ -956,402 +972,415 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                                 uiBtn2Text.setText(HEROSEL_BTN2_TEXT_UNLOCK);
                             }
                         }
-                        // 调用底部文本控制回调
-                        if (heroData.trBottomTextControl != null) {
-                            currentPosAsync = pos;
-                            currentBtn1StringResult = "";
-                            currentBottomTextShow = false;
-                            showText = TriggerEvaluate(heroData.trBottomTextControl);
-                            if (uiBottomText != 0) {
-                                if (showText) {
-                                    if (currentBtn1StringResult != null) {
-                                        uiBottomText.setText(currentBtn1StringResult);
-                                    }
-                                    uiBottomText.show(true);
-                                } else {
-                                    uiBottomText.show(false);
+                    }
+                    // 调用 trHeroCondition 判断解锁状态，最终决定 btn2 文本
+                    // false=未解锁显示UNLOCK，true=已解锁显示DEFAULT
+                    if (heroData.trHeroCondition != null && uiBtn2Text != 0) {
+                        currentPosAsync = pos;
+                        conditionPassed = TriggerEvaluate(heroData.trHeroCondition);
+                        if (conditionPassed) {
+                            uiBtn2Text.setText(HEROSEL_BTN2_TEXT_DEFAULT);
+                        } else {
+                            uiBtn2Text.setText(HEROSEL_BTN2_TEXT_UNLOCK);
+                        }
+                    }
+                    // 调用底部文本控制回调
+                    if (heroData.trBottomTextControl != null) {
+                        currentPosAsync = pos;
+                        currentBtn1StringResult = "";
+                        currentBottomTextShow = false;
+                        showText = TriggerEvaluate(heroData.trBottomTextControl);
+                        if (uiBottomText != 0) {
+                            if (showText) {
+                                if (currentBtn1StringResult != null) {
+                                    uiBottomText.setText(currentBtn1StringResult);
                                 }
+                                uiBottomText.show(true);
+                            } else {
+                                uiBottomText.show(false);
                             }
                         }
-                        // 选中任意英雄后，流光优先切到按钮2
-                        setGrowBtnState(2);
-                        refreshLeftGrid();
-                    });
-                    uiHashTable(slotIcon[r][c].getClickBtn().ui).eventdata.bind(idx);
-
-                    // 创建 slotTxt1 的背景 uiImage，放在 icon 内部
-                    // 注意：icon.mainImage 默认 clip=true，背景必须放在 icon 内部，否则会被裁剪
-                    // 同时必须绑定左右点，否则宽度可能为 0 导致不渲染
-                    slotTxt1Bg[r][c] = uiImage.create(slotIcon[r][c].mainImage.ui)
-                        .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
-                        .setPoint(ANCHOR_BOTTOM, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, 0)
-                        .setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, HEROSEL_TEXT_BG_HEIGHT)
-                        .setPoint(ANCHOR_LEFT, slotIcon[r][c].mainImage.ui, ANCHOR_LEFT, 0, 0)
-                        .setPoint(ANCHOR_RIGHT, slotIcon[r][c].mainImage.ui, ANCHOR_RIGHT, 0, 0)
-                        .show(false);
-
-                    // slotTxt1 放在 icon 内部，位置与 slotTxt1Bg 顶部对齐
-                    // 注意：父级设为 icon 而不是 slotTxt1Bg，这样即使背景隐藏，文字也能显示
-                    slotTxt1[r][c] = uiText.create(slotIcon[r][c].mainImage.ui)
-                        .setAlign(4)
-                        .setFontSize(2)
-                        .setPoint(ANCHOR_CENTER, slotTxt1Bg[r][c].ui, ANCHOR_CENTER, 0, 0)
-                        .show(false);
-
-                    // slotTxt2 移到旧的 slotTxt1 的位置（相对于 icon 底部）
-                    slotTxt2[r][c] = uiText.create(uiMain.ui)
-                        .setAlign(4)
-                        .setFontSize(1)
-                        .setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, -HEROSEL_TEXT_GAP_Y)
-                        .show(false);
-                }
-            }
-
-            leftGridWidth = HEROSEL_GRID_COLS * HEROSEL_CELL_SIZE + (HEROSEL_GRID_COLS - 1) * HEROSEL_CELL_GAP_X;
-            sliderX = HEROSEL_GRID_OFFSET_X + leftGridWidth + HEROSEL_SLIDER_GAP_X;
-
-            totalRows = (heroData.size + HEROSEL_GRID_COLS - 1) / HEROSEL_GRID_COLS;
-            totalPage = IMaxBJ(1, totalRows - HEROSEL_GRID_ROWS + 1);
-            currentPage = 1;
-
-            leftSlider = uiSlider.createSB2V(uiMain.ui)
-                .exReSize(HEROSEL_SLIDER_WIDTH, HEROSEL_SLIDER_HEIGHT)
-                .setMinMaxValue(1.0, totalPage)
-                .setStep(1.0)
-                .setValue(totalPage)
-                .setThumbScale(HEROSEL_SLIDER_BTN_SCALE)
-                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, sliderX, HEROSEL_GRID_OFFSET_Y)
-                .onChange(function(uiSlider s) {
-                    integer v;
-                    if (!isOpen || s == 0) { return; }
-                    v = R2I(s.getValue());
-                    currentPage = totalPage - v + 1;
-                    if (currentPage < 1) { currentPage = 1; }
-                    if (currentPage > totalPage) { currentPage = totalPage; }
+                    }
+                    // 选中任意英雄后，流光优先切到按钮2
+                    setGrowBtnState(2);
                     refreshLeftGrid();
                 });
+                uiHashTable(slotIcon[r][c].getClickBtn().ui).eventdata.bind(idx);
 
-            // 如果不需要翻页则隐藏slider
-            if (totalPage <= 1) {
-                leftSlider.show(false);
+                // 创建 slotTxt1 的背景 uiImage，放在 icon 内部
+                // 注意：icon.mainImage 默认 clip=true，背景必须放在 icon 内部，否则会被裁剪
+                // 同时必须绑定左右点，否则宽度可能为 0 导致不渲染
+                slotTxt1Bg[r][c] = uiImage.create(slotIcon[r][c].mainImage.ui)
+                    .setTexture("UI\\Widgets\\EscMenu\\Human\\editbox-background.blp")
+                    .setPoint(ANCHOR_BOTTOM, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, 0)
+                    .setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, HEROSEL_TEXT_BG_HEIGHT)
+                    .setPoint(ANCHOR_LEFT, slotIcon[r][c].mainImage.ui, ANCHOR_LEFT, 0, 0)
+                    .setPoint(ANCHOR_RIGHT, slotIcon[r][c].mainImage.ui, ANCHOR_RIGHT, 0, 0)
+                    .show(false);
+
+                // slotTxt1 放在 icon 内部，位置与 slotTxt1Bg 顶部对齐
+                // 注意：父级设为 icon 而不是 slotTxt1Bg，这样即使背景隐藏，文字也能显示
+                slotTxt1[r][c] = uiText.create(slotIcon[r][c].mainImage.ui)
+                    .setAlign(4)
+                    .setFontSize(2)
+                    .setPoint(ANCHOR_CENTER, slotTxt1Bg[r][c].ui, ANCHOR_CENTER, 0, 0)
+                    .show(false);
+
+                // slotTxt2 移到旧的 slotTxt1 的位置（相对于 icon 底部）
+                slotTxt2[r][c] = uiText.create(uiMain.ui)
+                    .setAlign(4)
+                    .setFontSize(1)
+                    .setFontSize(1)
+                    .setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, -HEROSEL_TEXT_GAP_Y)
+                    .show(false);
             }
-
-            refreshLeftGrid();
-
-            // 右侧空白区域占位
-            contentLeftX = sliderX + HEROSEL_SLIDER_WIDTH + HEROSEL_CONTENT_MARGIN_X;
-
-            // 右侧区域：用 exRePoint/exReSize 注册到 UIExtendResize，分辨率变化时可重设
-            rightAreaWidth = HEROSEL_MAIN_WIDTH - contentLeftX - HEROSEL_CONTENT_MARGIN_X;
-            rightAreaHeight = HEROSEL_MAIN_HEIGHT + HEROSEL_GRID_OFFSET_Y - HEROSEL_CONTENT_MARGIN_Y;
-            uiRightArea = uiImage.create(uiMain.ui)
-                .exReSize(rightAreaWidth, rightAreaHeight)
-                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX, HEROSEL_GRID_OFFSET_Y);
-
-            uiDivider = uiImage.create(uiMain.ui)
-                .exReSize(0.003, HEROSEL_MAIN_HEIGHT - 0.01 + HEROSEL_GRID_OFFSET_Y)
-                .setTexture("ui\\image\\vertical_divider.blp")
-                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX - HEROSEL_CONTENT_MARGIN_X * 0.5, HEROSEL_GRID_OFFSET_Y);
-
-            // 右侧内容（相对于 uiRightArea）
-            rightCurrentY = HEROSEL_RIGHT_START_OFFSET_Y;
-
-            // 创建 "天赋技能" 文字
-            rightTalentText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
-                .setAlign(4)  // 居中对齐
-                .setFontSize(7)
-                .setText("|c00ff9900天赋技能|r")
-                .show(false);
-            rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
-
-            // 创建天赋技能图标（5个，单行）
-            rightTalentGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_TALENT_COUNT, HEROSEL_TALENT_COUNT, 0);
-            rightTalentEmptyText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightTalentGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
-                .setAlign(4)
-                .setFontSize(7)
-                .setText("|cff808080暂无|r")
-                .show(false);
-            rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
-
-            // 创建 "联结赠礼" 文字
-            rightGiftText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
-                .setAlign(4)  // 居中对齐
-                .setFontSize(7)
-                .setText("|cffff9900联结赠礼|r")
-                .show(false);
-            rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
-
-            // 创建联结赠礼图标（5个，单行）
-            rightGiftGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_GIFT_COUNT, HEROSEL_GIFT_COUNT, 1);
-            rightGiftEmptyText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightGiftGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
-                .setAlign(4)
-                .setFontSize(7)
-                .setText("|cff808080暂无|r")
-                .show(false);
-            rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
-
-            // 创建 "推荐技能" 文字
-            rightSkillText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
-                .setAlign(4)  // 居中对齐
-                .setFontSize(7)
-                .setText("|cffff9900推荐技能|r")
-                .show(false);
-            rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
-
-            // 创建推荐技能图标（5个，单行）
-            rightSkillGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_SKILL_COUNT, HEROSEL_SKILL_COUNT, 2);
-            rightSkillEmptyText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightSkillGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
-                .setAlign(4)
-                .setFontSize(7)
-                .setText("|cff808080暂无|r")
-                .show(false);
-            rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
-
-            // 创建 "推荐装备" 文字
-            rightEquipText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
-                .setAlign(4)  // 居中对齐
-                .setFontSize(7)
-                .setText("|cffff9900推荐装备|r")
-                .show(false);
-            rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
-
-            // 创建推荐装备图标（10个，2行5列）
-            rightEquipGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_EQUIP_COUNT, HEROSEL_EQUIP_COLS, 3);
-            // 推荐装备区块的"暂无"（两行区域居中）
-            rightEquipEmptyText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightEquipGridY - (HEROSEL_RIGHT_ICON_SIZE * 2.0 + HEROSEL_RIGHT_ICON_GAP_Y) * 0.5)
-                .setAlign(4)
-                .setFontSize(7)
-                .setText("|cff808080暂无|r")
-                .show(false);
-
-            // 装备区块下方：2 个进度条 + 2 个文本（居中，从上到下：bar1/text1/bar2/text2）
-            progY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
-            rightProgBar1 = uiImageBar.create(uiRightArea.ui)
-                .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
-                .setFillColor(0)
-                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
-                .setProgress(0.0);
-            rightProgBar1.uiBackground.show(false);
-            rightProgBar1.uiFill.show(false);
-
-            textY = progY - HEROSEL_PROGRESS_BAR_HEIGHT - HEROSEL_PROGRESS_BAR_TEXT_GAP_Y;
-            rightProgText1 = uiText.create(uiRightArea.ui)
-                .setAlign(4)
-                .setFontSize(7)
-                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY)
-                .setText("")
-                .show(false);
-
-            progY = textY - HEROSEL_PROGRESS_TEXT_BAR_GAP_Y;
-            rightProgBar2 = uiImageBar.create(uiRightArea.ui)
-                .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
-                .setFillColor(2)
-                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
-                .setProgress(0.0);
-            rightProgBar2.uiBackground.show(false);
-            rightProgBar2.uiFill.show(false);
-
-            textY = progY - HEROSEL_PROGRESS_BAR_HEIGHT - HEROSEL_PROGRESS_BAR_TEXT_GAP_Y;
-            rightProgText2 = uiText.create(uiRightArea.ui)
-                .setAlign(4)
-                .setFontSize(7)
-                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY)
-                .setText("")
-                .show(false);
-
-            // 底部按钮上方的文本（x轴位置与第4列图标对齐，默认隐藏）
-            uiBottomText = uiText.create(uiMain.ui)
-                .exRePoint(ANCHOR_BOTTOM, uiMain.ui, ANCHOR_BOTTOMLEFT, HEROSEL_GRID_OFFSET_X + 3 * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_X) + HEROSEL_CELL_SIZE * 0.5, HEROSEL_BOTTOM_BTN_HEIGHT * 0.5 + HEROSEL_BOTTOM_TEXT_GAP_Y)
-                .setAlign(4)
-                .setFontSize(7)
-                .show(false);  // 默认隐藏
-
-            uiBtn1Image = uiImage.create(uiMain.ui)
-                .exReSize(HEROSEL_BOTTOM_BTN_WIDTH, HEROSEL_BOTTOM_BTN_HEIGHT)
-                .setTexture("ui\\image\\button_choose_hero.blp")
-                .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_BOTTOM, -HEROSEL_BOTTOM_BTN_GAP_X * 0.5 - HEROSEL_BOTTOM_BTN_WIDTH * 0.5, 0);
-            uiBtn1Text = uiText.create(uiBtn1Image.ui)
-                .setAllPoint(uiBtn1Image.ui)
-                .setFontSize(7)
-                .setAlign(4)
-                .setText(HEROSEL_BTN1_TEXT_DEFAULT);
-            uiBtn1Button = uiBtn.create(uiBtn1Image.ui)
-                .setAllPoint(uiBtn1Image.ui)
-                .onClick(function() {
-                    // 仅在流光在btn1上时（未选中icon）才关闭流光
-                    // 如果流光已在btn2上（已选中icon），不清除
-                    if (growBtnPos == 1) {
-                        setGrowBtnState(0);
-                    }
-                syncBus.DzSyncDataEx("HSelect","L");
-            });
-
-            uiBtn2Image = uiImage.create(uiMain.ui)
-                .exReSize(HEROSEL_BOTTOM_BTN_WIDTH, HEROSEL_BOTTOM_BTN_HEIGHT)
-                .setTexture("ui\\image\\button_choose_hero.blp")
-                .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_BOTTOM, HEROSEL_BOTTOM_BTN_GAP_X * 0.5 + HEROSEL_BOTTOM_BTN_WIDTH * 0.5, 0);
-            uiBtn2Text = uiText.create(uiBtn2Image.ui)
-                .setAllPoint(uiBtn2Image.ui)
-                .setFontSize(7)
-                .setAlign(4)
-                .setText(HEROSEL_BTN2_TEXT_DEFAULT);
-            uiBtn2Button = uiBtn.create(uiBtn2Image.ui)
-                .setAllPoint(uiBtn2Image.ui)
-                .onClick(function() {
-                    syncBus.DzSyncDataEx("HSelect","R"+I2S(selectedPos));
-                });
-
-            // 默认阶段1：按钮1流光
-            setGrowBtnState(1);
-
-            // 左下角BP图标和文字
-            uiBpIcon = uiImage.create(uiMain.ui)
-                .setTexture(HEROSEL_CURRENCY_ICON)
-                .exReSize(HEROSEL_BP_ICON_SIZE, HEROSEL_BP_ICON_SIZE)
-                .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_BOTTOMLEFT, HEROSEL_BP_OFFSET_X, HEROSEL_BP_OFFSET_Y);
-
-            uiBpText = uiText.create(uiMain.ui)
-                .setFontSize(4)
-                .setAlign(1)  // 左对齐
-                .exRePoint(ANCHOR_LEFT, uiBpIcon.ui, ANCHOR_RIGHT, HEROSEL_BP_TEXT_GAP_X, 0)
-                .setText("0");
-
-            // 创建按钮用于处理鼠标进入和离开事件
-            uiBpButton = uiBtn.createBlank(uiMain.ui)
-                .setPoint(ANCHOR_BOTTOMLEFT, uiBpIcon.ui, ANCHOR_BOTTOMLEFT, 0, 0)
-                .setPoint(ANCHOR_TOPRIGHT, uiBpText.ui, ANCHOR_TOPRIGHT, 0, 0)
-                .onEnter(function() {
-                    if (heroData.trBpEnter != null) {
-                        TriggerEvaluate(heroData.trBpEnter);
-                    }
-            })
-                .onLeave(function() {
-                    if (heroData.trBpLeave != null) {
-                        TriggerEvaluate(heroData.trBpLeave);
-                    }
-            });
         }
 
-        public static method hide(player p) {
-            integer r; integer c;
-            // 销毁右侧内容
-            integer i;
-            if (GetLocalPlayer() != p) { return; }
-            if (!isOpen) { return; }
+        leftGridWidth = HEROSEL_GRID_COLS * HEROSEL_CELL_SIZE + (HEROSEL_GRID_COLS - 1) * HEROSEL_CELL_GAP_X;
+        sliderX = HEROSEL_GRID_OFFSET_X + leftGridWidth + HEROSEL_SLIDER_GAP_X;
 
-            for (1 <= r <= HEROSEL_GRID_ROWS) {
-                for (1 <= c <= HEROSEL_GRID_COLS) {
-                    if (slotTxt2[r][c] != 0) { slotTxt2[r][c].destroy(); slotTxt2[r][c] = 0; }
-                    if (slotTxt1[r][c] != 0) { slotTxt1[r][c].destroy(); slotTxt1[r][c] = 0; }
-                    if (slotTxt1Bg[r][c] != 0) { slotTxt1Bg[r][c].destroy(); slotTxt1Bg[r][c] = 0; }
-                    if (slotIcon[r][c] != 0) { slotIcon[r][c].destroy(); slotIcon[r][c] = 0; }
-                    if (slotIconBorder[r][c] != 0) { slotIconBorder[r][c].destroy(); slotIconBorder[r][c] = 0; }
+        totalRows = (heroData.size + HEROSEL_GRID_COLS - 1) / HEROSEL_GRID_COLS;
+        totalPage = IMaxBJ(1, totalRows - HEROSEL_GRID_ROWS + 1);
+        currentPage = 1;
+
+        leftSlider = uiSlider.createSB2V(uiMain.ui)
+            .exReSize(HEROSEL_SLIDER_WIDTH, HEROSEL_SLIDER_HEIGHT)
+            .setMinMaxValue(1.0, totalPage)
+            .setStep(1.0)
+            .setValue(totalPage)
+            .setThumbScale(HEROSEL_SLIDER_BTN_SCALE)
+            .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, sliderX, HEROSEL_GRID_OFFSET_Y)
+            .onChange(function(uiSlider s) {
+                integer v;
+                if (!isOpen || s == 0) { return; }
+                v = R2I(s.getValue());
+                currentPage = totalPage - v + 1;
+                if (currentPage < 1) { currentPage = 1; }
+                if (currentPage > totalPage) { currentPage = totalPage; }
+                refreshLeftGrid();
+            });
+
+        // 如果不需要翻页则隐藏slider
+        if (totalPage <= 1) {
+            leftSlider.show(false);
+        }
+
+        refreshLeftGrid();
+
+        // 右侧空白区域占位
+        contentLeftX = sliderX + HEROSEL_SLIDER_WIDTH + HEROSEL_CONTENT_MARGIN_X;
+
+        // 右侧区域：用 exRePoint/exReSize 注册到 UIExtendResize，分辨率变化时可重设
+        rightAreaWidth = HEROSEL_MAIN_WIDTH - contentLeftX - HEROSEL_CONTENT_MARGIN_X;
+        rightAreaHeight = HEROSEL_MAIN_HEIGHT + HEROSEL_GRID_OFFSET_Y - HEROSEL_CONTENT_MARGIN_Y;
+        uiRightArea = uiImage.create(uiMain.ui)
+            .exReSize(rightAreaWidth, rightAreaHeight)
+            .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX, HEROSEL_GRID_OFFSET_Y);
+
+        uiDivider = uiImage.create(uiMain.ui)
+            .exReSize(0.003, HEROSEL_MAIN_HEIGHT - 0.01 + HEROSEL_GRID_OFFSET_Y)
+            .setTexture("ui\\image\\vertical_divider.blp")
+            .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, contentLeftX - HEROSEL_CONTENT_MARGIN_X * 0.5, HEROSEL_GRID_OFFSET_Y);
+
+        // 右侧内容（相对于 uiRightArea）
+        rightCurrentY = HEROSEL_RIGHT_START_OFFSET_Y;
+
+        // 创建 "天赋技能" 文字
+        rightTalentText = uiText.create(uiRightArea.ui)
+            .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
+            .setAlign(4)  // 居中对齐
+            .setFontSize(7)
+            .setText("|c00ff9900天赋技能|r")
+            .show(false);
+        rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
+
+        // 创建天赋技能图标（5个，单行）
+        rightTalentGridY = rightCurrentY;
+        rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_TALENT_COUNT, HEROSEL_TALENT_COUNT, 0);
+        rightTalentEmptyText = uiText.create(uiRightArea.ui)
+            .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightTalentGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
+            .setAlign(4)
+            .setFontSize(7)
+            .setText("|cff808080暂无|r")
+            .show(false);
+        rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
+
+        // 创建 "联结赠礼" 文字
+        rightGiftText = uiText.create(uiRightArea.ui)
+            .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
+            .setAlign(4)  // 居中对齐
+            .setFontSize(7)
+            .setText("|cffff9900联结赠礼|r")
+            .show(false);
+        rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
+
+        // 创建联结赠礼图标（5个，单行）
+        rightGiftGridY = rightCurrentY;
+        rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_GIFT_COUNT, HEROSEL_GIFT_COUNT, 1);
+        rightGiftEmptyText = uiText.create(uiRightArea.ui)
+            .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightGiftGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
+            .setAlign(4)
+            .setFontSize(7)
+            .setText("|cff808080暂无|r")
+            .show(false);
+        rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
+
+        // 创建 "推荐技能" 文字
+        rightSkillText = uiText.create(uiRightArea.ui)
+            .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
+            .setAlign(4)  // 居中对齐
+            .setFontSize(7)
+            .setText("|cffff9900推荐技能|r")
+            .show(false);
+        rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
+
+        // 创建推荐技能图标（5个，单行）
+        rightSkillGridY = rightCurrentY;
+        rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_SKILL_COUNT, HEROSEL_SKILL_COUNT, 2);
+        rightSkillEmptyText = uiText.create(uiRightArea.ui)
+            .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightSkillGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
+            .setAlign(4)
+            .setFontSize(7)
+            .setText("|cff808080暂无|r")
+            .show(false);
+        rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
+
+        // 创建 "推荐装备" 文字
+        rightEquipText = uiText.create(uiRightArea.ui)
+            .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
+            .setAlign(4)  // 居中对齐
+            .setFontSize(7)
+            .setText("|cffff9900推荐装备|r")
+            .show(false);
+        rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
+
+        // 创建推荐装备图标（10个，2行5列）
+        rightEquipGridY = rightCurrentY;
+        rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_EQUIP_COUNT, HEROSEL_EQUIP_COLS, 3);
+        // 推荐装备区块的"暂无"（两行区域居中）
+        rightEquipEmptyText = uiText.create(uiRightArea.ui)
+            .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightEquipGridY - (HEROSEL_RIGHT_ICON_SIZE * 2.0 + HEROSEL_RIGHT_ICON_GAP_Y) * 0.5)
+            .setAlign(4)
+            .setFontSize(7)
+            .setText("|cff808080暂无|r")
+            .show(false);
+
+        // 装备区块下方：2 个进度条 + 2 个文本（居中，从上到下：bar1/text1/bar2/text2）
+        progY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
+        rightProgBar1 = uiImageBar.create(uiRightArea.ui)
+            .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
+            .setFillColor(0)
+            .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
+            .setProgress(0.0);
+        rightProgBar1.uiBackground.show(false);
+        rightProgBar1.uiFill.show(false);
+
+        textY = progY - HEROSEL_PROGRESS_BAR_HEIGHT - HEROSEL_PROGRESS_BAR_TEXT_GAP_Y;
+        rightProgText1 = uiText.create(uiRightArea.ui)
+            .setAlign(4)
+            .setFontSize(7)
+            .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY)
+            .setText("")
+            .show(false);
+
+        progY = textY - HEROSEL_PROGRESS_TEXT_BAR_GAP_Y;
+        rightProgBar2 = uiImageBar.create(uiRightArea.ui)
+            .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
+            .setFillColor(2)
+            .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, progY)
+            .setProgress(0.0);
+        rightProgBar2.uiBackground.show(false);
+        rightProgBar2.uiFill.show(false);
+
+        textY = progY - HEROSEL_PROGRESS_BAR_HEIGHT - HEROSEL_PROGRESS_BAR_TEXT_GAP_Y;
+        rightProgText2 = uiText.create(uiRightArea.ui)
+            .setAlign(4)
+            .setFontSize(7)
+            .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY)
+            .setText("")
+            .show(false);
+
+        // 底部按钮上方的文本（x轴位置与第4列图标对齐，默认隐藏）
+        uiBottomText = uiText.create(uiMain.ui)
+            .exRePoint(ANCHOR_BOTTOM, uiMain.ui, ANCHOR_BOTTOMLEFT, HEROSEL_GRID_OFFSET_X + 3 * (HEROSEL_CELL_SIZE + HEROSEL_CELL_GAP_X) + HEROSEL_CELL_SIZE * 0.5, HEROSEL_BOTTOM_BTN_HEIGHT * 0.5 + HEROSEL_BOTTOM_TEXT_GAP_Y)
+            .setAlign(4)
+            .setFontSize(7)
+            .show(false);  // 默认隐藏
+
+        uiBtn1Image = uiImage.create(uiMain.ui)
+            .exReSize(HEROSEL_BOTTOM_BTN_WIDTH, HEROSEL_BOTTOM_BTN_HEIGHT)
+            .setTexture("ui\\image\\button_choose_hero.blp")
+            .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_BOTTOM, -HEROSEL_BOTTOM_BTN_GAP_X * 0.5 - HEROSEL_BOTTOM_BTN_WIDTH * 0.5, 0);
+        uiBtn1Text = uiText.create(uiBtn1Image.ui)
+            .setAllPoint(uiBtn1Image.ui)
+            .setFontSize(7)
+            .setAlign(4)
+            .setText(HEROSEL_BTN1_TEXT_DEFAULT);
+        uiBtn1Button = uiBtn.create(uiBtn1Image.ui)
+            .setAllPoint(uiBtn1Image.ui)
+            .onClick(function() {
+                // 仅在流光在btn1上时（未选中icon）才关闭流光
+                // 如果流光已在btn2上（已选中icon），不清除
+                if (growBtnPos == 1) {
+                    setGrowBtnState(0);
                 }
-            }
+            syncBus.DzSyncDataEx("HSelect","L");
+        });
 
-            if (leftSlider != 0) { leftSlider.destroy(); leftSlider = 0; }
+        uiBtn2Image = uiImage.create(uiMain.ui)
+            .exReSize(HEROSEL_BOTTOM_BTN_WIDTH, HEROSEL_BOTTOM_BTN_HEIGHT)
+            .setTexture("ui\\image\\button_choose_hero.blp")
+            .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_BOTTOM, HEROSEL_BOTTOM_BTN_GAP_X * 0.5 + HEROSEL_BOTTOM_BTN_WIDTH * 0.5, 0);
+        uiBtn2Text = uiText.create(uiBtn2Image.ui)
+            .setAllPoint(uiBtn2Image.ui)
+            .setFontSize(7)
+            .setAlign(4)
+            .setText(HEROSEL_BTN2_TEXT_DEFAULT);
+        uiBtn2Button = uiBtn.create(uiBtn2Image.ui)
+            .setAllPoint(uiBtn2Image.ui)
+            .onClick(function() {
+                syncBus.DzSyncDataEx("HSelect","R"+I2S(selectedPos));
+            });
 
-            // 销毁推荐装备图标
-            for (1 <= i <= HEROSEL_EQUIP_COUNT) {
-                if (rightEquipIcon[i] != 0) { rightEquipIcon[i].destroy(); rightEquipIcon[i] = 0; }
-            }
-            if (rightEquipText != 0) { rightEquipText.destroy(); rightEquipText = 0; }
-            // 销毁推荐技能图标
-            for (1 <= i <= HEROSEL_SKILL_COUNT) {
-                if (rightSkillIcon[i] != 0) { rightSkillIcon[i].destroy(); rightSkillIcon[i] = 0; }
-            }
-            if (rightSkillText != 0) { rightSkillText.destroy(); rightSkillText = 0; }
-            // 销毁联结赠礼图标
-            for (1 <= i <= HEROSEL_GIFT_COUNT) {
-                if (rightGiftIcon[i] != 0) { rightGiftIcon[i].destroy(); rightGiftIcon[i] = 0; }
-            }
-            if (rightGiftText != 0) { rightGiftText.destroy(); rightGiftText = 0; }
-            // 销毁天赋技能图标
-            for (1 <= i <= HEROSEL_TALENT_COUNT) {
-                if (rightTalentIcon[i] != 0) { rightTalentIcon[i].destroy(); rightTalentIcon[i] = 0; }
-            }
-            if (rightTalentText != 0) { rightTalentText.destroy(); rightTalentText = 0; }
-            if (rightTalentEmptyText != 0) { rightTalentEmptyText.destroy(); rightTalentEmptyText = 0; }
-            if (rightGiftEmptyText != 0) { rightGiftEmptyText.destroy(); rightGiftEmptyText = 0; }
-            if (rightSkillEmptyText != 0) { rightSkillEmptyText.destroy(); rightSkillEmptyText = 0; }
-            if (rightEquipEmptyText != 0) { rightEquipEmptyText.destroy(); rightEquipEmptyText = 0; }
+        // 默认阶段1：按钮1流光
+        setGrowBtnState(1);
 
-            if (rightProgText2 != 0) { rightProgText2.destroy(); rightProgText2 = 0; }
-            if (rightProgBar2 != 0) { rightProgBar2.destroy(); rightProgBar2 = 0; }
-            if (rightProgText1 != 0) { rightProgText1.destroy(); rightProgText1 = 0; }
-            if (rightProgBar1 != 0) { rightProgBar1.destroy(); rightProgBar1 = 0; }
+        // 左下角BP图标和文字
+        uiBpIcon = uiImage.create(uiMain.ui)
+            .setTexture(HEROSEL_CURRENCY_ICON)
+            .exReSize(HEROSEL_BP_ICON_SIZE, HEROSEL_BP_ICON_SIZE)
+            .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_BOTTOMLEFT, HEROSEL_BP_OFFSET_X, HEROSEL_BP_OFFSET_Y);
 
-            if (growBtnAnim != 0) { growBtnAnim.destroy(); growBtnAnim = 0; }
-            if (growBtnImage != 0) { growBtnImage.destroy(); growBtnImage = 0; }
-            if (uiBtn2Button != 0) { uiBtn2Button.destroy(); uiBtn2Button = 0; }
-            if (uiBtn2Text != 0) { uiBtn2Text.destroy(); uiBtn2Text = 0; }
-            if (uiBtn2Image != 0) { uiBtn2Image.destroy(); uiBtn2Image = 0; }
-            if (uiBtn1Button != 0) { uiBtn1Button.destroy(); uiBtn1Button = 0; }
-            if (uiBtn1Text != 0) { uiBtn1Text.destroy(); uiBtn1Text = 0; }
-            if (uiBtn1Image != 0) { uiBtn1Image.destroy(); uiBtn1Image = 0; }
-            if (uiBpButton != 0) { uiBpButton.destroy(); uiBpButton = 0; }
-            if (uiBpText != 0) { uiBpText.destroy(); uiBpText = 0; }
-            if (uiBpIcon != 0) { uiBpIcon.destroy(); uiBpIcon = 0; }
-            if (uiBottomText != 0) { uiBottomText.destroy(); uiBottomText = 0; }
-            if (uiTitleText != 0) { uiTitleText.destroy(); uiTitleText = 0; }
-            if (uiDivider != 0) { uiDivider.destroy(); uiDivider = 0; }
-            if (uiRightArea != 0) { uiRightArea.destroy(); uiRightArea = 0; }
-            if (uiMainButton != 0) { uiMainButton.destroy(); uiMainButton = 0; }
-            if (bgImage1 != 0) { bgImage1.destroy(); bgImage1 = 0; }
-            if (bgImage2 != 0) { bgImage2.destroy(); bgImage2 = 0; }
-            if (bgImage3 != 0) { bgImage3.destroy(); bgImage3 = 0; }
-            if (bgImage4 != 0) { bgImage4.destroy(); bgImage4 = 0; }
-            if (uiMain != 0) { uiMain.destroy(); uiMain = 0; }
+        uiBpText = uiText.create(uiMain.ui)
+            .setFontSize(4)
+            .setAlign(1)  // 左对齐
+            .exRePoint(ANCHOR_LEFT, uiBpIcon.ui, ANCHOR_RIGHT, HEROSEL_BP_TEXT_GAP_X, 0)
+            .setText("0");
 
-            owner = null;
-            isOpen = false;
-            currentPage = 1;
-            totalPage = 1;
-            selectedPos = 0;
-            growBtnPos = 0;
-        }
-
-        // 判断 UI 是否正在显示
-        public static method isShow() -> boolean {
-            return isOpen;
-        }
-
-        // 设置按钮1的文本（仅对指定玩家）
-        public static method setBtn1Text(player p, string text) {
-            if (GetLocalPlayer() != p) { return; }
-            if (uiBtn1Text != 0) {
-                uiBtn1Text.setText(text);
-            }
-        }
-
-        // 设置左下角BP文本（仅对指定玩家）
-        public static method setBpText(player p, string text) {
-            if (GetLocalPlayer() != p) { return; }
-            if (uiBpText != 0) {
-                uiBpText.setText(text);
-            }
-        }
-
-        // 刷新左侧网格图标（仅对指定玩家）
-        public static method refreshGrid(player p) {
-            if (GetLocalPlayer() != p) { return; }
-            if (!isOpen) { return; }
-            refreshLeftGrid();
-        }
-
+        // 创建按钮用于处理鼠标进入和离开事件
+        uiBpButton = uiBtn.createBlank(uiMain.ui)
+            .setPoint(ANCHOR_BOTTOMLEFT, uiBpIcon.ui, ANCHOR_BOTTOMLEFT, 0, 0)
+            .setPoint(ANCHOR_TOPRIGHT, uiBpText.ui, ANCHOR_TOPRIGHT, 0, 0)
+            .onEnter(function() {
+                if (heroData.trBpEnter != null) {
+                    TriggerEvaluate(heroData.trBpEnter);
+                }
+        })
+            .onLeave(function() {
+                if (heroData.trBpLeave != null) {
+                    TriggerEvaluate(heroData.trBpLeave);
+                }
+        });
     }
+
+    public static method hide(player p) {
+        integer r; integer c;
+        // 销毁右侧内容
+        integer i;
+        if (GetLocalPlayer() != p) { return; }
+        if (!isOpen) { return; }
+
+        for (1 <= r <= HEROSEL_GRID_ROWS) {
+            for (1 <= c <= HEROSEL_GRID_COLS) {
+                if (slotTxt2[r][c] != 0) { slotTxt2[r][c].destroy(); slotTxt2[r][c] = 0; }
+                if (slotTxt1[r][c] != 0) { slotTxt1[r][c].destroy(); slotTxt1[r][c] = 0; }
+                if (slotTxt1Bg[r][c] != 0) { slotTxt1Bg[r][c].destroy(); slotTxt1Bg[r][c] = 0; }
+                if (slotIcon[r][c] != 0) { slotIcon[r][c].destroy(); slotIcon[r][c] = 0; }
+                if (slotIconBorder[r][c] != 0) { slotIconBorder[r][c].destroy(); slotIconBorder[r][c] = 0; }
+            }
+        }
+
+        if (leftSlider != 0) { leftSlider.destroy(); leftSlider = 0; }
+
+        // 销毁推荐装备图标
+        for (1 <= i <= HEROSEL_EQUIP_COUNT) {
+            if (rightEquipIcon[i] != 0) { rightEquipIcon[i].destroy(); rightEquipIcon[i] = 0; }
+        }
+        if (rightEquipText != 0) { rightEquipText.destroy(); rightEquipText = 0; }
+        // 销毁推荐技能图标
+        for (1 <= i <= HEROSEL_SKILL_COUNT) {
+            if (rightSkillIcon[i] != 0) { rightSkillIcon[i].destroy(); rightSkillIcon[i] = 0; }
+        }
+        if (rightSkillText != 0) { rightSkillText.destroy(); rightSkillText = 0; }
+        // 销毁联结赠礼图标
+        for (1 <= i <= HEROSEL_GIFT_COUNT) {
+            if (rightGiftIcon[i] != 0) { rightGiftIcon[i].destroy(); rightGiftIcon[i] = 0; }
+        }
+        if (rightGiftText != 0) { rightGiftText.destroy(); rightGiftText = 0; }
+        // 销毁天赋技能图标
+        for (1 <= i <= HEROSEL_TALENT_COUNT) {
+            if (rightTalentIcon[i] != 0) { rightTalentIcon[i].destroy(); rightTalentIcon[i] = 0; }
+        }
+        if (rightTalentText != 0) { rightTalentText.destroy(); rightTalentText = 0; }
+        if (rightTalentEmptyText != 0) { rightTalentEmptyText.destroy(); rightTalentEmptyText = 0; }
+        if (rightGiftEmptyText != 0) { rightGiftEmptyText.destroy(); rightGiftEmptyText = 0; }
+        if (rightSkillEmptyText != 0) { rightSkillEmptyText.destroy(); rightSkillEmptyText = 0; }
+        if (rightEquipEmptyText != 0) { rightEquipEmptyText.destroy(); rightEquipEmptyText = 0; }
+
+        if (rightProgText2 != 0) { rightProgText2.destroy(); rightProgText2 = 0; }
+        if (rightProgBar2 != 0) { rightProgBar2.destroy(); rightProgBar2 = 0; }
+        if (rightProgText1 != 0) { rightProgText1.destroy(); rightProgText1 = 0; }
+        if (rightProgBar1 != 0) { rightProgBar1.destroy(); rightProgBar1 = 0; }
+
+        if (growBtnAnim != 0) { growBtnAnim.destroy(); growBtnAnim = 0; }
+        if (growBtnImage != 0) { growBtnImage.destroy(); growBtnImage = 0; }
+        if (uiBtn2Button != 0) { uiBtn2Button.destroy(); uiBtn2Button = 0; }
+        if (uiBtn2Text != 0) { uiBtn2Text.destroy(); uiBtn2Text = 0; }
+        if (uiBtn2Image != 0) { uiBtn2Image.destroy(); uiBtn2Image = 0; }
+        if (uiBtn1Button != 0) { uiBtn1Button.destroy(); uiBtn1Button = 0; }
+        if (uiBtn1Text != 0) { uiBtn1Text.destroy(); uiBtn1Text = 0; }
+        if (uiBtn1Image != 0) { uiBtn1Image.destroy(); uiBtn1Image = 0; }
+        if (uiBpButton != 0) { uiBpButton.destroy(); uiBpButton = 0; }
+        if (uiBpText != 0) { uiBpText.destroy(); uiBpText = 0; }
+        if (uiBpIcon != 0) { uiBpIcon.destroy(); uiBpIcon = 0; }
+        if (uiBottomText != 0) { uiBottomText.destroy(); uiBottomText = 0; }
+        if (uiTitleText != 0) { uiTitleText.destroy(); uiTitleText = 0; }
+        if (uiDivider != 0) { uiDivider.destroy(); uiDivider = 0; }
+        if (uiRightArea != 0) { uiRightArea.destroy(); uiRightArea = 0; }
+        if (uiMainButton != 0) { uiMainButton.destroy(); uiMainButton = 0; }
+        if (bgImage1 != 0) { bgImage1.destroy(); bgImage1 = 0; }
+        if (bgImage2 != 0) { bgImage2.destroy(); bgImage2 = 0; }
+        if (bgImage3 != 0) { bgImage3.destroy(); bgImage3 = 0; }
+        if (bgImage4 != 0) { bgImage4.destroy(); bgImage4 = 0; }
+        if (uiMain != 0) { uiMain.destroy(); uiMain = 0; }
+
+        owner = null;
+        isOpen = false;
+        currentPage = 1;
+        totalPage = 1;
+        selectedPos = 0;
+        growBtnPos = 0;
+    }
+
+    // 判断 UI 是否正在显示
+    public static method isShow() -> boolean {
+        return isOpen;
+    }
+
+    // 设置按钮1的文本（仅对指定玩家）
+    public static method setBtn1Text(player p, string text) {
+        if (GetLocalPlayer() != p) { return; }
+        if (uiBtn1Text != 0) {
+            uiBtn1Text.setText(text);
+        }
+    }
+
+    // 设置左下角BP文本（仅对指定玩家）
+    public static method setBpText(player p, string text) {
+        if (GetLocalPlayer() != p) { return; }
+        if (uiBpText != 0) {
+            uiBpText.setText(text);
+        }
+    }
+
+    // 刷新左侧网格图标（仅对指定玩家）
+    public static method refreshGrid(player p) {
+        if (GetLocalPlayer() != p) { return; }
+        if (!isOpen) { return; }
+        refreshLeftGrid();
+    }
+
+}
 }
 
 //! endzinc
