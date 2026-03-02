@@ -76,46 +76,8 @@ library Museum requires Music,Icon,Tooltip,EscStack {
         // 回调参数传递：当前触发的 museumData
         private static thistype callbackData = 0;
 
-        // 注册一个新的图鉴分类
-        public static method registerAlbum(string n) -> thistype {
-            thistype this;
-            integer targetPage;
-            integer slot;
-
-            this = allocate();
-            if (this <= 0) {
-                return 0;
-            }
-
-            targetPage = 1;
-            while (thistype.pageSize[targetPage] >= MUSEUM_TAB_MAX_COUNT) {
-                targetPage += 1;
-            }
-            slot = thistype.pageSize[targetPage] + 1;
-            thistype.pageSize[targetPage] = slot;
-
-            this.name    = n;
-            this.trClick = null;
-            this.trClose = null;
-            this.page    = targetPage;
-            this.pageSlot = slot;
-            this.index   = (targetPage - 1) * MUSEUM_TAB_MAX_COUNT + slot;
-
-            thistype.list[this.index] = this;
-            thistype.totalSize += 1;
-
-            if (this.index > thistype.maxIndex) {
-                thistype.maxIndex = this.index;
-            }
-            if (this.page > thistype.maxPage) {
-                thistype.maxPage = this.page;
-            }
-
-            return this;
-        }
-
-        // 注册到指定页码（page 从 1 开始；该页满 16 后自动顺延到下一页）
-        public static method registerAlbumAtPage(string n, integer page) -> thistype {
+        // 内部实现：注册图鉴到指定页（page < 1 时默认从1开始）
+        private static method registerAlbumInternal(string n, integer page) -> thistype {
             thistype this;
             integer targetPage;
             integer slot;
@@ -153,6 +115,16 @@ library Museum requires Music,Icon,Tooltip,EscStack {
             }
 
             return this;
+        }
+
+        // 注册一个新的图鉴分类
+        public static method registerAlbum(string n) -> thistype {
+            return thistype.registerAlbumInternal(n, 1);
+        }
+
+        // 注册到指定页码（page 从 1 开始；该页满 16 后自动顺延到下一页）
+        public static method registerAlbumAtPage(string n, integer page) -> thistype {
+            return thistype.registerAlbumInternal(n, page);
         }
 
         // 注册：点击 / 打开时的回调
@@ -277,7 +249,7 @@ library Museum requires Music,Icon,Tooltip,EscStack {
 
         // 状态
         private static museumData currentAlbum   = 0; // 当前激活图鉴
-        private static museumData lastAlbum      = 0; // 上一次激活图鉴（用于记忆）
+        private static museumData lastAlbumByPage[]; // 每页独立记忆上次选中的图鉴
         private static integer    currentTabIndex = 0; // 当前选中的 Tab 索引
         private static integer    currentPage     = 1; // 当前展示页码
         private static boolean    isOpen          = false;
@@ -405,29 +377,29 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                         uiTooltipTemp.destroy();
                         uiTooltipTemp = 0;
                     }
-                    uiTooltipTemp = tooltip.create().layoutTitle("关闭界面|cffff9900(快捷键:Esc)|r");
-                    uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
-                    music[MUSIC_INDEX_BTN_OVER_1].play();
-                })
+                uiTooltipTemp = tooltip.create().layoutTitle("关闭界面|cffff9900(快捷键:Esc)|r");
+                uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
+                music[MUSIC_INDEX_BTN_OVER_1].play();
+            })
                 .onLeave(function() {
                     if (uiTooltipTemp != 0) {
                         uiTooltipTemp.destroy();
                         uiTooltipTemp = 0;
                     }
-                })
+            })
                 .onClick(function() {
                     if (!isOpen) {
                         return;
                     }
 
-                    music[MUSIC_INDEX_BTN_CLICK].play();
+                music[MUSIC_INDEX_BTN_CLICK].play();
 
-                    if (owner != null) {
-                        museumUI.hide(owner);
-                    } else {
-                        museumUI.hide(GetLocalPlayer());
-                    }
-                });
+                if (owner != null) {
+                    museumUI.hide(owner);
+                } else {
+                    museumUI.hide(GetLocalPlayer());
+                }
+            });
 
             // 右侧内容区域：以 Tab 右侧 + 标题下方为左上起点，以整体右下角留出 0.005 边距为右下终点
             uiContentArea = uiImage.create(uiMain.ui)
@@ -489,9 +461,9 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                                 return;
                             }
 
-                            music[MUSIC_INDEX_BTN_CLICK].play();
-                            museumUI.selectTab(mdLocal, idx, true);
-                        });
+                        music[MUSIC_INDEX_BTN_CLICK].play();
+                        museumUI.selectTab(mdLocal, idx, true);
+                    });
 
                     uiHashTable(tabButton[i].ui).eventdata.bind(md);
                     uiHashTable(tabButton[i].ui).eventdata.bind2(i);
@@ -535,7 +507,7 @@ library Museum requires Music,Icon,Tooltip,EscStack {
             }
 
             currentAlbum    = target;
-            lastAlbum       = target;
+            lastAlbumByPage[target.getPage()] = target;
             currentTabIndex = idx;
 
             // 更新标题显示为当前选中的 Tab 名称
@@ -597,9 +569,9 @@ library Museum requires Music,Icon,Tooltip,EscStack {
             if (preferredAlbum != 0 && preferredAlbum.isExist() && preferredAlbum.getPage() == currentPage) {
                 startAlbum = preferredAlbum;
                 startIndex = preferredAlbum.getPageSlot();
-            } else if (lastAlbum != 0 && lastAlbum.isExist() && lastAlbum.getPage() == currentPage) {
-                startAlbum = lastAlbum;
-                startIndex = lastAlbum.getPageSlot();
+            } else if (lastAlbumByPage[currentPage] != 0 && lastAlbumByPage[currentPage].isExist()) {
+                startAlbum = lastAlbumByPage[currentPage];
+                startIndex = lastAlbumByPage[currentPage].getPageSlot();
             } else if (tabCount > 0) {
                 startAlbum = museumData.getByPageSlot(currentPage, 1);
                 if (startAlbum != 0) {
@@ -622,15 +594,9 @@ library Museum requires Music,Icon,Tooltip,EscStack {
             }
         }
 
-        // 供外部调用：打开 UI（保持旧调用方式，默认展示第 1 页）
+        // 供外部调用：打开 UI（保持旧调用方式，默认展示第 1 页，带记忆功能）
         public static method show(player p) {
-            museumData firstAlbum;
-            firstAlbum = museumData.getByPageSlot(1, 1);
-            if (firstAlbum != 0) {
-                museumUI.showAlbum(p, firstAlbum);
-            } else {
-                museumUI.showPage(p, 1);
-            }
+            museumUI.showPage(p, 1);
         }
 
         // 供外部调用：打开指定页

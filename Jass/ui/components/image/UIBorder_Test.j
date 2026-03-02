@@ -23,7 +23,8 @@ library UTUIBorder requires UIBorder {
 		if (GetLocalPlayer() == p) {
 			currentBorder = uiBorder.createType2(DzGetGameUI())
 				.setSize(0.1,0.1)
-				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+				.setAlpha(180); // 80% 不透明度 (255 * 0.8)
 			BJDebugMsg("创建了一个基础边框UI:种类2");
 		}
 	}

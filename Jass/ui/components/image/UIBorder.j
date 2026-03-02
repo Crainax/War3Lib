@@ -39,7 +39,7 @@ library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
             return this;
         }
 
-        // 创建边框种类2:适用于大面板通知消息系
+        // 创建边框种类3:适用于大面板通知消息系
         // parent: 父级框架
         static method createType3 (integer parent) -> thistype {
             thistype this = allocate();
@@ -49,7 +49,7 @@ library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
             return this;
         }
 
-        // 创建边框种类2:适用于大面板通知消息系
+        // 创建边框种类4:适用于大面板通知消息系
         // parent: 父级框架
         static method createType4 (integer parent) -> thistype {
             thistype this = allocate();

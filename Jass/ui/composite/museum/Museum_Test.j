@@ -225,7 +225,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 							cat = albumAUI.currentIdx;
 							BJDebugMsg("[图鉴A] " + albumAUI.tabNames[cat] + " 分类 点击条目 #" + I2S(actual));
 						}
-					});
+				});
 				uiHashTable(iconSlots[i].getClickBtn().ui).eventdata.bind(i);
 			}
 		}
@@ -249,7 +249,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 					if (albumAUI.pageCount > 1) {
 						music[MUSIC_INDEX_BTN_OVER_1].play();
 					}
-				})
+			})
 				.spClick(function(integer frame) {
 					albumAUI.changePage(-1);
 				});
@@ -266,7 +266,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 					if (albumAUI.pageCount > 1) {
 						music[MUSIC_INDEX_BTN_OVER_1].play();
 					}
-				})
+			})
 				.spClick(function(integer frame) {
 					albumAUI.changePage(1);
 				});
@@ -459,6 +459,21 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 			lp = null;
 		});
 		keyboard.regKeyUpEvent(KEY_F2, null);
+
+		// 注册 F3 按键，用于切换博物馆 UI 第 2 页的开启/关闭
+		keyboard.regKeyDownEvent(KEY_F3, function (){
+			player lp;
+			lp = GetLocalPlayer();
+
+			if (!museumUI.isShow()) {
+				museumUI.showPage(lp, 2);
+			} else {
+				museumUI.hide(lp);
+			}
+
+			lp = null;
+		});
+		keyboard.regKeyUpEvent(KEY_F3, null);
 
 	}
 
