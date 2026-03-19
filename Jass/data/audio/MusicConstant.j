@@ -28,7 +28,12 @@
 #define MUSIC_INDEX_BTN_CLICK       12  //按钮点击音效
 #define MUSIC_INDEX_UP_SPELL        13  //升级法术音效
 #define MUSIC_INDEX_LUMBER          14  //获得木材的声音
+#define MUSIC_INDEX_JOB_FINISH      15  //任务完成音效
+#define MUSIC_INDEX_JOB_PAUSE       16  //任务暂停音效
+#define MUSIC_INDEX_JOB_START       17  //任务开始音效
+#define MUSIC_INDEX_BTN_SWITCH_CLOSE 18 //开关关闭音效
+#define MUSIC_INDEX_BTN_SWITCH_OPEN 19  //开关开启音效
 
-#define SOUND_POOL_SIZE 15  // 每个音效的对象池大小（可同时播放20个）
+#define SOUND_POOL_SIZE 20  // 每个音效的对象池大小（可同时播放20个）
 
 #endif

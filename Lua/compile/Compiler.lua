@@ -5,8 +5,220 @@ local path = require "Lua.path"
 local compileFiles = require "Lua.compile.CompileFiles"
 
 local compile = {}
+local MIRROR_MARKER = "codex_crainax_mirror.txt"
 
 -- todo:学习YDWE的预添加函数
+
+local function ensureDirExists(dir)
+	if lfs.attributes(dir, "mode") == "directory" then
+		return true
+	end
+
+	local parent = string.match(dir, "(.+)/[^/]+$")
+	if parent and lfs.attributes(parent, "mode") ~= "directory" then
+		local ok, err = ensureDirExists(parent)
+		if not ok then
+			return false, err
+		end
+	end
+
+	local ok, err = lfs.mkdir(dir)
+	if ok or lfs.attributes(dir, "mode") == "directory" then
+		return true
+	end
+	return false, err
+end
+
+local function clearDirRecursive(dir)
+	if lfs.attributes(dir, "mode") ~= "directory" then
+		return true
+	end
+
+	for name in lfs.dir(dir) do
+		if name ~= "." and name ~= ".." then
+			local fullPath = dir .. "/" .. name
+			local mode = lfs.attributes(fullPath, "mode")
+			if mode == "directory" then
+				local ok, err = clearDirRecursive(fullPath)
+				if not ok then
+					return false, err
+				end
+				local rmOk, rmErr = lfs.rmdir(fullPath)
+				if not rmOk then
+					return false, rmErr
+				end
+			else
+				local rmOk, rmErr = os.remove(fullPath)
+				if not rmOk then
+					return false, rmErr
+				end
+			end
+		end
+	end
+
+	return true
+end
+
+local function copyDirRecursive(src, tar)
+	local ok, err = ensureDirExists(tar)
+	if not ok then
+		return false, err
+	end
+
+	for name in lfs.dir(src) do
+		if name ~= "." and name ~= ".." then
+			local srcPath = src .. "/" .. name
+			local tarPath = tar .. "/" .. name
+			local mode = lfs.attributes(srcPath, "mode")
+			if mode == "directory" then
+				local subOk, subErr = copyDirRecursive(srcPath, tarPath)
+				if not subOk then
+					return false, subErr
+				end
+			elseif mode == "file" then
+				local fileOk, fileErr = fileUtils.copyFile(srcPath, tarPath)
+				if not fileOk then
+					return false, fileErr
+				end
+			end
+		end
+	end
+
+	return true
+end
+
+local function copyFileIfExists(src, tar)
+	if lfs.attributes(src, "mode") ~= "file" then
+		return true
+	end
+
+	local ok, err = ensureDirExists(fileUtils.GetDir(tar))
+	if not ok then
+		return false, err
+	end
+
+	return fileUtils.copyFile(src, tar)
+end
+
+local function removeFileIfExists(file)
+	if lfs.attributes(file, "mode") == "file" then
+		local ok, err = os.remove(file)
+		if not ok then
+			return false, err
+		end
+	end
+	return true
+end
+
+local function copyTopLevelSourceFiles(srcDir, tarDir, copyCfg)
+	if lfs.attributes(srcDir, "mode") ~= "directory" then
+		return true
+	end
+
+	local ok, err = ensureDirExists(tarDir)
+	if not ok then
+		return false, err
+	end
+
+	for name in lfs.dir(srcDir) do
+		if name ~= "." and name ~= ".." then
+			local srcPath = srcDir .. "/" .. name
+			if lfs.attributes(srcPath, "mode") == "file" then
+				local ext = string.match(name, "%.([^%.]+)$")
+				if ext == "j" or ext == "h" or (copyCfg and ext == "cfg") then
+					ok, err = fileUtils.copyFile(srcPath, tarDir .. "/" .. name)
+					if not ok then
+						return false, err
+					end
+				end
+			end
+		end
+	end
+
+	return true
+end
+
+function compile:SyncCrainaxMirror()
+	local srcRoot = path.project .. "/Jass"
+	if lfs.attributes(srcRoot, "mode") ~= "directory" then
+		srcRoot = path.libRoot .. "/Jass"
+	end
+
+	local tarRoot = path.project .. "/.linked/Crainax"
+	local marker = tarRoot .. "/" .. MIRROR_MARKER
+
+	if lfs.attributes(srcRoot, "mode") ~= "directory" then
+		return true
+	end
+
+	if lfs.attributes(tarRoot, "mode") == "directory" and lfs.attributes(marker, "mode") ~= "file" then
+		return true
+	end
+
+	local ok, err = ensureDirExists(tarRoot)
+	if not ok then
+		return false, err
+	end
+
+	ok, err = clearDirRecursive(tarRoot)
+	if not ok then
+		return false, err
+	end
+
+	ok, err = copyDirRecursive(srcRoot, tarRoot)
+	if not ok then
+		return false, err
+	end
+
+	ok, err = fileUtils.WriteOver(marker, "auto-generated mirror for Crainax includes\n")
+	if not ok then
+		return false, err
+	end
+
+	local linkedRoot = path.project .. "/.linked"
+	local legacyRootMirrors = {
+		"AllJass.h",
+		"InnerJapi_Test.j",
+		"InnerJapi.cfg",
+		"InnerJapi.j",
+		"YDLua_Test.j",
+		"YDLua.cfg",
+		"YDLua.j",
+	}
+	for _, name in ipairs(legacyRootMirrors) do
+		ok, err = removeFileIfExists(linkedRoot .. "/" .. name)
+		if not ok then
+			return false, err
+		end
+	end
+
+	ok, err = copyTopLevelSourceFiles(path.we .. "/jass", linkedRoot, true)
+	if not ok then
+		return false, err
+	end
+
+	local japiSrc = path.we .. "/jass/japi"
+	local japiDst = linkedRoot .. "/japi"
+	if lfs.attributes(japiDst, "mode") == "directory" then
+		ok, err = clearDirRecursive(japiDst)
+		if not ok then
+			return false, err
+		end
+	else
+		ok, err = ensureDirExists(japiDst)
+		if not ok then
+			return false, err
+		end
+	end
+	if lfs.attributes(japiSrc, "mode") == "directory" then
+		ok, err = copyDirRecursive(japiSrc, japiDst)
+		if not ok then
+			return false, err
+		end
+	end
+
+	return true
+end
 
 -- 进行Wave的预处理(会)
 function compile:CompileWave(input)
@@ -17,6 +229,7 @@ function compile:CompileWave(input)
 	waveCmdArgs = waveCmdArgs ..
 		string.format('--sysinclude=%s ', fileUtils.PathString(path.wave .. "/include"))
 	waveCmdArgs = waveCmdArgs .. string.format('--sysinclude=%s ', fileUtils.PathString(path.we .. "/plugin"))
+	waveCmdArgs = waveCmdArgs .. string.format('--include=%s ', fileUtils.PathString(path.project .. "/.linked"))
 	waveCmdArgs = waveCmdArgs .. string.format('--include=%s ', fileUtils.PathString(path.project))
 	waveCmdArgs = waveCmdArgs .. string.format('--include=%s ', fileUtils.PathString(path.we .. "/jass"))
 	waveCmdArgs = waveCmdArgs .. string.format('--define=WARCRAFT_VERSION=%d ', 127)
@@ -176,6 +389,12 @@ end
 function compile:StartCompile()
 	-- 清理上次编译信息
 	compileFiles:clear()
+
+	local syncOk, syncErr = self:SyncCrainaxMirror()
+	if not syncOk then
+		print("[Crainax镜像]同步失败:" .. tostring(syncErr))
+		return false
+	end
 
 	-- 在编译过程中记录文件
 	local code, msg = fileUtils.copyFile(path.scriptJ, path.CompileStep0)

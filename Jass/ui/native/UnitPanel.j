@@ -362,7 +362,8 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         DzFrameSetPoint( ui, 4, DzGetGameUI(), 4, 0.80, -0.60 );
     }
 
-    static boolean firstTimeHPMP = false; //是否进行了初始化(HP)
+    static boolean hpmpTextInited = false; // 自定义HP/MP文本是否已创建
+    static boolean hpmpNativeMoved = false; // 原生HP/MP条是否已成功移走
     // 更新头像下方生命 / 魔法文本（基于当前玩家的主选中单位）
     static method updateHPMPText () {
         unit u;
@@ -371,7 +372,7 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         integer r; integer g;
         string hpText; string mpText;
 
-        if(!firstTimeHPMP) return;
+        if (!hpmpTextInited) return;
 
         u = DzGetSelectedLeaderUnit();
 
@@ -433,30 +434,20 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         u = null;
     }
 
-    // 移走生命 / 魔法 UI 并在原位置创建自定义文本
-    static method initHPMPUI () {
-        integer portrait; integer hpUI; integer mpUI;
+    // 创建自定义生命 / 魔法文本（可重复调用，幂等）
+    static method ensureHPMPTextUI () {
         integer console;
 
-        portrait = DzFrameGetPortrait();
-
-        // 通过内存偏移获取原生生命 / 魔法条 UI，并移出屏幕外
-        hpUI = DzFrameGetAlpha(portrait + 0x194);
-        mpUI = DzFrameGetAlpha(portrait + 0x198);
-		DzFrameSetSize(hpUI, 0.02, 0.02);
-        DzFrameClearAllPoints(hpUI);
-        DzFrameSetPoint(hpUI, 4, DzGetGameUI(), 4, 0.80, -0.60);
-		DzFrameSetSize(mpUI, 0.02, 0.02);
-        DzFrameClearAllPoints(mpUI);
-        DzFrameSetPoint(mpUI, 4, DzGetGameUI(), 4, 0.80, -0.60);
+        if (hpmpTextInited) return;
 
         // 在 ConsoleUI 上创建两个文本，占用原生命 / 魔法条矩形区域
         console = DzSimpleFrameFindByName("ConsoleUI", 0);
+        if (console == 0) return;
 
         // 生命值文本：宽高 0.078125 x 0.011875，中心锚点
         // 从 TOPLEFT 改为 CENTER：X偏移 + 宽度/2，Y偏移 - 高度/2
         // 原偏移 (0.214375, 0.0276) -> 新偏移 (0.214375 + 0.0390625, 0.0276 - 0.0059375) = (0.2534375, 0.0216625)
-        if (!textHP.isExist()) {
+        if (textHP == 0 || !textHP.isExist()) {
             textHP = uiText.create(DzGetGameUI())
                 .setPoint(ANCHOR_CENTER, console, ANCHOR_BOTTOMLEFT, 0.2534375, 0.0216625)
                 .setFontSize(6)      // 0.011 字号
@@ -466,15 +457,45 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         // 魔法值文本：宽高同生命条，中心锚点
         // 从 TOPLEFT 改为 CENTER：X偏移 + 宽度/2，Y偏移 - 高度/2
         // 原偏移 (0.214375, 0.01375) -> 新偏移 (0.214375 + 0.0390625, 0.01375 - 0.0059375) = (0.2534375, 0.0078125)
-        if (!textMP.isExist()) {
+        if (textMP == 0 || !textMP.isExist()) {
             textMP = uiText.create(DzGetGameUI())
                 .setPoint(ANCHOR_CENTER, console, ANCHOR_BOTTOMLEFT, 0.2534375, 0.0078125)
                 .setFontSize(6)
                 .setAlign(4);
         }
 
-        // 初始化时先刷新一次
-        unitPanel.updateHPMPText();
+        hpmpTextInited = true;
+    }
+
+    // 尝试移走原生生命 / 魔法条。需先存在本地选中单位才稳定生效
+    static method tryMoveNativeHPMPUI () {
+        integer portrait; integer hpUI; integer mpUI;
+
+        if (hpmpNativeMoved) return;
+        if (DzGetSelectedLeaderUnit() == null) return;
+
+        portrait = DzFrameGetPortrait();
+        if (portrait == 0) return;
+
+        // 通过内存偏移获取原生生命 / 魔法条 UI，并移出屏幕外
+        hpUI = DzFrameGetAlpha(portrait + 0x194);
+        mpUI = DzFrameGetAlpha(portrait + 0x198);
+        if (hpUI == 0 || mpUI == 0) return;
+
+		DzFrameSetSize(hpUI, 0.02, 0.02);
+        DzFrameClearAllPoints(hpUI);
+        DzFrameSetPoint(hpUI, 4, DzGetGameUI(), 4, 0.80, -0.60);
+		DzFrameSetSize(mpUI, 0.02, 0.02);
+        DzFrameClearAllPoints(mpUI);
+        DzFrameSetPoint(mpUI, 4, DzGetGameUI(), 4, 0.80, -0.60);
+
+        hpmpNativeMoved = true;
+    }
+
+    // HP/MP UI初始化（可重试）
+    static method initHPMPUI () {
+        unitPanel.ensureHPMPTextUI();
+        unitPanel.tryMoveNativeHPMPUI();
     }
 
     //初始化单位按钮面板
@@ -485,18 +506,17 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
         TriggerAddCondition(tr,Condition(function (){
             moveOutAll(); // 把所有原生UI移走
             mapInit(); // 初始化单位按钮面板
+            unitPanel.initHPMPUI();
 
-            // 单位选择同步取消时，立即刷新一次生命 / 魔法显示，避免延迟
+            // 单位选择变化时立即尝试初始化并刷新，减少显示延迟
             unitSelect.onAsync(function () {
-                if(!firstTimeHPMP){
-                    initHPMPUI();
-                    firstTimeHPMP = true;
-                }
+                unitPanel.initHPMPUI();
                 unitPanel.updateHPMPText();
             });
 
-            // 定时刷新当前选中单位的生命 / 魔法
+            // 定时重试初始化，并刷新当前选中单位的生命 / 魔法
             TimerStart(CreateTimer(), 0.25, true, function () {
+                unitPanel.initHPMPUI();
                 unitPanel.updateHPMPText();
             });
 

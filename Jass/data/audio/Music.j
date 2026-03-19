@@ -105,6 +105,12 @@ library Music {
 			}
 		}
 
+
+		//一个使用得非常多的UI的hover方法
+		static method onHoverCommon() {
+			music[MUSIC_INDEX_BTN_OVER_1].play();
+		}
+
 		static method onInit () {
 			sound snd = null;
 
@@ -254,6 +260,57 @@ library Music {
 			snd = CreateSound("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", false, false, false, 10, 10, "SpellsEAX");
 			SetSoundDuration(snd, 1347);
 			thistype[MUSIC_INDEX_LUMBER].snd = snd;
+			//# endcheck
+
+
+			//# check: music[15]
+			//# dependency:sound/sound/job_finish.mp3
+			snd = CreateSound( "sound\\job_finish.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1780 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_JOB_FINISH].snd = snd;
+			//# endcheck
+
+			//# check: music[16]
+			//# dependency:sound/sound/job_pause.mp3
+			snd = CreateSound( "sound\\job_pause.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1489 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_JOB_PAUSE].snd = snd;
+			//# endcheck
+
+			//# check: music[17]
+			//# dependency:sound/sound/job_start.mp3
+			snd = CreateSound( "sound\\job_start.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1750 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_JOB_START].snd = snd;
+			//# endcheck
+
+			//# check: music[18]
+			//# dependency:sound/sound/btn_switch_close.mp3
+			snd = CreateSound( "sound\\btn_switch_close.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 575 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_BTN_SWITCH_CLOSE].snd = snd;
+			//# endcheck
+
+			//# check: music[19]
+			//# dependency:sound/sound/btn_switch_open.mp3
+			snd = CreateSound( "sound\\btn_switch_open.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 627 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_BTN_SWITCH_OPEN].snd = snd;
 			//# endcheck
 
 
