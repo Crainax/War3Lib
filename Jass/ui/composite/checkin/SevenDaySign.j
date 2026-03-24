@@ -47,6 +47,8 @@ UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层�
 //# dependency:resource/ui/image/black.blp
 //# dependency:resource/ui/image/select_close.blp
 
+
+
 library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIExtendDrag,EscStack,BaseAnim,GrowData {
 
     //==========================================================================
@@ -209,8 +211,14 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         static method onInit() {
             integer i;
             trigger tr = CreateTrigger();
+            rewardIcon[1] = "ReplaceableTextures\\CommandButtons\\BTNReturnGoods.blp";
+            rewardIcon[2] = "ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp";
+            rewardIcon[3] = "ReplaceableTextures\\CommandButtons\\BTNBloodLustOn.blp";
+            rewardIcon[4] = "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp";
+            rewardIcon[5] = "ReplaceableTextures\\CommandButtons\\BTNBreathOfFrost.blp";
+            rewardIcon[6] = "ReplaceableTextures\\CommandButtons\\BTNFireForTheCannon.blp";
+            rewardIcon[7] = "ReplaceableTextures\\CommandButtons\\BTNBanish.blp";
             for (1 <= i <= SIGN7_TOTAL_DAYS) {
-                rewardIcon[i] = "ui\\image\\select_flash.blp";
                 rewardName[i] = "第" + I2S(i) + "天奖励";
                 rewardTipTitle[i] = "奖励说明";
                 rewardTipDesc[i] = "这是占位奖励内容";
@@ -418,7 +426,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
                 slotCheck[i] = uiImage.create(slotFrame[i].ui)
                     .exReSize(SIGN7_CHECK_SIZE, SIGN7_CHECK_SIZE)
-                    .setTexture("ui\\image\\select_flash.blp")
+                    .setTexture("UI\\Widgets\\Glues\\GlueScreen-Checkbox-Check.blp")
                     .exRePoint(ANCHOR_CENTER, slotFrame[i].ui, ANCHOR_CENTER, 0.0, 0.0)
                     .show(false);
 

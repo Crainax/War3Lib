@@ -125,12 +125,20 @@ end
 function w3xlni:Start(func)
 	print("[开始打包地图]:" .. path.buildVersion .. ".")
 	lfs.chdir(path.project)
+	local rootMapScript = path.project .. "/" .. path.mapName .. "/war3map.j"
 	if path.mapJ then
 		local code, msg = copy.copyFile(path.CompileResult, path.mapJ)
 		if code then
 			print("[Lua" .. path.buildVersion .. "]脚本打包进地图成功")
 		else
 			print("[Lua" .. path.buildVersion .. "]脚本打包进地图失败:" .. msg)
+		end
+
+		local rootCode, rootMsg = copy.copyFile(path.CompileResult, rootMapScript)
+		if rootCode then
+			print("[Lua" .. path.buildVersion .. "]同步根脚本成功")
+		else
+			print("[Lua" .. path.buildVersion .. "]同步根脚本失败:" .. tostring(rootMsg))
 		end
 	end
 	utr.copyResourceFiles() -- 复制资源文件
@@ -144,6 +152,7 @@ function w3xlni:Start(func)
 	end
 	local result = table.pack(func())
 	if fu.fileExist(path.mapJ) then fu.WriteOver(path.mapJ, "") end --覆盖一下war3map.j为空
+	if fu.fileExist(rootMapScript) then fu.WriteOver(rootMapScript, "") end --覆盖w2l识别的根脚本为空
 	if path.buildVersion == "单元测试" then
 		restoreUnitTestObj(objBackups)
 		-- utr.RemoveTable() -- 删除单元测试的物编

@@ -67,6 +67,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
     public struct uidialog {
         private dialogData dd;
         private uiBorder uiMain;
+        private uiBtn uiBlocker;
         private uiText uiTitle;
 
         private uiImage itemImage[UIDIALOG_PAGE_ITEM_MAX];
@@ -285,6 +286,8 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             this.enteredPos = 0;
 
             this.uiMain = uiBorder.createType5(DzGetGameUI());
+            this.uiBlocker = uiBtn.createBlank(this.uiMain.ui)
+                .setAllPoint(this.uiMain.ui);
             this.uiTitle = uiText.create(this.uiMain.ui)
                 .setAlign(4)
                 .setFontSize(8)
@@ -453,6 +456,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             if (pageNextImage != 0) { pageNextImage.destroy(); pageNextImage = 0; }
 
             if (uiTitle != 0) { uiTitle.destroy(); uiTitle = 0; }
+            if (uiBlocker != 0) { uiBlocker.destroy(); uiBlocker = 0; }
             if (uiMain != 0) { uiMain.destroy(); uiMain = 0; }
 
             dd = 0;

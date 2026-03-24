@@ -390,6 +390,13 @@ function compile:StartCompile()
 	-- 清理上次编译信息
 	compileFiles:clear()
 
+	local outputDir = fileUtils.GetDir(path.CompileStep0)
+	local outputOk, outputErr = ensureDirExists(outputDir)
+	if not outputOk then
+		print("[Output目录]创建失败:" .. tostring(outputErr))
+		return false
+	end
+
 	local syncOk, syncErr = self:SyncCrainaxMirror()
 	if not syncOk then
 		print("[Crainax镜像]同步失败:" .. tostring(syncErr))

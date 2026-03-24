@@ -1,5 +1,12 @@
 local path = {}
 
+local function normalizePathString(value)
+    assert(type(value) == "string", "路径参数必须是字符串")
+    value = value:gsub("\\", "/")
+    value = value:gsub("/+$", "")
+    return value
+end
+
 
 ---@param root string
 ---@param project string
@@ -8,12 +15,9 @@ function path.init(root, project, we)
     if path.jassPathName == nil then
         path.jassPathName = "edit"
     end
-    assert(type(root) == "string", "root 参数必须是字符串")
-    assert(type(project) == "string", "project 参数必须是字符串")
-    assert(type(we) == "string", "we 参数必须是字符串")
-    path.root             = root
-    path.project          = project
-    path.we               = we
+    path.root             = normalizePathString(root)
+    path.project          = normalizePathString(project)
+    path.we               = normalizePathString(we)
 
     path.libRoot          = path.root .. "/Library/War3Lib" -- 本库根目录
 
@@ -71,7 +75,7 @@ function path.init(root, project, we)
     path.assets           = "D:/War3Asset/Import"                                          -- 原始地图资源根目录
 
     path.backup              = {}                                                -- 数据备份
-    path.backup.root         = path.root .. "/Backup/" .. string.match(project, ".+/(.+)$")  -- 备份根目录
+    path.backup.root         = path.root .. "/Backup/" .. string.match(path.project, ".+/(.+)$")  -- 备份根目录
     path.backup.resource     = path.project .. "/".. path.mapName .. "/table"    -- 需要备份的路径
 
     path.image               = {}                                                -- 图片处理

@@ -55,14 +55,28 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
     }
 
     function TTestUTSevenDaySign4 (player p) {
-        integer i;
-        for (1 <= i <= 7) {
-            sevenDaySignData.setReward(i,
-                "ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp",
-                "第" + I2S(i) + "天奖励",
-                "奖励说明",
-                "这是占位奖励内容");
-        }
+        // 从 ability.ini 中挑选的 7 个不同图标
+        sevenDaySignData.setReward(1,
+            "ReplaceableTextures\\CommandButtons\\BTNReturnGoods.blp",
+            "第1天奖励", "奖励说明", "这是占位奖励内容");
+        sevenDaySignData.setReward(2,
+            "ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp",
+            "第2天奖励", "奖励说明", "这是占位奖励内容");
+        sevenDaySignData.setReward(3,
+            "ReplaceableTextures\\CommandButtons\\BTNBloodLustOn.blp",
+            "第3天奖励", "奖励说明", "这是占位奖励内容");
+        sevenDaySignData.setReward(4,
+            "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp",
+            "第4天奖励", "奖励说明", "这是占位奖励内容");
+        sevenDaySignData.setReward(5,
+            "ReplaceableTextures\\CommandButtons\\BTNBreathOfFrost.blp",
+            "第5天奖励", "奖励说明", "这是占位奖励内容");
+        sevenDaySignData.setReward(6,
+            "ReplaceableTextures\\CommandButtons\\BTNFireForTheCannon.blp",
+            "第6天奖励", "奖励说明", "这是占位奖励内容");
+        sevenDaySignData.setReward(7,
+            "ReplaceableTextures\\CommandButtons\\BTNBanish.blp",
+            "第7天奖励", "奖励说明", "这是占位奖励内容");
         BJDebugMsg("[UTSevenDaySign] reward config updated");
     }
 
