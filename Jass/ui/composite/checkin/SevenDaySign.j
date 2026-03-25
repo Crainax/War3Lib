@@ -12,41 +12,54 @@
 UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层。
 */
 
-#define SIGN7_TOTAL_DAYS        7
-#define SIGN7_SYNC_CHANNEL      "SevenDaySign"
-#define SIGN7_LAST_DAYID_KEY    "SIGN7_LAST_DAYID"
-#define SIGN7_CLAIM_DAY_KEY     "SIGN7_CLAIM_DAY"
+#define SIGN7_TOTAL_DAYS        7           // 签到总天数
+#define SIGN7_SYNC_CHANNEL      "SevenDaySign" // 同步通道名
+#define SIGN7_LAST_DAYID_KEY    "SIGN7_LAST_DAYID" // 存档键：上次领取日期
+#define SIGN7_CLAIM_DAY_KEY     "SIGN7_CLAIM_DAY"  // 存档键：已领取天数
 // 后端限制提醒：SIGN7_CLAIM_DAY_KEY 仅允许单次请求 +1，禁止跳跃写入/回退写入。
 // 运行时判定提醒：UI/领奖判定统一依赖内存缓存，不依赖局中 DzAPI 再读取。
 
-#define SIGN7_MAIN_WIDTH        0.62
-#define SIGN7_MAIN_HEIGHT       0.36
+#define SIGN7_MAIN_WIDTH        0.62        // 主面板宽度
+#define SIGN7_MAIN_HEIGHT       (SIGN7_MAIN_WIDTH * 1324.0 / 2328.0) // 主面板高度（按背景图比例）
 
-#define SIGN7_SLOT_SIZE         0.07
-#define SIGN7_SLOT_GAP_X        0.01
-#define SIGN7_SLOT_OFFSET_Y     0.07
+// 背景大图（4 张 1164x662 拼接为 2328x1324，保持比例，略大于主面板以形成边缘延伸）
+#define SIGN7_BG_FULL_WIDTH     0.68        // 背景拼接总宽
+#define SIGN7_BG_FULL_HEIGHT    (SIGN7_BG_FULL_WIDTH * 1324.0 / 2328.0) // 背景拼接总高
 
-#define SIGN7_ICON_SIZE         0.05
-#define SIGN7_NAME_FONT         3
+#define SIGN7_SLOT_SIZE         0.07        // 奖励槽位尺寸（正方形）
+#define SIGN7_SLOT_GAP_X        0.01        // 槽位之间水平间距
+#define SIGN7_SLOT_OFFSET_Y     0.03        // 槽位行相对中心的 Y 偏移
 
-#define SIGN7_BTN_WIDTH         0.10
-#define SIGN7_BTN_HEIGHT        0.038
-#define SIGN7_BTN_OFFSET_Y      -0.135
+#define SIGN7_ICON_SIZE         0.05        // 奖励图标尺寸
+#define SIGN7_NAME_FONT         4           // 奖励名称字号
 
-#define SIGN7_STATUS_OFFSET_Y   -0.095
+#define SIGN7_BTN_WIDTH         0.10        // 领取按钮宽度
+#define SIGN7_BTN_HEIGHT        (SIGN7_BTN_WIDTH * 575.0 / 1500.0) // 领取按钮高度（按原图比例）
+#define SIGN7_BTN_OFFSET_Y      -0.135      // 领取按钮相对中心的 Y 偏移
 
-#define SIGN7_MASK_ALPHA        160
-#define SIGN7_CHECK_SIZE        0.03
-#define SIGN7_CLAIM_TEXT_GAP_Y  -0.003
-#define SIGN7_CLOSE_SIZE        0.032
-#define SIGN7_GROW_BTN_SIZE     0.075
-#define SIGN7_TOOLTIP_BR_X      0.786
-#define SIGN7_TOOLTIP_BR_Y      0.1675
+#define SIGN7_STATUS_OFFSET_Y   -0.095      // 状态文字相对中心的 Y 偏移
 
-//# dependency:resource/ui/image/select_flash.blp
+#define SIGN7_MASK_ALPHA        160         // 已领取遮罩透明度
+#define SIGN7_CHECK_SIZE        0.03        // 已领取勾选图标尺寸
+#define SIGN7_CLAIM_TEXT_GAP_Y  -0.003      // "(已领取)"文字与名称的间距
+#define SIGN7_CLOSE_SIZE        0.032       // 关闭按钮尺寸（正方形）
+#define SIGN7_CLOSE_OFFSET_X    0.018      // 关闭按钮相对右上角的 X 偏移（负=向左）
+#define SIGN7_CLOSE_OFFSET_Y    0.003      // 关闭按钮相对右上角的 Y 偏移（负=向下）
+#define SIGN7_GROW_BTN_SIZE     0.075       // 领取按钮发光动画尺寸
+#define SIGN7_TOOLTIP_BR_X      0.786       // Tooltip 右下角绝对 X 坐标
+#define SIGN7_TOOLTIP_BR_Y      0.1675      // Tooltip 右下角绝对 Y 坐标
+
 //# dependency:resource/ui/image/black.blp
-//# dependency:resource/ui/image/select_close.blp
-
+//# dependency:resource/ui/image/bg_sevenday_01.blp
+//# dependency:resource/ui/image/bg_sevenday_02.blp
+//# dependency:resource/ui/image/bg_sevenday_03.blp
+//# dependency:resource/ui/image/bg_sevenday_04.blp
+//# dependency:resource/ui/image/border_sevenday_common.blp
+//# dependency:resource/ui/image/border_sevenday_rare.blp
+//# dependency:resource/ui/image/border_sevenday_epic.blp
+//# dependency:resource/ui/image/border_sevenday_legendary.blp
+//# dependency:resource/ui/image/button_claim.blp
+//# dependency:resource/ui/image/button_claim_dark.blp
 
 
 library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIExtendDrag,EscStack,BaseAnim,GrowData {
@@ -247,6 +260,12 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         private static uiImage uiCloseImage = 0;
         private static uiBtn   uiCloseButton = 0;
 
+        // 背景大图（拆成 4 份拼接）
+        private static uiImage bgImage1 = 0; // 右下
+        private static uiImage bgImage2 = 0; // 左下
+        private static uiImage bgImage3 = 0; // 右上
+        private static uiImage bgImage4 = 0; // 左上
+
         private static uiImage slotFrame[SIGN7_TOTAL_DAYS];
         private static uiBtn   slotBtn[SIGN7_TOTAL_DAYS];
         private static uiImage slotIcon[SIGN7_TOTAL_DAYS];
@@ -259,14 +278,21 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         private static uiImage btnImage = 0;
         private static uiImage btnGrowImage = 0;
         private static uiBtn   btnClaim = 0;
-        private static uiText  btnText = 0;
         private static baseanim btnGrowAnim = 0;
 
         private static tooltip uiTooltipTemp = 0;
         private static integer escStackId = 0;
 
-        private static player owner = null;
         private static boolean isOpen = false;
+
+        // 根据天数返回品质边框纹理：common/rare/epic/common/rare/epic/legendary
+        private static method getBorderTexture(integer day) -> string {
+            if (day == 1 || day == 4) { return "ui\\image\\border_sevenday_common.blp"; }
+            if (day == 2 || day == 5) { return "ui\\image\\border_sevenday_rare.blp"; }
+            if (day == 3 || day == 6) { return "ui\\image\\border_sevenday_epic.blp"; }
+            if (day == 7) { return "ui\\image\\border_sevenday_legendary.blp"; }
+            return "ui\\image\\border_sevenday_common.blp";
+        }
 
         private static method destroyTooltip() {
             if (uiTooltipTemp != 0 && uiTooltipTemp.isExist()) {
@@ -329,10 +355,9 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
             canClaim = sevenDaySignData.canClaim(p);
             thistype.setClaimGrow(canClaim);
-            if (btnImage != 0) { btnImage.setAlpha(I3(canClaim, 255, 160)); }
-            if (btnText != 0) {
-                if (canClaim) { btnText.setText("|cffffcc00领取奖励|r"); }
-                else { btnText.setText("|cff999999领取奖励|r"); }
+            if (btnImage != 0) {
+                if (canClaim) { btnImage.setTexture("ui\\image\\button_claim.blp"); }
+                else { btnImage.setTexture("ui\\image\\button_claim_dark.blp"); }
             }
         }
 
@@ -348,10 +373,9 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             if (isOpen) { return; }
 
             isOpen = true;
-            owner = p;
 
             uiMain = uiImage.create(DzGetGameUI())
-                .setTexture("ui\\image\\black.blp")
+                .setTexture(UI_STRING_PATH_BLANK)
                 .exReSize(SIGN7_MAIN_WIDTH, SIGN7_MAIN_HEIGHT)
                 .exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
 
@@ -360,10 +384,31 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 .enableDrag(uiMain.ui, 0.2, 0.8, 0.2, 0.8)
                 .setDragPosition(0.4, 0.35);
 
+            // 拼接 4 张背景图（总宽高略大于主面板），锚点对齐到 uiMain 中心，留 0.001 重叠避免缝隙
+            bgImage1 = uiImage.create(uiMain.ui)
+                .exReSize(SIGN7_BG_FULL_WIDTH * 0.5, SIGN7_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\bg_sevenday_01.blp")
+                .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_CENTER, 0, 0);
+
+            bgImage2 = uiImage.create(uiMain.ui)
+                .exReSize(SIGN7_BG_FULL_WIDTH * 0.5, SIGN7_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\bg_sevenday_02.blp")
+                .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_CENTER, 0, 0);
+
+            bgImage3 = uiImage.create(uiMain.ui)
+                .exReSize(SIGN7_BG_FULL_WIDTH * 0.5, SIGN7_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\bg_sevenday_03.blp")
+                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_CENTER, 0, 0);
+
+            bgImage4 = uiImage.create(uiMain.ui)
+                .exReSize(SIGN7_BG_FULL_WIDTH * 0.5, SIGN7_BG_FULL_HEIGHT * 0.5)
+                .setTexture("ui\\image\\bg_sevenday_04.blp")
+                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, 0, 0);
+
             uiCloseImage = uiImage.create(uiMain.ui)
                 .exReSize(SIGN7_CLOSE_SIZE, SIGN7_CLOSE_SIZE)
-                .setTexture("ui\\image\\select_close.blp")
-                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_TOPRIGHT, -0.003, -0.003);
+                .setTexture(UI_STRING_PATH_BLANK)
+                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_TOPRIGHT, SIGN7_CLOSE_OFFSET_X, SIGN7_CLOSE_OFFSET_Y);
 
             uiCloseButton = uiBtn.create(uiCloseImage.ui)
                 .setAllPoint(uiCloseImage.ui)
@@ -373,17 +418,11 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                     uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
                     music[MUSIC_INDEX_BTN_OVER_1].play();
                 })
-                .onLeave(function() {
-                    destroyTooltip();
-                })
+                .onLeave(function thistype.destroyTooltip)
                 .onClick(function() {
                     music[MUSIC_INDEX_BTN_CLICK].play();
-                    if (owner != null) {
-                        sevenDaySignUI.hide(owner);
-                    } else {
-                        sevenDaySignUI.hide(GetLocalPlayer());
-                    }
-            });
+                    sevenDaySignUI.hide(GetLocalPlayer());
+                });
 
             // slots
             startX = 0.0 - (SIGN7_TOTAL_DAYS - 1) * (SIGN7_SLOT_SIZE + SIGN7_SLOT_GAP_X) / 2.0;
@@ -394,7 +433,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
                 slotFrame[i] = uiImage.create(uiMain.ui)
                     .exReSize(SIGN7_SLOT_SIZE, SIGN7_SLOT_SIZE)
-                    .setTexture("ui\\image\\select_flash.blp")
+                    .setTexture(thistype.getBorderTexture(i))
                     .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_CENTER, offsetX, offsetY);
 
                 iconPath = sevenDaySignData.getRewardIcon(i);
@@ -443,11 +482,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                         desc = "第" + I2S(day) + "份奖励";
                         uiTooltipTemp = tooltip.create().layoutTitleDesc(title, desc);
                         uiTooltipTemp.setAbsPoint(ANCHOR_BOTTOMRIGHT, SIGN7_TOOLTIP_BR_X, SIGN7_TOOLTIP_BR_Y);
-                        music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
-                    .spLeave(function(integer frame) {
-                        destroyTooltip();
-                    });
+                    .onLeave(function thistype.destroyTooltip);
 
                 uiHashTable(slotBtn[i].ui).eventdata.bind(i);
             }
@@ -460,17 +496,13 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
             btnImage = uiImage.create(uiMain.ui)
                 .exReSize(SIGN7_BTN_WIDTH, SIGN7_BTN_HEIGHT)
-                .setTexture("ui\\image\\select_flash.blp")
+                .setTexture("ui\\image\\button_claim.blp")
                 .exRePoint(ANCHOR_CENTER, uiMain.ui, ANCHOR_CENTER, 0.0, SIGN7_BTN_OFFSET_Y);
 
-            btnText = uiText.create(btnImage.ui)
-                .setFontSize(7)
-                .setAlign(4)
-                .setText("|cffffcc00领取奖励|r")
-                .setAllPoint(btnImage.ui);
 
             btnClaim = uiBtn.create(btnImage.ui)
                 .setAllPoint(btnImage.ui)
+                .onEnter(function music.onHoverCommon)
                 .onClick(function() {
                     player lp;
                     lp = GetLocalPlayer();
@@ -500,7 +532,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             if (!isOpen) { return; }
 
             isOpen = false;
-            owner = null;
 
             destroyTooltip();
 
@@ -511,7 +542,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
             thistype.setClaimGrow(false);
             if (btnClaim != 0) { btnClaim.destroy(); btnClaim = 0; }
-            if (btnText != 0) { btnText.destroy(); btnText = 0; }
+
             if (btnImage != 0) { btnImage.destroy(); btnImage = 0; }
 
             if (statusText != 0) { statusText.destroy(); statusText = 0; }
@@ -529,6 +560,10 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             if (uiCloseButton != 0) { uiCloseButton.destroy(); uiCloseButton = 0; }
             if (uiCloseImage != 0) { uiCloseImage.destroy(); uiCloseImage = 0; }
             if (uiMainButton != 0) { uiMainButton.destroy(); uiMainButton = 0; }
+            if (bgImage1 != 0) { bgImage1.destroy(); bgImage1 = 0; }
+            if (bgImage2 != 0) { bgImage2.destroy(); bgImage2 = 0; }
+            if (bgImage3 != 0) { bgImage3.destroy(); bgImage3 = 0; }
+            if (bgImage4 != 0) { bgImage4.destroy(); bgImage4 = 0; }
             if (uiMain != 0) { uiMain.destroy(); uiMain = 0; }
         }
 
