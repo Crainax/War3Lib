@@ -11,8 +11,8 @@
 
 #define UIDIALOG_WIDTH              0.268       // 对话框总宽度
 #define UIDIALOG_PADDING_TOP        0.024       // 顶部内边距（标题距上边框）
-#define UIDIALOG_PADDING_BOTTOM     0.022       // 底部内边距（翻页按钮距下边框）
-#define UIDIALOG_PADDING_X          0.020       // 左右内边距
+#define UIDIALOG_PADDING_BOTTOM     0.025       // 底部内边距（翻页按钮距下边框）
+#define UIDIALOG_PADDING_X          0.025       // 左右内边距
 #define UIDIALOG_TITLE_HEIGHT       0.024       // 标题栏高度
 #define UIDIALOG_GAP_TITLE_ITEMS    0.008       // 标题与第一个选项之间的间距
 #define UIDIALOG_ITEM_HEIGHT        0.033       // 每个选项行的高度
@@ -30,6 +30,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
     private dialogData currentDataAsync = 0;
     private integer currentPos          = 0;
     private integer currentPosAsync     = 0;
+    private integer currentFrameAsync   = 0;
     private string currentContent       = "";
 
     public function GetUIDialogData() -> dialogData {
@@ -46,6 +47,10 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 
     public function GetUIDialogPosAsync() -> integer {
         return currentPosAsync;
+    }
+
+    public function GetUIDialogFrameAsync() -> integer {
+        return currentFrameAsync;
     }
 
     public function CallbackUIDialogContent(string s) {
@@ -86,16 +91,9 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 
         STRUCT_SHARED_METHODS(uidialog)
 
-        private static method getPageCountByTotal(integer total) -> integer {
-            if (total <= 0) {
-                return 1;
-            }
-            return (total + UIDIALOG_PAGE_ITEM_MAX - 1) / UIDIALOG_PAGE_ITEM_MAX;
-        }
-
         private method getPageCount() -> integer {
-            if (!this.isExist()) { return 1; }
-            return thistype.getPageCountByTotal(dd.count);
+            if (!this.isExist() || dd.count <= 0) { return 1; }
+            return (dd.count + UIDIALOG_PAGE_ITEM_MAX - 1) / UIDIALOG_PAGE_ITEM_MAX;
         }
 
         private method getCurrentPage() -> integer {
@@ -128,42 +126,6 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             return (page - 1) * UIDIALOG_PAGE_ITEM_MAX + slot;
         }
 
-        private method getVisibleCount() -> integer {
-            integer page;
-            integer remain;
-            if (!this.isExist()) { return 0; }
-
-            page = this.getCurrentPage();
-            remain = dd.count - (page - 1) * UIDIALOG_PAGE_ITEM_MAX;
-            if (remain < 0) { remain = 0; }
-            if (remain > UIDIALOG_PAGE_ITEM_MAX) { remain = UIDIALOG_PAGE_ITEM_MAX; }
-            return remain;
-        }
-
-        private method getMainHeight(integer visibleCount, boolean showPager) -> real {
-            real h;
-            h = UIDIALOG_PADDING_TOP + UIDIALOG_TITLE_HEIGHT + UIDIALOG_GAP_TITLE_ITEMS + UIDIALOG_PADDING_BOTTOM;
-
-            if (visibleCount > 0) {
-                h += visibleCount * UIDIALOG_ITEM_HEIGHT;
-                h += (visibleCount - 1) * UIDIALOG_ITEM_GAP;
-            }
-
-            if (showPager) {
-                h += UIDIALOG_GAP_ITEMS_PAGER + UIDIALOG_PAGER_HEIGHT;
-            }
-
-            return h;
-        }
-
-        private method updateTitle(integer currentPage, integer maxPage) {
-            if (!this.isExist()) { return; }
-            if (maxPage > 1) {
-                uiTitle.setText(dd.title + "(" + I2S(currentPage) + "/" + I2S(maxPage) + ")");
-            } else {
-                uiTitle.setText(dd.title);
-            }
-        }
 
         private method pageTurn(integer delta) {
             integer page;
@@ -188,14 +150,12 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 
         private method showPager(boolean showFlag) {
             if (!this.isExist()) { return; }
-
-            if (pagePrevImage != 0) { pagePrevImage.show(showFlag); }
-            if (pagePrevButton != 0) { pagePrevButton.show(showFlag); }
-            if (pagePrevText != 0) { pagePrevText.show(showFlag); }
-
-            if (pageNextImage != 0) { pageNextImage.show(showFlag); }
-            if (pageNextButton != 0) { pageNextButton.show(showFlag); }
-            if (pageNextText != 0) { pageNextText.show(showFlag); }
+            pagePrevImage.show(showFlag);
+            pagePrevButton.show(showFlag);
+            pagePrevText.show(showFlag);
+            pageNextImage.show(showFlag);
+            pageNextButton.show(showFlag);
+            pageNextText.show(showFlag);
         }
 
         method refresh() {
@@ -204,7 +164,8 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             integer visibleCount;
             integer currentPage;
             integer maxPage;
-            boolean showPager;
+            boolean needPager;
+            real dialogWidth;
             real itemWidth;
             real firstRowOffsetY;
             real rowOffsetY;
@@ -217,28 +178,58 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             maxPage = this.getPageCount();
             currentPage = this.getCurrentPage();
             this.setCurrentPage(currentPage);
-            visibleCount = this.getVisibleCount();
-            showPager = (maxPage > 1);
 
-            mainHeight = this.getMainHeight(visibleCount, showPager);
-            itemWidth = UIDIALOG_WIDTH - UIDIALOG_PADDING_X * 2.0;
+            // 内联 getVisibleCount
+            visibleCount = dd.count - (currentPage - 1) * UIDIALOG_PAGE_ITEM_MAX;
+            if (visibleCount < 0) { visibleCount = 0; }
+            if (visibleCount > UIDIALOG_PAGE_ITEM_MAX) { visibleCount = UIDIALOG_PAGE_ITEM_MAX; }
 
-            uiMain.exReSize(UIDIALOG_WIDTH, mainHeight)
-                .exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, UIDIALOG_CENTER_OFFSET_Y);
+            needPager = (maxPage > 1);
+
+            dialogWidth = dd.width;
+            if (dialogWidth <= 0.0) {
+                dialogWidth = UIDIALOG_WIDTH;
+            } else if (dialogWidth < UIDIALOG_PADDING_X * 2.0 + 0.04) {
+                dialogWidth = UIDIALOG_PADDING_X * 2.0 + 0.04;
+            }
+
+            // 内联 getMainHeight
+            mainHeight = UIDIALOG_PADDING_TOP + UIDIALOG_TITLE_HEIGHT + UIDIALOG_GAP_TITLE_ITEMS + UIDIALOG_PADDING_BOTTOM;
+            if (visibleCount > 0) {
+                mainHeight += visibleCount * UIDIALOG_ITEM_HEIGHT + (visibleCount - 1) * UIDIALOG_ITEM_GAP;
+            }
+            if (needPager) {
+                mainHeight += UIDIALOG_GAP_ITEMS_PAGER + UIDIALOG_PAGER_HEIGHT;
+            }
+
+            itemWidth = dialogWidth - UIDIALOG_PADDING_X * 2.0;
+
+            uiMain.clearPoint().setSize(dialogWidth, mainHeight);
+            if (dd.useAbsPoint) {
+                uiMain.setAbsPoint(dd.absAnchor, dd.absX, dd.absY);
+            } else {
+                uiMain.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, UIDIALOG_CENTER_OFFSET_Y);
+            }
 
             uiTitle.clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, UIDIALOG_PADDING_X, -UIDIALOG_PADDING_TOP)
                 .setPoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_TOPRIGHT, -UIDIALOG_PADDING_X, -UIDIALOG_PADDING_TOP - UIDIALOG_TITLE_HEIGHT);
 
-            this.updateTitle(currentPage, maxPage);
+            // 内联 updateTitle
+            if (maxPage > 1) {
+                uiTitle.setText(dd.title + "(" + I2S(currentPage) + "/" + I2S(maxPage) + ")");
+            } else {
+                uiTitle.setText(dd.title);
+            }
 
             firstRowOffsetY = -UIDIALOG_PADDING_TOP - UIDIALOG_TITLE_HEIGHT - UIDIALOG_GAP_TITLE_ITEMS;
 
             i = 1;
             while (i <= UIDIALOG_PAGE_ITEM_MAX) {
                 rowOffsetY = firstRowOffsetY - (i - 1) * (UIDIALOG_ITEM_HEIGHT + UIDIALOG_ITEM_GAP);
-                itemImage[i].exReSize(itemWidth, UIDIALOG_ITEM_HEIGHT)
-                    .exRePoint(ANCHOR_TOP, uiMain.ui, ANCHOR_TOP, 0.0, rowOffsetY);
+                itemImage[i].clearPoint()
+                    .setSize(itemWidth, UIDIALOG_ITEM_HEIGHT)
+                    .setPoint(ANCHOR_TOP, uiMain.ui, ANCHOR_TOP, 0.0, rowOffsetY);
 
                 if (i <= visibleCount) {
                     pos = this.getGlobalPosBySlot(i);
@@ -263,12 +254,14 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                 i += 1;
             }
 
-            pagePrevImage.exReSize(itemWidth * 0.48, UIDIALOG_PAGER_HEIGHT)
-                .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_BOTTOMLEFT, UIDIALOG_PADDING_X, UIDIALOG_PADDING_BOTTOM);
-            pageNextImage.exReSize(itemWidth * 0.48, UIDIALOG_PAGER_HEIGHT)
-                .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_BOTTOMRIGHT, -UIDIALOG_PADDING_X, UIDIALOG_PADDING_BOTTOM);
+            pagePrevImage.clearPoint()
+                .setSize(itemWidth * 0.48, UIDIALOG_PAGER_HEIGHT)
+                .setPoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_BOTTOMLEFT, UIDIALOG_PADDING_X, UIDIALOG_PADDING_BOTTOM);
+            pageNextImage.clearPoint()
+                .setSize(itemWidth * 0.48, UIDIALOG_PAGER_HEIGHT)
+                .setPoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_BOTTOMRIGHT, -UIDIALOG_PADDING_X, UIDIALOG_PADDING_BOTTOM);
 
-            this.showPager(showPager);
+            this.showPager(needPager);
         }
 
         static method create(player p, dialogData data) -> thistype {
@@ -319,6 +312,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                         if (data.trEnterTrigger != null) {
                             currentDataAsync = data;
                             currentPosAsync = pos;
+                            currentFrameAsync = frame;
                             TriggerEvaluate(data.trEnterTrigger);
                         }
                 })
@@ -341,7 +335,9 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                         if (data.trLeaveTrigger != null) {
                             currentDataAsync = data;
                             currentPosAsync = pos;
+                            currentFrameAsync = frame;
                             TriggerEvaluate(data.trLeaveTrigger);
+                            currentFrameAsync = 0;
                         }
                 })
                     .spClick(function(integer frame) {
@@ -467,12 +463,18 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
         integer count;
         string title;
         player owner;
+        real width;
+        boolean useAbsPoint;
+        integer absAnchor;
+        real absX;
+        real absY;
 
         // [ASYNC-SAFE] 以下触发器在本地 UI 异步链路中触发，禁止修改同步状态
         trigger trContentTrigger;
         trigger trEnterTrigger;
         trigger trLeaveTrigger;
         trigger trClickTrigger;
+        boolean autoHideOnClick;
 
         uidialog uiDialog;
 
@@ -487,10 +489,16 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 
             this.title = "";
             this.owner = p;
+            this.width = UIDIALOG_WIDTH;
+            this.useAbsPoint = false;
+            this.absAnchor = ANCHOR_CENTER;
+            this.absX = 0.0;
+            this.absY = UIDIALOG_CENTER_OFFSET_Y;
             this.trContentTrigger = null;
             this.trEnterTrigger = null;
             this.trLeaveTrigger = null;
             this.trClickTrigger = null;
+            this.autoHideOnClick = true;
             this.uiDialog = 0;
 
             SaveInteger(HASH_DIALOG, this, UIDIALOG_HASH_KEY_PAGE, 1);
@@ -504,6 +512,31 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                 trContentTrigger = CreateTrigger();
                 TriggerAddCondition(trContentTrigger, Condition(func));
             }
+        }
+
+        method setWidth(real w) {
+            if (!this.isExist()) { return; }
+            if (w > 0.0) {
+                width = w;
+            } else {
+                width = UIDIALOG_WIDTH;
+            }
+        }
+
+        method setAbsPoint(integer anchor, real x, real y) {
+            if (!this.isExist()) { return; }
+            useAbsPoint = true;
+            absAnchor = anchor;
+            absX = x;
+            absY = y;
+        }
+
+        method clearAbsPoint() {
+            if (!this.isExist()) { return; }
+            useAbsPoint = false;
+            absAnchor = ANCHOR_CENTER;
+            absX = 0.0;
+            absY = UIDIALOG_CENTER_OFFSET_Y;
         }
 
         method onEnter(code func) {
@@ -531,6 +564,11 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                 trClickTrigger = CreateTrigger();
                 TriggerAddCondition(trClickTrigger, Condition(func));
             }
+        }
+
+        method setAutoHideOnClick(boolean hideFlag) {
+            if (!this.isExist()) { return; }
+            autoHideOnClick = hideFlag;
         }
 
         method show() {
@@ -581,6 +619,12 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             count = 0;
             title = null;
             owner = null;
+            width = 0.0;
+            useAbsPoint = false;
+            absAnchor = 0;
+            absX = 0.0;
+            absY = 0.0;
+            autoHideOnClick = true;
         }
     }
 
@@ -610,7 +654,9 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                             currentPos = 0;
                         }
 
-                        data.hide();
+                        if (data.autoHideOnClick) {
+                            data.hide();
+                        }
                     }
                 }
             }

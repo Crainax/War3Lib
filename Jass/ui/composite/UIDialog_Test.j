@@ -162,9 +162,35 @@ library UTUIDialog requires UIDialog,SyncBus {
         BJDebugMsg("[UIDialogTest] s5: 重复创建/销毁完成");
     }
 
-    function TTestUTUIDialog6(player p) {}
-    function TTestUTUIDialog7(player p) {}
-    function TTestUTUIDialog8(player p) {}
+    function TTestUTUIDialog6(player p) {
+        CreateTestDialog(p, 6, "UIDialog测试(窄宽度)", false);
+        if (currentDD.isExist()) {
+            currentDD.setWidth(0.180);
+            currentDD.refresh();
+        }
+        BJDebugMsg("[UIDialogTest] s6: 宽度已设为0.180(居中)");
+    }
+
+    function TTestUTUIDialog7(player p) {
+        CreateTestDialog(p, 6, "UIDialog测试(左上角定位)", false);
+        if (currentDD.isExist()) {
+            currentDD.setWidth(0.180);
+            currentDD.setAbsPoint(ANCHOR_TOPLEFT, 0.020, 0.560);
+            currentDD.refresh();
+        }
+        BJDebugMsg("[UIDialogTest] s7: 已设置左上角定位(ANCHOR_TOPLEFT,0.020,0.560)+宽度0.180");
+    }
+
+    function TTestUTUIDialog8(player p) {
+        CreateTestDialog(p, 6, "UIDialog测试(clearAbsPoint)", false);
+        if (currentDD.isExist()) {
+            currentDD.setWidth(0.180);
+            currentDD.setAbsPoint(ANCHOR_TOPLEFT, 0.020, 0.560);
+            currentDD.clearAbsPoint();
+            currentDD.refresh();
+        }
+        BJDebugMsg("[UIDialogTest] s8: 已执行clearAbsPoint(), 对话框恢复居中");
+    }
     function TTestUTUIDialog9(player p) {}
     function TTestUTUIDialog10(player p) {}
 
@@ -195,6 +221,9 @@ library UTUIDialog requires UIDialog,SyncBus {
             BJDebugMsg("s3: 模拟同步点击并自动关闭");
             BJDebugMsg("s4: HASH_DIALOG 外部绑定读取");
             BJDebugMsg("s5: show/hide 压力销毁");
+            BJDebugMsg("s6: setWidth(0.180) 宽度测试");
+            BJDebugMsg("s7: setAbsPoint 左上角定位测试");
+            BJDebugMsg("s8: clearAbsPoint 恢复居中测试");
             BJDebugMsg("-clear: 清理 currentDD");
             Init();
             DestroyTrigger(GetTriggeringTrigger());
