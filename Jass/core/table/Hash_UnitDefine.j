@@ -194,6 +194,7 @@
 
 // 魔兽直伤：存储的“总伤害量”（real）。当 MOSHOU_DAMAGE_TYPE_*_DIRECT 使用该键直接造成伤害
 #define KEY_MOSHOU_BINDING_TOTAL_DAMAGE 10012   // 魔兽直伤总伤害量（real）
+#define KEY_UNIT_CURRENT_SKIN_MODEL_PATH 10013  // 当前皮肤模型路径（string）
 
 
 
