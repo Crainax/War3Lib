@@ -19,10 +19,11 @@ library UTUnitState requires UnitState {
 		player p; player enemyP;  // 局部变量声明在前
 		//sdfkjsdjklfslkfslkfdl
 
-		// 创建我方农民（玩家1）以及测试步兵
+		// 创建我方农民（玩家1）、测试步兵、大法师
 		p = Player(0);
-		myPeasant = CreateUnit(p, 'hpea', 0.0, 0.0, 270.0);
-		testFootman = CreateUnit(p, 'hfoo', 200.0, 0.0, 270.0);
+		myPeasant   = CreateUnit(p, 'hpea', 0.0,   0.0, 270.0);
+		testFootman = CreateUnit(p, 'hfoo', 200.0,  0.0, 270.0);
+		testHero    = CreateUnit(p, 'Hamg', -200.0, 0.0, 270.0);
 		p = null;
 
 		// 创建敌方农民（玩家2）
@@ -30,7 +31,7 @@ library UTUnitState requires UnitState {
 		enemyPeasant = CreateUnit(enemyP, 'hpea', 500.0, 0.0, 270.0);
 		enemyP = null;
 
-		BJDebugMsg("[UnitState] 测试单位已创建：我方农民和敌方农民");
+		BJDebugMsg("[UnitState] 测试单位已创建：农民、步兵、大法师");
 	}
 
 	function TTestUTUnitState1 (player p) {
@@ -77,13 +78,12 @@ library UTUnitState requires UnitState {
 	function TTestActUTUnitState1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
-		integer i,	 num = 0, len = StringLength(str); //获取范围式数字
-		string  paramS [];							   //所有参数S
-		integer paramI [];							   //所有参数I
-		real	paramR [];							   //所有参数R
-		integer soundId = 0;						   //武器声音序号
-		unit u1 = null;								 //用于临时创建单位
-		unit u2 = null;
+		integer i,  num = 0, len = StringLength(str);  //获取范围式数字
+		string  paramS [];                             //所有参数S
+		integer paramI [];                             //所有参数I
+		real    paramR [];                             //所有参数R
+		integer soundId = 0;                           //武器声音序号
+		unit    u1, u2,      u3, u4, u5;                   //用于临时创建单位
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -150,32 +150,47 @@ library UTUnitState requires UnitState {
 		} else if (paramS[0] == "getsounds") {
 			u1 = CreateUnit(p, 'Hpal', -200.0, -200.0, 270.0);
 			u2 = CreateUnit(p, 'uaco', -400.0, -200.0, 270.0);
+			u3 = CreateUnit(p, 'nggr', -600.0, -200.0, 270.0);
+			u4 = CreateUnit(p, 'nmyr', -800.0, -200.0, 270.0);
+			u5 = CreateUnit(p, 'Nbbc', -800.0, -200.0, 270.0);
 
 			// 查武器声音 0x22
 			soundId = R2I(GetUnitState(u1, ConvertUnitState(0x22)));
-			Trace("[UnitState] 圣骑士('Hpal') 武器声音(0x22): " + I2S(soundId));
+			Trace("[UnitState] 圣骑士('Hpal') 武器声音(0x22): " + I2S(soundId)); //8
 			soundId = R2I(GetUnitState(u2, ConvertUnitState(0x22)));
-			Trace("[UnitState] 侍僧('uaco') 武器声音(0x22): " + I2S(soundId));
+			Trace("[UnitState] 侍僧('uaco') 武器声音(0x22): " + I2S(soundId)); //14
+			soundId = R2I(GetUnitState(testFootman, ConvertUnitState(0x22)));
+			Trace("[UnitState] 步兵('hfoo') 武器声音(0x22): " + I2S(soundId)); //5  这有点抽插感 不是剑圣那种
+			soundId = R2I(GetUnitState(u3, ConvertUnitState(0x22)));
+			Trace("[UnitState] 花岗岩傀儡('nggr') 武器声音(0x22): " + I2S(soundId)); //23
+			soundId = R2I(GetUnitState(u4, ConvertUnitState(0x22)));
+			Trace("[UnitState] 娜迦暴徒('nmyr') 武器声音(0x22): " + I2S(soundId)); //3
+			soundId = R2I(GetUnitState(u5, ConvertUnitState(0x22)));
+			Trace("[UnitState] 剑圣('Nbbc') 武器声音(0x22): " + I2S(soundId)); //6
 
 			// 查武器类型 0x58
 			soundId = R2I(GetUnitState(u1, ConvertUnitState(0x58)));
 			Trace("[UnitState] 圣骑士('Hpal') 武器类型(0x58): " + I2S(soundId));
 			soundId = R2I(GetUnitState(u2, ConvertUnitState(0x58)));
 			Trace("[UnitState] 侍僧('uaco') 武器类型(0x58): " + I2S(soundId));
+			// 查大法师和农民的武器类型 0x58
+			soundId = R2I(GetUnitState(testHero, ConvertUnitState(0x58)));
+			Trace("[UnitState] 大法师('Hamg') 武器类型(0x58): " + I2S(soundId)); //得到的结果是2
+			soundId = R2I(GetUnitState(myPeasant, ConvertUnitState(0x58)));
+			Trace("[UnitState] 农民('hpea') 武器类型(0x58): " + I2S(soundId)); //得到的结果是1
+			soundId = R2I(GetUnitState(testFootman, ConvertUnitState(0x58)));
+			Trace("[UnitState] 步兵('hfoo') 武器类型(0x58): " + I2S(soundId)); //得到的结果是动态的
 
 			// -------步兵武器声音测试-------
-		} else if (paramS[0] == "metalchop") {
-			if (testFootman != null) {
-				// 3 = Metal Heavy Chop
-				SetUnitState(testFootman, ConvertUnitState(0x22), 8);
-				BJDebugMsg("[UnitState] 步兵攻击声音已修改为: 金属重击 (Metal Heavy Chop / 序号:8)");
-			}
-		} else if (paramS[0] == "woodbash") {
-			if (testFootman != null) {
-				// 10 = Wood Light Bash
-				SetUnitState(testFootman, ConvertUnitState(0x22), 14);
-				BJDebugMsg("[UnitState] 步兵攻击声音已修改为: 木头轻音 (Wood Light Bash / 序号:14)");
-			}
+
+			// -------通过 YDWE 读取 SLK 属性"weapTp1"-------
+		} else if (paramS[0] == "getweaptype") {
+			// 通过 YDWEGetObjectPropertyInteger 读取单位 SLK 中的 weapTp1 字段
+			// 与运行时 ConvertUnitState(0x58) 对比，确认映射关系
+			Trace("[UnitState] [YDWE] 农民('hpea') weapTp1: " + YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_UNIT, GetUnitTypeId(myPeasant), "weapTp1")); //结果:normal
+			Trace("[UnitState] [YDWE] 大法师('Hamg') weapTp1: " + YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_UNIT, GetUnitTypeId(testHero), "weapTp1")); //结果:missile
+			Trace("[UnitState] [YDWE] 农民('hpea') weapTp1: " + YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_UNIT, GetUnitTypeId(myPeasant), "weapType1")); //看看武器声音结果:MetalLightChop
+			Trace("[UnitState] [YDWE] 大法师('Hamg') weapTp1: " + YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_UNIT, GetUnitTypeId(testHero), "weapType1")); //看看武器声音结果:(空)
 		} else if (paramS[0] == "createfoot") {
 			// 手动重新创建人族步兵 'hfoo'
 			if (testFootman != null) {
@@ -187,23 +202,6 @@ library UTUnitState requires UnitState {
 		} else if (paramS[0] == "weaponsound") {
 			// 通过 EXSetUnitInteger 修改单位攻击1的武器声音
 			// UNIT_STATE_ATTACK1_WEAPON_SOUND = 0x22
-			// WC3 内置声音枚举（部分）:
-			//   0  = unk / none
-			//   1  = Metal Light Chop
-			//   2  = Metal Medium Chop
-			//   3  = Metal Heavy Chop
-			//   4  = Metal Light Slice
-			//   5  = Metal Medium Slice
-			//   6  = Metal Heavy Slice
-			//   7  = Metal Medium Bash
-			//   8  = Metal Heavy Bash
-			//   9  = Metal Heavy Crush
-			//  10  = Wood Light Bash
-			//  11  = Wood Medium Bash
-			//  12  = Wood Heavy Bash
-			//  13  = Wood Light Slice
-			//  14  = Wood Medium Slice
-			//  15  = Wood Heavy Slice
 			if (testFootman != null) {
 				soundId = paramI[1];
 				// 使用 SetUnitState + ConvertUnitState，与项目改攻击类型/护甲的方式一致
@@ -221,8 +219,8 @@ library UTUnitState requires UnitState {
 				// 攻击1 范围改为 600 (0x16)
 				SetUnitState(testFootman, ConvertUnitState(0x16), 600.0);
 				// 攻击1 武器类型改为箭矢 5.0 (0x58)
-				// (内置约定：1=普通 2=立即 3=炮火 4=炮线 5=箭矢 6=溅射 7=弹射 8=箭线)
-				SetUnitState(testFootman, ConvertUnitState(0x58), 5.0);
+				// (内置约定：1=普通 2=箭矢)
+				SetUnitState(testFootman, ConvertUnitState(0x58), 2.0);
 				// 攻击1 武器声音改为 0.0 (0x22) (0=无声音，去掉刀切声)
 				SetUnitState(testFootman, ConvertUnitState(0x22), 0.0);
 				// 设置弹道模型（用恶魔猎手飞镖等）
@@ -230,7 +228,12 @@ library UTUnitState requires UnitState {
 				DzSetUnitMissileSpeed(testFootman, 800);
 				// 同时改攻击范围为 600（保证AI也生效）
 				SetUnitAcquireRange(testFootman, 600.0);
-				BJDebugMsg("[UnitState] 步兵变远程: 范围600, 武器类型=箭矢(5), 已去除近战音效");
+				BJDebugMsg("[UnitState] 步兵变远程: 范围600, 武器类型=箭矢(2), 已去除近战音效");
+				// 打印前的武器类型(0x58)
+				if (testFootman != null) {
+					soundId = R2I(GetUnitState(testFootman, ConvertUnitState(0x58)));
+					Trace("[UnitState] -ranged 修改后 步兵('hfoo') 武器类型(0x58): " + I2S(soundId));
+				}
 			} else {
 				BJDebugMsg("[UnitState] 错误：请先用 -createfoot 创建步兵");
 			}
@@ -246,6 +249,11 @@ library UTUnitState requires UnitState {
 				DzSetUnitMissileModel(testFootman, "");
 				SetUnitAcquireRange(testFootman, 250.0);
 				BJDebugMsg("[UnitState] 步兵还原近战: 范围90, 武器类型=普通(1), 恢复近战音效");
+				// 打印前的武器类型(0x58)
+				if (testFootman != null) {
+					soundId = R2I(GetUnitState(testFootman, ConvertUnitState(0x58)));
+					Trace("[UnitState] -rangeret 修改后 步兵('hpea') 武器类型(0x58): " + I2S(soundId));
+				}
 			} else {
 				BJDebugMsg("[UnitState] 错误：请先用 -createfoot 创建步兵");
 			}
@@ -277,6 +285,7 @@ library UTUnitState requires UnitState {
 			BJDebugMsg("  |cffffff00-weaponsound N|r (或者手动指定声音序号N)");
 			BJDebugMsg("  |cffffff00-ranged|r / |cffffff00-rangeret|r (步兵变远程/还原近战，带静音辅助)");
 			BJDebugMsg("  |cff00ff00-getsounds|r (创建圣骑士和侍僧，并Trace打印他们的数据)");
+			BJDebugMsg("  |cff00ff00-getweaptype|r (看看近战和远程返回的值)");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
