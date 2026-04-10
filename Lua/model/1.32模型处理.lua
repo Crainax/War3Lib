@@ -22,7 +22,6 @@ local function Convert(cFormat)
 			print(gbk.toutf8(cmd))
 		end
 	end, false)
-
 end
 
 -- ��������MDL�ļ������޸�

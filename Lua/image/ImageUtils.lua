@@ -7,6 +7,92 @@ local copy = require "lua.utils.copy"
 local BlpLab = {}
 local iu = { ['BlpLab'] = BlpLab }
 
+local SUPPORTED_EXT = {
+	png = true,
+	bmp = true,
+	jpg = true,
+	jpeg = true,
+	tga = true,
+	dds = true,
+	gif = true,
+	webp = true
+}
+
+local function fileExists(filePath)
+	local file = io.open(filePath, "rb")
+	if file then
+		file:close()
+		return true
+	end
+	return false
+end
+
+local function resolveBlpNetCl()
+	if iu.flag and iu.flag.blpCliExe and fileExists(iu.flag.blpCliExe) then
+		return iu.flag.blpCliExe
+	end
+
+	local base = path.image.blplab
+	local candidates = {
+		base .. "/BLP.NET.CL/BLP.NET/blpnetcl.exe",
+		base .. "/blpnetcl.exe"
+	}
+	for _, exePath in ipairs(candidates) do
+		if fileExists(exePath) then
+			return exePath
+		end
+	end
+	return nil
+end
+
+local function runSilentBlpConvert(sourcePath, destPath)
+	local cliExe = resolveBlpNetCl()
+	if not cliExe then
+		return false, "未找到 blpnetcl.exe。"
+	end
+
+	fu.createDir(destPath)
+
+	local cliArgs = ""
+	if iu.flag and iu.flag.blpCliArgs then
+		cliArgs = iu.flag.blpCliArgs
+	end
+
+	local converted = 0
+	local failed = 0
+
+	fu.ForDir(sourcePath, function(filePath)
+		local fileName, format = fu.GetFile(filePath)
+		local ext = format and string.lower(format) or nil
+
+		if not fileName or not ext or not SUPPORTED_EXT[ext] then
+			return
+		end
+
+		local outputFile = destPath .. "/" .. fileName .. ".blp"
+		local cmd = 'cmd /c ""' .. cliExe .. '" "' .. string.gsub(filePath, "/", "\\") .. '" "' ..
+			string.gsub(outputFile, "/", "\\") .. '"'
+		if cliArgs ~= "" then
+			cmd = cmd .. " " .. cliArgs
+		end
+		cmd = cmd .. '"'
+
+		os.execute(cmd)
+		if fileExists(outputFile) then
+			converted = converted + 1
+		else
+			failed = failed + 1
+			print("BLP 静默转换失败: " .. filePath)
+		end
+	end, false)
+
+	if failed > 0 then
+		return false, string.format("成功 %d, 失败 %d", converted, failed)
+	end
+
+	return true, string.format("成功转换 %d 个文件", converted)
+end
+
 -- 直接记录标志位（初始化）
 function iu.Flag(flag)
 	iu.flag = flag
@@ -82,6 +168,19 @@ end
 
 -- 调用 BLPLab 批量生成 BLP
 function BlpLab:ConvertBLP(pngPath, blpPath)
+	local ok, msg = runSilentBlpConvert(pngPath, blpPath)
+	if ok then
+		print("BLP 静默转换完成: " .. msg)
+		return true
+	end
+
+	print("警告: " .. msg)
+	if iu.flag and iu.flag.blpDisableGuiFallback then
+		print("已禁用 GUI 回退，跳过 blplab.exe。")
+		return false
+	end
+
+	print("回退到 blplab.exe（需要手动点击开始）...")
 	fu.ExecuteFile(path.image.blplab .. '/blplab.ini', function(line)
 		if (string.match(line, "SourceFolder")) then
 			line = "SourceFolder=" .. string.gsub(pngPath, "/", "\\")
@@ -92,6 +191,7 @@ function BlpLab:ConvertBLP(pngPath, blpPath)
 	end)
 	os.execute(fu.PathString(path.image.blplab .. "/blplab.exe"))
 	-- 关闭窗口、回收资源等（若有必要）
+	return true
 end
 
 -- 移动到目标文件夹（区分禁用与正常按钮）

@@ -1,6 +1,5 @@
 local flag = {
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\aniya\test1\1.mdl]], -- 要处理的文件名
-	['output'] = [[D:\War3\Library\War3Lib\Lua\model\output.log]] -- Debug输出的位置
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\xiaoren2\test1\1.mdl]], -- 要处理的文件名
 }
 
 -- ====== 配置常量 ======
@@ -95,9 +94,7 @@ local function AddAttachments()
 		error("无法打开文件: " .. flag.path)
 	end
 
-	local lineNum = 0
 	for line in file:lines() do
-		lineNum = lineNum + 1
 		-- 收集 Bone ObjectId
 		local boneName = extractBoneName(line)
 		if boneName then
@@ -448,13 +445,6 @@ local function AddAttachments()
 	logContent = logContent .. string.format("\nPivotPoints 数量: %d -> %d\n", #pivotPoints, newPivotCount)
 	logContent = logContent .. "==============================\n"
 
-	-- 使用 io 库写入文件
-	local logFile = io.open(flag.output, "w")
-	if not logFile then
-		error("无法写入日志文件: " .. flag.output)
-	end
-	logFile:write(logContent)
-	logFile:close()
 	print(logContent)
 end
 

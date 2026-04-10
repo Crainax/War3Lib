@@ -14,19 +14,48 @@ chcp 65001
 -- 1. 基础路径配置
 local paths = {
     -- [重要] 图标的基础目录, 也是传递给BLPLab的参数
-    icon_base_dir = "D:\\War3Asset\\Asset\\Xlimon\\Icon\\20260110\\4\\1\\",
+    icon_base_dir = [[D:\War3Asset\Asset\Xlimon_Achieve\NewMap\Portrait\]],
 
     -- 各种叠加图片的路径
-    btn           = "D:\\War3\\tools\\Image\\btn.png",
-    paoguang      = "D:\\War3\\tools\\Image\\Paoguangx4.png",
-    passive       = "D:\\War3\\tools\\Image\\passive.png",
-    dis           = "D:\\War3\\tools\\Image\\dis.png"
+    btn           = [[D:\War3\tools\Image\btn.png]],
+    paoguang      = [[D:\War3\tools\Image\Paoguangx4.png]],
+    passive       = [[D:\War3\tools\Image\passive.png]],
+    dis           = [[D:\War3\tools\Image\dis.png]]
 }
 
 -- BLPLab 相关配置
+-- blpnetcl 参数说明:
+-- type: 0=Compressed(JPEG质量1-100), 1=Paletted(调色板质量1-256)
+-- mipmap: 0-15
+-- quality: 依据 type 不同而不同
+-- alpha: 0=Auto, 1=Opaque, 2=Alpha
+local blp_cli = {
+    type = 0,
+    mipmap = 1,
+    quality = 98,
+    alpha = 2,
+    option1 = false,
+    option2 = false
+}
+
+local function build_blp_cli_args(cfg)
+    local args = {
+        "--type " .. tostring(cfg.type),
+        "--mipmap " .. tostring(cfg.mipmap),
+        "--quality " .. tostring(cfg.quality),
+        "--alpha " .. tostring(cfg.alpha)
+    }
+    if cfg.option1 then table.insert(args, "--option1") end
+    if cfg.option2 then table.insert(args, "--option2") end
+    return table.concat(args, " ")
+end
+
 local blplab_config = {
-    exe = "D:\\War3\\tools\\BLPLAB\\blplab.exe",
-    ini_file = "D:\\War3\\tools\\BLPLAB\\blplab.ini"
+    exe = [[D:\War3\tools\BLPLAB\blplab.exe]],
+    ini_file = [[D:\War3\tools\BLPLAB\blplab.ini]],
+    cli_exe = [[D:\War3\tools\BLPLAB\BLP.NET.CL\BLP.NET\blpnetcl.exe]],
+    cli_args = build_blp_cli_args(blp_cli),
+    allow_gui_fallback = false
 }
 
 -- 2. 图片尺寸配置
@@ -35,10 +64,10 @@ local image_size = 64
 -- 3. 生成开关
 local generate_flags = {
     normal = true,
-    passive = true,
+    passive = false,
     disabled = true
 }
-local paoguang_flag = true
+local paoguang_flag = false
 
 -- 4. [新功能] magick处理完成后是否自动运行BLPLab脚本
 local run_blplab_after = true
@@ -56,7 +85,14 @@ local output_dir = source_dir .. "output\\"
 print("检查输出目录: " .. output_dir)
 os.execute('mkdir "' .. output_dir .. '" > nul 2>&1')
 
-local list_files_cmd = 'dir /b "' .. source_dir .. '*.png"'
+-- 支持多种图片格式: png, bmp, tga, jpg, jpeg
+local supported_exts = { "png", "bmp", "tga", "jpg", "jpeg" }
+local list_files_cmd = '('
+for i, ext in ipairs(supported_exts) do
+    if i > 1 then list_files_cmd = list_files_cmd .. ' & ' end
+    list_files_cmd = list_files_cmd .. 'dir /b "' .. source_dir .. '*.' .. ext .. '" 2>nul'
+end
+list_files_cmd = list_files_cmd .. ')'
 
 print("\n开始批量处理图片...")
 -- (图片处理逻辑... 和之前版本完全相同)
@@ -69,33 +105,33 @@ for filename in io.popen(list_files_cmd):lines() do
     local magick_command, output_path, output_filename
 
     if generate_flags.normal then
-        output_filename = "btn" .. filename; output_path = '"' .. output_dir .. output_filename .. '"'
+        output_filename = "btn" .. basename .. ".png"; output_path = '"' .. output_dir .. output_filename .. '"'
         if paoguang_flag then
             magick_command = string.format(
-            'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite ( "%s" -resize %s ) -gravity center -composite %s',
+                'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite ( "%s" -resize %s ) -gravity center -composite %s',
                 input_path, size_str, size_str, paths.paoguang, size_str, paths.btn, size_str, output_path)
             print("  -> 生成 (常规+抛光): " .. output_filename)
         else
             magick_command = string.format(
-            'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite %s',
+                'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite %s',
                 input_path, size_str, size_str, paths.btn, size_str, output_path)
             print("  -> 生成 (常规): " .. output_filename)
         end
         os.execute(magick_command)
     end
     if generate_flags.passive then
-        output_filename = "btn" .. basename .. "p." .. extension; output_path = '"' ..
-        output_dir .. output_filename .. '"'
+        output_filename = "btn" .. basename .. "p.png"; output_path = '"' ..
+            output_dir .. output_filename .. '"'
         magick_command = string.format(
-        'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite %s',
+            'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite %s',
             input_path, size_str, size_str, paths.passive, size_str, output_path)
         print("  -> 生成 (被动): " .. output_filename)
         os.execute(magick_command)
     end
     if generate_flags.disabled then
-        output_filename = "disbtn" .. filename; output_path = '"' .. output_dir .. output_filename .. '"'
+        output_filename = "disbtn" .. basename .. ".png"; output_path = '"' .. output_dir .. output_filename .. '"'
         magick_command = string.format(
-        'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite %s',
+            'magick convert %s -resize %s -background black -gravity center -extent %s ( "%s" -resize %s ) -gravity center -composite %s',
             input_path, size_str, size_str, paths.dis, size_str, output_path)
         print("  -> 生成 (失效): " .. output_filename)
         os.execute(magick_command)

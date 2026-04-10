@@ -1,6 +1,5 @@
 local flag = {
-	['path'] = [[D:\War3Asset\Model\Shangquemoxing\20260112\4\moshou_firedragon.mdl]], -- 要处理的文件名
-	['output'] = [[D:\War3Asset\Model\Shangquemoxing\20251105\Zhende\A (169).txt]] -- Debug输出的位置
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\xiaoren2\test1\1.mdl]],         -- 要处理的文件名
 }
 
 -- ====== 配置常量 ======
@@ -124,11 +123,6 @@ local function OptimizeMDL()
 	local rotKeyframeCount = 0  -- Rotation 实际保留的关键帧数量
 
 	print("Processing file: " .. flag.path)
-	-- 保持原行为：清空 Debug 输出文件（即使后续不写入）
-	do
-		local dbg = io.open(flag.output, "w")
-		if dbg then dbg:close() end
-	end
 
 	-- 打开输入文件
 	local fileIn = io.open(flag.path, "r")
@@ -326,8 +320,6 @@ local function OptimizeMDL()
 	print(string.format("  Keyframes removed (dedupe): %d", stats.rotationKeyframesRemoved))
 	print(string.format("Cleaned scientific notation (e/E, +/-): %d instances", stats.scientificCountRemoved))
 	print("==============================")
-
-	-- os.execute([[explorer ]] .. flag.output)
 end
 
 OptimizeMDL()

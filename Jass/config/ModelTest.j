@@ -112,34 +112,22 @@ library MT requires UnitTestFramwork {
 	//EfxB("chest","Abilities\\Spells\\Undead\\FrostArmor\\FrostArmorTarget.mdl");
 	//Danmu("Abilities\\Weapons\\FaerieDragonMissile\\FaerieDragonMissile.mdl");
 	function TTestMT1 (player p) {
-		UnitModel(p,"[AKE]war3AKE.com - 5943780070165096770806272.mdl");
-		Efx("[AKE]war3AKE.com - 5943780070165096770806272.mdl");
-		EfxB("chest","[AKE]war3AKE.com - 5943780070165096770806272.mdl");
-		Danmu("[AKE]war3AKE.com - 5943780070165096770806272.mdl");
+		UnitModel(p,"2.mdl");
+		Efx("2.mdl");
+		EfxB("chest","2.mdl");
+		Danmu("2.mdl");
 	}
 	function TTestMT2 (player p) {
-		UnitModel(p,"A (92).mdl");
-		Efx("A (92).mdl");
-		EfxB("chest","A (92).mdl");
-		Danmu("A (92).mdl");
+		//replace
 	}
 	function TTestMT3 (player p) {
-		UnitModel(p,"A (882).mdl");
-		Efx("A (882).mdl");
-		EfxB("chest","A (882).mdl");
-		Danmu("A (882).mdl");
+		//replace
 	}
 	function TTestMT4 (player p) {
-		UnitModel(p,"A (430).mdl");
-		Efx("A (430).mdl");
-		EfxB("chest","A (430).mdl");
-		Danmu("A (430).mdl");
+		//replace
 	}
 	function TTestMT5 (player p) {
-		UnitModel(p,"A (369).mdl");
-		Efx("A (369).mdl");
-		EfxB("chest","A (369).mdl");
-		Danmu("A (369).mdl");
+		//replace
 	}
 	function TTestMT6 (player p) {
 		//replace
