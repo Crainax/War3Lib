@@ -9,7 +9,7 @@ do
     local project = cwd:gsub("\\", "/")
     local root = project
     local libSuffix = "/Library/War3Lib"
-    if project:sub(-#libSuffix) == libSuffix then
+    if project:sub(- #libSuffix) == libSuffix then
         root = project:sub(1, #project - #libSuffix)
     else
         local parent = project:match("(.+)/[^/]+$")
@@ -21,11 +21,11 @@ do
 end
 
 local flag = {
-    ['path'] = [[D:\War3Asset\Model\ShangqueDIY\xiaoren2\release]], -- 要处理的文件夹
-    ['mdxTar'] = path.model.test.res, -- 移到这里
-    ['type'] = function(name) -- 根据name分format
+    ['path'] = [[D:\War3Asset\Model\ShangqueDIY\juxueli\release]], -- 要处理的文件夹
+    ['mdxTar'] = path.model.test.res,                             -- 移到这里
+    ['type'] = function(name)                                     -- 根据name分format
         -- 暂时不依赖分类，默认生成所有四种类型
-        return 'All' -- 返回一个特殊值，触发生成所有类型
+        return 'All'                                              -- 返回一个特殊值，触发生成所有类型
     end
 }
 local prefix = {
@@ -62,7 +62,7 @@ function MoveModel(mdlList)
             local output = path.model.test.res .. subPath
             local dir = fu.GetDir(output) -- 对应的文件夹是否存在
             if not (fu.DirExist(dir)) then
-                fu.createDir(dir) -- 创建文件夹
+                fu.createDir(dir)         -- 创建文件夹
                 print("Created directory: " .. dir)
             end
             local sur, msg = copy.CopyBin(filePath, output)
@@ -96,17 +96,17 @@ function GenerateTest(mdxList)
                 if type == 'All' then
                     -- 生成所有四种类型的测试代码，参考 ModelTest.j 的格式
                     return prefix['Unit'] .. mod .. suffix['Unit'] .. '\n' ..
-                           prefix['Efx'] .. mod .. suffix['Efx'] .. '\n' ..
-                           prefix['Bind'] .. mod .. suffix['Bind'] .. '\n' ..
-                           prefix['Missile'] .. mod .. suffix['Missile']
+                        prefix['Efx'] .. mod .. suffix['Efx'] .. '\n' ..
+                        prefix['Bind'] .. mod .. suffix['Bind'] .. '\n' ..
+                        prefix['Missile'] .. mod .. suffix['Missile']
                 elseif prefix[type] then
                     return prefix[type] .. mod .. suffix[type]
                 else
                     -- 默认生成所有四种类型
                     return prefix['Unit'] .. mod .. suffix['Unit'] .. '\n' ..
-                           prefix['Efx'] .. mod .. suffix['Efx'] .. '\n' ..
-                           prefix['Bind'] .. mod .. suffix['Bind'] .. '\n' ..
-                           prefix['Missile'] .. mod .. suffix['Missile']
+                        prefix['Efx'] .. mod .. suffix['Efx'] .. '\n' ..
+                        prefix['Bind'] .. mod .. suffix['Bind'] .. '\n' ..
+                        prefix['Missile'] .. mod .. suffix['Missile']
                 end
             end
         end
@@ -124,7 +124,7 @@ function GenerateTest(mdxList)
 end
 
 local mdxList = {}
-DeleteOldFile() -- 删除旧的模型文件
-MoveModel(mdxList) -- 移动新的模型文件
+DeleteOldFile()       -- 删除旧的模型文件
+MoveModel(mdxList)    -- 移动新的模型文件
 GenerateTest(mdxList) -- 生成测试文件
 print("File move completed, check ModelTest.j")

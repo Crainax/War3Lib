@@ -1,10 +1,10 @@
 local flag = {
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\xiaoren2\test1\1.mdl]],         -- 要处理的文件名
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\juxueli\test2\2.mdl]], -- 要处理的文件名
 }
 
 -- ====== 配置常量 ======
-local EPS = 1e-5  -- 数值归零阈值
-local OUTPUT_PREC = 7  -- 输出精度（小数位数）
+local EPS = 1e-5      -- 数值归零阈值
+local OUTPUT_PREC = 7 -- 输出精度（小数位数）
 
 -- ====== 工具函数 ======
 -- 数值归一化：阈值归零、-0修正、格式化输出
@@ -100,27 +100,27 @@ end
 local function OptimizeMDL()
 	-- 统计信息
 	local stats = {
-		scalingBlocks = 0,    -- 删除的 Scaling 块数量
-		translationBlocks = 0, -- 处理的 Translation 块数量
-		translationDeleted = 0, -- 删除的 Translation 块数量（全为0的）
+		scalingBlocks = 0,         -- 删除的 Scaling 块数量
+		translationBlocks = 0,     -- 处理的 Translation 块数量
+		translationDeleted = 0,    -- 删除的 Translation 块数量（全为0的）
 		translationKeyframesRemoved = 0, -- Translation 去重删除的关键帧数量
-		rotationBlocks = 0,   -- 处理的 Rotation 块数量
+		rotationBlocks = 0,        -- 处理的 Rotation 块数量
 		rotationKeyframesRemoved = 0, -- Rotation 去重删除的关键帧数量
 		scientificCountRemoved = 0, -- 清理的科学计数法数量（包含 e/E 和 +/- 指数）
-		totalLines = 0        -- 处理的总行数
+		totalLines = 0             -- 处理的总行数
 	}
 
 	local inScaling = false
-	local inTran = false -- 是否在Tran的模块内
+	local inTran = false       -- 是否在Tran的模块内
 	local inRotate = false
-	local sTran = ""  -- Translation 块累积内容
+	local sTran = ""           -- Translation 块累积内容
 	local tranDel = true       -- 是否真的删除该移动
 	local tranScientificCount = 0 -- Translation 块中的科学计数法数量
-	local tranLastVector = nil  -- Translation 上一条保留的关键帧向量（用于去重）
-	local tranKeyframeCount = 0  -- Translation 实际保留的关键帧数量
+	local tranLastVector = nil -- Translation 上一条保留的关键帧向量（用于去重）
+	local tranKeyframeCount = 0 -- Translation 实际保留的关键帧数量
 	local rotLastVector = nil  -- Rotation 上一条保留的关键帧向量（用于去重）
-	local rotBuffer = ""  -- Rotation 块累积内容
-	local rotKeyframeCount = 0  -- Rotation 实际保留的关键帧数量
+	local rotBuffer = ""       -- Rotation 块累积内容
+	local rotKeyframeCount = 0 -- Rotation 实际保留的关键帧数量
 
 	print("Processing file: " .. flag.path)
 
@@ -167,9 +167,9 @@ local function OptimizeMDL()
 			inTran = true
 			sTran = line .. '\n'
 			tranScientificCount = 0
-			tranDel = true  -- 默认删除，如果发现非零值则保留
-			tranLastVector = nil  -- 重置上一条向量
-			tranKeyframeCount = 0  -- 重置关键帧计数
+			tranDel = true -- 默认删除，如果发现非零值则保留
+			tranLastVector = nil -- 重置上一条向量
+			tranKeyframeCount = 0 -- 重置关键帧计数
 			line = nil
 		elseif inTran then
 			local originalLine = line
@@ -191,7 +191,7 @@ local function OptimizeMDL()
 					else
 						-- 保留此关键帧，更新上一条向量
 						tranLastVector = vec
-						tranKeyframeCount = tranKeyframeCount + 1  -- 增加关键帧计数
+						tranKeyframeCount = tranKeyframeCount + 1 -- 增加关键帧计数
 						-- 规范化这一行
 						local normalized, sciCount = normalizeBraceGroup(line)
 						tranScientificCount = tranScientificCount + sciCount
@@ -234,8 +234,8 @@ local function OptimizeMDL()
 			end
 			inRotate = true
 			rotBuffer = line .. '\n'
-			rotLastVector = nil  -- 重置上一条向量
-			rotKeyframeCount = 0  -- 重置关键帧计数
+			rotLastVector = nil -- 重置上一条向量
+			rotKeyframeCount = 0 -- 重置关键帧计数
 			-- 块头不直接输出，等待块结束时一次性输出（并更新 Rotation N）
 			line = nil
 		elseif inRotate then
@@ -265,7 +265,7 @@ local function OptimizeMDL()
 					else
 						-- 保留此关键帧，更新上一条向量
 						rotLastVector = vec
-						rotKeyframeCount = rotKeyframeCount + 1  -- 增加关键帧计数
+						rotKeyframeCount = rotKeyframeCount + 1 -- 增加关键帧计数
 						-- 规范化这一行
 						local normalized, sciCount = normalizeBraceGroup(line)
 						stats.scientificCountRemoved = stats.scientificCountRemoved + sciCount
@@ -300,7 +300,7 @@ local function OptimizeMDL()
 	fileOut:close()
 
 	-- 替换回原文件
-	collectgarbage() -- 尽量确保无残留句柄（Windows 有时需要）
+	collectgarbage()  -- 尽量确保无残留句柄（Windows 有时需要）
 	os.remove(flag.path) -- 忽略返回值：不存在/占用会导致 rename 失败并保留 tmp 以便排查
 	local ok, err = os.rename(tmpPath, flag.path)
 	if not ok then
