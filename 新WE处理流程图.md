@@ -30,15 +30,14 @@
 
 ## KKWE更新后的处理
 
-1. 抽离`kkwe`这四个j文件和cfg到`YDWE/jass`里覆盖,并更新JassVSC里的内容
+1. 抽离`kkwe`里面的这四个j文件和cfg到该项目的`YDWE/jass`里覆盖,并更新JassVSC里的内容
     * `BlizzardAPI.j`
     * `DzAPi.j`
     * `KKAPI.j`
     * `KKPRE.j`
-2. 更新`share/mpq/`内容到`mpq/`里
-3. `YDWE`里面所有内容重新覆盖到`kkwe`里
-4. `kkwe`里的`jass/`挑选出.j文件移到War3Lib的API里研究.  (PS:可不需要)
-5. 修改`share/script/ydwe_on_save.lua`里的`wave:compile(compile_t)`复制多一份移到inject前面,实行两次预处理.
+2. 更新kkwe中`share/mpq/`内容到该项目的`mpq/`里
+3. 将该项目的`YDWE`里面所有内容重新复制覆盖到`kkwe`里
+4. 修改`share/script/ydwe_on_save.lua`里的`wave:compile(compile_t)`复制多一份移到inject前面,实行两次预处理.
 
                     we.show_progress(_("KKWE SaveMap"), 5, _("Execute Wave"))
                     -- Wave预处理

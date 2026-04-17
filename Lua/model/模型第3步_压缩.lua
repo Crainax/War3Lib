@@ -1,5 +1,5 @@
 local flag = {
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\juxueli\test2\2.mdl]], -- 要处理的文件名
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\dunzi\test\1.mdl]], -- 要处理的文件名
 }
 
 -- ====== 配置常量 ======

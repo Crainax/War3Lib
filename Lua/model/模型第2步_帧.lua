@@ -1,13 +1,13 @@
 local frames = {
-	{ ['name'] = 'Stand', ['frame'] = '0-45' },    -- 帧
-	{ ['name'] = 'Stand 2', ['frame'] = '620-770' }, -- 帧
-	{ ['name'] = 'Walk', ['frame'] = '50-74' },    -- 帧
-	{ ['name'] = 'Walk Fast', ['frame'] = '80-100' }, -- 帧
-	{ ['name'] = 'Death', ['frame'] = '410-460' }, -- 帧
-	{ ['name'] = 'Attack 1', ['frame'] = '185-215' }, -- 帧
-	{ ['name'] = 'Attack 2', ['frame'] = '220-250' }, -- 帧
-	{ ['name'] = 'Spell 1', ['frame'] = '255-279' }, -- 帧
-	{ ['name'] = 'Spell 2', ['frame'] = '285-309' } -- 帧
+	{ ['name'] = 'Stand', ['frame'] = '0-30' },     -- 帧
+	{ ['name'] = 'Stand 2', ['frame'] = '222-309' }, -- 帧
+	{ ['name'] = 'Walk', ['frame'] = '785-809' },   -- 帧
+	{ ['name'] = 'Walk Fast', ['frame'] = '814-834' }, -- 帧
+	{ ['name'] = 'Death', ['frame'] = '345-425' },  -- 帧
+	{ ['name'] = 'Attack 1', ['frame'] = '501-531' }, -- 帧
+	{ ['name'] = 'Attack 2', ['frame'] = '534-564' }, -- 帧
+	{ ['name'] = 'Spell 1', ['frame'] = '567-597' }, -- 帧
+	{ ['name'] = 'Spell 2', ['frame'] = '600-636' } -- 帧
 }
 
 -- 生成所有序列帧
@@ -40,11 +40,11 @@ local function ShowAllFrame()
 	for i, frame in ipairs(frames) do
 		nodes[i] = { frame = frame, in_degree = 0, next_nodes = {} }
 	end
-	
+
 	for i, nodeA in ipairs(nodes) do
 		local a_t_start = nodeA.frame.start
 		local a_t_end = nodeA.frame['end']
-		
+
 		for j, nodeB in ipairs(nodes) do
 			if i ~= j then
 				local b_s_start = tonumber(nodeB.frame.frame:match("(%d+)-"))
@@ -58,14 +58,14 @@ local function ShowAllFrame()
 			end
 		end
 	end
-	
+
 	local queue = {}
 	for i, node in ipairs(nodes) do
 		if node.in_degree == 0 then
 			table.insert(queue, node)
 		end
 	end
-	
+
 	local function sort_queue()
 		table.sort(queue, function(a, b)
 			local a_s = tonumber(a.frame.frame:match("(%d+)-"))
@@ -77,7 +77,7 @@ local function ShowAllFrame()
 			elseif a_dir < 0 and b_dir < 0 then
 				return a_s < b_s
 			else
-				return a_dir > b_dir 
+				return a_dir > b_dir
 			end
 		end)
 	end
@@ -87,7 +87,7 @@ local function ShowAllFrame()
 	while #queue > 0 do
 		local curr = table.remove(queue, 1)
 		table.insert(order, curr.frame)
-		
+
 		for _, next_node in ipairs(curr.next_nodes) do
 			next_node.in_degree = next_node.in_degree - 1
 			if next_node.in_degree == 0 then
@@ -96,7 +96,7 @@ local function ShowAllFrame()
 		end
 		sort_queue()
 	end
-	
+
 	if #order < #frames then
 		print("警告: 存在动作前后交错引起的循环依赖！无法找到完全安全的操作顺序，请在 3dmax 中分步使用空白帧作中转。")
 	else
@@ -106,7 +106,14 @@ local function ShowAllFrame()
 			local dir_text = (f.start > s_start) and "向右推迟" or "向左提前"
 			local min_range = math.min(s_start, f.start)
 			local max_range = math.max(s_end, f['end'])
-			print("操作区间(" .. min_range .. "-" .. max_range .. ")  " .. i .. ". 移动 [" .. f.name .. "] : " .. f.frame .. " ------>> " .. f.start .. "-" .. f['end'] .. " (" .. dir_text .. ")")
+			print("操作区间(" ..
+				min_range ..
+				"-" ..
+				max_range ..
+				")  " ..
+				i ..
+				". 移动 [" ..
+				f.name .. "] : " .. f.frame .. " ------>> " .. f.start .. "-" .. f['end'] .. " (" .. dir_text .. ")")
 		end
 	end
 
@@ -119,9 +126,9 @@ local function ShowAllFrame()
 		local s_end = tonumber(f.frame:match("-(%d+)")) or 0
 		if s_end > max_original_frame then max_original_frame = s_end end
 	end
-	
+
 	table.sort(new_ranges, function(a, b) return a.start < b.start end)
-	
+
 	local unused = {}
 	local current = 0
 	for _, r in ipairs(new_ranges) do
@@ -130,16 +137,16 @@ local function ShowAllFrame()
 		end
 		current = r['end'] + 1
 	end
-	
+
 	table.insert(unused, { start = current, is_last = true })
-	
+
 	local op_ranges = {}
 	for _, f in ipairs(frames) do
 		local s_start = tonumber(f.frame:match("(%d+)-"))
 		local s_end = tonumber(f.frame:match("-(%d+)")) or 0
 		table.insert(op_ranges, { math.min(s_start, f.start), math.max(s_end, f['end']) })
 	end
-	
+
 	local final_unused = {}
 	for _, u in ipairs(unused) do
 		local current_pieces = { u }

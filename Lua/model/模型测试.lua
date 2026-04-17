@@ -21,11 +21,11 @@ do
 end
 
 local flag = {
-    ['path'] = [[D:\War3Asset\Model\ShangqueDIY\juxueli\release]], -- 要处理的文件夹
-    ['mdxTar'] = path.model.test.res,                             -- 移到这里
-    ['type'] = function(name)                                     -- 根据name分format
+    ['path'] = [[D:\War3Asset\Model\Shangquemoxing\20260413\akuya]], -- 要处理的文件夹
+    ['mdxTar'] = path.model.test.res,                                -- 移到这里
+    ['type'] = function(name)                                        -- 根据name分format
         -- 暂时不依赖分类，默认生成所有四种类型
-        return 'All'                                              -- 返回一个特殊值，触发生成所有类型
+        return 'All'                                                 -- 返回一个特殊值，触发生成所有类型
     end
 }
 local prefix = {

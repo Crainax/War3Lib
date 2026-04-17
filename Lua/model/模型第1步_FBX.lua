@@ -16,7 +16,7 @@ local table = table
 
 local flag = {
 	-- 要处理的模型文件夹路径（包含 .x / .dds）
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\ram_redhat]],
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\dunzi]],
 
 	-- 工具路径（脚本独立运行也能用）
 	['jump2fbxDir'] = [[D:\Program Files (x86)\Jump2FBX]], -- 目录内应包含 jump2fbx.exe
