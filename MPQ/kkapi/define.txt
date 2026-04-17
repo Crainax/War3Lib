@@ -15,6 +15,8 @@ EaxSetting=0,0,0,音效效果,string,Any
 SoundEnvironment=0,0,0,环境音效,string
 SoundChannel=0,0,0,声音通道,integer
 CollisionType=0,1,1,碰撞类型,integer
+TargetFlags=0,0,0,目标允许,integer
+AttributeType=0,0,0,属性类型
 
 [TriggerParams]
 typename01_framepoints=0,typename,122,界面锚点
@@ -107,3 +109,8 @@ CollisionType_unbuild=0,CollisionType,32,未知
 CollisionType_float=0,CollisionType,64,漂浮
 CollisionType_hover=0,CollisionType,64,浮空
 CollisionType_amph=0,CollisionType,128,两栖
+
+TargetFlags_NotSelf=0,TargetFlags,0x1E000,"别人"
+AttributeType_Strength=0,AttributeType,0x1,"力量"
+AttributeType_Agility=0,AttributeType,0x3,"敏捷"
+AttributeType_Intelligence=0,AttributeType,0x2,"智力"

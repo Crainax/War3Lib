@@ -1272,7 +1272,7 @@ type = real
 
 
 [DzSetUnitAbilityRange]
-title = "技能 - 设置技能施法距离（通魔）"
+title = "技能 - 设置技能施法距离"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的施法距离 ${range} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1284,7 +1284,7 @@ type = abilcode
 type = real
 
 [DzSetUnitAbilityArea]
-title = "技能 - 设置技能施法范围（通魔）"
+title = "技能 - 设置技能施法范围"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的施法范围 ${area} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1296,7 +1296,7 @@ type = abilcode
 type = real
 
 [DzSetUnitAbilityCool]
-title = "技能 - 设置技能冷却时间（通魔）"
+title = "技能 - 设置技能冷却时间"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的当前冷却时间 ${cool} /最大冷却时间 ${max_cool} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1312,7 +1312,7 @@ type = real
 
 
 [DzSetUnitAbilityDataA]
-title = "技能 - 设置技能数据A（通魔）"
+title = "技能 - 设置技能数据A"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据A ${DataA} "
 comment = [[通魔的数据A是施法持续时间;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1326,7 +1326,7 @@ type = real
 
 
 [DzSetUnitAbilityDataB]
-title = "技能 - 设置技能数据B（通魔）"
+title = "技能 - 设置技能数据B"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据B ${DataB} "
 comment = [[通魔的数据B是目标类型;0无目标;1目标单位;2目标点;3目标单位或点;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1339,7 +1339,7 @@ type = real
 
 
 [DzSetUnitAbilityDataC]
-title = "技能 - 设置技能数据C（通魔）"
+title = "技能 - 设置技能数据C"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据C ${DataC} "
 comment = [[通魔的数据C是选项;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1352,7 +1352,7 @@ type = real
 
 
 [DzSetUnitAbilityDataD]
-title = "技能 - 设置技能数据D（通魔）"
+title = "技能 - 设置技能数据D"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据D ${DataD} "
 comment = [[通魔的数据D是动作持续时间;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1365,7 +1365,7 @@ type = real
 
 
 [DzSetUnitAbilityDataE]
-title = "技能 - 设置技能数据E（通魔）"
+title = "技能 - 设置技能数据E"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据E ${DataE} "
 comment = [[通魔的数据E是否使其他技能失效;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1377,7 +1377,7 @@ type = abilcode
 type = real
 
 [DzSetUnitAbilityButtonPos]
-title = "技能 - 设置技能按钮位置（通魔）"
+title = "技能 - 设置技能按钮位置"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的按钮X轴 ${X} , Y轴 ${Y} "
 comment = [[x轴0~3, y轴0~2且 y轴-11可以隐藏技能;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1392,7 +1392,7 @@ type = integer
 
 
 [DzSetUnitAbilityHotkey]
-title = "技能 - 设置技能快捷键（通魔）"
+title = "技能 - 设置技能快捷键"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的按钮快捷键 ${Hotkey} "
 comment = [[必须显示在按钮上的技能才有效,单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1405,7 +1405,7 @@ type = string
 
 
 [DzSetUnitAbilityTargs]
-title = "技能 - 设置技能目标允许（通魔）"
+title = "技能 - 设置技能目标允许"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的目标允许 ${Targs} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1418,7 +1418,7 @@ type = integer
 
 
 [DzSetUnitAbilityCost]
-title = "技能 - 设置技能魔法消耗（通魔）"
+title = "技能 - 设置技能魔法消耗"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的魔法消耗 ${Cost} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1430,7 +1430,7 @@ type = abilcode
 type = integer
 
 [DzSetUnitAbilityReqLevel]
-title = "技能 - 设置技能等级要求（通魔）"
+title = "技能 - 设置技能等级要求"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的等级要求 ${ReqLevel} "
 comment = [[2级以上可以无视魔法免疫;单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;保证通魔技能有效,其他类型的技能也可以尝试使用不保证有效, 如无效果可以尝试刷新数据]]
 category = TC_KKAPI
@@ -1490,7 +1490,7 @@ category = TC_KKAPI
 type = frame
 
 [KKCommandButtonClick]
-title = "技能按钮 - 鼠标点击技能按钮 (无目标施法 或 激活目标指示器)"
+title = "技能按钮 - 鼠标点击技能按钮"
 description = "点击技能按钮 ${技能按钮} , 按照鼠标 ${鼠标类型} 类型来点击"
 comment = [[鼠标类型1是左键，4是右键，无目标技能左键之后可以释放，目标类技能左键后会激活目标指示器]]
 category = TC_KKAPI
@@ -2492,11 +2492,12 @@ default = "DamageTypeNormal"
 
 
 
+
 [DzSendKeyboard]
 title = "游戏 - 模拟按键 (窗口消息)"
 description = "让玩家 ${player} 发送窗口消息 模拟键盘 ${key_code} 进行 ${is_down} 的消息"
 comment = [[会触发响应同步事件, 发送模拟按键窗口消息给魔兽, 相当于SendMessage, 点击记得释放, 不然可能会键盘按键会在下一次失效, 聊天框显示时不执行]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = player
 [[.args]]
@@ -2511,7 +2512,7 @@ default = "GameKeyAction_Press"
 title = "游戏 - 模拟按键 (游戏UI消息)"
 description = "让玩家 ${player} 发送游戏UI消息 模拟键盘 ${key_code} 进行 ${is_down} 的消息"
 comment = [[发送UI按键消息给魔兽GameUI, 不会触发响应同步事件, 相当于自带ForceUiKey函数支持更多按键的版本, 某些特殊键无效。]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = player
 [[.args]]
@@ -2526,7 +2527,7 @@ default = "GameKeyAction_Press"
 title = "游戏 - 屏蔽按键 (窗口消息)"
 description = "让玩家 ${player} 屏蔽窗口键盘 ${key_code} 的消息"
 comment = [[会屏蔽硬件同步事件, 聊天框显示时不屏蔽]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = player
 [[.args]]
@@ -2537,7 +2538,7 @@ default = "GameKey_A"
 title = "游戏 - 屏蔽按键 (游戏UI消息)"
 description = "让玩家 ${player} 屏蔽游戏UI按键 ${key_code} 的消息"
 comment = [[在屏蔽游戏UI的按键消息, 某些特殊键无效。 dz的硬件同步事件依旧会执行]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = player
 [[.args]]
@@ -2549,7 +2550,7 @@ default = "GameKey_A"
 title = "界面 - ui模型 - 设置宽屏补丁"
 description = "设置ui模型控件 ${model_frame} 强制开启或关闭 ${is_enable} 宽屏补丁"
 comment = "只能是ui模型控件, true时强制指定ui模型开启宽屏补丁, false时强制指定ui模型关闭宽屏补丁。"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = frame
 [[.args]]
@@ -2561,7 +2562,7 @@ type = boolean
 title = "技能 - 设置技能启用"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的启用状态 "
 comment = [[内部有累计次数， 只有次数为小于等于0的时候才会真的启用。 单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2572,7 +2573,7 @@ type = abilcode
 title = "技能 - 设置技能禁用"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 禁用状态"
 comment = [[内部有累计次数， 只有次数大于0的时候才会真的禁用。 单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2583,7 +2584,7 @@ type = abilcode
 title = "技能 - 设置技能科技条件达成"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的科技条件是否 ${reach} 达成"
 comment = [[支持大部分技能、魔法书内技能、收费技能等。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2596,7 +2597,7 @@ type = boolean
 title = "技能 - 设置技能科技条件文本"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的科技条件的文本为 ${tip}"
 comment = [[只有当科技未达成时才会显示,支持大部分技能、魔法书内技能、收费技能等。单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除, 如无效果刷新技能数据即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -2608,7 +2609,7 @@ type = string
 title = "界面 - 解锁右下角区域鼠标焦点限制"
 description = "解锁右下角区域鼠标焦点限制 是否解锁 ${is_unlock} "
 comment = [[解锁后右下角技能栏附近的Frame进入离开事件跟焦点可以生效。开局调用一次即可]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = boolean
 
@@ -2616,7 +2617,7 @@ type = boolean
 title = "玩家 - 发送聊天消息(触发同步事件)"
 description = "玩家 ${player} 发送聊天消息 ${message} 使用聊天频道 ${recipient} "
 comment = [[player在异步事件里可以使用本地玩家, 在同步事件里可以指定玩家, 该函数会进行网络同步, 同步后会响应所有触发器聊天事件, 由于有同步请不要高频率执行。]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = player
 [[.args]]
@@ -2625,3 +2626,920 @@ type = string
 type = ChatRecipient
 default ='DzGetLocalChatRecipient'
 
+
+
+[DzEnableHashtableSetNull]
+title = "哈希表 - 开启保存空值(逆天设置null)"
+description = "哈希表是否 ${是否开启} 开启保存空值(逆天设置null)"
+comment = [[开局调用,开启之后 哈希表、逆天局部变量、逆天自定义值 都可以设置null值。 true开启 false关闭]]
+category = TC_KKAPI
+[[.args]]
+type = boolean
+
+
+[DzSetItemCollisionSize]
+title = "物品 - 修改物品碰撞体积"
+description = "修改物品 ${物品} 的碰撞体积为 ${碰撞体积} "
+comment = [[体积可以是0,8,16,32,64。修改之后重新设置一下位置就会刷新了]]
+category = TC_KKAPI
+[[.args]]
+type = item
+[[.args]]
+type = real
+
+
+[DzSetUnitDisableLocalOrder]
+title = "单位 - 设置单位屏蔽本地命令(模拟失控)"
+description = "设置单位 ${单位} 屏蔽本地命令为 ${屏蔽状态} "
+comment = [[true是失控状态, false是恢复。 屏蔽之后该单位任何手动控制都将失效, 只能通过触发器命令控制该单位。 屏蔽本地命令的缺点是 多选单位会因为其中一个屏蔽而所有选择单位]]
+category = TC_KKAPI
+[[.args]]
+type = unit
+[[.args]]
+type = boolean
+
+
+[DzSetUnitDisableControlOrder]
+title = "单位 - 设置单位屏蔽控制命令(模拟失控)"
+description = "设置单位 ${单位} 屏蔽控制命令为 ${屏蔽状态} "
+comment = [[true是失控状态, false是恢复。 屏蔽之后该单位任何手动控制都将失效, 只能通过触发器命令控制该单位。]]
+category = TC_KKAPI
+[[.args]]
+type = unit
+[[.args]]
+type = boolean
+
+
+[DzSetUnitAttack1TargetType]
+title = "单位 - 设置单位攻击1目标允许"
+description = "设置单位 ${单位} 攻击1目标类型 ${目标允许} "
+comment = [[可使用“转化 - 目标允许字符串转整数”, 例如 允许地面单位攻击飞行单位]]
+category = TC_KKAPI
+[[.args]]
+type = unit
+[[.args]]
+type = integer
+
+[DzSetUnitAttack2TargetType]
+title = "单位 - 设置单位攻击2目标允许"
+description = "设置单位 ${单位} 攻击2目标类型 ${目标允许} "
+comment = [[可使用“转化 - 目标允许字符串转整数”, 例如 设置允许地面单位攻击空中单位]]
+category = TC_KKAPI
+[[.args]]
+type = unit
+[[.args]]
+type = integer
+
+
+[DzSetUnitAsAttackTargetType]
+title = "单位 - 设置单位作为目标类型"
+description = "设置单位 ${单位} 作为目标类型 ${目标允许} "
+comment = [[使用“转化 - 目标允许字符串转整数”, 例如 设置自身是否作为空中目标, 近战不能打空中]]
+category = TC_KKAPI
+[[.args]]
+type = unit
+[[.args]]
+type = integer
+
+
+[DzFrameBindAddHideRect]
+title = "世界坐标 - 为绑定的Frame添加隐藏区域"
+description = "为绑定的Frame ${frame} 添加隐藏区域( ${左0~0.8}, ${下0~0.6}, ${右0~0.8}, ${上0~0.6} ) 控件大小( ${宽度}, ${高度} )"
+comment = "需要先绑定Frame到世界坐标或者物品单位实时坐标后, 再使用该函数。可以在控件进入区域时隐藏控件。屏幕区域左右0~0.8, 上下0~0.6"
+category = TC_KKAPI
+[[.args]]
+type = frame
+[[.args]]
+type = real
+min = 0.0
+max = 0.8
+
+[[.args]]
+type = real
+min = 0.0
+max = 0.6
+
+[[.args]]
+type = real
+min = 0.0
+max = 0.8
+
+[[.args]]
+type = real
+min = 0.0
+max = 0.6
+
+[[.args]]
+type = real
+min = 0.0
+max = 0.8
+
+[[.args]]
+type = real
+min = 0.0
+max = 0.6
+
+
+
+[DzSetUnitAbilitySpellBookAddAbility]
+title = "技能 - 设置魔法书技能列表添加新技能"
+description = "设置单位 ${unit} 当前拥有的魔法书技能 ${id} 的技能列表 添加新技能 ${abil_id} "
+comment = [[添加新技能, 不能跟原有的重复，不能超过12个技能。 ]]
+category = TC_KKAPI
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = abilcode
+
+
+[DzSetUnitAbilitySpellBookRemoveAbility]
+title = "技能 - 设置魔法书技能列表移除指定技能"
+description = "设置单位 ${unit} 当前拥有的魔法书技能 ${id} 的技能列表 移除指定技能 ${abil_id} "
+comment = [[将指定技能从魔法书里剔除。]]
+category = TC_KKAPI
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = abilcode
+
+[DzFixUnitEventMemoryLeak]
+title = "游戏 - 修复单位命令事件泄漏"
+description = "修复单位命令事件泄漏"
+comment = [[开局调用一次即可，修复注册单位无目标命令事件后 每次发布无目标命令都会产生的内存泄漏。]]
+category = TC_KKAPI
+
+
+
+
+[DzLaunchMissile]
+title = "投射物 - 发射箭矢"
+description = "发射箭矢 伤害来源: ${source} 目标: ${target} 模型: ${model} 队伍颜色: ${i} 颜色: ${color} 创建坐标: ${x} ${y} ${z} 缩放: ${scale} 速度: ${speed} 攻击类型: ${at} 伤害类型: ${dt} 武器类型: ${wt} 伤害: ${damage} 孤度: ${arc} 自导: ${homing} 可以丢失: ${can_miss} 永不丢失: ${never_miss} 攻击: ${attack} flag: ${flag}"
+comment = "只封装了单位目标, flag 256(0x100) = 单位所受伤害是攻击伤害, 攻击 = 单位所受伤害是物理伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+[[.args]]
+type = modelfile
+[[.args]]
+type = integer
+min = 0
+max = 15
+default = "0"
+[[.args]]
+type = rgba2color
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchX"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchY"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchZ"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+[[.args]]
+type = attacktype
+[[.args]]
+type = damagetype
+[[.args]]
+type = weapontype
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = integer
+default = "256"
+
+
+[DzLaunchMissileBounce]
+title = "投射物 - 发射箭矢(弹射)"
+description = "发射箭矢(弹射) 伤害来源: ${source} 目标: ${target} 模型: ${model} 队伍颜色: ${i} 颜色: ${color} 创建坐标: ${x} ${y} ${z} 缩放: ${scale} 速度: ${speed} 攻击类型: ${at} 伤害类型: ${dt} 武器类型: ${wt} 伤害: ${damage} 孤度: ${arc} 自导: ${homing} 可以丢失: ${can_miss} 永不丢失: ${never_miss} 攻击: ${attack} flag: ${flag} 目标允许: ${target_flag} 最大目标数: ${target_count} 弹射距离: ${range} 伤害衰减: ${damage_loss}"
+comment = "只封装了单位目标, flag 256(0x100) = 单位所受伤害是攻击伤害, 攻击 = 单位所受伤害是物理伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+[[.args]]
+type = modelfile
+[[.args]]
+type = integer
+min = 0
+max = 15
+default = "15"
+[[.args]]
+type = rgba2color
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchX"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchY"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchZ"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+[[.args]]
+type = attacktype
+[[.args]]
+type = damagetype
+[[.args]]
+type = weapontype
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = integer
+default = "256"
+[[.args]]
+type = TargetFlags
+default = "TargetFlags_NotSelf"
+[[.args]]
+type = integer
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+
+[DzLaunchMissileLine]
+title = "投射物 - 发射箭矢(穿透)"
+description = "发射箭矢(穿透) 伤害来源: ${source} 目标: ${target} 模型: ${model} 队伍颜色: ${i} 颜色: ${color} 创建坐标: ${x} ${y} ${z} 缩放: ${scale} 速度: ${speed} 攻击类型: ${at} 伤害类型: ${dt} 武器类型: ${wt} 伤害: ${damage} 孤度: ${arc} 自导: ${homing} 可以丢失: ${can_miss} 永不丢失: ${never_miss} 攻击: ${attack} flag: ${flag} 目标允许: ${target_flag} 伤害衰减: ${damage_loss} 距离: ${distance} 范围: ${range}"
+comment = "只封装了单位目标, flag 256(0x100) = 单位所受伤害是攻击伤害, 攻击 = 单位所受伤害是物理伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+[[.args]]
+type = modelfile
+[[.args]]
+type = integer
+min = 0
+max = 15
+default = "15"
+[[.args]]
+type = rgba2color
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchX"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchY"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchZ"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+[[.args]]
+type = attacktype
+[[.args]]
+type = damagetype
+[[.args]]
+type = weapontype
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = integer
+default = "256"
+[[.args]]
+type = TargetFlags
+default = "TargetFlags_NotSelf"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+
+
+[DzLaunchMissileSplash]
+title = "投射物 - 发射箭矢(溅射)"
+description = "发射箭矢(溅射) 伤害来源: ${source} 目标: ${target} 模型: ${model} 队伍颜色: ${i} 颜色: ${color} 创建坐标: ${x} ${y} ${z} 缩放: ${scale} 速度: ${speed} 攻击类型: ${at} 伤害类型: ${dt} 武器类型: ${wt} 伤害: ${damage} 孤度: ${arc} 自导: ${homing} 可以丢失: ${can_miss} 永不丢失: ${never_miss} 攻击: ${attack} flag: ${flag} 目标允许: ${targetflags} 中伤害参数: ${half_factor} 小伤害参数: ${quar_factor} 全伤害范围: ${full_area} 半伤害范围: ${half_area} 小伤害范围: ${quar_area}"
+comment = "只封装了单位目标, flag 256(0x100) = 单位所受伤害是攻击伤害, 攻击 = 单位所受伤害是物理伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+[[.args]]
+type = modelfile
+[[.args]]
+type = integer
+min = 0
+max = 15
+default = "15"
+[[.args]]
+type = rgba2color
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchX"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchY"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchZ"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+[[.args]]
+type = attacktype
+[[.args]]
+type = damagetype
+[[.args]]
+type = weapontype
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = boolean
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = integer
+default = "256"
+[[.args]]
+type = TargetFlags
+default = "TargetFlags_NotSelf"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+
+[DzLaunchArtillery]
+title = "投射物 - 发射炮火"
+description = "发射炮火 伤害来源: ${source} 目标: ${target} 目标坐标: ${target_x} ${target_y} 模型: ${model} 队伍颜色: ${i} 颜色: ${color} 创建坐标: ${x} ${y} ${z} 缩放: ${scale} 速度: ${speed} 攻击类型: ${at} 伤害类型: ${dt} 武器类型: ${wt} 伤害: ${damage} 孤度: ${arc} 攻击: ${attack} flag: ${flag} 最小范围: ${min_distance} 目标允许: ${targetflags} 中伤害参数: ${half_factor} 小伤害参数: ${quar_factor} 全伤害范围: ${full_area} 半伤害范围: ${half_area} 小伤害范围: ${quar_area}"
+comment = "只封装了单位目标, 目标 null 则类似于攻击地面, flag 256(0x100) = 单位所受伤害是攻击伤害, 攻击 = 单位所受伤害是物理伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = modelfile
+[[.args]]
+type = integer
+min = 0
+max = 15
+default = "15"
+[[.args]]
+type = rgba2color
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchX"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchY"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchZ"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+[[.args]]
+type = attacktype
+[[.args]]
+type = damagetype
+[[.args]]
+type = weapontype
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = boolean
+[[.args]]
+type = integer
+default = "256"
+[[.args]]
+type = real
+[[.args]]
+type = TargetFlags
+default = "TargetFlags_NotSelf"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzLaunchArtilleryLine]
+title = "投射物 - 发射炮火(穿透)"
+description = "发射炮火(穿透) 伤害来源: ${source} 目标: ${target} 目标坐标: ${target_x} ${target_y} 模型: ${model} 队伍颜色: ${i} 颜色: ${color} 创建坐标: ${x} ${y} ${z} 缩放: ${scale} 速度: ${speed} 攻击类型: ${at} 伤害类型: ${dt} 武器类型: ${wt} 伤害: ${damage} 孤度: ${arc} 攻击: ${attack} flag: ${flag} 最小范围: ${min_distance} 目标允许: ${targetflags} 中伤害参数: ${half_factor} 小伤害参数: ${quar_factor} 全伤害范围: ${full_area} 半伤害范围: ${half_area} 小伤害范围: ${quar_area} 伤害衰减: ${damage_loss} 距离: ${distance} 范围: ${range}"
+comment = "只封装了单位目标, 目标 null 则类似于攻击地面, flag 256(0x100) = 单位所受伤害是攻击伤害, 攻击 = 单位所受伤害是物理伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = modelfile
+[[.args]]
+type = integer
+min = 0
+max = 15
+default = "15"
+[[.args]]
+type = rgba2color
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchX"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchY"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchZ"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+[[.args]]
+type = attacktype
+[[.args]]
+type = damagetype
+[[.args]]
+type = weapontype
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = boolean
+[[.args]]
+type = integer
+default = "256"
+[[.args]]
+type = real
+[[.args]]
+type = TargetFlags
+default = "TargetFlags_NotSelf"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzLaunchMissileCarrionSwarmEx]
+title = "投射物 - 发射技能投射物(腐臭蜂群)"
+description = "发射技能投射物(腐臭蜂群) 伤害来源: ${source} 模型: ${model} 队伍颜色: ${i} 颜色: ${color} 创建坐标: ${x} ${y} ${z} 角度: ${degree} 距离: ${distance} 缩放: ${scale} 速度: ${speed} 攻击类型: ${at} 伤害类型: ${dt} 武器类型: ${wt} 伤害: ${damage} flag: ${flag} 目标允许: ${targetflags} 初始范围: ${start_radius} 最终范围: ${start_radius} 最大伤害: ${max_damage} 魔法效果: ${buffID}"
+comment = "只封装了单位目标, 魔法效果用途未知, flag 256(0x100) = 单位所受伤害是攻击伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = modelfile
+[[.args]]
+type = integer
+min = 0
+max = 15
+default = "15"
+[[.args]]
+type = rgba2color
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchX"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchY"
+[[.args]]
+type = real
+default = "DzGetUnitPojectileLaunchZ"
+[[.args]]
+type = degree
+[[.args]]
+type = real
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+[[.args]]
+type = attacktype
+[[.args]]
+type = damagetype
+[[.args]]
+type = weapontype
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "256"
+[[.args]]
+type = TargetFlags
+default = "TargetFlags_NotSelf"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = buffcode
+default = "BUcs"
+
+
+
+[DzKillUnit]
+title = "单位 - 杀死(指定凶手)"
+description = "杀死 ${单位} 凶手为 ${killer}"
+comment = "杀死单位时指定凶手"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+
+
+[DzSetUnitXY]
+title = "单位 - 设置XY坐标(不打断命令)"
+description = "设置单位 ${unit} 的坐标为 X: ${x} Y: ${y}"
+comment = "相当于同时 设置单位X轴+设置单位Y轴, 并且不会触发错误的进入区域事件, 不会发布stop命令, 性能比设置单位位置高7倍。"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+
+[DzSetUnitAbilityEngineeringUpgrade]
+title = "技能 - 工程升级 - 替换技能(要相同模板)"
+description = "工程升级替换技能 单位 ${u} 原有技能 ${old_id} 到目标技能 ${new_id} 更新英雄技能 ${flag}"
+comment = "相当于替换技能, 将指定技能替换成目标技能, 只能替换相同模板的类型, 不同模板替换会错误，谨慎使用。"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = abilcode
+[[.args]]
+type = boolean
+default = "false"
+
+
+[DzSetUnitAbilityEngineeringUpgradeCancel]
+title = "技能 - 工程升级 - 取消替换技能"
+description = "工程升级取消替换技能 单位 ${u} 原有技能 ${old_id} "
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+
+
+[DzSetUnitAbilityCastTime]
+title = "技能 - 设置技能魔法施法时间"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的魔法施法时间 ${cast_time} "
+comment = [[开始施法前的准备时间.暗影突袭的此项为伤害间隔.暴风雪和火焰雨的此项为每波间隔;单位的独立修改,删除技能后改动即清除, 需要刷新数据]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = real
+
+
+[DzSetUnitAbilityDuration]
+title = "技能 - 设置技能持续时间(普通)"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的持续时间(普通) ${cast_time} "
+comment = [[普通持续时间;单位的独立修改,删除技能后改动即清除, 需要刷新数据;烈焰风暴的此项为燃烧持续时间.变身(恶魔猎手)的此项为完成变身前暂停时间]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = real
+
+
+[DzSetUnitAbilityHeroDuration]
+title = "技能 - 设置技能持续时间(英雄)"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的持续时间(英雄) ${cast_time} "
+comment = [[英雄持续时间;单位的独立修改,删除技能后改动即清除, 需要刷新数据;技能对英雄或具有抗性皮肤的单位的持续时间.烈焰风暴的此项为熄灭持续时间.静止陷阱的此项是眩晕时间]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = real
+
+
+
+[DzSetUnitAbilityCastPoint]
+title = "技能 - 设置技能魔法施放点(前摇)"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的魔法施放点(前摇) ${cast_time} "
+comment = [[即施法前摇]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = real
+
+
+
+[DzSetUnitAbilityBackSwing]
+title = "技能 - 设置技能魔法施放回复(后摇)"
+description = "设置单位 ${unit} 当前拥有的技能 ${id} 的魔法施放回复(后摇) ${cast_time} "
+comment = [[即施法后摇]]
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+[[.args]]
+type = real
+
+
+
+[DzSetUnitLifeRegen]
+title = "单位 - 设置每秒生命恢复"
+description = "设置 ${单位} 的每秒生命恢复为 ${value}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = real
+
+[DzSetUnitManaRegen]
+title = "单位 - 设置每秒魔法恢复"
+description = "设置 ${单位} 的每秒魔法恢复为 ${value}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = real
+
+[DzSetUnitMinSpeed]
+title = "单位 - 设置最低移动速度"
+description = "设置 ${单位} 的最低移动速度为 ${value} 忽略变形术 ${flag}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = real
+[[.args]]
+type = boolean
+default = "false"
+
+[DzSetUnitMaxSpeed]
+title = "单位 - 设置最高移动速度"
+description = "设置 ${单位} 的最高移动速度为 ${value} 忽略变形术 ${flag}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = real
+[[.args]]
+type = boolean
+default = "false"
+
+[DzSetUnitCastPoint]
+title = "单位 - 设置魔法施放点(前摇)"
+description = "设置 ${单位} 的魔法施放点(前摇)为 ${value}"
+comment = "不会影响已经初始化的技能, 修改之后添加的所有技能会使用该前摇"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = real
+
+[DzSetUnitBackSwing]
+title = "单位 - 设置魔法施放回复(后摇)"
+description = "设置 ${单位} 的魔法施放回复(后摇)为 ${value}"
+comment = "不会影响已经初始化的技能, 修改之后添加的所有技能会使用该后摇"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = real
+
+[DzSetUnitAttackTargetCount]
+title = "单位 - 设置攻击最大目标数"
+description = "设置单位 ${unit} 的攻击 ${index} 最大目标数为 ${value}"
+comment = "仅 箭矢(弹射) 攻击类型有效, 并且物编需要填全伤害范围。 第二个参数index 为0的时候 代表攻击1   1的时候代表攻击2"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+
+[DzSetHeroPrimaryAttributeType]
+title = "英雄 - 设置主属性类型"
+description = "设置英雄 ${hero} 的主属性类型为 ${attribute} 保留当前主属性加成 ${flag}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = AttributeType
+[[.args]]
+type = boolean
+default = "false"
+
+[DzSetHeroPrimaryAttribute]
+title = "英雄 - 设置主属性"
+description = "设置英雄 ${hero} 的主属性为 ${value}"
+comment = "白字属性"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = integer
+
+[DzSetHeroPrimaryAttributePlus]
+title = "英雄 - 设置属性成长"
+description = "设置英雄 ${hero} 的 ${attribute} 属性成长为 ${value} 保留当前数值: ${flag}"
+comment = "因内部是混用整数和实数 所以保留数值为 TRUE 时会可能丢失/获取额外属性"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = AttributeType
+[[.args]]
+type = real
+[[.args]]
+type = boolean
+default = "false"
+
+
+[DzDisableAttackSpeedLimit]
+title = "游戏 - 禁用攻速限制"
+description = "禁用攻速限制"
+comment = "极限可以大概每秒 9360, 但是你确定电脑撑得住?"
+category = TC_KKPRE
+
+
+[DzSetMinMaxAttackSpeedFactor]
+title = "游戏 - 设置攻速上限"
+description = "设置攻速上限为 ${min} - ${max}"
+comment = "除非禁用攻速限制, 不然最终攻速无法超过每秒 50 次"
+category = TC_KKPRE
+[[.args]]
+type = real
+default = "0.2"
+[[.args]]
+type = real
+default = "5.0"
+
+[DzSetMoveSpeedBonusesStack]
+title = "游戏 - 设置移速可叠加"
+description = "设置移速可叠加 ${flag}"
+comment = "多个技能，多个物品的移动速度能叠加。平衡性常数那个有bug"
+category = TC_KKPRE
+[[.args]]
+type = boolean
+default = "false"
+
+
+[DzSetGlobalUnitMinMaxMoveSpeed]
+title = "游戏 - 设置全局移速 上/下 限"
+description = "设置全局移速 硬编码限制(建筑 ${building_min}-${building_max} 单位 ${unit_min}-${unit_max}) 平衡性常数限制(建筑 ${GC_building_min}-${GC_building_max} 单位 ${GC_unit_min}-${GC_unit_max}) 采矿最低移速 ${harvest_min} 疾步风最高移速 ${windwalk_max}"
+comment = "副作用: 会影响转身速度"
+category = TC_KKPRE
+[[.args]]
+type = real
+default = "0"
+[[.args]]
+type = real
+default = "522"
+[[.args]]
+type = real
+default = "0"
+[[.args]]
+type = real
+default = "522"
+[[.args]]
+type = real
+default = "0"
+[[.args]]
+type = real
+default = "522"
+[[.args]]
+type = real
+default = "0"
+[[.args]]
+type = real
+default = "522"
+[[.args]]
+type = real
+default = "100"
+[[.args]]
+type = real
+default = "522"
