@@ -100,6 +100,16 @@ library AbilityDecorate requires SpellBtns,HashTable {
         spellBtns.icons[row][col].setShadow(false);
     }
 
+    // 清理整页技能栏（12格）上的装饰覆盖
+    public function ClearAbilityDecorUI() {
+        integer row; integer col;
+        for (1 <= row <= 3) {
+            for (1 <= col <= 4) {
+                ClearAbilityDecorSlot(row, col);
+            }
+        }
+    }
+
 
     // 立刻刷新当前选中单位的指定技能ID对应的槽位
     private function DoImmediateRefresh(unit u, integer abilityID) {
@@ -191,8 +201,7 @@ library AbilityDecorate requires SpellBtns,HashTable {
 
             // 检查单位是否被排除
             if (IsUnitExcludedFromAbilityDecorate(u)) {
-                // 被排除的单位也要清理槽位，防止残留上一单位的装饰（尤其是流光）
-                ClearAbilityDecorSlot(row, col);
+                // 被排除的单位由业务侧自行处理技能栏装饰
                 u = null;
                 return;
             }

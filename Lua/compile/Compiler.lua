@@ -386,9 +386,123 @@ function compile:CompileLua()
 	end)
 end
 
+function compile:StartCompileCheckOnly()
+	-- 清理上次编译信息
+	compileFiles:clear()
+	path.buildString = ""
+
+	local outputDir = fileUtils.GetDir(path.CompileStep0)
+	local outputOk, outputErr = ensureDirExists(outputDir)
+	if not outputOk then
+		print("[Output目录]创建失败:" .. tostring(outputErr))
+		return false
+	end
+
+	local syncOk, syncErr = self:SyncCrainaxMirror()
+	if not syncOk then
+		print("[Crainax镜像]同步失败:" .. tostring(syncErr))
+		return false
+	end
+
+	-- 在编译过程中记录文件
+	local code, msg = fileUtils.copyFile(path.scriptJ, path.CompileStep0)
+	compileFiles:addSourceFile(path.scriptJ)
+	compileFiles:addGeneratedFile(path.CompileStep0)
+
+	print("[即将开始]检测文件(不完整编译) : " .. path.CompileStep0)
+
+	code, msg = self:CompileWave(path.CompileStep0) -- 先预处理一次
+	if code then
+		local waveResult = string.gsub(path.CompileStep0, "%.j", ".i")
+		pcall(os.remove, path.CompileStep1)
+		local suc, errmsg = os.rename(waveResult, path.CompileStep1)
+		if not suc then
+			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			return false
+		end
+		print("[第一次Wave]预处理成功 : " .. path.CompileStep1)
+	else
+		print("[第一次Wave]预处理失败:" .. tostring(msg))
+		return false
+	end
+
+	-- 重置标记
+	path.hasRelease = false
+	path.hasUnitTest = false
+
+	fileUtils.ReadFile(path.CompileStep1, function(line)
+		local capture = string.match(line, "^%s*//% *lua_print:%s*(.+)$")
+		if capture then
+			path.buildString = path.buildString .. '[' .. capture .. ']-'
+
+			if capture:find("正式地图", 1, true) then
+				path.hasRelease = true
+			end
+			if capture:find("单元测试", 1, true) then
+				path.hasUnitTest = true
+			end
+			return
+		end
+
+		local libName = string.match(line, "^%s*library%s+UT(%w+)%s*requires?.*$")
+		if libName then
+			path.buildString = path.buildString .. '[' .. libName .. ']-'
+			return
+		end
+	end)
+
+	if path.hasRelease and path.hasUnitTest then
+		path.setMapName("OriginMap")
+	end
+
+	code, msg = fileUtils.copyFile(path.CompileStep1, path.CompileStep2)
+	if not code then
+		print("[编译移动]复制CompileStep2失败:" .. tostring(msg))
+		return false
+	end
+
+	self:InjectCodeBlock()
+
+	code, msg = self:CompileWave(path.CompileStep2)
+	if code then
+		local waveResult = string.gsub(path.CompileStep2, "%.j", ".i")
+		pcall(os.remove, path.CompileStep3)
+		local suc, errmsg = os.rename(waveResult, path.CompileStep3)
+		if not suc then
+			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			return false
+		end
+		print("[第二次Wave]预处理成功 : " .. path.CompileStep3)
+	else
+		print("[第二次Wave]预处理失败:" .. tostring(msg))
+		return false
+	end
+
+	fileUtils.copyFile(path.CompileStep3, path.CompileStep4)
+	code, msg = self:CompileLua()
+	if code then
+		print("[Lua]遍历处理成功 : " .. path.CompileStep4)
+	else
+		print("[Lua]遍历处理失败:" .. tostring(msg))
+		return false
+	end
+
+	compileFiles:addGeneratedFile(path.CompileStep1)
+	compileFiles:addGeneratedFile(path.CompileStep2)
+	compileFiles:addGeneratedFile(path.CompileStep3)
+	compileFiles:addGeneratedFile(path.CompileStep4)
+	compileFiles.lastBuildTime = os.time()
+
+	print("[检测完成]已跳过JassHelper与Output/output.j更新")
+	print("[资源文件]内容: " .. #compileFiles.resourceFiles .. "个")
+
+	return true
+end
+
 function compile:StartCompile()
 	-- 清理上次编译信息
 	compileFiles:clear()
+	path.buildString = ""
 
 	local outputDir = fileUtils.GetDir(path.CompileStep0)
 	local outputOk, outputErr = ensureDirExists(outputDir)

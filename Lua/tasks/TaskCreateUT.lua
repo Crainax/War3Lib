@@ -2,6 +2,7 @@ local path = require("Lua.path")
 local copy = require("Lua.utils.copy")
 local fu = require("Lua.utils.FileUtils")
 local tc = require("Lua.compile.TestControl")
+local taskStartClock = os.clock()
 
 
 function CreateUTFile(jPath, jName, utPath)
@@ -103,6 +104,7 @@ end
 
 path.init(root, projectPath, we) -- 初始化路径
 CreateUnitTest(filePath)
+print(string.format("---任务结束---[用时%.2f秒]-", os.clock() - taskStartClock))
 
 -- 可以获取到参数就好说了.
 -- print (arg[0]) -- 这个是本lua文件的路径,不考虑

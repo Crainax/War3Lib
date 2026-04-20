@@ -4,7 +4,18 @@ local w3xlni = require("Lua.compile.W3xLni")
 local launcher = require("Lua.compile.Launcher")
 local path = require("Lua.path")
 local copy = require ("Lua.utils.copy")
+local taskStartClock = os.clock()
 local root, projectPath, we, buildVersion
+
+local function printTaskEnd()
+	local elapsed = os.clock() - taskStartClock
+	local elapsedStr = string.format("[用时%.2f秒]-", elapsed)
+	if path.buildString and path.buildString ~= "" then
+		print("---任务结束---" .. path.buildString .. elapsedStr)
+	else
+		print("---任务结束---" .. elapsedStr)
+	end
+end
 
 if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
 	root = arg[1]
@@ -58,6 +69,4 @@ if sur then
 	launcher.StartWar3('_slk')
 end
 
-if path.buildString then -- 输出字符串
-	print("---任务结束---" .. path.buildString)
-end
+printTaskEnd()

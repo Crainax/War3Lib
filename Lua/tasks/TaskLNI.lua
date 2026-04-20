@@ -2,6 +2,7 @@ local backuper = require("Lua.tools.Backuper")
 local w3x = require("Lua.compile.W3xLni")
 local path = require("Lua.path")
 local tc = require("Lua.compile.TestControl")
+local taskStartClock = os.clock()
 
 local root, projectPath, we
 if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
@@ -40,4 +41,5 @@ else
 end
 
 print("LNI备份任务结束!")
+print(string.format("---任务结束---[用时%.2f秒]-", os.clock() - taskStartClock))
 -- return modules

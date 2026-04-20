@@ -507,23 +507,35 @@ function inject_code:scan(config_dir)
 
                 -- 插入全局表中（替换文件扩展名）
                 local substitution = canonicalize_linked_path(full_path:gsub("%.cfg$", ".j"))
+                local function file_mtime(p)
+                    local attr = lfs.attributes(p)
+                    if attr then
+                        return attr.modification or 0
+                    end
+                    return 0
+                end
                 local function insert(file, a, b)
+                    local seen = {}
                     for _, fname in ipairs(a) do
-                        if b[fname] then
-                            local unuse = file
-                            print('注入函数[' .. fname .. ']重复定义')
-                            if lfs.attributes(file, "modification") > lfs.attributes(b[fname], "modification") then
-                                unuse = b[fname]
+                        if not seen[fname] then
+                            seen[fname] = true
+                            if b[fname] then
+                                if b[fname] ~= file then
+                                    local unuse = file
+                                    if file_mtime(file) > file_mtime(b[fname]) then
+                                        unuse = b[fname]
+                                        b[fname] = file
+                                    end
+                                    if not once[fname] then
+                                        print('注入函数[' .. fname .. ']重复定义')
+                                        print('	生效', b[fname], file_mtime(b[fname]))
+                                        print('	失效', unuse, file_mtime(unuse))
+                                        once[fname] = true
+                                    end
+                                end
+                            else
                                 b[fname] = file
                             end
-                            if not once[fname] then
-                                print('注入函数[' .. fname .. ']重复定义')
-                                print('	生效', b[fname], lfs.attributes(b[fname], "modification"))
-                                print('	失效', unuse, lfs.attributes(unuse, "modification"))
-                                once[fname] = true
-                            end
-                        else
-                            b[fname] = file
                         end
                     end
                 end
@@ -541,6 +553,12 @@ end
 -- 例子:
 -- self.new_table["DzFrameIsVisible"] = "D:/WE/KKWE_Plugin/jass/Base/DzFrame.j"
 function inject_code:initialize()
+    self.new_table = {}
+    self.old_table = {}
+    self.chain_table = {}
+    self.detect_cache = {}
+    reset_obj_files()
+
     local hasLocalCrainax = false
     if lfs.attributes(path.project .. "/.linked", "mode") == "directory" then
         self:scan(path.project .. "/.linked")
