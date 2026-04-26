@@ -30,7 +30,124 @@
 //! zinc
 
 //自动生成的文件
-library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
+library UTUnitPanel requires UnitPanel, UnitTestUIRuler, UIButton, UIImage, UIText, Hardware {
+	uiImage testBtnRelCheck = 0;
+	uiText testBtnRelText = 0;
+	uiBtn testBtnRelBtn = 0;
+	uiImage testBtnAbsCheck = 0;
+	uiText testBtnAbsText = 0;
+	uiBtn testBtnAbsBtn = 0;
+	boolean testBtnInited = false;
+	real testBtnAbsX = 0.335;
+	real testBtnAbsY = 0.125;
+	real testBtnAbsW = 0.125;
+	real testBtnAbsH = 0.022;
+
+	function UnitPanelTestMoveRelHidden(boolean hard) {
+		if (testBtnRelCheck != 0 && testBtnRelCheck.ui != 0) {
+			testBtnRelCheck.clearPoint().setAbsPoint(ANCHOR_BOTTOMLEFT, -1.0, 0.0);
+		}
+		if (testBtnRelText != 0 && testBtnRelText.ui != 0) {
+			testBtnRelText.clearPoint().setAbsPoint(ANCHOR_BOTTOMLEFT, -1.0, 0.0);
+		}
+		if (testBtnRelBtn != 0 && testBtnRelBtn.ui != 0) {
+			if (hard) { testBtnRelBtn.setSize(0.001, 0.001); }
+			testBtnRelBtn.clearPoint().setAbsPoint(ANCHOR_BOTTOMLEFT, -1.0, 0.0);
+		}
+	}
+
+	function UnitPanelTestMoveAbsHidden(boolean hard) {
+		if (testBtnAbsCheck != 0 && testBtnAbsCheck.ui != 0) {
+			testBtnAbsCheck.clearPoint().setAbsPoint(ANCHOR_BOTTOMLEFT, -1.0, 0.0);
+		}
+		if (testBtnAbsText != 0 && testBtnAbsText.ui != 0) {
+			testBtnAbsText.clearPoint().setAbsPoint(ANCHOR_BOTTOMLEFT, -1.0, 0.0);
+		}
+		if (testBtnAbsBtn != 0 && testBtnAbsBtn.ui != 0) {
+			if (hard) { testBtnAbsBtn.setSize(0.001, 0.001); }
+			testBtnAbsBtn.clearPoint().setAbsPoint(ANCHOR_BOTTOMLEFT, -1.0, 0.0);
+		}
+	}
+
+	function UnitPanelTestEnsureMoveButtons() {
+		integer parent;
+		if (testBtnInited) { return; }
+		parent = DzSimpleFrameFindByName("SimpleInfoPanelIconArmor", 2);
+		if (parent == 0) {
+			BJDebugMsg("[UPBtn] parent SimpleInfoPanelIconArmor#2 not found");
+			return;
+		}
+
+		testBtnRelCheck = uiImage.createSimple(parent)
+			.setSize(0.018, 0.018)
+			.setTexture("UI\\Widgets\\Glues\\GlueScreen-Checkbox-Background.blp");
+		if (testBtnRelCheck == 0 || testBtnRelCheck.ui == 0) { return; }
+		testBtnRelText = uiText.createSimple(parent)
+			.setAlign(3)
+			.setFontSize(4)
+			.setText("REL");
+		if (testBtnRelText == 0 || testBtnRelText.ui == 0) { return; }
+		testBtnRelBtn = uiBtn.createSimple(parent)
+			.onEnter(function () { BJDebugMsg("[UPBtn] REL enter"); })
+			.onLeave(function () { BJDebugMsg("[UPBtn] REL leave"); })
+			.onClick(function () { BJDebugMsg("[UPBtn] REL click"); });
+		if (testBtnRelBtn == 0 || testBtnRelBtn.ui == 0) { return; }
+
+		testBtnAbsCheck = uiImage.createSimple(parent)
+			.setSize(0.018, 0.018)
+			.setTexture("UI\\Widgets\\Glues\\GlueScreen-Checkbox-Background.blp");
+		if (testBtnAbsCheck == 0 || testBtnAbsCheck.ui == 0) { return; }
+		testBtnAbsText = uiText.createSimple(parent)
+			.setAlign(3)
+			.setFontSize(4)
+			.setText("ABS");
+		if (testBtnAbsText == 0 || testBtnAbsText.ui == 0) { return; }
+		testBtnAbsBtn = uiBtn.createSimple(parent)
+			.onEnter(function () { BJDebugMsg("[UPBtn] ABS enter"); })
+			.onLeave(function () { BJDebugMsg("[UPBtn] ABS leave"); })
+			.onClick(function () { BJDebugMsg("[UPBtn] ABS click"); });
+		if (testBtnAbsBtn == 0 || testBtnAbsBtn.ui == 0) { return; }
+
+		testBtnInited = true;
+		UnitPanelTestMoveRelHidden(true);
+		UnitPanelTestMoveAbsHidden(true);
+	}
+
+	function UnitPanelTestShowRel() {
+		UnitPanelTestEnsureMoveButtons();
+		if (!testBtnInited) { return; }
+		UnitPanelTestMoveAbsHidden(true);
+		testBtnRelCheck
+			.clearPoint()
+			.setPoint(ANCHOR_CENTER, DzFrameGetPortrait(), ANCHOR_RIGHT, 0.116, -0.012);
+		testBtnRelText
+			.clearPoint()
+			.setPoint(ANCHOR_LEFT, testBtnRelCheck.ui, ANCHOR_RIGHT, 0.0035, 0.0);
+		testBtnRelBtn
+			.clearPoint()
+			.setPoint(ANCHOR_TOPLEFT, testBtnRelCheck.ui, ANCHOR_TOPLEFT, 0.0, 0.001)
+			.setPoint(ANCHOR_BOTTOMRIGHT, testBtnRelText.ui, ANCHOR_BOTTOMRIGHT, 0.002, -0.001);
+		BJDebugMsg("[UPBtn] REL shown: two relative anchors to simple image/text");
+	}
+
+	function UnitPanelTestShowAbs(real x, real y) {
+		UnitPanelTestEnsureMoveButtons();
+		if (!testBtnInited) { return; }
+		testBtnAbsX = x;
+		testBtnAbsY = y;
+		UnitPanelTestMoveRelHidden(true);
+		testBtnAbsCheck
+			.clearPoint()
+			.setAbsPoint(ANCHOR_CENTER, x - testBtnAbsW * 0.5 + 0.010, y);
+		testBtnAbsText
+			.clearPoint()
+			.setAbsPoint(ANCHOR_LEFT, x - testBtnAbsW * 0.5 + 0.024, y);
+		testBtnAbsBtn
+			.setSize(testBtnAbsW, testBtnAbsH)
+			.clearPoint()
+			.setAbsPoint(ANCHOR_CENTER, x, y);
+		BJDebugMsg("[UPBtn] ABS shown: size + absolute point x=" + R2SW(x, 1, 3) + " y=" + R2SW(y, 1, 3));
+	}
 
 	public function Init2 () {
 		#ifdef UnitPanelShowBuilding
@@ -188,6 +305,32 @@ library UTUnitPanel requires UnitPanel,UnitTestUIRuler {
 
 		} else if (paramS[0] == "b") {
 
+		} else if (paramS[0] == "ub") {
+			if (num <= 1 || paramS[1] == "help") {
+				BJDebugMsg("[UPBtn] -ub rel | -ub abs [x y] | -ub mouse | -ub hide | -ub hard | -ub info");
+			} else if (paramS[1] == "rel") {
+				UnitPanelTestShowRel();
+			} else if (paramS[1] == "abs") {
+				if (num >= 4) {
+					UnitPanelTestShowAbs(paramR[2], paramR[3]);
+				} else {
+					UnitPanelTestShowAbs(testBtnAbsX, testBtnAbsY);
+				}
+			} else if (paramS[1] == "mouse") {
+				UnitPanelTestShowAbs(hardware.getMouseX(), hardware.getMouseY());
+			} else if (paramS[1] == "hide") {
+				UnitPanelTestEnsureMoveButtons();
+				UnitPanelTestMoveRelHidden(false);
+				UnitPanelTestMoveAbsHidden(false);
+				BJDebugMsg("[UPBtn] soft hide: move to absolute offscreen only");
+			} else if (paramS[1] == "hard") {
+				UnitPanelTestEnsureMoveButtons();
+				UnitPanelTestMoveRelHidden(true);
+				UnitPanelTestMoveAbsHidden(true);
+				BJDebugMsg("[UPBtn] hard hide: set size 0.001 and move offscreen");
+			} else if (paramS[1] == "info") {
+				BJDebugMsg("[UPBtn] abs x=" + R2SW(testBtnAbsX, 1, 3) + " y=" + R2SW(testBtnAbsY, 1, 3) + " w=" + R2SW(testBtnAbsW, 1, 3) + " h=" + R2SW(testBtnAbsH, 1, 3));
+			}
 		}
 
 		p = null;

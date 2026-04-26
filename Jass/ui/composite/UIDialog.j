@@ -14,6 +14,7 @@
 #define UIDIALOG_PADDING_BOTTOM     0.025       // 底部内边距（翻页按钮距下边框）
 #define UIDIALOG_PADDING_X          0.025       // 左右内边距
 #define UIDIALOG_TITLE_HEIGHT       0.024       // 标题栏高度
+#define UIDIALOG_TITLE_LINE_HEIGHT  0.018       // 标题多行时每行追加高度
 #define UIDIALOG_GAP_TITLE_ITEMS    0.008       // 标题与第一个选项之间的间距
 #define UIDIALOG_ITEM_HEIGHT        0.033       // 每个选项行的高度
 #define UIDIALOG_ITEM_GAP           0.003       // 相邻选项行之间的间距
@@ -55,6 +56,13 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 
     public function CallbackUIDialogContent(string s) {
         currentContent = s;
+    }
+
+    private function UIDialogGetTitleHeight(integer lineCount) -> real {
+        if (lineCount <= 1) {
+            return UIDIALOG_TITLE_HEIGHT;
+        }
+        return UIDIALOG_TITLE_HEIGHT + I2R(lineCount - 1) * UIDIALOG_TITLE_LINE_HEIGHT;
     }
 
     private function UIDialogFindComma(string s, integer startPos) -> integer {
@@ -167,6 +175,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             boolean needPager;
             real dialogWidth;
             real itemWidth;
+            real titleHeight;
             real firstRowOffsetY;
             real rowOffsetY;
             real mainHeight;
@@ -193,8 +202,10 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                 dialogWidth = UIDIALOG_PADDING_X * 2.0 + 0.04;
             }
 
+            titleHeight = UIDialogGetTitleHeight(dd.titleLines);
+
             // 内联 getMainHeight
-            mainHeight = UIDIALOG_PADDING_TOP + UIDIALOG_TITLE_HEIGHT + UIDIALOG_GAP_TITLE_ITEMS + UIDIALOG_PADDING_BOTTOM;
+            mainHeight = UIDIALOG_PADDING_TOP + titleHeight + UIDIALOG_GAP_TITLE_ITEMS + UIDIALOG_PADDING_BOTTOM;
             if (visibleCount > 0) {
                 mainHeight += visibleCount * UIDIALOG_ITEM_HEIGHT + (visibleCount - 1) * UIDIALOG_ITEM_GAP;
             }
@@ -213,7 +224,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 
             uiTitle.clearPoint()
                 .setPoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, UIDIALOG_PADDING_X, -UIDIALOG_PADDING_TOP)
-                .setPoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_TOPRIGHT, -UIDIALOG_PADDING_X, -UIDIALOG_PADDING_TOP - UIDIALOG_TITLE_HEIGHT);
+                .setPoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_TOPRIGHT, -UIDIALOG_PADDING_X, -UIDIALOG_PADDING_TOP - titleHeight);
 
             // 内联 updateTitle
             if (maxPage > 1) {
@@ -222,7 +233,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                 uiTitle.setText(dd.title);
             }
 
-            firstRowOffsetY = -UIDIALOG_PADDING_TOP - UIDIALOG_TITLE_HEIGHT - UIDIALOG_GAP_TITLE_ITEMS;
+            firstRowOffsetY = -UIDIALOG_PADDING_TOP - titleHeight - UIDIALOG_GAP_TITLE_ITEMS;
 
             i = 1;
             while (i <= UIDIALOG_PAGE_ITEM_MAX) {
@@ -462,6 +473,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
     public struct dialogData {
         integer count;
         string title;
+        integer titleLines;
         player owner;
         real width;
         boolean useAbsPoint;
@@ -488,6 +500,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             if (this.count < 0) { this.count = 0; }
 
             this.title = "";
+            this.titleLines = 1;
             this.owner = p;
             this.width = UIDIALOG_WIDTH;
             this.useAbsPoint = false;
@@ -520,6 +533,15 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                 width = w;
             } else {
                 width = UIDIALOG_WIDTH;
+            }
+        }
+
+        method setTitleLines(integer lines) {
+            if (!this.isExist()) { return; }
+            if (lines < 1) {
+                titleLines = 1;
+            } else {
+                titleLines = lines;
             }
         }
 
@@ -677,6 +699,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 #undef UIDIALOG_PADDING_BOTTOM
 #undef UIDIALOG_PADDING_X
 #undef UIDIALOG_TITLE_HEIGHT
+#undef UIDIALOG_TITLE_LINE_HEIGHT
 #undef UIDIALOG_GAP_TITLE_ITEMS
 #undef UIDIALOG_ITEM_HEIGHT
 #undef UIDIALOG_ITEM_GAP

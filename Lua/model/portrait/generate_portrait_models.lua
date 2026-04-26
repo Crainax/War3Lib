@@ -4,20 +4,20 @@ local flag = {
     tempMdlDir = [[D:\War3Asset\Asset\Xlimon_Achieve\NewMap\PortraitModel\output\_tmp_mdl_build]],
     converterExe = [[D:\War3\tools\war3mdlx.exe]],
 
+    -- 输出文件名: string.format(modelNamePattern, i) .. variant .. modelSuffix
+    -- 例: modelNamePattern="shop%d", i=1, variant="", modelSuffix="_portrait" => shop1_portrait
+    modelNamePattern = "shop%d",
+    indexStart = 1,
+    indexEnd = 20,
     modelSuffix = "_portrait",
-    variants = { "", "_2" },
+    variants = { "" },
 
-    -- h001~h009, h00a~h00p
-    baseChars = {
-        "1", "2", "3", "4", "5", "6", "7", "8", "9",
-        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
-        "k", "l", "m", "n", "o", "p"
-    },
+    -- 每个序号(i)对应的纹理码，按 indexStart..indexEnd 顺序读取
+    -- 当前配置: 1~20 => Crainax\shop1.blp ~ Crainax\shop20.blp
+    textureNamePattern = "Crainax\\shop%d.blp",
 
-    texturePattern = "Crainax\\u00[%w]_?2?%.blp",
-    texturePrefix = "Crainax\\u00",
-    texturePrefixEscaped = "Crainax\\\\u00",
-    textureExt = ".blp",
+    -- 模板内用于匹配并替换的贴图路径模式
+    texturePattern = "Crainax\\[%w_]+%.blp",
 
     overwrite = true,
     cleanupOutputMdl = true,
@@ -80,23 +80,19 @@ local function exec(cmd)
     return false, tostring(code)
 end
 
-local function buildIdList()
-    local ids = {}
-    for _, c in ipairs(flag.baseChars) do
-        local base = "h00" .. c
+local function buildEntryList()
+    local entries = {}
+    for i = flag.indexStart, flag.indexEnd do
+        local base = string.format(flag.modelNamePattern, i)
+        local textureName = string.format(flag.textureNamePattern, i)
         for _, suffix in ipairs(flag.variants) do
-            table.insert(ids, base .. suffix)
+            table.insert(entries, {
+                id = base .. suffix,
+                textureName = textureName
+            })
         end
     end
-    return ids
-end
-
-local function getTextureCode(id)
-    local c = id:match("^h00([0-9a-pA-P])")
-    if not c then
-        return nil
-    end
-    return string.lower(c)
+    return entries
 end
 
 local function buildPaths(id)
@@ -106,15 +102,8 @@ local function buildPaths(id)
     return stem, mdl, mdx
 end
 
-local function buildTextureName(id, code)
-    local prefix = flag.texturePrefix
-    local suffix = ""
-    if id:match("_2$") then
-        -- For "_2" textures, keep literal "\u00x_2" through MDL->MDX parser.
-        prefix = flag.texturePrefixEscaped
-        suffix = "_2"
-    end
-    return prefix .. code .. suffix .. flag.textureExt
+local function buildTextureName(entry)
+    return entry.textureName
 end
 
 local function main()
@@ -133,12 +122,13 @@ local function main()
         error("read template failed: " .. tostring(readErr))
     end
 
-    local ids = buildIdList()
+    local entries = buildEntryList()
     local okCount = 0
     local failCount = 0
 
     if flag.cleanupOutputMdl then
-        for _, id in ipairs(ids) do
+        for _, entry in ipairs(entries) do
+            local id = entry.id
             local stem = id .. flag.modelSuffix
             local oldMdl = flag.outputDir .. "\\" .. stem .. ".mdl"
             if fileExists(oldMdl) then
@@ -147,15 +137,15 @@ local function main()
         end
     end
 
-    for _, id in ipairs(ids) do
-        local code = getTextureCode(id)
-        if not code then
-            print("[SKIP] invalid id: " .. id)
+    for _, entry in ipairs(entries) do
+        local id = entry.id
+        local textureName = buildTextureName(entry)
+        if not textureName then
+            print("[SKIP] missing texture name for id: " .. id)
             failCount = failCount + 1
             goto continue
         end
 
-        local textureName = buildTextureName(id, code)
         local content, replaced = template:gsub(flag.texturePattern, textureName, 1)
         if replaced == 0 then
             print("[FAIL] no texture pattern matched for id: " .. id)
@@ -212,7 +202,18 @@ local function main()
         os.execute('rmdir /s /q ' .. quotePath(flag.tempMdlDir) .. ' >nul 2>nul')
     end
 
-    print(string.format("done. ok=%d fail=%d total=%d", okCount, failCount, #ids))
+    print(string.format("done. ok=%d fail=%d total=%d", okCount, failCount, #entries))
 end
 
+-- 修改说明:
+-- 1) 改 modelNamePattern/indexStart/indexEnd 可以批量改输出名和范围:
+--    例如 modelNamePattern="npc_%03d", indexStart=101, indexEnd=120 -> npc_101_portrait ~ npc_120_portrait
+-- 2) 改 modelSuffix 可以改文件尾缀:
+--    例如 modelSuffix="_icon" -> shop1_icon.mdl
+-- 3) 改 variants 可生成同序号的额外变体:
+--    例如 variants={"", "_2"} -> shop1_portrait / shop1_2_portrait
+-- 4) 改 textureNamePattern 可以直接定义贴图路径规则:
+--    例如 textureNamePattern="Crainax\\shop%d.blp", indexStart=1,indexEnd=20
+--    会依次替换为 Crainax\shop1.blp ~ Crainax\shop20.blp
+-- 5) 如果模板里贴图写法不同，按实际内容调整 texturePattern。
 main()

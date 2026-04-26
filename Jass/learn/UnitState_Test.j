@@ -7,22 +7,42 @@
 //! zinc
 
 //自动生成的文件
-library UTUnitState requires UnitState {
+library UTUnitState requires UnitState, UnitSelect {
 
 	// 测试单位
 	private unit myPeasant = null;      // 我方农民
 	private unit enemyPeasant = null;   // 敌方农民
 	private unit testHero = null;       // 测试用英雄
 	private unit testFootman = null;    // 测试用步兵
+	private unit testKnight = null;     // 测试用骑士
+	private boolean hasBindSelectSwap = false;
+
+	function BindSelectSwapTest () {
+		if (hasBindSelectSwap) {
+			return;
+		}
+		hasBindSelectSwap = true;
+
+		unitSelect.onAsync(function () {
+			unit u = unitSelect.args;
+			if (u == testFootman && testKnight != null) {
+				ClearSelection();
+				SelectUnit(testKnight, true);
+				BJDebugMsg("[UnitState] 选中步兵后已自动切换为骑士");
+			}
+			u = null;
+		});
+	}
 
 	function Init () {
 		player p; player enemyP;  // 局部变量声明在前
 		//sdfkjsdjklfslkfslkfdl
 
-		// 创建我方农民（玩家1）、测试步兵、大法师
+		// 创建我方农民（玩家1）、测试步兵、测试骑士、大法师
 		p = Player(0);
 		myPeasant   = CreateUnit(p, 'hpea', 0.0,   0.0, 270.0);
 		testFootman = CreateUnit(p, 'hfoo', 200.0,  0.0, 270.0);
+		testKnight  = CreateUnit(p, 'hkni', 320.0,  0.0, 270.0);
 		testHero    = CreateUnit(p, 'Hamg', -200.0, 0.0, 270.0);
 		p = null;
 
@@ -31,7 +51,8 @@ library UTUnitState requires UnitState {
 		enemyPeasant = CreateUnit(enemyP, 'hpea', 500.0, 0.0, 270.0);
 		enemyP = null;
 
-		BJDebugMsg("[UnitState] 测试单位已创建：农民、步兵、大法师");
+		BJDebugMsg("[UnitState] 测试单位已创建：农民、步兵、骑士、大法师");
+		BindSelectSwapTest();
 	}
 
 	function TTestUTUnitState1 (player p) {

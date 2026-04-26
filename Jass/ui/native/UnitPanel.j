@@ -139,7 +139,6 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
             uiBtn btn;
 
             //攻击小框架相关
-            //todo:config.h
             parent = DzSimpleFrameFindByName("SimpleInfoPanelIconDamage", 0); //防御的父框架
             child = DzCreateFrameByTagName("SIMPLEFRAME", "upAttack", parent, "单位面板框架", 0);
             DzFrameClearAllPoints( child ); //这条必不可少,不然会杂糅在一起

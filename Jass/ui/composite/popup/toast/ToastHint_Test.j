@@ -15,6 +15,8 @@
 * s3 - 创建多个提示框测试
 * s4 - 测试长文本的显示效果
 * s5 - 测试中文文本的显示效果
+* s6 - 在技能栏第二排第3格创建提示(createAtSpell示例)
+* s7 - 在物品栏第3格创建提示(createAtItem示例)
 *
 * 鼠标点击测试:
 * 左键点击 - 显示鼠标实际坐标(0-0.8, 0-0.6)
@@ -23,6 +25,8 @@
 * 参数化测试命令:
 * -a x y - 在指定坐标(x,y)创建提示框
 * -b text - 使用指定文本创建提示框
+* -c x y text - 在技能栏(x,y)创建提示框
+* -d pos text - 在物品栏pos创建提示框
 */
 library UTToastHint requires ToastHint {
 
@@ -53,14 +57,14 @@ library UTToastHint requires ToastHint {
 		toastHint.createAtMouse(p, "测试中文显示：你好，世界！");
 	}
 
-	// 测试左键点击显示坐标
+	// 测试技能栏定位提示(createAtSpell)
 	function TTestUTToastHint6(player p) {
-
+		toastHint.createAtSpell(p, 3, 2, "createAtSpell: 第二排第3格");
 	}
 
-	// 测试右键点击显示相对坐标
+	// 测试物品栏定位提示(createAtItem)
 	function TTestUTToastHint7(player p) {
-
+		toastHint.createAtItem(p, 3, "createAtItem: 第3个物品格");
 	}
 
 	// 其他测试用例保留占位
@@ -105,6 +109,16 @@ library UTToastHint requires ToastHint {
 			if (num >= 2) {
 				toastHint.createAtMouse(p, paramS[1]);
 			}
+		} else if (paramS[0] == "c") {
+			// -c x y text：在技能栏(x,y)创建提示框
+			if (num >= 4) {
+				toastHint.createAtSpell(p, paramI[1], paramI[2], paramS[3]);
+			}
+		} else if (paramS[0] == "d") {
+			// -d pos text：在物品栏pos创建提示框
+			if (num >= 3) {
+				toastHint.createAtItem(p, paramI[1], paramS[2]);
+			}
 		}
 
 		p = null;
@@ -116,9 +130,11 @@ library UTToastHint requires ToastHint {
 		TriggerRegisterTimerEventSingle(tr, 0.5);
 		TriggerAddCondition(tr, Condition(function() {
 			BJDebugMsg("[ToastHint] 单元测试已加载");
-			BJDebugMsg("输入s1-s5测试不同功能");
+			BJDebugMsg("输入s1-s7测试不同功能");
 			BJDebugMsg("输入-a x y在指定坐标创建提示");
 			BJDebugMsg("输入-b text使用指定文本创建提示");
+			BJDebugMsg("输入-c x y text在技能栏(x,y)创建提示(如: -c 3 2 hi)");
+			BJDebugMsg("输入-d pos text在物品栏pos创建提示(如: -d 3 hi)");
 			BJDebugMsg("左键点击显示坐标");
 			BJDebugMsg("右键点击显示相对坐标");
 			DestroyTrigger(GetTriggeringTrigger());
