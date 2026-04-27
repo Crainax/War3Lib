@@ -230,6 +230,26 @@ library UTIcon requires Icon {
 			BJDebugMsg("右下角边框已启用");
 		}
 	}
+
+	// 独立 padding 测试: 0.035图标,右上角padding=0.001,右下角padding=0.0015
+	function TTestUTIcon11 (player p) {
+		if (testIcon1.isExist()) {
+			testIcon1.destroy();
+			testIcon1 = 0;
+			isTest1Active = false;
+		}
+		testIcon1 = icon.create(DzGetGameUI())
+			.setSize(0.035, 0.035)
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp")
+			.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, 0)
+			.setCornerPadding(0.0015)
+			.setTopRightPadding(0.001)
+			.setCornerText("99")
+			.setTopRightText("新", 2)
+			.show(true);
+		isTest1Active = true;
+		BJDebugMsg("已创建 0.035 icon：右下角padding=0.0015, 右上角padding=0.001");
+	}
 	function TTestActUTIcon1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -355,8 +375,29 @@ library UTIcon requires Icon {
 
 			testIcon1.setCornerPadding(paramR[1]);
 			testIcon1.setCornerText("99"); // 确保有文字显示以查看效果
-			testIcon1.setTopRightText("新", 3); // 右上角也会受影响
-			BJDebugMsg("角落文字内边距已设置为: " + R2S(paramR[1]));
+			BJDebugMsg("右下角文字内边距已设置为: " + R2S(paramR[1]));
+			p = null;
+			return;
+		}
+
+		// 处理toprightpadding命令
+		if (paramS[0] == "toprightpadding") {
+			if (!testIcon1.isExist()) {
+				BJDebugMsg("请先使用s1创建基础图标");
+				p = null;
+				return;
+			}
+
+			if (num < 2) {
+				BJDebugMsg("参数不足,请使用格式: -toprightpadding <padding>");
+				BJDebugMsg("例如: -toprightpadding 0.001");
+				p = null;
+				return;
+			}
+
+			testIcon1.setTopRightPadding(paramR[1]);
+			testIcon1.setTopRightText("新", 2); // 确保有文字显示以查看效果
+			BJDebugMsg("右上角文字内边距已设置为: " + R2S(paramR[1]));
 			p = null;
 			return;
 		}
@@ -411,8 +452,10 @@ library UTIcon requires Icon {
 			BJDebugMsg("-destroy - 销毁图标");
 			BJDebugMsg("-size(x,y) - 设置图标大小,如: -size 0.04 0.04");
 			BJDebugMsg("-cornersize <size> - 设置右下角文字大小,如: -cornersize 3");
-			BJDebugMsg("-cornerpadding <padding> - 设置角落文字内边距,如: -cornerpadding 0.005");
+			BJDebugMsg("-cornerpadding <padding> - 设置右下角文字内边距,如: -cornerpadding 0.005");
+			BJDebugMsg("-toprightpadding <padding> - 设置右上角文字内边距,如: -toprightpadding 0.001");
 			BJDebugMsg("-topright <text> <size> - 设置右上角文字,如: -topright 新 3");
+			BJDebugMsg("s11 - 创建0.035的icon(右上角padding=0.001, 右下角padding=0.0015)");
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
@@ -434,6 +477,7 @@ library UTIcon requires Icon {
 			else if(str == "s8") TTestUTIcon8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTIcon9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTIcon10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTIcon11(GetTriggerPlayer());
 		});
 
 	}

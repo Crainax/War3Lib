@@ -280,7 +280,11 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                     } else {
                         icons[row][col].setSize(SIZE_ORIGIN_UI_SPELL, SIZE_ORIGIN_UI_SPELL);
                     }
-                    icons[row][col].setPoint(ANCHOR_CENTER, grid[row][col], ANCHOR_CENTER, 0.0, 0.0)
+                    icons[row][col]
+                    // .setCornerTextSize(2)
+                    // .setCornerPadding(0.0015)
+                        .setTopRightPadding(0.001)
+                        .setPoint(ANCHOR_CENTER, grid[row][col], ANCHOR_CENTER, 0.0, 0.0)
                         .setTexture(UI_STRING_PATH_BLANK);
                     icons[row][col].clickBtn = btn;
                     uiHashTable(grid[row][col]).eventdata.bind(((row-1)*4)+col);
