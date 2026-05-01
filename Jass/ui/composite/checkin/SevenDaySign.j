@@ -122,6 +122,14 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return lastDayId[pid];
         }
 
+        public static method getClaimPlayer() -> player {
+            return claimPlayer;
+        }
+
+        public static method getClaimDay() -> integer {
+            return cbClaimDay;
+        }
+
         public static method refreshPlayer(player p) {
             integer pid;
             integer d;
@@ -222,20 +230,36 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         }
 
         static method onInit() {
-            integer i;
             trigger tr = CreateTrigger();
             rewardIcon[1] = "ReplaceableTextures\\CommandButtons\\BTNReturnGoods.blp";
-            rewardIcon[2] = "ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp";
+            rewardIcon[2] = "ReplaceableTextures\\CommandButtons\\BTNGem.blp";
             rewardIcon[3] = "ReplaceableTextures\\CommandButtons\\BTNBloodLustOn.blp";
-            rewardIcon[4] = "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp";
+            rewardIcon[4] = "ReplaceableTextures\\CommandButtons\\BTNGem.blp";
             rewardIcon[5] = "ReplaceableTextures\\CommandButtons\\BTNBreathOfFrost.blp";
             rewardIcon[6] = "ReplaceableTextures\\CommandButtons\\BTNFireForTheCannon.blp";
-            rewardIcon[7] = "ReplaceableTextures\\CommandButtons\\BTNBanish.blp";
-            for (1 <= i <= SIGN7_TOTAL_DAYS) {
-                rewardName[i] = "第" + I2S(i) + "天奖励";
-                rewardTipTitle[i] = "奖励说明";
-                rewardTipDesc[i] = "这是占位奖励内容";
-            }
+            rewardIcon[7] = "ReplaceableTextures\\CommandButtons\\BTNGem.blp";
+
+            rewardName[1] = "第1天特权";
+            rewardTipTitle[1] = "第1天奖励";
+            rewardTipDesc[1] = "副本评分+5%\n开局复活次数+25";
+            rewardName[2] = "第2天特权";
+            rewardTipTitle[2] = "第2天奖励";
+            rewardTipDesc[2] = "圣晶石<小>\n无尽复活次数奖励+1";
+            rewardName[3] = "第3天特权";
+            rewardTipTitle[3] = "第3天奖励";
+            rewardTipDesc[3] = "天赋技能选项+1\n学习技能选项+1\n开局复活次数+40";
+            rewardName[4] = "第4天特权";
+            rewardTipTitle[4] = "第4天奖励";
+            rewardTipDesc[4] = "圣晶石<中>\n副本评分+10%\n无尽复活次数奖励+2";
+            rewardName[5] = "第5天特权";
+            rewardTipTitle[5] = "第5天奖励";
+            rewardTipDesc[5] = "合成装备选项+1\n开局复活次数+60";
+            rewardName[6] = "第6天特权";
+            rewardTipTitle[6] = "第6天奖励";
+            rewardTipDesc[6] = "天赋技能选项+2\n学习技能选项+2\n副本评分+15%\n无尽复活次数奖励+3";
+            rewardName[7] = "第7天特权";
+            rewardTipTitle[7] = "第7天奖励";
+            rewardTipDesc[7] = "圣晶石<大>\n解锁英雄玉藻前";
 
             // 在游戏开始 0.3 秒后初始化缓存：UI 操作期间不再触发 DzAPI 读写。
             TriggerRegisterTimerEventSingle(tr,0.3);
@@ -479,7 +503,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                         day = uiHashTable(frame).eventdata.get();
                         destroyTooltip();
                         title = sevenDaySignData.getRewardTipTitle(day);
-                        desc = "第" + I2S(day) + "份奖励";
+                        desc = sevenDaySignData.getRewardTipDesc(day);
                         uiTooltipTemp = tooltip.create().layoutTitleDesc(title, desc);
                         uiTooltipTemp.setAbsPoint(ANCHOR_BOTTOMRIGHT, SIGN7_TOOLTIP_BR_X, SIGN7_TOOLTIP_BR_Y);
                     })
@@ -594,7 +618,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             if (GetLocalPlayer() == p) {
                 if (ok) {
                     sevenDaySignUI.refreshForPlayer(p);
-                    toastHint.createAtMouse(p, "领取成功:第" + I2S(day) + "的奖励!");
+                    toastHint.createAtMouse(p, "领取成功:第" + I2S(day) + "天的奖励!");
                 } else {
                     toastHint.createAtMouse(p, "今日已领取,请明日再来!");
                 }
