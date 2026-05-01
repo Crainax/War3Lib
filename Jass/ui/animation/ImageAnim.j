@@ -14,7 +14,7 @@ library ImageAnim requires BaseAnim, UIHashTable, UIImage, GrowData, EasingUtils
     #define IMAGE_ANIM_MST_UI_WIDTH        0.2 // 拼合图片的高度基准值
     #define IMAGE_ANIM_MST_UI_SCALE_RADIO  0.5 // 动画缩放幅度(例如0.5表示进场从1.5倍缩小到1倍，退场从1倍放大到1.5倍)
     #define IMAGE_ANIM_MST_COUNTDOWN_START 20  // 进场动画持续帧数
-    #define IMAGE_ANIM_MST_COUNTDOWN_HOLD  10 // 动画中间停留展示的持续帧数
+    #define IMAGE_ANIM_MST_COUNTDOWN_HOLD  20 // 动画中间停留展示的持续帧数
     #define IMAGE_ANIM_MST_COUNTDOWN_END   20  // 退场动画持续帧数
     #define IMAGE_ANIM_MST_COUNTDOWN_TOTAL (IMAGE_ANIM_MST_COUNTDOWN_START + IMAGE_ANIM_MST_COUNTDOWN_HOLD + IMAGE_ANIM_MST_COUNTDOWN_END) // 动画总持续帧数
     #define IMAGE_ANIM_MST_CENTER_OFFSET_Y 0.1 // 整体动画在屏幕Y轴中心点的偏移量(正数向上偏移)
@@ -130,8 +130,9 @@ library ImageAnim requires BaseAnim, UIHashTable, UIImage, GrowData, EasingUtils
                         alpha = 255;
                     } else {
                         r = I2R(now - IMAGE_ANIM_MST_COUNTDOWN_START - IMAGE_ANIM_MST_COUNTDOWN_HOLD) / IMAGE_ANIM_MST_COUNTDOWN_END;
-                        scale = EaseInOutBack(r) * IMAGE_ANIM_MST_UI_SCALE_RADIO + 1.0;
-                        alpha = 255 - R2I(EaseInExpo(r) * 255.0);
+                        scale = 1.0 - EaseInOutBack(r);
+                        if (scale < 0.0) {scale = 0.0;}
+                        alpha = 255 - R2I(EaseOutCubic(r) * 255.0);
                     }
                     applyFrame(scale, alpha);
                 }
