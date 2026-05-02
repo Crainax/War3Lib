@@ -7,20 +7,20 @@
 //! zinc
 
 /*
- * SevenDaySign UI 测试清单
- * F2  切换 UI 显示/隐藏（本地玩家）
- * s1  打开UI（本地玩家，兼容保留）
- * s2  关闭UI（本地玩家，兼容保留）
- * s3  刷新UI（本地玩家）
- * s4  写入占位奖励配置（14天）
- * s5  时间推进一天（+86400）
- * s6  输出当前 dayId
- * s7  切换 VIP 激活状态
- * s8  输出当前签到天数和总天数
- * -t <timestamp>  设置测试时间（秒）
- * -d <dayId>      设置测试 dayId（按北京时间换算）
- * -open / -close / -refresh  快捷操作
- */
+* SevenDaySign UI 测试清单
+* F2  切换 UI 显示/隐藏（本地玩家）
+* s1  打开UI（本地玩家，兼容保留）
+* s2  关闭UI（本地玩家，兼容保留）
+* s3  刷新UI（本地玩家）
+* s4  写入占位奖励配置（14天）
+* s5  时间推进一天（+86400）
+* s6  输出当前 dayId
+* s7  切换 VIP 激活状态
+* s8  输出当前存档天数、展示天数和总天数
+* -t <timestamp>  设置测试时间（秒）
+* -d <dayId>      设置测试 dayId（按北京时间换算）
+* -open / -close / -refresh  快捷操作
+*/
 
 library UTSevenDaySign requires SevenDaySign,Keyboard {
 
@@ -36,66 +36,64 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
     private function initRewardData() {
         // 第 1-7 天：原始签到奖励
         sevenDaySignData.setReward(1,
-            "ui\\image\\sign_ydd_1.blp",
-            "第1天特权", "第1天奖励",
-            "副本评分+5%\n开局复活次数+25");
+        "ui\\image\\sign_1.blp",
+        "第1天特权", "第1天奖励",
+        "副本评分+5%\n开局复活次数+25");
         sevenDaySignData.setReward(2,
-            "ui\\image\\sign_ydd_2.blp",
-            "第2天特权", "第2天奖励",
-            "圣晶石<小>\n无尽复活次数奖励+1");
+        "ui\\image\\sign_2.blp",
+        "第2天特权", "第2天奖励",
+        "圣晶石<小>\n无尽复活次数奖励+1");
         sevenDaySignData.setReward(3,
-            "ui\\image\\sign_ydd_3.blp",
-            "第3天特权", "第3天奖励",
-            "天赋技能选项+1\n学习技能选项+1\n开局复活次数+40");
+        "ui\\image\\sign_3.blp",
+        "第3天特权", "第3天奖励",
+        "天赋技能选项+1\n学习技能选项+1\n开局复活次数+40");
         sevenDaySignData.setReward(4,
-            "ui\\image\\sign_ydd_1.blp",
-            "第4天特权", "第4天奖励",
-            "圣晶石<中>\n副本评分+10%\n无尽复活次数奖励+2");
+        "ui\\image\\sign_4.blp",
+        "第4天特权", "第4天奖励",
+        "圣晶石<中>\n副本评分+10%\n无尽复活次数奖励+2");
         sevenDaySignData.setReward(5,
-            "ui\\image\\sign_ydd_2.blp",
-            "第5天特权", "第5天奖励",
-            "合成装备选项+1\n开局复活次数+60");
+        "ui\\image\\sign_5.blp",
+        "第5天特权", "第5天奖励",
+        "合成装备选项+1\n开局复活次数+60");
         sevenDaySignData.setReward(6,
-            "ui\\image\\sign_ydd_3.blp",
-            "第6天特权", "第6天奖励",
-            "天赋技能选项+2\n学习技能选项+2\n副本评分+15%\n无尽复活次数奖励+3");
+        "ui\\image\\sign_6.blp",
+        "第6天特权", "第6天奖励",
+        "天赋技能选项+2\n学习技能选项+2\n副本评分+15%\n无尽复活次数奖励+3");
         sevenDaySignData.setReward(7,
-            "ui\\image\\sign_ydd_4.blp",
-            "第7天特权", "第7天奖励",
-            "圣晶石<大>\n解锁英雄玉藻前");
+        "ui\\image\\sign_7.blp",
+        "第7天特权", "第7天奖励",
+        "圣晶石<大>\n解锁英雄玉藻前");
 
-        // 第 8-14 天：异度点奖励（图标循环使用 sign_ydd_1~4）
+        // 第 8 天后：异度点奖励（图标循环使用 sign_ydd_1~4）
         sevenDaySignData.setReward(8,
-            "ui\\image\\sign_ydd_1.blp",
-            "第8天特权", "第8天奖励:100异度点",
-            "完成每日签到,领取异度点奖励!");
+        "ui\\image\\sign_ydd_1.blp",
+        "第8天特权", "第8天奖励:100异度点",
+        "完成每日签到,领取异度点奖励!");
         sevenDaySignData.setReward(9,
-            "ui\\image\\sign_ydd_2.blp",
-            "第9天特权", "第9天奖励:100异度点",
-            "完成每日签到,领取异度点奖励!");
+        "ui\\image\\sign_ydd_2.blp",
+        "第9天特权", "第9天奖励:100异度点",
+        "完成每日签到,领取异度点奖励!");
         sevenDaySignData.setReward(10,
-            "ui\\image\\sign_ydd_3.blp",
-            "第10天特权", "第10天奖励:100异度点",
-            "完成每日签到,领取异度点奖励!");
+        "ui\\image\\sign_ydd_3.blp",
+        "第10天特权", "第10天奖励:100异度点",
+        "完成每日签到,领取异度点奖励!");
         sevenDaySignData.setReward(11,
-            "ui\\image\\sign_ydd_1.blp",
-            "第11天特权", "第11天奖励:100异度点",
-            "完成每日签到,领取异度点奖励!");
+        "ui\\image\\sign_ydd_1.blp",
+        "第11天特权", "第11天奖励:100异度点",
+        "完成每日签到,领取异度点奖励!");
         sevenDaySignData.setReward(12,
-            "ui\\image\\sign_ydd_2.blp",
-            "第12天特权", "第12天奖励:100异度点",
-            "完成每日签到,领取异度点奖励!");
+        "ui\\image\\sign_ydd_2.blp",
+        "第12天特权", "第12天奖励:100异度点",
+        "完成每日签到,领取异度点奖励!");
         sevenDaySignData.setReward(13,
-            "ui\\image\\sign_ydd_3.blp",
-            "第13天特权", "第13天奖励:100异度点",
-            "完成每日签到,领取异度点奖励!");
+        "ui\\image\\sign_ydd_3.blp",
+        "第13天特权", "第13天奖励:100异度点",
+        "完成每日签到,领取异度点奖励!");
         sevenDaySignData.setReward(14,
-            "ui\\image\\sign_ydd_4.blp",
-            "第14天特权", "第14天奖励:100异度点",
-            "完成每日签到,领取异度点奖励!");
+        "ui\\image\\sign_ydd_4.blp",
+        "第14天特权", "第14天奖励:100异度点",
+        "完成每日签到,领取异度点奖励!");
 
-        // 注册 VIP 商品
-        mallItem.init(SIGN7_VIP_MALLITEM_KEY);
     }
 
     function TTestUTSevenDaySign1 (player p) {
@@ -145,8 +143,9 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
     }
 
     function TTestUTSevenDaySign8 (player p) {
-        BJDebugMsg("[UTSevenDaySign] claimedDay=" + I2S(sevenDaySignData.getClaimedDay(p))
-            + " rewardCount=" + I2S(sevenDaySignData.getRewardCount()));
+        BJDebugMsg("[UTSevenDaySign] storedDay=" + I2S(sevenDaySignData.getStoredClaimedDay(p))
+        + " viewDay=" + I2S(sevenDaySignData.getClaimedDay(p))
+        + " rewardCount=" + I2S(sevenDaySignData.getRewardCount()));
     }
 
     function TTestUTSevenDaySign9 (player p) {}

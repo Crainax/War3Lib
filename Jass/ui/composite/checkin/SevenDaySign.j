@@ -56,11 +56,13 @@ UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层�
 #define SIGN7_VIP_ICON_PATH     "ui\\image\\sign_vip.blp"
 #define SIGN7_VIP_MALLITEM_KEY  "Sign7"     // 商城商品 key
 #define SIGN7_VIP_BONUS_DAYS    7           // VIP 额外赠送天数
+#define SIGN7_REPEAT_START_DAY  8           // 第 3 周起复用第 2 周的起始天
+#define SIGN7_REPEAT_END_DAY    14          // 第 3 周起复用第 2 周的结束天
 
 // 翻页按钮
 #define SIGN7_PAGE_BTN_W        0.0227      // 翻页按钮宽
 #define SIGN7_PAGE_BTN_H        0.029       // 翻页按钮高
-#define SIGN7_PAGE_TITLE_Y      0.005       // 标题相对 slot 区上方的 Y 偏移
+#define SIGN7_PAGE_TITLE_Y      0.022       // 标题相对 slot 区上方的 Y 偏移
 
 //# dependency:resource/ui/image/black.blp
 //# dependency:resource/ui/image/bg_sevenday_01.blp
@@ -77,6 +79,7 @@ UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层�
 //# dependency:resource/ui/image/sign_3.blp
 //# dependency:resource/ui/image/sign_4.blp
 //# dependency:resource/ui/image/sign_5.blp
+//# dependency:resource/ui/image/sign_6.blp
 //# dependency:resource/ui/image/sign_7.blp
 //# dependency:resource/ui/image/sign_vip.blp
 //# dependency:resource/ui/image/sign_ydd_1.blp
@@ -100,7 +103,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         private static string rewardTipDesc[];
         private static integer rewardCount = 0; // 已注册的奖励总天数
 
-        private static boolean vipActive[];     // VIP 特权是否激活（按玩家）
+        private static boolean vipActive[];     // VIP 特权调试/外部覆盖状态（按玩家）
+        private static boolean vipActiveOverride[]; // true 时优先使用 vipActive，否则自动读取商城拥有权
 
         private static trigger claimTr = null;
         private static player  claimPlayer = null;
@@ -126,23 +130,17 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         }
 
         public static method getRewardCount() -> integer {
+            if (rewardCount >= SIGN7_REPEAT_END_DAY) { return SIGN7_MAX_DAYS; }
             return rewardCount;
         }
 
         public static method getNextClaimDay(integer claimedDay) -> integer {
-            if (claimedDay >= rewardCount) { return 0; }
+            if (claimedDay >= thistype.getRewardCount()) { return 0; }
             return claimedDay + 1;
         }
 
         public static method isAllClaimed(integer claimedDay) -> boolean {
-            return claimedDay >= rewardCount;
-        }
-
-        public static method getClaimedDay(player p) -> integer {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return 0; }
-            return claimedDay[pid];
+            return claimedDay >= thistype.getRewardCount();
         }
 
         public static method getLastDayId(player p) -> integer {
@@ -164,7 +162,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             integer pid;
             pid = GetConvertedPlayerId(p);
             if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
-            return vipActive[pid];
+            if (vipActiveOverride[pid]) { return vipActive[pid]; }
+            return mallItem.hasByPlayer(p, SIGN7_VIP_MALLITEM_KEY);
         }
 
         public static method setVipActive(player p, boolean flag) {
@@ -172,6 +171,28 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             pid = GetConvertedPlayerId(p);
             if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
             vipActive[pid] = flag;
+            vipActiveOverride[pid] = true;
+        }
+
+        public static method getStoredClaimedDay(player p) -> integer {
+            integer pid;
+            pid = GetConvertedPlayerId(p);
+            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return 0; }
+            return claimedDay[pid];
+        }
+
+        private static method getVipBonusDays(player p) -> integer {
+            if (thistype.isVipActive(p)) { return SIGN7_VIP_BONUS_DAYS; }
+            return 0;
+        }
+
+        public static method getClaimedDay(player p) -> integer {
+            integer day;
+            integer rc;
+            day = thistype.getStoredClaimedDay(p) + thistype.getVipBonusDays(p);
+            rc = thistype.getRewardCount();
+            if (rc > 0 && day > rc) { return rc; }
+            return day;
         }
 
         public static method refreshPlayer(player p) {
@@ -202,23 +223,36 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             if (day > rewardCount) { rewardCount = day; }
         }
 
+        public static method getRewardTemplateDay(integer day) -> integer {
+            integer repeatSize;
+            if (day > SIGN7_REPEAT_END_DAY && rewardCount >= SIGN7_REPEAT_END_DAY) {
+                repeatSize = SIGN7_REPEAT_END_DAY - SIGN7_REPEAT_START_DAY + 1;
+                return SIGN7_REPEAT_START_DAY + ModuloInteger(day - SIGN7_REPEAT_START_DAY, repeatSize);
+            }
+            return day;
+        }
+
         public static method getRewardIcon(integer day) -> string {
-            if (day < 1 || day > SIGN7_MAX_DAYS) { return ""; }
+            if (day < 1 || day > thistype.getRewardCount()) { return ""; }
+            day = thistype.getRewardTemplateDay(day);
             return rewardIcon[day];
         }
 
         public static method getRewardName(integer day) -> string {
-            if (day < 1 || day > SIGN7_MAX_DAYS) { return ""; }
+            if (day < 1 || day > thistype.getRewardCount()) { return ""; }
+            day = thistype.getRewardTemplateDay(day);
             return rewardName[day];
         }
 
         public static method getRewardTipTitle(integer day) -> string {
-            if (day < 1 || day > SIGN7_MAX_DAYS) { return ""; }
+            if (day < 1 || day > thistype.getRewardCount()) { return ""; }
+            day = thistype.getRewardTemplateDay(day);
             return rewardTipTitle[day];
         }
 
         public static method getRewardTipDesc(integer day) -> string {
-            if (day < 1 || day > SIGN7_MAX_DAYS) { return ""; }
+            if (day < 1 || day > thistype.getRewardCount()) { return ""; }
+            day = thistype.getRewardTemplateDay(day);
             return rewardTipDesc[day];
         }
 
@@ -234,10 +268,11 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return nowId > lastId;
         }
 
-        // 同步层：处理领取（单日 +1）
+        // 同步层：处理领取（存档单日 +1，VIP 仅作为展示/判定的隐性偏移）
         public static method handleClaim(player p) -> boolean {
             integer pid;
-            integer day;
+            integer storedDay;
+            integer viewDay;
             integer lastId;
             integer nowId;
             integer nextDay;
@@ -245,67 +280,32 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             pid = GetConvertedPlayerId(p);
             if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
 
-            day = claimedDay[pid];
+            storedDay = claimedDay[pid];
+            viewDay = thistype.getClaimedDay(p);
             lastId = lastDayId[pid];
             nowId = thistype.getBeijingDayId();
 
-            if (thistype.isAllClaimed(day)) { return false; }
+            if (thistype.isAllClaimed(viewDay)) { return false; }
             if (nowId <= lastId) { return false; }
 
-            nextDay = thistype.getNextClaimDay(day);
+            nextDay = thistype.getNextClaimDay(viewDay);
             if (nextDay <= 0) { return false; }
 
-            day = day + 1;
-            claimedDay[pid] = day;
+            storedDay = storedDay + 1;
+            claimedDay[pid] = storedDay;
             lastDayId[pid] = nowId;
 
-            DzAPI_Map_StoreInteger(p, SIGN7_CLAIM_DAY_KEY, day);
+            DzAPI_Map_StoreInteger(p, SIGN7_CLAIM_DAY_KEY, storedDay);
             DzAPI_Map_StoreInteger(p, SIGN7_LAST_DAYID_KEY, nowId);
 
             // 回调传参
             claimPlayer = p;
-            cbClaimDay = nextDay;
+            cbClaimDay = thistype.getRewardTemplateDay(nextDay);
             if (claimTr != null) {
                 TriggerEvaluate(claimTr);
             }
             claimPlayer = null;
             cbClaimDay = 0;
-            return true;
-        }
-
-        // 同步层：VIP 特权激活（一次性领取额外天数）
-        public static method handleVipActivate(player p) -> boolean {
-            integer pid;
-            integer day;
-            integer targetDay;
-            integer i;
-
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
-            if (vipActive[pid]) { return false; } // 已激活
-            if (!mallItem.hasByPlayer(p, SIGN7_VIP_MALLITEM_KEY)) { return false; }
-
-            vipActive[pid] = true;
-
-            // 额外领取 SIGN7_VIP_BONUS_DAYS 天
-            day = claimedDay[pid];
-            targetDay = day + SIGN7_VIP_BONUS_DAYS;
-            if (targetDay > rewardCount) { targetDay = rewardCount; }
-
-            // 逐天触发回调
-            for (day + 1 <= i <= targetDay) {
-                claimPlayer = p;
-                cbClaimDay = i;
-                if (claimTr != null) {
-                    TriggerEvaluate(claimTr);
-                }
-            }
-            claimPlayer = null;
-            cbClaimDay = 0;
-
-            claimedDay[pid] = targetDay;
-            DzAPI_Map_StoreInteger(p, SIGN7_CLAIM_DAY_KEY, targetDay);
-
             return true;
         }
 
@@ -378,6 +378,17 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 uiTooltipTemp.destroy();
             }
             uiTooltipTemp = 0;
+        }
+
+        private static method getUnlockedPage(player p) -> integer {
+            integer day;
+            integer maxPage;
+            if (totalPage <= 1) { return 1; }
+            day = sevenDaySignData.getClaimedDay(p);
+            maxPage = day / SIGN7_PAGE_SIZE + 1;
+            if (maxPage < 1) { maxPage = 1; }
+            if (maxPage > totalPage) { maxPage = totalPage; }
+            return maxPage;
         }
 
         private static method setClaimGrow(boolean enable) {
@@ -457,40 +468,51 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         }
 
         // 刷新翻页标题和按钮可见性
-        private static method refreshPageUI() {
+        private static method refreshPageUI(player p) {
             integer rc;
+            integer unlockedPage;
             rc = sevenDaySignData.getRewardCount();
             totalPage = (rc + SIGN7_PAGE_SIZE - 1) / SIGN7_PAGE_SIZE;
             if (totalPage < 1) { totalPage = 1; }
+            unlockedPage = thistype.getUnlockedPage(p);
+            if (currentPage > unlockedPage) { currentPage = unlockedPage; }
+            if (currentPage < 1) { currentPage = 1; }
 
-            if (totalPage > 1 && rc > SIGN7_PAGE_SIZE) {
+            if (unlockedPage > 1 && totalPage > 1 && rc > SIGN7_PAGE_SIZE) {
                 if (pageTitle != 0) {
-                    pageTitle.setText("第 " + I2S(currentPage) + "/" + I2S(totalPage) + " 页").show(true);
+                    pageTitle.setText("第 " + I2S(currentPage) + " 周签到").show(true);
                 }
-                if (pageLeftImage != 0) { pageLeftImage.show(true); }
-                if (pageRightImage != 0) { pageRightImage.show(true); }
+                if (pageLeftImage != 0) { pageLeftImage.show(currentPage > 1); }
+                if (pageLeftBtn != 0) { pageLeftBtn.show(currentPage > 1); }
+                if (pageRightImage != 0) { pageRightImage.show(currentPage < unlockedPage); }
+                if (pageRightBtn != 0) { pageRightBtn.show(currentPage < unlockedPage); }
             } else {
                 if (pageTitle != 0) { pageTitle.show(false); }
                 if (pageLeftImage != 0) { pageLeftImage.show(false); }
+                if (pageLeftBtn != 0) { pageLeftBtn.show(false); }
                 if (pageRightImage != 0) { pageRightImage.show(false); }
+                if (pageRightBtn != 0) { pageRightBtn.show(false); }
             }
         }
 
         // 滚轮翻页
         private static method onMouseWheel() {
             integer targetPage;
+            integer unlockedPage;
             real delta;
             if (!isOpen || totalPage <= 1) { return; }
+            unlockedPage = thistype.getUnlockedPage(GetLocalPlayer());
+            if (unlockedPage <= 1) { return; }
             delta = DzGetWheelDelta();
             if (delta < 0) {
-                targetPage = IMinBJ(currentPage + 1, totalPage);
+                targetPage = IMinBJ(currentPage + 1, unlockedPage);
             } else {
                 targetPage = IMaxBJ(currentPage - 1, 1);
             }
             if (targetPage == currentPage) { return; }
             currentPage = targetPage;
+            refreshPageUI(GetLocalPlayer());
             refreshSlotContent(GetLocalPlayer());
-            refreshPageUI();
         }
 
         public static method refreshForPlayer(player p) {
@@ -506,8 +528,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             day = sevenDaySignData.getClaimedDay(p);
 
             // 刷新槽位内容
+            refreshPageUI(p);
             refreshSlotContent(p);
-            refreshPageUI();
 
             // 状态文字
             if (statusText != 0) {
@@ -659,7 +681,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
             // 翻页标题（位于槽位行上方）
             pageTitle = uiText.create(uiMain.ui)
-                .setFontSize(5)
+                .setFontSize(7)
                 .setAlign(4)
                 .setText("")
                 .exRePoint(ANCHOR_BOTTOM, uiMain.ui, ANCHOR_CENTER, 0.0, slotRowTopY + SIGN7_PAGE_TITLE_Y);
@@ -675,12 +697,10 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 .onClick(function() {
                     if (currentPage > 1) {
                         currentPage = currentPage - 1;
-                    } else {
-                        currentPage = totalPage;
+                        refreshPageUI(GetLocalPlayer());
+                        refreshSlotContent(GetLocalPlayer());
+                        music[MUSIC_INDEX_BTN_CLICK].play();
                     }
-                refreshSlotContent(GetLocalPlayer());
-                refreshPageUI();
-                music[MUSIC_INDEX_BTN_CLICK].play();
             });
 
             pageRightImage = uiImage.create(uiMain.ui)
@@ -691,14 +711,12 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 .setAllPoint(pageRightImage.ui)
                 .onMouseWheel(function sevenDaySignUI.onMouseWheel)
                 .onClick(function() {
-                    if (currentPage < totalPage) {
+                    if (currentPage < thistype.getUnlockedPage(GetLocalPlayer())) {
                         currentPage = currentPage + 1;
-                    } else {
-                        currentPage = 1;
+                        refreshPageUI(GetLocalPlayer());
+                        refreshSlotContent(GetLocalPlayer());
+                        music[MUSIC_INDEX_BTN_CLICK].play();
                     }
-                refreshSlotContent(GetLocalPlayer());
-                refreshPageUI();
-                music[MUSIC_INDEX_BTN_CLICK].play();
             });
 
             // 状态文字
@@ -742,29 +760,12 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 .onEnter(function() {
                     destroyTooltip();
                     uiTooltipTemp = tooltip.create().layoutTitleDesc(
-                    "|cffffcc007日特权|r",
-                    "|cff00ff00激活后|r，签到天数额外|cffffcc00+7天|r！\n例如：已签到第1天 → 激活后直接领取第1~8天奖励。\n\n|cffff9900购买商城道具「Sign7」即可激活|r");
+                    "|cFFFFFF337|r|cFFFFE949天|r|cFFFFD35F签|r|cFFFFBD75到|r|cFFFFA88A特|r|cFFFF92A0权|r",
+                    "拥有该特权后能直接完成7天签到|cff1aff007(在现有签到天数基础上+7天获得对应奖励)|r.");
                     uiTooltipTemp.setAbsPoint(ANCHOR_BOTTOMRIGHT, SIGN7_TOOLTIP_BR_X, SIGN7_TOOLTIP_BR_Y);
                     music[MUSIC_INDEX_BTN_OVER_1].play();
                 })
-                .onLeave(function thistype.destroyTooltip)
-                .onClick(function() {
-                    player lp;
-                    lp = GetLocalPlayer();
-                    if (!sevenDaySignData.isVipActive(lp)) {
-                        if (mallItem.hasByPlayer(lp, SIGN7_VIP_MALLITEM_KEY)) {
-                            syncBus.DzSyncDataEx(SIGN7_SYNC_CHANNEL, "V");
-                            music[MUSIC_INDEX_BTN_CLICK].play();
-                        } else {
-                            music[MUSIC_INDEX_ERROR].play();
-                            toastHint.createAtMouse(lp, "尚未购买7日特权!");
-                        }
-                } else {
-                    music[MUSIC_INDEX_ERROR].play();
-                    toastHint.createAtMouse(lp, "7日特权已激活!");
-                }
-                lp = null;
-            });
+                .onLeave(function thistype.destroyTooltip);
 
             sevenDaySignUI.refreshForPlayer(p);
 
@@ -834,6 +835,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
     // SyncBus：从本地事件进入同步层
     //==========================================================================
     private function onInit() {
+        // mallItem.init(SIGN7_VIP_MALLITEM_KEY); //初始化道具
         syncBus.onDataSync(SIGN7_SYNC_CHANNEL, function () {
             string payload;
             player p;
@@ -851,18 +853,9 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                     if (ok) {
                         sevenDaySignUI.refreshForPlayer(p);
                         toastHint.createAtMouse(p, "领取成功:第" + I2S(day) + "天的奖励!");
+                        music[MUSIC_INDEX_SHOP_BUY].playFor(p);
                     } else {
                         toastHint.createAtMouse(p, "今日已领取,请明日再来!");
-                    }
-                }
-            } else if (payload == "V") {
-                ok = sevenDaySignData.handleVipActivate(p);
-                if (GetLocalPlayer() == p) {
-                    if (ok) {
-                        sevenDaySignUI.refreshForPlayer(p);
-                        toastHint.createAtMouse(p, "|cffffcc007日特权激活成功!|r");
-                    } else {
-                        toastHint.createAtMouse(p, "特权激活失败!");
                     }
                 }
             }
