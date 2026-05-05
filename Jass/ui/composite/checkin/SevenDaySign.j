@@ -15,8 +15,8 @@ UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层�
 #define SIGN7_MAX_DAYS          1300        // 奖励数组容量上限
 #define SIGN7_PAGE_SIZE         7           // 每页显示槽位数
 #define SIGN7_SYNC_CHANNEL      "SevenDaySign" // 同步通道名
-#define SIGN7_LAST_DAYID_KEY    "SIGN7_LAST_DAYID" // 存档键：上次领取日期
-#define SIGN7_CLAIM_DAY_KEY     "SIGN7_CLAIM_DAY"  // 存档键：已领取天数
+#define SIGN7_LAST_DAYID_KEY    "LastSign" // 存档键：上次领取日期
+#define SIGN7_CLAIM_DAY_KEY     "SignCount"  // 存档键：已领取天数
 // 后端限制提醒：SIGN7_CLAIM_DAY_KEY 仅允许单次请求 +1，禁止跳跃写入/回退写入。
 // 运行时判定提醒：UI/领奖判定统一依赖内存缓存，不依赖局中 DzAPI 再读取。
 
@@ -891,7 +891,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
     // SyncBus：从本地事件进入同步层
     //==========================================================================
     private function onInit() {
-        mallItem.init(SIGN7_VIP_MALLITEM_KEY); //初始化道具
+        // mallItem.init(SIGN7_VIP_MALLITEM_KEY); //初始化道具
         syncBus.onDataSync(SIGN7_SYNC_CHANNEL, function () {
             string payload;
             player p;
@@ -908,7 +908,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 if (GetLocalPlayer() == p) {
                     if (ok) {
                         sevenDaySignUI.refreshForPlayer(p);
-                        toastHint.createAtMouse(p, "领取成功:第" + I2S(day) + "天的奖励!");
+                        toastHint.createAtMouse(p, "领取成功:第" + I2S(day) + "天的奖励!\n|cff6f6f6f(注:部分奖励需要重启游戏后生效)|r");
                         music[MUSIC_INDEX_SHOP_BUY].playFor(p);
                     } else {
                         toastHint.createAtMouse(p, "今日已领取,请明日再来!");
