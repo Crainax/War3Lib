@@ -64,7 +64,7 @@ library ItemDecorate requires ItemBtns,HashTable {
 
     // 将装饰流光数据存入 HASH_ITEM（0 表示无流光）
     public function SetItemDecorateGrow (item it, growdata gd) {
-        integer id;
+        integer id; unit sel; integer i; item cur;
         if (it == null) { return; }
         id = GetHandleId(it);
         if (gd == 0) {
@@ -72,8 +72,18 @@ library ItemDecorate requires ItemBtns,HashTable {
         } else {
             SaveInteger(HASH_ITEM, id, HASH_KEY_ITEM_GLOW, gd);
         }
-        // 这里只写同步装饰状态。本地刷新由 itemBtns.onItemUIChange 统一处理，
-        // 避免同步业务路径读取 DzGetSelectedLeaderUnit 后异步创建 UI 动画。
+
+        // 即时刷新(注意,这是异步操作)
+        sel = DzGetSelectedLeaderUnit();
+        if (sel != null) {
+            for (1 <= i <= 6) {
+                cur = UnitItemInSlot(sel, i - 1);
+                if (cur == it) {
+                    ApplyItemDecorToSlot(i, it);
+                }
+            }
+        }
+        cur = null; sel = null;
     }
 
     // 将一个物品的装饰数据转移到另一个物品上
