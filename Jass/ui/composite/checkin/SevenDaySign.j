@@ -73,7 +73,6 @@ UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层�
 //# dependency:resource/ui/image/button_claim_dark.blp
 //# dependency:resource/ui/image/select_left.blp
 //# dependency:resource/ui/image/select_right.blp
-//# dependency:resource/ui/image/shop_6.blp
 //# dependency:resource/ui/image/sign_1.blp
 //# dependency:resource/ui/image/sign_2.blp
 //# dependency:resource/ui/image/sign_3.blp
