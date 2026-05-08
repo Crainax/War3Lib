@@ -5,7 +5,7 @@ local launcher = require("Lua.compile.Launcher")
 local path = require("Lua.path")
 local copy = require ("Lua.utils.copy")
 local taskStartClock = os.clock()
-local root, projectPath, we, buildVersion
+local root, projectPath, we, buildVersion, gamePath
 
 local function printTaskEnd()
 	local elapsed = os.clock() - taskStartClock
@@ -51,8 +51,11 @@ else
 	error("error: 请输入启动版本:内测版本,公测版本,正式版本,单元测试,模型测试")
 	return
 end
+if arg[5] ~= nil and arg[5] ~= "" then
+	gamePath = arg[5]
+end
 
-path.init(root, projectPath, we) -- 初始化路径
+path.init(root, projectPath, we, gamePath) -- 初始化路径
 tc.ChangeBuildVersion(buildVersion)
 
 local sur = compiler:StartCompile(path)
@@ -66,7 +69,7 @@ if sur then
 	os.remove(map)
 
 
-	launcher.StartWar3('_slk')
+	launcher.StartWar3AndWaitLog('_slk')
 end
 
 printTaskEnd()

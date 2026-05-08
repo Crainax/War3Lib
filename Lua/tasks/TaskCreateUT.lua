@@ -2,6 +2,7 @@ local path = require("Lua.path")
 local copy = require("Lua.utils.copy")
 local fu = require("Lua.utils.FileUtils")
 local tc = require("Lua.compile.TestControl")
+local launcher = require("Lua.compile.Launcher")
 local taskStartClock = os.clock()
 
 
@@ -51,10 +52,13 @@ function CreateUnitTest(args)
 			return false, msg
 		end
 
-		local code, msg = os.execute(string.format("%s %s", "cursor", utPath))
-		if (code) then
-			print('[VSCODE]打开生成文件成功.')
-		end
+	end
+
+	local code = launcher.OpenWithAntigravity(utPath)
+	if code then
+		print('[Antigravity]打开单测文件成功.')
+	else
+		print('[Antigravity]打开单测文件失败.')
 	end
 
 	-- 接下来对UnitTest.h文件进行修改(遍历)

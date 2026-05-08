@@ -15,3 +15,4 @@
 #define CURRENT_BUILD_PLATFORM PLATFORM_DZ
 
 #include "config/config.h"               // 配置
+#include "config/generated/DzApiLocalMock.generated.h"

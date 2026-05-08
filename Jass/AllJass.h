@@ -14,6 +14,11 @@
     // lua_print: 模型测试
 #endif
 
+#if defined(EnableYDLuaMode)
+    #define YDLuaMode
+    // inject: YDLua
+#endif
+
 //这两条是用到YDWE函数就要导入的,没用到就不用导入
 #include "Crainax/config/Log.h" // 输出日志配置
 

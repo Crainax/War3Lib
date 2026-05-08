@@ -2,7 +2,7 @@ local compiler = require("lua.compile.compiler")
 local path = require("Lua.path")
 local tc = require("Lua.compile.TestControl")
 local taskStartClock = os.clock()
-local root, projectPath, we
+local root, projectPath, we, gamePath
 
 local function printTaskEnd()
     local elapsed = os.clock() - taskStartClock
@@ -33,8 +33,11 @@ else
     print("error: 请输入WE路径")
     return
 end
+if arg[4] ~= nil and arg[4] ~= "" then
+    gamePath = arg[4]
+end
 
-path.init(root, projectPath, we)
+path.init(root, projectPath, we, gamePath)
 compiler:StartCompile() -- 再把后面几个步骤运行一遍
 
 printTaskEnd()

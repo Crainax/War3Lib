@@ -3,6 +3,7 @@ local lfs = require "lfs"
 local injecter = require "lua.compile.inject"
 local path = require "Lua.path"
 local compileFiles = require "Lua.compile.CompileFiles"
+local localDzApi = require "Lua.compile.LocalDzApi"
 
 local compile = {}
 local MIRROR_MARKER = "codex_crainax_mirror.txt"
@@ -404,6 +405,12 @@ function compile:StartCompileCheckOnly()
 		return false
 	end
 
+	local dzOk, dzErr = localDzApi.generate()
+	if not dzOk then
+		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr))
+		return false
+	end
+
 	-- 在编译过程中记录文件
 	local code, msg = fileUtils.copyFile(path.scriptJ, path.CompileStep0)
 	compileFiles:addSourceFile(path.scriptJ)
@@ -517,6 +524,12 @@ function compile:StartCompile()
 		return false
 	end
 
+	local dzOk, dzErr = localDzApi.generate()
+	if not dzOk then
+		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr))
+		return false
+	end
+
 	-- 在编译过程中记录文件
 	local code, msg = fileUtils.copyFile(path.scriptJ, path.CompileStep0)
 	compileFiles:addSourceFile(path.scriptJ)
@@ -601,6 +614,12 @@ function compile:StartCompile()
 		print("[Lua]遍历处理成功 : " .. path.CompileStep4)
 	else
 		print("[Lua]遍历处理失败:" .. msg)
+		return false
+	end
+
+	code, msg = localDzApi.applyMapConfigReplacement(path.CompileStep4)
+	if not code then
+		print("[DzAPI本地替换]MapConfig失败:" .. tostring(msg))
 		return false
 	end
 

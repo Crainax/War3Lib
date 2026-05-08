@@ -11,13 +11,18 @@ end
 ---@param root string
 ---@param project string
 ---@param we string
-function path.init(root, project, we)
+function path.init(root, project, we, gamePath)
     if path.jassPathName == nil then
         path.jassPathName = "edit"
     end
     path.root             = normalizePathString(root)
     path.project          = normalizePathString(project)
     path.we               = normalizePathString(we)
+    if gamePath ~= nil and gamePath ~= "" then
+        path.gamePath      = normalizePathString(gamePath)
+    else
+        path.gamePath      = "D:/Program Files (x86)/Warcraft III Frozen Throne"
+    end
 
     path.libRoot          = path.root .. "/Library/War3Lib" -- 本库根目录
 
@@ -29,6 +34,9 @@ function path.init(root, project, we)
     path.buildVersion     = "单元测试" -- 当前构建版本(默认单元测试)   "单元测试|正式版本|模型测试|内测版本|公测版本"
 
     path.rewave          = path.project .. "/config/rewave.h" -- 地图导包文件
+    path.generatedConfig  = path.project .. "/config/generated"
+    path.localDzApiMockH  = path.generatedConfig .. "/DzApiLocalMock.generated.h"
+    path.localDzApiIni    = path.gamePath .. "/dz_w3_plugin.ini"
     path.scriptJ          = path.project .. "/"..path.jassPathName .."/config/script.j" -- 脚本源文件(不要动这个文件)
     path.CompileStep0     = path.project .. "/Output/0_script.j" -- 脚本源文件的复制(第一步)
     path.CompileStep1     = path.project .. "/Output/1_wave.j" -- wave预处理后的文件

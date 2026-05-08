@@ -6,7 +6,7 @@ local copy = require("Lua.utils.copy")
 local fu = require("Lua.utils.FileUtils")
 local taskStartClock = os.clock()
 
-local root, projectPath, we, buildVersion
+local root, projectPath, we, buildVersion, gamePath
 
 local function printTaskEnd()
 	local elapsed = os.clock() - taskStartClock
@@ -62,8 +62,11 @@ if not buildVersion then
 	error("error: 请输入启动版本:内测版本,公测版本,正式版本,单元测试,模型测试")
 	return
 end
+if arg[5] ~= nil and arg[5] ~= "" then
+	gamePath = arg[5]
+end
 
-path.init(root, projectPath, we)
+path.init(root, projectPath, we, gamePath)
 tc.ChangeBuildVersion(buildVersion)
 
 local checkOk = compiler:StartCompileCheckOnly(path)

@@ -4,6 +4,7 @@ local copy       = require "Lua.utils.copy"
 local path       = require "Lua.path"
 local utr        = require("Lua.compile.UTReplace")
 local injecter   = require("lua.compile.inject")
+local luaRuntime = require("Lua.compile.LuaRuntime")
 
 local w3xlni     = {}
 
@@ -125,6 +126,11 @@ end
 function w3xlni:Start(func)
 	print("[开始打包地图]:" .. path.buildVersion .. ".")
 	lfs.chdir(path.project)
+	local cleanupLuaRuntime, runtimeErr = luaRuntime.prepareForPackage()
+	if not cleanupLuaRuntime then
+		print("[Lua运行时]准备失败:" .. tostring(runtimeErr))
+		return false
+	end
 	local rootMapScript = path.project .. "/" .. path.mapName .. "/war3map.j"
 	if path.mapJ then
 		local code, msg = copy.copyFile(path.CompileResult, path.mapJ)
@@ -150,7 +156,10 @@ function w3xlni:Start(func)
 			print("[Lua" .. path.buildVersion .. "] 无额外物编需要附加.")
 		end
 	end
-	local result = table.pack(func())
+	local okRun, result = pcall(function()
+		return table.pack(func())
+	end)
+	cleanupLuaRuntime()
 	if fu.fileExist(path.mapJ) then fu.WriteOver(path.mapJ, "") end --覆盖一下war3map.j为空
 	if fu.fileExist(rootMapScript) then fu.WriteOver(rootMapScript, "") end --覆盖w2l识别的根脚本为空
 	if path.buildVersion == "单元测试" then
@@ -160,6 +169,10 @@ function w3xlni:Start(func)
 		print("[Lua" .. path.buildVersion .. "]清除临时物编(不含Lua文件).")
 	else
 		clear_inject_obj_queue()
+	end
+	if not okRun then
+		print("[开始打包地图]失败:" .. tostring(result))
+		return false, result
 	end
 	return table.unpack(result)
 end

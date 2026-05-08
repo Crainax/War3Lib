@@ -52,19 +52,11 @@ function log.error(...)
 	std_print(trc)
 end
 
--- 根据发布状态设置调试选项
--- if base.release then
---     -- 正式版环境
---     console.enable = false
---     print("当前版本: 正式版")
---     -- 设置正式版分包路径
---     package.path = package.path .. [[;Poi\]] .. base.version .. [[\?.lua;scripts\?.lua]]
--- else
-    -- 测试版环境
-    console.enable = true
+console.enable = package.console_enable == true
+if console.enable then
     runtime.debugger = 4279
-    print("当前版本: 测试版")
--- end
+end
+print("当前版本: " .. tostring(package.build_version or "未知版本"))
 
 -- 输出JAPI状态
 if base.has_inner_japi then
