@@ -32,8 +32,6 @@ War3Lib 是一个用于开发魔兽争霸3地图的工具库。它提供了编�
   - `debug/`: 调试工具集
     - `logger.lua`: 日志系统
     - `memory_leak.lua`: 内存泄露检测
-    - `hero_detector.lua`: 英雄数据检测
-    - `struct_detector.lua`: 结构体检测
   - `init.lua`: 基础初始化
   - `slkutils.lua`: SLK数据工具
   - `w2s.lua`: 坐标转换工具
@@ -97,8 +95,7 @@ War3Lib/
 │   │   │   └── UnitFilter.cfg               # 单位筛选配置
 │   │   ├── debug/                           # 调试工具集
 │   │   │   ├── Logger.j                     # 日志系统(支持5个级别输出)
-│   │   │   ├── MemoryLeak.j                 # 内存泄露检测工具
-│   │   │   └── StructDetector.j             # 结构体检测工具
+│   │   │   └── MemoryLeak.j                 # 内存泄露检测工具
 │   │   └── math/                            # 数学计算工具
 │   │       ├── NumberUtils.j                # 数值计算工具集
 │   │       └── MapBoundsUtils.j             # 地图边界计算工具
