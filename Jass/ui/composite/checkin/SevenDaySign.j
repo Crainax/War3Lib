@@ -17,6 +17,7 @@ UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层�
 #define SIGN7_SYNC_CHANNEL      "SevenDaySign" // 同步通道名
 #define SIGN7_LAST_DAYID_KEY    "LastSign" // 存档键：上次领取日期
 #define SIGN7_CLAIM_DAY_KEY     "SignCount"  // 存档键：已领取天数
+#define SIGN7_SYNC_APPLY_DELAY  0.03 // syncBus 收包后延迟处理领取，避免在 UI 收包栈里写存档/触发业务回调
 // 后端限制提醒：SIGN7_CLAIM_DAY_KEY 仅允许单次请求 +1，禁止跳跃写入/回退写入。
 // 运行时判定提醒：UI/领奖判定统一依赖内存缓存，不依赖局中 DzAPI 再读取。
 
@@ -88,6 +89,9 @@ UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层�
 
 
 library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIExtendDrag,EscStack,BaseAnim,GrowData {
+
+    private timer sign7ClaimTimer = null;
+    private boolean sign7PendingClaim[];
 
     //==========================================================================
     // 数据层：存档 + 配置
@@ -889,34 +893,81 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
     //==========================================================================
     // SyncBus：从本地事件进入同步层
     //==========================================================================
+    private function ApplyClaim(player p) {
+        boolean ok;
+        integer day;
+
+        if (p == null) {
+            return;
+        }
+
+        day = sevenDaySignData.getNextClaimDay(sevenDaySignData.getClaimedDay(p));
+        ok = sevenDaySignData.handleClaim(p);
+        if (GetLocalPlayer() == p) {
+            if (ok) {
+                sevenDaySignUI.refreshForPlayer(p);
+                toastHint.createAtMouse(p, "领取成功:第" + I2S(day) + "天的奖励!\n|cff6f6f6f(注:部分奖励需要重启游戏后生效)|r");
+                music[MUSIC_INDEX_SHOP_BUY].playFor(p);
+            } else {
+                toastHint.createAtMouse(p, "今日已领取,请明日再来!");
+            }
+        }
+    }
+
+    private function FlushQueuedClaim() {
+        integer i;
+
+        if (sign7ClaimTimer != null) {
+            PauseTimer(sign7ClaimTimer);
+            DestroyTimer(sign7ClaimTimer);
+            sign7ClaimTimer = null;
+        }
+
+        for (1 <= i <= MAX_PLAYER_COUNT) {
+            if (sign7PendingClaim[i]) {
+                sign7PendingClaim[i] = false;
+                ApplyClaim(ConvertedPlayer(i));
+            }
+        }
+    }
+
+    private function QueueClaim(player p) {
+        integer pid;
+
+        if (p == null) {
+            return;
+        }
+
+        pid = GetConvertedPlayerId(p);
+        if (pid < 1 || pid > MAX_PLAYER_COUNT) {
+            return;
+        }
+
+        sign7PendingClaim[pid] = true;
+        if (sign7ClaimTimer == null) {
+            sign7ClaimTimer = CreateTimer();
+            TimerStart(sign7ClaimTimer, SIGN7_SYNC_APPLY_DELAY, false, function FlushQueuedClaim);
+        }
+    }
+
     private function onInit() {
         // mallItem.init(SIGN7_VIP_MALLITEM_KEY); //初始化道具
         syncBus.onDataSync(SIGN7_SYNC_CHANNEL, function () {
             string payload;
             player p;
-            boolean ok;
-            integer day;
 
             payload = syncBus.cbPayload;
             p = syncBus.cbPlayer;
             if (p == null) { return; }
 
             if (payload == "C") {
-                day = sevenDaySignData.getNextClaimDay(sevenDaySignData.getClaimedDay(p));
-                ok = sevenDaySignData.handleClaim(p);
-                if (GetLocalPlayer() == p) {
-                    if (ok) {
-                        sevenDaySignUI.refreshForPlayer(p);
-                        toastHint.createAtMouse(p, "领取成功:第" + I2S(day) + "天的奖励!\n|cff6f6f6f(注:部分奖励需要重启游戏后生效)|r");
-                        music[MUSIC_INDEX_SHOP_BUY].playFor(p);
-                    } else {
-                        toastHint.createAtMouse(p, "今日已领取,请明日再来!");
-                    }
-                }
+                QueueClaim(p);
             }
             p = null;
         });
     }
 }
+
+#undef SIGN7_SYNC_APPLY_DELAY
 //! endzinc
 #endif

@@ -11,7 +11,7 @@
 #define SYNC_BUS_OOS_MODE_OFF 0       //关闭OOS探针：不消耗随机数，不注册OOS异步检测
 #define SYNC_BUS_OOS_MODE_CLASSIC 1   //旧探针：5秒采样，12次一查
 #define SYNC_BUS_OOS_MODE_FINE 2      //细粒度探针：0.25秒采样，调试专用，可能放大随机序列差异
-#define SYNC_BUS_OOS_MODE SYNC_BUS_OOS_MODE_OFF
+#define SYNC_BUS_OOS_MODE SYNC_BUS_OOS_MODE_CLASSIC
 
 #if (SYNC_BUS_OOS_MODE == SYNC_BUS_OOS_MODE_CLASSIC)
 #define SYNC_BUS_OOS_SAMPLE_SECONDS 5.0
