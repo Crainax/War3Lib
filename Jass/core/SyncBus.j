@@ -6,7 +6,7 @@
 同步总线
 */
 
-#define SWITCH_SYNCBUS_LOG 1  //打开日志
+#define SWITCH_SYNCBUS_LOG 0  //打开日志
 
 #define SYNC_BUS_OOS_MODE_OFF 0       //关闭OOS探针：不消耗随机数，不注册OOS异步检测
 #define SYNC_BUS_OOS_MODE_CLASSIC 1   //旧探针：5秒采样，12次一查
@@ -204,16 +204,16 @@ library SyncBus {
 					pName = GetPlayerName(p);
 					pid = GetConvertedPlayerId(p);
 					if (idx >= 0) { status = "ok"; } else { status = "miss"; }
-					DzWriteLog("[OOSR8][SyncBus] recv player=" + pName + "(" + I2S(pid) + "), raw=" + s + ", tag=" + tag + ", payload=" + payload + ", idx=" + I2S(idx) + ", dispatch=" + status);
+					DzWriteLog("[SyncBus] recv player=" + pName + "(" + I2S(pid) + "), raw=" + s + ", tag=" + tag + ", payload=" + payload + ", idx=" + I2S(idx) + ", dispatch=" + status);
 					#endif
 					if (idx >= 0) {
 						tg = thistype.regTrig[idx];
 						#if SWITCH_SYNCBUS_LOG
-						DzWriteLog("[OOSR8][SyncBus] dispatch begin tag=" + tag + ", payload=" + payload + ", player=" + pName + "(" + I2S(pid) + "), idx=" + I2S(idx));
+						DzWriteLog("[SyncBus] dispatch begin tag=" + tag + ", payload=" + payload + ", player=" + pName + "(" + I2S(pid) + "), idx=" + I2S(idx));
 						#endif
 						TriggerEvaluate(tg);
 						#if SWITCH_SYNCBUS_LOG
-						DzWriteLog("[OOSR8][SyncBus] dispatch end tag=" + tag + ", payload=" + payload + ", player=" + pName + "(" + I2S(pid) + "), idx=" + I2S(idx));
+						DzWriteLog("[SyncBus] dispatch end tag=" + tag + ", payload=" + payload + ", player=" + pName + "(" + I2S(pid) + "), idx=" + I2S(idx));
 						#endif
 					}
 

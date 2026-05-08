@@ -4,7 +4,23 @@
 // 定义后编译产物会注入 YDLua 启动入口；公开构建可只关闭控制台。
 #define EnableYDLuaMode
 #if (CURRENT_BUILD_VERSION == VERSION_ALPHA) || (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
-#define EnableYDLuaConsole
+#undef EnableYDLuaConsole
+#endif
+
+// 默认启用：将 DzWriteLog 转发给 Lua hook；关闭时改为 #define DisableLuaDzWriteLog。
+#ifndef DisableLuaDzWriteLog
+#define EnableLuaDzWriteLog
+#endif
+
+#if defined(EnableLuaDzWriteLog)
+#ifndef LuaDzWriteLogMacroIncluded
+#define LuaDzWriteLogMacroIncluded
+native CrainaxLuaDzWriteLog takes string msg returns nothing
+#ifdef DzWriteLog
+#undef DzWriteLog
+#endif
+#define DzWriteLog(a) CrainaxLuaDzWriteLog(a)
+#endif
 #endif
 
 // 原生UI的大小

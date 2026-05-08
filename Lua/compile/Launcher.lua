@@ -72,7 +72,8 @@ end
 local function parseLogDir()
 	local initLua = path.project .. "/script/init.lua"
 	local content = fu.GetContent(initLua) or ""
-	local rel = content:match("log%.path%s*=%s*['\"]([^'\"]+)['\"]")
+	local rel = content:match("package%.log_dir%s*=%s*['\"]([^'\"]+)['\"]")
+		or content:match("log%.path%s*=%s*['\"]([^'\"]+)['\"]")
 	if not rel or rel == "" then
 		return nil
 	end
@@ -113,11 +114,14 @@ end
 local function newestNewLog(logDir, before, startClock)
 	local bestPath = nil
 	local bestTime = 0
+	local bestHasPlayerSuffix = false
 	for fullPath, modified in pairs(snapshotLogFiles(logDir)) do
 		if (not before[fullPath] or modified > before[fullPath]) and modified >= startClock - 2 then
-			if modified >= bestTime then
+			local hasPlayerSuffix = fullPath:match("%-P%d+%.log$") ~= nil
+			if (hasPlayerSuffix and not bestHasPlayerSuffix) or (hasPlayerSuffix == bestHasPlayerSuffix and modified >= bestTime) then
 				bestPath = fullPath
 				bestTime = modified
+				bestHasPlayerSuffix = hasPlayerSuffix
 			end
 		end
 	end
