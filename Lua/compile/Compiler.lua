@@ -103,6 +103,79 @@ local function extractJsonBool(content, objectName, keyName)
 	return nil
 end
 
+local function extractJsonString(content, keyName)
+	local value = content and content:match("\"" .. keyName .. "\"%s*:%s*\"([^\"]*)\"")
+	if not value then
+		return nil
+	end
+	value = value:gsub("\\/", "/")
+	value = value:gsub("\\\\", "\\")
+	value = value:gsub("\\\"", "\"")
+	value = value:gsub("\\r", "\r")
+	value = value:gsub("\\n", "\n")
+	value = value:gsub("\\t", "\t")
+	return value
+end
+
+local function shouldPrintPjassLine(line)
+	if not line or line == "" then
+		return false
+	end
+	local lower = line:lower()
+	if lower:find("warning", 1, true) then
+		return false
+	end
+	if lower:find("parse successful", 1, true) then
+		return false
+	end
+	return true
+end
+
+local function printFilteredFileLines(filePath)
+	local printed = 0
+	if not filePath or filePath == "" or lfs.attributes(filePath, "mode") ~= "file" then
+		return printed
+	end
+	fileUtils.ReadFile(filePath, function(line)
+		if shouldPrintPjassLine(line) then
+			print(line)
+			printed = printed + 1
+		end
+	end)
+	return printed
+end
+
+local function printVjasscFailureDetails()
+	local validationContent = fileUtils.ReadFileContent(path.VjasscValidation)
+	local pjassStdout = extractJsonString(validationContent, "stdoutPath")
+	local pjassStderr = extractJsonString(validationContent, "stderrPath")
+	local printedPjass = 0
+
+	if pjassStdout or pjassStderr then
+		print("[pjass]错误列表:")
+		printedPjass = printedPjass + printFilteredFileLines(pjassStdout)
+		printedPjass = printedPjass + printFilteredFileLines(pjassStderr)
+		if printedPjass == 0 then
+			print("  未在PJASS日志中找到非warning错误行")
+		end
+	end
+
+	if printedPjass > 0 then
+		return
+	end
+
+	local printedVjassc = 0
+	fileUtils.ReadFile(path.VjasscStderr, function(line)
+		if shouldPrintPjassLine(line) then
+			if printedVjassc == 0 then
+				print("[vjassc]错误列表:")
+			end
+			print(line)
+			printedVjassc = printedVjassc + 1
+		end
+	end)
+end
+
 local function extractTimingMap(filePath)
 	local content = fileUtils.ReadFileContent(filePath)
 	local block = content and content:match("\"timingMs\"%s*:%s*{([%s%S]-)}")
@@ -791,11 +864,7 @@ function compile:RunVjassc(input, output)
 	print("[vjassc]编译失败，stdout/stderr已保留:")
 	print("  " .. path.VjasscStdout)
 	print("  " .. path.VjasscStderr)
-	fileUtils.ReadFile(path.VjasscStderr, function(line, lineNo)
-		if lineNo <= 20 then
-			print(line)
-		end
-	end)
+	printVjasscFailureDetails()
 	return result
 end
 

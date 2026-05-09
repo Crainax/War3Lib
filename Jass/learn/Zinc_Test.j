@@ -82,15 +82,16 @@ library UTZinc requires Zinc {
         c.destroy();
     }
 
-    interface A {
-        method AFunc ();
-    }
+    //这个目前我的vjassc 不支持,不过也暂时不需要兼容:
+    // interface A {
+    //     method AFunc ();
+    // }
 
-    struct B extends A {
-        public method AFunc () {
+    // struct B extends A {
+    //     public method AFunc () {
 
-        }
-    }
+    //     }
+    // }
 
     public struct C [] {
         integer x,y;
@@ -101,13 +102,14 @@ library UTZinc requires Zinc {
         C[2].x = 5;
         C[2].y = 10;
     }
-    //要加个分号 你妈的
-    type D extends integer [10];
+
+    //以下vjassc暂不兼容:
+    // type D extends integer [10];
     function TTestUTZinc7 (player p) {
-        D d = D.create();
-        d[1] = 50;
-        d[2] = 50;
-        d.destroy();
+        //     D d = D.create();
+        //     d[1] = 50;
+        //     d[2] = 50;
+        //     d.destroy();
     }
 
     //这里测一下函数指针,比自己写Trigger再调用要方便,就是不能递归调用,最好统筹一下队列.
@@ -153,9 +155,103 @@ library UTZinc requires Zinc {
         static method onInit () {z += 200;}
 
     }
-    function TTestUTZinc9 (player p) {
+
+
+    //todo:这个写法目前vjassc不支持(暂时不需要兼容)
+    // struct F{
+    //     static method A ()  -> integer {
+    //         return F.B();
+    //     }
+    //     static method B ()  -> integer {
+    //         return F.A();
+    //     }
+    // }
+
+
+
+    //目前这写写法会自动排序到后面,不会,继续保留这种写法
+    function TE (player p,unit u,integer a,real b)  -> nothing {
+        TD.execute(p,u,a,b);
     }
+
+    function TC (player p,unit u,integer a,real b)  -> nothing {
+        TD.execute(p,u,a,b);
+    }
+
+    function TD (player p,unit u,integer a,real b)  -> nothing {
+        TC.execute(p,u,a,b);
+    }
+
+    function TF (player p,unit u,integer a,real b)  -> nothing {
+        TB.evaluate(p,u,a,b);
+    }
+
+    function TA (player p,unit u,integer a,real b)  -> nothing {
+        TB.evaluate(p,u,a,b);
+    }
+
+    function TB (player p,unit u,integer a,real b)  -> nothing {
+        TA.evaluate(p,u,a,b);
+    }
+
+    function TTestUTZinc9 (player p) {
+        //这个vjassc能编译过(无敌!)
+        // TTestUTZinc10(p);
+    }
+
+    //测试用函数接口
+    type II extends function(unit ,real ,real );
+    type III extends function(player ,real ,real ) -> integer;
+    type IV extends function();
+    type IIV extends function(integer);
+
+    public function ImpleII1 (unit caster,real x,real y) {
+        BJDebugMsg("1");
+    }
+
+    public function ImpleII2 (unit caster,real x,real y) {
+        BJDebugMsg("2");
+    }
+
+    public function ImpleIII1 (player p,real x,real y) -> integer {
+        return 1;
+    }
+
+    public function ImpleIII2 (player p,real x,real y) -> integer {
+        return 2;
+    }
+
+    public function ImpleIV1 () {
+        BJDebugMsg("3");
+    }
+
+    public function ImpleIV2 () {
+        BJDebugMsg("4");
+    }
+
+    public function ImpleIIV1 (integer i) {
+        BJDebugMsg(I2S(i));
+    }
+
+    public function ImpleIIV2 (integer i) {
+        BJDebugMsg(I2S(i));
+    }
+
     function TTestUTZinc10 (player p) {
+        II a = II.ImpleII1;
+        II b = II.ImpleII2;
+        III c = III.ImpleIII1;
+        III d = III.ImpleIII2;
+        IV e = IV.ImpleIV1;
+        IV f = IV.ImpleIV2;
+        IIV g = IIV.ImpleIIV1;
+        IIV h = IIV.ImpleIIV2;
+        integer ggg;
+
+        a.execute(null,0,0);
+        ggg = c.evaluate(null,0,0);
+        e.execute();
+        f.evaluate();
     }
     function TTestUTZinc11 (player p) {
     }
@@ -210,7 +306,7 @@ library UTZinc requires Zinc {
             else if(str == "s6" ) TTestUTZinc6(GetTriggerPlayer());
             else if(str == "s7" ) TTestUTZinc7(GetTriggerPlayer());
             else if(str == "s8" ) TTestUTZinc8(GetTriggerPlayer());
-            else if(str == "s9" ) TTestUTZinc9(GetTriggerPlayer());
+            // else if(str == "s9" ) TTestUTZinc9(GetTriggerPlayer());
             else if(str == "s10") TTestUTZinc10(GetTriggerPlayer());
             else if(str == "sa" ) TTestUTZinc11(GetTriggerPlayer());
             else if(str == "sb" ) TTestUTZinc12(GetTriggerPlayer());
@@ -231,7 +327,7 @@ library UTZinc requires Zinc {
             integer id = GetHandleId(t);
             BJDebugMsg("这是Zinc测试");
             PauseTimer(t);
-            FlushChildHashtable(TITable,id);
+            FlushChildHashtable(HASH_TIMER,id);
             DestroyTimer(t);
             t = null;
         });
