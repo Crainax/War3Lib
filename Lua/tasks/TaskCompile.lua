@@ -1,7 +1,18 @@
 local compiler = require("lua.compile.compiler")
 local path = require("Lua.path")
 local tc = require("Lua.compile.TestControl")
-local root, projectPath, we
+local taskStartClock = os.clock()
+local root, projectPath, we, gamePath
+
+local function printTaskEnd()
+    local elapsed = os.clock() - taskStartClock
+    local elapsedStr = string.format("[用时%.2f秒]-", elapsed)
+    if path.buildString and path.buildString ~= "" then
+        print("---任务结束---" .. path.buildString .. elapsedStr)
+    else
+        print("---任务结束---" .. elapsedStr)
+    end
+end
 
 if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
     root = arg[1]
@@ -22,10 +33,11 @@ else
     print("error: 请输入WE路径")
     return
 end
+if arg[4] ~= nil and arg[4] ~= "" then
+    gamePath = arg[4]
+end
 
-path.init(root, projectPath, we)
+path.init(root, projectPath, we, gamePath)
 compiler:StartCompile() -- 再把后面几个步骤运行一遍
 
-if path.buildString then    -- 打印一下构建版本名称
-    print(path.buildString)
-end
+printTaskEnd()

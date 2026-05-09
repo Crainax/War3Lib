@@ -24,6 +24,9 @@ library ToastHint requires UIBorder,UIText,UIAnimTimer,Hardware,EasingUtils {
 
     #define HINT_DURATION 150 // 持续时长(帧)
     #define HINT_MOVE_DISTANCE 0.05 // 向上移动距离
+    #define UI_ABS_CENTER_X 0.4
+    #define UI_ABS_CENTER_Y 0.3
+    #define UI_ABS_RIGHT_X 0.8
 
     public struct toastHint {
         static thistype List[];     // 提示框列表
@@ -64,7 +67,7 @@ library ToastHint requires UIBorder,UIText,UIAnimTimer,Hardware,EasingUtils {
             if(size <= 0) {
                 UIA.unreg();
                 #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
-                    BJDebugMsg("停止了toastHint");
+                BJDebugMsg("停止了toastHint");
                 #endif
             }
         }
@@ -107,6 +110,69 @@ library ToastHint requires UIBorder,UIText,UIAnimTimer,Hardware,EasingUtils {
         // 创建提示框(鼠标位置)
         static method createAtMouse(player p, string content) -> thistype {
             return create(p, content, hardware.getMouseX(),hardware.getMouseY());
+        }
+
+        /**
+        * 在技能栏图标位置创建提示
+        * x: 列(1~4, 从左到右)
+        * y: 行(1~3, 从上到下)
+        *
+        * 格子示例:
+        * xxxx
+        * xxxx
+        * xxxx
+        *
+        * 例: 第二排第3个位置
+        * toastHint.createAtSpell(p, 3, 2, "第二排第3格提示");
+        */
+        static method createAtSpell(player p, integer x, integer y, string content) -> thistype {
+            real absX;
+            real absY;
+
+            if (x < 1 || x > 4 || y < 1 || y > 3) { return 0; }
+
+            static if (LIBRARY_DIYBtnsSize) {
+                // 与 SpellBtns.inside(row,col) 使用同一套技能按钮布局参数
+                absX = UI_ABS_CENTER_X + (DIY_BTN_SPELL_PIVOT_X1 + (DIY_BTN_SPELL_PIVOT_X2 * x));
+                absY = UI_ABS_CENTER_Y + (DIY_BTN_SPELL_PIVOT_Y1 - (DIY_BTN_SPELL_PIVOT_Y2 * y));
+            } else {
+                absX = UI_ABS_CENTER_X + (0.1935 + (0.0435 * x));
+                absY = UI_ABS_CENTER_Y + (-0.142 - (0.044 * y));
+            }
+
+            return create(p, content, absX, absY);
+        }
+
+        static method createAtSpellPos(player p, integer pos, string content) -> thistype {
+            integer row;
+            integer col;
+            if (pos < 1 || pos > 12) { pos = 1; }
+            row = (pos - 1) / 4 + 1;
+            col = ModuloInteger(pos - 1, 4) + 1;
+            return createAtSpell(p, col, row, content);
+        }
+
+        /**
+        * 在物品栏图标位置创建提示
+        * pos: 槽位(1~6, 从左上到右下)
+        * 1 2
+        * 3 4
+        * 5 6
+        */
+        static method createAtItem(player p, integer pos, string content) -> thistype {
+            integer row;
+            integer column;
+            real absX;
+            real absY;
+
+            if (pos < 1 || pos > 6) { return 0; }
+
+            // 与 ItemBtns.inside(pos) 使用同一套物品按钮布局参数
+            row = (pos - 1) / 2 + 1;
+            column = ModuloInteger(pos - 1,2) + 1;
+            absX = UI_ABS_RIGHT_X + (-0.3108 + (0.04134 * column));
+            absY = UI_ABS_CENTER_Y + (-0.165 - (0.0385 * row));
+            return create(p, content, absX, absY);
         }
 
         static method onInit() {

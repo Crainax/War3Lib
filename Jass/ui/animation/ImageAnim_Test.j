@@ -52,9 +52,22 @@ library UTImageAnim requires ImageAnim {
 		i = growdata[GIF_ICON_CLICK];
 		i = growdata[GIF_ICON_LEVELUP];
 	}
-	function TTestUTImageAnim2 (player p) {}
-	function TTestUTImageAnim3 (player p) {}
-	function TTestUTImageAnim4 (player p) {}
+	function TTestUTImageAnim2 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		imageAnim.mstPair("ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp", "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp");
+		BJDebugMsg("测试左右拼合动效: AnimateDead + Blizzard");
+	}
+	function TTestUTImageAnim3 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		imageAnim.mstPair("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp", "ReplaceableTextures\\CommandButtons\\BTNFrostBolt.blp");
+		imageAnim.mstPair("ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp", "ReplaceableTextures\\CommandButtons\\BTNCarrionSwarm.blp");
+		BJDebugMsg("测试左右拼合动效叠加播放");
+	}
+	function TTestUTImageAnim4 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		imageAnim.mstPairScale("ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp", "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp", 0.5);
+		BJDebugMsg("测试左右拼合动效: 0.5倍率");
+	}
 	function TTestUTImageAnim5 (player p) {}
 	function TTestUTImageAnim6 (player p) {}
 	function TTestUTImageAnim7 (player p) {}
@@ -88,7 +101,15 @@ library UTImageAnim requires ImageAnim {
 			imageAnim.gif(p, growdata[paramI[1]], DzGetGameUI());
 			BJDebugMsg("测试 GIF 动画: growdata[" + I2S(paramI[1]) + "]");
 		} else if (paramS[0] == "b") {
-
+			if (GetLocalPlayer() == p) {
+				imageAnim.mstPair("ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp", "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp");
+			}
+			BJDebugMsg("测试左右拼合动效");
+		} else if (paramS[0] == "c") {
+			if (GetLocalPlayer() == p) {
+				imageAnim.mstPairScale("ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp", "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp", 0.5);
+			}
+			BJDebugMsg("测试左右拼合动效: 0.5倍率");
 		}
 
 		p = null;

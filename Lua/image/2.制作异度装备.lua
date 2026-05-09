@@ -49,9 +49,38 @@ local paths = {
 }
 
 -- BLPLab 相关配置
+-- blpnetcl 参数说明:
+-- type: 0=Compressed(JPEG质量1-100), 1=Paletted(调色板质量1-256)
+-- mipmap: 0-15
+-- quality: 依据 type 不同而不同
+-- alpha: 0=Auto, 1=Opaque, 2=Alpha
+local blp_cli = {
+    type = 0,
+    mipmap = 1,
+    quality = 98,
+    alpha = 2,
+    option1 = false,
+    option2 = false
+}
+
+local function build_blp_cli_args(cfg)
+    local args = {
+        "--type " .. tostring(cfg.type),
+        "--mipmap " .. tostring(cfg.mipmap),
+        "--quality " .. tostring(cfg.quality),
+        "--alpha " .. tostring(cfg.alpha)
+    }
+    if cfg.option1 then table.insert(args, "--option1") end
+    if cfg.option2 then table.insert(args, "--option2") end
+    return table.concat(args, " ")
+end
+
 local blplab_config = {
     exe = "D:\\War3\\tools\\BLPLAB\\blplab.exe",
-    ini_file = "D:\\War3\\tools\\BLPLAB\\blplab.ini"
+    ini_file = "D:\\War3\\tools\\BLPLAB\\blplab.ini",
+    cli_exe = "D:\\War3\\tools\\BLPLAB\\BLP.NET.CL\\BLP.NET\\blpnetcl.exe",
+    cli_args = build_blp_cli_args(blp_cli),
+    allow_gui_fallback = false
 }
 
 -- 2. 图片尺寸配置

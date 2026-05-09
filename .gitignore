@@ -26,6 +26,7 @@
 .vscode/tasks.json
 /output/
 .linked/
+config/generated/
 # 忽略 macOS 自动生成的 .DS_Store 文件
 .DS_Store
 

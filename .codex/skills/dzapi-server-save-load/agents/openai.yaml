@@ -1,0 +1,4 @@
+interface:
+  display_name: "DzAPI Save/Load"
+  short_description: "War3 server archive save/load rules and templates"
+  default_prompt: "Implement War3 DzAPI server persistence with strict save/load constraints, startup cache pattern, and optional anti-tamper checks."

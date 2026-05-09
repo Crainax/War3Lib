@@ -1,6 +1,28 @@
 #define VERSION "0.0.1"
 #define MAX_PLAYER_COUNT 4
 
+// 定义后编译产物会注入 YDLua 启动入口；公开构建可只关闭控制台。
+#define EnableYDLuaMode
+#if (CURRENT_BUILD_VERSION == VERSION_ALPHA) || (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+#undef EnableYDLuaConsole
+#endif
+
+// 默认启用：将 DzWriteLog 转发给 Lua hook；关闭时改为 #define DisableLuaDzWriteLog。
+#ifndef DisableLuaDzWriteLog
+#define EnableLuaDzWriteLog
+#endif
+
+#if defined(EnableLuaDzWriteLog)
+#ifndef LuaDzWriteLogMacroIncluded
+#define LuaDzWriteLogMacroIncluded
+native CrainaxLuaDzWriteLog takes string msg returns nothing
+#ifdef DzWriteLog
+#undef DzWriteLog
+#endif
+#define DzWriteLog(a) CrainaxLuaDzWriteLog(a)
+#endif
+#endif
+
 // 原生UI的大小
 #define SIZE_ORIGIN_UI_SPELL 0.038
 #define SIZE_ORIGIN_UI_ITEM 0.032
@@ -51,5 +73,6 @@
 #define HEROSEL_CURRENCY_ICON "ReplaceableTextures\\CommandButtons\\BTNStaffOfPreservation.blp"
 #define HEROSEL_BTN1_TEXT_DEFAULT "选择技能"
 #define HEROSEL_BTN2_TEXT_DEFAULT "选择英雄"
+#define HEROSEL_BTN2_TEXT_UNLOCK "|cffff0000确认解锁|r"
 
 #define ISVALID_PLAYER_ID(pid) (pid >= 1 && pid <= MAX_PLAYER_COUNT)

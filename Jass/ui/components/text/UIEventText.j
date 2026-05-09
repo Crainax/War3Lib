@@ -8,15 +8,11 @@
 /*
 文字UI组件
 */
-library UIEventText requires UIId,UITocInit,UIBaseModule,UIEventModule,UITextModule {
+library UIEventText requires STRUCT_SHARED_REQUIRE_UI,UIEventModule,UITextModule {
 
     public struct uiEventText {
-        integer ui; //frameID
-        integer id; //可以回收的ID名(为了销毁时ID不重复)
-
-        STRUCT_SHARED_METHODS(uiEventText)
-
-        module uiBaseModule;   // UI控件的共用方法
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiEventText)
         module uiEventModule;  // UI事件的共用方法
         module uiTextModule;   // UI文本的共用方法
 
@@ -26,11 +22,13 @@ library UIEventText requires UIId,UITocInit,UIBaseModule,UIEventModule,UITextMod
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("TEXT",STRING_TEXT + I2S(id),parent,TEMPLATE_TEXT_EVENT,0);
+            STRUCT_SHARED_UI_ONCREATE(uiEventText)
             return this;
         }
 
         method onDestroy () {
             if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiEventText)
             DzDestroyFrame(ui);
             uiId.recycle(id);
         }

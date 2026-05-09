@@ -3,10 +3,223 @@ local lfs = require "lfs"
 local injecter = require "lua.compile.inject"
 local path = require "Lua.path"
 local compileFiles = require "Lua.compile.CompileFiles"
+local localDzApi = require "Lua.compile.LocalDzApi"
 
 local compile = {}
+local MIRROR_MARKER = "codex_crainax_mirror.txt"
 
 -- todo:学习YDWE的预添加函数
+
+local function ensureDirExists(dir)
+	if lfs.attributes(dir, "mode") == "directory" then
+		return true
+	end
+
+	local parent = string.match(dir, "(.+)/[^/]+$")
+	if parent and lfs.attributes(parent, "mode") ~= "directory" then
+		local ok, err = ensureDirExists(parent)
+		if not ok then
+			return false, err
+		end
+	end
+
+	local ok, err = lfs.mkdir(dir)
+	if ok or lfs.attributes(dir, "mode") == "directory" then
+		return true
+	end
+	return false, err
+end
+
+local function clearDirRecursive(dir)
+	if lfs.attributes(dir, "mode") ~= "directory" then
+		return true
+	end
+
+	for name in lfs.dir(dir) do
+		if name ~= "." and name ~= ".." then
+			local fullPath = dir .. "/" .. name
+			local mode = lfs.attributes(fullPath, "mode")
+			if mode == "directory" then
+				local ok, err = clearDirRecursive(fullPath)
+				if not ok then
+					return false, err
+				end
+				local rmOk, rmErr = lfs.rmdir(fullPath)
+				if not rmOk then
+					return false, rmErr
+				end
+			else
+				local rmOk, rmErr = os.remove(fullPath)
+				if not rmOk then
+					return false, rmErr
+				end
+			end
+		end
+	end
+
+	return true
+end
+
+local function copyDirRecursive(src, tar)
+	local ok, err = ensureDirExists(tar)
+	if not ok then
+		return false, err
+	end
+
+	for name in lfs.dir(src) do
+		if name ~= "." and name ~= ".." then
+			local srcPath = src .. "/" .. name
+			local tarPath = tar .. "/" .. name
+			local mode = lfs.attributes(srcPath, "mode")
+			if mode == "directory" then
+				local subOk, subErr = copyDirRecursive(srcPath, tarPath)
+				if not subOk then
+					return false, subErr
+				end
+			elseif mode == "file" then
+				local fileOk, fileErr = fileUtils.copyFile(srcPath, tarPath)
+				if not fileOk then
+					return false, fileErr
+				end
+			end
+		end
+	end
+
+	return true
+end
+
+local function copyFileIfExists(src, tar)
+	if lfs.attributes(src, "mode") ~= "file" then
+		return true
+	end
+
+	local ok, err = ensureDirExists(fileUtils.GetDir(tar))
+	if not ok then
+		return false, err
+	end
+
+	return fileUtils.copyFile(src, tar)
+end
+
+local function removeFileIfExists(file)
+	if lfs.attributes(file, "mode") == "file" then
+		local ok, err = os.remove(file)
+		if not ok then
+			return false, err
+		end
+	end
+	return true
+end
+
+local function copyTopLevelSourceFiles(srcDir, tarDir, copyCfg)
+	if lfs.attributes(srcDir, "mode") ~= "directory" then
+		return true
+	end
+
+	local ok, err = ensureDirExists(tarDir)
+	if not ok then
+		return false, err
+	end
+
+	for name in lfs.dir(srcDir) do
+		if name ~= "." and name ~= ".." then
+			local srcPath = srcDir .. "/" .. name
+			if lfs.attributes(srcPath, "mode") == "file" then
+				local ext = string.match(name, "%.([^%.]+)$")
+				if ext == "j" or ext == "h" or (copyCfg and ext == "cfg") then
+					ok, err = fileUtils.copyFile(srcPath, tarDir .. "/" .. name)
+					if not ok then
+						return false, err
+					end
+				end
+			end
+		end
+	end
+
+	return true
+end
+
+function compile:SyncCrainaxMirror()
+	local srcRoot = path.project .. "/Jass"
+	if lfs.attributes(srcRoot, "mode") ~= "directory" then
+		srcRoot = path.libRoot .. "/Jass"
+	end
+
+	local tarRoot = path.project .. "/.linked/Crainax"
+	local marker = tarRoot .. "/" .. MIRROR_MARKER
+
+	if lfs.attributes(srcRoot, "mode") ~= "directory" then
+		return true
+	end
+
+	if lfs.attributes(tarRoot, "mode") == "directory" and lfs.attributes(marker, "mode") ~= "file" then
+		return true
+	end
+
+	local ok, err = ensureDirExists(tarRoot)
+	if not ok then
+		return false, err
+	end
+
+	ok, err = clearDirRecursive(tarRoot)
+	if not ok then
+		return false, err
+	end
+
+	ok, err = copyDirRecursive(srcRoot, tarRoot)
+	if not ok then
+		return false, err
+	end
+
+	ok, err = fileUtils.WriteOver(marker, "auto-generated mirror for Crainax includes\n")
+	if not ok then
+		return false, err
+	end
+
+	local linkedRoot = path.project .. "/.linked"
+	local legacyRootMirrors = {
+		"AllJass.h",
+		"InnerJapi_Test.j",
+		"InnerJapi.cfg",
+		"InnerJapi.j",
+		"YDLua_Test.j",
+		"YDLua.cfg",
+		"YDLua.j",
+	}
+	for _, name in ipairs(legacyRootMirrors) do
+		ok, err = removeFileIfExists(linkedRoot .. "/" .. name)
+		if not ok then
+			return false, err
+		end
+	end
+
+	ok, err = copyTopLevelSourceFiles(path.we .. "/jass", linkedRoot, true)
+	if not ok then
+		return false, err
+	end
+
+	local japiSrc = path.we .. "/jass/japi"
+	local japiDst = linkedRoot .. "/japi"
+	if lfs.attributes(japiDst, "mode") == "directory" then
+		ok, err = clearDirRecursive(japiDst)
+		if not ok then
+			return false, err
+		end
+	else
+		ok, err = ensureDirExists(japiDst)
+		if not ok then
+			return false, err
+		end
+	end
+	if lfs.attributes(japiSrc, "mode") == "directory" then
+		ok, err = copyDirRecursive(japiSrc, japiDst)
+		if not ok then
+			return false, err
+		end
+	end
+
+	return true
+end
 
 -- 进行Wave的预处理(会)
 function compile:CompileWave(input)
@@ -17,6 +230,7 @@ function compile:CompileWave(input)
 	waveCmdArgs = waveCmdArgs ..
 		string.format('--sysinclude=%s ', fileUtils.PathString(path.wave .. "/include"))
 	waveCmdArgs = waveCmdArgs .. string.format('--sysinclude=%s ', fileUtils.PathString(path.we .. "/plugin"))
+	waveCmdArgs = waveCmdArgs .. string.format('--include=%s ', fileUtils.PathString(path.project .. "/.linked"))
 	waveCmdArgs = waveCmdArgs .. string.format('--include=%s ', fileUtils.PathString(path.project))
 	waveCmdArgs = waveCmdArgs .. string.format('--include=%s ', fileUtils.PathString(path.we .. "/jass"))
 	waveCmdArgs = waveCmdArgs .. string.format('--define=WARCRAFT_VERSION=%d ', 127)
@@ -173,9 +387,148 @@ function compile:CompileLua()
 	end)
 end
 
+function compile:StartCompileCheckOnly()
+	-- 清理上次编译信息
+	compileFiles:clear()
+	path.buildString = ""
+
+	local outputDir = fileUtils.GetDir(path.CompileStep0)
+	local outputOk, outputErr = ensureDirExists(outputDir)
+	if not outputOk then
+		print("[Output目录]创建失败:" .. tostring(outputErr))
+		return false
+	end
+
+	local syncOk, syncErr = self:SyncCrainaxMirror()
+	if not syncOk then
+		print("[Crainax镜像]同步失败:" .. tostring(syncErr))
+		return false
+	end
+
+	local dzOk, dzErr = localDzApi.generate()
+	if not dzOk then
+		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr))
+		return false
+	end
+
+	-- 在编译过程中记录文件
+	local code, msg = fileUtils.copyFile(path.scriptJ, path.CompileStep0)
+	compileFiles:addSourceFile(path.scriptJ)
+	compileFiles:addGeneratedFile(path.CompileStep0)
+
+	print("[即将开始]检测文件(不完整编译) : " .. path.CompileStep0)
+
+	code, msg = self:CompileWave(path.CompileStep0) -- 先预处理一次
+	if code then
+		local waveResult = string.gsub(path.CompileStep0, "%.j", ".i")
+		pcall(os.remove, path.CompileStep1)
+		local suc, errmsg = os.rename(waveResult, path.CompileStep1)
+		if not suc then
+			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			return false
+		end
+		print("[第一次Wave]预处理成功 : " .. path.CompileStep1)
+	else
+		print("[第一次Wave]预处理失败:" .. tostring(msg))
+		return false
+	end
+
+	-- 重置标记
+	path.hasRelease = false
+	path.hasUnitTest = false
+
+	fileUtils.ReadFile(path.CompileStep1, function(line)
+		local capture = string.match(line, "^%s*//% *lua_print:%s*(.+)$")
+		if capture then
+			path.buildString = path.buildString .. '[' .. capture .. ']-'
+
+			if capture:find("正式地图", 1, true) then
+				path.hasRelease = true
+			end
+			if capture:find("单元测试", 1, true) then
+				path.hasUnitTest = true
+			end
+			return
+		end
+
+		local libName = string.match(line, "^%s*library%s+UT(%w+)%s*requires?.*$")
+		if libName then
+			path.buildString = path.buildString .. '[' .. libName .. ']-'
+			return
+		end
+	end)
+
+	if path.hasRelease and path.hasUnitTest then
+		path.setMapName("OriginMap")
+	end
+
+	code, msg = fileUtils.copyFile(path.CompileStep1, path.CompileStep2)
+	if not code then
+		print("[编译移动]复制CompileStep2失败:" .. tostring(msg))
+		return false
+	end
+
+	self:InjectCodeBlock()
+
+	code, msg = self:CompileWave(path.CompileStep2)
+	if code then
+		local waveResult = string.gsub(path.CompileStep2, "%.j", ".i")
+		pcall(os.remove, path.CompileStep3)
+		local suc, errmsg = os.rename(waveResult, path.CompileStep3)
+		if not suc then
+			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			return false
+		end
+		print("[第二次Wave]预处理成功 : " .. path.CompileStep3)
+	else
+		print("[第二次Wave]预处理失败:" .. tostring(msg))
+		return false
+	end
+
+	fileUtils.copyFile(path.CompileStep3, path.CompileStep4)
+	code, msg = self:CompileLua()
+	if code then
+		print("[Lua]遍历处理成功 : " .. path.CompileStep4)
+	else
+		print("[Lua]遍历处理失败:" .. tostring(msg))
+		return false
+	end
+
+	compileFiles:addGeneratedFile(path.CompileStep1)
+	compileFiles:addGeneratedFile(path.CompileStep2)
+	compileFiles:addGeneratedFile(path.CompileStep3)
+	compileFiles:addGeneratedFile(path.CompileStep4)
+	compileFiles.lastBuildTime = os.time()
+
+	print("[检测完成]已跳过JassHelper与Output/output.j更新")
+	print("[资源文件]内容: " .. #compileFiles.resourceFiles .. "个")
+
+	return true
+end
+
 function compile:StartCompile()
 	-- 清理上次编译信息
 	compileFiles:clear()
+	path.buildString = ""
+
+	local outputDir = fileUtils.GetDir(path.CompileStep0)
+	local outputOk, outputErr = ensureDirExists(outputDir)
+	if not outputOk then
+		print("[Output目录]创建失败:" .. tostring(outputErr))
+		return false
+	end
+
+	local syncOk, syncErr = self:SyncCrainaxMirror()
+	if not syncOk then
+		print("[Crainax镜像]同步失败:" .. tostring(syncErr))
+		return false
+	end
+
+	local dzOk, dzErr = localDzApi.generate()
+	if not dzOk then
+		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr))
+		return false
+	end
 
 	-- 在编译过程中记录文件
 	local code, msg = fileUtils.copyFile(path.scriptJ, path.CompileStep0)
@@ -261,6 +614,12 @@ function compile:StartCompile()
 		print("[Lua]遍历处理成功 : " .. path.CompileStep4)
 	else
 		print("[Lua]遍历处理失败:" .. msg)
+		return false
+	end
+
+	code, msg = localDzApi.applyMapConfigReplacement(path.CompileStep4)
+	if not code then
+		print("[DzAPI本地替换]MapConfig失败:" .. tostring(msg))
 		return false
 	end
 

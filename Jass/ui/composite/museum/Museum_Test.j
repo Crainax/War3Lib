@@ -7,7 +7,8 @@
 //! zinc
 
 // 自动生成的文件
-#define TEST_ALBUM_TOTAL          16
+#define TEST_ALBUM_TOTAL          34
+#define TEST_ALBUM_PAGE_SIZE      16
 #define ALBUM_A_SUBBTN_COUNT      5
 #define ALBUM_A_SUBBTN_WIDTH      0.07
 #define ALBUM_A_SUBBTN_HEIGHT     0.024
@@ -224,7 +225,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 							cat = albumAUI.currentIdx;
 							BJDebugMsg("[图鉴A] " + albumAUI.tabNames[cat] + " 分类 点击条目 #" + I2S(actual));
 						}
-					});
+				});
 				uiHashTable(iconSlots[i].getClickBtn().ui).eventdata.bind(i);
 			}
 		}
@@ -248,7 +249,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 					if (albumAUI.pageCount > 1) {
 						music[MUSIC_INDEX_BTN_OVER_1].play();
 					}
-				})
+			})
 				.spClick(function(integer frame) {
 					albumAUI.changePage(-1);
 				});
@@ -265,7 +266,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 					if (albumAUI.pageCount > 1) {
 						music[MUSIC_INDEX_BTN_OVER_1].play();
 					}
-				})
+			})
 				.spClick(function(integer frame) {
 					albumAUI.changePage(1);
 				});
@@ -367,9 +368,33 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 		}
 	}
 
+	private museumData testAlbums[];
+	private boolean testAlbumsInited = false;
+
+	function AssertMuseumPagingData() {
+		assert.Integer(museumData.getSize(), TEST_ALBUM_TOTAL, "Museum: 总图鉴数量");
+		assert.Integer(museumData.getPageSize(1), 16, "Museum: 第1页数量");
+		assert.Integer(museumData.getPageSize(2), 16, "Museum: 第2页数量");
+		assert.Integer(museumData.getPageSize(3), 2, "Museum: 第3页数量");
+
+		assert.Boolean(testAlbums[17] != 0, "Museum: 第17个图鉴存在");
+		assert.Integer(testAlbums[17].getIndex(), 17, "Museum: 第17个图鉴全局索引应为17");
+		assert.Integer(testAlbums[17].getPage(), 2, "Museum: 第17个图鉴应在第2页");
+		assert.Integer(testAlbums[17].getPageSlot(), 1, "Museum: 第17个图鉴应为第2页第1个");
+
+		assert.Boolean(testAlbums[33] != 0, "Museum: 第33个图鉴存在");
+		assert.Integer(testAlbums[33].getIndex(), 33, "Museum: 第33个图鉴全局索引应为33");
+		assert.Integer(testAlbums[33].getPage(), 3, "Museum: 第33个图鉴应在第3页");
+		assert.Integer(testAlbums[33].getPageSlot(), 1, "Museum: 第33个图鉴应为第3页第1个");
+	}
+
 	// 初始化若干测试用的图鉴 Tab（添加到 TEST_ALBUM_TOTAL 个）
 	function InitTabs() {
-		museumData md[]; integer i; string title;
+		integer i;
+		integer page;
+		string title;
+
+		if (testAlbumsInited) { return; }
 
 		for (1 <= i <= TEST_ALBUM_TOTAL) {
 			if (i == 1) {
@@ -378,28 +403,29 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 				title = "测试图鉴" + I2S(i);
 			}
 
-			md[i] = museumData.registerAlbum(title);
+			page = (i - 1) / TEST_ALBUM_PAGE_SIZE + 1;
+			testAlbums[i] = museumData.registerAlbumAtPage(title, page);
 			if (i == 1) {
-				md[i].registerClick(function () -> boolean {
+				testAlbums[i].registerClick(function () -> boolean {
 					museumData cur;
 					cur = museumData.getCallbackData();
 					albumAUI.init();
 					return true;
 				});
-				md[i].registerClose(function () -> boolean {
+				testAlbums[i].registerClose(function () -> boolean {
 					museumData cur;
 					cur = museumData.getCallbackData();
 					albumAUI.destroy1();
 					return true;
 				});
 			} else {
-				md[i].registerClick(function () -> boolean {
+				testAlbums[i].registerClick(function () -> boolean {
 					museumData cur;
 					cur = museumData.getCallbackData();
 					BJDebugMsg("[Museum] 打开: " + cur.name);
 					return true;
 				});
-				md[i].registerClose(function () -> boolean {
+				testAlbums[i].registerClose(function () -> boolean {
 					museumData cur;
 					cur = museumData.getCallbackData();
 					BJDebugMsg("[Museum] 关闭: " + cur.name);
@@ -407,20 +433,17 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 				});
 			}
 		}
+
+		testAlbumsInited = true;
 	}
 
 	function Init () {
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//start,这里是0.1秒后调用的内容
-			}, function() {
-			//end,这里是2秒后调用的内容
-		});
-		UnitTestAutoTimer(0.1, 2.0, function() {
-			//assert.Boolean(true, "测试1");
-		},null);
-
 		// 初始化测试用的图鉴 Tab
 		InitTabs();
+		UnitTestAutoTimer(0.2, 0, function() {
+			Trace("Museum: 分页数据断言");
+			AssertMuseumPagingData();
+		}, null);
 
 		// 注册 F2 按键，用于切换博物馆 UI 的开启/关闭
 		keyboard.regKeyDownEvent(KEY_F2, function (){
@@ -437,16 +460,55 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 		});
 		keyboard.regKeyUpEvent(KEY_F2, null);
 
+		// 注册 F3 按键，用于切换博物馆 UI 第 2 页的开启/关闭
+		keyboard.regKeyDownEvent(KEY_F3, function (){
+			player lp;
+			lp = GetLocalPlayer();
+
+			if (!museumUI.isShow()) {
+				museumUI.showPage(lp, 2);
+			} else {
+				museumUI.hide(lp);
+			}
+
+			lp = null;
+		});
+		keyboard.regKeyUpEvent(KEY_F3, null);
+
 	}
 
 	function TTestUTMuseum1 (player p) {
+		museumData cur;
+		if (GetLocalPlayer() != p) { return; }
 
+		museumUI.showPage(p, 2);
+		cur = museumUI.getCurrentAlbum();
+		assert.Integer(museumUI.getCurrentPage(), 2, "s1: showPage(2) 应切到第2页");
+		assert.Boolean(cur == testAlbums[17], "s1: 第2页首个应为第17个图鉴");
 	}
 	function TTestUTMuseum2 (player p) {
-		// 保留空实现（原来用于 s2：关闭），现在主要通过 F2 切换
+		museumData cur;
+		if (GetLocalPlayer() != p) { return; }
+
+		museumUI.showAlbum(p, testAlbums[18]);
+		cur = museumUI.getCurrentAlbum();
+		assert.Integer(museumUI.getCurrentPage(), 2, "s2: showAlbum(18) 应切到第2页");
+		assert.Boolean(cur == testAlbums[18], "s2: 当前图鉴应为第18个");
 	}
-	function TTestUTMuseum3 (player p) {}
-	function TTestUTMuseum4 (player p) {}
+	function TTestUTMuseum3 (player p) {
+		if (GetLocalPlayer() != p) { return; }
+		museumUI.hide(p);
+		assert.Boolean(!museumUI.isShow(), "s3: hide 后 UI 应关闭");
+	}
+	function TTestUTMuseum4 (player p) {
+		museumData cur;
+		if (GetLocalPlayer() != p) { return; }
+
+		museumUI.show(p);
+		cur = museumUI.getCurrentAlbum();
+		assert.Integer(museumUI.getCurrentPage(), 1, "s4: show 默认应展示第1页");
+		assert.Boolean(cur == testAlbums[1], "s4: 默认应选中第1个图鉴");
+	}
 	function TTestUTMuseum5 (player p) {}
 	function TTestUTMuseum6 (player p) {}
 	function TTestUTMuseum7 (player p) {}
@@ -455,11 +517,12 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 	function TTestUTMuseum10 (player p) {}
 	function TTestActUTMuseum1 (string str) {
 		player  p	 = GetTriggerPlayer();
-		integer index = GetConvertedPlayerId(p);
+		player  lp  = GetLocalPlayer();
 		integer i,	 num = 0, len = StringLength(str); //获取范围式数字
 		string  paramS [];							   //所有参数S
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
+		museumData md;
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -477,12 +540,22 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 		num = num + 1;
 
 		if (paramS[0] == "a") {
-
+			if (num >= 2) {
+				museumUI.showPage(lp, paramI[1]);
+				BJDebugMsg("[MuseumUT] 打开第" + I2S(paramI[1]) + "页");
+			}
 		} else if (paramS[0] == "b") {
-
+			if (num >= 2 && paramI[1] >= 1 && paramI[1] <= TEST_ALBUM_TOTAL) {
+				md = testAlbums[paramI[1]];
+				if (md != 0) {
+					museumUI.showAlbum(lp, md);
+					BJDebugMsg("[MuseumUT] 直达图鉴#" + I2S(paramI[1]) + " (" + md.name + ")");
+				}
+			}
 		}
 
 		p = null;
+		lp = null;
 	}
 
 	function onInit () {
@@ -522,6 +595,7 @@ library UTMuseum requires Museum,Keyboard,UIEditbox,Icon {
 //! endzinc
 
 #undef TEST_ALBUM_TOTAL
+#undef TEST_ALBUM_PAGE_SIZE
 #undef ALBUM_A_SUBBTN_COUNT
 #undef ALBUM_A_SUBBTN_WIDTH
 #undef ALBUM_A_SUBBTN_HEIGHT

@@ -16,7 +16,7 @@ local table = table
 
 local flag = {
 	-- 要处理的模型文件夹路径（包含 .x / .dds）
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\aniya]],
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\dunzi]],
 
 	-- 工具路径（脚本独立运行也能用）
 	['jump2fbxDir'] = [[D:\Program Files (x86)\Jump2FBX]], -- 目录内应包含 jump2fbx.exe
@@ -157,7 +157,8 @@ local function ConvertX(filePath)
 
 	-- 在工具目录下执行：.\jump2fbx.exe a.x a.fbx
 	-- 用 cmd /v:on + pushd/popd，兼容路径空格，避免嵌套引号坑
-	local cmd = 'cmd /v:on /d /c "pushd ' .. Q(ToBackslash(workDir)) .. ' && .\\jump2fbx.exe ' .. Q(name .. '.x') .. ' ' ..
+	local cmd = 'cmd /v:on /d /c "pushd ' ..
+		Q(ToBackslash(workDir)) .. ' && .\\jump2fbx.exe ' .. Q(name .. '.x') .. ' ' ..
 		Q(name .. '.fbx') .. ' && popd"'
 	cmd = cmd:gsub("[\n\t]", "")
 	if flag.isPrint then
@@ -231,5 +232,3 @@ if flag.convertBLP then
 	end
 	os.execute(cmd)
 end
-
-

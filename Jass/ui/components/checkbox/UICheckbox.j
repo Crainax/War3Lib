@@ -9,21 +9,18 @@
 文字UI组件
 */
 
-library UICheckbox requires UIId,UITocInit,UIBaseModule {
+library UICheckbox requires STRUCT_SHARED_REQUIRE_UI {
 
     public struct uiCheckbox {
-        integer ui; //frameID
-        integer id; //可以回收的ID名(为了销毁时ID不重复)
-
-        STRUCT_SHARED_METHODS(uiCheckbox)
-
-        module uiBaseModule;   // UI控件的共用方法
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiCheckbox)
 
         // 创建打钩型复选框
         static method create (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("GLUECHECKBOX",STRING_CHECKBOX + I2S(id),parent,TEMPLATE_CHECKBOX,0);
+            STRUCT_SHARED_UI_ONCREATE(uiCheckbox)
             return this;
         }
 
@@ -32,6 +29,7 @@ library UICheckbox requires UIId,UITocInit,UIBaseModule {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("GLUECHECKBOX",STRING_CHECKBOX + I2S(id),parent,TEMPLATE_CHECKBOX_RADIO,0);
+            STRUCT_SHARED_UI_ONCREATE(uiCheckbox)
             return this;
         }
 
@@ -50,6 +48,7 @@ library UICheckbox requires UIId,UITocInit,UIBaseModule {
 
         method onDestroy () {
             if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiCheckbox)
             DzDestroyFrame(ui);
             uiId.recycle(id);
         }

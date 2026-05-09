@@ -2,10 +2,7 @@
 #define DialogsIncluded
 //! zinc
 
-library Dialogs {
-
-
-	public hashtable HASH_DIALOG = InitHashtable();
+library Dialogs requires HashTable {
 
 	public type OnAlterDialogClick extends function(player, integer, AlterDialog);
 	public type OnPageDialogClick extends function(player, integer, PageDialog);

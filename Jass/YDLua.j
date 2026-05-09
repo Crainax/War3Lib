@@ -25,7 +25,6 @@ library YDLua {
         trigger tr = CreateTrigger();
         TriggerRegisterTimerEventSingle(tr,0.0);
         TriggerAddCondition(tr,Condition(function (){
-            BJDebugMsg("调用了YDLua引擎");
             DestroyTrigger(GetTriggeringTrigger());
         }));
         tr = null;

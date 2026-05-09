@@ -229,6 +229,14 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             }
         }
 
+        // 对外只读：返回选择器主框 frame（用于外部面板锚定）
+        public method getMainFrame() -> integer {
+            if (!this.isExist() || uiMain == 0) {
+                return 0;
+            }
+            return uiMain.ui;
+        }
+
         // 滚轮翻页：到边界后停住，不循环
         private method pageByWheel(real delta) {
             integer targetPage;

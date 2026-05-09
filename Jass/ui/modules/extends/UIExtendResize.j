@@ -43,6 +43,7 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
                 ptr = rePointer.create(ui,anchor,relative,relativeAnchor,offsetX,offsetY);
                 SaveInteger(HASH_UI,ui,HASH_KEY_UI_EXTEND_REPOINTER,ptr);
             }
+            DzFrameClearAllPoints(ui);
             DzFrameSetPoint(ui,anchor,relative,relativeAnchor,offsetX*GetResizeRate(),offsetY);
             return this;
         }
@@ -162,7 +163,10 @@ library UIExtendResize requires Hardware ,UIUtils,UILifeCycle{
             if (rePointer.size > 0) {
                 for (i = rePointer.size; i >= 1; i -= 1) { //反向遍历可以删除下面的　i-= 1
                     ptr = rePointer.List[i]; //从结论来说i就是.uID
-                    DzFrameSetPoint(ptr.frame,ptr.anchor,ptr.relative,ptr.relativeAnchor,ptr.offsetX*resizeX,ptr.offsetY);
+                    if (ptr.frame != 0) {
+                        DzFrameClearAllPoints(ptr.frame);
+                        DzFrameSetPoint(ptr.frame,ptr.anchor,ptr.relative,ptr.relativeAnchor,ptr.offsetX*resizeX,ptr.offsetY);
+                    }
                 }
             }
         });
