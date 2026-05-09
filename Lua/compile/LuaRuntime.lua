@@ -59,12 +59,188 @@ local function luaString(value)
     return "'" .. value .. "'"
 end
 
+local function stripLineComment(line)
+    return tostring(line or ""):gsub("//.*$", "")
+end
+
+local function readLines(filePath)
+    local content = readFile(filePath)
+    if not content then
+        return nil
+    end
+    local lines = {}
+    content = content:gsub("\r\n", "\n"):gsub("\r", "\n")
+    for line in (content .. "\n"):gmatch("(.-)\n") do
+        table.insert(lines, line)
+    end
+    return lines
+end
+
+local function macroToLuaValue(macros, name, depth)
+    depth = (depth or 0) + 1
+    if depth > 8 then
+        return "0"
+    end
+    local value = macros[name]
+    if value == nil then
+        return "0"
+    end
+    value = tostring(value):match("^%s*(.-)%s*$")
+    if value == "" then
+        return "1"
+    end
+    if value:match("^%-?%d+$") then
+        return value
+    end
+    if value:match("^[_%a][_%w]*$") then
+        return macroToLuaValue(macros, value, depth)
+    end
+    return "0"
+end
+
+local function evalMacroExpr(expr, macros)
+    expr = stripLineComment(expr)
+    expr = expr:gsub("defined%s*%(%s*([_%a][_%w]*)%s*%)", function(name)
+        return macros[name] ~= nil and "true" or "false"
+    end)
+    expr = expr:gsub("defined%s+([_%a][_%w]*)", function(name)
+        return macros[name] ~= nil and "true" or "false"
+    end)
+    expr = expr:gsub("&&", " and ")
+    expr = expr:gsub("%|%|", " or ")
+    expr = expr:gsub("!=", "~=")
+    expr = expr:gsub("!%s*", " not ")
+    expr = expr:gsub("([_%a][_%w]*)", function(name)
+        if name == "and" or name == "or" or name == "not" or name == "true" or name == "false" then
+            return name
+        end
+        return macroToLuaValue(macros, name)
+    end)
+
+    local fn = load("return (" .. expr .. ")")
+    if not fn then
+        return false
+    end
+    local ok, result = pcall(fn)
+    return ok and result == true
+end
+
+local function isActive(stack)
+    for _, frame in ipairs(stack) do
+        if not frame.active then
+            return false
+        end
+    end
+    return true
+end
+
+local function parentActive(stack)
+    for i = 1, #stack - 1 do
+        if not stack[i].active then
+            return false
+        end
+    end
+    return true
+end
+
+local function resolveInclude(baseFile, includePath)
+    includePath = normalize(includePath)
+    if includePath:match("^%a:") then
+        return includePath
+    end
+    local baseDir = normalize(baseFile):match("(.+)/[^/]+$")
+    local projectPath = path.project .. "/" .. includePath
+    if lfs.attributes(projectPath, "mode") == "file" then
+        return projectPath
+    end
+    if baseDir then
+        local relativePath = baseDir .. "/" .. includePath
+        if lfs.attributes(relativePath, "mode") == "file" then
+            return relativePath
+        end
+    end
+    return nil
+end
+
+local function processMacroFile(filePath, macros, stack, visited)
+    filePath = normalize(filePath)
+    if visited[filePath] then
+        return
+    end
+    visited[filePath] = true
+    local lines = readLines(filePath)
+    if not lines then
+        return
+    end
+
+    for _, rawLine in ipairs(lines) do
+        local line = stripLineComment(rawLine)
+        local directive, rest = line:match("^%s*#%s*(%w+)%s*(.-)%s*$")
+        if directive == "if" then
+            local parent = isActive(stack)
+            local cond = parent and evalMacroExpr(rest, macros)
+            table.insert(stack, { parent = parent, active = parent and cond, matched = parent and cond })
+        elseif directive == "ifdef" then
+            local parent = isActive(stack)
+            local cond = macros[rest:match("^([_%a][_%w]*)")] ~= nil
+            table.insert(stack, { parent = parent, active = parent and cond, matched = parent and cond })
+        elseif directive == "ifndef" then
+            local parent = isActive(stack)
+            local cond = macros[rest:match("^([_%a][_%w]*)")] == nil
+            table.insert(stack, { parent = parent, active = parent and cond, matched = parent and cond })
+        elseif directive == "elif" then
+            local frame = stack[#stack]
+            if frame then
+                local parent = parentActive(stack)
+                local cond = parent and not frame.matched and evalMacroExpr(rest, macros)
+                frame.active = parent and cond
+                frame.matched = frame.matched or (parent and cond)
+            end
+        elseif directive == "else" then
+            local frame = stack[#stack]
+            if frame then
+                local parent = parentActive(stack)
+                frame.active = parent and not frame.matched
+                frame.matched = true
+            end
+        elseif directive == "endif" then
+            table.remove(stack)
+        elseif isActive(stack) then
+            if directive == "define" then
+                local name, value = rest:match("^([_%a][_%w]*)%s*(.-)%s*$")
+                if name then
+                    macros[name] = value or ""
+                end
+            elseif directive == "undef" then
+                local name = rest:match("^([_%a][_%w]*)")
+                if name then
+                    macros[name] = nil
+                end
+            elseif directive == "include" then
+                local includePath = rest:match("^\"([^\"]+)\"") or rest:match("^<([^>]+)>")
+                if includePath then
+                    local resolved = resolveInclude(filePath, includePath)
+                    if resolved then
+                        processMacroFile(resolved, macros, stack, visited)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function isMacroDefined(name)
+    local macros = {}
+    processMacroFile(path.rewave, macros, {}, {})
+    return macros[name] ~= nil
+end
+
 local function isLocalLuaMode()
     return path.buildVersion == "内测版本" or path.buildVersion == "单元测试"
 end
 
 local function consoleEnabled()
-    return path.buildVersion == "内测版本" or path.buildVersion == "单元测试"
+    return isMacroDefined("EnableYDLuaConsole")
 end
 
 local function snapshot(cleanup, filePath)

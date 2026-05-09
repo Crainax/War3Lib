@@ -14,21 +14,20 @@ local function printTaskEnd()
     end
 end
 
-if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
+if arg[1] ~= nil and arg[1] ~= "" then
     root = arg[1]
 else
     print("error: 请输入项目目录")
-
     return
 end
-if arg[2] ~= nil and arg[2] ~= "" then       -- 如果调用时传入了参数,则使用传入的参数作为项目目录
-    projectPath = arg[2] -- 地图的项目目录
+if arg[2] ~= nil and arg[2] ~= "" then
+    projectPath = arg[2]
 else
     print("error: 请输入地图路径")
     return
 end
-if arg[3] ~= nil and arg[3] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
-    we = arg[3]                        -- 地图的项目目录
+if arg[3] ~= nil and arg[3] ~= "" then
+    we = arg[3]
 else
     print("error: 请输入WE路径")
     return
@@ -38,7 +37,11 @@ if arg[4] ~= nil and arg[4] ~= "" then
 end
 
 path.init(root, projectPath, we, gamePath)
-tc.GetState()
-compiler:StartCompile() -- 再把后面几个步骤运行一遍
+tc.ChangeBuildVersion("单元测试")
+path.jassCompiler = "both"
+path.jassCompilerSelect = "jasshelper"
+path.allowVjasscNonAlpha = true
+
+compiler:StartCompile()
 
 printTaskEnd()

@@ -7,6 +7,42 @@ local function normalizePathString(value)
     return value
 end
 
+local function envValue(name)
+    local value = os.getenv(name)
+    if value ~= nil and value ~= "" then
+        return value
+    end
+    return nil
+end
+
+local function envFlag(name, defaultValue)
+    local value = envValue(name)
+    if value == nil then
+        return defaultValue
+    end
+    value = string.lower(value)
+    if value == "0" or value == "false" or value == "no" or value == "off" then
+        return false
+    end
+    return true
+end
+
+local function normalizeCompiler(value)
+    value = string.lower(tostring(value or "jasshelper"))
+    if value == "vjassc" or value == "both" then
+        return value
+    end
+    return "jasshelper"
+end
+
+local function normalizeCompilerSelect(value)
+    value = string.lower(tostring(value or ""))
+    if value == "vjassc" or value == "jasshelper" then
+        return value
+    end
+    return "jasshelper"
+end
+
 
 ---@param root string
 ---@param project string
@@ -43,8 +79,18 @@ function path.init(root, project, we, gamePath)
     path.CompileStep2     = path.project .. "/Output/2_inject.j" -- wave第二次预处理后的文件
     path.CompileStep3     = path.project .. "/Output/3_wave.j" -- wave第二次预处理后的文件
     path.CompileStep4     = path.project .. "/Output/4_luaexecute.j" -- wave第二次预处理后的文件
-    path.CompileStep5     = path.project .. "/Output/5_jasshelper.j" -- jasshelper预处理后的文件
+    path.CompileStep5JassHelper = path.project .. "/Output/5_jasshelper.j" -- jasshelper预处理后的文件
+    path.CompileStep5Vjassc     = path.project .. "/Output/5_vjassc.j" -- vjassc预处理后的文件
+    path.CompileStep5     = path.CompileStep5JassHelper -- 保持旧字段指向jasshelper输出
     path.CompileResult    = path.project .. "/Output/output.j" -- 输出字符串(最终)
+    path.VjasscStats      = path.project .. "/Output/vjassc.stats.json"
+    path.VjasscValidation = path.project .. "/Output/vjassc.validation.json"
+    path.VjasscStdout     = path.project .. "/Output/vjassc.stdout.txt"
+    path.VjasscStderr     = path.project .. "/Output/vjassc.stderr.txt"
+    path.VjasscCommand    = path.project .. "/Output/vjassc.cmd"
+    path.CompilerBackendReport = path.project .. "/Output/compiler_backend_report.json"
+    path.VjasscRuntimeChecklist = path.project .. "/Output/vjassc_runtime_checklist.md"
+    path.VjasscRuntimeNotes = path.project .. "/Output/runtime_notes.md"
     path.buildString     = "" -- 输出字符串()
 
     path.mapJ             = path.project .. "/".. path.mapName .. "/map/war3map.j" -- 正式地图的War3mapJ文件
@@ -53,6 +99,13 @@ function path.init(root, project, we, gamePath)
 
     path.jasshelper    = path.root .. '/plugins/jasshelper'    -- 独立到了plugins里调用
     path.wave          = path.root .. '/plugins/wave'          -- Wave抽到了项目目录里
+    path.vjasscDir     = normalizePathString(envValue("WAR3_VJASSC_DIR") or (path.root .. "/plugins/vjassc"))
+    path.vjassc        = normalizePathString(envValue("WAR3_VJASSC_EXE") or (path.vjasscDir .. "/vjassc.exe"))
+    path.jassCompiler  = normalizeCompiler(envValue("WAR3_JASS_COMPILER") or path.jassCompiler)
+    path.jassCompilerSelect = normalizeCompilerSelect(envValue("WAR3_JASS_COMPILER_SELECT") or path.jassCompilerSelect)
+    path.vjasscValidate = envFlag("WAR3_VJASSC_VALIDATE", true)
+    path.vjasscStrict = envFlag("WAR3_VJASSC_STRICT", false)
+    path.allowVjasscNonAlpha = envFlag("WAR3_ALLOW_VJASSC_NON_ALPHA", false)
 
     path.toolRoot        = path.root .. "/tools" -- 工具根目录
 

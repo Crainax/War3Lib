@@ -19,16 +19,6 @@ library YDLua {
         Cheat("exec-lua:plugin_main");
         return 0;
     }
-
-    function onInit ()  {
-        //在游戏开始0.0秒后再调用
-        trigger tr = CreateTrigger();
-        TriggerRegisterTimerEventSingle(tr,0.0);
-        TriggerAddCondition(tr,Condition(function (){
-            DestroyTrigger(GetTriggeringTrigger());
-        }));
-        tr = null;
-    }
 }
 
 //! endzinc
