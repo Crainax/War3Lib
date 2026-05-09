@@ -176,9 +176,8 @@ local function printVjasscFailureDetails()
 	end)
 end
 
-local function extractTimingMap(filePath)
-	local content = fileUtils.ReadFileContent(filePath)
-	local block = content and content:match("\"timingMs\"%s*:%s*{([%s%S]-)}")
+local function extractNumberMapFromContent(content, objectName)
+	local block = content and content:match("\"" .. objectName .. "\"%s*:%s*{([%s%S]-)}")
 	local result = {}
 	if not block then
 		return result
@@ -187,6 +186,10 @@ local function extractTimingMap(filePath)
 		result[key] = tonumber(value)
 	end
 	return result
+end
+
+local function extractTimingMap(filePath)
+	return extractNumberMapFromContent(fileUtils.ReadFileContent(filePath), "timingMs")
 end
 
 local function writeTimingObject(out, timings, indent)
@@ -249,9 +252,12 @@ end
 local function writeCompilerBackendReport(report)
 	local helperMetrics = fileMetrics(path.CompileStep5JassHelper)
 	local vjasscMetrics = fileMetrics(path.CompileStep5Vjassc)
+	local statsContent = fileUtils.ReadFileContent(path.VjasscStats)
 	local validationContent = fileUtils.ReadFileContent(path.VjasscValidation)
 	local vjasscPjassOk = extractJsonBool(validationContent, "pjass", "ok")
-	local vjasscTimings = extractTimingMap(path.VjasscStats)
+	local vjasscTimings = extractNumberMapFromContent(statsContent, "timingMs")
+	local vjasscPassTimings = extractNumberMapFromContent(statsContent, "codegenPasses")
+	local vjasscCounters = extractNumberMapFromContent(statsContent, "performanceCounters")
 	local out = {}
 
 	out[#out + 1] = "{\n"
@@ -259,6 +265,7 @@ local function writeCompilerBackendReport(report)
 	out[#out + 1] = "  \"selectedOutput\": " .. jsonString(report.selectedOutputName or "") .. ",\n"
 	out[#out + 1] = "  \"selectedOutputPath\": " .. jsonString(relativeOutput(report.selectedOutputPath or "")) .. ",\n"
 	out[#out + 1] = "  \"buildVersion\": " .. jsonString(path.buildVersion or "") .. ",\n"
+	out[#out + 1] = "  \"vjasscMode\": " .. jsonString(path.vjasscMode or "validate") .. ",\n"
 	out[#out + 1] = "  \"strict\": " .. jsonBool(path.vjasscStrict) .. ",\n"
 	out[#out + 1] = "  \"validateVjassc\": " .. jsonBool(path.vjasscValidate) .. ",\n"
 	out[#out + 1] = "  \"jasshelper\": {\n"
@@ -271,6 +278,7 @@ local function writeCompilerBackendReport(report)
 	out[#out + 1] = "  \"vjassc\": {\n"
 	out[#out + 1] = "    \"ok\": " .. jsonBool(report.vjassc and report.vjassc.ok) .. ",\n"
 	out[#out + 1] = "    \"output\": " .. jsonString(relativeOutput(path.CompileStep5Vjassc)) .. ",\n"
+	out[#out + 1] = "    \"mode\": " .. jsonString(path.vjasscMode or "validate") .. ",\n"
 	out[#out + 1] = "    \"elapsedMs\": " .. tostring((report.vjassc and report.vjassc.elapsedMs) or 0) .. ",\n"
 	out[#out + 1] = "    \"pjassOk\": " .. jsonBool(vjasscPjassOk) .. ",\n"
 	out[#out + 1] = "    \"validation\": " .. jsonString(relativeOutput(path.VjasscValidation)) .. ",\n"
@@ -281,6 +289,20 @@ local function writeCompilerBackendReport(report)
 	writeMetricsObject(out, vjasscMetrics, 4)
 	out[#out + 1] = ",\n    \"timingMs\": "
 	writeFlatNumberObject(out, vjasscTimings, 4)
+	out[#out + 1] = "\n  },\n"
+	out[#out + 1] = "  \"vjasscInternal\": {\n"
+	out[#out + 1] = "    \"read\": " .. tostring(vjasscTimings.read or 0) .. ",\n"
+	out[#out + 1] = "    \"preprocess\": " .. tostring(vjasscTimings.preprocess or 0) .. ",\n"
+	out[#out + 1] = "    \"parse\": " .. tostring(vjasscTimings.parse or 0) .. ",\n"
+	out[#out + 1] = "    \"codegen\": " .. tostring(vjasscTimings.codegen or 0) .. ",\n"
+	out[#out + 1] = "    \"syntaxLite\": " .. tostring(vjasscTimings.syntaxLite or 0) .. ",\n"
+	out[#out + 1] = "    \"pjass\": " .. tostring(vjasscTimings.pjass or 0) .. ",\n"
+	out[#out + 1] = "    \"comparison\": " .. tostring(vjasscTimings.comparison or 0) .. ",\n"
+	out[#out + 1] = "    \"total\": " .. tostring(vjasscTimings.total or 0) .. ",\n"
+	out[#out + 1] = "    \"passTimings\": "
+	writeFlatNumberObject(out, vjasscPassTimings, 4)
+	out[#out + 1] = ",\n    \"counters\": "
+	writeFlatNumberObject(out, vjasscCounters, 4)
 	out[#out + 1] = "\n  },\n"
 	out[#out + 1] = "  \"diff\": {\n"
 	out[#out + 1] = "    \"lineDelta\": " .. tostring((vjasscMetrics.lines or 0) - (helperMetrics.lines or 0)) .. ",\n"
@@ -816,15 +838,15 @@ function compile:RunVjassc(input, output)
 		"-o",
 		fileUtils.PathString(output),
 		"--debug",
+		"--mode",
+		fileUtils.PathString(path.vjasscMode or "validate"),
 		"--emit-stats",
 		fileUtils.PathString(path.VjasscStats),
 	}
 
-	if path.vjasscValidate then
+	if path.vjasscMode ~= "fast" then
 		args[#args + 1] = "--emit-validation-report"
 		args[#args + 1] = fileUtils.PathString(path.VjasscValidation)
-		args[#args + 1] = "--check-output-syntax-lite"
-		args[#args + 1] = "--validate-pjass"
 		args[#args + 1] = "--pjass"
 		args[#args + 1] = fileUtils.PathString(path.jasshelper .. "/pjass.exe")
 		args[#args + 1] = "--common"
@@ -833,6 +855,10 @@ function compile:RunVjassc(input, output)
 		args[#args + 1] = fileUtils.PathString(path.jasshelper .. "/blizzard.j")
 		args[#args + 1] = "--pjass-allow-external"
 		args[#args + 1] = "InitTrig_japi"
+		if path.vjasscMode == "full-validation" and lfs.attributes(path.CompileStep5JassHelper, "mode") == "file" then
+			args[#args + 1] = "--compare-jasshelper"
+			args[#args + 1] = fileUtils.PathString(path.CompileStep5JassHelper)
+		end
 	end
 
 	local command = table.concat(args, " ")

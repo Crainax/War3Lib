@@ -43,6 +43,7 @@ path.init(root, projectPath, we, gamePath)
 tc.ChangeBuildVersion("内测版本")
 path.jassCompiler = "both"
 path.jassCompilerSelect = "jasshelper"
+path.vjasscMode = "full-validation"
 
 local sur = compiler:StartCompile(path)
 

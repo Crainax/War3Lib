@@ -43,6 +43,14 @@ local function normalizeCompilerSelect(value)
     return "jasshelper"
 end
 
+local function normalizeVjasscMode(value)
+    value = string.lower(tostring(value or "validate"))
+    if value == "fast" or value == "validate" or value == "full-validation" then
+        return value
+    end
+    return "validate"
+end
+
 
 ---@param root string
 ---@param project string
@@ -103,7 +111,10 @@ function path.init(root, project, we, gamePath)
     path.vjassc        = normalizePathString(envValue("WAR3_VJASSC_EXE") or (path.vjasscDir .. "/vjassc.exe"))
     path.jassCompiler  = normalizeCompiler(envValue("WAR3_JASS_COMPILER") or path.jassCompiler)
     path.jassCompilerSelect = normalizeCompilerSelect(envValue("WAR3_JASS_COMPILER_SELECT") or path.jassCompilerSelect)
-    path.vjasscValidate = envFlag("WAR3_VJASSC_VALIDATE", true)
+    local defaultVjasscValidate = envFlag("WAR3_VJASSC_VALIDATE", true)
+    path.vjasscMode = normalizeVjasscMode(envValue("WAR3_VJASSC_MODE") or path.vjasscMode or
+        (defaultVjasscValidate and "validate" or "fast"))
+    path.vjasscValidate = path.vjasscMode ~= "fast"
     path.vjasscStrict = envFlag("WAR3_VJASSC_STRICT", false)
     path.allowVjasscNonAlpha = envFlag("WAR3_ALLOW_VJASSC_NON_ALPHA", false)
 
