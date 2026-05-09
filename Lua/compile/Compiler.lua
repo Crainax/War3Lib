@@ -266,6 +266,8 @@ local function writeCompilerBackendReport(report)
 	out[#out + 1] = "  \"selectedOutputPath\": " .. jsonString(relativeOutput(report.selectedOutputPath or "")) .. ",\n"
 	out[#out + 1] = "  \"buildVersion\": " .. jsonString(path.buildVersion or "") .. ",\n"
 	out[#out + 1] = "  \"vjasscMode\": " .. jsonString(path.vjasscMode or "validate") .. ",\n"
+	out[#out + 1] = "  \"requestedMode\": " .. jsonString(path.vjasscRequestedMode or path.vjasscMode or "validate") .. ",\n"
+	out[#out + 1] = "  \"effectiveMode\": " .. jsonString(path.vjasscMode or "validate") .. ",\n"
 	out[#out + 1] = "  \"strict\": " .. jsonBool(path.vjasscStrict) .. ",\n"
 	out[#out + 1] = "  \"validateVjassc\": " .. jsonBool(path.vjasscValidate) .. ",\n"
 	out[#out + 1] = "  \"jasshelper\": {\n"
@@ -279,6 +281,8 @@ local function writeCompilerBackendReport(report)
 	out[#out + 1] = "    \"ok\": " .. jsonBool(report.vjassc and report.vjassc.ok) .. ",\n"
 	out[#out + 1] = "    \"output\": " .. jsonString(relativeOutput(path.CompileStep5Vjassc)) .. ",\n"
 	out[#out + 1] = "    \"mode\": " .. jsonString(path.vjasscMode or "validate") .. ",\n"
+	out[#out + 1] = "    \"requestedMode\": " .. jsonString(path.vjasscRequestedMode or path.vjasscMode or "validate") .. ",\n"
+	out[#out + 1] = "    \"effectiveMode\": " .. jsonString(path.vjasscMode or "validate") .. ",\n"
 	out[#out + 1] = "    \"elapsedMs\": " .. tostring((report.vjassc and report.vjassc.elapsedMs) or 0) .. ",\n"
 	out[#out + 1] = "    \"pjassOk\": " .. jsonBool(vjasscPjassOk) .. ",\n"
 	out[#out + 1] = "    \"validation\": " .. jsonString(relativeOutput(path.VjasscValidation)) .. ",\n"
@@ -931,6 +935,11 @@ function compile:RunJassCompiler(input, timings)
 	if backend == "both" then
 		report.jasshelper = self:RunJassHelper(input, path.CompileStep5JassHelper)
 		if not report.jasshelper.ok then
+			if path.vjasscCompareRunEvenIfJasshelperFails then
+				report.vjassc = self:RunVjassc(input, path.CompileStep5Vjassc)
+				writeCompilerBackendReport(report)
+				return false, nil, report.jasshelper.error
+			end
 			writeCompilerBackendReport(report)
 			return false, nil, report.jasshelper.error
 		end

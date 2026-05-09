@@ -40,7 +40,9 @@ path.init(root, projectPath, we, gamePath)
 tc.ChangeBuildVersion("内测版本")
 path.jassCompiler = "vjassc"
 path.jassCompilerSelect = "vjassc"
-path.vjasscMode = "validate"
+path.vjasscRequestedMode = os.getenv("WAR3_VJASSC_MODE") or "validate"
+path.vjasscMode = path.vjasscRequestedMode
+path.vjasscValidate = path.vjasscMode ~= "fast"
 
 compiler:StartCompile()
 
