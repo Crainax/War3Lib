@@ -54,11 +54,55 @@ local function boolEnabled(value)
     return value == "1" or value == "true" or value == "yes" or value == "on"
 end
 
+local function jassBool(value, defaultValue)
+    if value == nil or value == "" then
+        value = defaultValue
+    end
+    value = tostring(value or ""):lower()
+    if value == "1" or value == "true" or value == "yes" or value == "on" then
+        return "true"
+    end
+    return "false"
+end
+
 local function jassString(value)
     value = tostring(value or "")
     value = value:gsub("\\", "\\\\")
     value = value:gsub('"', '\\"')
     return '"' .. value .. '"'
+end
+
+local function splitTopLevelArgs(args)
+    local result = {}
+    local start = 1
+    local depth = 0
+    local inString = false
+    local escaped = false
+
+    for i = 1, #args do
+        local ch = args:sub(i, i)
+        if inString then
+            if escaped then
+                escaped = false
+            elseif ch == "\\" then
+                escaped = true
+            elseif ch == '"' then
+                inString = false
+            end
+        elseif ch == '"' then
+            inString = true
+        elseif ch == "(" then
+            depth = depth + 1
+        elseif ch == ")" then
+            depth = math.max(depth - 1, 0)
+        elseif ch == "," and depth == 0 then
+            result[#result + 1] = args:sub(start, i - 1):match("^%s*(.-)%s*$")
+            start = i + 1
+        end
+    end
+
+    result[#result + 1] = args:sub(start):match("^%s*(.-)%s*$")
+    return result
 end
 
 local function emptyHeader(version)
@@ -150,6 +194,41 @@ function localDzApi.applyMapConfigReplacement(filePath)
     local ok, err = fu.WriteOver(filePath, content)
     if ok then
         print(string.format("[DzAPI本地替换]MapConfig完成: 按Key替换=%d, 兜底替换=%d", keyCount, fallbackCount))
+    end
+    return ok, err
+end
+
+function localDzApi.applyPlayerFlagsReplacement(filePath)
+    local version, cfg, localSection, enabled = readMockState()
+    if not enabled then
+        print("[DzAPI本地替换]PlayerFlags跳过: " .. version)
+        return true
+    end
+
+    local content = fu.GetContent(filePath)
+    if not content then
+        return false, "无法读取PlayerFlags替换目标: " .. tostring(filePath)
+    end
+
+    local flags = cfg["War3Lib.LocalDzApi.PlayerFlags"] or {}
+    local defaultValue = flags["Default"] or localSection["PlayerFlagsDefault"] or "false"
+    local labelCount = 0
+    local fallbackCount = 0
+
+    content = content:gsub('DzAPI_Map_PlayerFlags%s*(%b())', function(callArgs)
+        local args = splitTopLevelArgs(callArgs:sub(2, -2))
+        local label = args[2] and args[2]:match("^%s*(%-?%d+)%s*$")
+        if label then
+            labelCount = labelCount + 1
+            return jassBool(flags[label], defaultValue)
+        end
+        fallbackCount = fallbackCount + 1
+        return jassBool(defaultValue, "false")
+    end)
+
+    local ok, err = fu.WriteOver(filePath, content)
+    if ok then
+        print(string.format("[DzAPI本地替换]PlayerFlags完成: 按label替换=%d, 兜底替换=%d", labelCount, fallbackCount))
     end
     return ok, err
 end

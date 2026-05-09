@@ -52,6 +52,17 @@ local function powershellCommand(script)
 	return "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand " .. base64Encode(utf8ToUtf16Le(wrapped))
 end
 
+local function commandSucceeded(ok, exitType, exitCode)
+	if ok == true or ok == 0 then
+		return true
+	end
+	return exitType == "exit" and exitCode == 0
+end
+
+local function toWinPath(value)
+	return tostring(value or ""):gsub("/", "\\")
+end
+
 local function openWithAntigravity(filePath)
 	local target = filePath:gsub("/", "\\")
 	local quotedTarget = '"' .. target:gsub('"', '\\"') .. '"'
@@ -159,24 +170,28 @@ function launcher.GetLogDir()
 	return parseLogDir()
 end
 
+---@param mapPath string
+---@param displayName string|nil
+function launcher.StartWar3File(mapPath, displayName)
+	local cmd = string.format(
+		'cmd /c ""%s" -launchwar3 -loadfile "%s""',
+		toWinPath(path.we .. "/bin/YDWEConfig.exe"),
+		toWinPath(mapPath)
+	)
+	print(cmd)
+	local ok, exitType, exitCode = os.execute(cmd)
+	if not commandSucceeded(ok, exitType, exitCode) then
+		print("[" .. path.buildVersion .. "]YDWEConfig返回码非0,但可能已成功拉起魔兽: " .. tostring(exitCode or ok))
+	end
+	print("[" .. path.buildVersion .. "]启动war3成功,运行地图:" .. (displayName or mapPath))
+	return true
+end
+
 ---@param suffix string
 launcher.StartWar3 = function(suffix)
 	suffix = suffix or ''
-	local cmdExe, cmdArgs, cmd
-	-- local copyCode, msg
-	cmdExe = fu.PathString(path.we .. "/bin/YDWEConfig.exe")
-	cmdArgs = "-launchwar3 "
-	cmdArgs = cmdArgs .. "-loadfile "
-	cmdArgs = cmdArgs .. path.project .. "/output/" .. path.mapName .. suffix .. ".w3x"
-	cmd = string.format('%s %s', cmdExe, cmdArgs)
-	print(cmd)
-	local _, _, code = os.execute(cmd)
-	if code then
-		print("[" .. path.buildVersion .. "]启动war3成功,运行地图:" .. path.mapName .. suffix .. ".w3x")
-	else
-		print("[" .. path.buildVersion .. "]启动war3失败." .. code)
-	end
-	-- return copyCode, msg
+	local mapPath = path.project .. "/output/" .. path.mapName .. suffix .. ".w3x"
+	return launcher.StartWar3File(mapPath, path.mapName .. suffix .. ".w3x")
 end
 
 function launcher.StartWar3AndWaitLog(suffix)
@@ -184,6 +199,16 @@ function launcher.StartWar3AndWaitLog(suffix)
 	local startedAt = os.time()
 	launcher.StartWar3(suffix)
 	launcher.WaitAndOpenNewLog(before, 60, startedAt)
+end
+
+function launcher.StartWar3FileAndWaitLog(mapPath, displayName)
+	local before = launcher.SnapshotLogs()
+	local startedAt = os.time()
+	local started = launcher.StartWar3File(mapPath, displayName)
+	if started then
+		launcher.WaitAndOpenNewLog(before, 60, startedAt)
+	end
+	return started
 end
 
 return launcher

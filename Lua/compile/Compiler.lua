@@ -14,6 +14,10 @@ local function elapsedMs(startClock)
 	return math.floor((os.clock() - startClock) * 1000 + 0.5)
 end
 
+local function formatElapsedSeconds(ms)
+	return string.format("[用时%.2f秒]", (ms or 0) / 1000)
+end
+
 local function commandSucceeded(ok, exitType, exitCode)
 	if ok == true or ok == 0 then
 		return true
@@ -204,6 +208,7 @@ local function writeTimingObject(out, timings, indent)
 		"wave2Ms",
 		"compileLuaMs",
 		"dzApiMapConfigMs",
+		"dzApiPlayerFlagsMs",
 		"jassCompilerMs",
 		"copyBackMs",
 		"totalCompileMs",
@@ -791,26 +796,26 @@ function compile:RunJassHelper(input, output)
 			print("复制编译文件失败: " .. tostring(errMsg))
 		end
 
-		print("[jasshelper]编译失败 : " .. mapScriptDest)
+		result.elapsedMs = elapsedMs(started)
+		print("[jasshelper]编译失败 : " .. mapScriptDest .. formatElapsedSeconds(result.elapsedMs))
 		print("[jasshelper]失败内: ")
 		fileUtils.ReadFile(errorLogDest, function(line)
 			print(line)
 		end)
-		result.elapsedMs = elapsedMs(started)
 		result.error = "jasshelper failed"
 		return result
 	end
 
 	suc, errmsg = fileUtils.copyFile(path.jasshelper .. "/output.j", output)
+	result.elapsedMs = elapsedMs(started)
 	if suc then
-		print("[jasshelper]编译成功: " .. output)
+		print("[jasshelper]编译成功: " .. output .. formatElapsedSeconds(result.elapsedMs))
 		result.ok = true
 	else
-		print("[jasshelper]移动失败:" .. tostring(errmsg))
+		print("[jasshelper]移动失败:" .. tostring(errmsg) .. formatElapsedSeconds(result.elapsedMs))
 		print("[jasshelper]最后位置:" .. path.jasshelper .. "/output.j")
 		result.error = tostring(errmsg)
 	end
-	result.elapsedMs = elapsedMs(started)
 	return result
 end
 
@@ -885,13 +890,13 @@ function compile:RunVjassc(input, output)
 	result.elapsedMs = elapsedMs(started)
 
 	if commandSucceeded(ok, exitType, exitCode) then
-		print("[vjassc]编译成功: " .. output)
+		print("[vjassc]编译成功: " .. output .. formatElapsedSeconds(result.elapsedMs))
 		result.ok = true
 		return result
 	end
 
 	result.error = "vjassc failed"
-	print("[vjassc]编译失败，stdout/stderr已保留:")
+	print("[vjassc]编译失败，stdout/stderr已保留:" .. formatElapsedSeconds(result.elapsedMs))
 	print("  " .. path.VjasscStdout)
 	print("  " .. path.VjasscStderr)
 	printVjasscFailureDetails()
@@ -1261,6 +1266,14 @@ function compile:StartCompile()
 	timings.dzApiMapConfigMs = elapsedMs(phaseStarted)
 	if not code then
 		print("[DzAPI本地替换]MapConfig失败:" .. tostring(msg))
+		return false
+	end
+
+	phaseStarted = os.clock()
+	code, msg = localDzApi.applyPlayerFlagsReplacement(path.CompileStep4)
+	timings.dzApiPlayerFlagsMs = elapsedMs(phaseStarted)
+	if not code then
+		print("[DzAPI本地替换]PlayerFlags失败:" .. tostring(msg))
 		return false
 	end
 
