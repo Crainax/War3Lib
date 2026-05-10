@@ -938,17 +938,6 @@ function compile:RunJassCompiler(input, timings)
 	end
 
 	if backend == "both" then
-		report.jasshelper = self:RunJassHelper(input, path.CompileStep5JassHelper)
-		if not report.jasshelper.ok then
-			if path.vjasscCompareRunEvenIfJasshelperFails then
-				report.vjassc = self:RunVjassc(input, path.CompileStep5Vjassc)
-				writeCompilerBackendReport(report)
-				return false, nil, report.jasshelper.error
-			end
-			writeCompilerBackendReport(report)
-			return false, nil, report.jasshelper.error
-		end
-
 		report.vjassc = self:RunVjassc(input, path.CompileStep5Vjassc)
 		if not report.vjassc.ok then
 			local warning = "[both]vjassc失败，默认继续使用jasshelper输出"
@@ -958,6 +947,12 @@ function compile:RunJassCompiler(input, timings)
 				writeCompilerBackendReport(report)
 				return false, nil, report.vjassc.error
 			end
+		end
+
+		report.jasshelper = self:RunJassHelper(input, path.CompileStep5JassHelper)
+		if not report.jasshelper.ok then
+			writeCompilerBackendReport(report)
+			return false, nil, report.jasshelper.error
 		end
 
 		if path.jassCompilerSelect == "vjassc" then

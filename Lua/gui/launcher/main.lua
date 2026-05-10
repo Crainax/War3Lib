@@ -23,11 +23,11 @@ if not selectionFile or selectionFile == "" then
 	error("missing selection file")
 end
 local historyFile = arg[2]
+local versionStateFile = arg[3]
 
 local state = {
 	action = "start",
 	version = "VERSION_ALPHA",
-	launchMode = "normal",
 	compiler = "jasshelper",
 }
 
@@ -36,8 +36,10 @@ local summaryLabel
 local win
 
 local actionItems = {
-	{ value = "start", title = "启动地图" },
+	{ value = "start", title = "全量启动" },
+	{ value = "incremental", title = "增量启动" },
 	{ value = "compile", title = "仅编译" },
+	{ value = "legacy", title = "老地图启动" },
 }
 
 local versionItems = {
@@ -47,23 +49,14 @@ local versionItems = {
 	{ value = "VERSION_RELEASE", title = "正式" },
 }
 
-local launchModeItems = {
-	{ value = "normal", title = "正常" },
-	{ value = "direct", title = "直启" },
-	{ value = "fast", title = "快启" },
-	{ value = "slow", title = "慢启" },
-}
-
 local compilerItems = {
 	{ value = "jasshelper", title = "jasshelper" },
-	{ value = "vjassc", title = "vjassc" },
-	{ value = "compare", title = "vjassc对比" },
+	{ value = "vjassc",     title = "vjassc" },
 }
 
 local titles = {
 	action = {},
 	version = {},
-	launchMode = {},
 	compiler = {},
 }
 
@@ -75,7 +68,6 @@ end
 
 registerTitles("action", actionItems)
 registerTitles("version", versionItems)
-registerTitles("launchMode", launchModeItems)
 registerTitles("compiler", compilerItems)
 
 local function readKeyValueFile(filePath)
@@ -97,12 +89,34 @@ local function readKeyValueFile(filePath)
 	return result
 end
 
+local versionState = readKeyValueFile(versionStateFile)
+
+local function normalizeHistoryAction(history)
+	if history.action == "compile" then
+		return "compile"
+	elseif history.action == "incremental" then
+		return "incremental"
+	elseif history.action == "legacy" or history.launchMode == "direct" then
+		return "legacy"
+	elseif history.launchMode == "fast" or history.launchMode == "slow" then
+		return "incremental"
+	end
+	return "start"
+end
+
 local function loadHistory()
 	local history = readKeyValueFile(historyFile)
-	for key, value in pairs(history) do
-		if state[key] ~= nil and titles[key] and titles[key][value] then
-			state[key] = value
-		end
+	local action = normalizeHistoryAction(history)
+	if titles.action[action] then
+		state.action = action
+	end
+	if titles.version[history.version] then
+		state.version = history.version
+	end
+	if titles.compiler[history.compiler] then
+		state.compiler = history.compiler
+	else
+		state.compiler = "jasshelper"
 	end
 end
 
@@ -116,6 +130,7 @@ local fontTitle = createFont(24, "bold")
 local fontGroup = createFont(17, "bold")
 local fontNormal = createFont(16, "normal")
 local fontSmall = createFont(15, "normal")
+local fontTiny = createFont(11, "normal")
 
 local function setBackground(view, color)
 	if view.setbackgroundcolor then
@@ -158,12 +173,20 @@ local function updateSummary()
 	end
 	local actionText = titles.action[state.action]
 	local versionText = titles.version[state.version]
-	local modeText = titles.launchMode[state.launchMode]
-	local compilerText = titles.compiler[state.compiler]
-	if state.action == "compile" then
-		summaryLabel:settext(string.format("%s / %s / %s", actionText, versionText, compilerText))
+	if state.action == "legacy" then
+		summaryLabel:settext(string.format("%s / %s / 不走编译", actionText, versionText))
 	else
-		summaryLabel:settext(string.format("%s / %s / %s / %s", actionText, versionText, modeText, compilerText))
+		summaryLabel:settext(string.format("%s / %s / %s", actionText, versionText, titles.compiler[state.compiler]))
+	end
+end
+
+local function refreshCompilerEnabled()
+	local enabled = state.action ~= "legacy"
+	for _, item in ipairs(groups.compiler or {}) do
+		item.button:setenabled(enabled)
+		if item.button.setcolor then
+			item.button:setcolor(enabled and "#FFFFFF" or "#888888")
+		end
 	end
 end
 
@@ -173,9 +196,13 @@ local function refreshChecks()
 			item.button:setchecked(item.value == state[groupName])
 		end
 	end
+	refreshCompilerEnabled()
 end
 
 local function selectGroup(groupName, value)
+	if groupName == "compiler" and state.action == "legacy" then
+		return
+	end
 	state[groupName] = value
 	refreshChecks()
 	updateSummary()
@@ -189,6 +216,7 @@ local function makeRadioButton(groupName, item, width)
 	function button:onclick()
 		selectGroup(groupName, item.value)
 	end
+
 	groups[groupName] = groups[groupName] or {}
 	groups[groupName][#groups[groupName] + 1] = {
 		value = item.value,
@@ -227,6 +255,65 @@ local function makeGroup(parent, title, groupName, items, buttonWidth)
 	end
 end
 
+local function versionStateValue(version, name)
+	local value = versionState[version .. "_" .. name]
+	if value and value ~= "" then
+		return value
+	end
+	return "无记录"
+end
+
+local function makeVersionCell(item)
+	local cell = makeContainer({
+		Width = 175,
+		Height = 82,
+		Margin = 4,
+		FlexDirection = "column",
+		AlignItems = "center",
+	}, nil)
+	local button = makeRadioButton("version", item, 154)
+	cell:addchildview(button)
+	cell:addchildview(makeLabel("[上次全量]" .. versionStateValue(item.value, "full"), {
+		Width = 168,
+		Height = 17,
+		MarginTop = 2,
+	}, fontTiny, "#FFFFFF"))
+	cell:addchildview(makeLabel("[上次修改]" .. versionStateValue(item.value, "modified"), {
+		Width = 168,
+		Height = 17,
+	}, fontTiny, "#FFFFFF"))
+	return cell
+end
+
+local function makeVersionGroup(parent)
+	local section = makeContainer({
+		Height = 128,
+		MarginLeft = 22,
+		MarginRight = 22,
+		MarginTop = 10,
+		FlexDirection = "column",
+	}, "#242936")
+	parent:addchildview(section)
+
+	section:addchildview(makeLabel("版本", {
+		Height = 30,
+		MarginLeft = 12,
+		MarginTop = 8,
+	}, fontGroup, "#FFFFFF"))
+
+	local row = makeContainer({
+		Height = 86,
+		MarginLeft = 8,
+		MarginRight = 8,
+		FlexDirection = "row",
+		AlignItems = "center",
+	}, nil)
+	section:addchildview(row)
+	for _, item in ipairs(versionItems) do
+		row:addchildview(makeVersionCell(item))
+	end
+end
+
 local function writeSelection(status)
 	local file, err = io.open(selectionFile, "w")
 	if not file then
@@ -236,7 +323,6 @@ local function writeSelection(status)
 	if status == "ok" then
 		file:write("action=", state.action, "\n")
 		file:write("version=", state.version, "\n")
-		file:write("launchMode=", state.launchMode, "\n")
 		file:write("compiler=", state.compiler, "\n")
 	end
 	file:close()
@@ -265,7 +351,7 @@ local function createMainView()
 	caption:setmousedowncanmovewindow(true)
 	root:addchildview(caption)
 
-	local title = makeLabel("Xlimon 启动矩阵", {
+	local title = makeLabel("异度幻世篇2启动", {
 		Width = 300,
 		Height = 36,
 		MarginLeft = 16,
@@ -279,12 +365,12 @@ local function createMainView()
 	function close:onclick()
 		closeWindow()
 	end
+
 	caption:addchildview(close)
 
-	makeGroup(root, "任务类型", "action", actionItems, 112)
-	makeGroup(root, "版本", "version", versionItems, 112)
-	makeGroup(root, "启动方式", "launchMode", launchModeItems, 112)
-	makeGroup(root, "编译器", "compiler", compilerItems, 146)
+	makeGroup(root, "启动动作", "action", actionItems, 160)
+	makeVersionGroup(root)
+	makeGroup(root, "编译器", "compiler", compilerItems, 160)
 
 	local bottom = makeContainer({
 		Height = 82,
@@ -298,14 +384,14 @@ local function createMainView()
 	root:addchildview(bottom)
 
 	summaryLabel = makeLabel("", {
-		Width = 410,
+		Width = 520,
 		Height = 42,
 		MarginLeft = 14,
 	}, fontSmall, "#FFFFFF")
 	bottom:addchildview(summaryLabel)
 
 	local buttons = makeContainer({
-		Width = 200,
+		Width = 210,
 		Height = 44,
 		MarginRight = 8,
 		FlexDirection = "row",
@@ -321,6 +407,7 @@ local function createMainView()
 		writeSelection("cancel")
 		closeWindow()
 	end
+
 	buttons:addchildview(cancel)
 
 	local launch = gui.Button.create("启动")
@@ -333,8 +420,10 @@ local function createMainView()
 		writeSelection("ok")
 		closeWindow()
 	end
+
 	buttons:addchildview(launch)
 
+	refreshChecks()
 	updateSummary()
 	return root
 end
@@ -346,10 +435,11 @@ win:setmaximizable(false)
 win:setminimizable(false)
 win:sethasshadow(true)
 win:setcontentview(createMainView())
-win:setcontentsize({ width = 700, height = 570 })
+win:setcontentsize({ width = 800, height = 520 })
 win:center()
 function win.onclose()
 	gui.MessageLoop.quit()
 end
+
 win:activate()
 gui.MessageLoop.run()

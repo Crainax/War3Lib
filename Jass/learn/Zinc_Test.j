@@ -254,6 +254,44 @@ library UTZinc requires Zinc {
         f.evaluate();
     }
     function TTestUTZinc11 (player p) {
+        string s = GetEventPlayerChatString();
+        integer idx = GetConvertedPlayerId(p);
+        integer n; integer k; integer pj; integer df;
+        integer cC; integer cB; integer cA; integer cS; integer cSS; integer cSSS;
+        string msg;
+        if (SubStringBJ(s, 1, 8) == "-pingjia") {
+            n = S2I(SubStringBJ(s, 9, StringLength(s)));
+            if (n <= 0) { n = 10; }
+            for (k = 1; k <= n; k += 1) {
+                pj = 7; // SSS
+                // FubenGiveChest(idx, pj, GetRandomInt(1, FUBEN_DIFFICULTY_COUNT));
+            }
+            BJDebugMsg("[TEST] 发放SSS宝箱 x" + I2S(n));
+        } else if (SubStringBJ(s, 1, 5) == "-diff") {
+            n = S2I(SubStringBJ(s, 7, StringLength(s)));
+            if (n < 1) { n = 1; }
+            if (n > 15) { n = 15; }
+            cC = 0; cB = 0; cA = 0; cS = 0; cSS = 0; cSSS = 0;
+            for (k = 1; k <= 6; k += 1) {
+                pj = GetRandomInt(2, 7);
+                df = n;
+                // FubenGiveChest(idx, pj, df);
+                if (pj == 2) { cC += 1; }
+                else if (pj == 3) { cB += 1; }
+                else if (pj == 4) { cA += 1; }
+                else if (pj == 5) { cS += 1; }
+                else if (pj == 6) { cSS += 1; }
+                else if (pj == 7) { cSSS += 1; }
+            }
+            msg = "[TEST] 发放随机评分宝箱 x6, diff=" + I2S(n)
+            + ", 统计: C=" + I2S(cC)
+            + ", B=" + I2S(cB)
+            + ", A=" + I2S(cA)
+            + ", S=" + I2S(cS)
+            + ", SS=" + I2S(cSS)
+            + ", SSS=" + I2S(cSSS);
+            BJDebugMsg(msg);
+        }
     }
     function TTestUTZinc12 (player p) {
     }

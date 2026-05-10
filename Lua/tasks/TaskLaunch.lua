@@ -15,17 +15,16 @@ local versions = {
 	{ value = "VERSION_RELEASE", label = "正式版本" },
 }
 
-local launchModes = {
-	{ value = "normal", label = "正常" },
-	{ value = "direct", label = "直启" },
-	{ value = "fast", label = "快启" },
-	{ value = "slow", label = "慢启" },
+local actions = {
+	{ value = "start", label = "全量启动" },
+	{ value = "incremental", label = "增量启动" },
+	{ value = "compile", label = "仅编译" },
+	{ value = "legacy", label = "老地图启动" },
 }
 
 local compilers = {
 	{ value = "jasshelper", label = "jasshelper" },
-	{ value = "vjassc", label = "vjassc" },
-	{ value = "compare", label = "vjassc对比" },
+	{ value = "vjassc",     label = "vjassc" },
 }
 
 local versionLabels = {}
@@ -35,11 +34,13 @@ for _, item in ipairs(versions) do
 	validVersions[item.value] = true
 end
 
-local validActions = { start = true, compile = true }
-local validLaunchModes = {}
-for _, item in ipairs(launchModes) do
-	validLaunchModes[item.value] = true
+local actionLabels = {}
+local validActions = {}
+for _, item in ipairs(actions) do
+	actionLabels[item.value] = item.label
+	validActions[item.value] = true
 end
+
 local validCompilers = {}
 for _, item in ipairs(compilers) do
 	validCompilers[item.value] = true
@@ -99,8 +100,11 @@ local function parseInlineSelection(value)
 	return result
 end
 
-local function readSelectionFile(filePath)
+local function readKeyValueFile(filePath)
 	local result = {}
+	if not filePath or filePath == "" or not fu.fileExist(filePath) then
+		return result
+	end
 	fu.ReadFile(filePath, function(line)
 		local key, value = line:match("^%s*([%w_]+)%s*=%s*(.-)%s*$")
 		if key then
@@ -118,9 +122,30 @@ local function writeSelectionFile(filePath, selection)
 	end
 	file:write("action=", selection.action, "\n")
 	file:write("version=", selection.version, "\n")
-	file:write("launchMode=", selection.launchMode, "\n")
 	file:write("compiler=", selection.compiler, "\n")
 	file:close()
+end
+
+local function normalizeAction(selection)
+	local action = selection.action
+	local oldLaunchMode = selection.launchMode
+	if action == "compile" then
+		return "compile"
+	elseif action == "incremental" then
+		return "incremental"
+	elseif action == "legacy" or oldLaunchMode == "direct" then
+		return "legacy"
+	elseif oldLaunchMode == "fast" or oldLaunchMode == "slow" then
+		return "incremental"
+	end
+	return "start"
+end
+
+local function normalizeCompiler(compilerName)
+	if compilerName == "vjassc" then
+		return "vjassc"
+	end
+	return "jasshelper"
 end
 
 local function normalizeSelection(selection)
@@ -128,19 +153,16 @@ local function normalizeSelection(selection)
 	if selection.status == "cancel" then
 		return nil, "cancel"
 	end
-	selection.action = selection.action or "start"
+
+	selection.action = normalizeAction(selection)
 	selection.version = selection.version or "VERSION_ALPHA"
-	selection.launchMode = selection.launchMode or "normal"
-	selection.compiler = selection.compiler or "jasshelper"
+	selection.compiler = normalizeCompiler(selection.compiler)
 
 	if not validActions[selection.action] then
-		return nil, "无效任务类型: " .. tostring(selection.action)
+		return nil, "无效启动动作: " .. tostring(selection.action)
 	end
 	if not validVersions[selection.version] then
 		return nil, "无效版本: " .. tostring(selection.version)
-	end
-	if not validLaunchModes[selection.launchMode] then
-		return nil, "无效启动方式: " .. tostring(selection.launchMode)
 	end
 	if not validCompilers[selection.compiler] then
 		return nil, "无效编译器: " .. tostring(selection.compiler)
@@ -201,24 +223,18 @@ local function initBuildVersion(version)
 end
 
 local function applyCompilerOptions(compilerName)
-	if compilerName == "jasshelper" then
-		path.jassCompiler = "jasshelper"
-		path.jassCompilerSelect = "jasshelper"
-		path.vjasscMode = "validate"
-		path.vjasscStrict = false
-		path.allowVjasscNonAlpha = false
-	elseif compilerName == "vjassc" then
+	if compilerName == "vjassc" then
 		path.jassCompiler = "vjassc"
 		path.jassCompilerSelect = "vjassc"
 		path.vjasscMode = "validate"
 		path.vjasscStrict = true
 		path.allowVjasscNonAlpha = true
 	else
-		path.jassCompiler = "both"
+		path.jassCompiler = "jasshelper"
 		path.jassCompilerSelect = "jasshelper"
-		path.vjasscMode = "full-validation"
+		path.vjasscMode = "validate"
 		path.vjasscStrict = false
-		path.allowVjasscNonAlpha = true
+		path.allowVjasscNonAlpha = false
 	end
 end
 
@@ -226,19 +242,59 @@ local function slkSlot(version)
 	return path.project .. "/Output/launcher/slk/" .. version .. "/" .. path.mapName .. "_slk.w3x"
 end
 
-local function objCacheSlot(version)
-	return path.project .. "/Output/launcher/obj-cache/" .. version .. "/" .. path.mapName .. "_obj.w3x"
-end
-
 local function slotDisplay(version, suffix)
 	return version .. "/" .. path.mapName .. suffix .. ".w3x"
+end
+
+local function versionStateFile()
+	return path.project .. "/Output/launcher/version_state.txt"
+end
+
+local function currentTimestamp()
+	return os.date("%Y-%m-%d-%H-%M-%S")
+end
+
+local function stateKey(version, name)
+	return version .. "_" .. name
+end
+
+local function writeVersionState(filePath, state)
+	ensureDir(fu.GetDir(filePath))
+	local file, err = io.open(filePath, "w")
+	if not file then
+		error("error: 写入版本启动时间失败: " .. tostring(err))
+	end
+	for _, version in ipairs(versions) do
+		local full = state[stateKey(version.value, "full")]
+		local modified = state[stateKey(version.value, "modified")]
+		if full and full ~= "" then
+			file:write(stateKey(version.value, "full"), "=", full, "\n")
+		end
+		if modified and modified ~= "" then
+			file:write(stateKey(version.value, "modified"), "=", modified, "\n")
+		end
+	end
+	file:close()
+end
+
+local function updateVersionState(version, updateFull, updateModified)
+	local filePath = versionStateFile()
+	local state = readKeyValueFile(filePath)
+	local now = currentTimestamp()
+	if updateFull then
+		state[stateKey(version, "full")] = now
+	end
+	if updateModified then
+		state[stateKey(version, "modified")] = now
+	end
+	writeVersionState(filePath, state)
 end
 
 local function copyPackagedSlkToSlots(version)
 	local map = path.project .. "/" .. path.mapName .. "_slk.w3x"
 	local legacyMap = path.project .. "/output/" .. path.mapName .. "_slk.w3x"
 	if not fu.fileExist(map) then
-		print("[正常启动]打包失败,找不到中间文件: " .. map)
+		print("[全量启动]打包失败,找不到中间文件: " .. map)
 		return false
 	end
 	if not forceCopyBin(map, legacyMap) then
@@ -249,8 +305,47 @@ local function copyPackagedSlkToSlots(version)
 	if not forceCopyBin(legacyMap, slot) then
 		return false
 	end
-	print("[正常启动]版本专属地图: " .. slot)
+	print("[全量启动]版本专属地图: " .. slot)
 	return true, slot
+end
+
+local function replaceMapScriptWithStorm(targetMap)
+	local w2lRoot = path.toolRoot .. "/w3x2lni"
+	local w2lLuaExe = w2lRoot .. "/bin/w3x2lni-lua.exe"
+	local stormTask = path.libRoot .. "/Lua/tasks/TaskStormReplaceWar3MapJ.lua"
+
+	if not fu.fileExist(w2lLuaExe) then
+		print("[增量启动]未找到w3x2lni-lua.exe: " .. w2lLuaExe)
+		return false
+	end
+	if not fu.fileExist(stormTask) then
+		print("[增量启动]未找到Storm替换脚本: " .. stormTask)
+		return false
+	end
+	if not fu.fileExist(targetMap) then
+		print("[增量启动]未找到版本专属SLK地图: " .. targetMap)
+		return false
+	end
+	if not fu.fileExist(path.CompileResult) then
+		print("[增量启动]未找到编译输出脚本: " .. path.CompileResult)
+		return false
+	end
+
+	local cmd = string.format(
+		'cmd /c ""%s" "%s" "%s" "%s" "%s""',
+		toWinPath(w2lLuaExe),
+		toWinPath(stormTask),
+		toWinPath(targetMap),
+		toWinPath(path.CompileResult),
+		toWinPath(w2lRoot)
+	)
+	print(cmd)
+	local ok, exitType, exitCode = os.execute(cmd)
+	if not commandSucceeded(ok, exitType, exitCode) then
+		print("[增量启动]Storm替换执行失败")
+		return false
+	end
+	return true
 end
 
 local function runCompile(selection)
@@ -260,13 +355,13 @@ local function runCompile(selection)
 	return compiler:StartCompile(path)
 end
 
-local function runNormalStart(selection)
+local function runStart(selection)
 	initBuildVersion(selection.version)
 	applyCompilerOptions(selection.compiler)
-	print(string.format("[矩阵启动]正常启动: %s / %s", versionLabels[selection.version], selection.compiler))
+	print(string.format("[矩阵启动]全量启动: %s / %s", versionLabels[selection.version], selection.compiler))
 	local compileOk = compiler:StartCompile(path)
 	if not compileOk then
-		print("[正常启动]完整编译失败,停止启动")
+		print("[全量启动]完整编译失败,停止启动")
 		return false
 	end
 	os.remove(path.project .. "/" .. path.mapName .. "_slk.w3x")
@@ -275,165 +370,96 @@ local function runNormalStart(selection)
 	if not ok then
 		return false
 	end
-	return launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
+	local started = launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
+	if started then
+		updateVersionState(selection.version, true, true)
+	end
+	return started
 end
 
-local function runDirectStart(selection)
+local function runIncrementalStart(selection)
+	initBuildVersion(selection.version)
+	applyCompilerOptions(selection.compiler)
+	local slot = slkSlot(selection.version)
+	if not fu.fileExist(slot) then
+		print("[增量启动]未找到版本专属SLK地图: " .. slot)
+		print("[增量启动]请先用同版本的“启动地图”生成一次版本专属SLK地图")
+		return false
+	end
+
+	print(string.format("[矩阵启动]增量启动: %s / %s", versionLabels[selection.version], selection.compiler))
+	local compileOk = compiler:StartCompile(path)
+	if not compileOk then
+		print("[增量启动]完整编译失败,停止启动")
+		return false
+	end
+	if not replaceMapScriptWithStorm(slot) then
+		return false
+	end
+	local started = launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
+	if started then
+		updateVersionState(selection.version, false, true)
+	end
+	return started
+end
+
+local function runLegacyStart(selection)
 	initPathOnly(selection.version)
 	local slot = slkSlot(selection.version)
 	if not fu.fileExist(slot) then
-		print("[直启]未找到版本专属地图: " .. slot)
-		print("[直启]请先用同版本的正常启动生成一次版本专属SLK地图")
+		print("[老地图启动]未找到版本专属SLK地图: " .. slot)
+		print("[老地图启动]请先用同版本的“启动地图”生成一次版本专属SLK地图")
 		return false
 	end
-	print(string.format("[矩阵启动]直启: %s / %s", versionLabels[selection.version], slot))
+	print(string.format("[矩阵启动]老地图启动: %s / %s", versionLabels[selection.version], slot))
 	return launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
-end
-
-local function rebuildObjCache(version)
-	os.remove(path.project .. "/" .. path.mapName .. ".w3x")
-	local checkOk = compiler:StartCompileCheckOnly(path)
-	if not checkOk then
-		print("[Obj慢启]检测失败,停止构建缓存")
-		return false
-	end
-
-	w3xlni:StartOBJ()
-	local map = path.project .. "/" .. path.mapName .. ".w3x"
-	local cacheMap = objCacheSlot(version)
-	if not fu.fileExist(map) then
-		print("[Obj慢启]构建缓存失败,找不到中间文件: " .. map)
-		return false
-	end
-	if not forceCopyBin(map, cacheMap) then
-		return false
-	end
-	os.remove(map)
-	print("[Obj慢启]版本专属缓存完成: " .. cacheMap)
-	return true
-end
-
-local function ensureObjCache(version)
-	local cacheMap = objCacheSlot(version)
-	if fu.fileExist(cacheMap) then
-		return true
-	end
-	print("[Obj快启]检测到版本专属缓存缺失,开始自动构建: " .. cacheMap)
-	return rebuildObjCache(version)
-end
-
-local function replaceMapScriptWithStorm(cacheMap)
-	local w2lRoot = path.toolRoot .. "/w3x2lni"
-	local w2lLuaExe = w2lRoot .. "/bin/w3x2lni-lua.exe"
-	local stormTask = path.libRoot .. "/Lua/tasks/TaskStormReplaceWar3MapJ.lua"
-
-	if not fu.fileExist(w2lLuaExe) then
-		print("[Obj启动]未找到w3x2lni-lua.exe: " .. w2lLuaExe)
-		return false
-	end
-	if not fu.fileExist(stormTask) then
-		print("[Obj启动]未找到Storm替换脚本: " .. stormTask)
-		return false
-	end
-	if not fu.fileExist(cacheMap) then
-		print("[Obj启动]未找到版本专属Obj缓存地图: " .. cacheMap)
-		return false
-	end
-	if not fu.fileExist(path.CompileResult) then
-		print("[Obj启动]未找到编译输出脚本: " .. path.CompileResult)
-		return false
-	end
-
-	local cmd = string.format(
-		'cmd /c ""%s" "%s" "%s" "%s" "%s""',
-		toWinPath(w2lLuaExe),
-		toWinPath(stormTask),
-		toWinPath(cacheMap),
-		toWinPath(path.CompileResult),
-		toWinPath(w2lRoot)
-	)
-	print(cmd)
-	local ok, exitType, exitCode = os.execute(cmd)
-	if not commandSucceeded(ok, exitType, exitCode) then
-		print("[Obj启动]Storm替换执行失败")
-		return false
-	end
-	return true
-end
-
-local function runObjStart(selection)
-	initBuildVersion(selection.version)
-	applyCompilerOptions(selection.compiler)
-	print(string.format("[矩阵启动]%s: %s / %s", selection.launchMode == "fast" and "快启" or "慢启", versionLabels[selection.version], selection.compiler))
-
-	if selection.launchMode == "slow" and not rebuildObjCache(selection.version) then
-		return false
-	end
-
-	local compileOk = compiler:StartCompile(path)
-	if not compileOk then
-		print("[Obj启动]完整编译失败,停止启动")
-		return false
-	end
-
-	if selection.launchMode == "fast" and not ensureObjCache(selection.version) then
-		return false
-	end
-
-	local cacheMap = objCacheSlot(selection.version)
-	if not replaceMapScriptWithStorm(cacheMap) then
-		return false
-	end
-	return launcher.StartWar3FileAndWaitLog(cacheMap, slotDisplay(selection.version, "_obj"))
 end
 
 local function runSelection(selection)
 	if selection.action == "compile" then
 		return runCompile(selection)
+	elseif selection.action == "incremental" then
+		return runIncrementalStart(selection)
+	elseif selection.action == "legacy" then
+		return runLegacyStart(selection)
 	end
-	if selection.launchMode == "normal" then
-		return runNormalStart(selection)
-	elseif selection.launchMode == "direct" then
-		return runDirectStart(selection)
-	elseif selection.launchMode == "fast" or selection.launchMode == "slow" then
-		return runObjStart(selection)
-	end
-	print("[矩阵启动]未支持的启动方式: " .. tostring(selection.launchMode))
-	return false
+	return runStart(selection)
 end
 
 local function runDryRun()
 	path.init(root, projectPath, we, gamePath)
-	print("[矩阵启动][dry-run]启动组合路径预览")
-	for _, version in ipairs(versions) do
-		initPathOnly(version.value)
-		for _, mode in ipairs(launchModes) do
-			for _, compilerItem in ipairs(compilers) do
-				applyCompilerOptions(compilerItem.value)
-				print(string.format(
-					"start version=%s launchMode=%s compiler=%s map=%s slk=%s obj=%s jassCompiler=%s select=%s vjasscMode=%s strict=%s allowNonAlpha=%s",
-					version.value,
-					mode.value,
-					compilerItem.value,
-					path.mapName,
-					slkSlot(version.value),
-					objCacheSlot(version.value),
-					path.jassCompiler,
-					path.jassCompilerSelect,
-					path.vjasscMode,
-					tostring(path.vjasscStrict),
-					tostring(path.allowVjasscNonAlpha)
-				))
-			end
-		end
-	end
-	print("[矩阵启动][dry-run]仅编译组合路径预览")
+	print("[矩阵启动][dry-run]组合路径预览")
 	for _, version in ipairs(versions) do
 		initPathOnly(version.value)
 		for _, compilerItem in ipairs(compilers) do
 			applyCompilerOptions(compilerItem.value)
 			print(string.format(
-				"compile version=%s compiler=%s map=%s jassCompiler=%s select=%s vjasscMode=%s strict=%s allowNonAlpha=%s",
+				"action=start version=%s compiler=%s map=%s slk=%s jassCompiler=%s select=%s vjasscMode=%s strict=%s allowNonAlpha=%s",
+				version.value,
+				compilerItem.value,
+				path.mapName,
+				slkSlot(version.value),
+				path.jassCompiler,
+				path.jassCompilerSelect,
+				path.vjasscMode,
+				tostring(path.vjasscStrict),
+				tostring(path.allowVjasscNonAlpha)
+			))
+			print(string.format(
+				"action=incremental version=%s compiler=%s map=%s slk=%s jass=%s jassCompiler=%s select=%s vjasscMode=%s strict=%s allowNonAlpha=%s",
+				version.value,
+				compilerItem.value,
+				path.mapName,
+				slkSlot(version.value),
+				path.CompileResult,
+				path.jassCompiler,
+				path.jassCompilerSelect,
+				path.vjasscMode,
+				tostring(path.vjasscStrict),
+				tostring(path.allowVjasscNonAlpha)
+			))
+			print(string.format(
+				"action=compile version=%s compiler=%s map=%s jassCompiler=%s select=%s vjasscMode=%s strict=%s allowNonAlpha=%s",
 				version.value,
 				compilerItem.value,
 				path.mapName,
@@ -444,6 +470,12 @@ local function runDryRun()
 				tostring(path.allowVjasscNonAlpha)
 			))
 		end
+		print(string.format(
+			"action=legacy version=%s compiler=none map=%s slk=%s",
+			version.value,
+			path.mapName,
+			slkSlot(version.value)
+		))
 	end
 end
 
@@ -451,6 +483,7 @@ local function runGui()
 	path.init(root, projectPath, we, gamePath)
 	local selectionFile = path.project .. "/Output/launcher/selection.txt"
 	local historyFile = path.project .. "/Output/launcher/last_selection.txt"
+	local stateFile = versionStateFile()
 	ensureDir(fu.GetDir(selectionFile))
 	os.remove(selectionFile)
 
@@ -464,11 +497,12 @@ local function runGui()
 	end
 
 	local cmd = string.format(
-		'cmd /c ""%s" "%s" "%s" "%s""',
+		'cmd /c ""%s" "%s" "%s" "%s" "%s""',
 		toWinPath(guiExe),
 		toWinPath(guiScript),
 		toWinPath(selectionFile),
-		toWinPath(historyFile)
+		toWinPath(historyFile),
+		toWinPath(stateFile)
 	)
 	print("[矩阵启动]打开GUI: " .. cmd)
 	local ok, exitType, exitCode = os.execute(cmd)
@@ -479,7 +513,7 @@ local function runGui()
 	if not fu.fileExist(selectionFile) then
 		return nil, "cancel"
 	end
-	return readSelectionFile(selectionFile)
+	return readKeyValueFile(selectionFile)
 end
 
 parseArgs()
@@ -522,10 +556,9 @@ writeSelectionFile(path.project .. "/Output/launcher/last_selection.txt", select
 resetTaskClock()
 
 print(string.format(
-	"[矩阵启动]选择: action=%s version=%s launchMode=%s compiler=%s",
+	"[矩阵启动]选择: action=%s version=%s compiler=%s",
 	selection.action,
 	selection.version,
-	selection.launchMode,
 	selection.compiler
 ))
 
