@@ -6,6 +6,7 @@ Required files:
 
 - `lan_button.png`
 - `create_game.png`
+- `create_game2.png`
 - `start_game.png`
 
 Use PNG screenshots at the original Warcraft III window scale. The current

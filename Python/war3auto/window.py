@@ -5,6 +5,13 @@ from dataclasses import dataclass
 from typing import Iterable
 
 
+EXCLUDED_TITLE_KEYWORDS = (
+    "antigravity",
+    "codex",
+    "war3lib",
+)
+
+
 @dataclass(frozen=True)
 class WindowInfo:
     hwnd: int
@@ -35,6 +42,8 @@ def list_windows(title_keywords: Iterable[str]) -> list[WindowInfo]:
         if not title:
             return
         lowered = title.lower()
+        if any(keyword in lowered for keyword in EXCLUDED_TITLE_KEYWORDS):
+            return
         if not any(keyword in lowered for keyword in keywords):
             return
         rect = win32gui.GetWindowRect(hwnd)
@@ -61,8 +70,9 @@ def find_war3_window(title_keywords: Iterable[str], timeout_seconds: float) -> W
 
 def activate_window(hwnd: int) -> None:
     win32con, win32gui, _ = _import_win32()
-    win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-    time.sleep(0.1)
+    if win32gui.IsIconic(hwnd):
+        win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+        time.sleep(0.1)
     try:
         win32gui.SetForegroundWindow(hwnd)
     except Exception as exc:

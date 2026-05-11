@@ -4,14 +4,15 @@ from pathlib import Path
 
 from .config import AutomationConfig
 from .image import wait_image
-from .input import click_center, pause
+from .input import pause, press_key
 from .window import activate_window, find_war3_window, get_window_rect
 
 
 PHASE1_STEPS = (
-    ("lan", "lan_button.png"),
-    ("create_game", "create_game.png"),
-    ("start_game", "start_game.png"),
+    ("lan", "lan_button.png", "l"),
+    ("create_game", "create_game.png", "c"),
+    ("create_game2", "create_game2.png", "c"),
+    ("start_game", "start_game.png", "s"),
 )
 
 
@@ -31,15 +32,15 @@ class Phase1Workflow:
         print(f"[war3auto] window: hwnd={window.hwnd} pid={window.pid} title={window.title}")
         activate_window(window.hwnd)
 
-        for step_name, asset_name in PHASE1_STEPS:
-            self._click_template(step_name, self.config.asset_dir / asset_name)
+        for step_name, asset_name, hotkey in PHASE1_STEPS:
+            self._press_step_hotkey(step_name, self.config.asset_dir / asset_name, hotkey)
 
     def _window_rect(self) -> tuple[int, int, int, int]:
         if self.window_hwnd is None:
             raise RuntimeError("Window has not been selected")
         return get_window_rect(self.window_hwnd)
 
-    def _click_template(self, step_name: str, template_path: Path) -> None:
+    def _press_step_hotkey(self, step_name: str, template_path: Path, hotkey: str) -> None:
         print(f"[war3auto] waiting for {step_name}: {template_path.name}")
         match = wait_image(
             self._window_rect,
@@ -49,9 +50,11 @@ class Phase1Workflow:
         )
         print(
             f"[war3auto] matched {step_name}: score={match.score:.3f} "
-            f"center=({match.center[0]}, {match.center[1]})"
+            f"center=({match.center[0]}, {match.center[1]}) hotkey={hotkey.upper()}"
         )
-        click_center(match.center, dry_run=self.config.dry_run)
+        if self.window_hwnd is not None:
+            activate_window(self.window_hwnd)
+        press_key(hotkey, dry_run=self.config.dry_run)
         pause(self.config.click_delay_seconds)
 
 

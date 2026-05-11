@@ -7,13 +7,13 @@ from pathlib import Path
 REQUIRED_ASSETS = (
     "lan_button.png",
     "create_game.png",
+    "create_game2.png",
     "start_game.png",
 )
 
 DEFAULT_WINDOW_TITLE_KEYWORDS = (
     "Warcraft",
     "Frozen Throne",
-    "War3",
     "魔兽",
 )
 
