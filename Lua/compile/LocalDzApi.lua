@@ -11,6 +11,14 @@ local DEFAULT_MODES = {
     VERSION_UNITTEST = true
 }
 
+local function elapsedMs(startClock)
+    return math.floor((os.clock() - startClock) * 1000 + 0.5)
+end
+
+local function formatElapsedSeconds(ms)
+    return string.format("[用时%.2f秒]", (ms or 0) / 1000)
+end
+
 local function ensureDir(dir)
     if lfs.attributes(dir, "mode") == "directory" then
         return true
@@ -146,28 +154,35 @@ local function readMockState()
 end
 
 function localDzApi.generate()
+    local started = os.clock()
     local version, cfg, _, enabled = readMockState()
     local content
+    local label
 
     if enabled then
         content = buildHeader(version, cfg)
-        print("[DzAPI本地替换]启用: " .. version .. " <- " .. path.localDzApiIni)
+        label = "[DzAPI本地替换]启用: " .. version .. " <- " .. path.localDzApiIni
     else
         content = emptyHeader(version)
-        print("[DzAPI本地替换]跳过: " .. version)
+        label = "[DzAPI本地替换]跳过: " .. version
     end
 
     local ok, err = ensureDir(path.generatedConfig)
     if not ok then
         return false, err
     end
-    return fu.WriteOver(path.localDzApiMockH, content)
+    ok, err = fu.WriteOver(path.localDzApiMockH, content)
+    if ok then
+        print(label .. formatElapsedSeconds(elapsedMs(started)))
+    end
+    return ok, err
 end
 
 function localDzApi.applyMapConfigReplacement(filePath)
+    local started = os.clock()
     local version, cfg, localSection, enabled = readMockState()
     if not enabled then
-        print("[DzAPI本地替换]MapConfig跳过: " .. version)
+        print("[DzAPI本地替换]MapConfig跳过: " .. version .. formatElapsedSeconds(elapsedMs(started)))
         return true
     end
 
@@ -193,15 +208,16 @@ function localDzApi.applyMapConfigReplacement(filePath)
 
     local ok, err = fu.WriteOver(filePath, content)
     if ok then
-        print(string.format("[DzAPI本地替换]MapConfig完成: 按Key替换=%d, 兜底替换=%d", keyCount, fallbackCount))
+        print(string.format("[DzAPI本地替换]MapConfig完成: 按Key替换=%d, 兜底替换=%d%s", keyCount, fallbackCount, formatElapsedSeconds(elapsedMs(started))))
     end
     return ok, err
 end
 
 function localDzApi.applyPlayerFlagsReplacement(filePath)
+    local started = os.clock()
     local version, cfg, localSection, enabled = readMockState()
     if not enabled then
-        print("[DzAPI本地替换]PlayerFlags跳过: " .. version)
+        print("[DzAPI本地替换]PlayerFlags跳过: " .. version .. formatElapsedSeconds(elapsedMs(started)))
         return true
     end
 
@@ -228,7 +244,7 @@ function localDzApi.applyPlayerFlagsReplacement(filePath)
 
     local ok, err = fu.WriteOver(filePath, content)
     if ok then
-        print(string.format("[DzAPI本地替换]PlayerFlags完成: 按label替换=%d, 兜底替换=%d", labelCount, fallbackCount))
+        print(string.format("[DzAPI本地替换]PlayerFlags完成: 按label替换=%d, 兜底替换=%d%s", labelCount, fallbackCount, formatElapsedSeconds(elapsedMs(started))))
     end
     return ok, err
 end

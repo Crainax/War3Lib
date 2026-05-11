@@ -1061,9 +1061,11 @@ function compile:StartCompileCheckOnly()
 		return false
 	end
 
+	local phaseStarted = os.clock()
 	local dzOk, dzErr = localDzApi.generate()
+	local localDzApiGenerateMs = elapsedMs(phaseStarted)
 	if not dzOk then
-		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr))
+		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr) .. formatElapsedSeconds(localDzApiGenerateMs))
 		return false
 	end
 
@@ -1074,18 +1076,20 @@ function compile:StartCompileCheckOnly()
 
 	print("[即将开始]检测文件(不完整编译) : " .. path.CompileStep0)
 
+	phaseStarted = os.clock()
 	code, msg = self:CompileWave(path.CompileStep0) -- 先预处理一次
+	local wave1Ms = elapsedMs(phaseStarted)
 	if code then
 		local waveResult = string.gsub(path.CompileStep0, "%.j", ".i")
 		pcall(os.remove, path.CompileStep1)
 		local suc, errmsg = os.rename(waveResult, path.CompileStep1)
 		if not suc then
-			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg) .. formatElapsedSeconds(wave1Ms))
 			return false
 		end
-		print("[第一次Wave]预处理成功 : " .. path.CompileStep1)
+		print("[第一次Wave]预处理成功 : " .. path.CompileStep1 .. formatElapsedSeconds(wave1Ms))
 	else
-		print("[第一次Wave]预处理失败:" .. tostring(msg))
+		print("[第一次Wave]预处理失败:" .. tostring(msg) .. formatElapsedSeconds(wave1Ms))
 		return false
 	end
 
@@ -1126,27 +1130,31 @@ function compile:StartCompileCheckOnly()
 
 	self:InjectCodeBlock()
 
+	phaseStarted = os.clock()
 	code, msg = self:CompileWave(path.CompileStep2)
+	local wave2Ms = elapsedMs(phaseStarted)
 	if code then
 		local waveResult = string.gsub(path.CompileStep2, "%.j", ".i")
 		pcall(os.remove, path.CompileStep3)
 		local suc, errmsg = os.rename(waveResult, path.CompileStep3)
 		if not suc then
-			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg) .. formatElapsedSeconds(wave2Ms))
 			return false
 		end
-		print("[第二次Wave]预处理成功 : " .. path.CompileStep3)
+		print("[第二次Wave]预处理成功 : " .. path.CompileStep3 .. formatElapsedSeconds(wave2Ms))
 	else
-		print("[第二次Wave]预处理失败:" .. tostring(msg))
+		print("[第二次Wave]预处理失败:" .. tostring(msg) .. formatElapsedSeconds(wave2Ms))
 		return false
 	end
 
+	phaseStarted = os.clock()
 	fileUtils.copyFile(path.CompileStep3, path.CompileStep4)
 	code, msg = self:CompileLua()
+	local compileLuaMs = elapsedMs(phaseStarted)
 	if code then
-		print("[Lua]遍历处理成功 : " .. path.CompileStep4)
+		print("[Lua]遍历处理成功 : " .. path.CompileStep4 .. formatElapsedSeconds(compileLuaMs))
 	else
-		print("[Lua]遍历处理失败:" .. tostring(msg))
+		print("[Lua]遍历处理失败:" .. tostring(msg) .. formatElapsedSeconds(compileLuaMs))
 		return false
 	end
 
@@ -1188,7 +1196,7 @@ function compile:StartCompile()
 	local dzOk, dzErr = localDzApi.generate()
 	timings.localDzApiGenerateMs = elapsedMs(phaseStarted)
 	if not dzOk then
-		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr))
+		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr) .. formatElapsedSeconds(timings.localDzApiGenerateMs))
 		return false
 	end
 
@@ -1209,12 +1217,12 @@ function compile:StartCompile()
 		pcall(os.remove, path.CompileStep1) -- 把老的waveResult删除
 		local suc, errmsg = os.rename(waveResult, path.CompileStep1)
 		if not (suc) then
-			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg) .. formatElapsedSeconds(timings.wave1Ms))
 			return false
 		end
-		print("[第一次Wave]预处理成功 : " .. path.CompileStep1)
+		print("[第一次Wave]预处理成功 : " .. path.CompileStep1 .. formatElapsedSeconds(timings.wave1Ms))
 	else
-		print("[第一次Wave]预处理失败:" .. msg)
+		print("[第一次Wave]预处理失败:" .. msg .. formatElapsedSeconds(timings.wave1Ms))
 		return false
 	end
 
@@ -1270,12 +1278,12 @@ function compile:StartCompile()
 		pcall(os.remove, path.CompileStep3) -- 把老的waveResult删除
 		local suc, errmsg = os.rename(waveResult, path.CompileStep3)
 		if not (suc) then
-			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg) .. formatElapsedSeconds(timings.wave2Ms))
 			return false
 		end
-		print("[第二次Wave]预处理成功 : " .. path.CompileStep3)
+		print("[第二次Wave]预处理成功 : " .. path.CompileStep3 .. formatElapsedSeconds(timings.wave2Ms))
 	else
-		print("[第二次Wave]预处理失败:" .. msg)
+		print("[第二次Wave]预处理失败:" .. msg .. formatElapsedSeconds(timings.wave2Ms))
 		return false
 	end
 
@@ -1285,9 +1293,9 @@ function compile:StartCompile()
 	code, msg = self:CompileLua()
 	timings.compileLuaMs = elapsedMs(phaseStarted)
 	if code then
-		print("[Lua]遍历处理成功 : " .. path.CompileStep4)
+		print("[Lua]遍历处理成功 : " .. path.CompileStep4 .. formatElapsedSeconds(timings.compileLuaMs))
 	else
-		print("[Lua]遍历处理失败:" .. msg)
+		print("[Lua]遍历处理失败:" .. msg .. formatElapsedSeconds(timings.compileLuaMs))
 		return false
 	end
 
@@ -1295,7 +1303,7 @@ function compile:StartCompile()
 	code, msg = localDzApi.applyMapConfigReplacement(path.CompileStep4)
 	timings.dzApiMapConfigMs = elapsedMs(phaseStarted)
 	if not code then
-		print("[DzAPI本地替换]MapConfig失败:" .. tostring(msg))
+		print("[DzAPI本地替换]MapConfig失败:" .. tostring(msg) .. formatElapsedSeconds(timings.dzApiMapConfigMs))
 		return false
 	end
 
@@ -1303,7 +1311,7 @@ function compile:StartCompile()
 	code, msg = localDzApi.applyPlayerFlagsReplacement(path.CompileStep4)
 	timings.dzApiPlayerFlagsMs = elapsedMs(phaseStarted)
 	if not code then
-		print("[DzAPI本地替换]PlayerFlags失败:" .. tostring(msg))
+		print("[DzAPI本地替换]PlayerFlags失败:" .. tostring(msg) .. formatElapsedSeconds(timings.dzApiPlayerFlagsMs))
 		return false
 	end
 

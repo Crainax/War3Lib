@@ -16,7 +16,9 @@ description: War3/KK DzAPI 服务器存档读写规范。用于在 JASS/Zinc 中
 - 在文件头先声明本模块全部存档位宏常量（Key、版本号、上限值、节流参数）。
 - 默认使用 `DzAPI_Map_StoreInteger/GetStoredInteger` 与 `DzAPI_Map_StoreString/GetStoredString`；仅在确实需要自定义前缀或原始存取时使用 `SaveServerValue/GetServerValue`。
 - 只在开局初始化阶段执行 `GetStored*` 读取；局中逻辑只读内存缓存，不依赖再次 `GetStored*` 获取“最新值”。
+- `GetStoredInteger/GetStoredString` 在同一局内按开局快照返回；即使局中 `Store*` 成功、失败、被后端上限拒绝或写入不同值，再次 `GetStored*` 也仍可能返回开局值，禁止用它确认局中写入结果。
 - 每次存档写入都先更新内存缓存，再调用 `Store*` 写回（write-through）。
+- 遇到后端每日/每局上限、只增、频率限制等不确定写入结果时，区分“开局可消费存量”和“局中新获得增量”：本局消费只用开局存量，局中增量只展示并写回尝试，下局读取后再参与消费。
 - 字符串 Key 与 Value 一律按 `<=63` 设计；接近上限时优先拆分或压缩，不赌平台边界。
 - 涉及位判断存档时优先使用 `IsSuperBit/SetSuperBit` 方案，保持 60 位数字串模板一致。
 - 涉及设置项紧凑存档时，使用“版本前缀 + 单字符位”拼接法，解析时做长度与版本校验。

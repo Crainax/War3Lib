@@ -7,6 +7,10 @@ local compileFiles = require "Lua.compile.CompileFiles"
 -- 库
 local utr = {}
 
+local function formatElapsedSeconds(startClock)
+	return string.format("[用时%.2f秒]", os.clock() - startClock)
+end
+
 -- 不复制的列表
 local ncList = {
 	"Art", -- 防内联
@@ -130,6 +134,7 @@ end
 -- path.resource: 地图资源根目录
 -- compileFiles.resourceFiles: 记录的是相对于资源根目录的路径
 utr.copyResourceFiles = function()
+	local started = os.clock()
 	local createdFiles = {}
 	local successCount = 0
 	local failedFiles = {}
@@ -159,9 +164,9 @@ utr.copyResourceFiles = function()
 	end
 
 	if path.mapName ~= "OriginMap" then
-		print(string.format("    [临时资源] 成功: %d, 失败: %d", successCount, #failedFiles))
+		print(string.format("    [临时资源] 成功: %d, 失败: %d%s", successCount, #failedFiles, formatElapsedSeconds(started)))
 	else
-		print(string.format("    [临时资源] 成功: %d, 失败: %d", successCount, #failedFiles))
+		print(string.format("    [临时资源] 成功: %d, 失败: %d%s", successCount, #failedFiles, formatElapsedSeconds(started)))
 		if #createdFiles > 0 then
 			print("    [临时资源] 新创建文件列表:")
 			for _, file in ipairs(createdFiles) do

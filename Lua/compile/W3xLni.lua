@@ -8,6 +8,10 @@ local luaRuntime = require("Lua.compile.LuaRuntime")
 
 local w3xlni     = {}
 
+local function formatElapsedSeconds(startClock)
+	return string.format("[用时%.2f秒]", os.clock() - startClock)
+end
+
 -- 根据AllJassH文件情况判断返回是不是处于单元测试状态
 local Convert    = function(cType, inPath, outPath)
 	local cmdExe = path.toolRoot .. "/w3x2lni/w2l.exe"
@@ -133,18 +137,20 @@ function w3xlni:Start(func)
 	end
 	local rootMapScript = path.project .. "/" .. path.mapName .. "/war3map.j"
 	if path.mapJ then
+		local scriptStarted = os.clock()
 		local code, msg = copy.copyFile(path.CompileResult, path.mapJ)
 		if code then
-			print("[Lua" .. path.buildVersion .. "]脚本打包进地图成功")
+			print("[Lua" .. path.buildVersion .. "]脚本打包进地图成功" .. formatElapsedSeconds(scriptStarted))
 		else
-			print("[Lua" .. path.buildVersion .. "]脚本打包进地图失败:" .. msg)
+			print("[Lua" .. path.buildVersion .. "]脚本打包进地图失败:" .. msg .. formatElapsedSeconds(scriptStarted))
 		end
 
+		local rootStarted = os.clock()
 		local rootCode, rootMsg = copy.copyFile(path.CompileResult, rootMapScript)
 		if rootCode then
-			print("[Lua" .. path.buildVersion .. "]同步根脚本成功")
+			print("[Lua" .. path.buildVersion .. "]同步根脚本成功" .. formatElapsedSeconds(rootStarted))
 		else
-			print("[Lua" .. path.buildVersion .. "]同步根脚本失败:" .. tostring(rootMsg))
+			print("[Lua" .. path.buildVersion .. "]同步根脚本失败:" .. tostring(rootMsg) .. formatElapsedSeconds(rootStarted))
 		end
 	end
 	utr.copyResourceFiles() -- 复制资源文件

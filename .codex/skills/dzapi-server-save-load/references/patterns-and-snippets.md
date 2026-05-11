@@ -62,7 +62,9 @@ library SignArchive {
 
 规则：
 - 局中不要依赖重复 `GetStored*` 来读取“最新值”。
+- 平台实测特性：同一局内 `DzAPI_Map_GetStoredInteger/GetStoredString` 会继续返回开局加载快照；局中 `Store*` 后无论后端实际接受、拒绝或限流，再次 `GetStored*` 都不能用来确认写入结果。
 - 所有判断逻辑依赖缓存变量。
+- 如果后端可能设置每日/每局上限，局中新增值不要立即加入本局可消费池；用单独增量缓存展示并尝试写回，下一局重新读取后再参与消费判断。
 
 ## 2) 写回策略（write-through）
 

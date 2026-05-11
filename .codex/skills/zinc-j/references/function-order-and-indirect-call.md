@@ -2,10 +2,12 @@
 
 ### 1) 基本约束
 
-- 默认按定义顺序可见：下方可直接调上方；上方不可直接调下方。
-- 上方必须调下方时，使用以下两种方式之一：
-  - `xxxx.execute(...)` / `xxxx.evaluate(...)`
-  - 把下方逻辑包进 `struct` 的静态方法，通过静态方法对外暴露
+- 日常写 Zinc/JASS 时，不再强制要求“下方函数只能调用上方函数”。`vjassc` 会处理上方函数直接调用下方函数的场景。
+- `jasshelper` 仍可能按旧的函数顺序规则失败：上方函数直接调用下方函数时，可能报未声明/不可见。
+- 如果遇到“`jasshelper` 因函数顺序失败，但 `vjassc` 能通过”的情况，优先在这条调用上改成 `xxxx.evaluate(...)`，不要为了兼容旧编译器大范围搬动函数。
+- 只有需要结构化封装、复用边界更清晰，或已经在 `struct` 内组织逻辑时，才把下方逻辑包进 `struct` 静态方法。
+
+独立判例：`Init` 调用定义在下方的 `RefreshPanel` 时，`vjassc` 可以自动整理输出顺序；若同时要求 `jasshelper` 通过，可把调用点改成 `RefreshPanel.evaluate(owner)`，而不是把整段 UI 初始化函数整体搬动。
 
 ### 2) `execute` 示例（无返回）
 
@@ -56,7 +58,7 @@ if (NeedRefresh.evaluate(u)) {
 }
 ```
 
-### 5) 封装为静态方法（优先）
+### 5) 封装为静态方法（可选）
 
 ```jass
 public struct RecreateCarBridge []{
@@ -68,4 +70,4 @@ public struct RecreateCarBridge []{
 RecreateCarBridge.run(u);
 ```
 
-- 非必要时仍建议保持“下方调上方”的设计，避免引入额外 trigger/condition 包装开销。
+- `jasshelper` 侧的 `evaluate` 会引入额外 trigger/condition 包装开销；如果只走 `vjassc`，通常不需要为了函数顺序添加间接调用。
