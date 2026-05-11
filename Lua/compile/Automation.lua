@@ -45,6 +45,7 @@ function automation.Run(options)
 	appendArg(args, "--we", path.we)
 	appendArg(args, "--game-path", path.gamePath)
 	appendArg(args, "--map-path", options.mapPath)
+	appendArg(args, "--phase", options.phase)
 	if options.launchWar3 then
 		table.insert(args, "--launch-war3")
 	end
@@ -57,6 +58,20 @@ function automation.Run(options)
 	if options.timeoutSeconds then
 		table.insert(args, "--timeout")
 		table.insert(args, tostring(options.timeoutSeconds))
+	end
+	if options.clients then
+		table.insert(args, "--clients")
+		table.insert(args, tostring(options.clients))
+	end
+	if options.postJoinDelaySeconds then
+		table.insert(args, "--post-join-delay")
+		table.insert(args, tostring(options.postJoinDelaySeconds))
+	end
+	if options.hostLayout then
+		appendArg(args, "--host-layout", options.hostLayout)
+	end
+	if options.clientLayout then
+		appendArg(args, "--client-layout", options.clientLayout)
 	end
 	if options.threshold then
 		table.insert(args, "--threshold")
@@ -73,8 +88,17 @@ function automation.Run(options)
 	return true
 end
 
-function automation.CheckAssets()
-	return automation.Run({ checkAssets = true })
+function automation.RunPhase2(options)
+	options = options or {}
+	options.phase = "phase2"
+	options.clients = options.clients or 1
+	return automation.Run(options)
+end
+
+function automation.CheckAssets(options)
+	options = options or {}
+	options.checkAssets = true
+	return automation.Run(options)
 end
 
 return automation

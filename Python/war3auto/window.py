@@ -54,6 +54,29 @@ def list_windows(title_keywords: Iterable[str]) -> list[WindowInfo]:
     return matches
 
 
+def list_war3_windows(title_keywords: Iterable[str]) -> list[WindowInfo]:
+    return list_windows(title_keywords)
+
+
+def wait_new_war3_window(
+    before_hwnds: Iterable[int],
+    title_keywords: Iterable[str],
+    timeout_seconds: float,
+) -> WindowInfo:
+    before = set(before_hwnds)
+    deadline = time.monotonic() + timeout_seconds
+    last_titles: list[str] = []
+    while time.monotonic() < deadline:
+        windows = list_war3_windows(title_keywords)
+        for window in windows:
+            if window.hwnd not in before:
+                return window
+        last_titles = [window.title for window in windows]
+        time.sleep(0.5)
+    suffix = f"; candidates={last_titles}" if last_titles else ""
+    raise TimeoutError(f"New Warcraft III window not found within {timeout_seconds:.1f}s{suffix}")
+
+
 def find_war3_window(title_keywords: Iterable[str], timeout_seconds: float) -> WindowInfo:
     deadline = time.monotonic() + timeout_seconds
     last_titles: list[str] = []
