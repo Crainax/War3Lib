@@ -254,6 +254,27 @@ local function writeMetricsObject(out, metrics, indent)
 	out[#out + 1] = pad .. "}"
 end
 
+local function shouldUseVjasscIncremental()
+	if path.vjasscIncremental == false then
+		return false
+	end
+	return path.buildVersion == "内测版本" or path.buildVersion == "单元测试"
+end
+
+local function vjasscIncrementalVersionSlug()
+	if path.buildVersion == "内测版本" then
+		return "alpha"
+	elseif path.buildVersion == "单元测试" then
+		return "unittest"
+	end
+	return "disabled"
+end
+
+local function vjasscIncrementalCacheDir()
+	local mode = tostring(path.vjasscMode or "validate")
+	return path.vjasscIncrementalCacheRoot .. "/" .. vjasscIncrementalVersionSlug() .. "/" .. mode
+end
+
 local function writeCompilerBackendReport(report)
 	local helperMetrics = fileMetrics(path.CompileStep5JassHelper)
 	local vjasscMetrics = fileMetrics(path.CompileStep5Vjassc)
@@ -263,6 +284,7 @@ local function writeCompilerBackendReport(report)
 	local vjasscTimings = extractNumberMapFromContent(statsContent, "timingMs")
 	local vjasscPassTimings = extractNumberMapFromContent(statsContent, "codegenPasses")
 	local vjasscCounters = extractNumberMapFromContent(statsContent, "performanceCounters")
+	local vjasscIncrementalEnabled = report.vjassc ~= nil and shouldUseVjasscIncremental()
 	local out = {}
 
 	out[#out + 1] = "{\n"
@@ -294,6 +316,11 @@ local function writeCompilerBackendReport(report)
 	out[#out + 1] = "    \"stats\": " .. jsonString(relativeOutput(path.VjasscStats)) .. ",\n"
 	out[#out + 1] = "    \"stdout\": " .. jsonString(relativeOutput(path.VjasscStdout)) .. ",\n"
 	out[#out + 1] = "    \"stderr\": " .. jsonString(relativeOutput(path.VjasscStderr)) .. ",\n"
+	out[#out + 1] = "    \"incremental\": {\n"
+	out[#out + 1] = "      \"enabled\": " .. jsonBool(vjasscIncrementalEnabled) .. ",\n"
+	out[#out + 1] = "      \"cacheDir\": " .. jsonString(vjasscIncrementalEnabled and vjasscIncrementalCacheDir() or "") .. ",\n"
+	out[#out + 1] = "      \"report\": " .. jsonString(vjasscIncrementalEnabled and relativeOutput(path.VjasscIncrementalReport) or "") .. "\n"
+	out[#out + 1] = "    },\n"
 	out[#out + 1] = "    \"metrics\": "
 	writeMetricsObject(out, vjasscMetrics, 4)
 	out[#out + 1] = ",\n    \"timingMs\": "
@@ -838,6 +865,7 @@ function compile:RunVjassc(input, output)
 	pcall(os.remove, path.VjasscStdout)
 	pcall(os.remove, path.VjasscStderr)
 	pcall(os.remove, path.VjasscCommand)
+	pcall(os.remove, path.VjasscIncrementalReport)
 
 	local args = {
 		fileUtils.PathString(path.vjassc),
@@ -850,6 +878,15 @@ function compile:RunVjassc(input, output)
 		"--emit-stats",
 		fileUtils.PathString(path.VjasscStats),
 	}
+
+	if shouldUseVjasscIncremental() then
+		args[#args + 1] = "--experimental-incremental-cache"
+		args[#args + 1] = fileUtils.PathString(vjasscIncrementalCacheDir())
+		args[#args + 1] = "--incremental-mode"
+		args[#args + 1] = "reuse"
+		args[#args + 1] = "--emit-incremental-report"
+		args[#args + 1] = fileUtils.PathString(path.VjasscIncrementalReport)
+	end
 
 	if path.vjasscMode ~= "fast" then
 		args[#args + 1] = "--emit-validation-report"
