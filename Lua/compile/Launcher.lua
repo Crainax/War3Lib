@@ -76,6 +76,15 @@ end
 
 launcher.OpenWithAntigravity = openWithAntigravity
 
+local function openWithNotepad(filePath)
+	local target = filePath:gsub("/", "\\")
+	local quotedTarget = '"' .. target:gsub('"', '\\"') .. '"'
+	local ps = "Start-Process -FilePath notepad.exe -ArgumentList @(" .. powershellString(quotedTarget) .. ")"
+	return os.execute(powershellCommand(ps))
+end
+
+launcher.OpenWithNotepad = openWithNotepad
+
 local function sleepOneSecond()
 	os.execute("ping -n 2 127.0.0.1 >nul")
 end
@@ -152,7 +161,7 @@ function launcher.WaitAndOpenNewLog(before, timeoutSeconds, startClock)
 		local logPath = newestNewLog(logDir, before or {}, startClock)
 		if logPath then
 			print("[日志等待]发现新日志: " .. logPath)
-			openWithAntigravity(logPath)
+			openWithNotepad(logPath)
 			return true
 		end
 		sleepOneSecond()

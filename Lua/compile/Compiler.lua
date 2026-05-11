@@ -621,9 +621,7 @@ end
 -- 进行代码块及代码头的注入(第二次Wave前)
 function compile:InjectCodeBlock()
 	injecter:initialize() -- 初始化注入器
-	if injecter:compile(path, path.CompileStep2) >= 0 then
-		print("[代码注入]成功 : " .. path.CompileStep2)
-	else
+	if injecter:compile(path, path.CompileStep2) < 0 then
 		print("[代码注入]失败")
 		return false
 	end

@@ -16,6 +16,7 @@ end
 
 local function normalizeCompiler(value)
     value = string.lower(tostring(value or "jasshelper"))
+    value = value:gsub("^%-+", "")
     if value == "vjassc" or value == "both" then
         return value
     end
@@ -24,6 +25,7 @@ end
 
 local function isCompilerArg(value)
     value = string.lower(tostring(value or ""))
+    value = value:gsub("^%-+", "")
     return value == "jasshelper" or value == "vjassc" or value == "both"
 end
 

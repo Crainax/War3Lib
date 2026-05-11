@@ -45,6 +45,7 @@
 #define MUSIC_INDEX_SHOP_BUY        3009 //商店购买音效
 #define MUSIC_INDEX_SPELL_UNLOCK    3010 //技能解锁音效
 #define MUSIC_INDEX_UPDATE_SPELL    3011 //技能升级音效
+#define MUSIC_INDEX_START_MISSION   3012 //任务开始音效
 
 #define SOUND_POOL_SIZE 20  // 每个音效的对象池大小（可同时播放20个）
 

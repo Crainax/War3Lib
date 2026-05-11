@@ -34,6 +34,8 @@ local state = {
 local groups = {}
 local summaryLabel
 local win
+local bindShortcutKeys
+local finishSelection
 
 local actionItems = {
 	{ value = "start", title = "全量启动" },
@@ -212,6 +214,7 @@ local function makeRadioButton(groupName, item, width)
 	local button = gui.Button.create({ title = item.title, type = "radio" })
 	button:setstyle({ Width = width, Height = 38, Margin = 4 })
 	styleButton(button, fontNormal)
+	bindShortcutKeys(button)
 	button:setchecked(state[groupName] == item.value)
 	function button:onclick()
 		selectGroup(groupName, item.value)
@@ -336,11 +339,39 @@ local function closeWindow()
 	end
 end
 
+function finishSelection(status)
+	writeSelection(status)
+	closeWindow()
+end
+
+local function handleShortcutKey(event)
+	local key = event and event.key
+	if key == "Escape" or key == "Esc" then
+		finishSelection("cancel")
+		return true
+	elseif key == "Enter" or key == "Return" then
+		finishSelection("ok")
+		return true
+	end
+	return false
+end
+
+function bindShortcutKeys(view)
+	if not view or not view.onkeydown then
+		return
+	end
+	function view:onkeydown(event)
+		return handleShortcutKey(event)
+	end
+end
+
 local function createMainView()
 	local root = makeContainer({
 		FlexGrow = 1,
 		FlexDirection = "column",
 	}, "#1B1F2A")
+	root:setfocusable(true)
+	bindShortcutKeys(root)
 
 	local caption = makeContainer({
 		Height = 42,
@@ -362,6 +393,7 @@ local function createMainView()
 	local close = gui.Button.create("×")
 	close:setstyle({ Width = 42, Height = 42 })
 	styleButton(close, createFont(20, "bold"))
+	bindShortcutKeys(close)
 	function close:onclick()
 		closeWindow()
 	end
@@ -403,9 +435,9 @@ local function createMainView()
 	local cancel = gui.Button.create("取消")
 	cancel:setstyle({ Width = 84, Height = 38, MarginRight = 8 })
 	styleButton(cancel, fontNormal, "#000000")
+	bindShortcutKeys(cancel)
 	function cancel:onclick()
-		writeSelection("cancel")
-		closeWindow()
+		finishSelection("cancel")
 	end
 
 	buttons:addchildview(cancel)
@@ -413,12 +445,12 @@ local function createMainView()
 	local launch = gui.Button.create("启动")
 	launch:setstyle({ Width = 100, Height = 38 })
 	styleButton(launch, fontNormal, "#000000")
+	bindShortcutKeys(launch)
 	if launch.makedefault then
 		launch:makedefault()
 	end
 	function launch:onclick()
-		writeSelection("ok")
-		closeWindow()
+		finishSelection("ok")
 	end
 
 	buttons:addchildview(launch)
@@ -434,7 +466,8 @@ win:setresizable(false)
 win:setmaximizable(false)
 win:setminimizable(false)
 win:sethasshadow(true)
-win:setcontentview(createMainView())
+local mainView = createMainView()
+win:setcontentview(mainView)
 win:setcontentsize({ width = 800, height = 520 })
 win:center()
 function win.onclose()
@@ -442,4 +475,5 @@ function win.onclose()
 end
 
 win:activate()
+mainView:focus()
 gui.MessageLoop.run()

@@ -2,11 +2,14 @@ local lfs = require("lfs")
 local path = require("Lua.path")
 local inject_code = {}
 
+local INJECT_DETAIL_LOG_NAME = "inject_detail.txt"
+
 -- 注入代码表
 inject_code.new_table = {}
 inject_code.old_table = {}
 inject_code.chain_table = {} -- 链式依赖
 inject_code.detect_cache = {} -- 结果缓存
+inject_code.detect_cache_info = {} -- 结果缓存附带的日志信息
 inject_code.obj_files = {
     ability = {},
     item = {},
@@ -18,6 +21,41 @@ local obj_seen = {
     item = {},
     unit = {}
 }
+
+local function format_elapsed(seconds)
+    return string.format("[用时%.2f秒]", seconds or 0)
+end
+
+local function get_log_path()
+    return path.InjectDetailLog or (path.project .. "/Output/" .. INJECT_DETAIL_LOG_NAME)
+end
+
+local function ensure_log_dir()
+    local log_path = get_log_path()
+    local dir = log_path:match("^(.*)[/\\][^/\\]+$")
+    if dir and lfs.attributes(dir, "mode") ~= "directory" then
+        lfs.mkdir(dir)
+    end
+end
+
+local function reset_detail_log()
+    ensure_log_dir()
+    local file = io.open(get_log_path(), "w")
+    if file then
+        file:write("[Inject明细]\n")
+        file:close()
+    end
+end
+
+local function append_detail_log(line)
+    ensure_log_dir()
+    local file = io.open(get_log_path(), "a")
+    if file then
+        file:write(line or "")
+        file:write("\n")
+        file:close()
+    end
+end
 
 local function reset_obj_files()
     for key in pairs(inject_code.obj_files) do
@@ -228,8 +266,24 @@ function inject_code:detect(path)
         -- 命中缓存
         build_obj_files_from_result(cache_entry)
         local end_time_cached = os.clock()
-        print(string.format("函数检测用时: %.3f 秒", end_time_cached - start_time))
+        local elapsed = end_time_cached - start_time
+        local info = self.detect_cache_info[cache_key] or { count = 0, lines = {} }
+        append_detail_log(string.format("[函数检测]命中缓存 %s", path.inject or ""))
+        for _, line in ipairs(info.lines or {}) do
+            append_detail_log(line)
+        end
+        append_detail_log(string.format("[函数检测]检测到 %d 个函数 %s", info.count or 0, format_elapsed(elapsed)))
+        print(string.format("[函数检测]检测到 %d 个函数 %s", info.count or 0, format_elapsed(elapsed)))
         return cache_entry
+    end
+
+    local detect_count = 0
+    local detect_lines = {}
+
+    local function record_detect(line)
+        detect_count = detect_count + 1
+        detect_lines[#detect_lines + 1] = line
+        append_detail_log(line)
     end
 
     -- 递归处理依赖文件
@@ -281,13 +335,13 @@ function inject_code:detect(path)
                 -- 严格模式
                 if hasDot then
                     if windowSet[function_name] then
-                        print(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
+                        record_detect(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
                         result[file] = true
                         process_chain_files(file)
                     end
                 else
                     if wordSet[function_name] then
-                        print(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
+                        record_detect(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
                         result[file] = true
                         process_chain_files(file)
                     end
@@ -298,18 +352,26 @@ function inject_code:detect(path)
 
     -- 写入缓存
     self.detect_cache[cache_key] = result
+    self.detect_cache_info[cache_key] = {
+        count = detect_count,
+        lines = detect_lines
+    }
 
     build_obj_files_from_result(result)
 
     -- 添加结束时间记录和输出
     local end_time = os.clock()
-    print(string.format("函数检测用时: %.3f 秒", end_time - start_time))
+    local elapsed = end_time - start_time
+    append_detail_log(string.format("[函数检测]检测到 %d 个函数 %s", detect_count, format_elapsed(elapsed)))
+    print(string.format("[函数检测]检测到 %d 个函数 %s", detect_count, format_elapsed(elapsed)))
 
     return result
 end
 
 -- 注入代码到Jass代码文件中
 function inject_code:do_inject(path, tbl)
+    local start_time = os.clock()
+    local inject_count = 0
     -- 结果
     local result = 1
     if tbl and next(tbl) then
@@ -337,11 +399,12 @@ function inject_code:do_inject(path, tbl)
                     map_script_file:write("\r\n")
                     -- 成功
                     s = s .. " √"
-                    print(s)
+                    append_detail_log(s)
+                    inject_count = inject_count + 1
                 else
                     result = -1
                     s = s .. " ×"
-                    print(s)
+                    append_detail_log(s)
                 end
             end
 
@@ -356,6 +419,10 @@ function inject_code:do_inject(path, tbl)
             print(e)
         end
     end
+
+    local elapsed = os.clock() - start_time
+    append_detail_log(string.format("[文件注入]注入了 %d 个文件 %s", inject_count, format_elapsed(elapsed)))
+    print(string.format("[文件注入]注入了 %d 个文件 %s", inject_count, format_elapsed(elapsed)))
 
     return result
 end
@@ -558,7 +625,9 @@ function inject_code:initialize()
     self.old_table = {}
     self.chain_table = {}
     self.detect_cache = {}
+    self.detect_cache_info = {}
     reset_obj_files()
+    reset_detail_log()
 
     local hasLocalCrainax = false
     if lfs.attributes(path.project .. "/.linked", "mode") == "directory" then
