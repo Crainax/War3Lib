@@ -12,7 +12,7 @@ PHASE1_STEPS = (
     ("lan", "lan_button.png", "l"),
     ("create_game", "create_game.png", "c"),
     ("create_game2", "create_game2.png", "c"),
-    ("start_game", "start_game.png", "s"),
+    ("start_game", "start_game.png", "alt+s"),
 )
 
 
@@ -48,9 +48,10 @@ class Phase1Workflow:
             self.config.threshold,
             self.config.timeout_seconds,
         )
+        hotkey_label = hotkey.upper()
         print(
             f"[war3auto] matched {step_name}: score={match.score:.3f} "
-            f"center=({match.center[0]}, {match.center[1]}) hotkey={hotkey.upper()}"
+            f"center=({match.center[0]}, {match.center[1]}) hotkey={hotkey_label}"
         )
         if self.window_hwnd is not None:
             activate_window(self.window_hwnd)

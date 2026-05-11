@@ -29,7 +29,11 @@ def press_key(key: str, dry_run: bool = False) -> None:
         print(f"[war3auto] dry-run press key: {key}")
         return
     pyautogui = _import_pyautogui()
-    pyautogui.press(key)
+    keys = tuple(part.strip().lower() for part in key.split("+") if part.strip())
+    if len(keys) > 1:
+        pyautogui.hotkey(*keys)
+    elif keys:
+        pyautogui.press(keys[0])
 
 
 def pause(seconds: float) -> None:
