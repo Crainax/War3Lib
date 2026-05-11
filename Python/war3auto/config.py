@@ -4,22 +4,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
-PHASE_ASSETS = {
-    "phase1": (
-        "lan_button.png",
-        "create_game.png",
-        "create_game2.png",
-        "start_game.png",
-    ),
-    "phase2": (
-        "lan_button.png",
-        "create_game.png",
-        "create_game2.png",
-        "start_game.png",
-        "room_list.png",
-        "join_game.png",
-    ),
-}
+REQUIRED_ASSETS = (
+    "lan_button.png",
+    "create_game.png",
+    "create_game2.png",
+    "start_game.png",
+    "room_list.png",
+    "select_room.png",
+)
 
 DEFAULT_WINDOW_TITLE_KEYWORDS = (
     "Warcraft",
@@ -36,11 +28,10 @@ class AutomationConfig:
     game_path: Path | None = None
     map_path: Path | None = None
     asset_dir: Path | None = None
-    phase: str = "phase1"
     launch_war3: bool = False
-    clients: int = 1
-    host_layout: tuple[int, int, int, int] = (0, 0, 960, 540)
-    client_layouts: tuple[tuple[int, int, int, int], ...] = ((960, 0, 960, 540),)
+    players: int = 2
+    host_layout: tuple[int, int, int, int] | None = None
+    client_layouts: tuple[tuple[int, int, int, int], ...] = ()
     post_join_delay_seconds: float = 3.0
     threshold: float = 0.82
     timeout_seconds: float = 60.0
@@ -54,13 +45,9 @@ class AutomationConfig:
             object.__setattr__(self, "asset_dir", self.lib_root / "Python" / "assets")
         else:
             object.__setattr__(self, "asset_dir", self.asset_dir.resolve())
-        if self.phase not in PHASE_ASSETS:
-            raise ValueError(f"unsupported phase: {self.phase}")
-        if self.clients < 1:
-            raise ValueError("clients must be greater than 0")
-        if self.phase == "phase2" and self.clients != 1:
-            raise ValueError("phase2 only supports 1 client")
-        if len(self.client_layouts) < self.clients:
+        if self.players < 2 or self.players > 6:
+            raise ValueError("players must be in the range 2..6")
+        if self.client_layouts and len(self.client_layouts) < self.clients:
             raise ValueError("client_layouts must include one layout per client")
         if self.post_join_delay_seconds < 0:
             raise ValueError("post-join delay must be greater than or equal to 0")
@@ -70,8 +57,12 @@ class AutomationConfig:
             raise ValueError("timeout must be greater than 0")
 
     @property
+    def clients(self) -> int:
+        return self.players - 1
+
+    @property
     def required_asset_names(self) -> tuple[str, ...]:
-        return PHASE_ASSETS[self.phase]
+        return REQUIRED_ASSETS
 
     @property
     def required_asset_paths(self) -> tuple[Path, ...]:

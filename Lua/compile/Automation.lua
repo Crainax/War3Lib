@@ -45,7 +45,6 @@ function automation.Run(options)
 	appendArg(args, "--we", path.we)
 	appendArg(args, "--game-path", path.gamePath)
 	appendArg(args, "--map-path", options.mapPath)
-	appendArg(args, "--phase", options.phase)
 	if options.launchWar3 then
 		table.insert(args, "--launch-war3")
 	end
@@ -58,6 +57,10 @@ function automation.Run(options)
 	if options.timeoutSeconds then
 		table.insert(args, "--timeout")
 		table.insert(args, tostring(options.timeoutSeconds))
+	end
+	if options.players then
+		table.insert(args, "--players")
+		table.insert(args, tostring(options.players))
 	end
 	if options.clients then
 		table.insert(args, "--clients")
@@ -88,10 +91,9 @@ function automation.Run(options)
 	return true
 end
 
-function automation.RunPhase2(options)
+function automation.RunMultiPlayerTest(options)
 	options = options or {}
-	options.phase = "phase2"
-	options.clients = options.clients or 1
+	options.players = options.players or 2
 	return automation.Run(options)
 end
 
