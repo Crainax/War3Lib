@@ -76,11 +76,12 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
         integer cornerTextSize;           // 右下角文字大小
         boolean cornerBorderEnabled;      // 是否启用右下角边框
         uiImage cornerShadeImage;         // 右下角背景图片(不使用边框时)
-        real cornerPadding;               // 角落文字的内边距
+        real cornerPadding;               // 右下角文字的内边距
 
         // 右上角文字
         uiImage topRightShade;            // 右上角背景图片
         uiText topRightText;              // 右上角文字
+        real topRightPadding;             // 右上角文字的内边距(独立于右下角)
 
         STRUCT_SHARED_METHODS(icon)
 
@@ -111,8 +112,9 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
             cornerPadding       = ICON_PADDING_CORNER;
 
             // 右上角
-            topRightShade = 0;
-            topRightText  = 0;
+            topRightShade   = 0;
+            topRightText    = 0;
+            topRightPadding = ICON_PADDING_CORNER;
         }
 
         // 普通创建方法
@@ -293,7 +295,7 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
             return this;
         }
 
-        // 设置角落文字的内边距
+        // 设置右下角文字的内边距
         method setCornerPadding(real padding) -> thistype {
             if (!this.isExist()) {return this;}
             this.cornerPadding = padding;
@@ -310,11 +312,18 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
                 }
                 cornerText = 0;
             }
-            // 如果已创建topRightText，也需要重建
+            return this;
+        }
+
+        // 设置右上角文字的内边距(独立于右下角)
+        method setTopRightPadding(real padding) -> thistype {
+            if (!this.isExist()) {return this;}
+            this.topRightPadding = padding;
+            // 如果已创建topRightText，需要重建以应用新的padding
             if (topRightText.isExist()) {
                 topRightText.destroy();
                 topRightShade.destroy();
-                topRightText = 0;
+                topRightText  = 0;
                 topRightShade = 0;
             }
             return this;
@@ -357,7 +366,7 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
 
             // 懒加载创建
             if (!topRightText.isExist()) {
-                padding = cornerPadding;
+                padding = topRightPadding;
                 if (isSimple) {
                     topRightShade = uiImage.create(uilayer.lv[1]);
                 } else {

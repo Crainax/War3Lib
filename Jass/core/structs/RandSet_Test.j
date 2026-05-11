@@ -4,8 +4,6 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/core/structs/RandSet.j"
-
 //! zinc
 
 /*

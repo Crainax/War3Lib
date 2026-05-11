@@ -8,7 +8,7 @@
 
 // 原生的技能栏按钮和事件
 // 控制技能栏按钮的进入,离开,点击还有右键点击事件
-library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
+library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils,HashTable {
 
     public struct spellBtns {
         static integer grid [3][4];  // 使用grid表示技能格子Frame
@@ -210,10 +210,7 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
             if (!shadeBtn.isExist()) {
                 shadeBtn = uiBtn.createSimple(DzFrameGetParent(spellBtns.grid[3][4])) //这样也没用,全都挡不住,但是全能hover
                     .setPoint(ANCHOR_TOPLEFT, shadeImg.ui, ANCHOR_TOPLEFT, 0.0, 0.0)
-                    .setPoint(ANCHOR_BOTTOMRIGHT, shadeImg.ui, ANCHOR_BOTTOMRIGHT, 0.0, 0.0)
-                    .onEnter(function() {BJDebugMsg("enter"); })
-                    .onLeave(function() {BJDebugMsg("leave"); })
-                    .onClick(function() {BJDebugMsg("click"); });
+                    .setPoint(ANCHOR_BOTTOMRIGHT, shadeImg.ui, ANCHOR_BOTTOMRIGHT, 0.0, 0.0);
             }
 
             if (show) {
@@ -280,7 +277,11 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils {
                     } else {
                         icons[row][col].setSize(SIZE_ORIGIN_UI_SPELL, SIZE_ORIGIN_UI_SPELL);
                     }
-                    icons[row][col].setPoint(ANCHOR_CENTER, grid[row][col], ANCHOR_CENTER, 0.0, 0.0)
+                    icons[row][col]
+                    // .setCornerTextSize(2)
+                    // .setCornerPadding(0.0015)
+                        .setTopRightPadding(0.001)
+                        .setPoint(ANCHOR_CENTER, grid[row][col], ANCHOR_CENTER, 0.0, 0.0)
                         .setTexture(UI_STRING_PATH_BLANK);
                     icons[row][col].clickBtn = btn;
                     uiHashTable(grid[row][col]).eventdata.bind(((row-1)*4)+col);

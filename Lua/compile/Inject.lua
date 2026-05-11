@@ -1,11 +1,15 @@
 local lfs = require("lfs")
+local path = require("Lua.path")
 local inject_code = {}
+
+local INJECT_DETAIL_LOG_NAME = "inject_detail.txt"
 
 -- 注入代码表
 inject_code.new_table = {}
 inject_code.old_table = {}
 inject_code.chain_table = {} -- 链式依赖
 inject_code.detect_cache = {} -- 结果缓存
+inject_code.detect_cache_info = {} -- 结果缓存附带的日志信息
 inject_code.obj_files = {
     ability = {},
     item = {},
@@ -17,6 +21,41 @@ local obj_seen = {
     item = {},
     unit = {}
 }
+
+local function format_elapsed(seconds)
+    return string.format("[用时%.2f秒]", seconds or 0)
+end
+
+local function get_log_path()
+    return path.InjectDetailLog or (path.project .. "/Output/" .. INJECT_DETAIL_LOG_NAME)
+end
+
+local function ensure_log_dir()
+    local log_path = get_log_path()
+    local dir = log_path:match("^(.*)[/\\][^/\\]+$")
+    if dir and lfs.attributes(dir, "mode") ~= "directory" then
+        lfs.mkdir(dir)
+    end
+end
+
+local function reset_detail_log()
+    ensure_log_dir()
+    local file = io.open(get_log_path(), "w")
+    if file then
+        file:write("[Inject明细]\n")
+        file:close()
+    end
+end
+
+local function append_detail_log(line)
+    ensure_log_dir()
+    local file = io.open(get_log_path(), "a")
+    if file then
+        file:write(line or "")
+        file:write("\n")
+        file:close()
+    end
+end
 
 local function reset_obj_files()
     for key in pairs(inject_code.obj_files) do
@@ -77,6 +116,26 @@ local function read_file(file_path)
     local content = file:read("*all")
     file:close()
     return content
+end
+
+local function canonicalize_linked_path(file_path)
+    local normalized = file_path:gsub("\\", "/")
+    local linked_root = (path.project .. "/.linked/"):gsub("\\", "/")
+    if normalized:sub(1, #linked_root) ~= linked_root then
+        return normalized
+    end
+
+    local relative = normalized:sub(#linked_root + 1)
+    if relative:find("/", 1, true) then
+        return normalized
+    end
+
+    local crainax_candidate = linked_root .. "Crainax/" .. relative
+    if lfs.attributes(crainax_candidate, "mode") == "file" then
+        return crainax_candidate
+    end
+
+    return normalized
 end
 
 -- 计算函数名集合签名（用于缓存键）
@@ -207,8 +266,24 @@ function inject_code:detect(path)
         -- 命中缓存
         build_obj_files_from_result(cache_entry)
         local end_time_cached = os.clock()
-        print(string.format("函数检测用时: %.3f 秒", end_time_cached - start_time))
+        local elapsed = end_time_cached - start_time
+        local info = self.detect_cache_info[cache_key] or { count = 0, lines = {} }
+        append_detail_log(string.format("[函数检测]命中缓存 %s", path.inject or ""))
+        for _, line in ipairs(info.lines or {}) do
+            append_detail_log(line)
+        end
+        append_detail_log(string.format("[函数检测]检测到 %d 个函数 %s", info.count or 0, format_elapsed(elapsed)))
+        print(string.format("[函数检测]检测到 %d 个函数 %s", info.count or 0, format_elapsed(elapsed)))
         return cache_entry
+    end
+
+    local detect_count = 0
+    local detect_lines = {}
+
+    local function record_detect(line)
+        detect_count = detect_count + 1
+        detect_lines[#detect_lines + 1] = line
+        append_detail_log(line)
     end
 
     -- 递归处理依赖文件
@@ -260,13 +335,13 @@ function inject_code:detect(path)
                 -- 严格模式
                 if hasDot then
                     if windowSet[function_name] then
-                        print(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
+                        record_detect(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
                         result[file] = true
                         process_chain_files(file)
                     end
                 else
                     if wordSet[function_name] then
-                        print(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
+                        record_detect(string.format("[严格模式]检测到函数 '%s' 文件 '%s'", function_name, file))
                         result[file] = true
                         process_chain_files(file)
                     end
@@ -277,18 +352,26 @@ function inject_code:detect(path)
 
     -- 写入缓存
     self.detect_cache[cache_key] = result
+    self.detect_cache_info[cache_key] = {
+        count = detect_count,
+        lines = detect_lines
+    }
 
     build_obj_files_from_result(result)
 
     -- 添加结束时间记录和输出
     local end_time = os.clock()
-    print(string.format("函数检测用时: %.3f 秒", end_time - start_time))
+    local elapsed = end_time - start_time
+    append_detail_log(string.format("[函数检测]检测到 %d 个函数 %s", detect_count, format_elapsed(elapsed)))
+    print(string.format("[函数检测]检测到 %d 个函数 %s", detect_count, format_elapsed(elapsed)))
 
     return result
 end
 
 -- 注入代码到Jass代码文件中
 function inject_code:do_inject(path, tbl)
+    local start_time = os.clock()
+    local inject_count = 0
     -- 结果
     local result = 1
     if tbl and next(tbl) then
@@ -316,11 +399,12 @@ function inject_code:do_inject(path, tbl)
                     map_script_file:write("\r\n")
                     -- 成功
                     s = s .. " √"
-                    print(s)
+                    append_detail_log(s)
+                    inject_count = inject_count + 1
                 else
                     result = -1
                     s = s .. " ×"
-                    print(s)
+                    append_detail_log(s)
                 end
             end
 
@@ -335,6 +419,10 @@ function inject_code:do_inject(path, tbl)
             print(e)
         end
     end
+
+    local elapsed = os.clock() - start_time
+    append_detail_log(string.format("[文件注入]注入了 %d 个文件 %s", inject_count, format_elapsed(elapsed)))
+    print(string.format("[文件注入]注入了 %d 个文件 %s", inject_count, format_elapsed(elapsed)))
 
     return result
 end
@@ -366,6 +454,7 @@ local original_content = read_file(injectPath)
     file:write("#define USE_BJ_OPTIMIZATION\n")
     file:write("#include <YDTrigger/Import.h>\n")   --这条还是要写,在Alljass.h里直接导入就行了,不用搞这么多弯弯绕绕
     file:write("#include <YDTrigger/YDTrigger.h>\n")
+    file:write("#define WAR3LIB_SECOND_WAVE\n")
     file:write("#include \"config/rewave.h\"\n")
     file:write("\n")  -- 添加一个空行分隔
 
@@ -406,7 +495,7 @@ function inject_code:scan(config_dir)
 
                 -- 获取当前cfg文件的目录路径
                 local base_dir = full_path:match("(.*[/\\])")
-                local current_file = full_path:gsub("%.cfg$", ".j")
+                local current_file = canonicalize_linked_path(full_path:gsub("%.cfg$", ".j"))
 
                 -- 将相对路径转为绝对路径
                 local function resolve_path(relative_path)
@@ -440,14 +529,14 @@ function inject_code:scan(config_dir)
 
                         -- 重新组合路径
                         local result = table.concat(parts, "/")
-                        return result
+                        return canonicalize_linked_path(result)
                     elseif normalized_relative:match("^/") then
-                        return normalized_relative
+                        return canonicalize_linked_path(normalized_relative)
                     else
                         -- 如果是普通的相对路径（不以 ../ 或 / 开头），
                         -- 则在当前目录下查找
                         local result = normalized_base .. normalized_relative
-                        return result
+                        return canonicalize_linked_path(result)
                     end
                 end
 
@@ -485,24 +574,36 @@ function inject_code:scan(config_dir)
                 end
 
                 -- 插入全局表中（替换文件扩展名）
-                local substitution = full_path:gsub("%.cfg$", ".j")
+                local substitution = canonicalize_linked_path(full_path:gsub("%.cfg$", ".j"))
+                local function file_mtime(p)
+                    local attr = lfs.attributes(p)
+                    if attr then
+                        return attr.modification or 0
+                    end
+                    return 0
+                end
                 local function insert(file, a, b)
+                    local seen = {}
                     for _, fname in ipairs(a) do
-                        if b[fname] then
-                            local unuse = file
-                            print('注入函数[' .. fname .. ']重复定义')
-                            if lfs.attributes(file, "modification") > lfs.attributes(b[fname], "modification") then
-                                unuse = b[fname]
+                        if not seen[fname] then
+                            seen[fname] = true
+                            if b[fname] then
+                                if b[fname] ~= file then
+                                    local unuse = file
+                                    if file_mtime(file) > file_mtime(b[fname]) then
+                                        unuse = b[fname]
+                                        b[fname] = file
+                                    end
+                                    if not once[fname] then
+                                        print('注入函数[' .. fname .. ']重复定义')
+                                        print('	生效', b[fname], file_mtime(b[fname]))
+                                        print('	失效', unuse, file_mtime(unuse))
+                                        once[fname] = true
+                                    end
+                                end
+                            else
                                 b[fname] = file
                             end
-                            if not once[fname] then
-                                print('注入函数[' .. fname .. ']重复定义')
-                                print('	生效', b[fname], lfs.attributes(b[fname], "modification"))
-                                print('	失效', unuse, lfs.attributes(unuse, "modification"))
-                                once[fname] = true
-                            end
-                        else
-                            b[fname] = file
                         end
                     end
                 end
@@ -520,7 +621,39 @@ end
 -- 例子:
 -- self.new_table["DzFrameIsVisible"] = "D:/WE/KKWE_Plugin/jass/Base/DzFrame.j"
 function inject_code:initialize()
-    local counter = self:scan("D:/WE/KKWE_Plugin/jass")
+    self.new_table = {}
+    self.old_table = {}
+    self.chain_table = {}
+    self.detect_cache = {}
+    self.detect_cache_info = {}
+    reset_obj_files()
+    reset_detail_log()
+
+    local hasLocalCrainax = false
+    if lfs.attributes(path.project .. "/.linked", "mode") == "directory" then
+        self:scan(path.project .. "/.linked")
+        hasLocalCrainax = true
+    elseif lfs.attributes(path.project .. "/Jass", "mode") == "directory" then
+        self:scan(path.project .. "/Jass")
+    end
+
+    local counter = 0
+    if hasLocalCrainax then
+        local weJass = path.we .. "/jass"
+        if lfs.attributes(weJass, "mode") == "directory" then
+            for name in lfs.dir(weJass) do
+                if name ~= "." and name ~= ".." and name ~= "Crainax" and name ~= "japi" then
+                    local fullPath = weJass .. "/" .. name
+                    if lfs.attributes(fullPath, "mode") == "directory" then
+                        counter = counter + self:scan(fullPath)
+                    end
+                end
+            end
+        end
+    else
+        counter = self:scan(path.we .. "/jass")
+    end
+
     -- print(("[注入函数]总数量: %d"):format(counter))
 end
 

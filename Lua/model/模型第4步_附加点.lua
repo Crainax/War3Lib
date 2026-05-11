@@ -1,6 +1,5 @@
 local flag = {
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\aniya\test1\1.mdl]], -- 要处理的文件名
-	['output'] = [[D:\War3\Library\War3Lib\Lua\model\output.log]] -- Debug输出的位置
+	['path'] = [[D:\War3Asset\Model\Shangquemoxing\20260413\tiyamate\1.mdl]], -- 要处理的文件名
 }
 
 -- ====== 配置常量 ======
@@ -69,10 +68,10 @@ end
 -- ====== 主处理函数 ======
 local function AddAttachments()
 	-- 第一遍扫描：收集信息
-	local bones = {}  -- name -> objectId
-	local pivotPoints = {}  -- 数组，1-based
+	local bones = {}            -- name -> objectId
+	local pivotPoints = {}      -- 数组，1-based
 	local maxObjectId = -1
-	local existingAttachments = {}  -- 已存在的 Attachment 名称
+	local existingAttachments = {} -- 已存在的 Attachment 名称
 	local boneObjectIds = {
 		head = nil,
 		spine2 = nil,
@@ -85,7 +84,7 @@ local function AddAttachments()
 	local currentBoneName = nil
 	local inPivotPoints = false
 	local pivotCount = 0
-	local lastPivotLine = nil  -- 记录最后一个 PivotPoint 行的原始格式
+	local lastPivotLine = nil -- 记录最后一个 PivotPoint 行的原始格式
 
 	print("第一遍扫描：收集骨骼和 PivotPoints 信息...")
 
@@ -95,9 +94,7 @@ local function AddAttachments()
 		error("无法打开文件: " .. flag.path)
 	end
 
-	local lineNum = 0
 	for line in file:lines() do
-		lineNum = lineNum + 1
 		-- 收集 Bone ObjectId
 		local boneName = extractBoneName(line)
 		if boneName then
@@ -168,7 +165,7 @@ local function AddAttachments()
 				if vec then
 					pivotCount = pivotCount + 1
 					pivotPoints[pivotCount] = vec
-					lastPivotLine = line  -- 记录最后一个 PivotPoint 行的原始格式
+					lastPivotLine = line -- 记录最后一个 PivotPoint 行的原始格式
 				end
 			end
 		end
@@ -330,7 +327,7 @@ local function AddAttachments()
 
 	-- 生成要追加的 PivotPoints 行
 	-- 检测原文件最后一个点的格式（是否有逗号）
-	local lastPointHasComma = true  -- 默认有逗号
+	local lastPointHasComma = true -- 默认有逗号
 	if lastPivotLine then
 		lastPointHasComma = lastPivotLine:match(",%s*$") ~= nil
 	end
@@ -381,7 +378,7 @@ local function AddAttachments()
 			-- 更新 PivotPoints 数量
 			local updatedLine = line:gsub("PivotPoints%s+%d+", "PivotPoints " .. newPivotCount)
 			table.insert(outputLines, updatedLine)
-		-- 跟踪 PivotPoints 块状态
+			-- 跟踪 PivotPoints 块状态
 		elseif inPivotBlock then
 			if line:match("^%s*}%s*$") then
 				-- PivotPoints 块结束，在结束前插入新点
@@ -448,16 +445,8 @@ local function AddAttachments()
 	logContent = logContent .. string.format("\nPivotPoints 数量: %d -> %d\n", #pivotPoints, newPivotCount)
 	logContent = logContent .. "==============================\n"
 
-	-- 使用 io 库写入文件
-	local logFile = io.open(flag.output, "w")
-	if not logFile then
-		error("无法写入日志文件: " .. flag.output)
-	end
-	logFile:write(logContent)
-	logFile:close()
 	print(logContent)
 end
 
 AddAttachments()
 print("AddAttachments Done")
-

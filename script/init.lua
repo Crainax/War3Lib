@@ -2,6 +2,9 @@ local runtime = require 'jass.runtime'
 local console = require 'jass.console'
 local log = require 'jass.log'
 local japi = require 'jass.japi'
+local jass = require 'jass.common'
+
+package.log_dir = 'War3Lib\\日志\\'
 
 local base = {}
 
@@ -21,12 +24,38 @@ base.version = '4.18'
 function runtime.error_handle(msg) base.error_handle(msg) end
 
 -- 修改日志路径
-local function split(str, p)
-	local rt = {}
-	string.gsub(str, '[^' .. p .. ']+', function(w) table.insert(rt, w) end)
-	return rt
+local function basename(path)
+	if type(path) ~= 'string' then
+		return 'log.log'
+	end
+	return path:match('[^\\/:]+$') or path
 end
-log.path = 'War3Lib\\日志\\' .. split(log.path, '\\')[2]
+
+local function split_ext(filename)
+	local name, ext = filename:match('^(.*)(%.[^%.]*)$')
+	if name then
+		return name, ext
+	end
+	return filename, ''
+end
+
+local function make_log_instance_id()
+	local ok, pid = pcall(function()
+		return jass.GetPlayerId(jass.GetLocalPlayer()) + 1
+	end)
+	if ok and type(pid) == 'number' and pid >= 1 then
+		return 'P' .. tostring(pid)
+	end
+	return 'P0'
+end
+
+local log_file = basename(log.path)
+local log_name, log_ext = split_ext(log_file)
+base.log_instance_id = make_log_instance_id()
+if not log_name:match('%-P%d+$') then
+	log_name = log_name .. '-' .. base.log_instance_id
+end
+log.path = package.log_dir .. log_name .. log_ext
 
 -- 重载打印函数
 local std_print = print
@@ -52,19 +81,11 @@ function log.error(...)
 	std_print(trc)
 end
 
--- 根据发布状态设置调试选项
--- if base.release then
---     -- 正式版环境
---     console.enable = false
---     print("当前版本: 正式版")
---     -- 设置正式版分包路径
---     package.path = package.path .. [[;Poi\]] .. base.version .. [[\?.lua;scripts\?.lua]]
--- else
-    -- 测试版环境
-    console.enable = true
+console.enable = package.console_enable == true
+if console.enable then
     runtime.debugger = 4279
-    print("当前版本: 测试版")
--- end
+end
+print("当前版本: " .. tostring(package.build_version or "未知版本"))
 
 -- 输出JAPI状态
 if base.has_inner_japi then
@@ -79,7 +100,6 @@ if base.has_inner_japi then
 else
     print("JAPI环境: YDLua")
     local hook = require 'jass.hook'
-    local jass = require 'jass.common'
     local old_display = jass.DisplayTimedTextToPlayer
     function hook.DisplayTimedTextToPlayer(toPlayer, x, y, duration, message)
         if toPlayer == jass.GetLocalPlayer() then
@@ -95,5 +115,9 @@ runtime.handle_level = 0
 -- 关闭等待
 runtime.sleep = false
 
+local ok_dz_write_log, dz_write_log_err = pcall(require, 'depends.debug.dz_write_log')
+if not ok_dz_write_log then
+    log.error('[DzWriteLog] Lua hook init failed: ' .. tostring(dz_write_log_err))
+end
 
 return base

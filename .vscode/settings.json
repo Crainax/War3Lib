@@ -12,6 +12,8 @@
     "Lua.workspace.checkThirdParty": false,
     "War3RootPath": "D:/War3", //在tasks.json中使用${config:War3RootPath}获取
     "WEPath": "D:/WE/KKWE_Plugin", //在tasks.json中使用${config:WEPath}获取
+    "War3GamePath": "D:/Program Files (x86)/Warcraft III Frozen Throne", //魔兽运行目录,用于日志和本地DzAPI配置
+    "War3JassCompiler": "vjassc", //编译任务使用的JASS后端: jasshelper 或 vjassc；不传给TaskCompile时默认jasshelper
     "War3RootPathMac": "/Users/crainax/War3", //mac端的项目目录
     "WEPathMac": "/Users/crainax/WE/KKWE_Plugin",
     "Lua.diagnostics.disable": [

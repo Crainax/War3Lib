@@ -114,8 +114,10 @@
 #define HERO_TYPE_IS_MISSILE_KEY      10060   // 是否远程英雄
 #define HERO_TYPE_BELONG_SPELL_KEY    10070   // 专属技能 ID
 #define HERO_TYPE_NAME_KEY            10080   // 英雄名字
+#define HERO_TYPE_ART_KEY             10085   // 英雄头像路径（unit Art）
 #define HERO_TYPE_DESC_KEY            10090   // 英雄描述
 #define HERO_TYPE_TALENT_SPELL_KEY    10100   // 天赋技能 ID
+#define HERO_TYPE_TALENT_OWNER_UNIT_KEY 10105 // 天赋技能归属英雄单位 TypeId
 #define HASH_KEY_TYPE_ABILITY_ACHIEVEMENT 10110  //技能的绑定成就ID
 #define MOSHOU_KEY_DAMAGE_TYPE 10111  // 魔兽:伤害类型(物理或魔法)
 #define MOSHOU_KEY_DAMAGE_RATE 10112  // 魔兽:伤害百分比(小数)

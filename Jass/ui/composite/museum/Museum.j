@@ -61,34 +61,70 @@ library Museum requires Music,Icon,Tooltip,EscStack {
         trigger trClick;     // 打开 / 选中时的回调
         trigger trClose;     // 关闭 / 取消选中时的回调
         integer index;       // 在全局列表中的索引（1-based）
+        integer page;        // 所属页码（1-based）
+        integer pageSlot;    // 在所属页中的位置（1-based）
 
         STRUCT_SHARED_INNER_UI(museumData)
 
         // 全局列表
         private static thistype list[];
-        private static integer size = 0;
+        private static integer totalSize = 0;
+        private static integer maxIndex  = 0;
+        private static integer maxPage   = 1;
+        private static integer pageSize[];
 
         // 回调参数传递：当前触发的 museumData
         private static thistype callbackData = 0;
 
-        // 注册一个新的图鉴分类
-        public static method registerAlbum(string n) -> thistype {
+        // 内部实现：注册图鉴到指定页（page < 1 时默认从1开始）
+        private static method registerAlbumInternal(string n, integer page) -> thistype {
             thistype this;
+            integer targetPage;
+            integer slot;
 
             this = allocate();
             if (this <= 0) {
                 return 0;
             }
 
-            this.name    = n;
-            this.trClick = null;
-            this.trClose = null;
+            targetPage = page;
+            if (targetPage < 1) {
+                targetPage = 1;
+            }
+            while (thistype.pageSize[targetPage] >= MUSEUM_TAB_MAX_COUNT) {
+                targetPage += 1;
+            }
+            slot = thistype.pageSize[targetPage] + 1;
+            thistype.pageSize[targetPage] = slot;
 
-            thistype.size += 1;
-            this.index = thistype.size;
-            thistype.list[thistype.size] = this;
+            this.name     = n;
+            this.trClick  = null;
+            this.trClose  = null;
+            this.page     = targetPage;
+            this.pageSlot = slot;
+            this.index    = (targetPage - 1) * MUSEUM_TAB_MAX_COUNT + slot;
+
+            thistype.list[this.index] = this;
+            thistype.totalSize += 1;
+
+            if (this.index > thistype.maxIndex) {
+                thistype.maxIndex = this.index;
+            }
+            if (this.page > thistype.maxPage) {
+                thistype.maxPage = this.page;
+            }
 
             return this;
+        }
+
+        // 注册一个新的图鉴分类
+        public static method registerAlbum(string n) -> thistype {
+            return thistype.registerAlbumInternal(n, 1);
+        }
+
+        // 注册到指定页码（page 从 1 开始；该页满 16 后自动顺延到下一页）
+        public static method registerAlbumAtPage(string n, integer page) -> thistype {
+            return thistype.registerAlbumInternal(n, page);
         }
 
         // 注册：点击 / 打开时的回调
@@ -123,13 +159,51 @@ library Museum requires Music,Icon,Tooltip,EscStack {
 
         // 迭代辅助：获取当前总数
         public static method getSize() -> integer {
-            return thistype.size;
+            return thistype.totalSize;
+        }
+
+        // 迭代辅助：获取最大页码
+        public static method getMaxPage() -> integer {
+            return thistype.maxPage;
+        }
+
+        // 迭代辅助：获取指定页的数量
+        public static method getPageSize(integer page) -> integer {
+            if (page < 1) { return 0; }
+            return thistype.pageSize[page];
         }
 
         // 迭代辅助：按索引获取
         public static method getByIndex(integer idx) -> thistype {
-            if (idx < 1 || idx > thistype.size) { return 0; }
+            if (idx < 1 || idx > thistype.maxIndex) { return 0; }
             return thistype.list[idx];
+        }
+
+        // 迭代辅助：按页码和页内序号获取
+        public static method getByPageSlot(integer page, integer slot) -> thistype {
+            integer idx;
+            if (page < 1 || slot < 1 || slot > MUSEUM_TAB_MAX_COUNT) { return 0; }
+            if (slot > thistype.pageSize[page]) { return 0; }
+            idx = (page - 1) * MUSEUM_TAB_MAX_COUNT + slot;
+            return thistype.getByIndex(idx);
+        }
+
+        // 获取该图鉴的页码
+        public method getPage() -> integer {
+            if (!this.isExist()) { return 0; }
+            return this.page;
+        }
+
+        // 获取该图鉴在页内的序号
+        public method getPageSlot() -> integer {
+            if (!this.isExist()) { return 0; }
+            return this.pageSlot;
+        }
+
+        // 获取该图鉴的全局索引
+        public method getIndex() -> integer {
+            if (!this.isExist()) { return 0; }
+            return this.index;
         }
 
         // 回调参数：设置 / 获取 / 清理
@@ -175,8 +249,9 @@ library Museum requires Music,Icon,Tooltip,EscStack {
 
         // 状态
         private static museumData currentAlbum   = 0; // 当前激活图鉴
-        private static museumData lastAlbum      = 0; // 上一次激活图鉴（用于记忆）
+        private static museumData lastAlbumByPage[]; // 每页独立记忆上次选中的图鉴
         private static integer    currentTabIndex = 0; // 当前选中的 Tab 索引
+        private static integer    currentPage     = 1; // 当前展示页码
         private static boolean    isOpen          = false;
         private static player     owner           = null;
 
@@ -219,107 +294,34 @@ library Museum requires Music,Icon,Tooltip,EscStack {
             currentTabIndex = 0;
         }
 
-        // 内部工具：选中指定 Tab（带可选点击回调）
-        private static method selectTab(museumData target, integer idx, boolean triggerClick) {
-            integer i; real offsetY; real offsetX;
-            museumData md;
+        // 解析可用页码：若请求页无数据，则回退到首个有数据的页；若完全无数据则返回 1
+        private static method resolvePage(integer page) -> integer {
+            integer i;
+            integer maxPage;
 
-            if (target == 0 || !target.isExist()) { return; }
-            if (idx < 1 || idx > tabCount) { idx = 1; }
-
-            // 如果点击的是当前已选中的 Tab，则不做任何处理，避免重复关闭/打开
-            if (currentAlbum == target && currentTabIndex == idx) {
-                return;
+            maxPage = museumData.getMaxPage();
+            if (maxPage < 1) {
+                return 1;
             }
 
-            // 先调用当前图鉴 a 的关闭事件
-            if (currentAlbum != 0 && currentAlbum.trClose != null) {
-                museumData.setCallbackData(currentAlbum);
-                TriggerEvaluate(currentAlbum.trClose);
-                museumData.clearCallbackData();
+            if (page < 1) { page = 1; }
+            if (page > maxPage) { page = maxPage; }
+
+            if (museumData.getPageSize(page) > 0) {
+                return page;
             }
 
-            currentAlbum    = target;
-            lastAlbum       = target;
-            currentTabIndex = idx;
-
-            // 更新标题显示为当前选中的 Tab 名称
-            if (uiTitleText != 0) {
-                uiTitleText.setText(target.name);
-            }
-
-            // 更新左侧 Tab 高亮与位置
-            for (1 <= i <= tabCount) {
-                md = museumData.getByIndex(i);
-                if (md != 0 && tabImage[i] != 0) {
-                    // 计算纵向偏移：从主框架左上角往下排
-                    offsetY = MUSEUM_TAB_START_Y - (i - 1) * (MUSEUM_TAB_HEIGHT + MUSEUM_TAB_GAP_Y);
-                    offsetX = 0.015;
-                    if (i == currentTabIndex) {
-                        offsetX -= MUSEUM_TAB_SELECTED_OFFSET_X;
-                    }
-
-                    tabImage[i].exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, offsetX, offsetY);
-
-                    // 文字颜色
-                    if (tabLabel[i] != 0) {
-                        if (i == currentTabIndex) {
-                            tabLabel[i].setText(MUSEUM_TAB_COLOR_SELECTED + md.name + MUSEUM_COLOR_END);
-                        } else {
-                            tabLabel[i].setText(MUSEUM_TAB_COLOR_NORMAL + md.name + MUSEUM_COLOR_END);
-                        }
-                    }
+            for (1 <= i <= maxPage) {
+                if (museumData.getPageSize(i) > 0) {
+                    return i;
                 }
             }
 
-            // 将单个选中标记移动到当前选中的 Tab 左侧
-            if (tabIndicator != 0 && currentTabIndex >= 1 && currentTabIndex <= tabCount && tabImage[currentTabIndex] != 0) {
-                tabIndicator.exRePoint(ANCHOR_RIGHT, tabImage[currentTabIndex].ui, ANCHOR_LEFT, -0.004, 0.0);
-                tabIndicator.show(true);
-            } else if (tabIndicator != 0) {
-                tabIndicator.show(false);
-            }
-
-            // 触发点击回调，初始化右侧内容
-            if (triggerClick && currentAlbum.trClick != null) {
-                museumData.setCallbackData(currentAlbum);
-                TriggerEvaluate(currentAlbum.trClick);
-                museumData.clearCallbackData();
-            }
+            return 1;
         }
 
-        // 供外部调用：打开 UI（单例，完全本地状态）
-        public static method show(player p) {
-            integer i; integer size; real offsetY;
-            museumData md; museumData startAlbum;
-            integer startIndex;
-
-            // 仅在本地玩家为 p 时处理 UI 状态
-            if (GetLocalPlayer() != p) { return; }
-
-            if (isOpen) { return; }
-
-            isOpen = true;
-            owner  = p;
-
-            size = museumData.getSize();
-
-            // 计算初始选中图鉴（记忆上次，否则默认第一个）
-            startAlbum = 0;
-            startIndex = 0;
-
-            if (lastAlbum != 0 && lastAlbum.isExist()) {
-                startAlbum = lastAlbum;
-                startIndex = lastAlbum.index;
-            }
-
-            if (startAlbum == 0) {
-                if (size > 0) {
-                    startAlbum = museumData.getByIndex(1);
-                    startIndex = 1;
-                }
-            }
-
+        // 创建主 UI（不含左侧分页按钮）
+        private static method createMainUI() {
             uiMain = uiImage.create(DzGetGameUI())
                 .setTexture("ui\\image\\black.blp")
                 .exReSize(MUSEUM_MAIN_WIDTH, MUSEUM_MAIN_HEIGHT)
@@ -375,41 +377,66 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                         uiTooltipTemp.destroy();
                         uiTooltipTemp = 0;
                     }
-                    uiTooltipTemp = tooltip.create().layoutTitle("关闭界面|cffff9900(快捷键:Esc)|r");
-                    uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
-                    music[MUSIC_INDEX_BTN_OVER_1].play();
-                })
+                uiTooltipTemp = tooltip.create().layoutTitle("关闭界面|cffff9900(快捷键:Esc)|r");
+                uiTooltipTemp.setPoint(ANCHOR_BOTTOM, uiCloseImage.ui, ANCHOR_TOP, 0, 0.01);
+                music[MUSIC_INDEX_BTN_OVER_1].play();
+            })
                 .onLeave(function() {
                     if (uiTooltipTemp != 0) {
                         uiTooltipTemp.destroy();
                         uiTooltipTemp = 0;
                     }
-                })
+            })
                 .onClick(function() {
                     if (!isOpen) {
                         return;
                     }
 
-                    music[MUSIC_INDEX_BTN_CLICK].play();
+                music[MUSIC_INDEX_BTN_CLICK].play();
 
-                    if (owner != null) {
-                        museumUI.hide(owner);
-                    } else {
-                        museumUI.hide(GetLocalPlayer());
-                    }
+                if (owner != null) {
+                    museumUI.hide(owner);
+                } else {
+                    museumUI.hide(GetLocalPlayer());
+                }
+            });
+
+            // 右侧内容区域：以 Tab 右侧 + 标题下方为左上起点，以整体右下角留出 0.005 边距为右下终点
+            uiContentArea = uiImage.create(uiMain.ui)
+                .setTexture(UI_STRING_PATH_BLANK)
+                .setPoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, 0.015 + MUSEUM_TAB_WIDTH + MUSEUM_CONTENT_MARGIN_X, MUSEUM_CONTENT_TOP_Y)
+                .setPoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_BOTTOMRIGHT, -MUSEUM_CONTENT_MARGIN_X, MUSEUM_CONTENT_MARGIN_Y);
+
+            // Tab 右侧的竖线分隔（位于 Tab 和 uiContentArea 之间的间隙内，高度基本和外框UI一样）
+            uiDivider = uiImage.create(uiMain.ui)
+                .exReSize(0.003, MUSEUM_MAIN_HEIGHT - 0.01 + MUSEUM_TAB_START_Y)
+                .setTexture("ui\\image\\vertical_divider.blp")
+                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, 0.015 + MUSEUM_TAB_WIDTH + MUSEUM_CONTENT_MARGIN_X / 2.0, MUSEUM_CONTENT_TOP_Y);
+
+            // 注册 ESC 关闭
+            if (escStackId == 0) {
+                escStackId = escStack.push(function(player p) {
+                    museumUI.hide(p);
                 });
+            }
+        }
 
-            // 左侧按钮数量：受限于 MUSEUM_TAB_MAX_COUNT
-            if (size > MUSEUM_TAB_MAX_COUNT) {
+        // 按页重建左侧 Tab 按钮
+        private static method rebuildTabsByPage(integer page) {
+            integer i;
+            real offsetY;
+            museumData md;
+
+            destroyTabs();
+
+            currentPage = page;
+            tabCount = museumData.getPageSize(currentPage);
+            if (tabCount > MUSEUM_TAB_MAX_COUNT) {
                 tabCount = MUSEUM_TAB_MAX_COUNT;
-            } else {
-                tabCount = size;
             }
 
-            // 左侧按钮从上到下排列
             for (1 <= i <= tabCount) {
-                md = museumData.getByIndex(i);
-
+                md = museumData.getByPageSlot(currentPage, i);
                 if (md != 0) {
                     // 计算纵向偏移：从主框架左上角往下排
                     offsetY = MUSEUM_TAB_START_Y - (i - 1) * (MUSEUM_TAB_HEIGHT + MUSEUM_TAB_GAP_Y);
@@ -425,7 +452,8 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                             music[MUSIC_INDEX_BTN_OVER_1].play();
                         })
                         .spClick(function(integer frame) {
-                            museumData mdLocal; integer idx;
+                            museumData mdLocal;
+                            integer idx;
 
                             mdLocal = uiHashTable(frame).eventdata.get();
                             idx     = uiHashTable(frame).eventdata.get2();
@@ -433,9 +461,9 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                                 return;
                             }
 
-                            music[MUSIC_INDEX_BTN_CLICK].play();
-                            museumUI.selectTab(mdLocal, idx, true);
-                        });
+                        music[MUSIC_INDEX_BTN_CLICK].play();
+                        museumUI.selectTab(mdLocal, idx, true);
+                    });
 
                     uiHashTable(tabButton[i].ui).eventdata.bind(md);
                     uiHashTable(tabButton[i].ui).eventdata.bind2(i);
@@ -456,34 +484,152 @@ library Museum requires Music,Icon,Tooltip,EscStack {
                     .exRePoint(ANCHOR_RIGHT, uiMain.ui, ANCHOR_TOPLEFT, 0.015 - 0.004, MUSEUM_TAB_START_Y);
                 tabIndicator.show(false);
             }
+        }
 
-            // 右侧内容区域：以 Tab 右侧 + 标题下方为左上起点，以整体右下角留出 0.005 边距为右下终点
-            if (tabCount > 0) {
-                uiContentArea = uiImage.create(uiMain.ui)
-                    .setTexture(UI_STRING_PATH_BLANK)
-                    .setPoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, 0.015 + MUSEUM_TAB_WIDTH + MUSEUM_CONTENT_MARGIN_X, MUSEUM_CONTENT_TOP_Y)
-                    .setPoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_BOTTOMRIGHT, -MUSEUM_CONTENT_MARGIN_X, MUSEUM_CONTENT_MARGIN_Y);
+        // 内部工具：选中指定 Tab（带可选点击回调）
+        private static method selectTab(museumData target, integer idx, boolean triggerClick) {
+            integer i; real offsetY; real offsetX;
+            museumData md;
+
+            if (target == 0 || !target.isExist()) { return; }
+            if (idx < 1 || idx > tabCount) { idx = 1; }
+
+            // 如果点击的是当前已选中的 Tab，则不做任何处理，避免重复关闭/打开
+            if (currentAlbum == target && currentTabIndex == idx) {
+                return;
             }
 
-            // Tab 右侧的竖线分隔（位于 Tab 和 uiContentArea 之间的间隙内，高度基本和外框UI一样）
-            if (tabCount > 0) {
-                uiDivider = uiImage.create(uiMain.ui)
-                    .exReSize(0.003, MUSEUM_MAIN_HEIGHT - 0.01 + MUSEUM_TAB_START_Y)
-                    .setTexture("ui\\image\\vertical_divider.blp")
-                    .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, 0.015 + MUSEUM_TAB_WIDTH + MUSEUM_CONTENT_MARGIN_X / 2.0, MUSEUM_CONTENT_TOP_Y);
+            // 先调用当前图鉴 a 的关闭事件
+            if (currentAlbum != 0 && currentAlbum.trClose != null) {
+                museumData.setCallbackData(currentAlbum);
+                TriggerEvaluate(currentAlbum.trClose);
+                museumData.clearCallbackData();
             }
 
-            // 初次进入或重新打开时，自动选中一个 Tab
-            if (tabCount > 0 && startAlbum != 0) {
+            currentAlbum    = target;
+            lastAlbumByPage[target.getPage()] = target;
+            currentTabIndex = idx;
+
+            // 更新标题显示为当前选中的 Tab 名称
+            if (uiTitleText != 0) {
+                uiTitleText.setText(target.name);
+            }
+
+            // 更新左侧 Tab 高亮与位置
+            for (1 <= i <= tabCount) {
+                md = museumData.getByPageSlot(currentPage, i);
+                if (md != 0 && tabImage[i] != 0) {
+                    // 计算纵向偏移：从主框架左上角往下排
+                    offsetY = MUSEUM_TAB_START_Y - (i - 1) * (MUSEUM_TAB_HEIGHT + MUSEUM_TAB_GAP_Y);
+                    offsetX = 0.015;
+                    if (i == currentTabIndex) {
+                        offsetX -= MUSEUM_TAB_SELECTED_OFFSET_X;
+                    }
+
+                    tabImage[i].exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_TOPLEFT, offsetX, offsetY);
+
+                    // 文字颜色
+                    if (tabLabel[i] != 0) {
+                        if (i == currentTabIndex) {
+                            tabLabel[i].setText(MUSEUM_TAB_COLOR_SELECTED + md.name + MUSEUM_COLOR_END);
+                        } else {
+                            tabLabel[i].setText(MUSEUM_TAB_COLOR_NORMAL + md.name + MUSEUM_COLOR_END);
+                        }
+                    }
+                }
+            }
+
+            // 将单个选中标记移动到当前选中的 Tab 左侧
+            if (tabIndicator != 0 && currentTabIndex >= 1 && currentTabIndex <= tabCount && tabImage[currentTabIndex] != 0) {
+                tabIndicator.exRePoint(ANCHOR_RIGHT, tabImage[currentTabIndex].ui, ANCHOR_LEFT, -0.004, 0.0);
+                tabIndicator.show(true);
+            } else if (tabIndicator != 0) {
+                tabIndicator.show(false);
+            }
+
+            // 触发点击回调，初始化右侧内容
+            if (triggerClick && currentAlbum.trClick != null) {
+                museumData.setCallbackData(currentAlbum);
+                TriggerEvaluate(currentAlbum.trClick);
+                museumData.clearCallbackData();
+            }
+        }
+
+        // 打开到目标页，并可选直达目标图鉴
+        private static method openPage(integer page, museumData preferredAlbum) {
+            museumData startAlbum;
+            integer startIndex;
+
+            page = museumUI.resolvePage(page);
+            museumUI.rebuildTabsByPage(page);
+
+            startAlbum = 0;
+            startIndex = 0;
+
+            if (preferredAlbum != 0 && preferredAlbum.isExist() && preferredAlbum.getPage() == currentPage) {
+                startAlbum = preferredAlbum;
+                startIndex = preferredAlbum.getPageSlot();
+            } else if (lastAlbumByPage[currentPage] != 0 && lastAlbumByPage[currentPage].isExist()) {
+                startAlbum = lastAlbumByPage[currentPage];
+                startIndex = lastAlbumByPage[currentPage].getPageSlot();
+            } else if (tabCount > 0) {
+                startAlbum = museumData.getByPageSlot(currentPage, 1);
+                if (startAlbum != 0) {
+                    startIndex = 1;
+                }
+            }
+
+            if (startAlbum != 0 && startIndex >= 1 && startIndex <= tabCount) {
                 museumUI.selectTab(startAlbum, startIndex, true);
+            } else {
+                if (currentAlbum != 0 && currentAlbum.trClose != null) {
+                    museumData.setCallbackData(currentAlbum);
+                    TriggerEvaluate(currentAlbum.trClose);
+                    museumData.clearCallbackData();
+                }
+                currentAlbum = 0;
+                if (uiTitleText != 0) {
+                    uiTitleText.setText(MUSEUM_TITLE_TEXT);
+                }
+            }
+        }
+
+        // 供外部调用：打开 UI（保持旧调用方式，默认展示第 1 页，带记忆功能）
+        public static method show(player p) {
+            museumUI.showPage(p, 1);
+        }
+
+        // 供外部调用：打开指定页
+        public static method showPage(player p, integer page) {
+            // 仅在本地玩家为 p 时处理 UI 状态
+            if (GetLocalPlayer() != p) { return; }
+
+            if (!isOpen) {
+                isOpen = true;
+                owner  = p;
+                museumUI.createMainUI();
             }
 
-            // 注册 ESC 关闭
-            if (escStackId == 0) {
-                escStackId = escStack.push(function(player p) {
-                    museumUI.hide(p);
-                });
+            museumUI.openPage(page, 0);
+        }
+
+        // 供外部调用：打开并直达某个 museumData（自动跳到其所在页）
+        public static method showAlbum(player p, museumData md) {
+            if (md == 0 || !md.isExist()) {
+                museumUI.showPage(p, 1);
+                return;
             }
+
+            // 仅在本地玩家为 p 时处理 UI 状态
+            if (GetLocalPlayer() != p) { return; }
+
+            if (!isOpen) {
+                isOpen = true;
+                owner  = p;
+                museumUI.createMainUI();
+            }
+
+            museumUI.openPage(md.getPage(), md);
         }
 
         // 供外部调用：关闭 UI（会先触发当前图鉴的关闭回调，完全本地状态）
@@ -501,6 +647,7 @@ library Museum requires Music,Icon,Tooltip,EscStack {
             }
 
             currentAlbum = 0;
+            currentPage  = 1;
 
             // 销毁 UI
             destroyTabs();
@@ -582,6 +729,16 @@ library Museum requires Music,Icon,Tooltip,EscStack {
         // 判断 UI 是否正在显示
         public static method isShow() -> boolean {
             return isOpen;
+        }
+
+        // 当前展示页码（用于测试）
+        public static method getCurrentPage() -> integer {
+            return currentPage;
+        }
+
+        // 当前激活图鉴（用于测试）
+        public static method getCurrentAlbum() -> museumData {
+            return currentAlbum;
         }
 
     }

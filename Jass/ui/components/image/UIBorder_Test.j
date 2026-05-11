@@ -23,7 +23,8 @@ library UTUIBorder requires UIBorder {
 		if (GetLocalPlayer() == p) {
 			currentBorder = uiBorder.createType2(DzGetGameUI())
 				.setSize(0.1,0.1)
-				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0)
+				.setAlpha(180); // 80% 不透明度 (255 * 0.8)
 			BJDebugMsg("创建了一个基础边框UI:种类2");
 		}
 	}
@@ -68,7 +69,18 @@ library UTUIBorder requires UIBorder {
 			BJDebugMsg("创建了一个基础边框UI:种类4");
 		}
 	}
-	function TTestUTUIBorder7 (player p) {}
+	function TTestUTUIBorder7 (player p) {
+		if (GetLocalPlayer() == p) {
+			if (currentBorder != 0) {
+				currentBorder.destroy();
+				currentBorder = 0;
+			}
+			currentBorder = uiBorder.createType5(DzGetGameUI())
+				.setSize(0.3, 0.2)
+				.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.0);
+			BJDebugMsg("创建了魔兽原生对话框风格边框(种类5)");
+		}
+	}
 	function TTestUTUIBorder8 (player p) {}
 	function TTestUTUIBorder9 (player p) {}
 	function TTestUTUIBorder10 (player p) {}

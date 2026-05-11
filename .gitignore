@@ -26,6 +26,11 @@
 .vscode/tasks.json
 /output/
 .linked/
+config/generated/
+Python/.venv/
+Python/**/__pycache__/
+Python/assets/*.png
+!Lua/gui/runtime/bin/*.dll
 # 忽略 macOS 自动生成的 .DS_Store 文件
 .DS_Store
 

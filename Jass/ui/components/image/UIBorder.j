@@ -39,7 +39,7 @@ library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
             return this;
         }
 
-        // 创建边框种类2:适用于大面板通知消息系
+        // 创建边框种类3:适用于大面板通知消息系
         // parent: 父级框架
         static method createType3 (integer parent) -> thistype {
             thistype this = allocate();
@@ -49,12 +49,22 @@ library UIBorder requires UIId,UITocInit,UIBaseModule,UIImageModule {
             return this;
         }
 
-        // 创建边框种类2:适用于大面板通知消息系
+        // 创建边框种类4:适用于大面板通知消息系
         // parent: 父级框架
         static method createType4 (integer parent) -> thistype {
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_BORDER4,0);
+            STRUCT_SHARED_UI_ONCREATE(uiBorder)
+            return this;
+        }
+
+        // 创建边框种类5:魔兽原生对话框风格
+        // parent: 父级框架
+        static method createType5 (integer parent) -> thistype {
+            thistype this = allocate();
+            id = uiId.get();
+            ui = DzCreateFrameByTagName("BACKDROP",STRING_IMAGE + I2S(id),parent,TEMPLATE_BORDER5,0);
             STRUCT_SHARED_UI_ONCREATE(uiBorder)
             return this;
         }

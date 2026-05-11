@@ -1,19 +1,72 @@
 local path = {}
 
+local function normalizePathString(value)
+    assert(type(value) == "string", "路径参数必须是字符串")
+    value = value:gsub("\\", "/")
+    value = value:gsub("/+$", "")
+    return value
+end
+
+local function envValue(name)
+    local value = os.getenv(name)
+    if value ~= nil and value ~= "" then
+        return value
+    end
+    return nil
+end
+
+local function envFlag(name, defaultValue)
+    local value = envValue(name)
+    if value == nil then
+        return defaultValue
+    end
+    value = string.lower(value)
+    if value == "0" or value == "false" or value == "no" or value == "off" then
+        return false
+    end
+    return true
+end
+
+local function normalizeCompiler(value)
+    value = string.lower(tostring(value or "jasshelper"))
+    if value == "vjassc" or value == "both" then
+        return value
+    end
+    return "jasshelper"
+end
+
+local function normalizeCompilerSelect(value)
+    value = string.lower(tostring(value or ""))
+    if value == "vjassc" or value == "jasshelper" then
+        return value
+    end
+    return "jasshelper"
+end
+
+local function normalizeVjasscMode(value)
+    value = string.lower(tostring(value or "validate"))
+    if value == "fast" or value == "validate" or value == "full-validation" then
+        return value
+    end
+    return "validate"
+end
+
 
 ---@param root string
 ---@param project string
 ---@param we string
-function path.init(root, project, we)
+function path.init(root, project, we, gamePath)
     if path.jassPathName == nil then
         path.jassPathName = "edit"
     end
-    assert(type(root) == "string", "root 参数必须是字符串")
-    assert(type(project) == "string", "project 参数必须是字符串")
-    assert(type(we) == "string", "we 参数必须是字符串")
-    path.root             = root
-    path.project          = project
-    path.we               = we
+    path.root             = normalizePathString(root)
+    path.project          = normalizePathString(project)
+    path.we               = normalizePathString(we)
+    if gamePath ~= nil and gamePath ~= "" then
+        path.gamePath      = normalizePathString(gamePath)
+    else
+        path.gamePath      = "D:/Program Files (x86)/Warcraft III Frozen Throne"
+    end
 
     path.libRoot          = path.root .. "/Library/War3Lib" -- 本库根目录
 
@@ -25,14 +78,27 @@ function path.init(root, project, we)
     path.buildVersion     = "单元测试" -- 当前构建版本(默认单元测试)   "单元测试|正式版本|模型测试|内测版本|公测版本"
 
     path.rewave          = path.project .. "/config/rewave.h" -- 地图导包文件
+    path.generatedConfig  = path.project .. "/config/generated"
+    path.localDzApiMockH  = path.generatedConfig .. "/DzApiLocalMock.generated.h"
+    path.localDzApiIni    = path.gamePath .. "/dz_w3_plugin.ini"
     path.scriptJ          = path.project .. "/"..path.jassPathName .."/config/script.j" -- 脚本源文件(不要动这个文件)
     path.CompileStep0     = path.project .. "/Output/0_script.j" -- 脚本源文件的复制(第一步)
     path.CompileStep1     = path.project .. "/Output/1_wave.j" -- wave预处理后的文件
     path.CompileStep2     = path.project .. "/Output/2_inject.j" -- wave第二次预处理后的文件
     path.CompileStep3     = path.project .. "/Output/3_wave.j" -- wave第二次预处理后的文件
     path.CompileStep4     = path.project .. "/Output/4_luaexecute.j" -- wave第二次预处理后的文件
-    path.CompileStep5     = path.project .. "/Output/5_jasshelper.j" -- jasshelper预处理后的文件
+    path.CompileStep5JassHelper = path.project .. "/Output/5_jasshelper.j" -- jasshelper预处理后的文件
+    path.CompileStep5Vjassc     = path.project .. "/Output/5_vjassc.j" -- vjassc预处理后的文件
+    path.CompileStep5     = path.CompileStep5JassHelper -- 保持旧字段指向jasshelper输出
     path.CompileResult    = path.project .. "/Output/output.j" -- 输出字符串(最终)
+    path.VjasscStats      = path.project .. "/Output/vjassc.stats.json"
+    path.VjasscValidation = path.project .. "/Output/vjassc.validation.json"
+    path.VjasscStdout     = path.project .. "/Output/vjassc.stdout.txt"
+    path.VjasscStderr     = path.project .. "/Output/vjassc.stderr.txt"
+    path.VjasscCommand    = path.project .. "/Output/vjassc.cmd"
+    path.CompilerBackendReport = path.project .. "/Output/compiler_backend_report.json"
+    path.VjasscRuntimeChecklist = path.project .. "/Output/vjassc_runtime_checklist.md"
+    path.VjasscRuntimeNotes = path.project .. "/Output/runtime_notes.md"
     path.buildString     = "" -- 输出字符串()
 
     path.mapJ             = path.project .. "/".. path.mapName .. "/map/war3map.j" -- 正式地图的War3mapJ文件
@@ -41,6 +107,16 @@ function path.init(root, project, we)
 
     path.jasshelper    = path.root .. '/plugins/jasshelper'    -- 独立到了plugins里调用
     path.wave          = path.root .. '/plugins/wave'          -- Wave抽到了项目目录里
+    path.vjasscDir     = normalizePathString(envValue("WAR3_VJASSC_DIR") or (path.root .. "/plugins/vjassc"))
+    path.vjassc        = normalizePathString(envValue("WAR3_VJASSC_EXE") or (path.vjasscDir .. "/vjassc.exe"))
+    path.jassCompiler  = normalizeCompiler(envValue("WAR3_JASS_COMPILER") or path.jassCompiler)
+    path.jassCompilerSelect = normalizeCompilerSelect(envValue("WAR3_JASS_COMPILER_SELECT") or path.jassCompilerSelect)
+    local defaultVjasscValidate = envFlag("WAR3_VJASSC_VALIDATE", true)
+    path.vjasscMode = normalizeVjasscMode(envValue("WAR3_VJASSC_MODE") or path.vjasscMode or
+        (defaultVjasscValidate and "validate" or "fast"))
+    path.vjasscValidate = path.vjasscMode ~= "fast"
+    path.vjasscStrict = envFlag("WAR3_VJASSC_STRICT", false)
+    path.allowVjasscNonAlpha = envFlag("WAR3_ALLOW_VJASSC_NON_ALPHA", false)
 
     path.toolRoot        = path.root .. "/tools" -- 工具根目录
 
@@ -71,7 +147,7 @@ function path.init(root, project, we)
     path.assets           = "D:/War3Asset/Import"                                          -- 原始地图资源根目录
 
     path.backup              = {}                                                -- 数据备份
-    path.backup.root         = path.root .. "/Backup/" .. string.match(project, ".+/(.+)$")  -- 备份根目录
+    path.backup.root         = path.root .. "/Backup/" .. string.match(path.project, ".+/(.+)$")  -- 备份根目录
     path.backup.resource     = path.project .. "/".. path.mapName .. "/table"    -- 需要备份的路径
 
     path.image               = {}                                                -- 图片处理

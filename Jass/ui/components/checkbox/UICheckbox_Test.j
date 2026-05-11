@@ -11,6 +11,8 @@
 测试命令:
 s1 - 创建复选框(Checkbox)
 s2 - 创建单选框(Radio)
+s3 - 设置复选框为选中状态
+s4 - 设置复选框为取消选中状态
 */
 
 library UTUICheckbox requires UICheckbox {
@@ -22,9 +24,11 @@ library UTUICheckbox requires UICheckbox {
 		if (uiCheckboxTest != null) {uiCheckboxTest.destroy();}
 		uiCheckboxTest = uiCheckbox.create(DzGetGameUI())
 			.onChecked(function () {
-				BJDebugMsg("复选框: 选中状态");})
+				BJDebugMsg("复选框: 选中状态");
+			})
 			.onUnchecked(function () {
-				BJDebugMsg("复选框: 取消选中");})
+				BJDebugMsg("复选框: 取消选中");
+			})
 			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0);
 		BJDebugMsg("创建了复选框。");
 	}
@@ -33,16 +37,48 @@ library UTUICheckbox requires UICheckbox {
 		if (uiCheckboxTest != null) {uiCheckboxTest.destroy();}
 		uiCheckboxTest = uiCheckbox.createR(DzGetGameUI())
 			.onChecked(function () {
-				BJDebugMsg("单选框: 选中状态");})
+				BJDebugMsg("单选框: 选中状态");
+			})
 			.onUnchecked(function () {
-				BJDebugMsg("单选框: 取消选中");})
+				BJDebugMsg("单选框: 取消选中");
+			})
 			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0);
 		BJDebugMsg("创建了单选框。");
 	}
-	function TTestUTUICheckbox3 (player p) {}
-	function TTestUTUICheckbox4 (player p) {}
-	function TTestUTUICheckbox5 (player p) {}
-	function TTestUTUICheckbox6 (player p) {}
+	function TTestUTUICheckbox3 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		if (uiCheckboxTest == null) {BJDebugMsg("尚未创建复选框，请先执行 s1 或 s2"); return;}
+		DzFrameSetCheckBoxState(uiCheckboxTest.ui, true);
+		BJDebugMsg("已设置复选框为: 选中状态");
+	}
+	function TTestUTUICheckbox4 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		if (uiCheckboxTest == null) {BJDebugMsg("尚未创建复选框，请先执行 s1 或 s2"); return;}
+		DzFrameSetCheckBoxState(uiCheckboxTest.ui, false);
+		BJDebugMsg("已设置复选框为: 取消选中状态");
+	}
+	function TTestUTUICheckbox5 (player p) { //测试一下同步的东西
+		if (GetLocalPlayer() != p) {return;}
+		if (uiCheckboxTest != null) {uiCheckboxTest.destroy();}
+		uiCheckboxTest = uiCheckbox.create(DzGetGameUI())
+			.onChecked(function () {
+				BJDebugMsg("复选框: 取消选中状态");
+				DzFrameSetCheckBoxState(uiCheckboxTest.ui, false);
+			})
+			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0);
+		BJDebugMsg("创建了复选框(始终取消选中)。");
+	}
+	function TTestUTUICheckbox6 (player p) { //测试一下同步的东西
+		if (GetLocalPlayer() != p) {return;}
+		if (uiCheckboxTest != null) {uiCheckboxTest.destroy();}
+		uiCheckboxTest = uiCheckbox.create(DzGetGameUI())
+			.onUnchecked(function () {
+				BJDebugMsg("复选框: 选中状态");
+				DzFrameSetCheckBoxState(uiCheckboxTest.ui, true);
+			})
+			.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0.0,0.0);
+		BJDebugMsg("创建了复选框(始终选中)。");
+	}
 	function TTestUTUICheckbox7 (player p) {}
 	function TTestUTUICheckbox8 (player p) {}
 	function TTestUTUICheckbox9 (player p) {}
@@ -86,6 +122,8 @@ library UTUICheckbox requires UICheckbox {
 			BJDebugMsg("----------复选框组件测试----------");
 			BJDebugMsg("s1 - 创建复选框(Checkbox)");
 			BJDebugMsg("s2 - 创建单选框(Radio)");
+			BJDebugMsg("s3 - 设置复选框为选中状态");
+			BJDebugMsg("s4 - 设置复选框为取消选中状态");
 			BJDebugMsg("点击可切换选中状态");
 			BJDebugMsg("--------------------------------");
 			DestroyTrigger(GetTriggeringTrigger());

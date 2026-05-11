@@ -14,6 +14,7 @@ library HashTable {
         hashtable HASH_TRIGGER = InitHashtable();  // 触发器哈希表
         hashtable HASH_ITEM    = InitHashtable();  // 触发器哈希表
         hashtable HASH_ABILITY = InitHashtable();  // 触发器哈希表
+        hashtable HASH_DIALOG  = InitHashtable();  // 对话框哈希表
     }
 
     // 能力装饰相关：根据单位 + 技能ID 生成父键（纯整数散列）

@@ -105,6 +105,12 @@ library Music {
 			}
 		}
 
+
+		//一个使用得非常多的UI的hover方法
+		static method onHoverCommon() {
+			music[MUSIC_INDEX_BTN_OVER_1].play();
+		}
+
 		static method onInit () {
 			sound snd = null;
 
@@ -254,6 +260,177 @@ library Music {
 			snd = CreateSound("Abilities\\Spells\\Items\\ResourceItems\\BundleOfLumber.wav", false, false, false, 10, 10, "SpellsEAX");
 			SetSoundDuration(snd, 1347);
 			thistype[MUSIC_INDEX_LUMBER].snd = snd;
+			//# endcheck
+
+
+			//# check: music[15]
+			//# dependency:sound/sound/job_finish.mp3
+			snd = CreateSound( "sound\\job_finish.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1780 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_JOB_FINISH].snd = snd;
+			//# endcheck
+
+			//# check: music[16]
+			//# dependency:sound/sound/job_pause.mp3
+			snd = CreateSound( "sound\\job_pause.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1489 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_JOB_PAUSE].snd = snd;
+			//# endcheck
+
+			//# check: music[17]
+			//# dependency:sound/sound/job_start.mp3
+			snd = CreateSound( "sound\\job_start.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1750 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_JOB_START].snd = snd;
+			//# endcheck
+
+			//# check: music[18]
+			//# dependency:sound/sound/btn_switch_close.mp3
+			snd = CreateSound( "sound\\btn_switch_close.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 575 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_BTN_SWITCH_CLOSE].snd = snd;
+			//# endcheck
+
+			//# check: music[19]
+			//# dependency:sound/sound/btn_switch_open.mp3
+			snd = CreateSound( "sound\\btn_switch_open.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 627 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_BTN_SWITCH_OPEN].snd = snd;
+			//# endcheck
+
+			//# check: music[3001]
+			//# dependency:sound/sound/arena_clear.mp3
+			snd = CreateSound( "sound\\arena_clear.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1489 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_ARENA_CLEAR].snd = snd;
+			//# endcheck
+
+			//# check: music[3002]
+			//# dependency:sound/sound/arena_fail.mp3
+			snd = CreateSound( "sound\\arena_fail.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 548 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_ARENA_FAIL].snd = snd;
+			//# endcheck
+
+			//# check: music[3003]
+			//# dependency:sound/sound/arena_start.mp3
+			snd = CreateSound( "sound\\arena_start.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1175 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_ARENA_START].snd = snd;
+			//# endcheck
+
+			//# check: music[3004]
+			//# dependency:sound/sound/boss_coming.mp3
+			snd = CreateSound( "sound\\boss_coming.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 5474 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_BOSS_COMING].snd = snd;
+			//# endcheck
+
+			//# check: music[3005]
+			//# dependency:sound/sound/buy_fail.mp3
+			snd = CreateSound( "sound\\buy_fail.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1011 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_BUY_FAIL].snd = snd;
+			//# endcheck
+
+			//# check: music[3006]
+			//# dependency:sound/sound/chuguai.mp3
+			snd = CreateSound( "sound\\chuguai.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 3414 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_CHUGUAI].snd = snd;
+			//# endcheck
+
+			//# check: music[3007]
+			//# dependency:sound/sound/equit_combine.mp3
+			snd = CreateSound( "sound\\equit_combine.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1175 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_EQUIT_COMBINE].snd = snd;
+			//# endcheck
+
+			//# check: music[3008]
+			//# dependency:sound/sound/equit_update.mp3
+			snd = CreateSound( "sound\\equit_update.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1907 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_EQUIT_UPDATE].snd = snd;
+			//# endcheck
+
+			//# check: music[3009]
+			//# dependency:sound/sound/shop_buy.mp3
+			snd = CreateSound( "sound\\shop_buy.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 369 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_SHOP_BUY].snd = snd;
+			//# endcheck
+
+			//# check: music[3010]
+			//# dependency:sound/sound/spell_unlock.mp3
+			snd = CreateSound( "sound\\spell_unlock.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1638 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_SPELL_UNLOCK].snd = snd;
+			//# endcheck
+
+			//# check: music[3011]
+			//# dependency:sound/sound/update_spell.mp3
+			snd = CreateSound( "sound\\update_spell.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 2564 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_UPDATE_SPELL].snd = snd;
+			//# endcheck
+
+			//# check: music[3012]
+			//# dependency:sound/sound/start_mission.mp3
+			snd = CreateSound( "sound\\start_mission.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1071 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_START_MISSION].snd = snd;
 			//# endcheck
 
 

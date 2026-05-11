@@ -4,7 +4,18 @@ local w3xlni = require("Lua.compile.W3xLni")
 local launcher = require("Lua.compile.Launcher")
 local path = require("Lua.path")
 local copy = require ("Lua.utils.copy")
-local root, projectPath, we, buildVersion
+local taskStartClock = os.clock()
+local root, projectPath, we, buildVersion, gamePath
+
+local function printTaskEnd()
+	local elapsed = os.clock() - taskStartClock
+	local elapsedStr = string.format("[用时%.2f秒]-", elapsed)
+	if path.buildString and path.buildString ~= "" then
+		print("---任务结束---" .. path.buildString .. elapsedStr)
+	else
+		print("---任务结束---" .. elapsedStr)
+	end
+end
 
 if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
 	root = arg[1]
@@ -40,8 +51,11 @@ else
 	error("error: 请输入启动版本:内测版本,公测版本,正式版本,单元测试,模型测试")
 	return
 end
+if arg[5] ~= nil and arg[5] ~= "" then
+	gamePath = arg[5]
+end
 
-path.init(root, projectPath, we) -- 初始化路径
+path.init(root, projectPath, we, gamePath) -- 初始化路径
 tc.ChangeBuildVersion(buildVersion)
 
 local sur = compiler:StartCompile(path)
@@ -55,9 +69,7 @@ if sur then
 	os.remove(map)
 
 
-	launcher.StartWar3('_slk')
+	launcher.StartWar3AndWaitLog('_slk')
 end
 
-if path.buildString then -- 输出字符串
-	print("---任务结束---" .. path.buildString)
-end
+printTaskEnd()

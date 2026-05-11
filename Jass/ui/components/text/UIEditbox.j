@@ -8,15 +8,11 @@
 /*
 文字UI组件
 */
-library UIEditbox requires UIId,UITocInit,UIBaseModule,UITextModule,UIEventModule {
+library UIEditbox requires STRUCT_SHARED_REQUIRE_UI,UITextModule,UIEventModule {
 
     public struct uiEditbox {
-        integer ui; //frameID
-        integer id; //可以回收的ID名(为了销毁时ID不重复)
-
-        STRUCT_SHARED_METHODS(uiEditbox)
-
-        module uiBaseModule; // UI控件的共用方法
+        // UI组件内部共享方法及成员
+        STRUCT_SHARED_INNER_UI(uiEditbox)
         module uiTextModule;   // UI文本的共用方法
         module uiEventModule;  // UI事件的共用方法
 
@@ -26,6 +22,7 @@ library UIEditbox requires UIId,UITocInit,UIBaseModule,UITextModule,UIEventModul
             thistype this = allocate();
             id = uiId.get();
             ui = DzCreateFrameByTagName("EDITBOX",STRING_EDITBOX + I2S(id),parent,TEMPLATE_EDITBOX,0);
+            STRUCT_SHARED_UI_ONCREATE(uiEditbox)
             return this;
         }
 
@@ -45,6 +42,7 @@ library UIEditbox requires UIId,UITocInit,UIBaseModule,UITextModule,UIEventModul
 
         method onDestroy () {
             if (!this.isExist()) {return;}
+            STRUCT_SHARED_UI_ONDESTROY(uiEditbox)
             DzDestroyFrame(ui);
             uiId.recycle(id);
         }

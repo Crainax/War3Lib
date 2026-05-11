@@ -16,6 +16,8 @@
 //! zinc
 library PlayerUtils {
 
+    private boolean playerCounted[];
+
     //玩家数量
     public struct playerCount [] {
         static integer all = 0; //当前玩家总数(包括中途退出的)
@@ -38,13 +40,29 @@ library PlayerUtils {
     }
 
     function onInit ()  {
+        trigger tr;
         integer i;
         for (1 <= i <= 12) {
             if ((GetPlayerSlotState(ConvertedPlayer(i)) == PLAYER_SLOT_STATE_PLAYING) && (GetPlayerController(ConvertedPlayer(i)) == MAP_CONTROL_USER)) {
                 playerCount.all    += 1;
                 playerCount.online += 1;
+                playerCounted[i] = true;
             }
         }
+
+        tr = CreateTrigger();
+        for (1 <= i <= 12) {
+            TriggerRegisterPlayerEventLeave(tr, ConvertedPlayer(i));
+        }
+        TriggerAddCondition(tr, Condition(function () -> boolean {
+            integer index = GetConvertedPlayerId(GetTriggerPlayer());
+            if (index >= 1 && index <= 12 && playerCounted[index]) {
+                playerCounted[index] = false;
+                playerCount.online = IMaxBJ(playerCount.online - 1, 1);
+            }
+            return false;
+        }));
+        tr = null;
     }
 }
 

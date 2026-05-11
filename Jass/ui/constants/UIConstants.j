@@ -60,6 +60,7 @@
 //模板名
 #define TEMPLATE_NORMAL_BUTTON       "BT"                //无声,有高亮
 #define TEMPLATE_TEXT_BUTTON         "TBT"
+#define TEMPLATE_WAR3_DIALOG_BUTTON  "War3DialogButton"  //魔兽原生对话框风格按钮
 #define TEMPLATE_IMAGE               "IT"
 #define TEMPLATE_BLANK_BUTTON        "BB"
 #define TEMPLATE_IMAGE_TOOLTIPS      "ToolTipsTemplate"
@@ -80,6 +81,7 @@
 #define TEMPLATE_BORDER2             "Border2"
 #define TEMPLATE_BORDER3             "Border3"
 #define TEMPLATE_BORDER4             "Border4"
+#define TEMPLATE_BORDER5             "Border5"
 
 #define TEMPLATE_SIMPLE_BUTTON      "简单按钮"   //fdf不写都行
 #define TEMPLATE_SIMPLE_TEXT        "简单文字"

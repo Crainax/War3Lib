@@ -92,6 +92,24 @@ library AbilityDecorate requires SpellBtns,HashTable {
         spellBtns.icons[row][col].setShadow(shadow);
     }
 
+    // 清理单个技能槽位的所有装饰覆盖
+    private function ClearAbilityDecorSlot(integer row, integer col) {
+        spellBtns.icons[row][col].setTexture(UI_STRING_PATH_BLANK).show(false);
+        spellBtns.icons[row][col].unGrow();
+        spellBtns.icons[row][col].setCornerText(null);
+        spellBtns.icons[row][col].setShadow(false);
+    }
+
+    // 清理整页技能栏（12格）上的装饰覆盖
+    public function ClearAbilityDecorUI() {
+        integer row; integer col;
+        for (1 <= row <= 3) {
+            for (1 <= col <= 4) {
+                ClearAbilityDecorSlot(row, col);
+            }
+        }
+    }
+
 
     // 立刻刷新当前选中单位的指定技能ID对应的槽位
     private function DoImmediateRefresh(unit u, integer abilityID) {
@@ -183,7 +201,7 @@ library AbilityDecorate requires SpellBtns,HashTable {
 
             // 检查单位是否被排除
             if (IsUnitExcludedFromAbilityDecorate(u)) {
-                // 被排除的单位，直接跳过处理
+                // 被排除的单位由业务侧自行处理技能栏装饰
                 u = null;
                 return;
             }
@@ -192,10 +210,7 @@ library AbilityDecorate requires SpellBtns,HashTable {
                 ApplyAbilityDecorToSlot(u, abilCode, row, col);
             } else {
                 // 槽位清空或无法获取能力：还原覆盖层
-                spellBtns.icons[row][col].setTexture(UI_STRING_PATH_BLANK).show(false);
-                spellBtns.icons[row][col].unGrow();
-                spellBtns.icons[row][col].setCornerText(null);
-                spellBtns.icons[row][col].setShadow(false);
+                ClearAbilityDecorSlot(row, col);
             }
             u = null;
         });
