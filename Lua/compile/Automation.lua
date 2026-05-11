@@ -45,6 +45,9 @@ function automation.Run(options)
 	appendArg(args, "--we", path.we)
 	appendArg(args, "--game-path", path.gamePath)
 	appendArg(args, "--map-path", options.mapPath)
+	if options.launchWar3 then
+		table.insert(args, "--launch-war3")
+	end
 	if options.checkAssets then
 		table.insert(args, "--check-assets")
 	end

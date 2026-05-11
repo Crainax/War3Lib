@@ -1,10 +1,5 @@
-local tc = require("Lua.compile.TestControl")
-local compiler = require("lua.compile.compiler")
-local w3xlni = require("Lua.compile.W3xLni")
-local launcher = require("Lua.compile.Launcher")
 local automation = require("Lua.compile.Automation")
 local path = require("Lua.path")
-local copy = require("Lua.utils.copy")
 
 local taskStartClock = os.clock()
 local root, projectPath, we, gamePath
@@ -63,29 +58,8 @@ local function parseArgs()
 	end
 end
 
-local function buildSlkMap()
-	local compileOk = compiler:StartCompile(path)
-	if not compileOk then
-		print("[war3auto] compile failed; stop phase 1 automation")
-		return nil
-	end
-
-	w3xlni:StartSLK()
-
-	local map = path.project .. "/" .. path.mapName .. "_slk.w3x"
-	local targetMap = path.project .. "/output/" .. path.mapName .. "_slk.w3x"
-	local copied = copy.CopyBin(map, targetMap)
-	if not copied then
-		print("[war3auto] failed to copy map: " .. map .. " -> " .. targetMap)
-		return nil
-	end
-	os.remove(map)
-	return targetMap
-end
-
 parseArgs()
 path.init(root, projectPath, we, gamePath)
-tc.ChangeBuildVersion("内测版本")
 
 if options.checkAssets then
 	local ok = automation.CheckAssets()
@@ -116,20 +90,8 @@ if options.dryRun then
 	return
 end
 
-local targetMap = buildSlkMap()
-if not targetMap then
-	printTaskEnd()
-	os.exit(1)
-end
-
-local started = launcher.StartWar3FileAndWaitLog(targetMap, path.mapName .. "_slk.w3x")
-if not started then
-	printTaskEnd()
-	os.exit(1)
-end
-
 local ok = automation.Run({
-	mapPath = targetMap,
+	launchWar3 = true,
 	timeoutSeconds = options.timeoutSeconds,
 	threshold = options.threshold,
 })
