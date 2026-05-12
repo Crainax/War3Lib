@@ -25,6 +25,7 @@ local wantPrintInGame = true
 local dbg = require 'jass.debug'
 local jass = require 'jass.common'
 local con = require 'jass.console'
+local log = require 'jass.log'
 local g = require "jass.globals"
 local type_list = {
 	['+loc'] = '点',
@@ -70,9 +71,17 @@ local type_list = {
 
 }
 
-local print = con.write
+local function writeLog(...)
+	pcall(log.info, ...)
+end
+
+local function print(...)
+	writeLog(...)
+	return con.write(...)
+end
 
 local function echo(str)
+	writeLog(str)
 	jass.DisplayTimedTextToPlayer(jass.GetLocalPlayer(), 0, 0, 60.00, str)
 end
 

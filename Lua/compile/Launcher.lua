@@ -76,14 +76,23 @@ end
 
 launcher.OpenWithAntigravity = openWithAntigravity
 
-local function openWithNotepad(filePath)
+local function openWithPowerShellTail(filePath)
 	local target = filePath:gsub("/", "\\")
-	local quotedTarget = '"' .. target:gsub('"', '\\"') .. '"'
-	local ps = "Start-Process -FilePath notepad.exe -ArgumentList @(" .. powershellString(quotedTarget) .. ")"
+	local tailScript = table.concat({
+		"[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false)",
+		"$OutputEncoding=[System.Text.UTF8Encoding]::new($false)",
+		"chcp 65001 > $null",
+		"$path=" .. powershellString(target),
+		"$Host.UI.RawUI.WindowTitle='War3 Log Tail - ' + [System.IO.Path]::GetFileName($path)",
+		"Write-Host ('[日志追踪] ' + $path)",
+		"Get-Content -LiteralPath $path -Encoding UTF8 -Wait -Tail 80"
+	}, "; ")
+	local encodedTail = base64Encode(utf8ToUtf16Le(tailScript))
+	local ps = "Start-Process -FilePath powershell.exe -ArgumentList @('-NoExit','-NoProfile','-ExecutionPolicy','Bypass','-EncodedCommand'," .. powershellString(encodedTail) .. ")"
 	return os.execute(powershellCommand(ps))
 end
 
-launcher.OpenWithNotepad = openWithNotepad
+launcher.OpenWithPowerShellTail = openWithPowerShellTail
 
 local function sleepOneSecond()
 	os.execute("ping -n 2 127.0.0.1 >nul")
@@ -161,7 +170,7 @@ function launcher.WaitAndOpenNewLog(before, timeoutSeconds, startClock)
 		local logPath = newestNewLog(logDir, before or {}, startClock)
 		if logPath then
 			print("[日志等待]发现新日志: " .. logPath)
-			openWithNotepad(logPath)
+			openWithPowerShellTail(logPath)
 			return true
 		end
 		sleepOneSecond()
