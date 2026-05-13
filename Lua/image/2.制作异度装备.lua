@@ -14,7 +14,7 @@ chcp 65001
 -- 1. 基础路径配置
 local paths = {
     -- [重要] 图标的基础目录, 也是传递给BLPLab的参数
-    icon_base_dir = [[D:\War3Asset\Asset\Xlimon\Icon\20260110\3\rare\]],
+    icon_base_dir = [[D:\War3Asset\Asset\Xlimon\Icon\20260513\combine\rare\]],
 
     -- 各种叠加图片的路径
     btn           = [[D:\War3\tools\Image\btn.png]],
@@ -22,7 +22,7 @@ local paths = {
     dis           = [[D:\War3\tools\Image\dis.png]],
 
     -- 品质图片路径 (0-6)
-    quality = {
+    quality       = {
         [0] = [[D:\War3\tools\Image\bj0.png]],
         [1] = [[D:\War3\tools\Image\bj1.png]],
         [2] = [[D:\War3\tools\Image\bj2.png]],
@@ -33,7 +33,7 @@ local paths = {
     },
 
     -- 光晕图片路径 (0-6, 根据品质等级选择)
-    glow = {
+    glow          = {
         -- [0] = [[D:\War3\tools\Image\fg4_glowCyan.png]],
         [0] = [[D:\War3\tools\Image\old_1.png]],
         [1] = [[D:\War3\tools\Image\fg4_glowGreen.png]],

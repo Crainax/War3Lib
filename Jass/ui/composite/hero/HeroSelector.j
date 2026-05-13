@@ -4,6 +4,7 @@
 #include "Crainax/config/SharedMethod.h"       // 结构体共用方法、I3 等工具
 #include "Crainax/ui/constants/UIConstants.j"  // UI 常量
 #include "Crainax/ui/constants/GrowConstants.j"  // UI 常量
+#include "Crainax/data/audio/MusicConstant.j"  // 音效常量
 
 //! zinc
 
@@ -151,6 +152,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public static integer argsEventIndex = 0; //事件类型(回调参数)  1-10事件的位置
 
         public static trigger trHeroBtn1String    = null;  //根据位置返回字符串的触发器
+        public static trigger trHeroUnlockBtnString = null; //未解锁按钮文本触发器（可选）
         public static trigger trBpEnter           = null;  //左下角BP鼠标进入触发事件
         public static trigger trBpLeave           = null;  //左下角BP鼠标离开触发事件
         public static trigger trBottomTextControl = null;  //底部文本显示控制触发器（return true显示，false隐藏）
@@ -963,7 +965,15 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                             if (conditionPassed) {
                                 uiBtn2Text.setText(HEROSEL_BTN2_TEXT_DEFAULT);
                             } else {
-                                uiBtn2Text.setText(HEROSEL_BTN2_TEXT_UNLOCK);
+                                currentBtn1StringResult = "";
+                                if (heroData.trHeroUnlockBtnString != null) {
+                                    TriggerEvaluate(heroData.trHeroUnlockBtnString);
+                                }
+                                if (currentBtn1StringResult != null && StringLength(currentBtn1StringResult) > 0) {
+                                    uiBtn2Text.setText(currentBtn1StringResult);
+                                } else {
+                                    uiBtn2Text.setText(HEROSEL_BTN2_TEXT_UNLOCK);
+                                }
                             }
                         }
                         // 调用底部文本控制回调
@@ -986,6 +996,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                         // 选中任意英雄后，流光优先切到按钮2
                         setGrowBtnState(2);
                         refreshLeftGrid();
+                        music[MUSIC_INDEX_BTN_CLICK].play();
                     });
                     uiHashTable(slotIcon[r][c].getClickBtn().ui).eventdata.bind(idx);
 
