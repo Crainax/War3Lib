@@ -6,6 +6,8 @@
 #define HASH_CHILD_SALT_GLOW           1002
 #define HASH_CHILD_SALT_CORNER         1003
 #define HASH_CHILD_SALT_SHADOW         1006
+#define HASH_CHILD_SALT_TOP_RIGHT      1007
+#define HASH_CHILD_SALT_TOP_RIGHT_SIZE 1008
 
 // 能力冷却（AbilityCool）使用的子键：保存逻辑剩余冷却时间（real，单位：秒）
 #define HASH_CHILD_SALT_ABILITY_COOLDOWN  1004
