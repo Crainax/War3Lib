@@ -80,6 +80,222 @@ local function jassString(value)
     return '"' .. value .. '"'
 end
 
+local function writeLocalGameStartTime(timestamp)
+    local content = fu.GetContent(path.localDzApiIni)
+    if not content or content == "" then
+        return true, false
+    end
+
+    local newline = content:find("\r\n", 1, true) and "\r\n" or "\n"
+    local endsWithNewline = content:match("\r?\n$") ~= nil
+    local normalized = content:gsub("\r\n", "\n")
+    if normalized:sub(-1) ~= "\n" then
+        normalized = normalized .. "\n"
+    end
+
+    local lines = {}
+    local inLocalSection = false
+    local changed = false
+
+    for line in normalized:gmatch("(.-)\n") do
+        local nextSection = line:match("^%s*%[([^%]]+)%]%s*$")
+        if nextSection then
+            inLocalSection = nextSection:match("^%s*(.-)%s*$") == "War3Lib.LocalDzApi"
+        elseif inLocalSection and not line:match("^%s*[;#]") then
+            local prefix, _, suffix = line:match("^([ \t]*DzAPI_Map_GetGameStartTime[ \t]*=[ \t]*)([^;#]*)(.*)$")
+            if prefix then
+                line = prefix .. tostring(timestamp) .. (suffix or "")
+                changed = true
+            end
+        end
+        lines[#lines + 1] = line
+    end
+
+    if not changed then
+        return true, false
+    end
+
+    local output = table.concat(lines, newline)
+    if endsWithNewline then
+        output = output .. newline
+    end
+    local ok, err = fu.WriteOver(path.localDzApiIni, output)
+    return ok, true, err
+end
+
+local function jassNonNegativeInteger(value, defaultValue)
+    if value == nil or value == "" then
+        value = defaultValue
+    end
+    value = tostring(value or ""):match("^%s*(%-?%d+)%s*$")
+    if not value then
+        value = tostring(defaultValue or "0")
+    end
+
+    value = tonumber(value) or 0
+    if value < 0 then
+        value = 0
+    end
+    return tostring(math.floor(value))
+end
+
+local function collectSectionKeys(section)
+    local result = {}
+    local seen = {}
+
+    for key, _ in pairs(section or {}) do
+        if key ~= "Default" and not seen[key] then
+            seen[key] = true
+            result[#result + 1] = key
+        end
+    end
+
+    table.sort(result)
+    return result
+end
+
+local function appendMallItemHasFunction(lines, hasSection, defaultValue)
+    local keys = collectSectionKeys(hasSection)
+
+    lines[#lines + 1] = "private function War3Lib_LocalDzApiMallItem_InitialHas takes string itemKey returns boolean"
+    for i, key in ipairs(keys) do
+        local prefix = i == 1 and "    if" or "    elseif"
+        lines[#lines + 1] = prefix .. " itemKey == " .. jassString(key) .. " then"
+        lines[#lines + 1] = "        return " .. jassBool(hasSection[key], defaultValue)
+    end
+    if #keys > 0 then
+        lines[#lines + 1] = "    endif"
+    end
+    lines[#lines + 1] = "    return " .. jassBool(defaultValue, "true")
+    lines[#lines + 1] = "endfunction"
+end
+
+local function appendMallItemCountFunction(lines, countSection, defaultValue)
+    local keys = collectSectionKeys(countSection)
+
+    lines[#lines + 1] = "private function War3Lib_LocalDzApiMallItem_InitialCount takes string itemKey returns integer"
+    for i, key in ipairs(keys) do
+        local prefix = i == 1 and "    if" or "    elseif"
+        lines[#lines + 1] = prefix .. " itemKey == " .. jassString(key) .. " then"
+        lines[#lines + 1] = "        return " .. jassNonNegativeInteger(countSection[key], defaultValue)
+    end
+    if #keys > 0 then
+        lines[#lines + 1] = "    endif"
+    end
+    lines[#lines + 1] = "    return " .. jassNonNegativeInteger(defaultValue, "100")
+    lines[#lines + 1] = "endfunction"
+end
+
+local function buildMallItemMockLines(cfg, localSection)
+    local hasSection = cfg["War3Lib.LocalDzApi.MallItemHas"] or {}
+    local countSection = cfg["War3Lib.LocalDzApi.MallItemCount"] or {}
+    local defaultHas = hasSection["Default"] or localSection["MallItemHasDefault"] or "true"
+    local defaultCount = countSection["Default"] or localSection["MallItemCountDefault"] or "100"
+    local lines = {
+        "library War3LibLocalDzApiMallItem",
+        "globals",
+        "    private hashtable War3Lib_LocalDzApiMallItem_CountTable = InitHashtable()",
+        "    private hashtable War3Lib_LocalDzApiMallItem_TimerTable = InitHashtable()",
+        "endglobals",
+        ""
+    }
+
+    appendMallItemHasFunction(lines, hasSection, defaultHas)
+    lines[#lines + 1] = ""
+    appendMallItemCountFunction(lines, countSection, defaultCount)
+
+    local tail = {
+        "",
+        "private function War3Lib_LocalDzApiMallItem_Ensure takes player whichPlayer, string itemKey returns nothing",
+        "    local integer parent = GetHandleId(whichPlayer)",
+        "    local integer child = StringHash(itemKey)",
+        "    if not HaveSavedInteger(War3Lib_LocalDzApiMallItem_CountTable, parent, child) then",
+        "        call SaveInteger(War3Lib_LocalDzApiMallItem_CountTable, parent, child, War3Lib_LocalDzApiMallItem_InitialCount(itemKey))",
+        "    endif",
+        "endfunction",
+        "",
+        "function War3Lib_LocalDzApiMallItem_GetCount takes player whichPlayer, string itemKey returns integer",
+        "    local integer parent",
+        "    local integer child",
+        "    if whichPlayer == null then",
+        "        return 0",
+        "    endif",
+        "    call War3Lib_LocalDzApiMallItem_Ensure(whichPlayer, itemKey)",
+        "    set parent = GetHandleId(whichPlayer)",
+        "    set child = StringHash(itemKey)",
+        "    return LoadInteger(War3Lib_LocalDzApiMallItem_CountTable, parent, child)",
+        "endfunction",
+        "",
+        "function War3Lib_LocalDzApiMallItem_Has takes player whichPlayer, string itemKey returns boolean",
+        "    if whichPlayer == null then",
+        "        return false",
+        "    endif",
+        "    return War3Lib_LocalDzApiMallItem_InitialHas(itemKey) and War3Lib_LocalDzApiMallItem_GetCount(whichPlayer, itemKey) > 0",
+        "endfunction",
+        "",
+        "private function War3Lib_LocalDzApiMallItem_ConsumeDelayed takes nothing returns nothing",
+        "    local timer t = GetExpiredTimer()",
+        "    local integer timerId = GetHandleId(t)",
+        "    local player whichPlayer = LoadPlayerHandle(War3Lib_LocalDzApiMallItem_TimerTable, timerId, 1)",
+        "    local string itemKey = LoadStr(War3Lib_LocalDzApiMallItem_TimerTable, timerId, 2)",
+        "    local integer count = LoadInteger(War3Lib_LocalDzApiMallItem_TimerTable, timerId, 3)",
+        "    local integer parent = 0",
+        "    local integer child = 0",
+        "    local integer current = 0",
+        "    if whichPlayer != null then",
+        "        call War3Lib_LocalDzApiMallItem_Ensure(whichPlayer, itemKey)",
+        "        set parent = GetHandleId(whichPlayer)",
+        "        set child = StringHash(itemKey)",
+        "        set current = LoadInteger(War3Lib_LocalDzApiMallItem_CountTable, parent, child) - count",
+        "        if current < 0 then",
+        "            set current = 0",
+        "        endif",
+        "        call SaveInteger(War3Lib_LocalDzApiMallItem_CountTable, parent, child, current)",
+        "    endif",
+        "    call FlushChildHashtable(War3Lib_LocalDzApiMallItem_TimerTable, timerId)",
+        "    call PauseTimer(t)",
+        "    call DestroyTimer(t)",
+        "    set whichPlayer = null",
+        "    set t = null",
+        "endfunction",
+        "",
+        "function War3Lib_LocalDzApiMallItem_Consume takes player whichPlayer, string itemKey, integer count returns boolean",
+        "    local timer t",
+        "    local integer timerId",
+        "    local integer current",
+        "    if whichPlayer == null or count <= 0 then",
+        "        return false",
+        "    endif",
+        "    if not War3Lib_LocalDzApiMallItem_InitialHas(itemKey) then",
+        "        return false",
+        "    endif",
+        "    set current = War3Lib_LocalDzApiMallItem_GetCount(whichPlayer, itemKey)",
+        "    if current < count then",
+        "        return false",
+        "    endif",
+        "    set t = CreateTimer()",
+        "    set timerId = GetHandleId(t)",
+        "    call SavePlayerHandle(War3Lib_LocalDzApiMallItem_TimerTable, timerId, 1, whichPlayer)",
+        "    call SaveStr(War3Lib_LocalDzApiMallItem_TimerTable, timerId, 2, itemKey)",
+        "    call SaveInteger(War3Lib_LocalDzApiMallItem_TimerTable, timerId, 3, count)",
+        "    call TimerStart(t, 0.30, false, function War3Lib_LocalDzApiMallItem_ConsumeDelayed)",
+        "    set t = null",
+        "    return true",
+        "endfunction",
+        "endlibrary",
+        "",
+        "#define DzAPI_Map_HasMallItem(p, k) War3Lib_LocalDzApiMallItem_Has(p, k)",
+        "#define DzAPI_Map_GetMallItemCount(p, k) War3Lib_LocalDzApiMallItem_GetCount(p, k)",
+        "#define DzAPI_Map_ConsumeMallItem(p, k, c) War3Lib_LocalDzApiMallItem_Consume(p, k, c)"
+    }
+
+    for _, line in ipairs(tail) do
+        lines[#lines + 1] = line
+    end
+
+    return lines
+end
+
 local function splitTopLevelArgs(args)
     local result = {}
     local start = 1
@@ -136,10 +352,16 @@ local function buildHeader(version, cfg)
         "",
         "#if defined(WAR3LIB_SECOND_WAVE)",
         "#define DzAPI_Map_GetGameStartTime() " .. startTime,
-        "#endif",
-        "",
-        "#endif"
+        ""
     }
+
+    for _, line in ipairs(buildMallItemMockLines(cfg, localSection)) do
+        lines[#lines + 1] = line
+    end
+
+    lines[#lines + 1] = "#endif"
+    lines[#lines + 1] = ""
+    lines[#lines + 1] = "#endif"
 
     return table.concat(lines, "\n") .. "\n"
 end
@@ -155,6 +377,12 @@ end
 
 function localDzApi.generate()
     local started = os.clock()
+    local timestamp = os.time()
+    local ok, changed, err = writeLocalGameStartTime(timestamp)
+    if not ok then
+        return false, err
+    end
+
     local version, cfg, _, enabled = readMockState()
     local content
     local label
@@ -173,6 +401,9 @@ function localDzApi.generate()
     end
     ok, err = fu.WriteOver(path.localDzApiMockH, content)
     if ok then
+        if changed then
+            print("[DzAPI本地替换]GameStartTime写入: " .. tostring(timestamp))
+        end
         print(label .. formatElapsedSeconds(elapsedMs(started)))
     end
     return ok, err

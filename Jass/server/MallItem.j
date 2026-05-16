@@ -10,14 +10,6 @@
 // 开放寻址哈希容量（必须 < 8192，选用素数以降低冲突）
 #define MALLITEM_HASH_CAP       1021
 
-#if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
-
-    #define DzAPI_Map_HasMallItem(p, k) true
-    #define DzAPI_Map_GetMallItemCount(p, k) 999
-    #define DzAPI_Map_ConsumeMallItem(p, k, c) true
-
-#endif
-
 // 使用说明（MallItem 黑箱）
 // 1) 在地图启动阶段注册商品（每次注册一个 key）：
 //    mallItem.init("VIP1");
@@ -54,7 +46,7 @@
 //
 //todo: 加入局内商品进包的回调
 //! zinc
-library MallItem requires DzAPI{
+library MallItem requires DzAPI, HashTable{
 
     // 黑箱：商城商品拥有权初始化、缓存、查询与元信息
     public struct mallItem []{

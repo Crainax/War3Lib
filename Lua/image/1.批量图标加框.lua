@@ -59,7 +59,7 @@ local blplab_config = {
 }
 
 -- 2. 图片尺寸配置
-local image_size = 128
+local image_size = 64
 
 -- 3. 生成开关
 local generate_flags = {
