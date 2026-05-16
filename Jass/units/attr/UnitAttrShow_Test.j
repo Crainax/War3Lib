@@ -15,7 +15,7 @@
 //! zinc
 
 //自动生成的文件
-library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
+library UTUnitAttrShow requires UnitAttrShow, UnitUtils, UnitBuff {
 
 
 	// 创建普通测试单位
@@ -112,6 +112,8 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 		BJDebugMsg("-resetresistdown : 重置魔抗易伤");
 		BJDebugMsg("-silence : 添加沉默状态");
 		BJDebugMsg("-nosilence : 移除沉默状态");
+		BJDebugMsg("-disarm [秒] : 缴械当前单位，攻击力数值显示红色被缴械");
+		BJDebugMsg("-cleardisarm : 清除当前单位缴械状态");
 		BJDebugMsg("-atkicon on : 启用攻击图标自定义显示(角标+贴图)");
 		BJDebugMsg("-atkicon off : 禁用攻击图标自定义显示");
 		BJDebugMsg("-atkcorner [text] : 设置攻击图标角标文本");
@@ -616,6 +618,17 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils {
 			} else {
 				BJDebugMsg("单位没有无敌状态");
 			}
+		} else if (paramS[0] == "disarm") {
+			if (num >= 2) {
+				DisarmUnit(u, paramR[1]);
+				BJDebugMsg("已缴械当前单位 " + R2S(paramR[1]) + " 秒");
+			} else {
+				DisarmUnit(u, 5.0);
+				BJDebugMsg("已缴械当前单位 5 秒");
+			}
+		} else if (paramS[0] == "cleardisarm") {
+			ClearDisarm(u);
+			BJDebugMsg("已清除当前单位缴械状态");
 		}
 		// 魔免相关命令
 		else if (paramS[0] == "magic") {

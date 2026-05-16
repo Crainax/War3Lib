@@ -4,6 +4,8 @@
 
 #include "Crainax/core/constant/JapiConstant.j"
 #include "Crainax/core/table/Hash_UnitDefine.j"
+#include "YDWEBase.j"
+#include "japi/YDWEJapiUnit.j"
 
 //! zinc
 /*
@@ -18,7 +20,79 @@
 #define DEFENSE_REDUCE_EFFECT_PATH "Abilities\\Spells\\NightElf\\FaerieFire\\FaerieFireTarget.mdl"
 #define DEFENSE_REDUCE_EFFECT_POINT "head"
 
+// 沉默/缴械统一使用原生沉默魔法目标特效（db/buff.ini: [BNsi] TargetArt）
+#define SILENCE_DISABLE_EFFECT_PATH "Abilities\\Spells\\Other\\Silence\\SilenceTarget.mdl"
+#define SILENCE_DISABLE_EFFECT_POINT "overhead"
+
 library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFilter, GroupUtils {
+
+    private function AttachSilenceDisableEffect(unit u) {
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+        bindEffect.attachUnique(u, SILENCE_DISABLE_EFFECT_PATH, SILENCE_DISABLE_EFFECT_POINT);
+    }
+
+    private function DetachSilenceDisableEffectIfUnused(unit u) {
+        integer hid;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT) && !HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+            bindEffect.detachUnique(u, SILENCE_DISABLE_EFFECT_PATH);
+        }
+    }
+
+    private function ApplySilenceNative(unit u) {
+        integer hid;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        if (!HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_SILENCE_NATIVE_ON)) {
+            DzUnitSilence(u, true);
+            SaveInteger(HASH_UNIT, hid, KEY_UNIT_SILENCE_NATIVE_ON, 1);
+        }
+    }
+
+    private function ReleaseSilenceNative(unit u) {
+        integer hid;
+
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_SILENCE_NATIVE_ON)) {
+            if (GetUnitTypeId(u) != 0) {
+                DzUnitSilence(u, false);
+            }
+            RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_SILENCE_NATIVE_ON);
+        }
+    }
+
+    private function ApplyDisarmNative(unit u) {
+        integer hid;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        if (!HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON)) {
+            DzUnitDisableAttack(u, true);
+            SaveInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON, 1);
+        }
+    }
+
+    private function ReleaseDisarmNative(unit u) {
+        integer hid;
+
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON)) {
+            if (GetUnitTypeId(u) != 0) {
+                DzUnitDisableAttack(u, false);
+            }
+            RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON);
+        }
+    }
 
     // 无敌队列：集中管理所有处于无敌中的单位
     private struct ImmuteQueue [] {
@@ -328,6 +402,182 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                         // #if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
                         #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
                         if (thistype.size <= 0) {BJDebugMsg("StunCdQueue: 眩晕CD队列已销毁");}
+                        #endif
+                    }
+                });
+            }
+        }
+    }
+
+    // 沉默队列：集中管理禁用技能状态，到期后自动恢复
+    private struct SilenceQueue [] {
+        private static unit uList[];
+        private static integer size = 0;
+        private static timer tickTimer = null;
+
+        private static method removeAt(integer index) -> integer {
+            integer last; unit ru; integer hid;
+            if (index < 0 || index >= thistype.size) { return index; }
+
+            ru = thistype.uList[index];
+            if (ru != null) {
+                hid = GetHandleId(ru);
+                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) {
+                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+                }
+                ReleaseSilenceNative(ru);
+                DetachSilenceDisableEffectIfUnused(ru);
+            }
+
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.uList[index] = thistype.uList[last];
+            }
+            thistype.uList[last] = null;
+            thistype.size -= 1;
+            ru = null;
+            return index - 1;
+        }
+
+        public static method addUnit(unit u) {
+            integer i;
+            if (u == null) { return; }
+
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { return; }
+            }
+
+            if (thistype.size >= 8190) {
+                BJDebugMsg("|cFFFF0000[SilenceQueue] 队列已满，无法继续添加沉默单位！|r");
+                return;
+            }
+
+            thistype.uList[thistype.size] = u;
+            thistype.size += 1;
+
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.05, true, function () {
+                    integer i; integer hid; unit u; real timeLeft;
+
+                    for (i = 0; i < thistype.size; i += 1) {
+                        u = thistype.uList[i];
+                        if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                            i = thistype.removeAt(i);
+                            u = null;
+                        } else {
+                            hid = GetHandleId(u);
+                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) {
+                                i = thistype.removeAt(i);
+                                u = null;
+                            } else {
+                                timeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+                                if (timeLeft > 0.0) {
+                                    timeLeft = timeLeft - 0.05;
+                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT, timeLeft);
+                                    u = null;
+                                } else {
+                                    i = thistype.removeAt(i);
+                                    u = null;
+                                }
+                            }
+                        }
+                    }
+
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        if (thistype.size <= 0) {BJDebugMsg("SilenceQueue: 沉默队列已销毁");}
+                        #endif
+                    }
+                });
+            }
+        }
+    }
+
+    // 缴械队列：集中管理禁用攻击状态，到期后自动恢复
+    private struct DisarmQueue [] {
+        private static unit uList[];
+        private static integer size = 0;
+        private static timer tickTimer = null;
+
+        private static method removeAt(integer index) -> integer {
+            integer last; unit ru; integer hid;
+            if (index < 0 || index >= thistype.size) { return index; }
+
+            ru = thistype.uList[index];
+            if (ru != null) {
+                hid = GetHandleId(ru);
+                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+                }
+                ReleaseDisarmNative(ru);
+                DetachSilenceDisableEffectIfUnused(ru);
+            }
+
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.uList[index] = thistype.uList[last];
+            }
+            thistype.uList[last] = null;
+            thistype.size -= 1;
+            ru = null;
+            return index - 1;
+        }
+
+        public static method addUnit(unit u) {
+            integer i;
+            if (u == null) { return; }
+
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { return; }
+            }
+
+            if (thistype.size >= 8190) {
+                BJDebugMsg("|cFFFF0000[DisarmQueue] 队列已满，无法继续添加缴械单位！|r");
+                return;
+            }
+
+            thistype.uList[thistype.size] = u;
+            thistype.size += 1;
+
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.05, true, function () {
+                    integer i; integer hid; unit u; real timeLeft;
+
+                    for (i = 0; i < thistype.size; i += 1) {
+                        u = thistype.uList[i];
+                        if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                            i = thistype.removeAt(i);
+                            u = null;
+                        } else {
+                            hid = GetHandleId(u);
+                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+                                i = thistype.removeAt(i);
+                                u = null;
+                            } else {
+                                timeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+                                if (timeLeft > 0.0) {
+                                    timeLeft = timeLeft - 0.05;
+                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT, timeLeft);
+                                    u = null;
+                                } else {
+                                    i = thistype.removeAt(i);
+                                    u = null;
+                                }
+                            }
+                        }
+                    }
+
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        if (thistype.size <= 0) {BJDebugMsg("DisarmQueue: 缴械队列已销毁");}
                         #endif
                     }
                 });
@@ -837,6 +1087,92 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             });
             t = null;
         }
+    }
+
+    // 沉默单位：禁用技能，时间取最大值刷新
+    public function SilenceUnit(unit u, real time) {
+        integer hid; real oldTime;
+
+        if (u == null || !IsUnitAliveBJ(u) || time <= 0.0) { return; }
+        if (GetUnitAbilityLevel(u, 'Amim') > 0 || GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) > 0) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) {
+            oldTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT, RMaxBJ(oldTime, time));
+        } else {
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT, time);
+        }
+
+        ApplySilenceNative(u);
+        AttachSilenceDisableEffect(u);
+        SilenceQueue.addUnit(u);
+    }
+
+    // 立即清除沉默状态
+    public function ClearSilence(unit u) {
+        integer hid;
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) {
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+        }
+        ReleaseSilenceNative(u);
+        DetachSilenceDisableEffectIfUnused(u);
+    }
+
+    // 判断单位是否处于沉默中
+    public function IsUnitSilenced(unit u) -> boolean {
+        integer hid; real left;
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+        hid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) { return false; }
+        left = LoadReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+        return left > 0.0;
+    }
+
+    // 缴械单位：禁用攻击，时间取最大值刷新
+    public function DisarmUnit(unit u, real time) {
+        integer hid; real oldTime;
+
+        if (u == null || !IsUnitAliveBJ(u) || time <= 0.0) { return; }
+        if (GetUnitAbilityLevel(u, 'Amim') > 0 || GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) > 0) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+            oldTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT, RMaxBJ(oldTime, time));
+        } else {
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT, time);
+        }
+
+        ApplyDisarmNative(u);
+        AttachSilenceDisableEffect(u);
+        DisarmQueue.addUnit(u);
+    }
+
+    // 立即清除缴械/禁用攻击状态
+    public function ClearDisarm(unit u) {
+        integer hid;
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+        }
+        ReleaseDisarmNative(u);
+        DetachSilenceDisableEffectIfUnused(u);
+    }
+
+    // 判断单位是否处于缴械/禁用攻击中
+    public function IsUnitDisarmed(unit u) -> boolean {
+        integer hid; real left;
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+        hid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) { return false; }
+        left = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+        return left > 0.0;
     }
 
     // 眩晕单位（队列 + 尾部交换）

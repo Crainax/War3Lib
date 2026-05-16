@@ -8,7 +8,7 @@
 /*
 连接UnitPanel和UnitUtils的库  以显示数据
 */
-library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
+library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff {
 
     // 用于缓存"当前主单位"的上一次属性值，只在本地 UI 使用
     public struct unitAttrShow []{
@@ -30,6 +30,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
         // 攻击数值自定义显示缓存
         private static string  lastAttackValueStr   = null;  // 上一次的自定义攻击显示文本
         private static boolean lastShowAttackValueStr = false; // 上一次是否使用自定义攻击显示
+        private static boolean lastIsDisarmed       = false; // 上一次是否显示缴械状态
 
         // 防御扩展显示缓存
         private static real    lastDefenseRate       = 1.0;   // 上一次的总倍率
@@ -80,6 +81,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             real baseAtk; real extraAtk; boolean showExtra;
             string extraText;
             string atkValueStr; boolean showAtkValueStr;
+            boolean isDisarmed; boolean forceAttackValueRefresh;
             real rate; real deltaRate; boolean showRate;
             string atkLabel; real percentAbs; string percentStr;
             integer baseDef; integer extraDef; boolean showDefExtra;
@@ -115,59 +117,82 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware {
             extraAtk = atk - baseAtk;
             showExtra = RAbsBJ(extraAtk) >= RMaxBJ(1.0,RAbsBJ(baseAtk) * 0.001);
 
-            // 攻击数值：若存在自定义字符串，则优先显示，并强制隐藏 extra
+            // 攻击数值：缴械优先于自定义字符串和普通数值显示
             atkValueStr = GetUnitAtkValueStr(u);
             showAtkValueStr = (atkValueStr != null);
+            isDisarmed = IsUnitDisarmed(u);
+            forceAttackValueRefresh = lastIsDisarmed && !isDisarmed;
 
-            if (showAtkValueStr) {
-                if (!inited || !lastShowAttackValueStr || atkValueStr != lastAttackValueStr) {
-                    unitPanel.textAttackValue.setText(atkValueStr);
-                    lastAttackValueStr = atkValueStr;
-                    lastShowAttackValueStr = true;
+            if (isDisarmed) {
+                if (!inited || !lastIsDisarmed) {
+                    unitPanel.textAttackValue.setText("|cffff0000被缴械|r");
                 }
-                // 强制隐藏额外攻击显示
+                lastIsDisarmed = true;
+                lastAttackValueStr = null;
+                lastShowAttackValueStr = false;
+
                 if (!inited || lastShowAttackExtra) {
                     unitPanel.showAttackExtra(false);
                     lastShowAttackExtra = false;
                     lastAttackExtra = 0.0;
                 }
             } else {
-                // 从“自定义显示”切回“数值显示”时，强制刷新一次
-                if (!inited || lastShowAttackValueStr) {
+                if (forceAttackValueRefresh) {
+                    lastIsDisarmed = false;
                     lastAttackValueStr = null;
                     lastShowAttackValueStr = false;
-                    lastAttack = baseAtk;
-                    unitPanel.textAttackValue.setText(unitAttrShow.formatValue(baseAtk));
+                }
+
+                if (showAtkValueStr) {
+                    if (!inited || forceAttackValueRefresh || !lastShowAttackValueStr || atkValueStr != lastAttackValueStr) {
+                        unitPanel.textAttackValue.setText(atkValueStr);
+                        lastAttackValueStr = atkValueStr;
+                        lastShowAttackValueStr = true;
+                    }
+                    // 强制隐藏额外攻击显示
+                    if (!inited || forceAttackValueRefresh || lastShowAttackExtra) {
+                        unitPanel.showAttackExtra(false);
+                        lastShowAttackExtra = false;
+                        lastAttackExtra = 0.0;
+                    }
                 } else {
-                    // 正常数值显示：只在变化时刷新
-                    if (RAbsBJ(baseAtk - lastAttack) > 0.001) {
+                    // 从“自定义显示”或“缴械显示”切回“数值显示”时，强制刷新一次
+                    if (!inited || forceAttackValueRefresh || lastShowAttackValueStr) {
+                        lastAttackValueStr = null;
+                        lastShowAttackValueStr = false;
                         lastAttack = baseAtk;
                         unitPanel.textAttackValue.setText(unitAttrShow.formatValue(baseAtk));
+                    } else {
+                        // 正常数值显示：只在变化时刷新
+                        if (RAbsBJ(baseAtk - lastAttack) > 0.001) {
+                            lastAttack = baseAtk;
+                            unitPanel.textAttackValue.setText(unitAttrShow.formatValue(baseAtk));
+                        }
                     }
                 }
-            }
 
-            // 更新额外攻击显示
-            if (!showAtkValueStr && showExtra) {
-                percentAbs = RAbsBJ(extraAtk);
-                percentStr = unitAttrShow.formatValue(percentAbs);
-                if (extraAtk > 0.0) {
-                    extraText = "|cff00ff00+" + percentStr;
+                // 更新额外攻击显示
+                if (!showAtkValueStr && showExtra) {
+                    percentAbs = RAbsBJ(extraAtk);
+                    percentStr = unitAttrShow.formatValue(percentAbs);
+                    if (extraAtk > 0.0) {
+                        extraText = "|cff00ff00+" + percentStr;
+                    } else {
+                        extraText = "|cffff0000-" + percentStr;
+                    }
+
+                    if (!inited || forceAttackValueRefresh || !lastShowAttackExtra || RAbsBJ(extraAtk - lastAttackExtra) > 0.001) {
+                        unitPanel.showAttackExtra(true);
+                        unitPanel.textAttackExtra.setText(extraText);
+                        lastAttackExtra = extraAtk;
+                        lastShowAttackExtra = true;
+                    }
                 } else {
-                    extraText = "|cffff0000-" + percentStr;
-                }
-
-                if (!inited || !lastShowAttackExtra || RAbsBJ(extraAtk - lastAttackExtra) > 0.001) {
-                    unitPanel.showAttackExtra(true);
-                    unitPanel.textAttackExtra.setText(extraText);
-                    lastAttackExtra = extraAtk;
-                    lastShowAttackExtra = true;
-                }
-            } else {
-                if (!inited || lastShowAttackExtra) {
-                    unitPanel.showAttackExtra(false);
-                    lastShowAttackExtra = false;
-                    lastAttackExtra = 0.0;
+                    if (!inited || forceAttackValueRefresh || lastShowAttackExtra) {
+                        unitPanel.showAttackExtra(false);
+                        lastShowAttackExtra = false;
+                        lastAttackExtra = 0.0;
+                    }
                 }
             }
 

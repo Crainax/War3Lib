@@ -179,6 +179,12 @@
 // 单位面板攻击数值自定义显示
 #define KEY_UNIT_ATK_VALUE_STR           255610196 // 攻击数值自定义显示文本（string）
 
+// UnitBuff 通用禁用类 DEBUFF
+#define KEY_UNIT_SILENCE_TIME_LEFT       255610197 // 沉默剩余时间（real）
+#define KEY_UNIT_DISARM_TIME_LEFT        255610198 // 缴械/禁用攻击剩余时间（real）
+#define KEY_UNIT_SILENCE_NATIVE_ON       255610199 // 沉默 Dz native 已应用标记（boolean/int）
+#define KEY_UNIT_DISARM_NATIVE_ON        255610200 // 缴械 Dz native 已应用标记（boolean/int）
+
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001     // 子键:属于玩家几的竞技场怪物
 #define KEY_UNIT_GUAI_PLAYER 10002      // 子键:属于玩家几的竞技场怪物

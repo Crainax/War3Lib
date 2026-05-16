@@ -1,6 +1,33 @@
 #ifndef UTUnitBuffIncluded
 #define UTUnitBuffIncluded
 
+/*
+UnitBuff_Test 指令说明：
+
+基础旧用例：
+- 输入 s1~s5：无敌/一次无敌窗口测试。
+- 输入 s6~s10：时间破防、永久破防、冲突位与刷新测试。
+- 输入 s11~s16、s18：眩晕、抗性、免疫、清除、CD 与禁用 CD 测试。
+- 输入 s19：StartTimerBuff 外部存参和回调清理测试。
+
+本次新增用例：
+- 输入 s20：创建测试单位，沉默 3 秒；立即检查 IsUnitSilenced 为 true，3.4 秒后检查自动清除。
+- 输入 s21：创建测试单位，沉默 3 秒后立刻 ClearSilence；检查 IsUnitSilenced 为 false。
+- 输入 s22：创建测试单位，缴械/禁用攻击 3 秒；立即检查 IsUnitDisarmed 为 true，3.4 秒后检查自动清除。
+- 输入 s23：创建测试单位，缴械/禁用攻击 3 秒后立刻 ClearDisarm；检查 IsUnitDisarmed 为 false。
+
+手动选中单位测试：
+- 输入 -silence 3：对当前选中单位沉默 3 秒。
+- 输入 -clearsilence：清除当前选中单位沉默。
+- 输入 -disarm 3：对当前选中单位缴械/禁用攻击 3 秒。
+- 输入 -cleardisarm：清除当前选中单位缴械。
+- 输入 -buffstate：查询当前选中单位是否沉默、是否缴械。
+
+开局测试场景：
+- 自动创建 1 个玩家1大魔法师，额外添加多种技能，并默认选中。
+- 自动创建 10 个玩家2敌方农民，方便测试沉默后技能栏变化、缴械后攻击行为。
+*/
+
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
@@ -20,6 +47,8 @@ library UTUnitBuff requires UnitBuff {
 
     // 眩晕测试用单位记录，避免重复创建导致多选
     private unit stunTestUnits[];
+    private unit manualTestHero = null;
+    private unit manualTestEnemies[];
 
     private function SetStunTestUnit(integer idx, unit u) {
         if (stunTestUnits[idx] != null) {
@@ -27,6 +56,84 @@ library UTUnitBuff requires UnitBuff {
             stunTestUnits[idx] = null;
         }
         stunTestUnits[idx] = u;
+    }
+
+    private function CreateManualTestScene() {
+        player owner; player enemyOwner; unit u; integer i; real x; real y;
+
+        owner = Player(0);
+        enemyOwner = Player(1);
+
+        if (manualTestHero != null) {
+            RemoveUnit(manualTestHero);
+            manualTestHero = null;
+        }
+        for (1 <= i <= 10) {
+            if (manualTestEnemies[i] != null) {
+                RemoveUnit(manualTestEnemies[i]);
+                manualTestEnemies[i] = null;
+            }
+        }
+
+        manualTestHero = CreateUnit(owner, 'Hamg', 0.0, 0.0, 270.0);
+        SetHeroLevel(manualTestHero, 10, false);
+        UnitAddAbility(manualTestHero, 'AHbz'); // 暴风雪
+        UnitAddAbility(manualTestHero, 'AHwe'); // 水元素
+        UnitAddAbility(manualTestHero, 'AHab'); // 辉煌光环
+        UnitAddAbility(manualTestHero, 'AHmt'); // 群体传送
+        UnitAddAbility(manualTestHero, 'ACbc'); // 火焰呼吸
+        UnitAddAbility(manualTestHero, 'ACbf'); // 霜冻闪电
+        UnitAddAbility(manualTestHero, 'ACpy'); // 变形术
+        UnitAddAbility(manualTestHero, 'AOhx'); // 妖术
+        UnitAddAbility(manualTestHero, 'ACdv'); // 吞噬
+        UnitAddAbility(manualTestHero, 'ACen'); // 诱捕
+        UnitAddAbility(manualTestHero, 'ANr3'); // 混乱之雨
+        UnitAddAbility(manualTestHero, 'AOhw'); // 医疗波
+        SelectUnit(manualTestHero, true);
+
+        for (1 <= i <= 10) {
+            x = 450.0 + I2R(ModuloInteger(i - 1, 5)) * 120.0;
+            y = -240.0 + I2R((i - 1) / 5) * 160.0;
+            u = CreateUnit(enemyOwner, 'hpea', x, y, 270.0);
+            manualTestEnemies[i] = u;
+            u = null;
+        }
+
+        BJDebugMsg("[UnitBuffTest] 已创建测试场景：玩家1大魔法师(多技能) + 玩家2敌方农民x10");
+        BJDebugMsg("[UnitBuffTest] 默认已选中大魔法师，可直接输入 -silence 5 / -disarm 5 / -buffstate");
+
+        owner = null;
+        enemyOwner = null;
+    }
+
+    // 沉默/缴械测试检查回调（使用 hashtable 传参，避免闭包捕获）
+    private function DisableDebuffTestCheck() {
+        timer t; integer id; integer mode; unit u;
+
+        t = GetExpiredTimer();
+        id = GetHandleId(t);
+        mode = LoadInteger(HASH_TIMER, id, 2);
+        u = LoadUnitHandle(HASH_TIMER, id, 1);
+
+        if (mode == 20) {
+            if (IsUnitSilenced(u)) {
+                BJDebugMsg("|cFFFF0000[UnitBuffTest] s20 失败：沉默未自动清理|r");
+            } else {
+                BJDebugMsg("[UnitBuffTest] s20 完成：沉默已自动清理");
+            }
+        } else if (mode == 22) {
+            if (IsUnitDisarmed(u)) {
+                BJDebugMsg("|cFFFF0000[UnitBuffTest] s22 失败：缴械未自动清理|r");
+            } else {
+                BJDebugMsg("[UnitBuffTest] s22 完成：缴械已自动清理");
+            }
+        }
+
+        FlushChildHashtable(HASH_TIMER, id);
+        PauseTimer(t);
+        DestroyTimer(t);
+        u = null;
+        t = null;
     }
 
     // 眩晕测试检查回调（使用 hashtable 传参，避免闭包捕获）
@@ -61,6 +168,7 @@ library UTUnitBuff requires UnitBuff {
     }
 
 	function Init () {
+        CreateManualTestScene();
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
 			}, function() {
@@ -547,6 +655,112 @@ library UTUnitBuff requires UnitBuff {
         owner = null;
     }
 
+    // 测试20：沉默 3 秒并自动清理
+    function TTestUTUnitBuff20 (player p) {
+        unit u; player owner; timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(7, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s20: 沉默 3 秒，使用原生沉默特效 overhead");
+        SilenceUnit(u, 3.0);
+        if (IsUnitSilenced(u)) {
+            BJDebugMsg("[UnitBuffTest] 沉默已应用，IsUnitSilenced=true");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s20 失败：沉默未应用|r");
+        }
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        SaveInteger(HASH_TIMER, tid, 2, 20);
+        TimerStart(t, 3.4, false, function () {
+            DisableDebuffTestCheck();
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
+    // 测试21：ClearSilence 立即清除沉默
+    function TTestUTUnitBuff21 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(8, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s21: 沉默 3 秒后立即 ClearSilence");
+        SilenceUnit(u, 3.0);
+        if (IsUnitSilenced(u)) {
+            BJDebugMsg("[UnitBuffTest] 沉默已应用");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s21 失败：沉默未应用|r");
+        }
+        ClearSilence(u);
+        if (IsUnitSilenced(u)) {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s21 失败：ClearSilence 后仍然沉默|r");
+        } else {
+            BJDebugMsg("[UnitBuffTest] s21 完成：ClearSilence 立即解除沉默");
+        }
+        u = null;
+        owner = null;
+    }
+
+    // 测试22：缴械 3 秒并自动清理
+    function TTestUTUnitBuff22 (player p) {
+        unit u; player owner; timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(9, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s22: 缴械/禁用攻击 3 秒，使用原生沉默特效 overhead");
+        DisarmUnit(u, 3.0);
+        if (IsUnitDisarmed(u)) {
+            BJDebugMsg("[UnitBuffTest] 缴械已应用，IsUnitDisarmed=true");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s22 失败：缴械未应用|r");
+        }
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        SaveInteger(HASH_TIMER, tid, 2, 22);
+        TimerStart(t, 3.4, false, function () {
+            DisableDebuffTestCheck();
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
+    // 测试23：ClearDisarm 立即清除缴械
+    function TTestUTUnitBuff23 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(10, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s23: 缴械 3 秒后立即 ClearDisarm");
+        DisarmUnit(u, 3.0);
+        if (IsUnitDisarmed(u)) {
+            BJDebugMsg("[UnitBuffTest] 缴械已应用");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s23 失败：缴械未应用|r");
+        }
+        ClearDisarm(u);
+        if (IsUnitDisarmed(u)) {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s23 失败：ClearDisarm 后仍然缴械|r");
+        } else {
+            BJDebugMsg("[UnitBuffTest] s23 完成：ClearDisarm 立即解除缴械");
+        }
+        u = null;
+        owner = null;
+    }
+
 	function TTestActUTUnitBuff1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -554,7 +768,7 @@ library UTUnitBuff requires UnitBuff {
 		string  paramS [];							   //所有参数S
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
-		unit u; real def;
+		unit u; real def; real duration;
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -629,6 +843,63 @@ library UTUnitBuff requires UnitBuff {
 				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
 			}
 			u = null;
+		} else if (paramS[0] == "silence") {
+			// 测试沉默单位: -silence 3
+			u = unitSelect.currentU[index];
+			duration = 3.0;
+			if (num >= 2) { duration = paramR[1]; }
+			if (u != null && duration > 0.0) {
+				SilenceUnit(u, duration);
+				BJDebugMsg("[UnitBuffTest] 已沉默当前选中单位，持续 " + R2S(duration) + " 秒");
+			} else if (u == null) {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 用法: -silence 3");
+			}
+			u = null;
+		} else if (paramS[0] == "clearsilence") {
+			// 清除沉默: -clearsilence
+			u = unitSelect.currentU[index];
+			if (u != null) {
+				ClearSilence(u);
+				BJDebugMsg("[UnitBuffTest] 已清除当前选中单位沉默");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			}
+			u = null;
+		} else if (paramS[0] == "disarm") {
+			// 测试缴械单位: -disarm 3
+			u = unitSelect.currentU[index];
+			duration = 3.0;
+			if (num >= 2) { duration = paramR[1]; }
+			if (u != null && duration > 0.0) {
+				DisarmUnit(u, duration);
+				BJDebugMsg("[UnitBuffTest] 已缴械/禁用攻击当前选中单位，持续 " + R2S(duration) + " 秒");
+			} else if (u == null) {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 用法: -disarm 3");
+			}
+			u = null;
+		} else if (paramS[0] == "cleardisarm") {
+			// 清除缴械: -cleardisarm
+			u = unitSelect.currentU[index];
+			if (u != null) {
+				ClearDisarm(u);
+				BJDebugMsg("[UnitBuffTest] 已清除当前选中单位缴械");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			}
+			u = null;
+		} else if (paramS[0] == "buffstate") {
+			// 查询当前选中单位状态: -buffstate
+			u = unitSelect.currentU[index];
+			if (u != null) {
+				BJDebugMsg("[UnitBuffTest] IsUnitSilenced=" + B2S(IsUnitSilenced(u)) + ", IsUnitDisarmed=" + B2S(IsUnitDisarmed(u)));
+			} else {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			}
+			u = null;
 		}
 
 		p = null;
@@ -640,6 +911,9 @@ library UTUnitBuff requires UnitBuff {
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
 			BJDebugMsg("[UnitBuff] 单元测试已加载");
+			BJDebugMsg("[UnitBuffTest] 输入 s20/s21 测沉默自动清理/手动清除");
+			BJDebugMsg("[UnitBuffTest] 输入 s22/s23 测缴械自动清理/手动清除");
+			BJDebugMsg("[UnitBuffTest] 选中单位后输入 -silence 3 / -disarm 3 / -clearsilence / -cleardisarm / -buffstate");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -671,6 +945,10 @@ library UTUnitBuff requires UnitBuff {
             else if(str == "s16") TTestUTUnitBuff16(GetTriggerPlayer());
             else if(str == "s18") TTestUTUnitBuff18(GetTriggerPlayer());
             else if(str == "s19") TTestUTUnitBuff19(GetTriggerPlayer());
+            else if(str == "s20") TTestUTUnitBuff20(GetTriggerPlayer());
+            else if(str == "s21") TTestUTUnitBuff21(GetTriggerPlayer());
+            else if(str == "s22") TTestUTUnitBuff22(GetTriggerPlayer());
+            else if(str == "s23") TTestUTUnitBuff23(GetTriggerPlayer());
 		});
 
 		//unitAttrShow
