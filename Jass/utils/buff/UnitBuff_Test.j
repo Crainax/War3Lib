@@ -15,6 +15,9 @@ UnitBuff_Test 指令说明：
 - 输入 s21：创建测试单位，沉默 3 秒后立刻 ClearSilence；检查 IsUnitSilenced 为 false。
 - 输入 s22：创建测试单位，缴械/禁用攻击 3 秒；立即检查 IsUnitDisarmed 为 true，3.4 秒后检查自动清除。
 - 输入 s23：创建测试单位，缴械/禁用攻击 3 秒后立刻 ClearDisarm；检查 IsUnitDisarmed 为 false。
+- 输入 s24：前摇暂停 + 真实眩晕重叠，清前摇后仍保持真实眩晕。
+- 输入 s25：前摇暂停 + 真实眩晕重叠，ClearStun 后仍保持前摇暂停。
+- 输入 s26：限时前摇暂停 + 真实眩晕重叠，前摇自动结束不提前解除真实眩晕。
 
 手动选中单位测试：
 - 输入 -silence 3：对当前选中单位沉默 3 秒。
@@ -761,6 +764,134 @@ library UTUnitBuff requires UnitBuff {
         owner = null;
     }
 
+    // 测试24：清前摇不应解除真实眩晕
+    function TTestUTUnitBuff24 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(11, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s24: 前摇暂停 + 真实眩晕，清前摇后仍应保持眩晕暂停");
+
+        PrecastPauseUnit(u, true);
+        if (IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] 前摇暂停已应用，未污染 IsUnitStunning");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s24 失败：前摇暂停初始状态异常|r");
+        }
+
+        StunUnit(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        ClearPrecastPause(u);
+        if (!IsUnitPrecastPaused(u) && IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] s24 完成：清前摇后真实眩晕仍保持暂停");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s24 失败：清前摇影响了真实眩晕|r");
+        }
+
+        ClearStun(u);
+        if (!IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] s24 完成：再清眩晕后单位恢复");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s24 失败：清眩晕后单位未恢复|r");
+        }
+        u = null;
+        owner = null;
+    }
+
+    // 测试25：ClearStun 不应解除前摇暂停
+    function TTestUTUnitBuff25 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(12, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s25: 前摇暂停 + 真实眩晕，ClearStun 后仍应保持前摇暂停");
+
+        PrecastPauseUnit(u, true);
+        StunUnit(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        ClearStun(u);
+        if (IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] s25 完成：ClearStun 未解除前摇暂停");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s25 失败：ClearStun 影响了前摇暂停|r");
+        }
+
+        ClearPrecastPause(u);
+        if (!IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] s25 完成：清前摇后单位恢复");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s25 失败：清前摇后单位未恢复|r");
+        }
+        u = null;
+        owner = null;
+    }
+
+    // 测试26：限时前摇自动结束不应提前解除真实眩晕
+    function TTestUTUnitBuff26 (player p) {
+        unit u; player owner; timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(13, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s26: 限时前摇 0.5 秒 + 真实眩晕 1.5 秒");
+
+        PrecastPauseUnitTimed(u, 0.5);
+        StunUnit(u, 1.5, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        TimerStart(t, 0.7, false, function () {
+            timer t; integer id; unit u;
+
+            t = GetExpiredTimer();
+            id = GetHandleId(t);
+            u = LoadUnitHandle(HASH_TIMER, id, 1);
+            if (u != null) {
+                if (!IsUnitPrecastPaused(u) && IsUnitStunning(u)) {
+                    BJDebugMsg("[UnitBuffTest] s26 阶段1完成：前摇已自动结束，真实眩晕仍保持暂停");
+                } else {
+                    BJDebugMsg("|cFFFF0000[UnitBuffTest] s26 阶段1失败：前摇结束后状态异常|r");
+                }
+            }
+            FlushChildHashtable(HASH_TIMER, id);
+            PauseTimer(t);
+            DestroyTimer(t);
+            u = null;
+            t = null;
+        });
+        t = null;
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        TimerStart(t, 1.8, false, function () {
+            timer t; integer id; unit u;
+
+            t = GetExpiredTimer();
+            id = GetHandleId(t);
+            u = LoadUnitHandle(HASH_TIMER, id, 1);
+            if (u != null) {
+                if (!IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+                    BJDebugMsg("[UnitBuffTest] s26 完成：真实眩晕到期后单位恢复");
+                } else {
+                    BJDebugMsg("|cFFFF0000[UnitBuffTest] s26 失败：真实眩晕到期后单位未恢复|r");
+                }
+            }
+            FlushChildHashtable(HASH_TIMER, id);
+            PauseTimer(t);
+            DestroyTimer(t);
+            u = null;
+            t = null;
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
 	function TTestActUTUnitBuff1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -913,6 +1044,7 @@ library UTUnitBuff requires UnitBuff {
 			BJDebugMsg("[UnitBuff] 单元测试已加载");
 			BJDebugMsg("[UnitBuffTest] 输入 s20/s21 测沉默自动清理/手动清除");
 			BJDebugMsg("[UnitBuffTest] 输入 s22/s23 测缴械自动清理/手动清除");
+			BJDebugMsg("[UnitBuffTest] 输入 s24/s25/s26 测前摇暂停与真实眩晕互不提前解锁");
 			BJDebugMsg("[UnitBuffTest] 选中单位后输入 -silence 3 / -disarm 3 / -clearsilence / -cleardisarm / -buffstate");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
@@ -949,6 +1081,9 @@ library UTUnitBuff requires UnitBuff {
             else if(str == "s21") TTestUTUnitBuff21(GetTriggerPlayer());
             else if(str == "s22") TTestUTUnitBuff22(GetTriggerPlayer());
             else if(str == "s23") TTestUTUnitBuff23(GetTriggerPlayer());
+            else if(str == "s24") TTestUTUnitBuff24(GetTriggerPlayer());
+            else if(str == "s25") TTestUTUnitBuff25(GetTriggerPlayer());
+            else if(str == "s26") TTestUTUnitBuff26(GetTriggerPlayer());
 		});
 
 		//unitAttrShow

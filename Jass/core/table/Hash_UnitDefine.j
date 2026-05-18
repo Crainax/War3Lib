@@ -184,6 +184,10 @@
 #define KEY_UNIT_DISARM_TIME_LEFT        255610198 // 缴械/禁用攻击剩余时间（real）
 #define KEY_UNIT_SILENCE_NATIVE_ON       255610199 // 沉默 Dz native 已应用标记（boolean/int）
 #define KEY_UNIT_DISARM_NATIVE_ON        255610200 // 缴械 Dz native 已应用标记（boolean/int）
+#define KEY_UNIT_EX_PAUSE_LOCK_STUN      255610201 // EXPauseUnit 眩晕锁计数（integer）
+#define KEY_UNIT_EX_PAUSE_LOCK_PRECAST   255610202 // EXPauseUnit 前摇锁计数（integer）
+#define KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST 255610203 // EXPauseUnit 限时前摇锁计数（integer）
+#define KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT  255610204 // 限时前摇暂停剩余时间（real）
 
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001     // 子键:属于玩家几的竞技场怪物
