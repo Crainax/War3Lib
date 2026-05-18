@@ -11,7 +11,7 @@
 //# dependency:map/splats/lightningdata.slk
 //# dependency:resource/Textures/Hero_Oblivion_N5_light1.blp
 
-library EffectUtils requires YDWEJapiEffect {
+library EffectUtils requires YDWEJapiEffect,HashTable {
 
 
 	// 环绕特效
@@ -22,6 +22,77 @@ library EffectUtils requires YDWEJapiEffect {
 			DestroyEffect(AddSpecialEffect(s, YDWECoordinateX(x + radius * CosBJ(i * 360.0 / count)), YDWECoordinateY(y + radius * SinBJ(i * 360.0 / count))));
 		}
 	}
+
+    private function MythEffectTimer() {
+        timer t;
+        integer id;
+        integer i;
+        integer layers;
+        integer count;
+        real x;
+        real y;
+        real radiusStep;
+        string model;
+
+        t = GetExpiredTimer();
+        id = GetHandleId(t);
+        i = LoadInteger(HASH_TIMER, id, 1);
+        x = LoadReal(HASH_TIMER, id, 2);
+        y = LoadReal(HASH_TIMER, id, 3);
+        layers = LoadInteger(HASH_TIMER, id, 4);
+        model = LoadStr(HASH_TIMER, id, 5);
+
+        if (i <= layers) {
+            i += 1;
+            radiusStep = LoadReal(HASH_TIMER, id, 6);
+            if (model != null && model != "" && radiusStep > 0.0) {
+                count = LoadInteger(HASH_TIMER, id, 7) + i * LoadInteger(HASH_TIMER, id, 8);
+                if (count > 0) {
+                    ShowCircleEffect(x, y, radiusStep * I2R(i), count, model);
+                }
+            }
+            SaveInteger(HASH_TIMER, id, 1, i);
+        } else {
+            PauseTimer(t);
+            FlushChildHashtable(HASH_TIMER, id);
+            DestroyTimer(t);
+        }
+
+        t = null;
+    }
+
+    public function CreateMythEffectAt(real x, real y, integer layers, real radiusStep, integer countBase, integer countStep, string model) {
+        timer t;
+        integer id;
+
+        if (layers <= 0 || radiusStep <= 0.0 || model == null || model == "") {
+            return;
+        }
+
+        t = CreateTimer();
+        id = GetHandleId(t);
+        SaveInteger(HASH_TIMER, id, 1, 1);
+        SaveReal(HASH_TIMER, id, 2, x);
+        SaveReal(HASH_TIMER, id, 3, y);
+        SaveInteger(HASH_TIMER, id, 4, layers);
+        SaveStr(HASH_TIMER, id, 5, model);
+        SaveReal(HASH_TIMER, id, 6, radiusStep);
+        SaveInteger(HASH_TIMER, id, 7, countBase);
+        SaveInteger(HASH_TIMER, id, 8, countStep);
+        TimerStart(t, 0.25, true, function MythEffectTimer);
+        t = null;
+    }
+
+    public function CreateMythEffectCustom(real x, real y, real radiusStep, integer countBase, integer countStep, string model) {
+        CreateMythEffectAt(x, y, 8, radiusStep, countBase, countStep, model);
+    }
+
+    public function CreateMythEffect(unit u, integer layers, real radiusStep, integer countBase, integer countStep, string model) {
+        if (u == null) {
+            return;
+        }
+        CreateMythEffectAt(GetUnitX(u), GetUnitY(u), layers, radiusStep, countBase, countStep, model);
+    }
 
     // 基础缩放函数：对已有特效应用缩放矩阵
     public function SetEffectScale (effect e, real scale) {
