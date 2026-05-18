@@ -1,14 +1,15 @@
 -- BLP 尺寸规范化
 -- 流程: blp -> png -> 检测尺寸 -> 必要时调整 -> png -> blp
--- 仅处理 source_dir 当前层 .blp，不递归
+-- 默认递归处理 source_dir 及其子目录中的 .blp
 
 local config = {
-    source_dir = [[D:\War3Asset\Model\Shangquemoxing\20260418\shop10\war3mapImported]],
+    source_dir = [[D:\War3Asset\Model\Shangquemoxing\20251113\effects\lightning]],
     blpnetcl_exe = [[D:\War3\tools\BLPLAB\BLP.NET.CL\BLP.NET\blpnetcl.exe]],
     magick_exe = "magick",
     blp_args = "--type 0 --mipmap 1 --quality 98 --alpha 2",
     temp_dir_name = "_tmp_png",
     old_dir_name = "old",
+    recursive = true,
 }
 
 local function trim_trailing_sep(path)
@@ -89,6 +90,61 @@ local function list_blp_files(dir)
         end
     end
     p:close()
+    return files
+end
+
+local function list_child_dirs(dir)
+    local dirs = {}
+    local cmd = 'cmd /d /c "dir /b /a:d ' .. q(to_win(trim_trailing_sep(dir))) .. ' 2>nul"'
+    local p = io.popen(cmd)
+    if not p then
+        return dirs
+    end
+    for line in p:lines() do
+        if line and line ~= "" then
+            table.insert(dirs, line)
+        end
+    end
+    p:close()
+    return dirs
+end
+
+local function should_skip_dir(dirname)
+    return dirname == config.temp_dir_name or dirname == config.old_dir_name
+end
+
+local function join_rel_path(a, b)
+    if not a or a == "" then
+        return b
+    end
+    return a .. "/" .. b
+end
+
+local function collect_blp_files(root_dir, recursive)
+    local files = {}
+
+    local function walk(dir, rel_dir)
+        for _, filename in ipairs(list_blp_files(dir)) do
+            table.insert(files, {
+                dir = dir,
+                rel_dir = rel_dir,
+                filename = filename,
+                label = join_rel_path(rel_dir, filename),
+            })
+        end
+
+        if not recursive then
+            return
+        end
+
+        for _, dirname in ipairs(list_child_dirs(dir)) do
+            if not should_skip_dir(dirname) then
+                walk(join_path(dir, dirname), join_rel_path(rel_dir, dirname))
+            end
+        end
+    end
+
+    walk(root_dir, "")
     return files
 end
 
@@ -231,8 +287,6 @@ end
 local function main()
     local source_dir = trim_trailing_sep(config.source_dir)
     local blpnetcl_exe = trim_trailing_sep(config.blpnetcl_exe)
-    local temp_dir = join_path(source_dir, config.temp_dir_name)
-    local old_dir = join_path(source_dir, config.old_dir_name)
 
     if not file_exists(blpnetcl_exe) then
         print("[错误] 未找到 blpnetcl.exe: " .. blpnetcl_exe)
@@ -243,12 +297,13 @@ local function main()
         return
     end
 
-    ensure_dir(temp_dir)
-    ensure_dir(old_dir)
-
-    local blp_files = list_blp_files(source_dir)
+    local blp_files = collect_blp_files(source_dir, config.recursive)
     if #blp_files == 0 then
-        print("[完成] 当前目录没有 .blp 文件: " .. source_dir)
+        if config.recursive then
+            print("[完成] 当前目录及子目录没有 .blp 文件: " .. source_dir)
+        else
+            print("[完成] 当前目录没有 .blp 文件: " .. source_dir)
+        end
         return
     end
 
@@ -259,16 +314,23 @@ local function main()
     local failed_list = {}
 
     print("[开始] 目录: " .. source_dir)
+    print("[开始] 递归: " .. tostring(config.recursive))
     print("[开始] 文件数量: " .. tostring(#blp_files))
 
-    for _, filename in ipairs(blp_files) do
+    for _, item in ipairs(blp_files) do
         total = total + 1
+        local filename = item.filename
         local base = split_name_ext(filename)
-        local blp_path = join_path(source_dir, filename)
+        local temp_dir = join_path(item.dir, config.temp_dir_name)
+        local old_dir = join_path(item.dir, config.old_dir_name)
+        local blp_path = join_path(item.dir, filename)
         local png_path = join_path(temp_dir, base .. ".png")
 
         local ok = true
         local fail_reason = nil
+
+        ensure_dir(temp_dir)
+        ensure_dir(old_dir)
 
         if not blp_to_png(blpnetcl_exe, blp_path, png_path) then
             ok = false
@@ -292,7 +354,7 @@ local function main()
         if ok and tw == w and th == h then
             skipped = skipped + 1
             os.remove(png_path)
-            print(string.format("[跳过] %s (%dx%d)", filename, w, h))
+            print(string.format("[跳过] %s (%dx%d)", item.label, w, h))
         elseif ok then
             if not resize_png_force(config.magick_exe, png_path, tw, th) then
                 ok = false
@@ -320,12 +382,12 @@ local function main()
             if not (tw == w and th == h) then
                 modified = modified + 1
                 os.remove(png_path)
-                print(string.format("[修改] %s %dx%d -> %dx%d", filename, w, h, tw, th))
+                print(string.format("[修改] %s %dx%d -> %dx%d", item.label, w, h, tw, th))
             end
         else
             failed = failed + 1
-            table.insert(failed_list, filename .. " (" .. tostring(fail_reason) .. ")")
-            print("[失败] " .. filename .. " - " .. tostring(fail_reason))
+            table.insert(failed_list, item.label .. " (" .. tostring(fail_reason) .. ")")
+            print("[失败] " .. item.label .. " - " .. tostring(fail_reason))
             -- 失败时保留临时 PNG 便于排查
         end
     end

@@ -202,6 +202,8 @@
 #define KEY_MOSHOU_BINDING_TOTAL_DAMAGE 10012   // 魔兽直伤总伤害量（real）
 #define KEY_UNIT_CURRENT_SKIN_MODEL_PATH 10013  // 当前皮肤模型路径（string）
 #define KEY_UNIT_SKIN_BASE_ATTACK_RANGE 10014   // 单位基础攻击距离缓存（real）
+#define KEY_UNIT_BOSS_FANGKA 10015              // 进攻BOSS防卡计数
+#define KEY_UNIT_BOSS_ATTACK_BASE 10016         // 进攻BOSS强制攻击基地标记
 
 
 
