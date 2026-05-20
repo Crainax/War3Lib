@@ -94,6 +94,60 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         }
     }
 
+    private function GetEXPauseLockCount(unit u, integer key) -> integer {
+        integer hid;
+
+        if (u == null) { return 0; }
+
+        hid = GetHandleId(u);
+        if (!HaveSavedInteger(HASH_UNIT, hid, key)) { return 0; }
+        return LoadInteger(HASH_UNIT, hid, key);
+    }
+
+    private function HasAnyEXPauseLock(unit u) -> boolean {
+        if (u == null) { return false; }
+
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_STUN) > 0) { return true; }
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST) > 0) { return true; }
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST) > 0) { return true; }
+        return false;
+    }
+
+    private function ApplyEXPauseLock(unit u, integer key) {
+        integer hid; integer count; boolean wasLocked;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        wasLocked = HasAnyEXPauseLock(u);
+        count = GetEXPauseLockCount(u, key);
+        SaveInteger(HASH_UNIT, hid, key, count + 1);
+
+        if (!wasLocked) {
+            EXPauseUnit(u, true);
+        }
+    }
+
+    private function ReleaseEXPauseLock(unit u, integer key) {
+        integer hid; integer count;
+
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        count = GetEXPauseLockCount(u, key);
+        if (count <= 0) { return; }
+
+        if (count <= 1) {
+            RemoveSavedInteger(HASH_UNIT, hid, key);
+        } else {
+            SaveInteger(HASH_UNIT, hid, key, count - 1);
+        }
+
+        if (GetUnitTypeId(u) != 0 && !HasAnyEXPauseLock(u)) {
+            EXPauseUnit(u, false);
+        }
+    }
+
     // 无敌队列：集中管理所有处于无敌中的单位
     private struct ImmuteQueue [] {
         private static unit  uList[];      // 单位列表
@@ -243,7 +297,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                     RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
                 }
 
-                EXPauseUnit(ru, false);
+                ReleaseEXPauseLock(ru, KEY_UNIT_EX_PAUSE_LOCK_STUN);
                 // BJDebugMsg(I2S(GetHandleId(ru))+"pause:false");
             }
 
@@ -312,6 +366,94 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                         thistype.tickTimer = null;
                         #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
                         if (thistype.size <= 0) {BJDebugMsg("PauseQueue: 眩晕队列已销毁");}
+                        #endif
+                    }
+                });
+            }
+        }
+    }
+
+
+    // 前摇暂停队列：只管理限时前摇锁，不进入眩晕抗性/CD/异常状态
+    private struct PrecastPauseQueue [] {
+        private static unit uList[];
+        private static integer size = 0;
+        private static timer tickTimer = null;
+
+        private static method removeAt(integer index) -> integer {
+            integer last; unit ru; integer hid;
+            if (index < 0 || index >= thistype.size) { return index; }
+
+            ru = thistype.uList[index];
+            if (ru != null) {
+                hid = GetHandleId(ru);
+                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT)) {
+                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+                }
+                ReleaseEXPauseLock(ru, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST);
+            }
+
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.uList[index] = thistype.uList[last];
+            }
+            thistype.uList[last] = null;
+            thistype.size -= 1;
+            ru = null;
+            return index - 1;
+        }
+
+        public static method addUnit(unit u) {
+            integer i;
+            if (u == null) { return; }
+
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { return; }
+            }
+
+            if (thistype.size >= 8190) {
+                BJDebugMsg("|cFFFF0000[PrecastPauseQueue] 队列已满，无法继续添加前摇暂停单位！|r");
+                return;
+            }
+
+            thistype.uList[thistype.size] = u;
+            thistype.size += 1;
+
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.02, true, function () {
+                    integer i; integer hid; unit u; real timeLeft;
+
+                    for (i = 0; i < thistype.size; i += 1) {
+                        u = thistype.uList[i];
+                        if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                            i = thistype.removeAt(i);
+                            u = null;
+                        } else {
+                            hid = GetHandleId(u);
+                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT)) {
+                                i = thistype.removeAt(i);
+                                u = null;
+                            } else {
+                                timeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+                                if (timeLeft > 0.0) {
+                                    timeLeft = timeLeft - 0.02;
+                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT, timeLeft);
+                                    u = null;
+                                } else {
+                                    i = thistype.removeAt(i);
+                                    u = null;
+                                }
+                            }
+                        }
+                    }
+
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        if (thistype.size <= 0) {BJDebugMsg("PrecastPauseQueue: 前摇暂停队列已销毁");}
                         #endif
                     }
                 });
@@ -1089,6 +1231,61 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         }
     }
 
+    // 前摇暂停：仅锁住单位行动，不进入眩晕抗性/CD/IsUnitStunning
+    public function PrecastPauseUnit(unit u, boolean flag) {
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        if (flag) {
+            ApplyEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST);
+        } else {
+            ReleaseEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST);
+        }
+    }
+
+    // 限时前摇暂停：重复调用取最大剩余时间
+    public function PrecastPauseUnitTimed(unit u, real time) {
+        integer hid; real oldTime; boolean hasTime;
+
+        if (u == null || !IsUnitAliveBJ(u) || time <= 0.0) { return; }
+
+        hid = GetHandleId(u);
+        hasTime = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+        if (hasTime) {
+            oldTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT, RMaxBJ(oldTime, time));
+        } else {
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT, time);
+            ApplyEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST);
+        }
+
+        PrecastPauseQueue.addUnit(u);
+    }
+
+    // 清除前摇暂停，不影响真实眩晕
+    public function ClearPrecastPause(unit u) {
+        integer hid;
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT)) {
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+        }
+        while (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST) > 0) {
+            ReleaseEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST);
+        }
+        while (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST) > 0) {
+            ReleaseEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST);
+        }
+    }
+
+    // 判断单位是否有前摇暂停锁
+    public function IsUnitPrecastPaused(unit u) -> boolean {
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST) > 0) { return true; }
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST) > 0) { return true; }
+        return false;
+    }
+
     // 沉默单位：禁用技能，时间取最大值刷新
     public function SilenceUnit(unit u, real time) {
         integer hid; real oldTime;
@@ -1245,7 +1442,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         // - 部分情况下 pause 不会立刻打断“已在执行的移动指令”，先 stop 可避免“有特效但还能走几秒”
         // - 同时持续强制 pause（见 PauseQueue tick）以对抗外部解除暂停
         if (!hasTime) {
-            EXPauseUnit(u, true); //好鸡巴坑啊  这玩意不能重复设 不然会出大事,必须要有hasTime包着
+            ApplyEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_STUN);
         }
         PauseQueue.addUnit(u);
     }
@@ -1267,7 +1464,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
         hid = GetHandleId(u);
         // 立即解除暂停
-        EXPauseUnit(u, false);
+        ReleaseEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_STUN);
         // 清理眩晕时间
         if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
             RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
