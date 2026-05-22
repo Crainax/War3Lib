@@ -68,9 +68,22 @@ library UTImageAnim requires ImageAnim {
 		imageAnim.mstPairScale("ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp", "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp", 0.5);
 		BJDebugMsg("测试左右拼合动效: 0.5倍率");
 	}
-	function TTestUTImageAnim5 (player p) {}
-	function TTestUTImageAnim6 (player p) {}
-	function TTestUTImageAnim7 (player p) {}
+	function TTestUTImageAnim5 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		imageAnim.alertSlide("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp", "ReplaceableTextures\\CommandButtons\\BTNFrostBolt.blp");
+		BJDebugMsg("测试警报滑幅拼接动效: 右进左出");
+	}
+	function TTestUTImageAnim6 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		imageAnim.alertSlideLeftToRight("ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp", "ReplaceableTextures\\CommandButtons\\BTNCarrionSwarm.blp");
+		BJDebugMsg("测试警报滑幅拼接动效: 左进右出");
+	}
+	function TTestUTImageAnim7 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		imageAnim.alertSlideDir("ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp", "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp", 0.75, true);
+		imageAnim.alertSlideDir("ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp", "ReplaceableTextures\\CommandButtons\\BTNCarrionSwarm.blp", 0.75, false);
+		BJDebugMsg("测试警报滑幅拼接动效: 双向叠加播放");
+	}
 	function TTestUTImageAnim8 (player p) {}
 	function TTestUTImageAnim9 (player p) {}
 	function TTestUTImageAnim10 (player p) {}
@@ -98,8 +111,8 @@ library UTImageAnim requires ImageAnim {
 		num = num + 1;
 
 		if (paramS[0] == "a") {
-			imageAnim.gif(p, growdata[paramI[1]], DzGetGameUI());
-			BJDebugMsg("测试 GIF 动画: growdata[" + I2S(paramI[1]) + "]");
+			imageAnim.gif(p, growdata[GIF_UPGRADE], DzGetGameUI());
+			BJDebugMsg("测试 GIF 动画: GIF_UPGRADE");
 		} else if (paramS[0] == "b") {
 			if (GetLocalPlayer() == p) {
 				imageAnim.mstPair("ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp", "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp");
@@ -110,6 +123,16 @@ library UTImageAnim requires ImageAnim {
 				imageAnim.mstPairScale("ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp", "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp", 0.5);
 			}
 			BJDebugMsg("测试左右拼合动效: 0.5倍率");
+		} else if (paramS[0] == "d") {
+			if (GetLocalPlayer() == p) {
+				imageAnim.alertSlide("ReplaceableTextures\\CommandButtons\\BTNChainLightning.blp", "ReplaceableTextures\\CommandButtons\\BTNFrostBolt.blp");
+			}
+			BJDebugMsg("测试警报滑幅拼接动效: 右进左出");
+		} else if (paramS[0] == "e") {
+			if (GetLocalPlayer() == p) {
+				imageAnim.alertSlideLeftToRight("ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp", "ReplaceableTextures\\CommandButtons\\BTNCarrionSwarm.blp");
+			}
+			BJDebugMsg("测试警报滑幅拼接动效: 左进右出");
 		}
 
 		p = null;

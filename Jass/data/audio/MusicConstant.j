@@ -46,6 +46,8 @@
 #define MUSIC_INDEX_SPELL_UNLOCK    3010 //技能解锁音效
 #define MUSIC_INDEX_UPDATE_SPELL    3011 //技能升级音效
 #define MUSIC_INDEX_START_MISSION   3012 //任务开始音效
+#define MUSIC_INDEX_MONSTER_PAUSE   3013 //怪物暂停音效
+#define MUSIC_INDEX_MONSTER_CONTINUE 3014 //怪物继续音效
 
 #define SOUND_POOL_SIZE 20  // 每个音效的对象池大小（可同时播放20个）
 
