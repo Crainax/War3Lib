@@ -951,7 +951,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
     }
 
     private function onInit() {
-        // mallItem.init(SIGN7_VIP_MALLITEM_KEY); //初始化道具
+        mallItem.init(SIGN7_VIP_MALLITEM_KEY); //初始化道具
         syncBus.onDataSync(SIGN7_SYNC_CHANNEL, function () {
             string payload;
             player p;

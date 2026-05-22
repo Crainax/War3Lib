@@ -209,6 +209,37 @@
 #define KEY_UNIT_BOSS_FANGKA 10015              // 进攻BOSS防卡计数
 #define KEY_UNIT_BOSS_ATTACK_BASE 10016         // 进攻BOSS强制攻击基地标记
 #define KEY_UNIT_REWARD_DROP_RATE 10017         // 单位奖励/掉落倍率（real）
+#define KEY_YEGUAI_MONSTER_STOP_AVUL 10018      // 停怪系统是否为野怪添加过Avul（integer 0/1）
+
+// [异度] 进攻BOSS运行态
+#define KEY_UNIT_NORMAL_BOSS_RUNTIME_INDEX 10117       // 普通进攻BOSS运行态数组索引
+#define KEY_UNIT_TAITAN_RUNTIME 10120                  // 泰坦最终BOSS运行态标记
+#define KEY_UNIT_BOSS_FANGKA_RUNTIME_INDEX 10121       // 进攻BOSS防卡运行态数组索引
+#define KEY_UNIT_BOSS_FANGKA_DAMAGE_TARGET 10122       // 进攻BOSS防卡最近伤害来源单位
+#define KEY_UNIT_BOSS_FANGKA_DAMAGE_TICK 10123         // 进攻BOSS防卡最近伤害记录tick
+#define KEY_UNIT_BOSS_FANGKA_DASH_TICK 10124           // 进攻BOSS防卡最近冲刺tick
+#define KEY_UNIT_BOSS_FANGKA_DASHING 10125             // 进攻BOSS防卡冲刺中标记
+#define KEY_UNIT_BOSS_FANGKA_STUCK_COUNT 10126         // 进攻BOSS回基地无进展累计
+#define KEY_UNIT_BOSS_FANGKA_LAST_BASE_DISTANCE 10127  // 进攻BOSS上次到基地距离
+#define KEY_UNIT_BOSS_FANGKA_DASH_ATTACK 10128         // 进攻BOSS冲刺结束后补攻击标记
+#define KEY_UNIT_BOSS_FANGKA_RETURNING 10129           // 进攻BOSS回基地加速推进标记
+#define KEY_UNIT_BOSS_FANGKA_RETURN_SPEED 10130        // 进攻BOSS回基地加速推进速度（real）
+
+// [异度] 进攻怪技能运行态
+#define GUAI_ATTACK_WEAKEN_UNIT_KEY 5101       // 蚀攻降低比例（real）
+#define GUAI_ATTR_WEAKEN_UNIT_KEY 5102         // 蚀魂降低比例（real）
+#define GUAI_NATURE_ATTRACTION_UNIT_KEY 5104   // 自然吸引队列占用标记
+#define GUAI_FROST_PUNISH_UNIT_KEY 5105        // 冰霜惩罚队列占用标记
+#define GUAI_ATTACK_SPELL_UNIT_KEY 5204        // 当前单位是否拥有攻击触发类技能
+
+// [异度] 竞技场怪技能运行态
+#define ARENA_SPELL_ARMOR_INIT_KEY 5601        // 重甲岗哨创建加护甲初始化标记
+#define ARENA_SPELL_RESIST_INIT_KEY 5602       // 魔抗树皮创建加魔抗初始化标记
+#define ARENA_SPELL_IMMUNE_INIT_KEY 5603       // 免疫控制创建免控初始化标记
+
+// [异度] 副本怪技能运行态
+#define FUBEN_MAGIC_BARRIER_UNIT_KEY 6101      // 魔法屏障队列占用标记
+#define FUBEN_JS_WAVE_TIMER_KEY 6102           // 净水波计时器句柄（存于HASH_UNIT）
 
 
 
