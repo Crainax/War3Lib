@@ -11,6 +11,14 @@ local DEFAULT_MODES = {
     VERSION_UNITTEST = true
 }
 
+local PLAYER_USER_NAME_MODES = {
+    VERSION_ALPHA = true,
+    VERSION_UNITTEST = true
+}
+
+local WORLD_EDIT_REG_KEY = [[HKCU\Software\Blizzard Entertainment\WorldEdit]]
+local WORLD_EDIT_PLAYER_PROFILE_VALUE = "Test Map - Player Profile"
+
 local function elapsedMs(startClock)
     return math.floor((os.clock() - startClock) * 1000 + 0.5)
 end
@@ -42,9 +50,9 @@ local function readCurrentVersion()
     return content:match("#define%s+CURRENT_BUILD_VERSION%s+(VERSION_%w+)") or "VERSION_UNITTEST"
 end
 
-local function splitModes(value)
+local function splitModes(value, defaultModes)
     if not value or value == "" then
-        return DEFAULT_MODES
+        return defaultModes or DEFAULT_MODES
     end
 
     local modes = {}
@@ -78,6 +86,155 @@ local function jassString(value)
     value = value:gsub("\\", "\\\\")
     value = value:gsub('"', '\\"')
     return '"' .. value .. '"'
+end
+
+local function base64Encode(data)
+    local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    local result = {}
+    local index = 1
+    local a
+    local b
+    local c
+    local triple
+
+    while index <= #data do
+        a = data:byte(index) or 0
+        b = data:byte(index + 1) or 0
+        c = data:byte(index + 2) or 0
+        triple = a * 65536 + b * 256 + c
+
+        result[#result + 1] = alphabet:sub(math.floor(triple / 262144) % 64 + 1, math.floor(triple / 262144) % 64 + 1)
+        result[#result + 1] = alphabet:sub(math.floor(triple / 4096) % 64 + 1, math.floor(triple / 4096) % 64 + 1)
+        if index + 1 <= #data then
+            result[#result + 1] = alphabet:sub(math.floor(triple / 64) % 64 + 1, math.floor(triple / 64) % 64 + 1)
+        else
+            result[#result + 1] = "="
+        end
+        if index + 2 <= #data then
+            result[#result + 1] = alphabet:sub(triple % 64 + 1, triple % 64 + 1)
+        else
+            result[#result + 1] = "="
+        end
+
+        index = index + 3
+    end
+
+    return table.concat(result)
+end
+
+local function utf16LeBase64(value)
+    local bytes = {}
+    for i = 1, #value do
+        bytes[#bytes + 1] = value:sub(i, i)
+        bytes[#bytes + 1] = "\0"
+    end
+    return base64Encode(table.concat(bytes))
+end
+
+local function runPowerShell(script)
+    script = "$ProgressPreference = 'SilentlyContinue'; " .. script
+    local cmd = "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand " .. utf16LeBase64(script)
+    local handle = io.popen(cmd)
+    local output
+
+    if not handle then
+        return nil, "无法执行powershell"
+    end
+
+    output = handle:read("*a") or ""
+    handle:close()
+    output = output:gsub("%s+$", "")
+    return output
+end
+
+local function powershellCodePagePrefix()
+    return "try { [System.Text.Encoding]::RegisterProvider([System.Text.CodePagesEncodingProvider]::Instance) } catch {}; "
+end
+
+local function toRegistryPlayerProfileBase64(value)
+    local inputBase64 = base64Encode(tostring(value or ""))
+    local script = powershellCodePagePrefix()
+        .. "$text = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('" .. inputBase64 .. "')); "
+        .. "$regValue = [System.Text.Encoding]::GetEncoding(936).GetString([System.Text.Encoding]::UTF8.GetBytes($text)); "
+        .. "[Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($regValue))"
+    local output = runPowerShell(script)
+
+    if not output or output == "" then
+        return nil, "无法转换PlayerName"
+    end
+
+    return output
+end
+
+local function readWorldEditPlayerProfileBase64()
+    local script = "$path = 'HKCU:\\Software\\Blizzard Entertainment\\WorldEdit'; "
+        .. "$name = 'Test Map - Player Profile'; "
+        .. "$value = Get-ItemPropertyValue -Path $path -Name $name -ErrorAction SilentlyContinue; "
+        .. "if ($null -ne $value) { [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes([string]$value)) }"
+    local output = runPowerShell(script)
+
+    if not output or output == "" then
+        return nil, "未找到注册表项"
+    end
+
+    return output
+end
+
+local function writeWorldEditPlayerProfile(value)
+    local inputBase64 = base64Encode(tostring(value or ""))
+    local script = powershellCodePagePrefix()
+        .. "$path = 'HKCU:\\Software\\Blizzard Entertainment\\WorldEdit'; "
+        .. "$name = 'Test Map - Player Profile'; "
+        .. "$text = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('" .. inputBase64 .. "')); "
+        .. "$regValue = [System.Text.Encoding]::GetEncoding(936).GetString([System.Text.Encoding]::UTF8.GetBytes($text)); "
+        .. "New-Item -Path $path -Force | Out-Null; "
+        .. "New-ItemProperty -Path $path -Name $name -PropertyType String -Value $regValue -Force | Out-Null"
+    local output = runPowerShell(script)
+
+    if output == nil then
+        return false, "powershell执行失败"
+    end
+
+    return true
+end
+
+local function getConfiguredPlayerName(cfg)
+    local section = cfg["PlayerName"] or {}
+    return section["Name"] or section[WORLD_EDIT_PLAYER_PROFILE_VALUE] or section["Value"] or section["Default"]
+end
+
+local function syncWorldEditPlayerName(cfg)
+    local section = cfg["PlayerName"] or {}
+    local desired = getConfiguredPlayerName(cfg)
+    local current
+    local currentErr
+    local err
+    local ok
+
+    if not boolEnabled(section["Enable"]) or desired == nil or desired == "" then
+        return true, "跳过: 未配置[PlayerName]Name"
+    end
+
+    desired = tostring(desired)
+    desiredProfileBase64, err = toRegistryPlayerProfileBase64(desired)
+    if not desiredProfileBase64 then
+        return false, err
+    end
+
+    current, currentErr = readWorldEditPlayerProfileBase64()
+    if current == desiredProfileBase64 then
+        return true, "已一致: " .. desired
+    end
+
+    ok, err = writeWorldEditPlayerProfile(desired)
+    if not ok then
+        return false, "写入失败: " .. tostring(err)
+    end
+
+    if current == nil then
+        return true, "写入: " .. desired .. " (" .. tostring(currentErr) .. ")"
+    end
+    return true, "写入: " .. desired
 end
 
 local function writeLocalGameStartTime(timestamp)
@@ -152,6 +309,75 @@ local function collectSectionKeys(section)
 
     table.sort(result)
     return result
+end
+
+local function getPlayerUserNameIndex(key)
+    local index = tostring(key or ""):match("^[Pp]?(%d+)$")
+    index = tonumber(index)
+    if not index or index < 1 or index > 24 then
+        return nil
+    end
+    return math.floor(index)
+end
+
+local function collectPlayerUserNameIndexes(section)
+    local result = {}
+    local seen = {}
+
+    for key, _ in pairs(section or {}) do
+        local index = getPlayerUserNameIndex(key)
+        if index and not seen[index] then
+            seen[index] = true
+            result[#result + 1] = index
+        end
+    end
+
+    table.sort(result)
+    return result
+end
+
+local function getPlayerUserNameValue(section, index)
+    return section[tostring(index)] or section["P" .. tostring(index)] or section["p" .. tostring(index)]
+end
+
+local function isPlayerUserNameMockEnabled(version, section)
+    local modes
+    if not section then
+        return false
+    end
+
+    modes = splitModes(section["Modes"], PLAYER_USER_NAME_MODES)
+    return boolEnabled(section["Enable"]) and modes[version] == true
+end
+
+local function buildPlayerUserNameMockLines(section, localSection)
+    local defaultValue = section["Default"] or localSection["PlayerUserNameDefault"] or ""
+    local indexes = collectPlayerUserNameIndexes(section)
+    local lines = {
+        "library War3LibLocalDzApiPlayerUserName",
+        "function War3Lib_LocalDzApiPlayerUserName_Get takes player whichPlayer returns string",
+        "    local integer playerNo",
+        "    if whichPlayer == null then",
+        "        return " .. jassString(defaultValue),
+        "    endif",
+        "    set playerNo = GetPlayerId(whichPlayer) + 1"
+    }
+
+    for i, index in ipairs(indexes) do
+        local prefix = i == 1 and "    if" or "    elseif"
+        lines[#lines + 1] = prefix .. " playerNo == " .. tostring(index) .. " then"
+        lines[#lines + 1] = "        return " .. jassString(getPlayerUserNameValue(section, index))
+    end
+    if #indexes > 0 then
+        lines[#lines + 1] = "    endif"
+    end
+    lines[#lines + 1] = "    return " .. jassString(defaultValue)
+    lines[#lines + 1] = "endfunction"
+    lines[#lines + 1] = "endlibrary"
+    lines[#lines + 1] = ""
+    lines[#lines + 1] = "#define DzAPI_Map_GetPlayerUserName(p) War3Lib_LocalDzApiPlayerUserName_Get(p)"
+
+    return lines
 end
 
 local function appendMallItemHasFunction(lines, hasSection, defaultValue)
@@ -340,6 +566,7 @@ end
 
 local function buildHeader(version, cfg)
     local localSection = cfg["War3Lib.LocalDzApi"] or {}
+    local playerUserNameSection = cfg["War3Lib.LocalDzApi.PlayerUserName"]
     local dzSection = cfg["DzAPI"] or {}
     local startTime = localSection["DzAPI_Map_GetGameStartTime"] or dzSection["DzAPI_Map_GetGameStartTime"] or "0"
 
@@ -357,6 +584,13 @@ local function buildHeader(version, cfg)
 
     for _, line in ipairs(buildMallItemMockLines(cfg, localSection)) do
         lines[#lines + 1] = line
+    end
+
+    if isPlayerUserNameMockEnabled(version, playerUserNameSection) then
+        lines[#lines + 1] = ""
+        for _, line in ipairs(buildPlayerUserNameMockLines(playerUserNameSection, localSection)) do
+            lines[#lines + 1] = line
+        end
     end
 
     lines[#lines + 1] = "#endif"
@@ -379,16 +613,24 @@ function localDzApi.generate()
     local started = os.clock()
     local timestamp = os.time()
     local ok, changed, err = writeLocalGameStartTime(timestamp)
+    local cfg
+    local syncMsg
     if not ok then
         return false, err
     end
 
-    local version, cfg, _, enabled = readMockState()
+    cfg = ini.read(path.localDzApiIni)
+    ok, syncMsg = syncWorldEditPlayerName(cfg)
+    if not ok then
+        return false, syncMsg
+    end
+
+    local version, mockCfg, _, enabled = readMockState()
     local content
     local label
 
     if enabled then
-        content = buildHeader(version, cfg)
+        content = buildHeader(version, mockCfg)
         label = "[DzAPI本地替换]启用: " .. version .. " <- " .. path.localDzApiIni
     else
         content = emptyHeader(version)
@@ -404,6 +646,7 @@ function localDzApi.generate()
         if changed then
             print("[DzAPI本地替换]GameStartTime写入: " .. tostring(timestamp))
         end
+        print("[本地玩家名]注册表同步: " .. tostring(syncMsg))
         print(label .. formatElapsedSeconds(elapsedMs(started)))
     end
     return ok, err
