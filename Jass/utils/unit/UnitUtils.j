@@ -245,6 +245,111 @@ library UnitUtils requires BigInteger,MathUtils {
     }
 
     //=====================
+    // [异度] 暴击真伤 / 格挡扩展工具函数
+    //=====================
+
+    // 获取单位暴击真伤增幅（real）
+    private function GetUnitCritTrueUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
+
+    // 获取单位暴击真伤减幅（real）
+    private function GetUnitCritTrueDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return down;
+    }
+
+    // 获取当前单位暴击真伤总倍率：(1 + up) * (1 - down)，默认 1.0
+    public function GetUnitCritTruePercent(unit u) -> real {
+        real up; real down;
+        if (u == null) { return 1.0; }
+        up = GetUnitCritTrueUpRate(u);
+        down = GetUnitCritTrueDownRate(u);
+        return (1.0 + up) * (1.0 - down);
+    }
+
+    // 获取单位暴击真伤（基础 BigInteger * 总倍率）
+    public function GetUnitCritTrue(unit u) -> real {
+        player p; real base;
+        if (u == null) { return 0.0; }
+        p = GetOwningPlayer(u);
+        base = bigInteger.toReal(p, HASH_KEY_BIGINT_CRIT_TRUE);
+        p = null;
+        return base * GetUnitCritTruePercent(u);
+    }
+
+    // 增加单位暴击真伤基础值（支持超过 21 亿）
+    public function AddUnitCritTrue(unit u, real value) -> nothing {
+        player p;
+        if (u == null || value == 0.0) { return; }
+        p = GetOwningPlayer(u);
+        if (value > 0.0) {
+            bigInteger.addReal(p, HASH_KEY_BIGINT_CRIT_TRUE, value);
+        } else {
+            bigInteger.subReal(p, HASH_KEY_BIGINT_CRIT_TRUE, -value);
+        }
+        p = null;
+    }
+
+    // 增加暴击真伤增幅（value 为小数，如 0.2 表示 +20%）
+    public function AddUnitCritTrueUpPercent(unit u, real value) -> nothing {
+        integer uid; real up;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        up = GetUnitCritTrueUpRate(u);
+        up = up + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_UP_RATE, up);
+    }
+
+    // 增加暴击真伤减幅（value 为小数，如 0.3 表示 -30%）
+    public function AddUnitCritTrueDownPercent(unit u, real value) -> nothing {
+        integer uid; real down;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        down = GetUnitCritTrueDownRate(u);
+        down = RealAdd(down, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_DOWN_RATE, down);
+    }
+
+    // 获取单位格挡伤害（支持超过 21 亿）
+    public function GetUnitBlock(unit u) -> real {
+        player p; real value;
+        if (u == null) { return 0.0; }
+        p = GetOwningPlayer(u);
+        value = bigInteger.toReal(p, HASH_KEY_BIGINT_BLOCK);
+        p = null;
+        return value;
+    }
+
+    // 增加单位格挡伤害（支持超过 21 亿）
+    public function AddUnitBlock(unit u, real value) -> nothing {
+        player p;
+        if (u == null || value == 0.0) { return; }
+        p = GetOwningPlayer(u);
+        if (value > 0.0) {
+            bigInteger.addReal(p, HASH_KEY_BIGINT_BLOCK, value);
+        } else {
+            bigInteger.subReal(p, HASH_KEY_BIGINT_BLOCK, -value);
+        }
+        p = null;
+    }
+
+    //=====================
     // 防御扩展工具函数
     //=====================
 

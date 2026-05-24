@@ -49,6 +49,17 @@ description: 本项目 .j 文件中的 Zinc（//! zinc ... //! endzinc）语法�
 - `loop/exitwhen/endloop` 优先改写为 Zinc 的范围 `for (a <= i <= b)` 或常规 for。
 - timer/trigger 的一次性逻辑优先改成匿名回调。
 
+## Hash 表键位
+
+- 新增或迁移 `HASH_UNIT`/`HASH_ITEM`/`HASH_BIGINT` 子键时，先检查对应 `Jass/core/table/Hash_*Define.j` 内是否已有相同数值；同一个 hashtable 内数值冲突会导致完全不同系统互相覆盖。
+- `Hash_UnitDefine.j`、`Hash_ItemDefine.j`、`Hash_BIDefine.j` 是不同 hashtable 的键名空间；跨表数值相同通常不是问题，但同文件内数值和宏名都必须唯一。
+- 修改共享键位前，先搜索旧宏名的全部 `Save*`/`Load*`/`RemoveSaved*` 调用，确认应该移动新键还是保留既有系统键位。
+- 可用以下命令快速检查三张表内重复数值和重复宏名：
+
+```powershell
+$files = 'D:\War3\Library\War3Lib\Jass\core\table\Hash_UnitDefine.j','D:\War3\Library\War3Lib\Jass\core\table\Hash_ItemDefine.j','D:\War3\Library\War3Lib\Jass\core\table\Hash_BIDefine.j'; foreach ($file in $files) { Write-Host "FILE $file"; $defs = Select-String -Path $file -Pattern '^\s*#define\s+(\S+)\s+(-?\d+)\b' | ForEach-Object { [pscustomobject]@{ Line=$_.LineNumber; Name=$_.Matches[0].Groups[1].Value; Value=[int64]$_.Matches[0].Groups[2].Value; Text=$_.Line.Trim() } }; $defs | Group-Object Value | Where-Object Count -gt 1 | ForEach-Object { Write-Host "  DUP VALUE $($_.Name)"; $_.Group | ForEach-Object { Write-Host ("    L{0}: {1}" -f $_.Line, $_.Text) } }; $defs | Group-Object Name | Where-Object Count -gt 1 | ForEach-Object { Write-Host "  DUP NAME $($_.Name)"; $_.Group | ForEach-Object { Write-Host ("    L{0}: {1}" -f $_.Line, $_.Text) } } }
+```
+
 ## References（按需加载）
 
 - `references/jass-to-zinc.md`

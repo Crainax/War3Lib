@@ -13,6 +13,9 @@
 #define HASH_KEY_ITEM_SHENGJINGSHI_APPLIED_RATE 29311843 // [异度] 圣晶石已应用效果倍率
 #define HASH_KEY_ITEM_ACTIVE_ATTR_EQUIP_PLAYER 29311844  // [异度] 已生效属性装备队列玩家索引
 #define HASH_KEY_ITEM_ACTIVE_ATTR_EQUIP_POS 29311845     // [异度] 已生效属性装备队列位置
+#define HASH_KEY_ITEM_SHENGJINGSHI_OWNER 29311846        // [异度] 圣晶石所属玩家索引
+#define HASH_KEY_ITEM_SHENGJINGSHI_LEVEL 29311847        // [异度] 圣晶石等级
+#define HASH_KEY_ITEM_SHENGJINGSHI_ATTR 29311848         // [异度] 圣晶石属性类型
 
 
 

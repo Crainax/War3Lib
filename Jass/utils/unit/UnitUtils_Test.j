@@ -49,6 +49,57 @@ library UTUnitUtils requires UnitUtils {
 		p = null;
 	}
 
+	// [异度] BigInteger 暴击真伤链路测试
+	private function Test_BigIntCritTrue() {
+		player p;
+		unit hero;
+		real big;
+		real expected;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		big = 1000000000.0 * 1000000000.0;
+
+		bigInteger.reset(p, HASH_KEY_BIGINT_CRIT_TRUE);
+		RemoveSavedReal(HASH_UNIT, GetHandleId(hero), KEY_UNIT_CRIT_TRUE_UP_RATE);
+		RemoveSavedReal(HASH_UNIT, GetHandleId(hero), KEY_UNIT_CRIT_TRUE_DOWN_RATE);
+
+		AddUnitCritTrue(hero, big);
+		AddUnitCritTrue(hero, -big);
+		AddUnitCritTrue(hero, 1000.0);
+		assert.Real(GetUnitCritTrue(hero), 1000.0, "暴击真伤大数加减后应为 1000");
+		assert.Real(GetUnitCritTruePercent(hero), 1.0, "暴击真伤初始倍率应为 1.0");
+
+		AddUnitCritTrueUpPercent(hero, 0.5);
+		AddUnitCritTrueDownPercent(hero, 0.2);
+		expected = 1000.0 * 1.5 * 0.8;
+		assert.Real(GetUnitCritTruePercent(hero), 1.2, "暴击真伤 50% 增幅 + 20% 减幅后倍率应为 1.2");
+		assert.Real(GetUnitCritTrue(hero), expected, "暴击真伤倍率后应为 1200");
+
+		hero = null;
+		p = null;
+	}
+
+	// [异度] BigInteger 格挡链路测试
+	private function Test_BigIntBlock() {
+		player p;
+		unit hero;
+		real big;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		big = 1000000000.0 * 1000000000.0;
+
+		bigInteger.reset(p, HASH_KEY_BIGINT_BLOCK);
+		AddUnitBlock(hero, big);
+		AddUnitBlock(hero, -big);
+		AddUnitBlock(hero, 2000.0);
+		assert.Real(GetUnitBlock(hero), 2000.0, "格挡大数加减后应为 2000");
+
+		hero = null;
+		p = null;
+	}
+
 	// 普通单位（步兵）攻击增幅/减幅/定值测试
 	private function Test_NormalUnitAttackPercent() {
 		player p;
@@ -197,6 +248,16 @@ library UTUnitUtils requires UnitUtils {
 		UnitTestAutoTimer(0.3, 0.1, function() {
 			Trace("UnitUtils BigIntAttack 测试");
 			Test_BigIntAttack();
+		}, null);
+
+		// 自动执行 [异度] 暴击真伤 / 格挡测试
+		UnitTestAutoTimer(0.35, 0.1, function() {
+			Trace("UnitUtils 暴击真伤 BigInteger 测试");
+			Test_BigIntCritTrue();
+		}, null);
+		UnitTestAutoTimer(0.36, 0.1, function() {
+			Trace("UnitUtils 格挡 BigInteger 测试");
+			Test_BigIntBlock();
 		}, null);
 
 		// 自动执行普通单位攻击增幅/减幅/定值测试
