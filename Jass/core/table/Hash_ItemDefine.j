@@ -16,6 +16,8 @@
 #define HASH_KEY_ITEM_SHENGJINGSHI_OWNER 29311846        // [异度] 圣晶石所属玩家索引
 #define HASH_KEY_ITEM_SHENGJINGSHI_LEVEL 29311847        // [异度] 圣晶石等级
 #define HASH_KEY_ITEM_SHENGJINGSHI_ATTR 29311848         // [异度] 圣晶石属性类型
+#define HASH_KEY_ITEM_EQUIT_ATTR_RATE 29311849          // [异度] 装备属性率
+#define HASH_KEY_ITEM_EQUIT_ATTR_APPLIED_RATE 29311850  // [异度] 装备属性率已应用倍率
 
 
 
