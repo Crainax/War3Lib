@@ -294,10 +294,26 @@ library UTZinc requires Zinc {
         }
     }
     function TTestUTZinc12 (player p) {
+        // 测试 PingMinimap (所有玩家可见，类似建造完成的蓝色闪烁提示)
+        PingMinimap(0.0, 0.0, 5.0); // 在 (0,0) 处发送 5 秒的 PingMinimap
+        BJDebugMsg("[TEST] 已在 (0,0) 发送 PingMinimap (持续 5 秒)");
     }
     function TTestUTZinc13 (player p) {
+        // 测试 PingMinimapEx (彩色提示)
+        // 1. 在 (-500, -500) 处，发送绿色，extraEffects = false (普通波纹)
+        PingMinimapEx(-500.0, -500.0, 5.0, 0, 255, 0, false);
+        // 2. 在 (500, 500) 处，发送红色，extraEffects = true (带十字线闪烁波纹)
+        PingMinimapEx(500.0, 500.0, 5.0, 255, 0, 0, true);
+        
+        BJDebugMsg("[TEST] 已发送两个 PingMinimapEx：(-500,-500)绿色普通，(500,500)红色附加效果 (持续 5 秒)");
     }
     function TTestUTZinc14 (player p) {
+        // 测试 AddIndicator (单位彩色光圈高亮效果)
+        // 在地图中央 (0,0) 为玩家创建一个测试单位 'hfoo'（步兵）
+        unit u = CreateUnit(p, 'hfoo', 0.0, 0.0, 0.0);
+        AddIndicator(u, 255, 0, 0, 255); // 红色高亮光圈，不透明
+        BJDebugMsg("[TEST] 已在 (0,0) 创建步兵并为其添加了红色 AddIndicator 指示光圈");
+        u = null;
     }
     function TTestUTZinc15 (player p) {
     }
@@ -336,26 +352,25 @@ library UTZinc requires Zinc {
                 TTestActUTZinc1(SubStringBJ(str,2 + 1,StringLength(str)));
                 return;
             }
-            if (str == "s1"     ) TTestUTZinc1(GetTriggerPlayer());
-            else if(str == "s2" ) TTestUTZinc2(GetTriggerPlayer());
-            else if(str == "s3" ) TTestUTZinc3(GetTriggerPlayer());
-            else if(str == "s4" ) TTestUTZinc4(GetTriggerPlayer());
-            else if(str == "s5" ) TTestUTZinc5(GetTriggerPlayer());
-            else if(str == "s6" ) TTestUTZinc6(GetTriggerPlayer());
-            else if(str == "s7" ) TTestUTZinc7(GetTriggerPlayer());
-            else if(str == "s8" ) TTestUTZinc8(GetTriggerPlayer());
-            // else if(str == "s9" ) TTestUTZinc9(GetTriggerPlayer());
-            else if(str == "s10") TTestUTZinc10(GetTriggerPlayer());
-            else if(str == "sa" ) TTestUTZinc11(GetTriggerPlayer());
-            else if(str == "sb" ) TTestUTZinc12(GetTriggerPlayer());
-            else if(str == "sc" ) TTestUTZinc13(GetTriggerPlayer());
-            else if(str == "sd" ) TTestUTZinc14(GetTriggerPlayer());
-            else if(str == "se" ) TTestUTZinc15(GetTriggerPlayer());
-            else if(str == "sf" ) TTestUTZinc16(GetTriggerPlayer());
-            else if(str == "sg" ) TTestUTZinc17(GetTriggerPlayer());
-            else if(str == "sh" ) TTestUTZinc18(GetTriggerPlayer());
-            else if(str == "si" ) TTestUTZinc19(GetTriggerPlayer());
-            else if(str == "sj" ) TTestUTZinc20(GetTriggerPlayer());
+            if (str == "s1" ) TTestUTZinc1(GetTriggerPlayer());
+            if (str == "s2" ) TTestUTZinc2(GetTriggerPlayer());
+            if (str == "s3" ) TTestUTZinc3(GetTriggerPlayer());
+            if (str == "s4" ) TTestUTZinc4(GetTriggerPlayer());
+            if (str == "s5" ) TTestUTZinc5(GetTriggerPlayer());
+            if (str == "s6" ) TTestUTZinc6(GetTriggerPlayer());
+            if (str == "s7" ) TTestUTZinc7(GetTriggerPlayer());
+            if (str == "s8" ) TTestUTZinc8(GetTriggerPlayer());
+            if (str == "s10") TTestUTZinc10(GetTriggerPlayer());
+            if (str == "sa" ) TTestUTZinc11(GetTriggerPlayer());
+            if (str == "sb" ) TTestUTZinc12(GetTriggerPlayer());
+            if (str == "sc" ) TTestUTZinc13(GetTriggerPlayer());
+            if (str == "sd" ) TTestUTZinc14(GetTriggerPlayer());
+            if (str == "se" ) TTestUTZinc15(GetTriggerPlayer());
+            if (str == "sf" ) TTestUTZinc16(GetTriggerPlayer());
+            if (str == "sg" ) TTestUTZinc17(GetTriggerPlayer());
+            if (str == "sh" ) TTestUTZinc18(GetTriggerPlayer());
+            if (str == "si" ) TTestUTZinc19(GetTriggerPlayer());
+            if (str == "sj" ) TTestUTZinc20(GetTriggerPlayer());
 
         });
 

@@ -10,6 +10,8 @@
 
 local BlpRunner = {}
 
+local DEFAULT_CLI_ARGS = "--type 0 --mipmap 10 --quality 98 --alpha 2"
+
 local SUPPORTED_EXT = {
     png = true,
     bmp = true,
@@ -119,6 +121,9 @@ local function run_blpnetcl_batch(source_folder, dest_folder, blplab_config)
     end
 
     local cli_args = blplab_config.cli_args or ""
+    if cli_args == "" then
+        cli_args = DEFAULT_CLI_ARGS
+    end
     local source = ensure_trailing_slash(source_folder)
     local dest = ensure_trailing_slash(dest_folder)
 

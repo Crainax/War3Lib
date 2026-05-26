@@ -31,7 +31,7 @@ local paths = {
 -- alpha: 0=Auto, 1=Opaque, 2=Alpha
 local blp_cli = {
     type = 0,
-    mipmap = 1,
+    mipmap = 10,
     quality = 98,
     alpha = 2,
     option1 = false,
