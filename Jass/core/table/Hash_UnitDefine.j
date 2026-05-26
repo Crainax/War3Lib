@@ -214,6 +214,7 @@
 #define KEY_UNIT_BOSS_ATTACK_BASE 10016         // 进攻BOSS强制攻击基地标记
 #define KEY_UNIT_REWARD_DROP_RATE 10017         // 单位奖励/掉落倍率（real）
 #define KEY_YEGUAI_MONSTER_STOP_AVUL 10018      // 停怪系统是否为野怪添加过Avul（integer 0/1）
+#define KEY_UNIT_MAJIA_DAMAGE_REAL 10019        // 马甲模拟伤害值（real）
 
 // [异度] 进攻BOSS运行态
 #define KEY_UNIT_NORMAL_BOSS_RUNTIME_INDEX 10117       // 普通进攻BOSS运行态数组索引
