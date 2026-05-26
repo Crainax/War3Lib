@@ -350,6 +350,93 @@ library UnitUtils requires BigInteger,MathUtils {
     }
 
     //=====================
+    // 最终受伤倍率扩展工具函数
+    //=====================
+
+    // 获取单位受伤增加（real，0.21 表示 +21%）
+    public function GetUnitDamagedUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return RMaxBJ(0.0, up);
+    }
+
+    // 获取单位受伤减少（real，0.5 表示 -50%）
+    public function GetUnitDamagedDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return RLimit(down, 0.0, 0.999);
+    }
+
+    // 重置单位受伤增加
+    public function ResetUnitDamagedUp(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE);
+        }
+    }
+
+    // 重置单位受伤减少
+    public function ResetUnitDamagedDown(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE);
+        }
+    }
+
+    // 增加单位受伤增加。两次 +0.1 会得到 +21%，传负值用于移除对应加成。
+    public function AddUnitDamagedUp(unit u, real value) -> nothing {
+        integer uid; real up;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        up = GetUnitDamagedUpRate(u);
+        if (value > 0.0) {
+            up = (1.0 + up) * (1.0 + value) - 1.0;
+        } else {
+            up = (1.0 + up) / (1.0 - value) - 1.0;
+        }
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE, RMaxBJ(0.0, up));
+    }
+
+    // 增加单位受伤减少。使用 RealAdd 叠加，永远不会自然达到 100%。
+    public function AddUnitDamagedDown(unit u, real value) -> nothing {
+        integer uid; real down;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        down = GetUnitDamagedDownRate(u);
+        down = RLimit(RealAdd(down, value), 0.0, 0.999);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE, down);
+    }
+
+    // 获取最终受伤倍率：(1 + Up) * (1 - Down)，默认 1.0
+    public function GetUnitDamagedFinal(unit u) -> real {
+        real up; real down;
+        if (u == null) { return 1.0; }
+        up = GetUnitDamagedUpRate(u);
+        down = GetUnitDamagedDownRate(u);
+        return RMaxBJ(0.0, (1.0 + up) * (1.0 - down));
+    }
+
+    //=====================
     // 防御扩展工具函数
     //=====================
 

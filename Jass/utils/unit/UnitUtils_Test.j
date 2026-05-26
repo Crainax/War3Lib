@@ -100,6 +100,42 @@ library UTUnitUtils requires UnitUtils {
 		p = null;
 	}
 
+	// [异度] 单位最终受伤倍率测试
+	private function Test_DamagedFinal() {
+		player p;
+		unit hero;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+
+		ResetUnitDamagedUp(hero);
+		ResetUnitDamagedDown(hero);
+		assert.Real(GetUnitDamagedFinal(hero), 1.0, "受伤倍率初始值应为 1.0");
+
+		AddUnitDamagedUp(hero, 0.1);
+		AddUnitDamagedUp(hero, 0.1);
+		assert.Real(GetUnitDamagedUpRate(hero), 0.21, "两次 10% 受伤增加应叠乘为 21%");
+		assert.Real(GetUnitDamagedFinal(hero), 1.21, "两次受伤增加后最终倍率应为 1.21");
+
+		AddUnitDamagedUp(hero, -0.1);
+		assert.Real(GetUnitDamagedUpRate(hero), 0.1, "移除一次 10% 受伤增加后应回到 10%");
+
+		AddUnitDamagedDown(hero, 0.3);
+		AddUnitDamagedDown(hero, 0.3);
+		assert.Real(GetUnitDamagedDownRate(hero), 0.51, "两次 30% 受伤减少应 RealAdd 为 51%");
+		assert.Real(GetUnitDamagedFinal(hero), 0.539, "受伤增加 10% 且受伤减少 51% 后最终倍率应为 0.539");
+
+		AddUnitDamagedDown(hero, -0.3);
+		assert.Real(GetUnitDamagedDownRate(hero), 0.3, "移除一次 30% 受伤减少后应回到 30%");
+
+		ResetUnitDamagedUp(hero);
+		ResetUnitDamagedDown(hero);
+		assert.Real(GetUnitDamagedFinal(hero), 1.0, "重置后受伤倍率应回到 1.0");
+
+		hero = null;
+		p = null;
+	}
+
 	// 普通单位（步兵）攻击增幅/减幅/定值测试
 	private function Test_NormalUnitAttackPercent() {
 		player p;
@@ -258,6 +294,10 @@ library UTUnitUtils requires UnitUtils {
 		UnitTestAutoTimer(0.36, 0.1, function() {
 			Trace("UnitUtils 格挡 BigInteger 测试");
 			Test_BigIntBlock();
+		}, null);
+		UnitTestAutoTimer(0.37, 0.1, function() {
+			Trace("UnitUtils 最终受伤倍率测试");
+			Test_DamagedFinal();
 		}, null);
 
 		// 自动执行普通单位攻击增幅/减幅/定值测试

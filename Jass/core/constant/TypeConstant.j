@@ -36,8 +36,6 @@
 #define KEY_EXP_RATE 25
 //金钱获得率
 #define KEY_GOLD_RATE 26
-//暴击敏捷系数
-#define KEY_CRITICAL_AGI_RATE 27
 //力量百分比
 #define KEY_STR_RATE 28
 //敏捷百分比
@@ -54,10 +52,6 @@
 #define KEY_ATTACK_RATE 35
 //魔法回复百分比
 #define KEY_MANA_REGEN_RATE 36
-//减少受到的伤害量
-#define KEY_DAMAGE_REDUCE 37
-//减少受到的伤害比
-#define KEY_DAMAGE_REDUCE_RAT 38
 //移速
 #define KEY_MOVE_SPEED 39
 //主属性
@@ -72,6 +66,18 @@
 #define KEY_PHYSICAL_DAMAGE 44
 //次属性
 #define KEY_SUB_ATTR 45
+//结晶获得率
+#define KEY_JIEJING_RATE 46
+//被动技能伤害
+#define KEY_PASSIVE_DAMAGE 47
+//天赋技能伤害
+#define KEY_TIANFU_DAMAGE 48
+//对BOSS伤害
+#define KEY_BOSS_DAMAGE 49
+//对进攻怪伤害
+#define KEY_JINGONG_DAMAGE 50
+//总攻击暴击真伤百分比
+#define KEY_ATTACK_CRIT_TRUE_RATE 51
 
 //对应原装备的ID
 #define KEY_ITEM_ORIGIN 16

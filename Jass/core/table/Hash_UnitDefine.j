@@ -183,6 +183,10 @@
 #define KEY_UNIT_CRIT_TRUE_UP_RATE       255610205 // 暴击真伤增幅累计值（real）
 #define KEY_UNIT_CRIT_TRUE_DOWN_RATE     255610206 // 暴击真伤减幅累计值（real）
 
+// [异度] 单位最终受伤倍率
+#define KEY_UNIT_DAMAGED_UP_RATE         255610207 // 受伤增加累计值（real）
+#define KEY_UNIT_DAMAGED_DOWN_RATE       255610208 // 受伤减少累计值（real，RealAdd）
+
 // UnitBuff 通用禁用类 DEBUFF
 #define KEY_UNIT_SILENCE_TIME_LEFT       255610197 // 沉默剩余时间（real）
 #define KEY_UNIT_DISARM_TIME_LEFT        255610198 // 缴械/禁用攻击剩余时间（real）
