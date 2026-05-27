@@ -21,6 +21,67 @@ library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
 	private unit testUnits[3];
 	private boolean skillsAdded = false;
 	private integer unitAbilities[3][3];  // 存储每个单位的3个技能ID [单位索引][技能索引]
+	private integer passiveCallbackCount = 0;
+	private integer passiveCallbackAbilityID = 0;
+	private boolean passiveCallbackAll = false;
+
+	private function TestAbilityAttrs() {
+		unit u;
+		player p;
+		integer abilityID;
+
+		u = testUnits[0];
+		p = Player(0);
+		abilityID = 'A000';
+
+		assert.Real(GetAbilitySpellFinalDamageRate(u, abilityID), 1.0, "技能终伤默认值应为 1.0");
+		AddAbilitySpellFinalDamageRateUp(u, abilityID, 0.5);
+		AddAbilitySpellFinalDamageRateDown(u, abilityID, 0.2);
+		assert.Real(GetAbilitySpellFinalDamageRate(u, abilityID), 1.2, "技能终伤 Up/Down 应叠乘");
+		AddAbilitySpellFinalDamageRateUp(u, abilityID, -0.5);
+		AddAbilitySpellFinalDamageRateDown(u, abilityID, -0.2);
+		assert.Real(GetAbilitySpellFinalDamageRate(u, abilityID), 1.0, "技能终伤 Up/Down 应可撤销");
+
+		plyaerHeroAttr.addSpellFinalDamageRateUp(p, 0.25);
+		AddAbilitySpellFinalDamageRateUp(u, abilityID, 0.2);
+		assert.Real(GetTotalSpellFinalDamageRate(u, abilityID), 1.5, "总技能终伤应等于玩家终伤乘技能终伤");
+		AddAbilitySpellFinalDamageRateUp(u, abilityID, -0.2);
+		plyaerHeroAttr.addSpellFinalDamageRateUp(p, -0.25);
+
+		assert.Real(GetAbilitySpellRangeRate(u, abilityID), 1.0, "技能范围默认值应为 1.0");
+		AddAbilitySpellRangeRateUp(u, abilityID, 0.5);
+		AddAbilitySpellRangeRateDown(u, abilityID, 0.2);
+		assert.Real(GetAbilitySpellRangeRate(u, abilityID), 1.2, "技能范围 Up/Down 应按规则合成");
+		AddAbilitySpellRangeRateUp(u, abilityID, -0.5);
+		AddAbilitySpellRangeRateDown(u, abilityID, -0.2);
+		assert.Real(GetAbilitySpellRangeRate(u, abilityID), 1.0, "技能范围 Up/Down 应可撤销");
+
+		passiveCallbackCount = 0;
+		passiveCallbackAbilityID = 0;
+		passiveCallbackAll = false;
+		RegisterSpellPassiveRateChanged(function () {
+			passiveCallbackCount += 1;
+			passiveCallbackAbilityID = GetSpellPassiveRateChangedAbilityID();
+			passiveCallbackAll = IsSpellPassiveRateChangedAll();
+		});
+
+		AddPlayerSpellPassiveRate(p, 0.2);
+		assert.Boolean(passiveCallbackCount == 1 && passiveCallbackAll, "玩家被动强化变化应触发全量回调");
+		AddAbilitySpellPassiveRate(u, abilityID, 0.3);
+		assert.Boolean(passiveCallbackCount == 2 && passiveCallbackAbilityID == abilityID && !passiveCallbackAll, "技能被动强化变化应触发单技能回调");
+		assert.Real(GetTotalSpellPassiveRate(u, abilityID), 1.5, "总被动强化应为 1 + 玩家强化 + 技能强化");
+		AddAbilitySpellPassiveRate(u, abilityID, -0.3);
+		AddPlayerSpellPassiveRate(p, -0.2);
+
+		SetAbilitySpellPassiveAppliedRate(u, abilityID, 1.75);
+		assert.Boolean(HasAbilitySpellPassiveAppliedRate(u, abilityID), "被动强化快照应可检测");
+		assert.Real(GetAbilitySpellPassiveAppliedRate(u, abilityID), 1.75, "被动强化快照应可读取");
+		ClearAbilitySpellPassiveAppliedRate(u, abilityID);
+		assert.Boolean(!HasAbilitySpellPassiveAppliedRate(u, abilityID), "被动强化快照应可清理");
+
+		u = null;
+		p = null;
+	}
 
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
@@ -32,6 +93,7 @@ library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
 			UnitAddAbility(testUnits[0], 'AJB0');
 
 			BJDebugMsg("[SpellUtils] 测试单位已创建");
+			TestAbilityAttrs();
 			}, function() {
 			// 可选：清理测试单位（目前保留供测试使用）
 		});
@@ -186,6 +248,7 @@ library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
 
 		abilityId = 'AJB0';
 		abilityIdStr = YDWEId2S(abilityId);
+		luaScript = "";
 
 		DisplayTextToPlayer(p, 0, 0, "=== 打印 ability['" + abilityIdStr + "'] 子表 ===");
 

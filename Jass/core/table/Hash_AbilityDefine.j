@@ -21,5 +21,12 @@
 #define HASH_CHILD_SALT_COOL_NEXT_OVERRIDE 2002  // 下一次施法覆盖冷却（一次性）
 #define HASH_CHILD_SALT_COOL_NEXT_MUL      2003  // 下一次施法倍率（一次性）
 
-#endif
+// 技能属性（SpellUtils）使用的子键：保存单位 + 技能维度的加成与已应用快照
+#define HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_UP      3001
+#define HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_DOWN    3002
+#define HASH_CHILD_SALT_SPELL_RANGE_UP             3003
+#define HASH_CHILD_SALT_SPELL_RANGE_DOWN           3004
+#define HASH_CHILD_SALT_SPELL_PASSIVE_RATE         3005
+#define HASH_CHILD_SALT_SPELL_PASSIVE_APPLIED_RATE 3006
 
+#endif
