@@ -131,6 +131,7 @@
 // 单位魔法抗性（Resist）增减幅
 #define KEY_UNIT_RESIST_UP_RATE              255610166 // 魔抗减伤 Up（0~1，使用 RealAdd 归一叠加）
 #define KEY_UNIT_RESIST_DOWN_RATE            255610167 // 魔抗易伤 Down（线性累加）
+#define KEY_UNIT_RESIST_FULL_COUNT           255610209 // 满额魔抗层数（AddUnitResistUp +/-1.0 可逆）
 
 // 眩晕系统键值
 #define KEY_UNIT_STUN_RESIST_UP_RATE         255610168 // 眩晕抗性（0~1，RealAdd 归一叠加）

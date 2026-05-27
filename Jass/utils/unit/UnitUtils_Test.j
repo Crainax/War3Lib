@@ -136,6 +136,45 @@ library UTUnitUtils requires UnitUtils {
 		p = null;
 	}
 
+	private function Test_ResistFull() {
+		player p;
+		unit hero;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+
+		ResetUnitResistUp(hero);
+		ResetUnitResistDown(hero);
+		assert.Real(GetUnitResistFinal(hero), 1.0, "魔抗初始最终倍率应为 1.0");
+
+		AddUnitResistUp(hero, 0.5);
+		assert.Real(GetUnitResistFinal(hero), 0.5, "50% 魔抗后最终倍率应为 0.5");
+
+		AddUnitResistUp(hero, 1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.0, "新增 100% 魔抗层后最终倍率应为 0.0");
+		AddUnitResistDown(hero, 1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.0, "100% 魔抗层存在时魔易应被遮蔽");
+		AddUnitResistUp(hero, -1.0);
+		assert.Real(GetUnitResistFinal(hero), 1.0, "移除 100% 魔抗层后应恢复 50% 魔抗和 100% 魔易");
+		AddUnitResistDown(hero, -1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.5, "移除魔易后应回到 50% 魔抗");
+
+		AddUnitResistUp(hero, 1.0);
+		AddUnitResistUp(hero, 1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.0, "两层 100% 魔抗后最终倍率应为 0.0");
+		AddUnitResistUp(hero, -1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.0, "移除一层后仍应保持 100% 魔抗");
+		AddUnitResistUp(hero, -1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.5, "移除所有 100% 魔抗层后应恢复原有 50% 魔抗");
+
+		AddUnitResistUp(hero, 1.0);
+		ResetUnitResistUp(hero);
+		assert.Real(GetUnitResistFinal(hero), 1.0, "重置魔抗减伤应同时清理 100% 魔抗层");
+
+		hero = null;
+		p = null;
+	}
+
 	// 普通单位（步兵）攻击增幅/减幅/定值测试
 	private function Test_NormalUnitAttackPercent() {
 		player p;
@@ -298,6 +337,10 @@ library UTUnitUtils requires UnitUtils {
 		UnitTestAutoTimer(0.37, 0.1, function() {
 			Trace("UnitUtils 最终受伤倍率测试");
 			Test_DamagedFinal();
+		}, null);
+		UnitTestAutoTimer(0.38, 0.1, function() {
+			Trace("UnitUtils 100% 魔抗可逆测试");
+			Test_ResistFull();
 		}, null);
 
 		// 自动执行普通单位攻击增幅/减幅/定值测试

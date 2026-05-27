@@ -573,6 +573,19 @@ library UnitUtils requires BigInteger,MathUtils {
         return down;
     }
 
+    private function GetUnitResistFullCount(unit u) -> integer {
+        integer uid; integer count;
+        if (u == null) { return 0; }
+        uid = GetHandleId(u);
+        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT)) {
+            count = LoadInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT);
+        } else {
+            count = 0;
+        }
+        if (count < 0) { return 0; }
+        return count;
+    }
+
     // 重置单位魔抗减伤 Up（直接归 0）
     public function ResetUnitResistUp(unit u) -> nothing {
         integer uid;
@@ -580,6 +593,9 @@ library UnitUtils requires BigInteger,MathUtils {
         uid = GetHandleId(u);
         if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE)) {
             RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE);
+        }
+        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT)) {
+            RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT);
         }
     }
 
@@ -593,13 +609,26 @@ library UnitUtils requires BigInteger,MathUtils {
         }
     }
 
-    // 增加魔抗减伤 Up（0~1，使用 RealAdd 归一叠加，永远不会到 1）
+    // 增加魔抗减伤 Up。传入 +/-1.0 使用单独层数，避免 RealAdd 的除零边界。
     public function AddUnitResistUp(unit u, real value) -> nothing {
-        integer uid; real up;
+        integer uid; real up; integer fullCount;
 
         if (u == null || value == 0.0) { return; }
 
         uid = GetHandleId(u);
+        if (value >= 1.0) {
+            SaveInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT, GetUnitResistFullCount(u) + 1);
+            return;
+        } else if (value <= -1.0) {
+            fullCount = GetUnitResistFullCount(u) - 1;
+            if (fullCount > 0) {
+                SaveInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT, fullCount);
+            } else if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT)) {
+                RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT);
+            }
+            return;
+        }
+
         up = GetUnitResistUpRate(u);
         up = RealAdd(up, value);
         SaveReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE, up);
@@ -620,11 +649,13 @@ library UnitUtils requires BigInteger,MathUtils {
     // 获取魔抗最终结果：
     //  - Up 的两次 0.5 过程：RealAdd(0.5, 0.5) = 0.75
     //  - Down 的两次 0.6 过程：0.6 + 0.6 = 1.2
+    //  - 满额魔抗层数 > 0 时，Final 直接为 0
     //  - Final 计算公式：(1 - up) * (1.0 + down)
     public function GetUnitResistFinal(unit u) -> real {
         real up; real down; real final;
 
         if (u == null) { return 0.0; }
+        if (GetUnitResistFullCount(u) > 0) { return 0.0; }
 
         up = GetUnitResistUpRate(u);
         down = GetUnitResistDownRate(u);
