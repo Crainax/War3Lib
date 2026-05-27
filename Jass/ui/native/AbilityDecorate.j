@@ -1,6 +1,8 @@
 #ifndef AbilityDecorateIncluded
 #define AbilityDecorateIncluded
 
+#include "Crainax/ui/native/AbilityDecorateData.j"
+
 //! zinc
 /*
 技能栏装饰（Icon / Grow / CornerText）
@@ -9,7 +11,6 @@
 #include "Crainax/core/table/Hash_UnitDefine.j"
 #include "Crainax/core/constant/TypeConstant.j"
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
-#include "Crainax/ui/native/AbilityDecorateData.j"
 
 
 library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData {
