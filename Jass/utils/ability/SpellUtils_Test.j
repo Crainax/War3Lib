@@ -15,7 +15,7 @@
 //! zinc
 
 //自动生成的文件
-library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
+library UTSpellUtils requires SpellUtils, AbilityDecorateData, LBKKAPI,UnitUtils {
 
 	// 全局测试单位引用和技能跟踪
 	private unit testUnits[3];
@@ -38,9 +38,12 @@ library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
 		AddAbilitySpellFinalDamageRateUp(u, abilityID, 0.5);
 		AddAbilitySpellFinalDamageRateDown(u, abilityID, 0.2);
 		assert.Real(GetAbilitySpellFinalDamageRate(u, abilityID), 1.2, "技能终伤 Up/Down 应叠乘");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 1, "技能终伤非0时应写入自定义字符串");
+		assert.String(GetAbilityDecorateCustomStringByIndex(u, abilityID, 1), "|cFFFACC15技能最终伤害:|r|cFF00FFFB+20%|r", "技能终伤自定义字符串应显示最终额外值");
 		AddAbilitySpellFinalDamageRateUp(u, abilityID, -0.5);
 		AddAbilitySpellFinalDamageRateDown(u, abilityID, -0.2);
 		assert.Real(GetAbilitySpellFinalDamageRate(u, abilityID), 1.0, "技能终伤 Up/Down 应可撤销");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 0, "技能终伤回0时应删除自定义字符串");
 
 		plyaerHeroAttr.addSpellFinalDamageRateUp(p, 0.25);
 		AddAbilitySpellFinalDamageRateUp(u, abilityID, 0.2);
@@ -52,9 +55,12 @@ library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
 		AddAbilitySpellRangeRateUp(u, abilityID, 0.5);
 		AddAbilitySpellRangeRateDown(u, abilityID, 0.2);
 		assert.Real(GetAbilitySpellRangeRate(u, abilityID), 1.2, "技能范围 Up/Down 应按规则合成");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 1, "技能范围非0时应写入自定义字符串");
+		assert.String(GetAbilityDecorateCustomStringByIndex(u, abilityID, 1), "|cFFFACC15技能范围增加:|r|cFF00FFFB+20%|r", "技能范围自定义字符串应显示最终额外值");
 		AddAbilitySpellRangeRateUp(u, abilityID, -0.5);
 		AddAbilitySpellRangeRateDown(u, abilityID, -0.2);
 		assert.Real(GetAbilitySpellRangeRate(u, abilityID), 1.0, "技能范围 Up/Down 应可撤销");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 0, "技能范围回0时应删除自定义字符串");
 
 		passiveCallbackCount = 0;
 		passiveCallbackAbilityID = 0;
@@ -67,10 +73,14 @@ library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
 
 		AddPlayerSpellPassiveRate(p, 0.2);
 		assert.Boolean(passiveCallbackCount == 1 && passiveCallbackAll, "玩家被动强化变化应触发全量回调");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 0, "玩家全局被动强化不应写入技能自定义字符串");
 		AddAbilitySpellPassiveRate(u, abilityID, 0.3);
 		assert.Boolean(passiveCallbackCount == 2 && passiveCallbackAbilityID == abilityID && !passiveCallbackAll, "技能被动强化变化应触发单技能回调");
 		assert.Real(GetTotalSpellPassiveRate(u, abilityID), 1.5, "总被动强化应为 1 + 玩家强化 + 技能强化");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 1, "技能被动强化非0时应写入自定义字符串");
+		assert.String(GetAbilityDecorateCustomStringByIndex(u, abilityID, 1), "|cFFFACC15技能被动强化:|r|cFF00FFFB+30%|r", "技能被动强化自定义字符串应显示技能自身额外值");
 		AddAbilitySpellPassiveRate(u, abilityID, -0.3);
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 0, "技能被动强化回0时应删除自定义字符串");
 		AddPlayerSpellPassiveRate(p, -0.2);
 
 		SetAbilitySpellPassiveAppliedRate(u, abilityID, 1.75);

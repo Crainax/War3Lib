@@ -9,9 +9,10 @@
 #include "Crainax/core/table/Hash_UnitDefine.j"
 #include "Crainax/core/constant/TypeConstant.j"
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
+#include "Crainax/ui/native/AbilityDecorateData.j"
 
 
-library AbilityDecorate requires SpellBtns,HashTable {
+library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData {
     // 排除单位参与技能装饰处理
     public function ExcludeUnitFromAbilityDecorate(unit u) {
         integer uid;

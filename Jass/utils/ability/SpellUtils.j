@@ -3,12 +3,13 @@
 
 #include "Crainax/core/constant/HashTable.j"
 #include "Crainax/core/table/Hash_AbilityDefine.j"
+#include "Crainax/ui/native/AbilityDecorateData.j"
 
 //! zinc
 /*
 技能相关的工具类
 */
-library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr {
+library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorateData {
 
 	// ====== Lua 交互：Ubertip 扩展 ======
 	// 通过全局变量 + 触发器与 Lua 通信：
@@ -68,6 +69,54 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr {
 		spellPassiveRateChangedUnit = null;
 		spellPassiveRateChangedAbilityID = 0;
 		spellPassiveRateChangedAll = false;
+	}
+
+	private function GetRoundedPercent(real value) -> integer {
+		return R2I(RAbsBJ(value) * 100.0 + 0.5);
+	}
+
+	private function FormatAbilityDecoratePercentLine(string label, real value) -> string {
+		string sign;
+
+		if (value >= 0.0) {
+			sign = "+";
+		} else {
+			sign = "-";
+		}
+
+		return "|cFFFACC15" + label + ":|r|cFF00FFFB" + sign + I2S(GetRoundedPercent(value)) + "%|r";
+	}
+
+	private function RefreshAbilityDecorateCustomPercent(unit u, integer abilityID, integer childKey, string label, real value) {
+		integer parentKey; integer stringId; integer newStringId;
+
+		if (u == null || abilityID == 0) { return; }
+
+		parentKey = GetAbilityHashKey(u, abilityID);
+		if (parentKey == 0) { return; }
+
+		if (HaveSavedInteger(HASH_ABILITY, parentKey, childKey)) {
+			stringId = LoadInteger(HASH_ABILITY, parentKey, childKey);
+		} else {
+			stringId = 0;
+		}
+
+		if (GetRoundedPercent(value) == 0) {
+			if (stringId != 0) {
+				RemoveAbilityDecorateCustomString(u, abilityID, stringId);
+				RemoveSavedInteger(HASH_ABILITY, parentKey, childKey);
+			}
+			return;
+		}
+
+		if (stringId != 0 && SetAbilityDecorateCustomStringById(u, abilityID, stringId, FormatAbilityDecoratePercentLine(label, value))) {
+			return;
+		}
+
+		newStringId = AddAbilityDecorateCustomString(u, abilityID, FormatAbilityDecoratePercentLine(label, value));
+		if (newStringId != 0) {
+			SaveInteger(HASH_ABILITY, parentKey, childKey, newStringId);
+		}
 	}
 
 	//异步获取当前单位的指定xy位置的技能id
@@ -162,6 +211,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr {
 			multiplier = multiplier / (1.0 + v);
 		}
 		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_UP, multiplier, 1.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_STRING_ID, "技能最终伤害", GetAbilitySpellFinalDamageRate(u, abilityID) - 1.0);
 	}
 
 	public function AddAbilitySpellFinalDamageRateDown(unit u, integer abilityID, real value) {
@@ -180,6 +230,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr {
 			multiplier = multiplier / denom;
 		}
 		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_DOWN, multiplier, 1.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_STRING_ID, "技能最终伤害", GetAbilitySpellFinalDamageRate(u, abilityID) - 1.0);
 	}
 
 	public function GetAbilitySpellFinalDamageRate(unit u, integer abilityID) -> real {
@@ -200,6 +251,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr {
 
 		rate = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, 0.0) + value;
 		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, rate, 0.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_STRING_ID, "技能范围增加", GetAbilitySpellRangeRate(u, abilityID) - 1.0);
 	}
 
 	public function AddAbilitySpellRangeRateDown(unit u, integer abilityID, real value) {
@@ -209,6 +261,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr {
 
 		rate = RealAdd(LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, 0.0), value);
 		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, rate, 0.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_STRING_ID, "技能范围增加", GetAbilitySpellRangeRate(u, abilityID) - 1.0);
 	}
 
 	public function GetAbilitySpellRangeRate(unit u, integer abilityID) -> real {
@@ -244,6 +297,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr {
 
 		rate = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, 0.0) + value;
 		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, rate, 0.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_STRING_ID, "技能被动强化", GetAbilitySpellPassiveRate(u, abilityID));
 		FireSpellPassiveRateChanged(GetOwningPlayer(u), u, abilityID, false);
 	}
 
