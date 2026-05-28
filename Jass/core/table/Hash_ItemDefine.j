@@ -24,6 +24,8 @@
 #define HASH_KEY_ITEM_SPELL_FINAL_DAMAGE_BAYUNZI 29311854 // [异度] 八云紫临时技能最终伤害
 #define HASH_KEY_ITEM_SPELL_RANGE_BAYUNZI 29311855      // [异度] 八云紫临时技能范围
 #define HASH_KEY_ITEM_SPELL_PASSIVE_BAYUNZI 29311856    // [异度] 八云紫临时技能被动强化
+#define HASH_KEY_ITEM_SPELL_BAYUNZI_TIMER 29311857      // [异度] 八云紫临时强化技能书过期计时器
+#define HASH_KEY_ITEM_SPELL_BAYUNZI_START_SECOND 29311858 // [异度] 八云紫临时强化技能书创建时间
 
 
 

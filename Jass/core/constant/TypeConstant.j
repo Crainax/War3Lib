@@ -88,6 +88,8 @@
 #define KEY_ITEM_ABILITY_2 102
 //存技能3
 #define KEY_ITEM_ABILITY_3 103
+//物品类型默认流光
+#define KEY_ITEM_TYPE_GROW 104
 
 
 
