@@ -18,6 +18,12 @@
 #define HASH_KEY_ITEM_SHENGJINGSHI_ATTR 29311848         // [异度] 圣晶石属性类型
 #define HASH_KEY_ITEM_EQUIT_ATTR_RATE 29311849          // [异度] 装备属性率
 #define HASH_KEY_ITEM_EQUIT_ATTR_APPLIED_RATE 29311850  // [异度] 装备属性率已应用倍率
+#define HASH_KEY_ITEM_SPELL_FINAL_DAMAGE_PERM 29311851  // [异度] 强化技能书永久技能最终伤害
+#define HASH_KEY_ITEM_SPELL_RANGE_PERM 29311852         // [异度] 强化技能书永久技能范围
+#define HASH_KEY_ITEM_SPELL_PASSIVE_PERM 29311853       // [异度] 强化技能书永久技能被动强化
+#define HASH_KEY_ITEM_SPELL_FINAL_DAMAGE_BAYUNZI 29311854 // [异度] 八云紫临时技能最终伤害
+#define HASH_KEY_ITEM_SPELL_RANGE_BAYUNZI 29311855      // [异度] 八云紫临时技能范围
+#define HASH_KEY_ITEM_SPELL_PASSIVE_BAYUNZI 29311856    // [异度] 八云紫临时技能被动强化
 
 
 
