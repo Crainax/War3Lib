@@ -18,10 +18,6 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 	public integer spellutilsUberTip_id = 0;
 	public integer spellutilsUberTip_level = 0;
 	public string spellutilsUberTip_result = "";
-	public trigger spellutilsTip_tr = null;
-	public integer spellutilsTip_id = 0;
-	public integer spellutilsTip_level = 0;
-	public string spellutilsTip_result = "";
 
 	// ====== 技能属性：被动强化变更回调 ======
 	private trigger spellPassiveRateChangedTr = null;
@@ -149,26 +145,6 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 	//获取提示工具 - 学习
 	public function GetAbilityResearchTip (integer id)    -> string {
 		return YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_ABILITY, id, "ResearchTip");
-	}
-
-	// 获取技能标题（支持按等级获取）
-	// param id     技能id
-	// param level  技能等级（从1开始），当 SLK 中为 table 时，取第 level 个
-	// return       对应等级的 Tip 文本；不存在时回退到物编 Tip
-	public function GetAbilityTip(integer id, integer level) -> string {
-		spellutilsTip_id = id;
-		spellutilsTip_level = level;
-		spellutilsTip_result = "";
-
-		if (spellutilsTip_tr != null) {
-			TriggerEvaluate(spellutilsTip_tr);
-		}
-
-		if (spellutilsTip_result == "" && id != 0) {
-			spellutilsTip_result = YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_ABILITY, id, "Tip");
-		}
-
-		return spellutilsTip_result;
 	}
 
 	//获取冷却数值
