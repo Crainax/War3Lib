@@ -496,7 +496,7 @@ library UTUnitBuff requires UnitBuff {
         // 检查CD是否已设置
         if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_STUN_CD_LEFT)) {
             cdLeft = LoadReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_STUN_CD_LEFT);
-            Trace("[UnitBuffTest] CD已设置，剩余 " + R2S(cdLeft) + " 秒（应为约5秒）");
+            Trace("[UnitBuffTest] CD已设置，剩余 " + R2S(cdLeft) + " 秒（应为约2.5秒）");
         } else {
             Trace("|cFFFF0000[UnitBuffTest] s16 失败：CD未设置|r");
         }
@@ -506,7 +506,7 @@ library UTUnitBuff requires UnitBuff {
         tid = GetHandleId(t);
         SaveUnitHandle(HASH_TIMER, tid, 1, u);
         SaveInteger(HASH_TIMER, tid, 2, 16);
-        TimerStart(t, 6.0, false, function () {
+        TimerStart(t, 3.5, false, function () {
             timer t; integer id; unit u; real timeLeft;
 
             t = GetExpiredTimer();

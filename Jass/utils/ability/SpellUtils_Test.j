@@ -93,6 +93,20 @@ library UTSpellUtils requires SpellUtils, AbilityDecorateData, LBKKAPI,UnitUtils
 		p = null;
 	}
 
+	private function TestAbilityTip() {
+		string tip1;
+		string tipFallback;
+
+		tip1 = GetAbilityTip('AHbz', 1);
+		tipFallback = GetAbilityTip('AHbz', 99);
+
+		assert.Boolean(tip1 != null && tip1 != "", "GetAbilityTip 应能读取基础 Tip");
+		assert.Boolean(tipFallback != null && tipFallback != "", "GetAbilityTip 等级越界应回退到可用 Tip");
+
+		tip1 = null;
+		tipFallback = null;
+	}
+
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			// 创建测试单位
@@ -104,6 +118,7 @@ library UTSpellUtils requires SpellUtils, AbilityDecorateData, LBKKAPI,UnitUtils
 
 			BJDebugMsg("[SpellUtils] 测试单位已创建");
 			TestAbilityAttrs();
+			TestAbilityTip();
 			}, function() {
 			// 可选：清理测试单位（目前保留供测试使用）
 		});

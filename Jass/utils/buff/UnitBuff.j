@@ -1407,9 +1407,9 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, effective);
         }
 
-        // 如果未禁用CD，设置CD = effective * 10
+        // 如果未禁用CD，设置CD = effective * 5
         if (!cdDisabled) {
-            SaveReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT, effective * 10.0);
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT, effective * 5.0);
             StunCdQueue.addUnit(u);
         }
 
