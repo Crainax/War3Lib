@@ -5,6 +5,7 @@ local path       = require "Lua.path"
 local utr        = require("Lua.compile.UTReplace")
 local injecter   = require("lua.compile.inject")
 local luaRuntime = require("Lua.compile.LuaRuntime")
+local incrementalPack = require("Lua.compile.IncrementalPack")
 
 local w3xlni     = {}
 
@@ -130,7 +131,7 @@ end
 function w3xlni:Start(func)
 	print("[开始打包地图]:" .. path.buildVersion .. ".")
 	lfs.chdir(path.project)
-	local cleanupLuaRuntime, runtimeErr = luaRuntime.prepareForPackage()
+	local cleanupLuaRuntime, runtimeErr = luaRuntime.prepareForPackage({ persistImp = true })
 	if not cleanupLuaRuntime then
 		print("[Lua运行时]准备失败:" .. tostring(runtimeErr))
 		return false
@@ -154,6 +155,12 @@ function w3xlni:Start(func)
 		end
 	end
 	utr.copyResourceFiles() -- 复制资源文件
+	local impOk, impErr = incrementalPack.syncCurrentTableImp()
+	if not impOk then
+		cleanupLuaRuntime()
+		print("[导入表同步]失败:" .. tostring(impErr))
+		return false
+	end
 	local objBackups = applyUnitTestObjFromInject()
 	if path.buildVersion == "单元测试" then -- todo:根据正式或单元测试,创建lua.currentpath的require来分包控制.
 		if objBackups then

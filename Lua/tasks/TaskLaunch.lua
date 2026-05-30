@@ -6,6 +6,8 @@ local path = require("Lua.path")
 local copy = require("Lua.utils.copy")
 local fu = require("Lua.utils.FileUtils")
 local lfs = require("lfs")
+local utr = require("Lua.compile.UTReplace")
+local incrementalPack = require("Lua.compile.IncrementalPack")
 
 local taskStartClock = nil
 
@@ -385,10 +387,10 @@ local function copyPackagedSlkToSlots(version)
 	return true, slot
 end
 
-local function replaceMapScriptWithStorm(targetMap)
+local function updateMapIncrementallyWithStorm(targetMap)
 	local w2lRoot = path.toolRoot .. "/w3x2lni"
 	local w2lLuaExe = w2lRoot .. "/bin/w3x2lni-lua.exe"
-	local stormTask = path.libRoot .. "/Lua/tasks/TaskStormReplaceWar3MapJ.lua"
+	local stormTask = path.libRoot .. "/Lua/tasks/TaskStormIncrementalPack.lua"
 
 	if not fu.fileExist(w2lLuaExe) then
 		print("[增量启动]未找到w3x2lni-lua.exe: " .. w2lLuaExe)
@@ -407,21 +409,11 @@ local function replaceMapScriptWithStorm(targetMap)
 		return false
 	end
 
-	local cmd = string.format(
-		'cmd /c ""%s" "%s" "%s" "%s" "%s""',
-		toWinPath(w2lLuaExe),
-		toWinPath(stormTask),
-		toWinPath(targetMap),
-		toWinPath(path.CompileResult),
-		toWinPath(w2lRoot)
-	)
-	print(cmd)
-	local ok, exitType, exitCode = os.execute(cmd)
-	if not commandSucceeded(ok, exitType, exitCode) then
-		print("[增量启动]Storm替换执行失败")
-		return false
-	end
-	return true
+	return incrementalPack.updateMap(targetMap, {
+		w2lRoot = w2lRoot,
+		w2lLuaExe = w2lLuaExe,
+		stormTask = stormTask,
+	})
 end
 
 local function runCompile(selection)
@@ -462,12 +454,6 @@ local function runIncrementalStart(selection)
 	if not syncWar3LibDepends() then
 		return false
 	end
-	local slot = slkSlot(selection.version)
-	if not fu.fileExist(slot) then
-		print("[增量启动]未找到版本专属SLK地图: " .. slot)
-		print("[增量启动]请先用同版本的“启动地图”生成一次版本专属SLK地图")
-		return false
-	end
 
 	print(string.format("[矩阵启动]增量启动: %s / %s", versionLabels[selection.version], selection.compiler))
 	local compileOk = compiler:StartCompile(path)
@@ -475,7 +461,14 @@ local function runIncrementalStart(selection)
 		print("[增量启动]完整编译失败,停止启动")
 		return false
 	end
-	if not replaceMapScriptWithStorm(slot) then
+	local slot = slkSlot(selection.version)
+	if not fu.fileExist(slot) then
+		print("[增量启动]未找到版本专属SLK地图: " .. slot)
+		print("[增量启动]请先用同版本的“启动地图”生成一次版本专属SLK地图")
+		return false
+	end
+	utr.copyResourceFiles()
+	if not updateMapIncrementallyWithStorm(slot) then
 		return false
 	end
 	local started = launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))

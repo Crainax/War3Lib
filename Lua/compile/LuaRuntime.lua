@@ -408,7 +408,18 @@ local function mapDestinationForScript(rel)
     return path.package .. "/map/script/" .. rel
 end
 
-local function addImportEntries(cleanup, entries)
+local function lniUnquote(raw)
+    local fn = load("return \"" .. tostring(raw or "") .. "\"")
+    if fn then
+        local ok, result = pcall(fn)
+        if ok and type(result) == "string" then
+            return result
+        end
+    end
+    return tostring(raw or ""):gsub('\\"', '"'):gsub("\\\\", "\\")
+end
+
+local function addImportEntries(cleanup, entries, persist)
     local imp = path.table and path.table.root and (path.table.root .. "/imp.ini")
     if not imp or lfs.attributes(imp, "mode") ~= "file" then
         return true
@@ -417,15 +428,16 @@ local function addImportEntries(cleanup, entries)
     local content = readFile(imp) or ""
     local seen = {}
     for item in content:gmatch('"(.-)"') do
-        seen[item:gsub("/", "\\")] = true
+        seen[lniUnquote(item):gsub("/", "\\"):lower()] = true
     end
 
     local missing = {}
     for _, entry in ipairs(entries) do
         entry = entry:gsub("/", "\\")
-        if not seen[entry] then
+        local key = entry:lower()
+        if not seen[key] then
             table.insert(missing, entry)
-            seen[entry] = true
+            seen[key] = true
         end
     end
 
@@ -436,52 +448,82 @@ local function addImportEntries(cleanup, entries)
     table.sort(missing)
     local insert = {}
     for _, entry in ipairs(missing) do
-        table.insert(insert, string.format('"%s",', entry))
+        table.insert(insert, string.format('%q,', entry))
     end
 
-    local nextContent, count = content:gsub("\n}%s*$", "\n" .. table.concat(insert, "\n") .. "\n}\n", 1)
+    local newline = content:find("\r\n", 1, true) and "\r\n" or "\n"
+    local nextContent, count = content:gsub(newline .. "}%s*$", newline .. table.concat(insert, newline) .. newline .. "}" .. newline, 1)
     if count == 0 then
         return false, "无法更新imp.ini: " .. imp
     end
 
+    if persist then
+        return writeFile(imp, nextContent)
+    end
     return writeTracked(cleanup, imp, nextContent)
 end
 
-function runtime.prepareForPackage()
+function runtime.getPackageFiles()
+    local localMode = isLocalLuaMode()
+    local mapDir = path.package .. "/map"
+    local files = {
+        {
+            archive = "plugin_main.lua",
+            target = mapDir .. "/plugin_main.lua",
+            content = pluginMainContent(),
+            replace = true,
+        },
+        {
+            archive = "path.lua",
+            target = mapDir .. "/path.lua",
+            content = pathLuaContent(localMode),
+            replace = true,
+        },
+    }
+
+    if not localMode then
+        for _, file in ipairs(collectLuaFiles(path.project .. "/script")) do
+            local archive
+            if file.rel:sub(1, #"depends/") == "depends/" then
+                archive = file.rel
+            else
+                archive = "script/" .. file.rel
+            end
+            table.insert(files, {
+                archive = archive,
+                source = file.src,
+                target = mapDestinationForScript(file.rel),
+                replace = true,
+            })
+        end
+    end
+
+    return files, localMode
+end
+
+function runtime.prepareForPackage(options)
+    options = options or {}
     local cleanup = {
         snapshots = {},
         createdDirs = {}
     }
-    local localMode = isLocalLuaMode()
-    local mapDir = path.package .. "/map"
-    local importEntries = { "path.lua", "plugin_main.lua" }
+    local packageFiles, localMode = runtime.getPackageFiles()
+    local importEntries = {}
 
-    local ok, err = writeTracked(cleanup, mapDir .. "/plugin_main.lua", pluginMainContent())
-    if not ok then
-        return nil, err
-    end
-    ok, err = writeTracked(cleanup, mapDir .. "/path.lua", pathLuaContent(localMode))
-    if not ok then
-        return nil, err
-    end
-
-    if not localMode then
-        local files = collectLuaFiles(path.project .. "/script")
-        for _, file in ipairs(files) do
-            local dst = mapDestinationForScript(file.rel)
-            ok, err = copyTracked(cleanup, file.src, dst)
-            if not ok then
-                return nil, err
-            end
-            if file.rel:sub(1, #"depends/") == "depends/" then
-                table.insert(importEntries, file.rel)
-            else
-                table.insert(importEntries, "script/" .. file.rel)
-            end
+    for _, file in ipairs(packageFiles) do
+        table.insert(importEntries, file.archive)
+        local ok, err
+        if file.content ~= nil then
+            ok, err = writeTracked(cleanup, file.target, file.content)
+        else
+            ok, err = copyTracked(cleanup, file.source, file.target)
+        end
+        if not ok then
+            return nil, err
         end
     end
 
-    ok, err = addImportEntries(cleanup, importEntries)
+    local ok, err = addImportEntries(cleanup, importEntries, options.persistImp)
     if not ok then
         return nil, err
     end
@@ -492,6 +534,24 @@ function runtime.prepareForPackage()
         restore(cleanup)
         print("[Lua运行时]临时文件已恢复")
     end
+end
+
+function runtime.writePackageFilesTo(dir)
+    local packageFiles = runtime.getPackageFiles()
+    local generated = {}
+    for _, file in ipairs(packageFiles) do
+        local source = file.source
+        if file.content ~= nil then
+            source = normalize(dir) .. "/" .. file.archive:gsub("[/\\]", "_")
+            local ok, err = writeFile(source, file.content)
+            if not ok then
+                return nil, err
+            end
+            table.insert(generated, source)
+        end
+        file.source = source
+    end
+    return packageFiles, generated
 end
 
 return runtime
