@@ -57,6 +57,35 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 		}
 	}
 
+	private function LoadAbilityInteger(unit u, integer abilityID, integer childKey, integer defaultValue) -> integer {
+		integer parentKey;
+
+		if (u == null || abilityID == 0) { return defaultValue; }
+
+		parentKey = GetAbilityHashKey(u, abilityID);
+		if (parentKey == 0 || !HaveSavedInteger(HASH_ABILITY, parentKey, childKey)) {
+			return defaultValue;
+		}
+		return LoadInteger(HASH_ABILITY, parentKey, childKey);
+	}
+
+	private function SaveAbilityInteger(unit u, integer abilityID, integer childKey, integer value, integer emptyValue) {
+		integer parentKey;
+
+		if (u == null || abilityID == 0) { return; }
+
+		parentKey = GetAbilityHashKey(u, abilityID);
+		if (parentKey == 0) { return; }
+
+		if (value == emptyValue) {
+			if (HaveSavedInteger(HASH_ABILITY, parentKey, childKey)) {
+				RemoveSavedInteger(HASH_ABILITY, parentKey, childKey);
+			}
+		} else {
+			SaveInteger(HASH_ABILITY, parentKey, childKey, value);
+		}
+	}
+
 	private function FireSpellPassiveRateChanged(player p, unit u, integer abilityID, boolean isAll) {
 		if (spellPassiveRateChangedTr == null) { return; }
 
@@ -150,6 +179,29 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 	//获取冷却数值
 	public function GetAbilityCool (integer id,integer level)    -> real {
 		return YDWEGetObjectPropertyReal(YDWE_OBJECT_TYPE_ABILITY, id, "Cool1");
+	}
+
+	//获取1级魔法消耗
+	public function GetAbilityManaCost(integer id) -> integer {
+		integer cost;
+
+		cost = YDWEGetObjectPropertyInteger(YDWE_OBJECT_TYPE_ABILITY, id, "Cost1");
+		if (cost <= 0) {
+			cost = YDWEGetObjectPropertyInteger(YDWE_OBJECT_TYPE_ABILITY, id, "Cost");
+		}
+		return cost;
+	}
+
+	public function SetAbilityVirtualLevel(unit u, integer abilityID, integer level) {
+		SaveAbilityInteger(u, abilityID, HASH_CHILD_SALT_ABILITY_VIRTUAL_LEVEL, level, 0);
+	}
+
+	public function GetAbilityVirtualLevel(unit u, integer abilityID) -> integer {
+		return LoadAbilityInteger(u, abilityID, HASH_CHILD_SALT_ABILITY_VIRTUAL_LEVEL, 0);
+	}
+
+	public function ClearAbilityVirtualLevel(unit u, integer abilityID) {
+		SaveAbilityInteger(u, abilityID, HASH_CHILD_SALT_ABILITY_VIRTUAL_LEVEL, 0, 0);
 	}
 
 	//获取技能介绍（支持按等级获取）

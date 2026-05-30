@@ -109,6 +109,7 @@
 #define SPELL_MULTIABLE_KEY     100002000    //是否能多重施法
 #define SPELL_USE_TYPE_KEY      100003000    //使用类型
 #define SPELL_POINTER_KEY       100004000    //指针
+#define SPELL_SHOP_UPGRADE_COST_MULTIPLIER_KEY 100005000 // SpellShop升级费用倍率
 
 
 //异度用:   10000-100000之间不重复

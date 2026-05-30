@@ -114,6 +114,14 @@ library UTBigInteger requires BigInteger {
 		assert.Boolean(bigInteger.compareReal(p1, key, 99.9) == 1, "compareReal 大于 99.9");
 		assert.Boolean(bigInteger.compareReal(p1, key, 100.1) == -1, "compareReal 小于 100.1");
 
+		bigInteger.reset(p1, key);
+		bigInteger.addReal(p1, key, 100.0 * 1000000000.0 * 1000000000.0);
+		assert.Boolean(bigInteger.compareReal(p1, key, 100.0 * 1000000000.0 * 1000000000.0) == 0, "compareReal 3段大数应可相等");
+		assert.Boolean(bigInteger.compareReal(p1, key, 99.0 * 1000000000.0 * 1000000000.0) == 1, "compareReal 3段大数应可判断大于");
+		assert.Boolean(bigInteger.compareReal(p1, key, 101.0 * 1000000000.0 * 1000000000.0) == -1, "compareReal 3段大数应可判断小于");
+
+		bigInteger.reset(p1, key);
+		bigInteger.addInt(p1, key, 100);
 		assert.Boolean(bigInteger.compareBigInt(p1, key, p2, key) == -1, "compareBigInt p1<p2");
 		assert.Boolean(bigInteger.compareBigInt(p2, key, p1, key) == 1, "compareBigInt p2>p1");
 
@@ -448,6 +456,12 @@ library UTBigInteger requires BigInteger {
 		bigInteger.subReal(p1, key1, 200.0 * 1000000000.0 * 1000000000.0); // 20000京
 		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subReal: 10000京-20000京 应归零");
 		assert.String(bigInteger.toStringWithUnit(p1, key1), "0", "subReal: 10000京-20000京 归零后字符串应为 0");
+
+		// subReal：京级别只小一点也必须归零，不能因为3段 compareReal 误判而借位残留
+		bigInteger.reset(p1, key1);
+		bigInteger.addReal(p1, key1, 100.0 * 1000000000.0 * 1000000000.0); // 10000京
+		bigInteger.subReal(p1, key1, 101.0 * 1000000000.0 * 1000000000.0); // 10100京
+		assert.Boolean(bigInteger.compareInt(p1, key1, 0) == 0, "subReal: 10000京-10100京 应归零");
 
 		// subBigInt：京级别超大数 - 更大数 => 0（50000京 - 100000京）
 		bigInteger.reset(p1, key1);
