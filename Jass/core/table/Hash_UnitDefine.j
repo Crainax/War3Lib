@@ -223,6 +223,9 @@
 #define KEY_UNIT_SIMULATE_DEATH_CALLBACK 10020  // 马甲死亡回调（OnSimulateDeath）
 #define KEY_UNIT_SIMULATE_DAMAGE_CALLBACK 10021 // 马甲伤害回调（OnSimulateDamage）
 #define KEY_UNIT_SIMULATE_EFFECT_PATH 10022     // 马甲伤害特效路径（string）
+#define KEY_MOSHOU_TEMP_MULTI_BONUS 10023       // 魔兽实例临时多重射加值（integer）
+#define KEY_MOSHOU_TEMP_RANGE_BONUS 10024       // 魔兽实例临时射程加值（integer）
+#define KEY_MOSHOU_TEMP_ATTACK_SPEED_BONUS 10025 // 魔兽实例临时攻速加值（real）
 
 // [异度] 进攻BOSS运行态
 #define KEY_UNIT_NORMAL_BOSS_RUNTIME_INDEX 10117       // 普通进攻BOSS运行态数组索引
