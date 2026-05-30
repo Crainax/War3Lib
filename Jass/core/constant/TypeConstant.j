@@ -110,6 +110,7 @@
 #define SPELL_USE_TYPE_KEY      100003000    //使用类型
 #define SPELL_POINTER_KEY       100004000    //指针
 #define SPELL_SHOP_UPGRADE_COST_MULTIPLIER_KEY 100005000 // SpellShop升级费用倍率
+#define SPELL_TOOLTIP_HIDE_LEVEL_KEY 100006000 // 自定义tooltip隐藏等级标题段
 
 
 //异度用:   10000-100000之间不重复
