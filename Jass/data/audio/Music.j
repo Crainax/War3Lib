@@ -174,6 +174,16 @@ library Music {
 			thistype[MUSIC_INDEX_CLICK_PAUSE].snd = snd;
 			//# endcheck
 
+			//# check: music[1007]
+			//# dependency:sound/sound/spellshop_panel_hover.mp3
+			snd = CreateSound( "sound\\spellshop_panel_hover.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 836 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_SPELLSHOP_PANEL_HOVER].snd = snd;
+			//# endcheck
+
 			//# check: music[2001]
 			//# dependency:sound/sound/blackhole.mp3
 			snd = CreateSound("sound\\blackhole.mp3", false, false, false, 10, 10, "");
@@ -453,6 +463,15 @@ library Music {
 			thistype[MUSIC_INDEX_MONSTER_CONTINUE].snd = snd;
 			//# endcheck
 
+			//# check: music[3015]
+			//# dependency:sound/sound/talent_switch_success.mp3
+			snd = CreateSound( "sound\\talent_switch_success.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1541 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_TALENT_SWITCH_SUCCESS].snd = snd;
+			//# endcheck
 
 			snd = null;
 		}

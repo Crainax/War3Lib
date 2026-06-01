@@ -124,9 +124,11 @@ library UTMusic requires Music {
 		BJDebugMsg("已播放30次（池大小只有20，前10次会被打断重用）");
 	}
 	function TTestUTMusic8 (player p) {
-		music[1007].play();
+		music[MUSIC_INDEX_SPELLSHOP_PANEL_HOVER].play();
 	}
-	function TTestUTMusic9 (player p) {}
+	function TTestUTMusic9 (player p) {
+		music[MUSIC_INDEX_TALENT_SWITCH_SUCCESS].play();
+	}
 	function TTestUTMusic10 (player p) {}
 	function TTestActUTMusic1 (string str) {
 		player  p	 = GetTriggerPlayer();
