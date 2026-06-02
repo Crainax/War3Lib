@@ -14,7 +14,7 @@
 #define IMMOLATION_DMG_PURE 3
 #define IMMOLATION_MAX_SIZE 8190
 
-library Immolation requires UnitFilter {
+library Immolation requires DamageUtils {
 
 	public struct ImmolationCfg [] {
 		public static real interval = IMMOLATION_DEFAULT_INTERVAL;
@@ -102,7 +102,7 @@ library Immolation requires UnitFilter {
 				return;
 			}
 
-			if (thistype.damageList[index] < 1.0 || thistype.radiusList[index] <= 0.0) {
+			if (thistype.damageList[index] <= 0.0 || thistype.radiusList[index] <= 0.0) {
 				return;
 			}
 
@@ -131,11 +131,11 @@ library Immolation requires UnitFilter {
 
 				if (target != null && immolationCbSource != null && IsEnemy(target, GetOwningPlayer(immolationCbSource))) {
 					if (immolationCbDamageType == IMMOLATION_DMG_PHYSICAL) {
-						UnitDamageTarget(immolationCbSource, target, immolationCbDamage, false, false, ATTACK_TYPE_HERO, DAMAGE_TYPE_NORMAL, WEAPON_TYPE_WHOKNOWS);
+						ApplyPhysicalDamage(immolationCbSource, target, immolationCbDamage);
 					} else if (immolationCbDamageType == IMMOLATION_DMG_PURE) {
-						UnitDamageTarget(immolationCbSource, target, immolationCbDamage, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS);
+						ApplyPureDamage(immolationCbSource, target, immolationCbDamage);
 					} else {
-						UnitDamageTarget(immolationCbSource, target, immolationCbDamage, false, true, ATTACK_TYPE_MAGIC, DAMAGE_TYPE_MAGIC, WEAPON_TYPE_WHOKNOWS);
+						ApplyMagicDamage(immolationCbSource, target, immolationCbDamage);
 					}
 
 					if (immolationCbHitEffectPath != null && immolationCbHitEffectPath != "") {
@@ -212,7 +212,7 @@ library Immolation requires UnitFilter {
 			string cfgHitEffectPath;
 			integer cfgDamageType;
 
-			if (!IsImmolationUnitAlive(source) || !IsImmolationUnitAlive(anchor) || radius <= 0.0 || damage < 1.0 || duration <= 0.0) {
+			if (!IsImmolationUnitAlive(source) || !IsImmolationUnitAlive(anchor) || radius <= 0.0 || damage <= 0.0 || duration <= 0.0) {
 				ImmolationCfg.interval = IMMOLATION_DEFAULT_INTERVAL;
 				ImmolationCfg.hitEffectPath = "";
 				ImmolationCfg.damageType = IMMOLATION_DMG_MAGIC;

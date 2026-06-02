@@ -23,6 +23,11 @@ library UTImmolation requires Immolation {
 	private unit intervalTarget = null;
 	private real intervalStartLife = 0.0;
 
+	private unit fractionalSource = null;
+	private unit fractionalAnchor = null;
+	private unit fractionalTarget = null;
+	private real fractionalStartLife = 0.0;
+
 	private function CreateSource(player p, real x, real y) -> unit {
 		unit u;
 		u = CreateUnit(p, 'Hpal', x, y, 270.0);
@@ -110,6 +115,26 @@ library UTImmolation requires Immolation {
 		assert.Boolean(!IsImmolationTimerAlive(), "自定义 interval 献祭结束后主管计时器应销毁");
 	}
 
+	private function Test_Fractional_Start() {
+		fractionalSource = CreateSource(Player(0), 1200.0, 0.0);
+		fractionalAnchor = CreateAnchor(Player(0), 1200.0, 0.0, 1.20);
+		fractionalTarget = CreateTarget(1320.0, 0.0);
+		fractionalStartLife = GetUnitState(fractionalTarget, UNIT_STATE_LIFE);
+
+		ImmolationCfg.interval = 0.30;
+		StartImmolation(fractionalSource, fractionalAnchor, 220.0, 0.50, 0.60);
+
+		assert.Integer(GetImmolationActiveCount(), 1, "小数伤害献祭启动后实例数应为 1");
+	}
+
+	private function Test_Fractional_End() {
+		real life;
+		life = GetUnitState(fractionalTarget, UNIT_STATE_LIFE);
+		assert.Boolean(life < fractionalStartLife, "小数伤害献祭不应被启动参数过滤掉");
+		assert.Integer(GetImmolationActiveCount(), 0, "小数伤害献祭结束后实例数应为 0");
+		assert.Boolean(!IsImmolationTimerAlive(), "小数伤害献祭结束后主管计时器应销毁");
+	}
+
 	function Init() {
 		UnitTestAutoTimer(0.20, 0.10, function() {
 			Trace("Immolation 单实例启动测试");
@@ -139,6 +164,16 @@ library UTImmolation requires Immolation {
 		UnitTestAutoTimer(4.55, 0.10, function() {
 			Trace("Immolation 自定义间隔结束测试");
 			Test_CustomInterval_End();
+		}, null);
+
+		UnitTestAutoTimer(4.80, 0.10, function() {
+			Trace("Immolation 小数伤害启动测试");
+			Test_Fractional_Start();
+		}, null);
+
+		UnitTestAutoTimer(5.65, 0.10, function() {
+			Trace("Immolation 小数伤害结束测试");
+			Test_Fractional_End();
 		}, null);
 	}
 
