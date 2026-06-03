@@ -26,6 +26,7 @@
 #define HASH_KEY_ITEM_SPELL_PASSIVE_BAYUNZI 29311856    // [异度] 八云紫临时技能被动强化
 #define HASH_KEY_ITEM_SPELL_BAYUNZI_TIMER 29311857      // [异度] 八云紫临时强化技能书过期计时器
 #define HASH_KEY_ITEM_SPELL_BAYUNZI_START_SECOND 29311858 // [异度] 八云紫临时强化技能书创建时间
+#define HASH_KEY_ITEM_NO_JIEJING_RETURN 29311859        // [异度] 装备分解/出售不返还结晶
 
 
 
