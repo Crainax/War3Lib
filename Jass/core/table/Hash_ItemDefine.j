@@ -28,6 +28,15 @@
 #define HASH_KEY_ITEM_SPELL_BAYUNZI_START_SECOND 29311858 // [异度] 八云紫临时强化技能书创建时间
 #define HASH_KEY_ITEM_NO_JIEJING_RETURN 29311859        // [异度] 装备分解/出售不返还结晶
 
+// [异度] 物品实例运行态
+#define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键
+#define ITEM_SAVED_TRIGGER_ACTION 3134       // 物品绑定触发器 action 起始键
+#define ITEM_SAVED_DASH 81734                // 物品绑定冲刺
+#define ITEM_BINDING_EFFECT 3420934          // 物品绑定特效
+#define ITEM_PROTECT 31921910                // 临时掉落保护所属玩家
+#define HASH_KEY_ITEM_SUPERSHOP_TALENT_BOOK_SPELL 31921970 // 超级商店天赋技能书保存的技能ID
+#define ITEM_MOSHOU 92719456                 // 物品绑定的战斗宠物单位
+
 
 
 #endif
