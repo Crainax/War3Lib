@@ -35,6 +35,7 @@
 #define ITEM_BINDING_EFFECT 3420934          // 物品绑定特效
 #define ITEM_PROTECT 31921910                // 临时掉落保护所属玩家
 #define HASH_KEY_ITEM_SUPERSHOP_TALENT_BOOK_SPELL 31921970 // 超级商店天赋技能书保存的技能ID
+#define HASH_KEY_ITEM_CD 31921980           // 物品冷却中标记
 #define ITEM_MOSHOU 92719456                 // 物品绑定的战斗宠物单位
 
 

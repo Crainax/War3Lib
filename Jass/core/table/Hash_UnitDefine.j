@@ -259,6 +259,7 @@
 
 // [异度] 光环运行态
 #define KEY_UNIT_AURA_TIMER_BASE 10200         // 单位光环计时器起始键（+ AURA_TYPE_*）
+#define KEY_UNIT_ITEMSHOP_STORE_BUYER 10220    // 物品商店马甲单位绑定的购买者
 
 // [异度] 小暗虫洞单位运行态
 #define KEY_UNIT_XIAOAN_CHONGDONG_ORDER 10230  // 虫洞创建序号
