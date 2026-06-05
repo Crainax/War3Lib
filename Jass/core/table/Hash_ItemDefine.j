@@ -27,6 +27,13 @@
 #define HASH_KEY_ITEM_SPELL_BAYUNZI_TIMER 29311857      // [异度] 八云紫临时强化技能书过期计时器
 #define HASH_KEY_ITEM_SPELL_BAYUNZI_START_SECOND 29311858 // [异度] 八云紫临时强化技能书创建时间
 #define HASH_KEY_ITEM_NO_JIEJING_RETURN 29311859        // [异度] 装备分解/出售不返还结晶
+#define HASH_KEY_ITEM_SOLE_CANDIDATE_LOCK_BASE 29311860 // [异度] 唯一装备候选lock基址（+1..8）
+#define HASH_KEY_ITEM_SOLE_CANDIDATE_TRIGGER_BASE 29311870 // [异度] 唯一装备候选获得触发器基址（+1..8）
+#define HASH_KEY_ITEM_SOLE_CANDIDATE_ACTION_BASE 29311880 // [异度] 唯一装备候选获得action基址（+1..8）
+#define HASH_KEY_ITEM_TAOZHUANG_CANDIDATE_START 29311890 // [异度] 套装候选起始键
+#define HASH_KEY_ITEM_TAOZHUANG_CANDIDATE_COUNT 29311891 // [异度] 套装候选件数
+#define HASH_KEY_ITEM_TAOZHUANG_CANDIDATE_POS 29311892  // [异度] 套装候选位置
+#define HASH_KEY_ITEM_TAOZHUANG_CANDIDATE_UNIT 29311893 // [异度] 套装候选所属单位
 
 // [异度] 物品实例运行态
 #define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键
