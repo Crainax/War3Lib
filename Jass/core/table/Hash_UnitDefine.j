@@ -282,8 +282,7 @@
 // [异度] 单位唯一装备占位（父键为 unit，值为 item handle id）
 #define SOLE_WING 2031411
 #define SOLE_MIANYI 3021349
-#define SOLE_I401_RESIST 59487621
-#define SOLE_FANTAN 59487621     //这个冲突是故意的,为了兼容旧版本的(SOLE_I401_RESIST键名),检查时可以无视.
+#define SOLE_FANTAN 59487621 // 废弃兼容键：仅保留给老版本 Xlimon 编译使用。
 #define SOLE_XISHOU 30129710
 #define SOLE_CHENGZHANG 302875219
 #define SOLE_NECKLACE 453919127
