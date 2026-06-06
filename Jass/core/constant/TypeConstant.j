@@ -84,8 +84,12 @@
 
 //存技能1
 #define KEY_ITEM_ABILITY_1 101
+//存技能1等级
+#define KEY_ITEM_ABILITY_1_LV 'A1LV'
 //存技能2
 #define KEY_ITEM_ABILITY_2 102
+//存技能2等级
+#define KEY_ITEM_ABILITY_2_LV 'A2LV'
 //存技能3
 #define KEY_ITEM_ABILITY_3 103
 //物品类型默认流光

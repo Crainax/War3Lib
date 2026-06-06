@@ -14,6 +14,11 @@ library StringUtils {
         return s != null && s != "";
     }
 
+    // 判断单字符是否为数字
+    public function IsDigitChar(string s) -> boolean {
+        return s == "0" || s == "1" || s == "2" || s == "3" || s == "4" || s == "5" || s == "6" || s == "7" || s == "8" || s == "9";
+    }
+
     //重复某一个字符串N次,并可以按照指定间隔添加空格和换行
     //参数 s: 要重复的字符串
     //参数 times: 重复的次数

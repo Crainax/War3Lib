@@ -111,8 +111,8 @@ library UTImageAnim requires ImageAnim {
 		num = num + 1;
 
 		if (paramS[0] == "a") {
-			imageAnim.gif(p, growdata[GIF_UPGRADE], DzGetGameUI());
-			BJDebugMsg("测试 GIF 动画: GIF_UPGRADE");
+			imageAnim.gif(p, growdata[paramI[1]], DzGetGameUI());
+			BJDebugMsg("测试 GIF 动画: " + I2S(growdata[paramI[1]]));
 		} else if (paramS[0] == "b") {
 			if (GetLocalPlayer() == p) {
 				imageAnim.mstPair("ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp", "ReplaceableTextures\\CommandButtons\\BTNBlizzard.blp");
