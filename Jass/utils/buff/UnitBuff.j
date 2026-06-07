@@ -986,167 +986,257 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         }
     }
 
-    // 时间破防（带冲突位和剩余时间）
-    public function ReduceDefenseTime(unit u, integer slot, integer defense, real remainTime) {
-        integer hid; integer defKey; integer timeKey; integer old; integer newDef; real oldTime; timer t; integer tid;
+    private function GetDefenseDownPercentSourceParent(integer hid, integer sourceType) -> integer {
+        return StringHash("UnitBuffDefenseDownPercent:" + I2S(hid) + ":" + I2S(sourceType));
+    }
 
-        if (u == null || !IsUnitAliveBJ(u)) { return; }
-        if (slot < 1 || slot > 10) { return; }
-        if (remainTime <= 0.0) { return; }
+    private function GetDefenseDownPercentTimerParent(integer hid, integer sourceType, integer instanceId) -> integer {
+        return StringHash("UnitBuffDefenseDownPercentTimer:" + I2S(hid) + ":" + I2S(sourceType) + ":" + I2S(instanceId));
+    }
+
+    private function AttachDefenseDownPercentEffect(unit u) {
+        integer hid; integer count;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
 
         hid = GetHandleId(u);
-        defKey = HASH_UNIT_DEFENSE_REDUCE_VALUE + (slot - 1);
-        timeKey = defKey + 10;
-
-        // 读取旧值，取最大值
-        if (HaveSavedInteger(HASH_UNIT, hid, defKey)) {
-            old = LoadInteger(HASH_UNIT, hid, defKey);
-        } else {
-            old = 0;
+        count = LoadInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT);
+        if (count <= 0) {
+            bindEffect.attachUnique(u, DEFENSE_REDUCE_EFFECT_PATH, DEFENSE_REDUCE_EFFECT_POINT);
+            count = 0;
         }
-        newDef = IMaxBJ(old, defense);
+        SaveInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT, count + 1);
+    }
 
-        // 如果破防值增加，更新防御
-        if (newDef > old) {
-            SaveInteger(HASH_UNIT, hid, defKey, newDef);
-            AddUnitDefenseBonus(u, (newDef - old) * -1);
-            // 第一次产生破防时附加特效
-            if (old == 0) {
-                bindEffect.attachUnique(u, DEFENSE_REDUCE_EFFECT_PATH, DEFENSE_REDUCE_EFFECT_POINT);
+    private function DetachDefenseDownPercentEffect(unit u) {
+        integer hid; integer count;
+
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        count = LoadInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT);
+        if (count <= 1) {
+            RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT);
+            if (GetUnitTypeId(u) != 0) {
+                bindEffect.detachUnique(u, DEFENSE_REDUCE_EFFECT_PATH);
             }
-        }
-
-        // 更新剩余时间（取最大值）
-        if (HaveSavedReal(HASH_UNIT, hid, timeKey)) {
-            oldTime = LoadReal(HASH_UNIT, hid, timeKey);
-            SaveReal(HASH_UNIT, hid, timeKey, RMaxBJ(oldTime, remainTime));
         } else {
-            SaveReal(HASH_UNIT, hid, timeKey, remainTime);
-        }
-
-        // 检查是否需要创建新的计时器（通过检查是否有该 slot 的 timer）
-        // 使用一个辅助键来存储 (unit, slot) -> timer 的映射
-        tid = GetHandleId(u) * 100 + slot;
-        if (!HaveSavedHandle(HASH_UNIT, tid, 1)) {
-            // 创建新的计时器
-            t = CreateTimer();
-            tid = GetHandleId(t);
-            SaveUnitHandle(HASH_TIMER, tid, 1, u);
-            SaveInteger(HASH_TIMER, tid, 2, slot);
-            // 保存 (unit, slot) -> timer 的映射，方便检查
-            SaveTimerHandle(HASH_UNIT, GetHandleId(u) * 100 + slot, 1, t);
-            TimerStart(t, 0.10, true, function () {
-                timer t; integer id; integer hid; unit u; integer slot; integer defKey; integer timeKey; integer defense; real timeLeft;
-
-                t = GetExpiredTimer();
-                id = GetHandleId(t);
-                u = LoadUnitHandle(HASH_TIMER, id, 1);
-                slot = LoadInteger(HASH_TIMER, id, 2);
-
-                // 检查单位是否有效
-                if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
-                    // 单位已失效，提前结束
-                    if (u != null) {
-                        hid = GetHandleId(u);
-                        defKey = HASH_UNIT_DEFENSE_REDUCE_VALUE + (slot - 1);
-                        timeKey = defKey + 10;
-                        if (HaveSavedInteger(HASH_UNIT, hid, defKey)) {
-                            defense = LoadInteger(HASH_UNIT, hid, defKey);
-                            // 尝试恢复防御（如果单位还存在）
-                            if (GetUnitTypeId(u) != 0) {
-                                AddUnitDefenseBonus(u, defense);
-                            }
-                            RemoveSavedInteger(HASH_UNIT, hid, defKey);
-                        }
-                        if (HaveSavedReal(HASH_UNIT, hid, timeKey)) {
-                            RemoveSavedReal(HASH_UNIT, hid, timeKey);
-                        }
-                        bindEffect.detachUnique(u, DEFENSE_REDUCE_EFFECT_PATH);
-                        // 清理 (unit, slot) -> timer 映射
-                        RemoveSavedHandle(HASH_UNIT, hid * 100 + slot, 1);
-                    }
-                    // 清理计时器
-                    FlushChildHashtable(HASH_TIMER, id);
-                    PauseTimer(t);
-                    DestroyTimer(t);
-                    t = null;
-                    u = null;
-                    return;
-                }
-
-                hid = GetHandleId(u);
-                defKey = HASH_UNIT_DEFENSE_REDUCE_VALUE + (slot - 1);
-                timeKey = defKey + 10;
-
-                // 读取剩余时间
-                if (HaveSavedReal(HASH_UNIT, hid, timeKey)) {
-                    timeLeft = LoadReal(HASH_UNIT, hid, timeKey);
-                    timeLeft = timeLeft - 0.10;
-
-                    if (timeLeft <= 0.0) {
-                        // 时间到了，恢复防御并清理
-                        if (HaveSavedInteger(HASH_UNIT, hid, defKey)) {
-                            defense = LoadInteger(HASH_UNIT, hid, defKey);
-                            AddUnitDefenseBonus(u, defense);
-                            RemoveSavedInteger(HASH_UNIT, hid, defKey);
-                        }
-                        RemoveSavedReal(HASH_UNIT, hid, timeKey);
-                        bindEffect.detachUnique(u, DEFENSE_REDUCE_EFFECT_PATH);
-                        // 清理 (unit, slot) -> timer 映射
-                        RemoveSavedHandle(HASH_UNIT, hid * 100 + slot, 1);
-                        // 清理计时器
-                        FlushChildHashtable(HASH_TIMER, id);
-                        PauseTimer(t);
-                        DestroyTimer(t);
-                        t = null;
-                        u = null;
-                    } else {
-                        // 更新剩余时间
-                        SaveReal(HASH_UNIT, hid, timeKey, timeLeft);
-                        u = null;
-                    }
-                } else {
-                    // 哈希记录丢失，清理计时器
-                    if (u != null) {
-                        RemoveSavedHandle(HASH_UNIT, hid * 100 + slot, 1);
-                    }
-                    FlushChildHashtable(HASH_TIMER, id);
-                    PauseTimer(t);
-                    DestroyTimer(t);
-                    t = null;
-                    u = null;
-                }
-            });
-            t = null;
+            SaveInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT, count - 1);
         }
     }
 
-    // 永久破防（带冲突位）
-    public function ReduceDefenseForever(unit u, integer slot, integer defense) {
-        integer hid; integer defKey; integer old; integer newDef;
+    private function FindDefenseDownPercentInstance(integer sourceParent, integer instanceId) -> integer {
+        integer count; integer i; integer found;
 
-        if (u == null || !IsUnitAliveBJ(u)) { return; }
-        if (slot < 1 || slot > 10) { return; }
+        count = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+        i = 1;
+        found = 0;
+        while (i <= count && found == 0) {
+            if (LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + i) == instanceId) {
+                found = i;
+            }
+            i += 1;
+        }
+        return found;
+    }
+
+    private function RecalcDefenseDownPercentSource(unit u, integer sourceType) {
+        integer hid; integer sourceParent; integer count; integer i;
+        real oldRate; real newRate; real rate;
+
+        if (u == null || sourceType <= 0) { return; }
 
         hid = GetHandleId(u);
-        defKey = HASH_UNIT_DEFENSE_REDUCE_VALUE + (slot - 1);
+        sourceParent = GetDefenseDownPercentSourceParent(hid, sourceType);
+        count = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+        oldRate = 0.0;
+        newRate = 0.0;
 
-        // 读取旧值，取最大值
-        if (HaveSavedInteger(HASH_UNIT, hid, defKey)) {
-            old = LoadInteger(HASH_UNIT, hid, defKey);
-        } else {
-            old = 0;
+        if (HaveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE)) {
+            oldRate = LoadReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE);
         }
-        newDef = IMaxBJ(old, defense);
 
-        // 如果破防值增加，更新防御和特效
-        if (newDef > old) {
-            SaveInteger(HASH_UNIT, hid, defKey, newDef);
-            AddUnitDefenseBonus(u, (newDef - old) * -1);
-            // 第一次产生破防时附加特效
-            if (old == 0) {
-                bindEffect.attachUnique(u, DEFENSE_REDUCE_EFFECT_PATH, DEFENSE_REDUCE_EFFECT_POINT);
+        for (1 <= i <= count) {
+            if (HaveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + i)) {
+                rate = LoadReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + i);
+                if (rate > newRate) {
+                    newRate = rate;
+                }
             }
+        }
+
+        if (RAbsBJ(oldRate - newRate) > 0.0001) {
+            if (oldRate > 0.0) {
+                if (GetUnitTypeId(u) != 0) {
+                    AddUnitDefenseDownPercent(u, -oldRate);
+                }
+                if (newRate <= 0.0) {
+                    DetachDefenseDownPercentEffect(u);
+                }
+            } else if (newRate > 0.0) {
+                AttachDefenseDownPercentEffect(u);
+            }
+
+            if (newRate > 0.0) {
+                if (GetUnitTypeId(u) != 0) {
+                    AddUnitDefenseDownPercent(u, newRate);
+                }
+                SaveReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE, newRate);
+            } else {
+                RemoveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE);
+            }
+        }
+
+        if (count <= 0 && newRate <= 0.0) {
+            FlushChildHashtable(HASH_UNIT, sourceParent);
+        }
+    }
+
+    private function RemoveDefenseDownPercentSourceInstance(unit u, integer sourceType, integer instanceId) {
+        integer hid; integer sourceParent; integer count; integer index; integer lastId; real lastRate;
+
+        if (u == null || sourceType <= 0) { return; }
+
+        hid = GetHandleId(u);
+        sourceParent = GetDefenseDownPercentSourceParent(hid, sourceType);
+        count = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+        index = FindDefenseDownPercentInstance(sourceParent, instanceId);
+
+        if (index > 0) {
+            if (index != count) {
+                lastId = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + count);
+                lastRate = LoadReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + count);
+                SaveInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + index, lastId);
+                SaveReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index, lastRate);
+            }
+            RemoveSavedInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + count);
+            RemoveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + count);
+            count -= 1;
+            if (count > 0) {
+                SaveInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT, count);
+            } else {
+                RemoveSavedInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+            }
+            RecalcDefenseDownPercentSource(u, sourceType);
+        }
+    }
+
+    // 设置来源型百分比破防。
+    // 同 sourceType 只取最高实例值，不同 sourceType 通过 AddUnitDefenseDownPercent/RealAdd 叠加；rate <= 0 会清除该实例。
+    public function ApplyDefenseDownPercentSource(unit u, integer sourceType, integer instanceId, real rate) {
+        integer hid; integer sourceParent; integer count; integer index;
+
+        if (u == null || sourceType <= 0) { return; }
+        if (rate <= 0.0) {
+            RemoveDefenseDownPercentSourceInstance(u, sourceType, instanceId);
+            return;
+        }
+        if (rate >= 1.0) {
+            rate = 0.999;
+        }
+        if (!IsUnitAliveBJ(u)) { return; }
+
+        hid = GetHandleId(u);
+        sourceParent = GetDefenseDownPercentSourceParent(hid, sourceType);
+        index = FindDefenseDownPercentInstance(sourceParent, instanceId);
+        if (index == 0) {
+            count = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT) + 1;
+            SaveInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT, count);
+            index = count;
+            SaveInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + index, instanceId);
+        }
+        SaveReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index, rate);
+        RecalcDefenseDownPercentSource(u, sourceType);
+    }
+
+    // 清除一个来源型百分比破防实例；清除后同 sourceType 会回落到剩余实例中的最高 rate。
+    public function ClearDefenseDownPercentSource(unit u, integer sourceType, integer instanceId) {
+        RemoveDefenseDownPercentSourceInstance(u, sourceType, instanceId);
+    }
+
+    // 限时来源型百分比破防。
+    // 重复调用同 sourceType + instanceId 时刷新最大剩余时间，并保留当前较高 rate，过期后自动清除该实例。
+    public function ReduceDefenseDownPercentTime(unit u, integer sourceType, integer instanceId, real rate, real remainTime) {
+        integer hid; integer sourceParent; integer index; integer timeParent; real oldRate; real oldTime; timer t; integer tid;
+
+        if (u == null || !IsUnitAliveBJ(u)) { return; }
+        if (sourceType <= 0 || remainTime <= 0.0) { return; }
+        if (rate <= 0.0) { return; }
+
+        hid = GetHandleId(u);
+        sourceParent = GetDefenseDownPercentSourceParent(hid, sourceType);
+        index = FindDefenseDownPercentInstance(sourceParent, instanceId);
+        if (index > 0 && HaveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index)) {
+            oldRate = LoadReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index);
+            if (oldRate > rate) {
+                rate = oldRate;
+            }
+        }
+        ApplyDefenseDownPercentSource(u, sourceType, instanceId, rate);
+
+        timeParent = GetDefenseDownPercentTimerParent(hid, sourceType, instanceId);
+        if (HaveSavedReal(HASH_UNIT, timeParent, 2)) {
+            oldTime = LoadReal(HASH_UNIT, timeParent, 2);
+            SaveReal(HASH_UNIT, timeParent, 2, RMaxBJ(oldTime, remainTime));
+        } else {
+            SaveReal(HASH_UNIT, timeParent, 2, remainTime);
+        }
+
+        if (!HaveSavedHandle(HASH_UNIT, timeParent, 1)) {
+            t = CreateTimer();
+            tid = GetHandleId(t);
+            SaveTimerHandle(HASH_UNIT, timeParent, 1, t);
+            SaveUnitHandle(HASH_TIMER, tid, 1, u);
+            SaveInteger(HASH_TIMER, tid, 2, sourceType);
+            SaveInteger(HASH_TIMER, tid, 3, instanceId);
+            SaveInteger(HASH_TIMER, tid, 4, timeParent);
+            TimerStart(t, 0.10, true, function () {
+                timer t; integer tid; integer sourceType; integer instanceId; integer timeParent; unit u; real timeLeft;
+
+                t = GetExpiredTimer();
+                tid = GetHandleId(t);
+                u = LoadUnitHandle(HASH_TIMER, tid, 1);
+                sourceType = LoadInteger(HASH_TIMER, tid, 2);
+                instanceId = LoadInteger(HASH_TIMER, tid, 3);
+                timeParent = LoadInteger(HASH_TIMER, tid, 4);
+
+                if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                    if (u != null) {
+                        ClearDefenseDownPercentSource(u, sourceType, instanceId);
+                    }
+                    FlushChildHashtable(HASH_UNIT, timeParent);
+                    FlushChildHashtable(HASH_TIMER, tid);
+                    PauseTimer(t);
+                    DestroyTimer(t);
+                    u = null;
+                    t = null;
+                    return;
+                }
+
+                if (HaveSavedReal(HASH_UNIT, timeParent, 2)) {
+                    timeLeft = LoadReal(HASH_UNIT, timeParent, 2) - 0.10;
+                    if (timeLeft <= 0.0) {
+                        ClearDefenseDownPercentSource(u, sourceType, instanceId);
+                        FlushChildHashtable(HASH_UNIT, timeParent);
+                        FlushChildHashtable(HASH_TIMER, tid);
+                        PauseTimer(t);
+                        DestroyTimer(t);
+                        u = null;
+                        t = null;
+                    } else {
+                        SaveReal(HASH_UNIT, timeParent, 2, timeLeft);
+                        u = null;
+                    }
+                } else {
+                    FlushChildHashtable(HASH_UNIT, timeParent);
+                    FlushChildHashtable(HASH_TIMER, tid);
+                    PauseTimer(t);
+                    DestroyTimer(t);
+                    u = null;
+                    t = null;
+                }
+            });
+            t = null;
         }
     }
 

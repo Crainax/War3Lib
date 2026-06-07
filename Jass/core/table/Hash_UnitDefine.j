@@ -133,6 +133,13 @@
 #define KEY_UNIT_RESIST_DOWN_RATE            255610167 // 魔抗易伤 Down（线性累加）
 #define KEY_UNIT_RESIST_FULL_COUNT           255610209 // 满额魔抗层数（AddUnitResistUp +/-1.0 可逆）
 
+// UnitBuff 百分比破防来源栈（不影响旧 HASH_UNIT_DEFENSE_REDUCE_VALUE 固定值破防）
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT       255610210 // 百分比破防活跃来源数量
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT     255610211 // 单来源实例数量（source parent）
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE       255610212 // 单来源当前已应用最大减幅（source parent）
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE   255611000 // 单来源实例ID数组起始键（+ index）
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE 255612000 // 单来源实例减幅数组起始键（+ index）
+
 // 眩晕系统键值
 #define KEY_UNIT_STUN_RESIST_UP_RATE         255610168 // 眩晕抗性（0~1，RealAdd 归一叠加）
 #define KEY_UNIT_STUN_IMMUNE                 255610169 // 眩晕免疫标记（boolean/int）

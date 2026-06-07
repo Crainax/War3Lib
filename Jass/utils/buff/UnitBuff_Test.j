@@ -18,6 +18,10 @@ UnitBuff_Test 指令说明：
 - 输入 s24：前摇暂停 + 真实眩晕重叠，清前摇后仍保持真实眩晕。
 - 输入 s25：前摇暂停 + 真实眩晕重叠，ClearStun 后仍保持前摇暂停。
 - 输入 s26：限时前摇暂停 + 真实眩晕重叠，前摇自动结束不提前解除真实眩晕。
+- 输入 s27：百分比破防不同来源 30% + 40% 按 RealAdd 叠加为 58%。
+- 输入 s28：百分比破防同来源两个 30% 实例不叠加。
+- 输入 s29：百分比破防同来源取最高，清高值后回落到低值。
+- 输入 s30：限时百分比破防刷新时间，不重复叠层，过期后恢复。
 
 手动选中单位测试：
 - 输入 -silence 3：对当前选中单位沉默 3 秒。
@@ -46,7 +50,7 @@ UnitBuff_Test 指令说明：
 
 
 //自动生成的文件
-library UTUnitBuff requires UnitBuff {
+library UTUnitBuff requires UnitBuff, UnitDefenseReduce {
 
     // 眩晕测试用单位记录，避免重复创建导致多选
     private unit stunTestUnits[];
@@ -892,6 +896,114 @@ library UTUnitBuff requires UnitBuff {
         owner = null;
     }
 
+    private function AssertUnitDefenseNear(unit u, integer expected, string message) {
+        integer actual; integer diff;
+
+        actual = GetUnitDefense(u);
+        if (actual > expected) {
+            diff = actual - expected;
+        } else {
+            diff = expected - actual;
+        }
+        assert.Boolean(diff <= 1, message + " (actual=" + I2S(actual) + ", expected=" + I2S(expected) + ", tolerance=1)");
+    }
+
+    // 测试27：百分比破防不同来源按 RealAdd 叠加
+    function TTestUTUnitBuff27 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetUnitDefense(u, 100.0);
+        SelectUnit(u, true);
+        ApplyDefenseDownPercentSource(u, 1, 1, 0.30);
+        ApplyDefenseDownPercentSource(u, 2, 1, 0.40);
+        AssertUnitDefenseNear(u, 42, "s27: 不同来源 30% + 40% 应 RealAdd 为 58% 总减防");
+        ClearDefenseDownPercentSource(u, 1, 1);
+        AssertUnitDefenseNear(u, 60, "s27: 清 30% 来源后应剩 40% 破防");
+        ClearDefenseDownPercentSource(u, 2, 1);
+        assert.Integer(GetUnitDefense(u), 100, "s27: 清完所有来源后防御恢复");
+        RemoveUnit(u);
+        u = null;
+        owner = null;
+    }
+
+    // 测试28：同来源同值实例不叠加
+    function TTestUTUnitBuff28 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetUnitDefense(u, 100.0);
+        SelectUnit(u, true);
+        ApplyDefenseDownPercentSource(u, 3, 1, 0.30);
+        ApplyDefenseDownPercentSource(u, 3, 2, 0.30);
+        AssertUnitDefenseNear(u, 70, "s28: 同来源两个 30% 实例仍只应生效 30%");
+        ClearDefenseDownPercentSource(u, 3, 1);
+        AssertUnitDefenseNear(u, 70, "s28: 清一个同来源实例后另一个仍保持 30%");
+        ClearDefenseDownPercentSource(u, 3, 2);
+        assert.Integer(GetUnitDefense(u), 100, "s28: 清完同来源实例后防御恢复");
+        RemoveUnit(u);
+        u = null;
+        owner = null;
+    }
+
+    // 测试29：同来源取最高，清高值后回落到低值
+    function TTestUTUnitBuff29 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetUnitDefense(u, 100.0);
+        SelectUnit(u, true);
+        ApplyDefenseDownPercentSource(u, 4, 1, 0.30);
+        ApplyDefenseDownPercentSource(u, 4, 2, 0.50);
+        AssertUnitDefenseNear(u, 50, "s29: 同来源 30% + 50% 应只取 50%");
+        ClearDefenseDownPercentSource(u, 4, 2);
+        AssertUnitDefenseNear(u, 70, "s29: 清 50% 实例后应回落到 30%");
+        ClearDefenseDownPercentSource(u, 4, 1);
+        assert.Integer(GetUnitDefense(u), 100, "s29: 清完低值实例后防御恢复");
+        RemoveUnit(u);
+        u = null;
+        owner = null;
+    }
+
+    // 测试30：限时百分比破防刷新时间，不重复叠层
+    function TTestUTUnitBuff30 (player p) {
+        unit u; player owner; timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetUnitDefense(u, 100.0);
+        SelectUnit(u, true);
+        ReduceDefenseDownPercentTime(u, 5, 1, 0.40, 0.5);
+        ReduceDefenseDownPercentTime(u, 5, 1, 0.40, 1.0);
+        AssertUnitDefenseNear(u, 60, "s30: 同来源限时刷新不应重复叠层");
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        TimerStart(t, 1.25, false, function () {
+            timer t; integer id; unit u;
+
+            t = GetExpiredTimer();
+            id = GetHandleId(t);
+            u = LoadUnitHandle(HASH_TIMER, id, 1);
+            if (u != null) {
+                assert.Integer(GetUnitDefense(u), 100, "s30: 限时百分比破防过期后防御恢复");
+                RemoveUnit(u);
+            }
+            FlushChildHashtable(HASH_TIMER, id);
+            PauseTimer(t);
+            DestroyTimer(t);
+            u = null;
+            t = null;
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
 	function TTestActUTUnitBuff1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -1045,6 +1157,7 @@ library UTUnitBuff requires UnitBuff {
 			BJDebugMsg("[UnitBuffTest] 输入 s20/s21 测沉默自动清理/手动清除");
 			BJDebugMsg("[UnitBuffTest] 输入 s22/s23 测缴械自动清理/手动清除");
 			BJDebugMsg("[UnitBuffTest] 输入 s24/s25/s26 测前摇暂停与真实眩晕互不提前解锁");
+			BJDebugMsg("[UnitBuffTest] 输入 s27/s28/s29/s30 测来源百分比破防叠加与刷新");
 			BJDebugMsg("[UnitBuffTest] 选中单位后输入 -silence 3 / -disarm 3 / -clearsilence / -cleardisarm / -buffstate");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
@@ -1084,6 +1197,10 @@ library UTUnitBuff requires UnitBuff {
             else if(str == "s24") TTestUTUnitBuff24(GetTriggerPlayer());
             else if(str == "s25") TTestUTUnitBuff25(GetTriggerPlayer());
             else if(str == "s26") TTestUTUnitBuff26(GetTriggerPlayer());
+            else if(str == "s27") TTestUTUnitBuff27(GetTriggerPlayer());
+            else if(str == "s28") TTestUTUnitBuff28(GetTriggerPlayer());
+            else if(str == "s29") TTestUTUnitBuff29(GetTriggerPlayer());
+            else if(str == "s30") TTestUTUnitBuff30(GetTriggerPlayer());
 		});
 
 		//unitAttrShow
