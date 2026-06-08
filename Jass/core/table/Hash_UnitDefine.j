@@ -180,6 +180,8 @@
 // Guarder 守卫系统键值
 #define KEY_UNIT_GUARD_ATTACK_RANGE      255610192 // 守卫单位独立攻击范围（real，码）
 #define KEY_UNIT_GUARD_PAUSE_AVUL_ADDED  255610193 // 是否由 Guarder.pause 添加过 Avul（integer 0/1）
+#define KEY_UNIT_GUARD_SUPER_SPEED_ADDED 255610213 // 是否由 Guarder.addPet 添加过超级移速（integer 0/1）
+#define KEY_UNIT_GUARD_DISABLE_OWNER_FOLLOW 255610214 // Guarder 是否禁用跟随主人/召回（integer 0/1）
 
 // 单位面板攻击图标自定义显示
 #define KEY_UNIT_ATK_CORNER_TEXT         255610194 // 攻击图标角标文本（string）
@@ -233,6 +235,13 @@
 #define KEY_MOSHOU_TEMP_MULTI_BONUS 10023       // 魔兽实例临时多重射加值（integer）
 #define KEY_MOSHOU_TEMP_RANGE_BONUS 10024       // 魔兽实例临时射程加值（integer）
 #define KEY_MOSHOU_TEMP_ATTACK_SPEED_BONUS 10025 // 魔兽实例临时攻速加值（real）
+
+// 装备 helper 召唤物运行态
+#define KEY_UNIT_HELPER_SMART_POINT_TRIGGER 255610215  // helper 右键点地触发器
+#define KEY_UNIT_HELPER_SMART_TARGET_TRIGGER 255610216 // helper 右键点单位触发器
+#define KEY_UNIT_HELPER_DEATH_TRIGGER 255610217        // helper 死亡清理触发器
+#define KEY_UNIT_HELPER_SLOT_GROUP 255610218           // helper 所属固定槽组
+#define KEY_UNIT_HELPER_SLOT_INDEX 255610219           // helper 所属固定槽位
 
 // [异度] 进攻BOSS运行态
 #define KEY_UNIT_NORMAL_BOSS_RUNTIME_INDEX 10117       // 普通进攻BOSS运行态数组索引
