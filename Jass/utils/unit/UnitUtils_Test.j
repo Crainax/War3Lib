@@ -136,6 +136,42 @@ library UTUnitUtils requires UnitUtils {
 		p = null;
 	}
 
+	// [异度] 单位结算最终伤害倍率测试
+	private function Test_FinalDamageFinal() {
+		player p;
+		unit hero;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+
+		ResetUnitFinalDamageUp(hero);
+		ResetUnitFinalDamageDown(hero);
+		assert.Real(GetUnitFinalDamageFinal(hero), 1.0, "结算最终伤害倍率初始值应为 1.0");
+
+		AddUnitFinalDamageUp(hero, 0.2);
+		AddUnitFinalDamageUp(hero, 0.2);
+		assert.Real(GetUnitFinalDamageUpRate(hero), 0.44, "两次 20% 结算最终伤害增加应叠乘为 44%");
+		assert.Real(GetUnitFinalDamageFinal(hero), 1.44, "两次结算最终伤害增加后最终倍率应为 1.44");
+
+		AddUnitFinalDamageUp(hero, -0.2);
+		assert.Real(GetUnitFinalDamageUpRate(hero), 0.2, "移除一次 20% 结算最终伤害增加后应回到 20%");
+
+		AddUnitFinalDamageDown(hero, 0.25);
+		AddUnitFinalDamageDown(hero, 0.25);
+		assert.Real(GetUnitFinalDamageDownRate(hero), 0.4375, "两次 25% 结算最终伤害减少应 RealAdd 为 43.75%");
+		assert.Real(GetUnitFinalDamageFinal(hero), 0.675, "结算最终伤害增加 20% 且减少 43.75% 后最终倍率应为 0.675");
+
+		AddUnitFinalDamageDown(hero, -0.25);
+		assert.Real(GetUnitFinalDamageDownRate(hero), 0.25, "移除一次 25% 结算最终伤害减少后应回到 25%");
+
+		ResetUnitFinalDamageUp(hero);
+		ResetUnitFinalDamageDown(hero);
+		assert.Real(GetUnitFinalDamageFinal(hero), 1.0, "重置后结算最终伤害倍率应回到 1.0");
+
+		hero = null;
+		p = null;
+	}
+
 	private function Test_ResistFull() {
 		player p;
 		unit hero;
@@ -339,6 +375,10 @@ library UTUnitUtils requires UnitUtils {
 			Test_DamagedFinal();
 		}, null);
 		UnitTestAutoTimer(0.38, 0.1, function() {
+			Trace("UnitUtils 结算最终伤害倍率测试");
+			Test_FinalDamageFinal();
+		}, null);
+		UnitTestAutoTimer(0.39, 0.1, function() {
 			Trace("UnitUtils 100% 魔抗可逆测试");
 			Test_ResistFull();
 		}, null);

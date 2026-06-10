@@ -197,6 +197,10 @@
 #define KEY_UNIT_DAMAGED_UP_RATE         255610207 // 受伤增加累计值（real）
 #define KEY_UNIT_DAMAGED_DOWN_RATE       255610208 // 受伤减少累计值（real，RealAdd）
 
+// [异度] 单位结算最终伤害倍率
+#define KEY_UNIT_FINAL_DAMAGE_UP_RATE    255610220 // 结算最终伤害增加累计值（real）
+#define KEY_UNIT_FINAL_DAMAGE_DOWN_RATE  255610221 // 结算最终伤害减少累计值（real，RealAdd）
+
 // UnitBuff 通用禁用类 DEBUFF
 #define KEY_UNIT_SILENCE_TIME_LEFT       255610197 // 沉默剩余时间（real）
 #define KEY_UNIT_DISARM_TIME_LEFT        255610198 // 缴械/禁用攻击剩余时间（real）
