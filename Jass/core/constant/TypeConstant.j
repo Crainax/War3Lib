@@ -78,6 +78,8 @@
 #define KEY_JINGONG_DAMAGE 50
 //总攻击暴击真伤百分比
 #define KEY_ATTACK_CRIT_TRUE_RATE 51
+//该装备类型的圣晶石效果倍率
+#define KEY_ITEM_TYPE_SHENGJINGSHI_EFFECT_RATE 52
 
 //对应原装备的ID
 #define KEY_ITEM_ORIGIN 16
