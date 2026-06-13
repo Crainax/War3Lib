@@ -46,6 +46,8 @@
 #define ITEM_PROTECT 31921910                // 临时掉落保护所属玩家
 #define HASH_KEY_ITEM_SUPERSHOP_TALENT_BOOK_SPELL 31921970 // 超级商店天赋技能书保存的技能ID
 #define HASH_KEY_ITEM_CD 31921980           // 物品冷却中标记
+#define HASH_KEY_ITEM_CD_QUEUE_INDEX 31921981 // 物品冷却队列下标
+#define HASH_KEY_ITEM_CD_LEFT_TICKS 31921982  // 物品冷却剩余0.1秒刻度
 #define ITEM_MOSHOU 92719456                 // 物品绑定的战斗宠物单位
 
 
