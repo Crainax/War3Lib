@@ -37,6 +37,7 @@
 #define HASH_KEY_ITEM_STATE_EFFECT_ACTIVE_BASE 29311930 // [异度] 状态型装备效果生效标记基址（+状态槽1..99）
 #define HASH_KEY_ITEM_STATE_EFFECT_LEVEL_BASE 29312030  // [异度] 状态型装备效果生效等级基址（+状态槽1..99）
 #define HASH_KEY_ITEM_STATE_EFFECT_CLEAR_TRIGGER_BASE 29312130 // [异度] 状态型装备效果清理触发器基址（+状态槽1..99）
+#define HASH_KEY_ITEM_I304_SPELL_CHARGE 29312246        // [异度] I304施法充能
 
 // [异度] 物品实例运行态
 #define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键
