@@ -37,7 +37,17 @@
 #define HASH_KEY_ITEM_STATE_EFFECT_ACTIVE_BASE 29311930 // [异度] 状态型装备效果生效标记基址（+状态槽1..99）
 #define HASH_KEY_ITEM_STATE_EFFECT_LEVEL_BASE 29312030  // [异度] 状态型装备效果生效等级基址（+状态槽1..99）
 #define HASH_KEY_ITEM_STATE_EFFECT_CLEAR_TRIGGER_BASE 29312130 // [异度] 状态型装备效果清理触发器基址（+状态槽1..99）
+#define HASH_KEY_ITEM_ATTR_ADDED 29312240               // [异度] 装备属性已应用幂等标记
+#define HASH_KEY_ITEM_EPIC_I30W_FINAL_RATE 29312241     // [异度] 神宫帽Alter已应用最终伤害
+#define HASH_KEY_ITEM_EPIC_I30X_FINAL_RATE 29312242     // [异度] 森罗幽淀羽已应用最终伤害
+#define HASH_KEY_ITEM_EPIC_I311_INT_APPLIED 29312243    // [异度] I311已应用智力
+#define HASH_KEY_ITEM_EPIC_I31K_AGI_APPLIED 29312244    // [异度] I31K已应用敏捷
+#define HASH_KEY_ITEM_I40_KILL_ATTR_APPLIED 29312245    // [异度] I40杀敌成长已应用属性
 #define HASH_KEY_ITEM_I304_SPELL_CHARGE 29312246        // [异度] I304施法充能
+#define HASH_KEY_ITEM_I408_AURA_COUNT 29312247          // [异度] I408已同步光环种类数
+#define HASH_KEY_ITEM_I408_AURA_RATE_APPLIED 29312248   // [异度] I408光环状态已应用倍率
+#define HASH_KEY_ITEM_I40C_FINAL_RATE_APPLIED 29312249  // [异度] I40C蔷薇终伤已应用倍率
+#define HASH_KEY_ITEM_I40C_LAST_NO_KILL_SECOND 29312250 // [异度] I40C上次无击杀计时点
 
 // [异度] 物品实例运行态
 #define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键
