@@ -1545,6 +1545,13 @@ library UnitUtils requires BigInteger,MathUtils {
         return base;
     }
 
+    private function HasUnitSpeedExtensionData(integer uid) -> boolean {
+        return HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL);
+    }
+
     // 计算单位当前"最终移速"（基础 * 总倍率 + 定值）
     private function CalcUnitFinalSpeedReal(unit u) -> real {
         real base; real rate; real bonus;
@@ -1556,6 +1563,30 @@ library UnitUtils requires BigInteger,MathUtils {
         bonus = GetUnitSpeedBonusReal(u);
 
         return base * rate + bonus;
+    }
+
+    // 获取未钳制的最终移速，可为负数。
+    public function GetUnitSpeedRawReal(unit u) -> real {
+        integer uid;
+        if (u == null) { return 0.0; }
+
+        uid = GetHandleId(u);
+        if (HasUnitSpeedExtensionData(uid)) {
+            return CalcUnitFinalSpeedReal(u);
+        }
+        return GetUnitMoveSpeed(u);
+    }
+
+    // 获取显示用移速：负数展示 raw，非负数沿用旧 GetUnitSpeed。
+    public function GetUnitSpeedDisplay(unit u) -> integer {
+        real raw;
+        if (u == null) { return 0; }
+
+        raw = GetUnitSpeedRawReal(u);
+        if (raw < 0.0) {
+            return R2I(raw);
+        }
+        return GetUnitSpeed(u);
     }
 
     // 获取移速
@@ -1570,10 +1601,7 @@ library UnitUtils requires BigInteger,MathUtils {
         }
 
         // 若存在移速扩展数据：仅计算，不写入（避免读函数写入导致 OOS）
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL) ||
-            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE) ||
-            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE) ||
-            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL)) {
+        if (HasUnitSpeedExtensionData(uid)) {
             total = CalcUnitFinalSpeedReal(u);
             total = RMaxBJ(total, 0.0);
             return R2I(total);

@@ -211,6 +211,24 @@ library UTUnitUtils requires UnitUtils {
 		p = null;
 	}
 
+	private function Test_MoveSpeedRawNegative() {
+		player p;
+		unit hero;
+		real base;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		base = GetUnitMoveSpeed(hero);
+
+		AddUnitSpeedBase(hero, -base - 50.0);
+		assert.Real(GetUnitSpeedRawReal(hero), -50.0, "raw 移速应保留钳制前的负数");
+		assert.Boolean(GetUnitSpeed(hero) == 0, "旧移速 getter 仍应钳制到 0");
+		assert.Boolean(GetUnitSpeedDisplay(hero) == -50, "显示用移速应展示负数 raw 值");
+
+		hero = null;
+		p = null;
+	}
+
 	// 普通单位（步兵）攻击增幅/减幅/定值测试
 	private function Test_NormalUnitAttackPercent() {
 		player p;
@@ -381,6 +399,11 @@ library UTUnitUtils requires UnitUtils {
 		UnitTestAutoTimer(0.39, 0.1, function() {
 			Trace("UnitUtils 100% 魔抗可逆测试");
 			Test_ResistFull();
+		}, null);
+
+		UnitTestAutoTimer(0.395, 0.1, function() {
+			Trace("UnitUtils raw 负移速测试");
+			Test_MoveSpeedRawNegative();
 		}, null);
 
 		// 自动执行普通单位攻击增幅/减幅/定值测试
