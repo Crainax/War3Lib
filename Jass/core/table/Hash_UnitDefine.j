@@ -239,6 +239,8 @@
 #define KEY_MOSHOU_TEMP_MULTI_BONUS 10023       // 魔兽实例临时多重射加值（integer）
 #define KEY_MOSHOU_TEMP_RANGE_BONUS 10024       // 魔兽实例临时射程加值（integer）
 #define KEY_MOSHOU_TEMP_ATTACK_SPEED_BONUS 10025 // 魔兽实例临时攻速加值（real）
+#define KEY_UNIT_KILL_REWARD_GOLD_EXTRA_RATE 10026 // 本次伤害击杀额外金币倍率（real）
+#define KEY_UNIT_KILL_REWARD_ARENA_JIEJING_EXTRA_RATE 10027 // 本次伤害击杀额外竞技场结晶进度倍率（real）
 
 // 装备 helper 召唤物运行态
 #define KEY_UNIT_HELPER_SMART_POINT_TRIGGER 255610215  // helper 右键点地触发器
@@ -340,6 +342,7 @@
 #define SOLE_I501 453919320
 #define SOLE_I50O 453919343
 #define SOLE_I50P 453919344
+#define SOLE_I50D 453919345
 #define SOLE_I304_SUNDIAL 453919336
 #define SOLE_I40J_FINAL_DAMAGE 453919337
 #define SOLE_I30B_DAMAGE_RATE 453919338

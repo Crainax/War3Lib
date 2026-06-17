@@ -24,6 +24,53 @@ library DamageUtils requires UnitFilter,GroupUtils {
     private unit    basicAtkSource[];
     private real    basicAtkFD[];
 
+    // --------------------
+    // 本次伤害击杀奖励倍率栈
+    // --------------------
+    private integer killRewardTop = -1;
+    private unit    killRewardSource[];
+    private unit    killRewardTarget[];
+    private real    killRewardGoldExtraRate[];
+    private real    killRewardArenaJiejingExtraRate[];
+
+    // 开启一次单体伤害的击杀奖励上下文，供伤害事件在最终致死时读取。
+    private function KillReward_begin(unit src, unit target, real extraRate) {
+        killRewardTop += 1;
+        killRewardSource[killRewardTop] = src;
+        killRewardTarget[killRewardTop] = target;
+        killRewardGoldExtraRate[killRewardTop] = extraRate;
+        killRewardArenaJiejingExtraRate[killRewardTop] = extraRate;
+    }
+
+    private function KillReward_end() {
+        if (killRewardTop < 0) {
+            return;
+        }
+        killRewardSource[killRewardTop] = null;
+        killRewardTarget[killRewardTop] = null;
+        killRewardGoldExtraRate[killRewardTop] = 0.0;
+        killRewardArenaJiejingExtraRate[killRewardTop] = 0.0;
+        killRewardTop -= 1;
+    }
+
+    // 当前伤害事件是否属于最近一次带击杀奖励的单体伤害。
+    public function DamageKillRewardIsActive(unit src, unit target) -> boolean {
+        if (killRewardTop < 0) { return false; }
+        return killRewardSource[killRewardTop] == src && killRewardTarget[killRewardTop] == target;
+    }
+
+    // 读取当前击杀奖励上下文中的额外金币倍率。
+    public function DamageKillRewardGoldExtraRate() -> real {
+        if (killRewardTop < 0) { return 0.0; }
+        return killRewardGoldExtraRate[killRewardTop];
+    }
+
+    // 读取当前击杀奖励上下文中的竞技场结晶额外倍率。
+    public function DamageKillRewardArenaJiejingExtraRate() -> real {
+        if (killRewardTop < 0) { return 0.0; }
+        return killRewardArenaJiejingExtraRate[killRewardTop];
+    }
+
     private function LS_begin(unit src) {
         lsTop += 1;
         lsSource[lsTop] = src;
@@ -113,6 +160,39 @@ library DamageUtils requires UnitFilter,GroupUtils {
         } else {
             UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
         }
+    }
+
+    // 带击杀奖励上下文的物理单体伤害；只有本次伤害实际击杀时才会被结算层读取。
+    public function ApplyPhysicalDamageKillReward(unit u, unit target, real dmg, real rewardExtraRate) {
+        if (rewardExtraRate <= 0.0) {
+            ApplyPhysicalDamage(u, target, dmg);
+            return;
+        }
+        KillReward_begin(u, target, rewardExtraRate);
+        ApplyPhysicalDamage(u, target, dmg);
+        KillReward_end();
+    }
+
+    // 带击杀奖励上下文的魔法单体伤害；只有本次伤害实际击杀时才会被结算层读取。
+    public function ApplyMagicDamageKillReward(unit u, unit target, real dmg, real rewardExtraRate) {
+        if (rewardExtraRate <= 0.0) {
+            ApplyMagicDamage(u, target, dmg);
+            return;
+        }
+        KillReward_begin(u, target, rewardExtraRate);
+        ApplyMagicDamage(u, target, dmg);
+        KillReward_end();
+    }
+
+    // 带击杀奖励上下文的真实单体伤害；只有本次伤害实际击杀时才会被结算层读取。
+    public function ApplyPureDamageKillReward(unit u, unit target, real dmg, real rewardExtraRate) {
+        if (rewardExtraRate <= 0.0) {
+            ApplyPureDamage(u, target, dmg);
+            return;
+        }
+        KillReward_begin(u, target, rewardExtraRate);
+        ApplyPureDamage(u, target, dmg);
+        KillReward_end();
     }
 
 
