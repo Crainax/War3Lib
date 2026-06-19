@@ -11,7 +11,7 @@
 /*
 物品工具库
 */
-library ItemUtils requires HashTable, NumberUtils {
+library ItemUtils requires HashTable {
 
     private struct ItemCooldownQueue [] {
         private static item itemList[];
@@ -27,10 +27,6 @@ library ItemUtils requires HashTable, NumberUtils {
         private static method secondsToTicks(real seconds) -> integer {
             if (seconds <= 0.0) { return 0; }
             return IMaxBJ(1, R2I(seconds * I2R(ITEM_COOLDOWN_TICKS_PER_SECOND) + 0.999));
-        }
-
-        private static method shouldToggleItem(item it) -> boolean {
-            return it != null && GetItemTypeId(it) != 0 && GetDigitAt(GetItemUserData(it), 4) < 1;
         }
 
         private static method clearSaved(item it) {
@@ -61,7 +57,7 @@ library ItemUtils requires HashTable, NumberUtils {
             removed = thistype.itemList[index];
             if (removed != null) {
                 thistype.clearSaved(removed);
-                if (restoreItemFlags && thistype.shouldToggleItem(removed)) {
+                if (restoreItemFlags) {
                     SetItemPawnable(removed, true);
                     SetItemDroppable(removed, true);
                 }
@@ -157,10 +153,8 @@ library ItemUtils requires HashTable, NumberUtils {
             }
 
             thistype.leftTicks[index] = ticks;
-            if (thistype.shouldToggleItem(it)) {
-                SetItemPawnable(it, false);
-                SetItemDroppable(it, false);
-            }
+            SetItemPawnable(it, false);
+            SetItemDroppable(it, false);
             SetItemCharges(it, thistype.ticksToCharges(ticks));
             SaveBoolean(HASH_ITEM, GetHandleId(it), HASH_KEY_ITEM_CD, true);
             SaveInteger(HASH_ITEM, GetHandleId(it), HASH_KEY_ITEM_CD_QUEUE_INDEX, index);
@@ -182,10 +176,8 @@ library ItemUtils requires HashTable, NumberUtils {
                 thistype.clearSaved(it);
                 if (GetItemTypeId(it) != 0) {
                     SetItemCharges(it, 0);
-                    if (thistype.shouldToggleItem(it)) {
-                        SetItemPawnable(it, true);
-                        SetItemDroppable(it, true);
-                    }
+                    SetItemPawnable(it, true);
+                    SetItemDroppable(it, true);
                 }
             }
             thistype.stopTimerIfEmpty();
