@@ -27,6 +27,7 @@ library Attraction requires UnitUtils {
         private boolean deathContinue;
         private boolean enableComeback;
         private group comebackGroup;
+        private real stopDistance;
 
         // UI组件内部共享方法及成员
         STRUCT_SHARED_METHODS(attraction)
@@ -43,6 +44,7 @@ library Attraction requires UnitUtils {
             this.deathContinue = false;
             this.enableComeback = false;
             this.comebackGroup = null;
+            this.stopDistance = ATTRACTION_STOP_DISTANCE;
             return this;
         }
 
@@ -81,6 +83,17 @@ library Attraction requires UnitUtils {
 
         method setSpeed(real speed) {
             this.speed = speed;
+        }
+
+        method setStopDistance(real distance) {
+            if (this.t != null) {
+                return;
+            }
+            if (distance <= 0.0) {
+                this.stopDistance = ATTRACTION_STOP_DISTANCE;
+            } else {
+                this.stopDistance = distance;
+            }
         }
 
         method start() {
@@ -125,7 +138,7 @@ library Attraction requires UnitUtils {
                             effSpeed = this.speed * (1.0 - resist);
 
                             if (effSpeed > 0.0) {
-                                if (distance > ATTRACTION_STOP_DISTANCE) {
+                                if (distance > this.stopDistance) {
                                     if (this.enableComeback && this.comebackGroup != null) {
                                         if (!HaveSavedReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_X)) {
                                             SaveReal(HASH_UNIT, GetHandleId(l_unit), KEY_UNIT_BACK_X, GetUnitX(l_unit));
@@ -134,8 +147,8 @@ library Attraction requires UnitUtils {
                                         }
                                     }
                                     step = effSpeed;
-                                    if (distance - ATTRACTION_STOP_DISTANCE < step) {
-                                        step = distance - ATTRACTION_STOP_DISTANCE;
+                                    if (distance - this.stopDistance < step) {
+                                        step = distance - this.stopDistance;
                                     }
                                     facing = Atan2BJ(y1 - y2, x1 - x2);
                                     SetUnitX(l_unit, YDWECoordinateX(x2 + CosBJ(facing) * step));
