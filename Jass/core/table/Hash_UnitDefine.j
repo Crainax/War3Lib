@@ -300,6 +300,7 @@
 #define TAOZHUANG_10 347279
 #define TAOZHUANG_11 347297
 #define TAOZHUANG_12 347303
+#define TAOZHUANG_13 347329
 
 // [异度] 单位唯一装备占位（父键为 unit，值为 item handle id）
 #define SOLE_WING 2031411
