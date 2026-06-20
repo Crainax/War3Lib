@@ -49,6 +49,7 @@
 #define HASH_KEY_ITEM_I40C_FINAL_RATE_APPLIED 29312249  // [异度] I40C蔷薇终伤已应用倍率
 #define HASH_KEY_ITEM_I40C_LAST_NO_KILL_SECOND 29312250 // [异度] I40C上次无击杀计时点
 #define HASH_KEY_ITEM_I50O_DASH_BASE 29312251           // [异度] I50O独立冲刺实例起始键（+1..3）
+#define HASH_KEY_ITEM_I314_TALENT_MAX_APPLIED 29312253  // [异度] I314已发放天赋可学习上限
 
 // [异度] 物品实例运行态
 #define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键
