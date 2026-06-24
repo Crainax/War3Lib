@@ -51,6 +51,7 @@
 #define MUSIC_INDEX_MONSTER_CONTINUE 3014 //怪物继续音效
 #define MUSIC_INDEX_TALENT_SWITCH_SUCCESS 3015 //天赋切换成功音效
 #define MUSIC_INDEX_HUANGLONG_DIVINE_AEGIS 3016 //皇龙圣盾音效
+#define MUSIC_INDEX_AOFENG_XUEYIN 3018 //鏖锋血印音效
 
 #define SOUND_POOL_SIZE 20  // 每个音效的对象池大小（可同时播放20个）
 
