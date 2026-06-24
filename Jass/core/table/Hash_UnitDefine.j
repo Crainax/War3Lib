@@ -200,6 +200,10 @@
 // [异度] 单位结算最终伤害倍率
 #define KEY_UNIT_FINAL_DAMAGE_UP_RATE    255610220 // 结算最终伤害增加累计值（real）
 #define KEY_UNIT_FINAL_DAMAGE_DOWN_RATE  255610221 // 结算最终伤害减少累计值（real，RealAdd）
+#define KEY_UNIT_SPELL_RETURN_X          255610222 // 主动技能临时位移返回点X（real）
+#define KEY_UNIT_SPELL_RETURN_Y          255610223 // 主动技能临时位移返回点Y（real）
+#define KEY_UNIT_SPELL_RETURN_COUNT      255610224 // 主动技能临时位移返回点锁计数（integer）
+#define KEY_UNIT_AJZN_DEFENSE_COUNT      255610225 // 乘天地·御悠然临时防御锁计数（integer）
 
 // UnitBuff 通用禁用类 DEBUFF
 #define KEY_UNIT_SILENCE_TIME_LEFT       255610197 // 沉默剩余时间（real）
