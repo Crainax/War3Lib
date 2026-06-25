@@ -6,6 +6,8 @@
 
 #include "Zinc.j"
 
+// Codex app permission write test.
+
 //! zinc
 
 //库名

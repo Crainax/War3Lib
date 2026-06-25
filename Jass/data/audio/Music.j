@@ -483,6 +483,16 @@ library Music {
 			thistype[MUSIC_INDEX_HUANGLONG_DIVINE_AEGIS].snd = snd;
 			//# endcheck
 
+			//# check: music[3017]
+			//# dependency:sound/sound/daojian_yuchunqiu_slash_barrage.mp3
+			snd = CreateSound( "sound\\daojian_yuchunqiu_slash_barrage.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 3239 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_DAOJIAN_YUCHUNQIU].snd = snd;
+			//# endcheck
+
 			//# check: music[3018]
 			//# dependency:sound/sound/aofeng_xueyin.mp3
 			snd = CreateSound( "sound\\aofeng_xueyin.mp3", false, false, false, 10, 10, "" );
@@ -491,6 +501,16 @@ library Music {
 			SetSoundVolume( snd, 127 );
 			SetSoundPitch( snd, 1.0 );
 			thistype[MUSIC_INDEX_AOFENG_XUEYIN].snd = snd;
+			//# endcheck
+
+			//# check: music[3019]
+			//# dependency:sound/sound/lingneng_reshape.mp3
+			snd = CreateSound( "sound\\lingneng_reshape.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 3030 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_LINGNENG_RESHAPE].snd = snd;
 			//# endcheck
 
 			snd = null;

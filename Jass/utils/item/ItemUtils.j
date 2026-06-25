@@ -202,7 +202,7 @@ library ItemUtils requires HashTable {
     }
 
     /*
-    设置物品冷却。冷却期间用 charges 显示向上取整秒数，并临时禁用普通物品的出售/丢弃。
+    设置物品冷却。冷却期间用 charges 显示向上取整秒数，并临时禁用物品的出售/丢弃。
     cd <= 0 时等同于清除冷却；it 为 null 或已移除时安全忽略。
     */
     public function SetItemCooldownEx(item it, real cd) {
@@ -210,7 +210,7 @@ library ItemUtils requires HashTable {
     }
 
     /*
-    手动清除物品冷却，恢复普通物品的出售/丢弃状态并清理队列索引。
+    手动清除物品冷却，恢复物品的出售/丢弃状态并清理队列索引。
     it 为 null 或已移除时安全忽略。
     */
     public function ClearItemCooldownEx(item it) {
