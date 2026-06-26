@@ -54,6 +54,7 @@
 #define MUSIC_INDEX_DAOJIAN_YUCHUNQIU 3017 //刀剑御春秋音效
 #define MUSIC_INDEX_AOFENG_XUEYIN 3018 //鏖锋血印音效
 #define MUSIC_INDEX_LINGNENG_RESHAPE 3019 //灵能重塑音效
+#define MUSIC_INDEX_PINGZONG_PIAOMIAO 3020 //萍踪踏步倚飘渺音效
 
 #define SOUND_POOL_SIZE 20  // 每个音效的对象池大小（可同时播放20个）
 

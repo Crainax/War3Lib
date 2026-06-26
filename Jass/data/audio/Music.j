@@ -513,6 +513,16 @@ library Music {
 			thistype[MUSIC_INDEX_LINGNENG_RESHAPE].snd = snd;
 			//# endcheck
 
+			//# check: music[3020]
+			//# dependency:sound/sound/pingzong_piaomiao.mp3
+			snd = CreateSound( "sound\\pingzong_piaomiao.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 6034 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_PINGZONG_PIAOMIAO].snd = snd;
+			//# endcheck
+
 			snd = null;
 		}
 
