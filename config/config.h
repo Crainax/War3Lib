@@ -7,7 +7,7 @@
 #undef EnableYDLuaConsole
 #endif
 
-// 默认启用：将 DzWriteLog 转发给 Lua hook；关闭时改为 #define DisableLuaDzWriteLog。
+// 默认启用：将 DzWriteLog 转发给 Lua 触发器桥；关闭时改为 #define DisableLuaDzWriteLog。
 #ifndef DisableLuaDzWriteLog
 #define EnableLuaDzWriteLog
 #endif
@@ -15,11 +15,11 @@
 #if defined(EnableLuaDzWriteLog)
 #ifndef LuaDzWriteLogMacroIncluded
 #define LuaDzWriteLogMacroIncluded
-native CrainaxLuaDzWriteLog takes string msg returns nothing
 #ifdef DzWriteLog
 #undef DzWriteLog
 #endif
-#define DzWriteLog(a) CrainaxLuaDzWriteLog(a)
+#define DzWriteLog(a) CrainaxDzWriteLog(a)
+// inject: CrainaxDzWriteLog
 #endif
 #endif
 

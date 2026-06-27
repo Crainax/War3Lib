@@ -117,7 +117,7 @@ runtime.sleep = false
 
 local ok_dz_write_log, dz_write_log_err = pcall(require, 'depends.debug.dz_write_log')
 if not ok_dz_write_log then
-    log.error('[DzWriteLog] Lua hook init failed: ' .. tostring(dz_write_log_err))
+    log.error('[DzWriteLog] Lua bridge init failed: ' .. tostring(dz_write_log_err))
 end
 
 return base
