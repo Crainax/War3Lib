@@ -20,6 +20,8 @@ CreateTextTagBA → CreateTimedTextTagOnUnitAngle
 #define TEXTTAG_VELOCITY_SLOW 64.00
 #define TEXTTAG_VELOCITY_FAST 128.00
 #define TEXTTAG_ANGLE_UP      90.00
+#define TEXTTAG_HINT_FOLLOW_TICK 0.05
+#define TEXTTAG_HINT_FOLLOW_MAX_SIZE 8190
 
 #include "Crainax/config/SharedMethod.h" // 结构体共用方法
 #include "Crainax/core/table/Hash_UnitDefine.j"
@@ -143,131 +145,202 @@ library TexttagUtils requires HashTable {
         CreateTimedTextTagOnUnitAngle(text, whichUnit, red, green, blue, time, 13, angleDeg);
     }
 
+    private struct UnitHintFollowQueue [] {
+        private static unit uList[];
+        private static texttag tagList[];
+        private static real leftList[];
+        private static real offsetList[];
+        private static integer size = 0;
+        private static timer tickTimer = null;
+
+        private static method clearSaved(unit u) {
+            integer uid;
+
+            if (u == null) { return; }
+            uid = GetHandleId(u);
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME);
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_HINT_OFFSET);
+            RemoveSavedHandle(HASH_UNIT, uid, KEY_UNIT_HINT_TEXTTAG);
+        }
+
+        private static method stopTimerIfEmpty() {
+            if (thistype.size <= 0 && thistype.tickTimer != null) {
+                PauseTimer(thistype.tickTimer);
+                DestroyTimer(thistype.tickTimer);
+                thistype.tickTimer = null;
+            }
+        }
+
+        private static method removeAt(integer index) -> integer {
+            integer last;
+            unit removed;
+            texttag removedTag;
+
+            if (index < 0 || index >= thistype.size) { return index; }
+
+            last = thistype.size - 1;
+            removed = thistype.uList[index];
+            removedTag = thistype.tagList[index];
+
+            if (removedTag != null) {
+                DestroyTextTag(removedTag);
+            }
+            thistype.clearSaved(removed);
+
+            if (index != last) {
+                thistype.uList[index] = thistype.uList[last];
+                thistype.tagList[index] = thistype.tagList[last];
+                thistype.leftList[index] = thistype.leftList[last];
+                thistype.offsetList[index] = thistype.offsetList[last];
+            }
+
+            thistype.uList[last] = null;
+            thistype.tagList[last] = null;
+            thistype.leftList[last] = 0.0;
+            thistype.offsetList[last] = 0.0;
+            thistype.size -= 1;
+
+            removed = null;
+            removedTag = null;
+            return index - 1;
+        }
+
+        private static method indexOf(unit u) -> integer {
+            integer i;
+
+            if (u == null) { return -1; }
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { return i; }
+            }
+            return -1;
+        }
+
+        private static method ensureTimer() {
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, TEXTTAG_HINT_FOLLOW_TICK, true, function () {
+                    integer i;
+                    integer uid;
+                    unit u;
+                    texttag tag;
+                    real left;
+                    real off;
+
+                    uid = 0;
+                    u = null;
+                    tag = null;
+                    left = 0.0;
+                    off = 0.0;
+
+                    for (i = 0; i < thistype.size; i += 1) {
+                        u = thistype.uList[i];
+                        if (u == null || GetUnitTypeId(u) == 0) {
+                            i = thistype.removeAt(i);
+                        } else {
+                            uid = GetHandleId(u);
+                            if (!HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME)) {
+                                i = thistype.removeAt(i);
+                            } else {
+                                left = thistype.leftList[i];
+                                if (left > 0.0) {
+                                    left -= TEXTTAG_HINT_FOLLOW_TICK;
+                                    if (left < 0.0) { left = 0.0; }
+
+                                    thistype.leftList[i] = left;
+                                    SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME, left);
+
+                                    tag = thistype.tagList[i];
+                                    off = thistype.offsetList[i];
+                                    if (tag != null) {
+                                        SetTextTagPos(tag, YDWECoordinateX(GetUnitX(u) - off), GetUnitY(u), 20);
+                                    }
+                                } else {
+                                    i = thistype.removeAt(i);
+                                }
+                            }
+                        }
+
+                        tag = null;
+                        u = null;
+                    }
+
+                    thistype.stopTimerIfEmpty();
+                });
+            }
+        }
+
+        public static method show(string s, unit whichUnit, real textSize, real red, real green, real blue, real off, real time) {
+            integer index;
+            integer uid;
+            real left;
+            texttag oldTag;
+
+            index = 0;
+            uid = 0;
+            left = 0.0;
+            oldTag = null;
+
+            if (whichUnit == null || GetUnitTypeId(whichUnit) == 0) {
+                return;
+            }
+
+            time = RMaxBJ(0.01, time);
+            uid = GetHandleId(whichUnit);
+            index = thistype.indexOf(whichUnit);
+            if (index >= 0) {
+                left = RMaxBJ(time, thistype.leftList[index]);
+                thistype.leftList[index] = left;
+                thistype.offsetList[index] = off;
+
+                oldTag = thistype.tagList[index];
+                if (oldTag != null) {
+                    DestroyTextTag(oldTag);
+                }
+                thistype.tagList[index] = CreateTextTagOnUnitOffsetX(s, whichUnit, 20, textSize, red, green, blue, 0, off);
+
+                SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME, left);
+                SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_OFFSET, off);
+                SaveTextTagHandle(HASH_UNIT, uid, KEY_UNIT_HINT_TEXTTAG, thistype.tagList[index]);
+                thistype.ensureTimer();
+
+                oldTag = null;
+                return;
+            }
+
+            if (thistype.size >= TEXTTAG_HINT_FOLLOW_MAX_SIZE) {
+                BJDebugMsg("|cFFFF0000[UnitHintFollowQueue] 队列已满，无法继续添加跟随文字！|r");
+                return;
+            }
+
+            index = thistype.size;
+            thistype.uList[index] = whichUnit;
+            thistype.leftList[index] = time;
+            thistype.offsetList[index] = off;
+            thistype.tagList[index] = CreateTextTagOnUnitOffsetX(s, whichUnit, 20, textSize, red, green, blue, 0, off);
+            thistype.size += 1;
+
+            SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME, time);
+            SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_OFFSET, off);
+            SaveTextTagHandle(HASH_UNIT, uid, KEY_UNIT_HINT_TEXTTAG, thistype.tagList[index]);
+            thistype.ensureTimer();
+
+            oldTag = null;
+        }
+    }
+
     // 限时跟随漂浮文字（不向上漂浮，而是跟随单位移动）
     //
     // 行为说明：
-    // - 第一次调用：创建 texttag，并启动一个 0.05s 周期定时器，每 tick 更新位置与倒计时
-    // - 重复调用：不再创建定时器，只会刷新文本并延长剩余时间（取 max(旧剩余时间, 新 time)）
+    // - 第一次调用：创建 texttag，并懒加载一个共享 0.05s 中央计时器
+    // - 重复调用：刷新文本并延长剩余时间（取 max(旧剩余时间, 新 time)）
+    // - 队列为空：销毁中央计时器，下一次调用再创建
     //
     // 数据存储（父键：GetHandleId(whichUnit)，表：HASH_UNIT）：
     // - KEY_UNIT_HINT_TIME：剩余时间（real）
     // - KEY_UNIT_HINT_OFFSET：X 偏移（real）
     // - KEY_UNIT_HINT_TEXTTAG：texttag 句柄
-    //
-    // 注意：
-    // - 如果单位被移除导致句柄为 null，定时器会安全自清理
-    // - time <= 0 会被归一为 0.01，避免出现负值倒计时
     public function ShowUnitHintFollowTag(string s, unit whichUnit, real size, real red, real green, real blue, real off, real time) {
-        integer uid;
-        real oldTime;
-        texttag oldTag;
-        timer t;
-
-        // 局部变量声明在前；句柄在尾部置空
-        uid = 0;
-        oldTime = 0.0;
-        oldTag = null;
-        t = null;
-
-        if (whichUnit == null) {
-            return;
-        }
-
-        time = RMaxBJ(0.01, time);
-        uid = GetHandleId(whichUnit);
-
-        // 已存在：刷新文本并延长时间（不重复创建 timer）
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME)) {
-            oldTime = LoadReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME);
-            SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME, RMaxBJ(time, oldTime));
-
-            oldTag = LoadTextTagHandle(HASH_UNIT, uid, KEY_UNIT_HINT_TEXTTAG);
-            if (oldTag != null) {
-                DestroyTextTag(oldTag);
-            }
-
-            SaveTextTagHandle(HASH_UNIT, uid, KEY_UNIT_HINT_TEXTTAG, CreateTextTagOnUnitOffsetX(s, whichUnit, 20, size, red, green, blue, 0, off));
-            SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_OFFSET, off);
-        } else {
-            // 首次：创建并启动跟随计时器
-            SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME, time);
-            SaveTextTagHandle(HASH_UNIT, uid, KEY_UNIT_HINT_TEXTTAG, CreateTextTagOnUnitOffsetX(s, whichUnit, 20, size, red, green, blue, 100, off));
-            SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_OFFSET, off);
-
-            t = CreateTimer();
-            SaveUnitHandle(HASH_TIMER, GetHandleId(t), 1, whichUnit);
-
-            TimerStart(t, 0.05, true, function () {
-                timer ttimer;
-                integer tid;
-                unit u;
-                integer uid;
-                real left;
-                real off;
-                texttag tag;
-
-                ttimer = null;
-                tid = 0;
-                u = null;
-                uid = 0;
-                left = 0.0;
-                off = 0.0;
-                tag = null;
-
-                ttimer = GetExpiredTimer();
-                tid = GetHandleId(ttimer);
-                u = LoadUnitHandle(HASH_TIMER, tid, 1);
-
-                // 单位句柄已失效：仅清理 timer 的存储与自身
-                if (u == null) {
-                    PauseTimer(ttimer);
-                    FlushChildHashtable(HASH_TIMER, tid);
-                    DestroyTimer(ttimer);
-                    ttimer = null;
-                    return;
-                }
-
-                uid = GetHandleId(u);
-                if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME)) {
-                    left = LoadReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME);
-                } else {
-                    left = 0.0;
-                }
-
-                if (left > 0.0) {
-                    left -= 0.05;
-                    if (left < 0.0) { left = 0.0; }
-                    SaveReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME, left);
-
-                    tag = LoadTextTagHandle(HASH_UNIT, uid, KEY_UNIT_HINT_TEXTTAG);
-                    off = LoadReal(HASH_UNIT, uid, KEY_UNIT_HINT_OFFSET);
-                    if (tag != null) {
-                        SetTextTagPos(tag, YDWECoordinateX(GetUnitX(u) - off), GetUnitY(u), 20);
-                    }
-                } else {
-                    tag = LoadTextTagHandle(HASH_UNIT, uid, KEY_UNIT_HINT_TEXTTAG);
-                    if (tag != null) {
-                        DestroyTextTag(tag);
-                    }
-
-                    RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_HINT_TIME);
-                    RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_HINT_OFFSET);
-                    RemoveSavedHandle(HASH_UNIT, uid, KEY_UNIT_HINT_TEXTTAG);
-
-                    PauseTimer(ttimer);
-                    FlushChildHashtable(HASH_TIMER, tid);
-                    DestroyTimer(ttimer);
-                }
-
-                // handler 置空，防泄漏
-                tag = null;
-                u = null;
-                ttimer = null;
-            });
-        }
-
-        oldTag = null;
-        t = null;
+        UnitHintFollowQueue.show(s, whichUnit, size, red, green, blue, off, time);
     }
 
 
