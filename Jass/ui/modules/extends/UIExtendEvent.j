@@ -148,11 +148,14 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
         uiLifeCycle.registerDestroy(function (){
             integer ui = uiLifeCycle.agrsFrame;
             uiEvent func;
-            if (uiEventState.uiId == ui && HaveSavedInteger(HASH_UI,ui,HASH_KEY_UI_SIMPLE_EVENT_LEAVE)) {
-                func = LoadInteger(HASH_UI,uiEventState.uiId,HASH_KEY_UI_SIMPLE_EVENT_LEAVE);
-                func.evaluate(uiEventState.uiId);
+            if (uiEventState.uiId == ui) {
+                uiEventState.uiId = 0;
+                uiEventState.rcStart = false;
+                if (HaveSavedInteger(HASH_UI,ui,HASH_KEY_UI_SIMPLE_EVENT_LEAVE)) {
+                    func = LoadInteger(HASH_UI,ui,HASH_KEY_UI_SIMPLE_EVENT_LEAVE);
+                    func.evaluate(ui);
+                }
             }
-            uiEventState.uiId = 0;
         });
         // hardware.regRightDownEvent(function () { //注册右键按下事件
         //     integer currentUI;
