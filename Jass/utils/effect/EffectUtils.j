@@ -11,16 +11,33 @@
 //# dependency:map/splats/lightningdata.slk
 //# dependency:resource/Textures/Hero_Oblivion_N5_light1.blp
 
+#include "Crainax/core/constant/HashTable.j"
+
 library EffectUtils requires YDWEJapiEffect,HashTable {
 
 
 	// 环绕特效
-	public function ShowCircleEffect(real x, real y, real radius, integer count, string s) {
+	public function ShowCircleEffectScale(real x, real y, real radius, integer count, string s, real scale) {
 		integer i;
+		effect e;
 
-		for (1 <= i <= count) {
-			DestroyEffect(AddSpecialEffect(s, YDWECoordinateX(x + radius * CosBJ(i * 360.0 / count)), YDWECoordinateY(y + radius * SinBJ(i * 360.0 / count))));
+		if (scale <= 0.0) {
+			scale = 1.0;
 		}
+		for (1 <= i <= count) {
+			e = AddSpecialEffect(s, YDWECoordinateX(x + radius * CosBJ(i * 360.0 / count)), YDWECoordinateY(y + radius * SinBJ(i * 360.0 / count)));
+			if (e != null) {
+				if (scale != 1.0) {
+					EXEffectMatScale(e, scale, scale, scale);
+				}
+				DestroyEffect(e);
+			}
+		}
+		e = null;
+	}
+
+	public function ShowCircleEffect(real x, real y, real radius, integer count, string s) {
+		ShowCircleEffectScale(x, y, radius, count, s, 1.0);
 	}
 
     private function MythEffectTimer() {
@@ -32,6 +49,7 @@ library EffectUtils requires YDWEJapiEffect,HashTable {
         real x;
         real y;
         real radiusStep;
+        real scale;
         string model;
 
         t = GetExpiredTimer();
@@ -45,10 +63,14 @@ library EffectUtils requires YDWEJapiEffect,HashTable {
         if (i <= layers) {
             i += 1;
             radiusStep = LoadReal(HASH_TIMER, id, 6);
+            scale = LoadReal(HASH_TIMER, id, 9);
+            if (scale <= 0.0) {
+                scale = 1.0;
+            }
             if (model != null && model != "" && radiusStep > 0.0) {
                 count = LoadInteger(HASH_TIMER, id, 7) + i * LoadInteger(HASH_TIMER, id, 8);
                 if (count > 0) {
-                    ShowCircleEffect(x, y, radiusStep * I2R(i), count, model);
+                    ShowCircleEffectScale(x, y, radiusStep * I2R(i), count, model, scale);
                 }
             }
             SaveInteger(HASH_TIMER, id, 1, i);
@@ -61,12 +83,15 @@ library EffectUtils requires YDWEJapiEffect,HashTable {
         t = null;
     }
 
-    public function CreateMythEffectAt(real x, real y, integer layers, real radiusStep, integer countBase, integer countStep, string model) {
+    public function CreateMythEffectAtScale(real x, real y, integer layers, real radiusStep, integer countBase, integer countStep, string model, real scale) {
         timer t;
         integer id;
 
         if (layers <= 0 || radiusStep <= 0.0 || model == null || model == "") {
             return;
+        }
+        if (scale <= 0.0) {
+            scale = 1.0;
         }
 
         t = CreateTimer();
@@ -79,8 +104,13 @@ library EffectUtils requires YDWEJapiEffect,HashTable {
         SaveReal(HASH_TIMER, id, 6, radiusStep);
         SaveInteger(HASH_TIMER, id, 7, countBase);
         SaveInteger(HASH_TIMER, id, 8, countStep);
+        SaveReal(HASH_TIMER, id, 9, scale);
         TimerStart(t, 0.25, true, function MythEffectTimer);
         t = null;
+    }
+
+    public function CreateMythEffectAt(real x, real y, integer layers, real radiusStep, integer countBase, integer countStep, string model) {
+        CreateMythEffectAtScale(x, y, layers, radiusStep, countBase, countStep, model, 1.0);
     }
 
     public function CreateMythEffectCustom(real x, real y, real radiusStep, integer countBase, integer countStep, string model) {
@@ -92,6 +122,13 @@ library EffectUtils requires YDWEJapiEffect,HashTable {
             return;
         }
         CreateMythEffectAt(GetUnitX(u), GetUnitY(u), layers, radiusStep, countBase, countStep, model);
+    }
+
+    public function CreateMythEffectScale(unit u, integer layers, real radiusStep, integer countBase, integer countStep, string model, real scale) {
+        if (u == null) {
+            return;
+        }
+        CreateMythEffectAtScale(GetUnitX(u), GetUnitY(u), layers, radiusStep, countBase, countStep, model, scale);
     }
 
     // 基础缩放函数：对已有特效应用缩放矩阵
