@@ -12,7 +12,7 @@ library UTMover requires Mover {
 	// 测试用单位：圣骑士（用于伤害测试）
 	private unit utCaster = null;
 	private trigger utCastTr = null;
-	private integer utTestMode = 1;  // 1=基础移动, 2=带完成回调, 3=带步骤回调, 4=不同配置, 5=到达伤害
+	private integer utTestMode = 1;  // 1-7=基础/伤害移动, 8-11=单位追踪移动
 	private unit utEnemies[];  // 100个农民数组（用于伤害测试）
 
 	private function UTMoverMoveUnitLater(unit target, real delay, real x, real y) {
@@ -357,6 +357,20 @@ library UTMover requires Mover {
 						UTMoverKillUnitLater(target, 0.35);
 					}
 					BJDebugMsg("[MoverTest] 已创建目标死亡后直接结束弹道");
+				} else if (utTestMode == 11) {
+					target = CreateUnit(Player(10), 'hpea', sx + 2300.0, sy, 0.0);
+					EffectMoveCfg.speed = 1800.0;
+					EffectMoveCfg.modelPath = "Abilities\\Weapons\\FireBallMissile\\FireBallMissile.mdl";
+					EffectMoveCfg.scale = 1.5;
+					EffectMoveCfg.heightOffset = 80.0;
+					EffectMoveCfg.radius = 0.0;
+					EffectMoveCfg.damage = 0.0;
+					EffectMoveCfg.onStep = null;
+					mv = StartEffectMoveToUnitEx(utCaster, sx, sy, target, 2600.0, EFFECTMOVE_TRACK_DEAD_LAST_POS, function () -> boolean {
+						BJDebugMsg("[MoverTest] 自定义2600追踪距离完成, reason=" + I2S(EffectMoveGetEndReason()) + ", 期望=" + I2S(EFFECTMOVE_END_TARGET));
+						return true;
+					});
+					BJDebugMsg("[MoverTest] 已创建自定义2600追踪距离弹道, 目标距离2300");
 				}
 
 				u = null;
@@ -501,6 +515,17 @@ library UTMover requires Mover {
 		BJDebugMsg("[MoverTest] 请对目标点施放 A000 技能, 目标会在0.35秒后死亡");
 	}
 
+	function TTestUTMover11 (player p) {
+		initUnits();
+		if (utCaster == null) {
+			BJDebugMsg("[MoverTest] 单位未初始化");
+			return;
+		}
+		utTestMode = 11;
+		BJDebugMsg("[MoverTest] 测试11: 自定义2600追踪距离");
+		BJDebugMsg("[MoverTest] 请施放 A000 技能, 目标固定生成在距离2300处");
+	}
+
 	function TTestActUTMover1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -562,6 +587,7 @@ library UTMover requires Mover {
 			else if(str == "s8") TTestUTMover8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTMover9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTMover10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTMover11(GetTriggerPlayer());
 		});
 
 		//YDWECoordinateX

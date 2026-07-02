@@ -462,7 +462,8 @@ library Mover requires HashTable, DamageUtils, Geometry {
         return result;
     }
 
-    public function StartEffectMoveToUnit(unit caster, real startX, real startY, unit target, integer deadMode, code onComplete) -> timer {
+    // 追踪单位入口：maxDistance <= 0 时使用默认追踪距离。
+    public function StartEffectMoveToUnitEx(unit caster, real startX, real startY, unit target, real maxDistance, integer deadMode, code onComplete) -> timer {
         timer t;
         timer result;
         integer id;
@@ -473,17 +474,29 @@ library Mover requires HashTable, DamageUtils, Geometry {
         if (deadMode != EFFECTMOVE_TRACK_DEAD_DESTROY) {
             deadMode = EFFECTMOVE_TRACK_DEAD_LAST_POS;
         }
+        if (maxDistance <= 0.0) {
+            maxDistance = EFFECTMOVE_TRACK_MAX_DISTANCE;
+        }
         t = StartEffectMove(caster, startX, startY, GetUnitX(target), GetUnitY(target), onComplete);
         if (t != null) {
             id = GetHandleId(t);
             SaveUnitHandle(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_TARGET, target);
             SaveInteger(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_DEAD_MODE, deadMode);
             SaveBoolean(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_ACTIVE, true);
-            SaveReal(HASH_TIMER, id, 10, EFFECTMOVE_TRACK_MAX_DISTANCE);
+            SaveReal(HASH_TIMER, id, 10, maxDistance);
         }
         result = t;
         target = null;
         t = null;
+        return result;
+    }
+
+    // 兼容旧入口：追踪距离沿用默认 2000。
+    public function StartEffectMoveToUnit(unit caster, real startX, real startY, unit target, integer deadMode, code onComplete) -> timer {
+        timer result;
+
+        result = StartEffectMoveToUnitEx(caster, startX, startY, target, EFFECTMOVE_TRACK_MAX_DISTANCE, deadMode, onComplete);
+        target = null;
         return result;
     }
 }
