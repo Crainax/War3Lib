@@ -17,6 +17,18 @@
 #define EFFECTMOVE_DMG_PHYSICAL      1
 #define EFFECTMOVE_DMG_MAGIC         2
 #define EFFECTMOVE_DMG_PURE          3
+#define EFFECTMOVE_TRACK_DEAD_LAST_POS 1 // 追踪目标失效后飞向最后记录位置
+#define EFFECTMOVE_TRACK_DEAD_DESTROY 2 // 追踪目标失效后直接结束弹道
+#define EFFECTMOVE_TRACK_MAX_DISTANCE 2000.0 // 追踪弹道最大飞行距离
+#define EFFECTMOVE_END_POINT 1 // 完成原因:到达固定终点
+#define EFFECTMOVE_END_TARGET 2 // 完成原因:追踪命中活目标
+#define EFFECTMOVE_END_LAST_POS 3 // 完成原因:追踪目标失效后到达最后记录位置
+#define EFFECTMOVE_END_MAX_DISTANCE 4 // 完成原因:达到最大飞行距离
+#define EFFECTMOVE_END_TARGET_LOST 5 // 完成原因:目标失效并按配置直接结束
+#define EFFECTMOVE_HASH_TRACK_TARGET -88001 // Mover内部哈希:追踪目标
+#define EFFECTMOVE_HASH_TRACK_DEAD_MODE -88002 // Mover内部哈希:目标失效处理模式
+#define EFFECTMOVE_HASH_TRACK_ACTIVE -88003 // Mover内部哈希:是否仍实时追踪目标
+#define EFFECTMOVE_HASH_SCALE -88004 // Mover内部哈希:实例模型缩放
 
 library Mover requires HashTable, DamageUtils, Geometry {
 
@@ -40,6 +52,7 @@ library Mover requires HashTable, DamageUtils, Geometry {
         public static real x = 0.0;
         public static real y = 0.0;
         public static real travelled = 0.0;
+        public static integer endReason = 0;
     }
 
     // 兼容函数：获取当前回调的 timer
@@ -67,10 +80,18 @@ library Mover requires HashTable, DamageUtils, Geometry {
         return EffectMoveArgs.travelled;
     }
 
+    public function EffectMoveGetEndReason() -> integer {
+        return EffectMoveArgs.endReason;
+    }
+
     // 回调参数（枚举 Filter 使用静态成员传参，避免哈希表冲突）
     private unit    effectMoveCbCaster        = null;
     private real    effectMoveCbDamage        = 0.0;
     private integer effectMoveCbDamageType    = 0;
+
+    private function EffectMoveIsTrackTargetAlive(unit u) -> boolean {
+        return u != null && GetUnitTypeId(u) != 0 && IsUnitAliveBJ(u);
+    }
 
     // 计时器回调：推进弹道、结束时清理
     private function EffectMoveTimer() {
@@ -92,11 +113,18 @@ library Mover requires HashTable, DamageUtils, Geometry {
         real speed;
         real tick;
         real heightOffset;
+        real scale;
+        real dist;
         trigger trComplete;
         trigger trStep;
         group enumGrp;
         unit l_unit;
+        unit trackTarget;
+        integer trackDeadMode;
+        integer endReason;
         boolean b;
+        boolean doArrivalDamage;
+        boolean trackActive;
 
         t = GetExpiredTimer();
         id = GetHandleId(t);
@@ -117,14 +145,22 @@ library Mover requires HashTable, DamageUtils, Geometry {
         trComplete   = LoadTriggerHandle(HASH_TIMER, id, 14);
         trStep       = LoadTriggerHandle(HASH_TIMER, id, 15);
         tick         = LoadReal(HASH_TIMER, id, 17);
+        trackTarget  = LoadUnitHandle(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_TARGET);
+        trackDeadMode = LoadInteger(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_DEAD_MODE);
+        trackActive  = LoadBoolean(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_ACTIVE);
+        scale        = LoadReal(HASH_TIMER, id, EFFECTMOVE_HASH_SCALE);
 
         b = false;
+        doArrivalDamage = true;
+        endReason = EFFECTMOVE_END_POINT;
         l_unit = null;
         enumGrp = null;
 
         // 失效或超出射程：清理
         if (e == null || travelled >= range) {
             b = true;
+            endReason = EFFECTMOVE_END_MAX_DISTANCE;
+            doArrivalDamage = false;
         } else {
             // 前进一小步
             // 注意：speed 是“每秒速度”，step 才是“每 tick 位移”
@@ -133,28 +169,61 @@ library Mover requires HashTable, DamageUtils, Geometry {
                 tick = EFFECTMOVE_TICK;
             }
             step = speed * tick;
-            x = x + step * CosBJ(facing);
-            y = y + step * SinBJ(facing);
+            if (trackTarget != null && trackActive) {
+                if (EffectMoveIsTrackTargetAlive(trackTarget)) {
+                    targetX = GetUnitX(trackTarget);
+                    targetY = GetUnitY(trackTarget);
+                    SaveReal(HASH_TIMER, id, 5, targetX);
+                    SaveReal(HASH_TIMER, id, 6, targetY);
+                } else {
+                    trackActive = false;
+                    SaveBoolean(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_ACTIVE, false);
+                    if (trackDeadMode == EFFECTMOVE_TRACK_DEAD_DESTROY) {
+                        b = true;
+                        endReason = EFFECTMOVE_END_TARGET_LOST;
+                        doArrivalDamage = false;
+                    }
+                }
+            }
+            if (!b) {
+                if (trackTarget != null) {
+                    facing = GetFacing(x, y, targetX, targetY);
+                }
+                dist = GetDistance(x, y, targetX, targetY);
+                if (dist <= step || dist <= 1.0) {
+                    x = targetX;
+                    y = targetY;
+                    if (trackTarget != null) {
+                        if (trackActive) {
+                            endReason = EFFECTMOVE_END_TARGET;
+                        } else {
+                            endReason = EFFECTMOVE_END_LAST_POS;
+                        }
+                    }
+                    b = true;
+                } else {
+                    x = x + step * CosBJ(facing);
+                    y = y + step * SinBJ(facing);
+                    travelled = travelled + step;
+                }
+            }
             x = YDWECoordinateX(x);
             y = YDWECoordinateY(y);
-            travelled = travelled + step;
 
             SaveReal(HASH_TIMER, id, 3, x);
             SaveReal(HASH_TIMER, id, 4, y);
+            SaveReal(HASH_TIMER, id, 7, facing);
             SaveReal(HASH_TIMER, id, 11, travelled);
 
             // 根据当前地形高度设置 Z
             z = I2R(GetTerrainCliffLevel(x, y)) * EFFECTMOVE_CLIFF_Z + heightOffset;
             DzSetEffectPos(e, x, y, z);
-
-            // 检查是否到达目标
-            if (GetDistance(x, y, targetX, targetY) <= step) {
-                x = targetX;
-                y = targetY;
-                SaveReal(HASH_TIMER, id, 3, x);
-                SaveReal(HASH_TIMER, id, 4, y);
-                DzSetEffectPos(e, x, y, I2R(GetTerrainCliffLevel(x, y)) * EFFECTMOVE_CLIFF_Z + heightOffset);
-                b = true;
+            if (trackTarget != null) {
+                EXEffectMatReset(e);
+                if (scale != 1.0) {
+                    EXEffectMatScale(e, scale, scale, scale);
+                }
+                EXEffectMatRotateZ(e, facing);
             }
 
             // 触发 step 回调
@@ -164,12 +233,14 @@ library Mover requires HashTable, DamageUtils, Geometry {
                 EffectMoveArgs.x = x;
                 EffectMoveArgs.y = y;
                 EffectMoveArgs.travelled = travelled;
+                EffectMoveArgs.endReason = 0;
                 TriggerEvaluate(trStep);
                 EffectMoveArgs.t = null;
                 EffectMoveArgs.e = null;
                 EffectMoveArgs.x = 0.0;
                 EffectMoveArgs.y = 0.0;
                 EffectMoveArgs.travelled = 0.0;
+                EffectMoveArgs.endReason = 0;
             }
         }
 
@@ -182,16 +253,18 @@ library Mover requires HashTable, DamageUtils, Geometry {
                 EffectMoveArgs.x = x;
                 EffectMoveArgs.y = y;
                 EffectMoveArgs.travelled = travelled;
+                EffectMoveArgs.endReason = endReason;
                 TriggerEvaluate(trComplete);
                 EffectMoveArgs.t = null;
                 EffectMoveArgs.e = null;
                 EffectMoveArgs.x = 0.0;
                 EffectMoveArgs.y = 0.0;
                 EffectMoveArgs.travelled = 0.0;
+                EffectMoveArgs.endReason = 0;
             }
 
             // 到达伤害：在终点枚举并结算一次伤害
-            if (caster != null && damage >= 1.0 && radius > 0.0) {
+            if (doArrivalDamage && caster != null && damage >= 1.0 && radius > 0.0) {
                 enumGrp = CreateGroup();
                 effectMoveCbCaster = caster;
                 effectMoveCbDamage = damage;
@@ -240,6 +313,7 @@ library Mover requires HashTable, DamageUtils, Geometry {
 
             e = null;
             caster = null;
+            trackTarget = null;
             trComplete = null;
             trStep = null;
             t = null;
@@ -247,6 +321,7 @@ library Mover requires HashTable, DamageUtils, Geometry {
             // 继续运行，只清理局部变量
             caster = null;
             e = null;
+            trackTarget = null;
             trComplete = null;
             trStep = null;
             t = null;
@@ -345,6 +420,7 @@ library Mover requires HashTable, DamageUtils, Geometry {
         SaveReal(HASH_TIMER, id, 13, cfgHeight);
         SaveInteger(HASH_TIMER, id, 16, cfgDmgType);
         SaveReal(HASH_TIMER, id, 17, cfgTick);
+        SaveReal(HASH_TIMER, id, EFFECTMOVE_HASH_SCALE, cfgScale);
 
         // 移动结束后恢复配置为默认值（避免影响后续移动）
         EffectMoveCfg.speed         = EFFECTMOVE_SPEED;
@@ -382,6 +458,31 @@ library Mover requires HashTable, DamageUtils, Geometry {
         trComplete = null;
         trStep = null;
         cfgModel = null;
+        t = null;
+        return result;
+    }
+
+    public function StartEffectMoveToUnit(unit caster, real startX, real startY, unit target, integer deadMode, code onComplete) -> timer {
+        timer t;
+        timer result;
+        integer id;
+
+        if (!EffectMoveIsTrackTargetAlive(target)) {
+            return null;
+        }
+        if (deadMode != EFFECTMOVE_TRACK_DEAD_DESTROY) {
+            deadMode = EFFECTMOVE_TRACK_DEAD_LAST_POS;
+        }
+        t = StartEffectMove(caster, startX, startY, GetUnitX(target), GetUnitY(target), onComplete);
+        if (t != null) {
+            id = GetHandleId(t);
+            SaveUnitHandle(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_TARGET, target);
+            SaveInteger(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_DEAD_MODE, deadMode);
+            SaveBoolean(HASH_TIMER, id, EFFECTMOVE_HASH_TRACK_ACTIVE, true);
+            SaveReal(HASH_TIMER, id, 10, EFFECTMOVE_TRACK_MAX_DISTANCE);
+        }
+        result = t;
+        target = null;
         t = null;
         return result;
     }
