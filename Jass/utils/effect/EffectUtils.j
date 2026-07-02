@@ -1,6 +1,8 @@
 #ifndef EffectUtilsIncluded
 #define EffectUtilsIncluded
 
+#include "Crainax/core/constant/HashTable.j"
+
 //! zinc
 /*
 特效工具库
@@ -10,8 +12,6 @@
 
 //# dependency:map/splats/lightningdata.slk
 //# dependency:resource/Textures/Hero_Oblivion_N5_light1.blp
-
-#include "Crainax/core/constant/HashTable.j"
 
 library EffectUtils requires YDWEJapiEffect,HashTable {
 
