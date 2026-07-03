@@ -441,7 +441,7 @@ local function runStart(selection)
 	if not ok then
 		return false
 	end
-	local started = launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
+	local started = launcher.StartWar3File(slot, slotDisplay(selection.version, "_slk"))
 	if started then
 		updateVersionState(selection.version, true, true)
 	end
@@ -471,7 +471,7 @@ local function runIncrementalStart(selection)
 	if not updateMapIncrementallyWithStorm(slot) then
 		return false
 	end
-	local started = launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
+	local started = launcher.StartWar3File(slot, slotDisplay(selection.version, "_slk"))
 	if started then
 		updateVersionState(selection.version, false, true)
 	end
@@ -490,7 +490,7 @@ local function runLegacyStart(selection)
 		return false
 	end
 	print(string.format("[矩阵启动]老地图启动: %s / %s", versionLabels[selection.version], slot))
-	return launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
+	return launcher.StartWar3File(slot, slotDisplay(selection.version, "_slk"))
 end
 
 local function runSelection(selection)
