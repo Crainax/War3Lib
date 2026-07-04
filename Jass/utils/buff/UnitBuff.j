@@ -184,7 +184,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
             // 检查队列容量
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[ImmuteQueue] 队列已满，无法继续添加无敌单位！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[ImmuteQueue] 队列已满，无法继续添加无敌单位！|r");
                 return;
             }
 
@@ -321,7 +321,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             }
 
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[PauseQueue] 队列已满，无法继续添加眩晕单位！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[PauseQueue] 队列已满，无法继续添加眩晕单位！|r");
                 return;
             }
 
@@ -412,7 +412,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             }
 
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[PrecastPauseQueue] 队列已满，无法继续添加前摇暂停单位！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[PrecastPauseQueue] 队列已满，无法继续添加前摇暂停单位！|r");
                 return;
             }
 
@@ -491,7 +491,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             }
 
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[StunCdQueue] 队列已满，无法继续添加眩晕CD单位！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[StunCdQueue] 队列已满，无法继续添加眩晕CD单位！|r");
                 return;
             }
 
@@ -590,7 +590,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             }
 
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[SilenceQueue] 队列已满，无法继续添加沉默单位！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[SilenceQueue] 队列已满，无法继续添加沉默单位！|r");
                 return;
             }
 
@@ -678,7 +678,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             }
 
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[DisarmQueue] 队列已满，无法继续添加缴械单位！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[DisarmQueue] 队列已满，无法继续添加缴械单位！|r");
                 return;
             }
 
@@ -793,7 +793,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
             // 检查队列容量
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[TimerBuffQueue] 队列已满，无法继续添加定时器 BUFF！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[TimerBuffQueue] 队列已满，无法继续添加定时器 BUFF！|r");
                 return null;
             }
 

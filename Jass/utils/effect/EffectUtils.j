@@ -215,7 +215,7 @@ library EffectUtils requires YDWEJapiEffect,HashTable {
             thistype.ensureTimer();
 
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[EffectUtils] LightningQueue 队列已满，无法继续添加闪电效果！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[EffectUtils] LightningQueue 队列已满，无法继续添加闪电效果！|r");
                 return;
             }
 
@@ -301,7 +301,7 @@ library EffectUtils requires YDWEJapiEffect,HashTable {
             thistype.ensureTimer();
 
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[EffectUtils] EffectQueue 队列已满，无法继续添加特效！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[EffectUtils] EffectQueue 队列已满，无法继续添加特效！|r");
                 DestroyEffect(e);
                 e = null;
                 return;

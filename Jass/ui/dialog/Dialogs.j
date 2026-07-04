@@ -36,7 +36,7 @@ library Dialogs requires HashTable {
 		// 给对话框绑单位,不能取大于1
 		public method bindUnitHandle(unit u, integer i) {
 			if (i == 1) {
-				BJDebugMsg("error : in the dialog binding 1!");
+				DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "error : in the dialog binding 1!");
 			}
 			SaveUnitHandle(HASH_DIALOG, GetHandleId(this.d), i, u);
 		}
@@ -48,7 +48,7 @@ library Dialogs requires HashTable {
 		// 给对话框绑整数,不能取大于1
 		public method bindInteger(integer input, integer i) {
 			if (i == 1) {
-				BJDebugMsg("error : in the dialog binding 1!");
+				DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "error : in the dialog binding 1!");
 			}
 			SaveInteger(HASH_DIALOG, GetHandleId(this.d), i, input);
 		}
@@ -215,7 +215,7 @@ library Dialogs requires HashTable {
 		// 给对话框绑单位,不能取大于1
 		public method bindUnitHandle(unit u, integer i) {
 			if (i == 1) {
-				BJDebugMsg("error : in the dialog binding 1!");
+				DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "error : in the dialog binding 1!");
 			}
 			SaveUnitHandle(HASH_DIALOG, GetHandleId(this.d), i, u);
 		}

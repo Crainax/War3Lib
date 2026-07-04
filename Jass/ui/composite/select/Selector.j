@@ -269,20 +269,20 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             real startX; real startY; real offsetX; real offsetY;
             thistype this = 0;
             if (!sd.isExist()) {
-                BJDebugMsg("selector.create: selectData not exist");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selectData not exist");
                 return 0;
             }
             if (GetLocalPlayer() != p) {return 0;}
 
             if (sd.uiSelector.isExist()) {
-                BJDebugMsg("selector.create: selector already exist");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selector already exist");
                 return 0;
             }
             this = allocate();
             if (!this.isExist()) {
                 //创建失败的回调处理，通过异步触发
                 syncBus.DzSyncDataEx("Select","Z"+I2S(sd));
-                BJDebugMsg("selector.create: allocate failed");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: allocate failed");
                 return 0;
             }
 

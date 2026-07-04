@@ -144,7 +144,7 @@ library ItemUtils requires HashTable {
             index = thistype.indexOf(it);
             if (index < 0) {
                 if (thistype.size >= ITEM_COOLDOWN_MAX_SIZE) {
-                    BJDebugMsg("|cFFFF0000[ItemCooldownQueue] 队列已满，无法继续添加物品冷却！|r");
+                    DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[ItemCooldownQueue] 队列已满，无法继续添加物品冷却！|r");
                     return;
                 }
                 index = thistype.size;
