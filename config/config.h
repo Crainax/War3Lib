@@ -7,7 +7,7 @@
 #undef EnableYDLuaConsole
 #endif
 
-// 默认启用：将 DzWriteLog 转发给 Lua 触发器桥；关闭时改为 #define DisableLuaDzWriteLog。
+// 默认启用：将 DzWriteLog 转发给 Logger；关闭时改为 #define DisableLuaDzWriteLog。
 #ifndef DisableLuaDzWriteLog
 #define EnableLuaDzWriteLog
 #endif
@@ -18,9 +18,17 @@
 #ifdef DzWriteLog
 #undef DzWriteLog
 #endif
-#define DzWriteLog(a) CrainaxDzWriteLog(a)
-// inject: CrainaxDzWriteLog
+#define DzWriteLog(a) CrainaxLogInfo(a)
+// inject: CrainaxLogInfo
 #endif
+#endif
+
+#ifndef DirectBJDebugMsgMacroIncluded
+#define DirectBJDebugMsgMacroIncluded
+#ifdef BJDebugMsg
+#undef BJDebugMsg
+#endif
+#define BJDebugMsg(msg) DisplayTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, msg)
 #endif
 
 // 原生UI的大小
