@@ -6,6 +6,7 @@ local utr        = require("Lua.compile.UTReplace")
 local injecter   = require("lua.compile.inject")
 local luaRuntime = require("Lua.compile.LuaRuntime")
 local incrementalPack = require("Lua.compile.IncrementalPack")
+local preslk     = require("Lua.compile.PreSlk")
 
 local w3xlni     = {}
 
@@ -127,6 +128,30 @@ local function restoreUnitTestObj(backups)
 	clear_inject_obj_queue()
 end
 
+local function cleanupPreSlk(cleanup)
+	if not cleanup then
+		return
+	end
+	local ok, err = pcall(cleanup)
+	if not ok then
+		print("[物编预处理]清理失败:" .. tostring(err))
+	end
+end
+
+local function cleanupPackageState(cleanupLuaRuntime, rootMapScript, objBackups)
+	cleanupLuaRuntime()
+	if fu.fileExist(path.mapJ) then fu.WriteOver(path.mapJ, "") end --覆盖一下war3map.j为空
+	if fu.fileExist(rootMapScript) then fu.WriteOver(rootMapScript, "") end --覆盖w2l识别的根脚本为空
+	if path.buildVersion == "单元测试" then
+		restoreUnitTestObj(objBackups)
+		-- utr.RemoveTable() -- 删除单元测试的物编
+		utr.removeResourceFiles()                                -- 删除资源文件(blp,mdx这些)
+		print("[Lua" .. path.buildVersion .. "]清除临时物编(不含Lua文件).")
+	else
+		clear_inject_obj_queue()
+	end
+end
+
 --- @param func function 打包函数(中途调用)
 function w3xlni:Start(func)
 	print("[开始打包地图]:" .. path.buildVersion .. ".")
@@ -169,20 +194,22 @@ function w3xlni:Start(func)
 			print("[Lua" .. path.buildVersion .. "] 无额外物编需要附加.")
 		end
 	end
+	local okPreSlk, preSlkCleanup, preSlkErr = pcall(preslk.prepare)
+	if not okPreSlk then
+		preSlkErr = preSlkCleanup
+		preSlkCleanup = nil
+	end
+	if preSlkErr then
+		cleanupPreSlk(preSlkCleanup)
+		cleanupPackageState(cleanupLuaRuntime, rootMapScript, objBackups)
+		print("[物编预处理]失败:" .. tostring(preSlkErr))
+		return false, preSlkErr
+	end
 	local okRun, result = pcall(function()
 		return table.pack(func())
 	end)
-	cleanupLuaRuntime()
-	if fu.fileExist(path.mapJ) then fu.WriteOver(path.mapJ, "") end --覆盖一下war3map.j为空
-	if fu.fileExist(rootMapScript) then fu.WriteOver(rootMapScript, "") end --覆盖w2l识别的根脚本为空
-	if path.buildVersion == "单元测试" then
-		restoreUnitTestObj(objBackups)
-		-- utr.RemoveTable() -- 删除单元测试的物编
-		utr.removeResourceFiles()                                -- 删除资源文件(blp,mdx这些)
-		print("[Lua" .. path.buildVersion .. "]清除临时物编(不含Lua文件).")
-	else
-		clear_inject_obj_queue()
-	end
+	cleanupPreSlk(preSlkCleanup)
+	cleanupPackageState(cleanupLuaRuntime, rootMapScript, objBackups)
 	if not okRun then
 		print("[开始打包地图]失败:" .. tostring(result))
 		return false, result
