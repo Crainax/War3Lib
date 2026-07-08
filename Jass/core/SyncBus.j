@@ -29,7 +29,7 @@
 #define SWITCH_SYNCBUS_OOS_DETECH
 #endif
 
-library SyncBus {
+library SyncBus requires Logger {
 
 	public struct syncBus [] {
 		private static trigger busTr = null;

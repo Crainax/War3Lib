@@ -16,6 +16,8 @@ local PLAYER_USER_NAME_MODES = {
     VERSION_UNITTEST = true
 }
 
+local MALL_ITEM_COUNT_SECTION = "War3Lib.LocalDzApi.MallItemCount"
+
 local WORLD_EDIT_REG_KEY = [[HKCU\Software\Blizzard Entertainment\WorldEdit]]
 local WORLD_EDIT_PLAYER_PROFILE_VALUE = "Test Map - Player Profile"
 
@@ -301,7 +303,7 @@ local function collectSectionKeys(section)
     local seen = {}
 
     for key, _ in pairs(section or {}) do
-        if key ~= "Default" and not seen[key] then
+        if key ~= "Default" and key ~= "Modes" and not seen[key] then
             seen[key] = true
             result[#result + 1] = key
         end
@@ -309,6 +311,67 @@ local function collectSectionKeys(section)
 
     table.sort(result)
     return result
+end
+
+local function collectSectionKeysInto(result, seen, section)
+    for key, _ in pairs(section or {}) do
+        if key ~= "Default" and key ~= "Modes" and not seen[key] then
+            seen[key] = true
+            result[#result + 1] = key
+        end
+    end
+end
+
+local function collectMallItemCountKeys(baseSection, versionSection)
+    local result = {}
+    local seen = {}
+
+    collectSectionKeysInto(result, seen, baseSection)
+    collectSectionKeysInto(result, seen, versionSection)
+    table.sort(result)
+    return result
+end
+
+local function isVersionModeEnabled(version, value, defaultModes)
+    local modes = splitModes(value, defaultModes)
+    return modes[version] == true
+end
+
+local function isMallItemHasKeyEnabled(version, hasSection, keyModesSection, key, defaultModes)
+    local modesValue = hasSection and hasSection["Modes"] or nil
+
+    if keyModesSection and keyModesSection[key] ~= nil then
+        modesValue = keyModesSection[key]
+    end
+    return isVersionModeEnabled(version, modesValue, defaultModes)
+end
+
+local function isMallItemCountKeyEnabled(version, keyModesSection, key)
+    if not keyModesSection or keyModesSection[key] == nil then
+        return true
+    end
+    return isVersionModeEnabled(version, keyModesSection[key], nil)
+end
+
+local function getMallItemCountDefault(baseSection, versionSection, localSection)
+    local baseDefault = baseSection["Default"] or localSection["MallItemCountDefault"] or "100"
+    return versionSection["Default"] or baseDefault
+end
+
+local function getMallItemCountValue(version, key, baseSection, versionSection, keyModesSection, defaultModes)
+    if not isMallItemCountKeyEnabled(version, keyModesSection, key) then
+        return nil
+    end
+
+    if versionSection[key] ~= nil then
+        return versionSection[key]
+    end
+
+    if baseSection[key] ~= nil and isVersionModeEnabled(version, baseSection["Modes"], defaultModes) then
+        return baseSection[key]
+    end
+
+    return nil
 end
 
 local function getPlayerUserNameIndex(key)
@@ -380,43 +443,55 @@ local function buildPlayerUserNameMockLines(section, localSection)
     return lines
 end
 
-local function appendMallItemHasFunction(lines, hasSection, defaultValue)
+local function appendMallItemHasFunction(lines, version, hasSection, keyModesSection, defaultValue, defaultModes)
     local keys = collectSectionKeys(hasSection)
+    local branchCount = 0
 
     lines[#lines + 1] = "private function War3Lib_LocalDzApiMallItem_InitialHas takes string itemKey returns boolean"
-    for i, key in ipairs(keys) do
-        local prefix = i == 1 and "    if" or "    elseif"
-        lines[#lines + 1] = prefix .. " itemKey == " .. jassString(key) .. " then"
-        lines[#lines + 1] = "        return " .. jassBool(hasSection[key], defaultValue)
+    for _, key in ipairs(keys) do
+        if isMallItemHasKeyEnabled(version, hasSection, keyModesSection, key, defaultModes) then
+            branchCount = branchCount + 1
+            local prefix = branchCount == 1 and "    if" or "    elseif"
+            lines[#lines + 1] = prefix .. " itemKey == " .. jassString(key) .. " then"
+            lines[#lines + 1] = "        return " .. jassBool(hasSection[key], defaultValue)
+        end
     end
-    if #keys > 0 then
+    if branchCount > 0 then
         lines[#lines + 1] = "    endif"
     end
     lines[#lines + 1] = "    return " .. jassBool(defaultValue, "true")
     lines[#lines + 1] = "endfunction"
 end
 
-local function appendMallItemCountFunction(lines, countSection, defaultValue)
-    local keys = collectSectionKeys(countSection)
+local function appendMallItemCountFunction(lines, version, countSection, versionCountSection, keyModesSection, defaultValue, defaultModes)
+    local keys = collectMallItemCountKeys(countSection, versionCountSection)
+    local branchCount = 0
 
     lines[#lines + 1] = "private function War3Lib_LocalDzApiMallItem_InitialCount takes string itemKey returns integer"
-    for i, key in ipairs(keys) do
-        local prefix = i == 1 and "    if" or "    elseif"
-        lines[#lines + 1] = prefix .. " itemKey == " .. jassString(key) .. " then"
-        lines[#lines + 1] = "        return " .. jassNonNegativeInteger(countSection[key], defaultValue)
+    for _, key in ipairs(keys) do
+        local value = getMallItemCountValue(version, key, countSection, versionCountSection, keyModesSection, defaultModes)
+        if value ~= nil then
+            branchCount = branchCount + 1
+            local prefix = branchCount == 1 and "    if" or "    elseif"
+            lines[#lines + 1] = prefix .. " itemKey == " .. jassString(key) .. " then"
+            lines[#lines + 1] = "        return " .. jassNonNegativeInteger(value, defaultValue)
+        end
     end
-    if #keys > 0 then
+    if branchCount > 0 then
         lines[#lines + 1] = "    endif"
     end
     lines[#lines + 1] = "    return " .. jassNonNegativeInteger(defaultValue, "100")
     lines[#lines + 1] = "endfunction"
 end
 
-local function buildMallItemMockLines(cfg, localSection)
+local function buildMallItemMockLines(version, cfg, localSection, defaultModes)
     local hasSection = cfg["War3Lib.LocalDzApi.MallItemHas"] or {}
+    local hasKeyModesSection = cfg["War3Lib.LocalDzApi.MallItemHas.Modes"] or {}
     local countSection = cfg["War3Lib.LocalDzApi.MallItemCount"] or {}
+    local countVersionSection = cfg[MALL_ITEM_COUNT_SECTION .. "." .. version] or {}
+    local countKeyModesSection = cfg["War3Lib.LocalDzApi.MallItemCount.Modes"] or {}
     local defaultHas = hasSection["Default"] or localSection["MallItemHasDefault"] or "true"
-    local defaultCount = countSection["Default"] or localSection["MallItemCountDefault"] or "100"
+    local defaultCount = getMallItemCountDefault(countSection, countVersionSection, localSection)
     local lines = {
         "library War3LibLocalDzApiMallItem",
         "globals",
@@ -426,9 +501,9 @@ local function buildMallItemMockLines(cfg, localSection)
         ""
     }
 
-    appendMallItemHasFunction(lines, hasSection, defaultHas)
+    appendMallItemHasFunction(lines, version, hasSection, hasKeyModesSection, defaultHas, defaultModes)
     lines[#lines + 1] = ""
-    appendMallItemCountFunction(lines, countSection, defaultCount)
+    appendMallItemCountFunction(lines, version, countSection, countVersionSection, countKeyModesSection, defaultCount, defaultModes)
 
     local tail = {
         "",
@@ -569,6 +644,7 @@ local function buildHeader(version, cfg)
     local playerUserNameSection = cfg["War3Lib.LocalDzApi.PlayerUserName"]
     local dzSection = cfg["DzAPI"] or {}
     local startTime = localSection["DzAPI_Map_GetGameStartTime"] or dzSection["DzAPI_Map_GetGameStartTime"] or "0"
+    local defaultModes = splitModes(localSection["Modes"])
 
     startTime = tostring(startTime):match("^%-?%d+$") and tostring(startTime) or "0"
 
@@ -582,7 +658,7 @@ local function buildHeader(version, cfg)
         ""
     }
 
-    for _, line in ipairs(buildMallItemMockLines(cfg, localSection)) do
+    for _, line in ipairs(buildMallItemMockLines(version, cfg, localSection, defaultModes)) do
         lines[#lines + 1] = line
     end
 

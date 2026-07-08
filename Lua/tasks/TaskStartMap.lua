@@ -6,6 +6,7 @@ local path = require("Lua.path")
 local copy = require ("Lua.utils.copy")
 local taskStartClock = os.clock()
 local root, projectPath, we, buildVersion, gamePath
+local waitLog = true
 
 local function printTaskEnd()
 	local elapsed = os.clock() - taskStartClock
@@ -44,6 +45,7 @@ if arg[4] ~= nil and (arg[4] == "VERSION_ALPHA" or arg[4] == "VERSION_BETA" or a
 		buildVersion = "正式版本"
 	elseif arg[4] == "VERSION_UNITTEST" then
 		buildVersion = "单元测试"
+		waitLog = false
 	elseif arg[4] == "VERSION_MODELTEST" then
 		buildVersion = "模型测试"
 	end
@@ -53,6 +55,11 @@ else
 end
 if arg[5] ~= nil and arg[5] ~= "" then
 	gamePath = arg[5]
+end
+if arg[6] == "--wait-log" then
+	waitLog = true
+elseif arg[6] == "--no-wait-log" then
+	waitLog = false
 end
 
 path.init(root, projectPath, we, gamePath) -- 初始化路径
@@ -68,8 +75,11 @@ if sur then
 	copy.CopyBin(map, tarMap)
 	os.remove(map)
 
-
-	launcher.StartWar3AndWaitLog('_slk')
+	if waitLog then
+		launcher.StartWar3AndWaitLog('_slk')
+	else
+		launcher.StartWar3('_slk')
+	end
 end
 
 printTaskEnd()

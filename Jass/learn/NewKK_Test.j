@@ -9,7 +9,7 @@
 //! zinc
 
 //自动生成的文件
-library UTNewKK requires NewKK {
+library UTNewKK requires NewKK, Logger {
 
 	// 全局计数变量用于测试
 	private integer globalCounter = 0;

@@ -19,6 +19,33 @@ library StringUtils {
         return s == "0" || s == "1" || s == "2" || s == "3" || s == "4" || s == "5" || s == "6" || s == "7" || s == "8" || s == "9";
     }
 
+    // 将 0..35 的单个 base36 位值编码为字符，越界值按单字符位宽归一化。
+    public function Base36DigitToChar(integer value) -> string {
+        if (value < 0) { value = 0; }
+        if (value >= 36) { value = ModuloInteger(value, 36); }
+        if (value < 10) {
+            return I2S(value);
+        }
+        return SubStringBJ("abcdefghijklmnopqrstuvwxyz", value - 9, value - 9);
+    }
+
+    // 将单个 base36 字符解码为 0..35；非法字符返回 -1。
+    public function Base36CharToDigit(string ch) -> integer {
+        integer i;
+
+        for (0 <= i <= 9) {
+            if (ch == I2S(i)) {
+                return i;
+            }
+        }
+        for (1 <= i <= 26) {
+            if (ch == SubStringBJ("abcdefghijklmnopqrstuvwxyz", i, i)) {
+                return i + 9;
+            }
+        }
+        return -1;
+    }
+
     //重复某一个字符串N次,并可以按照指定间隔添加空格和换行
     //参数 s: 要重复的字符串
     //参数 times: 重复的次数

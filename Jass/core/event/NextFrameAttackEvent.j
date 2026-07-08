@@ -11,7 +11,7 @@
 #define MAX_NEXT_FRAME_ATTACK_EVENT_SIZE 8190
 #define MAX_NEXT_FRAME_ATTACK_QUEUE_SIZE 8190
 
-library NextFrameAttackEvent {
+library NextFrameAttackEvent requires Logger {
     private integer registerSize = 0;
     private trigger triggerList[];
     private unit unitList[];

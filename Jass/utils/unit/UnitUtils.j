@@ -1577,18 +1577,6 @@ library UnitUtils requires BigInteger,MathUtils {
         return GetUnitMoveSpeed(u);
     }
 
-    // 获取显示用移速：负数展示 raw，非负数沿用旧 GetUnitSpeed。
-    public function GetUnitSpeedDisplay(unit u) -> integer {
-        real raw;
-        if (u == null) { return 0; }
-
-        raw = GetUnitSpeedRawReal(u);
-        if (raw < 0.0) {
-            return R2I(raw);
-        }
-        return GetUnitSpeed(u);
-    }
-
     // 获取移速
     public function GetUnitSpeed (unit u)  -> integer {
         integer uid; real total;
@@ -1608,6 +1596,18 @@ library UnitUtils requires BigInteger,MathUtils {
         }
 
         return R2I(GetUnitMoveSpeed(u));
+    }
+
+    // 获取显示用移速：负数展示 raw，非负数沿用旧 GetUnitSpeed。
+    public function GetUnitSpeedDisplay(unit u) -> integer {
+        real raw;
+        if (u == null) { return 0; }
+
+        raw = GetUnitSpeedRawReal(u);
+        if (raw < 0.0) {
+            return R2I(raw);
+        }
+        return GetUnitSpeed(u);
     }
 
     // 重新计算单位当前移速（应用增减幅与定值，并写入 KEY_UNIT_MOVE_SPEED 供 Hook 读取）

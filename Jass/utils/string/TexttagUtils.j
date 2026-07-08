@@ -96,6 +96,17 @@ library TexttagUtils requires HashTable {
         t = null;
     }
 
+    public function GetDeterministicTextTagAngle(texttag t, real baseAngle, integer angleSpan) -> real {
+        integer hid;
+
+        if (t == null || angleSpan <= 0) {
+            return baseAngle;
+        }
+
+        hid = ModuloInteger(GetHandleId(t), angleSpan);
+        return baseAngle + ModuloInteger(hid * 73 + 17, angleSpan);
+    }
+
     // 便捷：创建“按给定角度漂浮并消失”的文本（快速）
     // 旧名：CreateTextTagBA
     // param text      文本内容
@@ -111,6 +122,18 @@ library TexttagUtils requires HashTable {
         time = RMaxBJ(0.01,time);
 
         SetTextTagVelocityBJ(t, TEXTTAG_VELOCITY_FAST, angleDeg);
+        SetTextTagPermanent(t, false);
+        SetTextTagLifespan(t, time);
+        SetTextTagFadepoint(t, time);
+
+        t = null;
+    }
+
+    public function CreateTimedTextTagOnUnitDeterministicAngle(string text, unit whichUnit, real red, real green, real blue, real time, real size, real baseAngle, integer angleSpan) {
+        texttag t = CreateTextTagOnUnitOffsetX(text, whichUnit, 0, size, red, green, blue, 0, 0);
+        time = RMaxBJ(0.01,time);
+
+        SetTextTagVelocityBJ(t, TEXTTAG_VELOCITY_FAST, GetDeterministicTextTagAngle(t, baseAngle, angleSpan));
         SetTextTagPermanent(t, false);
         SetTextTagLifespan(t, time);
         SetTextTagFadepoint(t, time);
@@ -143,6 +166,11 @@ library TexttagUtils requires HashTable {
     public function CreateSpellTextTagB(string text, unit whichUnit, real red, real green, real blue, real time, real angleDeg) {
         // 约定字号 13，快速按角度漂浮
         CreateTimedTextTagOnUnitAngle(text, whichUnit, red, green, blue, time, 13, angleDeg);
+    }
+
+    public function CreateSpellTextTagBDeterministic(string text, unit whichUnit, real red, real green, real blue, real time) {
+        // 约定字号 13，快速按句柄散列角度漂浮
+        CreateTimedTextTagOnUnitDeterministicAngle(text, whichUnit, red, green, blue, time, 13, 0.0, 360);
     }
 
     private struct UnitHintFollowQueue [] {

@@ -250,6 +250,11 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 		return LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_DOWN, 1.0);
 	}
 
+	public function GetAbilitySpellFinalDamageRate(unit u, integer abilityID) -> real {
+		if (u == null || abilityID == 0) { return 1.0; }
+		return RMaxBJ(0.0, GetAbilitySpellFinalDamageRateUp(u, abilityID) * GetAbilitySpellFinalDamageRateDown(u, abilityID));
+	}
+
 	public function AddAbilitySpellFinalDamageRateUp(unit u, integer abilityID, real value) {
 		real multiplier; real v;
 
@@ -285,17 +290,22 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_STRING_ID, "技能最终伤害", GetAbilitySpellFinalDamageRate(u, abilityID) - 1.0);
 	}
 
-	public function GetAbilitySpellFinalDamageRate(unit u, integer abilityID) -> real {
-		if (u == null || abilityID == 0) { return 1.0; }
-		return RMaxBJ(0.0, GetAbilitySpellFinalDamageRateUp(u, abilityID) * GetAbilitySpellFinalDamageRateDown(u, abilityID));
-	}
-
 	public function GetTotalSpellFinalDamageRate(unit u, integer abilityID) -> real {
 		if (u == null) { return 1.0; }
 		return plyaerHeroAttr.getTotalSpellFinalDamageRate(GetOwningPlayer(u)) * GetAbilitySpellFinalDamageRate(u, abilityID);
 	}
 
 	// ====== 技能范围 ======
+	public function GetAbilitySpellRangeRate(unit u, integer abilityID) -> real {
+		real up; real down;
+
+		if (u == null || abilityID == 0) { return 1.0; }
+
+		up = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, 0.0);
+		down = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, 0.0);
+		return RMaxBJ(0.0, (1.0 + up) * (1.0 - down));
+	}
+
 	public function AddAbilitySpellRangeRateUp(unit u, integer abilityID, real value) {
 		real rate;
 
@@ -316,16 +326,6 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_STRING_ID, "技能范围增加", GetAbilitySpellRangeRate(u, abilityID) - 1.0);
 	}
 
-	public function GetAbilitySpellRangeRate(unit u, integer abilityID) -> real {
-		real up; real down;
-
-		if (u == null || abilityID == 0) { return 1.0; }
-
-		up = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, 0.0);
-		down = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, 0.0);
-		return RMaxBJ(0.0, (1.0 + up) * (1.0 - down));
-	}
-
 	// ====== 被动强化 ======
 	public function AddPlayerSpellPassiveRate(player p, real value) {
 		integer pid;
@@ -342,6 +342,10 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 		return playerSpellPassiveRate[GetConvertedPlayerId(p)];
 	}
 
+	public function GetAbilitySpellPassiveRate(unit u, integer abilityID) -> real {
+		return LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, 0.0);
+	}
+
 	public function AddAbilitySpellPassiveRate(unit u, integer abilityID, real value) {
 		real rate;
 
@@ -351,10 +355,6 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, rate, 0.0);
 		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_STRING_ID, "技能被动强化", GetAbilitySpellPassiveRate(u, abilityID));
 		FireSpellPassiveRateChanged(GetOwningPlayer(u), u, abilityID, false);
-	}
-
-	public function GetAbilitySpellPassiveRate(unit u, integer abilityID) -> real {
-		return LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, 0.0);
 	}
 
 	public function GetTotalSpellPassiveRate(unit u, integer abilityID) -> real {
