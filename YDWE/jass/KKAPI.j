@@ -566,7 +566,7 @@ library LBKKAPI initializer Init
         native DzGetGlueUI takes nothing returns integer 
         native DzFrameGetMouse takes nothing returns integer 
         native DzFrameGetContext takes integer frame returns integer 
-        native DzFrameGetName takes integer frame returns string 
+        // DzFrameGetName 已在 BlizzardAPI.j 定义，避免注入函数重复定义
         native DzFrameSetNameContext takes integer frame, string name, integer context returns nothing 
         native DzFrameSetTextFontSpacing takes integer text_frame, real spacing returns nothing 
         native KKCommandGetCooldownModel takes integer cmd_btn returns integer 
@@ -600,7 +600,7 @@ library LBKKAPI initializer Init
         native DzFrameSetEditBoxDisableIme takes integer frame, boolean is_disable returns nothing 
 
         native DzIsWindowMode takes nothing returns boolean 
-        native DzIsWindowActive takes nothing returns boolean
+        // DzIsWindowActive 已在 BlizzardAPI.j 定义，避免注入函数重复定义
         native DzWindowSetPoint takes integer x, integer y returns nothing 
         native DzWindowSetSize takes integer width, integer height returns nothing 
         native DzGetSystemMetricsWidth takes nothing returns integer 
@@ -711,8 +711,10 @@ library LBKKAPI initializer Init
         native KKCommandButtonGetAbilityId takes integer command_button returns integer 
         native KKCommandButtonGetOrderId takes integer command_button returns integer 
         native DzFixUnitEventMemoryLeak takes nothing returns nothing
-
-
+        
+        function KKConvertStr2Targs takes string s returns integer 
+                return DzConvertStr2Targs(s)
+        endfunction
 endlibrary
 
 

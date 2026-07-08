@@ -3,6 +3,7 @@ TC_KKAPI=[KKWE],ReplaceableTextures\CommandButtons\BTNVengeanceIncarnate.blp
 TC_KKPRE=[KKPRE],ReplaceableTextures\CommandButtons\BTNVengeanceIncarnate.blp
 
 [TriggerTypes]
+dzeffectgroup=0,1,1,特效组,handle
 doodad=0,1,1,WESTRING_DOODADS,integer
 showhideoption=0,0,0,WESTRING_TRIGTYPE_showhideoption,boolean
 MoveTypeName=0,0,0,WESTRING_COD_TYPE_MOVEMENTTYPE,string
@@ -21,6 +22,7 @@ AttributeType=0,0,0,属性类型
 [TriggerParams]
 typename01_framepoints=0,typename,122,界面锚点
 typename01_xlsxworksheet=0,typename,133,工作表
+typename91_dzeffectgroup=0,typename,91,特效组
 
 ShowHideShow=0,showhideoption,true,WESTRING_SHOWHIDE_SHOW
 ShowHideHide=0,showhideoption,false,WESTRING_SHOWHIDE_HIDE
@@ -114,3 +116,5 @@ TargetFlags_NotSelf=0,TargetFlags,0x1E000,"别人"
 AttributeType_Strength=0,AttributeType,0x1,"力量"
 AttributeType_Agility=0,AttributeType,0x3,"敏捷"
 AttributeType_Intelligence=0,AttributeType,0x2,"智力"
+DzEffectGroupNull=0,dzeffectgroup,null,没有特效组
+bj_lastCreatedDzEffectGroup=0,dzeffectgroup,bj_lastCreatedDzEffectGroup,最后创建的特效组

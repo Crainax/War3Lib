@@ -828,8 +828,8 @@ returns = string
 type = string
 
 [DzStringReplace]
-title = "替换字符串 [NEW]"
-description = "替换 ${targetStr} 里的 ${searchStr} 为 ${newStr} "
+title = "字符串全局替换 [NEW]"
+description = "将字符串 ${targetStr} 中所有 ${oldStr} 替换为 ${newStr}，${caseSensitive} 区分大小写"
 comment = ""
 category = TC_KKAPI
 returns = string
@@ -839,6 +839,8 @@ type = string
 type = string
 [[.args]]
 type = string
+[[.args]]
+type = boolean
 
 [DzStringInsert]
 title = "插入字符串 [NEW]"
@@ -1306,6 +1308,18 @@ category = TC_KKAPI
 returns = integer
 [[.args]]
 type = string
+
+
+[KKConvertStr2Targs]
+title = "转化 - 字符串转目标允许"
+description = "转换 ${字符串} 为目标允许"
+comment = "例如“ground,friend,vuln,invu”"
+category = TC_KKAPI
+script_name = DzConvertStr2Targs
+returns = TargetFlags
+[[.args]]
+type = string
+
 
 [KKConvertInt2AbilId]
 title = "转化 - 整数为技能ID"
@@ -2300,7 +2314,7 @@ type = unit
 type = boolean
 default = "true"
 
-[DzGetHeroAttributePlus]
+[DzGetHeroPrimaryAttributePlus]
 title = "英雄 - 获取属性成长"
 description = "获取英雄 ${hero} 的 ${attribute} 属性成长"
 comment = ""
@@ -2310,3 +2324,174 @@ returns = real
 type = unit
 [[.args]]
 type = AttributeType
+
+[DzLoadHandleId]
+title = "哈希表 - 读取Handle ID"
+description = "从哈希表 ${哈希表} 主Key ${主Key} 子Key ${子Key} 读取Handle ID"
+comment = "从哈希表中读取保存的Handle ID"
+category = TC_KKPRE
+returns = integer
+[[.args]]
+type = hashtable
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzMultiboardGetFrame]
+title = "界面 - 获取多面板Frame"
+description = "获取多面板 ${多面板} 的Frame"
+comment = "返回多面板的Frame句柄"
+category = TC_KKPRE
+returns = frame
+[[.args]]
+type = multiboard
+
+[DzTimerDialogGetFrame]
+title = "界面 - 获取计时器对话框Frame"
+description = "获取计时器对话框 ${计时器对话框} 的Frame"
+comment = "返回计时器对话框的Frame句柄"
+category = TC_KKPRE
+returns = frame
+[[.args]]
+type = timerdialog
+
+[DzEffectGroupCreateBJ]
+title = "特效组 - 创建空的特效组"
+description = "创建空的特效组"
+comment = "会创建特效组,需要排泄,可以用最后创建的特效组"
+category = TC_KKPRE
+returns = dzeffectgroup
+
+
+[DzEffectGroupCreateEnumRangeBJ]
+title = "特效组 - 选取范围内的特效"
+description = "选取 X:${x} Y:${y} 范围:${range} 内的特效"
+comment = "会创建特效组,需要排泄,可以用最后创建的特效组"
+category = TC_KKPRE
+returns = dzeffectgroup
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+
+[DzEffectGroupCreateEnumRectBJ]
+title = "特效组 - 选取区域内的特效"
+description = "选取 ${rect} 内的特效到新建特效组"
+comment = "会创建特效组,需要排泄,可以用最后创建的特效组"
+category = TC_KKPRE
+returns = dzeffectgroup
+[[.args]]
+type = rect
+
+
+[DzHandle2EffectGroup]
+title = "特效组 - 转换 handle ID 为特效组"
+description = "转换 handle ID ${handleID} 为特效组"
+comment = "整数地址转换为特效组"
+category = TC_KKPRE
+returns = dzeffectgroup
+[[.args]]
+type = integer
+
+[DzEffectGroupGetSize]
+title = "特效组 - 获取特效数量"
+description = "获取 ${特效组} 里的特效数量"
+comment = "包括删除了但没移出的特效"
+category = TC_KKPRE
+returns = integer
+[[.args]]
+type = dzeffectgroup
+
+[DzEffectGroupAt]
+title = "特效组 - 第N个特效"
+description = "获取 ${特效组} 里的第 ${N} 个特效"
+comment = "从1开始  循环1到特效组数量"
+category = TC_KKPRE
+returns = effect
+[[.args]]
+type = dzeffectgroup
+[[.args]]
+type = integer
+default = "1"
+
+[DzEffectGroupContains]
+title = "特效组 - 是否包含特效"
+description = "${特效组} 是否包含 ${特效} "
+comment = ""
+category = TC_KKPRE
+returns = boolean
+[[.args]]
+type = dzeffectgroup
+[[.args]]
+type = effect
+
+[DzGetEnumEffect]
+title = "特效组 - 选取特效"
+description = "选取特效"
+comment = "选取做动作里获取当前选取的特效"
+category = TC_KKPRE
+returns = effect
+
+[DzSetEffectAttachedModelScale]
+title = "特效 - 设置绑定特效的缩放大小"
+description = "设置 ${特效} 绑定模型的缩放 X: ${scaleX} Y: ${scaleY} Z: ${scaleZ}"
+comment = "修改特效模型作为附着模型渲染时的缩放, 设为1.0还原"
+category = TC_KKPRE
+returns = boolean
+[[.args]]
+type = effect
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+default = "1.0"
+
+[DzFrameSetAttachedModelScale]
+title = "界面 - 设置UI模型绑定特效的缩放大小"
+description = "设置 ${frame} UI模型绑定特效的缩放 X: ${scaleX} Y: ${scaleY} Z: ${scaleZ}"
+comment = "修改UI模型控件的模型作为附着模型渲染时的缩放, 设为1.0还原"
+category = TC_KKPRE
+returns = boolean
+[[.args]]
+type = integer
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+default = "1.0"
+
+[LoadDzEffectGroupHandle]
+title = "哈希表 - 读取特效组"
+description = "从哈希表 ${哈希表} 主Key ${主Key} 子Key ${子Key} 读取特效组"
+comment = "从哈希表中读取保存的特效组句柄"
+category = TC_KKPRE
+returns = dzeffectgroup
+[[.args]]
+type = hashtable
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+
+[DzGetEffectGroupIdBJ]
+title = "特效组 - 获取 特效组 的整数地址"
+description = "获取 ${特效组} 的整数地址"
+comment = "可以把一个特效组转成整数，方便存入缓存或Hash表。"
+category = TC_KKPRE
+returns = integer
+[[.args]]
+type = dzeffectgroup
+default = bj_lastCreatedDzEffectGroup

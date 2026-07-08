@@ -3543,3 +3543,421 @@ default = "100"
 [[.args]]
 type = real
 default = "522"
+
+
+[DzGroupEnumPlayerControlGroup]
+title = "单位组 - 添加编队单位到单位组"
+description = "为单位组 ${group} 添加玩家 ${player} 的第 ${n} 编队单位 清空单位组: ${clear}"
+comment = "获取指定玩家0~9的编队单位，传没有玩家 来获取本地玩家的异步编队单位"
+category = TC_KKPRE
+[[.args]]
+type = group
+[[.args]]
+type = player
+[[.args]]
+type = integer
+min = 0
+max = 9
+[[.args]]
+type = boolean
+
+[DzTriggerClearEvents]
+title = "触发器 - 清除所有事件"
+description = "清除触发器 ${触发器} 的所有事件"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = trigger
+
+[DzUnitAddItemToSlot]
+title = "单位 - 添加物品到指定格子"
+description = "为单位 ${unit} 添加物品 ${item} 到格子 ${index}"
+comment = "索引从 0 开始"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = item
+[[.args]]
+type = integer
+
+[DzUnitDamageTarget]
+title = "单位 - 造成伤害(指定凶手)"
+description = "使单位 ${unit} 对 ${widget} 造成 ${damage} 点伤害 武器类型: ${wt} 攻击类型: ${at} 伤害类型: ${dt} flag: ${flag} 是攻击: ${is_attack} 凶手: ${killer} 附加数据: ${data}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+[[.args]]
+type = real
+[[.args]]
+type = weapontype
+[[.args]]
+type = attacktype
+[[.args]]
+type = damagetype
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = integer
+default = "0"
+[DzSaveHandleId]
+title = "哈希表 - 保存Handle ID"
+description = "保存Handle ID到哈希表 ${哈希表} 主Key ${主Key} 子Key ${子Key} Handle ID ${HandleId}"
+comment = "保存Handle ID到哈希表中,不改变引用计数, 保存后可以读取指定类型的哈希表实现I2任意类型"
+category = TC_KKPRE
+[[.args]]
+type = hashtable
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzSaveHandleIdEx]
+title = "哈希表 - 保存Handle ID(指定类型)"
+description = "保存Handle ID到哈希表 ${哈希表} 主Key ${主Key} 子Key ${子Key} Handle ID ${HandleId} 类型 ${类型}"
+comment = "类型: 1=引用计数类型 2=texttag 3=lightning 4=image 5=ubersplat 6=fogstate"
+category = TC_KKPRE
+[[.args]]
+type = hashtable
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+default = "6"
+
+[DzSetHashtableLimit]
+title = "哈希表 - 设置数量上限"
+description = "设置哈希表数量上限为 ${上限}"
+comment = "默认上限为256个"
+category = TC_KKPRE
+[[.args]]
+type = integer
+default = "256"
+
+[DzDisableRemoveExtraDeadHero]
+title = "游戏 - 禁用移除多余死亡英雄"
+description = "禁用移除多余死亡英雄"
+comment = "调用后不再自动移除多余的死亡英雄, 还需将英雄的占用人口设置为0 或者提高人口上限"
+category = TC_KKPRE
+
+[DzSetPlayerPathFindingLimit]
+title = "游戏 - 设置玩家寻路上限"
+description = "设置 ${玩家} 的寻路上限 深度 ${limit1} 动态 ${limit2} 快速 ${limit3} 本地 ${limit4}"
+comment = "默认值: 深度=800 动态=300 快速=900 本地=1100, 参数全填9999 牺牲性能 换取群体单位移动时不卡寻路。"
+category = TC_KKPRE
+[[.args]]
+type = player
+[[.args]]
+type = integer
+default = "800"
+[[.args]]
+type = integer
+default = "300"
+[[.args]]
+type = integer
+default = "900"
+[[.args]]
+type = integer
+default = "1100"
+
+[DzSetGameConstantFoodCeiling]
+title = "游戏 - 设置人口上限常量"
+description = "设置人口上限常量为 ${值}"
+comment = "修改游戏的人口上限常量, 默认限制为200"
+category = TC_KKPRE
+[[.args]]
+type = integer
+default = "100"
+
+[DzDisableLoadingPressAKey]
+title = "游戏 - 禁用加载完毕按键继续"
+description = "禁用加载完毕按键继续"
+comment = "修改过载入图的地图每次进游戏都需要确认, 调用后加载完毕不再需要按键继续,"
+category = TC_KKPRE
+
+[DzFrameAddTextShadow]
+title = "界面 - 添加文字阴影"
+description = "为 ${Frame} 添加文字阴影 偏移X ${X} 偏移Y ${Y} 颜色 ${颜色}"
+comment = "支持CTextFrame, CMessageFrame, CSimpleFontString, CSimpleMessageFrame"
+category = TC_KKPRE
+[[.args]]
+type = frame
+[[.args]]
+type = real
+default = "0.001"
+[[.args]]
+type = real
+default = "-0.001"
+[[.args]]
+type = integer
+default = "0xFF000000"
+
+[DzFrameDuplicateTextShadow]
+title = "界面 - 复制文字阴影(模拟描边)"
+description = "为 ${Frame} 复制 ${数量} 份阴影"
+comment = "先添加文字阴影，再调用此函数。在原有阴影基础上复制额外的阴影,均匀分布在圆周上"
+category = TC_KKPRE
+[[.args]]
+type = frame
+[[.args]]
+type = integer
+default = "3"
+
+[DzSetCommandButtonShowCooldown]
+title = "技能按钮 - 显示冷却时间文本"
+description = "技能按钮显示冷却时间文本 ${显示技能冷却} 物品按钮显示冷却时间文本 ${显示物品冷却}"
+comment = "在命令按钮上显示剩余冷却时间文本"
+category = TC_KKPRE
+[[.args]]
+type = boolean
+default = "true"
+[[.args]]
+type = boolean
+default = "true"
+
+[DzSetCommandButtonShowHotkey]
+title = "技能按钮 - 显示快捷键文本"
+description = "技能按钮显示快捷键文本 ${显示技能快捷键} 物品按钮显示快捷键文本 ${显示物品快捷键}"
+comment = "在命令按钮上显示快捷键文本"
+category = TC_KKPRE
+[[.args]]
+type = boolean
+default = "true"
+[[.args]]
+type = boolean
+default = "true"
+
+[DzSetCommandButtonHotkeyBackground]
+title = "技能按钮 - 设置快捷键文本背景"
+description = "设置命令按钮快捷键文本背景为 ${路径}"
+comment = "设置快捷键文本的背景纹理路径"
+category = TC_KKPRE
+[[.args]]
+type = imagefile
+default = [[replaceabletextures\teamcolor\teamcolor15.blp]]
+
+
+[DzEffectGroupCreateBJAction]
+title = "特效组 - 创建空的特效组"
+description = "创建空的特效组"
+comment = "会创建特效组,需要排泄,可以用最后创建的特效组"
+category = TC_KKPRE
+script_name = DzEffectGroupCreateBJ
+
+
+[DzEffectGroupAddBJ]
+title = "特效组 - 添加"
+description = "添加 ${特效} 到 ${特效组} 允许重复 ${flag}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = effect
+[[.args]]
+type = dzeffectgroup
+[[.args]]
+type = boolean
+default = "false"
+
+[DzEffectGroupRemove]
+title = "特效组 - 移出"
+description = "从 ${特效组} 移出 ${特效} (只移出第一个 ${flag})"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = dzeffectgroup
+[[.args]]
+type = effect
+[[.args]]
+type = boolean
+default = "false"
+
+[DzEffectGroupEnumRangeBJ]
+title = "特效组 - 添加范围内的特效"
+description = "选取 X:${x} Y:${y} 范围:${range} 内的特效添加到 ${特效组} (清空${clear} 允许重复${duplicate})"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = dzeffectgroup
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+
+[DzEffectGroupEnumRectBJ]
+title = "特效组 - 添加区域内的特效"
+description = "选取 ${rect} 内的特效添加到 ${特效组} (清空${clear} 允许重复${duplicate})"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = rect
+[[.args]]
+type = dzeffectgroup
+[[.args]]
+type = boolean
+default = "false"
+[[.args]]
+type = boolean
+default = "false"
+
+[DzForEffectGroup]
+title = "特效组 - 选取做多动作"
+description = "选取 ${特效组} 中的每个特效做动作"
+comment = "在动作里使用 DzGetEnumEffect 获取当前选取的特效"
+category = TC_KKPRE
+[[.args]]
+type = dzeffectgroup
+
+
+[DzEffectGroupClear]
+title = "特效组 - 清除"
+description = "清除 ${特效组}"
+comment = "清除了变成空的特效组，可以重新添加，如果再使用需要删除掉。"
+category = TC_KKPRE
+[[.args]]
+type = dzeffectgroup
+
+[DzEffectGroupDestroy]
+title = "特效组 - 删除"
+description = "删除 ${特效组}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = dzeffectgroup
+
+[DzUpdateEffectSmartPosition]
+title = "特效 - 更新坐标"
+description = "更新 ${特效} 的坐标"
+comment = "先读取Sprite的坐标 然后设置成特效的坐标,如果使用旧版japi修改特效位置 是需要调用该函数刷新坐标。"
+category = TC_KKPRE
+[[.args]]
+type = effect
+
+[DzRemoveEffect]
+title = "特效 - 立即删除(不播放死亡动画)"
+description = "立即删除 ${特效}"
+comment = "不会播放死亡动画立即删除特效"
+category = TC_KKPRE
+[[.args]]
+type = effect
+
+[DzRemoveEffectTimedBJ]
+title = "特效 - 延迟立即删除(不播放死亡动画)"
+description = "在 ${duration} 秒延迟后, 立即删除 ${特效}"
+comment = "不会播放死亡动画且时间到会立即删除特效"
+category = TC_KKPRE
+[[.args]]
+type = real
+[[.args]]
+type = effect
+
+[DzSetEffectAlwaysRender]
+title = "特效 - 设置始终渲染"
+description = "设置特效 ${effect} 始终渲染 ${flag}"
+comment = "可以在 战争迷雾/黑色阴影/屏幕外 时显示此特效,多了会掉帧,可以对体积巨大的模型使用"
+category = TC_KKPRE
+[[.args]]
+type = effect
+[[.args]]
+type = boolean
+default = "false"
+
+[DzDieEffectTimedBJ]
+title = "特效 - 延迟删除"
+description = "在 ${duration} 秒延迟后, 删除 ${特效}"
+comment = "时间到后会播放死亡动画并在平衡性常数时间后删除特效"
+category = TC_KKPRE
+[[.args]]
+type = real
+[[.args]]
+type = effect
+
+[DzSetEffectGroupBlacklist]
+title = "特效 - 设置特效组黑名单(异步特效坐标专用)"
+description = "设置 ${特效} 不会被特效组选取 ${flag}"
+comment = "标记后该特效不会被特效组选取到, 异步特效坐标专用， 标记之后不会导致选取异步"
+category = TC_KKPRE
+[[.args]]
+type = effect
+[[.args]]
+type = boolean
+default = "true"
+
+[DzEffectReplayBirth]
+title = "特效 - 重新播放出生动画"
+description = "重新播放 ${特效} 的出生动画"
+comment = "先播放birth动画, 结束后自动播放stand动画"
+category = TC_KKPRE
+[[.args]]
+type = effect
+
+[DzSetEffectAttachedModelScale]
+title = "特效 - 设置绑定特效的缩放大小"
+description = "设置 ${特效} 绑定模型的缩放 X: ${scaleX} Y: ${scaleY} Z: ${scaleZ}"
+comment = "修改特效模型作为附着模型渲染时的缩放, 设为1.0还原"
+category = TC_KKPRE
+[[.args]]
+type = effect
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+default = "1.0"
+
+[DzFrameSetAttachedModelScale]
+title = "界面 - ui模型 - 设置绑定特效的缩放大小"
+description = "设置 ${frame} ui模型绑定特效的缩放 X: ${scaleX} Y: ${scaleY} Z: ${scaleZ}"
+comment = "修改UI模型控件的模型作为附着模型渲染时的缩放, 设为1.0还原"
+category = TC_KKPRE
+[[.args]]
+type = integer
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+default = "1.0"
+[[.args]]
+type = real
+default = "1.0"
+
+[SaveDzEffectGroupHandle]
+title = "哈希表 - 保存特效组"
+description = "保存特效组到哈希表 ${哈希表} 主Key ${主Key} 子Key ${子Key} 特效组 ${特效组}"
+comment = "保存特效组句柄到哈希表中"
+category = TC_KKPRE
+[[.args]]
+type = hashtable
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+[[.args]]
+type = dzeffectgroup

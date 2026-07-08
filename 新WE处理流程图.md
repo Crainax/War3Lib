@@ -66,6 +66,9 @@
 5. 当前策略是:
     * `Crainax` 相关代码以 `War3Lib/Jass` 为主
     * `BlizzardAPI/DzAPI/KKAPI/KKPRE/japi` 以 `D:\WE\KKWE_Plugin\jass` 为主
+6. KKWE 更新后必须检查 `BlizzardAPI/DzAPI/KKAPI/KKPRE` 的 `.cfg` 注入表和 `.j` 声明是否出现重复注入函数
+    * 如果同名函数同时出现在 `BlizzardAPI` 和 `KKAPI`，优先保留 `BlizzardAPI`，把 `KKAPI.cfg` 中重复登记删除，并把 `KKAPI.j` 中重复声明删除或改成不含 `native/function` 关键字的注释
+    * 本次踩雷项: `DzFrameGetName`、`DzIsWindowActive`
 
 
 

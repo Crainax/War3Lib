@@ -5,6 +5,11 @@
 library LBKKPRE
 
 
+    type dzeffectgroup                              extends agent
+    globals
+        dzeffectgroup bj_lastCreatedDzEffectGroup = null
+    endglobals
+
     native DzGetUnitPojectileLaunchX takes unit u returns real
     native DzGetUnitPojectileLaunchY takes unit u returns real
     native DzGetUnitPojectileLaunchZ takes unit u returns real
@@ -16,7 +21,7 @@ library LBKKPRE
     native DzLaunchArtillery takes unit source, widget target, real target_x, real target_y, string model, integer team_color, integer color, real x, real y, real z, real scale, real speed, attacktype attack_type, damagetype damage_type, weapontype weapon_type, real damage, real arc, boolean attack, integer flags, real min_distance, integer target_flags, real half_factor, real quar_factor, real full_area, real half_area, real quar_area returns boolean
     native DzLaunchArtilleryLine takes unit source, widget target, real target_x, real target_y, string model, integer team_color, integer color, real x, real y, real z, real scale, real speed, attacktype attack_type, damagetype damage_type, weapontype weapon_type, real damage, real arc, boolean attack, integer flags, real min_distance, integer target_flags, real half_factor, real quar_factor, real full_area, real half_area, real quar_area, real damage_loss, real distance, real range returns boolean
     native DzLaunchMissileCarrionSwarmEx takes unit source, string model, integer team_color, integer color, real x, real y, real z, real facing, real distance, real scale, real speed, attacktype attack_type, damagetype damage_type, weapontype weapon_type, real damage, integer flags, integer target_flags, real start_radius, real end_radius, real max_damage, integer buffID returns boolean
-    
+
     native DzKillUnit takes unit whichUnit, unit killer returns boolean
     native DzSetUnitXY takes unit whichUnit, real x, real y returns boolean
     native DzSetUnitAbilityEngineeringUpgrade takes unit whichUnit, integer old_id, integer new_id, boolean update_hero_ability returns boolean 
@@ -36,7 +41,7 @@ library LBKKPRE
     native DzSetUnitAbilityBackSwing takes unit u, integer abil_id, real value returns boolean 
     native DzGetUnitAbilityBackSwing takes unit u, integer abil_id returns real 
 
-
+    
     native DzSetUnitLifeRegen takes unit whichUnit, real regen returns boolean
     native DzGetUnitLifeRegen takes unit whichUnit returns real
     native DzSetUnitManaRegen takes unit whichUnit, real regen returns boolean
@@ -61,7 +66,92 @@ library LBKKPRE
     native DzSetMinMaxAttackSpeedFactor takes real min_factor, real max_factor returns nothing
     native DzSetMoveSpeedBonusesStack takes boolean is_enable returns nothing
     native DzSetGlobalUnitMinMaxMoveSpeed takes real building_min, real building_max, real unit_min, real unit_max, real GC_building_min, real GC_building_max, real GC_unit_min, real GC_unit_max, real harvest_min, real windwalk_max returns nothing
+
+    native DzSaveHandleId takes hashtable whichHashtable, integer parentKey, integer childKey, integer handleId returns boolean
+    native DzSaveHandleIdEx takes hashtable whichHashtable, integer parentKey, integer childKey, integer handleId, integer handleType returns boolean
+    native DzLoadHandleId takes hashtable whichHashtable, integer parentKey, integer childKey returns integer
+    native DzSetHashtableLimit takes integer maxCount returns nothing
+    native DzDisableRemoveExtraDeadHero takes nothing returns nothing
+    native DzSetPlayerPathFindingLimit takes player whichPlayer, integer limit1, integer limit2, integer limit3, integer limit4 returns boolean
+    native DzSetGameConstantFoodCeiling takes integer value returns nothing
+    native DzDisableLoadingPressAKey takes nothing returns nothing
+    native DzMultiboardGetFrame takes multiboard whichMultiboard returns integer
+    native DzTimerDialogGetFrame takes timerdialog whichTimerDialog returns integer
+    native DzFrameAddTextShadow takes integer whichFrame, real offsetX, real offsetY, integer color returns boolean
+    native DzFrameDuplicateTextShadow takes integer whichFrame, integer count returns boolean
+    native DzSetCommandButtonShowCooldown takes boolean showAbility, boolean showItem returns nothing
+    native DzSetCommandButtonShowHotkey takes boolean showAbility, boolean showItem returns nothing
+    native DzSetCommandButtonHotkeyBackground takes string filepath returns nothing
+
+    native DzEffectGroupCreate                      takes nothing returns dzeffectgroup
+    native DzEffectGroupGetSize                     takes dzeffectgroup whichEffectGroup returns integer
+    native DzEffectGroupAt                          takes dzeffectgroup whichEffectGroup, integer index returns effect
+    native DzEffectGroupClear                       takes dzeffectgroup whichEffectGroup returns integer
+    native DzEffectGroupAdd                         takes dzeffectgroup whichEffectGroup, effect whichEffect, boolean allowDuplicate returns integer
+    native DzEffectGroupRemove                      takes dzeffectgroup whichEffectGroup, effect whichEffect, boolean firstOnly returns boolean
+    native DzEffectGroupEnumRange                   takes dzeffectgroup whichEffectGroup, real x, real y, real range, boolean clear, boolean allowDuplicate returns integer
+    native DzEffectGroupEnumRect                    takes dzeffectgroup whichEffectGroup, rect whichRect, boolean clear, boolean allowDuplicate returns integer
+    native DzEffectGroupContains                    takes dzeffectgroup whichEffectGroup, effect whichEffect returns boolean
+    native DzEffectGroupDestroy                     takes dzeffectgroup whichEffectGroup returns boolean
+    native DzGetEnumEffect                          takes nothing returns effect
+    native DzForEffectGroup                         takes dzeffectgroup whichEffectGroup, code callback returns integer
+    native DzHandle2EffectGroup                     takes integer handleID returns dzeffectgroup
+    native SaveDzEffectGroupHandle                  takes hashtable table, integer parentKey, integer childKey, dzeffectgroup g returns boolean
+    native LoadDzEffectGroupHandle                  takes hashtable table, integer parentKey, integer childKey returns dzeffectgroup
+
+    native DzUpdateEffectSmartPosition              takes effect whichEffect returns boolean
+    native DzRemoveEffect                           takes effect whichEffect returns boolean
+    native DzRemoveEffectTimed                      takes effect whichEffect, real time returns boolean
+    native DzSetEffectAlwaysRender                  takes effect whichEffect, boolean flag returns boolean
+    native DzDieEffectTimed                         takes effect whichEffect, real time returns boolean
+    native DzSetEffectGroupBlacklist                takes effect whichEffect, boolean flag returns boolean
+    native DzSetEffectAttachedModelScale            takes effect whichEffect, real scaleX, real scaleY, real scaleZ returns boolean
+    native DzFrameSetAttachedModelScale             takes integer frame, real scaleX, real scaleY, real scaleZ returns boolean
+    native DzEffectReplayBirth                      takes effect whichEffect returns nothing
     
+
+    function DzEffectGroupCreateBJ takes nothing returns dzeffectgroup
+        set bj_lastCreatedDzEffectGroup = DzEffectGroupCreate()
+        return bj_lastCreatedDzEffectGroup
+    endfunction
+
+    function DzEffectGroupCreateEnumRangeBJ takes real x, real y, real range returns dzeffectgroup
+        set bj_lastCreatedDzEffectGroup = DzEffectGroupCreate()
+        call DzEffectGroupEnumRange(bj_lastCreatedDzEffectGroup, x, y, range, false, false)
+        return bj_lastCreatedDzEffectGroup
+    endfunction
+
+    function DzEffectGroupCreateEnumRectBJ takes rect whichRect returns dzeffectgroup
+        set bj_lastCreatedDzEffectGroup = DzEffectGroupCreate()
+        call DzEffectGroupEnumRect(bj_lastCreatedDzEffectGroup, whichRect, false, false)
+        return bj_lastCreatedDzEffectGroup
+    endfunction
+
+    function DzEffectGroupAddBJ takes effect whichEffect, dzeffectgroup whichEffectGroup, boolean allowDuplicate returns integer
+        return DzEffectGroupAdd(whichEffectGroup, whichEffect, allowDuplicate)
+    endfunction
+
+    function DzEffectGroupEnumRangeBJ takes real x, real y, real range, dzeffectgroup whichEffectGroup, boolean clear, boolean allowDuplicate returns integer
+        return DzEffectGroupEnumRange(whichEffectGroup, x, y, range, clear, allowDuplicate)
+    endfunction 
+
+    function DzEffectGroupEnumRectBJ takes rect whichRect, dzeffectgroup whichEffectGroup, boolean clear, boolean allowDuplicate returns integer
+        return DzEffectGroupEnumRect(whichEffectGroup, whichRect, clear, allowDuplicate)
+    endfunction
+
+    function DzRemoveEffectTimedBJ takes real time, effect whichEffect returns boolean
+        return DzRemoveEffectTimed(whichEffect, time)
+    endfunction
+
+    function DzDieEffectTimedBJ takes real time, effect whichEffect returns boolean
+        return DzDieEffectTimed(whichEffect, time)
+    endfunction
+
+    function DzGetEffectGroupIdBJ takes dzeffectgroup g returns integer
+        return GetHandleId(g)
+    endfunction
+
+
 endlibrary
 
 #endif

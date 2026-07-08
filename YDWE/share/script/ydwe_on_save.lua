@@ -205,13 +205,12 @@ function event.EVENT_SAVE_MAP(event_data)
         pcall(fs.copy_file, map_path, map_path_aux, true)
     end
 
-    -- 不走 WE 保存时的 compile_map；编译由外部 TaskCompile 处理。
-    local result = true
-    log.trace("Skip compile_map on save; compile is handled by TaskCompile.")
+    local result = compile_map(map_path, save_option)
 
-    -- 如果有第二份，此处也不再额外编译第二份
+    -- 如果有第二份，此处也额外编译第二份
     if map_path_aux then
-        log.trace("Skip compile_map for second map.")
+        log.trace("Compiling second map.")
+        compile_map(map_path_aux, save_option)
     end
 
     if result then
