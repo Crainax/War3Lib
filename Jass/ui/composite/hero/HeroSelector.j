@@ -28,6 +28,9 @@
 
 #define HEROSEL_MAIN_WIDTH      0.72
 #define HEROSEL_MAIN_HEIGHT     0.3812
+#define HEROSEL_MAIN_CENTER_X   0.4
+#define HEROSEL_MAIN_CENTER_Y   0.35
+#define HEROSEL_TALENT_TOAST_TEXT "鼠标移至此处可以预览具体效果~"
 
 // 大图总宽高（4 张 512x512 图片拼成 2416x1220，保持比例，宽固定 0.75）
 #define HEROSEL_BG_FULL_WIDTH     0.7941
@@ -105,7 +108,7 @@
 //# dependency:resource/ui/image/hero_border.blp
 //# dependency:resource/ui/image/title_hero_ui.blp
 
-library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,UIImageBar,BaseAnim,GrowData {
+library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,UIImageBar,BaseAnim,GrowData,ToastHint,UIExtendDrag,UIUtils {
 
     //==========================================================================
     // 英雄数据（集中放置）
@@ -864,6 +867,54 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             }
         }
 
+        private static method showTalentPreviewToast(player p, integer heroIndex) {
+            heroData hd;
+            integer count;
+            real resizeX;
+            real mainCenterX;
+            real mainCenterY;
+            real leftGridWidth;
+            real sliderX;
+            real contentLeftX;
+            real rightAreaWidth;
+            real mainLeftX;
+            real mainTopY;
+            real rightCenterX;
+            real rightTopY;
+            real offsetX;
+            real toastX;
+            real toastY;
+
+            if (p == null || heroIndex <= 0 || heroIndex > heroData.size) { return; }
+            hd = heroData[heroIndex];
+            if (hd == 0 || hd.talentCount <= 0 || heroData.talentIcon[heroIndex][1] == null) { return; }
+
+            initRightLayoutCache();
+            count = hd.talentCount;
+            if (count > HEROSEL_TALENT_COUNT) { count = HEROSEL_TALENT_COUNT; }
+
+            resizeX = GetResizeRate();
+            mainCenterX = HEROSEL_MAIN_CENTER_X;
+            mainCenterY = HEROSEL_MAIN_CENTER_Y;
+            if (uiMainButton != 0 && uiMainButton.getDragX() > 0.0) {
+                mainCenterX = uiMainButton.getDragX();
+                mainCenterY = uiMainButton.getDragY();
+            }
+
+            leftGridWidth = HEROSEL_GRID_COLS * HEROSEL_CELL_SIZE + (HEROSEL_GRID_COLS - 1) * HEROSEL_CELL_GAP_X;
+            sliderX = HEROSEL_GRID_OFFSET_X + leftGridWidth + HEROSEL_SLIDER_GAP_X;
+            contentLeftX = sliderX + HEROSEL_SLIDER_WIDTH + HEROSEL_CONTENT_MARGIN_X;
+            rightAreaWidth = HEROSEL_MAIN_WIDTH - contentLeftX - HEROSEL_CONTENT_MARGIN_X;
+            mainLeftX = mainCenterX - HEROSEL_MAIN_WIDTH * resizeX * 0.5;
+            mainTopY = mainCenterY + HEROSEL_MAIN_HEIGHT * 0.5;
+            rightCenterX = mainLeftX + (contentLeftX + rightAreaWidth * 0.5) * resizeX;
+            rightTopY = mainTopY + HEROSEL_GRID_OFFSET_Y;
+            offsetX = rightOffsetX_1_5[count][1];
+            toastX = rightCenterX + offsetX * resizeX;
+            toastY = rightTopY + rightTalentGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5;
+            toastHint.create(p, HEROSEL_TALENT_TOAST_TEXT, toastX, toastY);
+        }
+
         public static method show(player p) {
             integer r; integer c; integer idx;
             integer totalRows;
@@ -888,7 +939,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             uiMainButton = uiBtn.createBlank(uiMain.ui)
                 .setAllPoint(uiMain.ui)
                 .enableDrag(uiMain.ui, 0.25, 0.55, 0.34, 0.5)
-                .setDragPosition(0.4, 0.35)
+                .setDragPosition(HEROSEL_MAIN_CENTER_X, HEROSEL_MAIN_CENTER_Y)
                 .onMouseWheel(function heroSelectorUI.onMouseWheel);
 
             // 背景拼图
@@ -942,12 +993,16 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     slotIcon[r][c].getClickBtn()
                         .onMouseWheel(function heroSelectorUI.onMouseWheel)
                         .spClick(function(integer frame) {
-                            integer pos; boolean showText; boolean conditionPassed;
+                            integer pos; boolean showText; boolean conditionPassed; boolean selectionChanged;
                             pos = uiHashTable(frame).eventdata.get();
                             // 更新选中位置并刷新显示
+                            selectionChanged = selectedPos != pos;
                             selectedPos = pos;
                             // 刷新右侧内容
                             refreshRightContent(pos);
+                            if (selectionChanged) {
+                                showTalentPreviewToast(owner, pos);
+                            }
                             // 调用字符串回调并设置uiBtn2Text（先执行，可被condition覆盖）
                             if (heroData.trHeroBtn1String != null) {
                                 currentPosAsync = pos;
@@ -1380,6 +1435,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
 #undef HEROSEL_MAIN_WIDTH
 #undef HEROSEL_MAIN_HEIGHT
+#undef HEROSEL_MAIN_CENTER_X
+#undef HEROSEL_MAIN_CENTER_Y
+#undef HEROSEL_TALENT_TOAST_TEXT
 #undef HEROSEL_BG_FULL_WIDTH
 #undef HEROSEL_BG_FULL_HEIGHT
 #undef HEROSEL_GRID_COLS

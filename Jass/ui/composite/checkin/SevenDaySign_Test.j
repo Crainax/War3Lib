@@ -118,11 +118,7 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
     }
 
     function TTestUTSevenDaySign7 (player p) {
-        // 切换 VIP 激活状态
-        boolean cur;
-        cur = sevenDaySignData.isVipActive(p);
-        sevenDaySignData.setVipActive(p, !cur);
-        BJDebugMsg("[UTSevenDaySign] VIP active=" + S3(!cur, "true", "false"));
+        BJDebugMsg("[UTSevenDaySign] VIP mall active=" + S3(sevenDaySignData.isVipMallActive(p), "true", "false"));
         if (GetLocalPlayer() == p) {
             sevenDaySignUI.refreshForPlayer(p);
         }

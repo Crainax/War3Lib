@@ -104,10 +104,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         private static string rewardTipDesc[];
         private static integer rewardCount = 0; // 已注册的奖励总天数
 
-        private static boolean vipActive[];     // VIP 特权调试/外部覆盖状态（按玩家）
-        private static boolean vipActiveOverride[]; // true 时优先使用 vipActive，否则自动读取商城拥有权
-        private static boolean vipInheritedActive[]; // 上阙继承激活状态（按玩家）
-
         private static trigger claimTr = null;
         private static player  claimPlayer = null;
         private static integer cbClaimDay = 0;
@@ -160,38 +156,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return cbClaimDay;
         }
 
-        public static method isVipActive(player p) -> boolean {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
-            if (vipActiveOverride[pid]) { return vipActive[pid]; }
-            return thistype.isVipMallActive(p) || thistype.isVipInheritedActive(p);
-        }
-
-        public static method setVipActive(player p, boolean flag) {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
-            vipActive[pid] = flag;
-            vipActiveOverride[pid] = true;
-        }
-
         public static method isVipMallActive(player p) -> boolean {
             return mallItem.hasByPlayer(p, SIGN7_VIP_MALLITEM_KEY);
-        }
-
-        public static method isVipInheritedActive(player p) -> boolean {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
-            return vipInheritedActive[pid];
-        }
-
-        public static method setVipInheritedActive(player p, boolean flag) {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
-            vipInheritedActive[pid] = flag;
         }
 
         public static method getStoredClaimedDay(player p) -> integer {
@@ -202,7 +168,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         }
 
         private static method getVipBonusDays(player p) -> integer {
-            if (thistype.isVipActive(p)) { return SIGN7_VIP_BONUS_DAYS; }
+            if (thistype.isVipMallActive(p)) { return SIGN7_VIP_BONUS_DAYS; }
             return 0;
         }
 
@@ -450,15 +416,13 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         }
 
         private static method vipTooltipTitle(player p) -> string {
-            return thistype.activeTitlePrefix(sevenDaySignData.isVipActive(p)) + "|cFFFFFF337|r|cFFFFE949天|r|cFFFFD35F签|r|cFFFFBD75到|r|cFFFFA88A特|r|cFFFF92A0权|r";
+            return thistype.activeTitlePrefix(sevenDaySignData.isVipMallActive(p)) + "|cFFFFFF337|r|cFFFFE949天|r|cFFFFD35F签|r|cFFFFBD75到|r|cFFFFA88A特|r|cFFFF92A0权|r";
         }
 
         private static method vipTooltipDesc(player p) -> string {
             return "拥有该特权后能直接完成7天签到|cff1aff00(在现有签到天数基础上+7天获得更多奖励)|r."
             + "\n\n|cffeeff00[激活来源]|r\n"
-            + thistype.sourceLine(sevenDaySignData.isVipMallActive(p), "1.商城道具:获得该商城道具后激活(成为VIP3会员后领取)")
-            + "\n"
-            + thistype.sourceLine(sevenDaySignData.isVipInheritedActive(p), "2.上阙继承:通过上阙的典藏赞助功能继承该特权");
+            + thistype.sourceLine(sevenDaySignData.isVipMallActive(p), "商城道具:获得该商城道具后激活(成为VIP3会员后领取)");
         }
 
         private static method showRewardTooltip(player p, integer day) {
@@ -612,7 +576,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             }
 
             // VIP 图标状态
-            vipOn = sevenDaySignData.isVipActive(p);
+            vipOn = sevenDaySignData.isVipMallActive(p);
             if (vipIcon != 0) {
                 vipIcon.setShadow(!vipOn);
             }
