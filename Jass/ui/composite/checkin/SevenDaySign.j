@@ -167,15 +167,11 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return claimedDay[pid];
         }
 
-        private static method getVipBonusDays(player p) -> integer {
-            if (thistype.isVipMallActive(p)) { return SIGN7_VIP_BONUS_DAYS; }
-            return 0;
-        }
-
         public static method getClaimedDay(player p) -> integer {
             integer day;
             integer rc;
-            day = thistype.getStoredClaimedDay(p) + thistype.getVipBonusDays(p);
+            day = thistype.getStoredClaimedDay(p);
+            if (thistype.isVipMallActive(p)) { day += SIGN7_VIP_BONUS_DAYS; }
             rc = thistype.getRewardCount();
             if (rc > 0 && day > rc) { return rc; }
             return day;
@@ -220,11 +216,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             if (day < 1 || day > thistype.getRewardCount()) { return ""; }
             day = thistype.getRewardTemplateDay(day);
             return rewardIcon[day];
-        }
-
-        public static method getRewardTitle(integer day) -> string {
-            if (day < 1 || day > thistype.getRewardCount()) { return ""; }
-            return "第" + I2S(day) + "天奖励";
         }
 
         public static method getRewardTipDesc(integer day) -> string {
@@ -405,11 +396,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return "|cff888888[未激活]|r";
         }
 
-        private static method rewardSubtitle(boolean claimed) -> string {
-            if (claimed) { return "|cff00ff00已永久获得以下奖励:|r"; }
-            return "|cff888888签到以领取以下奖励:|r";
-        }
-
         private static method sourceLine(boolean active, string text) -> string {
             if (active) { return "|cff00ff00" + text + "|r"; }
             return "|cff888888" + text + "|r";
@@ -430,7 +416,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             string desc;
             boolean claimed;
             uiText line;
-            title = sevenDaySignData.getRewardTitle(day);
+            if (day < 1 || day > sevenDaySignData.getRewardCount()) { return; }
+            title = "第" + I2S(day) + "天奖励";
             desc = sevenDaySignData.getRewardTipDesc(day);
             claimed = sevenDaySignData.isClaimed(sevenDaySignData.getClaimedDay(p), day);
             uiTooltipTemp = tooltip.create()
@@ -438,7 +425,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 .layoutFlexible(desc)
                 .setAbsPoint(ANCHOR_BOTTOMRIGHT, SIGN7_TOOLTIP_BR_X, SIGN7_TOOLTIP_BR_Y);
             uiTooltipTemp.getFirstText().setAlign(3);
-            line = uiTooltipTemp.addText(thistype.rewardSubtitle(claimed));
+            line = uiTooltipTemp.addText(S3(claimed, "|cff00ff00已永久获得以下奖励:|r", "|cff888888签到以领取以下奖励:|r"));
             line.setAlign(4);
             line = uiTooltipTemp.setFontSize(7).addText(thistype.activeTitlePrefix(claimed) + title);
             line.setAlign(4);
@@ -468,7 +455,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 slotDay = (currentPage - 1) * SIGN7_PAGE_SIZE + i;
                 if (slotDay <= rc) {
                     iconPath = sevenDaySignData.getRewardIcon(slotDay);
-                    title = sevenDaySignData.getRewardTitle(slotDay);
+                    title = "第" + I2S(slotDay) + "天奖励";
                     claimed = sevenDaySignData.isClaimed(claimedDayVal, slotDay);
 
                     if (slotIcon[i] != 0) { slotIcon[i].setTexture(iconPath).show(true); }

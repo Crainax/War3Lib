@@ -165,22 +165,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
     //==========================================================================
     // 传参
     //==========================================================================
-    private integer currentPos     = 0;                //点击位置
-    private player currentP        = null;                //点击位置
     // 回调参数传递（避免哈希表冲突）
     private integer currentPosAsync = 0;        //异步调用时的位置参数
     private string currentBtn1StringResult = ""; //字符串回调的返回值
-    private boolean currentBottomTextShow = false; //底部文本显示控制返回值
-
-    //当前触发的UI的对应位置
-    public function GetHeroSelectorPos () -> integer {
-        return currentPos;
-    }
-
-    //当前触发的UI的对应位置
-    public function GetHeroSelectorPlayer () -> player {
-        return currentP;
-    }
 
     //获取异步调用时的位置参数
     public function GetHeroConditionPosAsync () -> integer {
@@ -190,11 +177,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
     //写入字符串返回值（用于字符串回调）
     public function CallbackHeroBtn1String (string s) {
         currentBtn1StringResult = s;
-    }
-
-    //获取字符串返回值
-    public function GetHeroBtn1StringResult () -> string {
-        return currentBtn1StringResult;
     }
 
     //==========================================================================
@@ -218,7 +200,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         private static uiSlider leftSlider = 0;
 
         private static uiImage uiTitleText = 0;
-        public static uiText uiBottomText = 0;  // 底部按钮上方的文本（public，方便外部修改）
+        private static uiText uiBottomText = 0;  // 底部按钮上方的文本
         private static uiImage uiBtn1Image = 0;
         private static uiText uiBtn1Text = 0;
         private static uiBtn uiBtn1Button = 0;
@@ -234,8 +216,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         private static uiImage uiDivider = 0;
         private static uiImage uiRightArea = 0;
 
-        // 左下角BP图标和文字（public，方便外部修改）
-        public static uiImage uiBpIcon = 0;
+        // 左下角BP图标和文字
+        private static uiImage uiBpIcon = 0;
         public static uiText uiBpText = 0;
         private static uiBtn uiBpButton = 0;
 
@@ -330,7 +312,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             integer pos; heroData hd;
             integer globalRowIndex; integer totalRows; integer rowIconCount;
             real baseOffsetX; real offsetX; real offsetY;
-            boolean showBg = true; // 默认显示背景
             boolean unlocked = true;
 
             // 计算总行数
@@ -1035,7 +1016,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                         if (heroData.trBottomTextControl != null) {
                             currentPosAsync = pos;
                             currentBtn1StringResult = "";
-                            currentBottomTextShow = false;
                             showText = TriggerEvaluate(heroData.trBottomTextControl);
                             if (uiBottomText != 0) {
                                 if (showText) {
@@ -1410,14 +1390,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             if (GetLocalPlayer() != p) { return; }
             if (uiBtn1Text != 0) {
                 uiBtn1Text.setText(text);
-            }
-        }
-
-        // 设置左下角BP文本（仅对指定玩家）
-        public static method setBpText(player p, string text) {
-            if (GetLocalPlayer() != p) { return; }
-            if (uiBpText != 0) {
-                uiBpText.setText(text);
             }
         }
 
