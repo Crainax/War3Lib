@@ -46,6 +46,73 @@ library StringUtils {
         return -1;
     }
 
+    // 将整数编码为固定两位 base36 字符串，值域归一化到 0..1295。
+    public function Base36Encode2(integer value) -> string {
+        if (value < 0) { value = 0; }
+        value = ModuloInteger(value, 36 * 36);
+        return Base36DigitToChar(value / 36) + Base36DigitToChar(ModuloInteger(value, 36));
+    }
+
+    // 解码固定两位 base36 字符串；长度错误或包含非法字符时返回 -1。
+    public function Base36Decode2(string value) -> integer {
+        integer high;
+        integer low;
+
+        if (value == null || StringLength(value) != 2) { return -1; }
+        high = Base36CharToDigit(SubStringBJ(value, 1, 1));
+        low = Base36CharToDigit(SubStringBJ(value, 2, 2));
+        if (high < 0 || low < 0) { return -1; }
+        return high * 36 + low;
+    }
+
+    // 判断非空字符串是否全部由十进制数字组成。
+    public function IsDigitString(string value) -> boolean {
+        integer i;
+
+        if (value == null || value == "") { return false; }
+        for (1 <= i <= StringLength(value)) {
+            if (!IsDigitChar(SubStringBJ(value, i, i))) { return false; }
+        }
+        return true;
+    }
+
+    // 判断非空字符串是否全部由二进制字符组成。
+    public function IsBinaryString(string value) -> boolean {
+        integer i;
+        string ch;
+
+        if (value == null || value == "") { return false; }
+        for (1 <= i <= StringLength(value)) {
+            ch = SubStringBJ(value, i, i);
+            if (ch != "0" && ch != "1") { return false; }
+        }
+        return true;
+    }
+
+    // 判断非空字符串是否全部由小写 base36 字符组成。
+    public function IsBase36String(string value) -> boolean {
+        integer i;
+
+        if (value == null || value == "") { return false; }
+        for (1 <= i <= StringLength(value)) {
+            if (Base36CharToDigit(SubStringBJ(value, i, i)) < 0) { return false; }
+        }
+        return true;
+    }
+
+    // 在非负整数左侧补 0 至指定宽度；负数及已经达到宽度的值保持原字符串。
+    public function PadIntegerLeftZero(integer value, integer width) -> string {
+        integer i;
+        integer count;
+        string result;
+
+        result = I2S(value);
+        if (value < 0) { return result; }
+        count = width - StringLength(result);
+        for (1 <= i <= count) { result = "0" + result; }
+        return result;
+    }
+
     //重复某一个字符串N次,并可以按照指定间隔添加空格和换行
     //参数 s: 要重复的字符串
     //参数 times: 重复的次数
@@ -68,14 +135,7 @@ library StringUtils {
     // 不支持负数
     // 比如12,3   -> 012
     public function I2SM ( integer num,integer bit ) -> string {
-        integer i , count;
-        string s;
-        if (num < 0) {return I2S(num);}
-
-        s = I2S(num);
-        count = bit - StringLength(s);
-        for (1 <= i <= count) {s = "0" + s;}
-        return s;
+        return PadIntegerLeftZero(num, bit);
     }
 
 
@@ -92,11 +152,7 @@ library StringUtils {
     //拼接式存放数据的API
     //自动将整数补至10位长度的字符串(会自动取绝对值)
     public function IMendS ( integer num,integer bit ) -> string {
-        integer abs = IAbsBJ(num);
-        string result = I2S(abs);
-        integer i , length = StringLength(result);
-        for (1 <= i <= bit - length) {result = "0" + result;}
-        return result;
+        return PadIntegerLeftZero(IAbsBJ(num), bit);
     }
 
 

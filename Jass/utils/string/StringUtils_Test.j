@@ -27,6 +27,14 @@ library UTStringUtils requires StringUtils {
         }
     }
 
+    private function AssertBoolean(boolean actual, boolean expected, string name) {
+        if (actual == expected) {
+            BJDebugMsg("PASS: " + name);
+        } else {
+            BJDebugMsg("FAIL: " + name);
+        }
+    }
+
     private function RunBase36Tests() {
         AssertString(Base36DigitToChar(0), "0", "Base36DigitToChar 0");
         AssertString(Base36DigitToChar(9), "9", "Base36DigitToChar 9");
@@ -41,6 +49,23 @@ library UTStringUtils requires StringUtils {
         AssertInteger(Base36CharToDigit("z"), 35, "Base36CharToDigit z");
         AssertInteger(Base36CharToDigit("A"), -1, "Base36CharToDigit rejects uppercase");
         AssertInteger(Base36CharToDigit("?"), -1, "Base36CharToDigit rejects invalid");
+
+        AssertString(Base36Encode2(0), "00", "Base36Encode2 0");
+        AssertString(Base36Encode2(1295), "zz", "Base36Encode2 1295");
+        AssertInteger(Base36Decode2("zz"), 1295, "Base36Decode2 zz");
+        AssertInteger(Base36Decode2("A0"), -1, "Base36Decode2 rejects invalid");
+        AssertInteger(Base36Decode2("0"), -1, "Base36Decode2 rejects wrong length");
+
+        AssertBoolean(IsDigitString("0129"), true, "IsDigitString digits");
+        AssertBoolean(IsDigitString("01a"), false, "IsDigitString rejects letter");
+        AssertBoolean(IsBinaryString("0101"), true, "IsBinaryString bits");
+        AssertBoolean(IsBinaryString("012"), false, "IsBinaryString rejects 2");
+        AssertBoolean(IsBase36String("09az"), true, "IsBase36String lowercase");
+        AssertBoolean(IsBase36String("09AZ"), false, "IsBase36String rejects uppercase");
+
+        AssertString(PadIntegerLeftZero(12, 3), "012", "PadIntegerLeftZero pads");
+        AssertString(PadIntegerLeftZero(1234, 3), "1234", "PadIntegerLeftZero keeps overflow");
+        AssertString(PadIntegerLeftZero(-1, 3), "-1", "PadIntegerLeftZero keeps negative");
     }
 
     function onInit() {
