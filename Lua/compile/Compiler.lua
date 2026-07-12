@@ -1316,6 +1316,14 @@ function compile:StartCompile()
 	end
 
 	phaseStarted = os.clock()
+	code, msg = localDzApi.applyServerValueLimitLeftReplacement(path.CompileStep4)
+	timings.dzApiServerValueLimitLeftMs = elapsedMs(phaseStarted)
+	if not code then
+		print("[DzAPI本地替换]ServerValueLimitLeft失败:" .. tostring(msg) .. formatElapsedSeconds(timings.dzApiServerValueLimitLeftMs))
+		return false
+	end
+
+	phaseStarted = os.clock()
 	local compilerOk, selectedOutput, backendReport = self:RunJassCompiler(path.CompileStep4, timings)
 	timings.jassCompilerMs = elapsedMs(phaseStarted)
 	if not compilerOk then

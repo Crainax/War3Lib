@@ -693,13 +693,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(false); }
                 if (rightEquipText != 0) { rightEquipText.show(false); }
                 if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(false); }
-                if (rightTalentText != 0) { rightTalentText.show(false); }
-                if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(false); }
-                if (rightSkillText != 0) { rightSkillText.show(false); }
-                if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(false); }
-                if (rightEquipText != 0) { rightEquipText.show(false); }
-                if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(false); }
-
                 // 无效英雄索引时统一隐藏进度区。
                 refreshProgressContent(heroIndex);
                 return;
@@ -1139,7 +1132,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .show(false);
 
             // 装备区块下方：2 个进度条 + 2 个文本（居中，从上到下：bar1/text1/bar2/text2）
-            progY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
+            progY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y - 0.01;
             rightProgBar1 = uiImageBar.create(uiRightArea.ui)
                 .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
                 .setFillColor(0)

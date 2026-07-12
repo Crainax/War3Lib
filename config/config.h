@@ -1,11 +1,8 @@
 #define VERSION "0.0.1"
 #define MAX_PLAYER_COUNT 4
 
-// 定义后编译产物会注入 YDLua 启动入口；公开构建可只关闭控制台。
+// 定义后编译产物会注入 YDLua 启动入口。
 #define EnableYDLuaMode
-#if (CURRENT_BUILD_VERSION == VERSION_ALPHA) || (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
-#undef EnableYDLuaConsole
-#endif
 
 // 默认启用：将 DzWriteLog 转发给 Logger；关闭时改为 #define DisableLuaDzWriteLog。
 #ifndef DisableLuaDzWriteLog

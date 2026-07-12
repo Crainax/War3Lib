@@ -799,4 +799,38 @@ function localDzApi.applyPlayerFlagsReplacement(filePath)
     return ok, err
 end
 
+function localDzApi.applyServerValueLimitLeftReplacement(filePath)
+    local started = os.clock()
+    local version, cfg, _, enabled = readMockState()
+    if not enabled then
+        print("[DzAPI本地替换]ServerValueLimitLeft跳过: " .. version .. formatElapsedSeconds(elapsedMs(started)))
+        return true
+    end
+
+    local content = fu.GetContent(filePath)
+    if not content then
+        return false, "无法读取ServerValueLimitLeft替换目标: " .. tostring(filePath)
+    end
+
+    local limits = cfg["War3Lib.LocalDzApi.ServerValueLimitLeft"] or {}
+    local defaultValue = jassNonNegativeInteger(limits["Default"], "0")
+    local keyCount = 0
+    local fallbackCount = 0
+
+    content = content:gsub('KKApiGetServerValueLimitLeft%s*%(%s*([^,]+)%s*,%s*"([^"]*)"%s*%)', function(_, key)
+        keyCount = keyCount + 1
+        return jassNonNegativeInteger(limits[key], defaultValue)
+    end)
+    content = content:gsub('KKApiGetServerValueLimitLeft%s*(%b())', function()
+        fallbackCount = fallbackCount + 1
+        return defaultValue
+    end)
+
+    local ok, err = fu.WriteOver(filePath, content)
+    if ok then
+        print(string.format("[DzAPI本地替换]ServerValueLimitLeft完成: 按Key替换=%d, 兜底替换=%d%s", keyCount, fallbackCount, formatElapsedSeconds(elapsedMs(started))))
+    end
+    return ok, err
+end
+
 return localDzApi
