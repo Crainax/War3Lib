@@ -85,7 +85,6 @@
 #define HEROSEL_RIGHT_START_OFFSET_X 0.010  // 右侧内容起始X偏移
 #define HEROSEL_RIGHT_START_OFFSET_Y 0.030  // 右侧内容起始Y偏移（相对于左侧网格）
 #define HEROSEL_TALENT_COUNT 5  // 天赋技能图标数量
-#define HEROSEL_GIFT_COUNT 5  // 联结赠礼图标数量
 #define HEROSEL_SKILL_COUNT 5  // 推荐技能图标数量
 #define HEROSEL_EQUIP_COUNT 10  // 推荐装备图标数量
 #define HEROSEL_EQUIP_COLS 5  // 推荐装备每行图标数
@@ -128,10 +127,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public integer talentCount;   //天赋数量
         public static string  talentIcon  [500][5];  //天赋的图标
         public static integer talentValue [500][5];  //天赋的值
-
-        public integer giftCount;     //赠礼Count
-        public static string  giftIcon  [500][5];  //赠礼的图标
-        public static integer giftValue [500][5];  //赠礼的值
 
         public integer skillCount;     //建议的技能Count
         public static string  skillIcon  [500][5];  //建议的技能
@@ -226,10 +221,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         private static icon rightTalentIcon[HEROSEL_TALENT_COUNT];  // 天赋技能图标数组
         private static uiText rightTalentEmptyText = 0;  // 天赋技能区块 "暂无"
         private static real rightTalentGridY = 0;
-        private static uiText rightGiftText = 0;  // "联结赠礼" 文字
-        private static icon rightGiftIcon[HEROSEL_GIFT_COUNT];  // 联结赠礼图标数组
-        private static uiText rightGiftEmptyText = 0;  // 联结赠礼区块 "暂无"
-        private static real rightGiftGridY = 0;
         private static uiText rightSkillText = 0;  // "推荐技能" 文字
         private static icon rightSkillIcon[HEROSEL_SKILL_COUNT];  // 推荐技能图标数组
         private static uiText rightSkillEmptyText = 0;  // 推荐技能区块 "暂无"
@@ -244,6 +235,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         private static uiText rightProgText1 = 0;
         private static uiImageBar rightProgBar2 = 0;
         private static uiText rightProgText2 = 0;
+        private static uiText rightDailyIntimacyText = 0;
 
         private static boolean isOpen = false;
         private static player owner = null;
@@ -442,7 +434,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         }
 
         // 创建右侧图标网格（支持居中布局，第3个图标在中心）
-        // arrayType: 0=天赋技能, 1=联结赠礼, 2=推荐技能, 3=推荐装备
+        // arrayType: 0=天赋技能, 1=推荐技能, 2=推荐装备
         private static method createRightIconGrid(integer parentUI, real startY, integer iconCount, integer colsPerRow, integer arrayType) -> real {
             integer i; integer r; integer c;
             integer totalRows; integer rowIconCount;
@@ -450,7 +442,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             real nextY;
             integer eventType; integer encoded; uiBtn btn;
 
-            // 事件类型映射：0=天赋(1), 1=赠礼(2), 2=建议技能(3), 3=装备(4)
+            // 事件类型映射：0=天赋(1), 1=建议技能(2), 2=装备(3)
             eventType = arrayType + 1;
 
             // 计算总行数
@@ -494,14 +486,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     rightTalentIcon[i].show(false);
                     btn = rightTalentIcon[i].getClickBtn();
                 } else if (arrayType == 1) {
-                    rightGiftIcon[i] = icon.create(parentUI)
-                        .enableResize()
-                        .setTexture(HEROSEL_CURRENCY_ICON)
-                        .setSize(HEROSEL_RIGHT_ICON_SIZE, HEROSEL_RIGHT_ICON_SIZE)
-                        .exRePoint(ANCHOR_TOP, parentUI, ANCHOR_TOP, offsetX, offsetY);
-                    rightGiftIcon[i].show(false);
-                    btn = rightGiftIcon[i].getClickBtn();
-                } else if (arrayType == 2) {
                     rightSkillIcon[i] = icon.create(parentUI)
                         .enableResize()
                         .setTexture(HEROSEL_CURRENCY_ICON)
@@ -620,13 +604,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             real ratio;
 
             if (heroIndex <= 0 || heroIndex > heroData.size) {
-                // 无效索引，隐藏所有图标及右侧8个文本UI
-                // 无效索引，隐藏所有图标及右侧8个文本UI
+                // 无效索引，隐藏所有右侧内容
                 for (1 <= i <= HEROSEL_TALENT_COUNT) {
                     if (rightTalentIcon[i] != 0) { rightTalentIcon[i].show(false); }
-                }
-                for (1 <= i <= HEROSEL_GIFT_COUNT) {
-                    if (rightGiftIcon[i] != 0) { rightGiftIcon[i].show(false); }
                 }
                 for (1 <= i <= HEROSEL_SKILL_COUNT) {
                     if (rightSkillIcon[i] != 0) { rightSkillIcon[i].show(false); }
@@ -634,20 +614,15 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 for (1 <= i <= HEROSEL_EQUIP_COUNT) {
                     if (rightEquipIcon[i] != 0) { rightEquipIcon[i].show(false); }
                 }
-                // 隐藏右侧8个标题/暂无文本
+                // 隐藏右侧标题/暂无文本
                 if (rightTalentText != 0) { rightTalentText.show(false); }
                 if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(false); }
-                if (rightGiftText != 0) { rightGiftText.show(false); }
-                if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(false); }
                 if (rightSkillText != 0) { rightSkillText.show(false); }
                 if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(false); }
                 if (rightEquipText != 0) { rightEquipText.show(false); }
                 if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(false); }
-                // 隐藏右侧8个标题/暂无文本
                 if (rightTalentText != 0) { rightTalentText.show(false); }
                 if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(false); }
-                if (rightGiftText != 0) { rightGiftText.show(false); }
-                if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(false); }
                 if (rightSkillText != 0) { rightSkillText.show(false); }
                 if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(false); }
                 if (rightEquipText != 0) { rightEquipText.show(false); }
@@ -658,13 +633,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightProgText1 != 0) { rightProgText1.show(false); }
                 if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
                 if (rightProgText2 != 0) { rightProgText2.show(false); }
+                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
                 return;
             }
 
             hd = heroData[heroIndex];
             if (hd == 0) {
                 if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(true); }
-                if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(true); }
                 if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(true); }
                 if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(true); }
 
@@ -672,18 +647,16 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightProgText1 != 0) { rightProgText1.show(false); }
                 if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
                 if (rightProgText2 != 0) { rightProgText2.show(false); }
+                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
                 return;
             }
 
             initRightLayoutCache();
 
-            // 当4类内容均为空时，隐藏右侧8个文本UI并直接返回
-            if (hd.talentCount <= 0 && hd.giftCount <= 0 && hd.skillCount <= 0 && hd.equitCount <= 0) {
+            // 当3类内容均为空时，隐藏右侧内容并直接返回
+            if (hd.talentCount <= 0 && hd.skillCount <= 0 && hd.equitCount <= 0) {
                 for (1 <= i <= HEROSEL_TALENT_COUNT) {
                     if (rightTalentIcon[i] != 0) { rightTalentIcon[i].show(false); }
-                }
-                for (1 <= i <= HEROSEL_GIFT_COUNT) {
-                    if (rightGiftIcon[i] != 0) { rightGiftIcon[i].show(false); }
                 }
                 for (1 <= i <= HEROSEL_SKILL_COUNT) {
                     if (rightSkillIcon[i] != 0) { rightSkillIcon[i].show(false); }
@@ -693,8 +666,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 }
                 if (rightTalentText != 0) { rightTalentText.show(false); }
                 if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(false); }
-                if (rightGiftText != 0) { rightGiftText.show(false); }
-                if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(false); }
                 if (rightSkillText != 0) { rightSkillText.show(false); }
                 if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(false); }
                 if (rightEquipText != 0) { rightEquipText.show(false); }
@@ -704,11 +675,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightProgText1 != 0) { rightProgText1.show(false); }
                 if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
                 if (rightProgText2 != 0) { rightProgText2.show(false); }
+                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
                 return;
             } else {
-                // 恢复4个标题文本可见（若之前被隐藏过）
+                // 恢复3个标题文本可见（若之前被隐藏过）
                 if (rightTalentText != 0) { rightTalentText.show(true); }
-                if (rightGiftText != 0) { rightGiftText.show(true); }
                 if (rightSkillText != 0) { rightSkillText.show(true); }
                 if (rightEquipText != 0) { rightEquipText.show(true); }
             }
@@ -733,26 +704,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 }
             }
             if (rightTalentEmptyText != 0) { rightTalentEmptyText.show(count <= 0); }
-
-            // 更新联结赠礼图标
-            count = hd.giftCount;
-            if (count < 0) { count = 0; }
-            if (count > HEROSEL_GIFT_COUNT) { count = HEROSEL_GIFT_COUNT; }
-            for (1 <= i <= HEROSEL_GIFT_COUNT) {
-                if (rightGiftIcon[i] != 0) {
-                    if (i <= count && heroData.giftIcon[heroIndex][i] != null) {
-                        iconPath = heroData.giftIcon[heroIndex][i];
-                        rightGiftIcon[i].setTexture(S3(iconPath != null, iconPath, UI_STRING_PATH_BLANK));
-                        offsetX = rightOffsetX_1_5[count][i];
-                        offsetY = rightGiftGridY;
-                        rightGiftIcon[i].exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, offsetX, offsetY);
-                        rightGiftIcon[i].show(true);
-                    } else {
-                        rightGiftIcon[i].show(false);
-                    }
-                }
-            }
-            if (rightGiftEmptyText != 0) { rightGiftEmptyText.show(count <= 0); }
 
             // 更新推荐技能图标
             count = hd.skillCount;
@@ -802,6 +753,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightProgText1 != 0) { rightProgText1.show(false); }
                 if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
                 if (rightProgText2 != 0) { rightProgText2.show(false); }
+                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
                 return;
             }
 
@@ -816,6 +768,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightProgText1 != 0) { rightProgText1.show(false); }
                 if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
                 if (rightProgText2 != 0) { rightProgText2.show(false); }
+                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
                 return;
             }
 
@@ -842,9 +795,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 rightProgBar2.uiBackground.show(true);
                 rightProgBar2.uiFill.show(true);
                 rightProgText2.setText("全英雄亲密度(" + I2S(allCur) + "/" + I2S(allMax) + ")").setFontSize(3).show(true);
+                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(true); }
             } else {
                 if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
                 if (rightProgText2 != 0) { rightProgText2.show(false); }
+                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
             }
         }
 
@@ -984,14 +939,14 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                             if (selectionChanged) {
                                 showTalentPreviewToast(owner, pos);
                             }
-                            // 调用字符串回调并设置uiBtn2Text（先执行，可被condition覆盖）
-                            if (heroData.trHeroBtn1String != null) {
-                                currentPosAsync = pos;
-                                currentBtn1StringResult = "";
-                                TriggerEvaluate(heroData.trHeroBtn1String);
-                                if (uiBtn2Text != 0 && currentBtn1StringResult != null) {
-                                    uiBtn2Text.setText(currentBtn1StringResult);
-                                }
+                        // 调用字符串回调并设置uiBtn2Text（先执行，可被condition覆盖）
+                        if (heroData.trHeroBtn1String != null) {
+                            currentPosAsync = pos;
+                            currentBtn1StringResult = "";
+                            TriggerEvaluate(heroData.trHeroBtn1String);
+                            if (uiBtn2Text != 0 && currentBtn1StringResult != null) {
+                                uiBtn2Text.setText(currentBtn1StringResult);
+                            }
                         }
                         // 调用 trHeroCondition 判断解锁状态，最终决定 btn2 文本
                         // false=未解锁显示UNLOCK，true=已解锁显示DEFAULT
@@ -1133,26 +1088,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .show(false);
             rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
 
-            // 创建 "联结赠礼" 文字
-            rightGiftText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
-                .setAlign(4)  // 居中对齐
-                .setFontSize(7)
-                .setText("|cffff9900联结赠礼|r")
-                .show(false);
-            rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
-
-            // 创建联结赠礼图标（5个，单行）
-            rightGiftGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_GIFT_COUNT, HEROSEL_GIFT_COUNT, 1);
-            rightGiftEmptyText = uiText.create(uiRightArea.ui)
-                .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightGiftGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
-                .setAlign(4)
-                .setFontSize(7)
-                .setText("|cff808080暂无|r")
-                .show(false);
-            rightCurrentY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y;
-
             // 创建 "推荐技能" 文字
             rightSkillText = uiText.create(uiRightArea.ui)
                 .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
@@ -1164,7 +1099,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
             // 创建推荐技能图标（5个，单行）
             rightSkillGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_SKILL_COUNT, HEROSEL_SKILL_COUNT, 2);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_SKILL_COUNT, HEROSEL_SKILL_COUNT, 1);
             rightSkillEmptyText = uiText.create(uiRightArea.ui)
                 .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightSkillGridY - HEROSEL_RIGHT_ICON_SIZE * 0.5)
                 .setAlign(4)
@@ -1184,7 +1119,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
             // 创建推荐装备图标（10个，2行5列）
             rightEquipGridY = rightCurrentY;
-            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_EQUIP_COUNT, HEROSEL_EQUIP_COLS, 3);
+            rightNextY = createRightIconGrid(uiRightArea.ui, rightCurrentY, HEROSEL_EQUIP_COUNT, HEROSEL_EQUIP_COLS, 2);
             // 推荐装备区块的"暂无"（两行区域居中）
             rightEquipEmptyText = uiText.create(uiRightArea.ui)
                 .exRePoint(ANCHOR_CENTER, uiRightArea.ui, ANCHOR_TOP, 0, rightEquipGridY - (HEROSEL_RIGHT_ICON_SIZE * 2.0 + HEROSEL_RIGHT_ICON_GAP_Y) * 0.5)
@@ -1226,6 +1161,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setFontSize(7)
                 .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY)
                 .setText("")
+                .show(false);
+
+            rightDailyIntimacyText = uiText.create(uiRightArea.ui)
+                .setAlign(4)
+                .setFontSize(2)
+                .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY - HEROSEL_PROGRESS_TEXT_BAR_GAP_Y)
+                .setText("|cFF34D399今天还可获得X点亲密度|r")
                 .show(false);
 
             // 底部按钮上方的文本（x轴位置与第4列图标对齐，默认隐藏）
@@ -1330,21 +1272,16 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightSkillIcon[i] != 0) { rightSkillIcon[i].destroy(); rightSkillIcon[i] = 0; }
             }
             if (rightSkillText != 0) { rightSkillText.destroy(); rightSkillText = 0; }
-            // 销毁联结赠礼图标
-            for (1 <= i <= HEROSEL_GIFT_COUNT) {
-                if (rightGiftIcon[i] != 0) { rightGiftIcon[i].destroy(); rightGiftIcon[i] = 0; }
-            }
-            if (rightGiftText != 0) { rightGiftText.destroy(); rightGiftText = 0; }
             // 销毁天赋技能图标
             for (1 <= i <= HEROSEL_TALENT_COUNT) {
                 if (rightTalentIcon[i] != 0) { rightTalentIcon[i].destroy(); rightTalentIcon[i] = 0; }
             }
             if (rightTalentText != 0) { rightTalentText.destroy(); rightTalentText = 0; }
             if (rightTalentEmptyText != 0) { rightTalentEmptyText.destroy(); rightTalentEmptyText = 0; }
-            if (rightGiftEmptyText != 0) { rightGiftEmptyText.destroy(); rightGiftEmptyText = 0; }
             if (rightSkillEmptyText != 0) { rightSkillEmptyText.destroy(); rightSkillEmptyText = 0; }
             if (rightEquipEmptyText != 0) { rightEquipEmptyText.destroy(); rightEquipEmptyText = 0; }
 
+            if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.destroy(); rightDailyIntimacyText = 0; }
             if (rightProgText2 != 0) { rightProgText2.destroy(); rightProgText2 = 0; }
             if (rightProgBar2 != 0) { rightProgBar2.destroy(); rightProgBar2 = 0; }
             if (rightProgText1 != 0) { rightProgText1.destroy(); rightProgText1 = 0; }
@@ -1446,7 +1383,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 #undef HEROSEL_RIGHT_START_OFFSET_X
 #undef HEROSEL_RIGHT_START_OFFSET_Y
 #undef HEROSEL_TALENT_COUNT
-#undef HEROSEL_GIFT_COUNT
 #undef HEROSEL_SKILL_COUNT
 #undef HEROSEL_EQUIP_COUNT
 #undef HEROSEL_EQUIP_COLS

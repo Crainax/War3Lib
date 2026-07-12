@@ -100,21 +100,15 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 		for (1 <= i <= 37) {
 			heroData[i].talentCount = ModuloInteger(i, 6);
 			heroData[i].text2 = "力量英雄/近战";
-			heroData[i].giftCount = ModuloInteger(i+1, 6);
 			heroData[i].skillCount = ModuloInteger(i+2, 6);
 			heroData[i].equitCount = ModuloInteger(i+3, 11);
 			max = heroData[i].talentCount;
-			if (heroData[i].giftCount > max) max = heroData[i].giftCount;
 			if (heroData[i].skillCount > max) max = heroData[i].skillCount;
 			if (heroData[i].equitCount > max) max = heroData[i].equitCount;
 			for (1 <= j <= max) {
 				if (j <= heroData[i].talentCount) {
 					heroData.talentIcon[i][j]  = heroData[ModuloInteger(i+j-1, 37)+1].icon;
 					heroData.talentValue[i][j] = j * 10;
-				}
-				if (j <= heroData[i].giftCount) {
-					heroData.giftIcon[i][j]    = heroData[ModuloInteger(i+j, 37)+1].icon;
-					heroData.giftValue[i][j]   = j * 20;
 				}
 				if (j <= heroData[i].skillCount) {
 					heroData.skillIcon[i][j]   = heroData[ModuloInteger(i+j+1, 37)+1].icon;
@@ -129,7 +123,6 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 
 		// index=38：全 Count 为 0 的测试英雄（用于验证空分页显示逻辑）
 		heroData[38].talentCount = 0;
-		heroData[38].giftCount   = 0;
 		heroData[38].skillCount  = 0;
 		heroData[38].equitCount  = 0;
 		heroData[38].text2       = "力量英雄/近战";
@@ -212,18 +205,12 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 						toastHint.createAtMouse(p, "[HSelect] Enter: 天赋技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
 					}
 				} else if (eventType == 2) {
-					// 赠礼
-					if (eventIndex <= heroData[hero].giftCount) {
-						value = heroData.giftValue[hero][eventIndex];
-						toastHint.createAtMouse(p, "[HSelect] Enter: 赠礼 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
-					}
-				} else if (eventType == 3) {
 					// 建议的技能
 					if (eventIndex <= heroData[hero].skillCount) {
 						value = heroData.skillValue[hero][eventIndex];
 						toastHint.createAtMouse(p, "[HSelect] Enter: 建议的技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
 					}
-				} else if (eventType == 4) {
+				} else if (eventType == 3) {
 					// 装备
 					if (eventIndex <= heroData[hero].equitCount) {
 						value = heroData.equitValue[hero][eventIndex];
@@ -251,18 +238,12 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 						toastHint.createAtMouse(p, "[HSelect] Leave: 天赋技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
 					}
 				} else if (eventType == 2) {
-					// 赠礼
-					if (eventIndex <= heroData[hero].giftCount) {
-						value = heroData.giftValue[hero][eventIndex];
-						toastHint.createAtMouse(p, "[HSelect] Leave: 赠礼 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
-					}
-				} else if (eventType == 3) {
 					// 建议的技能
 					if (eventIndex <= heroData[hero].skillCount) {
 						value = heroData.skillValue[hero][eventIndex];
 						toastHint.createAtMouse(p, "[HSelect] Leave: 建议的技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
 					}
-				} else if (eventType == 4) {
+				} else if (eventType == 3) {
 					// 装备
 					if (eventIndex <= heroData[hero].equitCount) {
 						value = heroData.equitValue[hero][eventIndex];

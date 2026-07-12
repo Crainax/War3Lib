@@ -30,6 +30,7 @@ library MemoryLeak  {
 	}
 
 	function onInit ()  {
+		DzFixUnitEventMemoryLeak();
 		Cheat("exec-lua:depends.debug.memory_leak"); //内存泄露检测
 		TimerStart(CreateTimer(), 180.0, true, function MemoryLeakPeriodicLog);
 	}
