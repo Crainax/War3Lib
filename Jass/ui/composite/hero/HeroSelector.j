@@ -136,10 +136,14 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public static string  equitIcon  [500][10]; //装备的图标
         public static integer equitValue [500][10]; //装备的值
 
-        public static integer progressHero [MAX_PLAYER_COUNT][500];     //进度条(英雄熟练度-当前)
-        public static integer progressHeroMax [MAX_PLAYER_COUNT][500];  //进度条(英雄熟练度-最大)
-        public static integer progressAll [];     //进度条(全英雄熟练度-当前),所有英雄共通,只取玩家索引
-        public static integer progressAllMax [];  //进度条(全英雄熟练度-最大),所有英雄共通,只取玩家索引
+        public static integer progressHero [MAX_PLAYER_COUNT][500];     // 当前英雄的本级亲密度进度
+        public static integer progressHeroMax [MAX_PLAYER_COUNT][500];  // 当前英雄的本级亲密度上限（0 也显示）
+        public static string  progressHeroText [MAX_PLAYER_COUNT][500]; // 已格式化的亲密等级文本
+        public static boolean progressHeroHidden [MAX_PLAYER_COUNT][500]; // 仅隐藏上方单英雄进度（如随机英雄格）
+        public static integer progressAll [];     // 全英雄亲密等级总和
+        public static integer progressAllMax [];  // 全英雄可达到的亲密等级最大和
+        public static string  progressAllText []; // 已格式化的全英雄亲密等级文本
+        public static integer dailyIntimacyLeft []; // 总获取 Key 的当日剩余亲密度
 
         // ⚠️ 警告：该触发器在异步环境中执行（本地 UI 回调），禁止修改任何同步状态！
         public static trigger trRightEnter = null;   //介绍鼠标进入触发事件(异步) [ASYNC-SAFE]
@@ -591,6 +595,78 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             }
         }
 
+        // 刷新亲密等级进度。只读 heroData 展示数据，不执行任何存档或业务写入。
+        private static method refreshProgressContent(integer heroIndex) {
+            integer pid;
+            integer heroCur; integer heroMax;
+            integer allCur; integer allMax;
+            integer dailyLeft;
+            string label;
+            real ratio;
+
+            pid = GetConvertedPlayerId(GetLocalPlayer());
+            if (pid < 1 || pid > MAX_PLAYER_COUNT || heroIndex <= 0 || heroIndex > heroData.size) {
+                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgText1 != 0) { rightProgText1.show(false); }
+                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
+                if (rightProgText2 != 0) { rightProgText2.show(false); }
+                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
+                return;
+            }
+
+            heroCur = heroData.progressHero[pid][heroIndex];
+            heroMax = heroData.progressHeroMax[pid][heroIndex];
+            allCur = heroData.progressAll[pid];
+            allMax = heroData.progressAllMax[pid];
+            dailyLeft = heroData.dailyIntimacyLeft[pid];
+
+            if (heroCur < 0) { heroCur = 0; }
+            if (heroMax < 0) { heroMax = 0; }
+            if (allCur < 0) { allCur = 0; }
+            if (allMax < 0) { allMax = 0; }
+            if (dailyLeft < 0) { dailyLeft = 0; }
+
+            // 随机英雄格只隐藏上方进度，不影响全英雄进度和当日剩余值。
+            if (!heroData.progressHeroHidden[pid][heroIndex] && rightProgBar1 != 0 && rightProgText1 != 0) {
+                ratio = 0.0;
+                if (heroMax > 0) { ratio = I2R(heroCur) / I2R(heroMax); }
+                if (ratio < 0.0) { ratio = 0.0; }
+                if (ratio > 1.0) { ratio = 1.0; }
+                label = heroData.progressHeroText[pid][heroIndex];
+                if (label == null || label == "") {
+                    label = "亲密等级(" + I2S(heroCur) + "/" + I2S(heroMax) + ")";
+                }
+                rightProgBar1.setProgress(ratio);
+                rightProgBar1.uiBackground.show(true);
+                rightProgBar1.uiFill.show(true);
+                rightProgText1.setText(label).setFontSize(3).show(true);
+            } else {
+                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgText1 != 0) { rightProgText1.show(false); }
+            }
+
+            // 全英雄进度即使为 0/0 也保持显示。
+            if (rightProgBar2 != 0 && rightProgText2 != 0) {
+                ratio = 0.0;
+                if (allMax > 0) { ratio = I2R(allCur) / I2R(allMax); }
+                if (ratio < 0.0) { ratio = 0.0; }
+                if (ratio > 1.0) { ratio = 1.0; }
+                label = heroData.progressAllText[pid];
+                if (label == null || label == "") {
+                    label = "全英雄亲密等级总和|cFFF59E0B(Lv." + I2S(allCur) + ")|r";
+                }
+                rightProgBar2.setProgress(ratio);
+                rightProgBar2.uiBackground.show(true);
+                rightProgBar2.uiFill.show(true);
+                rightProgText2.setText(label).setFontSize(3).show(true);
+            }
+            if (rightDailyIntimacyText != 0) {
+                rightDailyIntimacyText
+                    .setText("|cFF34D399今天还可获得" + I2S(dailyLeft) + "点亲密度|r")
+                    .show(true);
+            }
+        }
+
         // 刷新右侧内容（根据选中的英雄索引）
         private static method refreshRightContent(integer heroIndex) {
             heroData hd;
@@ -598,10 +674,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             string iconPath;
             integer count;
             real offsetX; real offsetY;
-            integer pid;
-            integer heroCur; integer heroMax;
-            integer allCur; integer allMax;
-            real ratio;
 
             if (heroIndex <= 0 || heroIndex > heroData.size) {
                 // 无效索引，隐藏所有右侧内容
@@ -628,12 +700,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightEquipText != 0) { rightEquipText.show(false); }
                 if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(false); }
 
-                // 隐藏进度条与文字
-                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
-                if (rightProgText1 != 0) { rightProgText1.show(false); }
-                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
-                if (rightProgText2 != 0) { rightProgText2.show(false); }
-                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
+                // 无效英雄索引时统一隐藏进度区。
+                refreshProgressContent(heroIndex);
                 return;
             }
 
@@ -670,12 +738,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightSkillEmptyText != 0) { rightSkillEmptyText.show(false); }
                 if (rightEquipText != 0) { rightEquipText.show(false); }
                 if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(false); }
-                // 隐藏进度条与文字
-                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
-                if (rightProgText1 != 0) { rightProgText1.show(false); }
-                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
-                if (rightProgText2 != 0) { rightProgText2.show(false); }
-                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
+                // 推荐内容为空不影响亲密等级数据的展示。
+                refreshProgressContent(heroIndex);
                 return;
             } else {
                 // 恢复3个标题文本可见（若之前被隐藏过）
@@ -746,61 +810,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             }
             if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(count <= 0); }
 
-            // 更新装备区块下方进度条（按玩家索引与当前选中 pos）
-            pid = GetConvertedPlayerId(GetLocalPlayer());
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) {
-                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
-                if (rightProgText1 != 0) { rightProgText1.show(false); }
-                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
-                if (rightProgText2 != 0) { rightProgText2.show(false); }
-                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
-                return;
-            }
-
-            heroCur = heroData.progressHero[pid][heroIndex];
-            heroMax = heroData.progressHeroMax[pid][heroIndex];
-            allCur = heroData.progressAll[pid];
-            allMax = heroData.progressAllMax[pid];
-
-            // 两个 Max 都为 0 时隐藏这 4 个 UI
-            if (heroMax <= 0 && allMax <= 0) {
-                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
-                if (rightProgText1 != 0) { rightProgText1.show(false); }
-                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
-                if (rightProgText2 != 0) { rightProgText2.show(false); }
-                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
-                return;
-            }
-
-            // 1) 英雄亲密度
-            if (heroMax > 0 && rightProgBar1 != 0 && rightProgText1 != 0) {
-                ratio = I2R(heroCur) / I2R(heroMax);
-                if (ratio < 0.0) { ratio = 0.0; }
-                if (ratio > 1.0) { ratio = 1.0; }
-                rightProgBar1.setProgress(ratio);
-                rightProgBar1.uiBackground.show(true);
-                rightProgBar1.uiFill.show(true);
-                rightProgText1.setText("英雄亲密度(" + I2S(heroCur) + "/" + I2S(heroMax) + ")").setFontSize(3).show(true);
-            } else {
-                if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
-                if (rightProgText1 != 0) { rightProgText1.show(false); }
-            }
-
-            // 2) 全英雄亲密度
-            if (allMax > 0 && rightProgBar2 != 0 && rightProgText2 != 0) {
-                ratio = I2R(allCur) / I2R(allMax);
-                if (ratio < 0.0) { ratio = 0.0; }
-                if (ratio > 1.0) { ratio = 1.0; }
-                rightProgBar2.setProgress(ratio);
-                rightProgBar2.uiBackground.show(true);
-                rightProgBar2.uiFill.show(true);
-                rightProgText2.setText("全英雄亲密度(" + I2S(allCur) + "/" + I2S(allMax) + ")").setFontSize(3).show(true);
-                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(true); }
-            } else {
-                if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
-                if (rightProgText2 != 0) { rightProgText2.show(false); }
-                if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
-            }
+            refreshProgressContent(heroIndex);
         }
 
         private static method showTalentPreviewToast(player p, integer heroIndex) {
@@ -1167,7 +1177,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setAlign(4)
                 .setFontSize(2)
                 .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY - HEROSEL_PROGRESS_TEXT_BAR_GAP_Y)
-                .setText("|cFF34D399今天还可获得X点亲密度|r")
+                .setText("")
                 .show(false);
 
             // 底部按钮上方的文本（x轴位置与第4列图标对齐，默认隐藏）
@@ -1335,6 +1345,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             if (GetLocalPlayer() != p) { return; }
             if (!isOpen) { return; }
             refreshLeftGrid();
+        }
+
+        // 数据桥更新本地缓存后，可单独刷新当前选中英雄的亲密等级区。
+        public static method refreshProgress(player p) {
+            if (GetLocalPlayer() != p) { return; }
+            if (!isOpen) { return; }
+            refreshProgressContent(selectedPos);
         }
 
     }
