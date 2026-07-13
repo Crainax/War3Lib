@@ -6,7 +6,6 @@ UnitBuff_Test 指令说明：
 
 基础旧用例：
 - 输入 s1~s5：无敌/一次无敌窗口测试。
-- 输入 s6~s10：时间破防、永久破防、冲突位与刷新测试。
 - 输入 s11~s16、s18：眩晕、抗性、免疫、清除、CD 与禁用 CD 测试。
 - 输入 s19：StartTimerBuff 外部存参和回调清理测试。
 
@@ -50,7 +49,7 @@ UnitBuff_Test 指令说明：
 
 
 //自动生成的文件
-library UTUnitBuff requires UnitBuff, UnitDefenseReduce {
+library UTUnitBuff requires UnitBuff {
 
     // 眩晕测试用单位记录，避免重复创建导致多选
     private unit stunTestUnits[];
@@ -263,97 +262,6 @@ library UTUnitBuff requires UnitBuff, UnitDefenseReduce {
 		u3 = null;
 		owner = null;
 	}
-	// 测试6：时间破防基本功能
-	function TTestUTUnitBuff6 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s6: 给单位添加时间破防（slot=1, defense=10, time=3秒）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseTime(u, 1, 10, 3.0);
-		BJDebugMsg("[UnitBuffTest] 单位应有破防特效，防御应减少10，3秒后自动恢复");
-		u = null;
-		owner = null;
-	}
-
-	// 测试7：冲突位机制 - 同一 slot 取最大值
-	function TTestUTUnitBuff7 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s7: 同一 slot 取最大值测试（slot=1, 先10后20，应取20）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseTime(u, 1, 10, 3.0);
-		BJDebugMsg("[UnitBuffTest] 第一次：破防10，防御应减少10");
-		ReduceDefenseTime(u, 1, 20, 3.0);
-		BJDebugMsg("[UnitBuffTest] 第二次：破防20（最大值），防御应再减少10（总共减少20）");
-		BJDebugMsg("[UnitBuffTest] 3秒后防御应恢复20");
-		u = null;
-		owner = null;
-	}
-
-	// 测试8：不同 slot 独立存在
-	function TTestUTUnitBuff8 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s8: 不同 slot 独立测试（slot=1和slot=2同时存在）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseTime(u, 1, 10, 3.0);
-		BJDebugMsg("[UnitBuffTest] slot=1: 破防10，防御应减少10");
-		ReduceDefenseTime(u, 2, 15, 2.0);
-		BJDebugMsg("[UnitBuffTest] slot=2: 破防15，防御应再减少15（总共减少25）");
-		BJDebugMsg("[UnitBuffTest] slot=2的2秒后恢复15，slot=1的3秒后恢复10");
-		u = null;
-		owner = null;
-	}
-
-	// 测试9：剩余时间刷新机制（取最大值）
-	function TTestUTUnitBuff9 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s9: 剩余时间刷新测试（先3秒，再刷新到5秒，应取最大值5秒）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseTime(u, 1, 10, 3.0);
-		BJDebugMsg("[UnitBuffTest] 第一次：破防10，剩余时间3秒");
-		ReduceDefenseTime(u, 1, 10, 5.0);
-		BJDebugMsg("[UnitBuffTest] 第二次：刷新剩余时间为5秒（取最大值），防御不变");
-		BJDebugMsg("[UnitBuffTest] 5秒后防御应恢复10");
-		u = null;
-		owner = null;
-	}
-
-	// 测试10：永久破防功能
-	function TTestUTUnitBuff10 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s10: 永久破防测试（slot=1, defense=15）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseForever(u, 1, 15);
-		BJDebugMsg("[UnitBuffTest] 单位应有破防特效，防御应减少15，永久生效");
-		ReduceDefenseForever(u, 1, 20);
-		BJDebugMsg("[UnitBuffTest] 再次调用（最大值20），防御应再减少5（总共减少20）");
-		u = null;
-		owner = null;
-	}
-
     // 测试11：基础眩晕 2 秒（带特效）
     function TTestUTUnitBuff11 (player p) {
         unit u; player owner;
@@ -1011,7 +919,7 @@ library UTUnitBuff requires UnitBuff, UnitDefenseReduce {
 		string  paramS [];							   //所有参数S
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
-		unit u; real def; real duration;
+		unit u; real duration;
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -1028,45 +936,7 @@ library UTUnitBuff requires UnitBuff, UnitDefenseReduce {
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
 
-		if (paramS[0] == "reduce") {
-			// 测试时间破防: -reduce slot defense time
-			// 示例: -reduce 1 10 3.0
-			if (num >= 3) {
-				u = unitSelect.currentU[index];
-				if (u != null) {
-					def = GetUnitDefense(u);
-					BJDebugMsg("[UnitBuffTest] 时间破防测试: slot=" + I2S(paramI[1]) + ", defense=" + I2S(paramI[2]) + ", time=" + R2S(paramR[3]));
-					BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-					ReduceDefenseTime(u, paramI[1], paramI[2], paramR[3]);
-					BJDebugMsg("[UnitBuffTest] 破防已应用");
-				} else {
-					BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
-				}
-				u = null;
-			} else {
-				BJDebugMsg("[UnitBuffTest] 用法: -reduce slot defense time");
-				BJDebugMsg("[UnitBuffTest] 示例: -reduce 1 10 3.0");
-			}
-		} else if (paramS[0] == "reduceP") {
-			// 测试永久破防: -reduceP slot defense
-			// 示例: -reduceP 1 15
-			if (num >= 2) {
-				u = unitSelect.currentU[index];
-				if (u != null) {
-					def = GetUnitDefense(u);
-					BJDebugMsg("[UnitBuffTest] 永久破防测试: slot=" + I2S(paramI[1]) + ", defense=" + I2S(paramI[2]));
-					BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-					ReduceDefenseForever(u, paramI[1], paramI[2]);
-					BJDebugMsg("[UnitBuffTest] 永久破防已应用");
-				} else {
-					BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
-				}
-				u = null;
-			} else {
-				BJDebugMsg("[UnitBuffTest] 用法: -reduceP slot defense");
-				BJDebugMsg("[UnitBuffTest] 示例: -reduceP 1 15");
-			}
-		} else if (paramS[0] == "pause") {
+		if (paramS[0] == "pause") {
 			// 测试暂停单位: -pause
 			u = unitSelect.currentU[index];
 			if (u != null) {
@@ -1177,11 +1047,6 @@ library UTUnitBuff requires UnitBuff, UnitDefenseReduce {
 			else if(str == "s3") TTestUTUnitBuff3(GetTriggerPlayer());
 			else if(str == "s4") TTestUTUnitBuff4(GetTriggerPlayer());
 			else if(str == "s5") TTestUTUnitBuff5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUnitBuff6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUnitBuff7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUnitBuff8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUnitBuff9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUnitBuff10(GetTriggerPlayer());
             else if(str == "s11") TTestUTUnitBuff11(GetTriggerPlayer());
             else if(str == "s12") TTestUTUnitBuff12(GetTriggerPlayer());
             else if(str == "s13") TTestUTUnitBuff13(GetTriggerPlayer());
