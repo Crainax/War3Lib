@@ -38,6 +38,8 @@ endfunction
 - `StoreInteger/GetStoredInteger` 自动加 `I` 前缀。
 - `StoreString/GetStoredString` 自动加 `S` 前缀。
 - 若手写 `SaveServerValue/GetServerValue`，必须自行保证前缀一致。
+- 初始化读档按服务器为本局提供的同步快照处理：所有客户端读取任意本局玩家的同一 Key，结果一致，不需要也不应通过客户端发包再次同步。
+- `GetStored*` 的局中返回值按开局加载快照处理；不要用局中再次读取来判断刚才的 `Store*` 是否被服务端接受。
 
 ## 2) 平台长度与频率约束
 

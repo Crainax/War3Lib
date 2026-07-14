@@ -7,7 +7,7 @@
 - 如果遇到“`jasshelper` 因函数顺序失败，但 `vjassc` 能通过”的情况，优先在这条调用上改成 `xxxx.evaluate(...)`，不要为了兼容旧编译器大范围搬动函数。
 - 只有需要结构化封装、复用边界更清晰，或已经在 `struct` 内组织逻辑时，才把下方逻辑包进 `struct` 静态方法。
 
-独立判例：`Init` 调用定义在下方的 `RefreshPanel` 时，`vjassc` 可以自动整理输出顺序；若同时要求 `jasshelper` 通过，可把调用点改成 `RefreshPanel.evaluate(owner)`，而不是把整段 UI 初始化函数整体搬动。
+当前项目判例：`edit/MythImplement.j` 的 `I507_1` 中，直接调用 `UpdateSpellMR(...)` 时 `vjassc` 可以通过并自动整理输出顺序，但 `jasshelper` 会因 `UpdateSpellMR` 定义在后面而失败；改成 `UpdateSpellMR.evaluate(GetOwningPlayer(u))` 后两边都能通过。生成结果里，`output/5_jasshelper.j` 会降成 `sc___prototype308_evaluate(...)`，`output/5_vjassc.j` 会智能降成直接 `call UpdateSpellMR(...)`。
 
 ### 2) `execute` 示例（无返回）
 

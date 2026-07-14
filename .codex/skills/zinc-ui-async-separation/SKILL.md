@@ -1,6 +1,6 @@
 ---
 name: zinc-ui-async-separation
-description: War3Lib UI 组件开发行为规范（Zinc in .j）：约束 UI 本地异步行为与同步数据逻辑分离；规范 onClick/onEnter/onLeave 与 spClick/spEnter/spLeave 的使用边界；规范本地事件转同步事件时的数据打包与触发器接收。用于创建或重构 Jass/ui/composite 下的 UI（如 HeroSelector/Selector/Museum）及相关回调。
+description: War3Lib/Xlimon UI 组件开发行为规范（Zinc in .j）：约束 UI 本地异步行为与同步数据逻辑分离；规范 onClick/onEnter/onLeave 与 spClick/spEnter/spLeave；规范本地事件转同步事件时的数据打包与触发器接收；防止难度确认、开局、休闲模式、HeroSelector 前阶段过早创建 DzFrameBindWidget/世界单位绑定 UI；约束 Museum、分页卡片、配置存档 UI 的字符串编解码与刷新性能。用于创建、重构或排查 Jass/ui/composite 下的 UI（如 HeroSelector/Selector/Museum）、UIDifficulty、Arena、RelaxMode 及相关回调、频繁 refresh 卡顿问题。
 ---
 
 # War3 UI 异步分层规范
@@ -26,11 +26,24 @@ description: War3Lib UI 组件开发行为规范（Zinc in .j）：约束 UI 本
 - 初始化后必须做句柄保护：若 `obj == 0` 或 `obj.ui == 0`，立刻 `return`，禁止继续 `setTexture/onClick/show` 链式调用。
 - 若报错栈含 `DzFrameShow -> s__uimage_show / s__uitext_show / s__uibtn_show`，优先按“simple 调用了 show”定位。
 
+## 开局/难度阶段 DzFrame 绑定防雷
+
+- 不要在 `onInit()`、地图开局短 timer、`AfterChooseDiff()` 的同步主链路中批量创建 `DzFrameBindWidget` 到世界单位的 UI，尤其不要在 HeroSelector 创建前创建绑定到商店/NPC/马甲单位的框。
+- 休闲模式会在选难度后隐藏全图单位；如果此前已把 frame 绑定到这些单位，再叠加每帧 `DzGetUnitUnderMouse()` / `DzFrameShow()` 刷新，容易导致客户端卡死或未响应。
+- 把“数据初始化”和“本地 UI 绑定创建”拆开：同步数据可用短 timer 分帧初始化；`DzFrameBindWidget`、商店头顶文字、世界单位跟随 UI 应在首次真正需要刷新/显示时懒创建。
+- 每帧 UI 刷新函数必须先做轻量 guard：没有任何已创建 frame root 时直接 `return`，不要提前调用 `DzGetUnitUnderMouse()` 或遍历显隐。
+- 若必须在难度确认后预热数据，每 tick 只处理少量在线玩家/对象；不要把多玩家随机表、frame 创建、单位显隐挤在同一帧。
+- 排查“只在休闲模式卡死，普通难度正常”时，优先检查休闲模式隐藏单位与 `DzFrameBindWidget`、世界单位绑定 UI、每帧鼠标检测之间的交互，而不是只看难度数值逻辑。
+
 ## 事件绑定选择
 
 - 无数据绑定的事件用 `onClick/onEnter/onLeave`。
 - 需要携带绑定数据（frame -> eventdata -> 业务参数）时用 `spClick/spEnter/spLeave`。
 - 使用 `sp*` 时，先绑定 `uiHashTable(frame).eventdata`，再在回调中解包；禁止直接依赖外层局部变量闭包。
+- 不需要 `frame` / `eventdata` 的回调必须优先复用具名 `code`：例如 `.onLeave(function Foo.clearTooltip)`，避免每个控件生成一层只转发的 lambda。
+- 需要 `frame` 的 `sp*` 回调也优先传具名 `uiEvent`：例如 `.spEnter(uiEvent.FooOnEnter)`；不要写 `.spEnter(function(integer frame) { Foo.onEnter(frame); })` 这类每个控件一份的纯转发包装。
+- 若目标逻辑在 struct method 中，为兼容 vjassc/jasshelper，抽一个库级 `public function FooOnEnter(integer frame)` 再以 `uiEvent.FooOnEnter` 传入；多个控件共享这个适配函数。
+- 只有在确实需要适配参数、临时组合多步逻辑、或写入一次性参数槽时，才使用匿名 lambda；重复出现时抽成具名静态方法。
 
 ## 异步转同步（本地事件出网）
 
@@ -53,16 +66,36 @@ description: War3Lib UI 组件开发行为规范（Zinc in .j）：约束 UI 本
 - 销毁顺序保持“子组件 -> 主组件”，并把句柄置零。
 - 本地 UI 关闭仅处理本地资源；同步状态变更交给同步事件处理器。
 
-## 创建期 OOS 防线（外观/选择类）
+## Museum/配置型 UI 的存档字符串性能
 
-- 在“单位/英雄创建”这类同步流程里，禁止根据 `BLoaded` / 本地缓存是否已读档来走不同同步分支。
-- 创建期若需要应用外观、装饰、初始选择结果：
-1. 先在全端应用同一份确定参数（通常是默认外观/默认选择）。
+- 禁止在点击、hover、翻页、`refresh()`、`refreshCard()` 等交互热路径中反复调用会执行完整字符串标准化/解析的 getter。
+- 存档字符串只允许在两个边界转换：打开或收到同步结果时解码一次；点击保存时编码一次。收包端仍保留完整格式、点数与业务合法性校验。
+- 交互阶段使用按字段拆分的本地草稿缓存，例如 `localLevel[]`、`localDisabled[]`、`serverLevel[]`、`serverDisabled[]`。不同语义优先用独立类型数组，不为形式统一强塞二维整数数组。
+- 初始化草稿时一次性计算 `localSpent`、`localPoolCount` 等汇总值；加减等级和开关状态时按差值增量维护，禁止每张卡重新扫描整份配置。
+- `refresh()` 开头只计算一次公共状态（如总点数、是否可编辑、dirty 状态），再作为参数传给当前页卡片刷新；禁止每张卡重复获取或计算。
+- 分页 UI 只刷新当前页卡片。换页时隐藏上一页、显示并刷新下一页，禁止每次操作遍历所有卡片后再由卡片自行判断是否属于当前页。
+- 洗点直接清空草稿数组并重置汇总缓存，保存时再构造默认配置；不要为了 UI 预览反复拼接完整字符串。
+- 发现 getter 内部调用 `NormalizeConfig()`，且外层循环又逐卡调用该 getter 时，按嵌套全量解析处理：先解码为数组缓存，再优化 UI 原生调用数量。
+
+推荐流程：
+
+```text
+load/sync -> normalize once -> decode arrays -> calculate aggregates once
+click     -> mutate one array slot -> update aggregate deltas -> refresh current page
+save      -> encode arrays once -> local precheck -> sync payload -> receiver full validation
+```
+
+## 创建期 OOS 防线（换肤/外观类）
+
+- 在“英雄创建”这类同步流程里，禁止根据 `BLoaded` / 本地缓存是否已读档来走不同同步分支。
+- 创建期若需要应用外观：
+1. 先在全端应用同一份确定参数（通常是默认皮肤/默认外观）。
 2. 再由本地玩家发送同步 payload。
-3. 最终只在 `onDataSync` 中按 payload 统一应用真实状态。
-- `onDataSync` 若依赖对象存在（如 `H[idx]` 或选择数据实例），必须容忍“消息先到、对象后到”的时序；必要时补一次下一拍重试或在创建后再次触发同步。
+3. 最终只在 `onDataSync` 中按 payload 统一应用真实外观。
+- `onDataSync` 若依赖对象存在（如 `H[idx]`），必须容忍“消息先到、对象后到”的时序；必要时补一次下一拍重试或在创建后再次触发同步。
 - 避免在创建单位的同一帧立即发同步；可延迟一拍（如 `0.03s`）降低竞态概率。
-- `DzAPI_Map_GetStored*` / 本地读档只允许在本地分支执行；其结果必须先转成同步消息再驱动全端同步状态变更。
+- `DzAPI_Map_GetStored*` 的服务器开局快照不是本地异步输入：按 `.codex/skills/dzapi-server-save-load/SKILL.md` 的规则，由所有客户端在一致时机、按固定玩家顺序直接读取到同步缓存；禁止包进 `GetLocalPlayer`，也禁止重新发包广播读档结果。
+- 只有真正的本地 UI 点击、键鼠输入或本地设置缓存，在需要驱动全端同步状态时才先转成同步消息。
 
 ## Dz 同步与随机数
 
@@ -75,8 +108,8 @@ description: War3Lib UI 组件开发行为规范（Zinc in .j）：约束 UI 本
 
 - 需要替代 `GetRandom*` 时，优先使用纯整数确定性种子 + 16807 LCG（Schrage 法）+ Fisher-Yates 洗牌；这样概率分布接近原洗牌，同时不消耗魔兽原生随机序列。
 - 不要在热路径构造动态长字符串后 `StringHash("A|" + I2S(x) + "|" + name)`；War3 字符串拼接有额外开销，也更难审查输入稳定性。
-- 可接受的输入方式：对已有稳定字符串单独 `StringHash`，例如 `GetVersion()`、`GetPlayerName(p)`；再把开局时间、玩家序号、刷新次数等整数通过整数混合函数并入种子。
-- 种子混合要保留原本参与随机的稳定信息，例如开局时间、版本、玩家名 hash、玩家序号；只改变混合方式，不随意删掉影响分布/区分度的输入。
+- 可接受的输入方式：对已有稳定字符串单独 `StringHash`，例如 `GetVersion()`、`GetPlayerName(p)`、难度文本；再把开局时间、玩家序号、刷新次数等整数通过整数混合函数并入种子。
+- 种子混合要保留原本参与随机的稳定信息，例如开局时间、版本、玩家名 hash、玩家序号、难度；只改变混合方式，不随意删掉影响分布/区分度的输入。
 - 对候选池选择多个结果时，用确定性 Fisher-Yates 后取前 N 个，避免连续 `ModuloInteger(seed, count)` 造成明显线性相关。
 
 ## 硬性检查清单（CR Gate）
@@ -94,6 +127,8 @@ FAIL: 在 UI 点击回调里直接执行奖励发放、状态切换、背包改�
 3. 正确选择 `on*` vs `sp*`
 PASS: 无绑定数据用 `onClick/onEnter/onLeave`；有 frame 数据解包需求用 `spClick/spEnter/spLeave`。
 FAIL: 需要 `eventdata` 却使用 `on*`，或无数据需求滥用 `sp*`。
+PASS: `sp*` 直接传具名 `uiEvent`，`on*` 直接传具名 `code`。
+FAIL: 回调主体只是 `Foo.bar(frame);` 或 `Foo.clearTooltip();`，仍为每个控件创建匿名 lambda 包装。
 
 4. `sp*` 回调前完成 eventdata 绑定
 PASS: 对应按钮存在 `uiHashTable(btn.ui).eventdata.bind*`。
@@ -127,9 +162,13 @@ FAIL: UI 文件内混入业务数据写入分支。
 PASS: `uiImage/uiText` 使用“改锚点/移出屏幕”的 simple-safe 显隐方案；`uiBtn.createSimple` 显示时固定尺寸定位，隐藏时缩到 `0.001` 后移出屏幕；都有 `ui!=0` 保护。
 FAIL: 对 `createSimple` 组件直接 `.show()`；或 `uiBtn.createSimple` 只改锚点、依赖相对锚点撑点击区、无句柄保护就调用 UI 原生函数。
 
+12. 配置型 UI 不在交互热路径重复解析存档字符串
+PASS: 加载时解码一次、交互时使用数组和增量汇总、保存时编码一次；刷新只处理当前页并复用公共状态。
+FAIL: `refreshCard()` 逐卡调用会完整 `NormalizeConfig()` 的 getter，或每次点击反复拆解、重建同一存档字符串。
+
 ## 快速判定
 
-- 全部 11 项 `PASS`：允许合并。
+- 全部 12 项 `PASS`：允许合并。
 - 任意 1 项 `FAIL`：先修复再提审。
 - 若无法判定：默认按 `FAIL` 处理并补充注释说明边界。
 

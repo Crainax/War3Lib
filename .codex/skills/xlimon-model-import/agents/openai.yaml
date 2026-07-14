@@ -1,0 +1,4 @@
+interface:
+  display_name: "Xlimon Model Import"
+  short_description: "Safely import Warcraft III models into Xlimon"
+  default_prompt: "Use $xlimon-model-import to import this Warcraft III model into Xlimon with the project resource workflow."

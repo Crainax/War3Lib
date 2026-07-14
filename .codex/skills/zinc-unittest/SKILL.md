@@ -1,11 +1,17 @@
 ---
 name: zinc-unittest
-description: War3Lib 的 Zinc 单元测试流程规范（.j + .cfg + _Test.j + 可选 w3a/w3u/w3i）：使用 TaskCreateUT.lua 生成测试壳、维护 cfg 注入与 chain 依赖、使用 UnitTestFramwork.assert 断言与 Trace 日志输出。用于创建/重构 Jass 模块单测时。
+description: War3Lib/Xlimon 的 Zinc 单元测试流程规范。用于创建或重构 Jass/Zinc 单测时按当前仓库选择流程：War3Lib 使用 `.j + .cfg + _Test.j`、TaskCreateUT.lua 与 chain 依赖；Xlimon 使用 `.j + _Test.j + edit/config/UnitTest.h`。两边均使用 UnitTestFramwork.assert 与可检索日志。
 ---
 
-# Zinc Unit Test Workflow (War3Lib)
+# Zinc Unit Test Workflow (War3Lib/Xlimon)
 
-按以下顺序执行，保持最小改动和可复现。
+先识别当前仓库，再按对应流程执行，保持最小改动和可复现。
+
+## 仓库分流
+
+- War3Lib：继续执行下方主流程，使用 `scripts/create_ut.sh`、`references/ut-file-layout.md`、`references/assert-trace-pattern.md`、`references/examples.md`。
+- Xlimon：使用 `scripts/create_xlimon_ut.sh`、`references/xlimon-ut-file-layout.md`、`references/xlimon-assert-trace-pattern.md`、`references/xlimon-examples.md`；不创建 War3Lib 专用的 `.cfg`/`[chain]`，而是切换 `edit/config/UnitTest.h`。
+- 不允许跨仓库混用生成脚本；运行前先用 `git rev-parse --show-toplevel` 核实根目录。
 
 ## 1. 建立三件套文件
 
@@ -50,3 +56,13 @@ description: War3Lib 的 Zinc 单元测试流程规范（.j + .cfg + _Test.j + �
 - `references/ut-file-layout.md`
 - `references/assert-trace-pattern.md`
 - `references/examples.md`
+- `references/xlimon-ut-file-layout.md`
+- `references/xlimon-assert-trace-pattern.md`
+- `references/xlimon-examples.md`
+
+## Xlimon 快速流程
+
+1. 运行 `bash .codex/skills/zinc-unittest/scripts/create_xlimon_ut.sh edit/.../Xxx.j`。
+2. 默认仅在不存在时生成 `Xxx_Test.j`，并把 `edit/config/UnitTest.h` 的 include 切到该测试；只有确认旧壳可丢弃时才加 `--force`。
+3. 使用 `UnitTestAutoTimer`、`UnitTestFramwork.assert` 与 `Trace`；无 `Trace` 时使用带模块前缀的 `BJDebugMsg`。
+4. 验收 `_Test.j` 可直接触发核心断言，且可选 `.w3a/.w3u/.w3i` 与测试步骤匹配。

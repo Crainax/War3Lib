@@ -1,23 +1,15 @@
-# 双重索引模板（全局 + 分组）
+# 真双索引模板
 
-目标：同一实例同时支持：
-
-- 全局遍历：`Lists[1..size]`
-- 分组遍历：`groupLists[groupId][1..groupSize[groupId]]`
-
-最关键点：实例记录 **自己在两个列表中的位置**，并在 swap 时更新被换入实例的索引。
+当同一实例同时需要全局遍历和按组遍历时，使用真双索引。普通队列和单一分组表不要过度套用这个模板。
 
 ```jass
-public struct MyStruct {
-    // 全局列表
-    public static thistype Lists[];
+public struct sampleEntry {
+    public static thistype allList[];
     public static integer size = 0;
 
-    // 分组列表（按需决定维度）
-    public static thistype groupLists[MAX_GROUP+1][MAX_PER_GROUP+1];
-    public static integer groupSize[MAX_GROUP+1];
+    public static thistype groupList[MAX_PLAYER_COUNT][64];
+    public static integer groupSize[MAX_PLAYER_COUNT];
 
-    // 实例索引（0 表示“不在列表中”）
     private integer listIndex;
     private integer groupId;
     private integer groupIndex;
@@ -26,65 +18,68 @@ public struct MyStruct {
         thistype this;
         integer pos;
 
-        if (gid < 1 || gid > MAX_GROUP) { return 0; }
-        if (thistype.groupSize[gid] >= MAX_PER_GROUP) { return 0; }
+        if (!ISVALID_PLAYER_ID(gid)) { return 0; }
+        if (thistype.groupSize[gid] >= 63) { return 0; }
 
         this = allocate();
 
-        // 加入全局列表（1-based）
         thistype.size += 1;
-        thistype.Lists[thistype.size] = this;
+        thistype.allList[thistype.size] = this;
         this.listIndex = thistype.size;
 
-        // 加入分组列表（1-based）
-        this.groupId = gid;
         pos = thistype.groupSize[gid] + 1;
-        thistype.groupLists[gid][pos] = this;
+        thistype.groupList[gid][pos] = this;
         thistype.groupSize[gid] = pos;
+        this.groupId = gid;
         this.groupIndex = pos;
 
         return this;
     }
 
-    private method removeFromGlobal() {
+    private method removeFromAll() {
         integer last;
+
         if (this.listIndex == 0) { return; }
+
         last = thistype.size;
         if (this.listIndex != last) {
-            thistype.Lists[this.listIndex] = thistype.Lists[last];
-            thistype.Lists[this.listIndex].listIndex = this.listIndex;
+            thistype.allList[this.listIndex] = thistype.allList[last];
+            thistype.allList[this.listIndex].listIndex = this.listIndex;
         }
-        thistype.Lists[last] = 0;
+
+        thistype.allList[last] = 0;
         thistype.size -= 1;
         this.listIndex = 0;
     }
 
     private method removeFromGroup() {
         integer last;
+
         if (this.groupIndex == 0) { return; }
+
         last = thistype.groupSize[this.groupId];
         if (this.groupIndex != last) {
-            thistype.groupLists[this.groupId][this.groupIndex] = thistype.groupLists[this.groupId][last];
-            thistype.groupLists[this.groupId][this.groupIndex].groupIndex = this.groupIndex;
+            thistype.groupList[this.groupId][this.groupIndex] = thistype.groupList[this.groupId][last];
+            thistype.groupList[this.groupId][this.groupIndex].groupIndex = this.groupIndex;
         }
-        thistype.groupLists[this.groupId][last] = 0;
+
+        thistype.groupList[this.groupId][last] = 0;
         thistype.groupSize[this.groupId] = last - 1;
         this.groupIndex = 0;
         this.groupId = 0;
     }
 
     method onDestroy() {
-        // 先从两个视图移除（swap-remove）
-        this.removeFromGlobal();
+        this.removeFromAll();
         this.removeFromGroup();
 
-        // 再做资源释放/解绑/置空（按实际字段）
+        // 再释放本实例持有的 timer/trigger/unit/effect 等资源。
     }
 }
 ```
 
-可选增强（常见需求）：
+关键点：
 
-- **外部按 key 查找**：`unit -> this` / `timer -> this` 用 HashTable（HandleId）做映射
-- **多维分组**：二维/三维索引（例如 `playerId + spellId`），需要把 group key 设计成可计算的整数或多张表
-
+- swap 到当前位置的实例必须更新 `listIndex` 或 `groupIndex`。
+- 先从索引结构移除，再清实例字段；需要释放句柄时先保存引用，避免 swap 后丢失。
+- 如果只有 `groupList[group][pos] + groupSize[group]`，没有全局列表，就不是双索引，只需要维护分组紧凑性。
