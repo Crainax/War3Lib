@@ -91,7 +91,8 @@
 
 // 右侧进度条（装备区块下方）
 #define HEROSEL_PROGRESS_BAR_WIDTH 0.16
-#define HEROSEL_PROGRESS_BAR_HEIGHT 0.007
+#define HEROSEL_PROGRESS_BAR_HEIGHT 0.010
+#define HEROSEL_PROGRESS_VALUE_SHADE_ALPHA 72
 #define HEROSEL_PROGRESS_BAR_TEXT_GAP_Y 0.004
 #define HEROSEL_PROGRESS_TEXT_BAR_GAP_Y 0.015
 
@@ -138,7 +139,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
         public static integer progressHero [MAX_PLAYER_COUNT][500];     // 当前英雄的本级亲密度进度
         public static integer progressHeroMax [MAX_PLAYER_COUNT][500];  // 当前英雄的本级亲密度上限（0 也显示）
-        public static string  progressHeroText [MAX_PLAYER_COUNT][500]; // 已格式化的亲密等级文本
+        public static string  progressHeroText [MAX_PLAYER_COUNT][500]; // 条下亲密等级文本
+        public static boolean progressHeroMaxed [MAX_PLAYER_COUNT][500]; // 满级时条内显示 MAX
         public static boolean progressHeroHidden [MAX_PLAYER_COUNT][500]; // 仅隐藏上方单英雄进度（如随机英雄格）
         public static integer progressAll [];     // 全英雄亲密等级总和
         public static integer progressAllMax [];  // 全英雄可达到的亲密等级最大和
@@ -236,8 +238,12 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
         // 装备区块下方进度条与文字
         private static uiImageBar rightProgBar1 = 0;
+        private static uiImage rightProgShade1 = 0;
+        private static uiText rightProgValueText1 = 0;
         private static uiText rightProgText1 = 0;
         private static uiImageBar rightProgBar2 = 0;
+        private static uiImage rightProgShade2 = 0;
+        private static uiText rightProgValueText2 = 0;
         private static uiText rightProgText2 = 0;
         private static uiText rightDailyIntimacyText = 0;
 
@@ -602,13 +608,18 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             integer allCur; integer allMax;
             integer dailyLeft;
             string label;
+            string valueText;
             real ratio;
 
             pid = GetConvertedPlayerId(GetLocalPlayer());
             if (pid < 1 || pid > MAX_PLAYER_COUNT || heroIndex <= 0 || heroIndex > heroData.size) {
                 if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgShade1 != 0) { rightProgShade1.show(false); }
+                if (rightProgValueText1 != 0) { rightProgValueText1.show(false); }
                 if (rightProgText1 != 0) { rightProgText1.show(false); }
                 if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
+                if (rightProgShade2 != 0) { rightProgShade2.show(false); }
+                if (rightProgValueText2 != 0) { rightProgValueText2.show(false); }
                 if (rightProgText2 != 0) { rightProgText2.show(false); }
                 if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
                 return;
@@ -627,37 +638,44 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             if (dailyLeft < 0) { dailyLeft = 0; }
 
             // 随机英雄格只隐藏上方进度，不影响全英雄进度和当日剩余值。
-            if (!heroData.progressHeroHidden[pid][heroIndex] && rightProgBar1 != 0 && rightProgText1 != 0) {
+            if (!heroData.progressHeroHidden[pid][heroIndex] && rightProgBar1 != 0 && rightProgValueText1 != 0 && rightProgText1 != 0) {
                 ratio = 0.0;
                 if (heroMax > 0) { ratio = I2R(heroCur) / I2R(heroMax); }
                 if (ratio < 0.0) { ratio = 0.0; }
                 if (ratio > 1.0) { ratio = 1.0; }
                 label = heroData.progressHeroText[pid][heroIndex];
                 if (label == null || label == "") {
-                    label = "亲密等级(" + I2S(heroCur) + "/" + I2S(heroMax) + ")";
+                    label = "亲密等级";
                 }
+                valueText = S3(heroData.progressHeroMaxed[pid][heroIndex], "MAX", I2S(heroCur) + "/" + I2S(heroMax));
                 rightProgBar1.setProgress(ratio);
                 rightProgBar1.uiBackground.show(true);
                 rightProgBar1.uiFill.show(true);
+                if (rightProgShade1 != 0) { rightProgShade1.show(true); }
+                rightProgValueText1.setText("|cFFFFFF00" + valueText + "|r").show(true);
                 rightProgText1.setText(label).setFontSize(3).show(true);
             } else {
                 if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgShade1 != 0) { rightProgShade1.show(false); }
+                if (rightProgValueText1 != 0) { rightProgValueText1.show(false); }
                 if (rightProgText1 != 0) { rightProgText1.show(false); }
             }
 
             // 全英雄进度即使为 0/0 也保持显示。
-            if (rightProgBar2 != 0 && rightProgText2 != 0) {
+            if (rightProgBar2 != 0 && rightProgValueText2 != 0 && rightProgText2 != 0) {
                 ratio = 0.0;
                 if (allMax > 0) { ratio = I2R(allCur) / I2R(allMax); }
                 if (ratio < 0.0) { ratio = 0.0; }
                 if (ratio > 1.0) { ratio = 1.0; }
                 label = heroData.progressAllText[pid];
                 if (label == null || label == "") {
-                    label = "全英雄亲密等级总和|cFFF59E0B(Lv." + I2S(allCur) + ")|r";
+                    label = "全英雄亲密等级总和";
                 }
                 rightProgBar2.setProgress(ratio);
                 rightProgBar2.uiBackground.show(true);
                 rightProgBar2.uiFill.show(true);
+                if (rightProgShade2 != 0) { rightProgShade2.show(true); }
+                rightProgValueText2.setText("|cFFFFFF00" + I2S(allCur) + "/" + I2S(allMax) + "|r").show(true);
                 rightProgText2.setText(label).setFontSize(3).show(true);
             }
             if (rightDailyIntimacyText != 0) {
@@ -705,8 +723,12 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (rightEquipEmptyText != 0) { rightEquipEmptyText.show(true); }
 
                 if (rightProgBar1 != 0) { rightProgBar1.uiBackground.show(false); rightProgBar1.uiFill.show(false); }
+                if (rightProgShade1 != 0) { rightProgShade1.show(false); }
+                if (rightProgValueText1 != 0) { rightProgValueText1.show(false); }
                 if (rightProgText1 != 0) { rightProgText1.show(false); }
                 if (rightProgBar2 != 0) { rightProgBar2.uiBackground.show(false); rightProgBar2.uiFill.show(false); }
+                if (rightProgShade2 != 0) { rightProgShade2.show(false); }
+                if (rightProgValueText2 != 0) { rightProgValueText2.show(false); }
                 if (rightProgText2 != 0) { rightProgText2.show(false); }
                 if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.show(false); }
                 return;
@@ -1131,7 +1153,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setText("|cff808080暂无|r")
                 .show(false);
 
-            // 装备区块下方：2 个进度条 + 2 个文本（居中，从上到下：bar1/text1/bar2/text2）
+            // 装备区块下方：2 个进度条，条内显示数值，条下显示说明。
             progY = rightNextY - HEROSEL_RIGHT_SECTION_GAP_Y - 0.01;
             rightProgBar1 = uiImageBar.create(uiRightArea.ui)
                 .exReSize(HEROSEL_PROGRESS_BAR_WIDTH, HEROSEL_PROGRESS_BAR_HEIGHT)
@@ -1140,11 +1162,23 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setProgress(0.0);
             rightProgBar1.uiBackground.show(false);
             rightProgBar1.uiFill.show(false);
+            rightProgShade1 = uiImage.create(uiRightArea.ui)
+                .setTexture("ui\\image\\black.blp")
+                .setAllPoint(rightProgBar1.uiBackground.ui)
+                .setAlpha(HEROSEL_PROGRESS_VALUE_SHADE_ALPHA)
+                .show(false);
+            // 遮罩与文字均晚于填充层创建，确保数值不会被进度条盖住。
+            rightProgValueText1 = uiText.create(uiRightArea.ui)
+                .setAllPoint(rightProgBar1.uiBackground.ui)
+                .setAlign(4)
+                .setFontSize(3)
+                .setText("")
+                .show(false);
 
             textY = progY - HEROSEL_PROGRESS_BAR_HEIGHT - HEROSEL_PROGRESS_BAR_TEXT_GAP_Y;
             rightProgText1 = uiText.create(uiRightArea.ui)
                 .setAlign(4)
-                .setFontSize(7)
+                .setFontSize(3)
                 .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY)
                 .setText("")
                 .show(false);
@@ -1157,11 +1191,22 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .setProgress(0.0);
             rightProgBar2.uiBackground.show(false);
             rightProgBar2.uiFill.show(false);
+            rightProgShade2 = uiImage.create(uiRightArea.ui)
+                .setTexture("ui\\image\\black.blp")
+                .setAllPoint(rightProgBar2.uiBackground.ui)
+                .setAlpha(HEROSEL_PROGRESS_VALUE_SHADE_ALPHA)
+                .show(false);
+            rightProgValueText2 = uiText.create(uiRightArea.ui)
+                .setAllPoint(rightProgBar2.uiBackground.ui)
+                .setAlign(4)
+                .setFontSize(3)
+                .setText("")
+                .show(false);
 
             textY = progY - HEROSEL_PROGRESS_BAR_HEIGHT - HEROSEL_PROGRESS_BAR_TEXT_GAP_Y;
             rightProgText2 = uiText.create(uiRightArea.ui)
                 .setAlign(4)
-                .setFontSize(7)
+                .setFontSize(3)
                 .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, textY)
                 .setText("")
                 .show(false);
@@ -1286,8 +1331,12 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 
             if (rightDailyIntimacyText != 0) { rightDailyIntimacyText.destroy(); rightDailyIntimacyText = 0; }
             if (rightProgText2 != 0) { rightProgText2.destroy(); rightProgText2 = 0; }
+            if (rightProgValueText2 != 0) { rightProgValueText2.destroy(); rightProgValueText2 = 0; }
+            if (rightProgShade2 != 0) { rightProgShade2.destroy(); rightProgShade2 = 0; }
             if (rightProgBar2 != 0) { rightProgBar2.destroy(); rightProgBar2 = 0; }
             if (rightProgText1 != 0) { rightProgText1.destroy(); rightProgText1 = 0; }
+            if (rightProgValueText1 != 0) { rightProgValueText1.destroy(); rightProgValueText1 = 0; }
+            if (rightProgShade1 != 0) { rightProgShade1.destroy(); rightProgShade1 = 0; }
             if (rightProgBar1 != 0) { rightProgBar1.destroy(); rightProgBar1 = 0; }
 
             if (growBtnAnim != 0) { growBtnAnim.destroy(); growBtnAnim = 0; }

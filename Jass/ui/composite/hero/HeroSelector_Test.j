@@ -131,13 +131,17 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 
 		// 进度条测试数据：随机填充（按玩家 pid=1..MAX_PLAYER_COUNT，英雄 pos=1..heroData.size）
 		for (1 <= i <= MAX_PLAYER_COUNT) {
-			// 全英雄亲密度（共通，只取玩家索引）
-			heroData.progressAllMax[i] = 1000;
-			heroData.progressAll[i] = GetRandomInt(0, heroData.progressAllMax[i]);
+			// 全英雄亲密等级总和（固定示例便于核对条内 63/125）。
+			heroData.progressAllMax[i] = 125;
+			heroData.progressAll[i] = 63;
+			heroData.progressAllText[i] = "|cFFF59E0B全英雄亲密等级总和|r";
+			heroData.dailyIntimacyLeft[i] = 20;
 		}
 		for (1 <= i <= (heroData.size-1)) {
 			for (1 <= j <= MAX_PLAYER_COUNT) {
 				// 英雄亲密度（按玩家+英雄）
+				heroData.progressHeroText[j][i] = "|cFFFFA8CE亲密等级 Lv." + I2S(ModuloInteger(i - 1, 6)) + "|r";
+				heroData.progressHeroMaxed[j][i] = false;
 				if (GetRandomInt(0, 1) == 0) {
 					heroData.progressHeroMax[j][i] = 0;
 					heroData.progressHero[j][i] = 0;
@@ -146,6 +150,16 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 					heroData.progressHero[j][i] = GetRandomInt(0, heroData.progressHeroMax[j][i]);
 				}
 			}
+		}
+		// 前两个英雄固定覆盖普通 0/20 与满级 MAX 两种显示。
+		for (1 <= j <= MAX_PLAYER_COUNT) {
+			heroData.progressHero[j][1] = 0;
+			heroData.progressHeroMax[j][1] = 20;
+			heroData.progressHeroText[j][1] = "|cFFFFA8CE亲密等级 Lv.0|r";
+			heroData.progressHero[j][2] = 1;
+			heroData.progressHeroMax[j][2] = 1;
+			heroData.progressHeroText[j][2] = "|cFFFFA8CE亲密等级 Lv.5|r";
+			heroData.progressHeroMaxed[j][2] = true;
 		}
 
 		heroData.trHeroCondition = CreateTrigger();
