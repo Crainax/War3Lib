@@ -13,24 +13,15 @@
 * s2  关闭UI（本地玩家，兼容保留）
 * s3  刷新UI（本地玩家）
 * s4  写入占位奖励配置（14天）
-* s5  时间推进一天（+86400）
-* s6  输出当前 dayId
+* s5  模拟后台签到额度刷新为1
+* s6  模拟后台签到额度耗尽为0
 * s7  切换 VIP 激活状态
-* s8  输出当前存档天数、展示天数和总天数
-* -t <timestamp>  设置测试时间（秒）
-* -d <dayId>      设置测试 dayId（按北京时间换算）
+* s8  输出当前存档天数、展示天数、后台额度和总天数
+* -quota <0|1>    设置本局后台签到额度
 * -open / -close / -refresh  快捷操作
 */
 
 library UTSevenDaySign requires SevenDaySign,Keyboard {
-
-    private integer testNow = 1700000000;
-
-    private function applyTestNow(integer t) {
-        testNow = t;
-        sevenDaySignData.setTestNow(t);
-        BJDebugMsg("[UTSevenDaySign] setTime=" + I2S(t) + ", dayId=" + I2S(sevenDaySignData.getBeijingDayId()));
-    }
 
     // 初始化奖励配置（不同地图可以有不同的配置）
     private function initRewardData() {
@@ -109,12 +100,15 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
     }
 
     function TTestUTSevenDaySign5 (player p) {
-        testNow = testNow + 86400;
-        applyTestNow(testNow);
+        sevenDaySignData.setTestClaimLimitLeft(p, 1);
+        sevenDaySignUI.refreshForPlayer(p);
+        BJDebugMsg("[UTSevenDaySign] claimLimitLeft=1");
     }
 
     function TTestUTSevenDaySign6 (player p) {
-        BJDebugMsg("[UTSevenDaySign] dayId=" + I2S(sevenDaySignData.getBeijingDayId()));
+        sevenDaySignData.setTestClaimLimitLeft(p, 0);
+        sevenDaySignUI.refreshForPlayer(p);
+        BJDebugMsg("[UTSevenDaySign] claimLimitLeft=0");
     }
 
     function TTestUTSevenDaySign7 (player p) {
@@ -127,6 +121,8 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
     function TTestUTSevenDaySign8 (player p) {
         BJDebugMsg("[UTSevenDaySign] storedDay=" + I2S(sevenDaySignData.getStoredClaimedDay(p))
         + " viewDay=" + I2S(sevenDaySignData.getClaimedDay(p))
+        + " claimLimitLeft=" + I2S(sevenDaySignData.getClaimLimitLeft(p))
+        + " archiveReady=" + S3(sevenDaySignData.isArchiveReady(p), "true", "false")
         + " rewardCount=" + I2S(sevenDaySignData.getRewardCount()));
     }
 
@@ -135,7 +131,6 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
 
     function TTestActUTSevenDaySign1 (string str) {
         player  p     = GetTriggerPlayer();
-        integer index = GetConvertedPlayerId(p);
         integer i,    num = 0, len = StringLength(str);
         string  paramS[];
         integer paramI[];
@@ -157,10 +152,9 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
         paramR[num]= S2R(paramS[num]);
         num = num + 1;
 
-        if (paramS[0] == "t") {
-            applyTestNow(paramI[1]);
-        } else if (paramS[0] == "d") {
-            applyTestNow(paramI[1] * 86400 - 28800);
+        if (paramS[0] == "quota") {
+            sevenDaySignData.setTestClaimLimitLeft(p, paramI[1]);
+            sevenDaySignUI.refreshForPlayer(p);
         } else if (paramS[0] == "open") {
             TTestUTSevenDaySign1(p);
         } else if (paramS[0] == "close") {
@@ -173,10 +167,11 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
     }
 
     function Init () {
+        integer i;
         initRewardData();
-        UnitTestAutoTimer(0.1, 1.0, function() {
-            applyTestNow(testNow);
-        }, null);
+        for (1 <= i <= MAX_PLAYER_COUNT) {
+            sevenDaySignData.setTestClaimLimitLeft(ConvertedPlayer(i), 1);
+        }
     }
 
     function onInit () {
