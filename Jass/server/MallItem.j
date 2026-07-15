@@ -3,7 +3,7 @@
 
 // 常量配置
 #define MALLITEM_MAX_ITEMS      300
-#define MALLITEM_INIT_DELAY     2.0
+#define MALLITEM_INIT_DELAY     0.6
 // 消费后服务端回写存在延迟：本地预扣 + 轮询校验
 #define MALLITEM_VERIFY_DELAY    0.1
 #define MALLITEM_VERIFY_RETRY    8
@@ -193,39 +193,39 @@ library MallItem requires DzAPI, HashTable{
                 // 延迟初始化玩家商品状态
                 t = CreateTimer();
                 TimerStart(t, MALLITEM_INIT_DELAY, false, function () {
-                integer pid; integer idx; integer base; player p; string k; integer n;
+                    integer pid; integer idx; integer base; player p; string k; integer n;
 
-                n = mallItem.itemCount;
-                pid = 0;
-                while (pid < MAX_PLAYER_COUNT) {
-                    p = ConvertedPlayer(pid + 1);
-                    base = pid * MALLITEM_MAX_ITEMS;
+                    n = mallItem.itemCount;
+                    pid = 0;
+                    while (pid < MAX_PLAYER_COUNT) {
+                        p = ConvertedPlayer(pid + 1);
+                        base = pid * MALLITEM_MAX_ITEMS;
 
-                    idx = 0;
-                    while (idx < n) {
-                        k = mallItem.itemKeys[idx];
-                        mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(p, k);
-                        mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(p, k);
-                        // 直接在此处解锁科技（如果拥有商品且设置了科技）
-                        if (mallItem.owns[base + idx] && mallItem.techs[idx] != 0) {
-                            SetPlayerTechResearched(p, mallItem.techs[idx], 1);
+                        idx = 0;
+                        while (idx < n) {
+                            k = mallItem.itemKeys[idx];
+                            mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(p, k);
+                            mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(p, k);
+                            // 直接在此处解锁科技（如果拥有商品且设置了科技）
+                            if (mallItem.owns[base + idx] && mallItem.techs[idx] != 0) {
+                                SetPlayerTechResearched(p, mallItem.techs[idx], 1);
+                            }
+                            idx = idx + 1;
                         }
-                        idx = idx + 1;
+
+                        p = null;
+                        pid = pid + 1;
                     }
 
-                    p = null;
-                    pid = pid + 1;
-                }
+                    mallItem.ready = true;
 
-                mallItem.ready = true;
-
-                if (mallItem.readyTrigger != null) {
-                    // 使用 TriggerEvaluate 调用回调条件
-                    TriggerEvaluate(mallItem.readyTrigger);
-                }
-            });
-            // handler 置空
-            t = null;
+                    if (mallItem.readyTrigger != null) {
+                        // 使用 TriggerEvaluate 调用回调条件
+                        TriggerEvaluate(mallItem.readyTrigger);
+                    }
+                });
+                // handler 置空
+                t = null;
             }
         }
 
@@ -240,7 +240,7 @@ library MallItem requires DzAPI, HashTable{
                 mallItem.readyTrigger = CreateTrigger();
             }
             TriggerAddCondition(mallItem.readyTrigger, Condition(cb));
-              if (mallItem.ready) {
+            if (mallItem.ready) {
                 TriggerEvaluate(mallItem.readyTrigger);
             }
         }

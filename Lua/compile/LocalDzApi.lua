@@ -11,6 +11,13 @@ local DEFAULT_MODES = {
     VERSION_UNITTEST = true
 }
 
+local BATCH_ARCHIVE_COMPAT_MODES = {
+    VERSION_ALPHA = true,
+    VERSION_BETA = true,
+    VERSION_UNITTEST = true,
+    VERSION_MODELTEST = true
+}
+
 local PLAYER_USER_NAME_MODES = {
     VERSION_ALPHA = true,
     VERSION_UNITTEST = true
@@ -630,13 +637,121 @@ local function splitTopLevelArgs(args)
     return result
 end
 
+local function appendBatchArchiveCompatLines(lines, version)
+    if not BATCH_ARCHIVE_COMPAT_MODES[version] then
+        return false
+    end
+
+    local compatLines = {
+        "library War3LibLocalDzApiBatchArchive",
+        "globals",
+        "    private hashtable War3Lib_LocalDzApiBatchArchive_Table = InitHashtable()",
+        "    private constant integer War3Lib_LocalDzApiBatchArchive_Active = 0",
+        "    private constant integer War3Lib_LocalDzApiBatchArchive_Count = 1",
+        "    private constant integer War3Lib_LocalDzApiBatchArchive_EntryBase = 2",
+        "endglobals",
+        "",
+        "private function War3Lib_LocalDzApiBatchArchive_Parent takes player whichPlayer returns integer",
+        "    return GetPlayerId(whichPlayer) + 1",
+        "endfunction",
+        "",
+        "function War3Lib_LocalDzApiBatchArchive_Begin takes player whichPlayer returns boolean",
+        "    local integer parent",
+        "    if whichPlayer == null then",
+        "        return false",
+        "    endif",
+        "    set parent = War3Lib_LocalDzApiBatchArchive_Parent(whichPlayer)",
+        "    if LoadInteger(War3Lib_LocalDzApiBatchArchive_Table, parent, War3Lib_LocalDzApiBatchArchive_Active) != 0 then",
+        "        return false",
+        "    endif",
+        "    call FlushChildHashtable(War3Lib_LocalDzApiBatchArchive_Table, parent)",
+        "    call SaveInteger(War3Lib_LocalDzApiBatchArchive_Table, parent, War3Lib_LocalDzApiBatchArchive_Active, 1)",
+        "    return true",
+        "endfunction",
+        "",
+        "function War3Lib_LocalDzApiBatchArchive_Add takes player whichPlayer, string key, string value, boolean caseInsensitive returns boolean",
+        "    local integer parent",
+        "    local integer count",
+        "    local integer child",
+        "    if whichPlayer == null then",
+        "        return false",
+        "    endif",
+        "    set parent = War3Lib_LocalDzApiBatchArchive_Parent(whichPlayer)",
+        "    if LoadInteger(War3Lib_LocalDzApiBatchArchive_Table, parent, War3Lib_LocalDzApiBatchArchive_Active) == 0 then",
+        "        return false",
+        "    endif",
+        "    set count = LoadInteger(War3Lib_LocalDzApiBatchArchive_Table, parent, War3Lib_LocalDzApiBatchArchive_Count) + 1",
+        "    set child = War3Lib_LocalDzApiBatchArchive_EntryBase + (count - 1) * 2",
+        "    call SaveStr(War3Lib_LocalDzApiBatchArchive_Table, parent, child, key)",
+        "    call SaveStr(War3Lib_LocalDzApiBatchArchive_Table, parent, child + 1, value)",
+        "    call SaveInteger(War3Lib_LocalDzApiBatchArchive_Table, parent, War3Lib_LocalDzApiBatchArchive_Count, count)",
+        "    return true",
+        "endfunction",
+        "",
+        "function War3Lib_LocalDzApiBatchArchive_End takes player whichPlayer, boolean abandon returns boolean",
+        "    local integer parent",
+        "    local integer count",
+        "    local integer index = 1",
+        "    local integer child",
+        "    local string key",
+        "    local string value",
+        "    local boolean success = true",
+        "    if whichPlayer == null then",
+        "        return false",
+        "    endif",
+        "    set parent = War3Lib_LocalDzApiBatchArchive_Parent(whichPlayer)",
+        "    if LoadInteger(War3Lib_LocalDzApiBatchArchive_Table, parent, War3Lib_LocalDzApiBatchArchive_Active) == 0 then",
+        "        return false",
+        "    endif",
+        "    if not abandon then",
+        "        set count = LoadInteger(War3Lib_LocalDzApiBatchArchive_Table, parent, War3Lib_LocalDzApiBatchArchive_Count)",
+        "        loop",
+        "            exitwhen index > count",
+        "            set child = War3Lib_LocalDzApiBatchArchive_EntryBase + (index - 1) * 2",
+        "            set key = LoadStr(War3Lib_LocalDzApiBatchArchive_Table, parent, child)",
+        "            set value = LoadStr(War3Lib_LocalDzApiBatchArchive_Table, parent, child + 1)",
+        "            if not DzAPI_Map_SaveServerValue(whichPlayer, key, value) then",
+        "                set success = false",
+        "            endif",
+        "            set index = index + 1",
+        "        endloop",
+        "    endif",
+        "    call FlushChildHashtable(War3Lib_LocalDzApiBatchArchive_Table, parent)",
+        "    set key = null",
+        "    set value = null",
+        "    return success",
+        "endfunction",
+        "endlibrary",
+        "",
+        "#define KKApiBeginBatchSaveArchive(p) War3Lib_LocalDzApiBatchArchive_Begin(p)",
+        "#define KKApiAddBatchSaveArchive(p, k, v, ci) War3Lib_LocalDzApiBatchArchive_Add(p, k, v, ci)",
+        "#define KKApiEndBatchSaveArchive(p, abandon) War3Lib_LocalDzApiBatchArchive_End(p, abandon)"
+    }
+
+    for _, line in ipairs(compatLines) do
+        lines[#lines + 1] = line
+    end
+    return true
+end
+
 local function emptyHeader(version)
-    return table.concat({
+    local lines = {
         "#ifndef WAR3LIB_LOCAL_DZAPI_MOCK_GENERATED_H",
         "#define WAR3LIB_LOCAL_DZAPI_MOCK_GENERATED_H",
         "// Generated by War3Lib compile flow. Current build: " .. version,
-        "#endif"
-    }, "\n") .. "\n"
+        "// inject: DzAPI_Map_SaveServerValue"
+    }
+
+    if BATCH_ARCHIVE_COMPAT_MODES[version] then
+        lines[#lines + 1] = ""
+        lines[#lines + 1] = "#if defined(WAR3LIB_SECOND_WAVE)"
+        appendBatchArchiveCompatLines(lines, version)
+        lines[#lines + 1] = "#endif"
+    end
+
+    lines[#lines + 1] = ""
+    lines[#lines + 1] = "#endif"
+    return table.concat(lines, "\n") .. "\n"
 end
 
 local function buildHeader(version, cfg)
@@ -652,11 +767,15 @@ local function buildHeader(version, cfg)
         "#ifndef WAR3LIB_LOCAL_DZAPI_MOCK_GENERATED_H",
         "#define WAR3LIB_LOCAL_DZAPI_MOCK_GENERATED_H",
         "// Generated by War3Lib compile flow. Source: " .. (path.localDzApiIni or ""),
+        "// inject: DzAPI_Map_SaveServerValue",
         "",
         "#if defined(WAR3LIB_SECOND_WAVE)",
         "#define DzAPI_Map_GetGameStartTime() " .. startTime,
         ""
     }
+
+    appendBatchArchiveCompatLines(lines, version)
+    lines[#lines + 1] = ""
 
     for _, line in ipairs(buildMallItemMockLines(version, cfg, localSection, defaultModes)) do
         lines[#lines + 1] = line
@@ -711,6 +830,12 @@ function localDzApi.generate()
     else
         content = emptyHeader(version)
         label = "[DzAPI本地替换]跳过: " .. version
+    end
+
+    if BATCH_ARCHIVE_COMPAT_MODES[version] then
+        label = label .. ", 批量存档兼容=启用"
+    else
+        label = label .. ", 批量存档兼容=原生"
     end
 
     local ok, err = ensureDir(path.generatedConfig)

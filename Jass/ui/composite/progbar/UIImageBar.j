@@ -86,8 +86,8 @@ library UIImageBar requires UIImage, UIExtendResize {
         // 设置进度(0-1.0)
         method setProgress (real progress) -> thistype {
             if (!this.isExist()) {return this;}
-            // 设置填充图片的宽度为背景宽度 * 进度值
-            uiFill.setSize(DzFrameGetWidth(uiBackground.ui) * progress,0.0);
+            // 同时写入当前背景高度，避免 DzFrameSetSize 因高度为 0 而忽略整次尺寸更新。
+            uiFill.setSize(DzFrameGetWidth(uiBackground.ui) * progress,DzFrameGetHeight(uiBackground.ui));
             return this;
         }
 
