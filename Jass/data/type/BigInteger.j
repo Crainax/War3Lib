@@ -11,9 +11,6 @@ high: 存储-2100000000到2100000000
 #include "Crainax/config/SharedMethod.h"
 #include "Crainax/core/table/Hash_BIDefine.j"
 
-#define UNIT_TEN_YI 1000000000  // 10亿，作为进位基数
-#define MAX_HIGH    2100000000  // high的最大值：21亿
-
 library BigInteger requires NumberFormatter {
 
         //==============================
@@ -49,15 +46,6 @@ library BigInteger requires NumberFormatter {
 		private static method writeSeg(integer parent, integer index, integer value) {
 			SaveInteger(bigInteger.biTable, parent, 1 + index, value);
             }
-
-		// 确保段数至少为 n（不强制写入 0 段，避免多余写操作）
-		private static method growTo(integer parent, integer n) {
-			integer cnt;
-			cnt = bigInteger.getCountByParent(parent);
-			if (n > cnt) {
-				bigInteger.setCountByParent(parent, n);
-			}
-		}
 
 		// 去掉高位多余 0 段，并在为 0 时清子表
 		private static method normalize(integer parent) {
@@ -509,10 +497,6 @@ library BigInteger requires NumberFormatter {
         }
     }
 }
-
-
-#undef UNIT_TEN_YI
-#undef MAX_HIGH
 
 
 //! endzinc

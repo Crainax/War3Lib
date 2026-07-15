@@ -265,8 +265,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
         //创建选择支持异步调用
         static method create (player p,selectData sd) -> thistype {
-            integer i; integer createCount; integer row; integer col; integer colsInRow; integer rowCount; integer pos;
-            real startX; real startY; real offsetX; real offsetY;
+            integer i; integer createCount;
             thistype this = 0;
             if (!sd.isExist()) {
                 DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selectData not exist");
@@ -472,7 +471,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             return this;
         }
         method onDestroy () { //析构()
-            integer i,j;
+            integer j;
             if (!this.isExist()) {return;}
             // 若存在“进入未离开”的悬停，则在销毁前补发一次 Leave 回调
             if (enteredFlag && sd != 0 && sd.trLeave != null) {
@@ -691,10 +690,9 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
     function onInit () {
         // 使用单通道总线 Select
         syncBus.onDataSync("Select", function () -> boolean {
-            string str; player p; integer index; selectData sd; integer length; integer pos;
+            string str; player p; selectData sd; integer length; integer pos;
             str = syncBus.getPayload();
             p = syncBus.getPlayer();
-            index = GetConvertedPlayerId(p);
 
             if (SubStringBJ(str,1,1) == "C") { //关闭
                 sd = S2I(SubStringBJ(str,2,StringLength(str)));

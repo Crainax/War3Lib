@@ -33,10 +33,8 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff {
         private static boolean lastIsDisarmed       = false; // 上一次是否显示缴械状态
 
         // 防御扩展显示缓存
-        private static real    lastDefenseRate       = 1.0;   // 上一次的总倍率
         private static integer lastDefenseExtra      = 0;     // 上一次的额外防御（绿/红字）
         private static boolean lastShowDefenseExtra  = false; // 上一次是否显示额外防御
-        private static boolean lastShowDefenseRate   = false; // 上一次是否显示防御百分比
 
         // 魔抗显示缓存
         private static real    lastResistValue       = 0.0;   // 上一次的魔抗值（1.0 - final）

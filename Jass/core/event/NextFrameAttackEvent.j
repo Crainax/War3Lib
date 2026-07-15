@@ -78,22 +78,6 @@ library NextFrameAttackEvent requires Logger {
             thistype.damageList[index] = 0.0;
         }
 
-        private static method removeAt(integer index) {
-            integer last;
-
-            last = thistype.size - 1;
-            if (index < 0 || index > last) { return; }
-
-            if (index != last) {
-                thistype.sourceList[index] = thistype.sourceList[last];
-                thistype.targetList[index] = thistype.targetList[last];
-                thistype.damageList[index] = thistype.damageList[last];
-            }
-
-            thistype.clearSlot(last);
-            thistype.size -= 1;
-        }
-
         private static method stopTimerIfEmpty() {
             if (thistype.size <= 0 && thistype.supervisor != null) {
                 PauseTimer(thistype.supervisor);

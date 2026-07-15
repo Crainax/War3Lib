@@ -27,7 +27,7 @@ library Music {
 		// 原理：为每个音效维护一个对象池，循环使用池中的 sound 对象
 		// !!!!!不能异步使用
 		static method playXY (string soundPath, real x, real y) {
-			sound snd; integer pathHash; integer poolIndex; integer nextIndex; boolean isNewPool;
+			sound snd; integer pathHash; integer poolIndex; integer nextIndex;
 
 			// 初始化对象池哈希表
 			if (thistype.table == null) {
@@ -41,11 +41,9 @@ library Music {
 			if (HaveSavedInteger(thistype.table, pathHash, 0)) {
 				// 对象池已存在，获取当前使用的索引
 				poolIndex = LoadInteger(thistype.table, pathHash, 0);
-				isNewPool = false;
 			} else {
 				// 首次使用，初始化对象池
 				poolIndex = 1;
-				isNewPool = true;
 			}
 
 			// 从对象池中获取 sound 对象（使用 poolIndex 作为子key）

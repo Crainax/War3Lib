@@ -85,27 +85,6 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
             SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_SIMPLE_EVENT_RIGHT_CLICK,fun);
             return this;
         }
-
-
-        // 下面这批不适Simple的所以全部删除了
-        // //注册右键按下事件
-        // method exRightDown (uiEvent func)  -> thistype {
-        //     if (!this.isExist()) {return this;}
-        //     SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN,func);
-        //     return this;
-        // }
-        // //注册右键抬起事件
-        // method exRightUp (uiEvent func)  -> thistype {
-        //     if (!this.isExist()) {return this;}
-        //     SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP,func);
-        //     return this;
-        // }
-        // //注册右键点击事件（精确判断）
-        // method exRightClick (uiEvent func) -> thistype {
-        //     if (!this.isExist()) {return this;}
-        //     SaveInteger(HASH_UI,this.ui,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK,func);
-        //     return this;
-        // }
     }
 
     function onInit () {
@@ -157,47 +136,6 @@ library UIExtendEvent requires Hardware,UIHashTable,UILifeCycle {
                 }
             }
         });
-        // hardware.regRightDownEvent(function () { //注册右键按下事件
-        //     integer currentUI;
-        //     uiEvent func;
-        //     if (!DzIsMouseOverUI()) {
-        //         return;
-        //     }
-        //     currentUI = DzGetMouseFocus();
-
-        //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN)) {
-        //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_DOWN);
-        //         func.evaluate(currentUI);
-        //     }
-
-        //     // 新增的click判断逻辑
-        //     rcStartOnUI = true;
-        //     rcStartUI = currentUI;
-        // });
-        // hardware.regRightUpEvent(function () { //注册右键抬起事件
-        //     integer currentUI;
-        //     uiEvent func;
-        //     if (!DzIsMouseOverUI()) {
-        //         return;
-        //     }
-        //     currentUI = DzGetMouseFocus();
-
-        //     if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP)) {
-        //         func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_UP);
-        //         func.evaluate(currentUI);
-        //     }
-
-        //     // 新增的click判断逻辑
-        //     if (rcStartOnUI && currentUI == rcStartUI) {
-        //         if (HaveSavedInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK)) {
-        //             func = LoadInteger(HASH_UI,currentUI,HASH_KEY_UI_EXTEND_EVENT_RIGHT_CLICK);
-        //             func.evaluate(currentUI);
-        //         }
-        //     }
-
-        //     rcStartOnUI = false;
-        //     rcStartUI = 0;
-        // });
     }
 }
 

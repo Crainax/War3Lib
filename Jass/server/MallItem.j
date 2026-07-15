@@ -122,7 +122,7 @@ library MallItem requires DzAPI, HashTable{
         }
 
         private static method addKey(string key) {
-            integer idx; integer i; integer n; integer base;
+            integer idx; integer i; integer base;
             if (key == null) { return; }
             if (StringLength(key) == 0) { return; }
 
@@ -162,9 +162,6 @@ library MallItem requires DzAPI, HashTable{
 
         // 初始化底层（在 map 启动时自动调用）
         static method onInit() {
-            // 先声明
-            integer i; integer cap;
-
             mallItem.initialized = false;
             mallItem.ready = false;
             mallItem.itemCount = 0;
@@ -400,7 +397,7 @@ library MallItem requires DzAPI, HashTable{
 
         // 消费一次性道具（UseConsumablesItem）：无回调
         static method consumeOnce(player whichPlayer, string itemKey) {
-            integer pid; integer idx; integer base;
+            integer pid; integer idx;
 
             pid = GetPlayerId(whichPlayer);
             if (pid < 0 || pid >= MAX_PLAYER_COUNT) { return ; }

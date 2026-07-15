@@ -218,11 +218,6 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 			TriggerEvaluate(spellutilsUberTip_tr);
 		}
 
-		// Lua 侧未初始化或未返回结果时，回退到原有 YDWE 行为
-		// if (spellutilsUberTip_result == "" && id != 0) {
-		// 	spellutilsUberTip_result = YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_ABILITY, id, "Ubertip");
-		// }
-
 		return spellutilsUberTip_result;
 	}
 

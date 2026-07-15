@@ -39,10 +39,6 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils,HashTabl
             static integer stableRow = 0;
             static integer stableCol = 0;
 
-            static integer mousePos     = 0;      //当前鼠标所在的位置
-            static boolean rcStartOnUI  = false;  // 是否开始右键点击
-            static integer rcStartPos   = 0;      // 右键点击开始时的鼠标位置
-
             // 技能栏UI刷新（12槽）
             static trigger trAbilityRefresh = null; // 刷新界面显示的技能回调
             static integer lastAbilities[3][4];      // 记录上一次显示的能力值
@@ -278,8 +274,6 @@ library SpellBtns requires Hardware,UIHashTable,Icon,UILayer,SpellUtils,HashTabl
                         icons[row][col].setSize(SIZE_ORIGIN_UI_SPELL, SIZE_ORIGIN_UI_SPELL);
                     }
                     icons[row][col]
-                    // .setCornerTextSize(2)
-                    // .setCornerPadding(0.0015)
                         .setTopRightPadding(0.001)
                         .setPoint(ANCHOR_CENTER, grid[row][col], ANCHOR_CENTER, 0.0, 0.0)
                         .setTexture(UI_STRING_PATH_BLANK);

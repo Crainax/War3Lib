@@ -46,7 +46,6 @@
 #define HEROSEL_GRID_OFFSET_X 0.020
 #define HEROSEL_GRID_OFFSET_Y -0.045
 #define HEROSEL_TEXT_GAP_Y 0.006
-#define HEROSEL_TEXT_LINE_GAP_Y 0.002
 #define HEROSEL_TEXT_BG_HEIGHT 0.014
 
 // 滑块
@@ -82,7 +81,6 @@
 #define HEROSEL_RIGHT_ICON_GAP_Y 0.005  // 右侧图标垂直间距
 #define HEROSEL_RIGHT_TEXT_GAP_Y 0.025  // 标题文字与图标网格的垂直间距
 #define HEROSEL_RIGHT_SECTION_GAP_Y 0.010  // 各个区块之间的垂直间距
-#define HEROSEL_RIGHT_START_OFFSET_X 0.010  // 右侧内容起始X偏移
 #define HEROSEL_RIGHT_START_OFFSET_Y 0.030  // 右侧内容起始Y偏移（相对于左侧网格）
 #define HEROSEL_TALENT_COUNT 5  // 天赋技能图标数量
 #define HEROSEL_SKILL_COUNT 5  // 推荐技能图标数量
@@ -1038,7 +1036,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     slotTxt2[r][c] = uiText.create(uiMain.ui)
                         .setAlign(4)
                         .setFontSize(1)
-                        .setFontSize(1)
                         .setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, -HEROSEL_TEXT_GAP_Y)
                         .show(false);
                 }
@@ -1417,7 +1414,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 #undef HEROSEL_GRID_OFFSET_X
 #undef HEROSEL_GRID_OFFSET_Y
 #undef HEROSEL_TEXT_GAP_Y
-#undef HEROSEL_TEXT_LINE_GAP_Y
 #undef HEROSEL_SLIDER_WIDTH
 #undef HEROSEL_SLIDER_HEIGHT
 #undef HEROSEL_SLIDER_GAP_X
@@ -1439,7 +1435,6 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 #undef HEROSEL_RIGHT_ICON_GAP_Y
 #undef HEROSEL_RIGHT_TEXT_GAP_Y
 #undef HEROSEL_RIGHT_SECTION_GAP_Y
-#undef HEROSEL_RIGHT_START_OFFSET_X
 #undef HEROSEL_RIGHT_START_OFFSET_Y
 #undef HEROSEL_TALENT_COUNT
 #undef HEROSEL_SKILL_COUNT

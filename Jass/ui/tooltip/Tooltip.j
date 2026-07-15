@@ -138,8 +138,6 @@ library Tooltip requires Icon {
             border.setPointFix(ANCHOR_RIGHT, text[2].ui, ANCHOR_RIGHT, 0.01, 0);
             this.setWidth(0.2);
 
-            //以底描述为基准
-            // desc.setAbsolutePoint(ANCHOR_BOTTOMRIGHT, .786, .1375);
             return this;
         }
 
