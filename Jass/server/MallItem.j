@@ -10,6 +10,11 @@
 // 开放寻址哈希容量（必须 < 8192，选用素数以降低冲突）
 #define MALLITEM_HASH_CAP       1021
 
+#ifndef MALLITEM_LOG_PLAYER_NAME
+#define MALLITEM_LOG_PLAYER_NAME(p) GetPlayerName(p)
+#define MALLITEM_LOG_PLAYER_NAME_LOCAL
+#endif
+
 // 使用说明（MallItem 黑箱）
 // 1) 在地图启动阶段注册商品（每次注册一个 key）：
 //    mallItem.init("VIP1");
@@ -46,7 +51,7 @@
 //
 //todo: 加入局内商品进包的回调
 //! zinc
-library MallItem requires DzAPI, HashTable{
+library MallItem requires DzAPI, HashTable, Logger{
 
     // 黑箱：商城商品拥有权初始化、缓存、查询与元信息
     public struct mallItem []{
@@ -190,8 +195,12 @@ library MallItem requires DzAPI, HashTable{
                 // 延迟初始化玩家商品状态
                 t = CreateTimer();
                 TimerStart(t, MALLITEM_INIT_DELAY, false, function () {
-                    integer pid; integer idx; integer base; player p; string k; integer n;
+                    integer pid; integer idx; integer base; integer n;
+                    string k; string hasText;
+                    player p;
+                    timer expiredTimer;
 
+                    expiredTimer = GetExpiredTimer();
                     n = mallItem.itemCount;
                     pid = 0;
                     while (pid < MAX_PLAYER_COUNT) {
@@ -203,6 +212,12 @@ library MallItem requires DzAPI, HashTable{
                             k = mallItem.itemKeys[idx];
                             mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(p, k);
                             mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(p, k);
+                            if (mallItem.owns[base + idx]) {
+                                hasText = "true";
+                            } else {
+                                hasText = "false";
+                            }
+                            InfoToPlayer(p, "[LoadMallItem]" + MALLITEM_LOG_PLAYER_NAME(p) + "[" + k + "][has=" + hasText + "][count=" + I2S(mallItem.uses[base + idx]) + "]");
                             // 直接在此处解锁科技（如果拥有商品且设置了科技）
                             if (mallItem.owns[base + idx] && mallItem.techs[idx] != 0) {
                                 SetPlayerTechResearched(p, mallItem.techs[idx], 1);
@@ -220,6 +235,8 @@ library MallItem requires DzAPI, HashTable{
                         // 使用 TriggerEvaluate 调用回调条件
                         TriggerEvaluate(mallItem.readyTrigger);
                     }
+                    DestroyTimer(expiredTimer);
+                    expiredTimer = null;
                 });
                 // handler 置空
                 t = null;
@@ -544,6 +561,11 @@ library MallItem requires DzAPI, HashTable{
     }
 }
 //! endzinc
+
+#ifdef MALLITEM_LOG_PLAYER_NAME_LOCAL
+#undef MALLITEM_LOG_PLAYER_NAME_LOCAL
+#undef MALLITEM_LOG_PLAYER_NAME
+#endif
 
 #endif
 
