@@ -25,19 +25,35 @@ library AutoDifficulty {
 		TimerDialogSetSpeed(TdAutoDiff,1.0);
 
         TrAutoDiff = CreateTrigger();
-        TriggerAddCondition(TrAutoDiff, Condition(func));
-		TimerStart(TiAutoDiff,time,true,function (){
+		TriggerAddCondition(TrAutoDiff, Condition(func));
+		TimerStart(TiAutoDiff,time,false,function (){
 			timer t = GetExpiredTimer();
+			trigger tr = TrAutoDiff;
+			timerdialog td = TdAutoDiff;
 
-            if (TrAutoDiff != null) {
-                TriggerEvaluate(TrAutoDiff);
+            if (tr != null) {
+                TriggerEvaluate(tr);
             }
 
-			PauseTimer(t);
-			DestroyTimer(t);
-			DestroyTimerDialog(TdAutoDiff);
-			TdAutoDiff = null;
+			if (TrAutoDiff == tr) {
+				DestroyTrigger(tr);
+				TrAutoDiff = null;
+			}
+			if (TiAutoDiff == t) {
+				PauseTimer(t);
+				DestroyTimer(t);
+				TiAutoDiff = null;
+			}
+			if (TdAutoDiff == td) {
+				DestroyTimerDialog(td);
+				TdAutoDiff = null;
+			}
+			if (TiAutoDiff == null && TrAutoDiff == null && TdAutoDiff == null) {
+				isRegister = false;
+			}
 			t = null;
+			tr = null;
+			td = null;
 		});
     }
 
@@ -55,6 +71,7 @@ library AutoDifficulty {
 			DestroyTimerDialog(TdAutoDiff);
             TdAutoDiff = null;
 		}
+		isRegister = false;
     }
 
 }
