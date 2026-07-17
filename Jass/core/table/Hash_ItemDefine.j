@@ -52,6 +52,7 @@
 #define HASH_KEY_ITEM_I50K_ENERGY_DECAY_REMAINING 29312252 // [异度] I50K能量衰减剩余时间
 #define HASH_KEY_ITEM_I314_TALENT_MAX_APPLIED 29312253  // [异度] I314已发放天赋可学习上限
 #define HASH_KEY_ITEM_HIDDEN_STORAGE 29312254           // [异度] 多重背包/挂起隐藏寄存标记
+#define HASH_KEY_ITEM_SPELL_BOOK_SOURCE_TYPE 29312255    // [异度] 已鉴定技能书来源物品类型
 
 // [异度] 物品实例运行态
 #define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键
