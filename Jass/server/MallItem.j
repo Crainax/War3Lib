@@ -3,7 +3,7 @@
 
 // 常量配置
 #define MALLITEM_MAX_ITEMS      300
-#define MALLITEM_INIT_DELAY     0.6
+#define MALLITEM_INIT_DELAY     0.8
 // 消费后服务端回写存在延迟：本地预扣 + 轮询校验
 #define MALLITEM_VERIFY_DELAY    0.1
 #define MALLITEM_VERIFY_RETRY    8
