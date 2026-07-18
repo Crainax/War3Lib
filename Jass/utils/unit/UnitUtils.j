@@ -502,15 +502,19 @@ library UnitUtils requires BigInteger,MathUtils {
         SaveReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_UP_RATE, RMaxBJ(0.0, up));
     }
 
-    // 增加单位结算最终伤害减少。使用 RealAdd 叠加，永远不会自然达到 100%。
+    // 增加单位结算最终伤害减少。内部保留未截断原始值，getter 才限制到 99.9%，保证触顶后仍可逆。
     public function AddUnitFinalDamageDown(unit u, real value) -> nothing {
         integer uid; real down;
 
         if (u == null || value == 0.0) { return; }
 
         uid = GetHandleId(u);
-        down = GetUnitFinalDamageDownRate(u);
-        down = RLimit(RealAdd(down, value), 0.0, 0.999);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        down = RMaxBJ(0.0, RealAdd(down, value));
         SaveReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE, down);
     }
 

@@ -164,6 +164,14 @@ library UTUnitUtils requires UnitUtils {
 		AddUnitFinalDamageDown(hero, -0.25);
 		assert.Real(GetUnitFinalDamageDownRate(hero), 0.25, "移除一次 25% 结算最终伤害减少后应回到 25%");
 
+		ResetUnitFinalDamageDown(hero);
+		AddUnitFinalDamageDown(hero, 0.5);
+		AddUnitFinalDamageDown(hero, 0.999);
+		assert.Real(GetUnitFinalDamageDownRate(hero), 0.999, "超过 99.9% 后 getter 应保持 99.9% 上限");
+		assert.Boolean(LoadReal(HASH_UNIT, GetHandleId(hero), KEY_UNIT_FINAL_DAMAGE_DOWN_RATE) > 0.999, "超过上限的原始终伤降低值应完整保留");
+		AddUnitFinalDamageDown(hero, -0.999);
+		assert.Real(GetUnitFinalDamageDownRate(hero), 0.5, "移除触顶来源后应准确恢复原有 50% 终伤降低");
+
 		ResetUnitFinalDamageUp(hero);
 		ResetUnitFinalDamageDown(hero);
 		assert.Real(GetUnitFinalDamageFinal(hero), 1.0, "重置后结算最终伤害倍率应回到 1.0");
