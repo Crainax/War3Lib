@@ -237,6 +237,25 @@ library UTUnitUtils requires UnitUtils {
 		p = null;
 	}
 
+	private function Test_AttackSpeedRawNegative() {
+		player p;
+		unit hero;
+		real base;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		base = GetUnitAttackSpeed(hero);
+
+		AddUnitAttackSpeed(hero, -base - 0.5);
+		assert.Real(GetUnitAttackSpeedRawReal(hero), -0.5, "raw 攻速应保留钳制前的负数");
+		assert.Boolean(GetUnitAttackSpeed(hero) >= 0.0, "旧攻速 getter 应保持非负引擎值");
+		AddUnitAttackSpeed(hero, base + 0.5);
+		assert.Real(GetUnitAttackSpeedRawReal(hero), base, "负攻速加回后 raw 值应准确恢复");
+
+		hero = null;
+		p = null;
+	}
+
 	// 普通单位（步兵）攻击增幅/减幅/定值测试
 	private function Test_NormalUnitAttackPercent() {
 		player p;
@@ -412,6 +431,10 @@ library UTUnitUtils requires UnitUtils {
 		UnitTestAutoTimer(0.395, 0.1, function() {
 			Trace("UnitUtils raw 负移速测试");
 			Test_MoveSpeedRawNegative();
+		}, null);
+		UnitTestAutoTimer(0.397, 0.1, function() {
+			Trace("UnitUtils raw 负攻速测试");
+			Test_AttackSpeedRawNegative();
 		}, null);
 
 		// 自动执行普通单位攻击增幅/减幅/定值测试

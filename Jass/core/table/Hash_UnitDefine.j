@@ -204,6 +204,7 @@
 #define KEY_UNIT_SPELL_RETURN_Y          255610223 // 主动技能临时位移返回点Y（real）
 #define KEY_UNIT_SPELL_RETURN_COUNT      255610224 // 主动技能临时位移返回点锁计数（integer）
 #define KEY_UNIT_AJZN_DEFENSE_COUNT      255610225 // 乘天地·御悠然临时防御锁计数（integer）
+#define KEY_UNIT_ATTACK_SPEED_RAW_REAL   255610226 // 单位未钳制攻速缓存（real，可为负数）
 
 // UnitBuff 通用禁用类 DEBUFF
 #define KEY_UNIT_SILENCE_TIME_LEFT       255610197 // 沉默剩余时间（real）

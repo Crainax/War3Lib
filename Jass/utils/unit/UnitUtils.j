@@ -1699,9 +1699,23 @@ library UnitUtils requires BigInteger,MathUtils {
     public function GetUnitAttackSpeed(unit u) -> real {
         return GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE));
     }
+    // 获取未钳制的攻速，可为负数。
+    public function GetUnitAttackSpeedRawReal(unit u) -> real {
+        integer uid;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SPEED_RAW_REAL)) {
+            return LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SPEED_RAW_REAL);
+        }
+        return GetUnitAttackSpeed(u);
+    }
     // 增加攻速
 	public function AddUnitAttackSpeed (unit u,real speed) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE)) + speed);
+		real raw;
+		if (u == null || speed == 0.0) { return; }
+		raw = GetUnitAttackSpeedRawReal(u) + speed;
+		SaveReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_ATTACK_SPEED_RAW_REAL, raw);
+		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),RMaxBJ(raw, 0.0));
 	}
 
     // (获取缓存的攻击间隔(可能为负))

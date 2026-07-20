@@ -141,6 +141,7 @@
 #define MOSHOU_KEY_DAMAGE_RATE 10112  // 魔兽:伤害百分比(小数)
 // 魔兽/召唤物：
 #define MOSHOU_KEY_GUARDER_TRAVERSE_EXCLUDE 10113
+#define MOSHOU_KEY_DAMAGE_TRANSFER_RATE 10114 // 魔兽承受伤害转移给英雄的独立倍率（默认1.0）
 
 
 #endif
