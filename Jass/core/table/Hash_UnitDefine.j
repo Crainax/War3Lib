@@ -288,10 +288,6 @@
 #define KEY_UNIT_AURA_TIMER_BASE 10200         // 单位光环计时器起始键（+ AURA_TYPE_*）
 #define KEY_UNIT_ITEMSHOP_STORE_BUYER 10220    // 物品商店马甲单位绑定的购买者
 
-// [异度] 小暗虫洞单位运行态
-#define KEY_UNIT_XIAOAN_CHONGDONG_ORDER 10230  // 虫洞创建序号
-#define KEY_UNIT_XIAOAN_HOLE_BOOST 10231       // 虫洞是否挂载主扫荡速度贡献
-
 // [异度] 单位装备套装占位（父键为 unit，值为 item handle id）
 #define TAOZHUANG_1 345123
 #define TAOZHUANG_2 346819
