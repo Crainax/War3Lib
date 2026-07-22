@@ -24,6 +24,9 @@ library ToastHint requires UIBorder,UIText,UIAnimTimer,Hardware,EasingUtils {
 
     #define HINT_DURATION 150 // 持续时长(帧)
     #define HINT_MOVE_DISTANCE 0.05 // 向上移动距离
+    #define HINT_CENTER_QUEUE_INTERVAL_TICKS 25 // 中央队列间隔: 25 * 0.02 = 0.50秒
+    #define HINT_CENTER_QUEUE_X 0.4
+    #define HINT_CENTER_QUEUE_Y 0.12
     #define UI_ABS_CENTER_X 0.4
     #define UI_ABS_CENTER_Y 0.3
     #define UI_ABS_RIGHT_X 0.8
@@ -32,6 +35,10 @@ library ToastHint requires UIBorder,UIText,UIAnimTimer,Hardware,EasingUtils {
         static thistype List[];     // 提示框列表
         static integer size = 0;    // 当前数量
         static uianim UIA = 0;      // 动画实例
+        static string CenterQueue[]; // 固定中央位置的本地紧凑FIFO
+        static integer centerQueueSize = 0;
+        static integer centerQueueCooldown = 0;
+        static uianim CenterQueueUIA = 0;
 
         // 成员变量
         uiBorder bg;                // 背景框
@@ -105,6 +112,20 @@ library ToastHint requires UIBorder,UIText,UIAnimTimer,Hardware,EasingUtils {
 
             UIA.reg();
             return this;
+        }
+
+        // 固定在(0.4, 0.12)的本地FIFO提示。第一条立即显示，后续每0.5秒创建一个新toastHint。
+        static method createQueuedCenter(player p, string content) {
+            if (p == null || GetLocalPlayer() != p) { return; }
+
+            if (centerQueueSize <= 0 && centerQueueCooldown <= 0) {
+                create(p, content, HINT_CENTER_QUEUE_X, HINT_CENTER_QUEUE_Y);
+                centerQueueCooldown = HINT_CENTER_QUEUE_INTERVAL_TICKS;
+            } else {
+                centerQueueSize += 1;
+                CenterQueue[centerQueueSize] = content;
+            }
+            CenterQueueUIA.reg();
         }
 
         // 创建提示框(鼠标位置)
@@ -196,6 +217,32 @@ library ToastHint requires UIBorder,UIText,UIAnimTimer,Hardware,EasingUtils {
                     if(this.cd <= 0) {
                         this.destroy();
                         i -= 1;
+                    }
+                }
+            });
+
+            CenterQueueUIA = uianim.create(function() {
+                integer i;
+                string content;
+
+                if (centerQueueCooldown > 0) {
+                    centerQueueCooldown -= 1;
+                }
+                if (centerQueueCooldown <= 0) {
+                    if (centerQueueSize > 0) {
+                        content = CenterQueue[1];
+                        i = 1;
+                        while (i < centerQueueSize) {
+                            CenterQueue[i] = CenterQueue[i + 1];
+                            i += 1;
+                        }
+                        CenterQueue[centerQueueSize] = null;
+                        centerQueueSize -= 1;
+                        create(GetLocalPlayer(), content, HINT_CENTER_QUEUE_X, HINT_CENTER_QUEUE_Y);
+                        centerQueueCooldown = HINT_CENTER_QUEUE_INTERVAL_TICKS;
+                        content = null;
+                    } else {
+                        CenterQueueUIA.unreg();
                     }
                 }
             });
