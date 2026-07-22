@@ -182,6 +182,16 @@ library Music {
 			thistype[MUSIC_INDEX_SPELLSHOP_PANEL_HOVER].snd = snd;
 			//# endcheck
 
+			//# check: music[1008]
+			//# dependency:sound/sound/arena_monster_ban_success.mp3
+			snd = CreateSound( "sound\\arena_monster_ban_success.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 914 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_ARENA_MONSTER_BAN_SUCCESS].snd = snd;
+			//# endcheck
+
 			//# check: music[2001]
 			//# dependency:sound/sound/blackhole.mp3
 			snd = CreateSound("sound\\blackhole.mp3", false, false, false, 10, 10, "");
