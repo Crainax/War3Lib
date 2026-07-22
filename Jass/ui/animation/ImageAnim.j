@@ -33,6 +33,15 @@
 #define IMAGE_ANIM_ALERT_RIGHT_TO_LEFT    true // 警报滑幅方向: 从右向左
 #define IMAGE_ANIM_ALERT_LEFT_TO_RIGHT    false // 警报滑幅方向: 从左向右
 
+#define IMAGE_ANIM_WARNING_UI_LENGTH        0.40 // 警示动画左右两张图片拼合后的总宽度
+#define IMAGE_ANIM_WARNING_UI_WIDTH         0.20 // 警示动画左右两张图片拼合后的总高度
+#define IMAGE_ANIM_WARNING_FLASH_COUNT      2    // 1秒内完整闪烁次数
+#define IMAGE_ANIM_WARNING_PER_FLASH_FRAMES 25   // 单次闪烁持续帧数(0.02秒/帧，25帧约0.5秒)
+#define IMAGE_ANIM_WARNING_COUNTDOWN_TOTAL  (IMAGE_ANIM_WARNING_FLASH_COUNT * IMAGE_ANIM_WARNING_PER_FLASH_FRAMES) // 动画总持续帧数
+#define IMAGE_ANIM_WARNING_ALPHA_MAX        255  // 图片完全显示时的透明度
+#define IMAGE_ANIM_WARNING_ALPHA_MIN        0    // 图片完全隐藏时的透明度
+#define IMAGE_ANIM_WARNING_HASH_KEY         1952 // 绑在UI哈希表上的Key值，用于防重和清理生命周期
+
 
 library ImageAnim requires BaseAnim, UIHashTable, UIImage, GrowData, EasingUtils, UIAnimTimer, UIUtils {
 
@@ -315,6 +324,126 @@ library ImageAnim requires BaseAnim, UIHashTable, UIImage, GrowData, EasingUtils
         }
     }
 
+    // 屏幕中央警示动效: 全透明 -> 全不透明 -> 全透明
+    private struct warningFadeAnim {
+        static thistype List[];
+        static integer size = 0;
+        static uianim UIA = 0;
+
+        uiImage uiMain;
+        uiImage uiLeft;
+        uiImage uiRight;
+        baseanim lifeAnim;
+        integer id;
+        integer now;
+
+        private method applyFrame(integer alpha) {
+            real resizeX = GetResizeRate();
+            if (resizeX <= 0.0) {resizeX = 1.0;}
+            if (alpha < IMAGE_ANIM_WARNING_ALPHA_MIN) {alpha = IMAGE_ANIM_WARNING_ALPHA_MIN;}
+            if (alpha > IMAGE_ANIM_WARNING_ALPHA_MAX) {alpha = IMAGE_ANIM_WARNING_ALPHA_MAX;}
+            if (!uiMain.isExist() || !uiLeft.isExist() || !uiRight.isExist()) {return;}
+            uiMain.setAlpha(alpha);
+            uiLeft.setAlpha(alpha)
+                .setSize(IMAGE_ANIM_WARNING_UI_LENGTH * 0.5, IMAGE_ANIM_WARNING_UI_WIDTH / resizeX);
+            uiRight.setAlpha(alpha)
+                .setSize(IMAGE_ANIM_WARNING_UI_LENGTH * 0.5, IMAGE_ANIM_WARNING_UI_WIDTH / resizeX);
+        }
+
+        static method create(string leftPath, string rightPath) -> thistype {
+            thistype this = allocate();
+            uiMain = uiImage.create(DzGetGameUI());
+            uiLeft = uiImage.create(uiMain.ui);
+            uiRight = uiImage.create(uiMain.ui);
+            now = 0;
+
+            uiMain.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.05)
+                .setSize(0.001, 0.001)
+                .setAlpha(IMAGE_ANIM_WARNING_ALPHA_MIN);
+            uiLeft.setTexture(leftPath)
+                .setPoint(ANCHOR_RIGHT, uiMain.ui, ANCHOR_CENTER, 0.0, 0.0);
+            uiRight.setTexture(rightPath)
+                .setPoint(ANCHOR_LEFT, uiMain.ui, ANCHOR_CENTER, 0.0, 0.0);
+            applyFrame(IMAGE_ANIM_WARNING_ALPHA_MIN);
+
+            SaveInteger(HASH_UI, uiMain.ui, IMAGE_ANIM_WARNING_HASH_KEY, this);
+            size += 1;
+            List[size] = this;
+            id = size;
+            UIA.reg();
+
+            lifeAnim = baseanim.create(uiMain.ui);
+            lifeAnim.addLife(IMAGE_ANIM_WARNING_COUNTDOWN_TOTAL + 1, function(baseanim ba) {
+                integer ui = ba.ui;
+                integer debugThis = 0;
+                integer debugUi = ui;
+                thistype this = 0;
+                if (HaveSavedInteger(HASH_UI, ui, IMAGE_ANIM_WARNING_HASH_KEY)) {
+                    this = LoadInteger(HASH_UI, ui, IMAGE_ANIM_WARNING_HASH_KEY);
+                    if (this != 0 && this.id != 0) {
+                        debugThis = this;
+                        this.lifeAnim = 0;
+                        this.destroy();
+                    }
+                }
+                #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                BJDebugMsg("warningFadeAnim销毁了: " + I2S(debugThis)+"["+I2S(debugUi)+"]");
+                #endif
+            });
+            return this;
+        }
+
+        method onDestroy() {
+            baseanim ba;
+            if (uiMain.isExist()) {
+                RemoveSavedInteger(HASH_UI, uiMain.ui, IMAGE_ANIM_WARNING_HASH_KEY);
+            }
+            if (lifeAnim.isExist()) {
+                ba = lifeAnim;
+                lifeAnim = 0;
+                ba.destroy();
+            }
+            if (id != 0) {
+                List[id] = List[size];
+                List[id].id = id;
+                size -= 1;
+                id = 0;
+            }
+            if (uiLeft.isExist()) {uiLeft.destroy();}
+            if (uiRight.isExist()) {uiRight.destroy();}
+            if (uiMain.isExist()) {uiMain.destroy();}
+            uiLeft = 0;
+            uiRight = 0;
+            uiMain = 0;
+            if (size <= 0) {UIA.unreg();}
+        }
+
+        static method onInit() {
+            UIA = uianim.create(function() {
+                integer i;
+                integer alpha;
+                integer phaseNow;
+                real phaseProgress;
+                real r;
+                thistype this;
+                for (1 <= i <= size) {
+                    this = List[i];
+                    now += 1;
+                    phaseNow = ModuloInteger(now - 1, IMAGE_ANIM_WARNING_PER_FLASH_FRAMES) + 1;
+                    phaseProgress = I2R(phaseNow) / IMAGE_ANIM_WARNING_PER_FLASH_FRAMES;
+                    if (phaseProgress <= 0.5) {
+                        r = phaseProgress * 2.0;
+                        alpha = R2I(EaseOutCubic(r) * IMAGE_ANIM_WARNING_ALPHA_MAX);
+                    } else {
+                        r = (phaseProgress - 0.5) * 2.0;
+                        alpha = IMAGE_ANIM_WARNING_ALPHA_MAX - R2I(EaseInCubic(r) * IMAGE_ANIM_WARNING_ALPHA_MAX);
+                    }
+                    applyFrame(alpha);
+                }
+            });
+        }
+    }
+
     public struct imageAnim [] {
 
         static method mstPair(string leftPath, string rightPath) {
@@ -339,6 +468,10 @@ library ImageAnim requires BaseAnim, UIHashTable, UIImage, GrowData, EasingUtils
 
         static method alertSlideLeftToRight(string leftPath, string rightPath) {
             alertSlideAnim.create(leftPath, rightPath, 1.0, IMAGE_ANIM_ALERT_LEFT_TO_RIGHT);
+        }
+
+        static method warningFade(string leftPath, string rightPath) {
+            warningFadeAnim.create(leftPath, rightPath);
         }
 
         static method gif (player p,growdata gd,integer parent)  -> nothing {

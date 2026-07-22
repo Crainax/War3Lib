@@ -588,8 +588,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 nx = ox + Cos(angle * bj_DEGTORAD) * GUARD_TELEPORT_OFFSET;
                 ny = oy + Sin(angle * bj_DEGTORAD) * GUARD_TELEPORT_OFFSET;
 
-                SetUnitX(petUnit, nx);
-                SetUnitY(petUnit, ny);
+                // 一次性落到最终坐标，避免分轴更新时用“新 X + 旧 Y”误触沿途区域事件。
+                SetUnitPosition(petUnit, nx, ny);
 
                 guarder.state[pid][idx] = GUARDER_STATE_IDLE_RING;
                 guarder.target[pid][idx] = null;
@@ -754,8 +754,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
 
                     DestroyEffect(AddSpecialEffect("Abilities\\Spells\\NightElf\\Blink\\BlinkCaster.mdl", GetUnitX(petUnit),GetUnitY(petUnit) ));
-                    SetUnitX(petUnit, nx);
-                    SetUnitY(petUnit, ny);
+                    // 一次性落到最终坐标，避免分轴更新时用“新 X + 旧 Y”误触沿途区域事件。
+                    SetUnitPosition(petUnit, nx, ny);
                     DestroyEffect(AddSpecialEffect("Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdl", nx,ny ));
 
                     // 瞬移后直接攻击

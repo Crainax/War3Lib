@@ -4,6 +4,9 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
+//# dependency:resource/ui/image/underattack_left.blp
+//# dependency:resource/ui/image/underattack_right.blp
+
 //! zinc
 
 //自动生成的文件
@@ -84,7 +87,11 @@ library UTImageAnim requires ImageAnim {
 		imageAnim.alertSlideDir("ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp", "ReplaceableTextures\\CommandButtons\\BTNCarrionSwarm.blp", 0.75, false);
 		BJDebugMsg("测试警报滑幅拼接动效: 双向叠加播放");
 	}
-	function TTestUTImageAnim8 (player p) {}
+	function TTestUTImageAnim8 (player p) {
+		if (GetLocalPlayer() != p) {return;}
+		imageAnim.warningFade("ui\\image\\underattack_left.blp", "ui\\image\\underattack_right.blp");
+		BJDebugMsg("测试屏幕中央基地受击警示动效");
+	}
 	function TTestUTImageAnim9 (player p) {}
 	function TTestUTImageAnim10 (player p) {}
 	function TTestActUTImageAnim1 (string str) {
