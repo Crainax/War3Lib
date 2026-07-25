@@ -52,6 +52,10 @@
 #define HASH_KEY_ITEM_I50K_ENERGY_DECAY_REMAINING 29312252 // [异度] I50K能量衰减剩余时间
 #define HASH_KEY_ITEM_I314_TALENT_MAX_APPLIED 29312253  // [异度] I314已发放天赋可学习上限
 #define HASH_KEY_ITEM_HIDDEN_STORAGE 29312254           // [异度] 多重背包/挂起隐藏寄存标记
+#define HASH_KEY_CHEST_SNAPSHOT_GOLD 29312255            // [异度] 副本宝箱结算时快照的最终金币
+#define HASH_KEY_CHEST_SNAPSHOT_EXP 29312256             // [异度] 副本宝箱结算时快照的最终经验
+#define HASH_KEY_CHEST_SNAPSHOT_BASE_GOLD 29312257       // [异度] 副本宝箱结算时快照的基础金币
+#define HASH_KEY_CHEST_SNAPSHOT_BASE_EXP 29312258        // [异度] 副本宝箱结算时快照的基础经验
 
 // [异度] 物品实例运行态
 #define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键

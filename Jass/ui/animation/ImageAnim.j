@@ -33,10 +33,10 @@
 #define IMAGE_ANIM_ALERT_RIGHT_TO_LEFT    true // 警报滑幅方向: 从右向左
 #define IMAGE_ANIM_ALERT_LEFT_TO_RIGHT    false // 警报滑幅方向: 从左向右
 
-#define IMAGE_ANIM_WARNING_UI_LENGTH        0.40 // 警示动画左右两张图片拼合后的总宽度
-#define IMAGE_ANIM_WARNING_UI_WIDTH         0.20 // 警示动画左右两张图片拼合后的总高度
-#define IMAGE_ANIM_WARNING_FLASH_COUNT      2    // 1秒内完整闪烁次数
-#define IMAGE_ANIM_WARNING_PER_FLASH_FRAMES 25   // 单次闪烁持续帧数(0.02秒/帧，25帧约0.5秒)
+#define IMAGE_ANIM_WARNING_UI_LENGTH        0.20 // 警示动画左右两张图片拼合后的总宽度
+#define IMAGE_ANIM_WARNING_UI_WIDTH         0.10 // 警示动画左右两张图片拼合后的总高度
+#define IMAGE_ANIM_WARNING_FLASH_COUNT      1    // 1秒内完整闪烁次数
+#define IMAGE_ANIM_WARNING_PER_FLASH_FRAMES 50   // 单次闪烁持续帧数(0.02秒/帧，25帧约0.5秒)
 #define IMAGE_ANIM_WARNING_COUNTDOWN_TOTAL  (IMAGE_ANIM_WARNING_FLASH_COUNT * IMAGE_ANIM_WARNING_PER_FLASH_FRAMES) // 动画总持续帧数
 #define IMAGE_ANIM_WARNING_ALPHA_MAX        255  // 图片完全显示时的透明度
 #define IMAGE_ANIM_WARNING_ALPHA_MIN        0    // 图片完全隐藏时的透明度
@@ -357,7 +357,7 @@ library ImageAnim requires BaseAnim, UIHashTable, UIImage, GrowData, EasingUtils
             uiRight = uiImage.create(uiMain.ui);
             now = 0;
 
-            uiMain.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.05)
+            uiMain.setPoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0.0, 0.20)
                 .setSize(0.001, 0.001)
                 .setAlpha(IMAGE_ANIM_WARNING_ALPHA_MIN);
             uiLeft.setTexture(leftPath)
