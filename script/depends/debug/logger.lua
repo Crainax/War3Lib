@@ -57,8 +57,12 @@ local function is_important_display()
     return (tonumber(g.logger_important_depth) or 0) > 0
 end
 
+local function is_display_suppressed()
+    return (tonumber(g.logger_display_suppress_depth) or 0) > 0
+end
+
 local function should_capture_display()
-    return not is_release_version() or is_important_display()
+    return not is_display_suppressed() and (not is_release_version() or is_important_display())
 end
 
 local function is_duplicate(text, target_pid)

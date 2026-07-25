@@ -29,6 +29,7 @@ library Logger requires YDLua {
     public player  logger_p     = null;
     public integer logger_target_pid = -1;
     public integer logger_important_depth = 0;
+    public integer logger_display_suppress_depth = 0;
     public trigger logger_tr    = null;
 
     private boolean logger_luaInitRequested = false;
@@ -131,6 +132,16 @@ library Logger requires YDLua {
         BeginImportantDisplayLog();
         DisplayTextToPlayer(toPlayer, x, y, message);
         EndImportantDisplayLog();
+    }
+
+    // 仅向目标玩家显示文本，同时在所有客户端写入一条 Info 审计日志。
+    public function DisplayImportantTextToPlayerWithInfo(player toPlayer, real x, real y, string message, string infoMessage) {
+        logger_display_suppress_depth = logger_display_suppress_depth + 1;
+        DisplayTextToPlayer(toPlayer, x, y, message);
+        logger_display_suppress_depth = logger_display_suppress_depth - 1;
+        if (infoMessage != null && infoMessage != "") {
+            Info(infoMessage);
+        }
     }
 
     public function DisplayImportantTimedTextToPlayer(player toPlayer, real x, real y, real duration, string message) {
