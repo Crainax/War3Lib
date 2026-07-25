@@ -320,7 +320,8 @@ library SyncBus requires Logger {
 			t = null;
 		}
 
-		// 注册延迟路由回调。回调执行时 getPlayer/getTag/getPayload 与即时路由保持同一接口。
+		// 注册延迟路由回调：至少跨 3 个中心 tick，再按目标 tick、发送玩家与发送序号稳定派发。
+		// 回调上下文与即时路由相同；getSequence 对本总线发出的消息返回发送方递增序号。
 		public static method onDataSyncLater(string tag, code cb) {
 			integer idx;
 			trigger t;
@@ -478,6 +479,7 @@ library SyncBus requires Logger {
 		public static method getPlayer() -> player { return thistype.cbPlayer; }
 		public static method getTag() -> string { return thistype.cbTag; }
 		public static method getPayload() -> string { return thistype.cbPayload; }
+		// 返回当前消息的发送方序号；兼容未带 SyncBus 信封的旧 OD 消息时为 0。
 		public static method getSequence() -> integer { return thistype.cbSequence; }
 	}
 
