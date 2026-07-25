@@ -689,7 +689,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
     function onInit () {
         // 使用单通道总线 Select
-        syncBus.onDataSync("Select", function () -> boolean {
+        syncBus.onDataSyncLater("Select", function () -> boolean {
             string str; player p; selectData sd; integer length; integer pos;
             str = syncBus.getPayload();
             p = syncBus.getPlayer();
