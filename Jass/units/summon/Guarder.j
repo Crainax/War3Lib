@@ -26,6 +26,7 @@
 #define GUARD_IDLE_OWNER_MOVE_EPS       400.0  // 主人小幅移动时，idle 环绕不更新的阈值
 #define GUARD_ATTACK_TELEPORT_DISTANCE  1800.0 // 攻击瞬移距离（码）：守卫与目标距离超过此值时，瞬移到目标附近
 #define GUARD_NO_FOLLOW_SEARCH_BUCKETS  5      // 禁跟随守卫无目标时分帧搜索：5 tick 约 1 秒扫完一轮
+#define GUARD_SLEEP_EFFECT_PATH          "Abilities\\Spells\\Undead\\Sleep\\SleepTarget.mdl"
 
 //复用工具类函数
 #define GUARDER_ISVALID_IDX(pid, idx) (ISVALID_PLAYER_ID(pid) && idx >= 1 && idx <= guarder.size[pid])   //检查索引有效性
@@ -36,6 +37,7 @@
 #define GUARDER_STATE_MOVE  2
 #define GUARDER_STATE_ATTACK  3
 #define GUARDER_STATE_PAUSED  4
+#define GUARDER_STATE_SLEEPING  5
 
 /*
  * ========================================
@@ -119,6 +121,18 @@
 //   - true 时守卫不再向主人环绕、召回或回主人瞬移，但仍使用 Guarder 战斗 AI
 //   - false 时恢复默认跟随主人逻辑
 
+// guarder.sleep(unit u, real duration) -> boolean
+// 功能：令已注册守卫进入休眠；休眠期间缴械、无敌且不会收到新的 Guarder AI 指令
+// 说明：
+//   - 不会 PauseUnit，重复调用只把剩余时间刷新为较大值
+//   - 返回 false 表示单位不在 Guarder 中或参数无效
+//
+// guarder.isSleeping(unit u) -> boolean
+// 功能：判断单位是否仍是已注册且处于休眠中的守卫
+//
+// guarder.getSleepRemaining(unit u) -> real
+// 功能：返回已注册守卫的休眠剩余秒数；未休眠或已解绑时返回 0
+
 // guarder.getSize(player p) -> integer
 // 功能：获取指定玩家的守卫数量
 // 参数：
@@ -159,7 +173,7 @@
  * }
  */
 
-library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
+library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff, BindEffect {
 
     // 数据结构：按玩家紧凑数组
     public struct guarder []{
@@ -235,6 +249,160 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             }
         }
 
+        private static method findPetIndex(integer pid, unit u) -> integer {
+            integer idx;
+            if (!ISVALID_PLAYER_ID(pid) || u == null) { return 0; }
+            for (1 <= idx <= guarder.size[pid]) {
+                if (guarder.pet[pid][idx] == u) {
+                    return idx;
+                }
+            }
+            return 0;
+        }
+
+        private static method isSleepingUnit(unit u) -> boolean {
+            integer hid;
+            if (u == null || GetUnitTypeId(u) == 0) { return false; }
+            hid = GetHandleId(u);
+            return HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT)
+                && LoadReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT) > 0.0;
+        }
+
+        // Guarder 的 pause/sleep 共用一份 Avul 所有权，任一状态仍生效时都不能提前移除。
+        private static method refreshManagedAvul(integer pid, unit u) {
+            integer hid;
+            boolean needAvul;
+            if (!ISVALID_PLAYER_ID(pid) || u == null || GetUnitTypeId(u) == 0) { return; }
+            hid = GetHandleId(u);
+            needAvul = guarder.paused[pid] || guarder.isSleepingUnit(u);
+            if (needAvul) {
+                if (GetUnitAbilityLevel(u, 'Avul') == 0) {
+                    UnitAddAbility(u, 'Avul');
+                    SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED, 1);
+                }
+            } else if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED)
+            && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED) == 1) {
+                UnitRemoveAbility(u, 'Avul');
+                RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED);
+            }
+        }
+
+        // Guarder 只持有自己的一份缴械锁，避免醒来或解绑时误清其他技能的缴械。
+        private static method refreshManagedDisarm(unit u, boolean needDisarm) {
+            integer hid;
+            if (u == null || GetUnitTypeId(u) == 0) { return; }
+            hid = GetHandleId(u);
+            if (needDisarm) {
+                if (!HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISARM_LOCKED)
+                && AcquireUnitDisarm(u)) {
+                    SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISARM_LOCKED, 1);
+                }
+            } else if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISARM_LOCKED)) {
+                ReleaseUnitDisarm(u);
+                RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISARM_LOCKED);
+            }
+        }
+
+        private static method clearManagedSleepOnRemove(unit u) {
+            integer hid;
+            if (u == null || GetUnitTypeId(u) == 0) { return; }
+            hid = GetHandleId(u);
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT);
+            bindEffect.detachUnique(u, GUARD_SLEEP_EFFECT_PATH);
+            guarder.refreshManagedDisarm(u, false);
+            if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED)
+            && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED) == 1) {
+                UnitRemoveAbility(u, 'Avul');
+                RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED);
+            }
+        }
+
+        // 休眠只按单位句柄存剩余时间，不增加紧凑数组并行列，避免 swap-remove 串状态。
+        public static method sleep(unit u, real duration) -> boolean {
+            integer pid;
+            integer idx;
+            integer hid;
+            real oldDuration;
+            boolean wasSleeping;
+
+            if (u == null || GetUnitTypeId(u) == 0 || duration <= 0.0) { return false; }
+            pid = GetConvertedPlayerId(GetOwningPlayer(u));
+            if (!ISVALID_PLAYER_ID(pid)) { return false; }
+            idx = guarder.findPetIndex(pid, u);
+            if (idx <= 0) { return false; }
+
+            hid = GetHandleId(u);
+            wasSleeping = guarder.isSleepingUnit(u);
+            oldDuration = 0.0;
+            if (wasSleeping) {
+                oldDuration = LoadReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT);
+            }
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT, RMaxBJ(oldDuration, duration));
+            guarder.refreshManagedDisarm(u, true);
+            guarder.refreshManagedAvul(pid, u);
+
+            if (!wasSleeping) {
+                bindEffect.attachUnique(u, GUARD_SLEEP_EFFECT_PATH, "overhead");
+            }
+            IssueImmediateOrder(u, "stop");
+            guarder.state[pid][idx] = GUARDER_STATE_SLEEPING;
+            guarder.target[pid][idx] = null;
+            guarder.moveX[pid][idx] = 0.0;
+            guarder.moveY[pid][idx] = 0.0;
+            return true;
+        }
+
+        // 判断单位是否仍在 Guarder 中且休眠剩余时间大于 0。
+        public static method isSleeping(unit u) -> boolean {
+            integer pid;
+            if (u == null || GetUnitTypeId(u) == 0) { return false; }
+            pid = GetConvertedPlayerId(GetOwningPlayer(u));
+            return ISVALID_PLAYER_ID(pid)
+                && guarder.findPetIndex(pid, u) > 0
+                && guarder.isSleepingUnit(u);
+        }
+
+        // 返回已注册守卫的休眠剩余秒数；无效、已解绑或未休眠时返回 0。
+        public static method getSleepRemaining(unit u) -> real {
+            integer hid;
+            if (!guarder.isSleeping(u)) { return 0.0; }
+            hid = GetHandleId(u);
+            return LoadReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT);
+        }
+
+        private static method updateSleep(integer pid, integer idx, unit u) -> boolean {
+            integer hid;
+            real remaining;
+
+            if (!GUARDER_ISVALID_IDX(pid, idx) || u == null || !guarder.isSleepingUnit(u)) {
+                return false;
+            }
+
+            hid = GetHandleId(u);
+            remaining = LoadReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT) - GUARD_TICK;
+            if (remaining <= 0.0) {
+                RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT);
+                bindEffect.detachUnique(u, GUARD_SLEEP_EFFECT_PATH);
+                guarder.refreshManagedDisarm(u, false);
+                if (guarder.state[pid][idx] == GUARDER_STATE_SLEEPING) {
+                    guarder.state[pid][idx] = GUARDER_STATE_NONE;
+                }
+                guarder.refreshManagedAvul(pid, u);
+                return false;
+            }
+
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT, remaining);
+            guarder.refreshManagedAvul(pid, u);
+            if (guarder.state[pid][idx] != GUARDER_STATE_SLEEPING) {
+                IssueImmediateOrder(u, "stop");
+                guarder.state[pid][idx] = GUARDER_STATE_SLEEPING;
+                guarder.target[pid][idx] = null;
+                guarder.moveX[pid][idx] = 0.0;
+                guarder.moveY[pid][idx] = 0.0;
+            }
+            return true;
+        }
+
         // 添加召唤物
         public static method addPet(player p, unit petUnit) -> boolean {
             integer pid; integer idx; integer hid;
@@ -293,6 +461,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             // 线性查找
             for (1 <= idx <= guarder.size[pid]) {
                 if (guarder.pet[pid][idx] == petUnit) {
+                    guarder.clearManagedSleepOnRemove(petUnit);
                     guarder.clearSuperSpeedBonus(petUnit);
                     hid = GetHandleId(petUnit);
                     RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE);
@@ -335,6 +504,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 if (guarder.pet[pid][idx] != null) {
                     hid = GetHandleId(guarder.pet[pid][idx]);
                     RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE);
+                    guarder.clearManagedSleepOnRemove(guarder.pet[pid][idx]);
                     guarder.clearSuperSpeedBonus(guarder.pet[pid][idx]);
                     guarder.pet[pid][idx] = null;
                 }
@@ -349,7 +519,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
         // 外部强制暂停/恢复
         public static method setPaused(player p, boolean paused) {
-            integer pid; integer idx; unit u; integer hid;
+            integer pid; integer idx; unit u;
 
             if (p == null) { return; }
 
@@ -362,22 +532,19 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             for (1 <= idx <= guarder.size[pid]) {
                 u = guarder.pet[pid][idx];
                 if (u != null && GetUnitTypeId(u) != 0) {
-                    hid = GetHandleId(u);
                     if (paused) {
-                        if (GetUnitAbilityLevel(u, 'Avul') == 0) {
-                            UnitAddAbility(u, 'Avul');
-                            SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED, 1);
-                        }
                         PauseUnit(u, true);
                         guarder.state[pid][idx] = GUARDER_STATE_PAUSED;
                         guarder.target[pid][idx] = null;
                     } else {
-                        if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) == 1) {
-                            UnitRemoveAbility(u, 'Avul');
-                            RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED);
-                        }
                         PauseUnit(u, false);
+                        if (guarder.isSleepingUnit(u)) {
+                            guarder.state[pid][idx] = GUARDER_STATE_SLEEPING;
+                        } else {
+                            guarder.state[pid][idx] = GUARDER_STATE_NONE;
+                        }
                     }
+                    guarder.refreshManagedAvul(pid, u);
                 }
                 u = null;
             }
@@ -514,8 +681,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             real searchRadius; real teleportDist; real attackRange;
             real vx; real vy; real vr; real targetX; real targetY;
             real buffer; real want; real ang;
-            integer hid,hid2;
             boolean ownerFollowDisabled;
+            boolean sleeping;
 
 
             if (!GUARDER_ISVALID_IDX(pid, idx)) { return; }
@@ -546,6 +713,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             oy = GetUnitY(ownerUnit);
             distToOwner = GetDistance(px, py, ox, oy);
             ownerFollowDisabled = guarder.isOwnerFollowDisabled(petUnit);
+            sleeping = guarder.updateSleep(pid, idx, petUnit);
+            state = guarder.state[pid][idx];
 
             ownerPaused = guarder.paused[pid] || IsUnitPaused(ownerUnit);
             if (ownerPaused) {
@@ -553,13 +722,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                     PauseUnit(petUnit, true);
                     guarder.state[pid][idx] = GUARDER_STATE_PAUSED;
                     guarder.target[pid][idx] = null;
-                    // 外部 pause 时给守卫 Avul（只在 guarder.paused=true 时处理，避免影响其他系统的 PauseUnit）
                     if (guarder.paused[pid]) {
-                        hid = GetHandleId(petUnit);
-                        if (GetUnitAbilityLevel(petUnit, 'Avul') == 0) {
-                            UnitAddAbility(petUnit, 'Avul');
-                            SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED, 1);
-                        }
+                        guarder.refreshManagedAvul(pid, petUnit);
                     }
                 }
                 petUnit = null;
@@ -568,12 +732,14 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 return;
             } else if (IsUnitPaused(petUnit)) {
                 PauseUnit(petUnit, false);
-                // 从外部 pause 恢复时，如果 Avul 是 Guarder 添加的，则移除
-                hid2 = GetHandleId(petUnit);
-                if (HaveSavedInteger(HASH_UNIT, hid2, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) && LoadInteger(HASH_UNIT, hid2, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) == 1) {
-                    UnitRemoveAbility(petUnit, 'Avul');
-                    RemoveSavedInteger(HASH_UNIT, hid2, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED);
-                }
+                guarder.refreshManagedAvul(pid, petUnit);
+            }
+
+            if (sleeping) {
+                petUnit = null;
+                ownerUnit = null;
+                targetUnit = null;
+                return;
             }
 
             enemyCount = guarder.enemyCount;
@@ -915,6 +1081,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 #undef GUARDER_STATE_MOVE
 #undef GUARDER_STATE_ATTACK
 #undef GUARDER_STATE_PAUSED
+#undef GUARDER_STATE_SLEEPING
+#undef GUARD_SLEEP_EFFECT_PATH
 
 //! endzinc
 #endif

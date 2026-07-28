@@ -179,9 +179,11 @@
 
 // Guarder 守卫系统键值
 #define KEY_UNIT_GUARD_ATTACK_RANGE      255610192 // 守卫单位独立攻击范围（real，码）
-#define KEY_UNIT_GUARD_PAUSE_AVUL_ADDED  255610193 // 是否由 Guarder.pause 添加过 Avul（integer 0/1）
+#define KEY_UNIT_GUARD_AVUL_ADDED        255610193 // 是否由 Guarder 状态机添加过 Avul（integer 0/1）
 #define KEY_UNIT_GUARD_SUPER_SPEED_ADDED 255610213 // 是否由 Guarder.addPet 添加过超级移速（integer 0/1）
 #define KEY_UNIT_GUARD_DISABLE_OWNER_FOLLOW 255610214 // Guarder 是否禁用跟随主人/召回（integer 0/1）
+#define KEY_UNIT_GUARD_SLEEP_TIME_LEFT   255610227 // Guarder 休眠剩余时间（real）
+#define KEY_UNIT_GUARD_DISARM_LOCKED     255610229 // Guarder 休眠是否持有独立缴械锁（integer 0/1）
 
 // 单位面板攻击图标自定义显示
 #define KEY_UNIT_ATK_CORNER_TEXT         255610194 // 攻击图标角标文本（string）
@@ -210,7 +212,8 @@
 #define KEY_UNIT_SILENCE_TIME_LEFT       255610197 // 沉默剩余时间（real）
 #define KEY_UNIT_DISARM_TIME_LEFT        255610198 // 缴械/禁用攻击剩余时间（real）
 #define KEY_UNIT_SILENCE_NATIVE_ON       255610199 // 沉默 Dz native 已应用标记（boolean/int）
-#define KEY_UNIT_DISARM_NATIVE_ON        255610200 // 缴械 Dz native 已应用标记（boolean/int）
+#define KEY_UNIT_DISARM_NATIVE_ON        255610200 // 缴械 Dz native 的共享锁计数（integer）
+#define KEY_UNIT_DISARM_EFFECT_TIME_LEFT 255610228 // 需要显示沉默特效的缴械剩余时间（real）
 #define KEY_UNIT_EX_PAUSE_LOCK_STUN      255610201 // EXPauseUnit 眩晕锁计数（integer）
 #define KEY_UNIT_EX_PAUSE_LOCK_PRECAST   255610202 // EXPauseUnit 前摇锁计数（integer）
 #define KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST 255610203 // EXPauseUnit 限时前摇锁计数（integer）

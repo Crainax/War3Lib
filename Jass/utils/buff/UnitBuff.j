@@ -37,7 +37,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         if (u == null || GetUnitTypeId(u) == 0) { return; }
 
         hid = GetHandleId(u);
-        if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT) && !HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+        if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT) && !HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
             bindEffect.detachUnique(u, SILENCE_DISABLE_EFFECT_PATH);
         }
     }
@@ -68,29 +68,41 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         }
     }
 
-    private function ApplyDisarmNative(unit u) {
+    // 获取一份底层缴械锁；第一份锁负责实际禁用攻击。
+    public function AcquireUnitDisarm(unit u) -> boolean {
         integer hid;
+        integer lockCount;
 
-        if (u == null || GetUnitTypeId(u) == 0) { return; }
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
 
         hid = GetHandleId(u);
-        if (!HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON)) {
+        lockCount = LoadInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON);
+        if (lockCount <= 0) {
             DzUnitDisableAttack(u, true);
-            SaveInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON, 1);
         }
+        SaveInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON, lockCount + 1);
+        return true;
     }
 
-    private function ReleaseDisarmNative(unit u) {
+    // 释放一份底层缴械锁；最后一份锁释放后才恢复攻击。
+    public function ReleaseUnitDisarm(unit u) {
         integer hid;
+        integer lockCount;
 
         if (u == null) { return; }
 
         hid = GetHandleId(u);
-        if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON)) {
+        lockCount = LoadInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON);
+        if (lockCount <= 0) {
+            return;
+        }
+        if (lockCount == 1) {
             if (GetUnitTypeId(u) != 0) {
                 DzUnitDisableAttack(u, false);
             }
             RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON);
+        } else {
+            SaveInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON, lockCount - 1);
         }
     }
 
@@ -647,15 +659,22 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
         private static method removeAt(integer index) -> integer {
             integer last; unit ru; integer hid;
+            boolean hadTimedDisarm;
             if (index < 0 || index >= thistype.size) { return index; }
 
             ru = thistype.uList[index];
             if (ru != null) {
                 hid = GetHandleId(ru);
+                hadTimedDisarm = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
                 if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
                     RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
                 }
-                ReleaseDisarmNative(ru);
+                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
+                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT);
+                }
+                if (hadTimedDisarm) {
+                    ReleaseUnitDisarm(ru);
+                }
                 DetachSilenceDisableEffectIfUnused(ru);
             }
 
@@ -688,7 +707,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             if (thistype.tickTimer == null) {
                 thistype.tickTimer = CreateTimer();
                 TimerStart(thistype.tickTimer, 0.05, true, function () {
-                    integer i; integer hid; unit u; real timeLeft;
+                    integer i; integer hid; unit u; real timeLeft; real effectTimeLeft;
 
                     for (i = 0; i < thistype.size; i += 1) {
                         u = thistype.uList[i];
@@ -705,6 +724,15 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                                 if (timeLeft > 0.0) {
                                     timeLeft = timeLeft - 0.05;
                                     SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT, timeLeft);
+                                    if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
+                                        effectTimeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT) - 0.05;
+                                        if (effectTimeLeft > 0.0) {
+                                            SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT, effectTimeLeft);
+                                        } else {
+                                            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT);
+                                            DetachSilenceDisableEffectIfUnused(u);
+                                        }
+                                    }
                                     u = null;
                                 } else {
                                     i = thistype.removeAt(i);
@@ -1419,47 +1447,71 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         return left > 0.0;
     }
 
-    // 缴械单位：禁用攻击，时间取最大值刷新
-    public function DisarmUnit(unit u, real time) {
-        integer hid; real oldTime;
+    // 缴械单位公共实现：功能时间与可见特效时间分别取最大值刷新。
+    private function ApplyDisarmUnit(unit u, real time, boolean showEffect) {
+        integer hid; real oldTime; real oldEffectTime;
+        boolean hasTimedDisarm;
 
         if (u == null || !IsUnitAliveBJ(u) || time <= 0.0) { return; }
         if (GetUnitAbilityLevel(u, 'Amim') > 0 || GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) > 0) { return; }
 
         hid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+        hasTimedDisarm = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+        if (hasTimedDisarm) {
             oldTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
             SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT, RMaxBJ(oldTime, time));
         } else {
             SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT, time);
+            AcquireUnitDisarm(u);
         }
 
-        ApplyDisarmNative(u);
-        AttachSilenceDisableEffect(u);
+        if (showEffect) {
+            oldEffectTime = 0.0;
+            if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
+                oldEffectTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT);
+            }
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT, RMaxBJ(oldEffectTime, time));
+            AttachSilenceDisableEffect(u);
+        }
         DisarmQueue.addUnit(u);
     }
 
-    // 立即清除缴械/禁用攻击状态
+    // 普通缴械：禁用攻击并显示原生沉默特效。
+    public function DisarmUnit(unit u, real time) {
+        ApplyDisarmUnit(u, time, true);
+    }
+
+    // 静默缴械：禁用攻击但不新增原生沉默特效；已有可见缴械/沉默特效不受影响。
+    public function DisarmUnitSilent(unit u, real time) {
+        ApplyDisarmUnit(u, time, false);
+    }
+
+    // 立即清除普通限时缴械；其他系统持有的底层缴械锁不受影响。
     public function ClearDisarm(unit u) {
         integer hid;
+        boolean hadTimedDisarm;
         if (u == null || GetUnitTypeId(u) == 0) { return; }
 
         hid = GetHandleId(u);
-        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+        hadTimedDisarm = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+        if (hadTimedDisarm) {
             RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
         }
-        ReleaseDisarmNative(u);
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT);
+        }
+        if (hadTimedDisarm) {
+            ReleaseUnitDisarm(u);
+        }
         DetachSilenceDisableEffectIfUnused(u);
     }
 
-    // 判断单位是否处于缴械/禁用攻击中
+    // 判断单位是否仍持有任意来源的缴械锁。
     public function IsUnitDisarmed(unit u) -> boolean {
-        integer hid; real left;
+        integer hid;
         if (u == null || GetUnitTypeId(u) == 0) { return false; }
         hid = GetHandleId(u);
-        if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) { return false; }
-        left = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
-        return left > 0.0;
+        return LoadInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON) > 0;
     }
 
     // 眩晕单位（队列 + 尾部交换）
