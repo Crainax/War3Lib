@@ -185,6 +185,10 @@
 #define KEY_UNIT_GUARD_SLEEP_TIME_LEFT   255610227 // Guarder 休眠剩余时间（real）
 #define KEY_UNIT_GUARD_DISARM_LOCKED     255610229 // Guarder 休眠是否持有独立缴械锁（integer 0/1）
 
+// [异度] 大帝战车复伤记录（父键为受击单位 handleId，+ playerIndex - 1，预留6个玩家槽）
+#define KEY_UNIT_DADI_HIT_SESSION_BASE   255610230 // 本次上车世代（integer，255610230-255610235）
+#define KEY_UNIT_DADI_LAST_HIT_TICK_BASE 255610236 // 本世代最后命中Tick（integer，255610236-255610241）
+
 // 单位面板攻击图标自定义显示
 #define KEY_UNIT_ATK_CORNER_TEXT         255610194 // 攻击图标角标文本（string）
 #define KEY_UNIT_ATK_TEXTURE             255610195 // 攻击图标自定义贴图路径（string）
