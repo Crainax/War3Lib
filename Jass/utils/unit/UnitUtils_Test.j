@@ -166,10 +166,10 @@ library UTUnitUtils requires UnitUtils {
 
 		ResetUnitFinalDamageDown(hero);
 		AddUnitFinalDamageDown(hero, 0.5);
-		AddUnitFinalDamageDown(hero, 0.999);
-		assert.Real(GetUnitFinalDamageDownRate(hero), 0.999, "超过 99.9% 后 getter 应保持 99.9% 上限");
-		assert.Boolean(LoadReal(HASH_UNIT, GetHandleId(hero), KEY_UNIT_FINAL_DAMAGE_DOWN_RATE) > 0.999, "超过上限的原始终伤降低值应完整保留");
-		AddUnitFinalDamageDown(hero, -0.999);
+		AddUnitFinalDamageDown(hero, 0.9999);
+		assert.Real(GetUnitFinalDamageDownRate(hero), 0.9999, "超过 99.99% 后 getter 应保持 99.99% 上限");
+		assert.Boolean(LoadReal(HASH_UNIT, GetHandleId(hero), KEY_UNIT_FINAL_DAMAGE_DOWN_RATE) > 0.9999, "超过上限的原始终伤降低值应完整保留");
+		AddUnitFinalDamageDown(hero, -0.9999);
 		assert.Real(GetUnitFinalDamageDownRate(hero), 0.5, "移除触顶来源后应准确恢复原有 50% 终伤降低");
 
 		ResetUnitFinalDamageUp(hero);

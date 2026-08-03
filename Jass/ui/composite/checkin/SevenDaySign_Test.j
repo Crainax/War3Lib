@@ -112,7 +112,10 @@ library UTSevenDaySign requires SevenDaySign,Keyboard {
     }
 
     function TTestUTSevenDaySign7 (player p) {
-        BJDebugMsg("[UTSevenDaySign] VIP mall active=" + S3(sevenDaySignData.isVipMallActive(p), "true", "false"));
+        sevenDaySignData.setVipConsumeActive(p, !sevenDaySignData.isVipConsumeActive(p));
+        BJDebugMsg("[UTSevenDaySign] VIP mall=" + S3(sevenDaySignData.isVipMallActive(p), "true", "false")
+        + " consume=" + S3(sevenDaySignData.isVipConsumeActive(p), "true", "false")
+        + " active=" + S3(sevenDaySignData.isVipActive(p), "true", "false"));
         if (GetLocalPlayer() == p) {
             sevenDaySignUI.refreshForPlayer(p);
         }

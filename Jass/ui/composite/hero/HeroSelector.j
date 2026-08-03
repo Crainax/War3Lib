@@ -117,6 +117,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public string  name;
         public string  icon;
         public string  text2;
+        public boolean selectPayloadOverride;
+        public integer selectPayload;
         public static integer size = 0;
 
         // ⚠️ 警告：该触发器在异步环境中执行（本地 UI 回调），禁止修改任何同步状态（单位/计时器/全局游戏数据等）！
@@ -1095,7 +1097,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 .exRePoint(ANCHOR_TOP, uiRightArea.ui, ANCHOR_TOP, 0, rightCurrentY)
                 .setAlign(4)  // 居中对齐
                 .setFontSize(7)
-                .setText("|c00ff9900天赋技能|r")
+                .setText("|c00ff9900天赋技能(鼠标悬停查看介绍)|r")
                 .show(false);
             rightCurrentY = rightCurrentY - HEROSEL_RIGHT_TEXT_GAP_Y;
 
@@ -1254,7 +1256,17 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             uiBtn2Button = uiBtn.create(uiBtn2Image.ui)
                 .setAllPoint(uiBtn2Image.ui)
                 .onClick(function() {
-                    syncBus.DzSyncDataEx("HSelect","R"+I2S(selectedPos));
+                    integer syncPos;
+                    heroData hd;
+
+                    syncPos = selectedPos;
+                    if (selectedPos > 0 && selectedPos <= heroData.size) {
+                        hd = heroData[selectedPos];
+                        if (hd != 0 && hd.selectPayloadOverride) {
+                            syncPos = hd.selectPayload;
+                        }
+                    }
+                    syncBus.DzSyncDataEx("HSelect","R"+I2S(syncPos));
                 });
 
             // 默认阶段1：按钮1流光
