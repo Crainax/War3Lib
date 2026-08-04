@@ -4,7 +4,8 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "japi/YDWEJapiScript.j"
+// 空白测试地图未声明该 JAPI；UnitUtils 的主属性类型兜底读取会引用它。
+native EXExecuteScript takes string script returns string
 
 //! zinc
 
@@ -658,6 +659,44 @@ library UTHeroUtils requires HeroUtils {
 		p = null;
 	}
 
+	// 测试7-2：有符号最终属性保留欠款，旧接口继续对负值归零
+	private function Test_SignedFinalAttrDebt() {
+		player p; unit hero;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		SetUnitMainAttrType(hero, 0);
+
+		// 隔离玩家级基础值、欠款及主/次属性增益，保证最终倍率为新单位默认的 1.0。
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR);
+		bigInteger.reset(p, HASH_KEY_BIGINT_AGI);
+		bigInteger.reset(p, HASH_KEY_BIGINT_INT);
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_AGI_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_INT_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_BONUS);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB_BONUS);
+
+		AddUnitStr(hero, -72000.0);
+		AddUnitAgi(hero, -33000.0);
+		AddUnitInt(hero, -15000.0);
+
+		assert.Real(GetUnitStrSigned(hero), -72000.0, "有符号力量应保留 72000 欠款");
+		assert.Real(GetUnitAgiSigned(hero), -33000.0, "有符号敏捷应保留 33000 欠款");
+		assert.Real(GetUnitIntSigned(hero), -15000.0, "有符号智力应保留 15000 欠款");
+		assert.Real(GetUnitStr(hero), 0.0, "旧力量接口仍应把负值归零");
+		assert.Real(GetUnitAgi(hero), 0.0, "旧敏捷接口仍应把负值归零");
+		assert.Real(GetUnitInt(hero), 0.0, "旧智力接口仍应把负值归零");
+
+		RemoveUnit(hero);
+		hero = null;
+		p = null;
+	}
+
 	// 测试8：三维属性 Up/Down/Bonus 操作
 	private function Test_AttrUpDownBonus() {
 		player p; unit hero; real finalPercent; real expected; integer uid; real bonus;
@@ -821,6 +860,11 @@ library UTHeroUtils requires HeroUtils {
 			Test_MainSubAttrDebt();
 		}, null);
 
+		UnitTestAutoTimer(0.92, 0.1, function() {
+			Trace("HeroUtils 有符号最终属性欠款测试");
+			Test_SignedFinalAttrDebt();
+		}, null);
+
 		UnitTestAutoTimer(1.0, 0.1, function() {
 			Trace("HeroUtils 属性 Up/Down/Bonus 测试");
 			Test_AttrUpDownBonus();
@@ -864,6 +908,10 @@ library UTHeroUtils requires HeroUtils {
 		Test_MainSubAttrDebt();
 		BJDebugMsg("[HeroUtils] 主/次属性欠款测试完成");
 	}
+	function TTestUTHeroUtils7_2 (player p) {
+		Test_SignedFinalAttrDebt();
+		BJDebugMsg("[HeroUtils] 有符号最终属性欠款测试完成");
+	}
 	function TTestUTHeroUtils8 (player p) {
 		Test_AttrUpDownBonus();
 		BJDebugMsg("[HeroUtils] 属性 Up/Down/Bonus 测试完成");
@@ -882,6 +930,7 @@ library UTHeroUtils requires HeroUtils {
 		Test_FullAttrCalculation();
 		Test_AttrSetAdd();
 		Test_MainSubAttrDebt();
+		Test_SignedFinalAttrDebt();
 		Test_AttrUpDownBonus();
 		Test_NonBigIntegerUnit();
 		BJDebugMsg("[HeroUtils] 所有测试完成");
@@ -945,6 +994,7 @@ library UTHeroUtils requires HeroUtils {
 			else if(str == "s6") TTestUTHeroUtils6(GetTriggerPlayer());
 			else if(str == "s7") TTestUTHeroUtils7(GetTriggerPlayer());
 			else if(str == "s71") TTestUTHeroUtils7_1(GetTriggerPlayer());
+			else if(str == "s72") TTestUTHeroUtils7_2(GetTriggerPlayer());
 			else if(str == "s8") TTestUTHeroUtils8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTHeroUtils9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTHeroUtils10(GetTriggerPlayer());

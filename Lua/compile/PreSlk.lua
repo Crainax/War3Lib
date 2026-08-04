@@ -56,6 +56,161 @@ local function hasReferenceContent(content)
 	return false
 end
 
+local function evaluateNumericExpression(expression)
+	local position = 1
+	local length = #expression
+	local parseExpression
+
+	local function skipWhitespace()
+		while position <= length and expression:sub(position, position):match("%s") do
+			position = position + 1
+		end
+	end
+
+	local function parseNumber()
+		skipWhitespace()
+		local startPosition = position
+		local hasDigit = false
+
+		while position <= length and expression:sub(position, position):match("%d") do
+			hasDigit = true
+			position = position + 1
+		end
+		if expression:sub(position, position) == "." then
+			position = position + 1
+			while position <= length and expression:sub(position, position):match("%d") do
+				hasDigit = true
+				position = position + 1
+			end
+		end
+		if not hasDigit then
+			return nil, "需要数字"
+		end
+
+		local exponent = expression:sub(position, position)
+		if exponent == "e" or exponent == "E" then
+			position = position + 1
+			local sign = expression:sub(position, position)
+			if sign == "+" or sign == "-" then
+				position = position + 1
+			end
+			local exponentStart = position
+			while position <= length and expression:sub(position, position):match("%d") do
+				position = position + 1
+			end
+			if exponentStart == position then
+				return nil, "指数缺少数字"
+			end
+		end
+
+		local value = tonumber(expression:sub(startPosition, position - 1))
+		if value == nil then
+			return nil, "无效数字"
+		end
+		return value
+	end
+
+	local function parsePrimary()
+		skipWhitespace()
+		if expression:sub(position, position) == "(" then
+			position = position + 1
+			local value, err = parseExpression()
+			if value == nil then
+				return nil, err
+			end
+			skipWhitespace()
+			if expression:sub(position, position) ~= ")" then
+				return nil, "缺少右括号"
+			end
+			position = position + 1
+			return value
+		end
+		return parseNumber()
+	end
+
+	local function parseUnary()
+		skipWhitespace()
+		local operator = expression:sub(position, position)
+		if operator == "+" or operator == "-" then
+			position = position + 1
+			local value, err = parseUnary()
+			if value == nil then
+				return nil, err
+			end
+			if operator == "-" then
+				return -value
+			end
+			return value
+		end
+		return parsePrimary()
+	end
+
+	local function parseTerm()
+		local value, err = parseUnary()
+		if value == nil then
+			return nil, err
+		end
+		while true do
+			skipWhitespace()
+			local operator = expression:sub(position, position)
+			if operator ~= "*" and operator ~= "/" then
+				break
+			end
+			position = position + 1
+			local right, rightErr = parseUnary()
+			if right == nil then
+				return nil, rightErr
+			end
+			if operator == "*" then
+				value = value * right
+			elseif right == 0 then
+				return nil, "除数不能为零"
+			else
+				value = value / right
+			end
+		end
+		return value
+	end
+
+	parseExpression = function()
+		local value, err = parseTerm()
+		if value == nil then
+			return nil, err
+		end
+		while true do
+			skipWhitespace()
+			local operator = expression:sub(position, position)
+			if operator ~= "+" and operator ~= "-" then
+				break
+			end
+			position = position + 1
+			local right, rightErr = parseTerm()
+			if right == nil then
+				return nil, rightErr
+			end
+			if operator == "+" then
+				value = value + right
+			else
+				value = value - right
+			end
+		end
+		return value
+	end
+
+	local value, err = parseExpression()
+	if value == nil then
+		return nil, err
+	end
+	if value ~= value or value == math.huge or value == -math.huge then
+		return nil, "计算结果不是有限数值"
+	end
+	skipWhitespace()
+	if position <= length then
+		return nil, "存在不支持的字符: " .. expression:sub(position)
+	end
+	return value
+end
+
 local function parseSpellDataMacros(spellDataPath)
 	local content = fu.GetContent(spellDataPath)
 	if not content then
@@ -64,14 +219,20 @@ local function parseSpellDataMacros(spellDataPath)
 
 	local macros = {}
 	for line in content:gmatch("[^\r\n]+") do
-		local name, levelText, valueText = line:match("^%s*#define%s+(VALUE_[A-Z0-9_]+)_(%d+)%s+([+-]?%d+%.?%d*)")
+		local name, levelText, valueText = line:match("^%s*#define%s+(VALUE_[A-Z0-9_]+)_(%d+)%s+(.+)$")
 		if name and levelText and valueText then
+			valueText = valueText:gsub("%s*//.*$", "")
+			local value, valueErr = evaluateNumericExpression(valueText)
+			if value == nil then
+				return nil, "技能数值宏表达式无效:" .. name .. "_" .. levelText .. " = " .. valueText .. " (" ..
+					tostring(valueErr) .. ")"
+			end
 			local family = macros[name]
 			if not family then
 				family = {}
 				macros[name] = family
 			end
-			family[tonumber(levelText)] = tonumber(valueText)
+			family[tonumber(levelText)] = value
 		end
 	end
 

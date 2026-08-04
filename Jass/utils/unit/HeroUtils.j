@@ -1489,7 +1489,7 @@ library HeroUtils requires UnitUtils {
     // 三维属性 set/add/get（大数英雄专用）
     //=====================
 
-    public function GetUnitStr(unit u) -> real {
+    private function GetUnitStrSignedInternal(unit u) -> real {
         integer mainType;
         real baseTotal; real finalPercent;
         real totalBonus;
@@ -1536,7 +1536,16 @@ library HeroUtils requires UnitUtils {
         }
 
         finalPercent = RMaxBJ(0.0,GetUnitStrFinalPercentInternal(u));
-        return RMaxBJ(0.0,baseTotal * finalPercent + totalBonus);
+        return baseTotal * finalPercent + totalBonus;
+    }
+
+    // 返回包含欠款的有符号最终力量；需要显示给玩家时仍应使用 GetUnitStr。
+    public function GetUnitStrSigned(unit u) -> real {
+        return GetUnitStrSignedInternal(u);
+    }
+
+    public function GetUnitStr(unit u) -> real {
+        return RMaxBJ(0.0,GetUnitStrSignedInternal(u));
     }
 
     public function SetUnitStr(unit u, real value) {
@@ -1615,7 +1624,7 @@ library HeroUtils requires UnitUtils {
         }
     }
 
-    public function GetUnitAgi(unit u) -> real {
+    private function GetUnitAgiSignedInternal(unit u) -> real {
         integer mainType;
         real baseTotal; real finalPercent;
         real totalBonus;
@@ -1662,7 +1671,16 @@ library HeroUtils requires UnitUtils {
         }
 
         finalPercent = RMaxBJ(0.0,GetUnitAgiFinalPercentInternal(u));
-        return RMaxBJ(0.0,baseTotal * finalPercent + totalBonus);
+        return baseTotal * finalPercent + totalBonus;
+    }
+
+    // 返回包含欠款的有符号最终敏捷；需要显示给玩家时仍应使用 GetUnitAgi。
+    public function GetUnitAgiSigned(unit u) -> real {
+        return GetUnitAgiSignedInternal(u);
+    }
+
+    public function GetUnitAgi(unit u) -> real {
+        return RMaxBJ(0.0,GetUnitAgiSignedInternal(u));
     }
 
     public function SetUnitAgi(unit u, real value) {
@@ -1741,7 +1759,7 @@ library HeroUtils requires UnitUtils {
         }
     }
 
-    public function GetUnitInt(unit u) -> real {
+    private function GetUnitIntSignedInternal(unit u) -> real {
         integer mainType;
         real baseTotal; real finalPercent;
         real totalBonus;
@@ -1788,7 +1806,16 @@ library HeroUtils requires UnitUtils {
         }
 
         finalPercent = RMaxBJ(0.0,GetUnitIntFinalPercentInternal(u));
-        return RMaxBJ(0.0,baseTotal * finalPercent + totalBonus);
+        return baseTotal * finalPercent + totalBonus;
+    }
+
+    // 返回包含欠款的有符号最终智力；需要显示给玩家时仍应使用 GetUnitInt。
+    public function GetUnitIntSigned(unit u) -> real {
+        return GetUnitIntSignedInternal(u);
+    }
+
+    public function GetUnitInt(unit u) -> real {
+        return RMaxBJ(0.0,GetUnitIntSignedInternal(u));
     }
 
     public function SetUnitInt(unit u, real value) {
