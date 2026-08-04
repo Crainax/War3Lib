@@ -203,7 +203,7 @@ library UTUnitAttrShow requires UnitAttrShow, UnitUtils, UnitBuff {
 		num = num + 1;
 
 		// 获取当前选中的单位
-		u = unitSelect.currentU[index];
+		u = DzGetSelectedLeaderUnit();
 		if (u == null) {
 			BJDebugMsg("请先选择一个单位");
 			p = null;

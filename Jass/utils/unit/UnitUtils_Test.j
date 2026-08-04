@@ -7,7 +7,7 @@
 //! zinc
 
 //自动生成的文件
-library UTUnitUtils requires UnitUtils {
+library UTUnitUtils requires UnitUtils, UnitSelect {
 
 	// BigInteger 攻击链路测试
 	private function Test_BigIntAttack() {
@@ -388,8 +388,6 @@ library UTUnitUtils requires UnitUtils {
 
 	function Init () {
 		// 注册全局单位选中事件，打印当前攻击力与攻击倍数
-		trigger selTr;
-		integer i;
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
 			}, function() {
@@ -449,20 +447,15 @@ library UTUnitUtils requires UnitUtils {
 			Test_BigIntUnitAttackPercent();
 		}, null);
 
-		selTr = CreateTrigger();
-		for (0 <= i <= 11) {
-			TriggerRegisterPlayerUnitEvent(selTr, Player(i), EVENT_PLAYER_UNIT_SELECTED, null);
-		}
-		TriggerAddCondition(selTr, Condition(function () -> boolean {
+		unitSelect.onAsync(function () -> boolean {
 			unit u; real atk; real mult;
-			u    = GetTriggerUnit();
+			u    = unitSelect.args;
 			atk  = GetUnitAttack(u);
 			mult = GetUnitAttackMult(u);
-			BJDebugMsg("[UnitUtils] 选中单位攻击=" + R2S(atk) + "  倍数=" + R2S(mult));
+			DisplayTextToPlayer(GetLocalPlayer(), 0., 0., "[UnitUtils] 选中单位攻击=" + R2S(atk) + "  倍数=" + R2S(mult));
 			u = null;
-			return false;
-		}));
-		selTr = null;
+			return true;
+		});
 	}
 
 	function TTestUTUnitUtils1 (player p) {

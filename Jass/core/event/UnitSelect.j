@@ -3,21 +3,17 @@
 
 //! zinc
 /*
-单位选择事件(异步和同步均有)
+本地单位选择观察器（仅用于 UI 与本地交互）
 */
 library UnitSelect requires Hardware ,LBKKAPI{
 
     public struct unitSelect[] {
 
-            static unit args = null;      //回调传参用(异步)
-            static unit argsSync = null;  //回调传参用(同步)
-            static unit currentU [];      //每个人当前选择的单位(同步)
+            static unit args = null;      //回调传参用(各客户端本地值)
 
             private {
                 static trigger trAsync = null;
                 static trigger trAsyncUn = null;
-                static trigger trSync = null;
-                static trigger trSyncUn = null;
                 static unit asyncU = null; //现在的选择单位-异步(每个人的引用不一样)
             }
 
@@ -34,40 +30,10 @@ library UnitSelect requires Hardware ,LBKKAPI{
             TriggerAddCondition(trAsyncUn, Condition(func));
         }
 
-        // 同步时选中单位调用
-        static method onSync (code func) {
-            TriggerAddCondition(trSync, Condition(func));
-        }
-
-        // 同步时取消选择单位调用
-        static method onSyncUn (code func) {
-            TriggerAddCondition(trSyncUn, Condition(func));
-        }
-
         //初始化
         static method onInit () {
-            integer i;
-            trigger tr = CreateTrigger(); //一次性用的选择事件
-
             trAsync = CreateTrigger();
             trAsyncUn = CreateTrigger();
-            trSync  = CreateTrigger();
-            trSyncUn  = CreateTrigger();
-
-            //选单位的事件[同步]
-            for (1 <= i <= MAX_PLAYER_COUNT) {TriggerRegisterPlayerSelectionEventBJ(tr, ConvertedPlayer(i), true);}
-            TriggerAddCondition(tr, Condition(function (){
-                //单位选择事件[同步]
-                integer index = GetConvertedPlayerId(GetTriggerPlayer());
-                if (GetTriggerUnit() != unitSelect.currentU[index]) {
-                    unitSelect.argsSync = unitSelect.currentU[index];
-                    TriggerEvaluate(trSyncUn); //事件里用unitSelect.argsSync来指代
-                    unitSelect.argsSync = GetTriggerUnit();
-                    TriggerEvaluate(trSync); //事件里用unitSelect.argsSync来指代
-                    unitSelect.currentU[index] = GetTriggerUnit();
-                    unitSelect.argsSync = null;
-                }
-            }));
 
             hardware.regUpdateEvent(function (){ //注册2个事件:选择单位,与不选择事件
                 if (DzGetSelectedLeaderUnit() != unitSelect.asyncU) {

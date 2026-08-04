@@ -11,24 +11,14 @@ library UTUnitSelect requires UnitSelect {
 
 	unit priest = null;
 	function TTestUTUnitSelect1 (player p) {
-		unitSelect.onSync(function (){ //同步时选中单位调用
-			unit u = unitSelect.argsSync;
-			BJDebugMsg("[同步单位选择事件]:" + GetUnitName(u));
-			u = null;
-		});
-		unitSelect.onSyncUn(function (){ //同步时取消选择单位调用
-			unit u = unitSelect.argsSync;
-			BJDebugMsg("[同步单位取消选择事件]:" + GetUnitName(u));
-			u = null;
-		});
 		unitSelect.onAsync(function (){ //异步时选中单位调用
 			unit u = unitSelect.args;
-			BJDebugMsg("[异步单位选择事件]:" + GetUnitName(u));
+			DisplayTextToPlayer(GetLocalPlayer(), 0., 0., "[本地单位选择事件]:" + GetUnitName(u));
 			u = null;
 		});
 		unitSelect.onAsyncUn(function (){ //异步时取消选择单位调用
 			unit u = unitSelect.args;
-			BJDebugMsg("[异步单位取消选择事件]:" + GetUnitName(u));
+			DisplayTextToPlayer(GetLocalPlayer(), 0., 0., "[本地单位取消选择事件]:" + GetUnitName(u));
 			u = null;
 		});
 	}

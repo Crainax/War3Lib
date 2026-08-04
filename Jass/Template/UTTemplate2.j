@@ -9,7 +9,7 @@
 //! zinc
 
 //一个超级牛逼的可视化测试模块
-library UTHeroStruct requires optional HeroStruct,Variable,UIBase,optional LuaUtils {
+library UTHeroStruct requires optional HeroStruct,Variable,UIBase,UnitSelect,optional LuaUtils {
 
     #ifdef TestMode
 
@@ -101,17 +101,10 @@ library UTHeroStruct requires optional HeroStruct,Variable,UIBase,optional LuaUt
     integer UIButton[],UIText[]; //按钮
     function onInit () {
         integer i , UIImg[] ;
-        trigger t = CreateTrigger();
-		for (1 <= i <= MAX_PLAYER_COUNT) {TriggerRegisterPlayerSelectionEventBJ(t, ConvertedPlayer(i), true);}
-        TriggerAddCondition(t, Condition(function () {
-            //选择事件
-            integer index = GetConvertedPlayerId(GetTriggerPlayer());
-            USelected[index] = GetTriggerUnit();
-            if (GetLocalPlayer() == GetTriggerPlayer()) { //这里异步修改
-                DzFrameSetText(UITitle,"当前修改:"+ GetUnitName(USelected[index]));
-            }
-        }));
-        t = null;
+        unitSelect.onAsync(function () -> boolean {
+            DzFrameSetText(UITitle,"当前修改:"+ GetUnitName(unitSelect.args));
+            return true;
+        });
 
         names[1] = "测试1哈哈1";
         names[2] = "测试22";

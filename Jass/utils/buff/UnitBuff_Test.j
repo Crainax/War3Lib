@@ -938,7 +938,7 @@ library UTUnitBuff requires UnitBuff {
 
 		if (paramS[0] == "pause") {
 			// 测试暂停单位: -pause
-			u = unitSelect.currentU[index];
+			u = DzGetSelectedLeaderUnit();
 			if (u != null) {
 				EXPauseUnit(u, true);
 				BJDebugMsg("[UnitBuffTest] 单位已暂停");
@@ -948,7 +948,7 @@ library UTUnitBuff requires UnitBuff {
 			u = null;
 		} else if (paramS[0] == "restore") {
 			// 测试恢复单位: -restore
-			u = unitSelect.currentU[index];
+			u = DzGetSelectedLeaderUnit();
 			if (u != null) {
 				EXPauseUnit(u, false);
 				BJDebugMsg("[UnitBuffTest] 单位已恢复");
@@ -958,7 +958,7 @@ library UTUnitBuff requires UnitBuff {
 			u = null;
 		} else if (paramS[0] == "silence") {
 			// 测试沉默单位: -silence 3
-			u = unitSelect.currentU[index];
+			u = DzGetSelectedLeaderUnit();
 			duration = 3.0;
 			if (num >= 2) { duration = paramR[1]; }
 			if (u != null && duration > 0.0) {
@@ -972,7 +972,7 @@ library UTUnitBuff requires UnitBuff {
 			u = null;
 		} else if (paramS[0] == "clearsilence") {
 			// 清除沉默: -clearsilence
-			u = unitSelect.currentU[index];
+			u = DzGetSelectedLeaderUnit();
 			if (u != null) {
 				ClearSilence(u);
 				BJDebugMsg("[UnitBuffTest] 已清除当前选中单位沉默");
@@ -982,7 +982,7 @@ library UTUnitBuff requires UnitBuff {
 			u = null;
 		} else if (paramS[0] == "disarm") {
 			// 测试缴械单位: -disarm 3
-			u = unitSelect.currentU[index];
+			u = DzGetSelectedLeaderUnit();
 			duration = 3.0;
 			if (num >= 2) { duration = paramR[1]; }
 			if (u != null && duration > 0.0) {
@@ -996,7 +996,7 @@ library UTUnitBuff requires UnitBuff {
 			u = null;
 		} else if (paramS[0] == "cleardisarm") {
 			// 清除缴械: -cleardisarm
-			u = unitSelect.currentU[index];
+			u = DzGetSelectedLeaderUnit();
 			if (u != null) {
 				ClearDisarm(u);
 				BJDebugMsg("[UnitBuffTest] 已清除当前选中单位缴械");
@@ -1006,7 +1006,7 @@ library UTUnitBuff requires UnitBuff {
 			u = null;
 		} else if (paramS[0] == "buffstate") {
 			// 查询当前选中单位状态: -buffstate
-			u = unitSelect.currentU[index];
+			u = DzGetSelectedLeaderUnit();
 			if (u != null) {
 				BJDebugMsg("[UnitBuffTest] IsUnitSilenced=" + B2S(IsUnitSilenced(u)) + ", IsUnitDisarmed=" + B2S(IsUnitDisarmed(u)));
 			} else {
