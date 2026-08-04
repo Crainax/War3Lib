@@ -331,6 +331,13 @@ library Music {
 			thistype[MUSIC_INDEX_BTN_SWITCH_OPEN].snd = snd;
 			//# endcheck
 
+			//# check: music[20]
+			snd = CreateSound("Sound\\Interface\\SecretFound.wav", false, false, false, 10, 10, "");
+			SetSoundParamsFromLabel(snd, "SecretFound");
+			SetSoundDuration(snd, 2525);
+			thistype[MUSIC_INDEX_TUTORIAL_TASK_COMPLETE].snd = snd;
+			//# endcheck
+
 			//# check: music[3001]
 			//# dependency:sound/sound/arena_clear.mp3
 			snd = CreateSound( "sound\\arena_clear.mp3", false, false, false, 10, 10, "" );

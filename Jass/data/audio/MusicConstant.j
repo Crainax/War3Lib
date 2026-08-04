@@ -35,6 +35,7 @@
 #define MUSIC_INDEX_JOB_START       17  //任务开始音效
 #define MUSIC_INDEX_BTN_SWITCH_CLOSE 18 //开关关闭音效
 #define MUSIC_INDEX_BTN_SWITCH_OPEN 19  //开关开启音效
+#define MUSIC_INDEX_TUTORIAL_TASK_COMPLETE 20 //新手任务完成提示音效
 
 #define MUSIC_INDEX_ARENA_CLEAR     3001 //竞技场胜利音效
 #define MUSIC_INDEX_ARENA_FAIL      3002 //竞技场失败音效

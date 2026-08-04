@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "Jass/core/SyncBus_Test2.j"
+#include "D:/War3/Library/War3Lib/Jass/data/audio/Music_Test.j"
 
 
 

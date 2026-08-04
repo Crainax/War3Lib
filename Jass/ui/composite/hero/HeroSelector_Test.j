@@ -128,6 +128,19 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 		heroData[38].text2       = "力量英雄/近战";
 
 		heroData.size = 38;
+		heroData.newPlayerMode = true;
+		for (1 <= i <= heroData.size) {
+			heroData[i].newPlayerRecommended = false;
+		}
+		heroData[6].newPlayerRecommended = true;
+		heroData[7].newPlayerRecommended = true;
+		heroData[8].newPlayerRecommended = true;
+		heroData[9].newPlayerRecommended = true;
+		heroData[12].newPlayerRecommended = true;
+		heroData[13].newPlayerRecommended = true;
+		heroData[14].newPlayerRecommended = true;
+		heroData[19].newPlayerRecommended = true;
+		heroData[22].newPlayerRecommended = true;
 
 		// 进度条测试数据：随机填充（按玩家 pid=1..MAX_PLAYER_COUNT，英雄 pos=1..heroData.size）
 		for (1 <= i <= MAX_PLAYER_COUNT) {
@@ -339,6 +352,9 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 			p = syncBus.getPlayer();
 			if (SubStringBJ(str, 1, 1) == "L") {
 				toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮1（随机选择）");
+			} else if (SubStringBJ(str, 1, 1) == "Q") {
+				pos = S2I(SubStringBJ(str, 2, StringLength(str)));
+				toastHint.createAtMouse(p, "[HSelect] 新手确认请求，位置: " + I2S(pos));
 			} else if (SubStringBJ(str, 1, 1) == "R") {
 				pos = S2I(SubStringBJ(str, 2, StringLength(str)));
 				toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮2，选择位置: " + I2S(pos));

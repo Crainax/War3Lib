@@ -47,6 +47,8 @@
 #define HEROSEL_GRID_OFFSET_Y -0.045
 #define HEROSEL_TEXT_GAP_Y 0.006
 #define HEROSEL_TEXT_BG_HEIGHT 0.014
+#define HEROSEL_NEW_PLAYER_BADGE_WIDTH HEROSEL_ICON_BORDER_SIZE
+#define HEROSEL_NEW_PLAYER_BADGE_HEIGHT (HEROSEL_NEW_PLAYER_BADGE_WIDTH * 128.0 / 256.0)
 
 // 滑块
 #define HEROSEL_SLIDER_WIDTH      0.0074*2
@@ -105,6 +107,7 @@
 //# dependency:resource/ui/image/heroui_bg4.blp
 //# dependency:resource/ui/image/hero_border.blp
 //# dependency:resource/ui/image/title_hero_ui.blp
+//# dependency:resource/ui/image/new_player_recommended.blp
 
 library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,UIImageBar,BaseAnim,GrowData,ToastHint,UIExtendDrag,UIUtils {
 
@@ -119,7 +122,10 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public string  text2;
         public boolean selectPayloadOverride;
         public integer selectPayload;
+        public boolean newPlayerRecommended;
         public static integer size = 0;
+        public static boolean newPlayerMode = false;
+        public static boolean newPlayerConfirming[MAX_PLAYER_COUNT];
 
         // ⚠️ 警告：该触发器在异步环境中执行（本地 UI 回调），禁止修改任何同步状态（单位/计时器/全局游戏数据等）！
         // 只允许读取本地状态或写入本 struct 的回调参数。
@@ -197,6 +203,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         private static uiImage slotTxt1Bg[HEROSEL_GRID_ROWS][HEROSEL_GRID_COLS];
         private static uiText slotTxt1[HEROSEL_GRID_ROWS][HEROSEL_GRID_COLS];
         private static uiText slotTxt2[HEROSEL_GRID_ROWS][HEROSEL_GRID_COLS];
+        private static uiImage slotNewPlayerBadge[HEROSEL_GRID_ROWS][HEROSEL_GRID_COLS];
 
         private static uiSlider leftSlider = 0;
 
@@ -404,6 +411,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                                 slotTxt2[r][c].setText(S3(hd.text2 != null, hd.text2, "文本2"));
                                 slotTxt2[r][c].show(true);
                             }
+                            if (slotNewPlayerBadge[r][c] != 0) {
+                                slotNewPlayerBadge[r][c].show(heroData.newPlayerMode && hd.newPlayerRecommended);
+                            }
                         }
                     } else {
                         if (slotIcon[r][c] != 0) { slotIcon[r][c].show(false); }
@@ -411,6 +421,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                         if (slotTxt1Bg[r][c] != 0) { slotTxt1Bg[r][c].show(false); }
                         if (slotTxt1[r][c] != 0) { slotTxt1[r][c].show(false); }
                         if (slotTxt2[r][c] != 0) { slotTxt2[r][c].show(false); }
+                        if (slotNewPlayerBadge[r][c] != 0) { slotNewPlayerBadge[r][c].show(false); }
                     }
                 }
             }
@@ -955,6 +966,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                         .onMouseWheel(function heroSelectorUI.onMouseWheel)
                         .spClick(function(integer frame) {
                             integer pos; boolean showText; boolean conditionPassed; boolean selectionChanged;
+                            if (owner != null && heroData.newPlayerConfirming[GetConvertedPlayerId(owner)]) { return; }
                             pos = uiHashTable(frame).eventdata.get();
                             // 更新选中位置并刷新显示
                             selectionChanged = selectedPos != pos;
@@ -1039,6 +1051,13 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                         .setAlign(4)
                         .setFontSize(1)
                         .setPoint(ANCHOR_TOP, slotIcon[r][c].mainImage.ui, ANCHOR_BOTTOM, 0, -HEROSEL_TEXT_GAP_Y)
+                        .show(false);
+
+                    // 新手推荐徽标与英雄网格边框等宽，并对齐边框顶部。
+                    slotNewPlayerBadge[r][c] = uiImage.create(uiMain.ui)
+                        .setTexture("ui\\image\\new_player_recommended.blp")
+                        .exReSize(HEROSEL_NEW_PLAYER_BADGE_WIDTH, HEROSEL_NEW_PLAYER_BADGE_HEIGHT)
+                        .setPoint(ANCHOR_TOP, slotIconBorder[r][c].ui, ANCHOR_TOP, 0, 0)
                         .show(false);
                 }
             }
@@ -1236,6 +1255,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             uiBtn1Button = uiBtn.create(uiBtn1Image.ui)
                 .setAllPoint(uiBtn1Image.ui)
                 .onClick(function() {
+                    if (owner != null && heroData.newPlayerConfirming[GetConvertedPlayerId(owner)]) { return; }
                     // 仅在流光在btn1上时（未选中icon）才关闭流光
                     // 如果流光已在btn2上（已选中icon），不清除
                     if (growBtnPos == 1) {
@@ -1259,6 +1279,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                     integer syncPos;
                     heroData hd;
 
+                    hd = 0;
+                    if (owner != null && heroData.newPlayerConfirming[GetConvertedPlayerId(owner)]) { return; }
+
                     syncPos = selectedPos;
                     if (selectedPos > 0 && selectedPos <= heroData.size) {
                         hd = heroData[selectedPos];
@@ -1266,7 +1289,11 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                             syncPos = hd.selectPayload;
                         }
                     }
-                    syncBus.DzSyncDataEx("HSelect","R"+I2S(syncPos));
+                    if (heroData.newPlayerMode && hd != 0 && !hd.newPlayerRecommended) {
+                        syncBus.DzSyncDataEx("HSelect","Q"+I2S(syncPos));
+                    } else {
+                        syncBus.DzSyncDataEx("HSelect","R"+I2S(syncPos));
+                    }
                 });
 
             // 默认阶段1：按钮1流光
@@ -1310,6 +1337,7 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
             for (1 <= r <= HEROSEL_GRID_ROWS) {
                 for (1 <= c <= HEROSEL_GRID_COLS) {
                     if (slotTxt2[r][c] != 0) { slotTxt2[r][c].destroy(); slotTxt2[r][c] = 0; }
+                    if (slotNewPlayerBadge[r][c] != 0) { slotNewPlayerBadge[r][c].destroy(); slotNewPlayerBadge[r][c] = 0; }
                     if (slotTxt1[r][c] != 0) { slotTxt1[r][c].destroy(); slotTxt1[r][c] = 0; }
                     if (slotTxt1Bg[r][c] != 0) { slotTxt1Bg[r][c].destroy(); slotTxt1Bg[r][c] = 0; }
                     if (slotIcon[r][c] != 0) { slotIcon[r][c].destroy(); slotIcon[r][c] = 0; }
@@ -1426,6 +1454,9 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
 #undef HEROSEL_GRID_OFFSET_X
 #undef HEROSEL_GRID_OFFSET_Y
 #undef HEROSEL_TEXT_GAP_Y
+#undef HEROSEL_TEXT_BG_HEIGHT
+#undef HEROSEL_NEW_PLAYER_BADGE_WIDTH
+#undef HEROSEL_NEW_PLAYER_BADGE_HEIGHT
 #undef HEROSEL_SLIDER_WIDTH
 #undef HEROSEL_SLIDER_HEIGHT
 #undef HEROSEL_SLIDER_GAP_X

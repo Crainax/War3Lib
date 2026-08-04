@@ -129,7 +129,11 @@ library UTMusic requires Music {
 	function TTestUTMusic9 (player p) {
 		music[MUSIC_INDEX_TALENT_SWITCH_SUCCESS].play();
 	}
-	function TTestUTMusic10 (player p) {}
+	// 输入 s10 播放新手任务完成提示音；字面量 music[20] 用于触发 Music.j 的 check/dependency 扫描。
+	function TTestUTMusic10 (player p) {
+		music[20].playFor(p);
+		BJDebugMsg("[Music] 已播放 music[20]：SecretFound");
+	}
 	function TTestActUTMusic1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
