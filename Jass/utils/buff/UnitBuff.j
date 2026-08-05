@@ -1014,12 +1014,37 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         }
     }
 
-    private function GetDefenseDownPercentSourceParent(integer hid, integer sourceType) -> integer {
-        return StringHash("UnitBuffDefenseDownPercent:" + I2S(hid) + ":" + I2S(sourceType));
+    // 百分比破防需要 (unit, sourceType) 和 (source, instanceId) 两级键。
+    // 独立 index/data 键空间可避免 StringHash 碰撞，也避免记录 parent 与 HASH_UNIT 真实 unit parent 串键。
+    private hashtable defenseDownPercentIndex = InitHashtable();
+    private hashtable defenseDownPercentData = InitHashtable();
+    private integer defenseDownPercentRecordNext = 0;
+
+    private function AllocateDefenseDownPercentRecord() -> integer {
+        defenseDownPercentRecordNext -= 1;
+        return defenseDownPercentRecordNext;
     }
 
-    private function GetDefenseDownPercentTimerParent(integer hid, integer sourceType, integer instanceId) -> integer {
-        return StringHash("UnitBuffDefenseDownPercentTimer:" + I2S(hid) + ":" + I2S(sourceType) + ":" + I2S(instanceId));
+    private function GetOrCreateDefenseDownPercentSourceParent(integer hid, integer sourceType) -> integer {
+        integer parent;
+
+        parent = LoadInteger(defenseDownPercentIndex, hid, sourceType);
+        if (parent == 0) {
+            parent = AllocateDefenseDownPercentRecord();
+            SaveInteger(defenseDownPercentIndex, hid, sourceType, parent);
+        }
+        return parent;
+    }
+
+    private function GetOrCreateDefenseDownPercentTimerParent(integer sourceParent, integer instanceId) -> integer {
+        integer parent;
+
+        parent = LoadInteger(defenseDownPercentIndex, sourceParent, instanceId);
+        if (parent == 0) {
+            parent = AllocateDefenseDownPercentRecord();
+            SaveInteger(defenseDownPercentIndex, sourceParent, instanceId, parent);
+        }
+        return parent;
     }
 
     private function AttachDefenseDownPercentEffect(unit u) {
@@ -1056,11 +1081,11 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
     private function FindDefenseDownPercentInstance(integer sourceParent, integer instanceId) -> integer {
         integer count; integer i; integer found;
 
-        count = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+        count = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
         i = 1;
         found = 0;
         while (i <= count && found == 0) {
-            if (LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + i) == instanceId) {
+            if (LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + i) == instanceId) {
                 found = i;
             }
             i += 1;
@@ -1075,18 +1100,18 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         if (u == null || sourceType <= 0) { return; }
 
         hid = GetHandleId(u);
-        sourceParent = GetDefenseDownPercentSourceParent(hid, sourceType);
-        count = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+        sourceParent = GetOrCreateDefenseDownPercentSourceParent(hid, sourceType);
+        count = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
         oldRate = 0.0;
         newRate = 0.0;
 
-        if (HaveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE)) {
-            oldRate = LoadReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE);
+        if (HaveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE)) {
+            oldRate = LoadReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE);
         }
 
         for (1 <= i <= count) {
-            if (HaveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + i)) {
-                rate = LoadReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + i);
+            if (HaveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + i)) {
+                rate = LoadReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + i);
                 if (rate > newRate) {
                     newRate = rate;
                 }
@@ -1109,14 +1134,14 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                 if (GetUnitTypeId(u) != 0) {
                     AddUnitDefenseDownPercent(u, newRate);
                 }
-                SaveReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE, newRate);
+                SaveReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE, newRate);
             } else {
-                RemoveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE);
+                RemoveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE);
             }
         }
 
         if (count <= 0 && newRate <= 0.0) {
-            FlushChildHashtable(HASH_UNIT, sourceParent);
+            FlushChildHashtable(defenseDownPercentData, sourceParent);
         }
     }
 
@@ -1126,24 +1151,24 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         if (u == null || sourceType <= 0) { return; }
 
         hid = GetHandleId(u);
-        sourceParent = GetDefenseDownPercentSourceParent(hid, sourceType);
-        count = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+        sourceParent = GetOrCreateDefenseDownPercentSourceParent(hid, sourceType);
+        count = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
         index = FindDefenseDownPercentInstance(sourceParent, instanceId);
 
         if (index > 0) {
             if (index != count) {
-                lastId = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + count);
-                lastRate = LoadReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + count);
-                SaveInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + index, lastId);
-                SaveReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index, lastRate);
+                lastId = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + count);
+                lastRate = LoadReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + count);
+                SaveInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + index, lastId);
+                SaveReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index, lastRate);
             }
-            RemoveSavedInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + count);
-            RemoveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + count);
+            RemoveSavedInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + count);
+            RemoveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + count);
             count -= 1;
             if (count > 0) {
-                SaveInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT, count);
+                SaveInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT, count);
             } else {
-                RemoveSavedInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+                RemoveSavedInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
             }
             RecalcDefenseDownPercentSource(u, sourceType);
         }
@@ -1165,15 +1190,15 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         if (!IsUnitAliveBJ(u)) { return; }
 
         hid = GetHandleId(u);
-        sourceParent = GetDefenseDownPercentSourceParent(hid, sourceType);
+        sourceParent = GetOrCreateDefenseDownPercentSourceParent(hid, sourceType);
         index = FindDefenseDownPercentInstance(sourceParent, instanceId);
         if (index == 0) {
-            count = LoadInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT) + 1;
-            SaveInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT, count);
+            count = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT) + 1;
+            SaveInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT, count);
             index = count;
-            SaveInteger(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + index, instanceId);
+            SaveInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + index, instanceId);
         }
-        SaveReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index, rate);
+        SaveReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index, rate);
         RecalcDefenseDownPercentSource(u, sourceType);
     }
 
@@ -1192,28 +1217,28 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         if (rate <= 0.0) { return; }
 
         hid = GetHandleId(u);
-        sourceParent = GetDefenseDownPercentSourceParent(hid, sourceType);
+        sourceParent = GetOrCreateDefenseDownPercentSourceParent(hid, sourceType);
         index = FindDefenseDownPercentInstance(sourceParent, instanceId);
-        if (index > 0 && HaveSavedReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index)) {
-            oldRate = LoadReal(HASH_UNIT, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index);
+        if (index > 0 && HaveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index)) {
+            oldRate = LoadReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index);
             if (oldRate > rate) {
                 rate = oldRate;
             }
         }
         ApplyDefenseDownPercentSource(u, sourceType, instanceId, rate);
 
-        timeParent = GetDefenseDownPercentTimerParent(hid, sourceType, instanceId);
-        if (HaveSavedReal(HASH_UNIT, timeParent, 2)) {
-            oldTime = LoadReal(HASH_UNIT, timeParent, 2);
-            SaveReal(HASH_UNIT, timeParent, 2, RMaxBJ(oldTime, remainTime));
+        timeParent = GetOrCreateDefenseDownPercentTimerParent(sourceParent, instanceId);
+        if (HaveSavedReal(defenseDownPercentData, timeParent, 2)) {
+            oldTime = LoadReal(defenseDownPercentData, timeParent, 2);
+            SaveReal(defenseDownPercentData, timeParent, 2, RMaxBJ(oldTime, remainTime));
         } else {
-            SaveReal(HASH_UNIT, timeParent, 2, remainTime);
+            SaveReal(defenseDownPercentData, timeParent, 2, remainTime);
         }
 
-        if (!HaveSavedHandle(HASH_UNIT, timeParent, 1)) {
+        if (!HaveSavedHandle(defenseDownPercentData, timeParent, 1)) {
             t = CreateTimer();
             tid = GetHandleId(t);
-            SaveTimerHandle(HASH_UNIT, timeParent, 1, t);
+            SaveTimerHandle(defenseDownPercentData, timeParent, 1, t);
             SaveUnitHandle(HASH_TIMER, tid, 1, u);
             SaveInteger(HASH_TIMER, tid, 2, sourceType);
             SaveInteger(HASH_TIMER, tid, 3, instanceId);
@@ -1232,7 +1257,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                     if (u != null) {
                         ClearDefenseDownPercentSource(u, sourceType, instanceId);
                     }
-                    FlushChildHashtable(HASH_UNIT, timeParent);
+                    FlushChildHashtable(defenseDownPercentData, timeParent);
                     FlushChildHashtable(HASH_TIMER, tid);
                     PauseTimer(t);
                     DestroyTimer(t);
@@ -1241,22 +1266,22 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                     return;
                 }
 
-                if (HaveSavedReal(HASH_UNIT, timeParent, 2)) {
-                    timeLeft = LoadReal(HASH_UNIT, timeParent, 2) - 0.10;
+                if (HaveSavedReal(defenseDownPercentData, timeParent, 2)) {
+                    timeLeft = LoadReal(defenseDownPercentData, timeParent, 2) - 0.10;
                     if (timeLeft <= 0.0) {
                         ClearDefenseDownPercentSource(u, sourceType, instanceId);
-                        FlushChildHashtable(HASH_UNIT, timeParent);
+                        FlushChildHashtable(defenseDownPercentData, timeParent);
                         FlushChildHashtable(HASH_TIMER, tid);
                         PauseTimer(t);
                         DestroyTimer(t);
                         u = null;
                         t = null;
                     } else {
-                        SaveReal(HASH_UNIT, timeParent, 2, timeLeft);
+                        SaveReal(defenseDownPercentData, timeParent, 2, timeLeft);
                         u = null;
                     }
                 } else {
-                    FlushChildHashtable(HASH_UNIT, timeParent);
+                    FlushChildHashtable(defenseDownPercentData, timeParent);
                     FlushChildHashtable(HASH_TIMER, tid);
                     PauseTimer(t);
                     DestroyTimer(t);

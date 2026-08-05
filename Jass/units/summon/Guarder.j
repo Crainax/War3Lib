@@ -69,6 +69,12 @@
 //   - 守卫会自动围绕主人形成环形阵型，并在搜索范围内自动攻击敌人
 //   - 使用示例：guarder.addPet(p, u);
 
+// SetUnitStableSyncId(unit u, integer stableId) -> boolean
+// 功能：为可能进入 Guarder 索敌范围的真实单位登记跨客户端稳定 ID
+// 说明：
+//   - stableId 必须由接入地图按同步创建顺序或稳定业务槽位分配，并保持全局唯一
+//   - Guarder 不会在缺少 stableId 时退回 Group 枚举顺序，避免平局目标在客户端间分叉
+
 // guarder.removePet(player p, unit petUnit) -> boolean
 // 功能：从指定玩家的守卫系统中移除单个守卫单位
 // 参数：
@@ -602,6 +608,11 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             return RMaxBJ(GUARD_ATTACK_RANGE, r);
         }
 
+        // HandleID 仅用于读取同一单位的项目同步 ID；返回值才参与目标平局裁决。
+        private static method getStableSyncId(unit u) -> integer {
+            return GetUnitStableSyncId(u);
+        }
+
         private static method findNearestEnemyAroundPet(unit petUnit, unit ownerUnit, real radius) -> unit {
             group enumGrp;
             unit enumUnit;
@@ -609,6 +620,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             player ownerPlayer;
             real px; real py; real tx; real ty;
             real dx; real dy; real dist; real bestDist;
+            integer stableId; integer bestStableId;
+            boolean missingStableId;
 
             if (petUnit == null || ownerUnit == null || GetUnitTypeId(petUnit) == 0 || GetUnitTypeId(ownerUnit) == 0) {
                 return null;
@@ -619,6 +632,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             py = GetUnitY(petUnit);
             bestTarget = null;
             bestDist = 0.0;
+            bestStableId = 0;
+            missingStableId = false;
             enumGrp = CreateGroup();
             GroupEnumUnitsInRangeEx(enumGrp, px, py, radius, null);
 
@@ -626,14 +641,20 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             while (enumUnit != null) {
                 GroupRemoveUnit(enumGrp, enumUnit);
                 if (enumUnit != ownerUnit && enumUnit != petUnit && IsUnitAliveBJ(enumUnit) && IsUnitEnemy(enumUnit, ownerPlayer) && GetUnitAbilityLevel(enumUnit, 'Avul') == 0) {
-                    tx = GetUnitX(enumUnit);
-                    ty = GetUnitY(enumUnit);
-                    dx = tx - px;
-                    dy = ty - py;
-                    dist = dx * dx + dy * dy;
-                    if (bestTarget == null || dist < bestDist) {
-                        bestTarget = enumUnit;
-                        bestDist = dist;
+                    stableId = guarder.getStableSyncId(enumUnit);
+                    if (stableId <= 0) {
+                        missingStableId = true;
+                    } else {
+                        tx = GetUnitX(enumUnit);
+                        ty = GetUnitY(enumUnit);
+                        dx = tx - px;
+                        dy = ty - py;
+                        dist = dx * dx + dy * dy;
+                        if (bestTarget == null || dist < bestDist || (dist == bestDist && stableId < bestStableId)) {
+                            bestTarget = enumUnit;
+                            bestDist = dist;
+                            bestStableId = stableId;
+                        }
                     }
                 }
                 enumUnit = FirstOfGroup(enumGrp);
@@ -643,6 +664,9 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             enumGrp = null;
             enumUnit = null;
             ownerPlayer = null;
+            if (missingStableId) {
+                bestTarget = null;
+            }
             return bestTarget;
         }
 
@@ -673,7 +697,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
         // 处理单个 pet 的 AI
         private static method updatePetWithEnemies(integer pid, integer idx) {
             unit petUnit; unit ownerUnit; unit targetUnit; unit bestTarget; unit enemyUnit; player ownerPlayer;
-            integer state; integer i; integer enemyCount;
+            integer state; integer i; integer enemyCount; integer stableId; integer bestStableId;
             real px; real py; real ox; real oy; real distToOwner;
             real nx; real ny; real angle; real tx; real ty;
             real bestDist; real dist; real dx; real dy; boolean ownerPaused;
@@ -683,6 +707,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             real buffer; real want; real ang;
             boolean ownerFollowDisabled;
             boolean sleeping;
+            boolean missingStableId;
 
 
             if (!GUARDER_ISVALID_IDX(pid, idx)) { return; }
@@ -848,19 +873,30 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
                 }
                 bestDist = 0.0;
                 if (bestTarget == null) {
+                    bestStableId = 0;
+                    missingStableId = false;
                     for (1 <= i <= enemyCount) {
                         enemyUnit = guarder.enemies[i];
                         if (enemyUnit != null && IsUnitAliveBJ(enemyUnit)) {
-                            tx = GetUnitX(enemyUnit);
-                            ty = GetUnitY(enemyUnit);
-                            dx = tx - px;
-                            dy = ty - py;
-                            dist = dx * dx + dy * dy;
-                            if (bestTarget == null || dist < bestDist) {
-                                bestTarget = enemyUnit;
-                                bestDist = dist;
+                            stableId = guarder.getStableSyncId(enemyUnit);
+                            if (stableId <= 0) {
+                                missingStableId = true;
+                            } else {
+                                tx = GetUnitX(enemyUnit);
+                                ty = GetUnitY(enemyUnit);
+                                dx = tx - px;
+                                dy = ty - py;
+                                dist = dx * dx + dy * dy;
+                                if (bestTarget == null || dist < bestDist || (dist == bestDist && stableId < bestStableId)) {
+                                    bestTarget = enemyUnit;
+                                    bestDist = dist;
+                                    bestStableId = stableId;
+                                }
                             }
                         }
+                    }
+                    if (missingStableId) {
+                        bestTarget = null;
                     }
                 }
                 enemyUnit = null;

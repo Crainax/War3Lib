@@ -188,6 +188,7 @@
 // [异度] 大帝战车复伤记录（父键为受击单位 handleId，+ playerIndex - 1，预留6个玩家槽）
 #define KEY_UNIT_DADI_HIT_SESSION_BASE   255610230 // 本次上车世代（integer，255610230-255610235）
 #define KEY_UNIT_DADI_LAST_HIT_TICK_BASE 255610236 // 本世代最后命中Tick（integer，255610236-255610241）
+#define KEY_UNIT_STABLE_SYNC_ID          255610242 // 项目同步创建序号（integer，不参与 HandleID 数值裁决）
 
 // 单位面板攻击图标自定义显示
 #define KEY_UNIT_ATK_CORNER_TEXT         255610194 // 攻击图标角标文本（string）

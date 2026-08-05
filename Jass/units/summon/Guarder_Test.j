@@ -50,6 +50,18 @@ library UTGuarder requires Guarder, UnitUtils {
 	private unit testEnemies[];
 	private integer petCount = 0;
 	private integer enemyCount = 0;
+	private integer stableSyncIdNext = 0;
+
+	private function CreateGuarderTestUnit(player p, integer unitType, real x, real y, real facing) -> unit {
+		unit u;
+
+		u = CreateUnit(p, unitType, x, y, facing);
+		if (u != null && GetUnitTypeId(u) != 0) {
+			stableSyncIdNext += 1;
+			SetUnitStableSyncId(u, stableSyncIdNext);
+		}
+		return u;
+	}
 
 	function Init () {
 		player p0; player p11; real centerX; real centerY; real angle; real dist; real x; real y; integer i;
@@ -60,7 +72,7 @@ library UTGuarder requires Guarder, UnitUtils {
 		centerY = 0.0;
 
 		// 中心点创建圣骑士（主人单位）
-		testHero = CreateUnit(p0, 'Hpal', centerX, centerY, 0.0);
+		testHero = CreateGuarderTestUnit(p0, 'Hpal', centerX, centerY, 0.0);
 		guarder.initOwner(p0, testHero);
 		BJDebugMsg("[Guarder] 已创建主人单位：圣骑士");
 
@@ -71,7 +83,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			dist = 2000.0;
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			testEnemies[i] = CreateUnit(p11, 'hpea', x, y, angle);
+			testEnemies[i] = CreateGuarderTestUnit(p11, 'hpea', x, y, angle);
 			BJDebugMsg("[Guarder] 已创建敌方农民 " + I2S(i) + " 在 (" + R2S(x) + ", " + R2S(y) + ")");
 		}
 
@@ -106,7 +118,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			dist = 300.0; // 距离中心300码
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			u = CreateUnit(p, 'hfoo', x, y, angle);
+			u = CreateGuarderTestUnit(p, 'hfoo', x, y, angle);
 			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加步兵 " + I2S(i) + " 到守卫系统");
@@ -122,7 +134,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			dist = 300.0;
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			u = CreateUnit(p, 'hkni', x, y, angle);
+			u = CreateGuarderTestUnit(p, 'hkni', x, y, angle);
 			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加骑士 " + I2S(i) + " 到守卫系统");
@@ -148,7 +160,7 @@ library UTGuarder requires Guarder, UnitUtils {
 		x = centerX + 200.0;
 		y = centerY;
 
-		u = CreateUnit(p, 'hfoo', x, y, 0.0);
+		u = CreateGuarderTestUnit(p, 'hfoo', x, y, 0.0);
 		ok =  guarder.addPet(p, u);
 		BJDebugMsg("[Guarder] s2: 添加 1 个步兵守卫 => " + S3(ok, "成功", "失败"));
 
@@ -171,7 +183,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			angle = 120.0 * i; // 每个单位间隔 120 度
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			u = CreateUnit(p, 'hmpr', x, y, angle);
+			u = CreateGuarderTestUnit(p, 'hmpr', x, y, angle);
 			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加牧师 " + I2S(i) + " 到守卫系统");
@@ -186,7 +198,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			angle = 120.0 * (i + 3); // 继续间隔 120 度
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			u = CreateUnit(p, 'hsor', x, y, angle);
+			u = CreateGuarderTestUnit(p, 'hsor', x, y, angle);
 			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加女巫 " + I2S(i) + " 到守卫系统");
@@ -236,7 +248,7 @@ library UTGuarder requires Guarder, UnitUtils {
 		y = centerY + 0.0;
 
 		// 创建 1 个女巫作为守卫，并将射程设置为 1500
-		u = CreateUnit(p, 'hsor', x, y, 0.0);
+		u = CreateGuarderTestUnit(p, 'hsor', x, y, 0.0);
 		ok = guarder.addPet(p, u);
 		if (ok) {
 			SetUnitAttackRange(u, 1500.0);
@@ -255,7 +267,7 @@ library UTGuarder requires Guarder, UnitUtils {
 
 		u = guarder.getPetByIndex(p, 1);
 		if (u == null || GetUnitTypeId(u) == 0) {
-			u = CreateUnit(p, 'hfoo', GetUnitX(testHero) + 200.0, GetUnitY(testHero), 0.0);
+			u = CreateGuarderTestUnit(p, 'hfoo', GetUnitX(testHero) + 200.0, GetUnitY(testHero), 0.0);
 			if (!guarder.addPet(p, u)) {
 				RemoveUnit(u);
 				u = null;
