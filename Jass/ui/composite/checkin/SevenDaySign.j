@@ -96,7 +96,7 @@ KK 后端配置（上线前按以下配置）：
 //# dependency:resource/ui/image/sign_ydd_4.blp
 
 
-library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIExtendDrag,EscStack,BaseAnim,GrowData,Logger {
+library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIExtendDrag,EscStack,BaseAnim,GrowData {
 
     private timer sign7ClaimTimer = null;
     private boolean sign7PendingClaim[];
@@ -108,7 +108,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         private static integer claimedDay[];   // 已累计签到天数
         private static integer claimLimitLeft[]; // 本局可用的后台日增量额度（开局快照，领取后内存扣减）
         private static boolean archiveReady[]; // SignCount 是否成功读取
-        private static boolean vipConsumeActive[];
 
         private static string rewardIcon[];
         private static string rewardTipDesc[];
@@ -162,25 +161,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return mallItem.hasByPlayer(p, SIGN7_VIP_MALLITEM_KEY);
         }
 
-        public static method setVipConsumeActive(player p, boolean active) {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
-            vipConsumeActive[pid] = active;
-            Info(GetPlayerName(p) + " Consume Level:" + S3(active, "Yes", "No"));
-        }
-
-        public static method isVipConsumeActive(player p) -> boolean {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
-            return vipConsumeActive[pid];
-        }
-
-        public static method isVipActive(player p) -> boolean {
-            return thistype.isVipMallActive(p) || thistype.isVipConsumeActive(p);
-        }
-
         public static method getStoredClaimedDay(player p) -> integer {
             integer pid;
             pid = GetConvertedPlayerId(p);
@@ -192,7 +172,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             integer day;
             integer rc;
             day = thistype.getStoredClaimedDay(p);
-            if (thistype.isVipActive(p)) { day += SIGN7_VIP_BONUS_DAYS; }
+            if (thistype.isVipMallActive(p)) { day += SIGN7_VIP_BONUS_DAYS; }
             rc = thistype.getRewardCount();
             if (rc > 0 && day > rc) { return rc; }
             return day;
@@ -439,7 +419,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         }
 
         private static method vipTooltipTitle(player p) -> string {
-            return thistype.activeTitlePrefix(sevenDaySignData.isVipActive(p)) + "|cFFFFFF337|r|cFFFFE949天|r|cFFFFD35F签|r|cFFFFBD75到|r|cFFFFA88A特|r|cFFFF92A0权|r";
+            return thistype.activeTitlePrefix(sevenDaySignData.isVipMallActive(p)) + "|cFFFFFF337|r|cFFFFE949天|r|cFFFFD35F签|r|cFFFFBD75到|r|cFFFFA88A特|r|cFFFF92A0权|r";
         }
 
         private static method vipTooltipDesc(player p) -> string {
@@ -599,7 +579,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             }
 
             // VIP 图标状态
-            vipOn = sevenDaySignData.isVipActive(p);
+            vipOn = sevenDaySignData.isVipMallActive(p);
             if (vipIcon != 0) {
                 vipIcon.setShadow(!vipOn);
             }
