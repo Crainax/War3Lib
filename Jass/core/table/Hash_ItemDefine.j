@@ -56,6 +56,7 @@
 #define HASH_KEY_CHEST_SNAPSHOT_EXP 29312256             // [异度] 副本宝箱结算时快照的最终经验
 #define HASH_KEY_CHEST_SNAPSHOT_BASE_GOLD 29312257       // [异度] 副本宝箱结算时快照的基础金币
 #define HASH_KEY_CHEST_SNAPSHOT_BASE_EXP 29312258        // [异度] 副本宝箱结算时快照的基础经验
+#define HASH_KEY_ITEM_I40C_FINAL_STACK_COUNT 29312259     // [异度] I40C蔷薇终伤已叠层数
 
 // [异度] 物品实例运行态
 #define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键
