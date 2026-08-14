@@ -7,7 +7,7 @@
 //! zinc
 
 // ===========================================================================
-// OnceHint 单元测试（精简：仅测 isReady / has / mark）
+// OnceHint 单元测试（精简：仅测 isReady / onReady / has / mark）
 //
 // 注意：库本身不再提供 reset / resetAll，且 DzAPI 存档跨局保留。
 // 因此测试用例运行时会"动态挑选当前 has() 仍为 false 的 bit 位"做幂等验证；
@@ -25,6 +25,8 @@ library UTOnceHint requires OnceHint {
 
     private integer TBIT_OUT_LOW  = 0;     // 越界（<=0）
     private integer TBIT_OUT_HIGH = 200;   // 越界（>186）
+    private boolean readyCallbackCalled = false;
+    private boolean lateReadyCallbackCalled = false;
 
     // 在 [from, to] 中找一个 has==false 的位，没找到返回 0
     private function FindEmptyBit(player p, integer from, integer to) -> integer {
@@ -43,6 +45,14 @@ library UTOnceHint requires OnceHint {
         // 用例1：开局 0.5s 后存档拉取完毕，isReady 应为 true
         BJDebugMsg("[OnceHint][T1] isReady() 应为 true");
         assert.Boolean(onceHint.isReady(), "T1.isReady should be true after 0.5s");
+        assert.Boolean(readyCallbackCalled, "T1.onReady callback should run when load completes");
+
+        lateReadyCallbackCalled = false;
+        onceHint.onReady(function () -> boolean {
+            lateReadyCallbackCalled = true;
+            return true;
+        });
+        assert.Boolean(lateReadyCallbackCalled, "T1.onReady callback should run immediately after ready");
     }
 
     function Test2_MarkAndHas(player p) {
@@ -159,6 +169,11 @@ library UTOnceHint requires OnceHint {
     }
 
     function onInit () {
+        onceHint.onReady(function () -> boolean {
+            readyCallbackCalled = true;
+            return true;
+        });
+
         //在游戏开始 0.5 秒后再调用（OnceHint 在 0.5s 完成存档拉取）
         trigger tr = CreateTrigger();
         TriggerRegisterTimerEventSingle(tr, 0.5);

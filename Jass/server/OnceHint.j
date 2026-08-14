@@ -17,8 +17,9 @@
   - 局中读 `has` 一律走缓存，不再回查 DzAPI
   - 写入采用 write-through：先改缓存，再调用 `DzAPI_Map_StoreString` 写回
 
-仅暴露三个 API：
+仅暴露四个 API：
   - onceHint.isReady()         : 存档是否拉取完毕（0.5s 后变 true）
+  - onceHint.onReady(cb)       : 注册存档就绪回调；已就绪时立即执行
   - onceHint.has(p, pos)       : 该位是否已经被标记过（即是否触发过）
   - onceHint.mark(p, pos)      : 标记该位（true=本次为首次，false=已标记/参数非法）
 
@@ -33,6 +34,7 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
     // ====== 内存缓存（按 ConvertedPlayerId: 1..MAX_PLAYER_COUNT） ======
     private string sBits[];
     private boolean onceHintReady = false;
+    private trigger onceHintReadyTrigger = null;
 
     // ====== 内部：参数校验并返回缓存索引（非法返回 0） ======
     private function getIdx(player p) -> integer {
@@ -57,6 +59,21 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
         // 是否已就绪（开局存档读取完毕）
         static method isReady() -> boolean {
             return onceHintReady;
+        }
+
+        // 注册存档就绪回调；业务模块应在全端同步初始化路径中调用。
+        static method onReady(code cb) {
+            trigger tr;
+            if (!onceHintReady) {
+                TriggerAddCondition(onceHintReadyTrigger, Condition(cb));
+                return;
+            }
+
+            tr = CreateTrigger();
+            TriggerAddCondition(tr, Condition(cb));
+            TriggerEvaluate(tr);
+            DestroyTrigger(tr);
+            tr = null;
         }
 
         // 查询：某 bit 是否已经触发过（已显示过）
@@ -90,6 +107,7 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
             for (1 <= i <= MAX_PLAYER_COUNT) {
                 sBits[i] = ONCE_HINT_EMPTY;
             }
+            onceHintReadyTrigger = CreateTrigger();
 
             // 延迟 0.5s 拉取存档（与 MallItem/Server 时序错峰，避免抢资源）
             tr = CreateTrigger();
@@ -105,6 +123,9 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
                     p = null;
                 }
                 onceHintReady = true;
+                TriggerEvaluate(onceHintReadyTrigger);
+                DestroyTrigger(onceHintReadyTrigger);
+                onceHintReadyTrigger = null;
                 DestroyTrigger(GetTriggeringTrigger());
             }));
             tr = null;
