@@ -58,6 +58,8 @@
 #define HASH_KEY_CHEST_SNAPSHOT_BASE_EXP 29312258        // [异度] 副本宝箱结算时快照的基础经验
 #define HASH_KEY_ITEM_I40C_FINAL_STACK_COUNT 29312259     // [异度] I40C蔷薇终伤已叠层数
 #define HASH_KEY_ITEM_LEVEL_JUMP_BASE 29312260             // [异度] 装备临时跳级前的基础等级（存在即表示跳级中）
+#define HASH_KEY_ITEM_I50D_GOLD_BODY_TIMER 29312261        // [异度] I50D皇龙金身计时器
+#define HASH_KEY_ITEM_I50D_GOLD_BODY_EFFECT 29312262       // [异度] I50D皇龙金身特效
 
 // [异度] 物品实例运行态
 #define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键
