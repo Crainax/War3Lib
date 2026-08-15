@@ -26,6 +26,7 @@ library UTOnceHint requires OnceHint {
     private integer TBIT_OUT_LOW  = 0;     // 越界（<=0）
     private integer TBIT_OUT_HIGH = 200;   // 越界（>186）
     private boolean readyCallbackCalled = false;
+    private boolean secondReadyCallbackCalled = false;
     private boolean lateReadyCallbackCalled = false;
 
     // 在 [from, to] 中找一个 has==false 的位，没找到返回 0
@@ -46,11 +47,11 @@ library UTOnceHint requires OnceHint {
         BJDebugMsg("[OnceHint][T1] isReady() 应为 true");
         assert.Boolean(onceHint.isReady(), "T1.isReady should be true after 0.5s");
         assert.Boolean(readyCallbackCalled, "T1.onReady callback should run when load completes");
+        assert.Boolean(secondReadyCallbackCalled, "T1.onReady should run every registered callback");
 
         lateReadyCallbackCalled = false;
-        onceHint.onReady(function () -> boolean {
+        onceHint.onReady(function () {
             lateReadyCallbackCalled = true;
-            return true;
         });
         assert.Boolean(lateReadyCallbackCalled, "T1.onReady callback should run immediately after ready");
     }
@@ -169,9 +170,11 @@ library UTOnceHint requires OnceHint {
     }
 
     function onInit () {
-        onceHint.onReady(function () -> boolean {
+        onceHint.onReady(function () {
             readyCallbackCalled = true;
-            return true;
+        });
+        onceHint.onReady(function () {
+            secondReadyCallbackCalled = true;
         });
 
         //在游戏开始 0.5 秒后再调用（OnceHint 在 0.5s 完成存档拉取）

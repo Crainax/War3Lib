@@ -21,7 +21,7 @@
 //    mallItem.init("RhdeKey");
 //    mallItem.init("RopgKey");
 //
-// 2) 可选：为商品配置元信息与科技（四位字符如 'Rhde' 为整数字面量）：
+// 2) 可选：为商品配置元信息与科技（设置 name 后，首次扫描到拥有商品时会自动提示玩家）：
 //    mallItem.setMeta("VIP1", "白金VIP", "ReplaceableTextures\\CommandButtons\\BTN.tga", "尊享特权");
 //    mallItem.setTech("RhdeKey", 'Rhde'); // 步兵测试科技
 //    mallItem.setTech("RopgKey", 'Ropg'); // ogre 测试科技
@@ -212,6 +212,13 @@ library MallItem requires DzAPI, HashTable, Logger{
                             k = mallItem.itemKeys[idx];
                             mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(p, k);
                             mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(p, k);
+                            if (mallItem.owns[base + idx] && mallItem.names[idx] != "") {
+                                if (mallItem.uses[base + idx] > 0) {
+                                    DisplayTextToPlayer(p, 0.0, 0.0, "|cFFFF0000【商城道具】|r成功激活了|cFFFF0000" + mallItem.names[idx] + "|r(x|cffffff00" + I2S(mallItem.uses[base + idx]) + "|r)");
+                                } else {
+                                    DisplayTextToPlayer(p, 0.0, 0.0, "|cFFFF0000【商城道具】|r成功激活了|cFFFF0000" + mallItem.names[idx] + "|r");
+                                }
+                            }
                             if (mallItem.owns[base + idx]) {
                                 hasText = "true";
                             } else {

@@ -61,7 +61,7 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
             return onceHintReady;
         }
 
-        // 注册存档就绪回调；业务模块应在全端同步初始化路径中调用。
+        // 注册无返回值的存档就绪回调；业务模块应在全端同步初始化路径中调用。
         static method onReady(code cb) {
             trigger tr;
             if (!onceHintReady) {
@@ -123,7 +123,8 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
                     p = null;
                 }
                 onceHintReady = true;
-                TriggerEvaluate(onceHintReadyTrigger);
+                TriggerExecute(onceHintReadyTrigger);
+                TriggerClearActions(onceHintReadyTrigger);
                 DestroyTrigger(onceHintReadyTrigger);
                 onceHintReadyTrigger = null;
                 DestroyTrigger(GetTriggeringTrigger());
