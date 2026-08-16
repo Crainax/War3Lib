@@ -35,6 +35,8 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
     private string sBits[];
     private boolean onceHintReady = false;
     private trigger onceHintReadyTrigger = null;
+    private triggeraction onceHintReadyActions[];
+    private integer onceHintReadyActionCount = 0;
 
     // ====== 内部：参数校验并返回缓存索引（非法返回 0） ======
     private function getIdx(player p) -> integer {
@@ -64,15 +66,19 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
         // 注册无返回值的存档就绪回调；业务模块应在全端同步初始化路径中调用。
         static method onReady(code cb) {
             trigger tr;
+            triggeraction action;
             if (!onceHintReady) {
-                TriggerAddCondition(onceHintReadyTrigger, Condition(cb));
+                onceHintReadyActionCount += 1;
+                onceHintReadyActions[onceHintReadyActionCount] = TriggerAddAction(onceHintReadyTrigger, cb);
                 return;
             }
 
             tr = CreateTrigger();
-            TriggerAddCondition(tr, Condition(cb));
-            TriggerEvaluate(tr);
+            action = TriggerAddAction(tr, cb);
+            TriggerExecute(tr);
+            TriggerRemoveAction(tr, action);
             DestroyTrigger(tr);
+            action = null;
             tr = null;
         }
 
@@ -114,6 +120,7 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
             TriggerRegisterTimerEventSingle(tr, 0.5);
             TriggerAddCondition(tr, Condition(function () {
                 integer i;
+                integer actionIndex;
                 player p;
                 for (1 <= i <= MAX_PLAYER_COUNT) {
                     p = ConvertedPlayer(i);
@@ -124,7 +131,11 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
                 }
                 onceHintReady = true;
                 TriggerExecute(onceHintReadyTrigger);
-                TriggerClearActions(onceHintReadyTrigger);
+                for (1 <= actionIndex <= onceHintReadyActionCount) {
+                    TriggerRemoveAction(onceHintReadyTrigger, onceHintReadyActions[actionIndex]);
+                    onceHintReadyActions[actionIndex] = null;
+                }
+                onceHintReadyActionCount = 0;
                 DestroyTrigger(onceHintReadyTrigger);
                 onceHintReadyTrigger = null;
                 DestroyTrigger(GetTriggeringTrigger());

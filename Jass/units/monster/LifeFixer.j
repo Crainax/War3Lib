@@ -17,7 +17,7 @@ library LifeFixer requires UnitUtils {
             addHp = this.baseHp * i;
             if (addHp != 0.0) {
                 AddUnitHP(this.caster, addHp);
-                BJDebugMsg("|cFFFF66CC【 " + GetUnitName(this.caster) + " 】|r的生命修正成:" + FormatNumber(GetUnitState(this.caster, UNIT_STATE_MAX_LIFE)) + ".");
+                // BJDebugMsg("|cFFFF66CC【 " + GetUnitName(this.caster) + " 】|r的生命修正成:" + FormatNumber(GetUnitState(this.caster, UNIT_STATE_MAX_LIFE)) + ".");
             }
         }
 
