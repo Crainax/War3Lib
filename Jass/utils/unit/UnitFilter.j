@@ -38,9 +38,27 @@ IS_VALID_ENEMY_RELATION(p,u) \
 
 library UnitFilter {
 
+    // 地图可配置一个额外的无敌技能ID；用于识别继承自 Avul、但 rawcode 不同的专用无敌层。
+    private integer customInvulnerableAbilityId = 0;
+
+    public function SetCustomInvulnerableAbilityId(integer abilityId) {
+        customInvulnerableAbilityId = abilityId;
+    }
+
+    public function GetCustomInvulnerableAbilityId() -> integer {
+        return customInvulnerableAbilityId;
+    }
+
+    public function IsUnitInvulnerableEx(unit u) -> boolean {
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+        return GetUnitAbilityLevel(u, 'Avul') > 0
+            || GetUnitAbilityLevel(u, 'BHds') > 0
+            || (customInvulnerableAbilityId > 0 && GetUnitAbilityLevel(u, customInvulnerableAbilityId) > 0);
+    }
+
     //判断是否是敌方(不带无敌)
     public function IsEnemy (unit u,player p)  -> boolean {
-        return IS_VALID_ENEMY_TARGET(p,u) && GetUnitAbilityLevel(u, 'Avul') < 1;
+        return IS_VALID_ENEMY_TARGET(p,u) && !IsUnitInvulnerableEx(u);
     }
     //旧名：IsEnemy2
     //判断是否是敌方(能匹配到无敌单位)

@@ -205,6 +205,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
         private static real ringOwnerY[];
         // 外部暂停标志（用于特殊剧情/复活等）
         private static boolean paused[];
+        // 主人当前是否无敌；其专用无敌层会同步给全部守卫。
+        private static boolean ownerInvulnerable[];
         // 周期 tick timer
         private static timer tickTimer = null;
         // 全局 AI tick 序号，用于禁跟随守卫错帧搜索
@@ -220,6 +222,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             if (!ISVALID_PLAYER_ID(pid)) { return; }
 
             guarder.owner[pid] = ownerUnit;
+            guarder.ownerInvulnerable[pid] = IsUnitInvulnerableEx(ownerUnit);
             if (guarder.searchRadius[pid] <= 0.0) {
                 guarder.searchRadius[pid] = GUARD_SEARCH_RADIUS;
             }
@@ -293,6 +296,21 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             }
         }
 
+        // 主人无敌使用地图配置的专用 Avul 子技能，与 pause/sleep 的原始 Avul 分离所有权。
+        private static method refreshOwnerInvulnerable(unit u, boolean needInvulnerable) {
+            integer abilityId;
+            if (u == null || GetUnitTypeId(u) == 0) { return; }
+            abilityId = GetCustomInvulnerableAbilityId();
+            if (abilityId <= 0) { return; }
+            if (needInvulnerable) {
+                if (GetUnitAbilityLevel(u, abilityId) == 0) {
+                    UnitAddAbility(u, abilityId);
+                }
+            } else if (GetUnitAbilityLevel(u, abilityId) > 0) {
+                UnitRemoveAbility(u, abilityId);
+            }
+        }
+
         // Guarder 只持有自己的一份缴械锁，避免醒来或解绑时误清其他技能的缴械。
         private static method refreshManagedDisarm(unit u, boolean needDisarm) {
             integer hid;
@@ -316,6 +334,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT);
             bindEffect.detachUnique(u, GUARD_SLEEP_EFFECT_PATH);
             guarder.refreshManagedDisarm(u, false);
+            guarder.refreshOwnerInvulnerable(u, false);
             if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED)
             && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED) == 1) {
                 UnitRemoveAbility(u, 'Avul');
@@ -450,6 +469,10 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE)) {
                 SaveReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE, GUARD_ATTACK_RANGE);
             }
+            if (guarder.owner[pid] != null && GetUnitTypeId(guarder.owner[pid]) != 0) {
+                guarder.ownerInvulnerable[pid] = IsUnitInvulnerableEx(guarder.owner[pid]);
+            }
+            guarder.refreshOwnerInvulnerable(petUnit, guarder.ownerInvulnerable[pid]);
 
             return true;
         }
@@ -640,7 +663,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             enumUnit = FirstOfGroup(enumGrp);
             while (enumUnit != null) {
                 GroupRemoveUnit(enumGrp, enumUnit);
-                if (enumUnit != ownerUnit && enumUnit != petUnit && IsUnitAliveBJ(enumUnit) && IsUnitEnemy(enumUnit, ownerPlayer) && GetUnitAbilityLevel(enumUnit, 'Avul') == 0) {
+                if (enumUnit != ownerUnit && enumUnit != petUnit && IsUnitAliveBJ(enumUnit) && IsUnitEnemy(enumUnit, ownerPlayer) && !IsUnitInvulnerableEx(enumUnit)) {
                     stableId = guarder.getStableSyncId(enumUnit);
                     if (stableId <= 0) {
                         missingStableId = true;
@@ -687,7 +710,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
                 && targetUnit != petUnit
                 && IsUnitAliveBJ(targetUnit)
                 && IsUnitEnemy(targetUnit, ownerPlayer)
-                && GetUnitAbilityLevel(targetUnit, 'Avul') == 0
+                && !IsUnitInvulnerableEx(targetUnit)
                 && (dx * dx + dy * dy <= radius2);
 
             ownerPlayer = null;
@@ -728,6 +751,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
                 ownerUnit = null;
                 return;
             }
+            guarder.refreshOwnerInvulnerable(petUnit, guarder.ownerInvulnerable[pid]);
 
             state = guarder.state[pid][idx];
             targetUnit = guarder.target[pid][idx];
@@ -866,7 +890,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
                 bestTarget = null;
                 if (distToOwner <= GUARD_FREE_RADIUS && targetUnit != null) {
                     ownerPlayer = GetOwningPlayer(ownerUnit);
-                    if (IsUnitAliveBJ(targetUnit) && IsUnitEnemy(targetUnit, ownerPlayer) && GetUnitAbilityLevel(targetUnit, 'Avul') == 0) {
+                    if (IsUnitAliveBJ(targetUnit) && IsUnitEnemy(targetUnit, ownerPlayer) && !IsUnitInvulnerableEx(targetUnit)) {
                         bestTarget = targetUnit;
                     }
                     ownerPlayer = null;
@@ -993,6 +1017,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             ownerUnit = guarder.owner[pid];
             // 主人死亡不影响守卫 AI：只在句柄失效时才退出
             if (ownerUnit == null || GetUnitTypeId(ownerUnit) == 0) { return; }
+            guarder.ownerInvulnerable[pid] = IsUnitInvulnerableEx(ownerUnit);
 
             ownerPlayer = GetOwningPlayer(ownerUnit);
             ox = GetUnitX(ownerUnit);
@@ -1007,7 +1032,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             enumUnit = FirstOfGroup(enumGrp);
             while (enumUnit != null) {
                 GroupRemoveUnit(enumGrp, enumUnit);
-                if (enumUnit != ownerUnit && IsUnitAliveBJ(enumUnit) && IsUnitEnemy(enumUnit, ownerPlayer) && GetUnitAbilityLevel(enumUnit, 'Avul') == 0) {
+                if (enumUnit != ownerUnit && IsUnitAliveBJ(enumUnit) && IsUnitEnemy(enumUnit, ownerPlayer) && !IsUnitInvulnerableEx(enumUnit)) {
                     enemyCount = enemyCount + 1;
                     guarder.enemies[enemyCount] = enumUnit;
                 }

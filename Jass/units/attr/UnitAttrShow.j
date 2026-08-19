@@ -8,7 +8,7 @@
 /*
 连接UnitPanel和UnitUtils的库  以显示数据
 */
-library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff {
+library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
 
     // 用于缓存"当前主单位"的上一次属性值，只在本地 UI 使用
     public struct unitAttrShow []{
@@ -56,7 +56,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff {
 
         // 内部：检查单位是否无敌
         private static method isInvulnerable (unit u) -> boolean {
-            return GetUnitAbilityLevel(u, 'Avul') > 0 || GetUnitAbilityLevel(u, 'BHds') > 0;
+            return IsUnitInvulnerableEx(u);
         }
 
         // 内部：检查单位是否魔免
