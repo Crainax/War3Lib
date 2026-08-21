@@ -558,6 +558,16 @@ library Music {
 			thistype[MUSIC_INDEX_RAM_STONE_BURST].snd = snd;
 			//# endcheck
 
+			//# check: music[3023]
+			//# dependency:sound/sound/youzhen_sunlight_bloom.mp3
+			snd = CreateSound( "sound\\youzhen_sunlight_bloom.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1802 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_YOUZHEN_SUNLIGHT_BLOOM].snd = snd;
+			//# endcheck
+
 			snd = null;
 		}
 

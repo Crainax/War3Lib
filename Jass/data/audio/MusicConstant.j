@@ -59,6 +59,7 @@
 #define MUSIC_INDEX_PINGZONG_PIAOMIAO 3020 //萍踪踏步倚飘渺音效
 #define MUSIC_INDEX_YASINA_MOTHERS_ROSARIO 3021 //圣母咏叹刀剑挥舞音效
 #define MUSIC_INDEX_RAM_STONE_BURST 3022 //拉姆绝望终局石头爆裂音效
+#define MUSIC_INDEX_YOUZHEN_SUNLIGHT_BLOOM 3023 //幼贞生命之花太阳光芒音效
 
 #define SOUND_POOL_SIZE 20  // 每个音效的对象池大小（可同时播放20个）
 
