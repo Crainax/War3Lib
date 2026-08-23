@@ -22,6 +22,7 @@ library MathUtils {
 
     // 进行整数除法，若能整除则结果减1
     public function Divide1 (integer i1,integer i2) -> integer {
+        if (i2 == 0) {return 0;}
         if (ModuloInteger(i1,i2) == 0) {
             return i1/i2 - 1;
         }
@@ -97,6 +98,7 @@ library MathUtils {
             real y2  = 0; //相交点
             real a = ModuloReal(angle,360); //求余数
             real tan;
+            if (a < 0) {a += 360;}
             x = 0;
             y = 0;
 

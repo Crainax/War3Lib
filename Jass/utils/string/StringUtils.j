@@ -125,8 +125,12 @@ library StringUtils {
         temp = "";
         for (1 <= i <= times) {
             temp += s;
-            if (ModuloInteger(i,gap1) == 0) temp += " ";
-            if (ModuloInteger(i,gap2) == 0) temp += "\n";
+            if (gap1 > 0) {
+                if (ModuloInteger(i,gap1) == 0) temp += " ";
+            }
+            if (gap2 > 0) {
+                if (ModuloInteger(i,gap2) == 0) temp += "\n";
+            }
         }
         return temp;
     }

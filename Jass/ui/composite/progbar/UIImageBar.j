@@ -79,8 +79,11 @@ library UIImageBar requires UIImage, UIExtendResize {
 
         // 获取进度
         method getProgress () -> real {
+            real backgroundWidth;
             if (!this.isExist()) {return 0.0;}
-            return DzFrameGetWidth(uiFill.ui) / DzFrameGetWidth(uiBackground.ui);
+            backgroundWidth = DzFrameGetWidth(uiBackground.ui);
+            if (backgroundWidth == 0.0) {return 0.0;}
+            return DzFrameGetWidth(uiFill.ui) / backgroundWidth;
         }
 
         // 设置进度(0-1.0)
