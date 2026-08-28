@@ -7,7 +7,7 @@
 //! zinc
 
 // ===========================================================================
-// OnceHint 单元测试（精简：仅测 isReady / onReady / has / mark）
+// OnceHint 单元测试（精简：测 isReady / onReady / isFirstLogin / has / mark）
 //
 // 注意：库本身不再提供 reset / resetAll，且 DzAPI 存档跨局保留。
 // 因此测试用例运行时会"动态挑选当前 has() 仍为 false 的 bit 位"做幂等验证；
@@ -48,6 +48,10 @@ library UTOnceHint requires OnceHint {
         assert.Boolean(onceHint.isReady(), "T1.isReady should be true after 0.5s");
         assert.Boolean(readyCallbackCalled, "T1.onReady callback should run when load completes");
         assert.Boolean(secondReadyCallbackCalled, "T1.onReady should run every registered callback");
+        assert.Boolean(!onceHint.isFirstLogin(null), "T1.isFirstLogin(null) should be false");
+        if (onceHint.isFirstLogin(p)) {
+            assert.Boolean(onceHint.has(p, ONCE_HINT_FIRST_LOGIN), "T1.first login bit should be completed after snapshot");
+        }
 
         lateReadyCallbackCalled = false;
         onceHint.onReady(function () {

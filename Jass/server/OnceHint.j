@@ -17,9 +17,10 @@
   - 局中读 `has` 一律走缓存，不再回查 DzAPI
   - 写入采用 write-through：先改缓存，再调用 `DzAPI_Map_StoreString` 写回
 
-仅暴露四个 API：
+仅暴露五个 API：
   - onceHint.isReady()         : 存档是否拉取完毕（0.5s 后变 true）
   - onceHint.onReady(cb)       : 注册存档就绪回调；已就绪时立即执行
+  - onceHint.isFirstLogin(p)   : 本局开局时是否为首次进入游戏
   - onceHint.has(p, pos)       : 该位是否已经被标记过（即是否触发过）
   - onceHint.mark(p, pos)      : 标记该位（true=本次为首次，false=已标记/参数非法）
 
@@ -33,6 +34,8 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
 
     // ====== 内存缓存（按 ConvertedPlayerId: 1..MAX_PLAYER_COUNT） ======
     private string sBits[];
+    private boolean readSuccess[];
+    private boolean firstLoginAtStart[];
     private boolean onceHintReady = false;
     private trigger onceHintReadyTrigger = null;
     private triggeraction onceHintReadyActions[];
@@ -49,10 +52,33 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
 
     // ====== 内部：拉取并落入缓存（容错为空串/非法长度） ======
     private function loadFromServer(player p, integer idx) {
-        string s = DzAPI_Map_GetStoredString(p, ONCE_HINT_KEY);
+        integer errorCode;
+        string s;
+
+        s = DzAPI_Map_GetStoredString(p, ONCE_HINT_KEY);
+        errorCode = DzAPI_Map_GetServerValueErrorCode(p);
+        if (errorCode != 0) {
+            sBits[idx] = ONCE_HINT_EMPTY;
+            readSuccess[idx] = false;
+            firstLoginAtStart[idx] = false;
+            s = null;
+            return;
+        }
         if (s == null) { s = ONCE_HINT_EMPTY; }
         if (StringLength(s) < 60) { s = ONCE_HINT_EMPTY; }
         sBits[idx] = s;
+        readSuccess[idx] = true;
+        firstLoginAtStart[idx] = !IsSuperBit(sBits[idx], ONCE_HINT_FIRST_LOGIN);
+        s = null;
+    }
+
+    // ====== 内部：保留本局首次快照，并在全端同步更新缓存后由所属玩家写回 ======
+    private function completeFirstLogin(player p, integer idx) {
+        if (!readSuccess[idx] || !firstLoginAtStart[idx]) { return; }
+        sBits[idx] = SetSuperBit(sBits[idx], ONCE_HINT_FIRST_LOGIN, true);
+        if (GetLocalPlayer() == p) {
+            DzAPI_Map_StoreString(p, ONCE_HINT_KEY, sBits[idx]);
+        }
     }
 
     // ====== 公共 API（黑箱） ======
@@ -61,6 +87,13 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
         // 是否已就绪（开局存档读取完毕）
         static method isReady() -> boolean {
             return onceHintReady;
+        }
+
+        // 返回本局开局读档时的首次进入快照；完成首次标记后本局仍保持 true
+        static method isFirstLogin(player p) -> boolean {
+            integer idx = getIdx(p);
+            if (!onceHintReady || idx == 0) { return false; }
+            return firstLoginAtStart[idx];
         }
 
         // 注册无返回值的存档就绪回调；业务模块应在全端同步初始化路径中调用。
@@ -96,6 +129,7 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
             integer idx = getIdx(p);
             if (idx == 0) { return false; }
             if (pos <= 0 || pos > ONCE_HINT_MAX_BIT) { return false; }
+            if (!onceHintReady || !readSuccess[idx]) { return false; }
             if (IsSuperBit(sBits[idx], pos)) {
                 return false;
             }
@@ -112,6 +146,8 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
             // 缓存初始化为空串，避免 IsSuperBit 在未就绪时读到 null
             for (1 <= i <= MAX_PLAYER_COUNT) {
                 sBits[i] = ONCE_HINT_EMPTY;
+                readSuccess[i] = false;
+                firstLoginAtStart[i] = false;
             }
             onceHintReadyTrigger = CreateTrigger();
 
@@ -126,6 +162,7 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
                     p = ConvertedPlayer(i);
                     if (GetPlayerSlotState(p) == PLAYER_SLOT_STATE_PLAYING && GetPlayerController(p) == MAP_CONTROL_USER) {
                         loadFromServer(p, i);
+                        completeFirstLogin(p, i);
                     }
                     p = null;
                 }

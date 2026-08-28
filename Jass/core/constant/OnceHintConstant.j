@@ -21,7 +21,7 @@
 // ===========================================================================
 
 // --- 1~30：新手引导/基础事件 ---
-// #define ONCE_HINT_FIRST_LOGIN          1   // 首次进入游戏
+#define ONCE_HINT_FIRST_LOGIN          1   // 首次进入游戏
 #define ONCE_HINT_FIRST_ACHIEVEMENT    2   // 首次解锁任意成就，提示相册入口
 #define ONCE_HINT_MOPUP_ENTRY          3   // 首次出现速通入口 icon，提示其位置
 #define ONCE_HINT_MALL_PIN_GIFT        4   // 曾在 KK 平台将地图添加到首页置顶栏
