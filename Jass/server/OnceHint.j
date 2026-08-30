@@ -50,26 +50,23 @@ library OnceHint requires StringBitUtils, PlayerUtils, DzAPI {
         return idx;
     }
 
-    // ====== 内部：拉取并落入缓存（容错为空串/非法长度） ======
+    // ====== 内部：空值按首次进入初始化；读取失败或非空短串禁止后续写回 ======
     private function loadFromServer(player p, integer idx) {
-        integer errorCode;
         string s;
 
+        sBits[idx] = ONCE_HINT_EMPTY;
+        readSuccess[idx] = false;
+        firstLoginAtStart[idx] = false;
         s = DzAPI_Map_GetStoredString(p, ONCE_HINT_KEY);
-        errorCode = DzAPI_Map_GetServerValueErrorCode(p);
-        if (errorCode != 0) {
-            sBits[idx] = ONCE_HINT_EMPTY;
-            readSuccess[idx] = false;
-            firstLoginAtStart[idx] = false;
-            s = null;
+        if (DzAPI_Map_GetServerValueErrorCode(p) != 0) { return; }
+        if (s == null || s == "") {
+            s = ONCE_HINT_EMPTY;
+        } else if (StringLength(s) < 60) {
             return;
         }
-        if (s == null) { s = ONCE_HINT_EMPTY; }
-        if (StringLength(s) < 60) { s = ONCE_HINT_EMPTY; }
         sBits[idx] = s;
         readSuccess[idx] = true;
         firstLoginAtStart[idx] = !IsSuperBit(sBits[idx], ONCE_HINT_FIRST_LOGIN);
-        s = null;
     }
 
     // ====== 内部：保留本局首次快照，并在全端同步更新缓存后由所属玩家写回 ======

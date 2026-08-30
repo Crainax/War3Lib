@@ -254,6 +254,7 @@
 #define KEY_MOSHOU_TEMP_ATTACK_SPEED_BONUS 10025 // 魔兽实例临时攻速加值（real）
 #define KEY_UNIT_KILL_REWARD_GOLD_EXTRA_RATE 10026 // 本次伤害击杀额外金币倍率（real）
 #define KEY_UNIT_KILL_REWARD_ARENA_JIEJING_EXTRA_RATE 10027 // 本次伤害击杀额外竞技场结晶进度倍率（real）
+#define KEY_UNIT_YEGUAI_GOLD_RATE 10028             // 普通野怪创建时快照的超前金币收益倍率（real）
 
 // 装备 helper 召唤物运行态
 #define KEY_UNIT_HELPER_SMART_POINT_TRIGGER 255610215  // helper 右键点地触发器
