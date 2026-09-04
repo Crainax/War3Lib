@@ -1,4 +1,6 @@
-package.path = package.path .. ';' .. debug.getinfo(1, "S").source:match [[^@?(.*[\/])[^\/]-$]] .. '?.lua;'
+local script_source = debug.getinfo(1, "S").source
+local script_dir = script_source:match([[^@?(.*[\/])[^\/]-$]]) or ".\\"
+package.path = package.path .. ";" .. script_dir .. "?.lua;"
 
 --[[
  图像处理与BLP转换一体化脚本
@@ -14,38 +16,55 @@ chcp 65001
 -- 1. 基础路径配置
 local paths = {
     -- [重要] 图标的基础目录, 也是传递给BLPLab的参数
-    icon_base_dir = [[D:\War3Asset\Asset\Xlimon\Icon\20260513\combine\rare\]],
+    icon_base_dir = [[D:\War3Asset\Asset\Xlimon\Icon\20260902\NewEquipment\]],
 
     -- 各种叠加图片的路径
     btn           = [[D:\War3\tools\Image\btn.png]],
     paoguang      = [[D:\War3\tools\Image\Paoguangx4.png]],
-    dis           = [[D:\War3\tools\Image\dis.png]],
+    dis           = [[D:\War3\tools\Image\dis.png]]
+}
 
-    -- 品质图片路径 (0-6)
-    quality       = {
-        [0] = [[D:\War3\tools\Image\bj0.png]],
-        [1] = [[D:\War3\tools\Image\bj1.png]],
-        [2] = [[D:\War3\tools\Image\bj2.png]],
-        [3] = [[D:\War3\tools\Image\bj3.png]],
-        [4] = [[D:\War3\tools\Image\bj4.png]],
-        [5] = [[D:\War3\tools\Image\bj5.png]],
-        [6] = [[D:\War3\tools\Image\bj6.png]]
+-- 装备品质流程。frame 是最后叠加的品质边框，glow 是先铺在源图下方的品质底纹。
+-- 普通品质流程: bj0 + old_1
+-- 稀有品质流程: bj2 + old_2
+-- 史诗品质流程: bj4 + old_3
+-- 传说品质流程: bj5 + old_4
+-- 神话品质流程: bj6 + fg4_glowRed
+local quality_presets = {
+    common = {
+        label = "普通",
+        frame = [[D:\War3\tools\Image\bj0.png]],
+        glow = [[D:\War3\tools\Image\old_1.png]]
     },
-
-    -- 光晕图片路径 (0-6, 根据品质等级选择)
-    glow          = {
-        -- [0] = [[D:\War3\tools\Image\fg4_glowCyan.png]],
-        [0] = [[D:\War3\tools\Image\old_1.png]],
-        [1] = [[D:\War3\tools\Image\fg4_glowGreen.png]],
-        -- [2] = [[D:\War3\tools\Image\fg4_glowBlue.png]],
-        [2] = [[D:\War3\tools\Image\old_2.png]],
-        [3] = [[D:\War3\tools\Image\fg4_glowMagenta.png]],
-        -- [4] = [[D:\War3\tools\Image\fg4_glowMagenta.png]],
-        [4] = [[D:\War3\tools\Image\old_3.png]],
-        -- [5] = [[D:\War3\tools\Image\fg4_glowOrange.png]],
-        [5] = [[D:\War3\tools\Image\old_4.png]],
-        [6] = [[D:\War3\tools\Image\fg4_glowRed.png]]
+    rare = {
+        label = "稀有",
+        frame = [[D:\War3\tools\Image\bj2.png]],
+        glow = [[D:\War3\tools\Image\old_2.png]]
+    },
+    epic = {
+        label = "史诗",
+        frame = [[D:\War3\tools\Image\bj4.png]],
+        glow = [[D:\War3\tools\Image\old_3.png]]
+    },
+    legendary = {
+        label = "传说",
+        frame = [[D:\War3\tools\Image\bj5.png]],
+        glow = [[D:\War3\tools\Image\old_4.png]]
+    },
+    myth = {
+        label = "神话",
+        frame = [[D:\War3\tools\Image\bj6.png]],
+        glow = [[D:\War3\tools\Image\fg4_glowRed.png]]
     }
+}
+
+-- 混合品质批次按不含扩展名的文件名指定品质；未列出的文件使用 default_quality。
+-- 整个目录都是同一品质时，可设置 default_quality（如 "rare"）并清空本表。
+local default_quality = nil
+local icon_quality_by_name = {
+    I31m = "epic",
+    I40q = "legendary",
+    I50q = "myth"
 }
 
 -- BLPLab 相关配置
@@ -93,10 +112,7 @@ local generate_flags = {
 }
 local paoguang_flag = false
 
--- 4. 品质等级配置 (0-6, 当前使用的品质等级)
-local quality_level = 2
-
--- 5. [新功能] magick处理完成后是否自动运行BLPLab脚本
+-- 4. magick处理完成后是否自动运行BLPLab脚本
 local run_blplab_after = true
 
 -- ========================================================
@@ -124,22 +140,20 @@ for filename in io.popen(list_files_cmd):lines() do
 
     local magick_command, output_path, output_filename
     local normal_output_path = nil
+    local quality_key = icon_quality_by_name[basename] or default_quality
+    local quality_preset = quality_presets[quality_key]
+
+    if not quality_preset then
+        error("图标 " .. basename .. " 未配置有效品质，请填写 icon_quality_by_name 或 default_quality。")
+    end
+    print("  品质流程: " .. quality_preset.label .. " (" .. quality_key .. ")")
 
     if generate_flags.normal then
         output_filename = "btn" .. filename
         normal_output_path = output_dir .. output_filename
         output_path = '"' .. normal_output_path .. '"'
-        local quality_path = paths.quality[quality_level]
-        local glow_path = paths.glow[quality_level]
-
-        if not quality_path then
-            print("  [警告] 品质等级 " .. quality_level .. " 不存在，跳过品质图片合并")
-            quality_path = nil
-        end
-        if not glow_path then
-            print("  [警告] 品质等级 " .. quality_level .. " 的光晕图片不存在，跳过光晕合并")
-            glow_path = nil
-        end
+        local quality_path = quality_preset.frame
+        local glow_path = quality_preset.glow
 
         -- 构建基础命令：先创建背景
         local base_cmd = string.format('-size %s xc:black', size_str)
@@ -147,11 +161,9 @@ for filename in io.popen(list_files_cmd):lines() do
         -- 构建合成命令片段
         local composite_parts = {}
 
-        -- 1. 光晕（最前面，在背景上叠加）
-        if glow_path then
-            table.insert(composite_parts, string.format('( "%s" -resize %s ) -gravity center -composite',
-                glow_path, size_str))
-        end
+        -- 1. 品质底纹（最前面，在黑色背景上叠加）
+        table.insert(composite_parts, string.format('( "%s" -resize %s ) -gravity center -composite',
+            glow_path, size_str))
 
         -- 2. 源图
         table.insert(composite_parts, string.format('( %s -resize %s ) -gravity center -composite',
@@ -167,21 +179,19 @@ for filename in io.popen(list_files_cmd):lines() do
         table.insert(composite_parts, string.format('( "%s" -resize %s ) -gravity center -composite',
             paths.btn, size_str))
 
-        -- 5. 品质（如果有）
-        if quality_path then
-            table.insert(composite_parts, string.format('( "%s" -resize %s ) -gravity center -composite',
-                quality_path, size_str))
-        end
+        -- 5. 品质边框（最后覆盖）
+        table.insert(composite_parts, string.format('( "%s" -resize %s ) -gravity center -composite',
+            quality_path, size_str))
 
         -- 组合完整命令
         magick_command = 'magick convert ' .. base_cmd .. ' ' .. table.concat(composite_parts, ' ') .. ' ' .. output_path
 
         -- 生成描述信息
         local desc_parts = {}
-        if glow_path then table.insert(desc_parts, "光晕") end
+        table.insert(desc_parts, quality_preset.label .. "底纹")
         if paoguang_flag then table.insert(desc_parts, "抛光") end
         table.insert(desc_parts, "常规")
-        if quality_path then table.insert(desc_parts, "品质" .. quality_level) end
+        table.insert(desc_parts, quality_preset.label .. "边框")
         print("  -> 生成 (" .. table.concat(desc_parts, "+") .. "): " .. output_filename)
 
         os.execute(magick_command)

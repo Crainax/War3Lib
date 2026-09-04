@@ -1519,13 +1519,20 @@ library UnitUtils requires BigInteger,MathUtils {
         return bonus;
     }
 
-    // 获取当前单位移速总倍率：(1 + up) * (1 - down)，默认 1.0
+    // 常规倍率为(1 + up) * (1 - down)；正值专用增幅仅在不含自身的移速为正且贡献非负时生效。
     public function GetUnitSpeedFinalPercent(unit u) -> real {
-        real up; real down; real rate;
+        real up; real down; real rate; real base; real positiveUp;
         if (u == null) { return 1.0; }
         up = GetUnitSpeedUpRate(u);
         down = GetUnitSpeedDownRate(u);
         rate = (1.0 + up) * (1.0 - down);
+        positiveUp = LoadReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_MOVE_SPEED_POSITIVE_UP_RATE);
+        if (positiveUp > 0.0) {
+            base = GetUnitBaseSpeed(u);
+            if (base * rate + GetUnitSpeedBonusReal(u) > 0.0 && base * (1.0 - down) > 0.0) {
+                rate = (1.0 + up + positiveUp) * (1.0 - down);
+            }
+        }
         return rate;
     }
 
@@ -1553,6 +1560,7 @@ library UnitUtils requires BigInteger,MathUtils {
         return HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL) ||
             HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE) ||
             HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_POSITIVE_UP_RATE) ||
             HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL);
     }
 
@@ -1655,6 +1663,16 @@ library UnitUtils requires BigInteger,MathUtils {
         up = GetUnitSpeedUpRate(u);
         up = up + value;
         SaveReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE, up);
+        RecalcUnitSpeed(u);
+    }
+
+    // 光环等正向增幅专用：始终记录来源（负值撤销），生效条件由每次移速重算动态判断。
+    public function AddUnitSpeedPositiveUpPercent(unit u, real value) -> nothing {
+        integer uid; real up;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        up = LoadReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_POSITIVE_UP_RATE) + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_POSITIVE_UP_RATE, up);
         RecalcUnitSpeed(u);
     }
 

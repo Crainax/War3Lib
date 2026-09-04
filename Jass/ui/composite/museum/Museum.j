@@ -339,22 +339,22 @@ library Museum requires Music,Icon,Tooltip,EscStack {
             bgImage1 = uiImage.create(uiMain.ui)
                 .exReSize(MUSEUM_BG_FULL_WIDTH * 0.5, MUSEUM_BG_FULL_HEIGHT * 0.5)
                 .setTexture("ui\\image\\museum_01.blp")
-                .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, -0.001);
+                .exRePoint(ANCHOR_BOTTOMRIGHT, uiMain.ui, ANCHOR_CENTER, 0, 0);
 
             bgImage2 = uiImage.create(uiMain.ui)
                 .exReSize(MUSEUM_BG_FULL_WIDTH * 0.5, MUSEUM_BG_FULL_HEIGHT * 0.5)
                 .setTexture("ui\\image\\museum_02.blp")
-                .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, -0.001);
+                .exRePoint(ANCHOR_BOTTOMLEFT, uiMain.ui, ANCHOR_CENTER, 0, 0);
 
             bgImage3 = uiImage.create(uiMain.ui)
                 .exReSize(MUSEUM_BG_FULL_WIDTH * 0.5, MUSEUM_BG_FULL_HEIGHT * 0.5)
                 .setTexture("ui\\image\\museum_03.blp")
-                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_CENTER, 0.001, 0.001);
+                .exRePoint(ANCHOR_TOPRIGHT, uiMain.ui, ANCHOR_CENTER, 0, 0);
 
             bgImage4 = uiImage.create(uiMain.ui)
                 .exReSize(MUSEUM_BG_FULL_WIDTH * 0.5, MUSEUM_BG_FULL_HEIGHT * 0.5)
                 .setTexture("ui\\image\\museum_04.blp")
-                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, -0.001, 0.001);
+                .exRePoint(ANCHOR_TOPLEFT, uiMain.ui, ANCHOR_CENTER, 0, 0);
 
             // 中部标题
             uiTitleText = uiText.create(uiMain.ui)
