@@ -17,6 +17,16 @@ library Music {
 	public struct music []{
 
 		private sound snd;
+		// 仅供本地音效播放判断；不得用于声音对象创建或对象池推进。
+		private static boolean skillSoundMuted = false;
+
+		static method setSkillSoundMuted(boolean muted) {
+			thistype.skillSoundMuted = muted;
+		}
+
+		static method isSkillSoundMuted() -> boolean {
+			return thistype.skillSoundMuted;
+		}
 
 		// Sound 对象池系统（用于 playXY）
 		private static hashtable table = null;  // 存储音效池：key=路径hash, value=池信息
@@ -26,7 +36,7 @@ library Music {
 		// 在位置播放堆叠音效（新方法，使用对象池，无内存泄露）
 		// 原理：为每个音效维护一个对象池，循环使用池中的 sound 对象
 		// !!!!!不能异步使用
-		static method playXY (string soundPath, real x, real y) {
+		private static method playXYInternal (string soundPath, real x, real y, boolean shouldPlay) {
 			sound snd; integer pathHash; integer poolIndex; integer nextIndex;
 
 			// 初始化对象池哈希表
@@ -60,7 +70,10 @@ library Music {
 			// 停止当前 sound（避免冲突）并设置新位置
 			StopSound(snd, false, false);
 			SetSoundPosition(snd, x, y, 0.0);
-			StartSound(snd);
+			// 静音只跳过播放，全端仍等量创建声音并推进对象池。
+			if (shouldPlay) {
+				StartSound(snd);
+			}
 
 			// 更新索引，循环使用对象池
 			nextIndex = poolIndex + 1;
@@ -73,11 +86,26 @@ library Music {
 			snd = null;
 		}
 
+		// 两个位置音效入口都必须同步调用，静音时也不能跳过对象池逻辑。
+		static method playXY(string soundPath, real x, real y) {
+			thistype.playXYInternal(soundPath, x, y, true);
+		}
+
+		static method playSkillXY(string soundPath, real x, real y) {
+			thistype.playXYInternal(soundPath, x, y, !thistype.skillSoundMuted);
+		}
+
 		//只给某个玩家播放
 		method playFor (player p) {
 			if (GetLocalPlayer() == p) {
 				StartSound(snd);
 				SetSoundPlayPosition(snd,0); //加上一条这个可以实现从头开始放
+			}
+		}
+
+		method playSkillFor(player p) {
+			if (!thistype.skillSoundMuted) {
+				this.playFor(p);
 			}
 		}
 
@@ -103,6 +131,12 @@ library Music {
 			}
 		}
 
+
+		method playSkillCameraXY(real x, real y) {
+			if (!thistype.skillSoundMuted) {
+				this.playCameraXY(x, y);
+			}
+		}
 
 		//一个使用得非常多的UI的hover方法
 		static method onHoverCommon() {
