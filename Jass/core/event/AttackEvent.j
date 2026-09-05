@@ -145,6 +145,8 @@ library AttackEvent requires Logger {
         attackUnit = null;
         targetUnit = null;
         damage = 0.0;
+        t = null;
+        registeredUnit = null;
     }
 
     // ========== 统计诊断函数 ==========

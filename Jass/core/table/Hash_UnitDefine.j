@@ -247,9 +247,7 @@
 #define KEY_UNIT_REWARD_DROP_RATE 10017         // 单位奖励/掉落倍率（real）
 #define KEY_YEGUAI_MONSTER_STOP_AVUL 10018      // 停怪系统是否为野怪添加过Avul（integer 0/1）
 #define KEY_UNIT_MAJIA_DAMAGE_REAL 10019        // 马甲模拟伤害值（real）
-#define KEY_UNIT_SIMULATE_DEATH_CALLBACK 10020  // 马甲死亡回调（OnSimulateDeath）
 #define KEY_UNIT_SIMULATE_DAMAGE_CALLBACK 10021 // 马甲伤害回调（OnSimulateDamage）
-#define KEY_UNIT_SIMULATE_EFFECT_PATH 10022     // 马甲伤害特效路径（string）
 #define KEY_MOSHOU_TEMP_MULTI_BONUS 10023       // 魔兽实例临时多重射加值（integer）
 #define KEY_MOSHOU_TEMP_RANGE_BONUS 10024       // 魔兽实例临时射程加值（integer）
 #define KEY_MOSHOU_TEMP_ATTACK_SPEED_BONUS 10025 // 魔兽实例临时攻速加值（real）

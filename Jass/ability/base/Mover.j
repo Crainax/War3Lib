@@ -334,8 +334,12 @@ library Mover requires HashTable, DamageUtils, Geometry {
     // targetX, targetY - 弹道终点坐标
     // onComplete - 完成回调（可选）
     public function StartEffectMove(unit caster, real startX, real startY, real targetX, real targetY, code onComplete) -> timer {
+        return StartEffectMoveWithResult(caster, startX, startY, targetX, targetY, onComplete, null);
+    }
+
+    private function StartEffectMoveWithResult(unit caster, real startX, real startY, real targetX, real targetY, code onComplete, timer result) -> timer {
         timer t;
-        timer result;
+
         integer id;
         effect e;
         real facing;
@@ -464,8 +468,12 @@ library Mover requires HashTable, DamageUtils, Geometry {
 
     // 追踪单位入口：maxDistance <= 0 时使用默认追踪距离。
     public function StartEffectMoveToUnitEx(unit caster, real startX, real startY, unit target, real maxDistance, integer deadMode, code onComplete) -> timer {
+        return StartEffectMoveToUnitExWithResult(caster, startX, startY, target, maxDistance, deadMode, onComplete, null);
+    }
+
+    private function StartEffectMoveToUnitExWithResult(unit caster, real startX, real startY, unit target, real maxDistance, integer deadMode, code onComplete, timer result) -> timer {
         timer t;
-        timer result;
+
         integer id;
 
         if (!EffectMoveIsTrackTargetAlive(target)) {
@@ -493,7 +501,11 @@ library Mover requires HashTable, DamageUtils, Geometry {
 
     // 兼容旧入口：追踪距离沿用默认 2000。
     public function StartEffectMoveToUnit(unit caster, real startX, real startY, unit target, integer deadMode, code onComplete) -> timer {
-        timer result;
+        return StartEffectMoveToUnitWithResult(caster, startX, startY, target, deadMode, onComplete, null);
+    }
+
+    private function StartEffectMoveToUnitWithResult(unit caster, real startX, real startY, unit target, integer deadMode, code onComplete, timer result) -> timer {
+
 
         result = StartEffectMoveToUnitEx(caster, startX, startY, target, EFFECTMOVE_TRACK_MAX_DISTANCE, deadMode, onComplete);
         target = null;

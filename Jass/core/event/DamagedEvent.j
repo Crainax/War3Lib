@@ -150,6 +150,8 @@ library DamagedEvent {
         damageSource = null;
         damagedUnit = null;
         damageAmount = 0.0;
+        t = null;
+        registeredUnit = null;
     }
 
 }

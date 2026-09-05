@@ -224,6 +224,7 @@ library Talent requires AbilityCool, Hardware {
             } else if (need3) {
                 set3 = true;
             } else {
+                u = null;
                 return;
             }
 
@@ -264,6 +265,7 @@ library Talent requires AbilityCool, Hardware {
             if (thistype.snapCount[pid] > 0) {
                 thistype.restoreStateNow(pid, u);
             }
+            u = null;
         }
 
 
@@ -317,6 +319,7 @@ library Talent requires AbilityCool, Hardware {
             DisplayTextToPlayer(p, 0, 0, "TALENT_BOOK2_SPELLID: " + S3(list == null, "", list));
             list = DzGetUnitAbilitySpellBookList(u, TALENT_BOOK3_SPELLID);
             DisplayTextToPlayer(p, 0, 0, "TALENT_BOOK3_SPELLID: " + S3(list == null, "", list));
+            u = null;
         }
 
         public static method clearAll(player p) {

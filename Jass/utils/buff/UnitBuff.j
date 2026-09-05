@@ -815,7 +815,11 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
         // 添加定时器 BUFF
         public static method add(unit u, real time, code fun) -> timer {
-            timer buffT; trigger cbTr; integer tid;
+            return thistype.addWithResult(u, time, fun, null);
+        }
+
+        private static method addWithResult(unit u, real time, code fun, timer buffT) -> timer {
+            trigger cbTr; integer tid;
 
             if (u == null || time <= 0.0 || fun == null) { return null; }
 
@@ -870,6 +874,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                                     expireTimer = buffT;
                                     TriggerEvaluate(cbTr);
                                     DestroyTrigger(cbTr);
+                                    RemoveSavedHandle(HASH_TIMER, tid, 1);
                                     cbTr = null;
                                     expireTimer = null;
                                 }
@@ -894,6 +899,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                                         expireTimer = buffT;
                                         TriggerEvaluate(cbTr);
                                         DestroyTrigger(cbTr);
+                                        RemoveSavedHandle(HASH_TIMER, tid, 1);
                                         cbTr = null;
                                         expireTimer = null;
                                     }
@@ -1279,6 +1285,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                     } else {
                         SaveReal(defenseDownPercentData, timeParent, 2, timeLeft);
                         u = null;
+                        t = null;
                     }
                 } else {
                     FlushChildHashtable(defenseDownPercentData, timeParent);

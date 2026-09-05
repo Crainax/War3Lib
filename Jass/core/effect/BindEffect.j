@@ -28,8 +28,12 @@ library BindEffect requires UnitHashTable {
         // 存储位置：EFFECT_START_KEY (101-120) 存储特效句柄
         // mdl hash 存储：MDL_HASH_START_KEY (121-140) 存储字符串hash
         public static method attachUnique(unit u, string mdl, string point) -> effect {
+            return thistype.attachUniqueWithResult(u, mdl, point, null);
+        }
+
+        private static method attachUniqueWithResult(unit u, string mdl, string point, effect e) -> effect {
             effect old;
-            effect e;
+
             integer id;
             integer i;
             integer mdlHash;

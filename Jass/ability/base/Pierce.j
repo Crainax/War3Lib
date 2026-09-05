@@ -351,8 +351,12 @@ library Pierce requires DamageUtils {
     // 从 (startX,startY) 直线飞到 (targetX,targetY)，沿途每单位最多命中一次，结束时触发 onComplete。
     // 说明：onComplete 回调中可用 PierceCompleteGetTimer() 取回 timer，并通过 HASH_TIMER 读取你自存的参数。
     public function PierceCastToPoint(unit caster, real startX, real startY, real targetX, real targetY, real damage, real radius, code onComplete) -> timer {
+        return PierceCastToPointWithResult(caster, startX, startY, targetX, targetY, damage, radius, onComplete, null);
+    }
+
+    private function PierceCastToPointWithResult(unit caster, real startX, real startY, real targetX, real targetY, real damage, real radius, code onComplete, timer result) -> timer {
         timer t;
-        timer result;
+
         integer id;
         effect e;
         group hitGrp;

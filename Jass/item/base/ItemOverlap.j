@@ -82,6 +82,7 @@ library ItemOverlap  {
 
                 // 背包没有同类物品，保持新物品不变
                 it = null; u = null;
+                p = null; slotItem = null;
 
             }));
             tr = null;

@@ -637,9 +637,13 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
         }
 
         private static method findNearestEnemyAroundPet(unit petUnit, unit ownerUnit, real radius) -> unit {
+            return guarder.selectNearestEnemyAroundPet(petUnit, ownerUnit, radius, null);
+        }
+
+        private static method selectNearestEnemyAroundPet(unit petUnit, unit ownerUnit, real radius, unit bestTarget) -> unit {
             group enumGrp;
             unit enumUnit;
-            unit bestTarget;
+
             player ownerPlayer;
             real px; real py; real tx; real ty;
             real dx; real dy; real dist; real bestDist;
@@ -736,7 +740,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
             if (!GUARDER_ISVALID_IDX(pid, idx)) { return; }
 
             petUnit = guarder.pet[pid][idx];
-            if (petUnit == null || GetUnitTypeId(petUnit) == 0) { return; }
+            if (petUnit == null || GetUnitTypeId(petUnit) == 0) { petUnit = null; return; }
             if (!IsUnitAliveBJ(petUnit)) {
                 guarder.removePet(ConvertedPlayer(pid), petUnit);
                 petUnit = null;
@@ -1016,7 +1020,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff
 
             ownerUnit = guarder.owner[pid];
             // 主人死亡不影响守卫 AI：只在句柄失效时才退出
-            if (ownerUnit == null || GetUnitTypeId(ownerUnit) == 0) { return; }
+            if (ownerUnit == null || GetUnitTypeId(ownerUnit) == 0) { ownerUnit = null; return; }
             guarder.ownerInvulnerable[pid] = IsUnitInvulnerableEx(ownerUnit);
 
             ownerPlayer = GetOwningPlayer(ownerUnit);

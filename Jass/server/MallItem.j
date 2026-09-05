@@ -411,6 +411,7 @@ library MallItem requires DzAPI, HashTable, Logger{
                         rRetry = rRetry - 1;
                         SaveInteger(HASH_TIMER, key, 4, rRetry);
                     }
+                    rTr = null; rp = null; tt = null;
                 });
 
                 // handler 置空

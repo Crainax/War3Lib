@@ -251,6 +251,7 @@ library Bullet requires HashTable, DamageUtils, Geometry, GroupUtils {
         e      = null;
         trComplete = null;
         t      = null;
+        hitTarget = null;
     }
 
     // 对外入口：
@@ -262,7 +263,11 @@ library Bullet requires HashTable, DamageUtils, Geometry, GroupUtils {
     // range    - 最远射程（超过后弹道结束）
     // onComplete - 完成回调（可选）
     public function BulletCast(unit caster, real x, real y, real facing, real damage, real radius, real range, code onComplete) -> timer {
-        timer t;
+        return BulletCastWithResult(caster, x, y, facing, damage, radius, range, onComplete, null);
+    }
+
+    private function BulletCastWithResult(unit caster, real x, real y, real facing, real damage, real radius, real range, code onComplete, timer t) -> timer {
+
         integer id;
         effect e;
         real z;
@@ -349,8 +354,12 @@ library Bullet requires HashTable, DamageUtils, Geometry, GroupUtils {
     // 从 (startX,startY) 直线飞到 (targetX,targetY)，命中第一个敌人即结束，或到达目标点强制结束，结束时触发 onComplete。
     // 说明：onComplete 回调中可用 BulletCompleteGetTimer() 取回 timer，并通过 HASH_TIMER 读取你自存的参数。
     public function BulletCastToPoint(unit caster, real startX, real startY, real targetX, real targetY, real damage, real radius, code onComplete) -> timer {
+        return BulletCastToPointWithResult(caster, startX, startY, targetX, targetY, damage, radius, onComplete, null);
+    }
+
+    private function BulletCastToPointWithResult(unit caster, real startX, real startY, real targetX, real targetY, real damage, real radius, code onComplete, timer result) -> timer {
         timer t;
-        timer result;
+
         integer id;
         effect e;
         real z;

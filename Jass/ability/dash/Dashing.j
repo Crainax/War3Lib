@@ -44,8 +44,12 @@ library Dashing requires HashTable,DamageUtils {
     // StartDashing: 统一的冲刺函数（合并 DashI 和 DashII）
     // radius > 0 且 damage >= 1.0 时才会造成伤害
     public function StartDashing(unit caster, real x, real y, real speed, real max, code onComplete, code onStep, real radius, real damage) -> timer {
+        return StartDashingWithResult(caster, x, y, speed, max, onComplete, onStep, radius, damage, null);
+    }
+
+    private function StartDashingWithResult(unit caster, real x, real y, real speed, real max, code onComplete, code onStep, real radius, real damage, timer result) -> timer {
         timer t;
-        timer result;
+
         integer id;
         real facing;
         group hitGrp;

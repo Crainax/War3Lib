@@ -109,8 +109,12 @@ library GroupUtils requires UnitFilter {
 
     //返回范围内的随机一个敌方单位
     public function GetRandomEnemyUnit (player p, real x, real y, real radius) -> unit {
+        return SelectRandomEnemyUnit(p, x, y, radius, null);
+    }
+
+    private function SelectRandomEnemyUnit (player p, real x, real y, real radius, unit u) -> unit {
         group g = GetEnemyGroup(p, x, y, radius);
-        unit u = GroupPickRandomUnit(g);
+        u = GroupPickRandomUnit(g);
         DestroyGroup(g);
         g = null;
         return u;
@@ -121,8 +125,8 @@ library GroupUtils requires UnitFilter {
     real tempMaxLife = 0.0;
 
     //返回范围内生命值最高的随机敌方单位
-    public function GetRandomMaxLifeEnemy (player p, real x, real y, real radius) -> unit {
-        group enemyGroup; unit result;
+    private function SelectMaxLifeEnemy(player p, real x, real y, real radius, unit result) -> unit {
+        group enemyGroup;
 
         // 重置临时变量
         tempMaxLifeUnit = null;
@@ -159,13 +163,17 @@ library GroupUtils requires UnitFilter {
         return result;
     }
 
+    public function GetRandomMaxLifeEnemy(player p, real x, real y, real radius) -> unit {
+        return SelectMaxLifeEnemy(p, x, y, radius, null);
+    }
+
     // 用于存储最小生命值单位的临时变量
     unit tempMinLifeUnit = null;
     real tempMinLife = 0.0;
 
     //返回范围内生命值最低的随机敌方单位
-    public function GetRandomMinLifeEnemy (player p, real x, real y, real radius) -> unit {
-        group enemyGroup; unit result;
+    private function SelectMinLifeEnemy(player p, real x, real y, real radius, unit result) -> unit {
+        group enemyGroup;
 
         // 重置临时变量
         tempMinLifeUnit = null;
@@ -200,6 +208,10 @@ library GroupUtils requires UnitFilter {
         enemyGroup = null;
 
         return result;
+    }
+
+    public function GetRandomMinLifeEnemy(player p, real x, real y, real radius) -> unit {
+        return SelectMinLifeEnemy(p, x, y, radius, null);
     }
 
     //获取矩形区域内的所有敌方单位

@@ -43,7 +43,11 @@ library TexttagUtils requires HashTable {
     // param offsetX      X 方向偏移（世界坐标）
     // return             创建的 texttag 句柄（需调用方设置寿命或销毁）
     public function CreateTextTagOnUnitOffsetX(string text, unit whichUnit, real zOffset, real size, real red, real green, real blue, real transparency, real offsetX) -> texttag {
-        texttag t = CreateTextTag();
+        return CreateTextTagOnUnitOffsetXWithResult(text, whichUnit, zOffset, size, red, green, blue, transparency, offsetX, null);
+    }
+
+    private function CreateTextTagOnUnitOffsetXWithResult(string text, unit whichUnit, real zOffset, real size, real red, real green, real blue, real transparency, real offsetX, texttag t) -> texttag {
+        t = CreateTextTag();
         real x = GetUnitX(whichUnit) - offsetX;
         real y = GetUnitY(whichUnit);
 
