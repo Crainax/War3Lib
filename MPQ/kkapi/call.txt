@@ -1291,6 +1291,50 @@ type = unit
 [[.args]]
 type = abilcode
 
+[DzGetUnitAbilityDataF]
+title = "技能 - 获取技能数据F"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据F"
+comment = ""
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityDataG]
+title = "技能 - 获取技能数据G"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据G"
+comment = ""
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityDataH]
+title = "技能 - 获取技能数据H"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据H"
+comment = ""
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
+[DzGetUnitAbilityDataI]
+title = "技能 - 获取技能数据I"
+description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据I"
+comment = ""
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = unit
+[[.args]]
+type = abilcode
+
 [DzConvertTargs2Str]
 title = "转化 - 目标允许整数转字符串"
 description = "转换 ${目标允许} 为字符串"
@@ -2116,7 +2160,7 @@ type = frame
 title = "单位 - 获取投射物发射坐标X"
 description = "获取 ${单位} 的投射物发射坐标X"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2125,7 +2169,7 @@ type = unit
 title = "单位 - 获取投射物发射坐标Y"
 description = "获取 ${单位} 的投射物发射坐标Y"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2134,7 +2178,7 @@ type = unit
 title = "单位 - 获取投射物发射坐标Z"
 description = "获取 ${单位} 的投射物发射坐标Z"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2144,7 +2188,7 @@ type = unit
 title = "技能 - 工程升级 - 获取替换后的技能ID"
 description = "获取单位 ${unit} 的技能 ${old_id} 工程升级替换后的技能ID"
 comment = "输入旧的id 获取 新的id"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = abilcode
 [[.args]]
 type = unit
@@ -2155,7 +2199,7 @@ type = abilcode
 title = "技能 - 工程升级 - 获取替换前的技能ID"
 description = "获取单位 ${unit} 的技能 ${new_id} 工程升级替换前的技能ID"
 comment = "输入新的id 获取 旧的id"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = abilcode
 [[.args]]
 type = unit
@@ -2168,7 +2212,7 @@ type = abilcode
 title = "技能 - 获取技能魔法施法时间"
 description = "获取单位 ${unit} 当前拥有的技能 ${id} 的魔法施法时间"
 comment = [[开始施法前的准备时间.暗影突袭的此项为伤害间隔.暴风雪和火焰雨的此项为每波间隔;]]
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2180,7 +2224,7 @@ type = abilcode
 title = "技能 - 获取技能持续时间(普通)"
 description = "获取单位 ${unit} 当前拥有的技能 ${id} 的持续时间(普通) "
 comment = [[普通持续时间;烈焰风暴的此项为燃烧持续时间.变身(恶魔猎手)的此项为完成变身前暂停时间]]
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2192,7 +2236,7 @@ type = abilcode
 title = "技能 - 获取技能持续时间(英雄)"
 description = "获取单位 ${unit} 当前拥有的技能 ${id} 的持续时间(英雄)"
 comment = [[英雄持续时间;技能对英雄或具有抗性皮肤的单位的持续时间.烈焰风暴的此项为熄灭持续时间.静止陷阱的此项是眩晕时间]]
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2204,7 +2248,7 @@ type = abilcode
 title = "技能 - 获取技能魔法施放点(前摇)"
 description = "获取单位 ${unit} 当前拥有的技能 ${id} 的魔法施放点(前摇)"
 comment = [[即施法前摇;]]
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2216,7 +2260,7 @@ type = abilcode
 title = "技能 - 设置技能魔法施放回复(后摇)"
 description = "获取单位 ${unit} 当前拥有的技能 ${id} 的魔法施放回复(后摇)"
 comment = [[即施法后摇;]]
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2228,7 +2272,7 @@ type = abilcode
 title = "单位 - 获取每秒生命恢复"
 description = "获取 ${单位} 的每秒生命恢复"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2237,7 +2281,7 @@ type = unit
 title = "单位 - 获取每秒魔法恢复"
 description = "获取 ${单位} 的每秒魔法恢复"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2247,7 +2291,7 @@ type = unit
 title = "单位 - 获取最低移动速度"
 description = "获取 ${单位} 的最低移动速度"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2256,7 +2300,7 @@ type = unit
 title = "单位 - 获取最高移动速度"
 description = "获取 ${单位} 的最高移动速度"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2266,7 +2310,7 @@ type = unit
 title = "单位 - 获取魔法施放点(前摇)"
 description = "获取 ${单位} 的魔法施放点(前摇)"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2275,7 +2319,7 @@ type = unit
 title = "单位 - 获取魔法施放回复(后摇)"
 description = "获取 ${单位} 的魔法施放回复(后摇)"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2285,7 +2329,7 @@ type = unit
 title = "单位 - 获取攻击最大目标数"
 description = "设置单位 ${unit} 的攻击 ${index} 最大目标数"
 comment = "第二个参数index 为0的时候 代表攻击1   1的时候代表攻击2"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = integer
 [[.args]]
 type = unit
@@ -2297,7 +2341,7 @@ type = integer
 title = "英雄 - 获取主属性类型"
 description = "获取英雄 ${hero} 的主属性类型"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = AttributeType
 [[.args]]
 type = unit
@@ -2306,7 +2350,7 @@ type = unit
 title = "英雄 - 获取主属性"
 description = "获取英雄 ${hero} 的主属性 包括加成 ${flag}"
 comment = "加成指的是绿字"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = integer
 [[.args]]
 type = unit
@@ -2318,7 +2362,7 @@ default = "true"
 title = "英雄 - 获取属性成长"
 description = "获取英雄 ${hero} 的 ${attribute} 属性成长"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2329,7 +2373,7 @@ type = AttributeType
 title = "哈希表 - 读取Handle ID"
 description = "从哈希表 ${哈希表} 主Key ${主Key} 子Key ${子Key} 读取Handle ID"
 comment = "从哈希表中读取保存的Handle ID"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = integer
 [[.args]]
 type = hashtable
@@ -2342,7 +2386,7 @@ type = integer
 title = "界面 - 获取多面板Frame"
 description = "获取多面板 ${多面板} 的Frame"
 comment = "返回多面板的Frame句柄"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = frame
 [[.args]]
 type = multiboard
@@ -2351,7 +2395,7 @@ type = multiboard
 title = "界面 - 获取计时器对话框Frame"
 description = "获取计时器对话框 ${计时器对话框} 的Frame"
 comment = "返回计时器对话框的Frame句柄"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = frame
 [[.args]]
 type = timerdialog
@@ -2360,7 +2404,7 @@ type = timerdialog
 title = "特效组 - 创建空的特效组"
 description = "创建空的特效组"
 comment = "会创建特效组,需要排泄,可以用最后创建的特效组"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = dzeffectgroup
 
 
@@ -2368,7 +2412,7 @@ returns = dzeffectgroup
 title = "特效组 - 选取范围内的特效"
 description = "选取 X:${x} Y:${y} 范围:${range} 内的特效"
 comment = "会创建特效组,需要排泄,可以用最后创建的特效组"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = dzeffectgroup
 [[.args]]
 type = real
@@ -2382,7 +2426,7 @@ type = real
 title = "特效组 - 选取区域内的特效"
 description = "选取 ${rect} 内的特效到新建特效组"
 comment = "会创建特效组,需要排泄,可以用最后创建的特效组"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = dzeffectgroup
 [[.args]]
 type = rect
@@ -2392,7 +2436,7 @@ type = rect
 title = "特效组 - 转换 handle ID 为特效组"
 description = "转换 handle ID ${handleID} 为特效组"
 comment = "整数地址转换为特效组"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = dzeffectgroup
 [[.args]]
 type = integer
@@ -2401,7 +2445,7 @@ type = integer
 title = "特效组 - 获取特效数量"
 description = "获取 ${特效组} 里的特效数量"
 comment = "包括删除了但没移出的特效"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = integer
 [[.args]]
 type = dzeffectgroup
@@ -2410,7 +2454,7 @@ type = dzeffectgroup
 title = "特效组 - 第N个特效"
 description = "获取 ${特效组} 里的第 ${N} 个特效"
 comment = "从1开始  循环1到特效组数量"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = effect
 [[.args]]
 type = dzeffectgroup
@@ -2422,7 +2466,7 @@ default = "1"
 title = "特效组 - 是否包含特效"
 description = "${特效组} 是否包含 ${特效} "
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = boolean
 [[.args]]
 type = dzeffectgroup
@@ -2433,14 +2477,14 @@ type = effect
 title = "特效组 - 选取特效"
 description = "选取特效"
 comment = "选取做动作里获取当前选取的特效"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = effect
 
 [DzSetEffectAttachedModelScale]
 title = "特效 - 设置绑定特效的缩放大小"
 description = "设置 ${特效} 绑定模型的缩放 X: ${scaleX} Y: ${scaleY} Z: ${scaleZ}"
 comment = "修改特效模型作为附着模型渲染时的缩放, 设为1.0还原"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = boolean
 [[.args]]
 type = effect
@@ -2458,7 +2502,7 @@ default = "1.0"
 title = "界面 - 设置UI模型绑定特效的缩放大小"
 description = "设置 ${frame} UI模型绑定特效的缩放 X: ${scaleX} Y: ${scaleY} Z: ${scaleZ}"
 comment = "修改UI模型控件的模型作为附着模型渲染时的缩放, 设为1.0还原"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = boolean
 [[.args]]
 type = integer
@@ -2472,11 +2516,31 @@ default = "1.0"
 type = real
 default = "1.0"
 
+[DzGetBuffBar]
+title = "界面 - 获取 Buff 栏"
+description = "获取 Buff 栏"
+comment = "返回控制面板单位详情中的 Buff 栏 frame"
+category = TC_KKPRE
+returns = frame
+
+[DzGetBuffBarButton]
+title = "界面 - 获取 Buff 栏按钮"
+description = "获取 Buff 栏第 ${row} 行第 ${col} 列按钮"
+comment = "返回控制面板单位详情中的 Buff 按钮 frame"
+category = TC_KKPRE
+returns = frame
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+
 [LoadDzEffectGroupHandle]
 title = "哈希表 - 读取特效组"
 description = "从哈希表 ${哈希表} 主Key ${主Key} 子Key ${子Key} 读取特效组"
 comment = "从哈希表中读取保存的特效组句柄"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = dzeffectgroup
 [[.args]]
 type = hashtable
@@ -2490,8 +2554,59 @@ type = integer
 title = "特效组 - 获取 特效组 的整数地址"
 description = "获取 ${特效组} 的整数地址"
 comment = "可以把一个特效组转成整数，方便存入缓存或Hash表。"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = integer
 [[.args]]
 type = dzeffectgroup
 default = bj_lastCreatedDzEffectGroup
+
+[DzGetInventoryMaxSize]
+title = "物品栏 - 获取物品栏最大格数"
+description = "获取物品栏最大格数"
+comment = ""
+category = TC_KKPRE
+returns = integer
+
+[DzGetInventoryDropSlotOrderID]
+title = "物品栏 - 获取 移动物品 的命令ID"
+description = "获取 移动物品到第 ${n} 格的命令ID"
+comment = ""
+category = TC_KKPRE
+returns = ordercode
+[[.args]]
+type = integer
+
+
+[DzGetInventoryUseSlotOrderID]
+title = "物品栏 - 获取 使用物品 的命令ID"
+description = "获取 使用第 ${n} 格物品 的命令ID"
+comment = ""
+category = TC_KKPRE
+returns = ordercode
+[[.args]]
+type = integer
+default = "0"
+
+[DzGetInventoryBarButton]
+title = "物品栏 - 获取物品栏按钮"
+description = "获取物品栏第 ${i} 个按钮"
+comment = "索引从0开始, 扩展的物品栏需要用这个获取 UI (因为 DzFrameGetItemBarButton 只允许获取前6个)"
+category = TC_KKPRE
+returns = frame
+[[.args]]
+type = integer
+default = "0"
+
+[DzGetSwapItemSlotEventFromSlotID]
+title = "移动物品栏物品事件 - 获取来源格子ID"
+description = "移动物品栏物品事件 - 获取来源格子ID"
+comment = "索引从0开始"
+category = TC_KKPRE
+returns = integer
+
+[DzGetSwapItemSlotEventToSlotID]
+title = "移动物品栏物品事件 - 获取目标格子ID"
+description = "移动物品栏物品事件 - 获取目标格子ID"
+comment = "索引从0开始"
+category = TC_KKPRE
+returns = integer

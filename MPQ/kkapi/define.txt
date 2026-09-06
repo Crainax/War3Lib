@@ -113,6 +113,7 @@ CollisionType_hover=0,CollisionType,64,浮空
 CollisionType_amph=0,CollisionType,128,两栖
 
 TargetFlags_NotSelf=0,TargetFlags,0x1E000,"别人"
+TargetFlags_Enemy=0,TargetFlags,0xC1000E,"敌人"
 AttributeType_Strength=0,AttributeType,0x1,"力量"
 AttributeType_Agility=0,AttributeType,0x3,"敏捷"
 AttributeType_Intelligence=0,AttributeType,0x2,"智力"

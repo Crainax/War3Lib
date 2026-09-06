@@ -69,6 +69,7 @@
 6. KKWE 更新后必须检查 `BlizzardAPI/DzAPI/KKAPI/KKPRE` 的 `.cfg` 注入表和 `.j` 声明是否出现重复注入函数
     * 如果同名函数同时出现在 `BlizzardAPI` 和 `KKAPI`，优先保留 `BlizzardAPI`，把 `KKAPI.cfg` 中重复登记删除，并把 `KKAPI.j` 中重复声明删除或改成不含 `native/function` 关键字的注释
     * 本次踩雷项: `DzFrameGetName`、`DzIsWindowActive`
+7. 更新后检查自定义句柄类型的编译兼容性。本次 `dzeffectgroup` 和 `bj_lastCreatedDzEffectGroup` 从 KKPRE 转入 KKAPI，旧版 vjassc 将类型声明输出到全局变量之后，导致 `Undefined type dzeffectgroup`；仅把类型声明移到 library 外无法解决。2026-09-06 更新 vjassc 后，保留上游声明已通过 War3Lib VERSION_UNITTEST（Museum）编译。以后遇到同类问题应检查编译器输出顺序，不能通过删除类型或改变变量类型规避。
 
 
 
