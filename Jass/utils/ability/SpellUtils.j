@@ -379,6 +379,42 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_APPLIED_RATE, 0.0, 0.0);
 	}
 
+	// 只迁移外部持久属性。调用方须先撤销旧技能自身效果及独立等级强化。
+	// restoreBeforeInit 仅用于尚未初始化的目标；不触发被动回调、不复制 applied/CD/UI 缓存。
+	public struct abilityAttributeSnapshot {
+		private real finalUp;
+		private real finalDown;
+		private real rangeUp;
+		private real rangeDown;
+		private real passive;
+
+		static method capture(unit u, integer abilityID) -> thistype {
+			thistype this = thistype.allocate();
+			this.captureFrom(u, abilityID);
+			return this;
+		}
+
+		method captureFrom(unit u, integer abilityID) {
+			this.finalUp = GetAbilitySpellFinalDamageRateUp(u, abilityID);
+			this.finalDown = GetAbilitySpellFinalDamageRateDown(u, abilityID);
+			this.rangeUp = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, 0.0);
+			this.rangeDown = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, 0.0);
+			this.passive = GetAbilitySpellPassiveRate(u, abilityID);
+		}
+
+		method restoreBeforeInit(unit u, integer abilityID) {
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_UP, this.finalUp, 1.0);
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_DOWN, this.finalDown, 1.0);
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, this.rangeUp, 0.0);
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, this.rangeDown, 0.0);
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, this.passive, 0.0);
+			ClearAbilitySpellPassiveAppliedRate(u, abilityID);
+			RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_STRING_ID, "技能最终伤害", GetAbilitySpellFinalDamageRate(u, abilityID) - 1.0);
+			RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_STRING_ID, "技能范围增加", GetAbilitySpellRangeRate(u, abilityID) - 1.0);
+			RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_STRING_ID, "技能被动强化", this.passive);
+		}
+	}
+
 	public function RegisterSpellPassiveRateChanged(code func) {
 		if (spellPassiveRateChangedTr == null) {
 			spellPassiveRateChangedTr = CreateTrigger();

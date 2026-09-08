@@ -32,6 +32,7 @@
 #define HASH_CHILD_SALT_SPELL_RANGE_STRING_ID        3008
 #define HASH_CHILD_SALT_SPELL_PASSIVE_STRING_ID      3009
 #define HASH_CHILD_SALT_ABILITY_VIRTUAL_LEVEL        3010
+#define HASH_CHILD_SALT_TALENT_LIMIT_APPLIED         3011 // 天赋极限强化已应用等级；独立于普通技能虚拟等级
 
 // 技能额外属性自定义字符串（AbilityDecorateData）：3101..3200 专用于最多 100 条 string 内容
 #define HASH_CHILD_SALT_ABILITY_CUSTOM_STRING_TEXT_BASE 3100

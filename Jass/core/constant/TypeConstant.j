@@ -117,6 +117,7 @@
 #define SPELL_POINTER_KEY       100004000    //指针
 #define SPELL_SHOP_UPGRADE_COST_MULTIPLIER_KEY 100005000 // SpellShop升级费用倍率
 #define SPELL_TOOLTIP_HIDE_LEVEL_KEY 100006000 // 自定义tooltip隐藏等级标题段
+#define TALENT_LIMIT_ELIGIBLE_KEY    100007000 // HASH_TYPEID：允许天赋极限强化（integer 1）
 
 
 //异度用:   10000-100000之间不重复

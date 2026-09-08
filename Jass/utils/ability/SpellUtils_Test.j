@@ -93,6 +93,45 @@ library UTSpellUtils requires SpellUtils, AbilityDecorateData, LBKKAPI,UnitUtils
 		p = null;
 	}
 
+	// 生命周期回归：只迁移持久分项，不继承旧技能 applied、虚拟等级和冷却。
+	private function TestAttributeMigration() {
+		abilityAttributeSnapshot snapshot;
+		unit u;
+		integer sourceID;
+		integer targetID;
+		integer key;
+		u = testUnits[0];
+		sourceID = 'ATs1';
+		targetID = 'ATs2';
+		AddAbilitySpellFinalDamageRateUp(u, sourceID, 0.5);
+		AddAbilitySpellFinalDamageRateDown(u, sourceID, 0.2);
+		AddAbilitySpellRangeRateUp(u, sourceID, 0.5);
+		AddAbilitySpellRangeRateDown(u, sourceID, 0.2);
+		AddAbilitySpellPassiveRate(u, sourceID, 0.25);
+		SetAbilitySpellPassiveAppliedRate(u, sourceID, 9.0);
+		SetAbilityVirtualLevel(u, sourceID, 27);
+		key = GetAbilityHashKey(u, sourceID);
+		SaveReal(HASH_ABILITY, key, HASH_CHILD_SALT_ABILITY_COOLDOWN, 7.0);
+		snapshot = abilityAttributeSnapshot.capture(u, sourceID);
+		FlushChildHashtable(HASH_ABILITY, key);
+		snapshot.restoreBeforeInit(u, targetID);
+		snapshot.restoreBeforeInit(u, targetID);
+		assert.Real(GetAbilitySpellFinalDamageRate(u, targetID), 1.2, "重复恢复不能重复叠加终伤");
+		assert.Real(GetAbilitySpellRangeRate(u, targetID), 1.2, "迁移保留范围Up和Down分项");
+		assert.Real(GetAbilitySpellPassiveRate(u, targetID), 0.25, "迁移保留外部被动强化");
+		assert.Boolean(!HasAbilitySpellPassiveAppliedRate(u, targetID), "新技能不得继承旧applied快照");
+		assert.Integer(GetAbilityVirtualLevel(u, targetID), 0, "不得继承旧虚拟等级");
+		assert.Boolean(!HaveSavedReal(HASH_ABILITY, GetAbilityHashKey(u, targetID), HASH_CHILD_SALT_ABILITY_COOLDOWN), "不得继承旧冷却");
+		// 分项仍然能正确撤销，不能把总倍率扁平化为一个Up值。
+		AddAbilitySpellFinalDamageRateDown(u, targetID, -0.2);
+		AddAbilitySpellRangeRateDown(u, targetID, -0.2);
+		assert.Real(GetAbilitySpellFinalDamageRate(u, targetID), 1.5, "恢复后终伤Down仍可独立撤销");
+		assert.Real(GetAbilitySpellRangeRate(u, targetID), 1.5, "恢复后范围Down仍可独立撤销");
+		snapshot.destroy();
+		FlushChildHashtable(HASH_ABILITY, GetAbilityHashKey(u, targetID));
+		u = null;
+	}
+
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			// 创建测试单位
@@ -104,6 +143,7 @@ library UTSpellUtils requires SpellUtils, AbilityDecorateData, LBKKAPI,UnitUtils
 
 			BJDebugMsg("[SpellUtils] 测试单位已创建");
 			TestAbilityAttrs();
+			TestAttributeMigration();
 			}, function() {
 			// 可选：清理测试单位（目前保留供测试使用）
 		});
