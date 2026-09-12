@@ -100,21 +100,15 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 		for (1 <= i <= 37) {
 			heroData[i].talentCount = ModuloInteger(i, 6);
 			heroData[i].text2 = "力量英雄/近战";
-			heroData[i].giftCount = ModuloInteger(i+1, 6);
 			heroData[i].skillCount = ModuloInteger(i+2, 6);
 			heroData[i].equitCount = ModuloInteger(i+3, 11);
 			max = heroData[i].talentCount;
-			if (heroData[i].giftCount > max) max = heroData[i].giftCount;
 			if (heroData[i].skillCount > max) max = heroData[i].skillCount;
 			if (heroData[i].equitCount > max) max = heroData[i].equitCount;
 			for (1 <= j <= max) {
 				if (j <= heroData[i].talentCount) {
 					heroData.talentIcon[i][j]  = heroData[ModuloInteger(i+j-1, 37)+1].icon;
 					heroData.talentValue[i][j] = j * 10;
-				}
-				if (j <= heroData[i].giftCount) {
-					heroData.giftIcon[i][j]    = heroData[ModuloInteger(i+j, 37)+1].icon;
-					heroData.giftValue[i][j]   = j * 20;
 				}
 				if (j <= heroData[i].skillCount) {
 					heroData.skillIcon[i][j]   = heroData[ModuloInteger(i+j+1, 37)+1].icon;
@@ -129,22 +123,38 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 
 		// index=38：全 Count 为 0 的测试英雄（用于验证空分页显示逻辑）
 		heroData[38].talentCount = 0;
-		heroData[38].giftCount   = 0;
 		heroData[38].skillCount  = 0;
 		heroData[38].equitCount  = 0;
 		heroData[38].text2       = "力量英雄/近战";
 
 		heroData.size = 38;
+		heroData.newPlayerMode = true;
+		for (1 <= i <= heroData.size) {
+			heroData[i].newPlayerRecommended = false;
+		}
+		heroData[6].newPlayerRecommended = true;
+		heroData[7].newPlayerRecommended = true;
+		heroData[8].newPlayerRecommended = true;
+		heroData[9].newPlayerRecommended = true;
+		heroData[12].newPlayerRecommended = true;
+		heroData[13].newPlayerRecommended = true;
+		heroData[14].newPlayerRecommended = true;
+		heroData[19].newPlayerRecommended = true;
+		heroData[22].newPlayerRecommended = true;
 
 		// 进度条测试数据：随机填充（按玩家 pid=1..MAX_PLAYER_COUNT，英雄 pos=1..heroData.size）
 		for (1 <= i <= MAX_PLAYER_COUNT) {
-			// 全英雄亲密度（共通，只取玩家索引）
-			heroData.progressAllMax[i] = 1000;
-			heroData.progressAll[i] = GetRandomInt(0, heroData.progressAllMax[i]);
+			// 全英雄亲密等级总和（固定示例便于核对条内 63/125）。
+			heroData.progressAllMax[i] = 125;
+			heroData.progressAll[i] = 63;
+			heroData.progressAllText[i] = "|cFFF59E0B全英雄亲密等级总和|r";
+			heroData.dailyIntimacyLeft[i] = 20;
 		}
 		for (1 <= i <= (heroData.size-1)) {
 			for (1 <= j <= MAX_PLAYER_COUNT) {
 				// 英雄亲密度（按玩家+英雄）
+				heroData.progressHeroText[j][i] = "|cFFFFA8CE亲密等级 Lv." + I2S(ModuloInteger(i - 1, 6)) + "|r";
+				heroData.progressHeroMaxed[j][i] = false;
 				if (GetRandomInt(0, 1) == 0) {
 					heroData.progressHeroMax[j][i] = 0;
 					heroData.progressHero[j][i] = 0;
@@ -153,6 +163,16 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 					heroData.progressHero[j][i] = GetRandomInt(0, heroData.progressHeroMax[j][i]);
 				}
 			}
+		}
+		// 前两个英雄固定覆盖普通 0/20 与满级 MAX 两种显示。
+		for (1 <= j <= MAX_PLAYER_COUNT) {
+			heroData.progressHero[j][1] = 0;
+			heroData.progressHeroMax[j][1] = 20;
+			heroData.progressHeroText[j][1] = "|cFFFFA8CE亲密等级 Lv.0|r";
+			heroData.progressHero[j][2] = 1;
+			heroData.progressHeroMax[j][2] = 1;
+			heroData.progressHeroText[j][2] = "|cFFFFA8CE亲密等级 Lv.5|r";
+			heroData.progressHeroMaxed[j][2] = true;
 		}
 
 		heroData.trHeroCondition = CreateTrigger();
@@ -212,18 +232,12 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 						toastHint.createAtMouse(p, "[HSelect] Enter: 天赋技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
 					}
 				} else if (eventType == 2) {
-					// 赠礼
-					if (eventIndex <= heroData[hero].giftCount) {
-						value = heroData.giftValue[hero][eventIndex];
-						toastHint.createAtMouse(p, "[HSelect] Enter: 赠礼 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
-					}
-				} else if (eventType == 3) {
 					// 建议的技能
 					if (eventIndex <= heroData[hero].skillCount) {
 						value = heroData.skillValue[hero][eventIndex];
 						toastHint.createAtMouse(p, "[HSelect] Enter: 建议的技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
 					}
-				} else if (eventType == 4) {
+				} else if (eventType == 3) {
 					// 装备
 					if (eventIndex <= heroData[hero].equitCount) {
 						value = heroData.equitValue[hero][eventIndex];
@@ -251,18 +265,12 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 						toastHint.createAtMouse(p, "[HSelect] Leave: 天赋技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
 					}
 				} else if (eventType == 2) {
-					// 赠礼
-					if (eventIndex <= heroData[hero].giftCount) {
-						value = heroData.giftValue[hero][eventIndex];
-						toastHint.createAtMouse(p, "[HSelect] Leave: 赠礼 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
-					}
-				} else if (eventType == 3) {
 					// 建议的技能
 					if (eventIndex <= heroData[hero].skillCount) {
 						value = heroData.skillValue[hero][eventIndex];
 						toastHint.createAtMouse(p, "[HSelect] Leave: 建议的技能 - 英雄" + I2S(hero) + " 索引" + I2S(eventIndex) + " Value=" + I2S(value));
 					}
-				} else if (eventType == 4) {
+				} else if (eventType == 3) {
 					// 装备
 					if (eventIndex <= heroData[hero].equitCount) {
 						value = heroData.equitValue[hero][eventIndex];
@@ -344,6 +352,9 @@ library UTHeroSelector requires HeroSelector,Keyboard,SyncBus {
 			p = syncBus.getPlayer();
 			if (SubStringBJ(str, 1, 1) == "L") {
 				toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮1（随机选择）");
+			} else if (SubStringBJ(str, 1, 1) == "Q") {
+				pos = S2I(SubStringBJ(str, 2, StringLength(str)));
+				toastHint.createAtMouse(p, "[HSelect] 新手确认请求，位置: " + I2S(pos));
 			} else if (SubStringBJ(str, 1, 1) == "R") {
 				pos = S2I(SubStringBJ(str, 2, StringLength(str)));
 				toastHint.createAtMouse(p, "[HSelect] 玩家 " + GetPlayerName(p) + " 点击了按钮2，选择位置: " + I2S(pos));

@@ -9,6 +9,10 @@
 //自动生成的文件
 library UTSelector requires Selector {
 
+	private integer sessionClickCount = 0;
+	private selectData sessionData = 0;
+	private integer sessionOldToken = 0;
+
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
@@ -184,7 +188,45 @@ library UTSelector requires Selector {
 		// 清理局部变量
 		p = null;
 	}
-	function TTestUTSelector2 (player p) {}
+	// 验证 selectData ID 被复用后，旧延迟包不能命中新会话。
+	function TTestUTSelector2 (player p) {
+		selectData oldData; selectData newData;
+		integer oldId; integer newToken;
+
+		oldData = selectData.create(p, 1);
+		oldId = oldData;
+		sessionOldToken = oldData.getSessionToken();
+		oldData.destroy();
+
+		newData = selectData.create(p, 1);
+		newToken = newData.getSessionToken();
+		sessionData = newData;
+		sessionClickCount = 0;
+		newData.registerClick(function () {
+			sessionClickCount += 1;
+		});
+
+		assert.Integer(newData, oldId, "selectData 应复用刚释放的 ID");
+		assert.Boolean(newToken != sessionOldToken, "复用 ID 必须分配新的 session token");
+
+		if (GetLocalPlayer() == p) {
+			syncBus.DzSyncDataEx("Select", "D,"+I2S(newData)+","+I2S(sessionOldToken)+",1");
+		}
+		UnitTestAutoTimer(0.3, 0.3, function() {
+			assert.Integer(sessionClickCount, 0, "旧 session token 的延迟包不得命中新 selectData");
+			if (GetLocalPlayer() == sessionData.owner) {
+				syncBus.DzSyncDataEx("Select", "D,"+I2S(sessionData)+","+I2S(sessionData.getSessionToken())+",1");
+			}
+		}, function() {
+			assert.Integer(sessionClickCount, 1, "当前 session token 的延迟包应正常触发一次");
+			if (sessionData.isExist()) {
+				sessionData.destroy();
+			}
+			sessionData = 0;
+			sessionOldToken = 0;
+		});
+		p = null;
+	}
 	function TTestUTSelector3 (player p) {}
 	function TTestUTSelector4 (player p) {}
 	function TTestUTSelector5 (player p) {}

@@ -119,6 +119,9 @@
 #define KEY_UNIT_STR_DISABLED                255610157 // 力量属性是否被禁用（boolean）
 #define KEY_UNIT_AGI_DISABLED                255610158 // 敏捷属性是否被禁用（boolean）
 #define KEY_UNIT_INT_DISABLED                255610159 // 智力属性是否被禁用（boolean）
+#define KEY_UNIT_STR_SELF_EXCLUDED           255610280 // 排除力量自身贡献，保留转入与原始转出（boolean，默认 false）
+#define KEY_UNIT_AGI_SELF_EXCLUDED           255610281 // 排除敏捷自身贡献，保留转入与原始转出（boolean，默认 false）
+#define KEY_UNIT_INT_SELF_EXCLUDED           255610282 // 排除智力自身贡献，保留转入与原始转出（boolean，默认 false）
 
 // 跨属性共享：X 属性是否计入 Y 属性
 #define KEY_UNIT_STR_TO_AGI_SHARE            255610160 // 力量是否计入敏捷（boolean）
@@ -131,6 +134,14 @@
 // 单位魔法抗性（Resist）增减幅
 #define KEY_UNIT_RESIST_UP_RATE              255610166 // 魔抗减伤 Up（0~1，使用 RealAdd 归一叠加）
 #define KEY_UNIT_RESIST_DOWN_RATE            255610167 // 魔抗易伤 Down（线性累加）
+#define KEY_UNIT_RESIST_FULL_COUNT           255610209 // 满额魔抗层数（AddUnitResistUp +/-1.0 可逆）
+
+// UnitBuff 百分比破防来源栈（不影响旧 HASH_UNIT_DEFENSE_REDUCE_VALUE 固定值破防）
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT       255610210 // 百分比破防活跃来源数量
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT     255610211 // 单来源实例数量（source parent）
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE       255610212 // 单来源当前已应用最大减幅（source parent）
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE   255611000 // 单来源实例ID数组起始键（+ index）
+#define KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE 255612000 // 单来源实例减幅数组起始键（+ index）
 
 // 眩晕系统键值
 #define KEY_UNIT_STUN_RESIST_UP_RATE         255610168 // 眩晕抗性（0~1，RealAdd 归一叠加）
@@ -171,13 +182,50 @@
 
 // Guarder 守卫系统键值
 #define KEY_UNIT_GUARD_ATTACK_RANGE      255610192 // 守卫单位独立攻击范围（real，码）
-#define KEY_UNIT_GUARD_PAUSE_AVUL_ADDED  255610193 // 是否由 Guarder.pause 添加过 Avul（integer 0/1）
+#define KEY_UNIT_GUARD_AVUL_ADDED        255610193 // 是否由 Guarder 状态机添加过 Avul（integer 0/1）
+#define KEY_UNIT_GUARD_SUPER_SPEED_ADDED 255610213 // 是否由 Guarder.addPet 添加过超级移速（integer 0/1）
+#define KEY_UNIT_GUARD_DISABLE_OWNER_FOLLOW 255610214 // Guarder 是否禁用跟随主人/召回（integer 0/1）
+#define KEY_UNIT_GUARD_SLEEP_TIME_LEFT   255610227 // Guarder 休眠剩余时间（real）
+#define KEY_UNIT_GUARD_DISARM_LOCKED     255610229 // Guarder 休眠是否持有独立缴械锁（integer 0/1）
+
+// [异度] 大帝战车复伤记录（父键为受击单位 handleId，+ playerIndex - 1，预留6个玩家槽）
+#define KEY_UNIT_DADI_HIT_SESSION_BASE   255610230 // 本次上车世代（integer，255610230-255610235）
+#define KEY_UNIT_DADI_LAST_HIT_TICK_BASE 255610236 // 本世代最后命中Tick（integer，255610236-255610241）
+#define KEY_UNIT_STABLE_SYNC_ID          255610242 // 项目同步创建序号（integer，不参与 HandleID 数值裁决）
 
 // 单位面板攻击图标自定义显示
 #define KEY_UNIT_ATK_CORNER_TEXT         255610194 // 攻击图标角标文本（string）
 #define KEY_UNIT_ATK_TEXTURE             255610195 // 攻击图标自定义贴图路径（string）
 // 单位面板攻击数值自定义显示
 #define KEY_UNIT_ATK_VALUE_STR           255610196 // 攻击数值自定义显示文本（string）
+
+// [异度] 暴击真伤增减幅（基础值存 BigInteger）
+#define KEY_UNIT_CRIT_TRUE_UP_RATE       255610205 // 暴击真伤增幅累计值（real）
+#define KEY_UNIT_CRIT_TRUE_DOWN_RATE     255610206 // 暴击真伤减幅累计值（real）
+
+// [异度] 单位最终受伤倍率
+#define KEY_UNIT_DAMAGED_UP_RATE         255610207 // 受伤增加累计值（real）
+#define KEY_UNIT_DAMAGED_DOWN_RATE       255610208 // 受伤减少累计值（real，RealAdd）
+
+// [异度] 单位结算最终伤害倍率
+#define KEY_UNIT_FINAL_DAMAGE_UP_RATE    255610220 // 结算最终伤害增加累计值（real）
+#define KEY_UNIT_FINAL_DAMAGE_DOWN_RATE  255610221 // 结算最终伤害减少累计值（real，RealAdd）
+#define KEY_UNIT_SPELL_RETURN_X          255610222 // 主动技能临时位移返回点X（real）
+#define KEY_UNIT_SPELL_RETURN_Y          255610223 // 主动技能临时位移返回点Y（real）
+#define KEY_UNIT_SPELL_RETURN_COUNT      255610224 // 主动技能临时位移返回点锁计数（integer）
+#define KEY_UNIT_AJZN_DEFENSE_COUNT      255610225 // 乘天地·御悠然临时防御锁计数（integer）
+#define KEY_UNIT_ATTACK_SPEED_RAW_REAL   255610226 // 单位未钳制攻速缓存（real，可为负数）
+
+// UnitBuff 通用禁用类 DEBUFF
+#define KEY_UNIT_SILENCE_TIME_LEFT       255610197 // 沉默剩余时间（real）
+#define KEY_UNIT_DISARM_TIME_LEFT        255610198 // 缴械/禁用攻击剩余时间（real）
+#define KEY_UNIT_SILENCE_NATIVE_ON       255610199 // 沉默 Dz native 已应用标记（boolean/int）
+#define KEY_UNIT_DISARM_NATIVE_ON        255610200 // 缴械 Dz native 的共享锁计数（integer）
+#define KEY_UNIT_DISARM_EFFECT_TIME_LEFT 255610228 // 需要显示沉默特效的缴械剩余时间（real）
+#define KEY_UNIT_EX_PAUSE_LOCK_STUN      255610201 // EXPauseUnit 眩晕锁计数（integer）
+#define KEY_UNIT_EX_PAUSE_LOCK_PRECAST   255610202 // EXPauseUnit 前摇锁计数（integer）
+#define KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST 255610203 // EXPauseUnit 限时前摇锁计数（integer）
+#define KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT  255610204 // 限时前摇暂停剩余时间（real）
 
 //异度用键位
 #define KEY_UNIT_ARENA_PLAYER 10001     // 子键:属于玩家几的竞技场怪物
@@ -196,7 +244,145 @@
 #define KEY_MOSHOU_BINDING_TOTAL_DAMAGE 10012   // 魔兽直伤总伤害量（real）
 #define KEY_UNIT_CURRENT_SKIN_MODEL_PATH 10013  // 当前皮肤模型路径（string）
 #define KEY_UNIT_SKIN_BASE_ATTACK_RANGE 10014   // 单位基础攻击距离缓存（real）
+#define KEY_UNIT_BOSS_FANGKA 10015              // 进攻BOSS防卡计数
+#define KEY_UNIT_BOSS_ATTACK_BASE 10016         // 进攻BOSS强制攻击基地标记
+#define KEY_UNIT_REWARD_DROP_RATE 10017         // 单位奖励/掉落倍率（real）
+#define KEY_YEGUAI_MONSTER_STOP_AVUL 10018      // 停怪系统是否为野怪添加过Avul（integer 0/1）
+#define KEY_UNIT_MAJIA_DAMAGE_REAL 10019        // 马甲模拟伤害值（real）
+#define KEY_UNIT_SIMULATE_DEATH_CALLBACK 10020  // 马甲死亡回调（OnSimulateDeath）
+#define KEY_UNIT_SIMULATE_DAMAGE_CALLBACK 10021 // 马甲伤害回调（OnSimulateDamage）
+#define KEY_UNIT_SIMULATE_EFFECT_PATH 10022     // 马甲伤害特效路径（string）
+#define KEY_MOSHOU_TEMP_MULTI_BONUS 10023       // 魔兽实例临时多重射加值（integer）
+#define KEY_MOSHOU_TEMP_RANGE_BONUS 10024       // 魔兽实例临时射程加值（integer）
+#define KEY_MOSHOU_TEMP_ATTACK_SPEED_BONUS 10025 // 魔兽实例临时攻速加值（real）
+#define KEY_UNIT_KILL_REWARD_GOLD_EXTRA_RATE 10026 // 本次伤害击杀额外金币倍率（real）
+#define KEY_UNIT_KILL_REWARD_ARENA_JIEJING_EXTRA_RATE 10027 // 本次伤害击杀额外竞技场结晶进度倍率（real）
+#define KEY_UNIT_YEGUAI_GOLD_RATE 10028             // 普通野怪创建时快照的超前金币收益倍率（real）
+
+// 装备 helper 召唤物运行态
+#define KEY_UNIT_HELPER_SMART_POINT_TRIGGER 255610215  // helper 右键点地触发器
+#define KEY_UNIT_HELPER_SMART_TARGET_TRIGGER 255610216 // helper 右键点单位触发器
+#define KEY_UNIT_HELPER_DEATH_TRIGGER 255610217        // helper 死亡清理触发器
+#define KEY_UNIT_HELPER_SLOT_GROUP 255610218           // helper 所属固定槽组
+#define KEY_UNIT_HELPER_SLOT_INDEX 255610219           // helper 所属固定槽位
+
+// [异度] 进攻BOSS运行态
+#define KEY_UNIT_NORMAL_BOSS_RUNTIME_INDEX 10117       // 普通进攻BOSS运行态数组索引
+#define KEY_UNIT_TAITAN_RUNTIME 10120                  // 泰坦最终BOSS运行态标记
+#define KEY_UNIT_BOSS_FANGKA_RUNTIME_INDEX 10121       // 进攻BOSS防卡运行态数组索引
+#define KEY_UNIT_BOSS_FANGKA_DAMAGE_TARGET 10122       // 进攻BOSS防卡最近伤害来源单位
+#define KEY_UNIT_BOSS_FANGKA_DAMAGE_TICK 10123         // 进攻BOSS防卡最近伤害记录tick
+#define KEY_UNIT_BOSS_FANGKA_DASH_TICK 10124           // 进攻BOSS防卡最近冲刺tick
+#define KEY_UNIT_BOSS_FANGKA_DASHING 10125             // 进攻BOSS防卡冲刺中标记
+#define KEY_UNIT_BOSS_FANGKA_STUCK_COUNT 10126         // 进攻BOSS回基地无进展累计
+#define KEY_UNIT_BOSS_FANGKA_LAST_BASE_DISTANCE 10127  // 进攻BOSS上次到基地距离
+#define KEY_UNIT_BOSS_FANGKA_DASH_ATTACK 10128         // 进攻BOSS冲刺结束后补攻击标记
+#define KEY_UNIT_BOSS_FANGKA_RETURNING 10129           // 进攻BOSS回基地加速推进标记
+#define KEY_UNIT_BOSS_FANGKA_RETURN_SPEED 10130        // 进攻BOSS回基地加速推进速度（real）
+
+// [异度] 进攻怪技能运行态
+#define GUAI_ATTACK_WEAKEN_UNIT_KEY 5101       // 蚀攻降低比例（real）
+#define GUAI_ATTR_WEAKEN_UNIT_KEY 5102         // 蚀魂降低比例（real）
+#define GUAI_NATURE_ATTRACTION_UNIT_KEY 5104   // 自然吸引队列占用标记
+#define GUAI_FROST_PUNISH_UNIT_KEY 5105        // 冰霜惩罚队列占用标记
+#define GUAI_ATTACK_SPELL_UNIT_KEY 5204        // 当前单位是否拥有攻击触发类技能
+
+// [异度] 竞技场怪技能运行态
+#define ARENA_SPELL_ARMOR_INIT_KEY 5601        // 重甲岗哨创建加护甲初始化标记
+#define ARENA_SPELL_RESIST_INIT_KEY 5602       // 魔抗树皮创建加魔抗初始化标记
+#define ARENA_SPELL_IMMUNE_INIT_KEY 5603       // 免疫控制创建免控初始化标记
+
+// [异度] 副本怪技能运行态
+#define FUBEN_MAGIC_BARRIER_UNIT_KEY 6101      // 魔法屏障队列占用标记
+#define FUBEN_JS_WAVE_TIMER_KEY 6102           // 净水波计时器句柄（存于HASH_UNIT）
+
+// [异度] 光环运行态
+#define KEY_UNIT_AURA_TIMER_BASE 10200         // 单位光环计时器起始键（+ AURA_TYPE_*）
+#define KEY_UNIT_ITEMSHOP_STORE_BUYER 10220    // 物品商店马甲单位绑定的购买者
+
+// [异度] 单位装备套装占位（父键为 unit，值为 item handle id）
+#define TAOZHUANG_1 345123
+#define TAOZHUANG_2 346819
+#define TAOZHUANG_3 346981
+#define TAOZHUANG_4 347123
+#define TAOZHUANG_5 347160
+#define TAOZHUANG_6 347189
+#define TAOZHUANG_7 347195
+#define TAOZHUANG_8 347214
+#define TAOZHUANG_9 347246
+#define TAOZHUANG_10 347279
+#define TAOZHUANG_11 347297
+#define TAOZHUANG_12 347303
+#define TAOZHUANG_13 347329
+
+// [异度] 单位唯一装备占位（父键为 unit，值为 item handle id）
+#define SOLE_WING 2031411
+#define SOLE_MIANYI 3021349
+#define SOLE_FANTAN 59487621 // 废弃兼容键：仅保留给老版本 Xlimon 编译使用。
+#define SOLE_XISHOU 30129710
+#define SOLE_CHENGZHANG 302875219
+#define SOLE_NECKLACE 453919127
+#define SOLE_MAN_HAT 453919146
+#define SOLE_HUMAN_HAT 453919158
+#define SOLE_YITAN 453919171
+#define SOLE_SHENZHOU 453919175
+#define SOLE_YAOGUANG 453919179
+#define SOLE_YUHENG 453919181
+#define SOLE_SHENGLIANSHENG 453919183
+#define SOLE_SHENBEI 453919185
+#define SOLE_WUSHIJIE 453919188
+#define SOLE_TIANSHU 453919195
+#define SOLE_KAIYANG 453919193
+#define SOLE_LION_BADGE 453919191
+#define SOLE_I502 453919301
+#define SOLE_I503 453919302
+#define SOLE_I504 453919303
+#define SOLE_I506 453919304
+#define SOLE_I507 453919305
+#define SOLE_I508 453919306
+#define SOLE_I509 453919307
+#define SOLE_I50A 453919308
+#define SOLE_I50C 453919309
+#define SOLE_I50E 453919310
+#define SOLE_I50F 453919311
+#define SOLE_I50H 453919312
+#define SOLE_I50I 453919313
+#define SOLE_I50J 453919314
+#define SOLE_I50K 453919315
+#define SOLE_I50L 453919316
+#define SOLE_I50B 453919317
+#define SOLE_I50M 453919318
+#define SOLE_I50N 453919319
+#define SOLE_I501 453919320
+#define SOLE_I50O 453919343
+#define SOLE_I50P 453919344
+#define SOLE_I50D 453919345
+#define SOLE_I50Q 453919346
+#define SOLE_I304_SUNDIAL 453919336
+#define SOLE_I40J_FINAL_DAMAGE 453919337
+#define SOLE_I30B_DAMAGE_RATE 453919338
+#define SOLE_I30Y_RESIST 453919339
+#define SOLE_I406_TALENT_EXTRA 453919340
+#define SOLE_I408_AURA_BONUS 453919341
+#define SOLE_I40C_FINAL_DAMAGE 453919342
+#define SOLE_ITEM_ABILITY_I20A 453919333
+#define SOLE_ITEM_ABILITY_I40E 453919334
+#define SOLE_ITEM_ABILITY_I50I 453919335
+#define SOLE_MOSHOU_I10J 453919332
+#define SOLE_MOSHOU_I10K 453919321
+#define SOLE_MOSHOU_I20N 453919322
+#define SOLE_MOSHOU_I20O 453919323
+#define SOLE_MOSHOU_I20U 453919324
+#define SOLE_MOSHOU_I21C 453919325
+#define SOLE_MOSHOU_I309 453919326
+#define SOLE_MOSHOU_I30A 453919327
+#define SOLE_MOSHOU_I30D 453919328
+#define SOLE_MOSHOU_I403 453919329
+#define SOLE_MOSHOU_I405 453919330
+#define SOLE_MOSHOU_I50G 453919331
 
 
+
+#define HASH_KEY_UNIT_PET_TALENT_SOURCE 29311990 // 天赋召唤物的来源技能ID，用于独立极限伤害倍率
 
 #endif

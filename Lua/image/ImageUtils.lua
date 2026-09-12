@@ -18,6 +18,8 @@ local SUPPORTED_EXT = {
 	webp = true
 }
 
+local DEFAULT_BLP_CLI_ARGS = "--type 0 --mipmap 10 --quality 98 --alpha 2"
+
 local function fileExists(filePath)
 	local file = io.open(filePath, "rb")
 	if file then
@@ -53,8 +55,8 @@ local function runSilentBlpConvert(sourcePath, destPath)
 
 	fu.createDir(destPath)
 
-	local cliArgs = ""
-	if iu.flag and iu.flag.blpCliArgs then
+	local cliArgs = DEFAULT_BLP_CLI_ARGS
+	if iu.flag and iu.flag.blpCliArgs and iu.flag.blpCliArgs ~= "" then
 		cliArgs = iu.flag.blpCliArgs
 	end
 

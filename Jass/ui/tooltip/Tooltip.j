@@ -138,8 +138,6 @@ library Tooltip requires Icon {
             border.setPointFix(ANCHOR_RIGHT, text[2].ui, ANCHOR_RIGHT, 0.01, 0);
             this.setWidth(0.2);
 
-            //以底描述为基准
-            // desc.setAbsolutePoint(ANCHOR_BOTTOMRIGHT, .786, .1375);
             return this;
         }
 
@@ -190,6 +188,7 @@ library Tooltip requires Icon {
         //添加文本到tooltip顶部(layoutFlexible专用)
         method addText(string content) -> uiText {
             integer newPosition;
+            integer oldTop;
 
             if (!this.isExist()) {return 0;}
             if (textCount >= TOOL_CHILD_MAX) {return 0;}
@@ -197,6 +196,10 @@ library Tooltip requires Icon {
             //创建新文本
             textCount += 1;
             newPosition = textCount;
+            oldTop = relativeTop;
+            if (oldTop == 0 && newPosition > 1) {
+                oldTop = text[newPosition-1].ui;
+            }
             text[newPosition] = uiText.create(border.ui)
                 .setFontSize(fontSize)
                 .setAlign(4)
@@ -205,10 +208,10 @@ library Tooltip requires Icon {
             relativeTop = text[newPosition].ui;
 
             //设置新文本的位置
-            text[newPosition].setPoint(ANCHOR_BOTTOM, text[newPosition-1].ui, ANCHOR_TOP, 0, 0.005);
+            text[newPosition].setPoint(ANCHOR_BOTTOM, oldTop, ANCHOR_TOP, 0, 0.005);
 
             //更新border边界(头部)
-            border.setPoint(ANCHOR_TOP, text[textCount].ui, ANCHOR_TOP, 0, 0.01);
+            border.setPoint(ANCHOR_TOP, relativeTop, ANCHOR_TOP, 0, 0.01);
 
             return text[newPosition];
         }
@@ -216,6 +219,7 @@ library Tooltip requires Icon {
         // 添加一行：左侧图标 + 文本（文本居中，对齐同 addText）(layoutFlexible专用)
         method addIconLeft(string content, string iconPath, real sizeX, real sizeY) -> uiText {
             integer newPosition;
+            integer oldTop;
 
             if (!this.isExist()) {return 0;}
             if (textCount >= TOOL_CHILD_MAX) {return 0;}
@@ -223,6 +227,10 @@ library Tooltip requires Icon {
             // 先创建文本（作为锚点，保持与 addText 一致的居中与堆叠规则）
             textCount += 1;
             newPosition = textCount;
+            oldTop = relativeTop;
+            if (oldTop == 0 && newPosition > 1) {
+                oldTop = text[newPosition-1].ui;
+            }
             text[newPosition] = uiText.create(border.ui)
                 .setFontSize(fontSize)
                 .setAlign(4)
@@ -231,7 +239,7 @@ library Tooltip requires Icon {
             relativeTop = text[newPosition].ui;
 
             // 垂直堆叠到上一行之上
-            text[newPosition].setPoint(ANCHOR_BOTTOM, text[newPosition-1].ui, ANCHOR_TOP, 0, 0.005);
+            text[newPosition].setPoint(ANCHOR_BOTTOM, oldTop, ANCHOR_TOP, 0, 0.005);
 
             // 创建并放置图标在文本左侧
             iconCount += 1;
@@ -242,7 +250,7 @@ library Tooltip requires Icon {
                 .show(true);
 
             // 更新边界顶部（宽度仍与底部第一行一致）
-            border.setPoint(ANCHOR_TOP, text[textCount].ui, ANCHOR_TOP, 0, 0.01);
+            border.setPoint(ANCHOR_TOP, relativeTop, ANCHOR_TOP, 0, 0.01);
 
             return text[newPosition];
         }

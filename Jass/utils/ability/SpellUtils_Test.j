@@ -15,12 +15,122 @@
 //! zinc
 
 //自动生成的文件
-library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
+library UTSpellUtils requires SpellUtils, AbilityDecorateData, LBKKAPI,UnitUtils {
 
 	// 全局测试单位引用和技能跟踪
 	private unit testUnits[3];
 	private boolean skillsAdded = false;
 	private integer unitAbilities[3][3];  // 存储每个单位的3个技能ID [单位索引][技能索引]
+	private integer passiveCallbackCount = 0;
+	private integer passiveCallbackAbilityID = 0;
+	private boolean passiveCallbackAll = false;
+
+	private function TestAbilityAttrs() {
+		unit u;
+		player p;
+		integer abilityID;
+
+		u = testUnits[0];
+		p = Player(0);
+		abilityID = 'A000';
+
+		assert.Real(GetAbilitySpellFinalDamageRate(u, abilityID), 1.0, "技能终伤默认值应为 1.0");
+		AddAbilitySpellFinalDamageRateUp(u, abilityID, 0.5);
+		AddAbilitySpellFinalDamageRateDown(u, abilityID, 0.2);
+		assert.Real(GetAbilitySpellFinalDamageRate(u, abilityID), 1.2, "技能终伤 Up/Down 应叠乘");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 1, "技能终伤非0时应写入自定义字符串");
+		assert.String(GetAbilityDecorateCustomStringByIndex(u, abilityID, 1), "|cFFFACC15技能最终伤害:|r|cFF00FFFB+20%|r", "技能终伤自定义字符串应显示最终额外值");
+		AddAbilitySpellFinalDamageRateUp(u, abilityID, -0.5);
+		AddAbilitySpellFinalDamageRateDown(u, abilityID, -0.2);
+		assert.Real(GetAbilitySpellFinalDamageRate(u, abilityID), 1.0, "技能终伤 Up/Down 应可撤销");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 0, "技能终伤回0时应删除自定义字符串");
+
+		plyaerHeroAttr.addSpellFinalDamageRateUp(p, 0.25);
+		AddAbilitySpellFinalDamageRateUp(u, abilityID, 0.2);
+		assert.Real(GetTotalSpellFinalDamageRate(u, abilityID), 1.5, "总技能终伤应等于玩家终伤乘技能终伤");
+		AddAbilitySpellFinalDamageRateUp(u, abilityID, -0.2);
+		plyaerHeroAttr.addSpellFinalDamageRateUp(p, -0.25);
+
+		assert.Real(GetAbilitySpellRangeRate(u, abilityID), 1.0, "技能范围默认值应为 1.0");
+		AddAbilitySpellRangeRateUp(u, abilityID, 0.5);
+		AddAbilitySpellRangeRateDown(u, abilityID, 0.2);
+		assert.Real(GetAbilitySpellRangeRate(u, abilityID), 1.2, "技能范围 Up/Down 应按规则合成");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 1, "技能范围非0时应写入自定义字符串");
+		assert.String(GetAbilityDecorateCustomStringByIndex(u, abilityID, 1), "|cFFFACC15技能范围增加:|r|cFF00FFFB+20%|r", "技能范围自定义字符串应显示最终额外值");
+		AddAbilitySpellRangeRateUp(u, abilityID, -0.5);
+		AddAbilitySpellRangeRateDown(u, abilityID, -0.2);
+		assert.Real(GetAbilitySpellRangeRate(u, abilityID), 1.0, "技能范围 Up/Down 应可撤销");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 0, "技能范围回0时应删除自定义字符串");
+
+		passiveCallbackCount = 0;
+		passiveCallbackAbilityID = 0;
+		passiveCallbackAll = false;
+		RegisterSpellPassiveRateChanged(function () {
+			passiveCallbackCount += 1;
+			passiveCallbackAbilityID = GetSpellPassiveRateChangedAbilityID();
+			passiveCallbackAll = IsSpellPassiveRateChangedAll();
+		});
+
+		AddPlayerSpellPassiveRate(p, 0.2);
+		assert.Boolean(passiveCallbackCount == 1 && passiveCallbackAll, "玩家被动强化变化应触发全量回调");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 0, "玩家全局被动强化不应写入技能自定义字符串");
+		AddAbilitySpellPassiveRate(u, abilityID, 0.3);
+		assert.Boolean(passiveCallbackCount == 2 && passiveCallbackAbilityID == abilityID && !passiveCallbackAll, "技能被动强化变化应触发单技能回调");
+		assert.Real(GetTotalSpellPassiveRate(u, abilityID), 1.5, "总被动强化应为 1 + 玩家强化 + 技能强化");
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 1, "技能被动强化非0时应写入自定义字符串");
+		assert.String(GetAbilityDecorateCustomStringByIndex(u, abilityID, 1), "|cFFFACC15技能被动强化:|r|cFF00FFFB+30%|r", "技能被动强化自定义字符串应显示技能自身额外值");
+		AddAbilitySpellPassiveRate(u, abilityID, -0.3);
+		assert.Integer(GetAbilityDecorateCustomStringCount(u, abilityID), 0, "技能被动强化回0时应删除自定义字符串");
+		AddPlayerSpellPassiveRate(p, -0.2);
+
+		SetAbilitySpellPassiveAppliedRate(u, abilityID, 1.75);
+		assert.Boolean(HasAbilitySpellPassiveAppliedRate(u, abilityID), "被动强化快照应可检测");
+		assert.Real(GetAbilitySpellPassiveAppliedRate(u, abilityID), 1.75, "被动强化快照应可读取");
+		ClearAbilitySpellPassiveAppliedRate(u, abilityID);
+		assert.Boolean(!HasAbilitySpellPassiveAppliedRate(u, abilityID), "被动强化快照应可清理");
+
+		u = null;
+		p = null;
+	}
+
+	// 生命周期回归：只迁移持久分项，不继承旧技能 applied、虚拟等级和冷却。
+	private function TestAttributeMigration() {
+		abilityAttributeSnapshot snapshot;
+		unit u;
+		integer sourceID;
+		integer targetID;
+		integer key;
+		u = testUnits[0];
+		sourceID = 'ATs1';
+		targetID = 'ATs2';
+		AddAbilitySpellFinalDamageRateUp(u, sourceID, 0.5);
+		AddAbilitySpellFinalDamageRateDown(u, sourceID, 0.2);
+		AddAbilitySpellRangeRateUp(u, sourceID, 0.5);
+		AddAbilitySpellRangeRateDown(u, sourceID, 0.2);
+		AddAbilitySpellPassiveRate(u, sourceID, 0.25);
+		SetAbilitySpellPassiveAppliedRate(u, sourceID, 9.0);
+		SetAbilityVirtualLevel(u, sourceID, 27);
+		key = GetAbilityHashKey(u, sourceID);
+		SaveReal(HASH_ABILITY, key, HASH_CHILD_SALT_ABILITY_COOLDOWN, 7.0);
+		snapshot = abilityAttributeSnapshot.capture(u, sourceID);
+		FlushChildHashtable(HASH_ABILITY, key);
+		snapshot.restoreBeforeInit(u, targetID);
+		snapshot.restoreBeforeInit(u, targetID);
+		assert.Real(GetAbilitySpellFinalDamageRate(u, targetID), 1.2, "重复恢复不能重复叠加终伤");
+		assert.Real(GetAbilitySpellRangeRate(u, targetID), 1.2, "迁移保留范围Up和Down分项");
+		assert.Real(GetAbilitySpellPassiveRate(u, targetID), 0.25, "迁移保留外部被动强化");
+		assert.Boolean(!HasAbilitySpellPassiveAppliedRate(u, targetID), "新技能不得继承旧applied快照");
+		assert.Integer(GetAbilityVirtualLevel(u, targetID), 0, "不得继承旧虚拟等级");
+		assert.Boolean(!HaveSavedReal(HASH_ABILITY, GetAbilityHashKey(u, targetID), HASH_CHILD_SALT_ABILITY_COOLDOWN), "不得继承旧冷却");
+		// 分项仍然能正确撤销，不能把总倍率扁平化为一个Up值。
+		AddAbilitySpellFinalDamageRateDown(u, targetID, -0.2);
+		AddAbilitySpellRangeRateDown(u, targetID, -0.2);
+		assert.Real(GetAbilitySpellFinalDamageRate(u, targetID), 1.5, "恢复后终伤Down仍可独立撤销");
+		assert.Real(GetAbilitySpellRangeRate(u, targetID), 1.5, "恢复后范围Down仍可独立撤销");
+		snapshot.destroy();
+		FlushChildHashtable(HASH_ABILITY, GetAbilityHashKey(u, targetID));
+		u = null;
+	}
 
 	function Init () {
 		UnitTestAutoTimer(0.1, 2.0, function() {
@@ -32,6 +142,8 @@ library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
 			UnitAddAbility(testUnits[0], 'AJB0');
 
 			BJDebugMsg("[SpellUtils] 测试单位已创建");
+			TestAbilityAttrs();
+			TestAttributeMigration();
 			}, function() {
 			// 可选：清理测试单位（目前保留供测试使用）
 		});
@@ -186,6 +298,7 @@ library UTSpellUtils requires SpellUtils, LBKKAPI,UnitUtils {
 
 		abilityId = 'AJB0';
 		abilityIdStr = YDWEId2S(abilityId);
+		luaScript = "";
 
 		DisplayTextToPlayer(p, 0, 0, "=== 打印 ability['" + abilityIdStr + "'] 子表 ===");
 

@@ -34,7 +34,7 @@
 
 #define MAX_ATTACKEVENT_SIZE 8190
 
-library AttackEvent {
+library AttackEvent requires Logger {
     // ========== 变量声明 ==========
     private integer ISize = 0;             // 注册数量
     private trigger TData [];              // 触发器列表

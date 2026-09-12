@@ -18,6 +18,12 @@ library SpellEvent {
     // ========== 回调参数（移植自 SpellSystem）==========
     private unit spellUnit = null;
     private integer spellId = 0;
+    private integer contextSize = 0;
+    private unit contextUnit [];
+    private integer contextId [];
+    private boolean contextIsMultiSpell [];
+    private boolean contextIsFake [];
+    private integer contextManaCost [];
 
     // ========== 回调参数获取函数 ==========
     public function GetSpellAbilityIdEx() -> integer {
@@ -26,6 +32,69 @@ library SpellEvent {
 
     public function GetSpellAbilityUnitEx() -> unit {
         return spellUnit;
+    }
+
+    public function PushSpellEventContext(unit u, integer id, boolean isMultiSpell, boolean isFake, integer manaCost) -> boolean {
+        if (contextSize >= MAX_SPELLEVENT_SIZE) {
+            return false;
+        }
+
+        contextSize += 1;
+        contextUnit[contextSize] = u;
+        contextId[contextSize] = id;
+        contextIsMultiSpell[contextSize] = isMultiSpell;
+        contextIsFake[contextSize] = isFake;
+        contextManaCost[contextSize] = manaCost;
+        return true;
+    }
+
+    public function PopSpellEventContext() -> boolean {
+        if (contextSize <= 0) {
+            return false;
+        }
+
+        contextUnit[contextSize] = null;
+        contextId[contextSize] = 0;
+        contextIsMultiSpell[contextSize] = false;
+        contextIsFake[contextSize] = false;
+        contextManaCost[contextSize] = 0;
+        contextSize -= 1;
+        return true;
+    }
+
+    public function GetSpellEventCaster() -> unit {
+        if (contextSize > 0) {
+            return contextUnit[contextSize];
+        }
+        return spellUnit;
+    }
+
+    public function GetSpellEventAbilityId() -> integer {
+        if (contextSize > 0) {
+            return contextId[contextSize];
+        }
+        return spellId;
+    }
+
+    public function GetSpellEventIsMultiSpell() -> boolean {
+        if (contextSize > 0) {
+            return contextIsMultiSpell[contextSize];
+        }
+        return false;
+    }
+
+    public function GetSpellEventIsFake() -> boolean {
+        if (contextSize > 0) {
+            return contextIsFake[contextSize];
+        }
+        return false;
+    }
+
+    public function GetSpellEventManaCost() -> integer {
+        if (contextSize > 0) {
+            return contextManaCost[contextSize];
+        }
+        return 0;
     }
 
     // ========== 添加触发器（防重复） ==========
@@ -72,15 +141,21 @@ library SpellEvent {
         return false;
     }
 
-    // ========== 触发施法事件（移植自 TSpellSystemActIndirect）==========
-    public function TriggerSpellEvent(unit u, integer id) {
+    public function TriggerCurrentSpellEvent() {
         integer i;
         trigger t;
         unit targetUnit;
+        unit oldSpellUnit = spellUnit;
+        integer oldSpellId = spellId;
+
+        if (contextSize <= 0) {
+            oldSpellUnit = null;
+            return;
+        }
 
         // 设置回调参数
-        spellUnit = u;
-        spellId = id;
+        spellUnit = contextUnit[contextSize];
+        spellId = contextId[contextSize];
 
         // 遍历触发所有注册的触发器
         for (i = 1; i <= ISize; i += 1) {
@@ -88,17 +163,31 @@ library SpellEvent {
             targetUnit = UData[i];
 
             // 检查触发器有效性和单位匹配
-            if (t != null && IsTriggerEnabled(t) && targetUnit == u) {
+            if (t != null && IsTriggerEnabled(t) && targetUnit == spellUnit) {
                 if (TriggerEvaluate(t)) {
                     TriggerExecute(t);
                 }
             }
         }
 
-        // 清理回调参数
-        spellUnit = null;
-        spellId = 0;
+        // 恢复外层回调参数，支持事件内递归触发施法事件。
+        spellUnit = oldSpellUnit;
+        spellId = oldSpellId;
+        t = null;
         targetUnit = null;
+        oldSpellUnit = null;
+    }
+
+    // ========== 触发施法事件（移植自 TSpellSystemActIndirect）==========
+    public function TriggerSpellEventEx(unit u, integer id, boolean isFake, integer manaCost) {
+        if (PushSpellEventContext(u, id, false, isFake, manaCost)) {
+            TriggerCurrentSpellEvent();
+            PopSpellEventContext();
+        }
+    }
+
+    public function TriggerSpellEvent(unit u, integer id) {
+        TriggerSpellEventEx(u, id, false, 0);
     }
 
 }

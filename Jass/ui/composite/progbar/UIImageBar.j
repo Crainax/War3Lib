@@ -79,15 +79,24 @@ library UIImageBar requires UIImage, UIExtendResize {
 
         // 获取进度
         method getProgress () -> real {
+            real backgroundWidth;
             if (!this.isExist()) {return 0.0;}
-            return DzFrameGetWidth(uiFill.ui) / DzFrameGetWidth(uiBackground.ui);
+            backgroundWidth = DzFrameGetWidth(uiBackground.ui);
+            if (backgroundWidth == 0.0) {return 0.0;}
+            return DzFrameGetWidth(uiFill.ui) / backgroundWidth;
         }
 
         // 设置进度(0-1.0)
         method setProgress (real progress) -> thistype {
+            real width;
             if (!this.isExist()) {return this;}
-            // 设置填充图片的宽度为背景宽度 * 进度值
-            uiFill.setSize(DzFrameGetWidth(uiBackground.ui) * progress,0.0);
+            // 同时写入当前背景高度，避免 DzFrameSetSize 因高度为 0 而忽略整次尺寸更新。
+            width = DzFrameGetWidth(uiBackground.ui) * progress;
+            if (progress <= 0.0) {
+                // uiFill 也是外框的父框架，不能隐藏；使用极小宽度清除旧进度残留。
+                width = 0.0001;
+            }
+            uiFill.setSize(width,DzFrameGetHeight(uiBackground.ui));
             return this;
         }
 

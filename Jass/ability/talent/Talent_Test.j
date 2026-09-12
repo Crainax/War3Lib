@@ -17,7 +17,8 @@
  * 【快捷指令】（直接输入）
  *   s1          - 添加1个测试技能（按顺序）
  *   s2          - 添加3个测试技能（按顺序）
- *   s3-s10      - 预留测试指令（未实现）
+ *   s3          - 验证重建魔法书后保留已有技能等级
+ *   s4-s10      - 预留测试指令（未实现）
  *
  * 【命令指令】（以 - 开头）
  *   -bind                    - 绑定/创建测试英雄单位
@@ -55,7 +56,7 @@
  */
 
 //自动生成的文件
-library UTTalent requires Talent {
+library UTTalent requires Talent, UnitTestFramwork {
 
 	private unit talentTestUnit[];
 	private integer testSkillIndex[];  // 每个玩家的当前技能指针
@@ -240,7 +241,25 @@ library UTTalent requires Talent {
 
 		u = null;
 	}
-	function TTestUTTalent3 (player p) {}
+	function TTestUTTalent3 (player p) {
+		unit u;
+		integer retainedAbility;
+		integer changedAbility;
+
+		u = getOrCreateTalentUnit(p);
+		retainedAbility = 'AEbl';
+		changedAbility = 'AEfk';
+		talent.clearAll(p);
+		talent.bindUnit(p, u);
+		assert.Boolean(talent.addSpellId(p, retainedAbility), "应能添加待保留等级的技能");
+		SetUnitAbilityLevel(u, retainedAbility, 6);
+		assert.Boolean(talent.addSpellId(p, changedAbility), "应能添加触发魔法书重建的新技能");
+		assert.Integer(GetUnitAbilityLevel(u, retainedAbility), 6, "添加技能重建后应保留已有技能等级");
+		assert.Boolean(talent.removeSpellId(p, changedAbility), "应能移除触发魔法书重建的技能");
+		assert.Integer(GetUnitAbilityLevel(u, retainedAbility), 6, "移除技能重建后应保留已有技能等级");
+		talent.clearAll(p);
+		u = null;
+	}
 	function TTestUTTalent4 (player p) {}
 	function TTestUTTalent5 (player p) {}
 	function TTestUTTalent6 (player p) {}

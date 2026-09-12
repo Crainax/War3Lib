@@ -25,6 +25,8 @@
 #define GUARD_TELEPORT_OFFSET           150.0  // 瞬移回主人附近的随机偏移半径，避免所有宠物叠在一个点
 #define GUARD_IDLE_OWNER_MOVE_EPS       400.0  // 主人小幅移动时，idle 环绕不更新的阈值
 #define GUARD_ATTACK_TELEPORT_DISTANCE  1800.0 // 攻击瞬移距离（码）：守卫与目标距离超过此值时，瞬移到目标附近
+#define GUARD_NO_FOLLOW_SEARCH_BUCKETS  5      // 禁跟随守卫无目标时分帧搜索：5 tick 约 1 秒扫完一轮
+#define GUARD_SLEEP_EFFECT_PATH          "Abilities\\Spells\\Undead\\Sleep\\SleepTarget.mdl"
 
 //复用工具类函数
 #define GUARDER_ISVALID_IDX(pid, idx) (ISVALID_PLAYER_ID(pid) && idx >= 1 && idx <= guarder.size[pid])   //检查索引有效性
@@ -35,6 +37,7 @@
 #define GUARDER_STATE_MOVE  2
 #define GUARDER_STATE_ATTACK  3
 #define GUARDER_STATE_PAUSED  4
+#define GUARDER_STATE_SLEEPING  5
 
 /*
  * ========================================
@@ -65,6 +68,12 @@
 //   - 会为守卫设置默认攻击范围（可通过 HASH_UNIT 系统修改）
 //   - 守卫会自动围绕主人形成环形阵型，并在搜索范围内自动攻击敌人
 //   - 使用示例：guarder.addPet(p, u);
+
+// SetUnitStableSyncId(unit u, integer stableId) -> boolean
+// 功能：为可能进入 Guarder 索敌范围的真实单位登记跨客户端稳定 ID
+// 说明：
+//   - stableId 必须由接入地图按同步创建顺序或稳定业务槽位分配，并保持全局唯一
+//   - Guarder 不会在缺少 stableId 时退回 Group 枚举顺序，避免平局目标在客户端间分叉
 
 // guarder.removePet(player p, unit petUnit) -> boolean
 // 功能：从指定玩家的守卫系统中移除单个守卫单位
@@ -112,6 +121,24 @@
 //   - 如果当前半径未初始化（<=0），会先设置为默认值 GUARD_SEARCH_RADIUS 再加 delta
 //   - 使用示例：guarder.addPlayerSearchRadius(p, 200.0); // 增加 200 码搜索半径
 
+// guarder.setOwnerFollowDisabled(unit u, boolean disabled)
+// 功能：设置单个守卫是否禁用跟随/召回主人
+// 说明：
+//   - true 时守卫不再向主人环绕、召回或回主人瞬移，但仍使用 Guarder 战斗 AI
+//   - false 时恢复默认跟随主人逻辑
+
+// guarder.sleep(unit u, real duration) -> boolean
+// 功能：令已注册守卫进入休眠；休眠期间缴械、无敌且不会收到新的 Guarder AI 指令
+// 说明：
+//   - 不会 PauseUnit，重复调用只把剩余时间刷新为较大值
+//   - 返回 false 表示单位不在 Guarder 中或参数无效
+//
+// guarder.isSleeping(unit u) -> boolean
+// 功能：判断单位是否仍是已注册且处于休眠中的守卫
+//
+// guarder.getSleepRemaining(unit u) -> real
+// 功能：返回已注册守卫的休眠剩余秒数；未休眠或已解绑时返回 0
+
 // guarder.getSize(player p) -> integer
 // 功能：获取指定玩家的守卫数量
 // 参数：
@@ -152,7 +179,7 @@
  * }
  */
 
-library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
+library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter, UnitBuff, BindEffect {
 
     // 数据结构：按玩家紧凑数组
     public struct guarder []{
@@ -178,8 +205,12 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
         private static real ringOwnerY[];
         // 外部暂停标志（用于特殊剧情/复活等）
         private static boolean paused[];
+        // 主人当前是否无敌；其专用无敌层会同步给全部守卫。
+        private static boolean ownerInvulnerable[];
         // 周期 tick timer
         private static timer tickTimer = null;
+        // 全局 AI tick 序号，用于禁跟随守卫错帧搜索
+        private static integer tickSerial = 0;
 
         // 初始化主人单位
         public static method initOwner(player p, unit ownerUnit) {
@@ -191,9 +222,210 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             if (!ISVALID_PLAYER_ID(pid)) { return; }
 
             guarder.owner[pid] = ownerUnit;
+            guarder.ownerInvulnerable[pid] = IsUnitInvulnerableEx(ownerUnit);
             if (guarder.searchRadius[pid] <= 0.0) {
                 guarder.searchRadius[pid] = GUARD_SEARCH_RADIUS;
             }
+        }
+
+        // 设置单个守卫是否禁用“跟随/召回主人”；禁用后仍保留守卫战斗 AI。
+        public static method setOwnerFollowDisabled(unit u, boolean disabled) {
+            integer hid;
+            if (u == null || GetUnitTypeId(u) == 0) { return; }
+            hid = GetHandleId(u);
+            if (disabled) {
+                SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISABLE_OWNER_FOLLOW, 1);
+            } else {
+                RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISABLE_OWNER_FOLLOW);
+            }
+        }
+
+        private static method isOwnerFollowDisabled(unit u) -> boolean {
+            integer hid;
+            if (u == null || GetUnitTypeId(u) == 0) { return false; }
+            hid = GetHandleId(u);
+            return HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISABLE_OWNER_FOLLOW)
+                && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISABLE_OWNER_FOLLOW) > 0;
+        }
+
+        private static method clearSuperSpeedBonus(unit u) {
+            integer hid;
+            if (u == null || GetUnitTypeId(u) == 0) { return; }
+            hid = GetHandleId(u);
+            if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_SUPER_SPEED_ADDED) && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_SUPER_SPEED_ADDED) == 1) {
+                AddUnitSuperSpeed(u, -GUARD_SUPER_SPEED_BONUS);
+                RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_SUPER_SPEED_ADDED);
+            }
+        }
+
+        private static method findPetIndex(integer pid, unit u) -> integer {
+            integer idx;
+            if (!ISVALID_PLAYER_ID(pid) || u == null) { return 0; }
+            for (1 <= idx <= guarder.size[pid]) {
+                if (guarder.pet[pid][idx] == u) {
+                    return idx;
+                }
+            }
+            return 0;
+        }
+
+        private static method isSleepingUnit(unit u) -> boolean {
+            integer hid;
+            if (u == null || GetUnitTypeId(u) == 0) { return false; }
+            hid = GetHandleId(u);
+            return HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT)
+                && LoadReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT) > 0.0;
+        }
+
+        // Guarder 的 pause/sleep 共用一份 Avul 所有权，任一状态仍生效时都不能提前移除。
+        private static method refreshManagedAvul(integer pid, unit u) {
+            integer hid;
+            boolean needAvul;
+            if (!ISVALID_PLAYER_ID(pid) || u == null || GetUnitTypeId(u) == 0) { return; }
+            hid = GetHandleId(u);
+            needAvul = guarder.paused[pid] || guarder.isSleepingUnit(u);
+            if (needAvul) {
+                if (GetUnitAbilityLevel(u, 'Avul') == 0) {
+                    UnitAddAbility(u, 'Avul');
+                    SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED, 1);
+                }
+            } else if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED)
+            && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED) == 1) {
+                UnitRemoveAbility(u, 'Avul');
+                RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED);
+            }
+        }
+
+        // 主人无敌使用地图配置的专用 Avul 子技能，与 pause/sleep 的原始 Avul 分离所有权。
+        private static method refreshOwnerInvulnerable(unit u, boolean needInvulnerable) {
+            integer abilityId;
+            if (u == null || GetUnitTypeId(u) == 0) { return; }
+            abilityId = GetCustomInvulnerableAbilityId();
+            if (abilityId <= 0) { return; }
+            if (needInvulnerable) {
+                if (GetUnitAbilityLevel(u, abilityId) == 0) {
+                    UnitAddAbility(u, abilityId);
+                }
+            } else if (GetUnitAbilityLevel(u, abilityId) > 0) {
+                UnitRemoveAbility(u, abilityId);
+            }
+        }
+
+        // Guarder 只持有自己的一份缴械锁，避免醒来或解绑时误清其他技能的缴械。
+        private static method refreshManagedDisarm(unit u, boolean needDisarm) {
+            integer hid;
+            if (u == null || GetUnitTypeId(u) == 0) { return; }
+            hid = GetHandleId(u);
+            if (needDisarm) {
+                if (!HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISARM_LOCKED)
+                && AcquireUnitDisarm(u)) {
+                    SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISARM_LOCKED, 1);
+                }
+            } else if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISARM_LOCKED)) {
+                ReleaseUnitDisarm(u);
+                RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_DISARM_LOCKED);
+            }
+        }
+
+        private static method clearManagedSleepOnRemove(unit u) {
+            integer hid;
+            if (u == null || GetUnitTypeId(u) == 0) { return; }
+            hid = GetHandleId(u);
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT);
+            bindEffect.detachUnique(u, GUARD_SLEEP_EFFECT_PATH);
+            guarder.refreshManagedDisarm(u, false);
+            guarder.refreshOwnerInvulnerable(u, false);
+            if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED)
+            && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED) == 1) {
+                UnitRemoveAbility(u, 'Avul');
+                RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_AVUL_ADDED);
+            }
+        }
+
+        // 休眠只按单位句柄存剩余时间，不增加紧凑数组并行列，避免 swap-remove 串状态。
+        public static method sleep(unit u, real duration) -> boolean {
+            integer pid;
+            integer idx;
+            integer hid;
+            real oldDuration;
+            boolean wasSleeping;
+
+            if (u == null || GetUnitTypeId(u) == 0 || duration <= 0.0) { return false; }
+            pid = GetConvertedPlayerId(GetOwningPlayer(u));
+            if (!ISVALID_PLAYER_ID(pid)) { return false; }
+            idx = guarder.findPetIndex(pid, u);
+            if (idx <= 0) { return false; }
+
+            hid = GetHandleId(u);
+            wasSleeping = guarder.isSleepingUnit(u);
+            oldDuration = 0.0;
+            if (wasSleeping) {
+                oldDuration = LoadReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT);
+            }
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT, RMaxBJ(oldDuration, duration));
+            guarder.refreshManagedDisarm(u, true);
+            guarder.refreshManagedAvul(pid, u);
+
+            if (!wasSleeping) {
+                bindEffect.attachUnique(u, GUARD_SLEEP_EFFECT_PATH, "overhead");
+            }
+            IssueImmediateOrder(u, "stop");
+            guarder.state[pid][idx] = GUARDER_STATE_SLEEPING;
+            guarder.target[pid][idx] = null;
+            guarder.moveX[pid][idx] = 0.0;
+            guarder.moveY[pid][idx] = 0.0;
+            return true;
+        }
+
+        // 判断单位是否仍在 Guarder 中且休眠剩余时间大于 0。
+        public static method isSleeping(unit u) -> boolean {
+            integer pid;
+            if (u == null || GetUnitTypeId(u) == 0) { return false; }
+            pid = GetConvertedPlayerId(GetOwningPlayer(u));
+            return ISVALID_PLAYER_ID(pid)
+                && guarder.findPetIndex(pid, u) > 0
+                && guarder.isSleepingUnit(u);
+        }
+
+        // 返回已注册守卫的休眠剩余秒数；无效、已解绑或未休眠时返回 0。
+        public static method getSleepRemaining(unit u) -> real {
+            integer hid;
+            if (!guarder.isSleeping(u)) { return 0.0; }
+            hid = GetHandleId(u);
+            return LoadReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT);
+        }
+
+        private static method updateSleep(integer pid, integer idx, unit u) -> boolean {
+            integer hid;
+            real remaining;
+
+            if (!GUARDER_ISVALID_IDX(pid, idx) || u == null || !guarder.isSleepingUnit(u)) {
+                return false;
+            }
+
+            hid = GetHandleId(u);
+            remaining = LoadReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT) - GUARD_TICK;
+            if (remaining <= 0.0) {
+                RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT);
+                bindEffect.detachUnique(u, GUARD_SLEEP_EFFECT_PATH);
+                guarder.refreshManagedDisarm(u, false);
+                if (guarder.state[pid][idx] == GUARDER_STATE_SLEEPING) {
+                    guarder.state[pid][idx] = GUARDER_STATE_NONE;
+                }
+                guarder.refreshManagedAvul(pid, u);
+                return false;
+            }
+
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_GUARD_SLEEP_TIME_LEFT, remaining);
+            guarder.refreshManagedAvul(pid, u);
+            if (guarder.state[pid][idx] != GUARDER_STATE_SLEEPING) {
+                IssueImmediateOrder(u, "stop");
+                guarder.state[pid][idx] = GUARDER_STATE_SLEEPING;
+                guarder.target[pid][idx] = null;
+                guarder.moveX[pid][idx] = 0.0;
+                guarder.moveY[pid][idx] = 0.0;
+            }
+            return true;
         }
 
         // 添加召唤物
@@ -226,12 +458,21 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             guarder.moveX[pid][idx] = 0.0;
             guarder.moveY[pid][idx] = 0.0;
 
-            AddUnitSuperSpeed(petUnit, GUARD_SUPER_SPEED_BONUS);
-            // 默认给每个守卫写入独立攻击范围（可被外部系统修改为其他值）
             hid = GetHandleId(petUnit);
+            if (!guarder.isOwnerFollowDisabled(petUnit)) {
+                AddUnitSuperSpeed(petUnit, GUARD_SUPER_SPEED_BONUS);
+                SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_SUPER_SPEED_ADDED, 1);
+            } else {
+                RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_SUPER_SPEED_ADDED);
+            }
+            // 默认给每个守卫写入独立攻击范围（可被外部系统修改为其他值）
             if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE)) {
                 SaveReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE, GUARD_ATTACK_RANGE);
             }
+            if (guarder.owner[pid] != null && GetUnitTypeId(guarder.owner[pid]) != 0) {
+                guarder.ownerInvulnerable[pid] = IsUnitInvulnerableEx(guarder.owner[pid]);
+            }
+            guarder.refreshOwnerInvulnerable(petUnit, guarder.ownerInvulnerable[pid]);
 
             return true;
         }
@@ -249,7 +490,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             // 线性查找
             for (1 <= idx <= guarder.size[pid]) {
                 if (guarder.pet[pid][idx] == petUnit) {
-                    AddUnitSuperSpeed(petUnit, -GUARD_SUPER_SPEED_BONUS);
+                    guarder.clearManagedSleepOnRemove(petUnit);
+                    guarder.clearSuperSpeedBonus(petUnit);
                     hid = GetHandleId(petUnit);
                     RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE);
 
@@ -291,7 +533,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 if (guarder.pet[pid][idx] != null) {
                     hid = GetHandleId(guarder.pet[pid][idx]);
                     RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_GUARD_ATTACK_RANGE);
-                    AddUnitSuperSpeed(guarder.pet[pid][idx], -GUARD_SUPER_SPEED_BONUS);
+                    guarder.clearManagedSleepOnRemove(guarder.pet[pid][idx]);
+                    guarder.clearSuperSpeedBonus(guarder.pet[pid][idx]);
                     guarder.pet[pid][idx] = null;
                 }
                 guarder.state[pid][idx] = GUARDER_STATE_NONE;
@@ -305,7 +548,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
         // 外部强制暂停/恢复
         public static method setPaused(player p, boolean paused) {
-            integer pid; integer idx; unit u; integer hid;
+            integer pid; integer idx; unit u;
 
             if (p == null) { return; }
 
@@ -318,22 +561,19 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             for (1 <= idx <= guarder.size[pid]) {
                 u = guarder.pet[pid][idx];
                 if (u != null && GetUnitTypeId(u) != 0) {
-                    hid = GetHandleId(u);
                     if (paused) {
-                        if (GetUnitAbilityLevel(u, 'Avul') == 0) {
-                            UnitAddAbility(u, 'Avul');
-                            SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED, 1);
-                        }
                         PauseUnit(u, true);
                         guarder.state[pid][idx] = GUARDER_STATE_PAUSED;
                         guarder.target[pid][idx] = null;
                     } else {
-                        if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) && LoadInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) == 1) {
-                            UnitRemoveAbility(u, 'Avul');
-                            RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED);
-                        }
                         PauseUnit(u, false);
+                        if (guarder.isSleepingUnit(u)) {
+                            guarder.state[pid][idx] = GUARDER_STATE_SLEEPING;
+                        } else {
+                            guarder.state[pid][idx] = GUARDER_STATE_NONE;
+                        }
                     }
+                    guarder.refreshManagedAvul(pid, u);
                 }
                 u = null;
             }
@@ -391,10 +631,96 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             return RMaxBJ(GUARD_ATTACK_RANGE, r);
         }
 
+        // HandleID 仅用于读取同一单位的项目同步 ID；返回值才参与目标平局裁决。
+        private static method getStableSyncId(unit u) -> integer {
+            return GetUnitStableSyncId(u);
+        }
+
+        private static method findNearestEnemyAroundPet(unit petUnit, unit ownerUnit, real radius) -> unit {
+            group enumGrp;
+            unit enumUnit;
+            unit bestTarget;
+            player ownerPlayer;
+            real px; real py; real tx; real ty;
+            real dx; real dy; real dist; real bestDist;
+            integer stableId; integer bestStableId;
+            boolean missingStableId;
+
+            if (petUnit == null || ownerUnit == null || GetUnitTypeId(petUnit) == 0 || GetUnitTypeId(ownerUnit) == 0) {
+                return null;
+            }
+
+            ownerPlayer = GetOwningPlayer(ownerUnit);
+            px = GetUnitX(petUnit);
+            py = GetUnitY(petUnit);
+            bestTarget = null;
+            bestDist = 0.0;
+            bestStableId = 0;
+            missingStableId = false;
+            enumGrp = CreateGroup();
+            GroupEnumUnitsInRangeEx(enumGrp, px, py, radius, null);
+
+            enumUnit = FirstOfGroup(enumGrp);
+            while (enumUnit != null) {
+                GroupRemoveUnit(enumGrp, enumUnit);
+                if (enumUnit != ownerUnit && enumUnit != petUnit && IsUnitAliveBJ(enumUnit) && IsUnitEnemy(enumUnit, ownerPlayer) && !IsUnitInvulnerableEx(enumUnit)) {
+                    stableId = guarder.getStableSyncId(enumUnit);
+                    if (stableId <= 0) {
+                        missingStableId = true;
+                    } else {
+                        tx = GetUnitX(enumUnit);
+                        ty = GetUnitY(enumUnit);
+                        dx = tx - px;
+                        dy = ty - py;
+                        dist = dx * dx + dy * dy;
+                        if (bestTarget == null || dist < bestDist || (dist == bestDist && stableId < bestStableId)) {
+                            bestTarget = enumUnit;
+                            bestDist = dist;
+                            bestStableId = stableId;
+                        }
+                    }
+                }
+                enumUnit = FirstOfGroup(enumGrp);
+            }
+
+            DestroyGroup(enumGrp);
+            enumGrp = null;
+            enumUnit = null;
+            ownerPlayer = null;
+            if (missingStableId) {
+                bestTarget = null;
+            }
+            return bestTarget;
+        }
+
+        private static method isValidEnemyAroundPet(unit petUnit, unit ownerUnit, unit targetUnit, real radius) -> boolean {
+            player ownerPlayer;
+            real dx; real dy; real radius2;
+            boolean result;
+
+            if (petUnit == null || ownerUnit == null || targetUnit == null || GetUnitTypeId(petUnit) == 0 || GetUnitTypeId(ownerUnit) == 0 || GetUnitTypeId(targetUnit) == 0) {
+                return false;
+            }
+
+            ownerPlayer = GetOwningPlayer(ownerUnit);
+            dx = GetUnitX(targetUnit) - GetUnitX(petUnit);
+            dy = GetUnitY(targetUnit) - GetUnitY(petUnit);
+            radius2 = radius * radius;
+            result = targetUnit != ownerUnit
+                && targetUnit != petUnit
+                && IsUnitAliveBJ(targetUnit)
+                && IsUnitEnemy(targetUnit, ownerPlayer)
+                && !IsUnitInvulnerableEx(targetUnit)
+                && (dx * dx + dy * dy <= radius2);
+
+            ownerPlayer = null;
+            return result;
+        }
+
         // 处理单个 pet 的 AI
         private static method updatePetWithEnemies(integer pid, integer idx) {
             unit petUnit; unit ownerUnit; unit targetUnit; unit bestTarget; unit enemyUnit; player ownerPlayer;
-            integer state; integer i; integer enemyCount;
+            integer state; integer i; integer enemyCount; integer stableId; integer bestStableId;
             real px; real py; real ox; real oy; real distToOwner;
             real nx; real ny; real angle; real tx; real ty;
             real bestDist; real dist; real dx; real dy; boolean ownerPaused;
@@ -402,13 +728,20 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             real searchRadius; real teleportDist; real attackRange;
             real vx; real vy; real vr; real targetX; real targetY;
             real buffer; real want; real ang;
-            integer hid,hid2;
+            boolean ownerFollowDisabled;
+            boolean sleeping;
+            boolean missingStableId;
 
 
             if (!GUARDER_ISVALID_IDX(pid, idx)) { return; }
 
             petUnit = guarder.pet[pid][idx];
             if (petUnit == null || GetUnitTypeId(petUnit) == 0) { return; }
+            if (!IsUnitAliveBJ(petUnit)) {
+                guarder.removePet(ConvertedPlayer(pid), petUnit);
+                petUnit = null;
+                return;
+            }
 
             ownerUnit = guarder.owner[pid];
             // 主人死亡不影响守卫 AI：只在句柄失效时才退出/解绑
@@ -418,6 +751,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 ownerUnit = null;
                 return;
             }
+            guarder.refreshOwnerInvulnerable(petUnit, guarder.ownerInvulnerable[pid]);
 
             state = guarder.state[pid][idx];
             targetUnit = guarder.target[pid][idx];
@@ -427,6 +761,9 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             ox = GetUnitX(ownerUnit);
             oy = GetUnitY(ownerUnit);
             distToOwner = GetDistance(px, py, ox, oy);
+            ownerFollowDisabled = guarder.isOwnerFollowDisabled(petUnit);
+            sleeping = guarder.updateSleep(pid, idx, petUnit);
+            state = guarder.state[pid][idx];
 
             ownerPaused = guarder.paused[pid] || IsUnitPaused(ownerUnit);
             if (ownerPaused) {
@@ -434,13 +771,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                     PauseUnit(petUnit, true);
                     guarder.state[pid][idx] = GUARDER_STATE_PAUSED;
                     guarder.target[pid][idx] = null;
-                    // 外部 pause 时给守卫 Avul（只在 guarder.paused=true 时处理，避免影响其他系统的 PauseUnit）
                     if (guarder.paused[pid]) {
-                        hid = GetHandleId(petUnit);
-                        if (GetUnitAbilityLevel(petUnit, 'Avul') == 0) {
-                            UnitAddAbility(petUnit, 'Avul');
-                            SaveInteger(HASH_UNIT, hid, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED, 1);
-                        }
+                        guarder.refreshManagedAvul(pid, petUnit);
                     }
                 }
                 petUnit = null;
@@ -449,12 +781,14 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 return;
             } else if (IsUnitPaused(petUnit)) {
                 PauseUnit(petUnit, false);
-                // 从外部 pause 恢复时，如果 Avul 是 Guarder 添加的，则移除
-                hid2 = GetHandleId(petUnit);
-                if (HaveSavedInteger(HASH_UNIT, hid2, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) && LoadInteger(HASH_UNIT, hid2, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED) == 1) {
-                    UnitRemoveAbility(petUnit, 'Avul');
-                    RemoveSavedInteger(HASH_UNIT, hid2, KEY_UNIT_GUARD_PAUSE_AVUL_ADDED);
-                }
+                guarder.refreshManagedAvul(pid, petUnit);
+            }
+
+            if (sleeping) {
+                petUnit = null;
+                ownerUnit = null;
+                targetUnit = null;
+                return;
             }
 
             enemyCount = guarder.enemyCount;
@@ -464,13 +798,13 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             attackRange = guarder.getAttackRange(petUnit);
 
             // 1) 瞬移区：太远直接瞬移回主人附近随机点，并重置为 idle
-            if (distToOwner > teleportDist) {
+            if (!ownerFollowDisabled && distToOwner > teleportDist) {
                 angle = GetRandomReal(0.0, 360.0);
                 nx = ox + Cos(angle * bj_DEGTORAD) * GUARD_TELEPORT_OFFSET;
                 ny = oy + Sin(angle * bj_DEGTORAD) * GUARD_TELEPORT_OFFSET;
 
-                SetUnitX(petUnit, nx);
-                SetUnitY(petUnit, ny);
+                // 一次性落到最终坐标，避免分轴更新时用“新 X + 旧 Y”误触沿途区域事件。
+                SetUnitPosition(petUnit, nx, ny);
 
                 guarder.state[pid][idx] = GUARDER_STATE_IDLE_RING;
                 guarder.target[pid][idx] = null;
@@ -485,7 +819,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             }
 
             // 2) 召回区：停止继续追远目标，跑回主人附近（用环绕点分散）
-            if (distToOwner > searchRadius) {
+            if (!ownerFollowDisabled && distToOwner > searchRadius) {
                 guarder.target[pid][idx] = null;
                 angle = guarder.getRingAngle(pid, idx);
                 nx = ox + Cos(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
@@ -497,11 +831,19 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                 return;
             }
 
-            if (enemyCount <= 0) {
-                // 自由区：主人小范围移动时，不要重算环绕并下达新的 move
-                if (distToOwner <= GUARD_FREE_RADIUS) {
-                    // 如果之前在路上，打断一次避免“跟着跑”
-                    if (state == GUARDER_STATE_MOVE) {
+            if (ownerFollowDisabled) {
+                bestTarget = null;
+                if (guarder.isValidEnemyAroundPet(petUnit, ownerUnit, targetUnit, searchRadius)) {
+                    bestTarget = targetUnit;
+                } else {
+                    guarder.target[pid][idx] = null;
+                    targetUnit = null;
+                    if (ModuloInteger(guarder.tickSerial + idx, GUARD_NO_FOLLOW_SEARCH_BUCKETS) == 0) {
+                        bestTarget = guarder.findNearestEnemyAroundPet(petUnit, ownerUnit, searchRadius);
+                    }
+                }
+                if (bestTarget == null) {
+                    if (state == GUARDER_STATE_MOVE || state == GUARDER_STATE_ATTACK) {
                         guarder.orderStop(pid, idx, petUnit, GUARDER_STATE_IDLE_RING);
                     }
                     petUnit = null;
@@ -509,57 +851,90 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                     targetUnit = null;
                     return;
                 }
+            } else {
+                if (enemyCount <= 0) {
+                    // 自由区：主人小范围移动时，不要重算环绕并下达新的 move
+                    if (distToOwner <= GUARD_FREE_RADIUS) {
+                        // 如果之前在路上，打断一次避免“跟着跑”
+                        if (state == GUARDER_STATE_MOVE) {
+                            guarder.orderStop(pid, idx, petUnit, GUARDER_STATE_IDLE_RING);
+                        }
+                        petUnit = null;
+                        ownerUnit = null;
+                        targetUnit = null;
+                        return;
+                    }
 
-                // 可选加强：主人相对上次环绕中心移动不大，则不更新环绕
-                ownerMoveDist = GetDistance(ox, oy, guarder.ringOwnerX[pid], guarder.ringOwnerY[pid]);
-                if (state == GUARDER_STATE_IDLE_RING && ownerMoveDist <= GUARD_IDLE_OWNER_MOVE_EPS) {
+                    // 可选加强：主人相对上次环绕中心移动不大，则不更新环绕
+                    ownerMoveDist = GetDistance(ox, oy, guarder.ringOwnerX[pid], guarder.ringOwnerY[pid]);
+                    if (state == GUARDER_STATE_IDLE_RING && ownerMoveDist <= GUARD_IDLE_OWNER_MOVE_EPS) {
+                        petUnit = null;
+                        ownerUnit = null;
+                        targetUnit = null;
+                        return;
+                    }
+
+                    angle = guarder.getRingAngle(pid, idx);
+                    nx = ox + Cos(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
+                    ny = oy + Sin(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
+                    guarder.orderMove(pid, idx, petUnit, nx, ny, GUARDER_STATE_IDLE_RING, null);
+                    guarder.ringOwnerX[pid] = ox;
+                    guarder.ringOwnerY[pid] = oy;
                     petUnit = null;
                     ownerUnit = null;
                     targetUnit = null;
                     return;
                 }
 
-                angle = guarder.getRingAngle(pid, idx);
-                nx = ox + Cos(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
-                ny = oy + Sin(angle * bj_DEGTORAD) * GUARD_RING_RADIUS;
-                guarder.orderMove(pid, idx, petUnit, nx, ny, GUARDER_STATE_IDLE_RING, null);
-                guarder.ringOwnerX[pid] = ox;
-                guarder.ringOwnerY[pid] = oy;
-                petUnit = null;
-                ownerUnit = null;
-                return;
-            }
-
-            // 自由战斗区：优先延续当前目标（避免因主人微动频繁换目标）
-            bestTarget = null;
-            if (distToOwner <= GUARD_FREE_RADIUS && targetUnit != null) {
-                ownerPlayer = GetOwningPlayer(ownerUnit);
-                if (IsUnitAliveBJ(targetUnit) && IsUnitEnemy(targetUnit, ownerPlayer) && GetUnitAbilityLevel(targetUnit, 'Avul') == 0) {
-                    bestTarget = targetUnit;
+                // 自由战斗区：优先延续当前目标（避免因主人微动频繁换目标）
+                bestTarget = null;
+                if (distToOwner <= GUARD_FREE_RADIUS && targetUnit != null) {
+                    ownerPlayer = GetOwningPlayer(ownerUnit);
+                    if (IsUnitAliveBJ(targetUnit) && IsUnitEnemy(targetUnit, ownerPlayer) && !IsUnitInvulnerableEx(targetUnit)) {
+                        bestTarget = targetUnit;
+                    }
+                    ownerPlayer = null;
                 }
-                ownerPlayer = null;
-            }
-            bestDist = 0.0;
-            if (bestTarget == null) {
-                for (1 <= i <= enemyCount) {
-                    enemyUnit = guarder.enemies[i];
-                    if (enemyUnit != null && IsUnitAliveBJ(enemyUnit)) {
-                        tx = GetUnitX(enemyUnit);
-                        ty = GetUnitY(enemyUnit);
-                        dx = tx - px;
-                        dy = ty - py;
-                        dist = dx * dx + dy * dy;
-                        if (bestTarget == null || dist < bestDist) {
-                            bestTarget = enemyUnit;
-                            bestDist = dist;
+                bestDist = 0.0;
+                if (bestTarget == null) {
+                    bestStableId = 0;
+                    missingStableId = false;
+                    for (1 <= i <= enemyCount) {
+                        enemyUnit = guarder.enemies[i];
+                        if (enemyUnit != null && IsUnitAliveBJ(enemyUnit)) {
+                            stableId = guarder.getStableSyncId(enemyUnit);
+                            if (stableId <= 0) {
+                                missingStableId = true;
+                            } else {
+                                tx = GetUnitX(enemyUnit);
+                                ty = GetUnitY(enemyUnit);
+                                dx = tx - px;
+                                dy = ty - py;
+                                dist = dx * dx + dy * dy;
+                                if (bestTarget == null || dist < bestDist || (dist == bestDist && stableId < bestStableId)) {
+                                    bestTarget = enemyUnit;
+                                    bestDist = dist;
+                                    bestStableId = stableId;
+                                }
+                            }
                         }
                     }
+                    if (missingStableId) {
+                        bestTarget = null;
+                    }
                 }
+                enemyUnit = null;
             }
-            enemyUnit = null;
 
             if (bestTarget == null) {
                 // 有敌人但没选到目标（极少）：自由区保持；否则回环绕
+                if (ownerFollowDisabled) {
+                    guarder.orderStop(pid, idx, petUnit, GUARDER_STATE_IDLE_RING);
+                    petUnit = null;
+                    ownerUnit = null;
+                    targetUnit = null;
+                    return;
+                }
                 if (distToOwner <= GUARD_FREE_RADIUS) {
                     petUnit = null;
                     ownerUnit = null;
@@ -596,7 +971,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
                     vx = nx - ox;
                     vy = ny - oy;
                     vr = SquareRoot(vx * vx + vy * vy);
-                    if (vr > searchRadius) {
+                    if (!ownerFollowDisabled && vr > searchRadius) {
                         vx = vx / vr * searchRadius;
                         vy = vy / vr * searchRadius;
                         nx = ox + vx;
@@ -605,8 +980,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
 
                     DestroyEffect(AddSpecialEffect("Abilities\\Spells\\NightElf\\Blink\\BlinkCaster.mdl", GetUnitX(petUnit),GetUnitY(petUnit) ));
-                    SetUnitX(petUnit, nx);
-                    SetUnitY(petUnit, ny);
+                    // 一次性落到最终坐标，避免分轴更新时用“新 X + 旧 Y”误触沿途区域事件。
+                    SetUnitPosition(petUnit, nx, ny);
                     DestroyEffect(AddSpecialEffect("Abilities\\Spells\\NightElf\\Blink\\BlinkTarget.mdl", nx,ny ));
 
                     // 瞬移后直接攻击
@@ -634,7 +1009,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 
         // 枚举敌人列表并驱动该玩家所有守卫
         private static method updatePlayerAI(integer pid) {
-            unit ownerUnit; player ownerPlayer; group enumGrp; unit enumUnit;
+            unit ownerUnit; player ownerPlayer; group enumGrp; unit enumUnit; unit beforePet;
             integer enemyCount; integer idx;
             real ox; real oy;
             real radius;
@@ -642,6 +1017,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             ownerUnit = guarder.owner[pid];
             // 主人死亡不影响守卫 AI：只在句柄失效时才退出
             if (ownerUnit == null || GetUnitTypeId(ownerUnit) == 0) { return; }
+            guarder.ownerInvulnerable[pid] = IsUnitInvulnerableEx(ownerUnit);
 
             ownerPlayer = GetOwningPlayer(ownerUnit);
             ox = GetUnitX(ownerUnit);
@@ -656,7 +1032,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             enumUnit = FirstOfGroup(enumGrp);
             while (enumUnit != null) {
                 GroupRemoveUnit(enumGrp, enumUnit);
-                if (enumUnit != ownerUnit && IsUnitAliveBJ(enumUnit) && IsUnitEnemy(enumUnit, ownerPlayer) && GetUnitAbilityLevel(enumUnit, 'Avul') == 0) {
+                if (enumUnit != ownerUnit && IsUnitAliveBJ(enumUnit) && IsUnitEnemy(enumUnit, ownerPlayer) && !IsUnitInvulnerableEx(enumUnit)) {
                     enemyCount = enemyCount + 1;
                     guarder.enemies[enemyCount] = enumUnit;
                 }
@@ -668,8 +1044,13 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             ownerPlayer = null;
 
             guarder.enemyCount = enemyCount;
-            for (1 <= idx <= guarder.size[pid]) {
+            idx = 1;
+            while (idx <= guarder.size[pid]) {
+                beforePet = guarder.pet[pid][idx];
                 guarder.updatePetWithEnemies(pid, idx);
+                if (idx <= guarder.size[pid] && guarder.pet[pid][idx] == beforePet) {
+                    idx += 1;
+                }
             }
 
             if (enemyCount > 0) {
@@ -679,6 +1060,7 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             }
             guarder.enemyCount = 0;
 
+            beforePet = null;
             ownerUnit = null;
             enumUnit = null;
         }
@@ -739,6 +1121,10 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
             TimerStart(guarder.tickTimer, GUARD_TICK, true, function () {
                 integer pid;
 
+                guarder.tickSerial += 1;
+                if (guarder.tickSerial > 1000000) {
+                    guarder.tickSerial = 0;
+                }
                 for (1 <= pid <= MAX_PLAYER_COUNT) {
                     if (guarder.owner[pid] != null && (GetPlayerSlotState(ConvertedPlayer(pid)) == PLAYER_SLOT_STATE_PLAYING) && (GetPlayerController(ConvertedPlayer(pid)) == MAP_CONTROL_USER)) {
                         guarder.updatePlayerAI(pid);
@@ -756,6 +1142,8 @@ library Guarder requires BeyondSpeed, Geometry, GroupUtils, UnitFilter {
 #undef GUARDER_STATE_MOVE
 #undef GUARDER_STATE_ATTACK
 #undef GUARDER_STATE_PAUSED
+#undef GUARDER_STATE_SLEEPING
+#undef GUARD_SLEEP_EFFECT_PATH
 
 //! endzinc
 #endif

@@ -17,6 +17,16 @@ library Music {
 	public struct music []{
 
 		private sound snd;
+		// 仅供本地音效播放判断；不得用于声音对象创建或对象池推进。
+		private static boolean skillSoundMuted = false;
+
+		static method setSkillSoundMuted(boolean muted) {
+			thistype.skillSoundMuted = muted;
+		}
+
+		static method isSkillSoundMuted() -> boolean {
+			return thistype.skillSoundMuted;
+		}
 
 		// Sound 对象池系统（用于 playXY）
 		private static hashtable table = null;  // 存储音效池：key=路径hash, value=池信息
@@ -26,8 +36,8 @@ library Music {
 		// 在位置播放堆叠音效（新方法，使用对象池，无内存泄露）
 		// 原理：为每个音效维护一个对象池，循环使用池中的 sound 对象
 		// !!!!!不能异步使用
-		static method playXY (string soundPath, real x, real y) {
-			sound snd; integer pathHash; integer poolIndex; integer nextIndex; boolean isNewPool;
+		private static method playXYInternal (string soundPath, real x, real y, boolean shouldPlay) {
+			sound snd; integer pathHash; integer poolIndex; integer nextIndex;
 
 			// 初始化对象池哈希表
 			if (thistype.table == null) {
@@ -41,11 +51,9 @@ library Music {
 			if (HaveSavedInteger(thistype.table, pathHash, 0)) {
 				// 对象池已存在，获取当前使用的索引
 				poolIndex = LoadInteger(thistype.table, pathHash, 0);
-				isNewPool = false;
 			} else {
 				// 首次使用，初始化对象池
 				poolIndex = 1;
-				isNewPool = true;
 			}
 
 			// 从对象池中获取 sound 对象（使用 poolIndex 作为子key）
@@ -62,7 +70,10 @@ library Music {
 			// 停止当前 sound（避免冲突）并设置新位置
 			StopSound(snd, false, false);
 			SetSoundPosition(snd, x, y, 0.0);
-			StartSound(snd);
+			// 静音只跳过播放，全端仍等量创建声音并推进对象池。
+			if (shouldPlay) {
+				StartSound(snd);
+			}
 
 			// 更新索引，循环使用对象池
 			nextIndex = poolIndex + 1;
@@ -75,11 +86,26 @@ library Music {
 			snd = null;
 		}
 
+		// 两个位置音效入口都必须同步调用，静音时也不能跳过对象池逻辑。
+		static method playXY(string soundPath, real x, real y) {
+			thistype.playXYInternal(soundPath, x, y, true);
+		}
+
+		static method playSkillXY(string soundPath, real x, real y) {
+			thistype.playXYInternal(soundPath, x, y, !thistype.skillSoundMuted);
+		}
+
 		//只给某个玩家播放
 		method playFor (player p) {
 			if (GetLocalPlayer() == p) {
 				StartSound(snd);
 				SetSoundPlayPosition(snd,0); //加上一条这个可以实现从头开始放
+			}
+		}
+
+		method playSkillFor(player p) {
+			if (!thistype.skillSoundMuted) {
+				this.playFor(p);
 			}
 		}
 
@@ -105,6 +131,12 @@ library Music {
 			}
 		}
 
+
+		method playSkillCameraXY(real x, real y) {
+			if (!thistype.skillSoundMuted) {
+				this.playCameraXY(x, y);
+			}
+		}
 
 		//一个使用得非常多的UI的hover方法
 		static method onHoverCommon() {
@@ -172,6 +204,26 @@ library Music {
 			SetSoundVolume( snd, 127 );
 			SetSoundPitch( snd, 1.0 );
 			thistype[MUSIC_INDEX_CLICK_PAUSE].snd = snd;
+			//# endcheck
+
+			//# check: music[1007]
+			//# dependency:sound/sound/spellshop_panel_hover.mp3
+			snd = CreateSound( "sound\\spellshop_panel_hover.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 836 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_SPELLSHOP_PANEL_HOVER].snd = snd;
+			//# endcheck
+
+			//# check: music[1008]
+			//# dependency:sound/sound/arena_monster_ban_success.mp3
+			snd = CreateSound( "sound\\arena_monster_ban_success.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 914 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_ARENA_MONSTER_BAN_SUCCESS].snd = snd;
 			//# endcheck
 
 			//# check: music[2001]
@@ -313,6 +365,13 @@ library Music {
 			thistype[MUSIC_INDEX_BTN_SWITCH_OPEN].snd = snd;
 			//# endcheck
 
+			//# check: music[20]
+			snd = CreateSound("Sound\\Interface\\SecretFound.wav", false, false, false, 10, 10, "");
+			SetSoundParamsFromLabel(snd, "SecretFound");
+			SetSoundDuration(snd, 2525);
+			thistype[MUSIC_INDEX_TUTORIAL_TASK_COMPLETE].snd = snd;
+			//# endcheck
+
 			//# check: music[3001]
 			//# dependency:sound/sound/arena_clear.mp3
 			snd = CreateSound( "sound\\arena_clear.mp3", false, false, false, 10, 10, "" );
@@ -433,6 +492,115 @@ library Music {
 			thistype[MUSIC_INDEX_START_MISSION].snd = snd;
 			//# endcheck
 
+			//# check: music[3013]
+			//# dependency:sound/sound/monster_pause.mp3
+			snd = CreateSound( "sound\\monster_pause.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 2664 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_MONSTER_PAUSE].snd = snd;
+			//# endcheck
+
+			//# check: music[3014]
+			//# dependency:sound/sound/monster_continue.mp3
+			snd = CreateSound( "sound\\monster_continue.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1776 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_MONSTER_CONTINUE].snd = snd;
+			//# endcheck
+
+			//# check: music[3015]
+			//# dependency:sound/sound/talent_switch_success.mp3
+			snd = CreateSound( "sound\\talent_switch_success.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1541 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_TALENT_SWITCH_SUCCESS].snd = snd;
+			//# endcheck
+
+			//# check: music[3016]
+			//# dependency:sound/sound/huanglong_divine_aegis.mp3
+			snd = CreateSound( "sound\\huanglong_divine_aegis.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 3030 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_HUANGLONG_DIVINE_AEGIS].snd = snd;
+			//# endcheck
+
+			//# check: music[3017]
+			//# dependency:sound/sound/daojian_yuchunqiu_slash_barrage.mp3
+			snd = CreateSound( "sound\\daojian_yuchunqiu_slash_barrage.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 3239 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_DAOJIAN_YUCHUNQIU].snd = snd;
+			//# endcheck
+
+			//# check: music[3018]
+			//# dependency:sound/sound/aofeng_xueyin.mp3
+			snd = CreateSound( "sound\\aofeng_xueyin.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 3030 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_AOFENG_XUEYIN].snd = snd;
+			//# endcheck
+
+			//# check: music[3019]
+			//# dependency:sound/sound/lingneng_reshape.mp3
+			snd = CreateSound( "sound\\lingneng_reshape.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 3030 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_LINGNENG_RESHAPE].snd = snd;
+			//# endcheck
+
+			//# check: music[3020]
+			//# dependency:sound/sound/pingzong_piaomiao.mp3
+			snd = CreateSound( "sound\\pingzong_piaomiao.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 6034 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_PINGZONG_PIAOMIAO].snd = snd;
+			//# endcheck
+
+			//# check: music[3021]
+			//# dependency:sound/sound/yasina_mothers_rosario_slash.mp3
+			snd = CreateSound( "sound\\yasina_mothers_rosario_slash.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 914 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_YASINA_MOTHERS_ROSARIO].snd = snd;
+			//# endcheck
+
+			//# check: music[3022]
+			//# dependency:sound/sound/ram_stone_burst.mp3
+			snd = CreateSound( "sound\\ram_stone_burst.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 3030 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_RAM_STONE_BURST].snd = snd;
+			//# endcheck
+
+			//# check: music[3023]
+			//# dependency:sound/sound/youzhen_sunlight_bloom.mp3
+			snd = CreateSound( "sound\\youzhen_sunlight_bloom.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 1802 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_YOUZHEN_SUNLIGHT_BLOOM].snd = snd;
+			//# endcheck
 
 			snd = null;
 		}

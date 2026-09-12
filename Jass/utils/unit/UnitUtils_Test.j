@@ -7,7 +7,7 @@
 //! zinc
 
 //自动生成的文件
-library UTUnitUtils requires UnitUtils {
+library UTUnitUtils requires UnitUtils, UnitSelect {
 
 	// BigInteger 攻击链路测试
 	private function Test_BigIntAttack() {
@@ -44,6 +44,216 @@ library UTUnitUtils requires UnitUtils {
 		AddUnitAttack(hero, 11000.0);
 		assert.Boolean(GetUnitAttack(hero) == 2000.0, "BigInt 1000-10000+11000 攻击应为 2000");
 		assert.Boolean(bigInteger.compareInt(p, HASH_KEY_BIGINT_ATTACK_CACHE, 0) == 0, "BigInt 欠款应归零");
+
+		hero = null;
+		p = null;
+	}
+
+	// [异度] BigInteger 暴击真伤链路测试
+	private function Test_BigIntCritTrue() {
+		player p;
+		unit hero;
+		real big;
+		real expected;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		big = 1000000000.0 * 1000000000.0;
+
+		bigInteger.reset(p, HASH_KEY_BIGINT_CRIT_TRUE);
+		RemoveSavedReal(HASH_UNIT, GetHandleId(hero), KEY_UNIT_CRIT_TRUE_UP_RATE);
+		RemoveSavedReal(HASH_UNIT, GetHandleId(hero), KEY_UNIT_CRIT_TRUE_DOWN_RATE);
+
+		AddUnitCritTrue(hero, big);
+		AddUnitCritTrue(hero, -big);
+		AddUnitCritTrue(hero, 1000.0);
+		assert.Real(GetUnitCritTrue(hero), 1000.0, "暴击真伤大数加减后应为 1000");
+		assert.Real(GetUnitCritTruePercent(hero), 1.0, "暴击真伤初始倍率应为 1.0");
+
+		AddUnitCritTrueUpPercent(hero, 0.5);
+		AddUnitCritTrueDownPercent(hero, 0.2);
+		expected = 1000.0 * 1.5 * 0.8;
+		assert.Real(GetUnitCritTruePercent(hero), 1.2, "暴击真伤 50% 增幅 + 20% 减幅后倍率应为 1.2");
+		assert.Real(GetUnitCritTrue(hero), expected, "暴击真伤倍率后应为 1200");
+
+		hero = null;
+		p = null;
+	}
+
+	// [异度] BigInteger 格挡链路测试
+	private function Test_BigIntBlock() {
+		player p;
+		unit hero;
+		real big;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		big = 1000000000.0 * 1000000000.0;
+
+		bigInteger.reset(p, HASH_KEY_BIGINT_BLOCK);
+		AddUnitBlock(hero, big);
+		AddUnitBlock(hero, -big);
+		AddUnitBlock(hero, 2000.0);
+		assert.Real(GetUnitBlock(hero), 2000.0, "格挡大数加减后应为 2000");
+
+		hero = null;
+		p = null;
+	}
+
+	// [异度] 单位最终受伤倍率测试
+	private function Test_DamagedFinal() {
+		player p;
+		unit hero;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+
+		ResetUnitDamagedUp(hero);
+		ResetUnitDamagedDown(hero);
+		assert.Real(GetUnitDamagedFinal(hero), 1.0, "受伤倍率初始值应为 1.0");
+
+		AddUnitDamagedUp(hero, 0.1);
+		AddUnitDamagedUp(hero, 0.1);
+		assert.Real(GetUnitDamagedUpRate(hero), 0.21, "两次 10% 受伤增加应叠乘为 21%");
+		assert.Real(GetUnitDamagedFinal(hero), 1.21, "两次受伤增加后最终倍率应为 1.21");
+
+		AddUnitDamagedUp(hero, -0.1);
+		assert.Real(GetUnitDamagedUpRate(hero), 0.1, "移除一次 10% 受伤增加后应回到 10%");
+
+		AddUnitDamagedDown(hero, 0.3);
+		AddUnitDamagedDown(hero, 0.3);
+		assert.Real(GetUnitDamagedDownRate(hero), 0.51, "两次 30% 受伤减少应 RealAdd 为 51%");
+		assert.Real(GetUnitDamagedFinal(hero), 0.539, "受伤增加 10% 且受伤减少 51% 后最终倍率应为 0.539");
+
+		AddUnitDamagedDown(hero, -0.3);
+		assert.Real(GetUnitDamagedDownRate(hero), 0.3, "移除一次 30% 受伤减少后应回到 30%");
+
+		ResetUnitDamagedUp(hero);
+		ResetUnitDamagedDown(hero);
+		assert.Real(GetUnitDamagedFinal(hero), 1.0, "重置后受伤倍率应回到 1.0");
+
+		hero = null;
+		p = null;
+	}
+
+	// [异度] 单位结算最终伤害倍率测试
+	private function Test_FinalDamageFinal() {
+		player p;
+		unit hero;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+
+		ResetUnitFinalDamageUp(hero);
+		ResetUnitFinalDamageDown(hero);
+		assert.Real(GetUnitFinalDamageFinal(hero), 1.0, "结算最终伤害倍率初始值应为 1.0");
+
+		AddUnitFinalDamageUp(hero, 0.2);
+		AddUnitFinalDamageUp(hero, 0.2);
+		assert.Real(GetUnitFinalDamageUpRate(hero), 0.44, "两次 20% 结算最终伤害增加应叠乘为 44%");
+		assert.Real(GetUnitFinalDamageFinal(hero), 1.44, "两次结算最终伤害增加后最终倍率应为 1.44");
+
+		AddUnitFinalDamageUp(hero, -0.2);
+		assert.Real(GetUnitFinalDamageUpRate(hero), 0.2, "移除一次 20% 结算最终伤害增加后应回到 20%");
+
+		AddUnitFinalDamageDown(hero, 0.25);
+		AddUnitFinalDamageDown(hero, 0.25);
+		assert.Real(GetUnitFinalDamageDownRate(hero), 0.4375, "两次 25% 结算最终伤害减少应 RealAdd 为 43.75%");
+		assert.Real(GetUnitFinalDamageFinal(hero), 0.675, "结算最终伤害增加 20% 且减少 43.75% 后最终倍率应为 0.675");
+
+		AddUnitFinalDamageDown(hero, -0.25);
+		assert.Real(GetUnitFinalDamageDownRate(hero), 0.25, "移除一次 25% 结算最终伤害减少后应回到 25%");
+
+		ResetUnitFinalDamageDown(hero);
+		AddUnitFinalDamageDown(hero, 0.5);
+		AddUnitFinalDamageDown(hero, 0.9999);
+		assert.Real(GetUnitFinalDamageDownRate(hero), 0.9999, "超过 99.99% 后 getter 应保持 99.99% 上限");
+		assert.Boolean(LoadReal(HASH_UNIT, GetHandleId(hero), KEY_UNIT_FINAL_DAMAGE_DOWN_RATE) > 0.9999, "超过上限的原始终伤降低值应完整保留");
+		AddUnitFinalDamageDown(hero, -0.9999);
+		assert.Real(GetUnitFinalDamageDownRate(hero), 0.5, "移除触顶来源后应准确恢复原有 50% 终伤降低");
+
+		ResetUnitFinalDamageUp(hero);
+		ResetUnitFinalDamageDown(hero);
+		assert.Real(GetUnitFinalDamageFinal(hero), 1.0, "重置后结算最终伤害倍率应回到 1.0");
+
+		hero = null;
+		p = null;
+	}
+
+	private function Test_ResistFull() {
+		player p;
+		unit hero;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+
+		ResetUnitResistUp(hero);
+		ResetUnitResistDown(hero);
+		assert.Real(GetUnitResistFinal(hero), 1.0, "魔抗初始最终倍率应为 1.0");
+
+		AddUnitResistUp(hero, 0.5);
+		assert.Real(GetUnitResistFinal(hero), 0.5, "50% 魔抗后最终倍率应为 0.5");
+
+		AddUnitResistUp(hero, 1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.0, "新增 100% 魔抗层后最终倍率应为 0.0");
+		AddUnitResistDown(hero, 1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.0, "100% 魔抗层存在时魔易应被遮蔽");
+		AddUnitResistUp(hero, -1.0);
+		assert.Real(GetUnitResistFinal(hero), 1.0, "移除 100% 魔抗层后应恢复 50% 魔抗和 100% 魔易");
+		AddUnitResistDown(hero, -1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.5, "移除魔易后应回到 50% 魔抗");
+
+		AddUnitResistUp(hero, 1.0);
+		AddUnitResistUp(hero, 1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.0, "两层 100% 魔抗后最终倍率应为 0.0");
+		AddUnitResistUp(hero, -1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.0, "移除一层后仍应保持 100% 魔抗");
+		AddUnitResistUp(hero, -1.0);
+		assert.Real(GetUnitResistFinal(hero), 0.5, "移除所有 100% 魔抗层后应恢复原有 50% 魔抗");
+
+		AddUnitResistUp(hero, 1.0);
+		ResetUnitResistUp(hero);
+		assert.Real(GetUnitResistFinal(hero), 1.0, "重置魔抗减伤应同时清理 100% 魔抗层");
+
+		hero = null;
+		p = null;
+	}
+
+	private function Test_MoveSpeedRawNegative() {
+		player p;
+		unit hero;
+		real base;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		base = GetUnitMoveSpeed(hero);
+
+		AddUnitSpeedBase(hero, -base - 50.0);
+		assert.Real(GetUnitSpeedRawReal(hero), -50.0, "raw 移速应保留钳制前的负数");
+		assert.Boolean(GetUnitSpeed(hero) == 0, "旧移速 getter 仍应钳制到 0");
+		assert.Boolean(GetUnitSpeedDisplay(hero) == -50, "显示用移速应展示负数 raw 值");
+
+		AddUnitSpeedUpPercent(hero, 0.5);
+		assert.Real(GetUnitSpeedRawReal(hero), -75.0, "通用移速增幅接口的旧语义不变");
+
+		hero = null;
+		p = null;
+	}
+
+	private function Test_AttackSpeedRawNegative() {
+		player p;
+		unit hero;
+		real base;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		base = GetUnitAttackSpeed(hero);
+
+		AddUnitAttackSpeed(hero, -base - 0.5);
+		assert.Real(GetUnitAttackSpeedRawReal(hero), -0.5, "raw 攻速应保留钳制前的负数");
+		assert.Boolean(GetUnitAttackSpeed(hero) >= 0.0, "旧攻速 getter 应保持非负引擎值");
+		AddUnitAttackSpeed(hero, base + 0.5);
+		assert.Real(GetUnitAttackSpeedRawReal(hero), base, "负攻速加回后 raw 值应准确恢复");
 
 		hero = null;
 		p = null;
@@ -181,8 +391,6 @@ library UTUnitUtils requires UnitUtils {
 
 	function Init () {
 		// 注册全局单位选中事件，打印当前攻击力与攻击倍数
-		trigger selTr;
-		integer i;
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
 			}, function() {
@@ -199,6 +407,37 @@ library UTUnitUtils requires UnitUtils {
 			Test_BigIntAttack();
 		}, null);
 
+		// 自动执行 [异度] 暴击真伤 / 格挡测试
+		UnitTestAutoTimer(0.35, 0.1, function() {
+			Trace("UnitUtils 暴击真伤 BigInteger 测试");
+			Test_BigIntCritTrue();
+		}, null);
+		UnitTestAutoTimer(0.36, 0.1, function() {
+			Trace("UnitUtils 格挡 BigInteger 测试");
+			Test_BigIntBlock();
+		}, null);
+		UnitTestAutoTimer(0.37, 0.1, function() {
+			Trace("UnitUtils 最终受伤倍率测试");
+			Test_DamagedFinal();
+		}, null);
+		UnitTestAutoTimer(0.38, 0.1, function() {
+			Trace("UnitUtils 结算最终伤害倍率测试");
+			Test_FinalDamageFinal();
+		}, null);
+		UnitTestAutoTimer(0.39, 0.1, function() {
+			Trace("UnitUtils 100% 魔抗可逆测试");
+			Test_ResistFull();
+		}, null);
+
+		UnitTestAutoTimer(0.395, 0.1, function() {
+			Trace("UnitUtils raw 负移速测试");
+			Test_MoveSpeedRawNegative();
+		}, null);
+		UnitTestAutoTimer(0.397, 0.1, function() {
+			Trace("UnitUtils raw 负攻速测试");
+			Test_AttackSpeedRawNegative();
+		}, null);
+
 		// 自动执行普通单位攻击增幅/减幅/定值测试
 		UnitTestAutoTimer(0.4, 0.1, function() {
 			Trace("UnitUtils 普通单位攻击百分比测试");
@@ -211,20 +450,15 @@ library UTUnitUtils requires UnitUtils {
 			Test_BigIntUnitAttackPercent();
 		}, null);
 
-		selTr = CreateTrigger();
-		for (0 <= i <= 11) {
-			TriggerRegisterPlayerUnitEvent(selTr, Player(i), EVENT_PLAYER_UNIT_SELECTED, null);
-		}
-		TriggerAddCondition(selTr, Condition(function () -> boolean {
+		unitSelect.onAsync(function () -> boolean {
 			unit u; real atk; real mult;
-			u    = GetTriggerUnit();
+			u    = unitSelect.args;
 			atk  = GetUnitAttack(u);
 			mult = GetUnitAttackMult(u);
-			BJDebugMsg("[UnitUtils] 选中单位攻击=" + R2S(atk) + "  倍数=" + R2S(mult));
+			DisplayTextToPlayer(GetLocalPlayer(), 0., 0., "[UnitUtils] 选中单位攻击=" + R2S(atk) + "  倍数=" + R2S(mult));
 			u = null;
-			return false;
-		}));
-		selTr = null;
+			return true;
+		});
 	}
 
 	function TTestUTUnitUtils1 (player p) {

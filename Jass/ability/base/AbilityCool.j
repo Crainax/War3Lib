@@ -142,7 +142,7 @@ library AbilityCool requires HashTable {
                 // 已存在队列条目，只需要更新哈希，不改动队列结构
             } else {
                 if (thistype.size >= 8190) {
-                    BJDebugMsg("|cFFFF0000[AbilityCool] 队列已满，无法继续添加冷却条目！|r");
+                    DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[AbilityCool] 队列已满，无法继续添加冷却条目！|r");
                     return;
                 }
                 thistype.uList[thistype.size]    = u;

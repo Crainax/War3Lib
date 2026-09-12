@@ -245,6 +245,289 @@ library UnitUtils requires BigInteger,MathUtils {
     }
 
     //=====================
+    // [异度] 暴击真伤 / 格挡扩展工具函数
+    //=====================
+
+    // 获取单位暴击真伤增幅（real）
+    private function GetUnitCritTrueUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return up;
+    }
+
+    // 获取单位暴击真伤减幅（real）
+    private function GetUnitCritTrueDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return down;
+    }
+
+    // 获取当前单位暴击真伤总倍率：(1 + up) * (1 - down)，默认 1.0
+    public function GetUnitCritTruePercent(unit u) -> real {
+        real up; real down;
+        if (u == null) { return 1.0; }
+        up = GetUnitCritTrueUpRate(u);
+        down = GetUnitCritTrueDownRate(u);
+        return (1.0 + up) * (1.0 - down);
+    }
+
+    // 获取单位暴击真伤（基础 BigInteger * 总倍率）
+    public function GetUnitCritTrue(unit u) -> real {
+        player p; real base;
+        if (u == null) { return 0.0; }
+        p = GetOwningPlayer(u);
+        base = bigInteger.toReal(p, HASH_KEY_BIGINT_CRIT_TRUE);
+        p = null;
+        return base * GetUnitCritTruePercent(u);
+    }
+
+    // 增加单位暴击真伤基础值（支持超过 21 亿）
+    public function AddUnitCritTrue(unit u, real value) -> nothing {
+        player p;
+        if (u == null || value == 0.0) { return; }
+        p = GetOwningPlayer(u);
+        if (value > 0.0) {
+            bigInteger.addReal(p, HASH_KEY_BIGINT_CRIT_TRUE, value);
+        } else {
+            bigInteger.subReal(p, HASH_KEY_BIGINT_CRIT_TRUE, -value);
+        }
+        p = null;
+    }
+
+    // 增加暴击真伤增幅（value 为小数，如 0.2 表示 +20%）
+    public function AddUnitCritTrueUpPercent(unit u, real value) -> nothing {
+        integer uid; real up;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        up = GetUnitCritTrueUpRate(u);
+        up = up + value;
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_UP_RATE, up);
+    }
+
+    // 增加暴击真伤减幅（value 为小数，如 0.3 表示 -30%）
+    public function AddUnitCritTrueDownPercent(unit u, real value) -> nothing {
+        integer uid; real down;
+        if (u == null || value == 0.0) { return; }
+        uid = GetHandleId(u);
+        down = GetUnitCritTrueDownRate(u);
+        down = RealAdd(down, value);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_CRIT_TRUE_DOWN_RATE, down);
+    }
+
+    // 获取单位格挡伤害（支持超过 21 亿）
+    public function GetUnitBlock(unit u) -> real {
+        player p; real value;
+        if (u == null) { return 0.0; }
+        p = GetOwningPlayer(u);
+        value = bigInteger.toReal(p, HASH_KEY_BIGINT_BLOCK);
+        p = null;
+        return value;
+    }
+
+    // 增加单位格挡伤害（支持超过 21 亿）
+    public function AddUnitBlock(unit u, real value) -> nothing {
+        player p;
+        if (u == null || value == 0.0) { return; }
+        p = GetOwningPlayer(u);
+        if (value > 0.0) {
+            bigInteger.addReal(p, HASH_KEY_BIGINT_BLOCK, value);
+        } else {
+            bigInteger.subReal(p, HASH_KEY_BIGINT_BLOCK, -value);
+        }
+        p = null;
+    }
+
+    //=====================
+    // 最终受伤倍率扩展工具函数
+    //=====================
+
+    // 获取单位受伤增加（real，0.21 表示 +21%）
+    public function GetUnitDamagedUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return RMaxBJ(0.0, up);
+    }
+
+    // 获取单位受伤减少（real，0.5 表示 -50%）
+    public function GetUnitDamagedDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return RLimit(down, 0.0, 0.999);
+    }
+
+    // 重置单位受伤增加
+    public function ResetUnitDamagedUp(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE);
+        }
+    }
+
+    // 重置单位受伤减少
+    public function ResetUnitDamagedDown(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE);
+        }
+    }
+
+    // 增加单位受伤增加。两次 +0.1 会得到 +21%，传负值用于移除对应加成。
+    public function AddUnitDamagedUp(unit u, real value) -> nothing {
+        integer uid; real up;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        up = GetUnitDamagedUpRate(u);
+        if (value > 0.0) {
+            up = (1.0 + up) * (1.0 + value) - 1.0;
+        } else {
+            up = (1.0 + up) / (1.0 - value) - 1.0;
+        }
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_UP_RATE, RMaxBJ(0.0, up));
+    }
+
+    // 增加单位受伤减少。使用 RealAdd 叠加，永远不会自然达到 100%。
+    public function AddUnitDamagedDown(unit u, real value) -> nothing {
+        integer uid; real down;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        down = GetUnitDamagedDownRate(u);
+        down = RLimit(RealAdd(down, value), 0.0, 0.999);
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE, down);
+    }
+
+    // 获取最终受伤倍率：(1 + Up) * (1 - Down)，默认 1.0
+    public function GetUnitDamagedFinal(unit u) -> real {
+        real up; real down;
+        if (u == null) { return 1.0; }
+        up = GetUnitDamagedUpRate(u);
+        down = GetUnitDamagedDownRate(u);
+        return RMaxBJ(0.0, (1.0 + up) * (1.0 - down));
+    }
+
+    //=====================
+    // 结算最终伤害倍率扩展工具函数
+    //=====================
+
+    // 获取单位结算最终伤害增加（real，0.44 表示 +44%）
+    public function GetUnitFinalDamageUpRate(unit u) -> real {
+        integer uid; real up;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_UP_RATE)) {
+            up = LoadReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_UP_RATE);
+        } else {
+            up = 0.0;
+        }
+        return RMaxBJ(0.0, up);
+    }
+
+    // 获取单位结算最终伤害减少（real，0.5 表示 -50%，输出最高限制为 99.99%）
+    public function GetUnitFinalDamageDownRate(unit u) -> real {
+        integer uid; real down;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        return RLimit(down, 0.0, 0.9999);
+    }
+
+    // 重置单位结算最终伤害增加
+    public function ResetUnitFinalDamageUp(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_UP_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_UP_RATE);
+        }
+    }
+
+    // 重置单位结算最终伤害减少
+    public function ResetUnitFinalDamageDown(unit u) -> nothing {
+        integer uid;
+        if (u == null) { return; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE)) {
+            RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE);
+        }
+    }
+
+    // 增加单位结算最终伤害增加。两次 +0.2 会得到 +44%，传负值用于移除对应加成。
+    public function AddUnitFinalDamageUp(unit u, real value) -> nothing {
+        integer uid; real up;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        up = GetUnitFinalDamageUpRate(u);
+        if (value > 0.0) {
+            up = (1.0 + up) * (1.0 + value) - 1.0;
+        } else {
+            up = (1.0 + up) / (1.0 - value) - 1.0;
+        }
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_UP_RATE, RMaxBJ(0.0, up));
+    }
+
+    // 增加单位结算最终伤害减少。内部保留未截断原始值，getter 才限制到 99.99%，保证触顶后仍可逆。
+    public function AddUnitFinalDamageDown(unit u, real value) -> nothing {
+        integer uid; real down;
+
+        if (u == null || value == 0.0) { return; }
+
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE);
+        } else {
+            down = 0.0;
+        }
+        down = RMaxBJ(0.0, RealAdd(down, value));
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_FINAL_DAMAGE_DOWN_RATE, down);
+    }
+
+    // 获取最终结算伤害倍率：(1 + Up) * (1 - Down)，默认 1.0
+    public function GetUnitFinalDamageFinal(unit u) -> real {
+        real up; real down;
+        if (u == null) { return 1.0; }
+        up = GetUnitFinalDamageUpRate(u);
+        down = GetUnitFinalDamageDownRate(u);
+        return RMaxBJ(0.0, (1.0 + up) * (1.0 - down));
+    }
+
+    //=====================
     // 防御扩展工具函数
     //=====================
 
@@ -381,6 +664,19 @@ library UnitUtils requires BigInteger,MathUtils {
         return down;
     }
 
+    private function GetUnitResistFullCount(unit u) -> integer {
+        integer uid; integer count;
+        if (u == null) { return 0; }
+        uid = GetHandleId(u);
+        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT)) {
+            count = LoadInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT);
+        } else {
+            count = 0;
+        }
+        if (count < 0) { return 0; }
+        return count;
+    }
+
     // 重置单位魔抗减伤 Up（直接归 0）
     public function ResetUnitResistUp(unit u) -> nothing {
         integer uid;
@@ -388,6 +684,9 @@ library UnitUtils requires BigInteger,MathUtils {
         uid = GetHandleId(u);
         if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE)) {
             RemoveSavedReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE);
+        }
+        if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT)) {
+            RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT);
         }
     }
 
@@ -401,13 +700,26 @@ library UnitUtils requires BigInteger,MathUtils {
         }
     }
 
-    // 增加魔抗减伤 Up（0~1，使用 RealAdd 归一叠加，永远不会到 1）
+    // 增加魔抗减伤 Up。传入 +/-1.0 使用单独层数，避免 RealAdd 的除零边界。
     public function AddUnitResistUp(unit u, real value) -> nothing {
-        integer uid; real up;
+        integer uid; real up; integer fullCount;
 
         if (u == null || value == 0.0) { return; }
 
         uid = GetHandleId(u);
+        if (value >= 1.0) {
+            SaveInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT, GetUnitResistFullCount(u) + 1);
+            return;
+        } else if (value <= -1.0) {
+            fullCount = GetUnitResistFullCount(u) - 1;
+            if (fullCount > 0) {
+                SaveInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT, fullCount);
+            } else if (HaveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT)) {
+                RemoveSavedInteger(HASH_UNIT, uid, KEY_UNIT_RESIST_FULL_COUNT);
+            }
+            return;
+        }
+
         up = GetUnitResistUpRate(u);
         up = RealAdd(up, value);
         SaveReal(HASH_UNIT, uid, KEY_UNIT_RESIST_UP_RATE, up);
@@ -428,11 +740,13 @@ library UnitUtils requires BigInteger,MathUtils {
     // 获取魔抗最终结果：
     //  - Up 的两次 0.5 过程：RealAdd(0.5, 0.5) = 0.75
     //  - Down 的两次 0.6 过程：0.6 + 0.6 = 1.2
+    //  - 满额魔抗层数 > 0 时，Final 直接为 0
     //  - Final 计算公式：(1 - up) * (1.0 + down)
     public function GetUnitResistFinal(unit u) -> real {
         real up; real down; real final;
 
         if (u == null) { return 0.0; }
+        if (GetUnitResistFullCount(u) > 0) { return 0.0; }
 
         up = GetUnitResistUpRate(u);
         down = GetUnitResistDownRate(u);
@@ -1205,14 +1519,13 @@ library UnitUtils requires BigInteger,MathUtils {
         return bonus;
     }
 
-    // 获取当前单位移速总倍率：(1 + up) * (1 - down)，默认 1.0
+    // 获取移速总倍率，正负基础移速均使用同一增减幅。
     public function GetUnitSpeedFinalPercent(unit u) -> real {
-        real up; real down; real rate;
+        real up; real down;
         if (u == null) { return 1.0; }
         up = GetUnitSpeedUpRate(u);
         down = GetUnitSpeedDownRate(u);
-        rate = (1.0 + up) * (1.0 - down);
-        return rate;
+        return (1.0 + up) * (1.0 - down);
     }
 
     // 获取单位"基础移速"（不含增减幅与定值）
@@ -1235,6 +1548,13 @@ library UnitUtils requires BigInteger,MathUtils {
         return base;
     }
 
+    private function HasUnitSpeedExtensionData(integer uid) -> boolean {
+        return HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE) ||
+            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL);
+    }
+
     // 计算单位当前"最终移速"（基础 * 总倍率 + 定值）
     private function CalcUnitFinalSpeedReal(unit u) -> real {
         real base; real rate; real bonus;
@@ -1246,6 +1566,18 @@ library UnitUtils requires BigInteger,MathUtils {
         bonus = GetUnitSpeedBonusReal(u);
 
         return base * rate + bonus;
+    }
+
+    // 获取未钳制的最终移速，可为负数。
+    public function GetUnitSpeedRawReal(unit u) -> real {
+        integer uid;
+        if (u == null) { return 0.0; }
+
+        uid = GetHandleId(u);
+        if (HasUnitSpeedExtensionData(uid)) {
+            return CalcUnitFinalSpeedReal(u);
+        }
+        return GetUnitMoveSpeed(u);
     }
 
     // 获取移速
@@ -1260,16 +1592,25 @@ library UnitUtils requires BigInteger,MathUtils {
         }
 
         // 若存在移速扩展数据：仅计算，不写入（避免读函数写入导致 OOS）
-        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL) ||
-            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE) ||
-            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE) ||
-            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL)) {
+        if (HasUnitSpeedExtensionData(uid)) {
             total = CalcUnitFinalSpeedReal(u);
             total = RMaxBJ(total, 0.0);
             return R2I(total);
         }
 
         return R2I(GetUnitMoveSpeed(u));
+    }
+
+    // 获取显示用移速：负数展示 raw，非负数沿用旧 GetUnitSpeed。
+    public function GetUnitSpeedDisplay(unit u) -> integer {
+        real raw;
+        if (u == null) { return 0; }
+
+        raw = GetUnitSpeedRawReal(u);
+        if (raw < 0.0) {
+            return R2I(raw);
+        }
+        return GetUnitSpeed(u);
     }
 
     // 重新计算单位当前移速（应用增减幅与定值，并写入 KEY_UNIT_MOVE_SPEED 供 Hook 读取）
@@ -1316,6 +1657,7 @@ library UnitUtils requires BigInteger,MathUtils {
         RecalcUnitSpeed(u);
     }
 
+
     // 增加移速减幅（value 为小数，如 0.3 表示 -30%）
     public function AddUnitSpeedDownPercent(unit u, real value) -> nothing {
         integer uid; real down;
@@ -1357,9 +1699,23 @@ library UnitUtils requires BigInteger,MathUtils {
     public function GetUnitAttackSpeed(unit u) -> real {
         return GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE));
     }
+    // 获取未钳制的攻速，可为负数。
+    public function GetUnitAttackSpeedRawReal(unit u) -> real {
+        integer uid;
+        if (u == null) { return 0.0; }
+        uid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SPEED_RAW_REAL)) {
+            return LoadReal(HASH_UNIT, uid, KEY_UNIT_ATTACK_SPEED_RAW_REAL);
+        }
+        return GetUnitAttackSpeed(u);
+    }
     // 增加攻速
 	public function AddUnitAttackSpeed (unit u,real speed) {
-		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),GetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE)) + speed);
+		real raw;
+		if (u == null || speed == 0.0) { return; }
+		raw = GetUnitAttackSpeedRawReal(u) + speed;
+		SaveReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_ATTACK_SPEED_RAW_REAL, raw);
+		SetUnitState(u,ConvertUnitState(UNIT_STATE_RATE_OF_FIRE),RMaxBJ(raw, 0.0));
 	}
 
     // (获取缓存的攻击间隔(可能为负))

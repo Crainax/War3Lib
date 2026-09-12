@@ -59,140 +59,149 @@ function path.init(root, project, we, gamePath)
     if path.jassPathName == nil then
         path.jassPathName = "edit"
     end
-    path.root             = normalizePathString(root)
-    path.project          = normalizePathString(project)
-    path.we               = normalizePathString(we)
+    path.root    = normalizePathString(root)
+    path.project = normalizePathString(project)
+    path.we      = normalizePathString(we)
     if gamePath ~= nil and gamePath ~= "" then
-        path.gamePath      = normalizePathString(gamePath)
+        path.gamePath = normalizePathString(gamePath)
     else
-        path.gamePath      = "D:/Program Files (x86)/Warcraft III Frozen Throne"
+        path.gamePath = "D:/Program Files (x86)/Warcraft III Frozen Throne"
     end
 
-    path.libRoot          = path.root .. "/Library/War3Lib" -- 本库根目录
+    path.libRoot = path.root .. "/Library/War3Lib" -- 本库根目录
 
-    if path.libRoot == path.project then -- 如果本库根目录和项目目录相同,则使用Jass作为Jass路径
+    if path.libRoot == path.project then           -- 如果本库根目录和项目目录相同,则使用Jass作为Jass路径
         path.jassPathName = "Jass"
     end
 
-    path.mapName          = "OriginMap" -- 地图名字
-    path.buildVersion     = "单元测试" -- 当前构建版本(默认单元测试)   "单元测试|正式版本|模型测试|内测版本|公测版本"
+    path.mapName                    = "OriginMap" -- 地图名字
+    path.buildVersion               = "单元测试" -- 当前构建版本(默认单元测试)   "单元测试|正式版本|模型测试|内测版本|公测版本"
 
-    path.rewave          = path.project .. "/config/rewave.h" -- 地图导包文件
-    path.generatedConfig  = path.project .. "/config/generated"
-    path.localDzApiMockH  = path.generatedConfig .. "/DzApiLocalMock.generated.h"
-    path.localDzApiIni    = path.gamePath .. "/dz_w3_plugin.ini"
-    path.scriptJ          = path.project .. "/"..path.jassPathName .."/config/script.j" -- 脚本源文件(不要动这个文件)
-    path.CompileStep0     = path.project .. "/Output/0_script.j" -- 脚本源文件的复制(第一步)
-    path.CompileStep1     = path.project .. "/Output/1_wave.j" -- wave预处理后的文件
-    path.CompileStep2     = path.project .. "/Output/2_inject.j" -- wave第二次预处理后的文件
-    path.CompileStep3     = path.project .. "/Output/3_wave.j" -- wave第二次预处理后的文件
-    path.CompileStep4     = path.project .. "/Output/4_luaexecute.j" -- wave第二次预处理后的文件
-    path.CompileStep5JassHelper = path.project .. "/Output/5_jasshelper.j" -- jasshelper预处理后的文件
-    path.CompileStep5Vjassc     = path.project .. "/Output/5_vjassc.j" -- vjassc预处理后的文件
-    path.CompileStep5     = path.CompileStep5JassHelper -- 保持旧字段指向jasshelper输出
-    path.CompileResult    = path.project .. "/Output/output.j" -- 输出字符串(最终)
-    path.VjasscStats      = path.project .. "/Output/vjassc.stats.json"
-    path.VjasscValidation = path.project .. "/Output/vjassc.validation.json"
-    path.VjasscStdout     = path.project .. "/Output/vjassc.stdout.txt"
-    path.VjasscStderr     = path.project .. "/Output/vjassc.stderr.txt"
-    path.VjasscCommand    = path.project .. "/Output/vjassc.cmd"
-    path.CompilerBackendReport = path.project .. "/Output/compiler_backend_report.json"
-    path.VjasscRuntimeChecklist = path.project .. "/Output/vjassc_runtime_checklist.md"
-    path.VjasscRuntimeNotes = path.project .. "/Output/runtime_notes.md"
-    path.buildString     = "" -- 输出字符串()
+    path.rewave                     = path.project .. "/config/rewave.h" -- 地图导包文件
+    path.generatedConfig            = path.project .. "/config/generated"
+    path.localDzApiMockH            = path.generatedConfig .. "/DzApiLocalMock.generated.h"
+    path.localDzApiIni              = path.gamePath .. "/dz_w3_plugin.ini"
+    path.scriptJ                    = path.project .. "/" .. path.jassPathName .. "/config/script.j" -- 脚本源文件(不要动这个文件)
+    path.CompileStep0               = path.project .. "/Output/0_script.j"                           -- 脚本源文件的复制(第一步)
+    path.CompileStep1               = path.project .. "/Output/1_wave.j"                             -- wave预处理后的文件
+    path.CompileStep2               = path.project .. "/Output/2_inject.j"                           -- wave第二次预处理后的文件
+    path.CompileStep3               = path.project .. "/Output/3_wave.j"                             -- wave第二次预处理后的文件
+    path.CompileStep4               = path.project .. "/Output/4_luaexecute.j"                       -- wave第二次预处理后的文件
+    path.CompileStep5JassHelper     = path.project .. "/Output/5_jasshelper.j"                       -- jasshelper预处理后的文件
+    path.CompileStep5Vjassc         = path.project .. "/Output/5_vjassc.j"                           -- vjassc预处理后的文件
+    path.CompileStep5               = path
+        .CompileStep5JassHelper                                                                      -- 保持旧字段指向jasshelper输出
+    path.CompileResult              = path.project .. "/Output/output.j"                             -- 输出字符串(最终)
+    path.VjasscStats                = path.project .. "/Output/vjassc.stats.json"
+    path.VjasscValidation           = path.project .. "/Output/vjassc.validation.json"
+    path.VjasscStdout               = path.project .. "/Output/vjassc.stdout.txt"
+    path.VjasscStderr               = path.project .. "/Output/vjassc.stderr.txt"
+    path.VjasscCommand              = path.project .. "/Output/vjassc.cmd"
+    path.VjasscIncrementalReport    = path.project .. "/Output/vjassc.incremental.json"
+    path.CompilerBackendReport      = path.project .. "/Output/compiler_backend_report.json"
+    path.VjasscRuntimeChecklist     = path.project .. "/Output/vjassc_runtime_checklist.md"
+    path.VjasscRuntimeNotes         = path.project .. "/Output/runtime_notes.md"
+    path.buildString                = ""                                                      -- 输出字符串()
 
-    path.mapJ             = path.project .. "/".. path.mapName .. "/map/war3map.j" -- 正式地图的War3mapJ文件
-    path.resource         = path.project .. "/".. path.mapName .. "/resource" -- 地图资源
-    path.icon             = path.resource .. "/replaceabletextures" -- 图标地点
+    path.mapJ                       = path.project .. "/" .. path.mapName .. "/map/war3map.j" -- 正式地图的War3mapJ文件
+    path.resource                   = path.project .. "/" .. path.mapName .. "/resource"      -- 地图资源
+    path.icon                       = path.resource .. "/replaceabletextures"                 -- 图标地点
 
-    path.jasshelper    = path.root .. '/plugins/jasshelper'    -- 独立到了plugins里调用
-    path.wave          = path.root .. '/plugins/wave'          -- Wave抽到了项目目录里
-    path.vjasscDir     = normalizePathString(envValue("WAR3_VJASSC_DIR") or (path.root .. "/plugins/vjassc"))
-    path.vjassc        = normalizePathString(envValue("WAR3_VJASSC_EXE") or (path.vjasscDir .. "/vjassc.exe"))
-    path.jassCompiler  = normalizeCompiler(envValue("WAR3_JASS_COMPILER") or path.jassCompiler)
-    path.jassCompilerSelect = normalizeCompilerSelect(envValue("WAR3_JASS_COMPILER_SELECT") or path.jassCompilerSelect)
-    local defaultVjasscValidate = envFlag("WAR3_VJASSC_VALIDATE", true)
-    path.vjasscMode = normalizeVjasscMode(envValue("WAR3_VJASSC_MODE") or path.vjasscMode or
+    path.jasshelper                 = path.root .. '/plugins/jasshelper'                      -- 独立到了plugins里调用
+    path.wave                       = path.root .. '/plugins/wave'                            -- Wave抽到了项目目录里
+    path.vjasscDir                  = normalizePathString(envValue("WAR3_VJASSC_DIR") or (path.root .. "/plugins/vjassc"))
+    path.vjassc                     = normalizePathString(envValue("WAR3_VJASSC_EXE") or
+        (path.vjasscDir .. "/vjassc.exe"))
+    path.vjasscIncrementalCacheRoot = normalizePathString(envValue("WAR3_VJASSC_INCREMENTAL_CACHE") or
+        (path.project .. "/Output/.vjassc-incremental-cache"))
+    path.jassCompiler               = normalizeCompiler(envValue("WAR3_JASS_COMPILER") or path.jassCompiler)
+    path.jassCompilerSelect         = normalizeCompilerSelect(envValue("WAR3_JASS_COMPILER_SELECT") or
+        path.jassCompilerSelect)
+    local defaultVjasscValidate     = envFlag("WAR3_VJASSC_VALIDATE", true)
+    path.vjasscMode                 = normalizeVjasscMode(envValue("WAR3_VJASSC_MODE") or path.vjasscMode or
         (defaultVjasscValidate and "validate" or "fast"))
-    path.vjasscValidate = path.vjasscMode ~= "fast"
-    path.vjasscStrict = envFlag("WAR3_VJASSC_STRICT", false)
-    path.allowVjasscNonAlpha = envFlag("WAR3_ALLOW_VJASSC_NON_ALPHA", false)
+    path.vjasscValidate             = path.vjasscMode ~= "fast"
+    path.vjasscStrict               = envFlag("WAR3_VJASSC_STRICT", false)
+    path.vjasscIncremental          = envFlag("WAR3_VJASSC_INCREMENTAL", false) -- 增量编译:先不开 开了从7秒变13秒.
+    path.allowVjasscNonAlpha        = envFlag("WAR3_ALLOW_VJASSC_NON_ALPHA", false)
 
-    path.toolRoot        = path.root .. "/tools" -- 工具根目录
+    path.toolRoot                   = path.root .. "/tools"                           -- 工具根目录
 
-    path.table            = {} -- 正式图的物编
-    path.table.root       = path.project .. "/".. path.mapName .. "/table" -- 物编的根目录
-    path.table.unit       = path.table.root .. "/unit.ini" -- 物编的单位
-    path.table.item       = path.table.root .. "/item.ini" -- 物编的物品
-    path.table.ability    = path.table.root .. "/ability.ini" -- 物编的技能
-    path.table.upgrade    = path.table.root .. "/upgrade.ini" -- 物编的技能
-    path.table.buff       = path.table.root .. "/buff.ini" -- 物编的BUFF
-    path.table.misc       = path.table.root .. "/misc.ini" -- 一些特殊设置
+    path.table                      = {}                                              -- 正式图的物编
+    path.table.root                 = path.project .. "/" .. path.mapName .. "/table" -- 物编的根目录
+    path.table.unit                 = path.table.root .. "/unit.ini"                  -- 物编的单位
+    path.table.item                 = path.table.root .. "/item.ini"                  -- 物编的物品
+    path.table.ability              = path.table.root .. "/ability.ini"               -- 物编的技能
+    path.table.upgrade              = path.table.root .. "/upgrade.ini"               -- 物编的技能
+    path.table.buff                 = path.table.root .. "/buff.ini"                  -- 物编的BUFF
+    path.table.misc                 = path.table.root .. "/misc.ini"                  -- 一些特殊设置
 
-    path.ut               = {}
-    path.ut.mapName       = 'UnitTestMap'                                -- 单元测试的地图名字
-    path.ut.fileH         = path.project .. "/"..path.jassPathName .."/config/UnitTest.h"    -- 单元测试编译区
-    path.ut.template      = path.libRoot .. "/Jass/template/UTTemplate.j"  -- 单元测试模板文件
-    path.ut.mapJ          = path.project .. "/UnitTestMap/map/war3map.j" -- 单元测试的War3mapJ文件
-    path.ut.table         = {}                                           -- 单元测试的物编
-    path.ut.luaFrom       = path.project .. "/"..path.jassPathName .."/config/UTLuaFrom.j" -- 单元测试的LuaFrom
-    path.ut.table.root    = path.project .. "/UnitTestMap/table"         -- 单元测试的物编根目录
-    path.ut.table.unit    = path.ut.table.root .. "/unit.ini"            -- 单元测试的单位
-    path.ut.table.item    = path.ut.table.root .. "/item.ini"            -- 单元测试的物品
-    path.ut.table.ability = path.ut.table.root .. "/ability.ini"         -- 单元测试的技能
-    path.ut.table.upgrade = path.ut.table.root .. "/upgrade.ini"         -- 单元测试的科技
-    path.ut.table.buff    = path.ut.table.root .. "/buff.ini"            -- 单元测试的BUFF
-    path.ut.table.misc    = path.ut.table.root .. "/misc.ini"            -- 一些特殊设置
+    path.ut                         = {}
+    path.ut.mapName                 = 'UnitTestMap'                                                     -- 单元测试的地图名字
+    path.ut.fileH                   = path.project .. "/" .. path.jassPathName .. "/config/UnitTest.h"  -- 单元测试编译区
+    path.ut.template                = path.libRoot .. "/Jass/template/UTTemplate.j"                     -- 单元测试模板文件
+    path.ut.mapJ                    = path.project ..
+        "/UnitTestMap/map/war3map.j"                                                                    -- 单元测试的War3mapJ文件
+    path.ut.table                   = {}                                                                -- 单元测试的物编
+    path.ut.luaFrom                 = path.project .. "/" .. path.jassPathName .. "/config/UTLuaFrom.j" -- 单元测试的LuaFrom
+    path.ut.table.root              = path.project .. "/UnitTestMap/table"                              -- 单元测试的物编根目录
+    path.ut.table.unit              = path.ut.table.root .. "/unit.ini"                                 -- 单元测试的单位
+    path.ut.table.item              = path.ut.table.root .. "/item.ini"                                 -- 单元测试的物品
+    path.ut.table.ability           = path.ut.table.root .. "/ability.ini"                              -- 单元测试的技能
+    path.ut.table.upgrade           = path.ut.table.root .. "/upgrade.ini"                              -- 单元测试的科技
+    path.ut.table.buff              = path.ut.table.root .. "/buff.ini"                                 -- 单元测试的BUFF
+    path.ut.table.misc              = path.ut.table.root .. "/misc.ini"                                 -- 一些特殊设置
 
-    path.assets           = "D:/War3Asset/Import"                                          -- 原始地图资源根目录
+    path.assets                     = "D:/War3Asset/Import"                                             -- 原始地图资源根目录
 
-    path.backup              = {}                                                -- 数据备份
-    path.backup.root         = path.root .. "/Backup/" .. string.match(path.project, ".+/(.+)$")  -- 备份根目录
-    path.backup.resource     = path.project .. "/".. path.mapName .. "/table"    -- 需要备份的路径
+    path.backup                     = {}                                                                -- 数据备份
+    path.backup.root                = path.root .. "/Backup/" .. string.match(path.project, ".+/(.+)$") -- 备份根目录
+    path.backup.resource            = path.project .. "/" .. path.mapName .. "/table"                   -- 需要备份的路径
 
-    path.image               = {}                                                -- 图片处理
-    path.image.path          = path.toolRoot .. "/Image"                    -- 图片处理路径
-    path.image.blplab        = path.toolRoot .. "/BLPLAB/"                  -- BLPLAB路径
-    path.image.btn           = path.icon .. "/commandbuttons"                    -- 图标路径
-    path.image.disbtn        = path.icon .. "/commandbuttonsdisabled"            -- 暗图标路径
-    path.image.bg            = path.resource .. "/ui/image"                      -- 默认路径
-    path.image.tt            = path.resource .. "/ui/tt"                         -- 图标路径
-    path.image.frame         = path.resource .. "/ui/efx"                        -- 序列帧特效
+    path.image                      = {}                                                                -- 图片处理
+    path.image.path                 = path.toolRoot .. "/Image"                                         -- 图片处理路径
+    path.image.blplab               = path.toolRoot .. "/BLPLAB/"                                       -- BLPLAB路径
+    path.image.btn                  = path.icon .. "/commandbuttons"                                    -- 图标路径
+    path.image.disbtn               = path.icon .. "/commandbuttonsdisabled"                            -- 暗图标路径
+    path.image.bg                   = path.resource .. "/ui/image"                                      -- 默认路径
+    path.image.tt                   = path.resource .. "/ui/tt"                                         -- 图标路径
+    path.image.frame                = path.resource .. "/ui/efx"                                        -- 序列帧特效
 
-    path.model               = {}                                                -- 模型处理
-    path.model.tool          = path.toolRoot .. "/MDLX/MdlxConverterCC.exe" -- 模型转换工具
-    path.model.unit          = path.resource .. "/unit"                          -- 单位模型存放地
-    path.model.root          = path.resource                                     -- 资源根目录
-    path.model.effect        = path.resource .. "/effects"                       -- 特效目录
-    path.model.missile       = path.resource .. "/missiles"                      -- 投射物目录
-    path.model.jump2fbx      = [[D:\Program Files (x86)\Jump2FBX]]               -- 将X文件转成FBX
-    path.model.test          = {}                                                -- 模型测试
+    path.model                      = {}                                                                -- 模型处理
+    path.model.tool                 = path.toolRoot .. "/MDLX/MdlxConverterCC.exe"                      -- 模型转换工具
+    path.model.unit                 = path.resource .. "/unit"                                          -- 单位模型存放地
+    path.model.root                 = path.resource                                                     -- 资源根目录
+    path.model.effect               = path.resource .. "/effects"                                       -- 特效目录
+    path.model.missile              = path.resource .. "/missiles"                                      -- 投射物目录
+    path.model.jump2fbx             = [[D:\Program Files (x86)\Jump2FBX]]                               -- 将X文件转成FBX
+    path.model.test                 = {}                                                                -- 模型测试
 
 
-    path.model.test.mapName  = 'ModelTest'                                       -- 模型测试的地图名字
-    path.model.test.script   = path.project .. "/"..path.jassPathName .."/config/mtScript.j"         -- 打开模型测试后替换script
-    path.model.test.res      = path.project .. "/ModelTest/resource"             -- 模型测试收集位置
-    path.model.test.template = path.libRoot .. "/Jass/template/MTTemplate.j"       -- J模板
-    path.model.test.editJ    = path.project .. "/"..path.jassPathName .."/config/ModelTest.j"       -- J模板替换到的位置
+    path.model.test.mapName  = 'ModelTest'                                                       -- 模型测试的地图名字
+    path.model.test.script   = path.project .. "/" .. path.jassPathName ..
+        "/config/mtScript.j"                                                                     -- 打开模型测试后替换script
+    path.model.test.res      = path.project .. "/ModelTest/resource"                             -- 模型测试收集位置
+    path.model.test.template = path.libRoot .. "/Jass/template/MTTemplate.j"                     -- J模板
+    path.model.test.editJ    = path.project .. "/" .. path.jassPathName .. "/config/ModelTest.j" -- J模板替换到的位置
 end
 
 ---@param name string
 --- 更新地图名字,同时更新编译涉及的文件路径
-path.setMapName	= function(name)
-    path.mapName			= name
-    path.package 			= path.project .. "/" .. path.mapName  -- 地图包
-    path.mapJ				= path.package .. "/map/war3map.j"     -- 正式地图的War3mapJ文件
-    path.resource			= path.package .. "/resource"          -- 地图资源
+path.setMapName = function(name)
+    path.mapName         = name
+    path.package         = path.project .. "/" .. path.mapName       -- 地图包
+    path.mapJ            = path.package .. "/map/war3map.j"          -- 正式地图的War3mapJ文件
+    path.resource        = path.package .. "/resource"               -- 地图资源
     -- 根据当前地图名更新物编路径（保持与 init 中的结构一致）
-    path.table.root			= path.package .. "/table"             -- 物编的根目录
-    path.table.unit        = path.table.root .. "/unit.ini"      -- 物编的单位
-    path.table.item        = path.table.root .. "/item.ini"      -- 物编的物品
-    path.table.ability     = path.table.root .. "/ability.ini"   -- 物编的技能
-    path.table.upgrade     = path.table.root .. "/upgrade.ini"   -- 物编的科技
-    path.table.buff        = path.table.root .. "/buff.ini"      -- 物编的BUFF
-    path.table.misc        = path.table.root .. "/misc.ini"      -- 一些特殊设置
-    path.backup.resource	= path.package .. "/table"             -- 需要备份的路径
-    path.injectCache        = path.package .. "/config/cacheInject.cfg" -- 缓存注入文件库 防止注入太慢
+    path.table.root      = path.package .. "/table"                  -- 物编的根目录
+    path.table.unit      = path.table.root .. "/unit.ini"            -- 物编的单位
+    path.table.item      = path.table.root .. "/item.ini"            -- 物编的物品
+    path.table.ability   = path.table.root .. "/ability.ini"         -- 物编的技能
+    path.table.upgrade   = path.table.root .. "/upgrade.ini"         -- 物编的科技
+    path.table.buff      = path.table.root .. "/buff.ini"            -- 物编的BUFF
+    path.table.misc      = path.table.root .. "/misc.ini"            -- 一些特殊设置
+    path.backup.resource = path.package .. "/table"                  -- 需要备份的路径
+    path.injectCache     = path.package .. "/config/cacheInject.cfg" -- 缓存注入文件库 防止注入太慢
 end
 
 --- 设置当前版本为内测版本

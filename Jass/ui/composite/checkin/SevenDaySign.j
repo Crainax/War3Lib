@@ -10,13 +10,21 @@
 /*
 签到领奖励 UI（支持无限天数分页）
 UI 仅负责展示与本地事件，领奖逻辑通过 SyncBus 进入同步层。
+
+KK 后端配置（上线前按以下配置）：
+1. 创建整数存档 `ISignCount`；代码层 Key 为 `SignCount`，StoreInteger/GetStoredInteger 会自动补 `I` 前缀。
+2. 将 `ISignCount` 加入只增存档，单 Key 每局最大增量设为 1、每天最大增量设为 1。
+3. 确认地图可使用“API 获取地图天/周上限”，本模块通过 KKApiGetServerValueLimitLeft(p,"ISignCount") 读取后台剩余额度。
+4. 不创建 LastSign/ILastSign；签到资格完全跟随后台日额度的实际刷新周期，不再按北京时间 00:00 判断。
+5. 额度是开局快照：本局领取后由内存立即扣为 0，禁止局中重新查询接口来确认写入结果。
 */
 
 #define SIGN7_MAX_DAYS          1300        // 奖励数组容量上限
 #define SIGN7_PAGE_SIZE         7           // 每页显示槽位数
 #define SIGN7_SYNC_CHANNEL      "SevenDaySign" // 同步通道名
-#define SIGN7_LAST_DAYID_KEY    "LastSign" // 存档键：上次领取日期
 #define SIGN7_CLAIM_DAY_KEY     "SignCount"  // 存档键：已领取天数
+#define SIGN7_CLAIM_RAW_KEY     "ISignCount" // 后端实际整数 Key（用于查询限制余额）
+#define SIGN7_DAILY_LIMIT       1            // 后端单 Key 每局/每天最大增量
 #define SIGN7_SYNC_APPLY_DELAY  0.03 // syncBus 收包后延迟处理领取，避免在 UI 收包栈里写存档/触发业务回调
 // 后端限制提醒：SIGN7_CLAIM_DAY_KEY 仅允许单次请求 +1，禁止跳跃写入/回退写入。
 // 运行时判定提醒：UI/领奖判定统一依赖内存缓存，不依赖局中 DzAPI 再读取。
@@ -98,34 +106,16 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
     //==========================================================================
     public struct sevenDaySignData [] {
         private static integer claimedDay[];   // 已累计签到天数
-        private static integer lastDayId[];    // 上次领取日期（按北京时间 dayId）
+        private static integer claimLimitLeft[]; // 本局可用的后台日增量额度（开局快照，领取后内存扣减）
+        private static boolean archiveReady[]; // SignCount 是否成功读取
 
         private static string rewardIcon[];
         private static string rewardTipDesc[];
         private static integer rewardCount = 0; // 已注册的奖励总天数
 
-        private static boolean vipActive[];     // VIP 特权调试/外部覆盖状态（按玩家）
-        private static boolean vipActiveOverride[]; // true 时优先使用 vipActive，否则自动读取商城拥有权
-        private static boolean vipInheritedActive[]; // 上阙继承激活状态（按玩家）
-
         private static trigger claimTr = null;
         private static player  claimPlayer = null;
         private static integer cbClaimDay = 0;
-
-        // 获取北京时间 dayId（UTC+8）
-        public static method getBeijingDayId() -> integer {
-            integer t;
-            t = thistype.getTimeNow();
-            return (t + 28800) / 86400;
-        }
-
-        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
-        private static integer testNow = 0;
-        public static method setTestNow(integer t) { testNow = t; }
-        public static method getTimeNow() -> integer { return testNow; }
-        #else
-        public static method getTimeNow() -> integer { return DzAPI_Map_GetGameStartTime(); }
-        #endif
 
         public static method isClaimed(integer claimedDay, integer day) -> boolean {
             return day <= claimedDay;
@@ -145,11 +135,18 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return claimedDay >= thistype.getRewardCount();
         }
 
-        public static method getLastDayId(player p) -> integer {
+        public static method getClaimLimitLeft(player p) -> integer {
             integer pid;
             pid = GetConvertedPlayerId(p);
             if (pid < 1 || pid > MAX_PLAYER_COUNT) { return 0; }
-            return lastDayId[pid];
+            return claimLimitLeft[pid];
+        }
+
+        public static method isArchiveReady(player p) -> boolean {
+            integer pid;
+            pid = GetConvertedPlayerId(p);
+            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
+            return archiveReady[pid];
         }
 
         public static method getClaimPlayer() -> player {
@@ -160,38 +157,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return cbClaimDay;
         }
 
-        public static method isVipActive(player p) -> boolean {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
-            if (vipActiveOverride[pid]) { return vipActive[pid]; }
-            return thistype.isVipMallActive(p) || thistype.isVipInheritedActive(p);
-        }
-
-        public static method setVipActive(player p, boolean flag) {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
-            vipActive[pid] = flag;
-            vipActiveOverride[pid] = true;
-        }
-
         public static method isVipMallActive(player p) -> boolean {
             return mallItem.hasByPlayer(p, SIGN7_VIP_MALLITEM_KEY);
-        }
-
-        public static method isVipInheritedActive(player p) -> boolean {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
-            return vipInheritedActive[pid];
-        }
-
-        public static method setVipInheritedActive(player p, boolean flag) {
-            integer pid;
-            pid = GetConvertedPlayerId(p);
-            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
-            vipInheritedActive[pid] = flag;
         }
 
         public static method getStoredClaimedDay(player p) -> integer {
@@ -201,31 +168,47 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return claimedDay[pid];
         }
 
-        private static method getVipBonusDays(player p) -> integer {
-            if (thistype.isVipActive(p)) { return SIGN7_VIP_BONUS_DAYS; }
-            return 0;
-        }
-
         public static method getClaimedDay(player p) -> integer {
             integer day;
             integer rc;
-            day = thistype.getStoredClaimedDay(p) + thistype.getVipBonusDays(p);
+            day = thistype.getStoredClaimedDay(p);
+            if (thistype.isVipMallActive(p)) { day += SIGN7_VIP_BONUS_DAYS; }
             rc = thistype.getRewardCount();
             if (rc > 0 && day > rc) { return rc; }
             return day;
         }
 
         public static method refreshPlayer(player p) {
+            integer err;
             integer pid;
             integer d;
             pid = GetConvertedPlayerId(p);
             if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
+
             d = DzAPI_Map_GetStoredInteger(p, SIGN7_CLAIM_DAY_KEY);
+            err = DzAPI_Map_GetServerValueErrorCode(p);
+            if (err != 0) {
+                claimedDay[pid] = 0;
+                claimLimitLeft[pid] = 0;
+                archiveReady[pid] = false;
+                return;
+            }
             if (d < 0) { d = 0; }
 
             claimedDay[pid] = d;
-            lastDayId[pid] = DzAPI_Map_GetStoredInteger(p, SIGN7_LAST_DAYID_KEY);
+            claimLimitLeft[pid] = IMaxBJ(0, IMinBJ(SIGN7_DAILY_LIMIT, KKApiGetServerValueLimitLeft(p, SIGN7_CLAIM_RAW_KEY)));
+            archiveReady[pid] = true;
         }
+
+        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+        public static method setTestClaimLimitLeft(player p, integer left) {
+            integer pid;
+            pid = GetConvertedPlayerId(p);
+            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return; }
+            claimLimitLeft[pid] = IMaxBJ(0, IMinBJ(SIGN7_DAILY_LIMIT, left));
+            archiveReady[pid] = true;
+        }
+        #endif
 
         public static method registerClaimCallback(code func) {
             if (claimTr == null) {
@@ -256,36 +239,29 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return rewardIcon[day];
         }
 
-        public static method getRewardTitle(integer day) -> string {
-            if (day < 1 || day > thistype.getRewardCount()) { return ""; }
-            return "第" + I2S(day) + "天奖励";
-        }
-
         public static method getRewardTipDesc(integer day) -> string {
             if (day < 1 || day > thistype.getRewardCount()) { return ""; }
             day = thistype.getRewardTemplateDay(day);
             return rewardTipDesc[day];
         }
 
-        // 可否领取（每日一次）
+        // 可否领取（资格跟随后台 ISignCount 的日增量余额）
         public static method canClaim(player p) -> boolean {
+            integer pid;
             integer day;
-            integer lastId;
-            integer nowId;
+            pid = GetConvertedPlayerId(p);
+            if (pid < 1 || pid > MAX_PLAYER_COUNT) { return false; }
+            if (!archiveReady[pid]) { return false; }
             day = thistype.getClaimedDay(p);
             if (thistype.isAllClaimed(day)) { return false; }
-            lastId = thistype.getLastDayId(p);
-            nowId = thistype.getBeijingDayId();
-            return nowId > lastId;
+            return claimLimitLeft[pid] > 0;
         }
 
-        // 同步层：处理领取（存档单日 +1，VIP 仅作为展示/判定的隐性偏移）
+        // 同步层：处理领取（SignCount +1；VIP 仅作为展示/判定的隐性偏移）
         public static method handleClaim(player p) -> boolean {
             integer pid;
             integer storedDay;
             integer viewDay;
-            integer lastId;
-            integer nowId;
             integer nextDay;
 
             pid = GetConvertedPlayerId(p);
@@ -293,21 +269,19 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
             storedDay = claimedDay[pid];
             viewDay = thistype.getClaimedDay(p);
-            lastId = lastDayId[pid];
-            nowId = thistype.getBeijingDayId();
 
+            if (!archiveReady[pid]) { return false; }
             if (thistype.isAllClaimed(viewDay)) { return false; }
-            if (nowId <= lastId) { return false; }
+            if (claimLimitLeft[pid] <= 0) { return false; }
 
             nextDay = thistype.getNextClaimDay(viewDay);
             if (nextDay <= 0) { return false; }
 
             storedDay = storedDay + 1;
             claimedDay[pid] = storedDay;
-            lastDayId[pid] = nowId;
+            claimLimitLeft[pid] = 0;
 
             DzAPI_Map_StoreInteger(p, SIGN7_CLAIM_DAY_KEY, storedDay);
-            DzAPI_Map_StoreInteger(p, SIGN7_LAST_DAYID_KEY, nowId);
 
             // 回调传参
             claimPlayer = p;
@@ -323,7 +297,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
         static method onInit() {
             trigger tr = CreateTrigger();
 
-            // 在游戏开始 0.3 秒后初始化缓存：UI 操作期间不再触发 DzAPI 读写。
+            // 在游戏开始 0.3 秒后初始化存档与后台额度快照：UI 操作期间不再读取 DzAPI。
             TriggerRegisterTimerEventSingle(tr,0.3);
             TriggerAddCondition(tr,Condition(function (){
                 integer j;
@@ -439,26 +413,19 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             return "|cff888888[未激活]|r";
         }
 
-        private static method rewardSubtitle(boolean claimed) -> string {
-            if (claimed) { return "|cff00ff00已永久获得以下奖励:|r"; }
-            return "|cff888888签到以领取以下奖励:|r";
-        }
-
         private static method sourceLine(boolean active, string text) -> string {
             if (active) { return "|cff00ff00" + text + "|r"; }
             return "|cff888888" + text + "|r";
         }
 
         private static method vipTooltipTitle(player p) -> string {
-            return thistype.activeTitlePrefix(sevenDaySignData.isVipActive(p)) + "|cFFFFFF337|r|cFFFFE949天|r|cFFFFD35F签|r|cFFFFBD75到|r|cFFFFA88A特|r|cFFFF92A0权|r";
+            return thistype.activeTitlePrefix(sevenDaySignData.isVipMallActive(p)) + "|cFFFFFF337|r|cFFFFE949天|r|cFFFFD35F签|r|cFFFFBD75到|r|cFFFFA88A特|r|cFFFF92A0权|r";
         }
 
         private static method vipTooltipDesc(player p) -> string {
             return "拥有该特权后能直接完成7天签到|cff1aff00(在现有签到天数基础上+7天获得更多奖励)|r."
             + "\n\n|cffeeff00[激活来源]|r\n"
-            + thistype.sourceLine(sevenDaySignData.isVipMallActive(p), "1.商城道具:获得该商城道具后激活(成为VIP3会员后领取)")
-            + "\n"
-            + thistype.sourceLine(sevenDaySignData.isVipInheritedActive(p), "2.上阙继承:通过上阙的典藏赞助功能继承该特权");
+            + thistype.sourceLine(sevenDaySignData.isVipMallActive(p), "商城道具:获得该商城道具后激活(成为VIP3会员后领取)");
         }
 
         private static method showRewardTooltip(player p, integer day) {
@@ -466,7 +433,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             string desc;
             boolean claimed;
             uiText line;
-            title = sevenDaySignData.getRewardTitle(day);
+            if (day < 1 || day > sevenDaySignData.getRewardCount()) { return; }
+            title = "第" + I2S(day) + "天奖励";
             desc = sevenDaySignData.getRewardTipDesc(day);
             claimed = sevenDaySignData.isClaimed(sevenDaySignData.getClaimedDay(p), day);
             uiTooltipTemp = tooltip.create()
@@ -474,7 +442,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 .layoutFlexible(desc)
                 .setAbsPoint(ANCHOR_BOTTOMRIGHT, SIGN7_TOOLTIP_BR_X, SIGN7_TOOLTIP_BR_Y);
             uiTooltipTemp.getFirstText().setAlign(3);
-            line = uiTooltipTemp.addText(thistype.rewardSubtitle(claimed));
+            line = uiTooltipTemp.addText(S3(claimed, "|cff00ff00已永久获得以下奖励:|r", "|cff888888签到以领取以下奖励:|r"));
             line.setAlign(4);
             line = uiTooltipTemp.setFontSize(7).addText(thistype.activeTitlePrefix(claimed) + title);
             line.setAlign(4);
@@ -504,7 +472,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 slotDay = (currentPage - 1) * SIGN7_PAGE_SIZE + i;
                 if (slotDay <= rc) {
                     iconPath = sevenDaySignData.getRewardIcon(slotDay);
-                    title = sevenDaySignData.getRewardTitle(slotDay);
+                    title = "第" + I2S(slotDay) + "天奖励";
                     claimed = sevenDaySignData.isClaimed(claimedDayVal, slotDay);
 
                     if (slotIcon[i] != 0) { slotIcon[i].setTexture(iconPath).show(true); }
@@ -578,8 +546,6 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
         public static method refreshForPlayer(player p) {
             integer day;
-            integer lastId;
-            integer nowId;
             boolean canClaim;
             boolean vipOn;
 
@@ -594,13 +560,14 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
 
             // 状态文字
             if (statusText != 0) {
-                if (sevenDaySignData.isAllClaimed(day)) {
+                if (!sevenDaySignData.isArchiveReady(p)) {
+                    statusText.setText("|cffff3333存档读取失败|r");
+                } else if (sevenDaySignData.isAllClaimed(day)) {
                     statusText.setText("|cffffcc00已完成|r");
+                } else if (sevenDaySignData.getClaimLimitLeft(p) <= 0) {
+                    statusText.setText("|cffaaaaaa今日已领取|r");
                 } else {
-                    lastId = sevenDaySignData.getLastDayId(p);
-                    nowId = sevenDaySignData.getBeijingDayId();
-                    if (nowId <= lastId) { statusText.setText("|cffaaaaaa今日已领取|r"); }
-                    else { statusText.setText("|cff00ff00今日可领取|r"); }
+                    statusText.setText("|cff00ff00今日可领取|r");
                 }
             }
 
@@ -612,7 +579,7 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
             }
 
             // VIP 图标状态
-            vipOn = sevenDaySignData.isVipActive(p);
+            vipOn = sevenDaySignData.isVipMallActive(p);
             if (vipIcon != 0) {
                 vipIcon.setShadow(!vipOn);
             }
@@ -799,7 +766,11 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                         music[MUSIC_INDEX_BTN_CLICK].play();
                     } else {
                         music[MUSIC_INDEX_ERROR].play();
-                        toastHint.createAtMouse(lp, "今日已领取,请明日再来!");
+                        if (!sevenDaySignData.isArchiveReady(lp)) {
+                            toastHint.createAtMouse(lp, "签到存档读取失败,请重新进入游戏!");
+                        } else {
+                            toastHint.createAtMouse(lp, "今日已领取,请明日再来!");
+                        }
                     }
                 lp = null;
             });
@@ -908,6 +879,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
                 sevenDaySignUI.refreshForPlayer(p);
                 toastHint.createAtMouse(p, "领取成功:第" + I2S(day) + "天的奖励!\n|cff6f6f6f(注:部分奖励需要重启游戏后生效)|r");
                 music[MUSIC_INDEX_SHOP_BUY].playFor(p);
+            } else if (!sevenDaySignData.isArchiveReady(p)) {
+                toastHint.createAtMouse(p, "签到存档读取失败,请重新进入游戏!");
             } else {
                 toastHint.createAtMouse(p, "今日已领取,请明日再来!");
             }
@@ -951,7 +924,8 @@ library SevenDaySign requires Tooltip,ToastHint,Music,SyncBus,UIExtendEvent,UIEx
     }
 
     private function onInit() {
-        // mallItem.init(SIGN7_VIP_MALLITEM_KEY); //初始化道具
+        mallItem.init(SIGN7_VIP_MALLITEM_KEY); //初始化道具
+        mallItem.setName(SIGN7_VIP_MALLITEM_KEY, "7天特权");
         syncBus.onDataSync(SIGN7_SYNC_CHANNEL, function () {
             string payload;
             player p;

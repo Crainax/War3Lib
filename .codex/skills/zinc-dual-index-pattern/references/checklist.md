@@ -1,27 +1,34 @@
-# 实现/Review Checklist
+# 实现与 Review Checklist
 
-## 结构与索引
+## 结构选择
 
-- 明确使用 `0-based` 还是 `1-based`，并在整个结构内保持一致
-- `size` 表示“元素数量”还是“最后索引”，不要混用
-- 双视图时：实例记录 `listIndex/groupIndex/groupId`，并在 swap 时更新被换入实例的索引
+- 明确是普通紧凑队列、分组紧凑表，还是全局+分组的真双索引。
+- 不需要全局遍历时，不要引入全局列表。
+- 不需要外部 O(1) 删除时，不要强塞 `listIndex`；简单队列可只在遍历中删除。
 
-## 删除（swap-remove）
+## 索引规则
 
-- `last` 计算正确（0-based: `size-1`；1-based: `size`）
-- swap 时并行数组全部一起 swap
-- `last` 槽全部清空（`null/0/""/0.0`）
-- 删除发生在遍历中：回退 `i`（`i -= 1` 或 `i = removeAt(i)`）
+- 0-based：有效区间 `0 <= i < size`，`last = size - 1`。
+- 1-based：有效区间 `1 <= pos <= count[group]`，`last = count[group]`。
+- `size` / `count` 只表示元素数量。
 
-## 资源与一致性
+## 删除规则
 
-- 清理逻辑在 swap 前执行（先拿到待删元素引用）
-- timer/trigger/group/effect/location 等句柄按需 `Destroy*` 并置 `null`
-- HashTable 映射：删除时同步清理（`RemoveSaved*` / `FlushChildHashtable`）
+- swap 前先保存待释放资源引用。
+- 所有并行数组一起 swap。
+- last 槽全部清空。
+- 删除后收缩 `size` / `count`。
+- 遍历中删除必须回退或不递增当前位置。
 
-## 边界与健壮性
+## 资源与映射
 
-- add 时做容量检查（War3 数组上限附近）
-- 处理失效句柄（`null` / `GetUnitTypeId(u)==0` 等）
-- 避免 re-entrancy：tick 回调里不要触发会再次修改同一列表的逻辑（必要时用“待删除标记 + 二次清理”）
+- timer/trigger/group/effect/location 等句柄按需 `Destroy*` / `Remove*` 并置 `null`。
+- hashtable 映射要和数组结构同步清理。
+- 队列为空时可以销毁中央 timer，下一次 add/set 再创建。
 
+## Xlimon 风险点
+
+- 本地 UI 回调里不要直接改同步业务列表；需要同步入口时走已有 syncBus/DzSyncDataEx 路线。
+- 玩家分组索引用 `GetConvertedPlayerId` 后要确认范围。
+- 容量接近 War3 数组上限时保留保护分支和日志。
+- review 时优先检查是否漏 swap 某个并行数组，以及删除后是否跳过换入元素。

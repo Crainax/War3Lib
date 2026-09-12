@@ -58,13 +58,6 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
         currentContent = s;
     }
 
-    private function UIDialogGetTitleHeight(integer lineCount) -> real {
-        if (lineCount <= 1) {
-            return UIDIALOG_TITLE_HEIGHT;
-        }
-        return UIDIALOG_TITLE_HEIGHT + I2R(lineCount - 1) * UIDIALOG_TITLE_LINE_HEIGHT;
-    }
-
     private function UIDialogFindComma(string s, integer startPos) -> integer {
         integer i = startPos;
         integer len = StringLength(s);
@@ -202,7 +195,10 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                 dialogWidth = UIDIALOG_PADDING_X * 2.0 + 0.04;
             }
 
-            titleHeight = UIDialogGetTitleHeight(dd.titleLines);
+            titleHeight = UIDIALOG_TITLE_HEIGHT;
+            if (dd.titleLines > 1) {
+                titleHeight += I2R(dd.titleLines - 1) * UIDIALOG_TITLE_LINE_HEIGHT;
+            }
 
             // 内联 getMainHeight
             mainHeight = UIDIALOG_PADDING_TOP + titleHeight + UIDIALOG_GAP_TITLE_ITEMS + UIDIALOG_PADDING_BOTTOM;

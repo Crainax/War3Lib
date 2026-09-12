@@ -6,6 +6,7 @@
 物品栏装饰
 */
 #include "Crainax/core/table/Hash_ItemDefine.j"
+#include "Crainax/core/constant/TypeConstant.j"
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 
@@ -25,6 +26,9 @@ library ItemDecorate requires ItemBtns,HashTable {
                 itemBtns.icons[pos].setTexture(UI_STRING_PATH_BLANK).show(false);
             }
             gdId = LoadInteger(HASH_ITEM, id, HASH_KEY_ITEM_GLOW);
+            if (gdId == 0) {
+                gdId = LoadInteger(HASH_TYPEID, GetItemTypeId(it), KEY_ITEM_TYPE_GROW);
+            }
             if (gdId != 0) {
                 gd = gdId;
                 itemBtns.icons[pos].grow(gd);
@@ -80,6 +84,29 @@ library ItemDecorate requires ItemBtns,HashTable {
                 cur = UnitItemInSlot(sel, i - 1);
                 if (cur == it) {
                     ApplyItemDecorToSlot(i, it);
+                }
+            }
+        }
+        cur = null; sel = null;
+    }
+
+    // 设置物品类型默认流光，物品实例流光优先于类型默认值。
+    public function SetItemTypeDecorateGrow (integer itemTypeId, growdata gd) {
+        unit sel; integer i; item cur;
+        if (itemTypeId == 0) { return; }
+        if (gd == 0) {
+            RemoveSavedInteger(HASH_TYPEID, itemTypeId, KEY_ITEM_TYPE_GROW);
+        } else {
+            SaveInteger(HASH_TYPEID, itemTypeId, KEY_ITEM_TYPE_GROW, gd);
+        }
+
+        // 即时刷新当前选中单位上同类型物品的槽位(注意,这是异步操作)
+        sel = DzGetSelectedLeaderUnit();
+        if (sel != null) {
+            for (1 <= i <= 6) {
+                cur = UnitItemInSlot(sel, i - 1);
+                if (cur != null && GetItemTypeId(cur) == itemTypeId) {
+                    ApplyItemDecorToSlot(i, cur);
                 }
             }
         }

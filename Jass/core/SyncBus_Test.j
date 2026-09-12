@@ -18,6 +18,12 @@ library UTSyncBus requires SyncBus {
 
         public static integer ut2Count = 0;
 
+        // 即时 + Later 同 tag、延迟边界与队列顺序
+        public static integer utLaterImmediateCount = 0;
+        public static integer utLaterCount = 0;
+        public static string utLaterPayloadOrder = "";
+        public static integer utLaterPid = 0;
+
         // 防抖测试状态
         public static integer utDebounceCount = 0;
         public static boolean utDebounceFirstSent = false;
@@ -57,6 +63,27 @@ library UTSyncBus requires SyncBus {
         // route: utDebounce (防抖测试)
         syncBus.onDataSync("utDebounce", function () -> boolean {
             UTSyncBusState.utDebounceCount += 1;
+            return true;
+        });
+
+        syncBus.onDataSync("utLater", function () -> boolean {
+            UTSyncBusState.utLaterImmediateCount += 1;
+            return true;
+        });
+        syncBus.onDataSyncLater("utLater", function () -> boolean {
+            string payload;
+            player p;
+            payload = syncBus.getPayload();
+            p = syncBus.getPlayer();
+            UTSyncBusState.utLaterCount += 1;
+            UTSyncBusState.utLaterPid = GetConvertedPlayerId(p);
+            if (UTSyncBusState.utLaterPayloadOrder == "") {
+                UTSyncBusState.utLaterPayloadOrder = payload;
+            } else {
+                UTSyncBusState.utLaterPayloadOrder = UTSyncBusState.utLaterPayloadOrder + "," + payload;
+            }
+            payload = null;
+            p = null;
             return true;
         });
     }
@@ -243,7 +270,65 @@ library UTSyncBus requires SyncBus {
         }));
         tr = null; p = null;
     }
-	function TTestUTSyncBus5 (player p) {}
+	function TTestUTSyncBus5 (player p) {
+        trigger earlyTr;
+        trigger finalTr;
+        trigger sendTr;
+
+        RegisterRoutes();
+        UTSyncBusState.utLaterImmediateCount = 0;
+        UTSyncBusState.utLaterCount = 0;
+        UTSyncBusState.utLaterPayloadOrder = "";
+        UTSyncBusState.utLaterPid = 0;
+
+        sendTr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(sendTr, 0.03);
+        TriggerAddCondition(sendTr, Condition(function () -> boolean {
+            syncBus.DzSyncDataEx("utLater", "first");
+            syncBus.DzSyncDataEx("utLater", "second");
+            DestroyTrigger(GetTriggeringTrigger());
+            return true;
+        }));
+        sendTr = null;
+
+        earlyTr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(earlyTr, 0.08);
+        TriggerAddCondition(earlyTr, Condition(function () -> boolean {
+            boolean ok;
+            string msg;
+            ok = UTSyncBusState.utLaterImmediateCount == 2 && UTSyncBusState.utLaterCount == 0;
+            msg = S3(ok, "[syncBus][utLater-early] PASS", "[syncBus][utLater-early] FAIL")
+                + " immediate=" + I2S(UTSyncBusState.utLaterImmediateCount)
+                + ", later=" + I2S(UTSyncBusState.utLaterCount);
+            BJDebugMsg(msg);
+            DestroyTrigger(GetTriggeringTrigger());
+            msg = null;
+            return true;
+        }));
+        earlyTr = null;
+
+        finalTr = CreateTrigger();
+        TriggerRegisterTimerEventSingle(finalTr, 0.30);
+        TriggerAddCondition(finalTr, Condition(function () -> boolean {
+            boolean ok;
+            string msg;
+            ok = UTSyncBusState.utLaterImmediateCount == 2
+                && UTSyncBusState.utLaterCount == 2
+                && UTSyncBusState.utLaterPayloadOrder == "first,second"
+                && UTSyncBusState.utLaterPid >= 1;
+            msg = S3(ok, "[syncBus][utLater-final] PASS", "[syncBus][utLater-final] FAIL")
+                + " immediate=" + I2S(UTSyncBusState.utLaterImmediateCount)
+                + ", later=" + I2S(UTSyncBusState.utLaterCount)
+                + ", order='" + UTSyncBusState.utLaterPayloadOrder + "'"
+                + ", pid=" + I2S(UTSyncBusState.utLaterPid);
+            BJDebugMsg(msg);
+            DestroyTrigger(GetTriggeringTrigger());
+            msg = null;
+            return true;
+        }));
+        finalTr = null;
+        p = null;
+    }
 	function TTestUTSyncBus6 (player p) {}
 	function TTestUTSyncBus7 (player p) {}
 	function TTestUTSyncBus8 (player p) {}

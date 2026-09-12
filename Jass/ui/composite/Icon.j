@@ -176,7 +176,6 @@ library Icon requires BaseAnim, GrowData, UIText, UIImage,UIBorder, UIButton,UIS
                     glowImage = uiImage.create(this.parent);
                 }
                 glowImage.setPoint(ANCHOR_CENTER, mainImage.ui, ANCHOR_CENTER, 0, 0);
-                this.updateGlowSize();
             }
             glowImage.show(true); // 显示流光
             if (gd != this.gd) {

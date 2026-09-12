@@ -1,6 +1,8 @@
 #ifndef AbilityDecorateIncluded
 #define AbilityDecorateIncluded
 
+#include "Crainax/ui/native/AbilityDecorateData.j"
+
 //! zinc
 /*
 技能栏装饰（Icon / Grow / CornerText）
@@ -11,7 +13,7 @@
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 
-library AbilityDecorate requires SpellBtns,HashTable {
+library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData {
     // 排除单位参与技能装饰处理
     public function ExcludeUnitFromAbilityDecorate(unit u) {
         integer uid;
@@ -48,7 +50,7 @@ library AbilityDecorate requires SpellBtns,HashTable {
 
     // 将哈希中的装饰应用到指定槽位
     private function ApplyAbilityDecorToSlot(unit u, integer abilId, integer row, integer col) {
-        integer parentKey; integer ck; string iconPath; integer gdId; growdata gd; string ctext; boolean shadow;
+        integer parentKey; integer ck; string iconPath; integer gdId; growdata gd; string ctext; integer fontSize; boolean shadow;
 
         parentKey = GetAbilityHashKey(u, abilId);
         if (parentKey == 0) { return; }
@@ -89,6 +91,17 @@ library AbilityDecorate requires SpellBtns,HashTable {
             spellBtns.icons[row][col].setCornerText(null);
         }
 
+        // 右上角文字
+        ck = HASH_CHILD_SALT_TOP_RIGHT;
+        ctext = LoadStr(HASH_ABILITY, parentKey, ck);
+        if (ctext != null && StringLength(ctext) > 0) {
+            fontSize = LoadInteger(HASH_ABILITY, parentKey, HASH_CHILD_SALT_TOP_RIGHT_SIZE);
+            if (fontSize <= 0) { fontSize = 2; }
+            spellBtns.icons[row][col].setTopRightText(ctext, fontSize);
+        } else {
+            spellBtns.icons[row][col].setTopRightText(null, 0);
+        }
+
         spellBtns.icons[row][col].setShadow(shadow);
     }
 
@@ -97,6 +110,7 @@ library AbilityDecorate requires SpellBtns,HashTable {
         spellBtns.icons[row][col].setTexture(UI_STRING_PATH_BLANK).show(false);
         spellBtns.icons[row][col].unGrow();
         spellBtns.icons[row][col].setCornerText(null);
+        spellBtns.icons[row][col].setTopRightText(null, 0);
         spellBtns.icons[row][col].setShadow(false);
     }
 
@@ -167,6 +181,23 @@ library AbilityDecorate requires SpellBtns,HashTable {
             RemoveSavedString(HASH_ABILITY, parentKey, HASH_CHILD_SALT_CORNER);
         } else {
             SaveStr(HASH_ABILITY, parentKey, HASH_CHILD_SALT_CORNER, text);
+        }
+
+        // 即时刷新(注意:异步操作)
+        DoImmediateRefresh(u, abilityID);
+    }
+
+    // 将右上角文字装饰存入 HASH_ABILITY（null 或空串表示移除，父键 = 单位+技能ID）
+    public function SetAbilityDecorateTopRightText(unit u, integer abilityID, string text, integer fontSize) {
+        integer parentKey;
+        parentKey = GetAbilityHashKey(u, abilityID);
+        if (parentKey == 0) { return; }
+        if (text == null || StringLength(text) == 0) {
+            RemoveSavedString(HASH_ABILITY, parentKey, HASH_CHILD_SALT_TOP_RIGHT);
+            RemoveSavedInteger(HASH_ABILITY, parentKey, HASH_CHILD_SALT_TOP_RIGHT_SIZE);
+        } else {
+            SaveStr(HASH_ABILITY, parentKey, HASH_CHILD_SALT_TOP_RIGHT, text);
+            SaveInteger(HASH_ABILITY, parentKey, HASH_CHILD_SALT_TOP_RIGHT_SIZE, IMaxBJ(1, fontSize));
         }
 
         // 即时刷新(注意:异步操作)

@@ -12,6 +12,8 @@
 #define MUSIC_INDEX_BTN_UP_1        1004   //用于UI的音效:按钮弹起
 #define MUSIC_INDEX_FLASH_1         1005   //用于UI的音效:刷新类型1
 #define MUSIC_INDEX_CLICK_PAUSE     1006   //用于UI的音效:暂停
+#define MUSIC_INDEX_SPELLSHOP_PANEL_HOVER 1007 //用于UI的音效:技能商店面板悬停
+#define MUSIC_INDEX_ARENA_MONSTER_BAN_SUCCESS 1008 //用于UI的音效:竞技场怪物禁用成功
 
 #define MUSIC_INDEX_BLACKHOLE       2001   //黑洞音效
 #define MUSIC_INDEX_CURE_1          2002   //治疗1音效
@@ -33,6 +35,7 @@
 #define MUSIC_INDEX_JOB_START       17  //任务开始音效
 #define MUSIC_INDEX_BTN_SWITCH_CLOSE 18 //开关关闭音效
 #define MUSIC_INDEX_BTN_SWITCH_OPEN 19  //开关开启音效
+#define MUSIC_INDEX_TUTORIAL_TASK_COMPLETE 20 //新手任务完成提示音效
 
 #define MUSIC_INDEX_ARENA_CLEAR     3001 //竞技场胜利音效
 #define MUSIC_INDEX_ARENA_FAIL      3002 //竞技场失败音效
@@ -46,6 +49,17 @@
 #define MUSIC_INDEX_SPELL_UNLOCK    3010 //技能解锁音效
 #define MUSIC_INDEX_UPDATE_SPELL    3011 //技能升级音效
 #define MUSIC_INDEX_START_MISSION   3012 //任务开始音效
+#define MUSIC_INDEX_MONSTER_PAUSE   3013 //怪物暂停音效
+#define MUSIC_INDEX_MONSTER_CONTINUE 3014 //怪物继续音效
+#define MUSIC_INDEX_TALENT_SWITCH_SUCCESS 3015 //天赋切换成功音效
+#define MUSIC_INDEX_HUANGLONG_DIVINE_AEGIS 3016 //皇龙圣盾音效
+#define MUSIC_INDEX_DAOJIAN_YUCHUNQIU 3017 //刀剑御春秋音效
+#define MUSIC_INDEX_AOFENG_XUEYIN 3018 //鏖锋血印音效
+#define MUSIC_INDEX_LINGNENG_RESHAPE 3019 //灵能重塑音效
+#define MUSIC_INDEX_PINGZONG_PIAOMIAO 3020 //萍踪踏步倚飘渺音效
+#define MUSIC_INDEX_YASINA_MOTHERS_ROSARIO 3021 //圣母咏叹刀剑挥舞音效
+#define MUSIC_INDEX_RAM_STONE_BURST 3022 //拉姆绝望终局石头爆裂音效
+#define MUSIC_INDEX_YOUZHEN_SUNLIGHT_BLOOM 3023 //幼贞生命之花太阳光芒音效
 
 #define SOUND_POOL_SIZE 20  // 每个音效的对象池大小（可同时播放20个）
 

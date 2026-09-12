@@ -254,6 +254,27 @@ local function writeMetricsObject(out, metrics, indent)
 	out[#out + 1] = pad .. "}"
 end
 
+local function shouldUseVjasscIncremental()
+	if path.vjasscIncremental == false then
+		return false
+	end
+	return path.buildVersion == "内测版本" or path.buildVersion == "单元测试"
+end
+
+local function vjasscIncrementalVersionSlug()
+	if path.buildVersion == "内测版本" then
+		return "alpha"
+	elseif path.buildVersion == "单元测试" then
+		return "unittest"
+	end
+	return "disabled"
+end
+
+local function vjasscIncrementalCacheDir()
+	local mode = tostring(path.vjasscMode or "validate")
+	return path.vjasscIncrementalCacheRoot .. "/" .. vjasscIncrementalVersionSlug() .. "/" .. mode
+end
+
 local function writeCompilerBackendReport(report)
 	local helperMetrics = fileMetrics(path.CompileStep5JassHelper)
 	local vjasscMetrics = fileMetrics(path.CompileStep5Vjassc)
@@ -263,6 +284,7 @@ local function writeCompilerBackendReport(report)
 	local vjasscTimings = extractNumberMapFromContent(statsContent, "timingMs")
 	local vjasscPassTimings = extractNumberMapFromContent(statsContent, "codegenPasses")
 	local vjasscCounters = extractNumberMapFromContent(statsContent, "performanceCounters")
+	local vjasscIncrementalEnabled = report.vjassc ~= nil and shouldUseVjasscIncremental()
 	local out = {}
 
 	out[#out + 1] = "{\n"
@@ -294,6 +316,11 @@ local function writeCompilerBackendReport(report)
 	out[#out + 1] = "    \"stats\": " .. jsonString(relativeOutput(path.VjasscStats)) .. ",\n"
 	out[#out + 1] = "    \"stdout\": " .. jsonString(relativeOutput(path.VjasscStdout)) .. ",\n"
 	out[#out + 1] = "    \"stderr\": " .. jsonString(relativeOutput(path.VjasscStderr)) .. ",\n"
+	out[#out + 1] = "    \"incremental\": {\n"
+	out[#out + 1] = "      \"enabled\": " .. jsonBool(vjasscIncrementalEnabled) .. ",\n"
+	out[#out + 1] = "      \"cacheDir\": " .. jsonString(vjasscIncrementalEnabled and vjasscIncrementalCacheDir() or "") .. ",\n"
+	out[#out + 1] = "      \"report\": " .. jsonString(vjasscIncrementalEnabled and relativeOutput(path.VjasscIncrementalReport) or "") .. "\n"
+	out[#out + 1] = "    },\n"
 	out[#out + 1] = "    \"metrics\": "
 	writeMetricsObject(out, vjasscMetrics, 4)
 	out[#out + 1] = ",\n    \"timingMs\": "
@@ -838,6 +865,7 @@ function compile:RunVjassc(input, output)
 	pcall(os.remove, path.VjasscStdout)
 	pcall(os.remove, path.VjasscStderr)
 	pcall(os.remove, path.VjasscCommand)
+	pcall(os.remove, path.VjasscIncrementalReport)
 
 	local args = {
 		fileUtils.PathString(path.vjassc),
@@ -850,6 +878,15 @@ function compile:RunVjassc(input, output)
 		"--emit-stats",
 		fileUtils.PathString(path.VjasscStats),
 	}
+
+	if shouldUseVjasscIncremental() then
+		args[#args + 1] = "--experimental-incremental-cache"
+		args[#args + 1] = fileUtils.PathString(vjasscIncrementalCacheDir())
+		args[#args + 1] = "--incremental-mode"
+		args[#args + 1] = "reuse"
+		args[#args + 1] = "--emit-incremental-report"
+		args[#args + 1] = fileUtils.PathString(path.VjasscIncrementalReport)
+	end
 
 	if path.vjasscMode ~= "fast" then
 		args[#args + 1] = "--emit-validation-report"
@@ -1024,9 +1061,11 @@ function compile:StartCompileCheckOnly()
 		return false
 	end
 
+	local phaseStarted = os.clock()
 	local dzOk, dzErr = localDzApi.generate()
+	local localDzApiGenerateMs = elapsedMs(phaseStarted)
 	if not dzOk then
-		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr))
+		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr) .. formatElapsedSeconds(localDzApiGenerateMs))
 		return false
 	end
 
@@ -1037,18 +1076,20 @@ function compile:StartCompileCheckOnly()
 
 	print("[即将开始]检测文件(不完整编译) : " .. path.CompileStep0)
 
+	phaseStarted = os.clock()
 	code, msg = self:CompileWave(path.CompileStep0) -- 先预处理一次
+	local wave1Ms = elapsedMs(phaseStarted)
 	if code then
 		local waveResult = string.gsub(path.CompileStep0, "%.j", ".i")
 		pcall(os.remove, path.CompileStep1)
 		local suc, errmsg = os.rename(waveResult, path.CompileStep1)
 		if not suc then
-			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg) .. formatElapsedSeconds(wave1Ms))
 			return false
 		end
-		print("[第一次Wave]预处理成功 : " .. path.CompileStep1)
+		print("[第一次Wave]预处理成功 : " .. path.CompileStep1 .. formatElapsedSeconds(wave1Ms))
 	else
-		print("[第一次Wave]预处理失败:" .. tostring(msg))
+		print("[第一次Wave]预处理失败:" .. tostring(msg) .. formatElapsedSeconds(wave1Ms))
 		return false
 	end
 
@@ -1089,27 +1130,31 @@ function compile:StartCompileCheckOnly()
 
 	self:InjectCodeBlock()
 
+	phaseStarted = os.clock()
 	code, msg = self:CompileWave(path.CompileStep2)
+	local wave2Ms = elapsedMs(phaseStarted)
 	if code then
 		local waveResult = string.gsub(path.CompileStep2, "%.j", ".i")
 		pcall(os.remove, path.CompileStep3)
 		local suc, errmsg = os.rename(waveResult, path.CompileStep3)
 		if not suc then
-			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg) .. formatElapsedSeconds(wave2Ms))
 			return false
 		end
-		print("[第二次Wave]预处理成功 : " .. path.CompileStep3)
+		print("[第二次Wave]预处理成功 : " .. path.CompileStep3 .. formatElapsedSeconds(wave2Ms))
 	else
-		print("[第二次Wave]预处理失败:" .. tostring(msg))
+		print("[第二次Wave]预处理失败:" .. tostring(msg) .. formatElapsedSeconds(wave2Ms))
 		return false
 	end
 
+	phaseStarted = os.clock()
 	fileUtils.copyFile(path.CompileStep3, path.CompileStep4)
 	code, msg = self:CompileLua()
+	local compileLuaMs = elapsedMs(phaseStarted)
 	if code then
-		print("[Lua]遍历处理成功 : " .. path.CompileStep4)
+		print("[Lua]遍历处理成功 : " .. path.CompileStep4 .. formatElapsedSeconds(compileLuaMs))
 	else
-		print("[Lua]遍历处理失败:" .. tostring(msg))
+		print("[Lua]遍历处理失败:" .. tostring(msg) .. formatElapsedSeconds(compileLuaMs))
 		return false
 	end
 
@@ -1151,7 +1196,7 @@ function compile:StartCompile()
 	local dzOk, dzErr = localDzApi.generate()
 	timings.localDzApiGenerateMs = elapsedMs(phaseStarted)
 	if not dzOk then
-		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr))
+		print("[DzAPI本地替换]生成失败:" .. tostring(dzErr) .. formatElapsedSeconds(timings.localDzApiGenerateMs))
 		return false
 	end
 
@@ -1172,12 +1217,12 @@ function compile:StartCompile()
 		pcall(os.remove, path.CompileStep1) -- 把老的waveResult删除
 		local suc, errmsg = os.rename(waveResult, path.CompileStep1)
 		if not (suc) then
-			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			print("[第一次Wave]预处理成功,但复制失败:" .. tostring(errmsg) .. formatElapsedSeconds(timings.wave1Ms))
 			return false
 		end
-		print("[第一次Wave]预处理成功 : " .. path.CompileStep1)
+		print("[第一次Wave]预处理成功 : " .. path.CompileStep1 .. formatElapsedSeconds(timings.wave1Ms))
 	else
-		print("[第一次Wave]预处理失败:" .. msg)
+		print("[第一次Wave]预处理失败:" .. msg .. formatElapsedSeconds(timings.wave1Ms))
 		return false
 	end
 
@@ -1233,12 +1278,12 @@ function compile:StartCompile()
 		pcall(os.remove, path.CompileStep3) -- 把老的waveResult删除
 		local suc, errmsg = os.rename(waveResult, path.CompileStep3)
 		if not (suc) then
-			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg))
+			print("[第二次Wave]预处理成功,但复制失败:" .. tostring(errmsg) .. formatElapsedSeconds(timings.wave2Ms))
 			return false
 		end
-		print("[第二次Wave]预处理成功 : " .. path.CompileStep3)
+		print("[第二次Wave]预处理成功 : " .. path.CompileStep3 .. formatElapsedSeconds(timings.wave2Ms))
 	else
-		print("[第二次Wave]预处理失败:" .. msg)
+		print("[第二次Wave]预处理失败:" .. msg .. formatElapsedSeconds(timings.wave2Ms))
 		return false
 	end
 
@@ -1248,9 +1293,9 @@ function compile:StartCompile()
 	code, msg = self:CompileLua()
 	timings.compileLuaMs = elapsedMs(phaseStarted)
 	if code then
-		print("[Lua]遍历处理成功 : " .. path.CompileStep4)
+		print("[Lua]遍历处理成功 : " .. path.CompileStep4 .. formatElapsedSeconds(timings.compileLuaMs))
 	else
-		print("[Lua]遍历处理失败:" .. msg)
+		print("[Lua]遍历处理失败:" .. msg .. formatElapsedSeconds(timings.compileLuaMs))
 		return false
 	end
 
@@ -1258,7 +1303,7 @@ function compile:StartCompile()
 	code, msg = localDzApi.applyMapConfigReplacement(path.CompileStep4)
 	timings.dzApiMapConfigMs = elapsedMs(phaseStarted)
 	if not code then
-		print("[DzAPI本地替换]MapConfig失败:" .. tostring(msg))
+		print("[DzAPI本地替换]MapConfig失败:" .. tostring(msg) .. formatElapsedSeconds(timings.dzApiMapConfigMs))
 		return false
 	end
 
@@ -1266,7 +1311,15 @@ function compile:StartCompile()
 	code, msg = localDzApi.applyPlayerFlagsReplacement(path.CompileStep4)
 	timings.dzApiPlayerFlagsMs = elapsedMs(phaseStarted)
 	if not code then
-		print("[DzAPI本地替换]PlayerFlags失败:" .. tostring(msg))
+		print("[DzAPI本地替换]PlayerFlags失败:" .. tostring(msg) .. formatElapsedSeconds(timings.dzApiPlayerFlagsMs))
+		return false
+	end
+
+	phaseStarted = os.clock()
+	code, msg = localDzApi.applyServerValueLimitLeftReplacement(path.CompileStep4)
+	timings.dzApiServerValueLimitLeftMs = elapsedMs(phaseStarted)
+	if not code then
+		print("[DzAPI本地替换]ServerValueLimitLeft失败:" .. tostring(msg) .. formatElapsedSeconds(timings.dzApiServerValueLimitLeftMs))
 		return false
 	end
 

@@ -4,28 +4,30 @@ local path = require("Lua.path")
 local tc = require("Lua.compile.TestControl")
 local taskStartClock = os.clock()
 
+local function argOrEnv(index, name)
+    if arg[index] ~= nil and arg[index] ~= "" then
+        return arg[index]
+    end
+    return os.getenv(name)
+end
+
 local root, projectPath, we, gamePath
-if arg[1] ~= nil and arg[1] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
-    root = arg[1]
-else
+root = argOrEnv(1, "WAR3_TASK_ROOT")
+if root == nil or root == "" then
     error("error: 请输入项目目录")
     return
 end
-if arg[2] ~= nil and arg[2] ~= "" then    -- 如果调用时传入了参数,则使用传入的参数作为项目目录
-    projectPath = arg[2]               -- 地图的项目目录
-else
+projectPath = argOrEnv(2, "WAR3_TASK_PROJECT")
+if projectPath == nil or projectPath == "" then
     error("error: 请输入地图路径")
     return
 end
-if arg[3] ~= nil and arg[3] ~= "" then -- 如果调用时传入了参数,则使用传入的参数作为项目目录
-	we = arg[3]                        -- 地图的项目目录
-else
+we = argOrEnv(3, "WAR3_TASK_WE")
+if we == nil or we == "" then
 	error("error: 请输入WE路径")
 	return
 end
-if arg[4] ~= nil and arg[4] ~= "" then
-	gamePath = arg[4]
-end
+gamePath = argOrEnv(4, "WAR3_TASK_GAME")
 
 path.init(root, projectPath, we, gamePath) -- 初始化路径
 tc.ChangeBuildVersion("正式版本")

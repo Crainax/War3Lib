@@ -33,7 +33,8 @@ library RelaxMode requires GroupUtils {
             t = null;
             t = CreateTimer();
             TimerStart(t,0.1,false,function (){
-                group g = GetUnitsInRectAll(GetPlayableMapRect());
+                group g = CreateGroup();
+                GroupEnumUnitsInRect(g, GetPlayableMapRect(), null);
                 ForGroup(g,function () {
                     ShowUnit(GetEnumUnit(), false);
                 });

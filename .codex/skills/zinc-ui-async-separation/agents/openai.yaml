@@ -1,4 +1,4 @@
 interface:
   display_name: "War3 UI Async Separation"
-  short_description: "Enforce War3 UI async/event separation rules"
-  default_prompt: "Analyze and implement War3 UI code with strict UI/data separation and async sync-bus event patterns."
+  short_description: "Guard War3 UI async flow and startup DzFrame bindings"
+  default_prompt: "Use $zinc-ui-async-separation to implement War3/Xlimon UI code with strict UI/data separation, sync-bus event patterns, and safe DzFrame binding timing."

@@ -18,7 +18,11 @@
 *   s2  - 添加 1 个步兵守卫
 *   s3  - 添加远程守卫（3 牧师 + 3 女巫），测试远程守卫的 AI 行为
 *   s4  - 将主人瞬移到远方（+4500, +0），测试守卫的回归/瞬移逻辑
- *   s5  - 杀死主人单位（测试：主人死亡后守卫 AI 是否仍正常）
+*   s5  - 杀死主人单位（测试：主人死亡后守卫 AI 是否仍正常）
+*   s6  - 添加 1 个 1500 射程女巫守卫
+*   s7  - 让第 1 个守卫休眠 3 秒，检查缴械、无敌、不暂停和自动醒来
+*   s8  - 连续休眠 2/5 秒并切换全局暂停，检查最长时间与状态幂等
+*   s9  - 叠加普通缴械后清空 Guarder，检查只解除休眠缴械且保留外部缴械
 *
 * 控制指令（使用 - 前缀）：
 *   -clear      - 清空所有守卫
@@ -46,6 +50,18 @@ library UTGuarder requires Guarder, UnitUtils {
 	private unit testEnemies[];
 	private integer petCount = 0;
 	private integer enemyCount = 0;
+	private integer stableSyncIdNext = 0;
+
+	private function CreateGuarderTestUnit(player p, integer unitType, real x, real y, real facing) -> unit {
+		unit u;
+
+		u = CreateUnit(p, unitType, x, y, facing);
+		if (u != null && GetUnitTypeId(u) != 0) {
+			stableSyncIdNext += 1;
+			SetUnitStableSyncId(u, stableSyncIdNext);
+		}
+		return u;
+	}
 
 	function Init () {
 		player p0; player p11; real centerX; real centerY; real angle; real dist; real x; real y; integer i;
@@ -56,7 +72,7 @@ library UTGuarder requires Guarder, UnitUtils {
 		centerY = 0.0;
 
 		// 中心点创建圣骑士（主人单位）
-		testHero = CreateUnit(p0, 'Hpal', centerX, centerY, 0.0);
+		testHero = CreateGuarderTestUnit(p0, 'Hpal', centerX, centerY, 0.0);
 		guarder.initOwner(p0, testHero);
 		BJDebugMsg("[Guarder] 已创建主人单位：圣骑士");
 
@@ -67,7 +83,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			dist = 2000.0;
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			testEnemies[i] = CreateUnit(p11, 'hpea', x, y, angle);
+			testEnemies[i] = CreateGuarderTestUnit(p11, 'hpea', x, y, angle);
 			BJDebugMsg("[Guarder] 已创建敌方农民 " + I2S(i) + " 在 (" + R2S(x) + ", " + R2S(y) + ")");
 		}
 
@@ -102,7 +118,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			dist = 300.0; // 距离中心300码
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			u = CreateUnit(p, 'hfoo', x, y, angle);
+			u = CreateGuarderTestUnit(p, 'hfoo', x, y, angle);
 			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加步兵 " + I2S(i) + " 到守卫系统");
@@ -118,7 +134,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			dist = 300.0;
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			u = CreateUnit(p, 'hkni', x, y, angle);
+			u = CreateGuarderTestUnit(p, 'hkni', x, y, angle);
 			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加骑士 " + I2S(i) + " 到守卫系统");
@@ -144,7 +160,7 @@ library UTGuarder requires Guarder, UnitUtils {
 		x = centerX + 200.0;
 		y = centerY;
 
-		u = CreateUnit(p, 'hfoo', x, y, 0.0);
+		u = CreateGuarderTestUnit(p, 'hfoo', x, y, 0.0);
 		ok =  guarder.addPet(p, u);
 		BJDebugMsg("[Guarder] s2: 添加 1 个步兵守卫 => " + S3(ok, "成功", "失败"));
 
@@ -167,7 +183,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			angle = 120.0 * i; // 每个单位间隔 120 度
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			u = CreateUnit(p, 'hmpr', x, y, angle);
+			u = CreateGuarderTestUnit(p, 'hmpr', x, y, angle);
 			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加牧师 " + I2S(i) + " 到守卫系统");
@@ -182,7 +198,7 @@ library UTGuarder requires Guarder, UnitUtils {
 			angle = 120.0 * (i + 3); // 继续间隔 120 度
 			x = centerX + Cos(angle * bj_DEGTORAD) * dist;
 			y = centerY + Sin(angle * bj_DEGTORAD) * dist;
-			u = CreateUnit(p, 'hsor', x, y, angle);
+			u = CreateGuarderTestUnit(p, 'hsor', x, y, angle);
 			ok =  guarder.addPet(p, u);
 			if (ok) {
 				BJDebugMsg("[Guarder] 已添加女巫 " + I2S(i) + " 到守卫系统");
@@ -232,7 +248,7 @@ library UTGuarder requires Guarder, UnitUtils {
 		y = centerY + 0.0;
 
 		// 创建 1 个女巫作为守卫，并将射程设置为 1500
-		u = CreateUnit(p, 'hsor', x, y, 0.0);
+		u = CreateGuarderTestUnit(p, 'hsor', x, y, 0.0);
 		ok = guarder.addPet(p, u);
 		if (ok) {
 			SetUnitAttackRange(u, 1500.0);
@@ -245,9 +261,126 @@ library UTGuarder requires Guarder, UnitUtils {
 		}
 		u = null;
 	}
-	function TTestUTGuarder7 (player p) {}
-	function TTestUTGuarder8 (player p) {}
-	function TTestUTGuarder9 (player p) {}
+	// 取得第一个测试守卫；不存在时创建并注册一个步兵。
+	private function GetOrCreateTestGuarder(player p) -> unit {
+		unit u;
+
+		u = guarder.getPetByIndex(p, 1);
+		if (u == null || GetUnitTypeId(u) == 0) {
+			u = CreateGuarderTestUnit(p, 'hfoo', GetUnitX(testHero) + 200.0, GetUnitY(testHero), 0.0);
+			if (!guarder.addPet(p, u)) {
+				RemoveUnit(u);
+				u = null;
+			}
+		}
+		return u;
+	}
+	function TTestUTGuarder7 (player p) {
+		unit u;
+		timer t;
+		integer tid;
+		integer uhid;
+
+		u = GetOrCreateTestGuarder(p);
+		if (u == null) {
+			BJDebugMsg("|cFFFF0000[Guarder] s7 失败：没有可用守卫|r");
+			return;
+		}
+		if (!guarder.sleep(u, 3.0)) {
+			BJDebugMsg("|cFFFF0000[Guarder] s7 失败：sleep 返回 false|r");
+			u = null;
+			return;
+		}
+		uhid = GetHandleId(u);
+		BJDebugMsg("[Guarder] s7 即时：sleep=" + B2S(guarder.isSleeping(u))
+			+ ", disarm=" + B2S(IsUnitDisarmed(u))
+			+ ", avul=" + B2S(GetUnitAbilityLevel(u, 'Avul') > 0)
+			+ ", paused=" + B2S(IsUnitPaused(u))
+			+ ", silenceFx=" + B2S(HaveSavedReal(HASH_UNIT, uhid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT))
+			+ ", remain=" + R2S(guarder.getSleepRemaining(u)));
+
+		t = CreateTimer();
+		tid = GetHandleId(t);
+		SaveUnitHandle(HASH_TIMER, tid, 1, u);
+		TimerStart(t, 3.5, false, function () {
+			timer expired;
+			integer id;
+			unit checked;
+
+			expired = GetExpiredTimer();
+			id = GetHandleId(expired);
+			checked = LoadUnitHandle(HASH_TIMER, id, 1);
+			BJDebugMsg("[Guarder] s7 到期：sleep=" + B2S(guarder.isSleeping(checked))
+				+ ", disarm=" + B2S(IsUnitDisarmed(checked))
+				+ ", avul=" + B2S(GetUnitAbilityLevel(checked, 'Avul') > 0)
+				+ ", paused=" + B2S(IsUnitPaused(checked)));
+			FlushChildHashtable(HASH_TIMER, id);
+			PauseTimer(expired);
+			DestroyTimer(expired);
+			checked = null;
+			expired = null;
+		});
+		t = null;
+		u = null;
+	}
+	function TTestUTGuarder8 (player p) {
+		unit u;
+		boolean first;
+		boolean second;
+		integer uhid;
+
+		u = GetOrCreateTestGuarder(p);
+		if (u == null) {
+			BJDebugMsg("|cFFFF0000[Guarder] s8 失败：没有可用守卫|r");
+			return;
+		}
+		first = guarder.sleep(u, 2.0);
+		second = guarder.sleep(u, 5.0);
+		guarder.setPaused(p, true);
+		guarder.setPaused(p, false);
+		uhid = GetHandleId(u);
+		BJDebugMsg("[Guarder] s8 幂等：first=" + B2S(first)
+			+ ", second=" + B2S(second)
+			+ ", sleep=" + B2S(guarder.isSleeping(u))
+			+ ", disarm=" + B2S(IsUnitDisarmed(u))
+			+ ", avul=" + B2S(GetUnitAbilityLevel(u, 'Avul') > 0)
+			+ ", paused=" + B2S(IsUnitPaused(u))
+			+ ", silenceFx=" + B2S(HaveSavedReal(HASH_UNIT, uhid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT))
+			+ ", remain=" + R2S(guarder.getSleepRemaining(u)));
+		u = null;
+	}
+	function TTestUTGuarder9 (player p) {
+		unit u;
+		boolean slept;
+		boolean externalPreserved;
+		boolean fullyReleased;
+		boolean readded;
+
+		u = GetOrCreateTestGuarder(p);
+		if (u == null) {
+			BJDebugMsg("|cFFFF0000[Guarder] s9 失败：没有可用守卫|r");
+			return;
+		}
+
+		DisarmUnit(u, 5.0);
+		slept = guarder.sleep(u, 5.0);
+		guarder.clear(p);
+		externalPreserved = IsUnitDisarmed(u)
+			&& !guarder.isSleeping(u)
+			&& GetUnitAbilityLevel(u, 'Avul') == 0;
+
+		ClearDisarm(u);
+		fullyReleased = !IsUnitDisarmed(u);
+		readded = guarder.addPet(p, u);
+		BJDebugMsg("[Guarder] s9 解绑缴械所有权：sleep=" + B2S(slept)
+			+ ", externalPreserved=" + B2S(externalPreserved)
+			+ ", fullyReleased=" + B2S(fullyReleased)
+			+ ", readded=" + B2S(readded));
+		if (!slept || !externalPreserved || !fullyReleased || !readded) {
+			BJDebugMsg("|cFFFF0000[Guarder] s9 失败：休眠/外部缴械锁没有独立释放|r");
+		}
+		u = null;
+	}
 	function TTestUTGuarder10 (player p) {}
 
 	function TTestActUTGuarder1 (string str) {

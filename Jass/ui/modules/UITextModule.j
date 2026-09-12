@@ -34,8 +34,6 @@ library UITextModule {
                 fontSize = FONT_SIZE_TINY;
             } else if (size == 3) {
                 fontSize = FONT_SIZE_SMALL;
-            } else if (size == 4) {
-                fontSize = FONT_SIZE_MODERATE; // 新的适中尺寸
             } else if (size == 5) {
                 fontSize = FONT_SIZE_NORMAL;
             } else if (size == 6) {
@@ -102,6 +100,7 @@ library UITextModule {
 #undef FONT_SIZE_LARGE
 #undef FONT_SIZE_MEDIUM
 #undef FONT_SIZE_NORMAL
+#undef FONT_SIZE_MODERATE
 #undef FONT_SIZE_SMALL
 #undef FONT_SIZE_TINY
 #undef FONT_SIZE_MINI

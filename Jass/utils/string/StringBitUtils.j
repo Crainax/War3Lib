@@ -30,10 +30,16 @@ library StringBitUtils requires StringUtils {
         integer iGroup = (bit - 1)/31 + 1;
         integer iBit = ModuloInteger((bit-1),31) + 1;
         integer resultInt = 0;
+        integer bitRemainder = 0;
 
         if (bit <= 0 || bit > 186) {return false;}
         resultInt = S2I(SubStringBJ(s,iGroup * 10 - 9,iGroup * 10));
-        return I3(iBit == 31,resultInt,ModuloInteger(resultInt,R2I(Pow(2,iBit))))/R2I(Pow(2,iBit-1)) > 0;
+        if (iBit == 31) {
+            bitRemainder = resultInt;
+        } else {
+            bitRemainder = ModuloInteger(resultInt,R2I(Pow(2,iBit)));
+        }
+        return bitRemainder/R2I(Pow(2,iBit-1)) > 0;
     }
 
 
@@ -42,6 +48,7 @@ library StringBitUtils requires StringUtils {
         integer iGroup = (bit - 1)/31 + 1;
         integer iBit = ModuloInteger((bit-1),31) + 1;
         integer resultInt = 0;
+        integer bitRemainder = 0;
         string result = s;
 
         if (StringLength(s) < 60) {result = "000000000000000000000000000000000000000000000000000000000000";} //初始化数字
@@ -49,9 +56,14 @@ library StringBitUtils requires StringUtils {
         if (bit <= 0 || bit > 186) {return result;}
 
         resultInt = S2I(SubStringBJ(result,iGroup * 10 - 9,iGroup * 10));
+        if (iBit == 31) {
+            bitRemainder = resultInt;
+        } else {
+            bitRemainder = ModuloInteger(resultInt,R2I(Pow(2,iBit)));
+        }
         if (b) {
             //如果这是要置1
-            if (I3(iBit == 31,resultInt,ModuloInteger(resultInt,R2I(Pow(2,iBit))))/R2I(Pow(2,iBit-1)) > 0) {
+            if (bitRemainder/R2I(Pow(2,iBit-1)) > 0) {
                 //如果这位已经带有，则返还原值
                 return result;
             } else {
@@ -59,7 +71,7 @@ library StringBitUtils requires StringUtils {
             }
         } else {
             //如果这是要置0
-            if (I3(iBit == 31,resultInt,ModuloInteger(resultInt,R2I(Pow(2,iBit))))/R2I(Pow(2,iBit-1)) == 0) {
+            if (bitRemainder/R2I(Pow(2,iBit-1)) == 0) {
                 //如果这位已经是0，则返还原值
                 return result;
             } else {

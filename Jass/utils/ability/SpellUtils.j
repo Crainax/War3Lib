@@ -1,11 +1,15 @@
 #ifndef SpellUtilsIncluded
 #define SpellUtilsIncluded
 
+#include "Crainax/core/constant/HashTable.j"
+#include "Crainax/core/table/Hash_AbilityDefine.j"
+#include "Crainax/ui/native/AbilityDecorateData.j"
+
 //! zinc
 /*
 技能相关的工具类
 */
-library SpellUtils {
+library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorateData {
 
 	// ====== Lua 交互：Ubertip 扩展 ======
 	// 通过全局变量 + 触发器与 Lua 通信：
@@ -14,6 +18,135 @@ library SpellUtils {
 	public integer spellutilsUberTip_id = 0;
 	public integer spellutilsUberTip_level = 0;
 	public string spellutilsUberTip_result = "";
+
+	// ====== 技能属性：被动强化变更回调 ======
+	private trigger spellPassiveRateChangedTr = null;
+	private player spellPassiveRateChangedPlayer = null;
+	private unit spellPassiveRateChangedUnit = null;
+	private integer spellPassiveRateChangedAbilityID = 0;
+	private boolean spellPassiveRateChangedAll = false;
+
+	private real playerSpellPassiveRate[];
+
+	private function LoadAbilityReal(unit u, integer abilityID, integer childKey, real defaultValue) -> real {
+		integer parentKey;
+
+		if (u == null || abilityID == 0) { return defaultValue; }
+
+		parentKey = GetAbilityHashKey(u, abilityID);
+		if (parentKey == 0 || !HaveSavedReal(HASH_ABILITY, parentKey, childKey)) {
+			return defaultValue;
+		}
+		return LoadReal(HASH_ABILITY, parentKey, childKey);
+	}
+
+	private function SaveAbilityReal(unit u, integer abilityID, integer childKey, real value, real emptyValue) {
+		integer parentKey;
+
+		if (u == null || abilityID == 0) { return; }
+
+		parentKey = GetAbilityHashKey(u, abilityID);
+		if (parentKey == 0) { return; }
+
+		if (value == emptyValue) {
+			if (HaveSavedReal(HASH_ABILITY, parentKey, childKey)) {
+				RemoveSavedReal(HASH_ABILITY, parentKey, childKey);
+			}
+		} else {
+			SaveReal(HASH_ABILITY, parentKey, childKey, value);
+		}
+	}
+
+	private function LoadAbilityInteger(unit u, integer abilityID, integer childKey, integer defaultValue) -> integer {
+		integer parentKey;
+
+		if (u == null || abilityID == 0) { return defaultValue; }
+
+		parentKey = GetAbilityHashKey(u, abilityID);
+		if (parentKey == 0 || !HaveSavedInteger(HASH_ABILITY, parentKey, childKey)) {
+			return defaultValue;
+		}
+		return LoadInteger(HASH_ABILITY, parentKey, childKey);
+	}
+
+	private function SaveAbilityInteger(unit u, integer abilityID, integer childKey, integer value, integer emptyValue) {
+		integer parentKey;
+
+		if (u == null || abilityID == 0) { return; }
+
+		parentKey = GetAbilityHashKey(u, abilityID);
+		if (parentKey == 0) { return; }
+
+		if (value == emptyValue) {
+			if (HaveSavedInteger(HASH_ABILITY, parentKey, childKey)) {
+				RemoveSavedInteger(HASH_ABILITY, parentKey, childKey);
+			}
+		} else {
+			SaveInteger(HASH_ABILITY, parentKey, childKey, value);
+		}
+	}
+
+	private function FireSpellPassiveRateChanged(player p, unit u, integer abilityID, boolean isAll) {
+		if (spellPassiveRateChangedTr == null) { return; }
+
+		spellPassiveRateChangedPlayer = p;
+		spellPassiveRateChangedUnit = u;
+		spellPassiveRateChangedAbilityID = abilityID;
+		spellPassiveRateChangedAll = isAll;
+		TriggerEvaluate(spellPassiveRateChangedTr);
+		spellPassiveRateChangedPlayer = null;
+		spellPassiveRateChangedUnit = null;
+		spellPassiveRateChangedAbilityID = 0;
+		spellPassiveRateChangedAll = false;
+	}
+
+	private function GetRoundedPercent(real value) -> integer {
+		return R2I(RAbsBJ(value) * 100.0 + 0.5);
+	}
+
+	private function FormatAbilityDecoratePercentLine(string label, real value) -> string {
+		string sign;
+
+		if (value >= 0.0) {
+			sign = "+";
+		} else {
+			sign = "-";
+		}
+
+		return "|cFFFACC15" + label + ":|r|cFF00FFFB" + sign + I2S(GetRoundedPercent(value)) + "%|r";
+	}
+
+	private function RefreshAbilityDecorateCustomPercent(unit u, integer abilityID, integer childKey, string label, real value) {
+		integer parentKey; integer stringId; integer newStringId;
+
+		if (u == null || abilityID == 0) { return; }
+
+		parentKey = GetAbilityHashKey(u, abilityID);
+		if (parentKey == 0) { return; }
+
+		if (HaveSavedInteger(HASH_ABILITY, parentKey, childKey)) {
+			stringId = LoadInteger(HASH_ABILITY, parentKey, childKey);
+		} else {
+			stringId = 0;
+		}
+
+		if (GetRoundedPercent(value) == 0) {
+			if (stringId != 0) {
+				RemoveAbilityDecorateCustomString(u, abilityID, stringId);
+				RemoveSavedInteger(HASH_ABILITY, parentKey, childKey);
+			}
+			return;
+		}
+
+		if (stringId != 0 && SetAbilityDecorateCustomStringById(u, abilityID, stringId, FormatAbilityDecoratePercentLine(label, value))) {
+			return;
+		}
+
+		newStringId = AddAbilityDecorateCustomString(u, abilityID, FormatAbilityDecoratePercentLine(label, value));
+		if (newStringId != 0) {
+			SaveInteger(HASH_ABILITY, parentKey, childKey, newStringId);
+		}
+	}
 
 	//异步获取当前单位的指定xy位置的技能id
 	// param x    x坐标
@@ -48,6 +181,29 @@ library SpellUtils {
 		return YDWEGetObjectPropertyReal(YDWE_OBJECT_TYPE_ABILITY, id, "Cool1");
 	}
 
+	//获取1级魔法消耗
+	public function GetAbilityManaCost(integer id) -> integer {
+		integer cost;
+
+		cost = YDWEGetObjectPropertyInteger(YDWE_OBJECT_TYPE_ABILITY, id, "Cost1");
+		if (cost <= 0) {
+			cost = YDWEGetObjectPropertyInteger(YDWE_OBJECT_TYPE_ABILITY, id, "Cost");
+		}
+		return cost;
+	}
+
+	public function SetAbilityVirtualLevel(unit u, integer abilityID, integer level) {
+		SaveAbilityInteger(u, abilityID, HASH_CHILD_SALT_ABILITY_VIRTUAL_LEVEL, level, 0);
+	}
+
+	public function GetAbilityVirtualLevel(unit u, integer abilityID) -> integer {
+		return LoadAbilityInteger(u, abilityID, HASH_CHILD_SALT_ABILITY_VIRTUAL_LEVEL, 0);
+	}
+
+	public function ClearAbilityVirtualLevel(unit u, integer abilityID) {
+		SaveAbilityInteger(u, abilityID, HASH_CHILD_SALT_ABILITY_VIRTUAL_LEVEL, 0, 0);
+	}
+
 	//获取技能介绍（支持按等级获取）
 	// param id     技能id
 	// param level  技能等级（从1开始），当 SLK 中为 table 时，取第 level 个元素
@@ -61,11 +217,6 @@ library SpellUtils {
 		if (spellutilsUberTip_tr != null) {
 			TriggerEvaluate(spellutilsUberTip_tr);
 		}
-
-		// Lua 侧未初始化或未返回结果时，回退到原有 YDWE 行为
-		// if (spellutilsUberTip_result == "" && id != 0) {
-		// 	spellutilsUberTip_result = YDWEGetObjectPropertyString(YDWE_OBJECT_TYPE_ABILITY, id, "Ubertip");
-		// }
 
 		return spellutilsUberTip_result;
 	}
@@ -84,6 +235,197 @@ library SpellUtils {
 		UnitAddAbility(u, i);
 		UnitMakeAbilityPermanent(u, true, i);
 	}
+
+	// ====== 技能最终伤害 ======
+	private function GetAbilitySpellFinalDamageRateUp(unit u, integer abilityID) -> real {
+		return LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_UP, 1.0);
+	}
+
+	private function GetAbilitySpellFinalDamageRateDown(unit u, integer abilityID) -> real {
+		return LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_DOWN, 1.0);
+	}
+
+	public function GetAbilitySpellFinalDamageRate(unit u, integer abilityID) -> real {
+		if (u == null || abilityID == 0) { return 1.0; }
+		return RMaxBJ(0.0, GetAbilitySpellFinalDamageRateUp(u, abilityID) * GetAbilitySpellFinalDamageRateDown(u, abilityID));
+	}
+
+	public function AddAbilitySpellFinalDamageRateUp(unit u, integer abilityID, real value) {
+		real multiplier; real v;
+
+		if (u == null || abilityID == 0 || value == 0.0) { return; }
+
+		multiplier = GetAbilitySpellFinalDamageRateUp(u, abilityID);
+		if (value > 0.0) {
+			multiplier = multiplier * (1.0 + value);
+		} else {
+			v = -value;
+			multiplier = multiplier / (1.0 + v);
+		}
+		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_UP, multiplier, 1.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_STRING_ID, "技能最终伤害", GetAbilitySpellFinalDamageRate(u, abilityID) - 1.0);
+	}
+
+	public function AddAbilitySpellFinalDamageRateDown(unit u, integer abilityID, real value) {
+		real multiplier; real v; real denom;
+
+		if (u == null || abilityID == 0 || value == 0.0) { return; }
+		if (value >= 1.0 || value <= -1.0) { return; }
+
+		multiplier = GetAbilitySpellFinalDamageRateDown(u, abilityID);
+		if (value > 0.0) {
+			multiplier = multiplier * (1.0 - value);
+		} else {
+			v = -value;
+			denom = 1.0 - v;
+			if (denom <= 0.0) { return; }
+			multiplier = multiplier / denom;
+		}
+		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_DOWN, multiplier, 1.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_STRING_ID, "技能最终伤害", GetAbilitySpellFinalDamageRate(u, abilityID) - 1.0);
+	}
+
+	public function GetTotalSpellFinalDamageRate(unit u, integer abilityID) -> real {
+		if (u == null) { return 1.0; }
+		return plyaerHeroAttr.getTotalSpellFinalDamageRate(GetOwningPlayer(u)) * GetAbilitySpellFinalDamageRate(u, abilityID);
+	}
+
+	// ====== 技能范围 ======
+	public function GetAbilitySpellRangeRate(unit u, integer abilityID) -> real {
+		real up; real down;
+
+		if (u == null || abilityID == 0) { return 1.0; }
+
+		up = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, 0.0);
+		down = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, 0.0);
+		return RMaxBJ(0.0, (1.0 + up) * (1.0 - down));
+	}
+
+	public function AddAbilitySpellRangeRateUp(unit u, integer abilityID, real value) {
+		real rate;
+
+		if (u == null || abilityID == 0 || value == 0.0) { return; }
+
+		rate = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, 0.0) + value;
+		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, rate, 0.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_STRING_ID, "技能范围增加", GetAbilitySpellRangeRate(u, abilityID) - 1.0);
+	}
+
+	public function AddAbilitySpellRangeRateDown(unit u, integer abilityID, real value) {
+		real rate;
+
+		if (u == null || abilityID == 0 || value == 0.0) { return; }
+
+		rate = RealAdd(LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, 0.0), value);
+		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, rate, 0.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_STRING_ID, "技能范围增加", GetAbilitySpellRangeRate(u, abilityID) - 1.0);
+	}
+
+	// ====== 被动强化 ======
+	public function AddPlayerSpellPassiveRate(player p, real value) {
+		integer pid;
+
+		if (p == null || value == 0.0) { return; }
+
+		pid = GetConvertedPlayerId(p);
+		playerSpellPassiveRate[pid] += value;
+		FireSpellPassiveRateChanged(p, null, 0, true);
+	}
+
+	public function GetPlayerSpellPassiveRate(player p) -> real {
+		if (p == null) { return 0.0; }
+		return playerSpellPassiveRate[GetConvertedPlayerId(p)];
+	}
+
+	public function GetAbilitySpellPassiveRate(unit u, integer abilityID) -> real {
+		return LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, 0.0);
+	}
+
+	public function AddAbilitySpellPassiveRate(unit u, integer abilityID, real value) {
+		real rate;
+
+		if (u == null || abilityID == 0 || value == 0.0) { return; }
+
+		rate = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, 0.0) + value;
+		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, rate, 0.0);
+		RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_STRING_ID, "技能被动强化", GetAbilitySpellPassiveRate(u, abilityID));
+		FireSpellPassiveRateChanged(GetOwningPlayer(u), u, abilityID, false);
+	}
+
+	public function GetTotalSpellPassiveRate(unit u, integer abilityID) -> real {
+		if (u == null) { return 1.0; }
+		return RMaxBJ(0.01, 1.0 + GetPlayerSpellPassiveRate(GetOwningPlayer(u)) + GetAbilitySpellPassiveRate(u, abilityID));
+	}
+
+	public function HasAbilitySpellPassiveAppliedRate(unit u, integer abilityID) -> boolean {
+		integer parentKey;
+
+		if (u == null || abilityID == 0) { return false; }
+
+		parentKey = GetAbilityHashKey(u, abilityID);
+		if (parentKey == 0) { return false; }
+		return HaveSavedReal(HASH_ABILITY, parentKey, HASH_CHILD_SALT_SPELL_PASSIVE_APPLIED_RATE);
+	}
+
+	public function SetAbilitySpellPassiveAppliedRate(unit u, integer abilityID, real value) {
+		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_APPLIED_RATE, value, 0.0);
+	}
+
+	public function GetAbilitySpellPassiveAppliedRate(unit u, integer abilityID) -> real {
+		return LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_APPLIED_RATE, 0.0);
+	}
+
+	public function ClearAbilitySpellPassiveAppliedRate(unit u, integer abilityID) {
+		SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_APPLIED_RATE, 0.0, 0.0);
+	}
+
+	// 只迁移外部持久属性。调用方须先撤销旧技能自身效果及独立等级强化。
+	// restoreBeforeInit 仅用于尚未初始化的目标；不触发被动回调、不复制 applied/CD/UI 缓存。
+	public struct abilityAttributeSnapshot {
+		private real finalUp;
+		private real finalDown;
+		private real rangeUp;
+		private real rangeDown;
+		private real passive;
+
+		static method capture(unit u, integer abilityID) -> thistype {
+			thistype this = thistype.allocate();
+			this.captureFrom(u, abilityID);
+			return this;
+		}
+
+		method captureFrom(unit u, integer abilityID) {
+			this.finalUp = GetAbilitySpellFinalDamageRateUp(u, abilityID);
+			this.finalDown = GetAbilitySpellFinalDamageRateDown(u, abilityID);
+			this.rangeUp = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, 0.0);
+			this.rangeDown = LoadAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, 0.0);
+			this.passive = GetAbilitySpellPassiveRate(u, abilityID);
+		}
+
+		method restoreBeforeInit(unit u, integer abilityID) {
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_UP, this.finalUp, 1.0);
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_DOWN, this.finalDown, 1.0);
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_UP, this.rangeUp, 0.0);
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_DOWN, this.rangeDown, 0.0);
+			SaveAbilityReal(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_RATE, this.passive, 0.0);
+			ClearAbilitySpellPassiveAppliedRate(u, abilityID);
+			RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_STRING_ID, "技能最终伤害", GetAbilitySpellFinalDamageRate(u, abilityID) - 1.0);
+			RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_RANGE_STRING_ID, "技能范围增加", GetAbilitySpellRangeRate(u, abilityID) - 1.0);
+			RefreshAbilityDecorateCustomPercent(u, abilityID, HASH_CHILD_SALT_SPELL_PASSIVE_STRING_ID, "技能被动强化", this.passive);
+		}
+	}
+
+	public function RegisterSpellPassiveRateChanged(code func) {
+		if (spellPassiveRateChangedTr == null) {
+			spellPassiveRateChangedTr = CreateTrigger();
+		}
+		TriggerAddCondition(spellPassiveRateChangedTr, Condition(func));
+	}
+
+	public function GetSpellPassiveRateChangedPlayer() -> player { return spellPassiveRateChangedPlayer; }
+	public function GetSpellPassiveRateChangedUnit() -> unit { return spellPassiveRateChangedUnit; }
+	public function GetSpellPassiveRateChangedAbilityID() -> integer { return spellPassiveRateChangedAbilityID; }
+	public function IsSpellPassiveRateChangedAll() -> boolean { return spellPassiveRateChangedAll; }
 
 	function onInit () {
 		// 初始化 Lua 侧的 spellutils.lua（通过 Cheat 调用）

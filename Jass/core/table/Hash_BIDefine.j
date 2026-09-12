@@ -36,5 +36,8 @@
 #define HASH_KEY_BIGINT_SUB_BONUS   191  // BigInteger: 次属性定值
 #define HASH_KEY_BIGINT_SUB_CACHE   211  // BigInteger: 次属性欠款缓存（正数，记录还欠多少次属性）
 
+// [异度] 暴击真伤 / 格挡（按玩家维度）
+#define HASH_KEY_BIGINT_CRIT_TRUE   221  // BigInteger: 攻击暴击真伤
+#define HASH_KEY_BIGINT_BLOCK       231  // BigInteger: 格挡伤害
 
 #endif

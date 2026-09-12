@@ -11,9 +11,6 @@ high: 存储-2100000000到2100000000
 #include "Crainax/config/SharedMethod.h"
 #include "Crainax/core/table/Hash_BIDefine.j"
 
-#define UNIT_TEN_YI 1000000000  // 10亿，作为进位基数
-#define MAX_HIGH    2100000000  // high的最大值：21亿
-
 library BigInteger requires NumberFormatter {
 
         //==============================
@@ -49,15 +46,6 @@ library BigInteger requires NumberFormatter {
 		private static method writeSeg(integer parent, integer index, integer value) {
 			SaveInteger(bigInteger.biTable, parent, 1 + index, value);
             }
-
-		// 确保段数至少为 n（不强制写入 0 段，避免多余写操作）
-		private static method growTo(integer parent, integer n) {
-			integer cnt;
-			cnt = bigInteger.getCountByParent(parent);
-			if (n > cnt) {
-				bigInteger.setCountByParent(parent, n);
-			}
-		}
 
 		// 去掉高位多余 0 段，并在为 0 时清子表
 		private static method normalize(integer parent) {
@@ -190,6 +178,84 @@ library BigInteger requires NumberFormatter {
                 }
             }
 
+		private static method realSegAt(real val, integer index) -> integer {
+			integer i; integer seg;
+			real v; real segR;
+
+			if (val <= 0.0 || index <= 0) {
+				return 0;
+			}
+
+			i = 1;
+			v = val;
+			while (v >= 1.0 && i <= index) {
+				segR = ModuloReal(v, bigInteger.BASE_R);
+				if (segR < 0.0) {
+					segR = 0.0;
+				}
+				if (segR >= bigInteger.BASE_R) {
+					segR = bigInteger.BASE_R - 1.0;
+				}
+				seg = R2I(segR);
+				if (i == index) {
+					return seg;
+				}
+
+				v = v / bigInteger.BASE_R;
+				i = i + 1;
+			}
+			return 0;
+		}
+
+		private static method realNormCount(real val) -> integer {
+			integer i; integer cnt; integer seg;
+			real v; real segR;
+
+			if (val <= 0.0) {
+				return 0;
+			}
+
+			i = 1;
+			cnt = 0;
+			v = val;
+			while (v >= 1.0 && i <= 40) {
+				segR = ModuloReal(v, bigInteger.BASE_R);
+				if (segR < 0.0) {
+					segR = 0.0;
+				}
+				if (segR >= bigInteger.BASE_R) {
+					segR = bigInteger.BASE_R - 1.0;
+				}
+				seg = R2I(segR);
+				if (seg > 0) {
+					cnt = i;
+				}
+
+				v = v / bigInteger.BASE_R;
+				i = i + 1;
+			}
+			return cnt;
+		}
+
+		private static method realHasFraction(real val) -> boolean {
+			integer lo;
+			real lowReal;
+
+			if (val <= 0.0) {
+				return false;
+			}
+
+			lowReal = ModuloReal(val, bigInteger.BASE_R);
+			if (lowReal < 0.0) {
+				lowReal = 0.0;
+			}
+			if (lowReal >= bigInteger.BASE_R) {
+				lowReal = bigInteger.BASE_R - 1.0;
+			}
+			lo = R2I(lowReal);
+			return lowReal > I2R(lo);
+		}
+
 		// 将 src 累加到 dst（可跨玩家/父键）
 		public static method addBigInt(player dstP, integer dstKey, player srcP, integer srcKey) {
 			integer dParent; integer sParent; integer sCnt; integer i; integer v;
@@ -243,21 +309,11 @@ library BigInteger requires NumberFormatter {
 		// 减实数（非负）；负值按 0 处理，结果不能为负；不足则归零
 		public static method subReal(player p, integer baseKey, real val) {
 			integer parent; integer idx; integer seg; integer safety; integer cmp;
-			real v; real segR; real cur;
+			real v; real segR;
 			if (val <= 0.0) { return; }
 			// 若当前值小于等于要减的实数，则直接归零
-			// 1) 优先使用 compareReal（在段数 <=2 时是精确的）
 			cmp = bigInteger.compareReal(p, baseKey, val);
 			if (cmp <= 0) {
-				bigInteger.reset(p, baseKey);
-				return;
-			}
-			// 2) 当段数较多（compareReal 会因为 cnt>2 而一律返回 1）时，
-			//    只在「val 明显大于当前值」的情况下才做兜底归零：
-			//    为了避免 float 精度导致的小差值（例如 +2、+999）被抹掉，
-			//    这里使用一个比较宽松的倍率阈值。
-			cur = bigInteger.toReal(p, baseKey);
-			if (val >= cur * 1.5) {
 				bigInteger.reset(p, baseKey);
 				return;
 			}
@@ -377,8 +433,7 @@ library BigInteger requires NumberFormatter {
 
 		// 与实数比较（非负）
 		public static method compareReal(player p, integer key, real val) -> integer {
-			integer parent; integer cnt; integer hi; integer lo; integer v2; integer v1;
-			real lowReal; boolean hasFrac;
+			integer parent; integer cnt; integer valCnt; integer i; integer curSeg; integer valSeg;
 			parent = bigInteger.parentKey(p, key);
 			cnt = bigInteger.normCount(parent);
 
@@ -387,39 +442,19 @@ library BigInteger requires NumberFormatter {
 				return 1;
 			}
 
-			if (val >= bigInteger.BASE_R) {
-				hi = R2I(val / bigInteger.BASE_R);
-				if (hi < 0) { hi = 2147483647; } // 保护：极大实数转换溢出时做上限夹逼
-				lowReal = ModuloReal(val, bigInteger.BASE_R);
-				lo = R2I(lowReal);
-				hasFrac = (lowReal > I2R(lo));
-			} else {
-				hi = 0;
-				lowReal = val;
-				lo = R2I(val);
-				hasFrac = (lowReal > I2R(lo));
-			}
+			valCnt = bigInteger.realNormCount(val);
+			if (cnt > valCnt) { return 1; }
+			if (cnt < valCnt) { return -1; }
 
-			if (cnt > 2) { return 1; }
-
-			if (cnt >= 2) {
-				v2 = bigInteger.readSeg(parent, 2);
-            } else {
-				v2 = 0;
+			for (i = cnt; i >= 1; i -= 1) {
+				curSeg = bigInteger.readSeg(parent, i);
+				valSeg = bigInteger.realSegAt(val, i);
+				if (curSeg > valSeg) { return 1; }
+				if (curSeg < valSeg) { return -1; }
 			}
-			if (v2 > hi) { return 1; }
-			if (v2 < hi) { return -1; }
-
-			if (cnt >= 1) {
-				v1 = bigInteger.readSeg(parent, 1);
-			} else {
-				v1 = 0;
-			}
-			if (v1 > lo) { return 1; }
-			if (v1 < lo) { return -1; }
 
 			// 段值相等时，若比较的实数仍有小数部分，则大整数比实数小
-			if (hasFrac) { return -1; }
+			if (bigInteger.realHasFraction(val)) { return -1; }
 			return 0;
 		}
 
@@ -462,10 +497,6 @@ library BigInteger requires NumberFormatter {
         }
     }
 }
-
-
-#undef UNIT_TEN_YI
-#undef MAX_HIGH
 
 
 //! endzinc

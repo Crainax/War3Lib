@@ -24,6 +24,23 @@ library PlayerUtils {
         static integer online = 0; //当前活跃玩家总数
     }
 
+    // 是否为地图配置范围内的有效玩家
+    public function IsValidPlayer(player p) -> boolean {
+        integer index;
+        if (p == null) {
+            return false;
+        }
+        index = GetConvertedPlayerId(p);
+        return index >= 1 && index <= MAX_PLAYER_COUNT;
+    }
+
+    // 是否为当前仍在游戏中的用户玩家
+    public function IsOnlineUser(player p) -> boolean {
+        return IsValidPlayer(p)
+        && GetPlayerSlotState(p) == PLAYER_SLOT_STATE_PLAYING
+        && GetPlayerController(p) == MAP_CONTROL_USER;
+    }
+
     //获取第一个真实玩家
     //遍历所有玩家位置，返回第一个处于游戏中的真实玩家
     //返回值:
@@ -31,8 +48,7 @@ library PlayerUtils {
     public function GetFirstPlayer() -> player {
         integer i;
         for (1 <= i <= 12) {
-            if ((GetPlayerSlotState(ConvertedPlayer(i)) == PLAYER_SLOT_STATE_PLAYING) &&
-            (GetPlayerController(ConvertedPlayer(i)) == MAP_CONTROL_USER)) {
+            if (IsOnlineUser(ConvertedPlayer(i))) {
                 return ConvertedPlayer(i);
             }
         }
@@ -43,7 +59,7 @@ library PlayerUtils {
         trigger tr;
         integer i;
         for (1 <= i <= 12) {
-            if ((GetPlayerSlotState(ConvertedPlayer(i)) == PLAYER_SLOT_STATE_PLAYING) && (GetPlayerController(ConvertedPlayer(i)) == MAP_CONTROL_USER)) {
+            if (IsOnlineUser(ConvertedPlayer(i))) {
                 playerCount.all    += 1;
                 playerCount.online += 1;
                 playerCounted[i] = true;

@@ -124,10 +124,16 @@ library UTMusic requires Music {
 		BJDebugMsg("已播放30次（池大小只有20，前10次会被打断重用）");
 	}
 	function TTestUTMusic8 (player p) {
-		music[1007].play();
+		music[MUSIC_INDEX_SPELLSHOP_PANEL_HOVER].play();
 	}
-	function TTestUTMusic9 (player p) {}
-	function TTestUTMusic10 (player p) {}
+	function TTestUTMusic9 (player p) {
+		music[MUSIC_INDEX_TALENT_SWITCH_SUCCESS].play();
+	}
+	// 输入 s10 播放新手任务完成提示音；字面量 music[20] 用于触发 Music.j 的 check/dependency 扫描。
+	function TTestUTMusic10 (player p) {
+		music[20].playFor(p);
+		BJDebugMsg("[Music] 已播放 music[20]：SecretFound");
+	}
 	function TTestActUTMusic1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);

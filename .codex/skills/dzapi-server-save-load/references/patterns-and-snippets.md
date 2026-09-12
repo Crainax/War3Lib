@@ -61,8 +61,14 @@ library SignArchive {
 ```
 
 规则：
+- 该初始化函数应在所有客户端一致执行，并按固定顺序读取所有玩家；禁止放进 `GetLocalPlayer` 分支，也禁止由各玩家本地读取自己的值后通过 `SyncBus`/同步包广播。
+- 平台为本局返回的服务器存档快照在各客户端间一致，直接写入数组缓存不会因为“读取了其他玩家存档”而产生 OOS。
+- 不要信任客户端上报的“存档值”：额外发包不仅冗余，还会把可伪造的客户端 payload 引入权威存档路径。
+- Xlimon 可参考 `edit/DzServer.j` 的 0.1 秒统一读取，以及 `edit/system/achieve/AchiUpgrade.j` 的 `ReadAchiCapArchives()`。
 - 局中不要依赖重复 `GetStored*` 来读取“最新值”。
+- 平台实测特性：同一局内 `DzAPI_Map_GetStoredInteger/GetStoredString` 会继续返回开局加载快照；局中 `Store*` 后无论后端实际接受、拒绝或限流，再次 `GetStored*` 都不能用来确认写入结果。
 - 所有判断逻辑依赖缓存变量。
+- 如果后端可能设置每日/每局上限，局中新增值不要立即加入本局可消费池；用单独增量缓存展示并尝试写回，下一局重新读取后再参与消费判断。
 
 ## 2) 写回策略（write-through）
 
@@ -257,4 +263,3 @@ private function BuildChecksum(player p, string tag, integer a, integer b) -> in
 规则：
 - 写入时编码，读取时必须验签；失败立即回退默认值。
 - 不在普通、低价值存档上默认启用，避免无效复杂度。
-

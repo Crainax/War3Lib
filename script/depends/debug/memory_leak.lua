@@ -25,6 +25,7 @@ local wantPrintInGame = true
 local dbg = require 'jass.debug'
 local jass = require 'jass.common'
 local con = require 'jass.console'
+local log = require 'jass.log'
 local g = require "jass.globals"
 local type_list = {
 	['+loc'] = '点',
@@ -70,10 +71,34 @@ local type_list = {
 
 }
 
-local print = con.write
+local function writeLog(...)
+	pcall(log.info, ...)
+end
+
+local function print(...)
+	writeLog(...)
+	return con.write(...)
+end
 
 local function echo(str)
+	writeLog(str)
 	jass.DisplayTimedTextToPlayer(jass.GetLocalPlayer(), 0, 0, 60.00, str)
+end
+
+-- 静默模式只落日志，避免周期采样刷屏。
+local function silentEcho(str)
+	writeLog("[内存泄露] " .. tostring(str))
+end
+
+-- 根据调用模式统一分发内存统计输出。
+local function emitLine(str, silent)
+	if silent then
+		silentEcho(str)
+	elseif wantPrintInGame then
+		echo(str)
+	else
+		print(str)
+	end
 end
 
 local mt = {}
@@ -109,8 +134,9 @@ mt.display = function()
 		end
 	end
 
-	if wantPrintInGame then
-		echo('--------------start------------')
+	local silent = g.memoryLeakSilent == true
+	do
+		emitLine('--------------start------------', silent)
 		local msg = ''
 		local step = 0
 		local green = { r = 40, g = 255, b = 10 }
@@ -148,22 +174,16 @@ mt.display = function()
 			-- 每隔X个数据, 输出一行
 			step = step + 1
 			if step >= 3 then
-				echo(msg)
+				emitLine(msg, silent)
 				step = 0
 				msg = ''
 			end
 		end
 		-- 尾部数据(数量不满X, 多出来的)
-		if step > 0 then echo(msg) end
-		echo('统计数量: ' .. sum .. ', 底层获取数量: ' .. dbg.handlecount())
-		echo('历史最大句柄: ' .. dbg.handlemax())
-		echo('--------------end------------')
-	else
-		print('--------------start------------')
-		for k, v in pairs(count) do print(k .. ': ' .. v) end
-		print('统计数量: ', sum, ', 底层获取数量: ', dbg.handlecount())
-		print('历史最大句柄: ', dbg.handlemax())
-		print('--------------end------------')
+		if step > 0 then emitLine(msg, silent) end
+		emitLine('统计数量: ' .. sum .. ', 底层获取数量: ' .. dbg.handlecount(), silent)
+		emitLine('历史最大句柄: ' .. dbg.handlemax(), silent)
+		emitLine('--------------end------------', silent)
 	end
 end
 

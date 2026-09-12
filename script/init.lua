@@ -100,12 +100,30 @@ if base.has_inner_japi then
 else
     print("JAPI环境: YDLua")
     local hook = require 'jass.hook'
-    local old_display = jass.DisplayTimedTextToPlayer
-    function hook.DisplayTimedTextToPlayer(toPlayer, x, y, duration, message)
-        if toPlayer == jass.GetLocalPlayer() then
-            print(message)
+    local display_logger = nil
+    local old_display_text = jass.DisplayTextToPlayer
+    local old_display_timed = jass.DisplayTimedTextToPlayer
+
+    local function capture_display(toPlayer, message)
+        if not display_logger then
+            local logger_ok, loaded_logger = pcall(require, 'depends.debug.logger')
+            if logger_ok then
+                display_logger = loaded_logger
+            end
         end
-        old_display(toPlayer, x, y, duration, message)
+        if display_logger and display_logger.display then
+            pcall(display_logger.display, toPlayer, message)
+        end
+    end
+
+    function hook.DisplayTextToPlayer(toPlayer, x, y, message)
+        capture_display(toPlayer, message)
+        old_display_text(toPlayer, x, y, message)
+    end
+
+    function hook.DisplayTimedTextToPlayer(toPlayer, x, y, duration, message)
+        capture_display(toPlayer, message)
+        old_display_timed(toPlayer, x, y, duration, message)
     end
 end
 
@@ -114,10 +132,5 @@ runtime.handle_level = 0
 
 -- 关闭等待
 runtime.sleep = false
-
-local ok_dz_write_log, dz_write_log_err = pcall(require, 'depends.debug.dz_write_log')
-if not ok_dz_write_log then
-    log.error('[DzWriteLog] Lua hook init failed: ' .. tostring(dz_write_log_err))
-end
 
 return base

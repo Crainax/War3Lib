@@ -1,44 +1,51 @@
-# 结构分析：为什么是“双重索引 + 尾部交换”
+# 结构判断：紧凑数组、分组索引、真双索引
 
-这个模式本质上是在 **同一批实例** 上提供两种“视图”：
+这个模式在 Xlimon 里常见于临时单位、技能冷却、召唤物、物品槽等高频增删结构。先判断当前需求属于哪一种。
 
-1. **全局视图**：`Lists[] + size`，用于遍历所有实例（例如所有 Buff、所有临时特效、所有进行中的队列元素）
-2. **分组视图**：`groupLists[groupId][] + groupSize[groupId]`，用于遍历某一组（按玩家、按单位、按技能、按场景分组等）
+## 普通紧凑队列
 
-同时，为了保证遍历高效和内存紧凑，列表的删除采用 **尾部交换（swap-remove）**：
+形态：
 
-- 删除 `index` 位置时，把 `last` 元素搬到 `index`，再把 `last` 清空，`size -= 1`
-- 数组保持连续，无“洞”，遍历时无需 `if (x != 0)` 跳过空位
+- `list[] + size`
+- 或 `uList[] + leftTicks[] + size`
+- 有效区间通常是 0-based：`0 <= i < size`
 
-## 必须保持的“不变量”（invariants）
+Xlimon 例子：
 
-- `0-based`（常用于 Queue）：
-  - 有效区间：`0 <= i < size`
-  - `last = size - 1`
-- `1-based`（常用于“实例表”，对齐 War3 常用 ID）：
-  - 有效区间：`1 <= i <= size`
-  - `last = size`
-- **紧凑性**：有效区间内每个位置都有元素（除非你明确允许 `null/0`，但那会把复杂度推回去）
-- **双重索引一致性**（双视图时）：
-  - 实例上记录 `listIndex / groupIndex / groupId`
-  - swap 发生时，**被搬运的那个实例** 必须同步更新它的索引字段
+- `edit/Simulate.j` 的 `SimuDeleteQueue`
+- `edit/SpellBase.j` 的 `SpellRangeCDQueue`
 
-## 复杂度与适用面
+适合：中央 timer 每 tick 遍历、到期删除、队列项不需要被外部长期持有。
 
-- 添加：O(1)
-- 删除：O(1)
-- 遍历：O(n)（且无空洞）
-- 适合：频繁增删、需要高频 tick 遍历、需要按组/按全局遍历的系统
+## 分组紧凑表
 
-## 设计分叉：什么时候需要“真·双重索引”
+形态：
 
-仅仅是“中央计时器队列”（例如 `list[] + remain[]`）：
+- `list[group][pos] + count[group]`
+- 常见 group 是玩家 id、英雄 id、单位类型、物品分类。
+- 有效区间常用 1-based：`1 <= pos <= count[group]`
 
-- 通常不需要实例记录索引（因为删除发生在遍历时，已知 `i`）
-- 但若你需要 **外部按 key 删除**（例如按 `unit` / `timer` 移除），就需要额外映射（HashTable / HandleId -> index）
+Xlimon 例子：
 
-“可被外部引用的实例对象”（例如 Buff 实例结构体）：
+- `edit/unit/Moshou.j` 的 `summoner.summons[pid][idx] + summoner.size[pid]`
+- `edit/item/Shengjingshi.j` 的 `sjs.stone[idx][pos] + sjs.stoneCount[idx]`
 
-- 建议实例记录自己的索引，避免外部查找 O(n)
-- 删除时必须同时更新“被 swap 进来的实例”的索引字段
+适合：按玩家/类别遍历和清理，不需要全局遍历所有实例。
 
+## 真双索引
+
+形态：
+
+- 全局视图：`allList[1..size]`
+- 分组视图：`groupList[group][1..groupSize[group]]`
+- 实例字段：`listIndex`、`groupId`、`groupIndex`
+
+只有同一实例既要“全局遍历所有”，又要“按组快速遍历/删除”时，才需要真双索引。删除时必须同时从两个视图移除，并在 swap 后更新被换入实例的索引字段。
+
+## 不变量
+
+- `size` / `count[group]` 表示元素数量，不要同时当作最后索引和容量使用。
+- 有效区间内无空洞。
+- swap 时所有并行数组一起换。
+- last 槽必须清空。
+- 遍历中删除后必须重新检查当前位置：`i -= 1` 或 `i = removeAt(i)`。

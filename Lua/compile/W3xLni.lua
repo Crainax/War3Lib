@@ -5,8 +5,14 @@ local path       = require "Lua.path"
 local utr        = require("Lua.compile.UTReplace")
 local injecter   = require("lua.compile.inject")
 local luaRuntime = require("Lua.compile.LuaRuntime")
+local incrementalPack = require("Lua.compile.IncrementalPack")
+local preslk     = require("Lua.compile.PreSlk")
 
 local w3xlni     = {}
+
+local function formatElapsedSeconds(startClock)
+	return string.format("[用时%.2f秒]", os.clock() - startClock)
+end
 
 -- 根据AllJassH文件情况判断返回是不是处于单元测试状态
 local Convert    = function(cType, inPath, outPath)
@@ -122,43 +128,17 @@ local function restoreUnitTestObj(backups)
 	clear_inject_obj_queue()
 end
 
---- @param func function 打包函数(中途调用)
-function w3xlni:Start(func)
-	print("[开始打包地图]:" .. path.buildVersion .. ".")
-	lfs.chdir(path.project)
-	local cleanupLuaRuntime, runtimeErr = luaRuntime.prepareForPackage()
-	if not cleanupLuaRuntime then
-		print("[Lua运行时]准备失败:" .. tostring(runtimeErr))
-		return false
+local function cleanupPreSlk(cleanup)
+	if not cleanup then
+		return
 	end
-	local rootMapScript = path.project .. "/" .. path.mapName .. "/war3map.j"
-	if path.mapJ then
-		local code, msg = copy.copyFile(path.CompileResult, path.mapJ)
-		if code then
-			print("[Lua" .. path.buildVersion .. "]脚本打包进地图成功")
-		else
-			print("[Lua" .. path.buildVersion .. "]脚本打包进地图失败:" .. msg)
-		end
+	local ok, err = pcall(cleanup)
+	if not ok then
+		print("[物编预处理]清理失败:" .. tostring(err))
+	end
+end
 
-		local rootCode, rootMsg = copy.copyFile(path.CompileResult, rootMapScript)
-		if rootCode then
-			print("[Lua" .. path.buildVersion .. "]同步根脚本成功")
-		else
-			print("[Lua" .. path.buildVersion .. "]同步根脚本失败:" .. tostring(rootMsg))
-		end
-	end
-	utr.copyResourceFiles() -- 复制资源文件
-	local objBackups = applyUnitTestObjFromInject()
-	if path.buildVersion == "单元测试" then -- todo:根据正式或单元测试,创建lua.currentpath的require来分包控制.
-		if objBackups then
-			print("[Lua" .. path.buildVersion .. "] 根据注入结果附加了临时物编.")
-		else
-			print("[Lua" .. path.buildVersion .. "] 无额外物编需要附加.")
-		end
-	end
-	local okRun, result = pcall(function()
-		return table.pack(func())
-	end)
+local function cleanupPackageState(cleanupLuaRuntime, rootMapScript, objBackups)
 	cleanupLuaRuntime()
 	if fu.fileExist(path.mapJ) then fu.WriteOver(path.mapJ, "") end --覆盖一下war3map.j为空
 	if fu.fileExist(rootMapScript) then fu.WriteOver(rootMapScript, "") end --覆盖w2l识别的根脚本为空
@@ -170,6 +150,66 @@ function w3xlni:Start(func)
 	else
 		clear_inject_obj_queue()
 	end
+end
+
+--- @param func function 打包函数(中途调用)
+function w3xlni:Start(func)
+	print("[开始打包地图]:" .. path.buildVersion .. ".")
+	lfs.chdir(path.project)
+	local cleanupLuaRuntime, runtimeErr = luaRuntime.prepareForPackage({ persistImp = true })
+	if not cleanupLuaRuntime then
+		print("[Lua运行时]准备失败:" .. tostring(runtimeErr))
+		return false
+	end
+	local rootMapScript = path.project .. "/" .. path.mapName .. "/war3map.j"
+	if path.mapJ then
+		local scriptStarted = os.clock()
+		local code, msg = copy.copyFile(path.CompileResult, path.mapJ)
+		if code then
+			print("[Lua" .. path.buildVersion .. "]脚本打包进地图成功" .. formatElapsedSeconds(scriptStarted))
+		else
+			print("[Lua" .. path.buildVersion .. "]脚本打包进地图失败:" .. msg .. formatElapsedSeconds(scriptStarted))
+		end
+
+		local rootStarted = os.clock()
+		local rootCode, rootMsg = copy.copyFile(path.CompileResult, rootMapScript)
+		if rootCode then
+			print("[Lua" .. path.buildVersion .. "]同步根脚本成功" .. formatElapsedSeconds(rootStarted))
+		else
+			print("[Lua" .. path.buildVersion .. "]同步根脚本失败:" .. tostring(rootMsg) .. formatElapsedSeconds(rootStarted))
+		end
+	end
+	utr.copyResourceFiles() -- 复制资源文件
+	local impOk, impErr = incrementalPack.syncCurrentTableImp()
+	if not impOk then
+		cleanupLuaRuntime()
+		print("[导入表同步]失败:" .. tostring(impErr))
+		return false
+	end
+	local objBackups = applyUnitTestObjFromInject()
+	if path.buildVersion == "单元测试" then -- todo:根据正式或单元测试,创建lua.currentpath的require来分包控制.
+		if objBackups then
+			print("[Lua" .. path.buildVersion .. "] 根据注入结果附加了临时物编.")
+		else
+			print("[Lua" .. path.buildVersion .. "] 无额外物编需要附加.")
+		end
+	end
+	local okPreSlk, preSlkCleanup, preSlkErr = pcall(preslk.prepare)
+	if not okPreSlk then
+		preSlkErr = preSlkCleanup
+		preSlkCleanup = nil
+	end
+	if preSlkErr then
+		cleanupPreSlk(preSlkCleanup)
+		cleanupPackageState(cleanupLuaRuntime, rootMapScript, objBackups)
+		print("[物编预处理]失败:" .. tostring(preSlkErr))
+		return false, preSlkErr
+	end
+	local okRun, result = pcall(function()
+		return table.pack(func())
+	end)
+	cleanupPreSlk(preSlkCleanup)
+	cleanupPackageState(cleanupLuaRuntime, rootMapScript, objBackups)
 	if not okRun then
 		print("[开始打包地图]失败:" .. tostring(result))
 		return false, result

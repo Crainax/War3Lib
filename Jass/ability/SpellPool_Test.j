@@ -36,8 +36,8 @@ library UTSpellPool requires SpellPool {
 			// 2秒后的清理代码
 		});
 
-		unitSelect.onSync(function () {
-			spellpool_u = unitSelect.argsSync;
+		unitSelect.onAsync(function () {
+			spellpool_u = unitSelect.args;
 		});
 
 		UnitTestAutoTimer(0.1, 2.0, function() {

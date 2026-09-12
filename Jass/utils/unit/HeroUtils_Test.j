@@ -4,7 +4,8 @@
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
-#include "japi/YDWEJapiScript.j"
+// 空白测试地图未声明该 JAPI；UnitUtils 的主属性类型兜底读取会引用它。
+native EXExecuteScript takes string script returns string
 
 //! zinc
 
@@ -658,6 +659,44 @@ library UTHeroUtils requires HeroUtils {
 		p = null;
 	}
 
+	// 测试7-2：有符号最终属性保留欠款，旧接口继续对负值归零
+	private function Test_SignedFinalAttrDebt() {
+		player p; unit hero;
+
+		p = ConvertedPlayer(1);
+		hero = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+		SetUnitMainAttrType(hero, 0);
+
+		// 隔离玩家级基础值、欠款及主/次属性增益，保证最终倍率为新单位默认的 1.0。
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR);
+		bigInteger.reset(p, HASH_KEY_BIGINT_AGI);
+		bigInteger.reset(p, HASH_KEY_BIGINT_INT);
+		bigInteger.reset(p, HASH_KEY_BIGINT_STR_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_AGI_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_INT_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_BONUS);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB_CACHE);
+		bigInteger.reset(p, HASH_KEY_BIGINT_SUB_BONUS);
+
+		AddUnitStr(hero, -72000.0);
+		AddUnitAgi(hero, -33000.0);
+		AddUnitInt(hero, -15000.0);
+
+		assert.Real(GetUnitStrSigned(hero), -72000.0, "有符号力量应保留 72000 欠款");
+		assert.Real(GetUnitAgiSigned(hero), -33000.0, "有符号敏捷应保留 33000 欠款");
+		assert.Real(GetUnitIntSigned(hero), -15000.0, "有符号智力应保留 15000 欠款");
+		assert.Real(GetUnitStr(hero), 0.0, "旧力量接口仍应把负值归零");
+		assert.Real(GetUnitAgi(hero), 0.0, "旧敏捷接口仍应把负值归零");
+		assert.Real(GetUnitInt(hero), 0.0, "旧智力接口仍应把负值归零");
+
+		RemoveUnit(hero);
+		hero = null;
+		p = null;
+	}
+
 	// 测试8：三维属性 Up/Down/Bonus 操作
 	private function Test_AttrUpDownBonus() {
 		player p; unit hero; real finalPercent; real expected; integer uid; real bonus;
@@ -769,7 +808,125 @@ library UTHeroUtils requires HeroUtils {
 		p = null;
 	}
 
+    // 新模式测试独立清理玩家账本；不依赖其他自动测试留下的数值。
+    private function CreateSelfExcludedTestHero() -> unit {
+        player p = ConvertedPlayer(1);
+        unit u = CreateUnit(p, 'Hpal', 0.0, 0.0, 270.0);
+        bigInteger.reset(p, HASH_KEY_BIGINT_STR);
+        bigInteger.reset(p, HASH_KEY_BIGINT_AGI);
+        bigInteger.reset(p, HASH_KEY_BIGINT_INT);
+        bigInteger.reset(p, HASH_KEY_BIGINT_STR_CACHE);
+        bigInteger.reset(p, HASH_KEY_BIGINT_AGI_CACHE);
+        bigInteger.reset(p, HASH_KEY_BIGINT_INT_CACHE);
+        bigInteger.reset(p, HASH_KEY_BIGINT_MAIN);
+        bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_CACHE);
+        bigInteger.reset(p, HASH_KEY_BIGINT_MAIN_BONUS);
+        bigInteger.reset(p, HASH_KEY_BIGINT_SUB);
+        bigInteger.reset(p, HASH_KEY_BIGINT_SUB_CACHE);
+        bigInteger.reset(p, HASH_KEY_BIGINT_SUB_BONUS);
+        SetUnitMainAttrType(u, 0);
+        SetUnitStr(u, 300.0);
+        SetUnitAgi(u, 300.0);
+        SetUnitInt(u, 300.0);
+        p = null;
+        return u;
+    }
+
+    private function Test_SelfExcludedConversion() {
+        unit u = CreateSelfExcludedTestHero();
+        assert.Boolean(!IsUnitStrSelfExcluded(u) && !IsUnitAgiSelfExcluded(u) && !IsUnitIntSelfExcluded(u), "新开关默认关闭");
+        SetUnitAgiShareToStr(u, true);
+        SetUnitIntShareToStr(u, true);
+        SetUnitAgiShareToInt(u, true);
+        assert.Real(GetUnitStr(u), 900.0, "旧共享结果：力量900");
+        assert.Real(GetUnitInt(u), 600.0, "未启用新模式：智力600");
+        SetUnitAgiSelfExcluded(u, true);
+        SetUnitIntSelfExcluded(u, true);
+        assert.Real(GetUnitStr(u), 900.0, "新模式：力量900");
+        assert.Real(GetUnitAgi(u), 0.0, "新模式：敏捷0");
+        assert.Real(GetUnitInt(u), 300.0, "新模式：智力只保留敏捷转入300");
+        AddUnitAgi(u, 50.0);
+        assert.Real(GetUnitStr(u), 950.0, "持续敏捷增长仍转入力量");
+        assert.Real(GetUnitInt(u), 350.0, "持续敏捷增长仍转入智力");
+        SetUnitIntDisabled(u, true);
+        assert.Real(GetUnitInt(u), 0.0, "旧Disabled优先于新模式，整个属性归零");
+        assert.Real(GetUnitBaseInt(u), 0.0, "旧Disabled基础值归零");
+        assert.Real(GetUnitIntFinalPercent(u), 0.0, "旧Disabled倍率归零");
+        assert.Real(GetUnitStr(u), 950.0, "旧Disabled不影响原始属性转出");
+        SetUnitIntDisabled(u, false);
+        assert.Real(GetUnitInt(u), 350.0, "解除整体禁用仍保留自身排除");
+        SetUnitStrSelfExcluded(u, true);
+        assert.Real(GetUnitStr(u), 650.0, "力量自身排除仍保留两种转入");
+        SetUnitStrShareToAgi(u, true);
+        SetUnitIntShareToAgi(u, true);
+        SetUnitStrShareToInt(u, true);
+        assert.Real(GetUnitAgi(u), 600.0, "双向及环状共享只读取原始来源");
+        assert.Real(GetUnitInt(u), 650.0, "双向及环状共享不递归放大");
+        SetUnitStrShareToAgi(u, false);
+        SetUnitStrShareToInt(u, false);
+        SetUnitAgiShareToStr(u, false);
+        SetUnitAgiShareToInt(u, false);
+        SetUnitIntShareToStr(u, false);
+        SetUnitIntShareToAgi(u, false);
+        SetUnitStrSelfExcluded(u, false);
+        SetUnitAgiSelfExcluded(u, false);
+        SetUnitIntSelfExcluded(u, false);
+        assert.Real(GetUnitStr(u), 300.0, "取消后恢复原始力量");
+        assert.Real(GetUnitAgi(u), 350.0, "取消后保留增长的原始敏捷");
+        assert.Real(GetUnitInt(u), 300.0, "取消后恢复原始智力");
+        FlushChildHashtable(HASH_UNIT, GetHandleId(u));
+        RemoveUnit(u);
+        u = null;
+    }
+
+    private function Test_SelfExcludedLayersAndDebt() {
+        unit u = CreateSelfExcludedTestHero();
+        SetUnitMainAttrType(u, 2);
+        AddUnitMainAttrValue(u, 40.0);
+        AddUnitSubAttrValue(u, 20.0);
+        AddUnitMainAttrBonus(u, 5.0);
+        AddUnitSubAttrBonus(u, 7.0);
+        AddUnitAgiBonus(u, 11.0);
+        AddUnitIntBonus(u, 101.0);
+        AddUnitMainAttrUpPercent(u, 0.2);
+        AddUnitMainAttrDownPercent(u, 0.1);
+        AddUnitSubAttrUpPercent(u, 0.1);
+        AddUnitSubAttrDownPercent(u, 0.2);
+        AddUnitAgiUpPercent(u, 0.3);
+        AddUnitAgiDownPercent(u, 0.25);
+        AddUnitIntUpPercent(u, 0.9);
+        AddUnitIntDownPercent(u, 0.5);
+        SetUnitAgiShareToInt(u, true);
+        SetUnitIntSelfExcluded(u, true);
+        SetUnitAgiSelfExcluded(u, true);
+        assert.Real(GetUnitBaseInt(u), 320.0, "只保留原敏捷及对应次属性值");
+        assert.Real(GetUnitIntFinalPercent(u), 0.84, "不计智力自身及主属性增减幅");
+        assert.Real(GetUnitInt(u), 286.8, "只保留来源基础、倍率及绿字");
+        SetUnitMainAttrType(u, 1);
+        assert.Real(GetUnitBaseInt(u), 340.0, "改变主属性后来源层同步切换");
+        assert.Real(GetUnitInt(u), 360.25, "主属性来源的倍率和绿字同步切换");
+        AddUnitAgi(u, -400.0);
+        assert.Real(GetUnitBaseInt(u), -60.0, "来源基础欠款仍转入");
+        assert.Real(GetUnitIntSigned(u), -44.75, "保留来源欠款的有符号结果");
+        assert.Real(GetUnitInt(u), 0.0, "公开非负接口仍对负值归零");
+        AddUnitMainAttrValue(u, -70.0);
+        assert.Real(GetUnitBaseInt(u), -130.0, "来源主属性欠款仍转入");
+        SetUnitMainAttrType(u, 0);
+        AddUnitSubAttrValue(u, -50.0);
+        assert.Real(GetUnitBaseInt(u), -130.0, "来源次属性欠款仍转入");
+        SetUnitAgiShareToInt(u, false);
+        assert.Real(GetUnitIntSigned(u), 0.0, "排除自身且无转入时完整结果为0");
+        FlushChildHashtable(HASH_UNIT, GetHandleId(u));
+        RemoveUnit(u);
+        u = null;
+    }
+
 	function Init () {
+        UnitTestAutoTimer(1.2, 0.1, function () {
+            Test_SelfExcludedConversion();
+            Test_SelfExcludedLayersAndDebt();
+            Trace("HeroUtils 自身贡献排除与旧API兼容测试完成");
+        }, null);
 		// 自动执行所有测试
 		UnitTestAutoTimer(0.3, 0.1, function() {
 			Trace("HeroUtils 主属性类型测试");
@@ -821,6 +978,11 @@ library UTHeroUtils requires HeroUtils {
 			Test_MainSubAttrDebt();
 		}, null);
 
+		UnitTestAutoTimer(0.92, 0.1, function() {
+			Trace("HeroUtils 有符号最终属性欠款测试");
+			Test_SignedFinalAttrDebt();
+		}, null);
+
 		UnitTestAutoTimer(1.0, 0.1, function() {
 			Trace("HeroUtils 属性 Up/Down/Bonus 测试");
 			Test_AttrUpDownBonus();
@@ -864,6 +1026,10 @@ library UTHeroUtils requires HeroUtils {
 		Test_MainSubAttrDebt();
 		BJDebugMsg("[HeroUtils] 主/次属性欠款测试完成");
 	}
+	function TTestUTHeroUtils7_2 (player p) {
+		Test_SignedFinalAttrDebt();
+		BJDebugMsg("[HeroUtils] 有符号最终属性欠款测试完成");
+	}
 	function TTestUTHeroUtils8 (player p) {
 		Test_AttrUpDownBonus();
 		BJDebugMsg("[HeroUtils] 属性 Up/Down/Bonus 测试完成");
@@ -882,8 +1048,11 @@ library UTHeroUtils requires HeroUtils {
 		Test_FullAttrCalculation();
 		Test_AttrSetAdd();
 		Test_MainSubAttrDebt();
+		Test_SignedFinalAttrDebt();
 		Test_AttrUpDownBonus();
 		Test_NonBigIntegerUnit();
+        Test_SelfExcludedConversion();
+        Test_SelfExcludedLayersAndDebt();
 		BJDebugMsg("[HeroUtils] 所有测试完成");
 	}
 	function TTestActUTHeroUtils1 (string str) {
@@ -945,6 +1114,7 @@ library UTHeroUtils requires HeroUtils {
 			else if(str == "s6") TTestUTHeroUtils6(GetTriggerPlayer());
 			else if(str == "s7") TTestUTHeroUtils7(GetTriggerPlayer());
 			else if(str == "s71") TTestUTHeroUtils7_1(GetTriggerPlayer());
+			else if(str == "s72") TTestUTHeroUtils7_2(GetTriggerPlayer());
 			else if(str == "s8") TTestUTHeroUtils8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTHeroUtils9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTHeroUtils10(GetTriggerPlayer());

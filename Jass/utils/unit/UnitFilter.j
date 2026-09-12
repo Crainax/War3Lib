@@ -38,9 +38,27 @@ IS_VALID_ENEMY_RELATION(p,u) \
 
 library UnitFilter {
 
+    // 地图可配置一个额外的无敌技能ID；用于识别继承自 Avul、但 rawcode 不同的专用无敌层。
+    private integer customInvulnerableAbilityId = 0;
+
+    public function SetCustomInvulnerableAbilityId(integer abilityId) {
+        customInvulnerableAbilityId = abilityId;
+    }
+
+    public function GetCustomInvulnerableAbilityId() -> integer {
+        return customInvulnerableAbilityId;
+    }
+
+    public function IsUnitInvulnerableEx(unit u) -> boolean {
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+        return GetUnitAbilityLevel(u, 'Avul') > 0
+            || GetUnitAbilityLevel(u, 'BHds') > 0
+            || (customInvulnerableAbilityId > 0 && GetUnitAbilityLevel(u, customInvulnerableAbilityId) > 0);
+    }
+
     //判断是否是敌方(不带无敌)
     public function IsEnemy (unit u,player p)  -> boolean {
-        return IS_VALID_ENEMY_TARGET(p,u) && GetUnitAbilityLevel(u, 'Avul') < 1;
+        return IS_VALID_ENEMY_TARGET(p,u) && !IsUnitInvulnerableEx(u);
     }
     //旧名：IsEnemy2
     //判断是否是敌方(能匹配到无敌单位)
@@ -87,28 +105,6 @@ library UnitFilter {
     public function IsEnemyMagicUnit(unit target, unit caster) -> boolean {
         return IsEnemyMagic(target, GetOwningPlayer(caster));
     }
-
-
-    // //判断单位是否属于指定常见种族或中立阵营
-    // // 人族/兽族/不死/精灵 以及 中立敌对/中立中立
-    // // 注意：当传入目标并非单位（例如对可破坏物 'DTrc' 使用 GetSpellTargetUnit()）时，u 可能为 null，返回 false
-    // public function IsUnitRaceOK (unit u)  -> boolean {
-    //     race r; player o;
-    //     if (u == null) return false;
-
-    //     r = GetUnitRace(u);
-    //     if (r == RACE_HUMAN) return true;      // 人族
-    //     if (r == RACE_ORC) return true;        // 兽族
-    //     if (r == RACE_UNDEAD) return true;     // 不死
-    //     if (r == RACE_NIGHTELF) return true;   // 精灵
-
-    //     // 娜迦单位在实际地图中多归属中立敌对/中立中立，这里通过中立所属判断覆盖
-    //     o = GetOwningPlayer(u);
-    //     if (o == Player(PLAYER_NEUTRAL_AGGRESSIVE)) return true; // 中立敌对
-    //     if (o == Player(PLAYER_NEUTRAL_PASSIVE))    return true; // 中立中立
-
-    //     return false;
-    // }
 
 }
 

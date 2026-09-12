@@ -3,19 +3,16 @@
 
 // 常量配置
 #define MALLITEM_MAX_ITEMS      300
-#define MALLITEM_INIT_DELAY     2.0
+#define MALLITEM_INIT_DELAY     0.8
 // 消费后服务端回写存在延迟：本地预扣 + 轮询校验
 #define MALLITEM_VERIFY_DELAY    0.1
 #define MALLITEM_VERIFY_RETRY    8
 // 开放寻址哈希容量（必须 < 8192，选用素数以降低冲突）
 #define MALLITEM_HASH_CAP       1021
 
-#if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
-
-    #define DzAPI_Map_HasMallItem(p, k) true
-    #define DzAPI_Map_GetMallItemCount(p, k) 999
-    #define DzAPI_Map_ConsumeMallItem(p, k, c) true
-
+#ifndef MALLITEM_LOG_PLAYER_NAME
+#define MALLITEM_LOG_PLAYER_NAME(p) GetPlayerName(p)
+#define MALLITEM_LOG_PLAYER_NAME_LOCAL
 #endif
 
 // 使用说明（MallItem 黑箱）
@@ -24,7 +21,7 @@
 //    mallItem.init("RhdeKey");
 //    mallItem.init("RopgKey");
 //
-// 2) 可选：为商品配置元信息与科技（四位字符如 'Rhde' 为整数字面量）：
+// 2) 可选：为商品配置元信息与科技（设置 name 后，首次扫描到拥有商品时会自动提示玩家）：
 //    mallItem.setMeta("VIP1", "白金VIP", "ReplaceableTextures\\CommandButtons\\BTN.tga", "尊享特权");
 //    mallItem.setTech("RhdeKey", 'Rhde'); // 步兵测试科技
 //    mallItem.setTech("RopgKey", 'Ropg'); // ogre 测试科技
@@ -54,7 +51,7 @@
 //
 //todo: 加入局内商品进包的回调
 //! zinc
-library MallItem requires DzAPI{
+library MallItem requires DzAPI, HashTable, Logger{
 
     // 黑箱：商城商品拥有权初始化、缓存、查询与元信息
     public struct mallItem []{
@@ -130,7 +127,7 @@ library MallItem requires DzAPI{
         }
 
         private static method addKey(string key) {
-            integer idx; integer i; integer n; integer base;
+            integer idx; integer i; integer base;
             if (key == null) { return; }
             if (StringLength(key) == 0) { return; }
 
@@ -170,9 +167,6 @@ library MallItem requires DzAPI{
 
         // 初始化底层（在 map 启动时自动调用）
         static method onInit() {
-            // 先声明
-            integer i; integer cap;
-
             mallItem.initialized = false;
             mallItem.ready = false;
             mallItem.itemCount = 0;
@@ -201,39 +195,58 @@ library MallItem requires DzAPI{
                 // 延迟初始化玩家商品状态
                 t = CreateTimer();
                 TimerStart(t, MALLITEM_INIT_DELAY, false, function () {
-                integer pid; integer idx; integer base; player p; string k; integer n;
+                    integer pid; integer idx; integer base; integer n;
+                    string k; string hasText;
+                    player p;
+                    timer expiredTimer;
 
-                n = mallItem.itemCount;
-                pid = 0;
-                while (pid < MAX_PLAYER_COUNT) {
-                    p = ConvertedPlayer(pid + 1);
-                    base = pid * MALLITEM_MAX_ITEMS;
+                    expiredTimer = GetExpiredTimer();
+                    n = mallItem.itemCount;
+                    pid = 0;
+                    while (pid < MAX_PLAYER_COUNT) {
+                        p = ConvertedPlayer(pid + 1);
+                        base = pid * MALLITEM_MAX_ITEMS;
 
-                    idx = 0;
-                    while (idx < n) {
-                        k = mallItem.itemKeys[idx];
-                        mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(p, k);
-                        mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(p, k);
-                        // 直接在此处解锁科技（如果拥有商品且设置了科技）
-                        if (mallItem.owns[base + idx] && mallItem.techs[idx] != 0) {
-                            SetPlayerTechResearched(p, mallItem.techs[idx], 1);
+                        idx = 0;
+                        while (idx < n) {
+                            k = mallItem.itemKeys[idx];
+                            mallItem.owns[base + idx] = DzAPI_Map_HasMallItem(p, k);
+                            mallItem.uses[base + idx] = DzAPI_Map_GetMallItemCount(p, k);
+                            if (mallItem.owns[base + idx] && mallItem.names[idx] != "") {
+                                if (mallItem.uses[base + idx] > 0) {
+                                    DisplayTextToPlayer(p, 0.0, 0.0, "|cFFFF0000【商城道具】|r成功激活了|cFFFF0000" + mallItem.names[idx] + "|r(x|cffffff00" + I2S(mallItem.uses[base + idx]) + "|r)");
+                                } else {
+                                    DisplayTextToPlayer(p, 0.0, 0.0, "|cFFFF0000【商城道具】|r成功激活了|cFFFF0000" + mallItem.names[idx] + "|r");
+                                }
+                            }
+                            if (mallItem.owns[base + idx]) {
+                                hasText = "true";
+                            } else {
+                                hasText = "false";
+                            }
+                            InfoToPlayer(p, "[LoadMallItem]" + MALLITEM_LOG_PLAYER_NAME(p) + "[" + k + "][has=" + hasText + "][count=" + I2S(mallItem.uses[base + idx]) + "]");
+                            // 直接在此处解锁科技（如果拥有商品且设置了科技）
+                            if (mallItem.owns[base + idx] && mallItem.techs[idx] != 0) {
+                                SetPlayerTechResearched(p, mallItem.techs[idx], 1);
+                            }
+                            idx = idx + 1;
                         }
-                        idx = idx + 1;
+
+                        p = null;
+                        pid = pid + 1;
                     }
 
-                    p = null;
-                    pid = pid + 1;
-                }
+                    mallItem.ready = true;
 
-                mallItem.ready = true;
-
-                if (mallItem.readyTrigger != null) {
-                    // 使用 TriggerEvaluate 调用回调条件
-                    TriggerEvaluate(mallItem.readyTrigger);
-                }
-            });
-            // handler 置空
-            t = null;
+                    if (mallItem.readyTrigger != null) {
+                        // 使用 TriggerEvaluate 调用回调条件
+                        TriggerEvaluate(mallItem.readyTrigger);
+                    }
+                    DestroyTimer(expiredTimer);
+                    expiredTimer = null;
+                });
+                // handler 置空
+                t = null;
             }
         }
 
@@ -248,7 +261,7 @@ library MallItem requires DzAPI{
                 mallItem.readyTrigger = CreateTrigger();
             }
             TriggerAddCondition(mallItem.readyTrigger, Condition(cb));
-              if (mallItem.ready) {
+            if (mallItem.ready) {
                 TriggerEvaluate(mallItem.readyTrigger);
             }
         }
@@ -408,7 +421,7 @@ library MallItem requires DzAPI{
 
         // 消费一次性道具（UseConsumablesItem）：无回调
         static method consumeOnce(player whichPlayer, string itemKey) {
-            integer pid; integer idx; integer base;
+            integer pid; integer idx;
 
             pid = GetPlayerId(whichPlayer);
             if (pid < 0 || pid >= MAX_PLAYER_COUNT) { return ; }
@@ -555,6 +568,11 @@ library MallItem requires DzAPI{
     }
 }
 //! endzinc
+
+#ifdef MALLITEM_LOG_PLAYER_NAME_LOCAL
+#undef MALLITEM_LOG_PLAYER_NAME_LOCAL
+#undef MALLITEM_LOG_PLAYER_NAME
+#endif
 
 #endif
 

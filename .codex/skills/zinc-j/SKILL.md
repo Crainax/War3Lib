@@ -1,6 +1,6 @@
 ---
 name: zinc-j
-description: 本项目 .j 文件中的 Zinc（//! zinc ... //! endzinc）语法与约定：库/结构体写法、匿名函数（无闭包）最佳实践、回调参数传递、资源释放/置空、以及 JASS->Zinc 迁移要点。
+description: 本项目 .j 文件中的 Zinc（//! zinc ... //! endzinc）语法与约定：库/结构体写法、匿名函数（无闭包）最佳实践、回调参数传递、资源释放/置空、Hash 表键位与避免不必要新建 hashtable、以及 JASS 到 Zinc 迁移要点。
 ---
 
 # Zinc（本项目）语法与约定
@@ -11,11 +11,14 @@ description: 本项目 .j 文件中的 Zinc（//! zinc ... //! endzinc）语法�
 - 禁用 `++/--`；用 `+= 1` / `-= 1`。
 - 禁用 `break/continue`；用 `if` 分支或布尔开关改写。
 - 数组声明一律用 `type name[];`，不要写大小（例如 `integer a[10]` 是错的）。
+- Zinc 的数组维度里不要写表达式（例如 `arr[HERO_COUNT + 1][5]`）；需要先把值算成常量再使用，或直接用固定上界。
+- 二维数组在底层是线性存储；只要索引映射不冲突（例如 `a[6][5]` 下 `(1,5)` 与 `(2,1)` 映射不同），可以按项目约定安全使用，不必为了“从 1 开始”额外预留整段 `[1]`。
 - 返回类型用 `-> type` 写在参数列表后；无返回可省略。
 - 局部变量统一在函数/匿名函数开头声明：先基础类型，后句柄类型。
-- 函数定义顺序按“自上而下可见”处理：下方函数可以直接调用上方函数；上方函数不能直接调用下方函数。
-- 上方若必须调用下方逻辑：优先把下方逻辑封装到 `struct` 静态方法后再调用；或使用 `xxxx.execute(...)` / `xxxx.evaluate(...)` 间接调用。
+- 函数定义顺序不再作为日常写法的硬性约束：`vjassc` 会处理上方函数直接调用下方函数的场景。
+- 仍需兼容 `jasshelper` 时，如果它只因函数顺序报错而 `vjassc` 能过，优先在该调用点改成 `xxxx.evaluate(...)`，少做大范围函数重排。
 - 本地场景（例如 UI 本地执行）禁止 `execute`，只能用 `evaluate`，否则有 OOS 风险。
+- 仅在本文件内引用的固定长文案/标签，不要另起一个只 `return "..."` 的函数；优先按 `CenterUp.j` 的 `GetResumeLabel()` 风格用函数式 `#define`，并在文件末尾配套 `#undef`。
 
 ## 匿名函数（无闭包）
 
@@ -26,7 +29,9 @@ description: 本项目 .j 文件中的 Zinc（//! zinc ... //! endzinc）语法�
 ## 句柄生命周期（资源释放）
 
 - 创建出来的句柄资源（`timer/trigger/group/effect/location/...`）：按对应 `Destroy*` / `Remove*` API 释放，并在作用域末尾 `= null`。
-- 结构体析构只写 `method onDestroy()`；不要自定义 `destroy()`。
+- 可分配结构体（通过 `allocate()` / `create()` 取得实例）析构只写 `method onDestroy()`；外部必须调用实例的 `.destroy()`，使子句柄清理与结构体回收一起执行。
+- 不要把 `destroy1()` 当作可分配结构体的析构函数：它只是普通方法，既不会自动触发 `onDestroy()`，也不会回收结构体实例。`destroy1()` 仅可用于 `struct X []` 这类静态管理器的内部 UI 清理流程。
+- 不要自定义 `destroy()`。
 
 ## 结构体/方法写法
 
@@ -38,14 +43,32 @@ description: 本项目 .j 文件中的 Zinc（//! zinc ... //! endzinc）语法�
 
 - `execute`：不带返回值（底层是 `TriggerExecute` 触发 action）。
 - `evaluate`：可用于需要返回值或不需要返回值的调用场景。
-- 非必要不要做“上方间接调下方”；编译后会为这类调用生成额外 trigger/condition 包装，有额外资源开销。
-- 仅在必要情形（例如循环调用链 `A -> B -> A`）才设计成上方间接调下方。
+- `jasshelper` 会把 `evaluate` 降成 trigger/condition 包装，存在额外资源开销；`vjassc` 通常能把这类调用智能降成直接调用。
+- 不要为了旧的函数顺序习惯重排大段代码；只有在需要通过 `jasshelper` 或解决循环调用链时才引入 `evaluate` / `execute`。
+
+## 玩家工具与日志名
+
+- 判断地图有效玩家或在线用户时，直接调用 War3Lib `PlayerUtils.cfg` 注入的 `IsValidPlayer(player)` / `IsOnlineUser(player)`；不要在地图模块内重复定义，也不要重复手写 `GetPlayerSlotState(...) == PLAYER_SLOT_STATE_PLAYING && GetPlayerController(...) == MAP_CONTROL_USER`。
+- Xlimon 中通过 `DzWriteLog`、`CrainaxLogTrace/Debug/Info/Warn/Error` 或项目日志包装函数记录玩家名时，统一写 `PlayerName[GetConvertedPlayerId(p)]`（已有 `pid/index` 时优先直接用对应数组下标）；禁止用 `GetPlayerName(p)`，避免日志出现平台前缀（如 `[初雪境#0]`）。该约束只针对日志，不要机械改动 UI 文案、权限判断、随机种子等非日志语境。
 
 ## JASS -> Zinc 迁移要点
 
 - JASS 默认 `public`；Zinc 默认 `private`：需要对外可见的函数/全局变量要显式 `public`。
 - `loop/exitwhen/endloop` 优先改写为 Zinc 的范围 `for (a <= i <= b)` 或常规 for。
 - timer/trigger 的一次性逻辑优先改成匿名回调。
+
+## Hash 表键位
+
+- 没有必须隔离生命周期或键空间的理由时，不要在 Xlimon 本地新建 `InitHashtable()`；优先复用 War3Lib 的共享表（如 `HASH_ITEM`/`HASH_UNIT`/`HASH_BIGINT`），并把新增子键跨仓定义到对应的 `D:/War3/Library/War3Lib/Jass/core/table/Hash_*Define.j` 文件，避免以后生成代码又在本地创建重复小表。
+- 只有确实无法通过共享表完成的任务，才新建独立 hashtable；例如需要独立 flush 整个 child 且不能逐键清理，或键空间/生命周期必须与共享表隔离。
+- 新增或迁移 `HASH_UNIT`/`HASH_ITEM`/`HASH_BIGINT` 子键时，先检查对应 `D:/War3/Library/War3Lib/Jass/core/table/Hash_*Define.j` 内是否已有相同数值；同一个 hashtable 内数值冲突会导致完全不同系统互相覆盖。
+- `Hash_UnitDefine.j`、`Hash_ItemDefine.j`、`Hash_BIDefine.j` 是不同 hashtable 的键名空间；跨表数值相同通常不是问题，但同文件内数值和宏名都必须唯一。
+- 修改共享键位前，先搜索旧宏名的全部 `Save*`/`Load*`/`RemoveSaved*` 调用，确认应该移动新键还是保留既有系统键位。
+- 可用以下命令快速检查三张表内重复数值和重复宏名：
+
+```powershell
+$files = 'D:\War3\Library\War3Lib\Jass\core\table\Hash_UnitDefine.j','D:\War3\Library\War3Lib\Jass\core\table\Hash_ItemDefine.j','D:\War3\Library\War3Lib\Jass\core\table\Hash_BIDefine.j'; foreach ($file in $files) { Write-Host "FILE $file"; $defs = Select-String -Path $file -Pattern '^\s*#define\s+(\S+)\s+(-?\d+)\b' | ForEach-Object { [pscustomobject]@{ Line=$_.LineNumber; Name=$_.Matches[0].Groups[1].Value; Value=[int64]$_.Matches[0].Groups[2].Value; Text=$_.Line.Trim() } }; $defs | Group-Object Value | Where-Object Count -gt 1 | ForEach-Object { Write-Host "  DUP VALUE $($_.Name)"; $_.Group | ForEach-Object { Write-Host ("    L{0}: {1}" -f $_.Line, $_.Text) } }; $defs | Group-Object Name | Where-Object Count -gt 1 | ForEach-Object { Write-Host "  DUP NAME $($_.Name)"; $_.Group | ForEach-Object { Write-Host ("    L{0}: {1}" -f $_.Line, $_.Text) } } }
+```
 
 ## References（按需加载）
 
@@ -54,4 +77,3 @@ description: 本项目 .j 文件中的 Zinc（//! zinc ... //! endzinc）语法�
 - `references/callback-params.md`
 - `references/method-syntax.md`
 - `references/function-order-and-indirect-call.md`
-

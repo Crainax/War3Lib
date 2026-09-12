@@ -5,6 +5,9 @@ local launcher = require("Lua.compile.Launcher")
 local path = require("Lua.path")
 local copy = require("Lua.utils.copy")
 local fu = require("Lua.utils.FileUtils")
+local lfs = require("lfs")
+local utr = require("Lua.compile.UTReplace")
+local incrementalPack = require("Lua.compile.IncrementalPack")
 
 local taskStartClock = nil
 
@@ -90,6 +93,81 @@ local function forceCopyBin(src, dst)
 		print("[启动]复制失败: " .. tostring(src) .. " -> " .. tostring(dst) .. " (" .. tostring(msg) .. ")")
 	end
 	return ok
+end
+
+local function normalizePath(value)
+	local normalized = tostring(value or ""):gsub("\\", "/")
+	normalized = normalized:gsub("/+$", "")
+	return normalized
+end
+
+local function relPath(root, fullPath)
+	root = normalizePath(root) .. "/"
+	fullPath = normalizePath(fullPath)
+	return fullPath:sub(#root + 1)
+end
+
+local function removeFile(filePath)
+	if not fu.fileExist(filePath) then
+		return true
+	end
+	local ok, msg = fu.DeleteFile(filePath)
+	if not ok then
+		print("[启动脚本同步]删除旧文件失败: " .. tostring(filePath) .. " (" .. tostring(msg) .. ")")
+	end
+	return ok
+end
+
+local function syncWar3LibDepends()
+	local srcRoot = normalizePath(path.libRoot .. "/script/depends")
+	local dstRoot = normalizePath(path.project .. "/script/depends")
+	if srcRoot == dstRoot then
+		print("[启动脚本同步]源和目标相同,跳过: " .. srcRoot)
+		return true
+	end
+	if lfs.attributes(srcRoot, "mode") ~= "directory" then
+		print("[启动脚本同步]源目录不存在: " .. srcRoot)
+		return false
+	end
+
+	ensureDir(dstRoot)
+
+	local sourceFiles = {}
+	local copied = 0
+	local removed = 0
+
+	fu.ForDir(srcRoot, function(srcFile)
+		local rel = relPath(srcRoot, srcFile)
+		local dstFile = dstRoot .. "/" .. rel
+		sourceFiles[rel] = true
+		if not forceCopyBin(srcFile, dstFile) then
+			error("[启动脚本同步]复制失败: " .. tostring(srcFile) .. " -> " .. tostring(dstFile))
+		end
+		copied = copied + 1
+	end, true)
+
+	local staleDirs = {}
+	if lfs.attributes(dstRoot, "mode") == "directory" then
+		fu.ForDir(dstRoot, function(dstFile)
+			local rel = relPath(dstRoot, dstFile)
+			if not sourceFiles[rel] and removeFile(dstFile) then
+				removed = removed + 1
+			end
+		end, true)
+		fu.EachDir(dstRoot, function(dir)
+			if normalizePath(dir) ~= dstRoot then
+				table.insert(staleDirs, normalizePath(dir))
+			end
+		end)
+	end
+
+	table.sort(staleDirs, function(a, b) return #a > #b end)
+	for _, dir in ipairs(staleDirs) do
+		pcall(lfs.rmdir, dir)
+	end
+
+	print(string.format("[启动脚本同步]depends已同步: %s -> %s, 文件=%d, 删除旧文件=%d", srcRoot, dstRoot, copied, removed))
+	return true
 end
 
 local function parseInlineSelection(value)
@@ -309,10 +387,10 @@ local function copyPackagedSlkToSlots(version)
 	return true, slot
 end
 
-local function replaceMapScriptWithStorm(targetMap)
+local function updateMapIncrementallyWithStorm(targetMap)
 	local w2lRoot = path.toolRoot .. "/w3x2lni"
 	local w2lLuaExe = w2lRoot .. "/bin/w3x2lni-lua.exe"
-	local stormTask = path.libRoot .. "/Lua/tasks/TaskStormReplaceWar3MapJ.lua"
+	local stormTask = path.libRoot .. "/Lua/tasks/TaskStormIncrementalPack.lua"
 
 	if not fu.fileExist(w2lLuaExe) then
 		print("[增量启动]未找到w3x2lni-lua.exe: " .. w2lLuaExe)
@@ -331,21 +409,11 @@ local function replaceMapScriptWithStorm(targetMap)
 		return false
 	end
 
-	local cmd = string.format(
-		'cmd /c ""%s" "%s" "%s" "%s" "%s""',
-		toWinPath(w2lLuaExe),
-		toWinPath(stormTask),
-		toWinPath(targetMap),
-		toWinPath(path.CompileResult),
-		toWinPath(w2lRoot)
-	)
-	print(cmd)
-	local ok, exitType, exitCode = os.execute(cmd)
-	if not commandSucceeded(ok, exitType, exitCode) then
-		print("[增量启动]Storm替换执行失败")
-		return false
-	end
-	return true
+	return incrementalPack.updateMap(targetMap, {
+		w2lRoot = w2lRoot,
+		w2lLuaExe = w2lLuaExe,
+		stormTask = stormTask,
+	})
 end
 
 local function runCompile(selection)
@@ -358,6 +426,9 @@ end
 local function runStart(selection)
 	initBuildVersion(selection.version)
 	applyCompilerOptions(selection.compiler)
+	if not syncWar3LibDepends() then
+		return false
+	end
 	print(string.format("[矩阵启动]全量启动: %s / %s", versionLabels[selection.version], selection.compiler))
 	local compileOk = compiler:StartCompile(path)
 	if not compileOk then
@@ -370,7 +441,7 @@ local function runStart(selection)
 	if not ok then
 		return false
 	end
-	local started = launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
+	local started = launcher.StartWar3File(slot, slotDisplay(selection.version, "_slk"))
 	if started then
 		updateVersionState(selection.version, true, true)
 	end
@@ -380,10 +451,7 @@ end
 local function runIncrementalStart(selection)
 	initBuildVersion(selection.version)
 	applyCompilerOptions(selection.compiler)
-	local slot = slkSlot(selection.version)
-	if not fu.fileExist(slot) then
-		print("[增量启动]未找到版本专属SLK地图: " .. slot)
-		print("[增量启动]请先用同版本的“启动地图”生成一次版本专属SLK地图")
+	if not syncWar3LibDepends() then
 		return false
 	end
 
@@ -393,10 +461,17 @@ local function runIncrementalStart(selection)
 		print("[增量启动]完整编译失败,停止启动")
 		return false
 	end
-	if not replaceMapScriptWithStorm(slot) then
+	local slot = slkSlot(selection.version)
+	if not fu.fileExist(slot) then
+		print("[增量启动]未找到版本专属SLK地图: " .. slot)
+		print("[增量启动]请先用同版本的“启动地图”生成一次版本专属SLK地图")
 		return false
 	end
-	local started = launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
+	utr.copyResourceFiles()
+	if not updateMapIncrementallyWithStorm(slot) then
+		return false
+	end
+	local started = launcher.StartWar3File(slot, slotDisplay(selection.version, "_slk"))
 	if started then
 		updateVersionState(selection.version, false, true)
 	end
@@ -405,6 +480,9 @@ end
 
 local function runLegacyStart(selection)
 	initPathOnly(selection.version)
+	if not syncWar3LibDepends() then
+		return false
+	end
 	local slot = slkSlot(selection.version)
 	if not fu.fileExist(slot) then
 		print("[老地图启动]未找到版本专属SLK地图: " .. slot)
@@ -412,7 +490,7 @@ local function runLegacyStart(selection)
 		return false
 	end
 	print(string.format("[矩阵启动]老地图启动: %s / %s", versionLabels[selection.version], slot))
-	return launcher.StartWar3FileAndWaitLog(slot, slotDisplay(selection.version, "_slk"))
+	return launcher.StartWar3File(slot, slotDisplay(selection.version, "_slk"))
 end
 
 local function runSelection(selection)

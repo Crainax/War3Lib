@@ -55,7 +55,7 @@ if sur then
 	copy.CopyBin(map, tarMap)
 	os.remove(map)
 
-	launcher.StartWar3AndWaitLog("_slk")
+	launcher.StartWar3("_slk")
 end
 
 printTaskEnd()

@@ -7,7 +7,7 @@
 //! zinc
 
 //自动生成的文件
-library UTAbilityDecorate requires AbilityDecorate,UnitUtils {
+library UTAbilityDecorate requires AbilityDecorate,AbilityDecorateData,UnitUtils {
 
 	// 测试用的英雄和技能
 	unit testHero1; // 大法师
@@ -24,8 +24,43 @@ library UTAbilityDecorate requires AbilityDecorate,UnitUtils {
 		DzSetUnitAbilityUpdate(u, ABIL_BOOK_MAIN);
 	}
 
+	private function TestCustomStrings() {
+		integer id1; integer id2; integer id3;
+
+		assert.Integer(GetAbilityDecorateCustomStringCount(testHero1, ABIL_BOOK_SKILL1), 0, "自定义字符串默认数量应为0");
+
+		id1 = AddAbilityDecorateCustomString(testHero1, ABIL_BOOK_SKILL1, "第一行");
+		id2 = AddAbilityDecorateCustomString(testHero1, ABIL_BOOK_SKILL1, "第二行");
+		id3 = AddAbilityDecorateCustomString(testHero1, ABIL_BOOK_SKILL1, "第三行");
+
+		assert.Boolean(id1 != 0 && id2 != 0 && id3 != 0, "添加自定义字符串应返回有效ID");
+		assert.Integer(GetAbilityDecorateCustomStringCount(testHero1, ABIL_BOOK_SKILL1), 3, "添加3条后数量应为3");
+		assert.String(GetAbilityDecorateCustomStringByIndex(testHero1, ABIL_BOOK_SKILL1, 1), "第一行", "第1条字符串应按插入顺序读取");
+		assert.String(GetAbilityDecorateCustomStringByIndex(testHero1, ABIL_BOOK_SKILL1, 2), "第二行", "第2条字符串应按插入顺序读取");
+		assert.String(GetAbilityDecorateCustomStringByIndex(testHero1, ABIL_BOOK_SKILL1, 3), "第三行", "第3条字符串应按插入顺序读取");
+
+		assert.Boolean(SetAbilityDecorateCustomStringById(testHero1, ABIL_BOOK_SKILL1, id2, "第二行更新"), "按ID更新字符串应成功");
+		assert.String(GetAbilityDecorateCustomStringByIndex(testHero1, ABIL_BOOK_SKILL1, 2), "第二行更新", "按ID更新后索引内容应同步");
+
+		assert.Boolean(RemoveAbilityDecorateCustomString(testHero1, ABIL_BOOK_SKILL1, id2), "按ID删除中间字符串应成功");
+		assert.Integer(GetAbilityDecorateCustomStringCount(testHero1, ABIL_BOOK_SKILL1), 2, "删除中间字符串后数量应为2");
+		assert.String(GetAbilityDecorateCustomStringByIndex(testHero1, ABIL_BOOK_SKILL1, 1), "第一行", "尾部交换后第1条应保留");
+		assert.String(GetAbilityDecorateCustomStringByIndex(testHero1, ABIL_BOOK_SKILL1, 2), "第三行", "尾部交换后第2条应为原尾部");
+
+		assert.Boolean(RemoveAbilityDecorateCustomString(testHero1, ABIL_BOOK_SKILL1, id1), "删除第1条字符串应成功");
+		assert.Integer(GetAbilityDecorateCustomStringCount(testHero1, ABIL_BOOK_SKILL1), 1, "删除第1条后数量应为1");
+		assert.String(GetAbilityDecorateCustomStringByIndex(testHero1, ABIL_BOOK_SKILL1, 1), "第三行", "剩余字符串应紧凑到第1位");
+
+		assert.Boolean(RemoveAbilityDecorateCustomString(testHero1, ABIL_BOOK_SKILL1, id3), "删除最后一条字符串应成功");
+		assert.Integer(GetAbilityDecorateCustomStringCount(testHero1, ABIL_BOOK_SKILL1), 0, "删除全部字符串后数量应为0");
+		assert.String(GetAbilityDecorateCustomStringByIndex(testHero1, ABIL_BOOK_SKILL1, 1), "", "空表按索引读取应返回空字符串");
+		assert.Boolean(!RemoveAbilityDecorateCustomString(testHero1, ABIL_BOOK_SKILL1, id3), "重复删除同一ID应失败");
+	}
+
 	function Init () {
         integer key;
+
+        TestCustomStrings();
 
         // 魔法书本体装饰（验证：角标 + 流光 + 暗图层）
         SetAbilityDecorateIcon(testHero1, ABIL_BOOK_MAIN, "ReplaceableTextures\\CommandButtons\\BTNSpellBookBLS.blp");

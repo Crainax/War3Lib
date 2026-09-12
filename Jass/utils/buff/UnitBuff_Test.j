@@ -1,6 +1,39 @@
 #ifndef UTUnitBuffIncluded
 #define UTUnitBuffIncluded
 
+/*
+UnitBuff_Test 指令说明：
+
+基础旧用例：
+- 输入 s1~s5：无敌/一次无敌窗口测试。
+- 输入 s11~s16、s18：眩晕、抗性、免疫、清除、CD 与禁用 CD 测试。
+- 输入 s19：StartTimerBuff 外部存参和回调清理测试。
+
+本次新增用例：
+- 输入 s20：创建测试单位，沉默 3 秒；立即检查 IsUnitSilenced 为 true，3.4 秒后检查自动清除。
+- 输入 s21：创建测试单位，沉默 3 秒后立刻 ClearSilence；检查 IsUnitSilenced 为 false。
+- 输入 s22：创建测试单位，缴械/禁用攻击 3 秒；立即检查 IsUnitDisarmed 为 true，3.4 秒后检查自动清除。
+- 输入 s23：创建测试单位，缴械/禁用攻击 3 秒后立刻 ClearDisarm；检查 IsUnitDisarmed 为 false。
+- 输入 s24：前摇暂停 + 真实眩晕重叠，清前摇后仍保持真实眩晕。
+- 输入 s25：前摇暂停 + 真实眩晕重叠，ClearStun 后仍保持前摇暂停。
+- 输入 s26：限时前摇暂停 + 真实眩晕重叠，前摇自动结束不提前解除真实眩晕。
+- 输入 s27：百分比破防不同来源 30% + 40% 按 RealAdd 叠加为 58%。
+- 输入 s28：百分比破防同来源两个 30% 实例不叠加。
+- 输入 s29：百分比破防同来源取最高，清高值后回落到低值。
+- 输入 s30：限时百分比破防刷新时间，不重复叠层，过期后恢复。
+
+手动选中单位测试：
+- 输入 -silence 3：对当前选中单位沉默 3 秒。
+- 输入 -clearsilence：清除当前选中单位沉默。
+- 输入 -disarm 3：对当前选中单位缴械/禁用攻击 3 秒。
+- 输入 -cleardisarm：清除当前选中单位缴械。
+- 输入 -buffstate：查询当前选中单位是否沉默、是否缴械。
+
+开局测试场景：
+- 自动创建 1 个玩家1大魔法师，额外添加多种技能，并默认选中。
+- 自动创建 10 个玩家2敌方农民，方便测试沉默后技能栏变化、缴械后攻击行为。
+*/
+
 // 用原始地图测试
 #undef OriginMapUnitTestMode
 
@@ -20,6 +53,8 @@ library UTUnitBuff requires UnitBuff {
 
     // 眩晕测试用单位记录，避免重复创建导致多选
     private unit stunTestUnits[];
+    private unit manualTestHero = null;
+    private unit manualTestEnemies[];
 
     private function SetStunTestUnit(integer idx, unit u) {
         if (stunTestUnits[idx] != null) {
@@ -27,6 +62,84 @@ library UTUnitBuff requires UnitBuff {
             stunTestUnits[idx] = null;
         }
         stunTestUnits[idx] = u;
+    }
+
+    private function CreateManualTestScene() {
+        player owner; player enemyOwner; unit u; integer i; real x; real y;
+
+        owner = Player(0);
+        enemyOwner = Player(1);
+
+        if (manualTestHero != null) {
+            RemoveUnit(manualTestHero);
+            manualTestHero = null;
+        }
+        for (1 <= i <= 10) {
+            if (manualTestEnemies[i] != null) {
+                RemoveUnit(manualTestEnemies[i]);
+                manualTestEnemies[i] = null;
+            }
+        }
+
+        manualTestHero = CreateUnit(owner, 'Hamg', 0.0, 0.0, 270.0);
+        SetHeroLevel(manualTestHero, 10, false);
+        UnitAddAbility(manualTestHero, 'AHbz'); // 暴风雪
+        UnitAddAbility(manualTestHero, 'AHwe'); // 水元素
+        UnitAddAbility(manualTestHero, 'AHab'); // 辉煌光环
+        UnitAddAbility(manualTestHero, 'AHmt'); // 群体传送
+        UnitAddAbility(manualTestHero, 'ACbc'); // 火焰呼吸
+        UnitAddAbility(manualTestHero, 'ACbf'); // 霜冻闪电
+        UnitAddAbility(manualTestHero, 'ACpy'); // 变形术
+        UnitAddAbility(manualTestHero, 'AOhx'); // 妖术
+        UnitAddAbility(manualTestHero, 'ACdv'); // 吞噬
+        UnitAddAbility(manualTestHero, 'ACen'); // 诱捕
+        UnitAddAbility(manualTestHero, 'ANr3'); // 混乱之雨
+        UnitAddAbility(manualTestHero, 'AOhw'); // 医疗波
+        SelectUnit(manualTestHero, true);
+
+        for (1 <= i <= 10) {
+            x = 450.0 + I2R(ModuloInteger(i - 1, 5)) * 120.0;
+            y = -240.0 + I2R((i - 1) / 5) * 160.0;
+            u = CreateUnit(enemyOwner, 'hpea', x, y, 270.0);
+            manualTestEnemies[i] = u;
+            u = null;
+        }
+
+        BJDebugMsg("[UnitBuffTest] 已创建测试场景：玩家1大魔法师(多技能) + 玩家2敌方农民x10");
+        BJDebugMsg("[UnitBuffTest] 默认已选中大魔法师，可直接输入 -silence 5 / -disarm 5 / -buffstate");
+
+        owner = null;
+        enemyOwner = null;
+    }
+
+    // 沉默/缴械测试检查回调（使用 hashtable 传参，避免闭包捕获）
+    private function DisableDebuffTestCheck() {
+        timer t; integer id; integer mode; unit u;
+
+        t = GetExpiredTimer();
+        id = GetHandleId(t);
+        mode = LoadInteger(HASH_TIMER, id, 2);
+        u = LoadUnitHandle(HASH_TIMER, id, 1);
+
+        if (mode == 20) {
+            if (IsUnitSilenced(u)) {
+                BJDebugMsg("|cFFFF0000[UnitBuffTest] s20 失败：沉默未自动清理|r");
+            } else {
+                BJDebugMsg("[UnitBuffTest] s20 完成：沉默已自动清理");
+            }
+        } else if (mode == 22) {
+            if (IsUnitDisarmed(u)) {
+                BJDebugMsg("|cFFFF0000[UnitBuffTest] s22 失败：缴械未自动清理|r");
+            } else {
+                BJDebugMsg("[UnitBuffTest] s22 完成：缴械已自动清理");
+            }
+        }
+
+        FlushChildHashtable(HASH_TIMER, id);
+        PauseTimer(t);
+        DestroyTimer(t);
+        u = null;
+        t = null;
     }
 
     // 眩晕测试检查回调（使用 hashtable 传参，避免闭包捕获）
@@ -61,6 +174,7 @@ library UTUnitBuff requires UnitBuff {
     }
 
 	function Init () {
+        CreateManualTestScene();
 		UnitTestAutoTimer(0.1, 2.0, function() {
 			//start,这里是0.1秒后调用的内容
 			}, function() {
@@ -148,97 +262,6 @@ library UTUnitBuff requires UnitBuff {
 		u3 = null;
 		owner = null;
 	}
-	// 测试6：时间破防基本功能
-	function TTestUTUnitBuff6 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s6: 给单位添加时间破防（slot=1, defense=10, time=3秒）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseTime(u, 1, 10, 3.0);
-		BJDebugMsg("[UnitBuffTest] 单位应有破防特效，防御应减少10，3秒后自动恢复");
-		u = null;
-		owner = null;
-	}
-
-	// 测试7：冲突位机制 - 同一 slot 取最大值
-	function TTestUTUnitBuff7 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s7: 同一 slot 取最大值测试（slot=1, 先10后20，应取20）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseTime(u, 1, 10, 3.0);
-		BJDebugMsg("[UnitBuffTest] 第一次：破防10，防御应减少10");
-		ReduceDefenseTime(u, 1, 20, 3.0);
-		BJDebugMsg("[UnitBuffTest] 第二次：破防20（最大值），防御应再减少10（总共减少20）");
-		BJDebugMsg("[UnitBuffTest] 3秒后防御应恢复20");
-		u = null;
-		owner = null;
-	}
-
-	// 测试8：不同 slot 独立存在
-	function TTestUTUnitBuff8 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s8: 不同 slot 独立测试（slot=1和slot=2同时存在）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseTime(u, 1, 10, 3.0);
-		BJDebugMsg("[UnitBuffTest] slot=1: 破防10，防御应减少10");
-		ReduceDefenseTime(u, 2, 15, 2.0);
-		BJDebugMsg("[UnitBuffTest] slot=2: 破防15，防御应再减少15（总共减少25）");
-		BJDebugMsg("[UnitBuffTest] slot=2的2秒后恢复15，slot=1的3秒后恢复10");
-		u = null;
-		owner = null;
-	}
-
-	// 测试9：剩余时间刷新机制（取最大值）
-	function TTestUTUnitBuff9 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s9: 剩余时间刷新测试（先3秒，再刷新到5秒，应取最大值5秒）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseTime(u, 1, 10, 3.0);
-		BJDebugMsg("[UnitBuffTest] 第一次：破防10，剩余时间3秒");
-		ReduceDefenseTime(u, 1, 10, 5.0);
-		BJDebugMsg("[UnitBuffTest] 第二次：刷新剩余时间为5秒（取最大值），防御不变");
-		BJDebugMsg("[UnitBuffTest] 5秒后防御应恢复10");
-		u = null;
-		owner = null;
-	}
-
-	// 测试10：永久破防功能
-	function TTestUTUnitBuff10 (player p) {
-		unit u; player owner; real def;
-
-		owner = GetTriggerPlayer();
-		u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
-		SelectUnit(u, true);
-		def = GetUnitDefense(u);
-		BJDebugMsg("[UnitBuffTest] s10: 永久破防测试（slot=1, defense=15）");
-		BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-		ReduceDefenseForever(u, 1, 15);
-		BJDebugMsg("[UnitBuffTest] 单位应有破防特效，防御应减少15，永久生效");
-		ReduceDefenseForever(u, 1, 20);
-		BJDebugMsg("[UnitBuffTest] 再次调用（最大值20），防御应再减少5（总共减少20）");
-		u = null;
-		owner = null;
-	}
-
     // 测试11：基础眩晕 2 秒（带特效）
     function TTestUTUnitBuff11 (player p) {
         unit u; player owner;
@@ -385,7 +408,7 @@ library UTUnitBuff requires UnitBuff {
         // 检查CD是否已设置
         if (HaveSavedReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_STUN_CD_LEFT)) {
             cdLeft = LoadReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_STUN_CD_LEFT);
-            Trace("[UnitBuffTest] CD已设置，剩余 " + R2S(cdLeft) + " 秒（应为约5秒）");
+            Trace("[UnitBuffTest] CD已设置，剩余 " + R2S(cdLeft) + " 秒（应为约2.5秒）");
         } else {
             Trace("|cFFFF0000[UnitBuffTest] s16 失败：CD未设置|r");
         }
@@ -395,7 +418,7 @@ library UTUnitBuff requires UnitBuff {
         tid = GetHandleId(t);
         SaveUnitHandle(HASH_TIMER, tid, 1, u);
         SaveInteger(HASH_TIMER, tid, 2, 16);
-        TimerStart(t, 6.0, false, function () {
+        TimerStart(t, 3.5, false, function () {
             timer t; integer id; unit u; real timeLeft;
 
             t = GetExpiredTimer();
@@ -547,6 +570,348 @@ library UTUnitBuff requires UnitBuff {
         owner = null;
     }
 
+    // 测试20：沉默 3 秒并自动清理
+    function TTestUTUnitBuff20 (player p) {
+        unit u; player owner; timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(7, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s20: 沉默 3 秒，使用原生沉默特效 overhead");
+        SilenceUnit(u, 3.0);
+        if (IsUnitSilenced(u)) {
+            BJDebugMsg("[UnitBuffTest] 沉默已应用，IsUnitSilenced=true");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s20 失败：沉默未应用|r");
+        }
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        SaveInteger(HASH_TIMER, tid, 2, 20);
+        TimerStart(t, 3.4, false, function () {
+            DisableDebuffTestCheck();
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
+    // 测试21：ClearSilence 立即清除沉默
+    function TTestUTUnitBuff21 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(8, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s21: 沉默 3 秒后立即 ClearSilence");
+        SilenceUnit(u, 3.0);
+        if (IsUnitSilenced(u)) {
+            BJDebugMsg("[UnitBuffTest] 沉默已应用");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s21 失败：沉默未应用|r");
+        }
+        ClearSilence(u);
+        if (IsUnitSilenced(u)) {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s21 失败：ClearSilence 后仍然沉默|r");
+        } else {
+            BJDebugMsg("[UnitBuffTest] s21 完成：ClearSilence 立即解除沉默");
+        }
+        u = null;
+        owner = null;
+    }
+
+    // 测试22：缴械 3 秒并自动清理
+    function TTestUTUnitBuff22 (player p) {
+        unit u; player owner; timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(9, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s22: 缴械/禁用攻击 3 秒，使用原生沉默特效 overhead");
+        DisarmUnit(u, 3.0);
+        if (IsUnitDisarmed(u)) {
+            BJDebugMsg("[UnitBuffTest] 缴械已应用，IsUnitDisarmed=true");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s22 失败：缴械未应用|r");
+        }
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        SaveInteger(HASH_TIMER, tid, 2, 22);
+        TimerStart(t, 3.4, false, function () {
+            DisableDebuffTestCheck();
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
+    // 测试23：ClearDisarm 立即清除缴械
+    function TTestUTUnitBuff23 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(10, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s23: 缴械 3 秒后立即 ClearDisarm");
+        DisarmUnit(u, 3.0);
+        if (IsUnitDisarmed(u)) {
+            BJDebugMsg("[UnitBuffTest] 缴械已应用");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s23 失败：缴械未应用|r");
+        }
+        ClearDisarm(u);
+        if (IsUnitDisarmed(u)) {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s23 失败：ClearDisarm 后仍然缴械|r");
+        } else {
+            BJDebugMsg("[UnitBuffTest] s23 完成：ClearDisarm 立即解除缴械");
+        }
+        u = null;
+        owner = null;
+    }
+
+    // 测试24：清前摇不应解除真实眩晕
+    function TTestUTUnitBuff24 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(11, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s24: 前摇暂停 + 真实眩晕，清前摇后仍应保持眩晕暂停");
+
+        PrecastPauseUnit(u, true);
+        if (IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] 前摇暂停已应用，未污染 IsUnitStunning");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s24 失败：前摇暂停初始状态异常|r");
+        }
+
+        StunUnit(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        ClearPrecastPause(u);
+        if (!IsUnitPrecastPaused(u) && IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] s24 完成：清前摇后真实眩晕仍保持暂停");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s24 失败：清前摇影响了真实眩晕|r");
+        }
+
+        ClearStun(u);
+        if (!IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] s24 完成：再清眩晕后单位恢复");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s24 失败：清眩晕后单位未恢复|r");
+        }
+        u = null;
+        owner = null;
+    }
+
+    // 测试25：ClearStun 不应解除前摇暂停
+    function TTestUTUnitBuff25 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(12, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s25: 前摇暂停 + 真实眩晕，ClearStun 后仍应保持前摇暂停");
+
+        PrecastPauseUnit(u, true);
+        StunUnit(u, 2.0, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+        ClearStun(u);
+        if (IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] s25 完成：ClearStun 未解除前摇暂停");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s25 失败：ClearStun 影响了前摇暂停|r");
+        }
+
+        ClearPrecastPause(u);
+        if (!IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+            BJDebugMsg("[UnitBuffTest] s25 完成：清前摇后单位恢复");
+        } else {
+            BJDebugMsg("|cFFFF0000[UnitBuffTest] s25 失败：清前摇后单位未恢复|r");
+        }
+        u = null;
+        owner = null;
+    }
+
+    // 测试26：限时前摇自动结束不应提前解除真实眩晕
+    function TTestUTUnitBuff26 (player p) {
+        unit u; player owner; timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetStunTestUnit(13, u);
+        SelectUnit(u, true);
+        BJDebugMsg("[UnitBuffTest] s26: 限时前摇 0.5 秒 + 真实眩晕 1.5 秒");
+
+        PrecastPauseUnitTimed(u, 0.5);
+        StunUnit(u, 1.5, "overhead", "Abilities\\Spells\\Human\\Thunderclap\\ThunderclapTarget.mdl");
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        TimerStart(t, 0.7, false, function () {
+            timer t; integer id; unit u;
+
+            t = GetExpiredTimer();
+            id = GetHandleId(t);
+            u = LoadUnitHandle(HASH_TIMER, id, 1);
+            if (u != null) {
+                if (!IsUnitPrecastPaused(u) && IsUnitStunning(u)) {
+                    BJDebugMsg("[UnitBuffTest] s26 阶段1完成：前摇已自动结束，真实眩晕仍保持暂停");
+                } else {
+                    BJDebugMsg("|cFFFF0000[UnitBuffTest] s26 阶段1失败：前摇结束后状态异常|r");
+                }
+            }
+            FlushChildHashtable(HASH_TIMER, id);
+            PauseTimer(t);
+            DestroyTimer(t);
+            u = null;
+            t = null;
+        });
+        t = null;
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        TimerStart(t, 1.8, false, function () {
+            timer t; integer id; unit u;
+
+            t = GetExpiredTimer();
+            id = GetHandleId(t);
+            u = LoadUnitHandle(HASH_TIMER, id, 1);
+            if (u != null) {
+                if (!IsUnitPrecastPaused(u) && !IsUnitStunning(u)) {
+                    BJDebugMsg("[UnitBuffTest] s26 完成：真实眩晕到期后单位恢复");
+                } else {
+                    BJDebugMsg("|cFFFF0000[UnitBuffTest] s26 失败：真实眩晕到期后单位未恢复|r");
+                }
+            }
+            FlushChildHashtable(HASH_TIMER, id);
+            PauseTimer(t);
+            DestroyTimer(t);
+            u = null;
+            t = null;
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
+    private function AssertUnitDefenseNear(unit u, integer expected, string message) {
+        integer actual; integer diff;
+
+        actual = GetUnitDefense(u);
+        if (actual > expected) {
+            diff = actual - expected;
+        } else {
+            diff = expected - actual;
+        }
+        assert.Boolean(diff <= 1, message + " (actual=" + I2S(actual) + ", expected=" + I2S(expected) + ", tolerance=1)");
+    }
+
+    // 测试27：百分比破防不同来源按 RealAdd 叠加
+    function TTestUTUnitBuff27 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetUnitDefense(u, 100.0);
+        SelectUnit(u, true);
+        ApplyDefenseDownPercentSource(u, 1, 1, 0.30);
+        ApplyDefenseDownPercentSource(u, 2, 1, 0.40);
+        AssertUnitDefenseNear(u, 42, "s27: 不同来源 30% + 40% 应 RealAdd 为 58% 总减防");
+        ClearDefenseDownPercentSource(u, 1, 1);
+        AssertUnitDefenseNear(u, 60, "s27: 清 30% 来源后应剩 40% 破防");
+        ClearDefenseDownPercentSource(u, 2, 1);
+        assert.Integer(GetUnitDefense(u), 100, "s27: 清完所有来源后防御恢复");
+        RemoveUnit(u);
+        u = null;
+        owner = null;
+    }
+
+    // 测试28：同来源同值实例不叠加
+    function TTestUTUnitBuff28 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetUnitDefense(u, 100.0);
+        SelectUnit(u, true);
+        ApplyDefenseDownPercentSource(u, 3, 1, 0.30);
+        ApplyDefenseDownPercentSource(u, 3, 2, 0.30);
+        AssertUnitDefenseNear(u, 70, "s28: 同来源两个 30% 实例仍只应生效 30%");
+        ClearDefenseDownPercentSource(u, 3, 1);
+        AssertUnitDefenseNear(u, 70, "s28: 清一个同来源实例后另一个仍保持 30%");
+        ClearDefenseDownPercentSource(u, 3, 2);
+        assert.Integer(GetUnitDefense(u), 100, "s28: 清完同来源实例后防御恢复");
+        RemoveUnit(u);
+        u = null;
+        owner = null;
+    }
+
+    // 测试29：同来源取最高，清高值后回落到低值
+    function TTestUTUnitBuff29 (player p) {
+        unit u; player owner;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetUnitDefense(u, 100.0);
+        SelectUnit(u, true);
+        ApplyDefenseDownPercentSource(u, 4, 1, 0.30);
+        ApplyDefenseDownPercentSource(u, 4, 2, 0.50);
+        AssertUnitDefenseNear(u, 50, "s29: 同来源 30% + 50% 应只取 50%");
+        ClearDefenseDownPercentSource(u, 4, 2);
+        AssertUnitDefenseNear(u, 70, "s29: 清 50% 实例后应回落到 30%");
+        ClearDefenseDownPercentSource(u, 4, 1);
+        assert.Integer(GetUnitDefense(u), 100, "s29: 清完低值实例后防御恢复");
+        RemoveUnit(u);
+        u = null;
+        owner = null;
+    }
+
+    // 测试30：限时百分比破防刷新时间，不重复叠层
+    function TTestUTUnitBuff30 (player p) {
+        unit u; player owner; timer t; integer tid;
+
+        owner = GetTriggerPlayer();
+        u = CreateUnit(owner, 'hpea', 0.0, 0.0, 0.0);
+        SetUnitDefense(u, 100.0);
+        SelectUnit(u, true);
+        ReduceDefenseDownPercentTime(u, 5, 1, 0.40, 0.5);
+        ReduceDefenseDownPercentTime(u, 5, 1, 0.40, 1.0);
+        AssertUnitDefenseNear(u, 60, "s30: 同来源限时刷新不应重复叠层");
+
+        t = CreateTimer();
+        tid = GetHandleId(t);
+        SaveUnitHandle(HASH_TIMER, tid, 1, u);
+        TimerStart(t, 1.25, false, function () {
+            timer t; integer id; unit u;
+
+            t = GetExpiredTimer();
+            id = GetHandleId(t);
+            u = LoadUnitHandle(HASH_TIMER, id, 1);
+            if (u != null) {
+                assert.Integer(GetUnitDefense(u), 100, "s30: 限时百分比破防过期后防御恢复");
+                RemoveUnit(u);
+            }
+            FlushChildHashtable(HASH_TIMER, id);
+            PauseTimer(t);
+            DestroyTimer(t);
+            u = null;
+            t = null;
+        });
+        t = null;
+        u = null;
+        owner = null;
+    }
+
 	function TTestActUTUnitBuff1 (string str) {
 		player  p	 = GetTriggerPlayer();
 		integer index = GetConvertedPlayerId(p);
@@ -554,7 +919,7 @@ library UTUnitBuff requires UnitBuff {
 		string  paramS [];							   //所有参数S
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
-		unit u; real def;
+		unit u; real duration;
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);
@@ -571,47 +936,9 @@ library UTUnitBuff requires UnitBuff {
 		paramR[num]= S2R(paramS[num]);
 		num = num + 1;
 
-		if (paramS[0] == "reduce") {
-			// 测试时间破防: -reduce slot defense time
-			// 示例: -reduce 1 10 3.0
-			if (num >= 3) {
-				u = unitSelect.currentU[index];
-				if (u != null) {
-					def = GetUnitDefense(u);
-					BJDebugMsg("[UnitBuffTest] 时间破防测试: slot=" + I2S(paramI[1]) + ", defense=" + I2S(paramI[2]) + ", time=" + R2S(paramR[3]));
-					BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-					ReduceDefenseTime(u, paramI[1], paramI[2], paramR[3]);
-					BJDebugMsg("[UnitBuffTest] 破防已应用");
-				} else {
-					BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
-				}
-				u = null;
-			} else {
-				BJDebugMsg("[UnitBuffTest] 用法: -reduce slot defense time");
-				BJDebugMsg("[UnitBuffTest] 示例: -reduce 1 10 3.0");
-			}
-		} else if (paramS[0] == "reduceP") {
-			// 测试永久破防: -reduceP slot defense
-			// 示例: -reduceP 1 15
-			if (num >= 2) {
-				u = unitSelect.currentU[index];
-				if (u != null) {
-					def = GetUnitDefense(u);
-					BJDebugMsg("[UnitBuffTest] 永久破防测试: slot=" + I2S(paramI[1]) + ", defense=" + I2S(paramI[2]));
-					BJDebugMsg("[UnitBuffTest] 单位当前防御: " + R2S(def));
-					ReduceDefenseForever(u, paramI[1], paramI[2]);
-					BJDebugMsg("[UnitBuffTest] 永久破防已应用");
-				} else {
-					BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
-				}
-				u = null;
-			} else {
-				BJDebugMsg("[UnitBuffTest] 用法: -reduceP slot defense");
-				BJDebugMsg("[UnitBuffTest] 示例: -reduceP 1 15");
-			}
-		} else if (paramS[0] == "pause") {
+		if (paramS[0] == "pause") {
 			// 测试暂停单位: -pause
-			u = unitSelect.currentU[index];
+			u = DzGetSelectedLeaderUnit();
 			if (u != null) {
 				EXPauseUnit(u, true);
 				BJDebugMsg("[UnitBuffTest] 单位已暂停");
@@ -621,10 +948,67 @@ library UTUnitBuff requires UnitBuff {
 			u = null;
 		} else if (paramS[0] == "restore") {
 			// 测试恢复单位: -restore
-			u = unitSelect.currentU[index];
+			u = DzGetSelectedLeaderUnit();
 			if (u != null) {
 				EXPauseUnit(u, false);
 				BJDebugMsg("[UnitBuffTest] 单位已恢复");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			}
+			u = null;
+		} else if (paramS[0] == "silence") {
+			// 测试沉默单位: -silence 3
+			u = DzGetSelectedLeaderUnit();
+			duration = 3.0;
+			if (num >= 2) { duration = paramR[1]; }
+			if (u != null && duration > 0.0) {
+				SilenceUnit(u, duration);
+				BJDebugMsg("[UnitBuffTest] 已沉默当前选中单位，持续 " + R2S(duration) + " 秒");
+			} else if (u == null) {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 用法: -silence 3");
+			}
+			u = null;
+		} else if (paramS[0] == "clearsilence") {
+			// 清除沉默: -clearsilence
+			u = DzGetSelectedLeaderUnit();
+			if (u != null) {
+				ClearSilence(u);
+				BJDebugMsg("[UnitBuffTest] 已清除当前选中单位沉默");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			}
+			u = null;
+		} else if (paramS[0] == "disarm") {
+			// 测试缴械单位: -disarm 3
+			u = DzGetSelectedLeaderUnit();
+			duration = 3.0;
+			if (num >= 2) { duration = paramR[1]; }
+			if (u != null && duration > 0.0) {
+				DisarmUnit(u, duration);
+				BJDebugMsg("[UnitBuffTest] 已缴械/禁用攻击当前选中单位，持续 " + R2S(duration) + " 秒");
+			} else if (u == null) {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 用法: -disarm 3");
+			}
+			u = null;
+		} else if (paramS[0] == "cleardisarm") {
+			// 清除缴械: -cleardisarm
+			u = DzGetSelectedLeaderUnit();
+			if (u != null) {
+				ClearDisarm(u);
+				BJDebugMsg("[UnitBuffTest] 已清除当前选中单位缴械");
+			} else {
+				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
+			}
+			u = null;
+		} else if (paramS[0] == "buffstate") {
+			// 查询当前选中单位状态: -buffstate
+			u = DzGetSelectedLeaderUnit();
+			if (u != null) {
+				BJDebugMsg("[UnitBuffTest] IsUnitSilenced=" + B2S(IsUnitSilenced(u)) + ", IsUnitDisarmed=" + B2S(IsUnitDisarmed(u)));
 			} else {
 				BJDebugMsg("[UnitBuffTest] 错误: 请先选择一个单位");
 			}
@@ -640,6 +1024,11 @@ library UTUnitBuff requires UnitBuff {
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
 			BJDebugMsg("[UnitBuff] 单元测试已加载");
+			BJDebugMsg("[UnitBuffTest] 输入 s20/s21 测沉默自动清理/手动清除");
+			BJDebugMsg("[UnitBuffTest] 输入 s22/s23 测缴械自动清理/手动清除");
+			BJDebugMsg("[UnitBuffTest] 输入 s24/s25/s26 测前摇暂停与真实眩晕互不提前解锁");
+			BJDebugMsg("[UnitBuffTest] 输入 s27/s28/s29/s30 测来源百分比破防叠加与刷新");
+			BJDebugMsg("[UnitBuffTest] 选中单位后输入 -silence 3 / -disarm 3 / -clearsilence / -cleardisarm / -buffstate");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
@@ -658,11 +1047,6 @@ library UTUnitBuff requires UnitBuff {
 			else if(str == "s3") TTestUTUnitBuff3(GetTriggerPlayer());
 			else if(str == "s4") TTestUTUnitBuff4(GetTriggerPlayer());
 			else if(str == "s5") TTestUTUnitBuff5(GetTriggerPlayer());
-			else if(str == "s6") TTestUTUnitBuff6(GetTriggerPlayer());
-			else if(str == "s7") TTestUTUnitBuff7(GetTriggerPlayer());
-			else if(str == "s8") TTestUTUnitBuff8(GetTriggerPlayer());
-			else if(str == "s9") TTestUTUnitBuff9(GetTriggerPlayer());
-			else if(str == "s10") TTestUTUnitBuff10(GetTriggerPlayer());
             else if(str == "s11") TTestUTUnitBuff11(GetTriggerPlayer());
             else if(str == "s12") TTestUTUnitBuff12(GetTriggerPlayer());
             else if(str == "s13") TTestUTUnitBuff13(GetTriggerPlayer());
@@ -671,6 +1055,17 @@ library UTUnitBuff requires UnitBuff {
             else if(str == "s16") TTestUTUnitBuff16(GetTriggerPlayer());
             else if(str == "s18") TTestUTUnitBuff18(GetTriggerPlayer());
             else if(str == "s19") TTestUTUnitBuff19(GetTriggerPlayer());
+            else if(str == "s20") TTestUTUnitBuff20(GetTriggerPlayer());
+            else if(str == "s21") TTestUTUnitBuff21(GetTriggerPlayer());
+            else if(str == "s22") TTestUTUnitBuff22(GetTriggerPlayer());
+            else if(str == "s23") TTestUTUnitBuff23(GetTriggerPlayer());
+            else if(str == "s24") TTestUTUnitBuff24(GetTriggerPlayer());
+            else if(str == "s25") TTestUTUnitBuff25(GetTriggerPlayer());
+            else if(str == "s26") TTestUTUnitBuff26(GetTriggerPlayer());
+            else if(str == "s27") TTestUTUnitBuff27(GetTriggerPlayer());
+            else if(str == "s28") TTestUTUnitBuff28(GetTriggerPlayer());
+            else if(str == "s29") TTestUTUnitBuff29(GetTriggerPlayer());
+            else if(str == "s30") TTestUTUnitBuff30(GetTriggerPlayer());
 		});
 
 		//unitAttrShow

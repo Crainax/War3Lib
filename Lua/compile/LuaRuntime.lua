@@ -59,188 +59,8 @@ local function luaString(value)
     return "'" .. value .. "'"
 end
 
-local function stripLineComment(line)
-    return tostring(line or ""):gsub("//.*$", "")
-end
-
-local function readLines(filePath)
-    local content = readFile(filePath)
-    if not content then
-        return nil
-    end
-    local lines = {}
-    content = content:gsub("\r\n", "\n"):gsub("\r", "\n")
-    for line in (content .. "\n"):gmatch("(.-)\n") do
-        table.insert(lines, line)
-    end
-    return lines
-end
-
-local function macroToLuaValue(macros, name, depth)
-    depth = (depth or 0) + 1
-    if depth > 8 then
-        return "0"
-    end
-    local value = macros[name]
-    if value == nil then
-        return "0"
-    end
-    value = tostring(value):match("^%s*(.-)%s*$")
-    if value == "" then
-        return "1"
-    end
-    if value:match("^%-?%d+$") then
-        return value
-    end
-    if value:match("^[_%a][_%w]*$") then
-        return macroToLuaValue(macros, value, depth)
-    end
-    return "0"
-end
-
-local function evalMacroExpr(expr, macros)
-    expr = stripLineComment(expr)
-    expr = expr:gsub("defined%s*%(%s*([_%a][_%w]*)%s*%)", function(name)
-        return macros[name] ~= nil and "true" or "false"
-    end)
-    expr = expr:gsub("defined%s+([_%a][_%w]*)", function(name)
-        return macros[name] ~= nil and "true" or "false"
-    end)
-    expr = expr:gsub("&&", " and ")
-    expr = expr:gsub("%|%|", " or ")
-    expr = expr:gsub("!=", "~=")
-    expr = expr:gsub("!%s*", " not ")
-    expr = expr:gsub("([_%a][_%w]*)", function(name)
-        if name == "and" or name == "or" or name == "not" or name == "true" or name == "false" then
-            return name
-        end
-        return macroToLuaValue(macros, name)
-    end)
-
-    local fn = load("return (" .. expr .. ")")
-    if not fn then
-        return false
-    end
-    local ok, result = pcall(fn)
-    return ok and result == true
-end
-
-local function isActive(stack)
-    for _, frame in ipairs(stack) do
-        if not frame.active then
-            return false
-        end
-    end
-    return true
-end
-
-local function parentActive(stack)
-    for i = 1, #stack - 1 do
-        if not stack[i].active then
-            return false
-        end
-    end
-    return true
-end
-
-local function resolveInclude(baseFile, includePath)
-    includePath = normalize(includePath)
-    if includePath:match("^%a:") then
-        return includePath
-    end
-    local baseDir = normalize(baseFile):match("(.+)/[^/]+$")
-    local projectPath = path.project .. "/" .. includePath
-    if lfs.attributes(projectPath, "mode") == "file" then
-        return projectPath
-    end
-    if baseDir then
-        local relativePath = baseDir .. "/" .. includePath
-        if lfs.attributes(relativePath, "mode") == "file" then
-            return relativePath
-        end
-    end
-    return nil
-end
-
-local function processMacroFile(filePath, macros, stack, visited)
-    filePath = normalize(filePath)
-    if visited[filePath] then
-        return
-    end
-    visited[filePath] = true
-    local lines = readLines(filePath)
-    if not lines then
-        return
-    end
-
-    for _, rawLine in ipairs(lines) do
-        local line = stripLineComment(rawLine)
-        local directive, rest = line:match("^%s*#%s*(%w+)%s*(.-)%s*$")
-        if directive == "if" then
-            local parent = isActive(stack)
-            local cond = parent and evalMacroExpr(rest, macros)
-            table.insert(stack, { parent = parent, active = parent and cond, matched = parent and cond })
-        elseif directive == "ifdef" then
-            local parent = isActive(stack)
-            local cond = macros[rest:match("^([_%a][_%w]*)")] ~= nil
-            table.insert(stack, { parent = parent, active = parent and cond, matched = parent and cond })
-        elseif directive == "ifndef" then
-            local parent = isActive(stack)
-            local cond = macros[rest:match("^([_%a][_%w]*)")] == nil
-            table.insert(stack, { parent = parent, active = parent and cond, matched = parent and cond })
-        elseif directive == "elif" then
-            local frame = stack[#stack]
-            if frame then
-                local parent = parentActive(stack)
-                local cond = parent and not frame.matched and evalMacroExpr(rest, macros)
-                frame.active = parent and cond
-                frame.matched = frame.matched or (parent and cond)
-            end
-        elseif directive == "else" then
-            local frame = stack[#stack]
-            if frame then
-                local parent = parentActive(stack)
-                frame.active = parent and not frame.matched
-                frame.matched = true
-            end
-        elseif directive == "endif" then
-            table.remove(stack)
-        elseif isActive(stack) then
-            if directive == "define" then
-                local name, value = rest:match("^([_%a][_%w]*)%s*(.-)%s*$")
-                if name then
-                    macros[name] = value or ""
-                end
-            elseif directive == "undef" then
-                local name = rest:match("^([_%a][_%w]*)")
-                if name then
-                    macros[name] = nil
-                end
-            elseif directive == "include" then
-                local includePath = rest:match("^\"([^\"]+)\"") or rest:match("^<([^>]+)>")
-                if includePath then
-                    local resolved = resolveInclude(filePath, includePath)
-                    if resolved then
-                        processMacroFile(resolved, macros, stack, visited)
-                    end
-                end
-            end
-        end
-    end
-end
-
-local function isMacroDefined(name)
-    local macros = {}
-    processMacroFile(path.rewave, macros, {}, {})
-    return macros[name] ~= nil
-end
-
 local function isLocalLuaMode()
     return path.buildVersion == "内测版本" or path.buildVersion == "单元测试"
-end
-
-local function consoleEnabled()
-    return isMacroDefined("EnableYDLuaConsole")
 end
 
 local function snapshot(cleanup, filePath)
@@ -342,9 +162,8 @@ end)
 end
 
 local function pathLuaContent(localMode)
-    local consoleValue = consoleEnabled() and "true" or "false"
     local lines = {
-        "package.console_enable = " .. consoleValue,
+        "package.console_enable = false",
         "package.build_version = " .. luaString(path.buildVersion)
     }
 
@@ -408,7 +227,18 @@ local function mapDestinationForScript(rel)
     return path.package .. "/map/script/" .. rel
 end
 
-local function addImportEntries(cleanup, entries)
+local function lniUnquote(raw)
+    local fn = load("return \"" .. tostring(raw or "") .. "\"")
+    if fn then
+        local ok, result = pcall(fn)
+        if ok and type(result) == "string" then
+            return result
+        end
+    end
+    return tostring(raw or ""):gsub('\\"', '"'):gsub("\\\\", "\\")
+end
+
+local function addImportEntries(cleanup, entries, persist)
     local imp = path.table and path.table.root and (path.table.root .. "/imp.ini")
     if not imp or lfs.attributes(imp, "mode") ~= "file" then
         return true
@@ -417,15 +247,16 @@ local function addImportEntries(cleanup, entries)
     local content = readFile(imp) or ""
     local seen = {}
     for item in content:gmatch('"(.-)"') do
-        seen[item:gsub("/", "\\")] = true
+        seen[lniUnquote(item):gsub("/", "\\"):lower()] = true
     end
 
     local missing = {}
     for _, entry in ipairs(entries) do
         entry = entry:gsub("/", "\\")
-        if not seen[entry] then
+        local key = entry:lower()
+        if not seen[key] then
             table.insert(missing, entry)
-            seen[entry] = true
+            seen[key] = true
         end
     end
 
@@ -436,62 +267,110 @@ local function addImportEntries(cleanup, entries)
     table.sort(missing)
     local insert = {}
     for _, entry in ipairs(missing) do
-        table.insert(insert, string.format('"%s",', entry))
+        table.insert(insert, string.format('%q,', entry))
     end
 
-    local nextContent, count = content:gsub("\n}%s*$", "\n" .. table.concat(insert, "\n") .. "\n}\n", 1)
+    local newline = content:find("\r\n", 1, true) and "\r\n" or "\n"
+    local nextContent, count = content:gsub(newline .. "}%s*$", newline .. table.concat(insert, newline) .. newline .. "}" .. newline, 1)
     if count == 0 then
         return false, "无法更新imp.ini: " .. imp
     end
 
+    if persist then
+        return writeFile(imp, nextContent)
+    end
     return writeTracked(cleanup, imp, nextContent)
 end
 
-function runtime.prepareForPackage()
+function runtime.getPackageFiles()
+    local localMode = isLocalLuaMode()
+    local mapDir = path.package .. "/map"
+    local files = {
+        {
+            archive = "plugin_main.lua",
+            target = mapDir .. "/plugin_main.lua",
+            content = pluginMainContent(),
+            replace = true,
+        },
+        {
+            archive = "path.lua",
+            target = mapDir .. "/path.lua",
+            content = pathLuaContent(localMode),
+            replace = true,
+        },
+    }
+
+    if not localMode then
+        for _, file in ipairs(collectLuaFiles(path.project .. "/script")) do
+            local archive
+            if file.rel:sub(1, #"depends/") == "depends/" then
+                archive = file.rel
+            else
+                archive = "script/" .. file.rel
+            end
+            table.insert(files, {
+                archive = archive,
+                source = file.src,
+                target = mapDestinationForScript(file.rel),
+                replace = true,
+            })
+        end
+    end
+
+    return files, localMode
+end
+
+function runtime.prepareForPackage(options)
+    options = options or {}
     local cleanup = {
         snapshots = {},
         createdDirs = {}
     }
-    local localMode = isLocalLuaMode()
-    local mapDir = path.package .. "/map"
-    local importEntries = { "path.lua", "plugin_main.lua" }
+    local packageFiles, localMode = runtime.getPackageFiles()
+    local importEntries = {}
 
-    local ok, err = writeTracked(cleanup, mapDir .. "/plugin_main.lua", pluginMainContent())
-    if not ok then
-        return nil, err
-    end
-    ok, err = writeTracked(cleanup, mapDir .. "/path.lua", pathLuaContent(localMode))
-    if not ok then
-        return nil, err
-    end
-
-    if not localMode then
-        local files = collectLuaFiles(path.project .. "/script")
-        for _, file in ipairs(files) do
-            local dst = mapDestinationForScript(file.rel)
-            ok, err = copyTracked(cleanup, file.src, dst)
-            if not ok then
-                return nil, err
-            end
-            if file.rel:sub(1, #"depends/") == "depends/" then
-                table.insert(importEntries, file.rel)
-            else
-                table.insert(importEntries, "script/" .. file.rel)
-            end
+    for _, file in ipairs(packageFiles) do
+        table.insert(importEntries, file.archive)
+        local ok, err
+        if file.content ~= nil then
+            ok, err = writeTracked(cleanup, file.target, file.content)
+        else
+            ok, err = copyTracked(cleanup, file.source, file.target)
+        end
+        if not ok then
+            return nil, err
         end
     end
 
-    ok, err = addImportEntries(cleanup, importEntries)
+    local ok, err = addImportEntries(cleanup, importEntries, options.persistImp)
     if not ok then
         return nil, err
     end
 
-    print(string.format("[Lua运行时]准备完成: %s, 路径=%s, 控制台=%s", path.buildVersion, localMode and "本地" or "地图内", consoleEnabled() and "true" or "false"))
+    print(string.format("[Lua运行时]准备完成: %s, 路径=%s, 控制台=false", path.buildVersion, localMode and "本地" or "地图内"))
 
     return function()
         restore(cleanup)
         print("[Lua运行时]临时文件已恢复")
     end
+end
+
+function runtime.writePackageFilesTo(dir)
+    local packageFiles = runtime.getPackageFiles()
+    local generated = {}
+    for _, file in ipairs(packageFiles) do
+        local source = file.source
+        if file.content ~= nil then
+            source = normalize(dir) .. "/" .. file.archive:gsub("[/\\]", "_")
+            local ok, err = writeFile(source, file.content)
+            if not ok then
+                return nil, err
+            end
+            table.insert(generated, source)
+        end
+        file.source = source
+    end
+    return packageFiles, generated
 end
 
 return runtime

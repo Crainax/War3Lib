@@ -35,6 +35,20 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
     private integer currentPosAsync   = 0;                //点击位置(异步调用)
     private string currentContent     = null;             //当前文字(返回值)
     private boolean currentShadow     = false;            //当前阴影(返回值)
+    private integer selectDataGeneration[];               //按复用 ID 记录生命周期代数
+
+    // 查找同步载荷分隔符，返回 1-based 位置；找不到时返回 0。
+    private function FindSelectPayloadSeparator(string s, integer startPos) -> integer {
+        integer i; integer len;
+        len = StringLength(s);
+        if (startPos < 1) { startPos = 1; }
+        for (startPos <= i <= len) {
+            if (SubStringBJ(s, i, i) == ",") {
+                return i;
+            }
+        }
+        return 0;
+    }
 
     //当前触发的SelectData数据
     public function GetSelectData () -> selectData {
@@ -78,6 +92,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         STRUCT_SHARED_INNER_UI(selector)
 
         private selectData sd;                            //数据绑定
+        private integer    sessionToken;                  //创建 UI 时捕获的数据生命周期 token
         private icon       icon[SELECT_UI_MAX_COUNT];     //图标(最多12个)
         private uiText     uisTxt[SELECT_UI_MAX_COUNT];   //下方的文字
         private uiImage    uiMain;                        //UI整体框架（背景）
@@ -265,24 +280,23 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
         //创建选择支持异步调用
         static method create (player p,selectData sd) -> thistype {
-            integer i; integer createCount; integer row; integer col; integer colsInRow; integer rowCount; integer pos;
-            real startX; real startY; real offsetX; real offsetY;
+            integer i; integer createCount;
             thistype this = 0;
             if (!sd.isExist()) {
-                BJDebugMsg("selector.create: selectData not exist");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selectData not exist");
                 return 0;
             }
             if (GetLocalPlayer() != p) {return 0;}
 
             if (sd.uiSelector.isExist()) {
-                BJDebugMsg("selector.create: selector already exist");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selector already exist");
                 return 0;
             }
             this = allocate();
             if (!this.isExist()) {
                 //创建失败的回调处理，通过异步触发
-                syncBus.DzSyncDataEx("Select","Z"+I2S(sd));
-                BJDebugMsg("selector.create: allocate failed");
+                syncBus.DzSyncDataEx("Select","Z,"+I2S(sd)+","+I2S(sd.getSessionToken()));
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: allocate failed");
                 return 0;
             }
 
@@ -298,6 +312,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             }
             currentPage = 1;
             this.sd = sd; //绑定数据
+            this.sessionToken = sd.getSessionToken();
 
             uiMain = uiImage.create(DzGetGameUI())
                 .setTexture("ui\\image\\bg_select.blp")
@@ -347,7 +362,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
                         integer pos = uiHashTable(frame).eventdata.get2();
-                        syncBus.DzSyncDataEx("Select", "D"+I2S(StringLength(I2S(this.sd))) + I2S(this.sd) + I2S(pos));
+                        syncBus.DzSyncDataEx("Select", "D,"+I2S(this.sd)+","+I2S(this.sessionToken)+","+I2S(pos));
                         music[MUSIC_INDEX_BTN_CLICK].play();
                     });
                 uiHashTable(icon[i].getClickBtn().ui).eventdata.bind(this);
@@ -378,7 +393,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                     .onLeave(function DestroyTooltip)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
-                        syncBus.DzSyncDataEx("Select","C"+I2S(this.sd)); //触发数据传送
+                        syncBus.DzSyncDataEx("Select","C,"+I2S(this.sd)+","+I2S(this.sessionToken)); //触发数据传送
                         music[MUSIC_INDEX_BTN_CLICK].play();
                     });
                 uiHashTable(uiCloseButton.ui).eventdata.bind(this);
@@ -462,7 +477,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                     .setAllPoint(uiBtn1Image.ui)
                     .spClick(function(integer frame) {
                         thistype this = uiHashTable(frame).eventdata.get();
-                        syncBus.DzSyncDataEx("Select","F"+I2S(this.sd)); //触发数据传送
+                        syncBus.DzSyncDataEx("Select","F,"+I2S(this.sd)+","+I2S(this.sessionToken)); //触发数据传送
                         music[MUSIC_INDEX_BTN_CLICK].play();
                     });
                 uiHashTable(uiBtn1Button.ui).eventdata.bind(this);
@@ -472,7 +487,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             return this;
         }
         method onDestroy () { //析构()
-            integer i,j;
+            integer j;
             if (!this.isExist()) {return;}
             // 若存在“进入未离开”的悬停，则在销毁前补发一次 Leave 回调
             if (enteredFlag && sd != 0 && sd.trLeave != null) {
@@ -482,6 +497,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             }
             enteredFlag = false;
             enteredPos = 0;
+            sessionToken = 0;
             // 销毁icon数组及下方文字
             for (1 <= j <= SELECT_UI_MAX_COUNT) {
                 if (icon[j] != 0) {
@@ -529,6 +545,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         trigger trFail;     //UI创建失败的回调触发器
         player  owner;      //拥有者
         selector uiSelector;  //绑定的选择UI
+        private integer sessionToken; //当前 ID 生命周期 token，防止延迟包命中复用实例
 
         // UI组件内部共享方法及成员
         STRUCT_SHARED_INNER_UI(selectData)
@@ -536,12 +553,23 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         static method create (player p,integer count) -> thistype {
             thistype this = allocate();
             if (this <= 0) {return 0;}
+            selectDataGeneration[this] += 1;
+            if (selectDataGeneration[this] <= 0) {
+                selectDataGeneration[this] = 1;
+            }
+            this.sessionToken = selectDataGeneration[this];
             this.count = count;
             this.title = null;
             this.btn1Text = null;
             this.uiSelector = 0;
             this.owner = p;
             return this;
+        }
+
+        // 同步协议只读 token：延迟回调必须同时校验 ID 与本值。
+        public method getSessionToken() -> integer {
+            if (!this.isExist()) { return 0; }
+            return this.sessionToken;
         }
 
         //映射关系:图标文字
@@ -648,6 +676,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             if (trBtn1 != null) {DestroyTrigger(trBtn1);trBtn1 = null;}
             if (trClick != null) {DestroyTrigger(trClick);trClick = null;}
             if (trFail != null) {DestroyTrigger(trFail);trFail = null;}
+            this.sessionToken = 0;
             this.owner = null;
             FlushChildHashtable(HASH_SELECT,this);
         }
@@ -690,42 +719,57 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
     function onInit () {
         // 使用单通道总线 Select
-        syncBus.onDataSync("Select", function () -> boolean {
-            string str; player p; integer index; selectData sd; integer length; integer pos;
+        syncBus.onDataSyncLater("Select", function () -> boolean {
+            string str; string opcode; string canonical;
+            player p; selectData sd;
+            integer sep1; integer sep2; integer sep3; integer sep4;
+            integer token; integer pos;
             str = syncBus.getPayload();
             p = syncBus.getPlayer();
-            index = GetConvertedPlayerId(p);
 
-            if (SubStringBJ(str,1,1) == "C") { //关闭
-                sd = S2I(SubStringBJ(str,2,StringLength(str)));
-                if (sd.isExist() && sd.trClose != null && sd.owner == p) {
-                    currentSD = sd;
-                    TriggerEvaluate(sd.trClose);
-                }
-            } else if (SubStringBJ(str,1,1) == "F") { //功能按钮
-                sd = S2I(SubStringBJ(str,2,StringLength(str)));
-                if (sd.isExist() && sd.trBtn1 != null && sd.owner == p) {
-                    currentSD = sd;
-                    TriggerEvaluate(sd.trBtn1);
-                }
-            } else if (SubStringBJ(str,1,1) == "Z") { //创建失败回调
-                sd = S2I(SubStringBJ(str,2,StringLength(str)));
-                if (sd.isExist() && sd.trFail != null && sd.owner == p) {
-                    currentSD = sd;
-                    TriggerEvaluate(sd.trFail);
-                }
-            } else if (SubStringBJ(str,1,1) == "D") { //点击
-                length = S2I(SubStringBJ(str, 2, 2));
-                sd = S2I(SubStringBJ(str, 3, length + 2));
-                pos = S2I(SubStringBJ(str, length + 3, StringLength(str)));
-                if (sd.isExist() && sd.trClick != null && sd.owner == p) {
-                    currentSD = sd;
-                    currentPos = pos;
-                    TriggerEvaluate(sd.trClick);
+            opcode = SubStringBJ(str, 1, 1);
+            sep1 = FindSelectPayloadSeparator(str, 1);
+            sep2 = FindSelectPayloadSeparator(str, sep1 + 1);
+            sep3 = FindSelectPayloadSeparator(str, sep2 + 1);
+            sep4 = FindSelectPayloadSeparator(str, sep3 + 1);
+
+            if (sep1 == 2 && sep2 > sep1 + 1) {
+                sd = S2I(SubStringBJ(str, sep1 + 1, sep2 - 1));
+                token = S2I(SubStringBJ(str, sep2 + 1, StringLength(str)));
+
+                if (opcode == "D") {
+                    if (sep3 > sep2 + 1 && sep4 == 0) {
+                        token = S2I(SubStringBJ(str, sep2 + 1, sep3 - 1));
+                        pos = S2I(SubStringBJ(str, sep3 + 1, StringLength(str)));
+                        canonical = "D,"+I2S(sd)+","+I2S(token)+","+I2S(pos);
+                        if (token > 0 && pos > 0 && str == canonical && sd.isExist()) {
+                            if (sd.getSessionToken() == token && sd.owner == p && pos <= sd.count && sd.trClick != null) {
+                                currentSD = sd;
+                                currentPos = pos;
+                                TriggerEvaluate(sd.trClick);
+                            }
+                        }
+                    }
+                } else if (sep3 == 0) {
+                    canonical = opcode+","+I2S(sd)+","+I2S(token);
+                    if (token > 0 && str == canonical && sd.isExist()) {
+                        if (sd.getSessionToken() == token && sd.owner == p) {
+                            if (opcode == "C" && sd.trClose != null) {
+                                currentSD = sd;
+                                TriggerEvaluate(sd.trClose);
+                            } else if (opcode == "F" && sd.trBtn1 != null) {
+                                currentSD = sd;
+                                TriggerEvaluate(sd.trBtn1);
+                            } else if (opcode == "Z" && sd.trFail != null) {
+                                currentSD = sd;
+                                TriggerEvaluate(sd.trFail);
+                            }
+                        }
+                    }
                 }
             }
 
-            str = null; p = null; sd = 0;
+            str = null; opcode = null; canonical = null; p = null; sd = 0;
             return true;
         });
     }

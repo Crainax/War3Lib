@@ -179,8 +179,6 @@ library ItemBtns requires Hardware,UIHashTable,Icon,UILayer,UnitSelect {
                 uiHashTable(slot[i]).eventdata.bind(i);
                 icons[i] = icon.create(uilayer.lv[1])
                     .setSize(SIZE_ORIGIN_UI_ITEM, SIZE_ORIGIN_UI_ITEM)
-                // .setCornerTextSize(2)
-                // .setCornerPadding(0.0015)
                     .setTopRightPadding(0.001)
                     .setPoint(ANCHOR_CENTER, slot[i], ANCHOR_CENTER, 0.0, 0.0)
                     .setTexture(UI_STRING_PATH_BLANK);

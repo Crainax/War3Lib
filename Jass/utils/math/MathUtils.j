@@ -22,6 +22,7 @@ library MathUtils {
 
     // 进行整数除法，若能整除则结果减1
     public function Divide1 (integer i1,integer i2) -> integer {
+        if (i2 == 0) {return 0;}
         if (ModuloInteger(i1,i2) == 0) {
             return i1/i2 - 1;
         }
@@ -97,6 +98,7 @@ library MathUtils {
             real y2  = 0; //相交点
             real a = ModuloReal(angle,360); //求余数
             real tan;
+            if (a < 0) {a += 360;}
             x = 0;
             y = 0;
 
@@ -186,29 +188,7 @@ library MathUtils {
     // real bonus2 = 0.2;         // 第二个20%加成
     // real final = RealAdd3(baseEffect, bonus1, bonus2);  // 一次性计算三个效果的叠加
     public function RealAdd3 ( real a1, real a2, real a3 ) -> real {
-        real temp;
-        // 如果第二个参数绝对值>=1.0，直接用第一个参数与第三个参数计算
-        if (RAbsBJ(a2) >= 1.0) {
-            return RealAdd(a1, a3);
-        }
-        // 如果第三个参数绝对值>=1.0，直接返回前两个参数的计算结果
-        if (RAbsBJ(a3) >= 1.0) {
-            return RealAdd(a1, a2);
-        }
-
-        // 先计算前两个参数的结果
-        if (a2 >= 0) {
-            temp = 1.0-(1.0-a1)*(1.0-a2);
-        } else {
-            temp = 1.0-(1.0-a1)/(1.0+a2);
-        }
-
-        // 再与第三个参数计算
-        if (a3 >= 0) {
-            return 1.0-(1.0-temp)*(1.0-a3);
-        } else {
-            return 1.0-(1.0-temp)/(1.0+a3);
-        }
+        return RealAdd(RealAdd(a1, a2), a3);
     }
 
 }

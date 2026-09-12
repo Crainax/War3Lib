@@ -71,6 +71,8 @@ library UTUIImageBar requires UIImageBar {
 			bar.setSize(paramR[1], paramR[2]);
 		} else if (paramS[0] == "color") {
 			bar.setFillColor(paramI[1]);
+		} else if (paramS[0] == "progress") {
+			bar.setProgress(paramR[1]);
 		}
 
 		p = null;

@@ -25,6 +25,7 @@ library Talent requires AbilityCool, Hardware {
 
         private static integer snapCount[];
         private static integer snapAbil[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
+        private static integer snapLevel[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
         private static real snapCd[MAX_PLAYER_COUNT][SKILL_LIMIT_PER_PLAYER];
         private static timer restoreTimer[];
 
@@ -131,6 +132,7 @@ library Talent requires AbilityCool, Hardware {
         private static method snapshotRange(integer pid, unit u, integer startIdx, integer endIdx) {
             integer i;
             integer abilId;
+            integer level;
             real cd;
 
             if (u == null) { return; }
@@ -147,26 +149,36 @@ library Talent requires AbilityCool, Hardware {
             for (startIdx <= i <= endIdx) {
                 abilId = thistype.skills[pid][i];
                 if (abilId != 0) {
+                    level = GetUnitAbilityLevel(u, abilId);
                     cd = YDWEGetUnitAbilityState(u, abilId, ABILITY_STATE_COOLDOWN);
-                    if (cd > 0.0) {
+                    if (level > 0 || cd > 0.0) {
                         thistype.snapCount[pid] += 1;
                         thistype.snapAbil[pid][thistype.snapCount[pid]] = abilId;
+                        thistype.snapLevel[pid][thistype.snapCount[pid]] = level;
                         thistype.snapCd[pid][thistype.snapCount[pid]] = cd;
                     }
                 }
             }
         }
 
-        private static method restoreCooldownNow(integer pid, unit u) {
+        private static method restoreStateNow(integer pid, unit u) {
             integer i;
+            integer abilId;
 
             if (u == null) { return; }
 
             for (1 <= i <= thistype.snapCount[pid]) {
-                if (thistype.snapAbil[pid][i] != 0 && thistype.snapCd[pid][i] > 0.0) {
-                    YDWESetUnitAbilityState(u, thistype.snapAbil[pid][i], ABILITY_STATE_COOLDOWN, thistype.snapCd[pid][i]);
+                abilId = thistype.snapAbil[pid][i];
+                if (abilId != 0) {
+                    if (thistype.snapLevel[pid][i] > 0) {
+                        SetUnitAbilityLevel(u, abilId, thistype.snapLevel[pid][i]);
+                    }
+                    if (thistype.snapCd[pid][i] > 0.0) {
+                        YDWESetUnitAbilityState(u, abilId, ABILITY_STATE_COOLDOWN, thistype.snapCd[pid][i]);
+                    }
                 }
                 thistype.snapAbil[pid][i] = 0;
+                thistype.snapLevel[pid][i] = 0;
                 thistype.snapCd[pid][i] = 0.0;
             }
 
@@ -250,7 +262,7 @@ library Talent requires AbilityCool, Hardware {
             thistype.lastEnable3[pid] = enable3;
 
             if (thistype.snapCount[pid] > 0) {
-                thistype.restoreCooldownNow(pid, u);
+                thistype.restoreStateNow(pid, u);
             }
         }
 

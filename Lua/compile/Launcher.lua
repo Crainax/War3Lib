@@ -76,14 +76,47 @@ end
 
 launcher.OpenWithAntigravity = openWithAntigravity
 
-local function openWithNotepad(filePath)
+local function openWithPowerShellTail(filePath)
 	local target = filePath:gsub("/", "\\")
-	local quotedTarget = '"' .. target:gsub('"', '\\"') .. '"'
-	local ps = "Start-Process -FilePath notepad.exe -ArgumentList @(" .. powershellString(quotedTarget) .. ")"
+	local tailScript = table.concat({
+		"[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false)",
+		"$OutputEncoding=[System.Text.UTF8Encoding]::new($false)",
+		"chcp 65001 > $null",
+		"$path=" .. powershellString(target),
+		"$Host.UI.RawUI.WindowTitle='War3 Log Tail - ' + [System.IO.Path]::GetFileName($path)",
+		"Write-Host ('[日志追踪] ' + $path)",
+		"Get-Content -LiteralPath $path -Encoding UTF8 -Wait -Tail 80"
+	}, "; ")
+	local encodedTail = base64Encode(utf8ToUtf16Le(tailScript))
+	local ps = table.concat({
+		"$p=Start-Process -FilePath powershell.exe -ArgumentList @('-NoExit','-NoProfile','-ExecutionPolicy','Bypass','-EncodedCommand'," .. powershellString(encodedTail) .. ") -PassThru",
+		"try{$null=$p.WaitForInputIdle(5000)}catch{}",
+		"for($i=0;$i -lt 50 -and $p.MainWindowHandle -eq 0;$i++){Start-Sleep -Milliseconds 100;$p.Refresh()}",
+		"if($p.MainWindowHandle -ne 0){",
+		"Add-Type -AssemblyName System.Windows.Forms",
+		"$sig='[DllImport(\"user32.dll\")] public static extern bool SetProcessDPIAware(); [DllImport(\"user32.dll\")] public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint); [DllImport(\"user32.dll\")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect); public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }'",
+		"Add-Type -Namespace War3Lib -Name NativeWindow -MemberDefinition $sig",
+		"[War3Lib.NativeWindow]::SetProcessDPIAware()|Out-Null",
+		"$area=[System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea",
+		"$width=1186",
+		"$height=773",
+		"$x=[Math]::Max($area.Left,$area.Right-$width)",
+		"$y=$area.Top",
+		"[War3Lib.NativeWindow]::MoveWindow($p.MainWindowHandle,$x,$y,$width,$height,$true)|Out-Null",
+		"Start-Sleep -Milliseconds 200",
+		"$rect=New-Object War3Lib.NativeWindow+RECT",
+		"if([War3Lib.NativeWindow]::GetWindowRect($p.MainWindowHandle,[ref]$rect)){",
+		"$actualWidth=$rect.Right-$rect.Left",
+		"$actualHeight=$rect.Bottom-$rect.Top",
+		"$x=[Math]::Max($area.Left,$area.Right-$actualWidth)",
+		"[War3Lib.NativeWindow]::MoveWindow($p.MainWindowHandle,$x,$y,$actualWidth,$actualHeight,$true)|Out-Null",
+		"}",
+		"}"
+	}, "; ")
 	return os.execute(powershellCommand(ps))
 end
 
-launcher.OpenWithNotepad = openWithNotepad
+launcher.OpenWithPowerShellTail = openWithPowerShellTail
 
 local function sleepOneSecond()
 	os.execute("ping -n 2 127.0.0.1 >nul")
@@ -161,7 +194,7 @@ function launcher.WaitAndOpenNewLog(before, timeoutSeconds, startClock)
 		local logPath = newestNewLog(logDir, before or {}, startClock)
 		if logPath then
 			print("[日志等待]发现新日志: " .. logPath)
-			openWithNotepad(logPath)
+			openWithPowerShellTail(logPath)
 			return true
 		end
 		sleepOneSecond()

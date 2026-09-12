@@ -8,6 +8,11 @@
 
 #define SWITCH_SYNCBUS_LOG 0  //打开日志
 
+#define SYNC_BUS_TICK_SECONDS 0.05
+#define SYNC_BUS_LATER_MIN_TICKS 3
+#define SYNC_BUS_ENVELOPE_PREFIX "@SB1,"
+#define SYNC_BUS_LATER_QUEUE_MAX 8000
+
 #define SYNC_BUS_OOS_MODE_OFF 0       //关闭OOS探针：不消耗随机数，不注册OOS异步检测
 #define SYNC_BUS_OOS_MODE_CLASSIC 1   //旧探针：5秒采样，12次一查
 #define SYNC_BUS_OOS_MODE_FINE 2      //细粒度探针：0.25秒采样，调试专用，可能放大随机序列差异
@@ -29,7 +34,7 @@
 #define SWITCH_SYNCBUS_OOS_DETECH
 #endif
 
-library SyncBus {
+library SyncBus requires Logger {
 
 	public struct syncBus [] {
 		private static trigger busTr = null;
@@ -39,8 +44,22 @@ library SyncBus {
 		private static integer regCount = 0;
 		private static string  regTags[];
 		private static trigger regTrig[];
+		private static trigger regLaterTrig[];
 		// 防抖：每个已注册路由的剩余冷却时间（tick）
 		private static integer debounceRemain[];
+
+		// 延迟路由：发送时写入统一目标 tick，收包后只进入队列。
+		// 所有客户端在同一个 SyncBus tick 按发送者/序号排序派发，避免每个业务文件重复创建 timer。
+		private static integer syncTick = 0;
+		private static integer localSendSeq = 0;
+		private static integer laterCount = 0;
+		private static integer laterDueTick[];
+		private static integer laterSenderPid[];
+		private static integer laterSenderSeq[];
+		private static integer laterRouteIndex[];
+		private static player laterPlayer[];
+		private static string laterTag[];
+		private static string laterPayload[];
 
 
 		#ifdef SWITCH_SYNCBUS_OOS_DETECH
@@ -58,6 +77,7 @@ library SyncBus {
 		public static player cbPlayer = null;
 		public static string cbTag = "";
 		public static string cbPayload = "";
+		public static integer cbSequence = 0;
 
 		private static method findTagIndex(string tag) -> integer {
 			integer i;
@@ -89,6 +109,129 @@ library SyncBus {
 			return 0;
 		}
 
+		private static method findCharFrom(string s, string ch, integer startPos) -> integer {
+			integer i; integer len; string c;
+			len = StringLength(s);
+			if (startPos < 1) { startPos = 1; }
+			for (i = startPos; i <= len; i += 1) {
+				c = SubStringBJ(s, i, i);
+				if (c == ch) {
+					c = null;
+					return i;
+				}
+			}
+			c = null;
+			return 0;
+		}
+
+		private static method dispatchWithContext(trigger tg, player p, string tag, string payload, integer sequence) {
+			integer oldSequence;
+			player oldPlayer;
+			string oldTag;
+			string oldPayload;
+			if (tg == null) { return; }
+			oldPlayer = thistype.cbPlayer;
+			oldTag = thistype.cbTag;
+			oldPayload = thistype.cbPayload;
+			oldSequence = thistype.cbSequence;
+			thistype.cbPlayer = p;
+			thistype.cbTag = tag;
+			thistype.cbPayload = payload;
+			thistype.cbSequence = sequence;
+			TriggerEvaluate(tg);
+			thistype.cbPlayer = oldPlayer;
+			thistype.cbTag = oldTag;
+			thistype.cbPayload = oldPayload;
+			thistype.cbSequence = oldSequence;
+			oldPlayer = null;
+			oldTag = null;
+			oldPayload = null;
+		}
+
+		private static method removeLaterAt(integer pos) {
+			integer last;
+			if (pos < 0 || pos >= thistype.laterCount) { return; }
+			last = thistype.laterCount - 1;
+			if (pos != last) {
+				thistype.laterDueTick[pos] = thistype.laterDueTick[last];
+				thistype.laterSenderPid[pos] = thistype.laterSenderPid[last];
+				thistype.laterSenderSeq[pos] = thistype.laterSenderSeq[last];
+				thistype.laterRouteIndex[pos] = thistype.laterRouteIndex[last];
+				thistype.laterPlayer[pos] = thistype.laterPlayer[last];
+				thistype.laterTag[pos] = thistype.laterTag[last];
+				thistype.laterPayload[pos] = thistype.laterPayload[last];
+			}
+			thistype.laterDueTick[last] = 0;
+			thistype.laterSenderPid[last] = 0;
+			thistype.laterSenderSeq[last] = 0;
+			thistype.laterRouteIndex[last] = -1;
+			thistype.laterPlayer[last] = null;
+			thistype.laterTag[last] = "";
+			thistype.laterPayload[last] = "";
+			thistype.laterCount -= 1;
+		}
+
+		private static method enqueueLater(integer routeIndex, player p, string tag, string payload, integer dueTick, integer senderSeq) {
+			integer pos;
+			if (routeIndex < 0 || routeIndex >= thistype.regCount || thistype.regLaterTrig[routeIndex] == null) { return; }
+			if (thistype.laterCount >= SYNC_BUS_LATER_QUEUE_MAX) {
+				DzWriteLog("[SyncBusLater] queue overflow tag=" + tag + ", pid=" + I2S(GetConvertedPlayerId(p)) + ", seq=" + I2S(senderSeq));
+				return;
+			}
+			pos = thistype.laterCount;
+			thistype.laterDueTick[pos] = dueTick;
+			thistype.laterSenderPid[pos] = GetConvertedPlayerId(p);
+			thistype.laterSenderSeq[pos] = senderSeq;
+			thistype.laterRouteIndex[pos] = routeIndex;
+			thistype.laterPlayer[pos] = p;
+			thistype.laterTag[pos] = tag;
+			thistype.laterPayload[pos] = payload;
+			thistype.laterCount += 1;
+		}
+
+		private static method findNextReadyLater() -> integer {
+			integer i;
+			integer best;
+			best = -1;
+			for (i = 0; i < thistype.laterCount; i += 1) {
+				if (thistype.laterDueTick[i] <= thistype.syncTick) {
+					if (best < 0 ||
+						thistype.laterDueTick[i] < thistype.laterDueTick[best] ||
+						(thistype.laterDueTick[i] == thistype.laterDueTick[best] && thistype.laterSenderPid[i] < thistype.laterSenderPid[best]) ||
+						(thistype.laterDueTick[i] == thistype.laterDueTick[best] && thistype.laterSenderPid[i] == thistype.laterSenderPid[best] && thistype.laterSenderSeq[i] < thistype.laterSenderSeq[best])) {
+						best = i;
+					}
+				}
+			}
+			return best;
+		}
+
+		private static method flushLater() {
+			integer pos;
+			integer routeIndex;
+			integer senderSeq;
+			player p;
+			string tag;
+			string payload;
+			trigger tg;
+			pos = thistype.findNextReadyLater();
+			while (pos >= 0) {
+				routeIndex = thistype.laterRouteIndex[pos];
+				p = thistype.laterPlayer[pos];
+				tag = thistype.laterTag[pos];
+				payload = thistype.laterPayload[pos];
+				senderSeq = thistype.laterSenderSeq[pos];
+				tg = thistype.regLaterTrig[routeIndex];
+				thistype.removeLaterAt(pos);
+				thistype.dispatchWithContext(tg, p, tag, payload, senderSeq);
+				p = null;
+				tag = null;
+				payload = null;
+				tg = null;
+				pos = thistype.findNextReadyLater();
+			}
+		}
+
 		#ifdef SWITCH_SYNCBUS_OOS_DETECH
 		private static method checkOOS() {
 			integer i; integer j; integer vi; integer vj; integer diffCount; integer sameCount; player pi; string msg; integer seq;
@@ -117,11 +260,11 @@ library SyncBus {
 						if (diffCount > sameCount) {
 							pi = ConvertedPlayer(i);
 							msg = GetPlayerName(pi) + "和其他几位玩家之间数据|cffff0000不同步|r,可能是断线重连,游戏崩溃,或者游戏异步,请确认网络状态.";
+							DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, msg);
 							BJDebugMsg(msg);
 							BJDebugMsg(msg);
-							BJDebugMsg(msg);
-							BJDebugMsg("|cffff0000[tips]|r如果该玩家确认是异步,任务管理器关掉魔兽,然后重连可以回到正常游戏中.");
-							BJDebugMsg("|cffff0000[tips]|r其他玩家目前数据是同步的,请放心游戏.");
+							DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cffff0000[tips]|r如果该玩家确认是异步,任务管理器关掉魔兽,然后重连可以回到正常游戏中.");
+							DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cffff0000[tips]|r其他玩家目前数据是同步的,请放心游戏.");
 							DzWriteLog("[OOS] " + msg + " (pid=" + I2S(i) + ", seq=" + I2S(seq) + ", v=" + I2S(vi) + ", same=" + I2S(sameCount) + ", diff=" + I2S(diffCount) + ")");
 							thistype.oosPlayerNotified[i] = true;
 							pi = null; msg = null;
@@ -134,8 +277,11 @@ library SyncBus {
 
 		// 统一发送（单通道 OData）
 		public static method DzSyncDataEx(string tag, string payload) {
-			string out; player lp; integer lpid; string lname;
-			out = tag + "|" + payload;
+			string out; player lp; integer lpid; integer targetTick; string lname;
+			if (!thistype.initialized) { thistype.onInit(); }
+			thistype.localSendSeq += 1;
+			targetTick = thistype.syncTick + SYNC_BUS_LATER_MIN_TICKS;
+			out = tag + "|" + SYNC_BUS_ENVELOPE_PREFIX + I2S(targetTick) + "," + I2S(thistype.localSendSeq) + "," + payload;
 			DzSyncDataImmediately("OD", out);
 			#if SWITCH_SYNCBUS_LOG
 			lp = GetLocalPlayer();
@@ -174,6 +320,24 @@ library SyncBus {
 			t = null;
 		}
 
+		// 注册延迟路由回调：至少跨 3 个中心 tick，再按目标 tick、发送玩家与发送序号稳定派发。
+		// 回调上下文与即时路由相同；getSequence 对本总线发出的消息返回发送方递增序号。
+		public static method onDataSyncLater(string tag, code cb) {
+			integer idx;
+			trigger t;
+			if (!thistype.initialized) { thistype.onInit(); }
+			thistype.getOrCreateTagTrigger(tag);
+			idx = thistype.findTagIndex(tag);
+			if (idx < 0) { return; }
+			t = thistype.regLaterTrig[idx];
+			if (t == null) {
+				t = CreateTrigger();
+				thistype.regLaterTrig[idx] = t;
+			}
+			TriggerAddCondition(t, Condition(cb));
+			t = null;
+		}
+
 		// 总线初始化：唯一 OD 触发器
 		static method onInit() {
 			if (thistype.initialized) { return; }
@@ -182,8 +346,9 @@ library SyncBus {
 			thistype.busTr = CreateTrigger();
 			DzTriggerRegisterSyncData(thistype.busTr, "OD", false);
 			TriggerAddAction(thistype.busTr, function () {
-				string s; player p; integer pos; string tag; string payload;
-				integer idx; trigger tg; string pName; integer pid; string status;
+				string s; player p; integer pos; string tag; string payload; string rawPayload;
+				integer idx; integer metaPos1; integer metaPos2; integer metaPos3; integer dueTick; integer senderSeq;
+				trigger tg; string pName; integer pid; string status;
 
 				s = DzGetTriggerSyncData();
 				p = DzGetTriggerSyncPlayer();
@@ -191,12 +356,20 @@ library SyncBus {
 
 				if (pos > 0) {
 					tag = SubStringBJ(s, 1, pos - 1);
-					payload = SubStringBJ(s, pos + 1, StringLength(s));
-
-					// 设置回调上下文
-					thistype.cbPlayer = p;
-					thistype.cbTag = tag;
-					thistype.cbPayload = payload;
+					rawPayload = SubStringBJ(s, pos + 1, StringLength(s));
+					payload = rawPayload;
+					dueTick = thistype.syncTick + SYNC_BUS_LATER_MIN_TICKS;
+					senderSeq = 0;
+					if (StringLength(rawPayload) >= 6 && SubStringBJ(rawPayload, 1, 5) == SYNC_BUS_ENVELOPE_PREFIX) {
+						metaPos1 = thistype.findCharFrom(rawPayload, ",", 1);
+						metaPos2 = thistype.findCharFrom(rawPayload, ",", metaPos1 + 1);
+						metaPos3 = thistype.findCharFrom(rawPayload, ",", metaPos2 + 1);
+						if (metaPos1 > 0 && metaPos2 > metaPos1 && metaPos3 > metaPos2) {
+							dueTick = S2I(SubStringBJ(rawPayload, metaPos1 + 1, metaPos2 - 1));
+							senderSeq = S2I(SubStringBJ(rawPayload, metaPos2 + 1, metaPos3 - 1));
+							payload = SubStringBJ(rawPayload, metaPos3 + 1, StringLength(rawPayload));
+						}
+					}
 
 					// 派发
 					idx = thistype.findTagIndex(tag);
@@ -211,16 +384,14 @@ library SyncBus {
 						#if SWITCH_SYNCBUS_LOG
 						DzWriteLog("[SyncBus] dispatch begin tag=" + tag + ", payload=" + payload + ", player=" + pName + "(" + I2S(pid) + "), idx=" + I2S(idx));
 						#endif
-						TriggerEvaluate(tg);
+						thistype.dispatchWithContext(tg, p, tag, payload, senderSeq);
 						#if SWITCH_SYNCBUS_LOG
 						DzWriteLog("[SyncBus] dispatch end tag=" + tag + ", payload=" + payload + ", player=" + pName + "(" + I2S(pid) + "), idx=" + I2S(idx));
 						#endif
+						if (thistype.regLaterTrig[idx] != null) {
+							thistype.enqueueLater(idx, p, tag, payload, dueTick, senderSeq);
+						}
 					}
-
-					// 清理上下文
-					thistype.cbPlayer = null;
-					thistype.cbTag = "";
-					thistype.cbPayload = "";
 				} else {
 					#if SWITCH_SYNCBUS_LOG
 					pName = GetPlayerName(p);
@@ -229,17 +400,19 @@ library SyncBus {
 					#endif
 				}
 
-				tg = null; tag = null; payload = null; s = null; p = null; pName = null; status = null;
+				tg = null; tag = null; payload = null; rawPayload = null; s = null; p = null; pName = null; status = null;
 			});
 
 			// 全局tick：用于防抖冷却
-			TimerStart(CreateTimer(),0.05,true,function (){
+			TimerStart(CreateTimer(),SYNC_BUS_TICK_SECONDS,true,function (){
 				integer i;
+				thistype.syncTick += 1;
 				for (i = 0; i < thistype.regCount; i += 1) {
 					if (thistype.debounceRemain[i] > 0) {
 						thistype.debounceRemain[i] -= 1;
 					}
 				}
+				thistype.flushLater();
 			});
 
 			#ifdef SWITCH_SYNCBUS_OOS_DETECH
@@ -306,6 +479,8 @@ library SyncBus {
 		public static method getPlayer() -> player { return thistype.cbPlayer; }
 		public static method getTag() -> string { return thistype.cbTag; }
 		public static method getPayload() -> string { return thistype.cbPayload; }
+		// 返回当前消息的发送方序号；兼容未带 SyncBus 信封的旧 OD 消息时为 0。
+		public static method getSequence() -> integer { return thistype.cbSequence; }
 	}
 
 }

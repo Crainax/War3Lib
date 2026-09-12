@@ -12,8 +12,79 @@ library UTMover requires Mover {
 	// 测试用单位：圣骑士（用于伤害测试）
 	private unit utCaster = null;
 	private trigger utCastTr = null;
-	private integer utTestMode = 1;  // 1=基础移动, 2=带完成回调, 3=带步骤回调, 4=不同配置, 5=到达伤害
+	private integer utTestMode = 1;  // 1-7=基础/伤害移动, 8-11=单位追踪移动
 	private unit utEnemies[];  // 100个农民数组（用于伤害测试）
+
+	private function UTMoverMoveUnitLater(unit target, real delay, real x, real y) {
+		timer t;
+		integer id;
+
+		if (target == null) {
+			return;
+		}
+		t = CreateTimer();
+		id = GetHandleId(t);
+		SaveUnitHandle(HASH_TIMER, id, 1, target);
+		SaveReal(HASH_TIMER, id, 2, x);
+		SaveReal(HASH_TIMER, id, 3, y);
+		TimerStart(t, delay, false, function () {
+			timer tt;
+			integer tid;
+			unit u;
+			real tx;
+			real ty;
+
+			tt = GetExpiredTimer();
+			tid = GetHandleId(tt);
+			u = LoadUnitHandle(HASH_TIMER, tid, 1);
+			tx = LoadReal(HASH_TIMER, tid, 2);
+			ty = LoadReal(HASH_TIMER, tid, 3);
+			if (u != null && GetUnitTypeId(u) != 0 && IsUnitAliveBJ(u)) {
+				SetUnitX(u, YDWECoordinateX(tx));
+				SetUnitY(u, YDWECoordinateY(ty));
+				BJDebugMsg("[MoverTest] 已移动追踪目标到新位置");
+			}
+			FlushChildHashtable(HASH_TIMER, tid);
+			PauseTimer(tt);
+			DestroyTimer(tt);
+			u = null;
+			tt = null;
+		});
+		target = null;
+		t = null;
+	}
+
+	private function UTMoverKillUnitLater(unit target, real delay) {
+		timer t;
+		integer id;
+
+		if (target == null) {
+			return;
+		}
+		t = CreateTimer();
+		id = GetHandleId(t);
+		SaveUnitHandle(HASH_TIMER, id, 1, target);
+		TimerStart(t, delay, false, function () {
+			timer tt;
+			integer tid;
+			unit u;
+
+			tt = GetExpiredTimer();
+			tid = GetHandleId(tt);
+			u = LoadUnitHandle(HASH_TIMER, tid, 1);
+			if (u != null && GetUnitTypeId(u) != 0 && IsUnitAliveBJ(u)) {
+				KillUnit(u);
+				BJDebugMsg("[MoverTest] 已击杀追踪目标");
+			}
+			FlushChildHashtable(HASH_TIMER, tid);
+			PauseTimer(tt);
+			DestroyTimer(tt);
+			u = null;
+			tt = null;
+		});
+		target = null;
+		t = null;
+	}
 
 	// 初始化测试单位
 	private function initUnits() {
@@ -70,6 +141,8 @@ library UTMover requires Mover {
 				real sy;
 				real tx;
 				real ty;
+				unit target;
+				timer mv;
 
 				u = GetTriggerUnit();
 				if (GetSpellAbilityId() != 'A000') {
@@ -233,9 +306,76 @@ library UTMover requires Mover {
 						return true;
 					});
 					BJDebugMsg("[MoverTest] 已创建纯粹伤害特效移动（伤害500，半径200）");
+				} else if (utTestMode == 8) {
+					target = CreateUnit(Player(10), 'hpea', tx, ty, 0.0);
+					EffectMoveCfg.speed = 900.0;
+					EffectMoveCfg.modelPath = "Abilities\\Weapons\\FireBallMissile\\FireBallMissile.mdl";
+					EffectMoveCfg.scale = 1.5;
+					EffectMoveCfg.heightOffset = -128.0;
+					EffectMoveCfg.radius = 0.0;
+					EffectMoveCfg.damage = 0.0;
+					EffectMoveCfg.onStep = null;
+					mv = StartEffectMoveToUnit(utCaster, sx, sy, target, EFFECTMOVE_TRACK_DEAD_LAST_POS, function () -> boolean {
+						BJDebugMsg("[MoverTest] 追踪移动活目标完成, reason=" + I2S(EffectMoveGetEndReason()) + ", 期望=" + I2S(EFFECTMOVE_END_TARGET));
+						return true;
+					});
+					if (mv != null) {
+						UTMoverMoveUnitLater(target, 0.35, tx + 500.0, ty + 250.0);
+					}
+					BJDebugMsg("[MoverTest] 已创建追踪移动活目标弹道");
+				} else if (utTestMode == 9) {
+					target = CreateUnit(Player(10), 'hpea', tx, ty, 0.0);
+					EffectMoveCfg.speed = 900.0;
+					EffectMoveCfg.modelPath = "Abilities\\Weapons\\FireBallMissile\\FireBallMissile.mdl";
+					EffectMoveCfg.scale = 1.5;
+					EffectMoveCfg.heightOffset = 80.0;
+					EffectMoveCfg.radius = 0.0;
+					EffectMoveCfg.damage = 0.0;
+					EffectMoveCfg.onStep = null;
+					mv = StartEffectMoveToUnit(utCaster, sx, sy, target, EFFECTMOVE_TRACK_DEAD_LAST_POS, function () -> boolean {
+						BJDebugMsg("[MoverTest] 追踪目标死亡后飞最后位置完成, reason=" + I2S(EffectMoveGetEndReason()) + ", 期望=" + I2S(EFFECTMOVE_END_LAST_POS));
+						return true;
+					});
+					if (mv != null) {
+						UTMoverKillUnitLater(target, 0.35);
+					}
+					BJDebugMsg("[MoverTest] 已创建目标死亡后飞最后位置弹道");
+				} else if (utTestMode == 10) {
+					target = CreateUnit(Player(10), 'hpea', tx, ty, 0.0);
+					EffectMoveCfg.speed = 900.0;
+					EffectMoveCfg.modelPath = "Abilities\\Weapons\\FireBallMissile\\FireBallMissile.mdl";
+					EffectMoveCfg.scale = 1.5;
+					EffectMoveCfg.heightOffset = 80.0;
+					EffectMoveCfg.radius = 0.0;
+					EffectMoveCfg.damage = 0.0;
+					EffectMoveCfg.onStep = null;
+					mv = StartEffectMoveToUnit(utCaster, sx, sy, target, EFFECTMOVE_TRACK_DEAD_DESTROY, function () -> boolean {
+						BJDebugMsg("[MoverTest] 追踪目标死亡后直接结束完成, reason=" + I2S(EffectMoveGetEndReason()) + ", 期望=" + I2S(EFFECTMOVE_END_TARGET_LOST));
+						return true;
+					});
+					if (mv != null) {
+						UTMoverKillUnitLater(target, 0.35);
+					}
+					BJDebugMsg("[MoverTest] 已创建目标死亡后直接结束弹道");
+				} else if (utTestMode == 11) {
+					target = CreateUnit(Player(10), 'hpea', sx + 2300.0, sy, 0.0);
+					EffectMoveCfg.speed = 1800.0;
+					EffectMoveCfg.modelPath = "Abilities\\Weapons\\FireBallMissile\\FireBallMissile.mdl";
+					EffectMoveCfg.scale = 1.5;
+					EffectMoveCfg.heightOffset = 80.0;
+					EffectMoveCfg.radius = 0.0;
+					EffectMoveCfg.damage = 0.0;
+					EffectMoveCfg.onStep = null;
+					mv = StartEffectMoveToUnitEx(utCaster, sx, sy, target, 2600.0, EFFECTMOVE_TRACK_DEAD_LAST_POS, function () -> boolean {
+						BJDebugMsg("[MoverTest] 自定义2600追踪距离完成, reason=" + I2S(EffectMoveGetEndReason()) + ", 期望=" + I2S(EFFECTMOVE_END_TARGET));
+						return true;
+					});
+					BJDebugMsg("[MoverTest] 已创建自定义2600追踪距离弹道, 目标距离2300");
 				}
 
 				u = null;
+				target = null;
+				mv = null;
 				return true;
 			}));
 		}
@@ -342,9 +482,49 @@ library UTMover requires Mover {
 		BJDebugMsg("[MoverTest] 请对目标点施放 A000 技能，终点半径内的敌人会受到伤害");
 	}
 
-	function TTestUTMover8 (player p) {}
-	function TTestUTMover9 (player p) {}
-	function TTestUTMover10 (player p) {}
+	function TTestUTMover8 (player p) {
+		initUnits();
+		if (utCaster == null) {
+			BJDebugMsg("[MoverTest] 单位未初始化");
+			return;
+		}
+		utTestMode = 8;
+		BJDebugMsg("[MoverTest] 测试8: 追踪移动中的活目标");
+		BJDebugMsg("[MoverTest] 请对目标点施放 A000 技能, 目标会在0.35秒后移动");
+	}
+
+	function TTestUTMover9 (player p) {
+		initUnits();
+		if (utCaster == null) {
+			BJDebugMsg("[MoverTest] 单位未初始化");
+			return;
+		}
+		utTestMode = 9;
+		BJDebugMsg("[MoverTest] 测试9: 目标死亡后飞向最后记录位置");
+		BJDebugMsg("[MoverTest] 请对目标点施放 A000 技能, 目标会在0.35秒后死亡");
+	}
+
+	function TTestUTMover10 (player p) {
+		initUnits();
+		if (utCaster == null) {
+			BJDebugMsg("[MoverTest] 单位未初始化");
+			return;
+		}
+		utTestMode = 10;
+		BJDebugMsg("[MoverTest] 测试10: 目标死亡后直接结束弹道");
+		BJDebugMsg("[MoverTest] 请对目标点施放 A000 技能, 目标会在0.35秒后死亡");
+	}
+
+	function TTestUTMover11 (player p) {
+		initUnits();
+		if (utCaster == null) {
+			BJDebugMsg("[MoverTest] 单位未初始化");
+			return;
+		}
+		utTestMode = 11;
+		BJDebugMsg("[MoverTest] 测试11: 自定义2600追踪距离");
+		BJDebugMsg("[MoverTest] 请施放 A000 技能, 目标固定生成在距离2300处");
+	}
 
 	function TTestActUTMover1 (string str) {
 		player  p	 = GetTriggerPlayer();
@@ -407,6 +587,7 @@ library UTMover requires Mover {
 			else if(str == "s8") TTestUTMover8(GetTriggerPlayer());
 			else if(str == "s9") TTestUTMover9(GetTriggerPlayer());
 			else if(str == "s10") TTestUTMover10(GetTriggerPlayer());
+			else if(str == "s11") TTestUTMover11(GetTriggerPlayer());
 		});
 
 		//YDWECoordinateX

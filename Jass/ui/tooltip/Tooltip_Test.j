@@ -7,7 +7,7 @@
 //! zinc
 
 //自动生成的文件
-library UTTooltip requires Tooltip {
+library UTTooltip requires Tooltip, UIExtendEvent, UIImage, UIButton, UIHashTable, Hardware {
 
 	function Init () {
 		UnitTestAutoTimer(1.0, 2.0, function() {
@@ -43,6 +43,59 @@ library UTTooltip requires Tooltip {
 	tooltip tip = 0;
 	integer count = 1;
 	tooltip upTip = 0;
+	uiImage passImage = 0;
+	uiBtn passButton = 0;
+	tooltip passTip = 0;
+	boolean passTraceEnabled = false;
+
+	function TooltipTestBoolText(boolean value) -> string {
+		if (value) {
+			return "1";
+		}
+		return "0";
+	}
+
+	function TooltipTestTraceRight(string stage) {
+		if (!passTraceEnabled) {
+			return;
+		}
+		BJDebugMsg("[TooltipPass] " + stage
+			+ " uiId=" + I2S(uiEventState.uiId)
+			+ " rcStart=" + TooltipTestBoolText(uiEventState.rcStart)
+			+ " focus=" + I2S(DzGetMouseFocus()));
+	}
+
+	function TooltipTestDestroyPassTip() {
+		if (passTip != 0 && passTip.isExist()) {
+			passTip.destroy();
+		}
+		passTip = 0;
+	}
+
+	function TooltipTestShowPassTip() {
+		TooltipTestDestroyPassTip();
+		passTip = tooltip.create()
+			.layoutTitleDesc("Tooltip右键穿透测试", "右键下方图标,应触发 PASS_RIGHT")
+			.setAbsPoint(ANCHOR_CENTER, 0.4, 0.3);
+		BJDebugMsg("[TooltipPass] SHOW_TOOLTIP");
+	}
+
+	function TooltipTestDestroyPassCase() {
+		TooltipTestDestroyPassTip();
+		if (passButton != 0) {
+			if (passButton.isExist()) {
+				passButton.destroy();
+			}
+			passButton = 0;
+		}
+		if (passImage != 0) {
+			if (passImage.isExist()) {
+				passImage.destroy();
+			}
+			passImage = 0;
+		}
+		passTraceEnabled = false;
+	}
 	function TTestUTTooltip3 (player p) {
 		tip = tooltip.create()
 			.layoutFlexible("第一行文本")
@@ -105,8 +158,32 @@ library UTTooltip requires Tooltip {
 			upTip = 0;
 		}
 	}
-	function TTestUTTooltip7 (player p) {}
-	function TTestUTTooltip8 (player p) {}
+	function TTestUTTooltip7 (player p) {
+		TooltipTestDestroyPassCase();
+		passTraceEnabled = true;
+		passImage = uiImage.create(DzGetGameUI())
+			.setSize(0.12, 0.08)
+			.setAbsPoint(ANCHOR_CENTER, 0.4, 0.3)
+			.setTexture("ReplaceableTextures\\CommandButtons\\BTNKeeperOfTheGrove.blp");
+		passButton = uiBtn.create(DzGetGameUI())
+			.setAllPoint(passImage.ui)
+			.spEnter(function(integer frame) {
+				BJDebugMsg("[TooltipPass] ENTER frame=" + I2S(frame));
+				TooltipTestShowPassTip();
+			})
+			.spLeave(function(integer frame) {
+				BJDebugMsg("[TooltipPass] LEAVE frame=" + I2S(frame));
+			})
+			.spRightClick(function(integer frame) {
+				BJDebugMsg("[TooltipPass] PASS_RIGHT frame=" + I2S(frame));
+			});
+		uiHashTable(passButton.ui).eventdata.bind(7007);
+		BJDebugMsg("[TooltipPass] 已创建: 鼠标移到中央图标后右键,正常应看到 PASS_RIGHT");
+	}
+	function TTestUTTooltip8 (player p) {
+		TooltipTestDestroyPassCase();
+		BJDebugMsg("[TooltipPass] 已清理");
+	}
 	function TTestUTTooltip9 (player p) {}
 	function TTestUTTooltip10 (player p) {}
 	function TTestActUTTooltip1 (string str) {
@@ -151,11 +228,18 @@ library UTTooltip requires Tooltip {
 		TriggerRegisterTimerEventSingle(tr,0.5);
 		TriggerAddCondition(tr,Condition(function (){
 			BJDebugMsg("[Tooltip] 单元测试已加载");
-			BJDebugMsg("输入 s1/s2 创建提示框, -width number 设置宽度");
+			BJDebugMsg("输入 s1/s2 创建提示框, s7 创建右键穿透测试, s8 清理, -width number 设置宽度");
 			Init();
 			DestroyTrigger(GetTriggeringTrigger());
 		}));
 		tr = null;
+
+		hardware.regRightDownEvent(function() {
+			TooltipTestTraceRight("RIGHT_DOWN");
+		});
+		hardware.regRightUpEvent(function() {
+			TooltipTestTraceRight("RIGHT_UP");
+		});
 
 		UnitTestRegisterChatEvent(function () {
 			string str = GetEventPlayerChatString();

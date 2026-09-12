@@ -3,8 +3,8 @@
 
 
 /*
-	存放SXTable的索引(以单位的ID作为父索引),去定义非重复值
-	从1000开始吧
+存放SXTable的索引(以单位的ID作为父索引),去定义非重复值
+从1000开始吧
 */
 //基础属性
 #define KIA3W 1
@@ -36,8 +36,6 @@
 #define KEY_EXP_RATE 25
 //金钱获得率
 #define KEY_GOLD_RATE 26
-//暴击敏捷系数
-#define KEY_CRITICAL_AGI_RATE 27
 //力量百分比
 #define KEY_STR_RATE 28
 //敏捷百分比
@@ -54,10 +52,6 @@
 #define KEY_ATTACK_RATE 35
 //魔法回复百分比
 #define KEY_MANA_REGEN_RATE 36
-//减少受到的伤害量
-#define KEY_DAMAGE_REDUCE 37
-//减少受到的伤害比
-#define KEY_DAMAGE_REDUCE_RAT 38
 //移速
 #define KEY_MOVE_SPEED 39
 //主属性
@@ -72,16 +66,36 @@
 #define KEY_PHYSICAL_DAMAGE 44
 //次属性
 #define KEY_SUB_ATTR 45
+//结晶获得率
+#define KEY_JIEJING_RATE 46
+//被动技能伤害
+#define KEY_PASSIVE_DAMAGE 47
+//天赋技能伤害
+#define KEY_TIANFU_DAMAGE 48
+//对BOSS伤害
+#define KEY_BOSS_DAMAGE 49
+//对进攻怪伤害
+#define KEY_JINGONG_DAMAGE 50
+//总攻击暴击真伤百分比
+#define KEY_ATTACK_CRIT_TRUE_RATE 51
+//该装备类型的圣晶石效果倍率
+#define KEY_ITEM_TYPE_SHENGJINGSHI_EFFECT_RATE 52
 
 //对应原装备的ID
 #define KEY_ITEM_ORIGIN 16
 
 //存技能1
 #define KEY_ITEM_ABILITY_1 101
+//存技能1等级
+#define KEY_ITEM_ABILITY_1_LV 'A1LV'
 //存技能2
 #define KEY_ITEM_ABILITY_2 102
+//存技能2等级
+#define KEY_ITEM_ABILITY_2_LV 'A2LV'
 //存技能3
 #define KEY_ITEM_ABILITY_3 103
+//物品类型默认流光
+#define KEY_ITEM_TYPE_GROW 104
 
 
 
@@ -92,6 +106,8 @@
 #define HASH_KEY_UNIT_EXCLUDE_ABILITY_DECORATE 17237719
 #define KEY_UNIT_ARENA_ATTACK_RATE_KEY  17237229
 #define KEY_UNIT_ARENA_HP_RATE_KEY  17237230
+#define KEY_UNIT_ARENA_SPAWN_COUNT 17237231          // HASH_TYPEID中保存单个怪物刷怪数量的key
+#define KEY_UNIT_ARENA_JIEJING_DROP_SCORE 17237232   // HASH_TYPEID中保存单个怪物结晶掉落进度的key
 
 
 //技能ID:
@@ -99,6 +115,9 @@
 #define SPELL_MULTIABLE_KEY     100002000    //是否能多重施法
 #define SPELL_USE_TYPE_KEY      100003000    //使用类型
 #define SPELL_POINTER_KEY       100004000    //指针
+#define SPELL_SHOP_UPGRADE_COST_MULTIPLIER_KEY 100005000 // SpellShop升级费用倍率
+#define SPELL_TOOLTIP_HIDE_LEVEL_KEY 100006000 // 自定义tooltip隐藏等级标题段
+#define TALENT_LIMIT_ELIGIBLE_KEY    100007000 // HASH_TYPEID：允许天赋极限强化（integer 1）
 
 
 //异度用:   10000-100000之间不重复
@@ -123,6 +142,8 @@
 #define MOSHOU_KEY_DAMAGE_RATE 10112  // 魔兽:伤害百分比(小数)
 // 魔兽/召唤物：
 #define MOSHOU_KEY_GUARDER_TRAVERSE_EXCLUDE 10113
+#define MOSHOU_KEY_DAMAGE_TRANSFER_RATE 10114 // 魔兽承受伤害转移给英雄的独立倍率（默认1.0）
+#define MOSHOU_KEY_INNATE_MULTI_COUNT 10115 // 战斗宠物按类型自带的额外弹道数
 
 
 #endif

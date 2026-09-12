@@ -17,27 +17,25 @@ library HashTable {
         hashtable HASH_DIALOG  = InitHashtable();  // 对话框哈希表
     }
 
-    // 能力装饰相关：根据单位 + 技能ID 生成父键（纯整数散列）
+    // (unit, abilityId) 需要落到 HASH_ABILITY 的单一 parent key，
+    // 因此使用独立二级表分配无冲突记录号，不再压缩散列两个整数。
+    // GetHandleId 只是本机查表的 parent；返回记录号不参与任何跨客户端排序或业务裁决。
+    private hashtable abilityKeyIndex = InitHashtable();
+    private integer abilityKeyIndexNext = 0;
+
+    // 根据单位 + 技能 ID 取得唯一 HASH_ABILITY parent key。
     public function GetAbilityHashKey (unit u, integer abilId) -> integer {
-        integer uid; integer h;
+        integer uid; integer key;
         if (u == null || abilId == 0) { return 0; }
         uid = GetHandleId(u);
 
-        // 说明：
-        //  - abilId 通常是四字符代码（如 'ALoc'），在 32 位整数全域内分布
-        //  - uid 一般是百万级整数（句柄ID），远小于 abilId 的数量级
-        // 这里用两个互不相关的大奇数常量做线性组合，再对一个大素数取模，
-        // 避免简单移位/乘法导致的小周期模式，尽可能降低碰撞概率。
-
-        // 线性混合（允许 32 位溢出，当作模 2^32 运算的一部分）
-        h = abilId * 1103515245 + uid * 1597334677 + 104395301;
-
-        // 映射到 (1 .. 2147483646) 范围，避免出现 0 和 -2^31 这种特殊值
-        h = ModuloInteger(h, 2147483647); // 2147483647 = 2^31 - 1，素数
-        if (h <= 0) {
-            h = h + 2147483647;
+        key = LoadInteger(abilityKeyIndex, uid, abilId);
+        if (key == 0) {
+            abilityKeyIndexNext += 1;
+            key = abilityKeyIndexNext;
+            SaveInteger(abilityKeyIndex, uid, abilId, key);
         }
-        return h;
+        return key;
     }
 
 

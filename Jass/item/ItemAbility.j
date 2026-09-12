@@ -16,9 +16,6 @@
 
 //! zinc
 
-#define KEY_ITEM_ABILITY_1_LV 'A1LV'
-#define KEY_ITEM_ABILITY_2_LV 'A2LV'
-
 library ItemAbility {
 
     hashtable HASH_UNIT_ABILITY = InitHashtable();

@@ -1,0 +1,4 @@
+interface:
+  display_name: "War3Lib Tooltip"
+  short_description: "Use War3Lib tooltip.create UI patterns"
+  default_prompt: "Use $war3lib-tooltip to create or refactor War3Lib Tooltip UI code with correct layout, stacking, and cleanup."

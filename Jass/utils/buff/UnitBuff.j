@@ -4,6 +4,8 @@
 
 #include "Crainax/core/constant/JapiConstant.j"
 #include "Crainax/core/table/Hash_UnitDefine.j"
+#include "YDWEBase.j"
+#include "japi/YDWEJapiUnit.j"
 
 //! zinc
 /*
@@ -18,7 +20,145 @@
 #define DEFENSE_REDUCE_EFFECT_PATH "Abilities\\Spells\\NightElf\\FaerieFire\\FaerieFireTarget.mdl"
 #define DEFENSE_REDUCE_EFFECT_POINT "head"
 
+// 沉默/缴械统一使用原生沉默魔法目标特效（db/buff.ini: [BNsi] TargetArt）
+#define SILENCE_DISABLE_EFFECT_PATH "Abilities\\Spells\\Other\\Silence\\SilenceTarget.mdl"
+#define SILENCE_DISABLE_EFFECT_POINT "overhead"
+
 library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFilter, GroupUtils {
+
+    private function AttachSilenceDisableEffect(unit u) {
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+        bindEffect.attachUnique(u, SILENCE_DISABLE_EFFECT_PATH, SILENCE_DISABLE_EFFECT_POINT);
+    }
+
+    private function DetachSilenceDisableEffectIfUnused(unit u) {
+        integer hid;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT) && !HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
+            bindEffect.detachUnique(u, SILENCE_DISABLE_EFFECT_PATH);
+        }
+    }
+
+    private function ApplySilenceNative(unit u) {
+        integer hid;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        if (!HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_SILENCE_NATIVE_ON)) {
+            DzUnitSilence(u, true);
+            SaveInteger(HASH_UNIT, hid, KEY_UNIT_SILENCE_NATIVE_ON, 1);
+        }
+    }
+
+    private function ReleaseSilenceNative(unit u) {
+        integer hid;
+
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedInteger(HASH_UNIT, hid, KEY_UNIT_SILENCE_NATIVE_ON)) {
+            if (GetUnitTypeId(u) != 0) {
+                DzUnitSilence(u, false);
+            }
+            RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_SILENCE_NATIVE_ON);
+        }
+    }
+
+    // 获取一份底层缴械锁；第一份锁负责实际禁用攻击。
+    public function AcquireUnitDisarm(unit u) -> boolean {
+        integer hid;
+        integer lockCount;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+
+        hid = GetHandleId(u);
+        lockCount = LoadInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON);
+        if (lockCount <= 0) {
+            DzUnitDisableAttack(u, true);
+        }
+        SaveInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON, lockCount + 1);
+        return true;
+    }
+
+    // 释放一份底层缴械锁；最后一份锁释放后才恢复攻击。
+    public function ReleaseUnitDisarm(unit u) {
+        integer hid;
+        integer lockCount;
+
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        lockCount = LoadInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON);
+        if (lockCount <= 0) {
+            return;
+        }
+        if (lockCount == 1) {
+            if (GetUnitTypeId(u) != 0) {
+                DzUnitDisableAttack(u, false);
+            }
+            RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON);
+        } else {
+            SaveInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON, lockCount - 1);
+        }
+    }
+
+    private function GetEXPauseLockCount(unit u, integer key) -> integer {
+        integer hid;
+
+        if (u == null) { return 0; }
+
+        hid = GetHandleId(u);
+        if (!HaveSavedInteger(HASH_UNIT, hid, key)) { return 0; }
+        return LoadInteger(HASH_UNIT, hid, key);
+    }
+
+    private function HasAnyEXPauseLock(unit u) -> boolean {
+        if (u == null) { return false; }
+
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_STUN) > 0) { return true; }
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST) > 0) { return true; }
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST) > 0) { return true; }
+        return false;
+    }
+
+    private function ApplyEXPauseLock(unit u, integer key) {
+        integer hid; integer count; boolean wasLocked;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        wasLocked = HasAnyEXPauseLock(u);
+        count = GetEXPauseLockCount(u, key);
+        SaveInteger(HASH_UNIT, hid, key, count + 1);
+
+        if (!wasLocked) {
+            EXPauseUnit(u, true);
+        }
+    }
+
+    private function ReleaseEXPauseLock(unit u, integer key) {
+        integer hid; integer count;
+
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        count = GetEXPauseLockCount(u, key);
+        if (count <= 0) { return; }
+
+        if (count <= 1) {
+            RemoveSavedInteger(HASH_UNIT, hid, key);
+        } else {
+            SaveInteger(HASH_UNIT, hid, key, count - 1);
+        }
+
+        if (GetUnitTypeId(u) != 0 && !HasAnyEXPauseLock(u)) {
+            EXPauseUnit(u, false);
+        }
+    }
 
     // 无敌队列：集中管理所有处于无敌中的单位
     private struct ImmuteQueue [] {
@@ -56,7 +196,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
             // 检查队列容量
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[ImmuteQueue] 队列已满，无法继续添加无敌单位！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[ImmuteQueue] 队列已满，无法继续添加无敌单位！|r");
                 return;
             }
 
@@ -169,7 +309,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                     RemoveSavedString(HASH_UNIT, hid, KEY_UNIT_PAUSE_LOC);
                 }
 
-                EXPauseUnit(ru, false);
+                ReleaseEXPauseLock(ru, KEY_UNIT_EX_PAUSE_LOCK_STUN);
                 // BJDebugMsg(I2S(GetHandleId(ru))+"pause:false");
             }
 
@@ -193,7 +333,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             }
 
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[PauseQueue] 队列已满，无法继续添加眩晕单位！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[PauseQueue] 队列已满，无法继续添加眩晕单位！|r");
                 return;
             }
 
@@ -246,6 +386,94 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
     }
 
 
+    // 前摇暂停队列：只管理限时前摇锁，不进入眩晕抗性/CD/异常状态
+    private struct PrecastPauseQueue [] {
+        private static unit uList[];
+        private static integer size = 0;
+        private static timer tickTimer = null;
+
+        private static method removeAt(integer index) -> integer {
+            integer last; unit ru; integer hid;
+            if (index < 0 || index >= thistype.size) { return index; }
+
+            ru = thistype.uList[index];
+            if (ru != null) {
+                hid = GetHandleId(ru);
+                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT)) {
+                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+                }
+                ReleaseEXPauseLock(ru, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST);
+            }
+
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.uList[index] = thistype.uList[last];
+            }
+            thistype.uList[last] = null;
+            thistype.size -= 1;
+            ru = null;
+            return index - 1;
+        }
+
+        public static method addUnit(unit u) {
+            integer i;
+            if (u == null) { return; }
+
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { return; }
+            }
+
+            if (thistype.size >= 8190) {
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[PrecastPauseQueue] 队列已满，无法继续添加前摇暂停单位！|r");
+                return;
+            }
+
+            thistype.uList[thistype.size] = u;
+            thistype.size += 1;
+
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.02, true, function () {
+                    integer i; integer hid; unit u; real timeLeft;
+
+                    for (i = 0; i < thistype.size; i += 1) {
+                        u = thistype.uList[i];
+                        if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                            i = thistype.removeAt(i);
+                            u = null;
+                        } else {
+                            hid = GetHandleId(u);
+                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT)) {
+                                i = thistype.removeAt(i);
+                                u = null;
+                            } else {
+                                timeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+                                if (timeLeft > 0.0) {
+                                    timeLeft = timeLeft - 0.02;
+                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT, timeLeft);
+                                    u = null;
+                                } else {
+                                    i = thistype.removeAt(i);
+                                    u = null;
+                                }
+                            }
+                        }
+                    }
+
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        if (thistype.size <= 0) {BJDebugMsg("PrecastPauseQueue: 前摇暂停队列已销毁");}
+                        #endif
+                    }
+                });
+            }
+        }
+    }
+
+
     // 眩晕CD队列：集中管理处于“眩晕CD”中的单位（独立计时器，仅递减 KEY_UNIT_STUN_CD_LEFT）
     private struct StunCdQueue [] {
         private static unit uList[];
@@ -275,7 +503,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             }
 
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[StunCdQueue] 队列已满，无法继续添加眩晕CD单位！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[StunCdQueue] 队列已满，无法继续添加眩晕CD单位！|r");
                 return;
             }
 
@@ -328,6 +556,198 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
                         // #if (CURRENT_BUILD_VERSION != VERSION_RELEASE)
                         #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
                         if (thistype.size <= 0) {BJDebugMsg("StunCdQueue: 眩晕CD队列已销毁");}
+                        #endif
+                    }
+                });
+            }
+        }
+    }
+
+    // 沉默队列：集中管理禁用技能状态，到期后自动恢复
+    private struct SilenceQueue [] {
+        private static unit uList[];
+        private static integer size = 0;
+        private static timer tickTimer = null;
+
+        private static method removeAt(integer index) -> integer {
+            integer last; unit ru; integer hid;
+            if (index < 0 || index >= thistype.size) { return index; }
+
+            ru = thistype.uList[index];
+            if (ru != null) {
+                hid = GetHandleId(ru);
+                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) {
+                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+                }
+                ReleaseSilenceNative(ru);
+                DetachSilenceDisableEffectIfUnused(ru);
+            }
+
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.uList[index] = thistype.uList[last];
+            }
+            thistype.uList[last] = null;
+            thistype.size -= 1;
+            ru = null;
+            return index - 1;
+        }
+
+        public static method addUnit(unit u) {
+            integer i;
+            if (u == null) { return; }
+
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { return; }
+            }
+
+            if (thistype.size >= 8190) {
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[SilenceQueue] 队列已满，无法继续添加沉默单位！|r");
+                return;
+            }
+
+            thistype.uList[thistype.size] = u;
+            thistype.size += 1;
+
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.05, true, function () {
+                    integer i; integer hid; unit u; real timeLeft;
+
+                    for (i = 0; i < thistype.size; i += 1) {
+                        u = thistype.uList[i];
+                        if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                            i = thistype.removeAt(i);
+                            u = null;
+                        } else {
+                            hid = GetHandleId(u);
+                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) {
+                                i = thistype.removeAt(i);
+                                u = null;
+                            } else {
+                                timeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+                                if (timeLeft > 0.0) {
+                                    timeLeft = timeLeft - 0.05;
+                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT, timeLeft);
+                                    u = null;
+                                } else {
+                                    i = thistype.removeAt(i);
+                                    u = null;
+                                }
+                            }
+                        }
+                    }
+
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        if (thistype.size <= 0) {BJDebugMsg("SilenceQueue: 沉默队列已销毁");}
+                        #endif
+                    }
+                });
+            }
+        }
+    }
+
+    // 缴械队列：集中管理禁用攻击状态，到期后自动恢复
+    private struct DisarmQueue [] {
+        private static unit uList[];
+        private static integer size = 0;
+        private static timer tickTimer = null;
+
+        private static method removeAt(integer index) -> integer {
+            integer last; unit ru; integer hid;
+            boolean hadTimedDisarm;
+            if (index < 0 || index >= thistype.size) { return index; }
+
+            ru = thistype.uList[index];
+            if (ru != null) {
+                hid = GetHandleId(ru);
+                hadTimedDisarm = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+                }
+                if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
+                    RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT);
+                }
+                if (hadTimedDisarm) {
+                    ReleaseUnitDisarm(ru);
+                }
+                DetachSilenceDisableEffectIfUnused(ru);
+            }
+
+            last = thistype.size - 1;
+            if (index != last) {
+                thistype.uList[index] = thistype.uList[last];
+            }
+            thistype.uList[last] = null;
+            thistype.size -= 1;
+            ru = null;
+            return index - 1;
+        }
+
+        public static method addUnit(unit u) {
+            integer i;
+            if (u == null) { return; }
+
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { return; }
+            }
+
+            if (thistype.size >= 8190) {
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[DisarmQueue] 队列已满，无法继续添加缴械单位！|r");
+                return;
+            }
+
+            thistype.uList[thistype.size] = u;
+            thistype.size += 1;
+
+            if (thistype.tickTimer == null) {
+                thistype.tickTimer = CreateTimer();
+                TimerStart(thistype.tickTimer, 0.05, true, function () {
+                    integer i; integer hid; unit u; real timeLeft; real effectTimeLeft;
+
+                    for (i = 0; i < thistype.size; i += 1) {
+                        u = thistype.uList[i];
+                        if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                            i = thistype.removeAt(i);
+                            u = null;
+                        } else {
+                            hid = GetHandleId(u);
+                            if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT)) {
+                                i = thistype.removeAt(i);
+                                u = null;
+                            } else {
+                                timeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+                                if (timeLeft > 0.0) {
+                                    timeLeft = timeLeft - 0.05;
+                                    SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT, timeLeft);
+                                    if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
+                                        effectTimeLeft = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT) - 0.05;
+                                        if (effectTimeLeft > 0.0) {
+                                            SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT, effectTimeLeft);
+                                        } else {
+                                            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT);
+                                            DetachSilenceDisableEffectIfUnused(u);
+                                        }
+                                    }
+                                    u = null;
+                                } else {
+                                    i = thistype.removeAt(i);
+                                    u = null;
+                                }
+                            }
+                        }
+                    }
+
+                    if (thistype.size <= 0 && thistype.tickTimer != null) {
+                        PauseTimer(thistype.tickTimer);
+                        DestroyTimer(thistype.tickTimer);
+                        thistype.tickTimer = null;
+                        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+                        if (thistype.size <= 0) {BJDebugMsg("DisarmQueue: 缴械队列已销毁");}
                         #endif
                     }
                 });
@@ -401,7 +821,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
             // 检查队列容量
             if (thistype.size >= 8190) {
-                BJDebugMsg("|cFFFF0000[TimerBuffQueue] 队列已满，无法继续添加定时器 BUFF！|r");
+                DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "|cFFFF0000[TimerBuffQueue] 队列已满，无法继续添加定时器 BUFF！|r");
                 return null;
             }
 
@@ -594,167 +1014,282 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         }
     }
 
-    // 时间破防（带冲突位和剩余时间）
-    public function ReduceDefenseTime(unit u, integer slot, integer defense, real remainTime) {
-        integer hid; integer defKey; integer timeKey; integer old; integer newDef; real oldTime; timer t; integer tid;
+    // 百分比破防需要 (unit, sourceType) 和 (source, instanceId) 两级键。
+    // 独立 index/data 键空间可避免 StringHash 碰撞，也避免记录 parent 与 HASH_UNIT 真实 unit parent 串键。
+    private hashtable defenseDownPercentIndex = InitHashtable();
+    private hashtable defenseDownPercentData = InitHashtable();
+    private integer defenseDownPercentRecordNext = 0;
 
-        if (u == null || !IsUnitAliveBJ(u)) { return; }
-        if (slot < 1 || slot > 10) { return; }
-        if (remainTime <= 0.0) { return; }
+    private function AllocateDefenseDownPercentRecord() -> integer {
+        defenseDownPercentRecordNext -= 1;
+        return defenseDownPercentRecordNext;
+    }
+
+    private function GetOrCreateDefenseDownPercentSourceParent(integer hid, integer sourceType) -> integer {
+        integer parent;
+
+        parent = LoadInteger(defenseDownPercentIndex, hid, sourceType);
+        if (parent == 0) {
+            parent = AllocateDefenseDownPercentRecord();
+            SaveInteger(defenseDownPercentIndex, hid, sourceType, parent);
+        }
+        return parent;
+    }
+
+    private function GetOrCreateDefenseDownPercentTimerParent(integer sourceParent, integer instanceId) -> integer {
+        integer parent;
+
+        parent = LoadInteger(defenseDownPercentIndex, sourceParent, instanceId);
+        if (parent == 0) {
+            parent = AllocateDefenseDownPercentRecord();
+            SaveInteger(defenseDownPercentIndex, sourceParent, instanceId, parent);
+        }
+        return parent;
+    }
+
+    private function AttachDefenseDownPercentEffect(unit u) {
+        integer hid; integer count;
+
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
 
         hid = GetHandleId(u);
-        defKey = HASH_UNIT_DEFENSE_REDUCE_VALUE + (slot - 1);
-        timeKey = defKey + 10;
-
-        // 读取旧值，取最大值
-        if (HaveSavedInteger(HASH_UNIT, hid, defKey)) {
-            old = LoadInteger(HASH_UNIT, hid, defKey);
-        } else {
-            old = 0;
+        count = LoadInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT);
+        if (count <= 0) {
+            bindEffect.attachUnique(u, DEFENSE_REDUCE_EFFECT_PATH, DEFENSE_REDUCE_EFFECT_POINT);
+            count = 0;
         }
-        newDef = IMaxBJ(old, defense);
+        SaveInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT, count + 1);
+    }
 
-        // 如果破防值增加，更新防御
-        if (newDef > old) {
-            SaveInteger(HASH_UNIT, hid, defKey, newDef);
-            AddUnitDefenseBonus(u, (newDef - old) * -1);
-            // 第一次产生破防时附加特效
-            if (old == 0) {
-                bindEffect.attachUnique(u, DEFENSE_REDUCE_EFFECT_PATH, DEFENSE_REDUCE_EFFECT_POINT);
+    private function DetachDefenseDownPercentEffect(unit u) {
+        integer hid; integer count;
+
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        count = LoadInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT);
+        if (count <= 1) {
+            RemoveSavedInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT);
+            if (GetUnitTypeId(u) != 0) {
+                bindEffect.detachUnique(u, DEFENSE_REDUCE_EFFECT_PATH);
             }
-        }
-
-        // 更新剩余时间（取最大值）
-        if (HaveSavedReal(HASH_UNIT, hid, timeKey)) {
-            oldTime = LoadReal(HASH_UNIT, hid, timeKey);
-            SaveReal(HASH_UNIT, hid, timeKey, RMaxBJ(oldTime, remainTime));
         } else {
-            SaveReal(HASH_UNIT, hid, timeKey, remainTime);
-        }
-
-        // 检查是否需要创建新的计时器（通过检查是否有该 slot 的 timer）
-        // 使用一个辅助键来存储 (unit, slot) -> timer 的映射
-        tid = GetHandleId(u) * 100 + slot;
-        if (!HaveSavedHandle(HASH_UNIT, tid, 1)) {
-            // 创建新的计时器
-            t = CreateTimer();
-            tid = GetHandleId(t);
-            SaveUnitHandle(HASH_TIMER, tid, 1, u);
-            SaveInteger(HASH_TIMER, tid, 2, slot);
-            // 保存 (unit, slot) -> timer 的映射，方便检查
-            SaveTimerHandle(HASH_UNIT, GetHandleId(u) * 100 + slot, 1, t);
-            TimerStart(t, 0.10, true, function () {
-                timer t; integer id; integer hid; unit u; integer slot; integer defKey; integer timeKey; integer defense; real timeLeft;
-
-                t = GetExpiredTimer();
-                id = GetHandleId(t);
-                u = LoadUnitHandle(HASH_TIMER, id, 1);
-                slot = LoadInteger(HASH_TIMER, id, 2);
-
-                // 检查单位是否有效
-                if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
-                    // 单位已失效，提前结束
-                    if (u != null) {
-                        hid = GetHandleId(u);
-                        defKey = HASH_UNIT_DEFENSE_REDUCE_VALUE + (slot - 1);
-                        timeKey = defKey + 10;
-                        if (HaveSavedInteger(HASH_UNIT, hid, defKey)) {
-                            defense = LoadInteger(HASH_UNIT, hid, defKey);
-                            // 尝试恢复防御（如果单位还存在）
-                            if (GetUnitTypeId(u) != 0) {
-                                AddUnitDefenseBonus(u, defense);
-                            }
-                            RemoveSavedInteger(HASH_UNIT, hid, defKey);
-                        }
-                        if (HaveSavedReal(HASH_UNIT, hid, timeKey)) {
-                            RemoveSavedReal(HASH_UNIT, hid, timeKey);
-                        }
-                        bindEffect.detachUnique(u, DEFENSE_REDUCE_EFFECT_PATH);
-                        // 清理 (unit, slot) -> timer 映射
-                        RemoveSavedHandle(HASH_UNIT, hid * 100 + slot, 1);
-                    }
-                    // 清理计时器
-                    FlushChildHashtable(HASH_TIMER, id);
-                    PauseTimer(t);
-                    DestroyTimer(t);
-                    t = null;
-                    u = null;
-                    return;
-                }
-
-                hid = GetHandleId(u);
-                defKey = HASH_UNIT_DEFENSE_REDUCE_VALUE + (slot - 1);
-                timeKey = defKey + 10;
-
-                // 读取剩余时间
-                if (HaveSavedReal(HASH_UNIT, hid, timeKey)) {
-                    timeLeft = LoadReal(HASH_UNIT, hid, timeKey);
-                    timeLeft = timeLeft - 0.10;
-
-                    if (timeLeft <= 0.0) {
-                        // 时间到了，恢复防御并清理
-                        if (HaveSavedInteger(HASH_UNIT, hid, defKey)) {
-                            defense = LoadInteger(HASH_UNIT, hid, defKey);
-                            AddUnitDefenseBonus(u, defense);
-                            RemoveSavedInteger(HASH_UNIT, hid, defKey);
-                        }
-                        RemoveSavedReal(HASH_UNIT, hid, timeKey);
-                        bindEffect.detachUnique(u, DEFENSE_REDUCE_EFFECT_PATH);
-                        // 清理 (unit, slot) -> timer 映射
-                        RemoveSavedHandle(HASH_UNIT, hid * 100 + slot, 1);
-                        // 清理计时器
-                        FlushChildHashtable(HASH_TIMER, id);
-                        PauseTimer(t);
-                        DestroyTimer(t);
-                        t = null;
-                        u = null;
-                    } else {
-                        // 更新剩余时间
-                        SaveReal(HASH_UNIT, hid, timeKey, timeLeft);
-                        u = null;
-                    }
-                } else {
-                    // 哈希记录丢失，清理计时器
-                    if (u != null) {
-                        RemoveSavedHandle(HASH_UNIT, hid * 100 + slot, 1);
-                    }
-                    FlushChildHashtable(HASH_TIMER, id);
-                    PauseTimer(t);
-                    DestroyTimer(t);
-                    t = null;
-                    u = null;
-                }
-            });
-            t = null;
+            SaveInteger(HASH_UNIT, hid, KEY_UNIT_DEFENSE_DOWN_PERCENT_ACTIVE_COUNT, count - 1);
         }
     }
 
-    // 永久破防（带冲突位）
-    public function ReduceDefenseForever(unit u, integer slot, integer defense) {
-        integer hid; integer defKey; integer old; integer newDef;
+    private function FindDefenseDownPercentInstance(integer sourceParent, integer instanceId) -> integer {
+        integer count; integer i; integer found;
 
-        if (u == null || !IsUnitAliveBJ(u)) { return; }
-        if (slot < 1 || slot > 10) { return; }
+        count = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+        i = 1;
+        found = 0;
+        while (i <= count && found == 0) {
+            if (LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + i) == instanceId) {
+                found = i;
+            }
+            i += 1;
+        }
+        return found;
+    }
+
+    private function RecalcDefenseDownPercentSource(unit u, integer sourceType) {
+        integer hid; integer sourceParent; integer count; integer i;
+        real oldRate; real newRate; real rate;
+
+        if (u == null || sourceType <= 0) { return; }
 
         hid = GetHandleId(u);
-        defKey = HASH_UNIT_DEFENSE_REDUCE_VALUE + (slot - 1);
+        sourceParent = GetOrCreateDefenseDownPercentSourceParent(hid, sourceType);
+        count = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+        oldRate = 0.0;
+        newRate = 0.0;
 
-        // 读取旧值，取最大值
-        if (HaveSavedInteger(HASH_UNIT, hid, defKey)) {
-            old = LoadInteger(HASH_UNIT, hid, defKey);
-        } else {
-            old = 0;
+        if (HaveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE)) {
+            oldRate = LoadReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE);
         }
-        newDef = IMaxBJ(old, defense);
 
-        // 如果破防值增加，更新防御和特效
-        if (newDef > old) {
-            SaveInteger(HASH_UNIT, hid, defKey, newDef);
-            AddUnitDefenseBonus(u, (newDef - old) * -1);
-            // 第一次产生破防时附加特效
-            if (old == 0) {
-                bindEffect.attachUnique(u, DEFENSE_REDUCE_EFFECT_PATH, DEFENSE_REDUCE_EFFECT_POINT);
+        for (1 <= i <= count) {
+            if (HaveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + i)) {
+                rate = LoadReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + i);
+                if (rate > newRate) {
+                    newRate = rate;
+                }
             }
+        }
+
+        if (RAbsBJ(oldRate - newRate) > 0.0001) {
+            if (oldRate > 0.0) {
+                if (GetUnitTypeId(u) != 0) {
+                    AddUnitDefenseDownPercent(u, -oldRate);
+                }
+                if (newRate <= 0.0) {
+                    DetachDefenseDownPercentEffect(u);
+                }
+            } else if (newRate > 0.0) {
+                AttachDefenseDownPercentEffect(u);
+            }
+
+            if (newRate > 0.0) {
+                if (GetUnitTypeId(u) != 0) {
+                    AddUnitDefenseDownPercent(u, newRate);
+                }
+                SaveReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE, newRate);
+            } else {
+                RemoveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_APPLIED_RATE);
+            }
+        }
+
+        if (count <= 0 && newRate <= 0.0) {
+            FlushChildHashtable(defenseDownPercentData, sourceParent);
+        }
+    }
+
+    private function RemoveDefenseDownPercentSourceInstance(unit u, integer sourceType, integer instanceId) {
+        integer hid; integer sourceParent; integer count; integer index; integer lastId; real lastRate;
+
+        if (u == null || sourceType <= 0) { return; }
+
+        hid = GetHandleId(u);
+        sourceParent = GetOrCreateDefenseDownPercentSourceParent(hid, sourceType);
+        count = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+        index = FindDefenseDownPercentInstance(sourceParent, instanceId);
+
+        if (index > 0) {
+            if (index != count) {
+                lastId = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + count);
+                lastRate = LoadReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + count);
+                SaveInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + index, lastId);
+                SaveReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index, lastRate);
+            }
+            RemoveSavedInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + count);
+            RemoveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + count);
+            count -= 1;
+            if (count > 0) {
+                SaveInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT, count);
+            } else {
+                RemoveSavedInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT);
+            }
+            RecalcDefenseDownPercentSource(u, sourceType);
+        }
+    }
+
+    // 设置来源型百分比破防。
+    // 同 sourceType 只取最高实例值，不同 sourceType 通过 AddUnitDefenseDownPercent/RealAdd 叠加；rate <= 0 会清除该实例。
+    public function ApplyDefenseDownPercentSource(unit u, integer sourceType, integer instanceId, real rate) {
+        integer hid; integer sourceParent; integer count; integer index;
+
+        if (u == null || sourceType <= 0) { return; }
+        if (rate <= 0.0) {
+            RemoveDefenseDownPercentSourceInstance(u, sourceType, instanceId);
+            return;
+        }
+        if (rate >= 1.0) {
+            rate = 0.999;
+        }
+        if (!IsUnitAliveBJ(u)) { return; }
+
+        hid = GetHandleId(u);
+        sourceParent = GetOrCreateDefenseDownPercentSourceParent(hid, sourceType);
+        index = FindDefenseDownPercentInstance(sourceParent, instanceId);
+        if (index == 0) {
+            count = LoadInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT) + 1;
+            SaveInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_COUNT, count);
+            index = count;
+            SaveInteger(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_ID_BASE + index, instanceId);
+        }
+        SaveReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index, rate);
+        RecalcDefenseDownPercentSource(u, sourceType);
+    }
+
+    // 清除一个来源型百分比破防实例；清除后同 sourceType 会回落到剩余实例中的最高 rate。
+    public function ClearDefenseDownPercentSource(unit u, integer sourceType, integer instanceId) {
+        RemoveDefenseDownPercentSourceInstance(u, sourceType, instanceId);
+    }
+
+    // 限时来源型百分比破防。
+    // 重复调用同 sourceType + instanceId 时刷新最大剩余时间，并保留当前较高 rate，过期后自动清除该实例。
+    public function ReduceDefenseDownPercentTime(unit u, integer sourceType, integer instanceId, real rate, real remainTime) {
+        integer hid; integer sourceParent; integer index; integer timeParent; real oldRate; real oldTime; timer t; integer tid;
+
+        if (u == null || !IsUnitAliveBJ(u)) { return; }
+        if (sourceType <= 0 || remainTime <= 0.0) { return; }
+        if (rate <= 0.0) { return; }
+
+        hid = GetHandleId(u);
+        sourceParent = GetOrCreateDefenseDownPercentSourceParent(hid, sourceType);
+        index = FindDefenseDownPercentInstance(sourceParent, instanceId);
+        if (index > 0 && HaveSavedReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index)) {
+            oldRate = LoadReal(defenseDownPercentData, sourceParent, KEY_UNIT_DEFENSE_DOWN_PERCENT_INSTANCE_RATE_BASE + index);
+            if (oldRate > rate) {
+                rate = oldRate;
+            }
+        }
+        ApplyDefenseDownPercentSource(u, sourceType, instanceId, rate);
+
+        timeParent = GetOrCreateDefenseDownPercentTimerParent(sourceParent, instanceId);
+        if (HaveSavedReal(defenseDownPercentData, timeParent, 2)) {
+            oldTime = LoadReal(defenseDownPercentData, timeParent, 2);
+            SaveReal(defenseDownPercentData, timeParent, 2, RMaxBJ(oldTime, remainTime));
+        } else {
+            SaveReal(defenseDownPercentData, timeParent, 2, remainTime);
+        }
+
+        if (!HaveSavedHandle(defenseDownPercentData, timeParent, 1)) {
+            t = CreateTimer();
+            tid = GetHandleId(t);
+            SaveTimerHandle(defenseDownPercentData, timeParent, 1, t);
+            SaveUnitHandle(HASH_TIMER, tid, 1, u);
+            SaveInteger(HASH_TIMER, tid, 2, sourceType);
+            SaveInteger(HASH_TIMER, tid, 3, instanceId);
+            SaveInteger(HASH_TIMER, tid, 4, timeParent);
+            TimerStart(t, 0.10, true, function () {
+                timer t; integer tid; integer sourceType; integer instanceId; integer timeParent; unit u; real timeLeft;
+
+                t = GetExpiredTimer();
+                tid = GetHandleId(t);
+                u = LoadUnitHandle(HASH_TIMER, tid, 1);
+                sourceType = LoadInteger(HASH_TIMER, tid, 2);
+                instanceId = LoadInteger(HASH_TIMER, tid, 3);
+                timeParent = LoadInteger(HASH_TIMER, tid, 4);
+
+                if (u == null || GetUnitTypeId(u) == 0 || !IsUnitAliveBJ(u)) {
+                    if (u != null) {
+                        ClearDefenseDownPercentSource(u, sourceType, instanceId);
+                    }
+                    FlushChildHashtable(defenseDownPercentData, timeParent);
+                    FlushChildHashtable(HASH_TIMER, tid);
+                    PauseTimer(t);
+                    DestroyTimer(t);
+                    u = null;
+                    t = null;
+                    return;
+                }
+
+                if (HaveSavedReal(defenseDownPercentData, timeParent, 2)) {
+                    timeLeft = LoadReal(defenseDownPercentData, timeParent, 2) - 0.10;
+                    if (timeLeft <= 0.0) {
+                        ClearDefenseDownPercentSource(u, sourceType, instanceId);
+                        FlushChildHashtable(defenseDownPercentData, timeParent);
+                        FlushChildHashtable(HASH_TIMER, tid);
+                        PauseTimer(t);
+                        DestroyTimer(t);
+                        u = null;
+                        t = null;
+                    } else {
+                        SaveReal(defenseDownPercentData, timeParent, 2, timeLeft);
+                        u = null;
+                    }
+                } else {
+                    FlushChildHashtable(defenseDownPercentData, timeParent);
+                    FlushChildHashtable(HASH_TIMER, tid);
+                    PauseTimer(t);
+                    DestroyTimer(t);
+                    u = null;
+                    t = null;
+                }
+            });
+            t = null;
         }
     }
 
@@ -839,6 +1374,171 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         }
     }
 
+    // 前摇暂停：仅锁住单位行动，不进入眩晕抗性/CD/IsUnitStunning
+    public function PrecastPauseUnit(unit u, boolean flag) {
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        if (flag) {
+            ApplyEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST);
+        } else {
+            ReleaseEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST);
+        }
+    }
+
+    // 限时前摇暂停：重复调用取最大剩余时间
+    public function PrecastPauseUnitTimed(unit u, real time) {
+        integer hid; real oldTime; boolean hasTime;
+
+        if (u == null || !IsUnitAliveBJ(u) || time <= 0.0) { return; }
+
+        hid = GetHandleId(u);
+        hasTime = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+        if (hasTime) {
+            oldTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT, RMaxBJ(oldTime, time));
+        } else {
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT, time);
+            ApplyEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST);
+        }
+
+        PrecastPauseQueue.addUnit(u);
+    }
+
+    // 清除前摇暂停，不影响真实眩晕
+    public function ClearPrecastPause(unit u) {
+        integer hid;
+        if (u == null) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT)) {
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_EX_PAUSE_PRECAST_TIME_LEFT);
+        }
+        while (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST) > 0) {
+            ReleaseEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST);
+        }
+        while (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST) > 0) {
+            ReleaseEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST);
+        }
+    }
+
+    // 判断单位是否有前摇暂停锁
+    public function IsUnitPrecastPaused(unit u) -> boolean {
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_PRECAST) > 0) { return true; }
+        if (GetEXPauseLockCount(u, KEY_UNIT_EX_PAUSE_LOCK_TIMED_PRECAST) > 0) { return true; }
+        return false;
+    }
+
+    // 沉默单位：禁用技能，时间取最大值刷新
+    public function SilenceUnit(unit u, real time) {
+        integer hid; real oldTime;
+
+        if (u == null || !IsUnitAliveBJ(u) || time <= 0.0) { return; }
+        if (GetUnitAbilityLevel(u, 'Amim') > 0 || GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) > 0) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) {
+            oldTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT, RMaxBJ(oldTime, time));
+        } else {
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT, time);
+        }
+
+        ApplySilenceNative(u);
+        AttachSilenceDisableEffect(u);
+        SilenceQueue.addUnit(u);
+    }
+
+    // 立即清除沉默状态
+    public function ClearSilence(unit u) {
+        integer hid;
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) {
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+        }
+        ReleaseSilenceNative(u);
+        DetachSilenceDisableEffectIfUnused(u);
+    }
+
+    // 判断单位是否处于沉默中
+    public function IsUnitSilenced(unit u) -> boolean {
+        integer hid; real left;
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+        hid = GetHandleId(u);
+        if (!HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT)) { return false; }
+        left = LoadReal(HASH_UNIT, hid, KEY_UNIT_SILENCE_TIME_LEFT);
+        return left > 0.0;
+    }
+
+    // 缴械单位公共实现：功能时间与可见特效时间分别取最大值刷新。
+    private function ApplyDisarmUnit(unit u, real time, boolean showEffect) {
+        integer hid; real oldTime; real oldEffectTime;
+        boolean hasTimedDisarm;
+
+        if (u == null || !IsUnitAliveBJ(u) || time <= 0.0) { return; }
+        if (GetUnitAbilityLevel(u, 'Amim') > 0 || GetUnitAbilityLevel(u, MAGIC_IMMUNITY_SPELL_ID) > 0) { return; }
+
+        hid = GetHandleId(u);
+        hasTimedDisarm = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+        if (hasTimedDisarm) {
+            oldTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT, RMaxBJ(oldTime, time));
+        } else {
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT, time);
+            AcquireUnitDisarm(u);
+        }
+
+        if (showEffect) {
+            oldEffectTime = 0.0;
+            if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
+                oldEffectTime = LoadReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT);
+            }
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT, RMaxBJ(oldEffectTime, time));
+            AttachSilenceDisableEffect(u);
+        }
+        DisarmQueue.addUnit(u);
+    }
+
+    // 普通缴械：禁用攻击并显示原生沉默特效。
+    public function DisarmUnit(unit u, real time) {
+        ApplyDisarmUnit(u, time, true);
+    }
+
+    // 静默缴械：禁用攻击但不新增原生沉默特效；已有可见缴械/沉默特效不受影响。
+    public function DisarmUnitSilent(unit u, real time) {
+        ApplyDisarmUnit(u, time, false);
+    }
+
+    // 立即清除普通限时缴械；其他系统持有的底层缴械锁不受影响。
+    public function ClearDisarm(unit u) {
+        integer hid;
+        boolean hadTimedDisarm;
+        if (u == null || GetUnitTypeId(u) == 0) { return; }
+
+        hid = GetHandleId(u);
+        hadTimedDisarm = HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+        if (hadTimedDisarm) {
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_TIME_LEFT);
+        }
+        if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT)) {
+            RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_DISARM_EFFECT_TIME_LEFT);
+        }
+        if (hadTimedDisarm) {
+            ReleaseUnitDisarm(u);
+        }
+        DetachSilenceDisableEffectIfUnused(u);
+    }
+
+    // 判断单位是否仍持有任意来源的缴械锁。
+    public function IsUnitDisarmed(unit u) -> boolean {
+        integer hid;
+        if (u == null || GetUnitTypeId(u) == 0) { return false; }
+        hid = GetHandleId(u);
+        return LoadInteger(HASH_UNIT, hid, KEY_UNIT_DISARM_NATIVE_ON) > 0;
+    }
+
     // 眩晕单位（队列 + 尾部交换）
     public function StunUnit(unit u, real time, string loc, string effx) {
         integer hid; real resist; real effective; real oldTime; boolean hasTime; string oldEffx; string oldLoc; boolean effValid; real cdLeft; boolean cdDisabled;
@@ -874,9 +1574,9 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             SaveReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT, effective);
         }
 
-        // 如果未禁用CD，设置CD = effective * 10
+        // 如果未禁用CD，设置CD = effective * 5
         if (!cdDisabled) {
-            SaveReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT, effective * 10.0);
+            SaveReal(HASH_UNIT, hid, KEY_UNIT_STUN_CD_LEFT, effective * 5.0);
             StunCdQueue.addUnit(u);
         }
 
@@ -909,7 +1609,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
         // - 部分情况下 pause 不会立刻打断“已在执行的移动指令”，先 stop 可避免“有特效但还能走几秒”
         // - 同时持续强制 pause（见 PauseQueue tick）以对抗外部解除暂停
         if (!hasTime) {
-            EXPauseUnit(u, true); //好鸡巴坑啊  这玩意不能重复设 不然会出大事,必须要有hasTime包着
+            ApplyEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_STUN);
         }
         PauseQueue.addUnit(u);
     }
@@ -931,7 +1631,7 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
         hid = GetHandleId(u);
         // 立即解除暂停
-        EXPauseUnit(u, false);
+        ReleaseEXPauseLock(u, KEY_UNIT_EX_PAUSE_LOCK_STUN);
         // 清理眩晕时间
         if (HaveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT)) {
             RemoveSavedReal(HASH_UNIT, hid, KEY_UNIT_PAUSE_TIME_LEFT);
