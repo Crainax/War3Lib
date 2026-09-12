@@ -27,6 +27,7 @@
 #define HASH_KEY_ITEM_SPELL_BAYUNZI_TIMER 29311857      // [异度] 八云紫临时强化技能书过期计时器
 #define HASH_KEY_ITEM_SPELL_BAYUNZI_START_SECOND 29311858 // [异度] 八云紫临时强化技能书创建时间
 #define HASH_KEY_ITEM_NO_JIEJING_RETURN 29311859        // [异度] 装备分解/出售不返还结晶
+#define HASH_KEY_ITEM_NO_UPGRADE 29312263               // [异度] 装备不可永久升级（boolean，默认 false）
 #define HASH_KEY_ITEM_SOLE_CANDIDATE_LOCK_BASE 29311860 // [异度] 唯一装备候选lock基址（+1..8）
 #define HASH_KEY_ITEM_SOLE_CANDIDATE_TRIGGER_BASE 29311870 // [异度] 唯一装备候选获得触发器基址（+1..8）
 #define HASH_KEY_ITEM_SOLE_CANDIDATE_ACTION_BASE 29311880 // [异度] 唯一装备候选获得action基址（+1..8）

@@ -922,6 +922,49 @@ library HeroUtils requires UnitUtils {
     // 属性禁用与跨属性共享开关（对外接口）
     //=====================
 
+
+    // 只排除自身贡献，保留其他属性转入；默认 false，不改变旧 Disabled 行为。
+    public function IsUnitStrSelfExcluded(unit u) -> boolean {
+        if (u == null || !IsUnitBigInteger(u)) { return false; }
+        return LoadBoolean(HASH_UNIT, GetHandleId(u), KEY_UNIT_STR_SELF_EXCLUDED);
+    }
+
+    public function SetUnitStrSelfExcluded(unit u, boolean flag) {
+        if (u == null || !IsUnitBigInteger(u)) { return; }
+        if (IsUnitStrSelfExcluded(u) == flag) { return; }
+        SaveBoolean(HASH_UNIT, GetHandleId(u), KEY_UNIT_STR_SELF_EXCLUDED, flag);
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(0);
+    }
+
+    // 只排除自身贡献，保留其他属性转入；默认 false，不改变旧 Disabled 行为。
+    public function IsUnitAgiSelfExcluded(unit u) -> boolean {
+        if (u == null || !IsUnitBigInteger(u)) { return false; }
+        return LoadBoolean(HASH_UNIT, GetHandleId(u), KEY_UNIT_AGI_SELF_EXCLUDED);
+    }
+
+    public function SetUnitAgiSelfExcluded(unit u, boolean flag) {
+        if (u == null || !IsUnitBigInteger(u)) { return; }
+        if (IsUnitAgiSelfExcluded(u) == flag) { return; }
+        SaveBoolean(HASH_UNIT, GetHandleId(u), KEY_UNIT_AGI_SELF_EXCLUDED, flag);
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(1);
+    }
+
+    // 只排除自身贡献，保留其他属性转入；默认 false，不改变旧 Disabled 行为。
+    public function IsUnitIntSelfExcluded(unit u) -> boolean {
+        if (u == null || !IsUnitBigInteger(u)) { return false; }
+        return LoadBoolean(HASH_UNIT, GetHandleId(u), KEY_UNIT_INT_SELF_EXCLUDED);
+    }
+
+    public function SetUnitIntSelfExcluded(unit u, boolean flag) {
+        if (u == null || !IsUnitBigInteger(u)) { return; }
+        if (IsUnitIntSelfExcluded(u) == flag) { return; }
+        SaveBoolean(HASH_UNIT, GetHandleId(u), KEY_UNIT_INT_SELF_EXCLUDED, flag);
+        heroAttrObserver.argsU = u;
+        heroAttrObserver.fire(2);
+    }
+
     // 关闭/开启虚拟力量属性：true=禁用，本体相关接口返回 0，但仍可作为共享来源
     public function SetUnitStrDisabled(unit u, boolean flag) {
         integer uid;
@@ -1085,6 +1128,8 @@ library HeroUtils requires UnitUtils {
         // 减去自身欠款
         debt = bigInteger.toReal(p, HASH_KEY_BIGINT_STR_CACHE);
         result = result - debt;
+        // 不修改原始账本；来源共享仍能读取完整属性及欠款。
+        if (IsUnitStrSelfExcluded(u)) { result = 0.0; }
 
         // AGI -> STR 共享
         if (isAgiToStrShare(u)) {
@@ -1164,6 +1209,8 @@ library HeroUtils requires UnitUtils {
         // 减去自身欠款
         debt = bigInteger.toReal(p, HASH_KEY_BIGINT_AGI_CACHE);
         result = result - debt;
+        // 不修改原始账本；来源共享仍能读取完整属性及欠款。
+        if (IsUnitAgiSelfExcluded(u)) { result = 0.0; }
 
         // STR -> AGI 共享
         if (isStrToAgiShare(u)) {
@@ -1243,6 +1290,8 @@ library HeroUtils requires UnitUtils {
         // 减去自身欠款
         debt = bigInteger.toReal(p, HASH_KEY_BIGINT_INT_CACHE);
         result = result - debt;
+        // 不修改原始账本；来源共享仍能读取完整属性及欠款。
+        if (IsUnitIntSelfExcluded(u)) { result = 0.0; }
 
         // STR -> INT 共享
         if (isStrToIntShare(u)) {
@@ -1321,6 +1370,7 @@ library HeroUtils requires UnitUtils {
 
         upSum = attrUp + layerUp;
         downMul = (1.0 - attrDown) * (1.0 - layerDown);
+        if (IsUnitStrSelfExcluded(u)) { upSum = 0.0; downMul = 1.0; }
 
         // AGI -> STR 共享
         if (isAgiToStrShare(u)) {
@@ -1384,6 +1434,7 @@ library HeroUtils requires UnitUtils {
 
         upSum = attrUp + layerUp;
         downMul = (1.0 - attrDown) * (1.0 - layerDown);
+        if (IsUnitAgiSelfExcluded(u)) { upSum = 0.0; downMul = 1.0; }
 
         // STR -> AGI 共享
         if (isStrToAgiShare(u)) {
@@ -1447,6 +1498,7 @@ library HeroUtils requires UnitUtils {
 
         upSum = attrUp + layerUp;
         downMul = (1.0 - attrDown) * (1.0 - layerDown);
+        if (IsUnitIntSelfExcluded(u)) { upSum = 0.0; downMul = 1.0; }
 
         // STR -> INT 共享
         if (isStrToIntShare(u)) {
@@ -1512,6 +1564,7 @@ library HeroUtils requires UnitUtils {
             bonusOther = GetSubAttrBonusReal(u);
         }
         totalBonus = bonusAttr + bonusOther;
+        if (IsUnitStrSelfExcluded(u)) { totalBonus = 0.0; }
 
         // 来自敏捷的共享 Bonus
         if (isAgiToStrShare(u)) {
@@ -1647,6 +1700,7 @@ library HeroUtils requires UnitUtils {
             bonusOther = GetSubAttrBonusReal(u);
         }
         totalBonus = bonusAttr + bonusOther;
+        if (IsUnitAgiSelfExcluded(u)) { totalBonus = 0.0; }
 
         // 来自力量的共享 Bonus
         if (isStrToAgiShare(u)) {
@@ -1782,6 +1836,7 @@ library HeroUtils requires UnitUtils {
             bonusOther = GetSubAttrBonusReal(u);
         }
         totalBonus = bonusAttr + bonusOther;
+        if (IsUnitIntSelfExcluded(u)) { totalBonus = 0.0; }
 
         // 来自力量的共享 Bonus
         if (isStrToIntShare(u)) {

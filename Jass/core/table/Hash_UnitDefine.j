@@ -120,6 +120,9 @@
 #define KEY_UNIT_STR_DISABLED                255610157 // 力量属性是否被禁用（boolean）
 #define KEY_UNIT_AGI_DISABLED                255610158 // 敏捷属性是否被禁用（boolean）
 #define KEY_UNIT_INT_DISABLED                255610159 // 智力属性是否被禁用（boolean）
+#define KEY_UNIT_STR_SELF_EXCLUDED           255610280 // 排除力量自身贡献，保留转入与原始转出（boolean，默认 false）
+#define KEY_UNIT_AGI_SELF_EXCLUDED           255610281 // 排除敏捷自身贡献，保留转入与原始转出（boolean，默认 false）
+#define KEY_UNIT_INT_SELF_EXCLUDED           255610282 // 排除智力自身贡献，保留转入与原始转出（boolean，默认 false）
 
 // 跨属性共享：X 属性是否计入 Y 属性
 #define KEY_UNIT_STR_TO_AGI_SHARE            255610160 // 力量是否计入敏捷（boolean）
