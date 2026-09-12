@@ -384,5 +384,6 @@
 
 
 #define HASH_KEY_UNIT_PET_TALENT_SOURCE 29311990 // 天赋召唤物的来源技能ID，用于独立极限伤害倍率
+#define KEY_UNIT_PATHING_SOURCES 237960566 // 穿墙来源槽位掩码
 
 #endif
