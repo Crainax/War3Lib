@@ -233,37 +233,6 @@ library UTUnitUtils requires UnitUtils, UnitSelect {
 		assert.Boolean(GetUnitSpeed(hero) == 0, "旧移速 getter 仍应钳制到 0");
 		assert.Boolean(GetUnitSpeedDisplay(hero) == -50, "显示用移速应展示负数 raw 值");
 
-		AddUnitSpeedPositiveUpPercent(hero, 0.5);
-		assert.Real(GetUnitSpeedRawReal(hero), -50.0, "正值专用增幅不能放大负移速");
-		AddUnitSpeedBase(hero, 350.0);
-		assert.Real(GetUnitSpeedRawReal(hero), 450.0, "基础移速转正后已记录的50%增幅应立即生效");
-		AddUnitSpeedPositiveUpPercent(hero, 0.25);
-		assert.Real(GetUnitSpeedRawReal(hero), 525.0, "多个正值增幅来源应加算");
-		AddUnitSpeedUpPercent(hero, 0.5);
-		assert.Real(GetUnitSpeedRawReal(hero), 675.0, "正值增幅与普通增幅保持原有加算关系");
-		AddUnitSpeedDownPercent(hero, 0.5);
-		assert.Real(GetUnitSpeedRawReal(hero), 337.5, "正值增幅仍应受到移速减幅影响");
-		AddUnitSpeedBonus(hero, -230.0);
-		assert.Real(GetUnitSpeedRawReal(hero), -5.0, "固定减速导致总移速为负时应立即停用正值增幅");
-		AddUnitSpeedBonus(hero, 5.0);
-		assert.Real(GetUnitSpeedRawReal(hero), 0.0, "不含光环的移速为零时不能由光环自举生效");
-		AddUnitSpeedBonus(hero, 100.0);
-		assert.Real(GetUnitSpeedRawReal(hero), 212.5, "固定加成使移速转正后应重新启用光环");
-		AddUnitSpeedPositiveUpPercent(hero, -0.5);
-		assert.Real(GetUnitSpeedRawReal(hero), 137.5, "撤销一个来源后应保留另一个25%来源");
-		AddUnitSpeedBase(hero, -400.0);
-		assert.Real(GetUnitSpeedRawReal(hero), -200.0, "换装后基础移速转负应立即停用光环");
-		AddUnitSpeedBonus(hero, 400.0);
-		assert.Real(GetUnitSpeedRawReal(hero), 200.0, "总移速虽正但光环贡献为负时仍不得施加");
-		AddUnitSpeedPositiveUpPercent(hero, -0.25);
-		assert.Real(GetUnitSpeedRawReal(hero), 200.0, "未生效时也应允许正确撤销来源");
-		AddUnitSpeedBase(hero, 400.0);
-		assert.Real(GetUnitSpeedRawReal(hero), 500.0, "全部撤销后移速转正不得残留光环加成");
-		AddUnitSpeedDownPercent(hero, -0.5);
-		AddUnitSpeedUpPercent(hero, -0.5);
-		AddUnitSpeedBonus(hero, -275.0);
-		assert.Real(GetUnitSpeedRawReal(hero), 300.0, "移除所有来源后回到基础移速");
-		AddUnitSpeedBase(hero, -350.0);
 		AddUnitSpeedUpPercent(hero, 0.5);
 		assert.Real(GetUnitSpeedRawReal(hero), -75.0, "通用移速增幅接口的旧语义不变");
 

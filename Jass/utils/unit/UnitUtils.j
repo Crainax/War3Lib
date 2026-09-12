@@ -1519,21 +1519,13 @@ library UnitUtils requires BigInteger,MathUtils {
         return bonus;
     }
 
-    // 常规倍率为(1 + up) * (1 - down)；正值专用增幅仅在不含自身的移速为正且贡献非负时生效。
+    // 获取移速总倍率，正负基础移速均使用同一增减幅。
     public function GetUnitSpeedFinalPercent(unit u) -> real {
-        real up; real down; real rate; real base; real positiveUp;
+        real up; real down;
         if (u == null) { return 1.0; }
         up = GetUnitSpeedUpRate(u);
         down = GetUnitSpeedDownRate(u);
-        rate = (1.0 + up) * (1.0 - down);
-        positiveUp = LoadReal(HASH_UNIT, GetHandleId(u), KEY_UNIT_MOVE_SPEED_POSITIVE_UP_RATE);
-        if (positiveUp > 0.0) {
-            base = GetUnitBaseSpeed(u);
-            if (base * rate + GetUnitSpeedBonusReal(u) > 0.0 && base * (1.0 - down) > 0.0) {
-                rate = (1.0 + up + positiveUp) * (1.0 - down);
-            }
-        }
-        return rate;
+        return (1.0 + up) * (1.0 - down);
     }
 
     // 获取单位"基础移速"（不含增减幅与定值）
@@ -1560,7 +1552,6 @@ library UnitUtils requires BigInteger,MathUtils {
         return HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BASE_REAL) ||
             HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_UP_RATE) ||
             HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_DOWN_RATE) ||
-            HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_POSITIVE_UP_RATE) ||
             HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_BONUS_REAL);
     }
 
@@ -1666,15 +1657,6 @@ library UnitUtils requires BigInteger,MathUtils {
         RecalcUnitSpeed(u);
     }
 
-    // 光环等正向增幅专用：始终记录来源（负值撤销），生效条件由每次移速重算动态判断。
-    public function AddUnitSpeedPositiveUpPercent(unit u, real value) -> nothing {
-        integer uid; real up;
-        if (u == null || value == 0.0) { return; }
-        uid = GetHandleId(u);
-        up = LoadReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_POSITIVE_UP_RATE) + value;
-        SaveReal(HASH_UNIT, uid, KEY_UNIT_MOVE_SPEED_POSITIVE_UP_RATE, up);
-        RecalcUnitSpeed(u);
-    }
 
     // 增加移速减幅（value 为小数，如 0.3 表示 -30%）
     public function AddUnitSpeedDownPercent(unit u, real value) -> nothing {
