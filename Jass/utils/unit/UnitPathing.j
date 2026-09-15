@@ -1,6 +1,8 @@
 #ifndef UnitPathingIncluded
 #define UnitPathingIncluded
 
+#include "Crainax/core/table/Hash_UnitDefine.j"
+
 //! zinc
 library UnitPathing requires UnitHashTable {
     // source 为调用方统一分配的 0..29 槽位；同一来源重复开启/关闭不会累加。
