@@ -17,10 +17,17 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
         private static real    lastAttack  = 0.0;
         private static integer lastDefense = 0;
 
-        // 力敏智缓存（仅用于避免重复刷新，显示总属性值）
+        // 力敏智缓存（白字和额外值仅用于本地 UI 去重）
         private static real lastStr = 0.0;
         private static real lastAgi = 0.0;
         private static real lastInt = 0.0;
+        private static real lastStrExtra = 0.0;
+        private static real lastAgiExtra = 0.0;
+        private static real lastIntExtra = 0.0;
+        private static boolean lastShowStrExtra = false;
+        private static boolean lastShowAgiExtra = false;
+        private static boolean lastShowIntExtra = false;
+        private static boolean lastSplitPrimaryAttrs = false;
 
         // 攻击扩展显示缓存
         private static real    lastAttackRate       = 1.0;   // 上一次的总倍率
@@ -283,11 +290,13 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
         }
 
         // 内部：更新三围显示（只在目标为英雄时调用）
-        // 仅显示总属性值（不再拆分 base / extra），与 Attr.j 中的 Tooltip 保持语义一致
         private static method updatePrimaryAttrs (unit u, real strVal, real agiVal, real intVal) {
             integer mainAttrType;
-            boolean isBig;
-            real totalStr; real totalAgi; real totalInt;
+            boolean isBig; boolean split; boolean modeChanged;
+            real baseStr; real totalStr; real extraStr; boolean showStrExtra;
+            real baseAgi; real totalAgi; real extraAgi; boolean showAgiExtra;
+            real baseInt; real totalInt; real extraInt; boolean showIntExtra;
+            string extraText; string extraValue;
 
             // 更新主属性图标
             mainAttrType = GetUnitMainAttrType(u);
@@ -305,24 +314,43 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
                 }
             }
 
-            // 是否为 BigInteger 英雄
+            // 仅 BigInteger 英雄沿用旧版基础值 + 额外值规则。
             isBig = IsUnitBigInteger(u);
+            split = unitPanel.isSplitPrimaryAttrs() && isBig;
+            modeChanged = split != lastSplitPrimaryAttrs;
+            lastSplitPrimaryAttrs = split;
 
             // ========= 力量 =========
             if (isBig) {
-                // BigInteger 英雄：直接读取当前属性作为总值
                 totalStr = GetUnitStr(u);
             } else {
-                // 普通英雄：使用传入的当前属性值
                 totalStr = strVal;
             }
-
-            if (!inited || RAbsBJ(totalStr - lastStr) > 0.001) {
-                lastStr = totalStr;
-                unitPanel.textStrValue.setText(unitAttrShow.formatValue(totalStr));
+            baseStr = totalStr;
+            if (split) {
+                baseStr = RMaxBJ(0, GetUnitBaseStr(u));
             }
-            // 不再显示单独的额外值
-            unitPanel.showStrExtra(false);
+            extraStr = totalStr - baseStr;
+            showStrExtra = split && RAbsBJ(extraStr) > 0.01;
+            if (!inited || modeChanged || RAbsBJ(baseStr - lastStr) > 0.001) {
+                lastStr = baseStr;
+                unitPanel.textStrValue.setText(unitAttrShow.formatValue(baseStr));
+            }
+            if (showStrExtra) {
+                if (!inited || modeChanged || !lastShowStrExtra || RAbsBJ(extraStr - lastStrExtra) > 0.001) {
+                    extraValue = unitAttrShow.formatValue(RAbsBJ(extraStr));
+                    if (extraStr > 0.0) extraText = "|cff00ff00+" + extraValue;
+                    else extraText = "|cffff0000-" + extraValue;
+                    unitPanel.showStrExtra(true);
+                    unitPanel.textStrExtra.setText(extraText);
+                    lastStrExtra = extraStr;
+                    lastShowStrExtra = true;
+                }
+            } else if (!inited || modeChanged || lastShowStrExtra) {
+                unitPanel.showStrExtra(false);
+                lastStrExtra = 0.0;
+                lastShowStrExtra = false;
+            }
 
             // ========= 敏捷 =========
             if (isBig) {
@@ -330,12 +358,31 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
             } else {
                 totalAgi = agiVal;
             }
-
-            if (!inited || RAbsBJ(totalAgi - lastAgi) > 0.001) {
-                lastAgi = totalAgi;
-                unitPanel.textAgiValue.setText(unitAttrShow.formatValue(totalAgi));
+            baseAgi = totalAgi;
+            if (split) {
+                baseAgi = RMaxBJ(0, GetUnitBaseAgi(u));
             }
-            unitPanel.showAgiExtra(false);
+            extraAgi = totalAgi - baseAgi;
+            showAgiExtra = split && RAbsBJ(extraAgi) > 0.01;
+            if (!inited || modeChanged || RAbsBJ(baseAgi - lastAgi) > 0.001) {
+                lastAgi = baseAgi;
+                unitPanel.textAgiValue.setText(unitAttrShow.formatValue(baseAgi));
+            }
+            if (showAgiExtra) {
+                if (!inited || modeChanged || !lastShowAgiExtra || RAbsBJ(extraAgi - lastAgiExtra) > 0.001) {
+                    extraValue = unitAttrShow.formatValue(RAbsBJ(extraAgi));
+                    if (extraAgi > 0.0) extraText = "|cff00ff00+" + extraValue;
+                    else extraText = "|cffff0000-" + extraValue;
+                    unitPanel.showAgiExtra(true);
+                    unitPanel.textAgiExtra.setText(extraText);
+                    lastAgiExtra = extraAgi;
+                    lastShowAgiExtra = true;
+                }
+            } else if (!inited || modeChanged || lastShowAgiExtra) {
+                unitPanel.showAgiExtra(false);
+                lastAgiExtra = 0.0;
+                lastShowAgiExtra = false;
+            }
 
             // ========= 智力 =========
             if (isBig) {
@@ -343,12 +390,31 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
             } else {
                 totalInt = intVal;
             }
-
-            if (!inited || RAbsBJ(totalInt - lastInt) > 0.001) {
-                lastInt = totalInt;
-                unitPanel.textIntValue.setText(unitAttrShow.formatValue(totalInt));
+            baseInt = totalInt;
+            if (split) {
+                baseInt = RMaxBJ(0, GetUnitBaseInt(u));
             }
-            unitPanel.showIntExtra(false);
+            extraInt = totalInt - baseInt;
+            showIntExtra = split && RAbsBJ(extraInt) > 0.01;
+            if (!inited || modeChanged || RAbsBJ(baseInt - lastInt) > 0.001) {
+                lastInt = baseInt;
+                unitPanel.textIntValue.setText(unitAttrShow.formatValue(baseInt));
+            }
+            if (showIntExtra) {
+                if (!inited || modeChanged || !lastShowIntExtra || RAbsBJ(extraInt - lastIntExtra) > 0.001) {
+                    extraValue = unitAttrShow.formatValue(RAbsBJ(extraInt));
+                    if (extraInt > 0.0) extraText = "|cff00ff00+" + extraValue;
+                    else extraText = "|cffff0000-" + extraValue;
+                    unitPanel.showIntExtra(true);
+                    unitPanel.textIntExtra.setText(extraText);
+                    lastIntExtra = extraInt;
+                    lastShowIntExtra = true;
+                }
+            } else if (!inited || modeChanged || lastShowIntExtra) {
+                unitPanel.showIntExtra(false);
+                lastIntExtra = 0.0;
+                lastShowIntExtra = false;
+            }
         }
 
         // 内部：更新攻击图标自定义显示（角标与贴图）

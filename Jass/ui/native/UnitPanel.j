@@ -64,6 +64,17 @@ library UnitPanel requires UIButton,UIText,UIImage,UIExtendEvent,Icon,UnitSelect
 
     public struct unitPanel []{
 
+        // 本地显示偏好；三维默认以白字显示总属性。
+        private static boolean splitPrimaryAttrs = false;
+
+        static method setSplitPrimaryAttrs(boolean enabled) {
+            splitPrimaryAttrs = enabled;
+        }
+
+        static method isSplitPrimaryAttrs() -> boolean {
+            return splitPrimaryAttrs;
+        }
+
         static icon iconAttack  = 0; static icon iconArmor    = 0;
         static icon iconHero    = 0;
         #ifdef UnitPanelShowBuilding
