@@ -92,6 +92,8 @@ library UTUIDialog requires UIDialog,SyncBus {
 
     private function RunAutoAssert() {
         dialogData temp;
+        integer oldId;
+        integer oldToken;
 
         assert.Integer(CalcPageCount(0), 1, "UIDialog: 0项时页数应为1");
         assert.Integer(CalcPageCount(9), 1, "UIDialog: 9项时页数应为1");
@@ -108,6 +110,13 @@ library UTUIDialog requires UIDialog,SyncBus {
             temp.title = "空回调测试";
             temp.show();
             temp.hide();
+            oldId = temp;
+            oldToken = temp.getSessionToken();
+            assert.Boolean(oldToken > 0, "UIDialog: 生命周期 token 有效");
+            temp.destroy();
+            temp = dialogData.create(ConvertedPlayer(1), 2);
+            assert.Integer(temp, oldId, "UIDialog: 回收后复用同一实例编号");
+            assert.Boolean(temp.getSessionToken() != oldToken, "UIDialog: 编号复用后旧 token 失效");
             temp.destroy();
         }
 
@@ -130,8 +139,10 @@ library UTUIDialog requires UIDialog,SyncBus {
         }
 
         if (currentDD.isExist()) {
-            syncBus.DzSyncDataEx("UIDialog", "C," + I2S(currentDD) + ",2");
-            BJDebugMsg("[UIDialogTest] s3: 已发送模拟点击 payload C,<id>,2");
+            if (GetLocalPlayer() == p) {
+                syncBus.DzSyncDataEx("UIDialog", "C," + I2S(currentDD) + "," + I2S(currentDD.getSessionToken()) + ",2");
+            }
+            BJDebugMsg("[UIDialogTest] s3: 已发送模拟点击 payload C,<id>,<token>,2");
         }
     }
 
@@ -191,7 +202,40 @@ library UTUIDialog requires UIDialog,SyncBus {
         }
         BJDebugMsg("[UIDialogTest] s8: 已执行clearAbsPoint(), 对话框恢复居中");
     }
-    function TTestUTUIDialog9(player p) {}
+    // s9：同一编号复用后发送旧协议、旧 token、新 token，只有新 token 可触发回调。
+    function TTestUTUIDialog9(player p) {
+        integer oldId;
+        integer oldToken;
+        integer hid;
+        timer t;
+        DestroyCurrentDialogData();
+        currentDD = dialogData.create(p, 2);
+        oldId = currentDD;
+        oldToken = currentDD.getSessionToken();
+        DestroyCurrentDialogData();
+        currentDD = dialogData.create(p, 2);
+        assert.Integer(currentDD, oldId, "UIDialog s9: 复用编号");
+        clickCallCount = 0;
+        currentDD.onClick(function () { clickCallCount += 1; });
+        if (GetLocalPlayer() == p) {
+            syncBus.DzSyncDataEx("UIDialog", "C," + I2S(oldId) + ",1");
+            syncBus.DzSyncDataEx("UIDialog", "C," + I2S(oldId) + "," + I2S(oldToken) + ",1");
+            syncBus.DzSyncDataEx("UIDialog", "C," + I2S(currentDD) + "," + I2S(currentDD.getSessionToken()) + ",1");
+        }
+        t = CreateTimer(); hid = GetHandleId(t);
+        SaveInteger(HASH_TIMER, hid, 1, currentDD);
+        SaveInteger(HASH_TIMER, hid, 2, currentDD.getSessionToken());
+        TimerStart(t, 2.0, false, function () {
+            integer hid;
+            timer tt = GetExpiredTimer();
+            hid = GetHandleId(tt);
+            assert.Boolean(currentDD == LoadInteger(HASH_TIMER, hid, 1) && currentDD.getSessionToken() == LoadInteger(HASH_TIMER, hid, 2), "UIDialog s9: 测试期间未替换弹窗");
+            assert.Integer(clickCallCount, 1, "UIDialog s9: 旧包被拒绝，仅新 token 生效一次");
+            FlushChildHashtable(HASH_TIMER, hid);
+            PauseTimer(tt); DestroyTimer(tt); tt = null;
+        });
+        t = null;
+    }
     function TTestUTUIDialog10(player p) {}
 
     function TTestActUTUIDialog1(string str) {
@@ -224,6 +268,7 @@ library UTUIDialog requires UIDialog,SyncBus {
             BJDebugMsg("s6: setWidth(0.180) 宽度测试");
             BJDebugMsg("s7: setAbsPoint 左上角定位测试");
             BJDebugMsg("s8: clearAbsPoint 恢复居中测试");
+            BJDebugMsg("s9: 编号复用后旧点击拒绝测试（等待2秒）");
             BJDebugMsg("-clear: 清理 currentDD");
             Init();
             DestroyTrigger(GetTriggeringTrigger());

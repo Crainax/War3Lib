@@ -33,6 +33,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
     private integer currentPosAsync     = 0;
     private integer currentFrameAsync   = 0;
     private string currentContent       = "";
+    private integer dialogGeneration[];
 
     public function GetUIDialogData() -> dialogData {
         return currentData;
@@ -72,6 +73,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 
     public struct uidialog {
         private dialogData dd;
+        private integer sessionToken;
         private uiBorder uiMain;
         private uiBtn uiBlocker;
         private uiText uiTitle;
@@ -282,6 +284,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             if (!this.isExist()) { return 0; }
 
             this.dd = data;
+            this.sessionToken = data.getSessionToken();
             this.enteredFlag = false;
             this.enteredPos = 0;
 
@@ -360,7 +363,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                         pos = this.getGlobalPosBySlot(slot);
                         if (pos < 1 || pos > data.count) { return; }
 
-                        syncBus.DzSyncDataEx(UIDIALOG_SYNC_TAG, "C," + I2S(data) + "," + I2S(pos));
+                        syncBus.DzSyncDataEx(UIDIALOG_SYNC_TAG, "C," + I2S(data) + "," + I2S(this.sessionToken) + "," + I2S(pos));
                     });
 
                 uiHashTable(this.itemButton[i].ui).eventdata.bind(this);
@@ -463,10 +466,12 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             if (uiMain != 0) { uiMain.destroy(); uiMain = 0; }
 
             dd = 0;
+            sessionToken = 0;
         }
     }
 
     public struct dialogData {
+        private integer sessionToken;
         integer count;
         string title;
         integer titleLines;
@@ -477,7 +482,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
         real absX;
         real absY;
 
-        // [ASYNC-SAFE] 以下触发器在本地 UI 异步链路中触发，禁止修改同步状态
+        // 内容及悬停为本地 UI 回调；点击经过同步接收，涉及随机业务仍须延迟执行。
         trigger trContentTrigger;
         trigger trEnterTrigger;
         trigger trLeaveTrigger;
@@ -492,6 +497,9 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             thistype this = allocate();
             if (this <= 0) { return 0; }
 
+            dialogGeneration[this] += 1;
+            if (dialogGeneration[this] <= 0) { dialogGeneration[this] = 1; }
+            this.sessionToken = dialogGeneration[this];
             this.count = c;
             if (this.count < 0) { this.count = 0; }
 
@@ -512,6 +520,12 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 
             SaveInteger(HASH_DIALOG, this, UIDIALOG_HASH_KEY_PAGE, 1);
             return this;
+        }
+
+        // 实例编号复用时 token 改变，旧 UI 的迟到点击不能作用于新对话框。
+        public method getSessionToken() -> integer {
+            if (!this.isExist()) { return 0; }
+            return sessionToken;
         }
 
         method trContent(code func) {
@@ -634,6 +648,7 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
 
             FlushChildHashtable(HASH_DIALOG, this);
 
+            sessionToken = 0;
             count = 0;
             title = null;
             owner = null;
@@ -651,19 +666,24 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
             string payload;
             player p;
             integer splitPos;
+            integer tokenEnd;
+            integer token;
             dialogData data;
             integer pos;
 
             payload = syncBus.getPayload();
             p = syncBus.getPlayer();
 
-            if (StringLength(payload) >= 4 && SubString(payload, 0, 2) == "C,") {
+            if (StringLength(payload) >= 6 && SubString(payload, 0, 2) == "C,") {
                 splitPos = UIDialogFindComma(payload, 2);
-                if (splitPos > 1) {
+                tokenEnd = UIDialogFindComma(payload, splitPos + 1);
+                if (splitPos > 2 && tokenEnd > splitPos + 1) {
                     data = S2I(SubString(payload, 2, splitPos));
-                    pos = S2I(SubString(payload, splitPos + 1, StringLength(payload)));
+                    token = S2I(SubString(payload, splitPos + 1, tokenEnd));
+                    pos = S2I(SubString(payload, tokenEnd + 1, StringLength(payload)));
 
-                    if (data.isExist() && data.owner == p && pos >= 1 && pos <= data.count) {
+                    if (token > 0 && payload == "C," + I2S(data) + "," + I2S(token) + "," + I2S(pos)
+                        && data.isExist() && data.getSessionToken() == token && data.owner == p && pos >= 1 && pos <= data.count) {
                         if (data.trClickTrigger != null) {
                             currentData = data;
                             currentPos = pos;
@@ -672,7 +692,8 @@ library UIDialog requires SyncBus,UIButton,UIBorder,UIImage,UIText,UIHashTable,H
                             currentPos = 0;
                         }
 
-                        if (data.autoHideOnClick) {
+                        // 点击回调可能销毁甚至重新分配同一编号。
+                        if (data.isExist() && data.getSessionToken() == token && data.autoHideOnClick) {
                             data.hide();
                         }
                     }
