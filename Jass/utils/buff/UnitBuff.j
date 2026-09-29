@@ -181,6 +181,13 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
             return index - 1;
         }
 
+        public static method removeUnit(unit u) {
+            integer i;
+            for (i = 0; i < thistype.size; i += 1) {
+                if (thistype.uList[i] == u) { i = thistype.removeAt(i); }
+            }
+        }
+
         // 将单位加入队列（如果不在队列中）
         public static method addUnit(unit u) {
             integer i;
@@ -927,6 +934,20 @@ library UnitBuff requires UnitUtils, HashTable, BindEffect, DamageUtils, UnitFil
 
             return buffT;
         }
+    }
+
+    // 主动吸收/驱散所有已识别无敌层；同时注销计时，防止旧队列误清新无敌。
+    public function ClearUnitInvulnerability(unit u) {
+        integer customId;
+        if (u == null) { return; }
+        ImmuteQueue.removeUnit(u);
+        RemoveSavedReal(HASH_UNIT, GetHandleId(u), HASH_UNIT_IMMUTE_TIME_LEFT);
+        bindEffect.detachUnique(u, IMMUTE_EFFECT_PATH);
+        SetUnitInvulnerable(u, false);
+        UnitRemoveAbility(u, 'Avul');
+        UnitRemoveAbility(u, 'BHds');
+        customId = GetCustomInvulnerableAbilityId();
+        if (customId != 0) { UnitRemoveAbility(u, customId); }
     }
 
     // 能叠加的无敌(计算)

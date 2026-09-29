@@ -80,4 +80,5 @@
 
 
 
+#define HASH_KEY_ITEM_I31N_STR_APPLIED 29312268 // 泰坦金髓已应用力量
 #endif

@@ -376,6 +376,9 @@ library UnitUtils requires BigInteger,MathUtils {
         } else {
             down = 0.0;
         }
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_FACTOR)) {
+            down = 1.0 - (1.0 - down) * LoadReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_FACTOR);
+        }
         return RLimit(down, 0.0, 0.999);
     }
 
@@ -422,9 +425,25 @@ library UnitUtils requires BigInteger,MathUtils {
         if (u == null || value == 0.0) { return; }
 
         uid = GetHandleId(u);
-        down = GetUnitDamagedDownRate(u);
+        down = 0.0;
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE)) {
+            down = LoadReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE);
+        }
         down = RLimit(RealAdd(down, value), 0.0, 0.999);
         SaveReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_RATE, down);
+    }
+
+    // 独立乘算受伤倍率：传0.85施加15%减伤，传1/0.85移除；不截断内部累计值。
+    public function MultiplyUnitDamagedDownFactor(unit u, real factor) {
+        integer uid;
+        real current;
+        if (u == null || factor <= 0.0) { return; }
+        uid = GetHandleId(u);
+        current = 1.0;
+        if (HaveSavedReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_FACTOR)) {
+            current = LoadReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_FACTOR);
+        }
+        SaveReal(HASH_UNIT, uid, KEY_UNIT_DAMAGED_DOWN_FACTOR, current * factor);
     }
 
     // 获取最终受伤倍率：(1 + Up) * (1 - Down)，默认 1.0

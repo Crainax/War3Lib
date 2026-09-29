@@ -522,6 +522,16 @@ library Music {
 			thistype[MUSIC_INDEX_TALENT_SWITCH_SUCCESS].snd = snd;
 			//# endcheck
 
+			//# check: music[3024]
+			//# dependency:sound/sound/guimian_absorb_invulnerability.mp3
+			snd = CreateSound( "sound\\guimian_absorb_invulnerability.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 836 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_GUIMIAN_ABSORB].snd = snd;
+			//# endcheck
+
 			//# check: music[3016]
 			//# dependency:sound/sound/huanglong_divine_aegis.mp3
 			snd = CreateSound( "sound\\huanglong_divine_aegis.mp3", false, false, false, 10, 10, "" );

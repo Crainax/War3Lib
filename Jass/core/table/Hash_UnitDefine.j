@@ -388,4 +388,6 @@
 #define HASH_KEY_UNIT_PET_TALENT_SOURCE 29311990 // 天赋召唤物的来源技能ID，用于独立极限伤害倍率
 #define KEY_UNIT_PATHING_SOURCES 237960566 // 穿墙来源槽位掩码
 
+#define SOLE_I40R_ABSORB 453919349 // 诡面唯一吸收
+#define KEY_UNIT_DAMAGED_DOWN_FACTOR 237960568 // 独立可逆受伤倍率，默认1
 #endif

@@ -102,6 +102,7 @@ library UTUnitUtils requires UnitUtils, UnitSelect {
 
 	// [异度] 单位最终受伤倍率测试
 	private function Test_DamagedFinal() {
+		integer i;
 		player p;
 		unit hero;
 
@@ -131,6 +132,19 @@ library UTUnitUtils requires UnitUtils, UnitSelect {
 		ResetUnitDamagedUp(hero);
 		ResetUnitDamagedDown(hero);
 		assert.Real(GetUnitDamagedFinal(hero), 1.0, "重置后受伤倍率应回到 1.0");
+
+        MultiplyUnitDamagedDownFactor(hero, 0.85);
+        MultiplyUnitDamagedDownFactor(hero, 0.85);
+        assert.Real(GetUnitDamagedDownRate(hero), 0.2775, "两层15%减伤应为27.75%");
+        AddUnitDamagedDown(hero, 0.3);
+        MultiplyUnitDamagedDownFactor(hero, 1.0 / 0.85);
+        MultiplyUnitDamagedDownFactor(hero, 1.0 / 0.85);
+        assert.Boolean(RAbsBJ(GetUnitDamagedDownRate(hero) - 0.3) < 0.0001, "移除独立层后保留其他来源30%减伤");
+        for (1 <= i <= 200) { MultiplyUnitDamagedDownFactor(hero, 0.85); }
+        assert.Real(GetUnitDamagedDownRate(hero), 0.999, "大量叠层读取遵循已有99.9%上限");
+        AddUnitDamagedDown(hero, -0.3);
+        for (1 <= i <= 200) { MultiplyUnitDamagedDownFactor(hero, 1.0 / 0.85); }
+        assert.Boolean(RAbsBJ(GetUnitDamagedDownRate(hero)) < 0.0001, "触顶期间移除其他来源后，独立层仍能完整撤销");
 
 		hero = null;
 		p = null;

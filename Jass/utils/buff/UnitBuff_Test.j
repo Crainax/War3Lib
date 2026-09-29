@@ -199,6 +199,21 @@ library UTUnitBuff requires UnitBuff {
 		owner = null;
 	}
 
+    // s6：吸收后立即重新授予，无旧时长/队列残留。
+    function TTestUTUnitBuff6(player p) {
+        unit u = CreateUnit(p, 'hpea', 0.0, 0.0, 0.0);
+        ImmuteDamageTime(u, 3.0, false);
+        ClearUnitInvulnerability(u);
+        assert.Boolean(!IsUnitInvulnerableEx(u), "吸收应解除无敌");
+        assert.Boolean(!HaveSavedReal(HASH_UNIT, GetHandleId(u), HASH_UNIT_IMMUTE_TIME_LEFT), "吸收应清理旧无敌计时");
+        ImmuteDamageTime(u, 1.0, false);
+        assert.Boolean(IsUnitInvulnerableEx(u), "吸收后立即授予无敌仍能生效");
+        assert.Real(LoadReal(HASH_UNIT, GetHandleId(u), HASH_UNIT_IMMUTE_TIME_LEFT), 1.0, "新无敌不应继承旧的3秒时长");
+        ClearUnitInvulnerability(u);
+        RemoveUnit(u);
+        u = null;
+    }
+
 	// 测试2：ImmuteDamageOnce 基本功能（0秒无敌窗）
 	function TTestUTUnitBuff2 (player p) {
 		unit u; player owner;
@@ -1047,6 +1062,7 @@ library UTUnitBuff requires UnitBuff {
 			else if(str == "s3") TTestUTUnitBuff3(GetTriggerPlayer());
 			else if(str == "s4") TTestUTUnitBuff4(GetTriggerPlayer());
 			else if(str == "s5") TTestUTUnitBuff5(GetTriggerPlayer());
+            else if(str == "s6") TTestUTUnitBuff6(GetTriggerPlayer());
             else if(str == "s11") TTestUTUnitBuff11(GetTriggerPlayer());
             else if(str == "s12") TTestUTUnitBuff12(GetTriggerPlayer());
             else if(str == "s13") TTestUTUnitBuff13(GetTriggerPlayer());
