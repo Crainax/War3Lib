@@ -184,6 +184,11 @@ library GrowData {
             //# sequence: resource/ui/cardflip/flip_c_{0-23}.blp
             GROWDATA_DEFINE(SEQ_CARD_FLIP_C, 23, 1, 1.0, "ui\\cardflip\\flip_c_")
             //# endcheck
+
+            //# check: growdata[32]
+            //# sequence: resource/ui/cardflip/glow_c_{0-23}.blp
+            GROWDATA_DEFINE(SEQ_CARD_FLIP_C_GLOW, 23, 1, 1.0, "ui\\cardflip\\glow_c_")
+            //# endcheck
         }
     }
 }

@@ -7,6 +7,8 @@
 //! zinc
 library UTCardFlipAnim requires CardFlipAnim {
 
+    private cardFlipCard testCard = 0;
+
     function onInit() {
         UnitTestRegisterChatEvent(function() {
             string command = GetEventPlayerChatString();
@@ -18,9 +20,12 @@ library UTCardFlipAnim requires CardFlipAnim {
             gd = growdata[SEQ_CARD_FLIP_C];
             assert.Integer(gd.max, 23, "CardFlipAnim 末帧编号");
             assert.Integer(gd.gap, 1, "CardFlipAnim 播放间隔");
-            cardFlipAnim.play(p, DzGetGameUI(), gd, 0.09, 0.18, 0.0, 0.0, 75);
             if (GetLocalPlayer() == p) {
-                BJDebugMsg("[CardFlipAnim] s1: 中央播放翻卡，末帧停留 1.5 秒");
+                if (testCard.isExist()) {testCard.destroy();}
+                testCard = cardFlipCard.create(p, DzGetGameUI(), gd, growdata[SEQ_CARD_FLIP_C_GLOW], 0.09, 0.18, 0.0, 0.0, 75);
+            }
+            if (GetLocalPlayer() == p) {
+                BJDebugMsg("[CardFlipAnim] s1: 点击中央卡牌翻面，末帧停留 1.5 秒");
             }
             p = null;
         });

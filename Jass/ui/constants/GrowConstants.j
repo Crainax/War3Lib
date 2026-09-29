@@ -32,5 +32,6 @@
 #define GIF_ICON_CLICK   29 //点击动画
 #define GIF_ICON_LEVELUP 30 //升级动画
 #define SEQ_CARD_FLIP_C  31 //暗黑波普长卡翻面
+#define SEQ_CARD_FLIP_C_GLOW 32 //暗黑波普翻卡高光
 
 #endif
