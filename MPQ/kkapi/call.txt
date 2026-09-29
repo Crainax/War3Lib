@@ -1,4 +1,4 @@
-﻿[KKAPIGetLocalVariables]
+[KKAPIGetLocalVariables]
 title = "局部变量读取"
 description = "${变量名}"
 comment = "可以获取到任意类型的局部变量。"
@@ -473,6 +473,34 @@ category = TC_KKAPI
 returns = ability
 [[.args]]
 type = unit
+
+[DzGetTriggerBuffId]
+title = "触发Buff的ID"
+description = "触发Buff的ID"
+comment = "在单位获得Buff事件的触发器动作中使用，返回Buff别名（物体编辑器中的rawId）"
+category = TC_KKPRE
+returns = buffcode
+
+[DzGetTriggerBuffTypeId]
+title = "触发Buff的类型ID"
+description = "触发Buff的类型ID"
+comment = "在单位获得Buff事件的触发器动作中使用，返回Buff类型FourCC（如'Bfro'、'Bhea'）"
+category = TC_KKPRE
+returns = buffcode
+
+[DzGetTriggerBuffLevel]
+title = "触发Buff的等级"
+description = "触发Buff的等级"
+comment = "在单位获得Buff事件的触发器动作中使用，返回内部存储值（显示时建议+1）"
+category = TC_KKPRE
+returns = integer
+
+[DzGetTriggerBuffUnit]
+title = "触发Buff的所属单位"
+description = "触发Buff的所属单位"
+comment = "在单位获得/失去Buff事件的触发器动作中使用，返回拥有该Buff的单位（等价于GetTriggerUnit）"
+category = TC_KKPRE
+returns = unit
 
 [DzUnitFindAbility]
 title = "获取单位的指定技能"
@@ -1295,7 +1323,7 @@ type = abilcode
 title = "技能 - 获取技能数据F"
 description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据F"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -1306,7 +1334,7 @@ type = abilcode
 title = "技能 - 获取技能数据G"
 description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据G"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -1317,7 +1345,7 @@ type = abilcode
 title = "技能 - 获取技能数据H"
 description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据H"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -1328,7 +1356,7 @@ type = abilcode
 title = "技能 - 获取技能数据I"
 description = "获取 单位 ${unit} 当前拥有的技能 ${id} 的数据I"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = real
 [[.args]]
 type = unit
@@ -2520,14 +2548,14 @@ default = "1.0"
 title = "界面 - 获取 Buff 栏"
 description = "获取 Buff 栏"
 comment = "返回控制面板单位详情中的 Buff 栏 frame"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = frame
 
 [DzGetBuffBarButton]
 title = "界面 - 获取 Buff 栏按钮"
 description = "获取 Buff 栏第 ${row} 行第 ${col} 列按钮"
 comment = "返回控制面板单位详情中的 Buff 按钮 frame"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = frame
 [[.args]]
 type = integer
@@ -2564,14 +2592,14 @@ default = bj_lastCreatedDzEffectGroup
 title = "物品栏 - 获取物品栏最大格数"
 description = "获取物品栏最大格数"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = integer
 
 [DzGetInventoryDropSlotOrderID]
 title = "物品栏 - 获取 移动物品 的命令ID"
 description = "获取 移动物品到第 ${n} 格的命令ID"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = ordercode
 [[.args]]
 type = integer
@@ -2581,7 +2609,7 @@ type = integer
 title = "物品栏 - 获取 使用物品 的命令ID"
 description = "获取 使用第 ${n} 格物品 的命令ID"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 returns = ordercode
 [[.args]]
 type = integer
@@ -2591,7 +2619,7 @@ default = "0"
 title = "物品栏 - 获取物品栏按钮"
 description = "获取物品栏第 ${i} 个按钮"
 comment = "索引从0开始, 扩展的物品栏需要用这个获取 UI (因为 DzFrameGetItemBarButton 只允许获取前6个)"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = frame
 [[.args]]
 type = integer
@@ -2601,12 +2629,157 @@ default = "0"
 title = "移动物品栏物品事件 - 获取来源格子ID"
 description = "移动物品栏物品事件 - 获取来源格子ID"
 comment = "索引从0开始"
-category = TC_KKPRE
+category = TC_KKAPI
 returns = integer
 
 [DzGetSwapItemSlotEventToSlotID]
 title = "移动物品栏物品事件 - 获取目标格子ID"
 description = "移动物品栏物品事件 - 获取目标格子ID"
 comment = "索引从0开始"
+category = TC_KKAPI
+returns = integer
+
+[DzGetCommandBarButton]
+title = "技能栏 - 获取 技能栏 按钮"
+description = "获取 技能栏 位于 X:${x}, Y: ${y} 的按钮"
+comment = "CCommandButton"
+category = TC_KKPRE
+returns = frame
+[[.args]]
+type = integer
+[[.args]]
+type = integer
+
+[DzConvertForce2PlayerIdMark]
+title = "转化 - 玩家组转玩家掩码"
+description = "玩家组 ${玩家组} 转玩家掩码"
+comment = "获取玩家组里面玩家的掩码组合 相当于 mark|= 1 << 玩家id "
 category = TC_KKPRE
 returns = integer
+[[.args]]
+type = force
+
+[DzGetItemArt]
+title = "物品 - 获取图标"
+description = "获取物品 ${whichItem} 当前使用的图标"
+comment = ""
+category = TC_KKPRE
+returns = string
+[[.args]]
+type = item
+
+[DzGetItemTip]
+title = "物品 - 获取提示"
+description = "获取物品 ${whichItem} 当前使用的提示"
+comment = ""
+category = TC_KKPRE
+returns = string
+[[.args]]
+type = item
+
+[DzGetItemUberTip]
+title = "物品 - 获取扩展提示"
+description = "获取物品 ${whichItem} 当前使用的扩展提示"
+comment = ""
+category = TC_KKPRE
+returns = string
+[[.args]]
+type = item
+
+[DzGetItemAbilityRange]
+title = "物品 - 获取物品技能施法距离"
+description = "获取物品 ${whichItem} 第 ${slot_index} 个技能的施法距离"
+comment = "物品施法距离; 技能槽从0开始"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+
+[DzGetItemAbilityArea]
+title = "物品 - 获取物品技能影响范围"
+description = "获取物品 ${whichItem} 第 ${slot_index} 个技能的影响范围"
+comment = "物品技能的影响区域, 通魔技能决定点指示器范围; 技能槽从0开始"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+
+[DzGetItemAbilityCool]
+title = "物品 - 获取物品技能当前冷却"
+description = "获取物品 ${whichItem} 第 ${slot_index} 个技能的当前冷却"
+comment = "物品技能当前剩余冷却时间; 技能槽从0开始"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+
+[DzGetItemAbilityMaxCool]
+title = "物品 - 获取物品技能最大冷却"
+description = "获取物品 ${whichItem} 第 ${slot_index} 个技能的最大冷却"
+comment = "获取物品技能最大冷却时间; 技能槽从0开始"
+category = TC_KKPRE
+returns = real
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+
+[DzGetItemAbilityTargs]
+title = "物品 - 获取物品技能目标允许"
+description = "获取物品 ${whichItem} 第 ${slot_index} 个技能的目标允许"
+comment = "物品目标技能的目标允许; 技能槽从0开始"
+category = TC_KKPRE
+returns = integer
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+
+[DzGetItemAbilityCost]
+title = "物品 - 获取物品技能魔法消耗"
+description = "获取物品 ${whichItem} 第 ${slot_index} 个技能的魔法消耗"
+comment = "主动物品施法耗蓝; 技能槽从0开始"
+category = TC_KKPRE
+returns = integer
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+
+[DzGetItemAbilityReqLevel]
+title = "物品 - 获取物品技能需求等级"
+description = "获取物品 ${whichItem} 第 ${slot_index} 个技能的需求等级"
+comment = "需求等级2以上可以对魔法免疫单位释放; 技能槽从0开始"
+category = TC_KKPRE
+returns = integer
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3

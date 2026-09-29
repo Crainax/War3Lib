@@ -153,6 +153,19 @@ type = player
 [[.args]]
 type = string
 
+
+[DzAPI_Map_Ladder_SetPlayerStat]
+title = "天梯提交玩家字符串数据"
+description = "提交 ${whichPlayer} 天梯项目: ${key} 的值为: ${value} "
+comment = ""
+category = TC_DZAPI
+[[.args]]
+type = player
+[[.args]]
+type = string
+[[.args]]
+type = string
+
 [DzAPI_Map_Ladder_SubmitPlayerRank]
 title = "天梯提交玩家排名"
 description = "设置 ${whichPlayer} 的游戏排名为: ${value} "

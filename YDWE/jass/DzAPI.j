@@ -660,7 +660,7 @@ library DzAPI
     function KKApiEndBatchSaveArchive takes player whichPlayer, boolean abandon returns boolean
         return RequestExtraBooleanData(104, whichPlayer, null, null, abandon, 0, 0, 0)
     endfunction
-    
+
     function KKApiAddBatchSaveArchiveInteger takes player whichPlayer, string key, integer value returns nothing
         set key="I"+key
         call KKApiAddBatchSaveArchive(whichPlayer,key,I2S(value),false)
@@ -767,6 +767,11 @@ library DzAPI
     //  BountyValue, // 获取玩家赏金助力值
     function KKApiBountyValue takes player whichPlayer returns integer
         return RequestExtraIntegerData(121, whichPlayer, null, null, false, 0, 0, 0)
+    endfunction
+
+        // IsSVIP,                     //提供给地图的接口，用与判断是否SVIP
+    function KKApiIsSVIP takes player whichPlayer returns boolean
+        return RequestExtraBooleanData(122, whichPlayer, null, null, false, 0, 0, 0)
     endfunction
 
 endlibrary

@@ -2,6 +2,24 @@
 title = "玩家单位事件 - 移动物品栏里的物品"
 description = "${whichPlayer} 的单位移动物品栏里的物品"
 comment = "注册玩家的移动物品事件 支持超过6格物品栏"
+category = TC_KKAPI
+[[.args]]
+type = player
+default = "PlayerALL"
+
+[DzTriggerRegisterPlayerUnitBuffAcquireEvent]
+title = "玩家单位事件 - 单位获得Buff"
+description = "${whichPlayer} 的单位获得Buff"
+comment = "注册玩家的单位获得Buff事件，包括技能、物品、DzUnitAddBuff添加的Buff"
+category = TC_KKPRE
+[[.args]]
+type = player
+default = "PlayerALL"
+
+[DzTriggerRegisterPlayerUnitBuffLoseEvent]
+title = "玩家单位事件 - 单位失去Buff"
+description = "${whichPlayer} 的单位失去Buff"
+comment = "注册玩家的单位失去Buff事件，包括自然到期、被驱散、被覆盖等所有失去情况"
 category = TC_KKPRE
 [[.args]]
 type = player

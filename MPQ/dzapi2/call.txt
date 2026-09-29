@@ -959,3 +959,12 @@ category = TC_DZAPI
 returns = integer
 [[.args]]
 type = player
+
+[KKApiIsSVIP]
+title = "玩家是否SVIP"
+description = "判断 ${player} 是否是SVIP"
+comment = "判断玩家是否平台SVIP。"
+category = TC_DZAPI
+returns = boolean
+[[.args]]
+type = player

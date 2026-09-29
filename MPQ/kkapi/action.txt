@@ -1381,7 +1381,7 @@ type = real
 title = "技能 - 设置技能数据F"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据F ${DataF} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;所有技能共享同一组Data位置,不同技能类型通过不同fieldId映射,如无效果可以尝试刷新数据]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -1394,7 +1394,7 @@ type = real
 title = "技能 - 设置技能数据G"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据G ${DataG} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;所有技能共享同一组Data位置,不同技能类型通过不同fieldId映射,如无效果可以尝试刷新数据]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -1407,7 +1407,7 @@ type = real
 title = "技能 - 设置技能数据H"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据H ${DataH} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;所有技能共享同一组Data位置,不同技能类型通过不同fieldId映射,如无效果可以尝试刷新数据]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -1420,7 +1420,7 @@ type = real
 title = "技能 - 设置技能数据I"
 description = "设置单位 ${unit} 当前拥有的技能 ${id} 的数据I ${DataI} "
 comment = [[单位的独立修改,不会影响其他单位身上的技能;删除技能后改动即清除;所有技能共享同一组Data位置,不同技能类型通过不同fieldId映射,如无效果可以尝试刷新数据]]
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -1467,7 +1467,7 @@ type = unit
 type = abilcode
 [[.args]]
 type = integer
-
+default = 'DzConvertStr2Targs'
 
 [DzSetUnitAbilityCost]
 title = "技能 - 设置技能魔法消耗"
@@ -4017,7 +4017,7 @@ type = dzeffectgroup
 title = "界面 - 调整 Buff 栏"
 description = "设置 Buff 栏为 ${row} 行 ${col} 列"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
 default = "2"
@@ -4029,7 +4029,7 @@ default = "4"
 title = "界面 - 设置 Buff 栏显示重复 Buff"
 description = "设置 Buff 栏显示重复 Buff：${flag}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = boolean
 default = "false"
@@ -4038,7 +4038,7 @@ default = "false"
 title = "Buff - 添加 Buff"
 description = "为 ${target} 添加 Buff：来源 ${source} 类型 ${typeId} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 数据 ${data1} ${data2} ${data3} ${data4} ${data5} ${data6} ${data7} ${data8} ${data9} ${data10} ${data11}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4082,7 +4082,7 @@ type = real
 title = "Buff - 添加被探测到 Bdet"
 description = "为 ${target} 添加被探测到 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 探测玩家 ${detectPlayer} 探测类型 ${detectType}"
 comment = "类型填3, 添加后可以被敌人看到自己的隐身状态"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4106,7 +4106,7 @@ default = "3"
 title = "Buff - 添加操纵死尸 BUan"
 description = "为 ${target} 添加操纵死尸 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 无敌 ${invulnerable}"
 comment = "做为 被召唤出来的死尸 到期后杀死 1为无敌 0不无敌  会受到驱逐魔法的伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4128,7 +4128,7 @@ default = "1"
 title = "Buff - 添加召唤出来的物品 BFig"
 description = "为 ${target} 添加召唤出来的物品 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "做为 被物品召唤出来的召唤物 到期后杀死 会受到驱逐魔法的伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4147,7 +4147,7 @@ type = real
 title = "Buff - 添加自然之力 BEfn"
 description = "为 ${target} 添加自然之力 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "做为 被自然之力召唤出来的树人 到期后杀死 会受到驱逐魔法的伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4166,7 +4166,7 @@ type = real
 title = "Buff - 添加治疗守卫 Bhwd"
 description = "为 ${target} 添加治疗守卫 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "做为 被召唤出来的治疗守卫 到期后杀死 会受到驱逐魔法的伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4185,7 +4185,7 @@ type = real
 title = "Buff - 添加疾病云雾 Bplg"
 description = "为 ${target} 添加疾病云雾 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "做为 疾病云雾的蝗虫单位 无法选中 到期后杀死 会受到驱逐魔法的伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4204,7 +4204,7 @@ type = real
 title = "Buff - 添加骷髅战士 Brai"
 description = "为 ${target} 添加骷髅战士 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "做为 被召唤出来的骷髅战士 到期后杀死  会受到驱逐魔法的伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4223,7 +4223,7 @@ type = real
 title = "Buff - 添加水元素 BHwe"
 description = "为 ${target} 添加水元素 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "做为 被召唤出来的水元素 到期后杀死  会受到驱逐魔法的伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4242,7 +4242,7 @@ type = real
 title = "Buff - 添加定时的生命 BTLF"
 description = "为 ${target} 添加定时的生命 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "做为 定时的生命 到期后杀死  会受到驱逐魔法的伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4261,7 +4261,7 @@ type = real
 title = "Buff - 添加守护卷轴 Bdef"
 description = "为 ${target} 添加守护卷轴 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 护甲 ${armor}"
 comment = "能添加绿字护甲的buff"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4282,7 +4282,7 @@ type = real
 title = "Buff - 添加吞噬 Bdig"
 description = "为 ${target} 添加吞噬 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 每秒伤害 ${dps}"
 comment = "每秒对target造成伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4305,7 +4305,7 @@ type = real
 title = "Buff - 添加神圣护甲 BHds"
 description = "为 ${target} 添加神圣护甲 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "持续时间内无敌"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4324,7 +4324,7 @@ type = real
 title = "Buff - 添加魔鬼缠身 BNdo"
 description = "为 ${target} 添加魔鬼缠身 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 每秒伤害 ${dps} 所有者 ${owner} 单位类型 ${unitId} 数量 ${count} 生命周期 ${lifeTime} 召唤 Buff ${summonBuffId}"
 comment = "每秒造成伤害 持续时间内死亡 会召唤单位"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4359,7 +4359,7 @@ default = "BNdi"
 title = "Buff - 添加魔鬼缠身 (奴) BNdi"
 description = "为 ${target} 添加魔鬼缠身 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "作为被 召唤的单位 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4378,7 +4378,7 @@ type = real
 title = "Buff - 添加醉酒云雾 BNdh"
 description = "为 ${target} 添加醉酒云雾 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 移速 ${moveSpeed} % 攻速 ${attackSpeed} % 禁用类型 ${disableType} 丢失概率 ${missChance} %"
 comment = "持续时间内 增加减少移速百分比 增加减少攻速百分比 增加减少丢失概率 负数减少"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4407,7 +4407,7 @@ type = real
 title = "Buff - 添加地震 BOeq"
 description = "为 ${target} 添加地震 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 移速 ${moveSpeed} % 攻速 ${attackSpeed} % "
 comment = "持续时间内 增加减少移速百分比 增加减少攻速百分比 负数减少"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4432,7 +4432,7 @@ type = real
 title = "Buff - 添加吃树 Beat"
 description = "为 ${target} 添加吃树 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 生命恢复 ${health} % 魔法恢复 ${mana} %"
 comment = "持续时间内 生命恢复百分比 魔法恢复百分比 "
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4455,7 +4455,7 @@ type = real
 title = "Buff - 添加拔树 Bgra"
 description = "为 ${target} 添加拔树 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 攻击次数 ${attackCount} 禁用武器 ${disableWeapon} 启用武器 ${enableWeapon} 树木 ${treeId}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4483,7 +4483,7 @@ default = "LTlt"
 title = "Buff - 添加诱捕 (空中的) Bena"
 description = "为 ${target} 添加诱捕 (空中的) Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 所有者 ${owner} 下落时间 ${fallTime} 高度 ${height} 近战范围 ${meleeRange}"
 comment = "持续时间内不能移动 并且飞行单位会落到地面 近战单位可以设置攻击距离"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4512,7 +4512,7 @@ type = real
 title = "Buff - 添加诱捕 (地面的) Beng"
 description = "为 ${target} 添加诱捕 (地面的) Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 所有者 ${owner} 下落时间 ${fallTime} 高度 ${height} 近战范围 ${meleeRange}"
 comment = "持续时间内不能移动 并且飞行单位会落到地面 近战单位可以设置攻击距离"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4541,7 +4541,7 @@ type = real
 title = "Buff - 添加蛛网 (空中的) Bwea"
 description = "为 ${target} 添加蛛网 (空中的) Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 所有者 ${owner} 下落时间 ${fallTime} 高度 ${height} 近战范围 ${meleeRange}"
 comment = "持续时间内不能移动 并且飞行单位会落到地面 近战单位可以设置攻击距离"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4570,7 +4570,7 @@ type = real
 title = "Buff - 添加蛛网 (地面的) Bweb"
 description = "为 ${target} 添加蛛网 (地面的) Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 所有者 ${owner} 下落时间 ${fallTime} 高度 ${height} 近战范围 ${meleeRange}"
 comment = "持续时间内不能移动 并且飞行单位会落到地面 近战单位可以设置攻击距离"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4599,7 +4599,7 @@ type = real
 title = "Buff - 添加纠缠根须 BEer"
 description = "为 ${target} 添加纠缠根须 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 每秒伤害 ${dps}"
 comment = "持续期间不能移动 不能攻击 并且每秒受到伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4622,7 +4622,7 @@ type = real
 title = "Buff - 添加诅咒 Bcrs"
 description = "为 ${target} 添加诅咒 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 丢失概率 ${missChance} %"
 comment = "持续期间 攻击丢失百分比"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4645,7 +4645,7 @@ type = real
 title = "Buff - 添加岗哨守卫 Beye"
 description = "为 ${target} 添加岗哨守卫 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "作为被 召唤的岗哨守卫 持续时间内隐身 攻击不会显影 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4664,7 +4664,7 @@ type = real
 title = "Buff - 添加精灵之火 Bfae"
 description = "为 ${target} 添加精灵之火 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 所有者 ${owner} 护甲降低 ${armorReduce}"
 comment = "持续期间 减少护甲"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4687,7 +4687,7 @@ type = real
 title = "Buff - 添加影子权杖 Bshs"
 description = "为 ${target} 添加影子权杖 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 所有者 ${owner}"
 comment = "添加后可以被敌人看到自己的隐身状态"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4708,7 +4708,7 @@ type = player
 title = "Buff - 添加炎魔 BNlm"
 description = "为 ${target} 添加炎魔 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 分裂数量 ${splitCount} 分裂延迟 ${splitDelay} 所需攻击 ${attackNeeded} 生命加成 ${healthBonus} 生命周期加成 ${lifeTimeBonus} 最大数量 ${maxCount} 剩余数量 ${remainingCount} 距离 ${distance}"
 comment = "会分裂单位 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4743,7 +4743,7 @@ type = real
 title = "Buff - 添加灵魂燃烧 BNso"
 description = "为 ${target} 添加灵魂燃烧 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 伤害 ${damage} 间隔 ${interval} 移速降低 ${moveSpeedReduce} 倍 攻速降低 ${attackSpeedReduce} 倍 攻击降低 ${attackReduce} 倍"
 comment = "持续期间受到伤害 并且 降低移速 攻速 攻击力 倍数"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4774,7 +4774,7 @@ type = real
 title = "Buff - 添加被击晕的 BPSE"
 description = "为 ${target} 添加被击晕的 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "持续期间 晕眩 不能攻击移动"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4795,7 +4795,7 @@ type = real
 title = "Buff - 添加烈焰风暴 BHfa"
 description = "为 ${target} 添加烈焰风暴 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 伤害 ${damage}"
 comment = "这个伤害可能没什么作用 加了仅仅是防止被其他烈焰风暴aoe伤害而已"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4816,7 +4816,7 @@ type = real
 title = "Buff - 添加霜冻护甲 BUfa"
 description = "为 ${target} 添加霜冻护甲 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 减益持续 ${debuffDuration} 护甲 ${armor}"
 comment = "持续时间获得 额外护甲"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4839,7 +4839,7 @@ type = real
 title = "Buff - 添加被减速的 Bfro"
 description = "为 ${target} 添加被减速的 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 移速 ${moveSpeed} % 攻速 ${attackSpeed} %"
 comment = "持续期间 增加减少 移速 攻速 百分比 负数减少"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4864,7 +4864,7 @@ type = real
 title = "Buff - 添加妖术 BOhx"
 description = "为 ${target} 添加妖术 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 单位类型 ${unitId}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4887,7 +4887,7 @@ type = unitcode
 title = "Buff - 添加恐怖嚎叫 BNht"
 description = "为 ${target} 添加恐怖嚎叫 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 伤害增加 ${damageIncrease} % 护甲 ${armor} 生命恢复 ${healthRegen} 魔法恢复 ${manaRegen}"
 comment = "持续期间 增加减少 攻击 护甲 生命恢复 魔法恢复  负数减少"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4914,7 +4914,7 @@ type = real
 title = "Buff - 添加净化 Bprg"
 description = "为 ${target} 添加净化 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 移速更新次数 ${moveSpeedUpdateCount} 攻速更新次数 ${attackSpeedUpdateCount} 暂停持续 ${pauseDuration} 英雄暂停 ${heroPauseDuration}"
 comment = "获得时会暂停单位 之后减速"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4943,7 +4943,7 @@ type = real
 title = "Buff - 添加医疗 Bhea"
 description = "为 ${target} 添加医疗 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "没有治疗效果  添加之后不会被其他技能治疗"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4964,7 +4964,7 @@ type = real
 title = "Buff - 添加生命恢复 Brej"
 description = "为 ${target} 添加生命恢复 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 生命 ${health} 魔法 ${mana}"
 comment = "持续时间内 恢复生命值 恢复魔法值  参数是总的恢复量"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -4987,7 +4987,7 @@ type = real
 title = "Buff - 添加净化药水 BIrm"
 description = "为 ${target} 添加净化药水 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 魔法 ${mana} 被攻击时驱散 ${dispel}"
 comment = "恢复魔法值  最后一个参数填1被攻击时驱散"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5010,7 +5010,7 @@ type = integer
 title = "Buff - 添加再生物品 BIrl"
 description = "为 ${target} 添加再生物品 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 生命 ${health} 驱散 ${dispel}"
 comment = "恢复生命值  最后一个参数填1被攻击时驱散"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5033,7 +5033,7 @@ type = integer
 title = "Buff - 添加生命恢复 BIrg"
 description = "为 ${target} 添加生命恢复 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 生命 ${health} 魔法 ${mana} 驱散 ${dispel}"
 comment = "恢复生命值 恢复魔法值  最后一个参数填1被攻击时驱散"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5058,7 +5058,7 @@ type = integer
 title = "Buff - 添加冰冻 Bfre"
 description = "为 ${target} 添加冰冻 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 镜像 ${mirrorImage}"
 comment = "持续时间 不能移动  最后一个参数 镜像单位填1 否则填0"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5082,7 +5082,7 @@ default = "0"
 title = "Buff - 添加腐蚀 BIcb"
 description = "为 ${target} 添加腐蚀 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 护甲降低 ${armorReduce}"
 comment = "持续时间内 降低护甲 "
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5103,7 +5103,7 @@ type = real
 title = "Buff - 添加再生 BIrb"
 description = "为 ${target} 添加再生 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "作为被复活的召唤物 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5122,7 +5122,7 @@ type = real
 title = "Buff - 添加吸血药水 BIpv"
 description = "为 ${target} 添加吸血药水 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 生命偷取值 ${lifeSteal} 伤害奖励 ${damageBonus}"
 comment = "生命偷取值 0.75 就是每次伤害的75%的回复生命值,  并且期间增加攻击力"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5147,7 +5147,7 @@ default = 12
 title = "Buff - 添加腐尸甲虫 BUcb"
 description = "为 ${target} 添加腐尸甲虫 Buff：来源 ${source} 显示 ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration}"
 comment = "作为被召唤的甲虫 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5168,7 +5168,7 @@ type = real
 title = "Buff - 添加献祭(施法者) BEia"
 description = "为 ${target} 添加献祭(施法者) Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 伤害 ${damage}"
 comment = "单独添加没有效果 要跟 `Buff - 添加献祭 BEim` 一起添加到单位身上 "
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5189,7 +5189,7 @@ type = real
 title = "Buff - 添加献祭 BEim"
 description = "为 ${target} 添加献祭 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 魔法消耗 ${manaCost} 间隔 ${interval} 范围 ${area} 伤害 ${damage} 目标允许 ${targetFlags} 所有者 ${owner}"
 comment = "持续时间内 消耗魔法 对范围造成伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5221,7 +5221,7 @@ type = player
 title = "Buff - 添加永久的献祭 BNpi"
 description = "为 ${target} 添加永久的献祭 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 魔法消耗 ${manaCost} 间隔 ${interval} 范围 ${area} 伤害 ${damage} 目标允许 ${targetFlags} 所有者 ${owner}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5253,7 +5253,7 @@ type = player
 title = "Buff - 添加永久的献祭 Bpig"
 description = "为 ${target} 添加永久的献祭 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 魔法消耗 ${manaCost} 间隔 ${interval} 范围 ${area} 伤害 ${damage} 目标允许 ${targetFlags} 所有者 ${owner}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5285,7 +5285,7 @@ type = player
 title = "Buff - 添加火焰风衣 BIcf"
 description = "为 ${target} 添加火焰风衣 Buff ${buffId} 等级 ${level} 优先级 ${priority} 持续 ${duration} 魔法消耗 ${manaCost} 间隔 ${interval} 范围 ${area} 伤害 ${damage} 目标允许 ${targetFlags} 所有者 ${owner}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5317,7 +5317,7 @@ type = player
 title = "物品栏 - 设置物品栏格子数量"
 description = "设置物品栏格子数量为 ${maxSize}"
 comment = "初始化修改格子数量后, 可以超过6格拾取 并且通过 `物品栏 - 获取物品栏按钮` 获取超过6格的ui 然后把ui设置大小跟锚点位置。通过 `单位持有物品` 获取超过6格的物品handle"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
 default = "6"
@@ -5326,7 +5326,7 @@ default = "6"
 title = "物品栏 - 设置快捷键"
 description = "设置物品栏第 ${slot} 格的快捷键为 ${hotkey}"
 comment = "可以为超过6格的物品栏格子绑定快捷键"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = integer
 default = "0"
@@ -5337,7 +5337,7 @@ type = string
 title = "Buff - 添加穿刺 BUim"
 description = "为单位 ${target} 添加 BUim(穿刺) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 伤害 ${damage} 空中停留时间 ${airduration}"
 comment = "会暂停 空中+持续 的总时间 并造成伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5363,7 +5363,7 @@ type = real
 title = "Buff - 添加地狱火 BNin"
 description = "为单位 ${target} 添加 BNin(地狱火) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 目标X ${x} 目标Y ${y}"
 comment = "添加时杀死target xy目前看不出有什么作用"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5389,7 +5389,7 @@ type = real
 title = "Buff - 添加心灵之火 Binf"
 description = "为单位 ${target} 添加 Binf(心灵之火) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 攻击增加(%) ${attackincrease} 防御增加 ${armor} 生命恢复速度 ${healthregen} 魔法恢复速度 ${manaregen}"
 comment = "攻击是增加百分比, 防御 跟 恢复速度 都是固定值"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5416,7 +5416,7 @@ type = real
 title = "Buff - 添加隐形术 Binv"
 description = "为单位 ${target} 添加 Binv(隐形术) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 渐隐时间${fadeduration}"
 comment = "持续时间内隐身, 攻击或施法时解除"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5437,7 +5437,7 @@ type = real
 title = "Buff - 添加无敌的 Bvul"
 description = "为单位 ${target} 添加 Bvul(无敌的) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "持续时间内无敌"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5455,8 +5455,8 @@ type = real
 [DzUnitAddBuffBlsh]
 title = "Buff - 添加闪电护盾 Blsh"
 description = "为单位 ${target} 添加 Blsh(闪电护盾) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 伤害间隔 ${interval} 影响范围 ${AOE} 伤害 ${damage}"
-comment = "持续时间内 对范围内的敌人造成伤害"
-category = TC_KKPRE
+comment = "少了 目标允许 和 玩家 参数"
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5481,7 +5481,7 @@ type = real
 title = "Buff - 添加闪电护盾 Blsh"
 description = "为单位 ${target} 添加 Blsh(闪电护盾) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 伤害间隔 ${interval} 影响范围 ${AOE} 伤害 ${damage} 目标允许 ${targetflags} 玩家 ${player}"
 comment = "持续时间内 对范围内的敌人造成伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5511,7 +5511,7 @@ type = player
 title = "Buff - 添加反魔法外壳 Bams"
 description = "为单位 ${target} 添加 Bams(反魔法外壳) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "持续时间内 魔法免疫"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5530,7 +5530,7 @@ type = real
 title = "Buff - 添加反魔法外壳 (额外的) Bam2"
 description = "为单位 ${target} 添加 Bam2(反魔法外壳 (额外的)) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 护盾生命 ${shield}"
 comment = "持续时间内 护盾会抵消魔法伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5551,7 +5551,7 @@ type = real
 title = "Buff - 添加魔力之焰 Bmfl"
 description = "为单位 ${target} 添加 Bmfl(魔力之焰) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 影响范围 ${AOE} 每点魔法造成伤害(单位) ${damagepermana} 每点魔法造成伤害(英雄) ${herodamagepermana} 最大伤害(单位) ${maxdamage} 最大伤害(英雄) ${heromaxdamage} 施法距离 ${range} 魔法施法时间 ${cd} 仅溅射伤害有魔法单位 ${onlyunithavemana} 目标允许 ${targetflags} 魔法效果 ${buff}"
 comment = "持续时间内 周围敌人释放技能时 会受到伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5592,7 +5592,7 @@ default = "Bmfa"
 title = "Buff - 添加魔法护盾 BNms"
 description = "为单位 ${target} 添加 BNms(魔法护盾) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每点魔法抵消的伤害值 ${damageabsorbpermana} 伤害吸收(%) ${absorbpercent}"
 comment = "持续时间内 根据当前蓝量 跟 伤害吸收比 抵消魔法伤害 "
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5615,7 +5615,7 @@ type = real
 title = "Buff - 添加镜像 BOmi"
 description = "为单位 ${target} 添加 BOmi(镜像) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 施加伤害(倍数) ${damagedeal} 所受伤害(倍数) ${damagetaken}"
 comment = "作为镜像单位 持续期间 伤害小于1是减伤大于1是增伤, 到期后会杀死单位"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5641,7 +5641,7 @@ type = real
 title = "Buff - 添加幻象物品 BIil"
 description = "为单位 ${target} 添加 BIil(幻象物品) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 施加伤害(倍数) ${damagedeal} 所受伤害(倍数) ${damagetaken}"
 comment = "作为镜像单位 持续期间 伤害小于1是减伤大于1是增伤, 到期后会杀死单位"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5667,7 +5667,7 @@ type = real
 title = "Buff - 添加寄生虫 BNpa"
 description = "为单位 ${target} 添加 BNpa(寄生虫) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${DPS} 移速减少(%) ${movespeedreduce} 攻速减少(%) ${attackspeedreduce} 叠加类型 ${stacktype} 单位类型 ${unitID} 召唤单位数量 ${count} 召唤单位持续时间 ${timelife} 召唤单位所属玩家 ${player} 魔法效果 ${buff}"
 comment = "持续时间内掉血 减速 并且期间死亡 会召唤单位"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5707,7 +5707,7 @@ default = "BNpm"
 title = "Buff - 添加寄生虫 BNpm"
 description = "为单位 ${target} 添加 BNpm(寄生虫) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "作为召唤单位 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5726,7 +5726,7 @@ type = real
 title = "Buff - 添加变相移动 Bpsh"
 description = "为单位 ${target} 添加 Bpsh(变相移动) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "持续时间内 模型不可见 且 无法被攻击"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5748,7 +5748,7 @@ type = real
 title = "Buff - 添加变形术 Bply"
 description = "为单位 ${target} 添加 Bply(变形术) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 单位类型 ${unitID}"
 comment = "持续时间内 变成小动物 且不能施法跟攻击"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5772,7 +5772,7 @@ type = unitcode
 title = "Buff - 添加避难权杖 BNsa"
 description = "为单位 ${target} 添加 BNsa(避难权杖) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 回复延迟 ${delay} 每秒生命恢复 ${healthregenpersec} 魔法伤害参数 ${magicdamage}"
 comment = "持续时间内 不能移动跟攻击施法 恢复生命值"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5797,7 +5797,7 @@ type = real
 title = "Buff - 添加雷霆一击 BHtc"
 description = "为单位 ${target} 添加 BHtc(雷霆一击) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${movespeed} 攻速增加(倍数) ${attackspeed}"
 comment = "持续时间内 增加或负数减少 移动速度 攻击速度 倍数-0.5 是降低50%的意思 "
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5823,7 +5823,7 @@ type = real
 title = "Buff - 添加雷霆一击 BCtc"
 description = "为单位 ${target} 添加 BCtc(雷霆一击) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${movespeed} 攻速增加(倍数) ${attackspeed}"
 comment = "持续时间内 增加或负数减少 移动速度 攻击速度 倍数-0.5 是降低50%的意思 "
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5849,7 +5849,7 @@ type = real
 title = "Buff - 添加口袋工厂 BNfy"
 description = "为单位 ${target} 添加 BNfy(口袋工厂) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 生产单位间隔 ${delay} 生产单位类型 ${unitID} 生产单位持续时间 ${timelife} 魔法效果 ${buff} 生产单位位移 ${offset} 约束范围 ${range}"
 comment = "作为口袋工厂召唤单位, 持续时间内按间隔召唤生产单位, 到期后工厂单位会被杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5881,7 +5881,7 @@ type = real
 title = "Buff - 添加人工地精 BNcg"
 description = "为单位 ${target} 添加 BNcg(人工地精) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 中心X ${x} 中心Y ${y} 约束范围 ${range}"
 comment = "作为召唤单位 到期后被杀死, 离开约束范围也会被杀死, x y 仅在单位为 null 时使用"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5908,7 +5908,7 @@ type = real
 title = "Buff - 添加龙卷风 BNto"
 description = "为单位 ${target} 添加 BNto(龙卷风) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "作为龙卷风召唤单位 持续时间内无敌 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5927,7 +5927,7 @@ type = real
 title = "Buff - 添加邪恶狂热 Buhf"
 description = "为单位 ${target} 添加 Buhf(邪恶狂热) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${DPS} 攻速增加(%) ${attackspeed}"
 comment = "持续时间内 每秒受到伤害 并且增加攻速 "
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5953,7 +5953,7 @@ type = real
 title = "Buff - 添加反召唤 Buns"
 description = "为单位 ${target} 添加 Buns(反召唤) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 回收资源率(%) ${recyclerate} 每秒伤害 ${DPS}"
 comment = "单位被暂停 持续受到伤害 并且获得金币跟木材  这个持续时间无效 直到死亡为止"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5979,7 +5979,7 @@ type = real
 title = "Buff - 添加巫毒(施法者) BOvc"
 description = "为单位 ${target} 添加 BOvc(巫毒(施法者)) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "只有特效 没别的附加效果"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -5998,7 +5998,7 @@ type = real
 title = "Buff - 添加巫毒 BOvd"
 description = "为单位 ${target} 添加 BOvd(巫毒) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "持续时间内 单位无敌"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6017,7 +6017,7 @@ type = real
 title = "Buff - 添加守卫 BOwd"
 description = "为单位 ${target} 添加 BOwd(守卫) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "作为被召唤出来的守卫 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6036,7 +6036,7 @@ type = real
 title = "Buff - 添加怪兽诱捕守卫 BImo"
 description = "为单位 ${target} 添加 BImo(怪兽诱捕守卫) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 影响区域 ${AOE} 激活延迟 ${delay} 引诱间隔 ${interval}"
 comment = "到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6061,7 +6061,7 @@ type = real
 title = "Buff - 添加水奴 BNwm"
 description = "为单位 ${target} 添加 BNwm(水奴) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "作为被召唤出来的单位, 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6080,7 +6080,7 @@ type = real
 title = "Buff - 添加机械类的小玩艺 Bmec"
 description = "为单位 ${target} 添加 Bmec(机械类的小玩艺) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "作为被召唤出来的单位, 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6099,7 +6099,7 @@ type = real
 title = "Buff - 添加熊 BNsg"
 description = "为单位 ${target} 添加 BNsg(熊) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "作为被召唤出来的单位, 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6118,7 +6118,7 @@ type = real
 title = "Buff - 添加豪猪 BNsq"
 description = "为单位 ${target} 添加 BNsq(豪猪) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "作为被召唤出来的单位, 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6137,7 +6137,7 @@ type = real
 title = "Buff - 添加战鹰 BNsw"
 description = "为单位 ${target} 添加 BNsw(战鹰) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "作为被召唤出来的单位, 到期后杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6156,7 +6156,7 @@ type = real
 title = "Buff - 添加疾步风 BOwk"
 description = "为单位 ${target} 添加 BOwk(疾步风) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 转变时间 ${fadeduration} 移速增加(倍数) ${movespeed} 额外攻击伤害 ${attackbonus} 启用额外攻击伤害 ${enableattackbonus}"
 comment = "持续时间内 隐身 + 移动速度 最后1启用 0不启用, 攻击或者施法后解除"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6183,7 +6183,7 @@ type = integer
 title = "Buff - 添加冰冻喷吐 Bfrz"
 description = "为单位 ${target} 添加 Bfrz(冰冻喷吐) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "持续时间内 被冰冻 不能施法攻击移动"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6205,7 +6205,7 @@ type = real
 title = "Buff - 添加液体炸弹 Bliq"
 description = "为单位 ${target} 添加 Bliq(液体炸弹) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${DPS} 移速减少(倍数) ${movespeedreduce} 攻速减少(倍数) ${attackspeedreduce} 允许修理 ${allowrepair}"
 comment = "持续期间减移动速度 攻击速度"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6235,7 +6235,7 @@ type = integer
 title = "Buff - 添加酸性炸弹 BNab"
 description = "为单位 ${target} 添加 BNab(酸性炸弹) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 护甲减少 ${armorreduce} 伤害数值 ${damage} 伤害间隔 ${interval} 移速减少(倍数) ${movespeedreduce} 攻速减少(倍数) ${attackspeedreduce}"
 comment = "持续时间内 减少移速 攻速 护甲, 并且持续受到伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6267,7 +6267,7 @@ type = real
 title = "Buff - 添加灵魂保存 BNsl"
 description = "为单位 ${target} 添加 BNsl(灵魂保存) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "持续时间内无敌，到期后会被杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6289,7 +6289,7 @@ type = real
 title = "Buff - 添加驱散 BHbn"
 description = "为单位 ${target} 添加 BHbn(驱散) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍速) ${movespeed} 攻速增加(倍数) ${attackspeed}"
 comment = "持续时间内 无法攻击施法  增加或负数降低移速攻速"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6315,7 +6315,7 @@ type = real
 title = "Buff - 添加狂战士 Bbsk"
 description = "为单位 ${target} 添加 Bbsk(狂战士) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${movespeed} 攻速增加(倍数) ${attackspeed} 所受伤害增加(倍数) ${damagetaken}"
 comment = "期间增加 或者负数减少 移动速度 攻击速度 受到伤害加深"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6343,7 +6343,7 @@ type = real
 title = "Buff - 添加黑暗之奴 BNdm"
 description = "为单位 ${target} 添加 BNdm(黑暗之奴) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6362,7 +6362,7 @@ type = real
 title = "Buff - 添加黑暗之箭 BNba"
 description = "为单位 ${target} 添加 BNba(黑暗之箭) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 玩家 ${player} 召唤单位类型 ${unitID} 召唤单位数量 ${count} 召唤单位持续时间 ${timelife} 魔法效果 ${buff}"
 comment = "目标单位 需要在单位物编 战斗 - 死亡类型   这一项勾选可召唤, 在持续时间内死亡可以召唤单位"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6395,7 +6395,7 @@ default = "BNdm"
 title = "Buff - 添加火焰雨 BNrd"
 description = "为单位 ${target} 添加 BNrd(火焰雨) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${DPS}"
 comment = "持续期间 受到伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6419,7 +6419,7 @@ type = real
 title = "Buff - 添加嗜血术 Bblo"
 description = "为单位 ${target} 添加 Bblo(嗜血术) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(%) ${movespeed} 攻速增加(%) ${attackspeed} 模型放大比例(%) ${modelscale}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6447,7 +6447,7 @@ type = real
 title = "Buff - 添加狂热 Bfzy"
 description = "为单位 ${target} 添加 Bfzy(狂热) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${movespeed} 攻速增加(倍数) ${attackspeed} 模型放大比例(倍数) ${modelscale}"
 comment = "增加攻速 移速 放大模型"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6475,7 +6475,7 @@ type = real
 title = "Buff - 添加火焰呼吸 BNbf"
 description = "为单位 ${target} 添加 BNbf(火焰呼吸) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${DPS}"
 comment = "持续时间内 每秒受到伤害"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6499,7 +6499,7 @@ type = real
 title = "Buff - 添加霜冻闪电 BCbf"
 description = "为单位 ${target} 添加 BCbf(霜冻闪电) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${DPS}"
 comment = ""
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6523,7 +6523,7 @@ type = real
 title = "Buff - 添加占据 Bpos"
 description = "为单位 ${target} 添加 Bpos(占据) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 目标无敌 ${invul} 目标魔法免疫 ${immue}"
 comment = "持续期间 单位被暂停   1无敌 0不无敌 "
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6549,7 +6549,7 @@ type = integer
 title = "Buff - 添加占据 (施法者) Bpoc"
 description = "为单位 ${target} 添加 Bpoc(占据 (施法者)) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "持续期间头顶多个特效"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6568,7 +6568,7 @@ type = real
 title = "Buff - 添加控制魔法 Bcmg"
 description = "为单位 ${target} 添加 Bcmg(控制魔法) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
 comment = "到期后被杀死"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6587,7 +6587,7 @@ type = real
 title = "Buff - 添加乌云技能 Bclf"
 description = "为单位 ${target} 添加 Bclf(乌云技能) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${movespeed} 攻速增加(倍数) ${attackspeed} 禁止类型(整数) ${disabletype} 失误概率(倍数) ${misschance}"
 comment = "持续时间内 增加或负数减少 移速 攻速,  禁止类型 1近战 2远程 4特殊 8魔法 如果要同时禁止近战跟远程 1+2即可"
-category = TC_KKPRE
+category = TC_KKAPI
 [[.args]]
 type = unit
 [[.args]]
@@ -6612,3 +6612,1525 @@ type = real
 type = integer
 [[.args]]
 type = real
+
+[DzUnitAddBuffBHcaV2]
+title = "Buff - 添加冰冻冷箭 (没有堆积) BHca"
+description = "为单位 ${target} 添加 BHca(冰冻冷箭) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${DPS} 移速减少(倍数) ${movespeedreduce} 攻速减少(倍数) ${attackspeedreduce} 叠加类型 ${stacktype}"
+comment = "期间受到伤害 并且移速 减攻"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BHca"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "7"
+
+[DzUnitAddBuffBcri]
+title = "Buff - 添加残废 Bcri"
+description = "为单位 ${target} 添加 Bcri(残废) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速减少(倍数) ${movespeedreduce} 攻速减少(倍数) ${attackspeedreduce} 伤害减少(倍数) ${attackreduce}"
+comment = "持续时间内 减攻速 移速 并且降低攻击"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bcri"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBcy2]
+title = "Buff - 添加飓风 Bcy2"
+description = "为单位 ${target} 添加 Bcy2(飓风) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "持续时间内无敌且无法控制 被龙卷风吹到天上"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bcy2"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBcyc]
+title = "Buff - 添加飓风 Bcyc"
+description = "为单位 ${target} 添加 Bcyc(飓风) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "持续时间内无法选中 被龙卷风吹到天上"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bcyc"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBroa]
+title = "Buff - 添加咆哮 Broa"
+description = "为单位 ${target} 添加 Broa(咆哮) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 攻击增加(倍数) ${attackincrease} 防御增加 ${armor} 生命恢复速度 ${healthregen} 魔法再生 ${manaregen}"
+comment = "持续时间内增加攻击 防御 生命恢复速度 魔法恢复"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "Broa"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBNbr]
+title = "Buff - 添加战争咆哮 BNbr"
+description = "为单位 ${target} 添加 BNbr(战争咆哮) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 攻击增加 ${attackbonus} 防御增加 ${armor} 生命恢复速度 ${healthregen} 魔法再生 ${manaregen}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "BNbr"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBEst]
+title = "Buff - 添加侦察 BEst"
+description = "为单位 ${target} 添加 BEst(侦察) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "作为召唤单位 到期后死亡"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "BEst"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBEsh]
+title = "Buff - 添加暗影突袭 BEsh"
+description = "为单位 ${target} 添加 BEsh(暗影突袭) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 持续伤害 ${damage} 伤害间隔 ${interval} 移速减少(倍数) ${movespeedreduce} 攻速减少(倍数) ${attackspeedreduce} 速度衰减幅度 ${factor}"
+comment = "持续受到伤害 并且 减少攻速 移速"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BEsh"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBNsi]
+title = "Buff - 添加沉默魔法 BNsi"
+description = "为单位 ${target} 添加 BNsi(沉默魔法) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${movespeed} 攻速增加(倍数) ${attackspeed} 禁止类型 ${disabletype} 失误几率(倍数) ${misschance}"
+comment = "持续时间内 增加或负数减少 移速 攻速,  禁止类型 1近战 2远程 4特殊 8魔法 如果要同时禁止近战跟远程 1+2即可 如果要禁止施法+8"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "BNsi"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = integer
+[[.args]]
+type = real
+
+[DzUnitAddBuffBUsl]
+title = "Buff - 添加睡眠 BUsl"
+description = "为单位 ${target} 添加 BUsl(睡眠) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "持续时间内不能移动 被攻击后唤醒"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BUsl"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBUsp]
+title = "Buff - 添加睡眠 (暂停) BUsp"
+description = "为单位 ${target} 添加 BUsp(睡眠 (暂停)) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BUsp"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBNdc]
+title = "Buff - 添加黑暗转换 BNdc"
+description = "为单位 ${target} 添加 BNdc(黑暗转换) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 单位类型 ${unitID}"
+comment = "疑似内部硬编码 持续时间固定6秒"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BNdc"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = unitcode
+default = "nzom"
+
+[DzUnitAddBuffBslo]
+title = "Buff - 添加减速 Bslo"
+description = "为单位 ${target} 添加 Bslo(减速) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${movespeed} 攻速增加(倍数) ${attackspeed}"
+comment = "持续时间内 增加或负数降低移速攻速"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bslo"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBspe]
+title = "Buff - 添加速度加快 Bspe"
+description = "为单位 ${target} 添加 Bspe(速度加快) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${movespeed} 攻速增加(倍数) ${attackspeed}"
+comment = "持续时间内 增加或负数降低移速攻速"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bspe"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBNss]
+title = "Buff - 添加魔法护盾 BNss"
+description = "为单位 ${target} 添加 BNss(魔法护盾) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "持续时间内 能抵挡1次目标类技能 比如让风暴之锤技能无效"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "BNss"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBspl]
+title = "Buff - 添加灵魂锁链 Bspl"
+description = "为单位 ${target} 添加 Bspl(灵魂锁链) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 分布伤害参数(%) ${rate}"
+comment = "友军或者自己的单位 所有拥有这个buff的单位会一起承担伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "Bspl"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBEsv]
+title = "Buff - 添加复仇之魂 BEsv"
+description = "为单位 ${target} 添加 BEsv(复仇之魂) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "作为召唤单位 到期后杀死"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "BEsv"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBvng]
+title = "Buff - 添加复仇之魂 Bvng"
+description = "为单位 ${target} 添加 Bvng(复仇之魂) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "作为召唤单位 到期后杀死"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bvng"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBOsf]
+title = "Buff - 添加野兽幽魂 BOsf"
+description = "为单位 ${target} 添加 BOsf(野兽幽魂) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "作为召唤单位 到期后杀死"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BOsf"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBIsh]
+title = "Buff - 添加猎头者灵魂 BIsh"
+description = "为单位 ${target} 添加 BIsh(猎头者灵魂) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "作为召唤单位 到期后杀死"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BIsh"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBstt]
+title = "Buff - 添加静止陷阱 Bstt"
+description = "为单位 ${target} 添加 Bstt(静止陷阱) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "作为召唤单位 到期后杀死 期间隐藏"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bstt"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBBAR]
+title = "Buff - 添加进度条 BBAR"
+description = "为单位 ${target} 添加 BBAR(进度条) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "只有ui变化 没有其他效果 相当于是个空的buff模版 可以用来显示自定义图标 跟 生命周期进度条"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBsha]
+title = "Buff - 添加共享视野 Bsha"
+description = "为单位 ${target} 添加 Bsha(共享视野) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 玩家 ${player} 侦查类型 ${detect_type}"
+comment = "给敌方隐形单位添加此buff 为指定玩家视野可见"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "Bsha"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = player
+[[.args]]
+type = integer
+default = "3"
+
+[DzUnitAddBuffBdvv]
+title = "Buff - 添加吞噬视野 Bdvv"
+description = "为单位 ${target} 添加 Bdvv(吞噬视野) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 玩家 ${player} 侦查类型 ${detect_type}"
+comment = "给敌方隐形单位添加此buff 为指定玩家视野可见"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "Bdvv"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = player
+[[.args]]
+type = integer
+default = "0"
+
+[DzUnitAddBuffBbar2]
+title = "Buff - 添加树皮术 Bbar"
+description = "为单位 ${target} 添加 Bbar(树皮术) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 护甲增加 ${armor}"
+comment = "持续时间内 增加护甲"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "Bbar"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBprv]
+title = "Buff - 添加脉冲显形 Bprv"
+description = "为单位 ${target} 添加 Bprv(脉冲显形) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 玩家掩码 ${player_mask}"
+comment = "让单位提供给指定玩家视野  不是显隐 只是提供地形视野"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "Bprv"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "DzConvertForce2PlayerIdMark"
+
+[DzUnitAddBuffBHav]
+title = "Buff - 添加天神下凡 BHav"
+description = "为单位 ${target} 添加 BHav(天神下凡) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 护甲增加 ${armor} 生命增加 ${life} 攻击增加 ${attack} 魔法伤害降低(倍数) ${magic_reduction}"
+comment = "持续时间内 增加护甲 生命 攻击 降低魔法伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "BHav"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBrpl]
+title = "Buff - 添加补充生命 Brpl"
+description = "为单位 ${target} 添加 Brpl(补充生命) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "没有效果只有图标"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Brpl"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBrpm]
+title = "Buff - 添加补充魔法 Brpm"
+description = "为单位 ${target} 添加 Brpm(补充魔法) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration}"
+comment = "没有效果只有图标"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Brpm"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBoar]
+title = "Buff - 添加生命恢复光环 Boar"
+description = "为单位 ${target} 添加 Boar(生命恢复光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 百分比奖励 ${percent_bonus} 每秒生命恢复 ${life_regen}"
+comment = "持续时间内 获得生命恢复"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Boar"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBarm]
+title = "Buff - 添加魔法恢复光环 Barm"
+description = "为单位 ${target} 添加 Barm(魔法恢复光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 百分比奖励 ${percent_bonus} 每秒魔法恢复 ${mana_regen}"
+comment = "持续时间内 获得魔法恢复"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Barm"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBabr]
+title = "Buff - 添加荒芜恢复光环 Babr"
+description = "为单位 ${target} 添加 Babr(荒芜恢复光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 百分比奖励 ${percent_bonus} 每秒生命恢复 ${life_regen}"
+comment = "持续时间内 获得生命恢复"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Babr"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBHab]
+title = "Buff - 添加辉煌光环 BHab"
+description = "为单位 ${target} 添加 BHab(辉煌光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 百分比奖励 ${percent_bonus} 每秒魔法恢复 ${mana_regen}"
+comment = "持续时间内 获得魔法恢复"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BHab"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBOac]
+title = "Buff - 添加命令光环 BOac"
+description = "为单位 ${target} 添加 BOac(命令光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 近战奖励 ${melee_bonus} 远程奖励 ${ranged_bonus} 百分比奖励 ${percent_bonus} 攻击增加 ${attack_bonus}"
+comment = "持续时间内 增加攻击力"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BOac"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "1"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBakb]
+title = "Buff - 添加战鼓光环 Bakb"
+description = "为单位 ${target} 添加 Bakb(战鼓光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 近战奖励 ${melee_bonus} 远程奖励 ${ranged_bonus} 百分比奖励 ${percent_bonus} 攻击增加 ${attack_bonus}"
+comment = "持续时间内 增加攻击力"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bakb"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "1"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBEar]
+title = "Buff - 添加强击光环 BEar"
+description = "为单位 ${target} 添加 BEar(强击光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 近战奖励 ${melee_bonus} 远程奖励 ${ranged_bonus} 百分比奖励 ${percent_bonus} 攻击增加 ${attack_bonus}"
+comment = "持续时间内 增加攻击力"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BEar"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "1"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBHad]
+title = "Buff - 添加专注光环 BHad"
+description = "为单位 ${target} 添加 BHad(专注光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 百分比奖励 ${percent_bonus} 护甲增加 ${armor_bonus}"
+comment = "持续时间内 增加护甲"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BHad"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+
+[DzUnitAddBuffBOae]
+title = "Buff - 添加耐久光环 BOae"
+description = "为单位 ${target} 添加 BOae(耐久光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${move_speed} 攻速增加(倍数) ${attack_speed}"
+comment = "持续时间内 增加攻速 移速"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BOae"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBasl]
+title = "Buff - 添加减速光环 Basl"
+description = "为单位 ${target} 添加 Basl(减速光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速增加(倍数) ${move_speed} 攻速增加(倍数) ${attack_speed}"
+comment = "持续时间内 增加或负数降低移速攻速"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Basl"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBEah]
+title = "Buff - 添加荆棘光环 BEah"
+description = "为单位 ${target} 添加 BEah(荆棘光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 反弹伤害 ${returned_damage} 按百分比反弹 ${percent_returned}"
+comment = "持续时间内 反弹近战伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BEah"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+
+[DzUnitAddBuffBUau]
+title = "Buff - 添加邪恶光环 BUau"
+description = "为单位 ${target} 添加 BUau(邪恶光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 百分比奖励 ${percent_bonus} 移速增加(倍数) ${move_speed} 生命恢复 ${life_regen}"
+comment = "持续时间内 增加移速 生命恢复速度"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BUau"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "1"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBUav]
+title = "Buff - 添加吸血光环 BUav"
+description = "为单位 ${target} 添加 BUav(吸血光环) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 吸血比例(%) ${life_steal}"
+comment = "持续时间内 攻击恢复生命"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BUav"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBNtm]
+title = "Buff - 添加点金术 BNtm"
+description = "为单位 ${target} 添加 BNtm(点金术) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 玩家 ${player} 黄金奖励(倍数) ${gold} 木材奖励(倍数) ${lumber} 附加奖励 ${bonus}"
+comment = "到期后杀死单位 获得金币木材奖励 是物编 金币消耗、木材消耗的倍数"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BNtm"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = player
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+
+[DzUnitAddBuffBHbd]
+title = "Buff - 添加暴风雪 BHbd"
+description = "为单位 ${target} 添加 BHbd(暴风雪) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${damage_per_second}"
+comment = "持续受到伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BHbd"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBpxf]
+title = "Buff - 添加凤凰火焰 Bpxf"
+description = "为单位 ${target} 添加 Bpxf(凤凰火焰) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${damage_per_second}"
+comment = "持续受到伤害"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bpxf"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBapl]
+title = "Buff - 添加疾病 Bapl"
+description = "为单位 ${target} 添加 Bapl(疾病) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 每秒伤害 ${damage_per_second}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bapl"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBchd]
+title = "Buff - 添加运输船死亡 Bchd"
+description = "为单位 ${target} 添加 Bchd(运输船死亡) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速更新 ${move_speed_update} 攻速更新 ${attack_speed_update} 普通单位麻痹时间 ${unit_stun_duration} 英雄麻痹时间 ${hero_stun_duration}"
+comment = "先晕眩 再减速"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bchd"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBdbb]
+title = "Buff - 添加生命魔法吸取 Bdbb"
+description = "为单位 ${target} 添加 Bdbb(生命魔法吸取) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 生命上限 ${life_cap} 魔法上限 ${mana_cap} 生命衰减 ${life_decay} 魔法衰减 ${mana_decay} 生命抵消 ${life_offset} 魔法抵消 ${mana_offset} 生命百分比 ${life_percent} 魔法百分比 ${mana_percent} 初始生命奖励 ${life_bonus} 初始魔法奖励 ${mana_bonus}"
+comment = "临时获得当前生命跟魔法 到期后收回"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "Bdbb"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBdbl]
+title = "Buff - 添加生命吸取 Bdbl"
+description = "为单位 ${target} 添加 Bdbl(生命吸取) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 生命上限 ${life_cap} 魔法上限 ${mana_cap} 生命衰减 ${life_decay} 魔法衰减 ${mana_decay} 生命抵消 ${life_offset} 魔法抵消 ${mana_offset} 生命百分比 ${life_percent} 魔法百分比 ${mana_percent} 初始生命奖励 ${life_bonus} 初始魔法奖励 ${mana_bonus}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "Bdbl"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBdbm]
+title = "Buff - 添加魔法吸取 Bdbm"
+description = "为单位 ${target} 添加 Bdbm(魔法吸取) 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 生命上限 ${life_cap} 魔法上限 ${mana_cap} 生命衰减 ${life_decay} 魔法衰减 ${mana_decay} 生命抵消 ${life_offset} 魔法抵消 ${mana_offset} 生命百分比 ${life_percent} 魔法百分比 ${mana_percent} 初始生命奖励 ${life_bonus} 初始魔法奖励 ${mana_bonus}"
+comment = ""
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = buffcode
+default = "Bdbm"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBcrs]
+title = "Buff - 添加诅咒 Bcrs"
+description = "为单位 ${target} 添加 Bcrs(诅咒) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 失误几率(%) ${misschance}"
+comment = "持续时间内 攻击丢失百分比 0~1"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "Bcrs"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+
+[DzUnitAddBuffBHca]
+title = "Buff - 添加冰冻冷箭 BHca"
+description = "为单位 ${target} 添加 BHca(冰冻冷箭) 来源为 ${source} 显示为 ${buffID} 等级 ${level} 魔法盗取优先级 ${spell_steal_priority} 持续时间 ${duration} 移速减少(%) ${movespeedreduce} 攻速减少(%) ${attackspeedreduce} 叠加类型 ${stacktype}"
+comment = "少了 每秒伤害 参数"
+category = TC_KKPRE
+[[.args]]
+type = unit
+[[.args]]
+type = unit
+default = "UnitNull"
+[[.args]]
+type = buffcode
+default = "BHca"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = integer
+default = "0"
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = real
+[[.args]]
+type = integer
+default = "7"
+
+[DzCommandBarResize]
+title = "技能栏 - 设置技能栏按钮数量"
+description = "设置技能栏的数量为 ${row}行 ${col}列"
+comment = "可能有必要重新设置一下ui坐标, 减少数量需要先获取 ui 记录 调整 再删除 不然会泄露"
+category = TC_KKPRE
+[[.args]]
+type = integer
+default = "3"
+[[.args]]
+type = integer
+default = "4"
+
+[DzSetUnitInventorySize]
+title = "物品栏 - 设置单位物品栏格子数量"
+description = "设置单位 ${whichUnit} 的物品栏格子数量为 ${size}"
+comment = "格子数量必须在0到托管物品栏最大格数之间。缩小时，超出范围的物品会掉落；物品栏设置为销毁物品时则会销毁"
+category = TC_KKPRE
+[[.args]]
+type = unit
+default = "GetTriggerUnit"
+[[.args]]
+type = integer
+default = "6"
+min = 0
+
+[DzSetItemArt]
+title = "物品 - 设置图标"
+description = "设置物品 ${whichItem} 的图标为 ${art}"
+comment = "独立物品修改 不影响其他物品"
+category = TC_KKPRE
+[[.args]]
+type = item
+[[.args]]
+type = imagefile
+
+[DzSetItemTip]
+title = "物品 - 设置提示"
+description = "设置物品 ${whichItem} 的提示为 ${tip}"
+comment = "独立物品修改 不影响其他物品"
+category = TC_KKPRE
+[[.args]]
+type = item
+[[.args]]
+type = string
+
+[DzSetItemUberTip]
+title = "物品 - 设置扩展提示"
+description = "设置物品 ${whichItem} 的扩展提示为 ${ubertip}"
+comment = "独立物品修改 不影响其他物品"
+category = TC_KKPRE
+[[.args]]
+type = item
+[[.args]]
+type = string
+
+[DzSetItemUpdate]
+title = "物品 - 刷新数据"
+description = "刷新物品 ${whichItem} 的显示与技能数据"
+comment = "会刷新该物品的全部顶层技能"
+category = TC_KKPRE
+[[.args]]
+type = item
+
+[DzSetItemAbilityRange]
+title = "物品 - 设置物品技能施法距离"
+description = "设置物品 ${whichItem} 第 ${slot_index} 个技能的施法距离为 ${range}"
+comment = "改物品施法距离; 技能槽从0开始；独立物品修改 不影响其他物品  改完 刷新物品后生效"
+category = TC_KKPRE
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+[[.args]]
+type = real
+min = 0
+
+[DzSetItemAbilityArea]
+title = "物品 - 设置物品技能施法范围"
+description = "设置物品 ${whichItem} 第 ${slot_index} 个技能的影响范围为 ${area}"
+comment = "改物品影响范围; 技能槽从0开始；独立物品修改 不影响其他物品  改完 刷新物品后生效"
+category = TC_KKPRE
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+[[.args]]
+type = real
+min = 0
+
+[DzSetItemAbilityCool]
+title = "物品 - 设置物品技能冷却"
+description = "设置物品 ${whichItem} 第 ${slot_index} 个技能的当前冷却为 ${cool}，最大冷却为 ${max_cool}"
+comment = "物品独立冷却, 修改后时间独立于物品冷却组; 技能槽从0开始；独立物品修改 不影响其他物品  改完 刷新物品后生效"
+category = TC_KKPRE
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+[[.args]]
+type = real
+min = 0
+[[.args]]
+type = real
+min = 0
+
+[DzSetItemAbilityTargs]
+title = "物品 - 设置物品技能目标允许"
+description = "设置物品 ${whichItem} 第 ${slot_index} 个技能的目标允许为 ${target_flags}"
+comment = "物品目标技能的目标允许; 技能槽从0开始；独立物品修改 不影响其他物品  改完 刷新物品后生效"
+category = TC_KKPRE
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+[[.args]]
+type = TargetFlags
+default = "DzConvertStr2Targs"
+
+[DzSetItemAbilityCost]
+title = "物品 - 设置物品技能魔法消耗"
+description = "设置物品 ${whichItem} 第 ${slot_index} 个技能的魔法消耗为 ${cost}"
+comment = "主动物品施法耗蓝; 技能槽从0开始；独立物品修改 不影响其他物品  改完 刷新物品后生效"
+category = TC_KKPRE
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+[[.args]]
+type = integer
+default = "0"
+min = 0
+
+[DzSetItemAbilityReqLevel]
+title = "物品 - 设置物品技能需求等级"
+description = "设置物品 ${whichItem} 第 ${slot_index} 个技能的需求等级为 ${required_level}"
+comment = "需求等级2以上可以对魔法免疫单位释放; 技能槽从0开始；独立物品修改 不影响其他物品  改完 刷新物品后生效"
+category = TC_KKPRE
+[[.args]]
+type = item
+[[.args]]
+type = integer
+default = "0"
+min = 0
+max = 3
+[[.args]]
+type = integer
+default = "0"
+min = 0
