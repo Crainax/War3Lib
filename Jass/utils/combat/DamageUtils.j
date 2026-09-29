@@ -71,6 +71,19 @@ library DamageUtils requires UnitFilter,GroupUtils {
         return killRewardArenaJiejingExtraRate[killRewardTop];
     }
 
+    // 伤害API调用期间的额外杀敌上下文；同来源、同目标的同步连带伤害也可享受。
+    private unit extraKillSource = null;
+    private unit extraKillTarget = null;
+    private integer extraKillCount = 0;
+
+    // 死亡事件中的杀敌统计和属性奖励均可读取，不消耗上下文。
+    public function GetDamageExtraKills(unit source, unit target) -> integer {
+        if (source != null && target != null && source == extraKillSource && target == extraKillTarget) {
+            return extraKillCount;
+        }
+        return 0;
+    }
+
     private function LS_begin(unit src) {
         lsTop += 1;
         lsSource[lsTop] = src;
@@ -160,6 +173,50 @@ library DamageUtils requires UnitFilter,GroupUtils {
         } else {
             UnitDamageTarget( u, target, dmg, false, true, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_SLOW_POISON, WEAPON_TYPE_WHOKNOWS );
         }
+    }
+
+    // 保存/恢复上一层上下文，支持嵌套调用；实际死亡时由结算方读取额外次数。
+    public function ApplyPhysicalDamageExtraKill(unit source, unit target, real damage, integer extraKills) {
+        unit previousSource = extraKillSource;
+        unit previousTarget = extraKillTarget;
+        integer previousCount = extraKillCount;
+        if (source == null || target == null || GetUnitTypeId(target) == 0 || IsUnitType(target, UNIT_TYPE_DEAD) || GetWidgetLife(target) <= 0.405) {
+            previousSource = null;
+            previousTarget = null;
+            return;
+        }
+        extraKillSource = source;
+        extraKillTarget = target;
+        extraKillCount = IMaxBJ(0, extraKills);
+        ApplyPhysicalDamage(source, target, damage);
+        // 同步伤害及死亡回调结束，恢复调用前的参数。
+        extraKillSource = previousSource;
+        extraKillTarget = previousTarget;
+        extraKillCount = previousCount;
+        previousSource = null;
+        previousTarget = null;
+    }
+
+    // 保存/恢复上一层上下文，支持嵌套调用；实际死亡时由结算方读取额外次数。
+    public function ApplyMagicDamageExtraKill(unit source, unit target, real damage, integer extraKills) {
+        unit previousSource = extraKillSource;
+        unit previousTarget = extraKillTarget;
+        integer previousCount = extraKillCount;
+        if (source == null || target == null || GetUnitTypeId(target) == 0 || IsUnitType(target, UNIT_TYPE_DEAD) || GetWidgetLife(target) <= 0.405) {
+            previousSource = null;
+            previousTarget = null;
+            return;
+        }
+        extraKillSource = source;
+        extraKillTarget = target;
+        extraKillCount = IMaxBJ(0, extraKills);
+        ApplyMagicDamage(source, target, damage);
+        // 同步伤害及死亡回调结束，恢复调用前的参数。
+        extraKillSource = previousSource;
+        extraKillTarget = previousTarget;
+        extraKillCount = previousCount;
+        previousSource = null;
+        previousTarget = null;
     }
 
     // 带击杀奖励上下文的物理单体伤害；只有本次伤害实际击杀时才会被结算层读取。

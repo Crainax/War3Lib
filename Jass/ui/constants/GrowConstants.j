@@ -31,5 +31,6 @@
 #define GIF_ICON_FLASH_2 28 //第二常用的刷新动画
 #define GIF_ICON_CLICK   29 //点击动画
 #define GIF_ICON_LEVELUP 30 //升级动画
+#define SEQ_CARD_FLIP_C  31 //暗黑波普长卡翻面
 
 #endif

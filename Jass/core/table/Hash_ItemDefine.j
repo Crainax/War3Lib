@@ -62,6 +62,9 @@
 #define HASH_KEY_ITEM_I50D_GOLD_BODY_TIMER 29312261        // [异度] I50D皇龙金身计时器
 #define HASH_KEY_ITEM_I50D_GOLD_BODY_EFFECT 29312262       // [异度] I50D皇龙金身特效
 #define HASH_KEY_ITEM_I509_UNIFIED_FORM 29312264          // [异度] 红弓归一形态，随装备实例保存
+#define HASH_KEY_ITEM_I31D_ENERGY 29312265                // [异度] 游弋能量，卸装保留
+#define HASH_KEY_ITEM_I31D_RESIST_APPLIED 29312266        // [异度] 游弋已应用魔抗
+#define HASH_KEY_ITEM_I31D_HP_APPLIED 29312267            // [异度] 游弋已应用总生命
 
 // [异度] 物品实例运行态
 #define ITEM_SAVED_TRIGGER 2134              // 物品绑定触发器/计时器起始键

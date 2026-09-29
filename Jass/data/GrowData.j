@@ -179,6 +179,11 @@ library GrowData {
             //# sequence: resource/ui/efx/ig113_{0-16}.blp
             GROWDATA_DEFINE(GIF_ICON_LEVELUP, 16, 3, 2.1, "ui\\efx\\ig113_")
             //# endcheck
+
+            //# check: growdata[31]
+            //# sequence: resource/ui/cardflip/flip_c_{0-23}.blp
+            GROWDATA_DEFINE(SEQ_CARD_FLIP_C, 23, 1, 1.0, "ui\\cardflip\\flip_c_")
+            //# endcheck
         }
     }
 }

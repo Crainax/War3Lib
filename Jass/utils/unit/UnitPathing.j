@@ -5,6 +5,12 @@
 
 //! zinc
 library UnitPathing requires UnitHashTable {
+    // 查询是否仍有生效的穿墙来源，不改变碰撞状态。
+    public function IsUnitPathingDisabled(unit u) -> boolean {
+        if (u == null) { return false; }
+        return LoadInteger(HASH_UNIT, GetHandleId(u), KEY_UNIT_PATHING_SOURCES) != 0;
+    }
+
     // source 为调用方统一分配的 0..29 槽位；同一来源重复开启/关闭不会累加。
     // 所有共存的穿墙效果须通过本接口控制；单位删除时随 HASH_UNIT 清理。
     public function SetUnitPathingDisabledSource(unit u, integer source, boolean enabled) {
