@@ -146,6 +146,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
         public static integer progressHero [MAX_PLAYER_COUNT][500];     // 当前英雄的本级亲密度进度
         public static integer progressHeroMax [MAX_PLAYER_COUNT][500];  // 当前英雄的本级亲密度上限（0 也显示）
         public static string  progressHeroText [MAX_PLAYER_COUNT][500]; // 条下亲密等级文本
+        public static integer progressHeroColor[MAX_PLAYER_COUNT][500]; // 玩家颜色索引，默认红色
+        public static string progressHeroValueSuffix[MAX_PLAYER_COUNT][500]; // 非满级进度后缀
         public static boolean progressHeroMaxed [MAX_PLAYER_COUNT][500]; // 满级时条内显示 MAX
         public static boolean progressHeroHidden [MAX_PLAYER_COUNT][500]; // 仅隐藏上方单英雄进度（如随机英雄格）
         public static integer progressAll [];     // 全英雄亲密等级总和
@@ -658,8 +660,8 @@ library HeroSelector requires UISlider,UIImage,UIButton,UIText,UIHashTable,Icon,
                 if (label == null || label == "") {
                     label = "亲密等级";
                 }
-                valueText = S3(heroData.progressHeroMaxed[pid][heroIndex], "MAX", I2S(heroCur) + "/" + I2S(heroMax));
-                rightProgBar1.setProgress(ratio);
+                valueText = S3(heroData.progressHeroMaxed[pid][heroIndex], "MAX", I2S(heroCur) + "/" + I2S(heroMax) + heroData.progressHeroValueSuffix[pid][heroIndex]);
+                rightProgBar1.setFillColor(heroData.progressHeroColor[pid][heroIndex]).setProgress(ratio);
                 rightProgBar1.uiBackground.show(true);
                 rightProgBar1.uiFill.show(true);
                 if (rightProgShade1 != 0) { rightProgShade1.show(true); }
