@@ -14,6 +14,8 @@
 #define MUSIC_INDEX_CLICK_PAUSE     1006   //用于UI的音效:暂停
 #define MUSIC_INDEX_SPELLSHOP_PANEL_HOVER 1007 //用于UI的音效:技能商店面板悬停
 #define MUSIC_INDEX_ARENA_MONSTER_BAN_SUCCESS 1008 //用于UI的音效:竞技场怪物禁用成功
+#define MUSIC_INDEX_CARD_FLIP_HOVER 1009 //盖牌悬浮：轻柔晶莹提示
+#define MUSIC_INDEX_CARD_FLIP_REVEAL 1010 //盖牌翻开：轻脆明亮翻牌
 
 #define MUSIC_INDEX_BLACKHOLE       2001   //黑洞音效
 #define MUSIC_INDEX_CURE_1          2002   //治疗1音效
