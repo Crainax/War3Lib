@@ -263,11 +263,16 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             return uiMain.ui;
         }
 
-        // 滚轮翻页：到边界后停住，不循环
-        private method pageByWheel(real delta) {
+        // 本地滚轮入口：从触发 frame 读取实例，翻页到边界后停住。
+        private static method onMouseWheelFrame() {
+            integer frame = DzGetTriggerUIEventFrame();
             integer targetPage;
+            real delta;
+            thistype this = uiHashTable(frame).eventdata.get();
 
-            if (!this.isExist() || totalPage <= 1) { return; }
+            if (!this.isExist()) { return; }
+            delta = DzGetWheelDelta();
+            if (totalPage <= 1) { return; }
             if (delta < 0) {
                 targetPage = IMinBJ(currentPage + 1, totalPage);
             } else if (delta > 0) {
@@ -279,15 +284,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             currentPage = targetPage;
             this.refreshContent();
         }
-
-        // 统一滚轮入口：从触发 frame 取到 this，再调用本地翻页
-        private static method onMouseWheelFrame() {
-            integer frame = DzGetTriggerUIEventFrame();
-            thistype this = uiHashTable(frame).eventdata.get();
-            if (!this.isExist()) { return; }
-            this.pageByWheel(DzGetWheelDelta());
-        }
-
 
         //创建选择支持异步调用
         static method create (player p,selectData sd) -> thistype {
@@ -602,8 +598,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             integer i; integer gifIndex;
             cardSelectorItem card;
             if (!this.isExist() || GetLocalPlayer() != owner || !uiCards.isExist()) {return;}
-            uiCards.setHeader(title, trClose != null, "");
             if (trBtn1 != null) {uiCards.setHeader(title, trClose != null, btn1Text);}
+            else {uiCards.setHeader(title, trClose != null, "");}
             for (1 <= i <= count) {
                 card = uiCards.getItem(i);
                 if (card != 0) {
@@ -849,7 +845,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                             }
                         }
                     }
-                } else if (sep3 == 0) {
+                } else if (sep3 == 0 && (opcode == "C" || opcode == "F" || opcode == "Z")) {
                     canonical = opcode+","+I2S(sd)+","+I2S(token);
                     if (token > 0 && str == canonical && sd.isExist()) {
                         if (sd.getSessionToken() == token && sd.owner == p) {

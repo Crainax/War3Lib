@@ -14,9 +14,6 @@ library UTUITextArea requires UITextArea, UIImage {
     private integer probe = 0;
     private integer probeId = 0;
     private integer probeBar = 0;
-    private integer probeUp = 0;
-    private integer probeDown = 0;
-    private integer probeThumb = 0;
     private integer probeStage = 0;
 
     function Paragraph(integer index) -> string {
@@ -99,6 +96,9 @@ library UTUITextArea requires UITextArea, UIImage {
     }
     function ProbeStep(integer step) {
         integer i;
+        integer probeUp;
+        integer probeDown;
+        integer probeThumb;
         if (step != probeStage + 1) {
             BJDebugMsg("[UITextArea] 顺序不符，下一步请输入 s" + I2S(probeStage + 1) + "；s0查看说明。");
             return;

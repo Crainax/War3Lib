@@ -315,14 +315,6 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             });
         }
     }
-    public function CardSelectorEnter(integer frame) {
-        cardSelector view = uiHashTable(frame).eventdata.get();
-        if (view.isExist()) {view.enter(uiHashTable(frame).eventdata.get2());}
-    }
-    public function CardSelectorLeave(integer frame) {
-        cardSelector view = uiHashTable(frame).eventdata.get();
-        if (view.isExist()) {view.leave();}
-    }
     public function CardSelectorClick(integer frame) {
         cardSelector view = uiHashTable(frame).eventdata.get();
         if (view.isExist()) {view.click(uiHashTable(frame).eventdata.get2());}
