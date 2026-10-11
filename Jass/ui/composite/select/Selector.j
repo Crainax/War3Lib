@@ -26,7 +26,7 @@
 //# dependency:resource/ui/image/select_flash.blp
 //# dependency:resource/ui/image/bg_select.blp
 
-library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
+library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSelector {
 
     public  hashtable HASH_SELECT     = InitHashtable();  //存放数据
     private selectData currentSD      = 0;                //回调参数
@@ -83,6 +83,17 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
     //抽离开的共用函数
     private function DestroyTooltip () {
         if (selector.uiTooltipTemp != 0) { selector.uiTooltipTemp.destroy(); selector.uiTooltipTemp = 0; }
+    }
+
+    // CardSelector 仅通知本地悬停，复用原有 Async 回调上下文。
+    public function CardSelectorHoverBridge(integer id, integer token, integer pos, integer eventKind) {
+        selectData sd = id;
+        if (!sd.isExist()) {return;}
+        if (sd.getSessionToken() != token || sd.owner != GetLocalPlayer()) {return;}
+        currentSDAsync = sd;
+        currentPosAsync = pos;
+        if (eventKind == 1 && sd.trEnter != null) {TriggerEvaluate(sd.trEnter);}
+        if (eventKind == 2 && sd.trLeave != null) {TriggerEvaluate(sd.trLeave);}
     }
 
     //选择UI
@@ -288,7 +299,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             }
             if (GetLocalPlayer() != p) {return 0;}
 
-            if (sd.uiSelector.isExist()) {
+            if (sd.uiSelector.isExist() || sd.uiCards.isExist()) {
                 DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selector already exist");
                 return 0;
             }
@@ -534,6 +545,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         string  title;      //标题
         string  btn1Text;   //按钮1文字
         trigger trRefName;  //映射关系:图标文字
+        trigger trRefDescription; // 卡牌正文映射，使用 CallbackSelectContent 返回
         trigger trRefIcon;  //映射关系:图标
         trigger trRefShadow; //映射关系:阴影（布尔）
         trigger trRefGrow;   //映射关系:流光（growdata 索引）
@@ -545,6 +557,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         trigger trFail;     //UI创建失败的回调触发器
         player  owner;      //拥有者
         selector uiSelector;  //绑定的选择UI
+        cardSelector uiCards; // 本地卡牌展示，不能据此决定同步业务分支
+        private integer resolvingPos; // 同步回调期间的牌位；销毁时用于离场动画
         private integer sessionToken; //当前 ID 生命周期 token，防止延迟包命中复用实例
 
         // UI组件内部共享方法及成员
@@ -562,6 +576,9 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             this.title = null;
             this.btn1Text = null;
             this.uiSelector = 0;
+            this.uiCards = 0;
+            this.resolvingPos = 0;
+            this.trRefDescription = null;
             this.owner = p;
             return this;
         }
@@ -570,6 +587,78 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         public method getSessionToken() -> integer {
             if (!this.isExist()) { return 0; }
             return this.sessionToken;
+        }
+
+        // 与其他 reflect/register 一样，必须全端同步注册经典 trigger。
+        method reflectDescription(code func) {
+            if (!this.isExist()) {return;}
+            if (trRefDescription != null) {DestroyTrigger(trRefDescription);}
+            trRefDescription = CreateTrigger();
+            TriggerAddCondition(trRefDescription, Condition(func));
+        }
+
+        // 仅本地 UI 刷新；每项映射沿用 GetSelectDataAsync/GetSelectPosAsync。
+        method refreshCards() {
+            integer i; integer gifIndex;
+            cardSelectorItem card;
+            if (!this.isExist() || GetLocalPlayer() != owner || !uiCards.isExist()) {return;}
+            uiCards.setHeader(title, trClose != null, "");
+            if (trBtn1 != null) {uiCards.setHeader(title, trClose != null, btn1Text);}
+            for (1 <= i <= count) {
+                card = uiCards.getItem(i);
+                if (card != 0) {
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefIcon != null) {TriggerEvaluate(trRefIcon);}
+                    card.artwork.setTexture(currentContent).show(currentContent != null && currentContent != "");
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefName != null) {TriggerEvaluate(trRefName);}
+                    card.heading.setText(currentContent);
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefDescription != null) {TriggerEvaluate(trRefDescription);}
+                    card.description.setText(currentContent);
+                    currentSDAsync = this; currentPosAsync = i; currentShadow = false;
+                    if (trRefShadow != null) {TriggerEvaluate(trRefShadow);}
+                    card.artwork.setShadow(currentShadow);
+                    card.artwork.unGrow();
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefGrow != null) {TriggerEvaluate(trRefGrow);}
+                    gifIndex = S2I(currentContent);
+                    if (gifIndex > 0) {card.artwork.grow(growdata[gifIndex]);}
+                }
+            }
+        }
+
+        // 数据及回调须提前全端注册。可全端调用，只有 owner 创建本地 UI。
+        // 返回本地创建结果，禁止用返回值决定同步游戏逻辑。
+        method showCards() -> boolean {
+            if (!this.isExist() || GetLocalPlayer() != owner) {return false;}
+            if (uiCards.isExist() || uiSelector.isExist()) {return false;}
+            if (count < 1 || count > 5 || trClick == null) {
+                syncBus.DzSyncDataEx("Select", "Z," + I2S(this) + "," + I2S(sessionToken));
+                return false;
+            }
+            uiCards = cardSelector.create(this, sessionToken, count, cardSelectorHover.CardSelectorHoverBridge);
+            if (!uiCards.isExist()) {
+                syncBus.DzSyncDataEx("Select", "Z," + I2S(this) + "," + I2S(sessionToken));
+                return false;
+            }
+            refreshCards();
+            return true;
+        }
+
+        // 全端同步调用；保留旧选择器回调语义。sd 被销毁/复用后不再读取旧实例。
+        method dispatchClick(integer pos) {
+            integer token = sessionToken;
+            if (trClick == null) {return;}
+            resolvingPos = pos;
+            currentSD = this; currentPos = pos;
+            TriggerEvaluate(trClick);
+            if (this.isExist()) {
+                if (sessionToken == token) {
+                    resolvingPos = 0;
+                    if (GetLocalPlayer() == owner && uiCards.isExist()) {uiCards.resume(); refreshCards();}
+                }
+            }
         }
 
         //映射关系:图标文字
@@ -650,6 +739,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             if (uiSelector != 0 && GetLocalPlayer() == this.owner) {
                 uiSelector.refreshContent();
             }
+            refreshCards();
         }
 
         //创建失败的回调触发器
@@ -662,11 +752,17 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
         method onDestroy () {
             if (!this.isExist()) {return;}
+            if (GetLocalPlayer() == this.owner && uiCards.isExist()) {
+                if (resolvingPos > 0) {uiCards.finish(resolvingPos);}
+                else {uiCards.destroy();}
+                uiCards = 0;
+            }
             this.count = 0;
             if (uiSelector != 0 && GetLocalPlayer() == this.owner) {
                 uiSelector.destroy();uiSelector = 0;
             }
             if (trRefName != null) {DestroyTrigger(trRefName);trRefName = null;}
+            if (trRefDescription != null) {DestroyTrigger(trRefDescription);trRefDescription = null;}
             if (trRefIcon != null) {DestroyTrigger(trRefIcon);trRefIcon = null;}
             if (trRefShadow != null) {DestroyTrigger(trRefShadow);trRefShadow = null;}
             if (trRefGrow != null) {DestroyTrigger(trRefGrow);trRefGrow = null;}
@@ -684,7 +780,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         // 对外接口：强制触发该玩家的选择并清理残留 UI
         // 用途：修复小概率 UI 出现但点击无效的问题
         static method forceClickAndCleanup(player p) {
-            integer i; integer j; selectData sd; selector ui;
+            integer i; integer j; integer token; selectData sd; selector ui;
 
             // 先遍历固定上限范围内的 selectData
             for (1 <= i <= SELECTDATA_FORCE_MAX) {
@@ -693,9 +789,14 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                     if (sd.owner == p) {
                         if (sd.trClick != null) {
                             // 模拟一次点击（位置固定为1）
-                            currentSD = sd;
-                            currentPos = 1;
-                            TriggerEvaluate(sd.trClick);
+                            token = sd.getSessionToken();
+                            sd.dispatchClick(1);
+                            // 保留数据的业务也清理本地卡牌；不得误关回调中新建的会话。
+                            if (sd.isExist()) {
+                                if (sd.getSessionToken() == token && GetLocalPlayer() == p && sd.uiCards.isExist()) {
+                                    sd.uiCards.destroy(); sd.uiCards = 0;
+                                }
+                            }
                         }
                     }
                 }
@@ -744,9 +845,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                         canonical = "D,"+I2S(sd)+","+I2S(token)+","+I2S(pos);
                         if (token > 0 && pos > 0 && str == canonical && sd.isExist()) {
                             if (sd.getSessionToken() == token && sd.owner == p && pos <= sd.count && sd.trClick != null) {
-                                currentSD = sd;
-                                currentPos = pos;
-                                TriggerEvaluate(sd.trClick);
+                                sd.dispatchClick(pos);
                             }
                         }
                     }
@@ -763,6 +862,12 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                             } else if (opcode == "Z" && sd.trFail != null) {
                                 currentSD = sd;
                                 TriggerEvaluate(sd.trFail);
+                            }
+                            // 刷新/关闭回调若保留本轮数据，则解锁卡牌交互。
+                            if (sd.isExist()) {
+                                if (sd.getSessionToken() == token && GetLocalPlayer() == p && sd.uiCards.isExist()) {
+                                    sd.uiCards.resume(); sd.refreshCards();
+                                }
                             }
                         }
                     }
