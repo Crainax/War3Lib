@@ -85,17 +85,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         if (selector.uiTooltipTemp != 0) { selector.uiTooltipTemp.destroy(); selector.uiTooltipTemp = 0; }
     }
 
-    // CardSelector 仅通知本地悬停，复用原有 Async 回调上下文。
-    public function CardSelectorHoverBridge(integer id, integer token, integer pos, integer eventKind) {
-        selectData sd = id;
-        if (!sd.isExist()) {return;}
-        if (sd.getSessionToken() != token || sd.owner != GetLocalPlayer()) {return;}
-        currentSDAsync = sd;
-        currentPosAsync = pos;
-        if (eventKind == 1 && sd.trEnter != null) {TriggerEvaluate(sd.trEnter);}
-        if (eventKind == 2 && sd.trLeave != null) {TriggerEvaluate(sd.trLeave);}
-    }
-
     //选择UI
     public struct selector {
 
@@ -540,6 +529,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         integer count;      //一共多少个选择
         string  title;      //标题
         string  btn1Text;   //按钮1文字
+        string  btn2Text;   //仅卡牌选择器显示
+        string  btn3Text;   //仅卡牌选择器显示
         trigger trRefName;  //映射关系:图标文字
         trigger trRefDescription; // 卡牌正文映射，使用 CallbackSelectContent 返回
         trigger trRefIcon;  //映射关系:图标
@@ -550,6 +541,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         trigger trClick;    //按钮点击事件触发器
         trigger trClose;    //右上角的关闭事件触发回调
         trigger trBtn1;     //按钮事件1(下方的)
+        trigger trBtn2;     //卡牌按钮2，同步注册/回调
+        trigger trBtn3;     //卡牌按钮3，同步注册/回调
         trigger trFail;     //UI创建失败的回调触发器
         player  owner;      //拥有者
         selector uiSelector;  //绑定的选择UI
@@ -571,6 +564,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             this.count = count;
             this.title = null;
             this.btn1Text = null;
+            this.btn2Text = null; this.btn3Text = null;
+            this.trBtn2 = null; this.trBtn3 = null;
             this.uiSelector = 0;
             this.uiCards = 0;
             this.resolvingPos = 0;
@@ -598,8 +593,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             integer i; integer gifIndex;
             cardSelectorItem card;
             if (!this.isExist() || GetLocalPlayer() != owner || !uiCards.isExist()) {return;}
-            if (trBtn1 != null) {uiCards.setHeader(title, trClose != null, btn1Text);}
-            else {uiCards.setHeader(title, trClose != null, "");}
+            uiCards.setHeader(title, trClose != null, trBtn1 != null, btn1Text,
+                trBtn2 != null, btn2Text, trBtn3 != null, btn3Text);
             for (1 <= i <= count) {
                 card = uiCards.getItem(i);
                 if (card != 0) {
@@ -633,7 +628,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                 syncBus.DzSyncDataEx("Select", "Z," + I2S(this) + "," + I2S(sessionToken));
                 return false;
             }
-            uiCards = cardSelector.create(this, sessionToken, count, cardSelectorHover.CardSelectorHoverBridge);
+            uiCards = cardSelector.create(this, sessionToken, count);
             if (!uiCards.isExist()) {
                 syncBus.DzSyncDataEx("Select", "Z," + I2S(this) + "," + I2S(sessionToken));
                 return false;
@@ -738,6 +733,33 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             refreshCards();
         }
 
+        // 卡牌按钮2：必须全端同步注册；回调经 Select 延迟收包执行。
+        method registerBtn2(code callback) {
+            if (!this.isExist()) {return;}
+            if (trBtn2 != null) {DestroyTrigger(trBtn2);}
+            trBtn2 = CreateTrigger();
+            TriggerAddCondition(trBtn2, Condition(callback));
+        }
+        // 卡牌按钮3：必须全端同步注册；不改变旧 Selector 的按钮布局。
+        method registerBtn3(code callback) {
+            if (!this.isExist()) {return;}
+            if (trBtn3 != null) {DestroyTrigger(trBtn3);}
+            trBtn3 = CreateTrigger();
+            TriggerAddCondition(trBtn3, Condition(callback));
+        }
+        // 全端删除按钮回调，本地刷新卡牌布局。
+        method destroyBtn2() {
+            if (!this.isExist()) {return;}
+            if (trBtn2 != null) {DestroyTrigger(trBtn2); trBtn2 = null;}
+            refreshCards();
+        }
+        // 全端删除按钮3回调，本地刷新卡牌布局。
+        method destroyBtn3() {
+            if (!this.isExist()) {return;}
+            if (trBtn3 != null) {DestroyTrigger(trBtn3); trBtn3 = null;}
+            refreshCards();
+        }
+
         //创建失败的回调触发器
         method registerFail (code fail)  -> nothing {
             if (!this.isExist()) {return;}
@@ -766,6 +788,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             if (trLeave != null) {DestroyTrigger(trLeave);trLeave = null;}
             if (trClose != null) {DestroyTrigger(trClose);trClose = null;}
             if (trBtn1 != null) {DestroyTrigger(trBtn1);trBtn1 = null;}
+            if (trBtn2 != null) {DestroyTrigger(trBtn2);trBtn2 = null;}
+            if (trBtn3 != null) {DestroyTrigger(trBtn3);trBtn3 = null;}
             if (trClick != null) {DestroyTrigger(trClick);trClick = null;}
             if (trFail != null) {DestroyTrigger(trFail);trFail = null;}
             this.sessionToken = 0;
@@ -845,16 +869,23 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                             }
                         }
                     }
-                } else if (sep3 == 0 && (opcode == "C" || opcode == "F" || opcode == "Z")) {
+                } else if (sep3 == 0 && (opcode == "C" || opcode == "F" || opcode == "G" || opcode == "H" || opcode == "Z")) {
                     canonical = opcode+","+I2S(sd)+","+I2S(token);
                     if (token > 0 && str == canonical && sd.isExist()) {
-                        if (sd.getSessionToken() == token && sd.owner == p) {
+                        if (sd.getSessionToken() == token && sd.owner == p
+                            && (opcode != "G" || sd.trBtn2 != null) && (opcode != "H" || sd.trBtn3 != null)) {
                             if (opcode == "C" && sd.trClose != null) {
                                 currentSD = sd;
                                 TriggerEvaluate(sd.trClose);
                             } else if (opcode == "F" && sd.trBtn1 != null) {
                                 currentSD = sd;
                                 TriggerEvaluate(sd.trBtn1);
+                            } else if (opcode == "G" && sd.trBtn2 != null) {
+                                currentSD = sd;
+                                TriggerEvaluate(sd.trBtn2);
+                            } else if (opcode == "H" && sd.trBtn3 != null) {
+                                currentSD = sd;
+                                TriggerEvaluate(sd.trBtn3);
                             } else if (opcode == "Z" && sd.trFail != null) {
                                 currentSD = sd;
                                 TriggerEvaluate(sd.trFail);
