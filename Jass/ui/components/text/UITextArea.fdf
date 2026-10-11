@@ -1,0 +1,35 @@
+// Single TEXTAREA template: same font as uiText size 3; scrollbar has no artwork.
+Frame "TEXTAREA" "War3LibTextArea" {
+    UseActiveContext,
+    Width 0.16,
+    Height 0.16,
+    FrameFont "Fonts\dfst-m3u.ttf", 0.009, "",
+    TextAreaLineHeight 0.009,
+    TextAreaLineGap 0.001,
+    TextAreaInset 0.001,
+    TextAreaMaxLines 1024,
+    TextAreaScrollBar "War3LibTextAreaBar",
+    Frame "SCROLLBAR" "War3LibTextAreaBar" {
+        UseActiveContext,
+        Width 0.0001,
+        SliderLayoutVertical,
+        ScrollBarIncButtonFrame "War3LibTextAreaUp",
+        Frame "BUTTON" "War3LibTextAreaUp" {
+            UseActiveContext,
+            Width 0.0001,
+            Height 0.008,
+        }
+        ScrollBarDecButtonFrame "War3LibTextAreaDown",
+        Frame "BUTTON" "War3LibTextAreaDown" {
+            UseActiveContext,
+            Width 0.0001,
+            Height 0.008,
+        }
+        SliderThumbButtonFrame "War3LibTextAreaThumb",
+        Frame "BUTTON" "War3LibTextAreaThumb" {
+            UseActiveContext,
+            Width 0.0001,
+            Height 0.012,
+        }
+    }
+}

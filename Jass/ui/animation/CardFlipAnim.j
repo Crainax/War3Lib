@@ -28,7 +28,7 @@
  * 播放矩形卡牌序列帧。growdata.max 是最后一帧的编号，首帧为 0。
  * 只创建本地 UI；底层 BaseAnim/UIAnimTimer 的经典句柄在全端初始化。
  */
-library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIHashTable, UIExtendEvent, UIAnimTimer, Music, SyncBus {
+library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIHashTable, UIExtendEvent, UIAnimTimer, Music, SyncBus, UIExtendResize {
 
     // 全端同步回调，slot 从 0 开始。只能通过延迟收包触发。
     public type cardFlipSelectCallback extends function(player, integer);
@@ -47,8 +47,8 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
             if (holdTicks < 1) {holdTicks = 1;}
 
             img = uiImage.create(parent);
-            img.setSize(width, height);
-            img.setPoint(ANCHOR_CENTER, parent, ANCHOR_CENTER, offsetX, offsetY);
+            img.exReSize(width, height);
+            img.exRePoint(ANCHOR_CENTER, parent, ANCHOR_CENTER, offsetX, offsetY);
 
             anim = baseanim.create(img.ui);
             anim.addSequ(gd.path, gd.max, gd.gap, false);
@@ -101,10 +101,10 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
 
         private method layout(integer slot, real scale, real down) {
             real x = this.offsetX + (slot - (this.count - 1) * 0.5) * this.step;
-            thistype.cards[slot].setSize(this.width * scale, this.height * scale);
-            thistype.cards[slot].setPoint(ANCHOR_CENTER, this.parent, ANCHOR_CENTER, x, this.offsetY - down);
-            thistype.halos[slot].setSize(this.width * scale * 128.0 / 110.0, this.height * scale * 128.0 / 110.0);
-            thistype.halos[slot].setPoint(ANCHOR_CENTER, thistype.cards[slot].ui, ANCHOR_CENTER, 0.0, 0.0);
+            thistype.cards[slot].exReSize(this.width * scale, this.height * scale);
+            thistype.cards[slot].exRePoint(ANCHOR_CENTER, this.parent, ANCHOR_CENTER, x, this.offsetY - down);
+            thistype.halos[slot].exReSize(this.width * scale * 128.0 / 110.0, this.height * scale * 128.0 / 110.0);
+            thistype.halos[slot].exRePoint(ANCHOR_CENTER, thistype.cards[slot].ui, ANCHOR_CENTER, 0.0, 0.0);
         }
 
         private method clearSlot(integer slot) {
@@ -157,12 +157,12 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
         private method revealContent() {
             integer frame = thistype.cards[this.selected].ui;
             this.title = uiText.create(frame);
-            this.title.setSize(this.width * 0.64, this.height * 0.13);
-            this.title.setPoint(ANCHOR_CENTER, frame, ANCHOR_CENTER, 0.0, this.height * 0.18);
+            this.title.exReSize(this.width * 0.64, this.height * 0.13);
+            this.title.exRePoint(ANCHOR_CENTER, frame, ANCHOR_CENTER, 0.0, this.height * 0.18);
             this.title.setFontSize(7).setAlign(4).setText(thistype.titles[this.selected]);
             this.content = uiText.create(frame);
-            this.content.setSize(this.width * 0.64, this.height * 0.35);
-            this.content.setPoint(ANCHOR_CENTER, frame, ANCHOR_CENTER, 0.0, -this.height * 0.07);
+            this.content.exReSize(this.width * 0.64, this.height * 0.35);
+            this.content.exRePoint(ANCHOR_CENTER, frame, ANCHOR_CENTER, 0.0, -this.height * 0.07);
             this.content.setFontSize(4).setAlign(4).setText(thistype.descriptions[this.selected]);
         }
 
@@ -267,8 +267,8 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
                 this.layout(i, 1.0, 0.0);
                 thistype.buttons[i] = uiBtn.createBlank(parent);
                 // 固定命中区，避免缩放导致 enter/leave 抖动，相邻卡片不抢点击。
-                thistype.buttons[i].setSize(hitWidth, this.height);
-                thistype.buttons[i].setPoint(ANCHOR_CENTER, parent, ANCHOR_CENTER, offsetX + (i - (count - 1) * 0.5) * step, offsetY);
+                thistype.buttons[i].exReSize(hitWidth, this.height);
+                thistype.buttons[i].exRePoint(ANCHOR_CENTER, parent, ANCHOR_CENTER, offsetX + (i - (count - 1) * 0.5) * step, offsetY);
                 uiHashTable(thistype.buttons[i].ui).eventdata.bind(this);
                 uiHashTable(thistype.buttons[i].ui).eventdata.bind2(i);
                 thistype.buttons[i].spEnter(uiEvent.CardFlipEnter);
