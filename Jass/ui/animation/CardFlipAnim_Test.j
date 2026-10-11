@@ -12,18 +12,18 @@ library UTCardFlipAnim requires CardFlipAnim {
 
     private integer callbackCount[];
 
-    // 经 SyncBus 延迟收包后在所有客户端执行，可在这里接同步奖励逻辑。
-    function OnCardChosen(player p, integer slot) {
-        integer pid = GetPlayerId(p);
-        callbackCount[pid] += 1;
-        BJDebugMsg("[CardFlipAnim 收包回调] 玩家 " + I2S(pid + 1) + " 选中第 " + I2S(slot + 1) + " 张；累计回调 " + I2S(callbackCount[pid]) + " 次");
-    }
-
     function CreateFlipTest(player p, integer count) {
         integer i;
         cardFlipHand hand;
         // 注册和 create 都必须全端调用，不能放在下面的本地分支里。
-        cardFlipHand.onSelect(p, cardFlipSelectCallback.OnCardChosen);
+        // 经 SyncBus 延迟收包后在所有客户端执行，可在这里接同步奖励逻辑。
+        cardFlipHand.onSelect(p, function() -> boolean {
+            integer slot = cardFlipHand.getSelectSlot();
+            integer pid = GetPlayerId(cardFlipHand.getSelectPlayer());
+            callbackCount[pid] += 1;
+            BJDebugMsg("[CardFlipAnim 收包回调] 玩家 " + I2S(pid + 1) + " 选中第 " + I2S(slot + 1) + " 张；累计回调 " + I2S(callbackCount[pid]) + " 次");
+            return true;
+        });
         hand = cardFlipHand.create(p, DzGetGameUI(), count, 0.0, CARD_FLIP_TEST_OFFSET_Y);
         if (GetLocalPlayer() == p && hand.isExist()) {
             for (0 <= i < count) {

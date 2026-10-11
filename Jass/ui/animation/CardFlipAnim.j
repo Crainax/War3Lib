@@ -30,9 +30,6 @@
  */
 library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIHashTable, UIExtendEvent, UIAnimTimer, Music, SyncBus, UIExtendResize {
 
-    // 全端同步回调，slot 从 0 开始。只能通过延迟收包触发。
-    public type cardFlipSelectCallback extends function(player, integer);
-
     public struct cardFlipAnim [] {
         // parent 是定位参照；实际图片使用同一个 parent 创建。
         // holdTicks 以 0.02 秒为单位，播放完毕后保留末帧。
@@ -64,7 +61,7 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
     }
 
     // 每个客户端同时展示一组盖牌。选择只影响本地 UI，不直接发放奖励。
-    // timer/trigger 在 onInit 全端预建；hover/click 中只更新整数 UI 和播放既有音效。
+    // 动画句柄在 onInit 全端预建，选择回调句柄在 onSelect 全端注册；hover/click 只更新整数 UI 和播放既有音效。
     public struct cardFlipHand {
         STRUCT_SHARED_METHODS(cardFlipHand)
 
@@ -74,7 +71,10 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
         private static integer sessionToken[];
         private static integer sessionCount[];
         private static boolean sessionDone[];
-        private static cardFlipSelectCallback callbacks[];
+        private static trigger callbacks[];
+        private static triggercondition callbackConditions[];
+        private static player selectPlayer = null;
+        private static integer selectSlot = -1;
         private integer count;
         private integer ownerId;
         private integer token;
@@ -294,10 +294,25 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
             if (current == this) {current = 0; ticker.unreg();}
         }
 
-        // 全端注册，不得放到 GetLocalPlayer() 分支内；每玩家一个回调。
-        static method onSelect(player p, cardFlipSelectCallback callback) {
-            if (p != null) {callbacks[GetPlayerId(p)] = callback;}
+        // 全端注册/注销，不得放到 GetLocalPlayer() 分支内；每玩家一个无参 boolean 回调。
+        // 重复注册覆盖旧回调，传 null 注销；trigger 按玩家复用，不随本地 UI 销毁。
+        static method onSelect(player p, code callback) {
+            integer pid;
+            if (p == null) {return;}
+            pid = GetPlayerId(p);
+            if (callbackConditions[pid] != null) {
+                TriggerRemoveCondition(callbacks[pid], callbackConditions[pid]);
+                callbackConditions[pid] = null;
+            }
+            if (callback == null) {return;}
+            if (callbacks[pid] == null) {callbacks[pid] = CreateTrigger();}
+            // Condition 按函数缓存，可能被其他玩家/模块共享；这里只移除 triggercondition，不销毁缓存表达式。
+            callbackConditions[pid] = TriggerAddCondition(callbacks[pid], Condition(callback));
         }
+
+        // 仅在同步选择回调内读取；slot 从 0 开始，回调外返回 null / -1。
+        static method getSelectPlayer() -> player {return selectPlayer;}
+        static method getSelectSlot() -> integer {return selectSlot;}
 
         // 仅延迟收包调用，拒绝旧轮次、重复包、越界牌位与非规范编码。
         private static method receive(player p, string payload) {
@@ -306,7 +321,9 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
             integer requestToken;
             integer slot;
             integer pid;
-            cardFlipSelectCallback callback;
+            integer previousSlot;
+            player previousPlayer;
+            trigger callback;
             if (p == null || SubString(payload, 0, 2) != "C,") {return;}
             while (split < length && SubString(payload, split, split + 1) != ",") {split += 1;}
             if (split <= 2 || split >= length - 1) {return;}
@@ -322,7 +339,17 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
                 if (current.ownerId == pid && current.token == requestToken) {current.beginReveal(slot);}
             }
             // 先消费会话，再调用外部逻辑；回调可以安全打开下一轮。
-            if (callback != 0) {callback.evaluate(p, slot);}
+            if (callback != null) {
+                previousPlayer = selectPlayer;
+                previousSlot = selectSlot;
+                selectPlayer = p;
+                selectSlot = slot;
+                TriggerEvaluate(callback);
+                selectPlayer = previousPlayer;
+                selectSlot = previousSlot;
+                previousPlayer = null;
+            }
+            callback = null;
         }
 
         static method onInit() {
