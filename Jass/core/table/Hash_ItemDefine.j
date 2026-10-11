@@ -89,4 +89,5 @@
 #define HASH_KEY_ITEM_SJS_NAME 29312273
 #define HASH_KEY_ITEM_SJS_APPLIED_VALUE 29312274
 #define HASH_KEY_ITEM_SJS_REFINE 29312275 // [异度] 当前选中条目的洗炼等级缓存
+#define HASH_KEY_ITEM_JIEJING_RATE_SNAPSHOT 29312269 // 结晶掉落时的玩家结晶率（real，存在即使用快照）
 #endif

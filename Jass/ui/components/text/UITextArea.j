@@ -3,7 +3,6 @@
 #include "Crainax/config/SharedMethod.h"
 #include "Crainax/ui/constants/UIConstants.j"
 
-#define UI_TEXTAREA_MAX_LINES 1024 // FDF 同步设置的最大保留行数；超出时原生控件丢弃最早行
 #define UI_TEXTAREA_BAR_WIDTH 0.0001 // 透明滚动条保留极小正宽度，减少正文右侧占位；跟随 exResize 横向适配
 #define UI_TEXTAREA_TEXT_LIMIT 2048 // 每段字符串的保守字节上限；长正文必须逐段追加，禁止先拼完整大字符串
 
@@ -24,7 +23,6 @@ library UITextArea requires STRUCT_SHARED_REQUIRE_UI, UIEventModule, UIExtendRes
         private textAreaPart lastPart;
         private integer partCount;
         private integer textLength;
-        private integer fontSize;
         private integer scrollBar;
         private integer upButton;
         private integer downButton;
@@ -68,7 +66,7 @@ library UITextArea requires STRUCT_SHARED_REQUIRE_UI, UIEventModule, UIExtendRes
             } else {content = null;}
             return true;
         }
-        method getFontSize() -> integer {return fontSize;}
+        method getFontSize() -> integer {return 3;} // 单一 FDF 模板固定3号字
         method getScrollBar() -> integer {return scrollBar;}
         method setText(string value) -> thistype {
             if (!this.isExist()) {return this;}
@@ -119,7 +117,7 @@ library UITextArea requires STRUCT_SHARED_REQUIRE_UI, UIEventModule, UIExtendRes
             if (parent == 0) {return 0;}
             this = allocate();
             if (this == 0) {return 0;}
-            id = uiId.get(); content = ""; fontSize = 3;
+            id = uiId.get(); content = "";
             firstPart = 0; lastPart = 0; partCount = 0; textLength = 0;
             scrollBar = 0; upButton = 0; downButton = 0; thumb = 0;
             barResize = 0; thumbResize = 0; upResize = 0; downResize = 0;

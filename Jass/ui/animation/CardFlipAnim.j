@@ -154,21 +154,10 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
             music[MUSIC_INDEX_CARD_FLIP_REVEAL].play();
         }
 
-        private method revealContent() {
-            integer frame = thistype.cards[this.selected].ui;
-            this.title = uiText.create(frame);
-            this.title.exReSize(this.width * 0.64, this.height * 0.13);
-            this.title.exRePoint(ANCHOR_CENTER, frame, ANCHOR_CENTER, 0.0, this.height * 0.18);
-            this.title.setFontSize(7).setAlign(4).setText(thistype.titles[this.selected]);
-            this.content = uiText.create(frame);
-            this.content.exReSize(this.width * 0.64, this.height * 0.35);
-            this.content.exRePoint(ANCHOR_CENTER, frame, ANCHOR_CENTER, 0.0, -this.height * 0.07);
-            this.content.setFontSize(4).setAlign(4).setText(thistype.descriptions[this.selected]);
-        }
-
         private method tick() {
             integer i;
             integer frame;
+            integer contentFrame;
             real target;
             real t;
             real ease;
@@ -209,7 +198,18 @@ library CardFlipAnim requires BaseAnim, GrowData, UIImage, UIButton, UIText, UIH
             if (frame != this.lastFrame) {
                 thistype.cards[this.selected].setTexture(CARD_FLIP_PATH + I2S(frame) + ".blp");
                 this.lastFrame = frame;
-                if (frame == CARD_FLIP_LAST_FRAME) {this.revealContent();}
+                if (frame == CARD_FLIP_LAST_FRAME) {
+                    // 首次到达末帧时创建正面文字，后续停留不重复创建。
+                    contentFrame = thistype.cards[this.selected].ui;
+                    this.title = uiText.create(contentFrame);
+                    this.title.exReSize(this.width * 0.64, this.height * 0.13);
+                    this.title.exRePoint(ANCHOR_CENTER, contentFrame, ANCHOR_CENTER, 0.0, this.height * 0.18);
+                    this.title.setFontSize(7).setAlign(4).setText(thistype.titles[this.selected]);
+                    this.content = uiText.create(contentFrame);
+                    this.content.exReSize(this.width * 0.64, this.height * 0.35);
+                    this.content.exRePoint(ANCHOR_CENTER, contentFrame, ANCHOR_CENTER, 0.0, -this.height * 0.07);
+                    this.content.setFontSize(4).setAlign(4).setText(thistype.descriptions[this.selected]);
+                }
             }
             if (this.elapsed >= CARD_FLIP_LAST_FRAME * CARD_FLIP_FRAME_GAP + R2I(CARD_FLIP_HOLD_SECONDS / 0.02)) {
                 this.destroy();

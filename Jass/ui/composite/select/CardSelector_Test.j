@@ -17,7 +17,6 @@ library UTCardSelector requires Selector {
         integer oldId;
         integer oldToken;
         integer token;
-        string packet;
         if (protocolBusy) {return;}
         protocolBusy = true; protocolCalls = 0;
         oldData = selectData.create(p, 1);
@@ -84,7 +83,6 @@ library UTCardSelector requires Selector {
         sd.registerEnter(function() {
             BJDebugMsg("[CardSelector 悬停] " + I2S(GetSelectPosAsync()));
         });
-        sd.registerLeave(function() {});
         sd.registerClick(function() {
             selectData data = GetSelectData();
             integer pid = GetPlayerId(data.owner);
