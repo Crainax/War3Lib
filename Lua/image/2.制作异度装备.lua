@@ -16,7 +16,7 @@ chcp 65001
 -- 1. 基础路径配置
 local paths = {
     -- [重要] 图标的基础目录, 也是传递给BLPLab的参数
-    icon_base_dir = [[D:\War3Asset\Asset\Xlimon\Icon\20260902\NewEquipment\]],
+    icon_base_dir = [[D:\War3Asset\Asset\Xlimon\Icon\20261013\S3Equipment\]],
 
     -- 各种叠加图片的路径
     btn           = [[D:\War3\tools\Image\btn.png]],
@@ -62,9 +62,9 @@ local quality_presets = {
 -- 整个目录都是同一品质时，可设置 default_quality（如 "rare"）并清空本表。
 local default_quality = nil
 local icon_quality_by_name = {
-    I31m = "epic",
-    I40q = "legendary",
-    I50q = "myth"
+    I21l = "rare",
+    I40s = "legendary",
+    I50r = "myth"
 }
 
 -- BLPLab 相关配置

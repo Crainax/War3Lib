@@ -82,4 +82,5 @@
 
 
 #define HASH_KEY_ITEM_I31N_STR_APPLIED 29312268 // 泰坦金髓已应用力量
+#define HASH_KEY_ITEM_JIEJING_RATE_SNAPSHOT 29312269 // 竞技场结晶掉落时的倍率快照
 #endif

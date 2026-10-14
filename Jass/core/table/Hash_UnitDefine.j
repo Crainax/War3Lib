@@ -389,5 +389,6 @@
 #define KEY_UNIT_PATHING_SOURCES 237960566 // 穿墙来源槽位掩码
 
 #define SOLE_I40R_ABSORB 453919349 // 诡面唯一吸收
+#define SOLE_I40Q 453919350 // 残篇·终焉福音唯一效果
 #define KEY_UNIT_DAMAGED_DOWN_FACTOR 237960568 // 独立可逆受伤倍率，默认1
 #endif
