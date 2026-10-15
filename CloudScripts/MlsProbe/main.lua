@@ -25,6 +25,11 @@ local function load_archive(slot)
         error('invalid probe counter')
     end
     data.war3lib_mls_probe_count = count
+    local score = data.war3lib_mls_probe_score or 0
+    if type(score) ~= 'number' or score < 0 or score % 1 ~= 0 or score > 1000000000 then
+        error('invalid probe score')
+    end
+    data.war3lib_mls_probe_score = score
     archives[slot] = data
     return data
 end
@@ -50,7 +55,10 @@ register('MlsProbePing', function(slot, payload)
 end)
 
 register('MlsProbeRead', function(slot)
-    reply(slot, 'MlsProbeReadResult', load_archive(slot).war3lib_mls_probe_count)
+    local data = load_archive(slot)
+    reply(slot, 'MlsProbeDetail', json.encode({count=data.war3lib_mls_probe_count, score=data.war3lib_mls_probe_score}))
+    reply(slot, 'MlsProbeScore', data.war3lib_mls_probe_score)
+    reply(slot, 'MlsProbeReadResult', data.war3lib_mls_probe_count)
 end)
 
 register('MlsProbeWrite', function(slot, payload)
@@ -64,13 +72,20 @@ register('MlsProbeWrite', function(slot, payload)
     end
     local data = load_archive(slot)
     local before = data.war3lib_mls_probe_count
-    if before >= 1000000000 then error('counter limit') end
+    local beforeScore = data.war3lib_mls_probe_score
+    if before >= 1000000000 or beforeScore > 999999990 then error('counter limit') end
     data.war3lib_mls_probe_count = before + 1
+    data.war3lib_mls_probe_score = beforeScore + 10
     local ok, encoded = pcall(json.encode, data)
-    if not ok then data.war3lib_mls_probe_count = before; error(encoded) end
+    if not ok then
+        data.war3lib_mls_probe_count = before
+        data.war3lib_mls_probe_score = beforeScore
+        error(encoded)
+    end
     local saved, result = pcall(MsSaveScriptArchive, slot, encoded, #encoded)
     if not saved or result ~= 0 then
         data.war3lib_mls_probe_count = before
+        data.war3lib_mls_probe_score = beforeScore
         error('save failed: ' .. tostring(result))
     end
     requests[slot][payload] = before + 1
@@ -78,3 +93,5 @@ register('MlsProbeWrite', function(slot, payload)
 end)
 
 Log.Info('[MlsProbe] loaded; ping/read do not modify archive; write explicitly saves')
+require('ga_probe')
+require('size_probe')
