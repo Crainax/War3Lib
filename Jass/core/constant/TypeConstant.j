@@ -146,4 +146,8 @@
 #define MOSHOU_KEY_INNATE_MULTI_COUNT 10115 // 战斗宠物按类型自带的额外弹道数
 
 
+// 装备类型标记：HASH_TYPEID，boolean 存在即生效。
+#define KEY_ITEM_UNABLE_TO_DROP 10116
+#define KEY_ITEM_HAS_TRIGGER 10117
+
 #endif
