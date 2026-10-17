@@ -117,6 +117,7 @@
 #define SPELL_POINTER_KEY       100004000    //指针
 #define SPELL_SHOP_UPGRADE_COST_MULTIPLIER_KEY 100005000 // SpellShop升级费用倍率
 #define SPELL_TOOLTIP_HIDE_LEVEL_KEY 100006000 // 自定义tooltip隐藏等级标题段
+#define SPELL_MANUAL_REST_KEY 100008000 // HASH_TYPEID：boolean存在即允许停怪休整时手动施放
 #define TALENT_LIMIT_ELIGIBLE_KEY    100007000 // HASH_TYPEID：允许天赋极限强化（integer 1）
 
 
