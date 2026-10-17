@@ -2,7 +2,7 @@
 #define DialogsIncluded
 //! zinc
 
-library Dialogs requires HashTable {
+library Dialogs requires HashTable, Logger {
 
 	public type OnAlterDialogClick extends function(player, integer, AlterDialog);
 	public type OnPageDialogClick extends function(player, integer, PageDialog);

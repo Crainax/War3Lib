@@ -436,7 +436,10 @@ local function runStart(selection)
 		return false
 	end
 	os.remove(path.project .. "/" .. path.mapName .. "_slk.w3x")
-	w3xlni:StartSLK()
+	if not w3xlni:StartSLK() then
+		print("[全量启动]打包或包内脚本检查失败，停止启动")
+		return false
+	end
 	local ok, slot = copyPackagedSlkToSlots(selection.version)
 	if not ok then
 		return false

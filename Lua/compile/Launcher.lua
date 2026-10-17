@@ -215,6 +215,7 @@ end
 ---@param mapPath string
 ---@param displayName string|nil
 function launcher.StartWar3File(mapPath, displayName)
+	if not require('Lua.compile.PackageValidation').check(mapPath) then return false end
 	local cmd = string.format(
 		'cmd /c ""%s" -launchwar3 -loadfile "%s""',
 		toWinPath(path.we .. "/bin/YDWEConfig.exe"),

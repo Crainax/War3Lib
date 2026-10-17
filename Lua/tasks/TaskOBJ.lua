@@ -31,7 +31,7 @@ gamePath = argOrEnv(4, "WAR3_TASK_GAME")
 path.init(root, projectPath, we, gamePath) -- 初始化路径
 path.initRelease() -- 只打包正式地图
 
-w3x:StartOBJ()
+if not w3x:StartOBJ() then error("OBJ打包或包内脚本检查失败") end
 print("OBJ重构建完成!")
 print(string.format("---任务结束---[用时%.2f秒]-", os.clock() - taskStartClock))
 -- return modules

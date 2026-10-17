@@ -7,6 +7,7 @@ local injecter   = require("lua.compile.inject")
 local luaRuntime = require("Lua.compile.LuaRuntime")
 local incrementalPack = require("Lua.compile.IncrementalPack")
 local preslk     = require("Lua.compile.PreSlk")
+local packageValidation = require("Lua.compile.PackageValidation")
 
 local w3xlni     = {}
 
@@ -22,7 +23,9 @@ local Convert    = function(cType, inPath, outPath)
 	cmdArgs = cmdArgs .. string.format("%s ", fu.PathString(path.project .. outPath))
 	local cmd = string.format('%s %s', cmdExe, cmdArgs)
 	print(cmd)
-	return os.execute(cmd)
+	local ok, kind, code = os.execute(cmd)
+	if not (ok == true or ok == 0 or (kind == "exit" and code == 0)) then return false end
+	return packageValidation.check(path.project .. outPath, path.toolRoot .. "/w3x2lni/log/report.log")
 end
 
 local ConvertOBJ = function()
@@ -169,6 +172,8 @@ function w3xlni:Start(func)
 			print("[Lua" .. path.buildVersion .. "]脚本打包进地图成功" .. formatElapsedSeconds(scriptStarted))
 		else
 			print("[Lua" .. path.buildVersion .. "]脚本打包进地图失败:" .. msg .. formatElapsedSeconds(scriptStarted))
+			cleanupLuaRuntime()
+			return false
 		end
 
 		local rootStarted = os.clock()
@@ -177,6 +182,8 @@ function w3xlni:Start(func)
 			print("[Lua" .. path.buildVersion .. "]同步根脚本成功" .. formatElapsedSeconds(rootStarted))
 		else
 			print("[Lua" .. path.buildVersion .. "]同步根脚本失败:" .. tostring(rootMsg) .. formatElapsedSeconds(rootStarted))
+			cleanupLuaRuntime()
+			return false
 		end
 	end
 	utr.copyResourceFiles() -- 复制资源文件
@@ -222,14 +229,14 @@ end
 --- @param self table W3xLni实例
 --- @attention 编译的文件是 path.compileResult
 function w3xlni:StartOBJ()
-	self:Start(ConvertOBJ)
+	return self:Start(ConvertOBJ)
 end
 
 -- 开始打包成SLK文件
 --- @param self table W3xLni实例
 --- @attention 编译的文件是 path.compileResult
 function w3xlni:StartSLK()
-	self:Start(ConvertSLK)
+	return self:Start(ConvertSLK)
 end
 
 -- 根据AllJassH文件情况判断返回是不是处于单元测试状态
