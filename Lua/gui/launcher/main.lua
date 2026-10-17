@@ -25,10 +25,15 @@ end
 local historyFile = arg[2]
 local versionStateFile = arg[3]
 
+-- Optional per-project presentation; preserve existing Xlimon defaults.
+local projectTitle = os.getenv("WAR3_LAUNCH_TITLE") or "异度幻世篇2启动"
+local windowTitle = os.getenv("WAR3_LAUNCH_WINDOW_TITLE") or "Xlimon Launcher"
+local defaultCompiler = os.getenv("WAR3_LAUNCH_COMPILER") == "vjassc" and "vjassc" or "jasshelper"
+
 local state = {
 	action = "start",
 	version = "VERSION_ALPHA",
-	compiler = "jasshelper",
+	compiler = defaultCompiler,
 }
 
 local groups = {}
@@ -118,7 +123,7 @@ local function loadHistory()
 	if titles.compiler[history.compiler] then
 		state.compiler = history.compiler
 	else
-		state.compiler = "jasshelper"
+		state.compiler = defaultCompiler
 	end
 end
 
@@ -382,7 +387,7 @@ local function createMainView()
 	caption:setmousedowncanmovewindow(true)
 	root:addchildview(caption)
 
-	local title = makeLabel("异度幻世篇2启动", {
+	local title = makeLabel(projectTitle, {
 		Width = 300,
 		Height = 36,
 		MarginLeft = 16,
@@ -461,7 +466,7 @@ local function createMainView()
 end
 
 win = gui.Window.create({ frame = false })
-win:settitle("Xlimon Launcher")
+win:settitle(windowTitle)
 win:setresizable(false)
 win:setmaximizable(false)
 win:setminimizable(false)
