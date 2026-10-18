@@ -389,7 +389,14 @@ function inject_code:do_inject(path, tbl)
         local map_script_file, e = io.open(path.inject, "w+b")
         if map_script_file then
             -- 循环处理每个需要注入的文件
+            -- Library declaration order affects unconstrained initializers.
+            -- Do not let Lua's hash iteration order change generated gameplay code.
+            local injectPaths = {}
             for injectPath in pairs(tbl) do
+                injectPaths[#injectPaths + 1] = injectPath
+            end
+            table.sort(injectPaths)
+            for _, injectPath in ipairs(injectPaths) do
                 local s = "    ...注入:... " .. injectPath
                 local code_content = read_file(injectPath)
                 if code_content then
