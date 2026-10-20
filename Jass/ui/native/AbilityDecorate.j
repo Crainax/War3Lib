@@ -2,6 +2,7 @@
 #define AbilityDecorateIncluded
 
 #include "Crainax/ui/native/AbilityDecorateData.j"
+#include "Crainax/utils/ability/AbilityBinding.j"
 
 //! zinc
 /*
@@ -13,7 +14,7 @@
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
 
 
-library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData {
+library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData,AbilityBinding {
     // 排除单位参与技能装饰处理
     public function ExcludeUnitFromAbilityDecorate(unit u) {
         integer uid;
@@ -145,6 +146,7 @@ library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData {
     // 将装饰图标路径存入 HASH_ABILITY（父键 = 单位+技能ID，子键 = ICON）
     public function SetAbilityDecorateIcon (unit u, integer abilityID, string path) {
         integer parentKey;
+        abilityID = ResolveAbilityBinding(u, abilityID);
         parentKey = GetAbilityHashKey(u, abilityID);
         if (parentKey == 0) { return; }
         if (path == null) {
@@ -160,6 +162,7 @@ library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData {
     // 将装饰流光数据存入 HASH_ABILITY（0 表示无流光，父键 = 单位+技能ID，子键 = GLOW）
     public function SetAbilityDecorateGrow (unit u, integer abilityID, growdata gd) {
         integer parentKey;
+        abilityID = ResolveAbilityBinding(u, abilityID);
         parentKey = GetAbilityHashKey(u, abilityID);
         if (parentKey == 0) { return; }
         if (gd == 0) {
@@ -175,6 +178,7 @@ library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData {
     // 将角落文字装饰存入 HASH_ABILITY（null 或空串表示移除，父键 = 单位+技能ID，子键 = CORNER）
     public function SetAbilityDecorateCornerText (unit u, integer abilityID, string text) {
         integer parentKey;
+        abilityID = ResolveAbilityBinding(u, abilityID);
         parentKey = GetAbilityHashKey(u, abilityID);
         if (parentKey == 0) { return; }
         if (text == null || StringLength(text) == 0) {
@@ -187,9 +191,23 @@ library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData {
         DoImmediateRefresh(u, abilityID);
     }
 
+    // 玩家共享池的角标（万炎、灵能等）同步到本体和所有绑定按钮。
+    public function SetSharedAbilityCornerText(unit u, integer sourceID, string text) {
+        integer state;
+        PushAbilityBinding(u, sourceID, sourceID);
+        SetAbilityDecorateCornerText(u, sourceID, text);
+        for (17 <= state <= GetAbilityBindingHighIndex()) {
+            if (IsAbilityBindingOf(state, u, sourceID)) {
+                SetAbilityDecorateCornerText(u, GetAbilityBindingButton(state, sourceID), text);
+            }
+        }
+        PopAbilityBinding();
+    }
+
     // 将右上角文字装饰存入 HASH_ABILITY（null 或空串表示移除，父键 = 单位+技能ID）
     public function SetAbilityDecorateTopRightText(unit u, integer abilityID, string text, integer fontSize) {
         integer parentKey;
+        abilityID = ResolveAbilityBinding(u, abilityID);
         parentKey = GetAbilityHashKey(u, abilityID);
         if (parentKey == 0) { return; }
         if (text == null || StringLength(text) == 0) {
@@ -207,6 +225,7 @@ library AbilityDecorate requires SpellBtns,HashTable,AbilityDecorateData {
     // 将暗图层开关存入 HASH_ABILITY（默认 false，不显示）
     public function SetAbilityDecorateShadow (unit u, integer abilityID, boolean flag) {
         integer parentKey;
+        abilityID = ResolveAbilityBinding(u, abilityID);
         parentKey = GetAbilityHashKey(u, abilityID);
         if (parentKey == 0) { return; }
         if (flag) {

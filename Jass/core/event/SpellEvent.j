@@ -1,5 +1,6 @@
 #ifndef SpellEventIncluded
 #define SpellEventIncluded
+#include "Crainax/utils/ability/AbilityBinding.j"
 
 //! zinc
 /*
@@ -9,7 +10,7 @@
 
 #define MAX_SPELLEVENT_SIZE 8190
 
-library SpellEvent {
+library SpellEvent requires AbilityBinding {
     // ========== 变量声明 ==========
     private integer ISize = 0;
     private trigger TData [];
@@ -24,6 +25,7 @@ library SpellEvent {
     private boolean contextIsMultiSpell [];
     private boolean contextIsFake [];
     private integer contextManaCost [];
+    private integer contextButton [];
 
     // ========== 回调参数获取函数 ==========
     public function GetSpellAbilityIdEx() -> integer {
@@ -45,6 +47,7 @@ library SpellEvent {
         contextIsMultiSpell[contextSize] = isMultiSpell;
         contextIsFake[contextSize] = isFake;
         contextManaCost[contextSize] = manaCost;
+        contextButton[contextSize] = ResolveAbilityBinding(u, id);
         return true;
     }
 
@@ -58,6 +61,7 @@ library SpellEvent {
         contextIsMultiSpell[contextSize] = false;
         contextIsFake[contextSize] = false;
         contextManaCost[contextSize] = 0;
+        contextButton[contextSize] = 0;
         contextSize -= 1;
         return true;
     }
@@ -95,6 +99,11 @@ library SpellEvent {
             return contextManaCost[contextSize];
         }
         return 0;
+    }
+
+    public function GetSpellEventButtonId() -> integer {
+        if (contextSize > 0) { return contextButton[contextSize]; }
+        return spellId;
     }
 
     // ========== 添加触发器（防重复） ==========

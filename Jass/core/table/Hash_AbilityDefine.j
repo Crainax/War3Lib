@@ -20,6 +20,7 @@
 #define HASH_CHILD_SALT_COOL_PERSIST_MUL    2001  // 持久倍率（长期生效）
 #define HASH_CHILD_SALT_COOL_NEXT_OVERRIDE 2002  // 下一次施法覆盖冷却（一次性）
 #define HASH_CHILD_SALT_COOL_NEXT_MUL      2003  // 下一次施法倍率（一次性）
+#define HASH_CHILD_SALT_COOL_BASE_MAX      2004  // 通魔绑定按钮动态最大冷却
 
 // 技能属性（SpellUtils）使用的子键：保存单位 + 技能维度的加成与已应用快照
 #define HASH_CHILD_SALT_SPELL_FINAL_DAMAGE_UP      3001
@@ -40,5 +41,9 @@
 #define HASH_CHILD_SALT_ABILITY_CUSTOM_STRING_ID_BASE   3200
 #define HASH_CHILD_SALT_ABILITY_CUSTOM_STRING_COUNT     3301
 #define HASH_CHILD_SALT_ABILITY_CUSTOM_STRING_NEXT_ID   3302
+
+// 逻辑技能绑定到另一个面板按钮；回收由 AbilityBinding 持有。
+#define HASH_CHILD_SALT_BINDING_STATE 3401
+#define HASH_CHILD_SALT_AURA_MARKER_REFS 3402 // 同一单位光环隐藏标记来源数
 
 #endif

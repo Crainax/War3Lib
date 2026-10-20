@@ -4,12 +4,13 @@
 #include "Crainax/core/constant/HashTable.j"
 #include "Crainax/core/table/Hash_AbilityDefine.j"
 #include "Crainax/ui/native/AbilityDecorateData.j"
+#include "Crainax/utils/ability/AbilityBinding.j"
 
 //! zinc
 /*
 技能相关的工具类
 */
-library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorateData {
+library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorateData, AbilityBinding {
 
 	// ====== Lua 交互：Ubertip 扩展 ======
 	// 通过全局变量 + 触发器与 Lua 通信：
@@ -30,6 +31,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 
 	private function LoadAbilityReal(unit u, integer abilityID, integer childKey, real defaultValue) -> real {
 		integer parentKey;
+        abilityID = ResolveAbilityBinding(u, abilityID);
 
 		if (u == null || abilityID == 0) { return defaultValue; }
 
@@ -42,6 +44,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 
 	private function SaveAbilityReal(unit u, integer abilityID, integer childKey, real value, real emptyValue) {
 		integer parentKey;
+        abilityID = ResolveAbilityBinding(u, abilityID);
 
 		if (u == null || abilityID == 0) { return; }
 
@@ -59,6 +62,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 
 	private function LoadAbilityInteger(unit u, integer abilityID, integer childKey, integer defaultValue) -> integer {
 		integer parentKey;
+        abilityID = ResolveAbilityBinding(u, abilityID);
 
 		if (u == null || abilityID == 0) { return defaultValue; }
 
@@ -71,6 +75,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 
 	private function SaveAbilityInteger(unit u, integer abilityID, integer childKey, integer value, integer emptyValue) {
 		integer parentKey;
+        abilityID = ResolveAbilityBinding(u, abilityID);
 
 		if (u == null || abilityID == 0) { return; }
 
@@ -119,9 +124,10 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 	private function RefreshAbilityDecorateCustomPercent(unit u, integer abilityID, integer childKey, string label, real value) {
 		integer parentKey; integer stringId; integer newStringId;
 
+		abilityID = ResolveAbilityBinding(u, abilityID);
 		if (u == null || abilityID == 0) { return; }
 
-		parentKey = GetAbilityHashKey(u, abilityID);
+		parentKey = GetAbilityHashKey(u, ResolveAbilityBinding(u, abilityID));
 		if (parentKey == 0) { return; }
 
 		if (HaveSavedInteger(HASH_ABILITY, parentKey, childKey)) {
@@ -221,13 +227,27 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 		return spellutilsUberTip_result;
 	}
 
+    // 最大冷却按单位/按钮保存；保留当前剩余值，切换来源不会免费重置CD。
+    public function SetAbilityDynamicMaxCooldown(unit u, integer abilityID, real maximum) -> boolean {
+        integer key = GetAbilityHashKey(u, abilityID);
+        SaveReal(HASH_ABILITY, key, HASH_CHILD_SALT_COOL_BASE_MAX, RMaxBJ(0.0, maximum));
+        return DzSetUnitAbilityCool(u, abilityID, DzGetUnitAbilityCool(u, abilityID), RMaxBJ(0.0, maximum));
+    }
+
 	// 刷新技能CD
 	public function RefreshAbility (unit u,integer id)    -> nothing {
-		integer level = GetUnitAbilityLevel(u,id);
+		integer level;
+        integer key;
+        id = ResolveAbilityBinding(u, id);
+        level = GetUnitAbilityLevel(u, id);
 		if (level < 1) {return ;}
 		UnitRemoveAbility(u,id);
 		UnitAddAbility(u,id);
 		SetUnitAbilityLevel(u,id,level);
+        key = GetAbilityHashKey(u, id);
+        if (HaveSavedReal(HASH_ABILITY, key, HASH_CHILD_SALT_COOL_BASE_MAX)) {
+            DzSetUnitAbilityCool(u, id, 0.0, LoadReal(HASH_ABILITY, key, HASH_CHILD_SALT_COOL_BASE_MAX));
+        }
 	}
 
 	// 给英雄加技能永久性
@@ -362,7 +382,7 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 
 		if (u == null || abilityID == 0) { return false; }
 
-		parentKey = GetAbilityHashKey(u, abilityID);
+		parentKey = GetAbilityHashKey(u, ResolveAbilityBinding(u, abilityID));
 		if (parentKey == 0) { return false; }
 		return HaveSavedReal(HASH_ABILITY, parentKey, HASH_CHILD_SALT_SPELL_PASSIVE_APPLIED_RATE);
 	}
