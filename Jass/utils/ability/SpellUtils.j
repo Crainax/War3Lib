@@ -2,6 +2,8 @@
 #define SpellUtilsIncluded
 
 #include "Crainax/core/constant/HashTable.j"
+#include "japi/YDWEAbilityState.j"
+#include "Crainax/core/constant/JapiConstant.j"
 #include "Crainax/core/table/Hash_AbilityDefine.j"
 #include "Crainax/ui/native/AbilityDecorateData.j"
 #include "Crainax/utils/ability/AbilityBinding.j"
@@ -238,12 +240,18 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 	public function RefreshAbility (unit u,integer id)    -> nothing {
 		integer level;
         integer key;
+        integer manaCost;
+        boolean bound;
         id = ResolveAbilityBinding(u, id);
         level = GetUnitAbilityLevel(u, id);
 		if (level < 1) {return ;}
+        bound = GetAbilityBindingSource(u, id) != id;
+        manaCost = YDWEGetUnitAbilityDataInteger(u, id, level, ABILITY_DATA_COST);
 		UnitRemoveAbility(u,id);
 		UnitAddAbility(u,id);
 		SetUnitAbilityLevel(u,id,level);
+        // 镜像模板的物编耗蓝为0，重建按钮必须恢复实例的动态耗蓝。
+        if (bound) { DzSetUnitAbilityCost(u, id, manaCost); }
         key = GetAbilityHashKey(u, id);
         if (HaveSavedReal(HASH_ABILITY, key, HASH_CHILD_SALT_COOL_BASE_MAX)) {
             DzSetUnitAbilityCool(u, id, 0.0, LoadReal(HASH_ABILITY, key, HASH_CHILD_SALT_COOL_BASE_MAX));
