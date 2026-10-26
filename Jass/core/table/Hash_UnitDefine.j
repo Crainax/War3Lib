@@ -391,6 +391,7 @@
 #define SOLE_I40R_ABSORB 453919349 // 诡面唯一吸收
 #define SOLE_I40Q 453919350 // 残篇·终焉福音唯一效果
 #define KEY_UNIT_DAMAGED_DOWN_FACTOR 237960568 // 独立可逆受伤倍率，默认1
+#define KEY_UNIT_ATTENUATION_BARRIER 237960569 // 衰减壁垒紧凑数组反向槽位
 #define SOLE_I311_KILL_ATTR 453919351 // 杀敌属性唯一效果
 #define SOLE_I31K_KILL_ATTR 453919352 // 杀敌属性唯一效果
 #define SOLE_I31N_KILL_ATTR 453919353 // 杀敌属性唯一效果
