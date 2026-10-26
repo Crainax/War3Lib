@@ -807,17 +807,21 @@ end
 function localDzApi.generate()
     local started = os.clock()
     local timestamp = os.time()
-    local ok, changed, err = writeLocalGameStartTime(timestamp)
+    local ok, changed, err = true, false, nil
     local cfg
     local syncMsg
-    if not ok then
-        return false, err
-    end
-
-    cfg = ini.read(path.localDzApiIni)
-    ok, syncMsg = syncWorldEditPlayerName(cfg)
-    if not ok then
-        return false, syncMsg
+    if path.agentValidation then
+        syncMsg = "跳过: agent编译验证不修改INI或注册表"
+    else
+        ok, changed, err = writeLocalGameStartTime(timestamp)
+        if not ok then
+            return false, err
+        end
+        cfg = ini.read(path.localDzApiIni)
+        ok, syncMsg = syncWorldEditPlayerName(cfg)
+        if not ok then
+            return false, syncMsg
+        end
     end
 
     local version, mockCfg, _, enabled = readMockState()
