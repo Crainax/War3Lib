@@ -76,7 +76,10 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize,BaseAnim {
 		static uiText  goldText = 0;     // 浮动文字（重复使用）
 		static baseanim goldAnim = 0;    // 对应的基础动画
 
-		static uiText  expText = 0;      // 经验浮动文字（重复使用）
+		static uiText crystalText = 0;
+        static baseanim crystalAnim = 0;
+
+        static uiText  expText = 0;      // 经验浮动文字（重复使用）
 		static baseanim expAnim = 0;     // 对应的基础动画
 
 		private {
@@ -222,6 +225,28 @@ library ResUI requires UIImage,UIText,Hardware,UIExtendResize,BaseAnim {
 			#endif
 			goldAnim.addAlpha(255, 0, 40);
 		}
+
+        // Shares BaseAnim/UIAnimTimer with gold and experience; no per-reward timer.
+        static method showCrystalText(player p, string content) {
+            if (GetLocalPlayer() != p) { return; }
+            if (crystalText == 0) {
+                crystalText = uiText.create(DzGetGameUI()).setFontSize(2).setText("");
+            }
+            if (crystalAnim == 0 && crystalText != 0) {
+                crystalAnim = baseanim.create(crystalText.ui);
+            }
+            if (crystalText == 0 || crystalAnim == 0) { return; }
+            crystalText.setText(content);
+            DzFrameShow(crystalText.ui, true);
+            #ifndef RES_UI_HIDE_3
+            if (uiRes3Bg != 0) {
+                crystalAnim.addMove(uiRes3Bg.ui, -0.015, 0.01, 40, 90.0, ANCHOR_BOTTOM, ANCHOR_BOTTOM);
+            }
+            #else
+            crystalAnim.addAbsMove(ANCHOR_CENTER, RES3_X, RES_Y, RES3_X, RES_Y + 0.01, 40);
+            #endif
+            crystalAnim.addAlpha(255, 0, 40);
+        }
 
 		// 在本地玩家界面指定位置播放向上浮动并渐隐的文字（0.8 秒，从 (0.45,0.15) 移动到 (0.45,0.16)）
 		// player 是本地玩家时才会执行动画；content 为显示内容

@@ -23,7 +23,9 @@ library UTResUI requires ResUI,UnitTestUIRuler{
 	function TTestUTResUI3 (player p) {
 		resUI.showExpText(p, "|cff00a2ffExp+1000|r");
 	}
-	function TTestUTResUI4 (player p) {}
+	function TTestUTResUI4 (player p) {
+        resUI.showCrystalText(p, "|cFF7DD3FC●+123.5|r");
+    }
 	function TTestUTResUI5 (player p) {}
 	function TTestUTResUI6 (player p) {}
 	function TTestUTResUI7 (player p) {}
