@@ -12,6 +12,7 @@
 *.doo
 *.w3e
 *.tga
+!runtime/innerjapi/1.49-9/wenhao_plugin.tga
 *.shd
 *.wpm
 *.w3e

@@ -15,7 +15,11 @@ library DzWriteLogBridge requires YDLua {
 	private function EnsureDzWriteLogLua() {
 		if (!dzWriteLog_luaInitRequested) {
 			dzWriteLog_luaInitRequested = true;
+			#if defined(WAR3_INNER_JAPI)
+			AbilityId("exec-lua:depends.debug.dz_write_log");
+			#else
 			Cheat("exec-lua:depends.debug.dz_write_log");
+			#endif
 		}
 	}
 

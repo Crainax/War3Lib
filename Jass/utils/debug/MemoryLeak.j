@@ -31,7 +31,11 @@ library MemoryLeak  {
 
 	function onInit ()  {
 		DzFixUnitEventMemoryLeak();
+		#if defined(WAR3_INNER_JAPI)
+		AbilityId("exec-lua:depends.debug.memory_leak"); //内存泄露检测
+		#else
 		Cheat("exec-lua:depends.debug.memory_leak"); //内存泄露检测
+		#endif
 		TimerStart(CreateTimer(), 180.0, true, function MemoryLeakPeriodicLog);
 	}
 }

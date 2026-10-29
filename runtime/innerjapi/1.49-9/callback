@@ -1,0 +1,980 @@
+globals
+integer array l__H
+integer array l__K
+integer array l__R
+integer array l__U
+integer array l__X
+integer array DE
+code l__n
+integer l__p
+string l__s
+boolean l__v
+hashtable l__x
+unit l__BB
+integer array l__D
+integer array l__Bc
+integer array BX
+integer Bu=0
+integer C4
+integer Bt=0
+integer Bv=0
+integer Bw=0
+integer Bs=0
+integer B2=0
+integer Bz=0
+integer C1=0
+integer B0=0
+integer Co=0
+integer B1=0
+integer By=0
+integer DG=0
+integer DI=0
+integer DM=0
+integer Bx=0
+integer DD=0
+integer array Cf
+integer Ce=0
+integer Cn=0
+endglobals
+function B takes integer C returns nothing
+set l__D[4]=0
+set l__D[1]=C
+set l__D[2]=-1
+set l__D[3]=-1
+endfunction
+function E takes integer F,integer G returns nothing
+set l__H[1000]=0
+set l__H[F+3]=G
+set l__H[F+2]=G
+set l__H[F+1]=G
+set l__H[F]=G
+set l__H[F-1]=G
+set l__H[F-2]=G
+set l__H[F-3]=G
+endfunction
+function I takes integer F,integer J returns nothing
+set l__K[1000]=0
+set l__K[F]=J
+endfunction
+function L takes integer M,integer N returns nothing
+local integer O=M
+set l__K[O]=N
+endfunction
+function P takes integer Q returns nothing
+set l__R[4]=0
+set l__R[3]=Q
+set l__R[2]=Q
+set l__R[1]=Q
+set l__R[0]=Q
+endfunction
+function S takes integer F,integer T returns nothing
+set l__U[1001]=0
+set l__U[F]=T
+endfunction
+function V takes integer W returns nothing
+set l__X[4]=0
+set l__X[3]=W
+set l__X[2]=W
+set l__X[1]=W
+set l__X[0]=W
+endfunction
+function Y takes nothing returns nothing
+local integer l__H
+endfunction
+function Z takes nothing returns integer
+loop
+return l__H
+endloop
+return 0
+endfunction
+function a takes nothing returns nothing
+local integer l__K
+endfunction
+function b takes nothing returns integer
+loop
+return l__K
+endloop
+return 0
+endfunction
+function c takes nothing returns nothing
+local integer l__R
+endfunction
+function d takes nothing returns integer
+loop
+return l__R
+endloop
+return 0
+endfunction
+function e takes nothing returns nothing
+local integer l__U
+endfunction
+function f takes nothing returns integer
+loop
+return l__U
+endloop
+return 0
+endfunction
+function g takes nothing returns nothing
+local integer l__D
+endfunction
+function h takes nothing returns integer
+loop
+return l__D
+endloop
+return 0
+endfunction
+function j takes nothing returns nothing
+local integer l__X
+endfunction
+function k takes nothing returns integer
+loop
+return l__X
+endloop
+return 0
+endfunction
+function l takes code m returns nothing
+set l__n=m
+return
+endfunction
+function o takes integer i returns nothing
+set l__p=i
+return
+endfunction
+function q takes string r returns nothing
+set l__s=r
+return
+endfunction
+function t takes boolean u returns nothing
+set l__v=u
+return
+endfunction
+function w takes hashtable u returns nothing
+set l__x=u
+return
+endfunction
+function y takes unit z returns nothing
+set l__BB=z
+return
+endfunction
+function BC takes nothing returns nothing
+local integer l__n
+local code l__p
+endfunction
+function BD takes code m returns integer
+call l(m)
+loop
+return l__n
+endloop
+return 0
+endfunction
+function BE takes integer i returns code
+call o(i)
+loop
+return l__p
+endloop
+return null
+endfunction
+function BF takes nothing returns nothing
+local integer l__s
+local string l__p
+endfunction
+function BG takes string r returns integer
+call q(r)
+loop
+return l__s
+endloop
+return 0
+endfunction
+function BH takes integer i returns string
+call o(i)
+loop
+return l__p
+endloop
+return null
+endfunction
+function BI takes nothing returns nothing
+local integer l__v
+local boolean l__p
+endfunction
+function BJ takes boolean u returns integer
+call t(u)
+loop
+return l__v
+endloop
+return 0
+endfunction
+function BK takes integer i returns boolean
+call o(i)
+loop
+return l__p
+endloop
+return false
+endfunction
+function BL takes nothing returns nothing
+local integer l__x
+local hashtable l__p
+endfunction
+function BM takes hashtable u returns integer
+call w(u)
+loop
+return l__x
+endloop
+return 0
+endfunction
+function BN takes integer i returns hashtable
+call o(i)
+loop
+return l__p
+endloop
+return null
+endfunction
+function BO takes nothing returns nothing
+local integer l__BB
+local unit l__p
+endfunction
+function BP takes integer i returns unit
+call o(i)
+loop
+return l__p
+endloop
+return null
+endfunction
+function BQ takes integer BR,integer BS returns integer
+local integer BT=BR-BR/BS*BS
+if BT<0 then
+set BT=BT+BS
+endif
+return BT
+endfunction
+function BU takes nothing returns nothing
+local integer i
+endfunction
+function BV takes integer BW returns integer
+return BX[BW/4]
+endfunction
+function BY takes integer BW,integer N returns nothing
+set BX[BW/4]=N
+endfunction
+function BZ takes integer Ba,integer Bb returns nothing
+set l__Bc[0]=$C010900
+set l__Bc[1]=Bb
+set l__Bc[2]=$11010000
+set l__Bc[3]=Ba
+set l__Bc[4]=$C010400
+set l__Bc[6]=$27000000
+set l__Bc[8]=$7090000
+set l__Bc[9]=94
+set l__Bc[10]=$E010400
+set l__Bc[11]=Ba+1
+set l__Bc[12]=$12010100
+set l__Bc[13]=94
+set l__Bc[14]=$E010400
+set l__Bc[15]=94
+set l__Bc[16]=$11010000
+set l__Bc[17]=Ba+1
+set l__Bc[18]=$27000000
+endfunction
+function Bd takes nothing returns nothing
+local integer l__Bc
+endfunction
+function Be takes nothing returns integer
+loop
+return l__Bc
+endloop
+return 0
+endfunction
+function Bf takes nothing returns integer
+return -6162180
+return 9984
+endfunction
+function Bg takes nothing returns nothing
+local integer i=$2114D008
+endfunction
+function Bh takes nothing returns nothing
+endfunction
+function Bj takes nothing returns nothing
+local integer array i
+local integer Bk
+local integer u
+local integer Bl
+local integer Bm
+local integer Bn
+local integer Bo
+local integer Bp
+local integer Bq
+local integer Br
+call E(0,0)
+call I(0,0)
+call P(0)
+call S(0,0)
+call V(0)
+set BX[1000]=0
+call E(0,i[Z()/4])
+call I(0,i[b()/4])
+call P(i[d()/4])
+call S(0,i[f()/4])
+call V(i[k()/4])
+set Bk=i[h()/4]-$BD7214
+set Bs=Bk
+set Bt=Bs+$D46118
+set Bl=i[i[i[i[Bt/4]/4+5]/4+36]/4+1]
+set Bm=i[i[i[Bl/4+10404/4]/4]/4+412/4]
+set Bn=Bs+$3F4C50
+set Bo=Bs+$124142
+set Bp=Bs+$684BA0
+set Bq=i[f()/4+3]+4-i[b()/4+3]
+call S(1+28/4,Bn)
+call S(1+164/4,Bo)
+call S(1+92/4,Bp)
+call S(1+4/4,b()-Bq+8)
+call S(1,b()+8)
+call I(1,i[f()/4+3]+1*4)
+call I(2,Bu)
+call E(4,i[b()/4+3]+4)
+set u=Bm-BQ(i[Z()/4+3]/4+4,3)
+set Bk=(i[Z()/4+3]/4+4-u/4+$2FFFFF)/3
+call SetUnitUserData(BP(Bk),23)
+call L(0+Bq/4,$FFFFFFFF)
+call L(1+Bq/4,0)
+call L(1+b()/4,$FFFFFFFF)
+call L(Bu/4+1,$FFFFFFFF)
+call L(Bu/4+2,$FFFFFFFF)
+call L(Bu/4+3,0)
+set Br=Bs/4
+set Bt=Br+$D46118/4
+set Bv=Br+$A7C28C/4
+set Bw=Br+$A7C17C/4
+set Bx=Br+$A7C2D0/4
+set By=Bs+$720390
+set Bz=Bs+$9BD020
+set B0=Bs+$9BC0B0
+set B1=Bs+$9B9450
+set B2=635
+endfunction
+function B3 takes nothing returns nothing
+local integer array i
+local integer Bk
+local integer u
+local integer Bl
+local integer Bm
+local integer Bn
+local integer Bo
+local integer Bp
+local integer Bq
+local integer Br
+call E(0,0)
+call I(0,0)
+call P(0)
+call S(0,0)
+call V(0)
+set BX[1000]=0
+call E(0,i[Z()/4])
+call I(0,i[b()/4])
+call P(i[d()/4])
+call S(0,i[f()/4])
+call V(i[k()/4])
+set Bk=i[h()/4]-$BE0904
+set Bs=Bk
+set Bt=Bs+$D50A08
+set Bl=i[i[i[i[Bt/4]/4+5]/4+36]/4+1]
+set Bm=i[i[i[Bl/4+10404/4]/4]/4+412/4]
+set Bn=Bs+$3FC580
+set Bo=Bs+262514
+set Bp=Bs+$68C460
+set Bq=i[f()/4+3]+4-i[b()/4+3]
+call S(1+28/4,Bn)
+call S(1+164/4,Bo)
+call S(1+92/4,Bp)
+call S(1+4/4,b()-Bq+8)
+call S(1,b()+8)
+call I(1,i[f()/4+3]+1*4)
+call I(2,Bu)
+call E(4,i[b()/4+3]+4)
+set u=Bm-BQ(i[Z()/4+3]/4+4,3)
+set Bk=(i[Z()/4+3]/4+4-u/4+$2FFFFF)/3
+call SetUnitUserData(BP(Bk),23)
+call L(0+Bq/4,$FFFFFFFF)
+call L(1+Bq/4,0)
+call L(1+b()/4,$FFFFFFFF)
+call L(Bu/4+1,$FFFFFFFF)
+call L(Bu/4+2,$FFFFFFFF)
+call L(Bu/4+3,0)
+set Br=Bs/4
+set Bt=Br+$D50A08/4
+set Bv=Br+$A8428C/4
+set Bw=Br+$A841D4/4
+set Bx=Br+$A842CC/4
+set By=Bs+$727C90
+set Bz=Bs+$9C5020
+set B0=Bs+$9C40B0
+set B1=Bs+$9C1450
+set B2=650
+endfunction
+function B4 takes nothing returns nothing
+local integer array i
+local integer Bk
+call StartThread(BE(2+BD(function Bf)))
+call StartThread(BE(8+BD(function Bg)))
+call B(0)
+call B(i[h()/4])
+set Bk=i[h()/4]
+set Bk=Bk-i[Bk/4]
+if Bk==$2C1554 then
+call StartThread(BE(8+BD(function Bj)))
+elseif Bk==$2C2C94 then
+call StartThread(BE(8+BD(function B3)))
+endif
+call BZ(i[BD(function BV)/4+13],i[h()/4+3]+4)
+call StartThread(BE(i[Be()/4+3]))
+endfunction
+function B5 takes integer i returns integer
+return $FFFFFFFF-i
+endfunction
+function B6 takes integer i,integer B7 returns integer
+local integer B8=i
+local integer B9=0
+local integer CB=0
+local integer CC=0
+local integer CD=0
+local integer CE=0
+if B8<0 then
+set B8=$FFFFFFFF-B8
+set CE=255-BQ(B8,256)
+set B8=B8/256
+set CD=255-BQ(B8,256)
+set B8=B8/256
+set CC=255-BQ(B8,256)
+set B8=B8/256
+set CB=255-B8
+else
+set CE=BQ(B8,256)
+set B8=B8/256
+set CD=BQ(B8,256)
+set B8=B8/256
+set CC=BQ(B8,256)
+set B8=B8/256
+set CB=B8
+endif
+if B7==1 then
+return CB
+elseif B7==2 then
+return CC
+elseif B7==3 then
+return CD
+elseif B7==4 then
+return CE
+endif
+return B9
+endfunction
+function CF takes integer CB,integer CC,integer CD,integer CE returns integer
+local integer B9=CB
+set B9=B9*256+CC
+set B9=B9*256+CD
+set B9=B9*256+CE
+return B9
+endfunction
+function CG takes integer CH,integer CI,integer Bq returns integer
+local integer array CJ
+set CJ[0]=B6(CH,4)
+set CJ[1]=B6(CH,3)
+set CJ[2]=B6(CH,2)
+set CJ[3]=B6(CH,1)
+set CJ[4]=B6(CI,4)
+set CJ[5]=B6(CI,3)
+set CJ[6]=B6(CI,2)
+set CJ[7]=B6(CI,1)
+return CF(CJ[Bq+3],CJ[Bq+2],CJ[Bq+1],CJ[Bq+0])
+endfunction
+function CK takes integer CH,integer CI,integer N,integer Bq,boolean CL returns integer
+local integer array CJ
+set CJ[0]=B6(CH,4)
+set CJ[1]=B6(CH,3)
+set CJ[2]=B6(CH,2)
+set CJ[3]=B6(CH,1)
+set CJ[4]=B6(CI,4)
+set CJ[5]=B6(CI,3)
+set CJ[6]=B6(CI,2)
+set CJ[7]=B6(CI,1)
+set CJ[Bq]=B6(N,4)
+set CJ[Bq+1]=B6(N,3)
+set CJ[Bq+2]=B6(N,2)
+set CJ[Bq+3]=B6(N,1)
+if CL then
+return CF(CJ[3],CJ[2],CJ[1],CJ[0])
+else
+return CF(CJ[7],CJ[6],CJ[5],CJ[4])
+endif
+endfunction
+function CM takes integer M returns integer
+local integer CN=M-M/4*4
+local integer CO=M-CN
+return CG(BX[CO/4],BX[CO/4+1],CN)
+endfunction
+function CP takes integer M returns integer
+if M/4*4!=M then
+return CM(M)
+endif
+return BX[M/4]
+endfunction
+function CQ takes integer M,integer CR returns nothing
+local integer CS
+local integer CT
+local integer CN=M-M/4*4
+local integer CO=M-CN
+set CS=CP(CO)
+set CT=CP(CO+4)
+set BX[CO/4]=CK(CS,CT,CR,CN,true)
+set BX[CO/4+1]=CK(CS,CT,CR,CN,false)
+endfunction
+function CU takes integer M,integer CR returns nothing
+if M/4*4!=M then
+call CQ(M,CR)
+else
+set BX[M/4]=CR
+endif
+endfunction
+function CV takes integer M,integer CW returns integer
+local integer B9=0
+if M>0 then
+set B9=CP(M)
+if M>0 then
+set B9=CP(B9+CW)
+else
+set B9=0
+endif
+endif
+return B9
+endfunction
+function CX takes integer M,integer CW,integer CY returns integer
+local integer B9=CV(M,CW)
+if B9>0 then
+set B9=CP(B9+CY)
+else
+set B9=0
+endif
+return B9
+endfunction
+function CZ takes integer Ca,integer Cb returns integer
+local integer Cc=CX(Bt*4,20,32)
+local integer Cd=Cc
+local integer i=0
+if Ce>0 then
+loop
+set i=i+1
+if Cf[i*3-3]==Ca or Cf[i*3-2]==Ca or Cf[i*3-3]==Cb or Cf[i*3-2]==Cb then
+call CU(Cf[i*3-1],Cb)
+return Cf[i*3-1]
+endif
+exitwhen i==Ce
+endloop
+endif
+loop
+if CP(Cd+12)<12288 then
+return 0
+endif
+if CP(Cd+12)==Ca then
+call CU(Cd+12,Cb)
+if Ce<100 then
+set Ce=Ce+1
+set Cf[Ce*3-1]=Cd+12
+set Cf[Ce*3-2]=Ca
+set Cf[Ce*3-3]=Cb
+endif
+return Cd+12
+endif
+set Cd=CP(Cd)
+if Cd==Cc or Cd==0 then
+return 0
+endif
+endloop
+return 0
+endfunction
+function Cg takes integer Ba returns integer
+return BX[BX[BX[BX[Bt]/4+5]/4+36]/4+Ba]
+endfunction
+function Ch takes string r returns integer
+return BX[BX[BX[BX[BX[BX[BX[BX[Bt]/4+5]/4+36]/4+1]/4+2589]/4+2]/4+BG(r)*4+2]/4+7]
+endfunction
+function Cj takes integer Ck,integer Cl returns integer
+local integer Cm
+call CU(Cn,$68C98B51)
+call CU(Cn+4,Cl)
+call CU(Cn+8,$B990C98B)
+call CU(Cn+12,Ck)
+call CU(Cn+16,$C359D1FF)
+if Co==0 then
+set Co=CZ(B0,Cn)
+else
+call CU(Co,Cn)
+endif
+set Cm=IgnoredUnits(0)
+call CU(Co,B0)
+return Cm
+endfunction
+function Cp takes integer Ck,integer Cl,integer Cq returns integer
+local integer Cm
+call CU(Cn,$68C98B51)
+call CU(Cn+4,Cq)
+call CU(Cn+8,$6890C98B)
+call CU(Cn+12,Cl)
+call CU(Cn+16,$B990C98B)
+call CU(Cn+20,Ck)
+call CU(Cn+24,$C359D1FF)
+if Co==0 then
+set Co=CZ(B0,Cn)
+else
+call CU(Co,Cn)
+endif
+set Cm=IgnoredUnits(0)
+call CU(Co,B0)
+return Cm
+endfunction
+function Cr takes integer Ck,integer Cl,integer Cq,integer Cs,integer Ct returns integer
+local integer Cm
+call CU(Cn,$68C98B51)
+call CU(Cn+4,Ct)
+call CU(Cn+8,$6890C98B)
+call CU(Cn+12,Cs)
+call CU(Cn+16,$6890C98B)
+call CU(Cn+20,Cq)
+call CU(Cn+24,$6890C98B)
+call CU(Cn+28,Cl)
+call CU(Cn+32,$B990C98B)
+call CU(Cn+36,Ck)
+call CU(Cn+40,$C359D1FF)
+if Co==0 then
+set Co=CZ(B0,Cn)
+else
+call CU(Co,Cn)
+endif
+set Cm=IgnoredUnits(0)
+call CU(Co,B0)
+return Cm
+endfunction
+function Cu takes integer Cv,integer Cl returns integer
+local integer Cm
+call CU(Cn,$68C98B51)
+call CU(Cn+4,Cl)
+call CU(Cn+8,$B990C98B)
+call CU(Cn+12,Cv)
+call CU(Cn+16,$C483D1FF)
+call CU(Cn+20,$CCC35904)
+if Co==0 then
+set Co=CZ(B0,Cn)
+else
+call CU(Co,Cn)
+endif
+set Cm=IgnoredUnits(0)
+call CU(Co,B0)
+return Cm
+endfunction
+function Cw takes integer Cv,integer Cl,integer Cq returns integer
+local integer Cm
+call CU(Cn,$68C98B51)
+call CU(Cn+4,Cq)
+call CU(Cn+8,$6890C98B)
+call CU(Cn+12,Cl)
+call CU(Cn+16,$B990C98B)
+call CU(Cn+20,Cv)
+call CU(Cn+24,$C483D1FF)
+call CU(Cn+28,$CCC35908)
+if Co==0 then
+set Co=CZ(B0,Cn)
+else
+call CU(Co,Cn)
+endif
+set Cm=IgnoredUnits(0)
+call CU(Co,B0)
+return Cm
+endfunction
+function Cx takes integer Cy,integer Cl,integer Cq returns integer
+local integer Cm
+call CU(Cn,$BAF68B56)
+call CU(Cn+4,Cq)
+call CU(Cn+8,$B9F68B90)
+call CU(Cn+12,Cl)
+call CU(Cn+16,$BEF68B90)
+call CU(Cn+20,Cy)
+call CU(Cn+24,$C35ED6FF)
+if Co==0 then
+set Co=CZ(B0,Cn)
+else
+call CU(Co,Cn)
+endif
+set Cm=IgnoredUnits(0)
+call CU(Co,B0)
+return Cm
+endfunction
+function Cz takes integer C0 returns integer
+local integer B9=0
+if Bx!=0 then
+if Cn==0 then
+if C1==0 then
+set C1=CZ(Bz,BX[Bx])
+else
+call CU(C1,BX[Bx])
+endif
+set B9=BJ(MergeUnits(0,C0+4,12288,64))
+call CU(C1,Bz)
+return B9
+else
+set B9=Cr(BX[Bx],0,C0+4,12288,64)
+endif
+endif
+if B9==0 then
+return 0
+endif
+return (B9+4)/4*4
+endfunction
+function C2 takes integer C3 returns integer
+set C4=C3/4+4
+call StartThread(BE(BX[Be()/4+3]+32))
+return (BX[C4/4+3]+4)/4*4
+endfunction
+function C5 takes integer C6 returns integer
+return Cj(BX[Bv],C6)
+endfunction
+function C7 takes integer C6,integer C8 returns integer
+return Cp(BX[Bw],Cj(BX[Bv],C6),C8)
+endfunction
+function C9 takes integer BW,integer C0,integer DB,integer DC returns nothing
+if DD==0 then
+call CU(DE[3]+0,$6E72654B)
+call CU(DE[3]+4,$32336C65)
+call CU(DE[3]+8,$6C6C642E)
+call CU(DE[3]+12,0)
+call CU(DE[4]+0,$74726956)
+call CU(DE[4]+4,$506C6175)
+call CU(DE[4]+8,$65746F72)
+call CU(DE[4]+12,29795)
+set DD=C7(DE[3],DE[4])
+endif
+if DD!=0 then
+call Cr(DD,BW,C0,DB,DC)
+endif
+endfunction
+function DF takes integer C6 returns integer
+if DG==0 then
+call CU(DE[3]+0,$6E72654B)
+call CU(DE[3]+4,$32336C65)
+call CU(DE[3]+8,$6C6C642E)
+call CU(DE[3]+12,0)
+call CU(DE[4]+0,$64616F4C)
+call CU(DE[4]+4,$7262694C)
+call CU(DE[4]+8,$41797261)
+call CU(DE[4]+12,0)
+set DG=C7(DE[3],DE[4])
+endif
+if DG!=0 then
+return Cj(DG,C6)
+endif
+return 0
+endfunction
+function DH takes nothing returns integer
+if DI==0 then
+call CU(DE[3]+0,$6E72654B)
+call CU(DE[3]+4,$32336C65)
+call CU(DE[3]+8,$6C6C642E)
+call CU(DE[3]+12,0)
+call CU(DE[4]+0,$43746547)
+call CU(DE[4]+4,$65727275)
+call CU(DE[4]+8,$7250746E)
+call CU(DE[4]+12,$7365636F)
+call CU(DE[4]+16,$644973)
+call CU(DE[4]+20,0)
+set DI=C7(DE[3],DE[4])
+endif
+if DI!=0 then
+return Cu(DI,0)
+endif
+return 0
+endfunction
+function DJ takes integer DK,integer DL returns integer
+if DM==0 then
+call CU(DE[3]+0,$6E72654B)
+call CU(DE[3]+4,$32336C65)
+call CU(DE[3]+8,$6C6C642E)
+call CU(DE[3]+12,0)
+call CU(DE[4]+0,$54746547)
+call CU(DE[4]+4,$50706D65)
+call CU(DE[4]+8,$41687461)
+call CU(DE[4]+12,0)
+set DM=C7(DE[3],DE[4])
+endif
+if DM!=0 then
+return Cp(DM,DK,DL)
+endif
+return 0
+endfunction
+function DN takes nothing returns nothing
+local integer DO=0
+if B2==634 then
+set DO=CP(By)
+set DO=DO*$1000000/$1000000-$FFFFFF00
+if DO==233 then
+call C9(By,8,64,DE[4])
+call CU(DE[5],CP(By))
+call CU(DE[5]+2,CP(By+2))
+call CU(By,$83EC8B55)
+call CU(By+2,$8EC83EC)
+call C9(By,8,CP(DE[4]),DE[3])
+endif
+endif
+endfunction
+function DP takes nothing returns nothing
+if CP(DE[5])!=0 then
+call C9(By,8,64,DE[4])
+call CU(By,CP(DE[5]))
+call CU(By+2,CP(DE[5]+2))
+call C9(By,8,CP(DE[4]),DE[3])
+endif
+endfunction
+function DQ takes integer DR,integer DS returns boolean
+return Cx(By,DR,DS)>0
+endfunction
+function DT takes nothing returns nothing
+local integer Br
+set Bs=CP(Be())-$A63B30
+set Br=Bs/4
+set Bt=Br+$BE3740/4
+set Bv=Br+$94E184/4
+set Bw=Br+$94E168/4
+set Bx=Br+$94E270/4
+set By=Bs+$702C50
+set Bz=Bs+$891F20
+set B0=Bs+$890FB0
+set B1=Bs+$88E350
+set B2=634
+endfunction
+function DU takes nothing returns nothing
+local integer Br
+set Bs=CP(Be())-$951060
+set Br=Bs/4
+set Bt=Br+$ADA848/4
+set Bv=Br+$86D1D0/4
+set Bw=Br+$86D280/4
+set Bx=Br+$86D0F4/4
+set By=Bs+$737F00
+set Bz=Bs+$2DD320
+set B0=Bs+$2DCE80
+set B1=Bs+$2DD2E0
+set B2=618
+endfunction
+function DV takes nothing returns nothing
+local integer Br=CP(Be())-$9631A0
+set Bs=Br
+set Br=Br/4
+set Bt=Br+$AF16A8/4
+set Bv=Br+$87F204/4
+set Bx=Br+$87F134/4
+set Bw=Br+$87F2BC/4
+set By=Bs+$7385E0
+set Bz=Bs+$2DDD80
+set B0=Bs+$2DD8E0
+set B1=Bs+$2DDD40
+set B2=587
+endfunction
+function DW takes nothing returns nothing
+local integer Br=CP(Be())-$9631B8
+set Bs=Br
+set Br=Br/4
+set Bt=Br+$AF16A8/4
+set Bv=Br+$87F204/4
+set Bx=Br+$87F134/4
+set Bw=Br+$87F2BC/4
+set By=Bs+$7386A0
+set Bz=Bs+$2DDE40
+set B0=Bs+$2DD9A0
+set B1=Bs+$2DDE00
+set B2=590
+endfunction
+function DX takes nothing returns nothing
+endfunction
+function DY takes nothing returns nothing
+set BX[10]=0
+endfunction
+function DZ takes nothing returns nothing
+local integer BX
+endfunction
+function Da takes nothing returns integer
+loop
+return BX
+endloop
+return 0
+endfunction
+function Db takes integer DE,integer i returns integer
+local integer Bk=3
+local integer u=0
+local integer array m
+local integer Dc=0
+local integer Dd=0
+set m[0]=0
+set m[1]=0
+set m[2]=0
+set m[3]=0
+loop
+exitwhen i<1
+set Bk=Bk+1
+set u=BQ(i,10)
+set i=i/10
+set m[Bk]=u+48
+set Dd=Dd+1
+endloop
+set u=0
+loop
+exitwhen Bk<4
+set Dc=CF(m[Bk-3],m[Bk-2],m[Bk-1],m[Bk])
+call CU(DE+u,Dc)
+set u=u+4
+set Bk=Bk-4
+endloop
+return Dd
+endfunction
+function main takes nothing returns nothing
+local integer De
+local integer Df=0
+local integer i=0
+local integer Dg=0
+call DY()
+set Bu=Da()
+call StartThread(BE(8+BD(function B4)))
+set i=CP(Be())
+set i=i-CP(i)
+if i==$277890 then
+call DT()
+elseif i==$4F6E60 then
+call DU()
+elseif i==$508500 then
+call DV()
+elseif i==$5084A8 then
+call DW()
+endif
+set Cn=Cz(1000)
+set DE[1]=Cz(4096)
+set DE[2]=Cz(4096)
+set DE[3]=Cz(4096)
+set DE[4]=Cz(4096)
+set DE[5]=Cz(256)
+call CU(DE[5],0)
+call DN()
+set Dg=Cz(1000)
+set Df=DE[1]
+set Df=Df+Db(Df,DH())
+call CU(Df+0,$6C6C642E)
+call CU(Df+4,0)
+if C5(DE[1])==0 then
+call CU(DE[2]+0,$686E6577)
+call CU(DE[2]+4,$705F6F61)
+call CU(DE[2]+8,$6967756C)
+call CU(DE[2]+12,$67742E6E)
+call CU(DE[2]+16,97)
+call CU(DE[2]+20,0)
+call DQ(DE[2],DE[1])
+call DF(DE[1])
+endif
+call CU(DE[2]+0,$6C6C6163)
+call CU(DE[2]+4,0)
+set i=C7(DE[1],DE[2])
+call Cu(i,By)
+call DP()
+endfunction

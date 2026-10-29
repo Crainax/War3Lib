@@ -36,7 +36,11 @@ library Logger requires YDLua {
     private function EnsureLoggerLua() {
         if (!logger_luaInitRequested) {
             logger_luaInitRequested = true;
+            #if defined(WAR3_INNER_JAPI)
+            AbilityId("exec-lua:depends.debug.logger");
+            #else
             Cheat("exec-lua:depends.debug.logger");
+            #endif
         }
     }
 

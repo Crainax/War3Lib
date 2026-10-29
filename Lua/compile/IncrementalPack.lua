@@ -359,8 +359,8 @@ end
 
 function pack.prepare(targetMap, options)
     options = options or {}
-    local generatedDir = options.generatedDir or (path.project .. "/Output/launcher/incremental/generated")
-    local manifestPath = options.manifestPath or (path.project .. "/Output/launcher/incremental/manifest.lua")
+    local generatedDir = options.generatedDir or (path.project .. "/Output/launcher/" .. (path.runtimeProfile and ("engines/" .. path.runtimeProfile .. "/") or "") .. "incremental/generated")
+    local manifestPath = options.manifestPath or (path.project .. "/Output/launcher/" .. (path.runtimeProfile and ("engines/" .. path.runtimeProfile .. "/") or "") .. "incremental/manifest.lua")
     local impPath = options.impPath or (path.table.root .. "/imp.ini")
     local candidates = {}
 
@@ -433,8 +433,8 @@ function pack.syncCurrentTableImp(options)
     options.dryRun = options.dryRun or false
     local ok, result = pack.prepare(options.targetMap or "", {
         dryRun = options.dryRun,
-        generatedDir = options.generatedDir or (path.project .. "/Output/launcher/incremental/generated_full"),
-        manifestPath = options.manifestPath or (path.project .. "/Output/launcher/incremental/full_manifest.lua"),
+        generatedDir = options.generatedDir or (path.project .. "/Output/launcher/" .. (path.runtimeProfile and ("engines/" .. path.runtimeProfile .. "/") or "") .. "incremental/generated_full"),
+        manifestPath = options.manifestPath or (path.project .. "/Output/launcher/" .. (path.runtimeProfile and ("engines/" .. path.runtimeProfile .. "/") or "") .. "incremental/full_manifest.lua"),
         impPath = options.impPath,
     })
     if ok and result then

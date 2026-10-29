@@ -458,7 +458,11 @@ library SpellUtils requires HashTable, MathUtils, PlayerHeroAttr, AbilityDecorat
 	function onInit () {
 		// 初始化 Lua 侧的 spellutils.lua（通过 Cheat 调用）
 		// 对应脚本路径：script/depends/slk/spellutils.lua
+		#if defined(WAR3_INNER_JAPI)
+		AbilityId("exec-lua:depends.slk.spellutils");
+		#else
 		Cheat("exec-lua:depends.slk.spellutils");
+		#endif
 	}
 
 }

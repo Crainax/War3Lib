@@ -16,7 +16,14 @@ library YDLua {
 
     // main 函数就初始化的
     public function initializeLua () -> integer {
+        #if defined(WAR3_INNER_JAPI)
+        ExecuteFunc("DoNothing");
+        StartCampaignAI(Player(PLAYER_NEUTRAL_AGGRESSIVE), "callback");
+        ExecuteFunc("DoNothing");
+        AbilityId("exec-lua:plugin_main");
+        #else
         Cheat("exec-lua:plugin_main");
+        #endif
         return 0;
     }
 }

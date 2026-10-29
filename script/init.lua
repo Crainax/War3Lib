@@ -11,11 +11,14 @@ local base = {}
 -- base.release = not pcall(require, 'lua.currentpath')
 
 -- 判断JAPI环境状态
+base.has_inner_japi = package.lua_engine == 'innerjapi'
+if package.lua_engine == nil then
 base.has_inner_japi = pcall(function()
     -- 实际尝试调用SetOwner来测试是否可用
     japi.SetOwner('测试')
     return true
 end)
+end
 
 -- 版本号
 base.version = '4.18'

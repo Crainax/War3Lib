@@ -16,7 +16,11 @@ library SpellPool {
     }
 
     function onInit () {
+        #if defined(WAR3_INNER_JAPI)
+        AbilityId("exec-lua:depends.spellpool");
+        #else
         Cheat("exec-lua:depends.spellpool");
+        #endif
     }
 
 }

@@ -624,6 +624,10 @@ function compile:CompileWave(input)
 	lfs.chdir(path.wave)
 	local waveExe = 'Wave.exe'
 	local waveCmdArgs = ''
+    if path.luaEngine == "innerjapi" then
+        assert(path.project == path.libRoot and path.buildVersion == "单元测试", "InnerJapi仅支持War3Lib单测")
+        waveCmdArgs = waveCmdArgs .. '--define=WAR3_INNER_JAPI=1 '
+    end
 	waveCmdArgs = waveCmdArgs .. '--autooutput '
 	waveCmdArgs = waveCmdArgs ..
 		string.format('--sysinclude=%s ', fileUtils.PathString(path.wave .. "/include"))

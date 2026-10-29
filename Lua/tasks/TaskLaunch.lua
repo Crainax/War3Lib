@@ -9,7 +9,10 @@ local lfs = require("lfs")
 local utr = require("Lua.compile.UTReplace")
 local incrementalPack = require("Lua.compile.IncrementalPack")
 
+local runtimeProfile = require "Lua.compile.RuntimeProfile"
 local taskStartClock = nil
+local activeEngine = "ydlua"
+local function isWar3Lib() return path.project == path.libRoot end
 
 local versions = {
 	{ value = "VERSION_ALPHA", label = "内测版本" },
@@ -234,6 +237,15 @@ local function normalizeSelection(selection)
 
 	selection.action = normalizeAction(selection)
 	selection.version = selection.version or "VERSION_ALPHA"
+    path.init(root, projectPath, we, gamePath)
+    selection.engine = selection.engine or "ydlua"
+    if isWar3Lib() then
+        selection.version = "VERSION_UNITTEST"
+        if selection.engine ~= "ydlua" and selection.engine ~= "innerjapi" then return nil, "无效Lua引擎" end
+    elseif selection.engine ~= "ydlua" then
+        return nil, "InnerJapi仅支持War3Lib单测"
+    end
+    activeEngine = selection.engine
 	selection.compiler = normalizeCompiler(selection.compiler)
 
 	if not validActions[selection.action] then
@@ -301,6 +313,7 @@ local function initBuildVersion(version)
 end
 
 local function applyCompilerOptions(compilerName)
+    path.luaEngine = activeEngine
 	if compilerName == "vjassc" then
 		path.jassCompiler = "vjassc"
 		path.jassCompilerSelect = "vjassc"
@@ -317,7 +330,8 @@ local function applyCompilerOptions(compilerName)
 end
 
 local function slkSlot(version)
-	return path.project .. "/Output/launcher/slk/" .. version .. "/" .. path.mapName .. "_slk.w3x"
+	if isWar3Lib() then return path.project .. "/Output/launcher/engines/" .. runtimeProfile.key(activeEngine) .. "/UnitTestMap_slk.w3x" end
+    return path.project .. "/Output/launcher/slk/" .. version .. "/" .. path.mapName .. "_slk.w3x"
 end
 
 local function slotDisplay(version, suffix)
@@ -325,7 +339,7 @@ local function slotDisplay(version, suffix)
 end
 
 local function versionStateFile()
-	return path.project .. "/Output/launcher/version_state.txt"
+	return path.project .. "/Output/launcher/" .. (isWar3Lib() and ("engines/" .. runtimeProfile.key(activeEngine) .. "/") or "") .. "version_state.txt"
 end
 
 local function currentTimestamp()
@@ -370,7 +384,7 @@ end
 
 local function copyPackagedSlkToSlots(version)
 	local map = path.project .. "/" .. path.mapName .. "_slk.w3x"
-	local legacyMap = path.project .. "/output/" .. path.mapName .. "_slk.w3x"
+	local legacyMap = isWar3Lib() and slkSlot(version) or (path.project .. "/output/" .. path.mapName .. "_slk.w3x")
 	if not fu.fileExist(map) then
 		print("[全量启动]打包失败,找不到中间文件: " .. map)
 		return false
@@ -380,7 +394,7 @@ local function copyPackagedSlkToSlots(version)
 	end
 	os.remove(map)
 	local slot = slkSlot(version)
-	if not forceCopyBin(legacyMap, slot) then
+	if legacyMap ~= slot and not forceCopyBin(legacyMap, slot) then
 		return false
 	end
 	print("[全量启动]版本专属地图: " .. slot)
@@ -416,11 +430,21 @@ local function updateMapIncrementallyWithStorm(targetMap)
 	})
 end
 
+local function compileSelected()
+    local ok = compiler:StartCompile(path)
+    if ok and isWar3Lib() then
+        local target = path.project .. "/Output/launcher/engines/" .. runtimeProfile.key(activeEngine) .. "/output.j"
+        ok = forceCopyBin(path.CompileResult, target)
+        if ok then path.CompileResult = target end
+    end
+    return ok
+end
+
 local function runCompile(selection)
 	initBuildVersion(selection.version)
 	applyCompilerOptions(selection.compiler)
 	print(string.format("[矩阵启动]仅编译: %s / %s", versionLabels[selection.version], selection.compiler))
-	return compiler:StartCompile(path)
+	return compileSelected()
 end
 
 local function runStart(selection)
@@ -430,11 +454,12 @@ local function runStart(selection)
 		return false
 	end
 	print(string.format("[矩阵启动]全量启动: %s / %s", versionLabels[selection.version], selection.compiler))
-	local compileOk = compiler:StartCompile(path)
+	local compileOk = compileSelected()
 	if not compileOk then
 		print("[全量启动]完整编译失败,停止启动")
 		return false
 	end
+	if isWar3Lib() then runtimeProfile.stage(activeEngine) end
 	os.remove(path.project .. "/" .. path.mapName .. "_slk.w3x")
 	if not w3xlni:StartSLK() then
 		print("[全量启动]打包或包内脚本检查失败，停止启动")
@@ -459,7 +484,7 @@ local function runIncrementalStart(selection)
 	end
 
 	print(string.format("[矩阵启动]增量启动: %s / %s", versionLabels[selection.version], selection.compiler))
-	local compileOk = compiler:StartCompile(path)
+	local compileOk = compileSelected()
 	if not compileOk then
 		print("[增量启动]完整编译失败,停止启动")
 		return false
@@ -470,6 +495,7 @@ local function runIncrementalStart(selection)
 		print("[增量启动]请先用同版本的“启动地图”生成一次版本专属SLK地图")
 		return false
 	end
+	if isWar3Lib() then runtimeProfile.stage(activeEngine) end
 	utr.copyResourceFiles()
 	if not updateMapIncrementallyWithStorm(slot) then
 		return false
@@ -578,12 +604,13 @@ local function runGui()
 	end
 
 	local cmd = string.format(
-		'cmd /c ""%s" "%s" "%s" "%s" "%s""',
+		'cmd /c ""%s" "%s" "%s" "%s" "%s" "%s""',
 		toWinPath(guiExe),
 		toWinPath(guiScript),
 		toWinPath(selectionFile),
 		toWinPath(historyFile),
-		toWinPath(stateFile)
+		toWinPath(stateFile),
+        isWar3Lib() and "war3lib" or "default"
 	)
 	print("[矩阵启动]打开GUI: " .. cmd)
 	local ok, exitType, exitCode = os.execute(cmd)
@@ -643,6 +670,7 @@ print(string.format(
 	selection.compiler
 ))
 
+print("[Lua引擎]" .. activeEngine)
 local ok = runSelection(selection)
 printTaskEnd()
 if not ok then

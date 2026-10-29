@@ -24,6 +24,7 @@ if not selectionFile or selectionFile == "" then
 end
 local historyFile = arg[2]
 local versionStateFile = arg[3]
+local unitOnly = arg[4] == "war3lib"
 
 -- Optional per-project presentation; preserve existing Xlimon defaults.
 local projectTitle = os.getenv("WAR3_LAUNCH_TITLE") or "异度幻世篇2启动"
@@ -34,6 +35,7 @@ local state = {
 	action = "start",
 	version = "VERSION_ALPHA",
 	compiler = defaultCompiler,
+    engine = "ydlua",
 }
 
 local groups = {}
@@ -61,7 +63,10 @@ local compilerItems = {
 	{ value = "vjassc",     title = "vjassc" },
 }
 
+local engineItems = {{ value = "ydlua", title = "YDLua" }, { value = "innerjapi", title = "InnerJapi" }}
+
 local titles = {
+    engine = {},
 	action = {},
 	version = {},
 	compiler = {},
@@ -76,6 +81,7 @@ end
 registerTitles("action", actionItems)
 registerTitles("version", versionItems)
 registerTitles("compiler", compilerItems)
+registerTitles("engine", engineItems)
 
 local function readKeyValueFile(filePath)
 	local result = {}
@@ -128,6 +134,11 @@ local function loadHistory()
 end
 
 loadHistory()
+if unitOnly then
+    state.version = "VERSION_UNITTEST"
+    projectTitle = "War3Lib 单元测试"
+    windowTitle = "War3Lib Launcher"
+end
 
 local function createFont(size, weight)
 	return gui.Font.create("Microsoft YaHei UI", size, weight or "normal", "normal")
@@ -180,6 +191,7 @@ local function updateSummary()
 	end
 	local actionText = titles.action[state.action]
 	local versionText = titles.version[state.version]
+    if unitOnly then versionText = versionText .. " / " .. titles.engine[state.engine] end
 	if state.action == "legacy" then
 		summaryLabel:settext(string.format("%s / %s / 不走编译", actionText, versionText))
 	else
@@ -332,6 +344,7 @@ local function writeSelection(status)
 		file:write("action=", state.action, "\n")
 		file:write("version=", state.version, "\n")
 		file:write("compiler=", state.compiler, "\n")
+        if unitOnly then file:write("engine=", state.engine, "\n") end
 	end
 	file:close()
 end
@@ -406,8 +419,9 @@ local function createMainView()
 	caption:addchildview(close)
 
 	makeGroup(root, "启动动作", "action", actionItems, 160)
-	makeVersionGroup(root)
+	if not unitOnly then makeVersionGroup(root) end
 	makeGroup(root, "编译器", "compiler", compilerItems, 160)
+    if unitOnly then makeGroup(root, "Lua引擎", "engine", engineItems, 160) end
 
 	local bottom = makeContainer({
 		Height = 82,

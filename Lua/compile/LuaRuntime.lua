@@ -132,7 +132,8 @@ local function restore(cleanup)
 end
 
 local function pluginMainContent()
-    return [[local ok, is_local = pcall(require, 'path')
+    local prefix = path.project == path.libRoot and ("package.lua_engine = " .. luaString(path.luaEngine or 'ydlua') .. "\n") or ''
+    return prefix .. [[local ok, is_local = pcall(require, 'path')
 
 local console = require 'jass.console'
 print = console.write
@@ -147,17 +148,23 @@ end
 print('[plugin_main]初始化:新版')
 
 xpcall(function()
+    if package.lua_engine == 'innerjapi' then
+        local japi = require 'jass.japi'
+        assert(type(japi.SetOwner) == 'function', 'InnerJapi启动失败: 缺少SetOwner')
+        japi.SetOwner('问号')
+    end
     require 'script'
+    if package.lua_engine == 'innerjapi' then
+        require 'script.experiments.innerjapi'
+    end
 end, function(msg)
     print(tostring(msg) .. '\n' .. debug.traceback())
 end)
 
-local japi = require 'jass.japi'
-xpcall(function()
-    japi.SetOwner('问号')
-end, function()
-    print('当前不是内置japi')
-end)
+if package.lua_engine == nil then
+    local japi = require 'jass.japi'
+    xpcall(function() japi.SetOwner('问号') end, function() print('当前不是内置japi') end)
+end
 ]]
 end
 
@@ -317,6 +324,9 @@ function runtime.getPackageFiles()
         end
     end
 
+    for _, file in ipairs(require("Lua.compile.RuntimeProfile").files()) do
+        files[#files+1] = file
+    end
     return files, localMode
 end
 
@@ -338,12 +348,14 @@ function runtime.prepareForPackage(options)
             ok, err = copyTracked(cleanup, file.source, file.target)
         end
         if not ok then
+            restore(cleanup)
             return nil, err
         end
     end
 
     local ok, err = addImportEntries(cleanup, importEntries, options.persistImp)
     if not ok then
+        restore(cleanup)
         return nil, err
     end
 
