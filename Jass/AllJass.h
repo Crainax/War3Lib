@@ -24,7 +24,11 @@
 
 //函数入口
 #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST) // 单元测试
-    #include "config/UnitTest.h"
+    #if defined(WAR3_EMPTY_TEST)
+        #include "Crainax/template/EmptyRuntime_Test.j"
+    #else
+        #include "config/UnitTest.h"
+    #endif
 #elif (CURRENT_BUILD_VERSION == VERSION_MODELTEST) // 模型测试
     #include "config/ModelTest.h"
 #endif

@@ -3,7 +3,10 @@ local path = require 'Lua.path'
 local lfs = require 'lfs'
 local fu = require 'Lua.utils.FileUtils'
 local M = {}
-function M.key(engine) return engine == 'innerjapi' and 'innerjapi-1.49-9' or 'ydlua' end
+function M.key(engine)
+    local base = engine == 'innerjapi' and 'innerjapi-1.49-9' or 'ydlua'
+    return base .. '/tests/' .. require('Lua.compile.UnitTestTarget').key(path.project, path.testScenario)
+end
 local assets = {'callback', 'wenhao_plugin.tga', '(key)'}
 local function mkdir(dir)
     if lfs.attributes(dir, 'mode') == 'directory' then return end

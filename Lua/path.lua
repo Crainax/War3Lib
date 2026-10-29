@@ -70,6 +70,10 @@ function path.init(root, project, we, gamePath)
 
     path.libRoot = path.root .. "/Library/War3Lib" -- 本库根目录
     path.runtimeProfile = nil
+    path.testScenario = "current"
+    if path.project == path.libRoot and os.getenv("WAR3_TEST_SCENARIO") == "empty" then
+        path.testScenario = "empty"
+    end
     path.luaEngine = "ydlua"
     if path.project == path.libRoot and os.getenv("WAR3_LUA_ENGINE") == "innerjapi" then
         path.luaEngine = "innerjapi"

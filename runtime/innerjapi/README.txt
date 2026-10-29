@@ -4,7 +4,11 @@
 只保存 callback、(key)、wenhao_plugin.tga，SHA256SUMS.txt 记录原文件校验值。
 GUI 显示 InnerJapi；内部目录保留版本，升级时可隔离旧缓存。
 
-在 War3Lib 运行 VS Code 任务“🥭启动”。默认 YDLua。
+在 War3Lib 运行 VS Code 任务“🥭启动”。首次默认 YDLua，之后记住上次确认的引擎与测试入口。
+GUI 显示 UnitTest.h 当前选择的 JASS 文件；测试入口首次默认“当前单测文件”，可改选“空地图”。
+空地图使用 Jass/template/EmptyRuntime_Test.j，不执行当前用例，不覆盖 UnitTest.h，仍保留 Lua 实验启动。
+空白入口复用 UnitTestMap 的基础地形；它表示不加载业务测试，不承诺删除地图已有地形或预放置物。
+引擎及测试入口各有独立地图缓存；切换入口后的第一次使用请选择全量启动。
 选择 InnerJapi 后全量启动；增量和老地图启动仅使用同引擎专属地图。
 源码地图 UnitTestMap 不永久写入这些资源；打包副本位于 Output/launcher/engines。
 由于 w3x2lni 按扩展名分类，tga 在副本中放 resource/，另两项放 map/；MPQ 中三项均在根目录。

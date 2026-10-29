@@ -3,7 +3,9 @@ local M = {}
 local generation = 0
 local active = false
 
-local URL = 'http://127.0.0.1:18080/test'
+-- HTTP对比测试；切回HTTPS时只需修改此URL。
+local URL = 'http://httpbin.org/post'
+local PROTOCOL = URL:match('^(%a+):'):upper()
 local BODY = 'ping-from-innerjapi'
 
 function M.start()
@@ -29,8 +31,13 @@ function M.start()
             end
             print('[HTTP测试]响应字节数: ' .. #result)
             print('[HTTP测试]响应内容: ' .. result:sub(1, 512))
-            if result == 'ok:' .. BODY then
-                print('[HTTP测试]PASS：请求与响应内容正确')
+            -- 固定ASCII探针：识别原始文本回显或单字段表单回显，不作为通用JSON解析器。
+            local rawEcho = result:match('"data"%s*:%s*"([^"]*)"') == BODY
+            local form = result:match('"form"%s*:%s*(%b{})')
+            local formEcho = form and form:match('^%{%s*"ping%-from%-innerjapi"%s*:%s*""%s*%}$') ~= nil
+            if rawEcho or formEcho then
+                local mode = rawEcho and 'data原始文本' or 'form表单'
+                print('[HTTP测试]PASS：' .. PROTOCOL .. '请求与httpbin回显内容正确（' .. mode .. '）')
             else
                 print('[HTTP测试]FAIL：响应与预期不符')
             end
@@ -41,7 +48,7 @@ function M.start()
         error('[HTTP测试]调用失败: ' .. tostring(err))
     end
     if not finished then
-        print('[HTTP测试]等待异步响应；无回调不代表成功，请同时检查服务器终端')
+        print('[HTTP测试]等待' .. PROTOCOL .. '异步响应；无回调不代表成功')
     end
 end
 

@@ -12,6 +12,8 @@ local incrementalPack = require("Lua.compile.IncrementalPack")
 local runtimeProfile = require "Lua.compile.RuntimeProfile"
 local taskStartClock = nil
 local activeEngine = "ydlua"
+local activeScenario = "current"
+local testTarget = require "Lua.compile.UnitTestTarget"
 local function isWar3Lib() return path.project == path.libRoot end
 
 local versions = {
@@ -204,6 +206,10 @@ local function writeSelectionFile(filePath, selection)
 	file:write("action=", selection.action, "\n")
 	file:write("version=", selection.version, "\n")
 	file:write("compiler=", selection.compiler, "\n")
+    if isWar3Lib() then
+        file:write("engine=", selection.engine, "\n")
+        file:write("scenario=", selection.scenario, "\n")
+    end
 	file:close()
 end
 
@@ -245,6 +251,10 @@ local function normalizeSelection(selection)
     elseif selection.engine ~= "ydlua" then
         return nil, "InnerJapi仅支持War3Lib单测"
     end
+    selection.scenario = selection.scenario or "current"
+    if selection.scenario ~= "current" and selection.scenario ~= "empty" then return nil, "无效测试入口" end
+    if not isWar3Lib() and selection.scenario ~= "current" then return nil, "空白入口仅支持War3Lib" end
+    activeScenario = selection.scenario
     activeEngine = selection.engine
 	selection.compiler = normalizeCompiler(selection.compiler)
 
@@ -314,6 +324,7 @@ end
 
 local function applyCompilerOptions(compilerName)
     path.luaEngine = activeEngine
+    path.testScenario = activeScenario
 	if compilerName == "vjassc" then
 		path.jassCompiler = "vjassc"
 		path.jassCompilerSelect = "vjassc"
@@ -330,6 +341,7 @@ local function applyCompilerOptions(compilerName)
 end
 
 local function slkSlot(version)
+    if isWar3Lib() then path.testScenario = activeScenario end
 	if isWar3Lib() then return path.project .. "/Output/launcher/engines/" .. runtimeProfile.key(activeEngine) .. "/UnitTestMap_slk.w3x" end
     return path.project .. "/Output/launcher/slk/" .. version .. "/" .. path.mapName .. "_slk.w3x"
 end
@@ -339,6 +351,7 @@ local function slotDisplay(version, suffix)
 end
 
 local function versionStateFile()
+    if isWar3Lib() then path.testScenario = activeScenario end
 	return path.project .. "/Output/launcher/" .. (isWar3Lib() and ("engines/" .. runtimeProfile.key(activeEngine) .. "/") or "") .. "version_state.txt"
 end
 
@@ -603,14 +616,21 @@ local function runGui()
 		error("error: 未找到GUI脚本: " .. guiScript)
 	end
 
+    local contextFile = path.project .. "/Output/launcher/test_context.txt"
+    if isWar3Lib() then
+        local file = assert(io.open(contextFile, "w"))
+        file:write("test_file=", testTarget.current(path.project), "\n")
+        file:close()
+    end
 	local cmd = string.format(
-		'cmd /c ""%s" "%s" "%s" "%s" "%s" "%s""',
+		'cmd /c ""%s" "%s" "%s" "%s" "%s" "%s" "%s""',
 		toWinPath(guiExe),
 		toWinPath(guiScript),
 		toWinPath(selectionFile),
 		toWinPath(historyFile),
 		toWinPath(stateFile),
-        isWar3Lib() and "war3lib" or "default"
+        isWar3Lib() and "war3lib" or "default",
+        toWinPath(contextFile)
 	)
 	print("[矩阵启动]打开GUI: " .. cmd)
 	local ok, exitType, exitCode = os.execute(cmd)
@@ -671,6 +691,7 @@ print(string.format(
 ))
 
 print("[Lua引擎]" .. activeEngine)
+if isWar3Lib() then print("[测试入口]" .. testTarget.selected(path.project, activeScenario)) end
 local ok = runSelection(selection)
 printTaskEnd()
 if not ok then

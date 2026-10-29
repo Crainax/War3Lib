@@ -624,6 +624,10 @@ function compile:CompileWave(input)
 	lfs.chdir(path.wave)
 	local waveExe = 'Wave.exe'
 	local waveCmdArgs = ''
+    if path.testScenario == "empty" then
+        assert(path.project == path.libRoot and path.buildVersion == "单元测试", "空白入口仅支持War3Lib单测")
+        waveCmdArgs = waveCmdArgs .. '--define=WAR3_EMPTY_TEST=1 '
+    end
     if path.luaEngine == "innerjapi" then
         assert(path.project == path.libRoot and path.buildVersion == "单元测试", "InnerJapi仅支持War3Lib单测")
         waveCmdArgs = waveCmdArgs .. '--define=WAR3_INNER_JAPI=1 '

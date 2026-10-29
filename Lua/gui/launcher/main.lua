@@ -25,6 +25,7 @@ end
 local historyFile = arg[2]
 local versionStateFile = arg[3]
 local unitOnly = arg[4] == "war3lib"
+local testContextFile = arg[5]
 
 -- Optional per-project presentation; preserve existing Xlimon defaults.
 local projectTitle = os.getenv("WAR3_LAUNCH_TITLE") or "异度幻世篇2启动"
@@ -36,6 +37,7 @@ local state = {
 	version = "VERSION_ALPHA",
 	compiler = defaultCompiler,
     engine = "ydlua",
+    scenario = "current",
 }
 
 local groups = {}
@@ -65,7 +67,9 @@ local compilerItems = {
 
 local engineItems = {{ value = "ydlua", title = "YDLua" }, { value = "innerjapi", title = "InnerJapi" }}
 
+local scenarioItems = {{value="current", title="当前单测文件"}, {value="empty", title="空地图"}}
 local titles = {
+    scenario = {},
     engine = {},
 	action = {},
 	version = {},
@@ -82,6 +86,7 @@ registerTitles("action", actionItems)
 registerTitles("version", versionItems)
 registerTitles("compiler", compilerItems)
 registerTitles("engine", engineItems)
+registerTitles("scenario", scenarioItems)
 
 local function readKeyValueFile(filePath)
 	local result = {}
@@ -103,6 +108,8 @@ local function readKeyValueFile(filePath)
 end
 
 local versionState = readKeyValueFile(versionStateFile)
+local currentTestFile = readKeyValueFile(testContextFile).test_file or "未读取到测试文件"
+local currentTestName = currentTestFile:match("[^/\\]+$") or currentTestFile
 
 local function normalizeHistoryAction(history)
 	if history.action == "compile" then
@@ -119,6 +126,10 @@ end
 
 local function loadHistory()
 	local history = readKeyValueFile(historyFile)
+    if unitOnly then
+        if titles.engine[history.engine] then state.engine = history.engine end
+        if titles.scenario[history.scenario] then state.scenario = history.scenario end
+    end
 	local action = normalizeHistoryAction(history)
 	if titles.action[action] then
 		state.action = action
@@ -191,7 +202,7 @@ local function updateSummary()
 	end
 	local actionText = titles.action[state.action]
 	local versionText = titles.version[state.version]
-    if unitOnly then versionText = versionText .. " / " .. titles.engine[state.engine] end
+    if unitOnly then versionText = titles.engine[state.engine] .. " / " .. titles.scenario[state.scenario] end
 	if state.action == "legacy" then
 		summaryLabel:settext(string.format("%s / %s / 不走编译", actionText, versionText))
 	else
@@ -344,7 +355,10 @@ local function writeSelection(status)
 		file:write("action=", state.action, "\n")
 		file:write("version=", state.version, "\n")
 		file:write("compiler=", state.compiler, "\n")
-        if unitOnly then file:write("engine=", state.engine, "\n") end
+        if unitOnly then
+            file:write("engine=", state.engine, "\n")
+            file:write("scenario=", state.scenario, "\n")
+        end
 	end
 	file:close()
 end
@@ -421,7 +435,12 @@ local function createMainView()
 	makeGroup(root, "启动动作", "action", actionItems, 160)
 	if not unitOnly then makeVersionGroup(root) end
 	makeGroup(root, "编译器", "compiler", compilerItems, 160)
-    if unitOnly then makeGroup(root, "Lua引擎", "engine", engineItems, 160) end
+    if unitOnly then
+        makeGroup(root, "Lua引擎", "engine", engineItems, 160)
+        makeGroup(root, "测试入口", "scenario", scenarioItems, 220)
+        root:addchildview(makeLabel("当前单测：" .. currentTestName, {Height=26, MarginLeft=34, MarginTop=6}, fontSmall, "#FFFFFF"))
+        root:addchildview(makeLabel(currentTestFile, {Height=28, MarginLeft=34, MarginRight=24}, fontTiny, "#B8C0CC"))
+    end
 
 	local bottom = makeContainer({
 		Height = 82,
@@ -487,7 +506,7 @@ win:setminimizable(false)
 win:sethasshadow(true)
 local mainView = createMainView()
 win:setcontentview(mainView)
-win:setcontentsize({ width = 800, height = 520 })
+win:setcontentsize({ width = 800, height = unitOnly and 650 or 520 })
 win:center()
 function win.onclose()
 	gui.MessageLoop.quit()
