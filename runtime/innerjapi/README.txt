@@ -4,7 +4,7 @@
 只保存 callback、(key)、wenhao_plugin.tga，SHA256SUMS.txt 记录原文件校验值。
 GUI 显示 InnerJapi；内部目录保留版本，升级时可隔离旧缓存。
 
-在 War3Lib 运行 VS Code 任务“启动GUI:单元测试”。默认 YDLua。
+在 War3Lib 运行 VS Code 任务“🥭启动”。默认 YDLua。
 选择 InnerJapi 后全量启动；增量和老地图启动仅使用同引擎专属地图。
 源码地图 UnitTestMap 不永久写入这些资源；打包副本位于 Output/launcher/engines。
 由于 w3x2lni 按扩展名分类，tga 在副本中放 resource/，另两项放 map/；MPQ 中三项均在根目录。

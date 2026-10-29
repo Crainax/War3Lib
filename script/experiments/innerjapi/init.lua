@@ -1,6 +1,6 @@
 -- Change this module name to select the next experiment.
 local runner = require 'script.experiments.innerjapi.runner'
-runner.start('script.experiments.innerjapi.cases.hello')
+runner.start('script.experiments.innerjapi.cases.http_post')
 -- In the local Lua console: require('script.experiments.innerjapi.runner').reload()
 -- This trigger belongs to the stable runner entry, not the reloaded case.
 local jass = require 'jass.common'
