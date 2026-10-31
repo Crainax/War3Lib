@@ -1,8 +1,9 @@
 local flag = {
     path = [[D:\War3Asset\Model\ShangqueDIY\xiaoye3\xiaoye\xiaoye.mdl]],
+    keyframeEpsilon = 1e-5, -- DontInterp 各分量误差上限；0 表示只合并完全相同的帧
 }
 
--- 也可运行：lua 模型第3步_压缩.lua "完整路径.mdl"
+-- 也可运行：lua 模型第3步_压缩.lua "完整路径.mdl" [--epsilon 1e-5]
 -- 缩短小数文本不会缩小 MDX 的浮点字段，因此默认保留原数值。
 local NORMALIZE_NUMBERS = false
 local EPS = 1e-5
@@ -129,10 +130,11 @@ local function vector(tokens, block)
     return values, numbers
 end
 
-local function equal(a, b)
+local function equal(a, b, epsilon)
+    epsilon = epsilon or 0
     if #a ~= #b then return false end
     for i = 1, #a do
-        if a[i] ~= b[i] then return false end
+        if math.abs(a[i] - b[i]) > epsilon then return false end
     end
     return true
 end
@@ -242,7 +244,8 @@ local function optimizeText(text)
                         local remove = false
                         if not protected and previous and previous.sequence == row.sequence then
                             if interpolation == "DontInterp" then
-                                remove = equal(previous.values, row.values)
+                                -- 始终与上一条保留帧比较，避免逐帧误差累积。
+                                remove = equal(previous.values, row.values, flag.keyframeEpsilon)
                             else
                                 -- Linear 只移除平坦段内部帧，保留转折前的平台终点。
                                 local following = rows[index + 1]
@@ -302,8 +305,8 @@ local function optimizeFile(path)
         stats.numericValues = stats.numericValues + nextStats.numericValues
     end
     assert(stable, "Optimization did not converge; original file was not changed")
-    print(string.format("Tracks: %d; default tracks removed: %d; keys removed: %d; numbers normalized: %d",
-        stats.tracks, stats.defaultTracksRemoved, stats.keysRemoved, stats.numericValues))
+    print(string.format("Tracks: %d; default tracks removed: %d; keys removed: %d; numbers normalized: %d; epsilon: %g",
+        stats.tracks, stats.defaultTracksRemoved, stats.keysRemoved, stats.numericValues, flag.keyframeEpsilon))
     if optimized == original then
         print("No changes: " .. path)
         return
@@ -328,4 +331,21 @@ local function optimizeFile(path)
     print("Optimized: " .. path)
 end
 
-optimizeFile((arg and arg[1]) or flag.path)
+local path, index = flag.path, 1
+while arg and index <= #arg do
+    local value = arg[index]
+    if value == "--epsilon" then
+        index = index + 1
+        flag.keyframeEpsilon = assert(tonumber(arg[index]), "--epsilon requires a number")
+    elseif value:match("^%-%-epsilon=") then
+        flag.keyframeEpsilon = assert(tonumber(value:match("=(.*)$")), "--epsilon requires a number")
+    elseif value == "--help" then
+        print('lua 模型第3步_压缩.lua "模型.mdl" [--epsilon 1e-5]; --epsilon 0 preserves exact values')
+        return
+    elseif value:sub(1, 2) == "--" then error("Unknown option: " .. value)
+    else path = value end
+    index = index + 1
+end
+assert(type(flag.keyframeEpsilon) == "number" and flag.keyframeEpsilon >= 0 and flag.keyframeEpsilon < math.huge,
+    "keyframeEpsilon must be a finite non-negative number")
+optimizeFile(path)

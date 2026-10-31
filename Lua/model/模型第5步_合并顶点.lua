@@ -239,6 +239,69 @@ local function optimizeMdx(data, mergeUnshadedNormals)
     return output, report
 end
 
+-- MDL 的文本转换器会把浮点 -0 写成 0。只在已识别的节点动画浮点字段
+-- 中允许这一数值等价变化；帧时间、ID、标志、名称等仍必须逐字一致。
+local function normalizeNodeSignedZeros(data, isBone)
+    local edits, pos = {}, 1
+    local dimensions = {KGTR = 3, KGRT = 4, KGSC = 3}
+    while pos <= #data do
+        local size = u32(data, pos)
+        local ending = pos + size
+        assert(size >= 96 and ending <= #data + 1, "Invalid node size in MDL verification")
+        local cursor = pos + 96
+        while cursor < ending do
+            assert(cursor + 15 < ending, "Truncated animation track")
+            local tag = data:sub(cursor, cursor + 3)
+            local dimension = assert(dimensions[tag], "Unknown node track in MDL verification: " .. tag)
+            local count, interpolation = u32(data, cursor + 4), u32(data, cursor + 8)
+            assert(interpolation <= 3, "Invalid interpolation mode")
+            local floats = dimension * (interpolation >= 2 and 3 or 1)
+            local stride = 4 + floats * 4
+            cursor = cursor + 16
+            assert(count <= (ending - cursor) // stride, "Truncated animation keys")
+            for _ = 1, count do
+                -- 每行开头的 uint32 时间戳不能按浮点解释。
+                for offset = cursor + 4, cursor + stride - 1, 4 do
+                    if data:sub(offset, offset + 3) == "\0\0\0\128" then edits[#edits + 1] = offset end
+                end
+                cursor = cursor + stride
+            end
+        end
+        assert(cursor == ending, "Invalid node track layout")
+        pos = ending + (isBone and 8 or 0)
+        assert(pos <= #data + 1, "Truncated bone metadata")
+    end
+    local parts, cursor = {}, 1
+    for _, offset in ipairs(edits) do
+        parts[#parts + 1] = data:sub(cursor, offset - 1)
+        parts[#parts + 1] = "\0\0\0\0"
+        cursor = offset + 4
+    end
+    parts[#parts + 1] = data:sub(cursor)
+    return table.concat(parts)
+end
+
+local function assertMdlRoundTrip(expected, actual)
+    if expected == actual then return false end
+    local before, after = parseChunks(expected), parseChunks(actual)
+    assert(#before == #after, "MDL round-trip changed chunk count; input was not changed")
+    local signedZeroChanged = false
+    for i, chunk in ipairs(before) do
+        local other = after[i]
+        assert(chunk.tag == other.tag, "MDL round-trip changed chunk order; input was not changed")
+        if chunk.data ~= other.data then
+            local valid = false
+            if chunk.tag == "BONE" or chunk.tag == "HELP" then
+                valid = normalizeNodeSignedZeros(chunk.data, chunk.tag == "BONE") ==
+                    normalizeNodeSignedZeros(other.data, chunk.tag == "BONE")
+            end
+            assert(valid, "MDL round-trip changed " .. chunk.tag .. " data beyond animation signed zero; input was not changed")
+            signedZeroChanged = true
+        end
+    end
+    return signedZeroChanged
+end
+
 local function exists(path)
     local file = io.open(path, "rb")
     if not file then return false end
@@ -297,6 +360,83 @@ local function convert(exe, source, target)
     assert(ok == true and code == 0 and exists(target), "Model conversion failed")
 end
 
+-- 1..9 位有效数字中选出可还原相同 float32 的短表示；验证的是位模式，
+-- 不是按小数位截断。149 位转换结果只作为临时的精确输入，不直接写回。
+local function shortestFloat32(value)
+    local bits = pack("<f", value)
+    value = unpack("<f", bits)
+    assert(value == value and math.abs(value) < math.huge, "Cannot compact a non-finite float32")
+    if value == 0 then return bits == "\0\0\0\128" and "-0.0" or "0" end
+    local function normalizeExponent(text)
+        local mantissa, exponent = text:match("^(.-)[eE]([%+%-]?%d+)$")
+        if mantissa then
+            mantissa = mantissa:gsub("(%..-)0+$", "%1"):gsub("%.$", "")
+            return mantissa .. "e" .. tostring(tonumber(exponent))
+        end
+        return text
+    end
+    for digits = 1, 9 do
+        local candidate = normalizeExponent(string.format("%." .. digits .. "g", value))
+        local ok, restored = pcall(pack, "<f", tonumber(candidate))
+        if ok and restored == bits then
+            local scientific = normalizeExponent(string.format("%." .. (digits - 1) .. "e", value))
+            if #scientific < #candidate and pack("<f", tonumber(scientific)) == bits then candidate = scientific end
+            return candidate
+        end
+    end
+    error("Cannot create a round-trippable float32 decimal")
+end
+
+local function compactMdlNumbers(text)
+    local pos, cursor, parts, cache = 1, 1, {}, {}
+    while pos <= #text do
+        local c, two = text:sub(pos, pos), text:sub(pos, pos + 1)
+        if c:match("%s") then
+            pos = text:find("%S", pos) or (#text + 1)
+        elseif two == "//" then
+            pos = text:find("[\r\n]", pos + 2) or (#text + 1)
+        elseif two == "/*" then
+            pos = assert(text:find("*/", pos + 2, true), "Unclosed MDL comment") + 2
+        elseif c == '"' then
+            pos = pos + 1
+            while pos <= #text and text:sub(pos, pos) ~= '"' do
+                if text:sub(pos, pos) == "\\" then pos = pos + 1 end
+                pos = pos + 1
+            end
+            assert(pos <= #text, "Unclosed MDL string")
+            pos = pos + 1
+        elseif c:match("[%a_]") then
+            local _, ending = text:find("[%a_][%w_]*", pos)
+            pos = ending + 1
+        elseif c:match("[%d%+%-%.]") then
+            local pattern = "[%+%-]?%d+%.?%d*[eE]?[%+%-]?%d*"
+            if c == "." or ((c == "-" or c == "+") and text:sub(pos + 1, pos + 1) == ".") then
+                pattern = "[%+%-]?%.%d+[eE]?[%+%-]?%d*"
+            end
+            local first, last = text:find(pattern, pos)
+            assert(first == pos, "Invalid MDL number at byte " .. pos)
+            local raw = text:sub(first, last)
+            -- 整数形式的 ID、帧时间、标志等不参与浮点格式化。
+            if raw:find("[%.eE]") then
+                local value = assert(tonumber(raw), "Invalid MDL number")
+                local bits = pack("<f", value)
+                local compact = cache[bits]
+                if not compact then compact = shortestFloat32(value); cache[bits] = compact end
+                if compact ~= raw then
+                    parts[#parts + 1] = text:sub(cursor, first - 1)
+                    parts[#parts + 1] = compact
+                    cursor = last + 1
+                end
+            end
+            pos = last + 1
+        else
+            pos = pos + 1
+        end
+    end
+    parts[#parts + 1] = text:sub(cursor)
+    return table.concat(parts)
+end
+
 local function processFile(path, options)
     local extension = path:lower():match("%.(md[xl])$")
     assert(extension, "Input must be .mdx or .mdl")
@@ -325,17 +465,30 @@ local function processFile(path, options)
         end
         print(string.format("MDX: %d -> %d bytes; vertices: %d -> %d; triangles: %d",
             report.before, report.after, report.verticesBefore, report.verticesAfter, report.triangles))
-        if output == source then print("No changes: " .. path); return report end
-        if options.dryRun then print("Dry run: input was not changed"); return report end
         if extension == "mdl" then
-            local mdx, mdl = temporary(".output.mdx"), temporary(".output.mdl")
-            writeAll(mdx, output)
-            convert(options.converterExe, mdx, mdl)
+            local expectedMdx = output
+            local mdl = temporary(".output.mdl")
+            if output == source then
+                -- 已经合并过的模型也可缩短过长小数，不再重新导出其他文本。
+                output = compactMdlNumbers(original)
+            else
+                local mdx = temporary(".output.mdx")
+                writeAll(mdx, output)
+                convert(options.converterExe, mdx, mdl)
+                output = compactMdlNumbers(readAll(mdl))
+            end
+            report.mdlBefore, report.mdlAfter = #original, #output
+            print(string.format("MDL text: %d -> %d bytes (round-trippable float32 decimals)", #original, #output))
+            if output == original then print("No changes: " .. path); return report end
+            writeAll(mdl, output)
             local verified = temporary(".verify.mdx")
             convert(options.converterExe, mdl, verified)
-            assert(readAll(verified) == output, "MDL round-trip changed model data; input was not changed")
-            output = readAll(mdl)
+            if assertMdlRoundTrip(expectedMdx, readAll(verified)) then
+                print("MDL round-trip: animation -0 / 0 differences only (numerically identical)")
+            end
         end
+        if output == source then print("No changes: " .. path); return report end
+        if options.dryRun then print("Dry run: input was not changed"); return report end
         replaceWithBackup(path, original, output)
         print("Optimized: " .. path)
         return report
@@ -347,7 +500,10 @@ local function processFile(path, options)
 end
 
 -- 供离线回归测试调用；正常直接运行时不会进入此分支。
-if ... == "model.vertex_weld" then return {optimizeMdx = optimizeMdx, processFile = processFile} end
+if ... == "model.vertex_weld" then
+    return {optimizeMdx = optimizeMdx, processFile = processFile, assertMdlRoundTrip = assertMdlRoundTrip,
+        shortestFloat32 = shortestFloat32, compactMdlNumbers = compactMdlNumbers}
+end
 
 local path = flag.path
 for _, value in ipairs(arg or {}) do

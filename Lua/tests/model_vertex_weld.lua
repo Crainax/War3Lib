@@ -85,6 +85,78 @@ check("UV count mismatch rejected",function() rejects({mutate=function(_,uv) tab
 check("incomplete face rejected",function() rejects({mutate=function(a) a.PCNT[1]=pack("<I4",5) end}) end)
 check("truncated chunk rejected",function() assert(not pcall(weld.optimizeMdx,fixture():sub(1,-2),true)) end)
 
+local function animationNode(value, options)
+    options = options or {}
+    local interpolation = options.interpolation or 0
+    local vector = value .. pack("<ff",0,0)
+    local row = pack("<I4",options.time or 0) .. vector
+    if interpolation >= 2 then row = row .. vector .. vector end
+    local body = string.rep("\0",80) .. pack("<I4I4I4",0,0xffffffff,options.flags or 0) ..
+        "KGTR" .. pack("<I4I4I4",1,interpolation,0xffffffff) .. row
+    local node = pack("<I4",#body+4) .. body
+    if options.bone then node = node .. pack("<I4I4",0xffffffff,0xffffffff) end
+    return node
+end
+local function animationModel(value, options)
+    options = options or {}
+    return fixture() .. chunk(options.bone and "BONE" or "HELP",animationNode(value,options))
+end
+local negativeZero, positiveZero = pack("<I4",0x80000000), pack("<I4",0)
+check("bone animation signed zero is numerically equivalent",function()
+    assert(weld.assertMdlRoundTrip(animationModel(negativeZero,{bone=true}),animationModel(positiveZero,{bone=true})))
+end)
+check("helper animation signed zero is numerically equivalent",function()
+    assert(weld.assertMdlRoundTrip(animationModel(negativeZero),animationModel(positiveZero)))
+end)
+check("Hermite and Bezier tangent signed zeros are allowed",function()
+    for _, interpolation in ipairs({2,3}) do
+        assert(weld.assertMdlRoundTrip(animationModel(negativeZero,{interpolation=interpolation}),
+            animationModel(positiveZero,{interpolation=interpolation})))
+    end
+end)
+check("tiny nonzero animation changes are rejected",function()
+    assert(not pcall(weld.assertMdlRoundTrip,animationModel(pack("<f",1e-8)),animationModel(positiveZero)))
+end)
+check("integer frame times cannot be normalized as float zero",function()
+    assert(not pcall(weld.assertMdlRoundTrip,animationModel(positiveZero,{time=0x80000000}),animationModel(positiveZero)))
+end)
+check("integer node flags cannot be normalized as float zero",function()
+    assert(not pcall(weld.assertMdlRoundTrip,animationModel(positiveZero,{flags=0x80000000}),animationModel(positiveZero)))
+end)
+check("unknown chunk data remains byte-exact",function()
+    assert(not pcall(weld.assertMdlRoundTrip,fixture()..chunk("XTRA",negativeZero),fixture()..chunk("XTRA",positiveZero)))
+end)
+
+check("short decimal output restores the same float32 bits",function()
+    for _, bits in ipairs({0,0x80000000,1,0x007fffff,0x00800000,0x3f800001,0x7f7fffff,0xff7fffff}) do
+        local raw=pack("<I4",bits)
+        local short=weld.shortestFloat32(string.unpack("<f",raw))
+        assert(pack("<f",tonumber(short))==raw,short)
+    end
+    assert(weld.shortestFloat32(13.986)=="13.986")
+end)
+check("float32 decimal shortening covers a deterministic bit sample",function()
+    local bits=123456789
+    for _=1,3000 do
+        bits=(bits*1664525+1013904223)&0xffffffff
+        if (bits&0x7f800000)~=0x7f800000 then
+            local raw=pack("<I4",bits)
+            local short=weld.shortestFloat32(string.unpack("<f",raw))
+            assert(pack("<f",tonumber(short))==raw)
+        end
+    end
+end)
+check("MDL shortening preserves strings, comments and integer fields",function()
+    local text='// 13.98600006103515625\nModel "13.98600006103515625" {\n'..
+        'ObjectId 2147483648,\nMinimumExtent {13.98600006103515625,1.401298464324817e-45,-0.0},\n}'
+    local shortened=weld.compactMdlNumbers(text)
+    assert(shortened:find('// 13.98600006103515625',1,true))
+    assert(shortened:find('Model "13.98600006103515625"',1,true))
+    assert(shortened:find('ObjectId 2147483648,',1,true))
+    assert(shortened:find('MinimumExtent {13.986,1e-45,-0.0}',1,true))
+    assert(weld.compactMdlNumbers(shortened)==shortened)
+end)
+
 local base = os.tmpname()
 os.remove(base)
 local input = (os.getenv("TEMP") or os.getenv("TMPDIR") or ".") .. package.config:sub(1,1) ..

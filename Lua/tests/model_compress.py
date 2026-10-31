@@ -12,12 +12,12 @@ SEQUENCES = (
 
 
 def run_case(root, script, name, body, *, present=(), absent=(), success=True,
-             prefix=SEQUENCES):
+             prefix=SEQUENCES, extra_args=()):
     path = root / (name + '.mdl')
     original = (prefix + 'Bone "node" { ObjectId 0,\n' + body + '\n}\n').encode()
     path.write_bytes(original)
     process = subprocess.run(
-        ['lua', str(script), str(path)], capture_output=True, text=True, errors='replace'
+        ['lua', str(script), str(path), *extra_args], capture_output=True, text=True, errors='replace'
     )
     assert (process.returncode == 0) == success, (name, process.stdout, process.stderr)
     output = path.read_bytes()
@@ -33,7 +33,7 @@ def run_case(root, script, name, body, *, present=(), absent=(), success=True,
     assert not any(part in text for part in absent), (name, absent)
     if success:
         second = subprocess.run(
-            ['lua', str(script), str(path)], capture_output=True, text=True, errors='replace'
+            ['lua', str(script), str(path), *extra_args], capture_output=True, text=True, errors='replace'
         )
         assert second.returncode == 0, (name, second.stdout, second.stderr)
         assert path.read_bytes() == output, name
@@ -92,6 +92,26 @@ def main():
         run_case(root, script, 'unclosed',
                  'Rotation 1 { DontInterp, 0: {0,0,0,1},', success=False)
         run_case(root, script, 'no_sequences', gap, prefix='', present=(gap,))
+        near_rotation = (
+            'Rotation 3 { DontInterp, 0: {0,0,0,1}, '
+            '50: {0.000005,0,0,1}, 100: {0,0,0,1}, }'
+        )
+        run_case(root, script, 'default_epsilon', near_rotation,
+                 present=('Rotation 2', '0:', '100:'), absent=('50:',))
+        run_case(root, script, 'zero_epsilon', near_rotation,
+                 present=(near_rotation,), extra_args=('--epsilon', '0'))
+        run_case(root, script, 'custom_epsilon',
+                 'Translation 3 { DontInterp, 0: {1,0,0}, 50: {1.0005,0,0}, 100: {1,0,0}, }',
+                 present=('Translation 2',), absent=('50:',), extra_args=('--epsilon=0.001',))
+        run_case(root, script, 'bounded_drift',
+                 'Translation 6 { DontInterp, 0: {1,0,0}, 20: {1.000006,0,0}, '
+                 '40: {1.000012,0,0}, 60: {1.000018,0,0}, 80: {1.000024,0,0}, 100: {1.00003,0,0}, }',
+                 present=('Translation 4', '0:', '40:', '80:', '100:'), absent=('20:', '60:'))
+        outside_epsilon = 'Rotation 3 { DontInterp, 0: {0,0,0,1}, 50: {0.00002,0,0,1}, 100: {0,0,0,1}, }'
+        run_case(root, script, 'outside_epsilon', outside_epsilon, present=(outside_epsilon,))
+        nonunit_scale = 'Scaling 2 { DontInterp, 0: {1.000005,1,1}, 100: {1.000005,1,1}, }'
+        run_case(root, script, 'nonunit_scale_is_not_default', nonunit_scale, present=(nonunit_scale,))
+        run_case(root, script, 'invalid_epsilon', near_rotation, success=False, extra_args=('--epsilon', '-1'))
         normalized = root / 'model_compress_normalize.lua'
         source_text = script.read_text(encoding='utf-8')
         marker = 'local NORMALIZE_NUMBERS = false'
@@ -125,7 +145,7 @@ def main():
                 mode, process.stdout, process.stderr
             )
             print('PASS:', mode)
-    print('PASS: all 17 model compression checks')
+    print('PASS: all 24 model compression checks')
 
 
 if __name__ == '__main__':
