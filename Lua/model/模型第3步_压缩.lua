@@ -1,326 +1,331 @@
 local flag = {
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\xiaoye3\xiaoye\xiaoye.mdl]], -- 要处理的文件名
+    path = [[D:\War3Asset\Model\ShangqueDIY\xiaoye3\xiaoye\xiaoye.mdl]],
 }
 
--- ====== 配置常量 ======
-local EPS = 1e-5      -- 数值归零阈值
-local OUTPUT_PREC = 7 -- 输出精度（小数位数）
+-- 也可运行：lua 模型第3步_压缩.lua "完整路径.mdl"
+-- 缩短小数文本不会缩小 MDX 的浮点字段，因此默认保留原数值。
+local NORMALIZE_NUMBERS = false
+local EPS = 1e-5
+local OUTPUT_PREC = 9
 
--- ====== 工具函数 ======
--- 数值归一化：阈值归零、-0修正、格式化输出
 local function normalizeNumber(n)
-	if type(n) ~= "number" then
-		n = tonumber(n)
-		if not n then return "0" end
-	end
-	-- 阈值归零
-	if math.abs(n) < EPS then
-		return "0"
-	end
-	-- -0 修正
-	if n == 0 then
-		return "0"
-	end
-	-- 格式化输出，去除尾随0
-	local formatted = string.format("%." .. OUTPUT_PREC .. "f", n)
-	-- 去除尾随0和小数点
-	formatted = formatted:gsub("%.?0+$", "")
-	return formatted
+    if math.abs(n) < EPS then return "0" end
+    return (string.format("%." .. OUTPUT_PREC .. "f", n):gsub("0+$", ""):gsub("%.$", ""))
 end
 
--- 提取花括号内的向量值（用于去重比较）
--- 返回: {x, y, z} 或 {x, y, z, w} 或 nil（如果不是标准格式）
-local function extractFirstVector(line)
-	-- 匹配 { x, y, z } 或 { x, y, z, w } 格式
-	local match = line:match("{%s*([^}]+)%s*}")
-	if not match then return nil end
-
-	local values = {}
-	-- 改进的正则：匹配数字（包括科学计数法）
-	-- 模式：可选负号 + 数字（整数或小数）+ 可选科学计数法部分
-	for num in match:gmatch("([%-]?%d+%.?%d*[eE]?[%+%-]?%d*)") do
-		local n = tonumber(num)
-		if n then
-			-- 归一化后再比较
-			if math.abs(n) < EPS then
-				table.insert(values, 0)
-			else
-				table.insert(values, n)
-			end
-		end
-	end
-
-	if #values >= 3 then
-		return values
-	end
-	return nil
+local function readFile(path)
+    local file, err = io.open(path, "rb")
+    assert(file, "Cannot read " .. path .. ": " .. tostring(err))
+    local data = assert(file:read("*a"))
+    assert(file:close())
+    return data
 end
 
--- 比较两个向量是否完全相同（用于去重）
-local function vectorsEqual(v1, v2)
-	if not v1 or not v2 then return false end
-	if #v1 ~= #v2 then return false end
-	for i = 1, #v1 do
-		if math.abs(v1[i] - v2[i]) >= EPS then
-			return false
-		end
-	end
-	return true
+local function exists(path)
+    local file = io.open(path, "rb")
+    if not file then return false end
+    file:close()
+    return true
 end
 
--- 规范化花括号内的数字：只处理 { ... } 内的数字，支持 e/E 和 +/- 指数
-local function normalizeBraceGroup(line)
-	local scientificCount = 0
-
-	-- 替换花括号内的数字（支持科学计数法 e/E 和 +/- 指数）
-	local normalized = line:gsub("({[^}]*})", function(braceContent)
-		local result = braceContent
-
-		-- 匹配所有数字（包括科学计数法）：可选负号 + 数字 + 可选科学计数法部分
-		-- 使用更精确的模式：数字.数字 e/E +/- 数字
-		result = result:gsub("([%-]?%d+%.?%d*[eE][%+%-]?%d+|[%-]?%d+%.?%d+)", function(numStr)
-			-- 检查是否是科学计数法
-			if numStr:match("[eE]") then
-				scientificCount = scientificCount + 1
-			end
-			local num = tonumber(numStr)
-			if num then
-				return normalizeNumber(num)
-			end
-			return numStr
-		end)
-
-		return result
-	end)
-
-	return normalized, scientificCount
+local function uniquePath(path)
+    local candidate, index = path, 0
+    while exists(candidate) do
+        index = index + 1
+        candidate = path .. "." .. index
+    end
+    return candidate
 end
 
--- 删除缩放[骨骼]/清理移动[误差0.1]/清理科学计数移动帧/优化旋转中E科学计数帧
-local function OptimizeMDL()
-	-- 统计信息
-	local stats = {
-		scalingBlocks = 0,         -- 删除的 Scaling 块数量
-		translationBlocks = 0,     -- 处理的 Translation 块数量
-		translationDeleted = 0,    -- 删除的 Translation 块数量（全为0的）
-		translationKeyframesRemoved = 0, -- Translation 去重删除的关键帧数量
-		rotationBlocks = 0,        -- 处理的 Rotation 块数量
-		rotationKeyframesRemoved = 0, -- Rotation 去重删除的关键帧数量
-		scientificCountRemoved = 0, -- 清理的科学计数法数量（包含 e/E 和 +/- 指数）
-		totalLines = 0             -- 处理的总行数
-	}
-
-	local inScaling = false
-	local inTran = false       -- 是否在Tran的模块内
-	local inRotate = false
-	local sTran = ""           -- Translation 块累积内容
-	local tranDel = true       -- 是否真的删除该移动
-	local tranScientificCount = 0 -- Translation 块中的科学计数法数量
-	local tranLastVector = nil -- Translation 上一条保留的关键帧向量（用于去重）
-	local tranKeyframeCount = 0 -- Translation 实际保留的关键帧数量
-	local rotLastVector = nil  -- Rotation 上一条保留的关键帧向量（用于去重）
-	local rotBuffer = ""       -- Rotation 块累积内容
-	local rotKeyframeCount = 0 -- Rotation 实际保留的关键帧数量
-
-	print("Processing file: " .. flag.path)
-
-	-- 打开输入文件
-	local fileIn = io.open(flag.path, "r")
-	if not fileIn then
-		print("Error: Cannot open input file: " .. flag.path)
-		return
-	end
-
-	-- 就地覆盖写回：先写临时文件，最后替换原文件（Windows 下更安全）
-	local tmpPath = flag.path .. ".tmp"
-	local fileOut = io.open(tmpPath, "w")
-	if not fileOut then
-		fileIn:close()
-		print("Error: Cannot open temp output file: " .. tmpPath)
-		return
-	end
-
-	-- 逐行读取并处理
-	local line = fileIn:read()
-	while line do
-		stats.totalLines = stats.totalLines + 1
-
-		-- 删除缩放.[骨骼模型不需要缩放]
-		if line:match("Scaling") then
-			stats.scalingBlocks = stats.scalingBlocks + 1
-			if stats.scalingBlocks % 10 == 0 then
-				print(string.format("  Removed %d Scaling blocks...", stats.scalingBlocks))
-			end
-			inScaling = true
-			line = nil
-		elseif inScaling then
-			if line:match("^%s*}%s*$") then
-				inScaling = false
-			end
-			line = nil
-		elseif line:match("Translation") then
-			-- 清理移动.[归一化数值/去重关键帧/判断是否全为0删除]
-			stats.translationBlocks = stats.translationBlocks + 1
-			if stats.translationBlocks % 10 == 0 then
-				print(string.format("  Processed %d Translation blocks...", stats.translationBlocks))
-			end
-			inTran = true
-			sTran = line .. '\n'
-			tranScientificCount = 0
-			tranDel = true -- 默认删除，如果发现非零值则保留
-			tranLastVector = nil -- 重置上一条向量
-			tranKeyframeCount = 0 -- 重置关键帧计数
-			line = nil
-		elseif inTran then
-			local originalLine = line
-			local isEndBrace = line:match("^%s*}%s*$")
-
-			-- 如果不是结束花括号，尝试提取向量进行去重判断
-			if not isEndBrace then
-				local vec = extractFirstVector(line)
-				if vec and #vec >= 3 then
-					-- 检查是否有非零值
-					if vec[1] ~= 0 or vec[2] ~= 0 or vec[3] ~= 0 then
-						tranDel = false
-					end
-
-					-- 去重：如果与上一条相同，跳过此关键帧
-					if tranLastVector and vectorsEqual(vec, tranLastVector) then
-						stats.translationKeyframesRemoved = stats.translationKeyframesRemoved + 1
-						line = nil
-					else
-						-- 保留此关键帧，更新上一条向量
-						tranLastVector = vec
-						tranKeyframeCount = tranKeyframeCount + 1 -- 增加关键帧计数
-						-- 规范化这一行
-						local normalized, sciCount = normalizeBraceGroup(line)
-						tranScientificCount = tranScientificCount + sciCount
-						sTran = sTran .. normalized .. '\n'
-						line = nil
-					end
-				else
-					-- 非标准格式行（如 DontInterp 等），直接保留
-					sTran = sTran .. line .. '\n'
-					line = nil
-				end
-			else
-				-- 结束花括号
-				if not (tranDel) then
-					-- 如果保留，更新块头数字并输出累积内容
-					sTran = sTran .. line .. '\n'
-					-- 替换块头数字：Translation 数字 { -> Translation 实际数量 {
-					sTran = sTran:gsub("(Translation%s+)(%d+)(%s*{)", function(prefix, oldNum, suffix)
-						return prefix .. tostring(tranKeyframeCount) .. suffix
-					end)
-					line = sTran
-					stats.scientificCountRemoved = stats.scientificCountRemoved + tranScientificCount
-				else
-					-- 全为0，删除整个块
-					stats.translationDeleted = stats.translationDeleted + 1
-					stats.scientificCountRemoved = stats.scientificCountRemoved + tranScientificCount
-					line = nil
-				end
-				inTran = false
-				tranDel = true
-				tranScientificCount = 0
-				tranLastVector = nil
-				tranKeyframeCount = 0
-			end
-		elseif line:match("Rotation") then
-			-- 清理旋转[归一化数值/去重关键帧]
-			stats.rotationBlocks = stats.rotationBlocks + 1
-			if stats.rotationBlocks % 10 == 0 then
-				print(string.format("  Processed %d Rotation blocks...", stats.rotationBlocks))
-			end
-			inRotate = true
-			rotBuffer = line .. '\n'
-			rotLastVector = nil -- 重置上一条向量
-			rotKeyframeCount = 0 -- 重置关键帧计数
-			-- 块头不直接输出，等待块结束时一次性输出（并更新 Rotation N）
-			line = nil
-		elseif inRotate then
-			local originalLine = line
-			local isEndBrace = line:match("^%s*}%s*$")
-
-			if isEndBrace then
-				-- 结束花括号，更新块头数字并输出
-				rotBuffer = rotBuffer .. line .. '\n'
-				-- 替换块头数字：Rotation 数字 { -> Rotation 实际数量 {
-				rotBuffer = rotBuffer:gsub("(Rotation%s+)(%d+)(%s*{)", function(prefix, oldNum, suffix)
-					return prefix .. tostring(rotKeyframeCount) .. suffix
-				end)
-				line = rotBuffer
-				rotBuffer = ""
-				inRotate = false
-				rotLastVector = nil
-				rotKeyframeCount = 0
-			else
-				-- 尝试提取向量进行去重判断
-				local vec = extractFirstVector(line)
-				if vec and #vec >= 3 then
-					-- 去重：如果与上一条相同，跳过此关键帧
-					if rotLastVector and vectorsEqual(vec, rotLastVector) then
-						stats.rotationKeyframesRemoved = stats.rotationKeyframesRemoved + 1
-						line = nil
-					else
-						-- 保留此关键帧，更新上一条向量
-						rotLastVector = vec
-						rotKeyframeCount = rotKeyframeCount + 1 -- 增加关键帧计数
-						-- 规范化这一行
-						local normalized, sciCount = normalizeBraceGroup(line)
-						stats.scientificCountRemoved = stats.scientificCountRemoved + sciCount
-						rotBuffer = rotBuffer .. normalized .. '\n'
-						line = nil
-					end
-				else
-					-- 非标准格式行（如 DontInterp 等），直接保留
-					rotBuffer = rotBuffer .. line .. '\n'
-					line = nil
-				end
-			end
-		end
-
-		-- 每处理 10000 行显示一次进度
-		if stats.totalLines % 10000 == 0 then
-			print(string.format("  Processed %d lines...", stats.totalLines))
-		end
-
-		-- 如果处理后的行不为 nil，写入输出文件
-		if line then
-			fileOut:write(line)
-			fileOut:write("\n")
-		end
-
-		-- 读取下一行
-		line = fileIn:read()
-	end
-
-	-- 关闭文件
-	fileIn:close()
-	fileOut:close()
-
-	-- 替换回原文件
-	collectgarbage()  -- 尽量确保无残留句柄（Windows 有时需要）
-	os.remove(flag.path) -- 忽略返回值：不存在/占用会导致 rename 失败并保留 tmp 以便排查
-	local ok, err = os.rename(tmpPath, flag.path)
-	if not ok then
-		print("Error: Cannot replace original file. Temp kept: " .. tmpPath .. " | err=" .. tostring(err))
-		return
-	end
-
-	-- 打印统计结果
-	print("\n========== Processing Complete ==========")
-	print(string.format("Total lines: %d", stats.totalLines))
-	print(string.format("Removed Scaling blocks: %d", stats.scalingBlocks))
-	print(string.format("Processed Translation blocks: %d", stats.translationBlocks))
-	print(string.format("  Deleted (all zeros): %d", stats.translationDeleted))
-	print(string.format("  Kept: %d", stats.translationBlocks - stats.translationDeleted))
-	print(string.format("  Keyframes removed (dedupe): %d", stats.translationKeyframesRemoved))
-	print(string.format("Processed Rotation blocks: %d", stats.rotationBlocks))
-	print(string.format("  Keyframes removed (dedupe): %d", stats.rotationKeyframesRemoved))
-	print(string.format("Cleaned scientific notation (e/E, +/-): %d instances", stats.scientificCountRemoved))
-	print("==============================")
+-- 词法分析时跳过注释、正确识别字符串；Lua 模式不支持正则的 | 分支。
+-- 保留每个 token 的原文位置，只改目标轨道，其他内容逐字保留。
+local function tokenize(text)
+    local tokens, pos = {}, 1
+    if text:sub(1, 3) == "\239\187\191" then pos = 4 end
+    while pos <= #text do
+        local c, two = text:sub(pos, pos), text:sub(pos, pos + 1)
+        local first, last, kind = pos, pos, nil
+        if c:match("%s") then
+            pos = text:find("%S", pos) or (#text + 1)
+        elseif two == "//" then
+            pos = text:find("[\r\n]", pos + 2) or (#text + 1)
+        elseif two == "/*" then
+            local ending = assert(text:find("*/", pos + 2, true), "Unclosed comment")
+            pos = ending + 2
+        elseif c == '"' then
+            last = pos + 1
+            while last <= #text and text:sub(last, last) ~= '"' do
+                if text:sub(last, last) == "\\" then last = last + 1 end
+                last = last + 1
+            end
+            assert(last <= #text, "Unclosed string")
+            kind, pos = "string", last + 1
+        elseif c:match("[%a_]") then
+            first, last = text:find("[%a_][%w_]*", pos)
+            kind, pos = "word", last + 1
+        elseif c:match("[%d%+%-%.]") then
+            local pattern = "[%+%-]?%d+%.?%d*[eE]?[%+%-]?%d*"
+            if c == "." or ((c == "-" or c == "+") and text:sub(pos + 1, pos + 1) == ".") then
+                pattern = "[%+%-]?%.%d+[eE]?[%+%-]?%d*"
+            end
+            first, last = text:find(pattern, pos)
+            assert(first == pos, "Invalid number at byte " .. pos)
+            kind, pos = "number", last + 1
+        elseif c:match("[{},:]") then
+            kind, pos = c, pos + 1
+        else
+            error("Unexpected character at byte " .. pos)
+        end
+        if kind then
+            local raw = text:sub(first, last)
+            local token = {kind = kind, raw = raw, first = first, last = last}
+            if kind == "number" then
+                token.value = assert(tonumber(raw), "Invalid number: " .. raw)
+                assert(token.value == token.value and math.abs(token.value) < math.huge, "Non-finite number")
+            end
+            tokens[#tokens + 1] = token
+        end
+    end
+    return tokens
 end
 
-OptimizeMDL()
-print("OptimizeMDL Done")
+local function parseBlocks(tokens)
+    local root = {children = {}, name = "ROOT"}
+    local current, blocks = root, {}
+    for index, token in ipairs(tokens) do
+        if token.kind == "{" then
+            local before, nameToken = tokens[index - 1], nil
+            if before and before.kind == "word" then
+                nameToken = before
+            elseif before and (before.kind == "number" or before.kind == "string") then
+                local previous = tokens[index - 2]
+                if previous and previous.kind == "word" then nameToken = previous end
+            end
+            local block = {open = index, children = {}, parent = current,
+                name = nameToken and nameToken.raw, nameToken = nameToken}
+            current.children[#current.children + 1] = block
+            blocks[#blocks + 1] = block
+            current = block
+        elseif token.kind == "}" then
+            assert(current ~= root, "Unmatched closing brace")
+            current.close = index
+            current = current.parent
+        end
+    end
+    assert(current == root, "Unclosed block")
+    return blocks
+end
+
+local function vector(tokens, block)
+    local values, numbers = {}, {}
+    for i = block.open + 1, block.close - 1 do
+        local token = tokens[i]
+        assert(token.kind == "number" or token.kind == ",", "Malformed vector")
+        if token.kind == "number" then
+            values[#values + 1] = token.value
+            numbers[#numbers + 1] = token
+        end
+    end
+    return values, numbers
+end
+
+local function equal(a, b)
+    if #a ~= #b then return false end
+    for i = 1, #a do
+        if a[i] ~= b[i] then return false end
+    end
+    return true
+end
+
+-- 若语句独占一行，连同缩进和换行删除；同一行的其他语句保持不变。
+local function statementRange(text, first, last)
+    local start = first
+    while start > 1 and text:sub(start - 1, start - 1):match("[ \t\r]") do start = start - 1 end
+    if start ~= 1 and text:sub(start - 1, start - 1) ~= "\n" then start = first end
+    local ending = last + 1
+    while ending <= #text and text:sub(ending, ending):match("[ \t\r]") do ending = ending + 1 end
+    if text:sub(ending, ending) == "\n" then last = ending end
+    return start, last
+end
+
+local function optimizeText(text)
+    local tokens = tokenize(text)
+    local blocks = parseBlocks(tokens)
+    local intervals, edits = {}, {}
+    local stats = {tracks = 0, defaultTracksRemoved = 0, keysRemoved = 0, numericValues = 0}
+    for _, block in ipairs(blocks) do
+        if block.name == "Interval" and block.parent.name == "Anim" and block.parent.parent.name == "Sequences" then
+            local values = vector(tokens, block)
+            assert(#values == 2 and values[1] <= values[2], "Invalid animation interval")
+            intervals[#intervals + 1] = values
+        end
+    end
+    local function addEdit(first, last, replacement)
+        edits[#edits + 1] = {first = first, last = last, text = replacement}
+    end
+    local function removeStatement(first, last)
+        first, last = statementRange(text, first, last)
+        addEdit(first, last, "")
+    end
+    local dimensions = {Translation = 3, Rotation = 4, Scaling = 3}
+    local owners = {Bone = true, Helper = true, Attachment = true, Light = true,
+        ParticleEmitter = true, ParticleEmitter2 = true, RibbonEmitter = true,
+        Camera = true, Target = true, TextureAnim = true}
+    for _, block in ipairs(blocks) do
+        local dimension = dimensions[block.name]
+        local countToken = tokens[block.open - 1]
+        if dimension and owners[block.parent.name] and countToken.kind == "number" then
+            stats.tracks = stats.tracks + 1
+            local rows, interpolation, globalSequence = {}, nil, false
+            local depth = 0
+            for i = block.open + 1, block.close - 1 do
+                local token = tokens[i]
+                if token.kind == "{" then depth = depth + 1 end
+                if depth == 0 then
+                    if token.raw == "DontInterp" or token.raw == "Linear" or token.raw == "Hermite" or token.raw == "Bezier" then
+                        assert(not interpolation, "Repeated interpolation mode")
+                        interpolation = token.raw
+                    elseif token.raw == "GlobalSeqId" then
+                        globalSequence = true
+                    end
+                end
+                if token.kind == "}" then depth = depth - 1 end
+            end
+            for _, child in ipairs(block.children) do
+                local colon, timeToken = tokens[child.open - 1], tokens[child.open - 2]
+                if colon and colon.kind == ":" and timeToken and timeToken.kind == "number" then
+                    local values, numbers = vector(tokens, child)
+                    assert(#values == dimension, "Incorrect vector dimension in " .. block.name)
+                    assert(timeToken.value >= 0 and timeToken.value % 1 == 0, "Invalid keyframe time")
+                    assert(#rows == 0 or rows[#rows].time <= timeToken.value, "Unsorted keyframes")
+                    local last = tokens[child.close].last
+                    if tokens[child.close + 1] and tokens[child.close + 1].kind == "," then
+                        last = tokens[child.close + 1].last
+                    end
+                    rows[#rows + 1] = {values = values, numbers = numbers, time = timeToken.value,
+                        first = timeToken.first, last = last}
+                end
+            end
+            assert(countToken.value == #rows, "Incorrect keyframe count in " .. block.name)
+            assert(interpolation, "Missing interpolation mode in " .. block.name)
+            -- 切线会改变曲线：Hermite/Bezier 不能只比较关键帧数值。
+            if not globalSequence and (interpolation == "DontInterp" or interpolation == "Linear") then
+                local default = block.name == "Scaling" and {1, 1, 1} or
+                    (block.name == "Translation" and {0, 0, 0} or nil)
+                local isDefault = default ~= nil and #rows > 0
+                for _, row in ipairs(rows) do
+                    if not default or not equal(row.values, default) then isDefault = false end
+                end
+                if isDefault then
+                    removeStatement(block.nameToken.first, tokens[block.close].last)
+                    stats.defaultTracksRemoved = stats.defaultTracksRemoved + 1
+                    stats.keysRemoved = stats.keysRemoved + #rows
+                else
+                    local firstBySequence, lastBySequence = {}, {}
+                    for index, row in ipairs(rows) do
+                        local sequence, matches = 0, 0
+                        for j, interval in ipairs(intervals) do
+                            if row.time >= interval[1] and row.time <= interval[2] then
+                                sequence, matches = j, matches + 1
+                            end
+                        end
+                        -- 无动作信息、区间外或重叠区间的帧一律保留。
+                        row.sequence = matches == 1 and sequence or 0
+                        if row.sequence ~= 0 then
+                            firstBySequence[row.sequence] = firstBySequence[row.sequence] or index
+                            lastBySequence[row.sequence] = index
+                        end
+                    end
+                    local kept, previous = 0, nil
+                    for index, row in ipairs(rows) do
+                        local protected = row.sequence == 0 or firstBySequence[row.sequence] == index or lastBySequence[row.sequence] == index
+                        local remove = false
+                        if not protected and previous and previous.sequence == row.sequence then
+                            if interpolation == "DontInterp" then
+                                remove = equal(previous.values, row.values)
+                            else
+                                -- Linear 只移除平坦段内部帧，保留转折前的平台终点。
+                                local following = rows[index + 1]
+                                remove = following and following.sequence == row.sequence and
+                                    equal(previous.values, row.values) and equal(row.values, following.values)
+                            end
+                        end
+                        if remove then
+                            removeStatement(row.first, row.last)
+                            stats.keysRemoved = stats.keysRemoved + 1
+                        else
+                            kept, previous = kept + 1, row
+                            if NORMALIZE_NUMBERS then
+                                for _, number in ipairs(row.numbers) do
+                                    local normalized = normalizeNumber(number.value)
+                                    if normalized ~= number.raw then
+                                        addEdit(number.first, number.last, normalized)
+                                        stats.numericValues = stats.numericValues + 1
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    if kept ~= #rows then addEdit(countToken.first, countToken.last, tostring(kept)) end
+                end
+            end
+        end
+    end
+    table.sort(edits, function(a, b) return a.first < b.first end)
+    local parts, cursor = {}, 1
+    for _, edit in ipairs(edits) do
+        assert(edit.first >= cursor, "Overlapping edits; original file was not changed")
+        parts[#parts + 1] = text:sub(cursor, edit.first - 1)
+        parts[#parts + 1] = edit.text
+        cursor = edit.last + 1
+    end
+    parts[#parts + 1] = text:sub(cursor)
+    return table.concat(parts), stats
+end
+
+local function optimizeFile(path)
+    assert(path:lower():match("%.mdl$"), "Input must be a text .mdl file")
+    local original = readFile(path)
+    local optimized, stats = optimizeText(original)
+    -- 可选数值归一化可能产生新的相同帧；收敛后再写回，重复执行保持稳定。
+    local stable = false
+    for _ = 1, 3 do
+        collectgarbage("collect")
+        local nextPass, nextStats = optimizeText(optimized)
+        if nextPass == optimized then
+            stable = true
+            break
+        end
+        optimized = nextPass
+        stats.defaultTracksRemoved = stats.defaultTracksRemoved + nextStats.defaultTracksRemoved
+        stats.keysRemoved = stats.keysRemoved + nextStats.keysRemoved
+        stats.numericValues = stats.numericValues + nextStats.numericValues
+    end
+    assert(stable, "Optimization did not converge; original file was not changed")
+    print(string.format("Tracks: %d; default tracks removed: %d; keys removed: %d; numbers normalized: %d",
+        stats.tracks, stats.defaultTracksRemoved, stats.keysRemoved, stats.numericValues))
+    if optimized == original then
+        print("No changes: " .. path)
+        return
+    end
+    local temporary = uniquePath(path .. ".tmp")
+    local file = assert(io.open(temporary, "wb"))
+    assert(file:write(optimized))
+    assert(file:close())
+    assert(readFile(temporary) == optimized, "Temporary file verification failed")
+    assert(readFile(path) == original, "Input changed while processing; temporary output kept")
+    local backup = uniquePath(path .. ".bak." .. os.date("%Y%m%d_%H%M%S"))
+    local moved, moveError = os.rename(path, backup)
+    assert(moved, "Cannot back up input; temporary output kept: " .. tostring(moveError))
+    local replaced, replaceError = os.rename(temporary, path)
+    if not replaced then
+        local restored, restoreError = os.rename(backup, path)
+        error("Cannot install output: " .. tostring(replaceError) .. "; rollback=" .. tostring(restored) ..
+            "; " .. tostring(restoreError) .. "; temporary output: " .. temporary)
+    end
+    assert(readFile(path) == optimized, "Installed output verification failed; backup: " .. backup)
+    print("Backup: " .. backup)
+    print("Optimized: " .. path)
+end
+
+optimizeFile((arg and arg[1]) or flag.path)
