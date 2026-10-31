@@ -25,6 +25,7 @@ end
 local historyFile = arg[2]
 local versionStateFile = arg[3]
 local unitOnly = arg[4] == "war3lib"
+local platformEnabled = arg[4] == "platforms"
 local testContextFile = arg[5]
 
 -- Optional per-project presentation; preserve existing Xlimon defaults.
@@ -33,6 +34,7 @@ local windowTitle = os.getenv("WAR3_LAUNCH_WINDOW_TITLE") or "Xlimon Launcher"
 local defaultCompiler = os.getenv("WAR3_LAUNCH_COMPILER") == "vjassc" and "vjassc" or "jasshelper"
 
 local state = {
+	platform = "kk", -- Deliberately not restored from history.
 	action = "start",
 	version = "VERSION_ALPHA",
 	compiler = defaultCompiler,
@@ -64,11 +66,13 @@ local compilerItems = {
 	{ value = "jasshelper", title = "jasshelper" },
 	{ value = "vjassc",     title = "vjassc" },
 }
+local platformItems = {{value="kk",title="KK"}, {value="11",title="11"}}
 
 local engineItems = {{ value = "ydlua", title = "YDLua" }, { value = "innerjapi", title = "InnerJapi" }}
 
 local scenarioItems = {{value="current", title="当前单测文件"}, {value="empty", title="空地图"}}
 local titles = {
+    platform = {},
     scenario = {},
     engine = {},
 	action = {},
@@ -87,6 +91,7 @@ registerTitles("version", versionItems)
 registerTitles("compiler", compilerItems)
 registerTitles("engine", engineItems)
 registerTitles("scenario", scenarioItems)
+registerTitles("platform", platformItems)
 
 local function readKeyValueFile(filePath)
 	local result = {}
@@ -108,6 +113,7 @@ local function readKeyValueFile(filePath)
 end
 
 local versionState = readKeyValueFile(versionStateFile)
+local platformVersionLabels = {}
 local currentTestFile = readKeyValueFile(testContextFile).test_file or "未读取到测试文件"
 local currentTestName = currentTestFile:match("[^/\\]+$") or currentTestFile
 
@@ -200,8 +206,17 @@ local function updateSummary()
 	if not summaryLabel then
 		return
 	end
+    if platformEnabled then
+        local file = versionStateFile
+        if state.platform == '11' then file = file:gsub('version_state%.txt$', 'version_state_11.txt') end
+        local values = readKeyValueFile(file)
+        for _, item in ipairs(platformVersionLabels) do
+            item.label:settext(item.prefix .. (values[item.key] or '无记录'))
+        end
+    end
 	local actionText = titles.action[state.action]
 	local versionText = titles.version[state.version]
+    if platformEnabled then versionText = titles.platform[state.platform] .. " / " .. versionText end
     if unitOnly then versionText = titles.engine[state.engine] .. " / " .. titles.scenario[state.scenario] end
 	if state.action == "legacy" then
 		summaryLabel:settext(string.format("%s / %s / 不走编译", actionText, versionText))
@@ -304,15 +319,19 @@ local function makeVersionCell(item)
 	}, nil)
 	local button = makeRadioButton("version", item, 154)
 	cell:addchildview(button)
-	cell:addchildview(makeLabel("[上次全量]" .. versionStateValue(item.value, "full"), {
+	local fullLabel = makeLabel("[上次全量]" .. versionStateValue(item.value, "full"), {
 		Width = 168,
 		Height = 17,
 		MarginTop = 2,
-	}, fontTiny, "#FFFFFF"))
-	cell:addchildview(makeLabel("[上次修改]" .. versionStateValue(item.value, "modified"), {
+	}, fontTiny, "#FFFFFF")
+    cell:addchildview(fullLabel)
+	local modifiedLabel = makeLabel("[上次修改]" .. versionStateValue(item.value, "modified"), {
 		Width = 168,
 		Height = 17,
-	}, fontTiny, "#FFFFFF"))
+	}, fontTiny, "#FFFFFF")
+    cell:addchildview(modifiedLabel)
+    table.insert(platformVersionLabels, {label=fullLabel, prefix='[上次全量]', key=item.value..'_full'})
+    table.insert(platformVersionLabels, {label=modifiedLabel, prefix='[上次修改]', key=item.value..'_modified'})
 	return cell
 end
 
@@ -355,6 +374,7 @@ local function writeSelection(status)
 		file:write("action=", state.action, "\n")
 		file:write("version=", state.version, "\n")
 		file:write("compiler=", state.compiler, "\n")
+        if platformEnabled then file:write("platform=", state.platform, "\n") end
         if unitOnly then
             file:write("engine=", state.engine, "\n")
             file:write("scenario=", state.scenario, "\n")
@@ -435,6 +455,10 @@ local function createMainView()
 	makeGroup(root, "启动动作", "action", actionItems, 160)
 	if not unitOnly then makeVersionGroup(root) end
 	makeGroup(root, "编译器", "compiler", compilerItems, 160)
+    if platformEnabled then
+        makeGroup(root, "目标平台", "platform", platformItems, 160)
+        root:addchildview(makeLabel("11：独立构建并加 _11 后缀；服务器接口尚未适配", {Height=26, MarginLeft=34}, fontTiny, "#B8C0CC"))
+    end
     if unitOnly then
         makeGroup(root, "Lua引擎", "engine", engineItems, 160)
         makeGroup(root, "测试入口", "scenario", scenarioItems, 220)
@@ -506,7 +530,7 @@ win:setminimizable(false)
 win:sethasshadow(true)
 local mainView = createMainView()
 win:setcontentview(mainView)
-win:setcontentsize({ width = 800, height = unitOnly and 650 or 520 })
+win:setcontentsize({ width = 800, height = (unitOnly or platformEnabled) and 650 or 520 })
 win:center()
 function win.onclose()
 	gui.MessageLoop.quit()

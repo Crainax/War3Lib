@@ -8,6 +8,9 @@ local fu = require("Lua.utils.FileUtils")
 local lfs = require("lfs")
 local utr = require("Lua.compile.UTReplace")
 local incrementalPack = require("Lua.compile.IncrementalPack")
+local buildPlatform = require 'Lua.compile.BuildPlatform'
+local activePlatform = 'kk'
+local sourceProject
 
 local runtimeProfile = require "Lua.compile.RuntimeProfile"
 local taskStartClock = nil
@@ -206,6 +209,7 @@ local function writeSelectionFile(filePath, selection)
 	file:write("action=", selection.action, "\n")
 	file:write("version=", selection.version, "\n")
 	file:write("compiler=", selection.compiler, "\n")
+    if buildPlatform.enabled(sourceProject or path.project) then file:write('platform=', selection.platform or 'kk', '\n') end
     if isWar3Lib() then
         file:write("engine=", selection.engine, "\n")
         file:write("scenario=", selection.scenario, "\n")
@@ -243,6 +247,8 @@ local function normalizeSelection(selection)
 
 	selection.action = normalizeAction(selection)
 	selection.version = selection.version or "VERSION_ALPHA"
+    selection.platform = buildPlatform.validate(projectPath, selection.platform)
+    activePlatform = selection.platform
     path.init(root, projectPath, we, gamePath)
     selection.engine = selection.engine or "ydlua"
     if isWar3Lib() then
@@ -292,6 +298,8 @@ local function parseArgs()
 		local item = arg[i]
 		if item == "--dry-run" then
 			options.dryRun = true
+        elseif item == '--no-launch' then
+            options.noLaunch = true
 		elseif item == "--selection" then
 			options.selection = parseInlineSelection(arg[i + 1])
 			i = i + 1
@@ -323,6 +331,8 @@ local function initBuildVersion(version)
 end
 
 local function applyCompilerOptions(compilerName)
+    if activePlatform == '11' then path.vjasscIncrementalCacheRoot = path.project .. '/Output/.vjassc-incremental-cache' end
+    if options.noLaunch then path.agentValidation = true end
     path.luaEngine = activeEngine
     path.testScenario = activeScenario
 	if compilerName == "vjassc" then
@@ -341,16 +351,18 @@ local function applyCompilerOptions(compilerName)
 end
 
 local function slkSlot(version)
+    if activePlatform == '11' then return buildPlatform.slot(sourceProject, version, path.mapName, activePlatform) end
     if isWar3Lib() then path.testScenario = activeScenario end
 	if isWar3Lib() then return path.project .. "/Output/launcher/engines/" .. runtimeProfile.key(activeEngine) .. "/UnitTestMap_slk.w3x" end
     return path.project .. "/Output/launcher/slk/" .. version .. "/" .. path.mapName .. "_slk.w3x"
 end
 
 local function slotDisplay(version, suffix)
-	return version .. "/" .. path.mapName .. suffix .. ".w3x"
+	return version .. "/" .. path.mapName .. suffix .. buildPlatform.suffix(activePlatform) .. ".w3x"
 end
 
 local function versionStateFile()
+    if activePlatform == '11' then return sourceProject .. '/Output/launcher/version_state_11.txt' end
     if isWar3Lib() then path.testScenario = activeScenario end
 	return path.project .. "/Output/launcher/" .. (isWar3Lib() and ("engines/" .. runtimeProfile.key(activeEngine) .. "/") or "") .. "version_state.txt"
 end
@@ -397,6 +409,13 @@ end
 
 local function copyPackagedSlkToSlots(version)
 	local map = path.project .. "/" .. path.mapName .. "_slk.w3x"
+    if activePlatform == '11' then
+        local slot = slkSlot(version)
+        if not forceCopyBin(map, slot) then return false end
+        buildPlatform.mark(slot, version, path.project)
+        print('[11构建产物] ' .. slot .. ' (服务器接口尚未适配)')
+        return true, slot
+    end
 	local legacyMap = isWar3Lib() and slkSlot(version) or (path.project .. "/output/" .. path.mapName .. "_slk.w3x")
 	if not fu.fileExist(map) then
 		print("[全量启动]打包失败,找不到中间文件: " .. map)
@@ -453,6 +472,11 @@ local function compileSelected()
     return ok
 end
 
+local function startSelectedMap(slot, label)
+    if options.noLaunch then print('[仅构建，不启动游戏] '..slot); return true end
+    return launcher.StartWar3File(slot, label)
+end
+
 local function runCompile(selection)
 	initBuildVersion(selection.version)
 	applyCompilerOptions(selection.compiler)
@@ -482,7 +506,7 @@ local function runStart(selection)
 	if not ok then
 		return false
 	end
-	local started = launcher.StartWar3File(slot, slotDisplay(selection.version, "_slk"))
+	local started = startSelectedMap(slot, slotDisplay(selection.version, "_slk"))
 	if started then
 		updateVersionState(selection.version, true, true)
 	end
@@ -492,6 +516,10 @@ end
 local function runIncrementalStart(selection)
 	initBuildVersion(selection.version)
 	applyCompilerOptions(selection.compiler)
+    if activePlatform == '11' and not buildPlatform.matches(slkSlot(selection.version), selection.version) then
+        print('[11增量] 缺少匹配平台的基包标记，请先全量构建11。')
+        return false
+    end
 	if not syncWar3LibDepends() then
 		return false
 	end
@@ -513,7 +541,8 @@ local function runIncrementalStart(selection)
 	if not updateMapIncrementallyWithStorm(slot) then
 		return false
 	end
-	local started = launcher.StartWar3File(slot, slotDisplay(selection.version, "_slk"))
+    if activePlatform == '11' then buildPlatform.mark(slot, selection.version, path.project) end
+	local started = startSelectedMap(slot, slotDisplay(selection.version, "_slk"))
 	if started then
 		updateVersionState(selection.version, false, true)
 	end
@@ -522,6 +551,11 @@ end
 
 local function runLegacyStart(selection)
 	initPathOnly(selection.version)
+    if activePlatform == '11' and not buildPlatform.matches(slkSlot(selection.version), selection.version) then
+        print('[11旧图] 缺少匹配平台的基包标记，请先全量构建11。')
+        return false
+    end
+	if activePlatform == '11' then return startSelectedMap(slkSlot(selection.version), slotDisplay(selection.version, '_slk')) end
 	if not syncWar3LibDepends() then
 		return false
 	end
@@ -532,7 +566,7 @@ local function runLegacyStart(selection)
 		return false
 	end
 	print(string.format("[矩阵启动]老地图启动: %s / %s", versionLabels[selection.version], slot))
-	return launcher.StartWar3File(slot, slotDisplay(selection.version, "_slk"))
+	return startSelectedMap(slot, slotDisplay(selection.version, "_slk"))
 end
 
 local function runSelection(selection)
@@ -629,7 +663,7 @@ local function runGui()
 		toWinPath(selectionFile),
 		toWinPath(historyFile),
 		toWinPath(stateFile),
-        isWar3Lib() and "war3lib" or "default",
+        isWar3Lib() and "war3lib" or (buildPlatform.enabled(path.project) and "platforms" or "default"),
         toWinPath(contextFile)
 	)
 	print("[矩阵启动]打开GUI: " .. cmd)
@@ -645,6 +679,7 @@ local function runGui()
 end
 
 parseArgs()
+sourceProject = projectPath:gsub('\\', '/'):gsub('/+$', '')
 
 if options.dryRun then
 	resetTaskClock()
@@ -681,6 +716,11 @@ end
 
 path.init(root, projectPath, we, gamePath)
 writeSelectionFile(path.project .. "/Output/launcher/last_selection.txt", selection)
+if activePlatform == '11' and selection.action ~= 'legacy' then
+    projectPath = buildPlatform.stage(sourceProject, selection.version)
+    print('[11隔离工作目录] '..projectPath)
+    -- Shared compiler caches must remain local even when an environment override exists.
+end
 resetTaskClock()
 
 print(string.format(

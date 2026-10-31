@@ -1,5 +1,5 @@
 local flag = {
-    path = [[D:\War3Asset\Model\ShangqueDIY\tina\test\1.mdl]],
+    path = [[D:\War3Asset\Model\ShangqueDIY\zhinai3\test\1.mdl]],
     converterExe = [[D:\War3\tools\war3mdlx.exe]], -- 仅处理 MDL 时需要
     mergeUnshadedNormals = true,
     dryRun = false,
@@ -502,7 +502,7 @@ end
 -- 供离线回归测试调用；正常直接运行时不会进入此分支。
 if ... == "model.vertex_weld" then
     return {optimizeMdx = optimizeMdx, processFile = processFile, assertMdlRoundTrip = assertMdlRoundTrip,
-        shortestFloat32 = shortestFloat32, compactMdlNumbers = compactMdlNumbers}
+        shortestFloat32 = shortestFloat32, compactMdlNumbers = compactMdlNumbers, convert = convert}
 end
 
 local path = flag.path

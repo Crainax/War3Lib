@@ -1,13 +1,13 @@
 local frames = {
-	{ ['name'] = 'Stand', ['frame'] = '0-45' },     -- 帧
-	{ ['name'] = 'Stand 2', ['frame'] = '56-172' }, -- 帧
-	{ ['name'] = 'Walk', ['frame'] = '218-238' },    -- 帧
-	{ ['name'] = 'Walk Fast', ['frame'] = '183-207' }, -- 帧
-	{ ['name'] = 'Death', ['frame'] = '249-313' },   -- 帧
-	{ ['name'] = 'Attack 1', ['frame'] = '619-643' }, -- 帧
-	{ ['name'] = 'Attack 2', ['frame'] = '654-678' }, -- 帧
-	{ ['name'] = 'Spell 1', ['frame'] = '689-713' }, -- 帧
-	{ ['name'] = 'Spell 2', ['frame'] = '724-754' } -- 帧
+	{ ['name'] = 'Stand', ['frame'] = '0-60' },     -- 帧
+	{ ['name'] = 'Stand 2', ['frame'] = '65-265' }, -- 帧
+	{ ['name'] = 'Walk', ['frame'] = '270-300' },   -- 帧
+	{ ['name'] = 'Walk Fast', ['frame'] = '305-329' }, -- 帧
+	{ ['name'] = 'Death', ['frame'] = '334-366' },  -- 帧
+	{ ['name'] = 'Attack 1', ['frame'] = '978-1023' }, -- 帧
+	{ ['name'] = 'Attack 2', ['frame'] = '702-747' }, -- 帧
+	{ ['name'] = 'Spell 1', ['frame'] = '752-797' }, -- 帧
+	{ ['name'] = 'Spell 2', ['frame'] = '827-872' } -- 帧
 }
 
 -- 生成所有序列帧

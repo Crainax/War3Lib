@@ -1,0 +1,17 @@
+local p = require 'Lua.compile.BuildPlatform'
+assert(p.validate('D:/War3/Maps/LH')=='kk')
+assert(p.validate('D:/War3/Maps/LH','11')=='11')
+assert(not pcall(p.validate,'D:/War3/Maps/Xlimon','11'))
+assert(not pcall(p.validate,'D:/War3/Maps/LH','invalid'))
+local kk=p.slot('D:/War3/Maps/LH','VERSION_ALPHA','OriginMap','kk')
+local eleven=p.slot('D:/War3/Maps/LH','VERSION_ALPHA','OriginMap','11')
+assert(kk=='D:/War3/Maps/LH/Output/launcher/slk/VERSION_ALPHA/OriginMap_slk.w3x')
+assert(eleven==kk:gsub('%.w3x$','_11.w3x'))
+local fixture='Output/platform-fixture.w3x'
+os.remove(fixture..'.platform')
+assert(not p.matches(fixture,'VERSION_ALPHA'))
+p.mark(fixture,'VERSION_ALPHA','isolated-workspace')
+assert(p.matches(fixture,'VERSION_ALPHA'))
+assert(not p.matches(fixture,'VERSION_RELEASE'))
+os.remove(fixture..'.platform')
+print('PASS: opt-in/default/invalid platform, stable KK names, 11 suffix and base identity')

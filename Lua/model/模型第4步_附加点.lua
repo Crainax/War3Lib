@@ -1,5 +1,5 @@
 local flag = {
-	['path'] = [[D:\War3Asset\Model\ShangqueDIY\daofeng3\test\1.mdl]], -- 要处理的文件名
+	['path'] = [[D:\War3Asset\Model\ShangqueDIY\lingmeng3\test\1.mdl]], -- 要处理的文件名
 }
 
 -- ====== 配置常量 ======
@@ -448,5 +448,15 @@ local function AddAttachments()
 	print(logContent)
 end
 
+if ... == "model.attachments" then
+	return {processFile = function(path)
+		assert(path:lower():match("%.mdl$"), "Input must be a text .mdl file")
+		flag.path = path
+		return AddAttachments()
+	end}
+end
+
+flag.path = (arg and arg[1]) or flag.path
+assert(flag.path:lower():match("%.mdl$"), "Input must be a text .mdl file")
 AddAttachments()
 print("AddAttachments Done")

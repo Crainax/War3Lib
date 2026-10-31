@@ -1,5 +1,5 @@
 local flag = {
-    path = [[D:\War3Asset\Model\ShangqueDIY\xiaoye3\xiaoye\xiaoye.mdl]],
+    path = [[D:\War3Asset\Model\ShangqueDIY\lingmeng3\test\1.mdl]],
     keyframeEpsilon = 1e-5, -- DontInterp 各分量误差上限；0 表示只合并完全相同的帧
 }
 
@@ -150,7 +150,7 @@ local function statementRange(text, first, last)
     return start, last
 end
 
-local function optimizeText(text)
+local function optimizeText(text, epsilon)
     local tokens = tokenize(text)
     local blocks = parseBlocks(tokens)
     local intervals, edits = {}, {}
@@ -245,7 +245,7 @@ local function optimizeText(text)
                         if not protected and previous and previous.sequence == row.sequence then
                             if interpolation == "DontInterp" then
                                 -- 始终与上一条保留帧比较，避免逐帧误差累积。
-                                remove = equal(previous.values, row.values, flag.keyframeEpsilon)
+                                remove = equal(previous.values, row.values, epsilon)
                             else
                                 -- Linear 只移除平坦段内部帧，保留转折前的平台终点。
                                 local following = rows[index + 1]
@@ -286,15 +286,16 @@ local function optimizeText(text)
     return table.concat(parts), stats
 end
 
-local function optimizeFile(path)
-    assert(path:lower():match("%.mdl$"), "Input must be a text .mdl file")
-    local original = readFile(path)
-    local optimized, stats = optimizeText(original)
+local function processText(original, options)
+    local epsilon = options and options.keyframeEpsilon or flag.keyframeEpsilon
+    assert(type(epsilon) == "number" and epsilon >= 0 and epsilon < math.huge,
+        "keyframeEpsilon must be a finite non-negative number")
+    local optimized, stats = optimizeText(original, epsilon)
     -- 可选数值归一化可能产生新的相同帧；收敛后再写回，重复执行保持稳定。
     local stable = false
     for _ = 1, 3 do
         collectgarbage("collect")
-        local nextPass, nextStats = optimizeText(optimized)
+        local nextPass, nextStats = optimizeText(optimized, epsilon)
         if nextPass == optimized then
             stable = true
             break
@@ -305,6 +306,14 @@ local function optimizeFile(path)
         stats.numericValues = stats.numericValues + nextStats.numericValues
     end
     assert(stable, "Optimization did not converge; original file was not changed")
+    stats.epsilon = epsilon
+    return optimized, stats
+end
+
+local function optimizeFile(path)
+    assert(path:lower():match("%.mdl$"), "Input must be a text .mdl file")
+    local original = readFile(path)
+    local optimized, stats = processText(original)
     print(string.format("Tracks: %d; default tracks removed: %d; keys removed: %d; numbers normalized: %d; epsilon: %g",
         stats.tracks, stats.defaultTracksRemoved, stats.keysRemoved, stats.numericValues, flag.keyframeEpsilon))
     if optimized == original then
@@ -330,6 +339,8 @@ local function optimizeFile(path)
     print("Backup: " .. backup)
     print("Optimized: " .. path)
 end
+
+if ... == "model.compress" then return {processText = processText} end
 
 local path, index = flag.path, 1
 while arg and index <= #arg do
