@@ -5,60 +5,96 @@
 /*
 数字格式化工具
 */
+
+#define UNIT_WAN  10000.0             //万
+#define UNIT_YI   100000000.0         //亿
+
 library NumberFormatter {
 
-    #define UNIT_WAN  10000.0             //万
-    #define UNIT_YI   100000000.0         //亿
 
-    //旧函数名:FormatReal
-    //将实数转换为带单位的字符串(万、亿、兆、京)
-    //最完整的数字格式化，支持到京为止
-    //示例: 12345 -> "1.2万", 123456789 -> "1.23亿"
-    public function FormatNumber (real r) -> string {
-        string result = "";
+    // 固定表仅初始化一次；无按输入增长的缓存。热路径最多4次单位比较、1次除法。
+    private real numberScale[];
+    private string numberUnit[];
+
+    // 万进制，覆盖所有有限 real；保留原有截断/小数位规则。
+    public function FormatNumber(real r) -> string {
         real value = r;
-        integer unitLevel = 0;  // 0=无单位, 1=万, 2=亿, 3=兆, 4=京
-        string units = "";      // 单位字符串
-
-        // 处理负数
-        boolean isNegative = (value < 0);
-        if (isNegative) {
-            value = -value;
+        integer unitLevel;
+        string digits;
+        boolean negative = value < 0.0;
+        // 最常见的小数值先返回，不查表、不拼接。
+        if (value < 10000.0 && value > -10000.0) return I2S(R2I(r));
+        // 同时拒绝 NaN 与无穷；不用除零或依赖巨型字面量。
+        if (!(value <= 0.0 || value > 0.0)) return "NaN";
+        if (negative) value = -value;
+        if (value > 0.0 && !(value * 0.5 < value)) {
+            if (negative) return "-溢出";
+            return "溢出";
         }
-
-        if (value < 10000.0) {
-            result = I2S(R2I(value));
-            // 对于小于10000的数也需要处理负号
-        } else {
-            // 循环除以10000直到小于10000
-            // 注意：单位最多到“京”，超过“京”不再继续缩小数值，避免出现
-            // 10000京 -> 1京、30000京 -> 3京 这类明显缩放错误
-            while (value >= 10000.0 && unitLevel < 4) {
-                value = value / 10000.0;
-                unitLevel = unitLevel + 1;
-            }
-
-            // 根据unitLevel确定单位
-            if (unitLevel == 1) units = "万";
-            else if (unitLevel == 2) units = "亿";
-            else if (unitLevel == 3) units = "兆";
-            else if (unitLevel >= 4) units = "京";
-
-            // 根据数值范围决定小数位数
-            if (value < 10.0) {
-                result = R2SW(value, 0, 2) + units;  // 小于10显示2位小数
-            } else if (value < 100.0) {
-                result = R2SW(value, 0, 1) + units;  // 小于100显示1位小数
+        if (value < numberScale[5]) {
+            if (value < numberScale[3]) {
+                if (value < numberScale[2]) {
+                    unitLevel = 1;
+                } else {
+                    unitLevel = 2;
+                }
             } else {
-                result = I2S(R2I(value)) + units;    // 大于等于100显示整数
+                if (value < numberScale[4]) {
+                    unitLevel = 3;
+                } else {
+                    unitLevel = 4;
+                }
+            }
+        } else {
+            if (value < numberScale[7]) {
+                if (value < numberScale[6]) {
+                    unitLevel = 5;
+                } else {
+                    unitLevel = 6;
+                }
+            } else {
+                if (value < numberScale[8]) {
+                    unitLevel = 7;
+                } else {
+                    if (value < numberScale[9]) {
+                        unitLevel = 8;
+                    } else {
+                        unitLevel = 9;
+                    }
+                }
             }
         }
-        // 添加负号
-        if (isNegative) {
-            result = "-" + result;
+        value = value / numberScale[unitLevel];
+        // 先恢复符号，省掉负号与结果字符串的额外拼接。
+        if (value < 10.0) {
+            if (negative) value = -value;
+            digits = R2SW(value, 0, 2);
+        } else if (value < 100.0) {
+            if (negative) value = -value;
+            digits = R2SW(value, 0, 1);
+        } else {
+            if (negative) value = -value;
+            digits = I2S(R2I(value));
         }
+        return digits + numberUnit[unitLevel];
+    }
 
-        return result;
+    private function onInit() {
+        integer i;
+        numberScale[0] = 1.0;
+        for (i = 1; i <= 9; i += 1) {
+            numberScale[i] = numberScale[i - 1] * 10000.0;
+        }
+        numberUnit[0] = "";
+        numberUnit[1] = "万";
+        numberUnit[2] = "亿";
+        numberUnit[3] = "兆";
+        numberUnit[4] = "京";
+        numberUnit[5] = "垓";
+        numberUnit[6] = "秭";
+        numberUnit[7] = "穰";
+        numberUnit[8] = "沟";
+        numberUnit[9] = "涧";
     }
 
     //旧函数名:FormatReal2
