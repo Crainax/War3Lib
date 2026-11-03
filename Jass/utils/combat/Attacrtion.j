@@ -45,6 +45,7 @@ library Attraction requires UnitUtils {
             this.enableComeback = false;
             this.comebackGroup = null;
             this.stopDistance = ATTRACTION_STOP_DISTANCE;
+            this.t = null;
             return this;
         }
 
@@ -97,7 +98,7 @@ library Attraction requires UnitUtils {
         }
 
         method start() {
-            if (!this.isExist()) {
+            if (!this.isExist() || this.t != null) {
                 return;
             }
             this.t = CreateTimer();
@@ -162,12 +163,12 @@ library Attraction requires UnitUtils {
                             }
                         }
                     }
-                    DestroyGroup(l_group);
                 } else {
                     if (!this.deathContinue && this.isExist()) {
                         this.destroy();
                     }
                 }
+                DestroyGroup(l_group);
                 l_group = null;
                 l_unit = null;
 

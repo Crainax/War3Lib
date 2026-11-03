@@ -102,7 +102,11 @@ library Dialogs requires HashTable, Logger {
 
 				while (i <= this.num) {
 					if (GetClickedButtonBJ() == LoadButtonHandle(HASH_DIALOG, GetHandleId(this.d), i)) {
+						// A callback may destroy this dialog and immediately allocate another
+						// instance with the same struct ID. Never access this after dispatch.
+						DialogDisplay(this.p, this.d, false);
 						this.odc.execute(this.p, LoadInteger(HASH_DIALOG, GetHandleId(GetClickedButtonBJ()), 1), this);
+						return;
 					}
 					i = i + 1;
 				}
