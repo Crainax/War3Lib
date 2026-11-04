@@ -2,7 +2,6 @@
 #define MouseMenuIncluded
 #define MOUSE_MENU_HEIGHT 0.026
 #define MOUSE_MENU_MAX_ITEMS 20
-#define MOUSE_MENU_ITEM_GAP 0.0
 #define MOUSE_MENU_PADDING 0.004
 #define MOUSE_MENU_CORNER 0.008
 #include "Crainax/config/SharedMethod.h"
@@ -30,8 +29,8 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRes
         uiImage separator;
         STRUCT_SHARED_METHODS(menuItem)
         method onDestroy() {
-            if (btn != 0) { btn.destroy(); btn = 0; }
             if (text != 0) { text.destroy(); text = 0; }
+            if (btn != 0) { btn.destroy(); btn = 0; }
             if (separator != 0) { separator.destroy(); separator = 0; }
             if (background != 0) { background.destroy(); background = 0; }
         }
@@ -41,14 +40,9 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRes
             background = uiImage.create(parentFrame).setTexture(UI_STRING_PATH_BLANK).setAlpha(0).exReSize(width, MOUSE_MENU_HEIGHT);
             separator = uiImage.create(parentFrame).setTexture("ui\\menu\\mouse-menu-separator.blp")
                 .exReSize(width, 0.0006).setPoint(ANCHOR_TOP, background.ui, ANCHOR_TOP, 0, 0).show(false);
-            text = uiText.create(parentFrame).setAlign(4)
-                .setAllPoint(background.ui).setText(title);
+            // Preserve the original default ordering; forcing BACKDROP priority can cover TEXT.
+            text = uiText.create(parentFrame).setAlign(4).setAllPoint(background.ui).setText(title);
             btn = uiBtn.createBlank(parentFrame).setAllPoint(background.ui);
-            // All are siblings: assign explicit order instead of relying on creation order.
-            DzFrameSetPriority(background.ui, 0);
-            DzFrameSetPriority(separator.ui, 2);
-            DzFrameSetPriority(text.ui, 3);
-            DzFrameSetPriority(btn.ui, 4);
             return this;
         }
     }
@@ -61,6 +55,7 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRes
         private boolean disposing;
         private uiImage highlight;
         private integer hoveredIndex;
+        private integer hoverRevision; // Retained across allocation reuse; invalidates callback continuations.
         private uiImage skin[9]; // row-major nine-slice; corners never stretch.
         private real menuWidth;
         private menuEventFunc onClickFunc;
@@ -69,7 +64,9 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRes
         private menuEventFunc onDestroyFunc;
         private integer escId;
         private static thistype currentMenu = 0;
-        STRUCT_SHARED_METHODS(mouseMenu)
+        // Closing/clearing instances are unavailable to callbacks. Callers must check
+        // isExist() before destroying a retained reference; raw destroy is not idempotent.
+        method isExist() -> boolean { return this != 0 && si__mouseMenu_V[this] == -1 && !disposing; }
 
         method onClick(menuEventFunc func) -> thistype { if (this.isExist()) { onClickFunc = func; } return this; }
         method onEnter(menuEventFunc func) -> thistype { if (this.isExist()) { onEnterFunc = func; } return this; }
@@ -108,7 +105,7 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRes
             }
         }
         method isInMenu(integer checkUI) -> boolean {
-            integer i = 1;
+            integer i;
             if (!this.isExist() || disposing) { return false; }
             // Include the panel and decorative children so a border click is not an outside click.
             if (checkUI == menuFrame.ui || checkUI == highlight.ui) { return true; }
@@ -131,6 +128,7 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRes
                 }
             }
             hoveredIndex = 0;
+            hoverRevision += 1;
             if (currentMenu == this) { currentMenu = 0; }
             if (escId != 0) { escStack.remove(escId); escId = 0; }
             if (highlight != 0) { highlight.show(false).clearPoint(); }
@@ -148,7 +146,7 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRes
             onEnterFunc = 0;
             onLeaveFunc = 0;
             this.detach();
-            // Destruction may synthesize leave events. The disposing guard suppresses reentry.
+            // Destruction may synthesize leave events; callbacks see this instance as unavailable.
             while (i <= itemCount) {
                 if (items[i] != 0) { items[i].destroy(); items[i] = 0; }
                 i += 1;
@@ -234,34 +232,39 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRes
             }
             return this.show(true);
         }
-        private method highlightItem(integer index) {
-            if (index > 0 && index <= itemCount) {
-                hoveredIndex = index;
-                highlight.clearPoint().setAllPoint(items[index].background.ui).show(true);
-            } else {
-                hoveredIndex = 0;
-                highlight.show(false).clearPoint();
-            }
-        }
         static method enter(integer frame) {
             thistype this = uiHashTable(frame).eventdata.get2();
             integer index = uiHashTable(frame).eventdata.get();
-            if (!this.isShown() || index < 1 || index > itemCount) { return; }
-            this.highlightItem(index);
+            integer previous;
+            integer revision;
+            if (!this.isShown() || index < 1 || index > itemCount || hoveredIndex == index) { return; }
+            previous = hoveredIndex;
+            hoveredIndex = 0;
+            hoverRevision += 1;
+            revision = hoverRevision;
+            highlight.show(false).clearPoint();
+            // Balance the old row before entering the new one, even if native leave is late.
+            if (previous > 0 && onLeaveFunc != 0) { onLeaveFunc.evaluate(previous); }
+            // The callback can hide, clear, destroy/reallocate, or enter another row.
+            if (!this.isShown() || hoverRevision != revision) { return; }
+            hoveredIndex = index;
+            highlight.clearPoint().setAllPoint(items[index].background.ui).show(true);
             if (onEnterFunc != 0) { onEnterFunc.evaluate(index); }
         }
         static method leave(integer frame) {
             thistype this = uiHashTable(frame).eventdata.get2();
             integer index = uiHashTable(frame).eventdata.get();
             // An old row may deliver leave after another row has already received enter.
-            if (!this.isShown() || hoveredIndex != index) { return; }
-            this.highlightItem(0);
+            if (!this.isShown() || index < 1 || hoveredIndex != index) { return; }
+            hoverRevision += 1;
+            hoveredIndex = 0;
+            highlight.show(false).clearPoint();
             if (onLeaveFunc != 0) { onLeaveFunc.evaluate(index); }
         }
         static method click(integer frame) {
             thistype this = uiHashTable(frame).eventdata.get2();
             integer index = uiHashTable(frame).eventdata.get();
-            menuEventFunc callback = 0;
+            menuEventFunc callback;
             if (!this.isShown() || index < 1 || index > itemCount) { return; }
             callback = onClickFunc;
             this.show(false); // Close this menu BEFORE a callback can open its successor.
@@ -302,17 +305,16 @@ library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRes
             disposing = false;
             itemCount = 0;
             hoveredIndex = 0;
+            hoverRevision += 1;
             escId = 0;
             onClickFunc = 0; onEnterFunc = 0; onLeaveFunc = 0; onDestroyFunc = 0;
             while (i <= MOUSE_MENU_MAX_ITEMS) { items[i] = 0; i += 1; }
-            menuFrame = uiImage.create(parent).setTexture(UI_STRING_PATH_BLANK).exReSize(width, MOUSE_MENU_HEIGHT).show(false);
+            menuFrame = uiImage.create(parent).setTexture(UI_STRING_PATH_BLANK).show(false);
             for (0 <= i <= 8) {
                 skin[i] = uiImage.create(menuFrame.ui).setTexture("ui\\menu\\mouse-menu-" + I2S(i) + ".blp");
-                DzFrameSetPriority(skin[i].ui, 0);
             }
             this.layoutSkin();
             highlight = uiImage.create(menuFrame.ui).setTexture("ui\\menu\\mouse-menu-hover.blp").show(false);
-            DzFrameSetPriority(highlight.ui, 1);
             return this;
         }
         #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)

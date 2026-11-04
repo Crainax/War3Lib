@@ -16,6 +16,9 @@ library UTMouseMenu requires MouseMenu {
     private mouseMenu reentrantThird = 0;
     private integer thirdDestroyed = 0;
     private integer leaveNotifications = 0;
+    private mouseMenu callbackMenu = 0;
+    private integer callbackMode = 0;
+    private string hoverEvents = "";
 
     // Destruction callbacks may show the pending target or a newer third menu.
     // Verify ownership and Esc cleanup without relying on physical mouse input.
@@ -133,6 +136,7 @@ library UTMouseMenu requires MouseMenu {
                 assert.Boolean(m.isShown(), label + " shown");
                 assert.Real(DzFrameGetHeight(m.menuFrame.ui), count * 0.026 + 0.008, label + " native panel height");
                 for (1 <= i <= count) {
+                    assert.Integer(DzFrameGetParent(m.testItem(i).text.ui), m.menuFrame.ui, label + " text retains original panel parent");
                     assert.Real(DzFrameGetHeight(m.testItem(i).background.ui), 0.026, label + " row " + I2S(i) + " height");
                     assert.Boolean(DzFrameIsVisible(m.testItem(i).separator.ui) == ((direction == 1 && i < count) || (direction == 0 && i > 1)), label + " row " + I2S(i) + " separator");
                 }
@@ -200,6 +204,90 @@ library UTMouseMenu requires MouseMenu {
         assert.Integer(leaveNotifications, 3, "[MouseMenu] auto destroy balances leave exactly once");
         assert.Integer(uiId.getActiveCount(), baseline, "[MouseMenu] hover cleanup no frame leak");
     }
+    // Verify callback ordering, closing visibility, and stale continuations after reuse.
+    private function CallbackAssertions() {
+        mouseMenu first;
+        mouseMenu second;
+        integer frame1;
+        integer frame2;
+        integer mode;
+        integer frames;
+        integer esc;
+        CloseSamples();
+        frames = uiId.getActiveCount();
+        esc = escStack.getSize();
+        callbackMenu = mouseMenu.create(DzGetGameUI(), false, 0.14).AddMenuItem("Destroy");
+        leaveNotifications = 0;
+        thirdDestroyed = 0;
+        callbackMenu.onLeave(function(integer index) {
+            leaveNotifications += 1;
+            assert.Boolean(!callbackMenu.isExist(), "[MouseMenu] destroying menu unavailable in leave");
+            if (callbackMenu.isExist()) { callbackMenu.destroy(); }
+        });
+        callbackMenu.listenDestroy(function(integer unused) {
+            thirdDestroyed += 1;
+            assert.Boolean(!callbackMenu.isExist(), "[MouseMenu] destroying menu unavailable in destroy callback");
+            if (callbackMenu.isExist()) { callbackMenu.destroy(); }
+        });
+        callbackMenu.showAt(0.4, 0.3);
+        mouseMenu.enter(callbackMenu.testItem(1).btn.ui);
+        callbackMenu.destroy();
+        assert.Integer(leaveNotifications, 1, "[MouseMenu] reentrant cleanup leave once");
+        assert.Integer(thirdDestroyed, 1, "[MouseMenu] reentrant cleanup destroy once");
+        first = mouseMenu.create(DzGetGameUI(), false, 0.14);
+        second = mouseMenu.create(DzGetGameUI(), false, 0.14);
+        assert.Boolean(first != second, "[MouseMenu] subsequent allocations have distinct IDs");
+        first.destroy();
+        if (second != first) { second.destroy(); }
+        callbackMenu = 0;
+
+        for (0 <= mode <= 4) {
+            callbackMode = mode;
+            hoverEvents = "";
+            callbackMenu = mouseMenu.create(DzGetGameUI(), false, 0.14)
+                .AddMenuItem("First").AddMenuItem("Second").AddMenuItem("Third");
+            callbackMenu.onEnter(function(integer index) { hoverEvents += "E" + I2S(index); });
+            callbackMenu.onLeave(function(integer index) {
+                hoverEvents += "L" + I2S(index);
+                if (index == 1) {
+                    if (callbackMode == 1) { callbackMenu.show(false).show(true); }
+                    else if (callbackMode == 2) {
+                        callbackMenu.clear().AddMenuItem("Rebuilt").showAt(0.4, 0.3);
+                    } else if (callbackMode == 3) { mouseMenu.enter(callbackMenu.testItem(3).btn.ui); }
+                    else if (callbackMode == 4) {
+                        callbackMenu.destroy();
+                        callbackMenu = mouseMenu.create(DzGetGameUI(), false, 0.14)
+                            .AddMenuItem("Replacement").showAt(0.4, 0.3);
+                    }
+                }
+            });
+            callbackMenu.showAt(0.4, 0.3);
+            frame1 = callbackMenu.testItem(1).btn.ui;
+            frame2 = callbackMenu.testItem(2).btn.ui;
+            mouseMenu.enter(frame1);
+            mouseMenu.enter(frame1); // Duplicate enter must not acquire twice.
+            mouseMenu.enter(frame2);
+            if (mode == 0) {
+                mouseMenu.leave(frame1);
+                assert.String(hoverEvents, "E1L1E2", "[MouseMenu] late leave balanced before new enter");
+                assert.Integer(callbackMenu.testHoveredIndex(), 2, "[MouseMenu] late leave preserves row two");
+                mouseMenu.leave(frame2);
+                mouseMenu.leave(frame2);
+                assert.String(hoverEvents, "E1L1E2L2", "[MouseMenu] enters and leaves paired once");
+            } else if (mode == 3) {
+                assert.String(hoverEvents, "E1L1E3", "[MouseMenu] nested hover wins");
+                assert.Integer(callbackMenu.testHoveredIndex(), 3, "[MouseMenu] outer enter cannot replace nested hover");
+            } else {
+                assert.String(hoverEvents, "E1L1", "[MouseMenu] invalidated enter does not notify");
+                assert.Integer(callbackMenu.testHoveredIndex(), 0, "[MouseMenu] reopened/rebuilt/reused menu has no stale hover");
+            }
+            callbackMenu.destroy();
+            callbackMenu = 0;
+            assert.Integer(uiId.getActiveCount(), frames, "[MouseMenu] callback regression no frame leak");
+            assert.Integer(escStack.getSize(), esc, "[MouseMenu] callback regression no Esc leak");
+        }
+        Log("Callback lifecycle assertions completed.");
+    }
     private function ShowSample() {
         integer i = 0;
         CloseSamples();
@@ -210,23 +298,6 @@ library UTMouseMenu requires MouseMenu {
         // Deliberately omit onEnter/onLeave: built-in highlight must still work.
         sample.showAt(hardware.getMouseX(), hardware.getMouseY());
         Log("普通菜单：" + I2S(amount) + " 项，向上=" + B2S(upward) + "；悬停高亮、外部点击和 Esc 应正常。");
-    }
-    private function ShowTransition() {
-        CloseSamples();
-        initialEsc = escStack.getSize();
-        sample = mouseMenu.create(DzGetGameUI(), true, 0.15).setAutoDestroy(true);
-        sample.listenDestroy(function(integer index) { sample = 0; });
-        sample.AddMenuItem("打开分解确认");
-        sample.onClick(function(integer index) {
-            successor = mouseMenu.create(DzGetGameUI(), true, 0.15).setAutoDestroy(true);
-            successor.listenDestroy(function(integer unused) { successor = 0; });
-            successor.AddMenuItem("取消").AddMenuItem("确认分解");
-            successor.onClick(function(integer choice) { Log("确认菜单结果 " + I2S(choice)); });
-            successor.showAt(0.45, 0.32);
-            verifySuccessor = true;
-        });
-        sample.showAt(0.4, 0.3);
-        Log("点击‘打开分解确认’，新菜单应持续显示；随后输入 s6 检查。");
     }
     private function onInit() {
         timer checkTimer = CreateTimer();
@@ -241,11 +312,27 @@ library UTMouseMenu requires MouseMenu {
         UnitTestRegisterChatEvent(function() {
             string str = GetEventPlayerChatString();
             if (GetTriggerPlayer() != GetLocalPlayer()) { return; }
-            if (str == "s1") { Assertions(); CountAssertions(); HoverCleanupAssertions(); }
+            if (str == "s1") { Assertions(); CountAssertions(); HoverCleanupAssertions(); CallbackAssertions(); }
             else if (str == "s2") { upward = true; amount = 3; ShowSample(); }
             else if (str == "s3") { upward = false; amount = 3; ShowSample(); }
             else if (str == "s4") { amount = 1; ShowSample(); }
-            else if (str == "s5") { ShowTransition(); }
+            else if (str == "s5") {
+                CloseSamples();
+                initialEsc = escStack.getSize();
+                sample = mouseMenu.create(DzGetGameUI(), true, 0.15).setAutoDestroy(true);
+                sample.listenDestroy(function(integer index) { sample = 0; });
+                sample.AddMenuItem("打开分解确认");
+                sample.onClick(function(integer index) {
+                    successor = mouseMenu.create(DzGetGameUI(), true, 0.15).setAutoDestroy(true);
+                    successor.listenDestroy(function(integer unused) { successor = 0; });
+                    successor.AddMenuItem("取消").AddMenuItem("确认分解");
+                    successor.onClick(function(integer choice) { Log("确认菜单结果 " + I2S(choice)); });
+                    successor.showAt(0.45, 0.32);
+                    verifySuccessor = true;
+                });
+                sample.showAt(0.4, 0.3);
+                Log("点击‘打开分解确认’，新菜单应持续显示；随后输入 s6 检查。");
+            }
             else if (str == "s6") { assert.Boolean(successor.isShown(), "[MouseMenu] successor still shown"); }
             else if (str == "s7") { amount = 20; ShowSample(); }
             else if (str == "s8") { CloseSamples(); Log("直接销毁完成：检查无残留高亮/点击区/Esc"); }
@@ -253,6 +340,7 @@ library UTMouseMenu requires MouseMenu {
             else if (str == "s10") { amount = 2; ShowSample(); }
             else if (str == "s11") { amount = 5; ShowSample(); }
             else if (str == "s12") { amount = 10; ShowSample(); }
+            else if (str == "s13") { CallbackAssertions(); }
             else if (SubString(str, 0, 2) == "n ") {
                 amount = S2I(SubString(str, 2, StringLength(str)));
                 if (amount < 0) { amount = 0; }
@@ -261,9 +349,10 @@ library UTMouseMenu requires MouseMenu {
             }
             else if (str == "dir") { upward = !upward; ShowSample(); }
         });
-        hardware.regRightUpEvent(function() { ShowSample(); });
+        hardware.regRightUpEvent(function ShowSample);
         UnitTestAutoTimer(0.5, 0.0, function() {
             Log("s1 状态回归；s2 向上3项；s3 向下3项；s4 单项；s5 回调开新菜单；s6 检查新菜单；s7 满20项；s8 直接销毁；s9 超限25项。");
+            Log("s13 回调生命周期回归：销毁重入、迟到 leave、隐藏/重建/复用、嵌套悬停。");
             Log("s10 两项；s11 五项；s12 十项；n 数量（0..25）；dir 切换上下方向。检查外框接缝、首尾、分隔线与悬停文字遮挡。");
             Log("右键在鼠标处打开；请测试屏幕四角、重复开关、高亮、外部点击、Esc。测试结果以游戏内断言与观察为准。");
         }, null);
