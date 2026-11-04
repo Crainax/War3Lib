@@ -2,33 +2,53 @@
 #define MouseMenuIncluded
 #define MOUSE_MENU_HEIGHT 0.026
 #define MOUSE_MENU_MAX_ITEMS 20
-#define MOUSE_MENU_ITEM_GAP 0.002
+#define MOUSE_MENU_ITEM_GAP 0.0
+#define MOUSE_MENU_PADDING 0.004
+#define MOUSE_MENU_CORNER 0.008
 #include "Crainax/config/SharedMethod.h"
 #include "Crainax/ui/constants/UIConstants.j"
 //! zinc
-//# dependency:resource/ui/image/buttongrow.blp
+//# dependency:resource/ui/menu/mouse-menu-0.blp
+//# dependency:resource/ui/menu/mouse-menu-1.blp
+//# dependency:resource/ui/menu/mouse-menu-2.blp
+//# dependency:resource/ui/menu/mouse-menu-3.blp
+//# dependency:resource/ui/menu/mouse-menu-4.blp
+//# dependency:resource/ui/menu/mouse-menu-5.blp
+//# dependency:resource/ui/menu/mouse-menu-6.blp
+//# dependency:resource/ui/menu/mouse-menu-7.blp
+//# dependency:resource/ui/menu/mouse-menu-8.blp
+//# dependency:resource/ui/menu/mouse-menu-hover.blp
+//# dependency:resource/ui/menu/mouse-menu-separator.blp
 // Ordinary-frame menu only. Simple-frame legacy API lives in SimpleMouseMenu.j.
 // Local presentation callbacks: no gameplay mutation or classic handle creation here.
-library MouseMenu requires UIButton, UIImage, UIBorder, UIText, UIExtendEvent, UIExtendResize, EscStack {
+library MouseMenu requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendResize, EscStack {
     public type menuEventFunc extends function(integer);
     public struct menuItem {
         uiBtn btn;
         uiText text;
-        uiBorder background;
-        integer index;
+        uiImage background;
+        uiImage separator;
         STRUCT_SHARED_METHODS(menuItem)
         method onDestroy() {
             if (btn != 0) { btn.destroy(); btn = 0; }
             if (text != 0) { text.destroy(); text = 0; }
+            if (separator != 0) { separator.destroy(); separator = 0; }
             if (background != 0) { background.destroy(); background = 0; }
         }
-        static method create(real width, string title, integer index, integer parentFrame) -> thistype {
+        static method create(real width, string title, integer parentFrame) -> thistype {
             thistype this = thistype.allocate();
-            this.index = index;
-            background = uiBorder.createType2(parentFrame).exReSize(width, MOUSE_MENU_HEIGHT);
+            // Layout anchor only; keep it transparent so it cannot cover the shared hover image.
+            background = uiImage.create(parentFrame).setTexture(UI_STRING_PATH_BLANK).setAlpha(0).exReSize(width, MOUSE_MENU_HEIGHT);
+            separator = uiImage.create(parentFrame).setTexture("ui\\menu\\mouse-menu-separator.blp")
+                .exReSize(width, 0.0006).setPoint(ANCHOR_TOP, background.ui, ANCHOR_TOP, 0, 0).show(false);
             text = uiText.create(parentFrame).setAlign(4)
                 .setAllPoint(background.ui).setText(title);
-            btn = uiBtn.create(parentFrame).setAllPoint(background.ui);
+            btn = uiBtn.createBlank(parentFrame).setAllPoint(background.ui);
+            // All are siblings: assign explicit order instead of relying on creation order.
+            DzFrameSetPriority(background.ui, 0);
+            DzFrameSetPriority(separator.ui, 2);
+            DzFrameSetPriority(text.ui, 3);
+            DzFrameSetPriority(btn.ui, 4);
             return this;
         }
     }
@@ -40,6 +60,8 @@ library MouseMenu requires UIButton, UIImage, UIBorder, UIText, UIExtendEvent, U
         private boolean isUpward;
         private boolean disposing;
         private uiImage highlight;
+        private integer hoveredIndex;
+        private uiImage skin[9]; // row-major nine-slice; corners never stretch.
         private real menuWidth;
         private menuEventFunc onClickFunc;
         private menuEventFunc onEnterFunc;
@@ -57,30 +79,68 @@ library MouseMenu requires UIButton, UIImage, UIBorder, UIText, UIExtendEvent, U
         method getItemCount() -> integer { if (!this.isExist()) { return 0; } return itemCount; }
         method isShown() -> boolean { return this.isExist() && currentMenu == this && !disposing; }
         method getHeight() -> real {
-            if (!this.isExist() || itemCount == 0) { return MOUSE_MENU_HEIGHT; }
-            return itemCount * MOUSE_MENU_HEIGHT + (itemCount - 1) * MOUSE_MENU_ITEM_GAP;
+            if (!this.isExist() || itemCount == 0) { return MOUSE_MENU_HEIGHT + 2 * MOUSE_MENU_PADDING; }
+            return itemCount * MOUSE_MENU_HEIGHT + 2 * MOUSE_MENU_PADDING;
+        }
+        // Size and position all nine pieces in UI units; horizontal values follow resize rate.
+        private method layoutSkin() {
+            integer row;
+            integer col;
+            real w;
+            real h;
+            real x;
+            real y;
+            real height = this.getHeight();
+            menuFrame.exReSize(menuWidth, height);
+            for (0 <= row <= 2) {
+                h = MOUSE_MENU_CORNER;
+                y = 0;
+                if (row == 1) { h = height - 2 * MOUSE_MENU_CORNER; y = -MOUSE_MENU_CORNER; }
+                if (row == 2) { y = -(height - MOUSE_MENU_CORNER); }
+                for (0 <= col <= 2) {
+                    w = MOUSE_MENU_CORNER;
+                    x = 0;
+                    if (col == 1) { w = menuWidth - 2 * MOUSE_MENU_CORNER; x = MOUSE_MENU_CORNER; }
+                    if (col == 2) { x = menuWidth - MOUSE_MENU_CORNER; }
+                    skin[row * 3 + col].exReSize(w, h)
+                        .exRePoint(ANCHOR_TOPLEFT, menuFrame.ui, ANCHOR_TOPLEFT, x, y);
+                }
+            }
         }
         method isInMenu(integer checkUI) -> boolean {
             integer i = 1;
             if (!this.isExist() || disposing) { return false; }
             // Include the panel and decorative children so a border click is not an outside click.
             if (checkUI == menuFrame.ui || checkUI == highlight.ui) { return true; }
+            for (0 <= i <= 8) { if (checkUI == skin[i].ui) { return true; } }
+            i = 1;
             while (i <= itemCount) {
-                if (items[i].isExist() && (checkUI == items[i].btn.ui || checkUI == items[i].text.ui || checkUI == items[i].background.ui)) { return true; }
+                if (items[i].isExist() && (checkUI == items[i].btn.ui || checkUI == items[i].text.ui || checkUI == items[i].background.ui || checkUI == items[i].separator.ui)) { return true; }
                 i += 1;
             }
             return false;
         }
         static method isMouseIn() -> boolean { return currentMenu.isExist() && currentMenu.isInMenu(DzGetMouseFocus()); }
         private method detach() {
+            integer i;
+            // Hiding need not generate a native leave event; clear the input owner's stale frame.
+            for (1 <= i <= itemCount) {
+                if (uiEventState.uiId == items[i].btn.ui) {
+                    uiEventState.uiId = 0;
+                    uiEventState.rcStart = false;
+                }
+            }
+            hoveredIndex = 0;
             if (currentMenu == this) { currentMenu = 0; }
             if (escId != 0) { escStack.remove(escId); escId = 0; }
-            if (highlight != 0) { highlight.show(false); }
+            if (highlight != 0) { highlight.show(false).clearPoint(); }
             if (menuFrame != 0) { menuFrame.show(false); }
         }
         method onDestroy() {
             integer i = 1;
             menuEventFunc callback = onDestroyFunc;
+            menuEventFunc leaveCallback = onLeaveFunc;
+            integer leaveIndex = hoveredIndex;
             if (disposing) { return; }
             disposing = true;
             onDestroyFunc = 0;
@@ -95,12 +155,17 @@ library MouseMenu requires UIButton, UIImage, UIBorder, UIText, UIExtendEvent, U
             }
             itemCount = 0;
             if (highlight != 0) { highlight.destroy(); highlight = 0; }
+            for (0 <= i <= 8) { if (skin[i] != 0) { skin[i].destroy(); skin[i] = 0; } }
             if (menuFrame != 0) { menuFrame.destroy(); menuFrame = 0; }
             autoDestroy = false;
+            // Native destruction leave is suppressed; balance the presentation callback once.
+            if (leaveIndex > 0 && leaveCallback != 0) { leaveCallback.evaluate(leaveIndex); }
             if (callback != 0) { callback.evaluate(0); }
         }
         method clear() -> thistype {
             integer i = 1;
+            integer leaveIndex = hoveredIndex;
+            menuEventFunc leaveCallback = onLeaveFunc;
             if (!this.isExist() || disposing) { return this; }
             this.detach();
             // Guard callbacks while removing children; clear retains the menu itself.
@@ -108,25 +173,36 @@ library MouseMenu requires UIButton, UIImage, UIBorder, UIText, UIExtendEvent, U
             while (i <= itemCount) { items[i].destroy(); items[i] = 0; i += 1; }
             itemCount = 0;
             disposing = false;
-            menuFrame.exReSize(menuWidth, MOUSE_MENU_HEIGHT);
+            this.layoutSkin();
+            // Invoke after cleanup so callbacks can safely build/show a replacement.
+            if (leaveIndex > 0 && leaveCallback != 0) { leaveCallback.evaluate(leaveIndex); }
             return this;
         }
         method show(boolean flag) -> thistype {
             thistype old;
+            integer leaveIndex;
+            menuEventFunc leaveCallback;
             if (!this.isExist() || disposing) { return this; }
             if (!flag) {
-                this.detach();
                 if (autoDestroy) { this.destroy(); }
+                else {
+                    leaveIndex = hoveredIndex;
+                    leaveCallback = onLeaveFunc;
+                    this.detach();
+                    // No access to this after the external callback: it may destroy/reuse it.
+                    if (leaveIndex > 0 && leaveCallback != 0) { leaveCallback.evaluate(leaveIndex); }
+                }
                 return this;
             }
             if (itemCount == 0) { return this; }
             if (currentMenu != this) {
                 old = currentMenu;
                 if (old.isExist()) { old.show(false); }
-                // A destroy callback may have opened another menu. Detach that menu without
-                // firing another destroy callback, then let the explicit show win.
-                if (currentMenu.isExist() && currentMenu != this) { currentMenu.detach(); }
-                if (!this.isExist() || disposing) { return this; }
+                // A callback's newer show owns the menu and its Esc entry, even when it
+                // showed this same target. Do not hide an auto-destroy successor or push twice.
+                // If a different successor won, this target remains owned by its caller.
+                if (currentMenu.isExist()) { return this; }
+                if (!this.isExist() || disposing || itemCount == 0) { return this; }
                 currentMenu = this;
                 escId = escStack.push(function(player p) {
                     thistype target = currentMenu;
@@ -159,20 +235,26 @@ library MouseMenu requires UIButton, UIImage, UIBorder, UIText, UIExtendEvent, U
             return this.show(true);
         }
         private method highlightItem(integer index) {
-            if (index > 0 && index <= itemCount) { highlight.clearPoint().setAllPoint(items[index].background.ui).show(true); }
-            else { highlight.show(false); }
+            if (index > 0 && index <= itemCount) {
+                hoveredIndex = index;
+                highlight.clearPoint().setAllPoint(items[index].background.ui).show(true);
+            } else {
+                hoveredIndex = 0;
+                highlight.show(false).clearPoint();
+            }
         }
         static method enter(integer frame) {
             thistype this = uiHashTable(frame).eventdata.get2();
             integer index = uiHashTable(frame).eventdata.get();
-            if (!this.isShown()) { return; }
+            if (!this.isShown() || index < 1 || index > itemCount) { return; }
             this.highlightItem(index);
             if (onEnterFunc != 0) { onEnterFunc.evaluate(index); }
         }
         static method leave(integer frame) {
             thistype this = uiHashTable(frame).eventdata.get2();
             integer index = uiHashTable(frame).eventdata.get();
-            if (!this.isShown()) { return; }
+            // An old row may deliver leave after another row has already received enter.
+            if (!this.isShown() || hoveredIndex != index) { return; }
             this.highlightItem(0);
             if (onLeaveFunc != 0) { onLeaveFunc.evaluate(index); }
         }
@@ -190,18 +272,23 @@ library MouseMenu requires UIButton, UIImage, UIBorder, UIText, UIExtendEvent, U
             if (!this.isExist() || disposing || itemCount >= MOUSE_MENU_MAX_ITEMS) { return this; }
             itemCount += 1;
             index = itemCount;
-            items[index] = menuItem.create(menuWidth, title, index, menuFrame.ui);
+            items[index] = menuItem.create(menuWidth - 2 * MOUSE_MENU_PADDING, title, menuFrame.ui);
             if (isUpward) {
                 items[index].background.setPoint(ANCHOR_BOTTOM, menuFrame.ui, ANCHOR_BOTTOM, 0,
-                    (index - 1) * (MOUSE_MENU_HEIGHT + MOUSE_MENU_ITEM_GAP));
+                    MOUSE_MENU_PADDING + (index - 1) * MOUSE_MENU_HEIGHT);
             } else {
                 items[index].background.setPoint(ANCHOR_TOP, menuFrame.ui, ANCHOR_TOP, 0,
-                    -(index - 1) * (MOUSE_MENU_HEIGHT + MOUSE_MENU_ITEM_GAP));
+                    -MOUSE_MENU_PADDING - (index - 1) * MOUSE_MENU_HEIGHT);
+            }
+            // Each boundary belongs to the visually lower row, in either direction.
+            if (index > 1) {
+                if (isUpward) { items[index - 1].separator.show(true); }
+                else { items[index].separator.show(true); }
             }
             uiHashTable(items[index].btn.ui).eventdata.bind(index);
             uiHashTable(items[index].btn.ui).eventdata.bind2(this);
             items[index].btn.spEnter(uiEvent.MouseMenuEnter).spLeave(uiEvent.MouseMenuLeave).spClick(uiEvent.MouseMenuClick);
-            menuFrame.exReSize(menuWidth, this.getHeight());
+            this.layoutSkin();
             return this;
         }
         static method create(integer parent, boolean upward, real width) -> thistype {
@@ -214,13 +301,29 @@ library MouseMenu requires UIButton, UIImage, UIBorder, UIText, UIExtendEvent, U
             autoDestroy = false;
             disposing = false;
             itemCount = 0;
+            hoveredIndex = 0;
             escId = 0;
             onClickFunc = 0; onEnterFunc = 0; onLeaveFunc = 0; onDestroyFunc = 0;
             while (i <= MOUSE_MENU_MAX_ITEMS) { items[i] = 0; i += 1; }
             menuFrame = uiImage.create(parent).setTexture(UI_STRING_PATH_BLANK).exReSize(width, MOUSE_MENU_HEIGHT).show(false);
-            highlight = uiImage.create(menuFrame.ui).setTexture("ui\\image\\buttongrow.blp").show(false);
+            for (0 <= i <= 8) {
+                skin[i] = uiImage.create(menuFrame.ui).setTexture("ui\\menu\\mouse-menu-" + I2S(i) + ".blp");
+                DzFrameSetPriority(skin[i].ui, 0);
+            }
+            this.layoutSkin();
+            highlight = uiImage.create(menuFrame.ui).setTexture("ui\\menu\\mouse-menu-hover.blp").show(false);
+            DzFrameSetPriority(highlight.ui, 1);
             return this;
         }
+        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+        // Read-only test access; production callers cannot retain private child frames.
+        method testItem(integer index) -> menuItem {
+            if (!this.isExist() || index < 1 || index > itemCount) { return 0; }
+            return items[index];
+        }
+        method testHighlight() -> integer { return highlight.ui; }
+        method testHoveredIndex() -> integer { return hoveredIndex; }
+        #endif
         static method onInit() {
             hardware.regLeftUpEvent(function() {
                 if (currentMenu.isExist() && !currentMenu.isInMenu(DzGetMouseFocus())) { currentMenu.show(false); }
