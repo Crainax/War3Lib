@@ -358,7 +358,7 @@ library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRe
                 closeLabel = uiText.create(panel.ui).exReSize(panelWidth - 0.04, 0.032)
                     .setPoint(ANCHOR_BOTTOM, panel.ui, ANCHOR_BOTTOM, 0, 0.010);
             }
-            closeLabel.setAlign(4).setFontSize(4).setText("正在展示… · ESC 可关闭");
+            closeLabel.setAlign(4).setFontSize(4).setText(closeText);
             buildNext = first;
         }
         private method buildItem() {
@@ -399,6 +399,7 @@ library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRe
             entry.amount = uiText.create(entry.anchor.ui).exReSize(iconSize - 0.004, 0.014).setAlign(8).setFontSize(3)
                 .setText("|cFFFFFFFF×" + I2S(entry.quantity) + "|r")
                 .setPoint(ANCHOR_BOTTOMRIGHT, entry.anchor.ui, ANCHOR_BOTTOMRIGHT, -0.002, 0.001);
+            if (entry.quantity == 1) { entry.amount.setText(""); }
             entry.anchor.show(false); buildNext = entry.next;
             if (buildNext == 0) { root.show(true); }
         }
@@ -475,7 +476,6 @@ library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRe
             }
             if (elapsed >= 35 + (count - 1) * 4) {
                 state = 3;
-                closeLabel.setText(closeText);
                 // Mouse may already rest over an icon when reveal finishes.
                 entry = first;
                 while (entry != 0) {

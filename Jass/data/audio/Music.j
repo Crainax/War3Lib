@@ -522,6 +522,16 @@ library Music {
 			thistype[MUSIC_INDEX_TALENT_SWITCH_SUCCESS].snd = snd;
 			//# endcheck
 
+			//# check: music[3025]
+			//# dependency:sound/sound/shengjingshi_forge_hammer.mp3
+			snd = CreateSound( "sound\\shengjingshi_forge_hammer.mp3", false, false, false, 10, 10, "" );
+			SetSoundDuration( snd, 3030 );
+			SetSoundChannel( snd, 0 );
+			SetSoundVolume( snd, 127 );
+			SetSoundPitch( snd, 1.0 );
+			thistype[MUSIC_INDEX_SHENGJINGSHI_FORGE].snd = snd;
+			//# endcheck
+
 			//# check: music[3024]
 			//# dependency:sound/sound/guimian_absorb_invulnerability.mp3
 			snd = CreateSound( "sound\\guimian_absorb_invulnerability.mp3", false, false, false, 10, 10, "" );

@@ -62,6 +62,7 @@
 #define MUSIC_INDEX_YOUZHEN_SUNLIGHT_BLOOM 3023 //幼贞生命之花太阳光芒音效
 
 #define MUSIC_INDEX_GUIMIAN_ABSORB 3024 // 诡面吸收无敌
+#define MUSIC_INDEX_SHENGJINGSHI_FORGE 3025 // 圣晶石打造打铁音效
 
 #define SOUND_POOL_SIZE 20  // 每个音效的对象池大小（可同时播放20个）
 
