@@ -31,7 +31,10 @@ library LootExample requires LootPopup, LootBanner {
         result.onEnter(lootItemEvent.OnEnter).onLeave(lootItemEvent.OnLeave);
         result.onClose(lootCloseEvent.OnClose);
         result.addItem("ReplaceableTextures\\CommandButtons\\BTNOrbOfFrost.blp", "圣晶石", 1, LOOT_STYLE_EPIC, 123);
-        if (!result.show()) { result.destroy(); }
+        if (!result.show()) {
+            // 创建失败可能已触发 OnClose 并销毁实例，避免重复回收。
+            if (result.isExist()) { result.destroy(); }
+        }
     }
 }
 //! endzinc
@@ -51,6 +54,8 @@ library LootExample requires LootPopup, LootBanner {
 - `getActive()/getQueueCount()`：仅本地展示队列查询，不可用于同步玩法判断。
 
 所有回调都是**本地展示回调**：不能在其中发奖、扣资源、存档或创建经典 JASS handle。
+
+立即展示时，若创建失败，`show()` 内部可能先触发 `onClose` 再返回 false。采用上方回调自动销毁的示例时，失败分支必须先检查 `isExist()`，不能无条件再次 destroy。该示例的 `OnClose` 只销毁当前实例；若自定义回调还会创建新实例，应由调用方在销毁时清空自己的持有引用，避免结构体 ID 复用后把新实例当成旧实例。
 
 `onEnter/onLeave/onReveal` 均使用 `lootItemEvent`，参数为 `(view,index,userData,frame)`。`onReveal` 每件每次播放触发一次，适合播放已预创建的本地声音；组件本身不创建 sound。`onClose` 使用 `lootCloseEvent`，参数为 `(view)`，完成展示或取消排队时均通知一次；对已关闭实例重复 close/destroy 不重复通知。
 
@@ -81,7 +86,7 @@ library LootExample requires LootPopup, LootBanner {
 | s9 | 销毁当前普通样例；回归中则中止并清理测试实例 |
 | s10 | 重播当前普通样例 |
 
-开局只打印命令，可直接输入 s1..s6。输入 s8 后，在发令玩家本地运行约 30 秒的分帧回归：空数据/容量/冻结、两种形式 1..10 件创建关闭、FIFO 与取消、ESC、成对悬浮与迟到 leave、回调重入、构建未完成时取消、frame/resize/anchor 回收。回归期间请勿移动鼠标到奖励区域或按 ESC，以免干扰悬浮/关闭断言。
+开局只打印命令，可直接输入 s1..s6。输入 s8 后，在发令玩家本地运行约 30 秒的分帧回归：空数据/容量/冻结、两种形式 1..10 件创建关闭、FIFO 与取消、ESC、成对悬浮与迟到 leave、回调重入、构建未完成时取消、frame/resize/anchor 回收。额外断言关闭通知次数：正常关闭、取消排队、直接销毁各通知一次，重复 close、close 后 destroy、未展示即 destroy 不额外通知。回归期间请勿移动鼠标到奖励区域或按 ESC，以免干扰悬浮/关闭断言。
 
 用例编号 0..9 为弹窗 1..10 件，10..19 为半屏 1..10 件，20..28 为边界与回调用例。创建、等待真实动画、断言、关闭、销毁分别在不同帧执行，不再在一个测试函数中手动循环 tick 或快进。失败后清理并停止，不把残留实例带进下一个用例；回调若未返回，下一帧输出 case/phase，清理阶段发生中断则要求重启，避免重复回收。结尾输出检查数、失败数、停止位置（完整运行应为 28）。每次 s1..s6 还会输出请求模式、数量、实例、active 与 queue，便于区分命令未收到和正在排队。
 

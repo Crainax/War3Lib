@@ -1,6 +1,5 @@
 #ifndef LootRevealIncluded
 #define LootRevealIncluded
-#include "Crainax/config/SharedMethod.h"
 #include "Crainax/ui/constants/UIConstants.j"
 #include "Crainax/ui/composite/loot/LootConstants.j"
 //# dependency:resource/ui/image/loot_panel.blp
@@ -23,13 +22,6 @@
 library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendResize, UIAnimTimer, EscStack {
     public type lootItemEvent extends function(integer, integer, integer, integer);
     public type lootCloseEvent extends function(integer);
-
-    private function StyleColor(integer style) -> string {
-        if (style == LOOT_STYLE_RARE) { return "|cFF70BCFF"; }
-        if (style == LOOT_STYLE_EPIC) { return "|cFFCE96F0"; }
-        if (style == LOOT_STYLE_LEGENDARY) { return "|cFFFFD477"; }
-        return "|cFFDADAE2";
-    }
 
     private struct nameBytes [] {
         static integer hashes[];
@@ -142,7 +134,6 @@ library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRe
         private static thistype clickOwner = 0;
         private static integer clickRevision = 0;
         private static integer closeAt = 0;
-        private static uianim driver = 0;
         private thistype next;
         private integer revision;
         private integer session;
@@ -176,7 +167,6 @@ library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRe
         private uiBtn closeButton;
         private uiText closeLabel;
         private real panelWidth;
-        private real panelHeight;
 
         // During close/destroy callbacks from leave, the object is unavailable.
         // Always check isExist before destroying a retained callback reference.
@@ -335,7 +325,8 @@ library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRe
         // presentation must not exhaust one JASS execution before showing root.
         private method build() {
             string skin = "ui\\image\\loot_panel.blp";
-            panelWidth = 0.46; panelHeight = 0.245;
+            real panelHeight = 0.245;
+            panelWidth = 0.46;
             if (count > 5) { panelHeight = 0.335; }
             if (mode == LOOT_MODE_BANNER) { panelWidth = 0.72; skin = "ui\\image\\loot_band.blp"; }
             root = uiImage.create(parent);
@@ -372,6 +363,7 @@ library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRe
         }
         private method buildItem() {
             lootEntry entry = buildNext;
+            string color = "|cFFDADAE2";
             integer row = 0;
             integer col = 0;
             integer columns = 0;
@@ -398,8 +390,11 @@ library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRe
             uiHashTable(entry.iconBtn.ui).eventdata.bind(entry.index);
             uiHashTable(entry.iconBtn.ui).eventdata.bind2(this);
             entry.iconBtn.spEnter(uiEvent.LootEnter).spLeave(uiEvent.LootLeave);
+            if (entry.style == LOOT_STYLE_RARE) { color = "|cFF70BCFF"; }
+            else if (entry.style == LOOT_STYLE_EPIC) { color = "|cFFCE96F0"; }
+            else if (entry.style == LOOT_STYLE_LEGENDARY) { color = "|cFFFFD477"; }
             entry.label = uiText.create(entry.anchor.ui).exReSize(0.078, 0.022).setAlign(1).setFontSize(3)
-                .setText(StyleColor(entry.style) + ShortName(entry.name) + "|r")
+                .setText(color + ShortName(entry.name) + "|r")
                 .setPoint(ANCHOR_TOP, entry.anchor.ui, ANCHOR_BOTTOM, 0, -0.006);
             entry.amount = uiText.create(entry.anchor.ui).exReSize(iconSize - 0.004, 0.014).setAlign(8).setFontSize(3)
                 .setText("|cFFFFFFFF×" + I2S(entry.quantity) + "|r")
@@ -548,7 +543,7 @@ library LootReveal requires UIButton, UIImage, UIText, UIExtendEvent, UIExtendRe
         }
         #endif
         static method onInit() {
-            driver = uianim.create(function thistype.tick); driver.reg();
+            uianim.create(function thistype.tick).reg();
             hardware.regLeftDownEvent(function thistype.mouseDown);
             hardware.regLeftUpEvent(function thistype.mouseUp);
         }

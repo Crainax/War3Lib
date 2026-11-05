@@ -8,8 +8,6 @@
 library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
     private lootReveal sample = 0;
     private tooltip tip = 0;
-    private integer enters = 0;
-    private integer leaves = 0;
     private integer reveals = 0;
     private integer closes = 0;
     private integer callbackMode = 0;
@@ -29,7 +27,6 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
     private integer baseEsc = 0;
     private integer baseResizes = 0;
     private integer basePointers = 0;
-    private uianim regressionDriver = 0;
 
     private function Log(string value) { Trace("[LootReveal] " + value); }
     private function ClearTip() {
@@ -37,7 +34,7 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
     }
     private function Enter(integer view, integer index, integer data, integer frame) {
         lootReveal shown = view;
-        enters += 1; events += "E" + I2S(index);
+        events += "E" + I2S(index);
         if (callbackMode == 1) { return; }
         ClearTip();
         tip = tooltip.create().layoutTitleDesc(shown.getName(index),
@@ -47,7 +44,7 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
     }
     private function Leave(integer view, integer index, integer data, integer frame) {
         lootReveal shown = view;
-        leaves += 1; events += "L" + I2S(index); ClearTip();
+        events += "L" + I2S(index); ClearTip();
         if (callbackMode == 2 && shown.isExist()) { shown.close(); }
         if (callbackMode == 3 && shown.isExist()) { shown.destroy(); }
     }
@@ -79,7 +76,7 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
         callbackMode = 0;
         if (sample.isExist()) { sample.destroy(); }
         sample = 0; ClearTip();
-        enters = 0; leaves = 0; reveals = 0; closes = 0; events = "";
+        reveals = 0; closes = 0; events = "";
     }
     private function Check(boolean condition, string label) {
         regressionChecks += 1;
@@ -90,18 +87,6 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
         regressionChecks += 1;
         if (actual != expected) { regressionFailures += 1; }
         assert.Integer(actual, expected, "[LootReveal case=" + I2S(regressionCase) + "] " + label);
-    }
-    private function Snapshot() {
-        baseFrames = uiId.getActiveCount(); baseEsc = escStack.getSize();
-        baseResizes = resizer.size; basePointers = rePointer.size;
-        callbackMode = 1; enters = 0; leaves = 0; reveals = 0; closes = 0; events = "";
-        regressionWait = 0;
-        Log("开始 case=" + I2S(regressionCase) + "（0..9弹窗1..10件；10..19半屏；20..28边界/回调）");
-    }
-    private function FinishRegression() {
-        regressionRunning = false; callbackMode = 0;
-        Log("回归结束：检查=" + I2S(regressionChecks) + "，失败=" + I2S(regressionFailures)
-            + "，停止位置=" + I2S(regressionCase) + "；s1~s6 可手动展示。");
     }
     // One phase per real timer evaluation. No manual tick/fast-forward loop:
     // construction, playback, checks, close and destroy get separate VM budgets.
@@ -128,13 +113,30 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
             Equal(rePointer.size, basePointers, "final anchor balance");
             Equal(lootReveal.getQueueCount(), 0, "final queue empty");
             Equal(lootReveal.getActive(), 0, "final active empty");
-            if (regressionFailures != 0 || regressionStopping || regressionCase >= 28) { FinishRegression(); return; }
+            // Count notifications after cleanup too: destroy after close must
+            // stay silent, while directly destroying a shown view notifies once.
+            // A user-aborted case may not have reached show/close yet.
+            if (!regressionStopping) {
+                if (regressionCase == 21) { Equal(closes, 3, "each queued or shown view closes once"); }
+                else if (regressionCase == 20 || regressionCase == 28) { Equal(closes, 0, "unshown views do not notify close"); }
+                else { Equal(closes, 1, "exactly one close notification including destruction"); }
+            }
+            if (regressionFailures != 0 || regressionStopping || regressionCase >= 28) {
+                regressionRunning = false; callbackMode = 0;
+                Log("回归结束：检查=" + I2S(regressionChecks) + "，失败=" + I2S(regressionFailures)
+                    + "，停止位置=" + I2S(regressionCase) + "；s1~s6 可手动展示。");
+                return;
+            }
             regressionCase += 1; regressionPhase = 0; regressionWait = 0; return;
         }
         if (regressionPhase == 0) {
             // Wait for the normal close-to-next-result input guard interval.
             regressionWait += 1; if (regressionWait < 6) { return; }
-            Snapshot();
+            baseFrames = uiId.getActiveCount(); baseEsc = escStack.getSize();
+            baseResizes = resizer.size; basePointers = rePointer.size;
+            callbackMode = 1; reveals = 0; closes = 0; events = "";
+            regressionWait = 0;
+            Log("开始 case=" + I2S(regressionCase) + "（0..9弹窗1..10件；10..19半屏；20..28边界/回调）");
             if (regressionCase == 20) {
                 Check(lootReveal.testShortName("圣晶石") == "圣晶石", "short Chinese name preserved");
                 Check(lootReveal.testShortName("这是用于检查截断的长名称圣晶石") == "这是用于检查截…", "Chinese name cuts at codepoint boundary");
@@ -199,6 +201,7 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
                 Check(testA.show(), "repeated show harmless");
                 Equal(escStack.getSize(), baseEsc + 1, "one Esc entry");
                 Equal(reveals, amount, "one reveal callback per item");
+                Equal(closes, 0, "show does not notify close");
                 Equal(testA.addItem("x", "冻结", 1, 0, 0), 0, "shown data frozen");
                 Check(!testA.clear(), "shown clear refused");
                 regressionPhase = 3; return;
@@ -208,6 +211,9 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
                 Equal(lootReveal.getQueueCount(), 2, "queue size two");
                 testB.close();
                 Equal(lootReveal.getQueueCount(), 1, "cancel queued head");
+                Equal(closes, 1, "queued cancellation notifies once");
+                testB.close();
+                Equal(closes, 1, "repeated queued close stays silent");
                 regressionPhase = 3; return;
             }
             // Normalize automatic mouse hover before deterministic enter/leave.
@@ -232,6 +238,7 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
                 escStack.pop(); regressionWait = 0; regressionPhase = 4; return;
             }
             testA.close();
+            Equal(closes, 1, "close notifies once");
             Check(testA.testFramesReleased(), "close zeros every owned UI reference");
             if (!testA.testFramesReleased()) {
                 regressionRunning = false;
@@ -246,7 +253,10 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
                 if (!testC.isReady() && regressionWait < 200) { return; }
                 Check(testC.isReady(), "next result after Esc");
                 Check(!testA.isShown(), "Esc closes only previous result");
-            } else { testA.close(); }
+            } else {
+                testA.close();
+                Equal(closes, 1, "repeated close stays silent");
+            }
             regressionPhase = 90;
         }
     }
@@ -267,14 +277,6 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
         RegressionStep();
         regressionBusy = false;
     }
-    private function StartRegression() {
-        Reset(); regressionCase = 0; regressionPhase = 0; regressionWait = 0;
-        baseFrames = uiId.getActiveCount(); baseEsc = escStack.getSize();
-        baseResizes = resizer.size; basePointers = rePointer.size;
-        regressionFailures = 0; regressionChecks = 0; regressionBusy = false; regressionStopping = false;
-        regressionRunning = true;
-        Log("开始分帧回归，约 30 秒；完成后输出检查/失败总数，s9 可中止并清理。");
-    }
     private function Show(integer mode, integer amount) {
         boolean accepted = false;
         Reset(); sample = Make(mode, amount); accepted = sample.show();
@@ -289,7 +291,7 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
         if (shown.isExist()) { shown.destroy(); }
     }
     private function onInit() {
-        regressionDriver = uianim.create(function RegressionTick); regressionDriver.reg();
+        uianim.create(function RegressionTick).reg();
         UnitTestAutoTimer(0.5, 0.0, function() {
             Log("手动展示已就绪；输入 s8 执行完整分帧回归（开局不自动运行）。");
             Log("s1=弹窗1件 s2=弹窗5件 s3=弹窗10件 s4=半屏1件 s5=半屏5件 s6=半屏10件");
@@ -320,7 +322,14 @@ library UTLootReveal requires LootPopup, LootBanner, Tooltip, ToolTipStack {
                 } else { Log("请先关闭当前奖励与队列，再输入 s7。"); }
             }
             else if (command == "s8") {
-                if (lootReveal.getQueueCount() == 0 && (lootReveal.getActive() == 0 || lootReveal.getActive() == sample)) { StartRegression(); }
+                if (lootReveal.getQueueCount() == 0 && (lootReveal.getActive() == 0 || lootReveal.getActive() == sample)) {
+                    Reset(); regressionCase = 0; regressionPhase = 0; regressionWait = 0;
+                    baseFrames = uiId.getActiveCount(); baseEsc = escStack.getSize();
+                    baseResizes = resizer.size; basePointers = rePointer.size;
+                    regressionFailures = 0; regressionChecks = 0; regressionBusy = false; regressionStopping = false;
+                    regressionRunning = true;
+                    Log("开始分帧回归，约 30 秒；完成后输出检查/失败总数，s9 可中止并清理。");
+                }
                 else { Log("请先关闭当前奖励与队列，再输入 s8。"); }
             }
             else if (command == "s9") { Reset(); }
