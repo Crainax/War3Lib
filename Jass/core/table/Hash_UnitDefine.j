@@ -397,4 +397,5 @@
 #define SOLE_I31N_KILL_ATTR 453919353 // 杀敌属性唯一效果
 #define SOLE_I40A_KILL_ATTR 453919354 // 杀敌属性唯一效果
 #define SOLE_I40C_KILL_ATTR 453919355 // 杀敌属性唯一效果
+#define KEY_UNIT_SJS_FINAL_TOTAL 237960570 // [异度] 圣晶石终伤加法合计，独立倍乘来源
 #endif
