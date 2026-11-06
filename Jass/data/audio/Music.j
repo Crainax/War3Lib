@@ -622,6 +622,26 @@ library Music {
 			thistype[MUSIC_INDEX_YOUZHEN_SUNLIGHT_BLOOM].snd = snd;
 			//# endcheck
 
+			//# check: music[3026]
+			//# dependency:sound/sound/shengjingshi_equip.mp3
+			snd = CreateSound("sound\\shengjingshi_equip.mp3", false, false, false, 10, 10, "");
+			thistype[MUSIC_INDEX_SHENGJINGSHI_EQUIP].snd = snd;
+			SetSoundDuration(thistype[MUSIC_INDEX_SHENGJINGSHI_EQUIP].snd, 836);
+			SetSoundChannel(thistype[MUSIC_INDEX_SHENGJINGSHI_EQUIP].snd, 0);
+			SetSoundVolume(thistype[MUSIC_INDEX_SHENGJINGSHI_EQUIP].snd, 110);
+			SetSoundPitch(thistype[MUSIC_INDEX_SHENGJINGSHI_EQUIP].snd, 1.0);
+			//# endcheck
+
+			//# check: music[3027]
+			//# dependency:sound/sound/shengjingshi_unequip.mp3
+			snd = CreateSound("sound\\shengjingshi_unequip.mp3", false, false, false, 10, 10, "");
+			thistype[MUSIC_INDEX_SHENGJINGSHI_UNEQUIP].snd = snd;
+			SetSoundDuration(thistype[MUSIC_INDEX_SHENGJINGSHI_UNEQUIP].snd, 731);
+			SetSoundChannel(thistype[MUSIC_INDEX_SHENGJINGSHI_UNEQUIP].snd, 0);
+			SetSoundVolume(thistype[MUSIC_INDEX_SHENGJINGSHI_UNEQUIP].snd, 110);
+			SetSoundPitch(thistype[MUSIC_INDEX_SHENGJINGSHI_UNEQUIP].snd, 1.0);
+			//# endcheck
+
 			snd = null;
 		}
 

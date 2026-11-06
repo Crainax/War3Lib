@@ -64,6 +64,9 @@
 #define MUSIC_INDEX_GUIMIAN_ABSORB 3024 // 诡面吸收无敌
 #define MUSIC_INDEX_SHENGJINGSHI_FORGE 3025 // 圣晶石打造打铁音效
 
+#define MUSIC_INDEX_SHENGJINGSHI_EQUIP 3026 // 圣晶石穿上
+#define MUSIC_INDEX_SHENGJINGSHI_UNEQUIP 3027 // 圣晶石脱下
+
 #define SOUND_POOL_SIZE 20  // 每个音效的对象池大小（可同时播放20个）
 
 #endif

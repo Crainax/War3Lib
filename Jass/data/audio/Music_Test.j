@@ -188,6 +188,8 @@ library UTMusic requires Music {
 				TTestActUTMusic1(SubStringBJ(str,2,StringLength(str)));
 				return;
 			}
+			if(str == "equip"){music[MUSIC_INDEX_SHENGJINGSHI_EQUIP].play();}
+			else if(str == "unequip"){music[MUSIC_INDEX_SHENGJINGSHI_UNEQUIP].play();}
 			if (str == "s1") TTestUTMusic1(GetTriggerPlayer());
 			else if(str == "s2") TTestUTMusic2(GetTriggerPlayer());
 			else if(str == "s3") TTestUTMusic3(GetTriggerPlayer());
