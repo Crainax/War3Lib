@@ -17,7 +17,9 @@ KKWE `bin/EverConfig.cfg` 的 `[MapTest]` 设置为
 | Xlimon | Shengjingshi/main.lua |
 | LH | 空入口 |
 
-入口同时扩展模块搜索路径，原有子目录的 require 不需要迁移。首次启动其他项目时，
+KKWE 的 scriptrunner 提供 require，但没有全局 package 表；入口不得修改 package.path。
+根入口使用 require("MlsProbe.main") 等完整模块名，子模块由接收的模块名推导目录前缀。
+直接以原子目录 main.lua 作为入口时前缀为空，保留旧加载方式。首次启动其他项目时，
 不存在的 CloudScripts/main.lua 自动创建为空入口；已有入口不会覆盖。
 
 ## 两份 INI
@@ -68,4 +70,55 @@ version=1 的 ownership 状态（owners 和 hashes 均以两个无扩展名 INI 
 `powershell -NoProfile -ExecutionPolicy Bypass -File script/LocalTestProfile.Tests.ps1`
 在临时目录验证切换、回存、手工修改、冲突、空项目、中文路径和长内容，
 以及写入失败回滚、重复恢复、新内容保护和待启动/运行中拦截。
-不会切换真实游戏配置或启动游戏。实际插件读取与跨局落盘仍需游戏实测。
+不会切换真实游戏配置或启动游戏。已完成的游戏实测范围见下节。
+
+## 2026-11-10 根入口兼容性修复
+
+旧入口访问 package.path，在本机 scriptrunner.dll 的 Lua 初始化方式下复现
+`main.lua:2: attempt to index a nil value (global 'package')`，导致事件未注册。
+普通 Lua CLI 默认公开 package，因此此前测试没有覆盖这一限制。
+
+`lua script/TestCloudRoot.lua D:/War3/Library/War3Lib/CloudScripts MlsProbe`
+在隐藏 package/io/debug 的环境中验证模块加载、事件注册、Ping 和只读回包。
+本机 DLL 独立加载验证也已通过；平台接口使用模拟实现，不代表游戏内传输或持久化通过。
+
+## 2026-11-10 KKWE 单机实测结果
+
+使用公共 Launcher / LocalTestProfile 启动，游戏内操作由测试者完成。War3Lib 使用
+`Output/MlsProbe.w3x`；Xlimon 使用圣晶石分支的隔离目录
+`D:/War3/Worktrees/profile-live-test/Xlimon` 和已核验协议为 2 的圣晶石测试地图。
+没有切换或修改 `D:/War3/Maps/Xlimon` 当前开发分支。
+
+每次切换均核对两份生效 INI、归属状态、项目专属文件哈希及 KKWE 配置。
+War3Lib 云脚本目录为 `D:/War3/Library/War3Lib/CloudScripts`；Xlimon 为上述隔离目录下的
+`CloudScripts`。存档仍使用魔兽目录中相同的 `_War3Lib.ini` / `_Xlimon.ini` 项目文件。
+
+日志根目录为 `D:/Program Files (x86)/Warcraft III Frozen Throne/`，时间均为北京时间。
+
+| 阶段 | 日志（相对日志根目录） | 关键结果 |
+| --- | --- | --- |
+| 根入口修复后首次 War3Lib | `War3Lib/日志/log-2026-11-10-01-39-42-P1.log` | 01:39:46 Ping 往返 PASS，读到 count=2、score=10 |
+| 首次切到 Xlimon | `异度幻世篇/日志/log-2026-11-10-01-42-51-P1.log` | 读到 seq=13、balance=189、count=2、activeId=2；s3 确认 pending=13 |
+| 返回 War3Lib 并新增写入 | `War3Lib/日志/log-2026-11-10-01-43-50-P1.log` | 先读到 2/10；01:45:53 s2 保存确认，01:45:54 读到 count=3、score=20 |
+| 写入后再切到 Xlimon | `异度幻世篇/日志/log-2026-11-10-01-46-44-P1.log` | 01:47:07 仍读到 seq=13、balance=189、count=2、activeId=2 |
+| 再次返回 War3Lib，新进程读档 | `War3Lib/日志/log-2026-11-10-01-47-54-P1.log` | 01:47:58 Ping 往返 PASS；Player JSON={"score":20,"count":3} |
+
+文件核对结果：
+
+- 写入前 War3Lib KK INI SHA256：
+  `165da0fd9b8b893abc1c73508095278862e1f70691277cc74576dd2cde5090d5`。
+- s2 后生效 KK INI SHA256：
+  `5dae2f5b25710b360e26d9da6aae3482811052b29f36cabbeb779d65f193bb1a`。
+  下一次切到 Xlimon 时，该文件逐字节回存到 `kkapi_local_plugin_War3Lib.ini`；
+  返回 War3Lib 后生效文件与该项目文件完全一致。
+- 除计数从 2 到 3、积分从 10 到 20 外，War3Lib 脚本存档其他字段保持不变。
+- Xlimon 两份专属 INI 全程与初始基线逐字节一致；KK INI SHA256 始终为
+  `bbce6fe916e73b896c2a43919d4e4b8e1a183480e5af05160a3065c03867b424`。
+  189 矿、两颗石头、已装备 ID 2 和待确认洗炼 ID 13 均保留。
+- 每次切换完成后，两份生效 INI 均与目标项目文件一致；未遗留待恢复事务或启动标记。
+
+已验证本地单机的“War3Lib 新增写入 → Xlimon → War3Lib 新局读回”，以及切换期间
+Xlimon 既有存档不被覆盖。没有测试 Xlimon 新增业务写入、旧 dz INI 的游戏内新增写入、
+线上平台或多人同步，不将以上结果扩展为这些场景的保证。最后环境停留在 War3Lib。
+
+原始日志、真实 INI 和临时 DLL 诊断工具保留在本机，不纳入源码提交。

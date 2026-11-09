@@ -1,3 +1,5 @@
+-- Supports both direct-folder main.lua and project-root require('Folder.main').
+local modulePrefix = (... or ''):match('^(.*%.)[^.]+$') or ''
 -- Dedicated local probe. Do not bind this script to a production map.
 -- ScriptArchive is one whole blob per player; preserve unknown fields.
 local archives = {}
@@ -93,5 +95,5 @@ register('MlsProbeWrite', function(slot, payload)
 end)
 
 Log.Info('[MlsProbe] loaded; ping/read do not modify archive; write explicitly saves')
-require('ga_probe')
-require('size_probe')
+require(modulePrefix .. 'ga_probe')
+require(modulePrefix .. 'size_probe')

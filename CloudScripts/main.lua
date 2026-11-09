@@ -1,3 +1,2 @@
--- Default local entry: MlsProbe. Keep its unqualified requires in its directory.
-package.path = package.path:gsub('%?', 'MlsProbe/?') .. ';' .. package.path
+-- KKWE exposes require, but not the global package table.
 require('MlsProbe.main')
