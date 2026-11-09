@@ -716,7 +716,9 @@ end
 
 path.init(root, projectPath, we, gamePath)
 writeSelectionFile(path.project .. "/Output/launcher/last_selection.txt", selection)
+local platformBuildLock
 if activePlatform == '11' and selection.action ~= 'legacy' then
+    platformBuildLock = buildPlatform.acquire(sourceProject, selection.version)
     projectPath = buildPlatform.stage(sourceProject, selection.version)
     print('[11隔离工作目录] '..projectPath)
     -- Shared compiler caches must remain local even when an environment override exists.
@@ -733,6 +735,10 @@ print(string.format(
 print("[Lua引擎]" .. activeEngine)
 if isWar3Lib() then print("[测试入口]" .. testTarget.selected(path.project, activeScenario)) end
 local ok = runSelection(selection)
+if platformBuildLock then
+    if ok then buildPlatform.cleanup(sourceProject, selection.version, projectPath, path.libRoot) end
+    platformBuildLock:close()
+end
 printTaskEnd()
 if not ok then
 	os.exit(1)

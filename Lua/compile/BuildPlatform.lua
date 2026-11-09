@@ -26,6 +26,26 @@ local function quote(p)
     assert(not p:find('["%%\r\n]'), 'Unsupported shell path')
     return '"'..p:gsub('/', '\\')..'"'
 end
+-- Held for the entire launcher build; the OS releases it if the process exits.
+function M.acquire(project, version)
+    assert(M.enabled(project), 'Platform staging requires opt-in')
+    assert(version:match('^VERSION_%u+$'), 'Invalid version')
+    local parent = norm(project)..'/Output/launcher/work/11/'..version
+    mkdir(parent)
+    local handle = assert(io.open(parent..'/.build.lock', 'a+b'))
+    local ok = lfs.lock(handle, 'w', 0, 1)
+    if not ok then handle:close(); error('Another platform 11 build is using '..version) end
+    return handle
+end
+function M.cleanup(project, version, workspace, libRoot)
+    local script = norm(libRoot)..'/script/CleanupPlatformWork.ps1'
+    local cmd = 'powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File '..quote(script)
+        ..' -Project '..quote(norm(project))..' -Version '..quote(version)..' -Keep '..quote(norm(workspace))
+    local ok, _, code = os.execute(cmd)
+    local status = type(ok)=='number' and ok or (code or (ok and 0 or 1))
+    if status ~= 0 then print('[11 workspace cleanup] Warning: cleanup failed; build artifacts are retained.') end
+    return status == 0
+end
 function M.stage(project, version)
     project = norm(project)
     assert(M.enabled(project), 'Platform staging requires opt-in')
