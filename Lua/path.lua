@@ -89,7 +89,7 @@ function path.init(root, project, we, gamePath)
     path.rewave                     = path.project .. "/config/rewave.h" -- 地图导包文件
     path.generatedConfig            = path.project .. "/config/generated"
     path.localDzApiMockH            = path.generatedConfig .. "/DzApiLocalMock.generated.h"
-    path.localDzApiIni              = path.gamePath .. "/dz_w3_plugin.ini"
+    path.localDzApiIni              = path.gamePath .. "/dz_w3_plugin_" .. assert(path.project:match("([^/]+)$")) .. ".ini"
     path.scriptJ                    = path.project .. "/" .. path.jassPathName .. "/config/script.j" -- 脚本源文件(不要动这个文件)
     path.CompileStep0               = path.project .. "/Output/0_script.j"                           -- 脚本源文件的复制(第一步)
     path.CompileStep1               = path.project .. "/Output/1_wave.j"                             -- wave预处理后的文件

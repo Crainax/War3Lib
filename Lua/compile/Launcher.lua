@@ -216,16 +216,16 @@ end
 ---@param displayName string|nil
 function launcher.StartWar3File(mapPath, displayName)
 	if not require('Lua.compile.PackageValidation').check(mapPath) then return false end
-	local cmd = string.format(
-		'cmd /c ""%s" -launchwar3 -loadfile "%s""',
-		toWinPath(path.we .. "/bin/YDWEConfig.exe"),
-		toWinPath(mapPath)
-	)
-	print(cmd)
-	local ok, exitType, exitCode = os.execute(cmd)
-	if not commandSucceeded(ok, exitType, exitCode) then
-		print("[" .. path.buildVersion .. "]YDWEConfig返回码非0,但可能已成功拉起魔兽: " .. tostring(exitCode or ok))
-	end
+	local script = "& " .. powershellString(path.libRoot .. "/script/LocalTestProfile.ps1")
+        .. " -ProjectPath " .. powershellString(path.project)
+        .. " -GamePath " .. powershellString(path.gamePath)
+        .. " -WEPath " .. powershellString(path.we)
+        .. " -MapPath " .. powershellString(mapPath)
+    local ok, exitType, exitCode = os.execute(powershellCommand(script))
+    if not commandSucceeded(ok, exitType, exitCode) then
+        print("[本地测试环境]切换或启动失败: " .. tostring(exitCode or ok))
+        return false
+    end
 	print("[" .. path.buildVersion .. "]启动war3成功,运行地图:" .. (displayName or mapPath))
 	return true
 end
@@ -240,8 +240,9 @@ end
 function launcher.StartWar3AndWaitLog(suffix)
 	local before = launcher.SnapshotLogs()
 	local startedAt = os.time()
-	launcher.StartWar3(suffix)
-	launcher.WaitAndOpenNewLog(before, 60, startedAt)
+	local started = launcher.StartWar3(suffix)
+	if started then launcher.WaitAndOpenNewLog(before, 60, startedAt) end
+	return started
 end
 
 function launcher.StartWar3FileAndWaitLog(mapPath, displayName)

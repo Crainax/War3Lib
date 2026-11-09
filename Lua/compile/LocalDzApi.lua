@@ -246,49 +246,6 @@ local function syncWorldEditPlayerName(cfg)
     return true, "写入: " .. desired
 end
 
-local function writeLocalGameStartTime(timestamp)
-    local content = fu.GetContent(path.localDzApiIni)
-    if not content or content == "" then
-        return true, false
-    end
-
-    local newline = content:find("\r\n", 1, true) and "\r\n" or "\n"
-    local endsWithNewline = content:match("\r?\n$") ~= nil
-    local normalized = content:gsub("\r\n", "\n")
-    if normalized:sub(-1) ~= "\n" then
-        normalized = normalized .. "\n"
-    end
-
-    local lines = {}
-    local inLocalSection = false
-    local changed = false
-
-    for line in normalized:gmatch("(.-)\n") do
-        local nextSection = line:match("^%s*%[([^%]]+)%]%s*$")
-        if nextSection then
-            inLocalSection = nextSection:match("^%s*(.-)%s*$") == "War3Lib.LocalDzApi"
-        elseif inLocalSection and not line:match("^%s*[;#]") then
-            local prefix, _, suffix = line:match("^([ \t]*DzAPI_Map_GetGameStartTime[ \t]*=[ \t]*)([^;#]*)(.*)$")
-            if prefix then
-                line = prefix .. tostring(timestamp) .. (suffix or "")
-                changed = true
-            end
-        end
-        lines[#lines + 1] = line
-    end
-
-    if not changed then
-        return true, false
-    end
-
-    local output = table.concat(lines, newline)
-    if endsWithNewline then
-        output = output .. newline
-    end
-    local ok, err = fu.WriteOver(path.localDzApiIni, output)
-    return ok, true, err
-end
-
 local function jassNonNegativeInteger(value, defaultValue)
     if value == nil or value == "" then
         value = defaultValue
@@ -807,16 +764,12 @@ end
 function localDzApi.generate()
     local started = os.clock()
     local timestamp = os.time()
-    local ok, changed, err = true, false, nil
+    local ok, err = true, nil
     local cfg
     local syncMsg
     if path.agentValidation then
         syncMsg = "跳过: agent编译验证不修改INI或注册表"
     else
-        ok, changed, err = writeLocalGameStartTime(timestamp)
-        if not ok then
-            return false, err
-        end
         cfg = ini.read(path.localDzApiIni)
         ok, syncMsg = syncWorldEditPlayerName(cfg)
         if not ok then
@@ -825,6 +778,11 @@ function localDzApi.generate()
     end
 
     local version, mockCfg, _, enabled = readMockState()
+    -- Build-time clock stays in the generated header; compilation never writes INIs.
+    local clockConfig = mockCfg["War3Lib.LocalDzApi"]
+    if not path.agentValidation and clockConfig and clockConfig["DzAPI_Map_GetGameStartTime"] then
+        clockConfig["DzAPI_Map_GetGameStartTime"] = tostring(timestamp)
+    end
     local content
     local label
 
@@ -848,9 +806,6 @@ function localDzApi.generate()
     end
     ok, err = fu.WriteOver(path.localDzApiMockH, content)
     if ok then
-        if changed then
-            print("[DzAPI本地替换]GameStartTime写入: " .. tostring(timestamp))
-        end
         print("[本地玩家名]注册表同步: " .. tostring(syncMsg))
         print(label .. formatElapsedSeconds(elapsedMs(started)))
     end
