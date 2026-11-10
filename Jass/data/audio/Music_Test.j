@@ -142,6 +142,13 @@ library UTMusic requires Music {
 		integer paramI [];							   //所有参数I
 		real	paramR [];							   //所有参数R
 
+		// -forge: preview the registered crafting sound for the issuing player only.
+		if (str == "forge") {
+			music[MUSIC_INDEX_SHENGJINGSHI_FORGE].playFor(p);
+			p = null;
+			return;
+		}
+
 		for (0 <= i <= len - 1) {
 			if (SubString(str,i,i+1) == " ") {
 				paramS[num]= SubString(str,0,i);

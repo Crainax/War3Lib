@@ -57,7 +57,7 @@ library UIButton requires UIId,UITocInit,UIBaseModule,UIEventModule {
             return this;
         }
 
-        // 创建空白按钮
+        // 创建空白按钮(无交互的)
         // parent: 父级框架
         static method createBlank (integer parent) -> thistype {
             thistype this = allocate();

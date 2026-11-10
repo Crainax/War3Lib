@@ -482,7 +482,7 @@ local function createMainView()
 	makeGroup(root, "编译器", "compiler", compilerItems, 160)
     if platformEnabled then
         makeGroup(root, "目标平台", "platform", platformItems, 160)
-        root:addchildview(makeLabel("11：独立构建并加 _11 后缀；服务器接口尚未适配", {Height=26, MarginLeft=34}, fontTiny, "#B8C0CC"))
+        root:addchildview(makeLabel("11：独立构建并加 _11 后缀；服务接口由项目适配层提供", {Height=26, MarginLeft=34}, fontTiny, "#B8C0CC"))
     end
     if unitOnly then
         makeGroup(root, "Lua引擎", "engine", engineItems, 160)

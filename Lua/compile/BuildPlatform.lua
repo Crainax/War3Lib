@@ -65,6 +65,17 @@ function M.stage(project, version)
             assert(status < 8, 'Platform staging copy failed: '..name)
         end
     end
+    -- Optional project-owned assets override only the isolated platform workspace.
+    -- KK continues using the original project resources, never these overrides.
+    for _, map in ipairs({'OriginMap','UnitTestMap'}) do
+        local assets = project..'/data/platform-assets/11/'..map..'/resource'
+        if lfs.attributes(assets, 'mode') == 'directory' then
+            local cmd = 'robocopy '..quote(assets)..' '..quote(target..'/'..map..'/resource')..' /E /IS /IT /XJ /R:0 /W:0 /NFL /NDL /NJH /NJS /NP'
+            local ok, _, code = os.execute(cmd)
+            local status = type(ok)=='number' and ok or (code or (ok and 0 or 16))
+            assert(status < 8, 'Platform asset override failed: '..map)
+        end
+    end
     local route = target..'/config/rewave.h'
     local f = assert(io.open(route,'rb')); local source=f:read('*a'); f:close()
     local n
@@ -78,7 +89,7 @@ function M.stage(project, version)
 end
 function M.mark(slot, version, workspace)
     local f=assert(io.open(slot..'.platform','w'))
-    f:write('platform=11\nversion=',version,'\nworkspace=',workspace,'\nserver_adapter=unchanged\n')
+    f:write('platform=11\nversion=',version,'\nworkspace=',workspace,'\nserver_adapter=project\n')
     f:close()
 end
 function M.matches(slot, version)

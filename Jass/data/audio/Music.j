@@ -525,11 +525,12 @@ library Music {
 			//# check: music[3025]
 			//# dependency:sound/sound/shengjingshi_forge_hammer.mp3
 			snd = CreateSound( "sound\\shengjingshi_forge_hammer.mp3", false, false, false, 10, 10, "" );
-			SetSoundDuration( snd, 3030 );
-			SetSoundChannel( snd, 0 );
-			SetSoundVolume( snd, 127 );
-			SetSoundPitch( snd, 1.0 );
 			thistype[MUSIC_INDEX_SHENGJINGSHI_FORGE].snd = snd;
+			// Address this entry explicitly: check-block pruning removes identical lines in unused entries.
+			SetSoundDuration(thistype[MUSIC_INDEX_SHENGJINGSHI_FORGE].snd, 3030);
+			SetSoundChannel(thistype[MUSIC_INDEX_SHENGJINGSHI_FORGE].snd, 0);
+			SetSoundVolume(thistype[MUSIC_INDEX_SHENGJINGSHI_FORGE].snd, 127);
+			SetSoundPitch(thistype[MUSIC_INDEX_SHENGJINGSHI_FORGE].snd, 1.0);
 			//# endcheck
 
 			//# check: music[3024]

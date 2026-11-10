@@ -420,7 +420,7 @@ local function copyPackagedSlkToSlots(version)
         local slot = slkSlot(version)
         if not forceCopyBin(map, slot) then return false end
         buildPlatform.mark(slot, version, path.project)
-        print('[11构建产物] ' .. slot .. ' (服务器接口尚未适配)')
+        print('[11构建产物] ' .. slot .. ' (服务接口由项目适配层提供)')
         return true, slot
     end
 	local legacyMap = isWar3Lib() and slkSlot(version) or (path.project .. "/output/" .. path.mapName .. "_slk.w3x")

@@ -8,12 +8,10 @@
 
 #include "Crainax/config/SharedMethod.h"
 #include "Crainax/ui/constants/UIConstants.j" // UI常量
-#include "Crainax/input/constant/KeyConstants.j"
 
 
 //! zinc
 
-//# dependency:resource/ui/image/buttongrow.blp
 //# dependency:resource/ui/image/buttongrow_light.blp
 
 // Legacy Simple-only backup. Not used by the normal MouseMenu or Shengjingshi UI.
@@ -26,7 +24,6 @@ library SimpleMouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEve
         uiBtn btn;
         uiText text;
         uiBorder background;
-        integer index;
 
         STRUCT_SHARED_METHODS(simpleMenuItem)
 
@@ -46,9 +43,8 @@ library SimpleMouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEve
         }
 
         // 原生菜单项
-        public static method createSimple(real width,string title, integer index, integer simpleParent,integer parentFrame) -> thistype {
+        public static method createSimple(real width,string title, integer simpleParent,integer parentFrame) -> thistype {
             thistype this = thistype.allocate();
-            this.index = index;
 
             background = uiBorder.createType2(parentFrame)
                 .exReSize(width, SIMPLE_MOUSE_MENU_HEIGHT); // 这个不动态
@@ -315,9 +311,6 @@ library SimpleMouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEve
         }
 
         public method AddMenuSimpleItem(string title) -> thistype {
-            integer anchorPoint;
-            integer relativePoint;
-            real offsetY;
             if (!this.isExist()) { return this; }
 
             itemCount += 1;
@@ -325,20 +318,10 @@ library SimpleMouseMenu requires UIButton, UIImage,UIBorder, UIText, UIExtendEve
                 return this;
             }
 
-            if (isUpward) {
-                anchorPoint = ANCHOR_BOTTOM;
-                relativePoint = ANCHOR_TOP;
-                offsetY = 0;
-            } else {
-                anchorPoint = ANCHOR_TOP;
-                relativePoint = ANCHOR_BOTTOM;
-                offsetY = 0;
-            }
-
             // 检查是否已存在该索引的菜单项
             if (!items[itemCount].isExist()) {
                 // 不存在则创建新的
-                items[itemCount] = simpleMenuItem.createSimple(menuWidth, title, itemCount, simpleParent,menuFrame.ui);
+                items[itemCount] = simpleMenuItem.createSimple(menuWidth, title, simpleParent,menuFrame.ui);
             } else {
                 // 存在则更新文本和位置
                 items[itemCount].text.setText(title);
