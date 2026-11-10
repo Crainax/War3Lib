@@ -34,6 +34,8 @@ local windowTitle = os.getenv("WAR3_LAUNCH_WINDOW_TITLE") or "Xlimon Launcher"
 local defaultCompiler = os.getenv("WAR3_LAUNCH_COMPILER") == "vjassc" and "vjassc" or "jasshelper"
 
 local state = {
+    network = "single",
+    players = "1",
 	platform = "kk", -- Deliberately not restored from history.
 	action = "start",
 	version = "VERSION_ALPHA",
@@ -43,6 +45,7 @@ local state = {
 }
 
 local groups = {}
+local playerSection
 local summaryLabel
 local win
 local bindShortcutKeys
@@ -71,7 +74,11 @@ local platformItems = {{value="kk",title="KK"}, {value="11",title="11"}}
 local engineItems = {{ value = "ydlua", title = "YDLua" }, { value = "innerjapi", title = "InnerJapi" }}
 
 local scenarioItems = {{value="current", title="当前单测文件"}, {value="empty", title="空地图"}}
+local networkItems = {{value="single",title="单机"},{value="lan",title="多开"}}
+local playerItems = {}
+for i=1,6 do playerItems[i]={value=tostring(i),title=tostring(i).."人"} end
 local titles = {
+    network = {}, players = {},
     platform = {},
     scenario = {},
     engine = {},
@@ -86,6 +93,8 @@ local function registerTitles(groupName, items)
 	end
 end
 
+registerTitles("network", networkItems)
+registerTitles("players", playerItems)
 registerTitles("action", actionItems)
 registerTitles("version", versionItems)
 registerTitles("compiler", compilerItems)
@@ -215,6 +224,7 @@ local function updateSummary()
         end
     end
 	local actionText = titles.action[state.action]
+    if state.action ~= "compile" then actionText = actionText .. " / " .. (state.network == "lan" and ("局域网" .. state.players .. "人") or "单机") end
 	local versionText = titles.version[state.version]
     if platformEnabled then versionText = titles.platform[state.platform] .. " / " .. versionText end
     if unitOnly then versionText = titles.engine[state.engine] .. " / " .. titles.scenario[state.scenario] end
@@ -242,12 +252,15 @@ local function refreshChecks()
 		end
 	end
 	refreshCompilerEnabled()
+    if playerSection then playerSection:setvisible(state.network == "lan" and state.action ~= "compile") end
+    for _, item in ipairs(groups.network or {}) do item.button:setenabled(state.action ~= "compile") end
 end
 
 local function selectGroup(groupName, value)
 	if groupName == "compiler" and state.action == "legacy" then
 		return
 	end
+    if (groupName == "network" or groupName == "players") and state.action == "compile" then return end
 	state[groupName] = value
 	refreshChecks()
 	updateSummary()
@@ -299,6 +312,7 @@ local function makeGroup(parent, title, groupName, items, buttonWidth)
 	for _, item in ipairs(items) do
 		row:addchildview(makeRadioButton(groupName, item, buttonWidth))
 	end
+    return section, row
 end
 
 local function versionStateValue(version, name)
@@ -371,6 +385,7 @@ local function writeSelection(status)
 	end
 	file:write("status=", status, "\n")
 	if status == "ok" then
+        file:write("network=", state.network, "\nplayers=", state.players, "\n")
 		file:write("action=", state.action, "\n")
 		file:write("version=", state.version, "\n")
 		file:write("compiler=", state.compiler, "\n")
@@ -452,6 +467,16 @@ local function createMainView()
 
 	caption:addchildview(close)
 
+    local _, networkRow = makeGroup(root, "启动方式", "network", networkItems, 110)
+    -- Separate parent keeps the two radio groups independent while sharing a row.
+    playerSection = makeContainer({
+        Width = 432, Height = 42, MarginLeft = 12,
+        FlexDirection = "row", AlignItems = "center",
+    }, nil)
+    networkRow:addchildview(playerSection)
+    for _, item in ipairs(playerItems) do
+        playerSection:addchildview(makeRadioButton("players", item, 64))
+    end
 	makeGroup(root, "启动动作", "action", actionItems, 160)
 	if not unitOnly then makeVersionGroup(root) end
 	makeGroup(root, "编译器", "compiler", compilerItems, 160)
@@ -530,7 +555,7 @@ win:setminimizable(false)
 win:sethasshadow(true)
 local mainView = createMainView()
 win:setcontentview(mainView)
-win:setcontentsize({ width = 800, height = (unitOnly or platformEnabled) and 650 or 520 })
+win:setcontentsize({ width = 800, height = unitOnly and 700 or (platformEnabled and 710 or 580) })
 win:center()
 function win.onclose()
 	gui.MessageLoop.quit()

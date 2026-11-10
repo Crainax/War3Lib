@@ -66,3 +66,7 @@ description: War3Lib/Xlimon 的 Zinc 单元测试流程规范。用于创建或�
 2. 默认仅在不存在时生成 `Xxx_Test.j`，并把 `edit/config/UnitTest.h` 的 include 切到该测试；只有确认旧壳可丢弃时才加 `--force`。
 3. 使用 `UnitTestAutoTimer`、`UnitTestFramwork.assert` 与 `Trace`；无 `Trace` 时使用带模块前缀的 `BJDebugMsg`。
 4. 验收 `_Test.j` 可直接触发核心断言，且可选 `.w3a/.w3u/.w3i` 与测试步骤匹配。
+
+## 无人值守运行
+
+用户要求游戏内测试时，使用 `war3-runtime-test` 技能。测试必须自动触发，给每个客户端输出可检索的断言及唯一完成标记；不要把聊天命令等待、无限循环演示或编译成功当作测试完成。优先 Trace/jass.log；确认当前引擎会把断言写入日志。OOS 以房主 desync detected 判失败。测试结束、失败、超时均保存证据并关闭本次客户端和房主。

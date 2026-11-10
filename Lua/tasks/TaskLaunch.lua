@@ -10,6 +10,8 @@ local utr = require("Lua.compile.UTReplace")
 local incrementalPack = require("Lua.compile.IncrementalPack")
 local buildPlatform = require 'Lua.compile.BuildPlatform'
 local activePlatform = 'kk'
+local activeNetwork = 'single'
+local activePlayers = 1
 local sourceProject
 
 local runtimeProfile = require "Lua.compile.RuntimeProfile"
@@ -245,6 +247,11 @@ local function normalizeSelection(selection)
 		return nil, "cancel"
 	end
 
+    selection.network = selection.network or "single"
+    selection.players = tonumber(selection.players or 1)
+    if selection.network ~= "single" and selection.network ~= "lan" then return nil, "Invalid network mode" end
+    if not selection.players or selection.players % 1 ~= 0 or selection.players < 1 or selection.players > 6 then return nil, "Players must be 1..6" end
+    activeNetwork, activePlayers = selection.network, selection.players
 	selection.action = normalizeAction(selection)
 	selection.version = selection.version or "VERSION_ALPHA"
     selection.platform = buildPlatform.validate(projectPath, selection.platform)
@@ -474,6 +481,10 @@ end
 
 local function startSelectedMap(slot, label)
     if options.noLaunch then print('[仅构建，不启动游戏] '..slot); return true end
+    if activeNetwork == "lan" then
+        local cmd = string.format('powershell -NoProfile -ExecutionPolicy Bypass -File "%s/tools/LanTest/Start-LanTest.ps1" -MapPath "%s" -Clients %d -GamePath "%s" -WEPath "%s" -LegacySizeCap -UseScriptSlots', root, slot, activePlayers, path.gamePath, path.we)
+        return commandSucceeded(os.execute(cmd))
+    end
     return launcher.StartWar3File(slot, label)
 end
 
