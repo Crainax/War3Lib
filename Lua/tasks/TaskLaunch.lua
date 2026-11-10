@@ -482,7 +482,7 @@ end
 local function startSelectedMap(slot, label)
     if options.noLaunch then print('[仅构建，不启动游戏] '..slot); return true end
     if activeNetwork == "lan" then
-        local cmd = string.format('powershell -NoProfile -ExecutionPolicy Bypass -File "%s/tools/LanTest/Start-LanTest.ps1" -MapPath "%s" -Clients %d -GamePath "%s" -WEPath "%s" -LegacySizeCap -UseScriptSlots', root, slot, activePlayers, path.gamePath, path.we)
+        local cmd = string.format('powershell -NoProfile -ExecutionPolicy Bypass -File "%s/tools/LanTest/Start-LanTest.ps1" -MapPath "%s" -Clients %d -ProjectPath "%s" -GamePath "%s" -WEPath "%s" -LegacySizeCap -UseScriptSlots', root, slot, activePlayers, path.project, path.gamePath, path.we)
         return commandSucceeded(os.execute(cmd))
     end
     return launcher.StartWar3File(slot, label)

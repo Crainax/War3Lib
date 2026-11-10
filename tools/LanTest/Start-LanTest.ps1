@@ -2,7 +2,9 @@
     [Parameter(Mandatory=$true)][string]$MapPath,
     [ValidateRange(1,6)][int]$Clients = 1,
     [string]$GamePath = 'D:\Program Files (x86)\Warcraft III Frozen Throne',
-    [string]$WEPath = 'D:\WE\KKWE_Plugin',
+    [string]$WEPath = 'D:/WE/KKWE_Plugin',
+    [string]$ProjectPath,
+    [string]$ProfileScript = 'D:/War3/Library/War3Lib/script/LocalTestProfile.ps1',
     [string]$LuaRuntime = 'D:\WE\YDWE1.32.13正式版',
     [switch]$PrepareOnly,
     [switch]$ManualJoin,
@@ -21,6 +23,21 @@ if ($Automated -and $SmokeSeconds -eq 0 -and (!$ClientLogDirectory -or !$Complet
 $session = $null
 $manifest = $null
 $launchSucceeded = $false
+$launchers = @()
+$found = @{}
+$profileLock = $null
+function Collect-Clients {
+    foreach ($parent in $launchers) {
+        foreach ($child in @(Get-CimInstance Win32_Process -Filter "Name = 'war3.exe'" | Where-Object { $_.ParentProcessId -eq $parent.pid -and $_.CreationDate.ToUniversalTime() -ge $parent.startedUtc })) {
+            if (!$found.ContainsKey([int]$child.ProcessId)) {
+                $found[[int]$child.ProcessId]=$true
+                $manifest.clientPids += [int]$child.ProcessId
+                $manifest.clientProcesses += @{pid=[int]$child.ProcessId;creationUtcTicks=$child.CreationDate.ToUniversalTime().Ticks.ToString();expectedName=$parent.player}
+                Save-Manifest
+            }
+        }
+    }
+}
 $sessionLock = [IO.File]::Open((Join-Path $PSScriptRoot 'session.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
 try {
 $map = (Resolve-Path -LiteralPath $MapPath).Path
@@ -66,6 +83,17 @@ $manifest = [ordered]@{ session=$session; sourceMap=$map; sha256=(Get-FileHash -
 function Save-Manifest { $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $session 'session.json') -Encoding UTF8 }
 Save-Manifest
 if ($PrepareOnly) { Write-Host "Prepared: $session"; return }
+$profileLock = [IO.File]::Open((Join-Path $GamePath 'local_test_profile.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
+if ($ProjectPath) {
+    . $ProfileScript -ProjectPath $ProjectPath -GamePath $GamePath -WEPath $WEPath -MapPath $MapPath
+    Switch-LocalTestProfile $ProjectPath $GamePath $WEPath
+}
+$runtimeWE = & (Join-Path $PSScriptRoot 'Prepare-ParallelRuntime.ps1') -WEPath $WEPath
+$manifest['runtimeWE']=$runtimeWE
+$manifest['launchMode']='parallel'
+$manifest['launchers']=@()
+Save-Manifest
+
 $hostBin = Join-Path $PSScriptRoot 'bin'
 $null = New-Item -ItemType Directory -Path $hostBin -Force
 foreach ($file in @('ydhost.exe','vcruntime140.dll','msvcp140.dll')) {
@@ -84,66 +112,44 @@ Save-Manifest
 Start-Sleep -Seconds 2
 $hostProcess.Refresh()
 if ($hostProcess.HasExited) { throw "Host exited; inspect $session" }
-$launcher = Join-Path $WEPath 'bin\YDWEConfig.exe'
-$configPath = Join-Path $WEPath 'bin\EverConfig.cfg'
-$originalConfig = [IO.File]::ReadAllBytes($configPath)
-$lastConfig = $originalConfig
-$registry = [Microsoft.Win32.Registry]::CurrentUser.OpenSubKey('Software\Blizzard Entertainment\Warcraft III\String', $true)
-if (!$registry) { throw 'Missing Warcraft III String registry key.' }
-$hadName = $registry.GetValueNames() -contains 'userlocal'
-$originalName = $registry.GetValue('userlocal')
-$originalKind = if ($hadName) { $registry.GetValueKind('userlocal') } else { $null }
-[IO.File]::WriteAllBytes((Join-Path $session 'EverConfig.before.cfg'), $originalConfig)
-try {
+
+$launcher = Join-Path $runtimeWE 'bin\YDWEConfig.exe'
+$launchers = @()
 for ($i=1; $i -le $Clients; $i++) {
-    $playerName = 'LanP' + $i
-    # YDWEConfig copies this setting into userlocal before spawning the game.
-    $configText = [Text.Encoding]::UTF8.GetString($originalConfig)
-    if ($configText -notmatch '(?m)^UserName\s*=') { throw 'Missing UserName configuration.' }
-    $configText = [regex]::Replace($configText, '(?m)^UserName\s*=[^\r\n]*', ('UserName = ' + $playerName))
-    if ([Convert]::ToBase64String([IO.File]::ReadAllBytes($configPath)) -cne [Convert]::ToBase64String($lastConfig)) { throw 'EverConfig changed externally; refusing overwrite.' }
-    $lastConfig = [Text.Encoding]::UTF8.GetBytes($configText)
-    [IO.File]::WriteAllBytes($configPath, $lastConfig)
-    $before = @(Get-Process -Name war3 -ErrorAction SilentlyContinue | ForEach-Object Id)
-    $launchArgs = @('-launchwar3', '-window')
-    if (!$ManualJoin) { $launchArgs += '-auto' }
-    $clientLauncher = Start-Process -FilePath $launcher -ArgumentList $launchArgs -WorkingDirectory $GamePath -WindowStyle Hidden -PassThru
-    $new = @()
-    for ($attempt=0; $attempt -lt 100; $attempt++) {
-        Start-Sleep -Milliseconds 200
-        $new = @(Get-CimInstance Win32_Process -Filter "Name = 'war3.exe'" | Where-Object { $_.ProcessId -notin $before -and $_.ParentProcessId -eq $clientLauncher.Id })
-        if ($new.Count) { break }
-    }
-    if (!$new.Count) { throw "Client $i did not appear; existing processes are left running. Session: $session" }
-    $manifest.clientPids += @($new | ForEach-Object ProcessId)
-    $manifest.clientProcesses += @($new | ForEach-Object { @{pid=[int]$_.ProcessId; creationUtcTicks=$_.CreationDate.ToUniversalTime().Ticks.ToString()} })
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $launcher
+    $psi.Arguments = if ($ManualJoin) { '-launchwar3 -window' } else { '-launchwar3 -window -auto' }
+    $psi.WorkingDirectory = $GamePath
+    $psi.UseShellExecute = $false
+    $psi.WindowStyle = [Diagnostics.ProcessWindowStyle]::Hidden
+    $psi.EnvironmentVariables['WAR3_LAN_PLAYER'] = "LanP$i"
+    $psi.EnvironmentVariables['WAR3_LAN_EVIDENCE'] = Join-Path $session "name-P$i.log"
+    $p = [Diagnostics.Process]::Start($psi)
+    $launchers += @{pid=$p.Id; player="LanP$i"; process=$p; startedUtc=$p.StartTime.ToUniversalTime()}
+    $manifest.launchers += @{pid=$p.Id; creationUtcTicks=$p.StartTime.ToUniversalTime().Ticks.ToString();player="LanP$i"}
     Save-Manifest
-    # Name/config stays serialized until host acknowledges this client; loading then overlaps.
-    if (!$ManualJoin) {
-        $joined = $false
-        for ($attempt=0; $attempt -lt 80; $attempt++) {
-            $log = Get-Content -LiteralPath (Join-Path $session 'host-stdout.log') -Raw
-            $playerLines = @($log -split '\r?\n' | Where-Object { $_.Contains('[' + $playerName + '|') })
-            if (@($playerLines | Where-Object { $_ -match 'invalid name' }).Count) { throw "Host rejected $playerName; see host-stdout.log." }
-            if (@($playerLines | Where-Object { $_ -match 'joined the game' }).Count) { $joined = $true; break }
-            Start-Sleep -Milliseconds 500
-        }
-        if (!$joined) { throw "No host acknowledgement for $playerName. Session cleanup will run before returning. Logs: $session" }
-    }
 }
-} finally {
-    if ([Convert]::ToBase64String([IO.File]::ReadAllBytes($configPath)) -ceq [Convert]::ToBase64String($lastConfig)) {
-        [IO.File]::WriteAllBytes($configPath, $originalConfig)
-    } else { Write-Warning "EverConfig changed externally; original backup: $session\EverConfig.before.cfg" }
-    # Only restore our own temporary name; preserve unrelated concurrent writes.
-    $currentName = $registry.GetValue('userlocal')
-    $nameText = if ($currentName -is [byte[]]) { [Text.Encoding]::UTF8.GetString($currentName).TrimEnd([char]0) } else { [string]$currentName }
-    if ($nameText -match '^LanP\d+$') {
-        if ($hadName) { $registry.SetValue('userlocal', $originalName, $originalKind) }
-        else { $registry.DeleteValue('userlocal', $false) }
+$collectDeadline = [datetime]::UtcNow.AddSeconds(30)
+do {
+    Collect-Clients
+    if ($found.Count -eq $Clients) { break }
+    Start-Sleep -Milliseconds 200
+} while ([datetime]::UtcNow -lt $collectDeadline)
+if ($found.Count -ne $Clients) { throw 'Parallel client discovery timed out' }
+$joinDeadline=[datetime]::UtcNow.AddSeconds(60)
+do {
+    $ready=0
+    $hostLog=Get-Content -LiteralPath (Join-Path $session 'host-stdout.log') -Raw
+    if ($hostLog -match 'invalid name|desync detected') { throw 'Host rejected client identity or detected OOS' }
+    foreach ($i in 1..$Clients) {
+        $file=Join-Path $session "name-P$i.log"
+        $nameReady=(Test-Path $file) -and ((Get-Content $file -Raw) -match "NAME_READ LanP$i")
+        if ($nameReady -and ($ManualJoin -or $hostLog -match "\[LanP$i\|[^\]]+\] joined the game")) { $ready++ }
     }
-    $registry.Dispose()
-}
+    if ($ready -eq $Clients) { break }
+    Start-Sleep -Milliseconds 250
+} while ([datetime]::UtcNow -lt $joinDeadline)
+if ($ready -ne $Clients) { throw 'Timed out validating isolated names and lobby joins' }
 Write-Host "Started $Clients client(s). Room: $gameName"
 Write-Host "Session/logs: $session"
 Write-Host 'Process startup is not proof of loading. Check host-stdout.log for player joins and loading completion.'
@@ -160,7 +166,17 @@ if ($Automated) {
 } finally {
     try {
         if ($session -and $manifest -and !$PrepareOnly -and ($Automated -or !$launchSucceeded)) {
-            & (Join-Path $PSScriptRoot 'Stop-LanTest.ps1') -SessionPath $session
+            # Close owned launchers first; no late child may escape collection.
+            $launcherErrors=@()
+            foreach ($parent in $launchers) {
+                try {
+                    $parent.process.Refresh()
+                    if (!$parent.process.HasExited) { $parent.process.Kill(); $parent.process.WaitForExit() }
+                } catch { $launcherErrors += $_.Exception.Message }
+            }
+            try { Collect-Clients }
+            finally { & (Join-Path $PSScriptRoot 'Stop-LanTest.ps1') -SessionPath $session }
+            if ($launcherErrors.Count) { throw ('Launcher cleanup failed: '+($launcherErrors -join '; ')) }
         }
-    } finally { $sessionLock.Dispose() }
+    } finally { if ($profileLock) { $profileLock.Dispose() }; $sessionLock.Dispose() }
 }

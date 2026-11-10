@@ -22,7 +22,7 @@ Completion logs must be fresh and uniquely identify players with `-P1.log` etc. 
 
 ## Session and cleanup
 
-Sessions are under `sessions/<timestamp-id>`, with source hash, host/client identities, host logs, result.json and cleanup.json. Start-LanTest holds an exclusive lock through automatic testing and cleanup. Existing unknown games/hosts are refused. Player-name changes remain serialized through host acknowledgement to avoid the shared EverConfig/userlocal race; fixed per-client 3-second sleep was removed. This is not full parallel process launch.
+Sessions are under `sessions/<timestamp-id>`, with source hash, host/client identities, host logs, result.json and cleanup.json. Start-LanTest holds an exclusive lock through automatic testing and cleanup. Existing unknown games/hosts are refused. Clients now start concurrently with per-process WAR3_LAN_PLAYER/WAR3_LAN_EVIDENCE environment values. The native name plugin intercepts only Warcraft userlocal reads/writes in this process and stays pinned until exit. All names and host joins are validated together. Arrival order does not imply slot order; manifests record expectedName separately from P1..P6 game log suffixes. Manual launches retain games; automated/failed launches clean owned clients and host.
 
 To stop a manually launched owned session:
 
@@ -31,3 +31,31 @@ To stop a manually launched owned session:
 ```
 
 The stop helper uses `C:/Users/41399/.codex/tools/war3-test-control/Stop-Test.ps1`, which invokes Codex-War3-StopTest. Do not add `-WindowStyle Hidden` to that scheduled PowerShell action: it returned -1 before script execution on this machine. Keep host executable at the fixed bin/ydhost.exe path to preserve firewall identity.
+
+## Parallel deployment (2026-11-11)
+
+Build `native/Build.ps1 -OutputDirectory D:/War3/tools/LanTest/bin` with x86 MSVC.
+Deploy Start-LanTest.ps1 and Prepare-ParallelRuntime.ps1 beside the existing helpers.
+No original KKWE DLL/config is patched by parallel launching. Runtime files are
+refreshed into managed runtime/WE (only obsolete files inside that managed copy
+are removed). Original WE configuration is copied for each launch; only the copy's
+UserName is blanked. Thus the original launcher never races over player names.
+Do not edit runtime/WE; it is generated.
+
+The shared TaskLaunch passes ProjectPath. Under local_test_profile.lock the runner
+uses the existing Switch-LocalTestProfile transaction before copying configuration,
+so cloud scripts and active project INIs follow War3Lib/Xlimon/LH. Standalone CLI
+without ProjectPath retains the currently active profile. Session lock remains held
+through automated cleanup; the profile lock blocks single-player profile switching
+while LAN startup/testing is in progress. Both paths refuse preexisting games.
+
+The process-local isolation covers player names, not independent save files.
+Runtime tests of unique names/six humans are harness coverage, not business OOS
+certification. Existing 3000 ms loader timing remains required for this KKWE build.
+
+Integrated validation: sessions/20261111-022300-d26ebb passed six independent
+name/count assertions (spawn span 0.058711 s, session-to-all-markers 45.67 s)
+and cleanup. sessions/20261111-022423-997235 intentionally lacked a completion
+marker, correctly timed out, and cleaned both clients and host. Historical serial
+comparison 20261110-214752-fbc560 was 112.46 s to all markers; not a controlled
+A/B benchmark. Profile filesystem regressions and all five log parser cases pass.
