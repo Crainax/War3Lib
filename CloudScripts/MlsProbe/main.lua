@@ -97,3 +97,5 @@ end)
 Log.Info('[MlsProbe] loaded; ping/read do not modify archive; write explicitly saves')
 require(modulePrefix .. 'ga_probe')
 require(modulePrefix .. 'size_probe')
+
+require(modulePrefix .. 'quota_probe')(register, load_archive, reply)

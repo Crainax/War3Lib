@@ -3,6 +3,36 @@
 /*
 MLS 本地联调记录（2026-10-15～2026-10-16；KKWE；玩家槽位 0）
 
+新增额度测试（本地实测结果见下）：s9=状态；s10/s11/s12=领取编号1/2/3；s13=推进测试日期一天。
+  满15秒可领取，每日2次、每周3次；同一天同编号重复领取不发奖，跨局也如此。
+  日期按北京时间自然日/周一，s13偏移持久保存；不修改系统时间。详见 quota_probe.lua。
+
+额度测试实测记录（2026-11-10，本地 KKWE，玩家槽位0）：
+  日志目录：魔兽目录/War3Lib/日志。
+  log-2026-11-10-14-14-41-P1.log：GRANTED -> DUPLICATE -> GRANTED -> DAILY_LIMIT；
+    daily=2/2、weekly=2/3、total=2，重复领取未增加计数。
+  log-2026-11-10-14-16-18-P1.log：重开 STATUS 仍为2/2、2/3、total=2、mask=3；
+    再领编号1返回DUPLICATE，证明本地跨局额度和去重记录保留。
+  log-2026-11-10-14-16-45-P1.log：s13推进一天，daily=0、weekly=2、total=2；
+    18秒领取成功，weekly=3/3；20秒再次领取返回WEEKLY_LIMIT，daily仍为1/2。
+  前三局结束时，INI的 MLS-ScriptArchive-0 / mls_quota_v1 为：
+    {daily=1,weekly=3,total=3,offset=1,day=20768,week=2967,mask=1}。
+    原count=3、score=20及其他测试字段仍保留；trace/info双日志不代表执行两次。
+  已实测：日上限、周上限、同局/跨局重复领取、跨局保留、模拟跨日重置日额度。
+  补测 log-2026-11-10-14-19-48-P1.log：week=2967、weekly=3/3，经s13推进到
+    week=2968时weekly归零，total仍为3；继续推进到week=2969、offset=16。
+  补测 log-2026-11-10-14-20-42-P1.log：重开仍为week=2969、offset=16，
+    roomSeconds=9、9、14的三次领取均返回TOO_EARLY；daily=0、weekly=0、total=3、
+    mask=0均未改变，确认拒绝不扣额度、不标记已领取，重置状态跨局保留。
+  补测后INI最终值：{daily=0,weekly=0,total=3,offset=16,day=20783,week=2969,mask=0}。
+  补测已通过：不足15秒拒绝领取、模拟跨周额度重置、重置状态跨局保留。
+  精确15秒边界仍仅离线验证；游戏内已分别观察14秒拒绝、此前18秒成功，
+    最新一局没有>=15秒再次领取的记录。模拟跨周使用s13，并非等待真实周一。
+  补测时长：先s13推进到新的一天使mask=0，退出重开；尽早输入s10，回包须为
+    TOO_EARLY且roomSeconds<15；等待>=15秒再输入同一命令。若周额度已满，后一次
+    会返回WEEKLY_LIMIT（符合检查顺序）；需要成功对照时先推进到新周且确认额度空闲。
+  本地INI落盘不等于正式平台持久化或跨房间并发保证；未进行线上验证。
+
 运行配置：
   KKWE EnableMlScript=1
   MlScriptFolder=D:/War3/Library/War3Lib/CloudScripts/MlsProbe
@@ -76,6 +106,7 @@ library UTMlsProbe requires MlsProbe, UnitTestFramwork {
     }
     function Read() { Send("MlsProbeRead", "", 2); }
     function Init() {
+        Report("QUOTA s9=status; s10/s11/s12=claim 1/2/3; s13=next test day. Wait 15s, daily=2 weekly=3.");
         Report("s1=ping; s2=player count+1 score+10; s3=player read; s4=GA get; s5=GA set 73100; s6=GA +7.");
         Report("GA key=war3lib:mlsprobe:ga:v1. Reopen then s4 BEFORE s5 to check persistence.");
         Report("s7=100-player JSON byte measurement; s8=4095/4096/4097/rank100 storage boundaries.");
@@ -182,6 +213,14 @@ library UTMlsProbe requires MlsProbe, UnitTestFramwork {
             Report("SIZE DONE " + DzGetTriggerSyncData());
         });
         tr = CreateTrigger();
+        DzTriggerRegisterSyncData(tr, "MlsQuotaResult", true);
+        TriggerAddAction(tr, function() {
+            if (DzGetTriggerSyncPlayer() != Player(0) || stage != 6) return;
+            PauseTimer(watchdog);
+            stage = 0;
+            Report("QUOTA " + DzGetTriggerSyncData());
+        });
+        tr = CreateTrigger();
         DzTriggerRegisterSyncData(tr, "MlsProbeGAError", true);
         DzTriggerRegisterSyncData(tr, "MlsProbeError", true);
         DzTriggerRegisterSyncData(tr, "_mlroomfail", true);
@@ -203,6 +242,11 @@ library UTMlsProbe requires MlsProbe, UnitTestFramwork {
                 else if (str == "s6") Send("MlsProbeGA", "incr", 4);
                 else if (str == "s7") Send("MlsSize", "measure", 5);
                 else if (str == "s8") Send("MlsSize", "boundary", 5);
+                else if (str == "s9") Send("MlsQuota", "status", 6);
+                else if (str == "s10") Send("MlsQuota", "1", 6);
+                else if (str == "s11") Send("MlsQuota", "2", 6);
+                else if (str == "s12") Send("MlsQuota", "3", 6);
+                else if (str == "s13") Send("MlsQuota", "nextday", 6);
             }
         });
         Init();
