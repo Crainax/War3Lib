@@ -54,6 +54,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
         private static boolean lastShowAtkTexture   = false; // 上一次是否使用自定义贴图
 
         // 上一次的状态（用于判断是否需要更新显示）
+        private static boolean lastIsDead = false;
         private static boolean lastIsInvulnerable = false;
         private static boolean lastIsMagicImmune = false;
         private static integer lastMainAttrType = -1; // 上一次的主属性类型（-1表示未初始化）
@@ -82,7 +83,7 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
 
         // 内部：更新攻击 / 防御显示
         private static method updateAttackDefense (unit u, real atk, integer def) {
-            boolean isInvul; boolean isMagicImm; string armorText;
+            boolean isDead; boolean isInvul; boolean isMagicImm; string armorText;
             real baseAtk; real extraAtk; boolean showExtra;
             string extraText;
             string atkValueStr; boolean showAtkValueStr;
@@ -201,6 +202,11 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
                 }
             }
 
+            // 地图可提供只读的业务阵亡判断；未配置时沿用原显示。
+            isDead = false;
+            #ifdef UNITPANEL_IS_DEAD
+            isDead = UNITPANEL_IS_DEAD(u);
+            #endif
             // 检查状态（无敌 / 魔免，用于防御显示）
             isInvul = unitAttrShow.isInvulnerable(u);
             isMagicImm = unitAttrShow.isMagicImmune(u);
@@ -245,15 +251,16 @@ library UnitAttrShow requires UnitPanel,UnitUtils,Hardware,UnitBuff,UnitFilter {
                 lastShowResist = showResist;
             }
 
-            // 更新防御显示（处理无敌和魔免状态）
-            if (!inited || def != lastDefense || isInvul != lastIsInvulnerable) {
+            // 阵亡优先于无敌；进入/退出状态时即使护甲未变化也刷新。
+            if (!inited || def != lastDefense || isDead != lastIsDead || isInvul != lastIsInvulnerable) {
 
                 lastDefense = def;
+                lastIsDead = isDead;
                 lastIsInvulnerable = isInvul;
 
-                if (isInvul) {
-                    // 无敌：显示红色"无敌的"
-                    armorText = "|cffff0000无敌的|r";
+                if (isDead || isInvul) {
+                    if (isDead) { armorText = "|cffff0000已阵亡|r"; }
+                    else { armorText = "|cffff0000无敌的|r"; }
                     unitPanel.textArmorValue.setText(armorText);
                     unitPanel.showArmorExtra(false);
                     lastShowDefenseExtra = false;
