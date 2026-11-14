@@ -3,7 +3,7 @@
 // 用空地图测试
 #define EmptyMapUnitTestMode
 
-#include "D:/War3/Library/War3Lib/Jass/learn/InstantAttackFacing_Test.j"
+#include "Jass/ui/composite/museum/MuseumScrollDemo_Test.j"
 
 
 
