@@ -1,0 +1,48 @@
+{
+  "version": 4,
+  "compile": "PASS",
+  "backend": "vjassc",
+  "mode": "VERSION_UNITTEST",
+  "package_checks": "PASS: templates, four imported fonts and license match sources",
+  "runtime": "V4 manually validated by user; no V4 automated run",
+  "visual_verified": true,
+  "rows": 15,
+  "row_spacing": 0.02,
+  "yahei_sha256": "42c02cfcf0010d5fd00125e6c7a5e99eb2ccccab9187b06755fa02fe5c44bf81",
+  "map_sha256": "15d9a264af2511ee7ff8570f204268e5c89da3df47106ea3e4ada2f7c2fca049",
+  "manual_validation": {
+    "date": "2026-11-16",
+    "status": "user_confirmed",
+    "statement": "测试完了",
+    "evidence": "font-comparison.png",
+    "scope": "V4 five fonts, three outline settings; screenshot supplied by user"
+  },
+  "automated_v1": {
+    "date": "2026-11-16",
+    "status": "PASS",
+    "session": "D:\\War3\\tools\\LanTest\\pool\\A\\sessions\\20261116-030238-A-903c09",
+    "assertions": 39,
+    "scope": "TEXT creation and API return values; packed templates verified; visual pending",
+    "visual_verified": false,
+    "multiplayer_verified": false,
+    "cleanup": {
+      "errors": [],
+      "success": true,
+      "utc": "2026-11-15T19:03:03.2843000Z",
+      "ownerId": "font-style-research"
+    },
+    "map_sha256": "c166fc9ced6aa6af8d007e04f7600b78c755bd67866c8014c7d1bbb9d82e5cf9",
+    "evidence": "runtime-v1.txt"
+  },
+  "post_manual_change": "Removed unused DzMemory dependency and moved identical Lua bootstrap suppression into test helper; no display changes; recompiled and package checked; not game-retested",
+  "post_manual_map_sha256": "a61f7cdf3e315db576cc9a8a36c1871187adf430cdf52c9f4f3e1abc97f45d30",
+  "sources": {
+    "Jass\\ui\\components\\text\\UITextFontStyle.cfg": "cd4f72950987893b11a22b574d511323ba4d9a5032426473d628c522887d0e85",
+    "Jass\\ui\\components\\text\\UITextFontStyle.fdf": "37cee8a7ad8a3b33713f77897f57f7743578b190fb380b174170ac7110e42916",
+    "Jass\\ui\\components\\text\\UITextFontStyle.j": "090a88a18bc8a4f67402e12006786a69402be69d7371b639df9860999e7c6f78",
+    "Jass\\ui\\components\\text\\UITextFontStyle.md": "5313b9a7c68baf9a31303b023992ada2ac7fe712a6aeac7637119e3c4f945eb7",
+    "Jass\\ui\\components\\text\\UITextFontStyle.toc": "fa5458abc13f8836ce6718beb95bb3642eda60416635406357705c4be9d7e097",
+    "Jass\\ui\\components\\text\\UITextFontStyle_Test.j": "73b7f0a9954b7e52cb073cdd65c511e9817b4dbbe487b4904fdd3f22bc9834e7"
+  },
+  "evidence_format": "runtime-v1.txt preserves log content with trailing blank lines removed"
+}
