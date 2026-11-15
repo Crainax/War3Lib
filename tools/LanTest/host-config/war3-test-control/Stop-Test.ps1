@@ -1,4 +1,4 @@
-param(
+﻿param(
     [Parameter(Mandatory=$true)][int]$TestProcessId,
     [Parameter(Mandatory=$true)][long]$CreationUtcTicks
 )
@@ -14,8 +14,21 @@ if ($instance.CreationDate.ToUniversalTime().Ticks -ne $CreationUtcTicks) { thro
 $null = New-Item -ItemType Directory -Path $controlRoot -Force
 $lock = $null
 try {
-    $lock = [IO.File]::Open((Join-Path $controlRoot 'client.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
-    if ($task.State -eq 4) { throw 'Stop task is already running.' }
+    $queueDeadline=[datetime]::UtcNow.AddSeconds(60)
+    while (!$lock) {
+        try { $lock = [IO.File]::Open((Join-Path $controlRoot 'client.lock'), 'OpenOrCreate', 'ReadWrite', 'None') }
+        catch [IO.IOException] {
+            if ([datetime]::UtcNow -ge $queueDeadline) { throw 'Cleanup queue timed out; no request was overwritten.' }
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    while ($task.State -eq 4) {
+        if ([datetime]::UtcNow -ge $queueDeadline) { throw 'Previous stop task still running; request preserved.' }
+        Start-Sleep -Milliseconds 500
+    }
+    $instance = Get-CimInstance Win32_Process -Filter "ProcessId = $TestProcessId"
+    if (!$instance) { Write-Output 'Target already exited.'; exit 0 }
+    if ($instance.Name -ine 'war3.exe' -or $instance.CreationDate.ToUniversalTime().Ticks -ne $CreationUtcTicks) { throw 'Target identity changed while waiting; refusing cleanup.' }
     $requestId = [guid]::NewGuid().ToString()
     [ordered]@{
         RequestId = $requestId

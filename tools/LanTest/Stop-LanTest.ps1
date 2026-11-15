@@ -1,6 +1,9 @@
-param([Parameter(Mandatory=$true)][string]$SessionPath)
+﻿param([Parameter(Mandatory=$true)][string]$SessionPath, [string]$OwnerId)
 $ErrorActionPreference = 'Stop'
 $manifest = Get-Content -LiteralPath (Join-Path $SessionPath 'session.json') -Raw | ConvertFrom-Json
+if ($OwnerId -and (!$manifest.PSObject.Properties['ownerId'] -or $manifest.ownerId -cne $OwnerId)) {
+    throw 'Session owner mismatch; no process was stopped.'
+}
 $errors = @()
 foreach ($client in $manifest.clientProcesses) {
     try {

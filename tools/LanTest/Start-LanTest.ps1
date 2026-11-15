@@ -12,14 +12,19 @@
     [string]$MapConfigOverride,
     [switch]$UseScriptSlots,
     [switch]$Automated,
+    [string]$OwnerId = $env:CODEX_THREAD_ID,
+    [ValidateRange(1,86400)][int]$QueueTimeoutSeconds = 3600,
     [string]$ClientLogDirectory,
     [string]$CompletionPattern,
     [ValidateRange(10,1800)][int]$TimeoutSeconds = 120,
-    [ValidateRange(0,120)][int]$SmokeSeconds = 0
+    [ValidateRange(0,120)][int]$SmokeSeconds = 0,
+    [switch]$ExpectMapExit,
+    [ValidateRange(1,60)][int]$ExitObserveSeconds = 10
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($Automated -and $SmokeSeconds -eq 0 -and (!$ClientLogDirectory -or !$CompletionPattern)) { throw 'Automated assertion tests require ClientLogDirectory and CompletionPattern; use SmokeSeconds only for a labelled smoke test.' }
+if ($ExpectMapExit -and (!$Automated -or $Clients -ne 1 -or $SmokeSeconds -ne 0)) { throw 'Expected map exit requires a one-client automated assertion run.' }
 $session = $null
 $manifest = $null
 $launchSucceeded = $false
@@ -38,12 +43,20 @@ function Collect-Clients {
         }
     }
 }
-$sessionLock = [IO.File]::Open((Join-Path $PSScriptRoot 'session.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
+. (Join-Path $PSScriptRoot 'SessionQueue.ps1')
+if (!$OwnerId) { $OwnerId = 'runner-' + $PID }
+$queueLease=$null
+if ($Automated -and !$PrepareOnly) {
+    $queueLease=Enter-LanQueue -Root $PSScriptRoot -OwnerId $OwnerId -MapPath $MapPath -WaitSeconds $QueueTimeoutSeconds
+    $sessionLock=$queueLease.Lock
+} else {
+    $sessionLock = [IO.File]::Open((Join-Path $PSScriptRoot 'session.lock'), 'OpenOrCreate', 'ReadWrite', 'None')
+}
 try {
 $map = (Resolve-Path -LiteralPath $MapPath).Path
 if ([IO.Path]::GetExtension($map) -notin @('.w3x','.w3m')) { throw 'Provide a packaged .w3x/.w3m map.' }
 if (!$PrepareOnly -and @(Get-Process -Name war3,'Warcraft III',ydhost -ErrorAction SilentlyContinue).Count) {
-    throw 'Existing Warcraft/ydhost process found. Existing unrelated session is not owned by this run; stop it through its session manifest first.'
+    throw 'Existing Warcraft/ydhost process found. Existing game is preserved. Defer this run; do not request manual closure or stop another session.'
 }
 $installed = (Get-ItemProperty 'HKCU:\Software\Blizzard Entertainment\Warcraft III').InstallPath
 if ([IO.Path]::GetFullPath($installed).TrimEnd('\') -ine [IO.Path]::GetFullPath($GamePath).TrimEnd('\')) {
@@ -79,7 +92,7 @@ bot_mappath = $relative
 bot_mapcfgpath = map.cfg
 "@
 [IO.File]::WriteAllText((Join-Path $session 'ydhost.cfg'), $cfg, [Text.UTF8Encoding]::new($false))
-$manifest = [ordered]@{ session=$session; sourceMap=$map; sha256=(Get-FileHash -LiteralPath $map).Hash; gameMap=$gameMap; clients=$Clients; autoJoin=(!$ManualJoin); legacySizeCap=[bool]$LegacySizeCap; useScriptSlots=[bool]$UseScriptSlots; mapConfigOverride=$MapConfigOverride; startedUtc=[datetime]::UtcNow.ToString("o"); hostPid=$null; hostCreationUtcTicks=$null; clientPids=@(); clientProcesses=@(); gameName=$gameName }
+$manifest = [ordered]@{ session=$session; sourceMap=$map; ownerId=$OwnerId; automated=[bool]$Automated; runnerPid=$PID; queueTicket=$(if($queueLease){$queueLease.Ticket}else{$null}); sha256=(Get-FileHash -LiteralPath $map).Hash; gameMap=$gameMap; clients=$Clients; autoJoin=(!$ManualJoin); legacySizeCap=[bool]$LegacySizeCap; useScriptSlots=[bool]$UseScriptSlots; mapConfigOverride=$MapConfigOverride; startedUtc=[datetime]::UtcNow.ToString("o"); hostPid=$null; hostCreationUtcTicks=$null; clientPids=@(); clientProcesses=@(); gameName=$gameName }
 function Save-Manifest { $manifest | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $session 'session.json') -Encoding UTF8 }
 Save-Manifest
 if ($PrepareOnly) { Write-Host "Prepared: $session"; return }
@@ -156,7 +169,7 @@ Write-Host 'Process startup is not proof of loading. Check host-stdout.log for p
 
 $launchSucceeded = $true
 if ($Automated) {
-    & (Join-Path $PSScriptRoot 'Wait-LanTest.ps1') -SessionPath $session -ClientLogDirectory $ClientLogDirectory -CompletionPattern $CompletionPattern -TimeoutSeconds $TimeoutSeconds -SmokeSeconds $SmokeSeconds
+    & (Join-Path $PSScriptRoot 'Wait-LanTest.ps1') -SessionPath $session -ClientLogDirectory $ClientLogDirectory -CompletionPattern $CompletionPattern -TimeoutSeconds $TimeoutSeconds -SmokeSeconds $SmokeSeconds -ExpectMapExit:$ExpectMapExit -ExitObserveSeconds $ExitObserveSeconds
 }
 } catch {
     if ($session -and !(Test-Path -LiteralPath (Join-Path $session 'result.json'))) {
@@ -175,8 +188,8 @@ if ($Automated) {
                 } catch { $launcherErrors += $_.Exception.Message }
             }
             try { Collect-Clients }
-            finally { & (Join-Path $PSScriptRoot 'Stop-LanTest.ps1') -SessionPath $session }
+            finally { & (Join-Path $PSScriptRoot 'Stop-LanTest.ps1') -SessionPath $session -OwnerId $OwnerId }
             if ($launcherErrors.Count) { throw ('Launcher cleanup failed: '+($launcherErrors -join '; ')) }
         }
-    } finally { if ($profileLock) { $profileLock.Dispose() }; $sessionLock.Dispose() }
+    } finally { if ($profileLock) { $profileLock.Dispose() }; if($queueLease){Exit-LanQueue $queueLease $session}else{$sessionLock.Dispose()} }
 }
