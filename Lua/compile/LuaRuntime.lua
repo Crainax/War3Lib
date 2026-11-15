@@ -60,6 +60,10 @@ local function luaString(value)
 end
 
 local function isLocalLuaMode()
+    if path.project == path.libRoot and path.buildVersion == '单元测试' then
+        local target = require('Lua.compile.UnitTestTarget').selected(path.project, path.testScenario)
+        if (readFile(target) or ''):find('// lua-runtime: packaged', 1, true) then return false end
+    end
     return path.buildVersion == "内测版本" or path.buildVersion == "单元测试"
 end
 
@@ -133,6 +137,16 @@ end
 
 local function pluginMainContent()
     local prefix = path.project == path.libRoot and ("package.lua_engine = " .. luaString(path.luaEngine or 'ydlua') .. "\n") or ''
+    -- A selected test can opt into its own experiment without changing the default case.
+    if path.project == path.libRoot and path.luaEngine == 'innerjapi' then
+        local target = require('Lua.compile.UnitTestTarget').selected(path.project, path.testScenario)
+        local text = readFile(target) or ''
+        local experiment = text:match('//%s*innerjapi%-experiment:%s*([%w_%.]+)')
+        if experiment then
+            assert(experiment:match('^script%.experiments%.innerjapi%.cases%.[%w_]+$'), 'Invalid InnerJAPI test module')
+            prefix = prefix .. 'package.innerjapi_experiment = ' .. luaString(experiment) .. '\n'
+        end
+    end
     return prefix .. [[local ok, is_local = pcall(require, 'path')
 
 local console = require 'jass.console'
