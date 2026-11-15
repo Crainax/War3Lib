@@ -1,23 +1,43 @@
-param([Parameter(Mandatory)][ValidateSet('A','B')][string]$Environment,
+param([ValidateSet('Auto','A','B')][string]$Environment='Auto',
  [Parameter(Mandatory)][string]$MapPath,[Parameter(Mandatory)][string]$OwnerId,
- [ValidateRange(1,6)][int]$Clients=2,[int]$QueueTimeoutSeconds=600,[int]$TimeoutSeconds=120,
- [string]$CompletionPattern='\[UT_DONE\] ParallelProbe',[switch]$LegacySizeCap,[switch]$UseScriptSlots)
+ [ValidateRange(1,6)][int]$Clients=2,[ValidateRange(1,86400)][int]$QueueTimeoutSeconds=3600,[ValidateRange(10,1800)][int]$TimeoutSeconds=120,
+ [string]$CompletionPattern,[switch]$LegacySizeCap,[switch]$UseScriptSlots,
+ [string]$ClientLogDirectory,[string]$ProjectPath,[string]$MapConfigOverride,[switch]$ManualJoin,
+ [ValidateRange(0,120)][int]$SmokeSeconds=0,[switch]$ExpectMapExit,[ValidateRange(1,60)][int]$ExitObserveSeconds=10,
+ [string]$LuaRuntime='D:/WE/YDWE1.32.13正式版')
 $ErrorActionPreference='Stop'
-$base='D:/War3/tools/LanTest';$pool=Join-Path $base 'pool';$envRoot=Join-Path $pool $Environment
-$e=Get-Content (Join-Path $envRoot 'environment.json') -Raw|ConvertFrom-Json
-if([IO.Path]::GetFullPath($envRoot) -ine $e.root){throw 'Pool manifest root mismatch'}
-if($e.game -ine (Join-Path $e.root 'Game') -or $e.we -ine (Join-Path $e.root 'WE') -or $e.registryHive -cne ('Software\CodexWar3Pool\'+$Environment)){throw 'Pool manifest isolation paths mismatch'}
-$expectedUdp=if($Environment -eq 'A'){16112}else{16212}
-if($e.udpPort -ne $expectedUdp -or $e.tcpPort -ne ($expectedUdp+1)){throw 'Pool manifest port mismatch'}
+if($PSVersionTable.PSVersion.Major -lt 7){throw 'Pool runner requires PowerShell 7 (pwsh). Use the default Start-LanTest entry for automatic bridging.'}
+if($SmokeSeconds -eq 0 -and !$CompletionPattern){throw 'Pool assertion tests require CompletionPattern; use SmokeSeconds for an explicitly labelled smoke run.'}
+$base='D:/War3/tools/LanTest';$pool=Join-Path $base 'pool'
+$map=(Resolve-Path -LiteralPath $MapPath).Path
+if([IO.Path]::GetExtension($map) -notin '.w3x','.w3m'){throw 'Provide a packaged .w3x/.w3m map.'}
+if($MapConfigOverride){$MapConfigOverride=(Resolve-Path $MapConfigOverride).Path}
+$waitArgs=@{CompletionPattern=$CompletionPattern;TimeoutSeconds=$TimeoutSeconds;SmokeSeconds=$SmokeSeconds}
+if($ExpectMapExit){
+ if($Clients -ne 1 -or $SmokeSeconds -ne 0){throw 'Expected map exit requires a one-client assertion run.'}
+ if(!(Get-Command (Join-Path $base 'Wait-LanTest.ps1')).Parameters.ContainsKey('ExpectMapExit')){throw 'Installed Wait-LanTest does not support ExpectMapExit; no game launched.'}
+ $waitArgs.ExpectMapExit=$true;$waitArgs.ExitObserveSeconds=$ExitObserveSeconds
+}
 $service=New-Object -ComObject Schedule.Service;$service.Connect()
 $task=$service.GetFolder('\').GetTask('Codex-War3-StopTest')
 $encoded=($task.Definition.Actions.Item(1).Arguments -split '-EncodedCommand ')[1]
 $worker=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($encoded))
-if(!$worker.Contains('D:\War3\tools\LanTest\pool\'+$Environment+'\Game\war3.exe')){throw 'Install the reviewed pool cleanup allowlist before launching a game.'}
-. (Join-Path $base 'SessionQueue.ps1')
-. (Join-Path $PSScriptRoot 'ProcessIdentity.ps1')
-$busy={Get-PoolBusyProcesses -PoolRoot $pool -EnvironmentRoot $e.root}
-$lease=Enter-LanQueue -Root $envRoot -OwnerId $OwnerId -MapPath $MapPath -WaitSeconds $QueueTimeoutSeconds -BusyProbe $busy
+$environments=@{}
+foreach($name in 'A','B'){
+ $root=Join-Path $pool $name;$config=Get-Content (Join-Path $root 'environment.json') -Raw|ConvertFrom-Json
+ if([IO.Path]::GetFullPath($root) -ine $config.root -or $config.game -ine (Join-Path $config.root 'Game') -or $config.we -ine (Join-Path $config.root 'WE') -or $config.registryHive -cne ('Software\CodexWar3Pool\'+$name)){throw 'Pool manifest isolation paths mismatch'}
+ $port=if($name -eq 'A'){16112}else{16212}
+ if($config.udpPort -ne $port -or $config.tcpPort -ne ($port+1)){throw 'Pool manifest port mismatch'}
+ if(!$worker.Contains('D:\War3\tools\LanTest\pool\'+$name+'\Game\war3.exe')){throw 'Install the reviewed pool cleanup allowlist before launching a game.'}
+ $environments[$name]=$config
+}
+. (Join-Path $PSScriptRoot 'PoolQueue.ps1')
+. (Join-Path $PSScriptRoot 'PoolConfiguration.ps1')
+# Resolve for both candidates before admission; never watch the human game's logs.
+$logPaths=@{};$candidates=if($Environment -eq 'Auto'){@('A','B')}else{@($Environment)}
+foreach($name in $candidates){$logPaths[$name]=Resolve-PoolLogDirectory $ClientLogDirectory $environments[$name].sourceGame $environments[$name].game}
+$lease=Enter-PoolQueue -Root $pool -OwnerId $OwnerId -MapPath $map -Environment $Environment -WaitSeconds $QueueTimeoutSeconds
+$Environment=$lease.Environment;$e=$environments[$Environment]
 $session=$null;$m=$null;$launchers=@()
 function Save-Manifest {$m|ConvertTo-Json -Depth 6|Set-Content (Join-Path $session 'session.json') -Encoding UTF8}
 function Collect-Clients {
@@ -44,11 +64,13 @@ function Spawn-Pool([string]$Executable,[string]$Directory,[string]$Arguments,[s
  return @{pid=[int]$child.pid;creationUtcTicks=$child.creationUtcTicks;name=$Player}
 }
 try {
- $map=(Resolve-Path -LiteralPath $MapPath).Path
  $id=(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+$Environment+'-'+[guid]::NewGuid().ToString('N').Substring(0,6)
  $session=Join-Path $e.root ('sessions/'+$id);$null=New-Item -ItemType Directory -Force $session
- $relative='Maps\Test\'+$id+'.w3x';$target=Join-Path $e.game $relative
- $m=[ordered]@{environment=$Environment;ownerId=$OwnerId;session=$session;sourceMap=$map;sha256=(Get-FileHash $map).Hash;startedUtc=[datetime]::UtcNow.ToString('o');clients=$Clients;gamePath=$e.game;wePath=$e.we;autoJoin=$true;gameName=('Pool-'+$id);hostPid=$null;hostCreationUtcTicks=$null;clientPids=@();clientProcesses=@();launchers=@();queueTicket=$lease.Ticket}
+ $relative='Maps\Test\'+$id+[IO.Path]::GetExtension($map);$target=Join-Path $e.game $relative
+ $m=[ordered]@{environment=$Environment;ownerId=$OwnerId;automated=$true;runnerPid=$PID;session=$session;sourceMap=$map;gameMap=$target;sha256=(Get-FileHash $map).Hash;startedUtc=[datetime]::UtcNow.ToString('o');clients=$Clients;gamePath=$e.game;wePath=$e.we;clientLogDirectory=$logPaths[$Environment];autoJoin=(!$ManualJoin);gameName=('Pool-'+$id);hostPid=$null;hostCreationUtcTicks=$null;clientPids=@();clientProcesses=@();launchers=@();queueTicket=$lease.Ticket}
+ Save-Manifest
+ $m['projectConfiguration']=Set-PoolProject -ProjectPath $ProjectPath -Environment $e -Session $session
+ $null=New-Item -ItemType Directory -Force $m.clientLogDirectory
  Save-Manifest
  foreach($dir in 'User/AppData/Roaming','User/AppData/Local','User/Documents'){$null=New-Item -ItemType Directory -Force (Join-Path $e.root $dir)}
  foreach($file in 'ydhost.exe','vcruntime140.dll','msvcp140.dll'){Copy-Item (Join-Path $base "bin/$file") (Join-Path $e.root "bin/$file")}
@@ -57,21 +79,23 @@ try {
  $cfg=Join-Path $e.we 'plugin/warcraft3/config.cfg';$text=Get-Content $cfg -Raw
  foreach($plugin in 'lan_player_name.dll','zz_pool_context.dll'){if($text -notmatch [regex]::Escape($plugin)){$text+="`r`n$plugin = 1"}}
  [IO.File]::WriteAllText($cfg,$text,[Text.UTF8Encoding]::new($false))
- $lua='D:/WE/YDWE1.32.13正式版';$mapCfg=Join-Path $session 'map.cfg'
+ $lua=$LuaRuntime;$mapCfg=Join-Path $session 'map.cfg'
  & (Join-Path $lua 'bin/lua.exe') (Join-Path $base 'map_config.lua') $lua $e.we $map $mapCfg $Clients ([int][bool]$UseScriptSlots)
  if($LASTEXITCODE -ne 0){throw 'Map configuration failed'}
  if($LegacySizeCap -and (Get-Item $map).Length -gt 8388607){$text=Get-Content $mapCfg -Raw;$text=[regex]::Replace($text,'(?m)^map_size = [^\r\n]+','map_size = 255 255 127 0');[IO.File]::WriteAllText($mapCfg,$text)}
+ if($MapConfigOverride){Copy-Item -LiteralPath $MapConfigOverride -Destination $mapCfg}
  $auto=if($Clients -eq 1){1}else{2}
  "lan_war3version = 27`nbot_defaultgamename = $($m.gameName)`nbot_autostart = $auto`nbot_mappath = $relative`nbot_mapcfgpath = map.cfg`n"|Set-Content (Join-Path $session 'ydhost.cfg') -Encoding ascii
  Copy-Item $map $target
  $hostRecord=Spawn-Pool (Join-Path $e.root 'bin/ydhost.exe') $session '' host
  $m.hostPid=$hostRecord.pid;$m.hostCreationUtcTicks=$hostRecord.creationUtcTicks;Save-Manifest
- foreach($i in 1..$Clients){$record=Spawn-Pool (Join-Path $e.we 'bin/YDWEConfig.exe') $e.game '-launchwar3 -window -auto' "LanP$i";$launchers+=$record;$m.launchers+=$record;Save-Manifest}
+ $arguments=if($ManualJoin){'-launchwar3 -window'}else{'-launchwar3 -window -auto'}
+ foreach($i in 1..$Clients){$record=Spawn-Pool (Join-Path $e.we 'bin/YDWEConfig.exe') $e.game $arguments "LanP$i";$launchers+=$record;$m.launchers+=$record;Save-Manifest}
  $deadline=[datetime]::UtcNow.AddSeconds(45)
  do {Collect-Clients;if($m.clientPids.Count -eq $Clients){break};Start-Sleep -Milliseconds 200}while([datetime]::UtcNow -lt $deadline)
  if($m.clientPids.Count -ne $Clients){throw 'Pool child discovery failed'}
  Write-Host "Pool $Environment session: $session"
- & (Join-Path $base 'Wait-LanTest.ps1') -SessionPath $session -ClientLogDirectory (Join-Path $e.game 'War3Lib/日志') -CompletionPattern $CompletionPattern -TimeoutSeconds $TimeoutSeconds
+ & (Join-Path $base 'Wait-LanTest.ps1') -SessionPath $session -ClientLogDirectory $m.clientLogDirectory @waitArgs
 }catch{
  if($session -and !(Test-Path (Join-Path $session 'result.json'))){@{status='FAIL';message=$_.Exception.Message}|ConvertTo-Json|Set-Content (Join-Path $session 'result.json') -Encoding UTF8}
  throw
@@ -81,5 +105,5 @@ try {
    foreach($launcher in $launchers){$p=Get-CimInstance Win32_Process -Filter "ProcessId = $($launcher.pid)";if($p -and $p.CreationDate.ToUniversalTime().Ticks.ToString() -eq $launcher.creationUtcTicks){Stop-Process -Id $launcher.pid -Force -ErrorAction Continue}}
    try {Collect-Clients} finally {& (Join-Path $PSScriptRoot 'Stop-PoolTest.ps1') -SessionPath $session -OwnerId $OwnerId}
   }
- }finally{Exit-LanQueue $lease $session}
+ }finally{Exit-PoolQueue $lease $session}
 }

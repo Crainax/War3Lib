@@ -40,7 +40,6 @@ static void note(const char* text) {
 }
 static void noteWide(LPCWSTR text){char buffer[4096];WideCharToMultiByte(CP_UTF8,0,text,-1,buffer,sizeof(buffer),nullptr,nullptr);note(buffer);}
 extern "C" __declspec(dllexport) void Initialize();
-static HINSTANCE selfModule;
 static bool inject(HANDLE process,HANDLE mainThread) {
  // Chain immediately before YDWE's suspended-thread loader, without starting a
  // remote thread (which initializes Warcraft before YDWE can install its loader).
@@ -154,11 +153,6 @@ static void installNetwork(HMODULE target){
 }
 static DWORD WINAPI delayedNetwork(LPVOID module){
  Sleep(750);installNetwork((HMODULE)module);
- // Read-only diagnostics for the verified installed loader build; no UI calls.
- BYTE* loader=(BYTE*)GetModuleHandleW(L"yd_loader.dll");
- if(loader && loader[0x1252]==0x68 && *(DWORD*)(loader+0x1253)==3000){
-  for(int i=0;i<20;++i){char status[100];sprintf_s(status,"AUTO_STATE enabled=%u status=%d map=%u",loader[0x16014],*(int*)(loader+0x1660c),loader[0x16608]);note(status);Sleep(1000);}
- }
  return 0;
 }
 static LONG networkScheduled=0;
@@ -184,7 +178,6 @@ extern "C" __declspec(dllexport) void Initialize(){
 extern "C" __declspec(dllexport) const char* PluginName(){return "pool_context";}
 BOOL WINAPI DllMain(HINSTANCE instance,DWORD reason,LPVOID){
  if(reason!=DLL_PROCESS_ATTACH)return TRUE;
- selfModule=instance;
  DisableThreadLibraryCalls(instance);
  if(!GetEnvironmentVariableW(L"WAR3_POOL_HIVE",hive,256))return TRUE;
  GetEnvironmentVariableW(L"WAR3_POOL_GAME",game,MAX_PATH);GetEnvironmentVariableW(L"WAR3_POOL_EVIDENCE",evidence,MAX_PATH);

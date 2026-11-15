@@ -1,14 +1,23 @@
-# Independent A/B pool (opt-in)
+# Automatic A/B test pool
 
-The existing default launcher and its global queue remain unchanged. The pool is
-an explicit opt-in; automatic environment selection is not implemented.
+`Start-LanTest.ps1 -Automated` automatically chooses a free environment; if both
+are occupied it queues. `-PoolEnvironment A|B` pins an environment. Manual and
+PrepareOnly calls retain the original entry behavior. Windows PowerShell callers
+are bridged to PowerShell 7 through a serialized request, without shell string
+interpolation. The direct pool entry accepts `-Environment Auto|A|B`.
 The pool uses fixed directories `D:/War3/tools/LanTest/pool/A` and `B`.
 
 ## Isolation
 
 - Physical copies of game binaries/MPQs and WE, with private Maps, Save, Replay,
   logs, cloud entry, TEMP and user application-data directories. No links to the
-  human game's mutable files. Project cloud handlers are not automatically shared.
+  human game's mutable files. With ProjectPath, CloudScripts is physically copied
+  to the session and private WE points at that snapshot. Project INI seeds are
+  read under the human profile lock and copied to the pool before each test.
+  Test writes are never copied back. Without ProjectPath, cloud entry is empty
+  and INIs use a copy of the current local profile. Tests requiring cross-session
+  archive persistence must explicitly manage fixtures; random A/B selection must
+  not implicitly select a previous task's data.
 - A private registry subtree per environment. A bootstrap DLL redirects Warcraft
   HKCU/HKLM opens in the launcher/game imports to that subtree. Other Windows
   registry keys remain available. Whole-HKCU redirection was removed during
@@ -20,7 +29,11 @@ The pool uses fixed directories `D:/War3/tools/LanTest/pool/A` and `B`.
   advertisements are discarded, and foreign TCP room ports are refused.
 - The installed YDWE `-auto` remains responsible for entering the room. No desktop
   enumeration, input automation, screenshots or window manipulation is added.
-- Each environment has its own FIFO lease. PID/creation/path identity plus OwnerId
+- One pool FIFO allocator reserves either environment's exclusive lease. An older
+  compatible waiter has priority; a waiter pinned to busy A does not block free B.
+  A shared legacy guard prevents old/manual CLI launches racing pool admission.
+  Queue JSON updates use atomic replacement so readers cannot miss a waiter.
+  PID/creation/path identity plus OwnerId
   control cleanup; game termination still uses Codex-War3-StopTest. Its worker must
   explicitly allow the two fixed pool game paths. Launch fails before creating a
   game if the installed task does not contain the required path.
@@ -33,7 +46,9 @@ Run with PowerShell 7 (ProcessStartInfo.ArgumentList is used):
 & ./Prepare-Pool.ps1
 & ./Build-Pool.ps1
 & ./Verify-PoolIsolation.ps1
-& ./Start-PoolTest.ps1 -Environment A -OwnerId task-A -MapPath D:/War3/tools/LanTest/probes/parallel/Runtime-Two.w3x -LegacySizeCap -UseScriptSlots
+& ./Verify-PoolQueue.ps1
+& ./Verify-PoolConfiguration.ps1
+& ../Start-LanTest.ps1 -Automated -OwnerId task-A -MapPath D:/path/test.w3x -Clients 2 -ProjectPath D:/War3/Library/War3Lib -CompletionPattern '\[UT_DONE\]' -LegacySizeCap -UseScriptSlots
 ```
 
 Prepare refuses an occupied environment and holds its lock; never rebuild/replace
@@ -42,12 +57,42 @@ cleanup tool. Default/manual game processes and other agents' sessions are not
 cleanup candidates. Host-only verification takes the existing global queue as an
 extra precaution during development.
 
-`Verify-PoolIsolation.ps1` and the native probe are retained as repeatable
+`Verify-PoolIsolation.ps1`, `Verify-PoolQueue.ps1`, `Verify-PoolConfiguration.ps1`
+and the native probe are retained as repeatable
 regression checks. Machine-specific host/gameplay acceptance scripts are local
 diagnostics under the installed pool's `diagnostics/` directory, not source
 dependencies. Generated maps, save probes and session logs are not committed.
 
+ClientLogDirectory defaults to `War3Lib/日志` in the assigned game directory.
+Relative paths and paths under the original game directory are remapped into the
+selected game; unrelated absolute paths and escaping `..` paths are refused.
+Custom game/WE paths or profile scripts are not silently ignored: use separately
+prepared/validated environments for those. ExpectMapExit is forwarded only when
+the installed waiter supports it; otherwise the request fails before launch.
+The current waiter does not support that option.
+
+New queue tickets are under `pool/queue`; sessions remain under
+`pool/A/sessions` and `pool/B/sessions`. A queue deadline is DEFERRED. FINISHED
+only means reservation release; inspect result.json and cleanup.json as before.
+Manual/unknown/legacy games block automatic allocation and are never terminated.
+
 ## Validation status 2026-11-16
+
+Default-entry pool allocation passed with three independent tasks:
+`default-pool-20261116-023619-53e9c4/result.json` and `timeline.jsonl`.
+Tasks One/Two automatically selected A/B. Three waited about 46 seconds while
+both were reserved, then acquired A about half a second after One's cleanup.
+Two remained live while Three ran. All three sessions passed fresh assertions
+on both clients and successful cleanup; no owned game/host remained. Three used
+Windows PowerShell's automatic PowerShell 7 bridge. Original human game INIs and
+WE config hashes were unchanged; cloud sources and log paths were private.
+Synthetic regressions also cover FIFO ordering, both-busy wait, legacy lock
+exclusion, stale identities, occupancy deferral, profile reset and log-path escape.
+
+Early acceptance collectors failed on a missing initial queue directory and a
+non-atomic ticket replacement gap. The first was diagnostic-only; the allocator
+now uses same-volume atomic replacement. The complete run above passed after
+that fix. Raw-offset loader-state debug reads were removed from the runtime DLL.
 
 Passed native x86 build, private registry read/write tests, Warcraft HKLM routing,
 system Winsock availability, distinct UDP binds, wrong-room rejection and target
