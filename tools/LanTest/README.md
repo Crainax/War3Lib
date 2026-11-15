@@ -13,7 +13,7 @@ OOS failure control also passed: `sessions/20261110-215012-eef794/result.json` r
 Shared War3Lib TaskLaunch supports inline selection `network=single|lan,players=1..6` with the existing selection syntax. The GUI always initializes single-player/1; neither is saved to history. Xlimon/LH multiplayer shortcuts now use the shared chooser instead of Python desktop automation. Manual launches leave clients running.
 
 ```powershell
-& D:/War3/tools/LanTest/Start-LanTest.ps1 -MapPath 'D:/path/test.w3x' -Clients 2 -LegacySizeCap -UseScriptSlots -Automated -ClientLogDirectory 'D:/game/War3Lib/logs' -CompletionPattern '\[UT_DONE\]' -TimeoutSeconds 120
+& D:/War3/tools/LanTest/Start-LanTest.ps1 -MapPath 'D:/path/test.w3x' -Clients 2 -LegacySizeCap -UseScriptSlots -Automated -OwnerId 'task-id' -ClientLogDirectory 'D:/game/War3Lib/logs' -CompletionPattern '\[UT_DONE\]' -TimeoutSeconds 120
 ```
 
 Completion logs must be fresh and uniquely identify players with `-P1.log` etc. Each requested player must finish. FAIL:/[UT_FAIL]/desync messages fail the run; tests must actually write assertions to these logs. `-SmokeSeconds 10` replaces assertion completion only for a clearly labelled SMOKE run, observing from host loading, not proving full map initialization.
@@ -22,7 +22,7 @@ Completion logs must be fresh and uniquely identify players with `-P1.log` etc. 
 
 ## Session and cleanup
 
-Sessions are under `sessions/<timestamp-id>`, with source hash, host/client identities, host logs, result.json and cleanup.json. Start-LanTest holds an exclusive lock through automatic testing and cleanup. Existing unknown games/hosts are refused. Clients now start concurrently with per-process WAR3_LAN_PLAYER/WAR3_LAN_EVIDENCE environment values. The native name plugin intercepts only Warcraft userlocal reads/writes in this process and stays pinned until exit. All names and host joins are validated together. Arrival order does not imply slot order; manifests record expectedName separately from P1..P6 game log suffixes. Manual launches retain games; automated/failed launches clean owned clients and host.
+Sessions are under `sessions/<timestamp-id>`, with source hash, host/client identities, host logs, result.json and cleanup.json. Start-LanTest holds an exclusive lock through automatic testing and cleanup. Automated runs queue while existing games/hosts remain; manual launches refuse existing games/hosts. Clients now start concurrently with per-process WAR3_LAN_PLAYER/WAR3_LAN_EVIDENCE environment values. The native name plugin intercepts only Warcraft userlocal reads/writes in this process and stays pinned until exit. All names and host joins are validated together. Arrival order does not imply slot order; manifests record expectedName separately from P1..P6 game log suffixes. Manual launches retain games; automated/failed launches clean owned clients and host.
 
 To stop a manually launched owned session:
 
@@ -47,7 +47,8 @@ uses the existing Switch-LocalTestProfile transaction before copying configurati
 so cloud scripts and active project INIs follow War3Lib/Xlimon/LH. Standalone CLI
 without ProjectPath retains the currently active profile. Session lock remains held
 through automated cleanup; the profile lock blocks single-player profile switching
-while LAN startup/testing is in progress. Both paths refuse preexisting games.
+while LAN startup/testing is in progress. Automated LAN admission now waits for
+preexisting games as described below; manual paths retain their refusal behavior.
 
 The process-local isolation covers player names, not independent save files.
 Runtime tests of unique names/six humans are harness coverage, not business OOS
@@ -59,3 +60,45 @@ and cleanup. sessions/20261111-022423-997235 intentionally lacked a completion
 marker, correctly timed out, and cleaned both clients and host. Historical serial
 comparison 20261110-214752-fbc560 was 112.46 s to all markers; not a controlled
 A/B benchmark. Profile filesystem regressions and all five log parser cases pass.
+
+## FIFO automatic admission and ownership (2026-11-15)
+
+Use `-Automated -OwnerId <chat-or-task-id> -QueueTimeoutSeconds 3600`.
+Automated runs wait in FIFO order before acquiring the shared session lock.
+Active tests finish and clean up before the next admission. Existing manual or
+unknown games are never terminated: the queue waits until they exit naturally.
+The queue deadline is independent of TimeoutSeconds. On expiry, the ticket under
+queue/ records DEFERRED and the command exits nonzero with LAN_DEFERRED; no game
+was launched by that waiter. Do not ask the user to close a game or bypass the lock.
+
+Tickets record runner PID and creation time, owner, heartbeat, reason and state.
+Dead waiters are skipped, but their surviving games remain protected. This version
+does not automatically recover orphaned game sessions. Heartbeat is refreshed while
+waiting; running ownership is checked by process identity and the live lock.
+Manual mode keeps its existing non-queued behavior and leaves successful games open.
+
+session.json records ownerId, automated and queueTicket. Automatic finally cleanup
+passes OwnerId to Stop-LanTest.ps1; mismatch refuses all cleanup. PID/creation-time
+checks still apply. The scheduled cleanup request channel now waits up to 60 seconds
+for its exclusive lock and rechecks the target identity after waiting. No worker/task
+installation or administrator change is required. Explicit manual Stop-LanTest calls
+remain available; agents must never use them to evict unrelated games.
+
+Validation: Verify-Queue.ps1 exercises competing PowerShell runners, manual/unknown
+occupancy timeout, stale PID identity, and foreign-owner refusal without launching
+or stopping Warcraft. Verify-Runner.ps1 covers completion/OOS/assertion/timeout parsing.
+FINISHED queue state means reservation released; use result.json and cleanup.json
+for test and cleanup outcomes.
+
+2026-11-16 live validation: `Verify-QueueLive.ps1` launched two independent queued
+tasks, each with two clients using the existing Runtime-Two probe. Evidence:
+`sessions/queue-live-20261116-000126/verification.json` and `timeline.jsonl`.
+A (`20261116-000128-7bdb60`) and B (`20261116-000216-bba332`) both automatically
+joined, passed fresh per-client assertions/completion, and cleaned their two clients
+and host with no owned processes remaining. B waited while A ran and was admitted
+about 0.6 seconds after A cleanup. A live cleanup request using B's owner ID against
+A was refused and both A clients remained alive. No manual game was present during
+these two successful runs, so preservation of a simultaneous manual game was not
+live-tested. Use the current PowerShell executable for the verification runners:
+the initial Windows PowerShell attempt failed before launch because Get-FileHash
+was unavailable in that inherited module environment.
