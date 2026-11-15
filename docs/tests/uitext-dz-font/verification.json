@@ -1,0 +1,37 @@
+{
+  "status": "PASS",
+  "session": "D:\\War3\\tools\\LanTest\\sessions\\20261116-000329-8d7cbe",
+  "assertions": 80,
+  "cleanup": {
+    "utc": "2026-11-15T16:04:11.6065114Z",
+    "errors": [],
+    "success": true
+  },
+  "runtime_verified": "scoped setter; polling slider handler; endpoints; retained ppem; original 24 code bytes/native entries/page permissions on return",
+  "final_change_after_runtime": "removed disabled AUTO_EXIT branch and EndGame chat command; scoped setter and slider handler byte-identical; recompiled and repackaged",
+  "map": "Output/dz-font-memory/UITextFontDzSlider.w3x",
+  "map_sha256": "d4fe22aeb7c58f3fe40acd6495e9312696fa6e6d38c2d79d38d71c2464e99e22",
+  "no_lua_entry": true,
+  "no_new_game_dll": true,
+  "source_sha256": "63259c9c466badc812fa2a385a3736286196f62a8f0d337bc5554c4c315f21e7",
+  "EndGame_investigation": "stopped at user request; excluded from font acceptance",
+  "manual_validation": {
+    "status": "user_confirmed",
+    "date": "2026-11-16",
+    "statement": "我验证完了",
+    "automated_visual_capture": false
+  },
+  "compiler": {
+    "backend": "vjassc",
+    "mode": "VERSION_UNITTEST",
+    "status": "PASS"
+  },
+  "sources": {
+    "Jass/ui/components/text/UITextFontDzMemory.j": "2213ba69dca7380d35c9742b70bb6bcec107e0ef2f86decc46a13609fd85e5a6",
+    "Jass/ui/components/text/UITextFontDzMemory_Test.j": "63259c9c466badc812fa2a385a3736286196f62a8f0d337bc5554c4c315f21e7"
+  },
+  "committed_evidence": {
+    "runtime": "runtime.txt",
+    "compile": "compile.txt"
+  }
+}
