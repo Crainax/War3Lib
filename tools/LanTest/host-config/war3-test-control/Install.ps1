@@ -9,12 +9,21 @@ if ($identity.User.Value -ne $expectedSid) { throw 'Use elevation of the origina
 $taskName = 'Codex-War3-StopTest'
 $controlRoot = Join-Path $env:LOCALAPPDATA 'CodexWar3TestControl'
 $null = New-Item -ItemType Directory -Path $controlRoot -Force
+$installLock=$null
+$lockDeadline=[datetime]::UtcNow.AddMinutes(2)
+while(!$installLock){
+    try {$installLock=[IO.File]::Open((Join-Path $controlRoot 'client.lock'),'OpenOrCreate','ReadWrite','None')}
+    catch [IO.IOException] {if([datetime]::UtcNow -ge $lockDeadline){throw 'Cleanup channel busy; installation deferred.'};Start-Sleep -Milliseconds 500}
+}
+try {
 $worker = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'Stop-TestWorker.ps1') -Raw
 $worker = $worker.Replace('__CONTROL_ROOT__', $controlRoot.Replace("'", "''")).Replace('__USER_SID__', $expectedSid)
 $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($worker))
 $service = New-Object -ComObject 'Schedule.Service'
 $service.Connect()
 $root = $service.GetFolder('\')
+try {$previous=$root.GetTask($taskName)} catch {$previous=$null}
+if($previous -and $previous.State -eq 4){throw 'Cleanup task is running; retry installation after it completes.'}
 $definition = $service.NewTask(0)
 $definition.RegistrationInfo.Description = 'On demand only. Terminates one explicitly requested Warcraft test PID after path, owner, session and creation-time validation. Worker code is embedded in the administrator-protected task.'
 $definition.Principal.UserId = $expectedSid
@@ -41,6 +50,7 @@ $requestId = [guid]::NewGuid().ToString()
 @{ RequestId=$requestId; ProcessId=$PID; CreationUtcTicks='0'; SessionId=0; RequestedUtc=[datetime]::UtcNow.ToString('o') } |
     ConvertTo-Json -Compress | Set-Content -LiteralPath (Join-Path $controlRoot 'request.json') -Encoding UTF8
 $installed = $root.GetTask($taskName)
+if($installed.Definition.Actions.Item(1).Arguments -cne ('-NoProfile -NonInteractive -EncodedCommand '+$encoded)) {throw 'Installed task payload does not match the reviewed worker.'}
 $null = $installed.Run($null)
 $deadline = [datetime]::UtcNow.AddSeconds(15)
 $response = $null
@@ -52,4 +62,7 @@ do {
 if (-not $response -or $response.RequestId -ne $requestId) { throw "Task startup self-test failed. LastTaskResult=$($installed.LastTaskResult)" }
 if ($response.Success -or $response.Message -ne 'Target is not the allowlisted Warcraft executable.') { throw "Unexpected self-test result: $($response.Message)" }
 Write-Output 'PASS: scheduled worker started and safely refused a non-game process.'
+@{version='pool-ab-v1';utc=[datetime]::UtcNow.ToString('o');payloadLength=$encoded.Length}|ConvertTo-Json|Set-Content (Join-Path $controlRoot 'installation-receipt.json') -Encoding UTF8
+Write-Output 'PASS: pool-ab-v1 allowlist installed and read back.'
 Write-Output 'No schedule or startup trigger. No password stored. Ready for non-admin game testing.'
+} finally {$installLock.Dispose()}

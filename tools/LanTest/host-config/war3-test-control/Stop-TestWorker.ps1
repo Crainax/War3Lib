@@ -1,7 +1,11 @@
 $ErrorActionPreference = 'Stop'
 $controlRoot = '__CONTROL_ROOT__'
 $allowedSid = '__USER_SID__'
-$allowedExe = 'D:\Program Files (x86)\Warcraft III Frozen Throne\war3.exe'
+$allowedExecutables = @(
+    'D:\Program Files (x86)\Warcraft III Frozen Throne\war3.exe',
+    'D:\War3\tools\LanTest\pool\A\Game\war3.exe',
+    'D:\War3\tools\LanTest\pool\B\Game\war3.exe'
+)
 $requestPath = Join-Path $controlRoot 'request.json'
 $resultPath = Join-Path $controlRoot 'result.json'
 $result = [ordered]@{ RequestId = ''; Success = $false; Message = ''; ProcessId = 0 }
@@ -17,7 +21,8 @@ try {
     if ($targetProcessId -le 0) { throw 'Invalid process ID.' }
     $instance = Get-CimInstance Win32_Process -Filter "ProcessId = $targetProcessId"
     if (-not $instance) { throw 'Target no longer exists; nothing was stopped.' }
-    if ($instance.Name -ine 'war3.exe' -or $instance.ExecutablePath -ine $allowedExe) { throw 'Target is not the allowlisted Warcraft executable.' }
+    if ($instance.Name -ine 'war3.exe' -or $instance.ExecutablePath -notin $allowedExecutables) { throw 'Target is not the allowlisted Warcraft executable.' }
+    $allowedExe = $instance.ExecutablePath
     $owner = Invoke-CimMethod -InputObject $instance -MethodName GetOwnerSid
     if ($owner.ReturnValue -ne 0 -or $owner.Sid -ne $allowedSid) { throw 'Target belongs to another user.' }
     if ([int]$instance.SessionId -ne [int]$request.SessionId) { throw 'Target session changed.' }
