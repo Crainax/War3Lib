@@ -1,6 +1,26 @@
 # LAN test runner
 
-## Current validation
+## Default automatic entry (2026-11-16)
+
+`Start-LanTest.ps1 -Automated -OwnerId <task-id>` now selects an idle A/B
+environment automatically. When both are busy, it waits in `pool/queue` and
+starts after an environment finishes cleanup. `-PoolEnvironment A|B` pins a slot.
+Manual and PrepareOnly calls retain the legacy path. Windows PowerShell callers
+are automatically bridged to PowerShell 7.
+
+Pass ProjectPath to snapshot project CloudScripts and local INI baseline into
+the selected environment. Test writes never copy back to the human environment.
+ClientLogDirectory defaults to private `War3Lib/日志`; relative paths and old
+absolute paths beneath the original game directory are mapped to the assigned
+game. Completion and OOS rules remain unchanged. See [pool/README.md](pool/README.md)
+for isolation limits, queue behavior, evidence, and supported parameters.
+
+Automatic session manifests/results/cleanup are now under `pool/A/sessions` or
+`pool/B/sessions`. The old `sessions/` and queue sections below describe the legacy
+runner and historical evidence. FINISHED is not a test pass; read result.json and
+cleanup.json. Manual/unknown games remain preserved and cause conservative waiting.
+
+## Earlier validation
 
 2026-11-10: integrated shared launcher and verified single/two-client smoke sessions, plus a six-client in-game assertion run. Six-client evidence: `sessions/20261110-214752-fbc560/result.json` (PASS; six fresh P1..P6 logs) and `cleanup.json`. Assertions in the disposable Runtime-Six map check six playing human slots and timer execution, not business correctness of Xlimon/LH. Source maps and active test selection remain unchanged. Automatic timeout cleanup was also exercised twice when joining failed.
 

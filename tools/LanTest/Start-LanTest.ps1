@@ -12,6 +12,7 @@
     [string]$MapConfigOverride,
     [switch]$UseScriptSlots,
     [switch]$Automated,
+    [ValidateSet('Auto','A','B')][string]$PoolEnvironment = 'Auto',
     [string]$OwnerId = $env:CODEX_THREAD_ID,
     [ValidateRange(1,86400)][int]$QueueTimeoutSeconds = 3600,
     [string]$ClientLogDirectory,
@@ -23,8 +24,26 @@
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-if ($Automated -and $SmokeSeconds -eq 0 -and (!$ClientLogDirectory -or !$CompletionPattern)) { throw 'Automated assertion tests require ClientLogDirectory and CompletionPattern; use SmokeSeconds only for a labelled smoke test.' }
+if ($Automated -and $SmokeSeconds -eq 0 -and !$CompletionPattern) { throw 'Automated assertion tests require CompletionPattern; use SmokeSeconds only for a labelled smoke test.' }
 if ($ExpectMapExit -and (!$Automated -or $Clients -ne 1 -or $SmokeSeconds -ne 0)) { throw 'Expected map exit requires a one-client automated assertion run.' }
+if (!$OwnerId) { $OwnerId = 'runner-' + $PID }
+if ($Automated -and !$PrepareOnly) {
+    if ([IO.Path]::GetFullPath($GamePath).TrimEnd('\','/') -ine 'D:\Program Files (x86)\Warcraft III Frozen Throne' -or [IO.Path]::GetFullPath($WEPath).TrimEnd('\','/') -ine 'D:\WE\KKWE_Plugin') { throw 'Automatic tests use the fixed A/B pool. Custom GamePath/WEPath require a separately prepared and validated environment.' }
+    if ($ProfileScript -ne 'D:/War3/Library/War3Lib/script/LocalTestProfile.ps1') { throw 'Custom ProfileScript is not supported by the isolated pool.' }
+    $poolArgs=@{Environment=$PoolEnvironment;MapPath=$MapPath;OwnerId=$OwnerId;Clients=$Clients;QueueTimeoutSeconds=$QueueTimeoutSeconds;TimeoutSeconds=$TimeoutSeconds;CompletionPattern=$CompletionPattern;ClientLogDirectory=$ClientLogDirectory;ProjectPath=$ProjectPath;LuaRuntime=$LuaRuntime;LegacySizeCap=[bool]$LegacySizeCap;UseScriptSlots=[bool]$UseScriptSlots;MapConfigOverride=$MapConfigOverride;ManualJoin=[bool]$ManualJoin;SmokeSeconds=$SmokeSeconds;ExpectMapExit=[bool]$ExpectMapExit;ExitObserveSeconds=$ExitObserveSeconds}
+    if ($PSVersionTable.PSVersion.Major -ge 7) { & (Join-Path $PSScriptRoot 'pool/Start-PoolTest.ps1') @poolArgs }
+    else {
+        $pwsh=(Get-Command pwsh.exe -ErrorAction Stop).Source
+        $request=Join-Path ([IO.Path]::GetTempPath()) ('war3-pool-request-'+[guid]::NewGuid().ToString('N')+'.clixml')
+        try {
+            $poolArgs | Export-Clixml -LiteralPath $request
+            & $pwsh -NoProfile -File (Join-Path $PSScriptRoot 'pool/Invoke-PoolRequest.ps1') -RequestPath $request
+            if ($LASTEXITCODE -ne 0) { throw "Pool runner failed (exit $LASTEXITCODE); inspect its queue/session evidence." }
+        } finally { if(Test-Path -LiteralPath $request){Remove-Item -LiteralPath $request} }
+    }
+    return
+}
+if ($PoolEnvironment -ne 'Auto') { throw 'PoolEnvironment applies only to automated runs.' }
 $session = $null
 $manifest = $null
 $launchSucceeded = $false

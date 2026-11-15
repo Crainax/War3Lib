@@ -1,9 +1,13 @@
+param([int]$QueueTimeoutSeconds=60)
 $ErrorActionPreference='Stop'
 $root='D:\War3\tools\LanTest\pool'
+. (Join-Path $PSScriptRoot 'PoolQueue.ps1')
 $realKey='HKCU:\Software\Blizzard Entertainment\Warcraft III'
 $before=Get-ItemProperty $realKey|Select-Object InstallPath,PoolIsolationProbe|ConvertTo-Json -Compress
 $checks=@()
 foreach($name in 'A','B'){
+ $lease=Enter-PoolQueue -Root $root -OwnerId ('isolation-probe-'+$PID) -MapPath native-isolation-probe -Environment $name -WaitSeconds $QueueTimeoutSeconds
+ try{
  $e=Get-Content (Join-Path $root "$name/environment.json") -Raw|ConvertFrom-Json
  $psi=[Diagnostics.ProcessStartInfo]::new((Join-Path $root 'bin/pool_spawn.exe'))
  $psi.UseShellExecute=$false;$psi.CreateNoWindow=$true;$psi.RedirectStandardOutput=$true;$psi.RedirectStandardError=$true
@@ -19,6 +23,7 @@ foreach($name in 'A','B'){
  $result=Get-Content $output -Raw|ConvertFrom-Json
  if(!$result.registry -or !$result.machineGameKey -or !$result.port -or $result.actualPort -ne $e.udpPort -or !$result.foreignRoomRejected -or !$result.targetRoomAccepted){throw "Pool $name isolation probe failed"}
  $checks+=@{environment=$name;result=$result;evidence=$output}
+ }finally{Exit-PoolQueue $lease ''}
 }
 $after=Get-ItemProperty $realKey|Select-Object InstallPath,PoolIsolationProbe|ConvertTo-Json -Compress
 if($before -cne $after){throw 'Human registry changed during probes'}

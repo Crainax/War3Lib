@@ -16,7 +16,14 @@ function Get-PoolBusyProcesses([string]$PoolRoot,[string]$EnvironmentRoot){
  foreach($p in $games){
   $path=$p.ExecutablePath
   if(!$path){$path=[LanPoolProcessPath]::Read([int]$p.ProcessId)}
-  if($path){if($path.StartsWith($EnvironmentRoot+'\',[StringComparison]::OrdinalIgnoreCase)){$p};continue}
+  if($path){
+   # Only a known OTHER pool can run concurrently. Manual/legacy/outside paths
+   # remain conservative blockers until human-game coexistence is accepted.
+   $other=if((Split-Path $EnvironmentRoot -Leaf) -eq 'A'){'B'}else{'A'}
+   $otherRoot=[IO.Path]::GetFullPath((Join-Path $PoolRoot $other))+'\'
+   if(!$path.StartsWith($otherRoot,[StringComparison]::OrdinalIgnoreCase)){$p}
+   continue
+  }
   # Some KKWE builds hide image paths. Only exact recorded PID/creation identity
   # can classify such a process as belonging to the other pool; unknown stays busy.
   $knownRoot=$null
