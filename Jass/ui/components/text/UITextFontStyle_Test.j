@@ -9,7 +9,7 @@ library UTUITextFontStyle initializer Init requires UITextFontStyle, UnitTestFra
   private string array lines
   private integer serial = 0
   private boolean failed = false
-  private string activeFont = "Fonts\\FontStyle-SimHei.ttf"
+  private string activeFont = "Fonts\\dfst-m3u.ttf"
  endglobals
  private function Check takes boolean ok, string label returns nothing
   call assert.Boolean(ok, label)
@@ -35,7 +35,7 @@ library UTUITextFontStyle initializer Init requires UITextFontStyle, UnitTestFra
   endif
   return f
  endfunction
- // One row per 0.020 UI units; 15 rows stay above the native HUD.
+ // Compact default-font regression; no imported comparison fonts required.
  private function Row takes string label, string value returns integer
   return Text("FSPlain", label + "  " + value, 0.035, 0.55 - I2R(serial) * 0.020, 0)
  endfunction
@@ -61,10 +61,6 @@ library UTUITextFontStyle initializer Init requires UITextFontStyle, UnitTestFra
   call DestroyTimer(GetExpiredTimer())
   call DzLoadToc("ui\\UITextFontStyle.toc")
   call FontGroup("0 原字体", "Fonts\\dfst-m3u.ttf", sample)
-  call FontGroup("1 SimHei", "Fonts\\FontStyle-SimHei.ttf", sample)
-  call FontGroup("2 思源 Bold", "Fonts\\FontStyle-SourceHanSansCN-Bold.ttf", sample)
-  call FontGroup("3 思源 Heavy", "Fonts\\FontStyle-SourceHanSansCN-Heavy.ttf", sample)
-  call FontGroup("4 微软雅黑 Bold", "Fonts\\FontStyle-YaHeiBold.ttf", sample)
   call PreloadGenClear()
   call PreloadGenStart()
   set i = 0
