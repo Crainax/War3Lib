@@ -7,6 +7,14 @@ are bridged to PowerShell 7 through a serialized request, without shell string
 interpolation. The direct pool entry accepts `-Environment Auto|A|B`.
 The pool uses fixed directories `D:/War3/tools/LanTest/pool/A` and `B`.
 
+Project-specific bootstrap adapters may use the direct pool entry's
+`-RuntimeAdapter <ps1> -AdapterOptions <hashtable>`. The runner calls `Prepare`
+after allocation, `Ready` after client discovery, and `Finalize` after owned
+cleanup, before releasing the lease. Each call receives the actual private
+GamePath and SessionPath. An adapter must restore its own temporary files and
+must never clean another session or mutate the human game directory. LHLua uses
+this for immutable source snapshots, digest acknowledgements and j2b restoration.
+
 ## Isolation
 
 - Physical copies of game binaries/MPQs and WE, with private Maps, Save, Replay,

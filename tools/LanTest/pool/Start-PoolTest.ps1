@@ -4,7 +4,8 @@ param([ValidateSet('Auto','A','B')][string]$Environment='Auto',
  [string]$CompletionPattern,[switch]$LegacySizeCap,[switch]$UseScriptSlots,
  [string]$ClientLogDirectory,[string]$ProjectPath,[string]$MapConfigOverride,[switch]$ManualJoin,
  [ValidateRange(0,120)][int]$SmokeSeconds=0,[switch]$ExpectMapExit,[ValidateRange(1,60)][int]$ExitObserveSeconds=10,
- [string]$LuaRuntime='D:/WE/YDWE1.32.13正式版')
+ [string]$LuaRuntime='D:/WE/YDWE1.32.13正式版',
+ [string]$RuntimeAdapter,[hashtable]$AdapterOptions=@{})
 $ErrorActionPreference='Stop'
 if($PSVersionTable.PSVersion.Major -lt 7){throw 'Pool runner requires PowerShell 7 (pwsh). Use the default Start-LanTest entry for automatic bridging.'}
 if($SmokeSeconds -eq 0 -and !$CompletionPattern){throw 'Pool assertion tests require CompletionPattern; use SmokeSeconds for an explicitly labelled smoke run.'}
@@ -12,6 +13,7 @@ $base='D:/War3/tools/LanTest';$pool=Join-Path $base 'pool'
 $map=(Resolve-Path -LiteralPath $MapPath).Path
 if([IO.Path]::GetExtension($map) -notin '.w3x','.w3m'){throw 'Provide a packaged .w3x/.w3m map.'}
 if($MapConfigOverride){$MapConfigOverride=(Resolve-Path $MapConfigOverride).Path}
+if($RuntimeAdapter){$RuntimeAdapter=(Resolve-Path -LiteralPath $RuntimeAdapter).Path}
 $waitArgs=@{CompletionPattern=$CompletionPattern;TimeoutSeconds=$TimeoutSeconds;SmokeSeconds=$SmokeSeconds}
 if($ExpectMapExit){
  if($Clients -ne 1 -or $SmokeSeconds -ne 0){throw 'Expected map exit requires a one-client assertion run.'}
@@ -72,6 +74,7 @@ try {
  $m['projectConfiguration']=Set-PoolProject -ProjectPath $ProjectPath -Environment $e -Session $session
  $null=New-Item -ItemType Directory -Force $m.clientLogDirectory
  Save-Manifest
+ if($RuntimeAdapter){& $RuntimeAdapter -Phase Prepare -SessionPath $session -GamePath $e.game -MapPath $map -Clients $Clients -Options $AdapterOptions}
  foreach($dir in 'User/AppData/Roaming','User/AppData/Local','User/Documents'){$null=New-Item -ItemType Directory -Force (Join-Path $e.root $dir)}
  foreach($file in 'ydhost.exe','vcruntime140.dll','msvcp140.dll'){Copy-Item (Join-Path $base "bin/$file") (Join-Path $e.root "bin/$file")}
  Copy-Item (Join-Path $base 'bin/lan_player_name.dll') (Join-Path $e.we 'plugin/warcraft3/lan_player_name.dll')
@@ -95,6 +98,7 @@ try {
  do {Collect-Clients;if($m.clientPids.Count -eq $Clients){break};Start-Sleep -Milliseconds 200}while([datetime]::UtcNow -lt $deadline)
  if($m.clientPids.Count -ne $Clients){throw 'Pool child discovery failed'}
  Write-Host "Pool $Environment session: $session"
+ if($RuntimeAdapter){& $RuntimeAdapter -Phase Ready -SessionPath $session -GamePath $e.game -MapPath $map -Clients $Clients -Options $AdapterOptions}
  & (Join-Path $base 'Wait-LanTest.ps1') -SessionPath $session -ClientLogDirectory $m.clientLogDirectory @waitArgs
 }catch{
  if($session -and !(Test-Path (Join-Path $session 'result.json'))){@{status='FAIL';message=$_.Exception.Message}|ConvertTo-Json|Set-Content (Join-Path $session 'result.json') -Encoding UTF8}
@@ -105,5 +109,14 @@ try {
    foreach($launcher in $launchers){$p=Get-CimInstance Win32_Process -Filter "ProcessId = $($launcher.pid)";if($p -and $p.CreationDate.ToUniversalTime().Ticks.ToString() -eq $launcher.creationUtcTicks){Stop-Process -Id $launcher.pid -Force -ErrorAction Continue}}
    try {Collect-Clients} finally {& (Join-Path $PSScriptRoot 'Stop-PoolTest.ps1') -SessionPath $session -OwnerId $OwnerId}
   }
- }finally{Exit-PoolQueue $lease $session}
+ }finally{
+  try{if($RuntimeAdapter -and $session){
+   try{& $RuntimeAdapter -Phase Finalize -SessionPath $session -GamePath $e.game -MapPath $map -Clients $Clients -Options $AdapterOptions}
+   catch{
+    @{status='FAIL';message=('Runtime adapter finalization failed: '+$_.Exception.Message)}|ConvertTo-Json|Set-Content (Join-Path $session 'result.json')
+    throw
+   }
+  }}
+  finally{Exit-PoolQueue $lease $session}
+ }
 }
