@@ -1,8 +1,15 @@
-param([Parameter(Mandatory=$true)][string]$WEPath)
+param([Parameter(Mandatory=$true)][string]$WEPath,[string]$SessionDirectory)
 $ErrorActionPreference='Stop'
 $plugin=Join-Path $PSScriptRoot 'bin/lan_player_name.dll'
 if (!(Test-Path $plugin)) { throw 'Build native/player_name.cpp with native/Build.ps1 before launching.' }
 $target=Join-Path $PSScriptRoot 'runtime/WE'
+if($SessionDirectory){
+ $session=[IO.Path]::GetFullPath($SessionDirectory)
+ $allowed=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot 'sessions'))+'\'
+ if(!$session.StartsWith($allowed,[StringComparison]::OrdinalIgnoreCase)){throw 'Private WE must be inside a launcher session'}
+ $target=Join-Path $session 'WE'
+ if(Test-Path $target){throw 'Private WE already exists; use a new session'}
+}
 $null=New-Item -ItemType Directory -Force $target
 # The caller holds both launch locks and has refused all existing games.
 $files=@{}
