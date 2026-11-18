@@ -109,6 +109,28 @@ library UTCardSelector requires Selector {
         });
     }
 
+    // 同步创建三个会话，仅 owner 的表示层排队；取消中间项后直接接续末项。
+    function TestCardQueue(player p) {
+        selectData head = selectData.create(p, 5);
+        selectData middle = selectData.create(p, 5);
+        selectData tail = selectData.create(p, 5);
+        head.registerClick(function() {GetSelectData().destroy();});
+        middle.registerClick(function() {GetSelectData().destroy();});
+        tail.registerClick(function() {GetSelectData().destroy();});
+        head.cardCanFold = true;
+        head.queueCards(); middle.queueCards(); tail.queueCards();
+        head.queueCards();
+        if (p == GetLocalPlayer()) {
+            assert.Boolean(head.uiCards.isExist() && !middle.uiCards.isExist() && !tail.uiCards.isExist(), "仅队首展示");
+        }
+        middle.destroy();
+        head.destroy();
+        if (p == GetLocalPlayer()) {
+            assert.Boolean(tail.uiCards.isExist(), "跳过已销毁的等待项，接续末项");
+        }
+        tail.destroy();
+    }
+
     // buttonCount 包含取消按钮，0~4分别展示无按钮至全部按钮。
     function CreateCardSelectorTest(player p, integer count, boolean reject, integer buttonCount) {
         integer pid = GetPlayerId(p);
@@ -290,6 +312,7 @@ library UTCardSelector requires Selector {
                 }
                 return;
             }
+            if (command == "-queue") {TestCardQueue(GetTriggerPlayer()); return;}
             if (command == "-mixed") {qualityMode[pid] = 0; CreateCardSelectorTest(GetTriggerPlayer(), 5, false, 2); return;}
             if (command == "-blank") {
                 blankCards[pid] = !blankCards[pid];

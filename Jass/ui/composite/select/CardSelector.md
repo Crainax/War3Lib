@@ -43,6 +43,14 @@
 
 不要把 `uiCards` 当成 `uiSelector` 使用。旧代码直接访问 `sd.uiSelector` 的显示操作需要改用 `sd.refreshCards()` 等卡牌接口。数据、`HASH_SELECT` 和业务回调不需要更换。展示期间不应改变 `count`；更换数量请销毁旧数据后新建。
 
+## 本地面板、折叠与轮候
+
+- `sd.cardPanelText` 设置面板按钮文字，`sd.cardPanel` 接受一个 `cardPanelEvent(boolean visible)`。显隐回调仅在 owner 客户端执行。面板内部的玩法操作由业务原有同步事件处理。
+- `sd.cardCanFold` 启用“收起／显示”。收起时保留本按钮原位，隐藏卡面、点击区域、其他按钮和已打开的附属面板。恢复时继续原选择。`sd.cardCloseText` 指定关闭文字，按钮依然要求注册 `registerClose`。完整顺序为面板、折叠、btn1～3、关闭。
+- `sd.queueCards()` 在本地按请求先后展示。等待期间可销毁数据。分配卡牌失败时使用同一数据打开普通 Selector。`sd.hasLocalView()` 包含已排队的会话，只能用于本地显示判断。
+- 同步按钮回调需要等待生成新数据时，可在 owner 的 `uiCards` 上调用 `waitForRefresh(true)`，完成刷新后调用 `waitForRefresh(false)`。等待期间禁止提交牌位。
+- `CardSelector_Test.j` 的 `-queue` 检查重复打开、移除中间会话和队首销毁后的接续。
+
 ## 动画与资源
 
 `CardSelector.j` 头部宏控制宽度（高度按1619/971推导）、间距、纵向位置、入场与离场时长，均有尾部注释。1～4 张均匀平铺，5 张使用固定间距。卡面、文字、图标和点击区域使用 exReSize/exRePoint 自适应窗口比例。

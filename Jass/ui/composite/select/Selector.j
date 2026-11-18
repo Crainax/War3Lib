@@ -531,6 +531,15 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         string  btn1Text;   //按钮1文字
         string  btn2Text;   //仅卡牌选择器显示
         string  btn3Text;   //仅卡牌选择器显示
+        boolean cardCanFold;
+        string cardCloseText;
+        string cardPanelText;
+        cardPanelEvent cardPanel; // 同步配置；回调仅控制本地面板显隐。
+        private static thistype firstCard = 0;
+        private static thistype lastCard = 0;
+        private thistype prevCard;
+        private thistype nextCard;
+        private boolean queuedCard;
         trigger trRefName;  //映射关系:图标文字
         trigger trRefCardQuality; // CallbackSelectContent: 1..5
         trigger trRefCardTitle; // 独立顶部标题栏文字
@@ -570,6 +579,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             this.trBtn2 = null; this.trBtn3 = null;
             this.uiSelector = 0;
             this.uiCards = 0;
+            cardCanFold = false; cardCloseText = "取消选择"; cardPanelText = ""; cardPanel = 0;
+            prevCard = 0; nextCard = 0; queuedCard = false;
             this.resolvingPos = 0;
             this.trRefDescription = null;
             this.trRefCardQuality = null; this.trRefCardTitle = null;
@@ -611,6 +622,10 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             integer i; integer gifIndex;
             cardSelectorItem card;
             if (!this.isExist() || GetLocalPlayer() != owner || !uiCards.isExist()) {return;}
+            uiCards.canFold = cardCanFold;
+            uiCards.onPanel = cardPanel;
+            uiCards.panelText = cardPanelText;
+            uiCards.closeText = cardCloseText;
             uiCards.setHeader(title, trClose != null, trBtn1 != null, btn1Text,
                 trBtn2 != null, btn2Text, trBtn3 != null, btn3Text);
             for (1 <= i <= count) {
@@ -643,22 +658,48 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             }
         }
 
-        // 数据及回调须提前全端注册。可全端调用，只有 owner 创建本地 UI。
-        // 返回本地创建结果，禁止用返回值决定同步游戏逻辑。
-        method showCards() -> boolean {
-            if (!this.isExist() || GetLocalPlayer() != owner) {return false;}
-            if (uiCards.isExist() || uiSelector.isExist()) {return false;}
-            if (count < 1 || count > 5 || trClick == null) {
-                syncBus.DzSyncDataEx("Select", "Z," + I2S(this) + "," + I2S(sessionToken));
-                return false;
-            }
+        private method createCardView() -> boolean {
+            if (count < 1 || count > 5 || trClick == null) {return false;}
             uiCards = cardSelector.create(this, sessionToken, count);
-            if (!uiCards.isExist()) {
-                syncBus.DzSyncDataEx("Select", "Z," + I2S(this) + "," + I2S(sessionToken));
-                return false;
-            }
+            if (!uiCards.isExist()) {return false;}
             refreshCards();
             return true;
+        }
+
+        // 返回值只代表本地 UI，不能用来决定同步业务。
+        method showCards() -> boolean {
+            if (!this.isExist() || GetLocalPlayer() != owner || queuedCard || uiCards.isExist() || uiSelector.isExist()) {return false;}
+            if (createCardView()) {return true;}
+            syncBus.DzSyncDataEx("Select", "Z," + I2S(this) + "," + I2S(sessionToken));
+            return false;
+        }
+
+        private method presentFirstCard() {
+            // 回退复用同一组候选，旧窗口分配失败时由其原有 Z 协议接管。
+            if (!createCardView()) {selector.create(owner, this);}
+        }
+
+        method hasLocalView() -> boolean {
+            return queuedCard || uiCards.isExist() || uiSelector.isExist();
+        }
+
+        // 同一客户端仅展示队首；候选、奖励及等待顺序均不参与游戏判定。
+        method queueCards() {
+            if (!this.isExist() || GetLocalPlayer() != owner || hasLocalView()) {return;}
+            queuedCard = true;
+            prevCard = lastCard;
+            if (lastCard == 0) {firstCard = this;} else {lastCard.nextCard = this;}
+            lastCard = this;
+            if (firstCard == this) {presentFirstCard();}
+        }
+
+        private method dequeueCard() {
+            boolean wasFirst = firstCard == this;
+            if (!queuedCard) {return;}
+            if (prevCard == 0) {firstCard = nextCard;} else {prevCard.nextCard = nextCard;}
+            if (nextCard == 0) {lastCard = prevCard;} else {nextCard.prevCard = prevCard;}
+            prevCard = 0; nextCard = 0; queuedCard = false;
+            if (wasFirst && firstCard != 0) {firstCard.presentFirstCard();}
         }
 
         // 全端同步调用；保留旧选择器回调语义。sd 被销毁/复用后不再读取旧实例。
@@ -795,7 +836,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         method onDestroy () {
             if (!this.isExist()) {return;}
             if (GetLocalPlayer() == this.owner && uiCards.isExist()) {
-                if (resolvingPos > 0) {uiCards.finish(resolvingPos);}
+                if (resolvingPos > 0 && nextCard == 0) {uiCards.finish(resolvingPos);}
                 else {uiCards.destroy();}
                 uiCards = 0;
             }
@@ -803,6 +844,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             if (uiSelector != 0 && GetLocalPlayer() == this.owner) {
                 uiSelector.destroy();uiSelector = 0;
             }
+            if (GetLocalPlayer() == owner) {dequeueCard();}
             if (trRefName != null) {DestroyTrigger(trRefName);trRefName = null;}
             if (trRefCardQuality != null) {DestroyTrigger(trRefCardQuality);trRefCardQuality = null;}
             if (trRefCardTitle != null) {DestroyTrigger(trRefCardTitle);trRefCardTitle = null;}
@@ -839,8 +881,9 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                             sd.dispatchClick(1);
                             // 保留数据的业务也清理本地卡牌；不得误关回调中新建的会话。
                             if (sd.isExist()) {
-                                if (sd.getSessionToken() == token && GetLocalPlayer() == p && sd.uiCards.isExist()) {
-                                    sd.uiCards.destroy(); sd.uiCards = 0;
+                                if (sd.getSessionToken() == token && GetLocalPlayer() == p) {
+                                    if (sd.uiCards.isExist()) {sd.uiCards.destroy(); sd.uiCards = 0;}
+                                    sd.dequeueCard();
                                 }
                             }
                         }

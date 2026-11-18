@@ -56,7 +56,10 @@
 
 //! zinc
 library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIExtendEvent, UIAnimTimer, Music, SyncBus, UIExtendResize {
-    // 底部按钮仅持有本地展示数据；pos 为 -1/-2/-3，取消为0。
+    // 面板显隐只在当前玩家的本地界面执行。
+    public type cardPanelEvent extends function(boolean);
+    private constant integer ACTION_PANEL = -5;
+    private constant integer ACTION_FOLD = -4;
     private struct cardSelectorAction {
         thistype next;
         integer pos;
@@ -254,6 +257,19 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         private integer hovered;
         private integer chosen;
         private cardSelectorAction actions;
+        private uiImage cardRoot;
+        boolean canFold;
+        private boolean folded;
+        private boolean refreshPending;
+        private boolean panelOpen;
+        cardPanelEvent onPanel;
+        string panelText;
+        string closeText;
+
+        private method dismissPanel() {
+            if (panelOpen && !folded && onPanel != 0) {onPanel.evaluate(false);}
+            panelOpen = false;
+        }
 
         method getItem(integer pos) -> cardSelectorItem {
             cardSelectorItem card = items;
@@ -275,19 +291,50 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             cardSelectorItem card = items;
             cardSelectorAction action = actions;
             while (card != 0) {
-                card.button.show(enabled);
+                card.button.show(enabled && !folded);
                 card = card.next;
             }
             while (action != 0) {
-                action.button.show(enabled && action.enabled);
+                action.button.show(enabled && action.enabled && (!folded || action.pos == ACTION_FOLD));
                 if (!enabled) {action.hovered = false; action.layoutHover(0.0);}
                 action = action.next;
             }
         }
+        private method updateAction(cardSelectorAction action) {
+            boolean visible = action.enabled && state != 3 && (!folded || action.pos == ACTION_FOLD);
+            if (action.pos == ACTION_FOLD) {
+                if (folded) {action.label.setText("显示");} else {action.label.setText("收起");}
+            }
+            action.image.show(visible);
+            action.halo.show(visible);
+            action.button.show(visible && state == 1);
+            action.hovered = false;
+            action.layoutHover(0.0);
+        }
+
+        private method toggleFold() {
+            cardSelectorAction action = actions;
+            boolean expanded = folded;
+            folded = !folded;
+            leave();
+            cardRoot.show(!folded);
+            enableButtons(true);
+            while (action != 0) {updateAction(action); action = action.next;}
+            if (panelOpen && onPanel != 0) {onPanel.evaluate(expanded);}
+        }
+
         // 仅展示层发送标准 Select 包；不在本地写入数据或执行奖励。
         method click(integer pos) {
             string payload;
-            if (state != 1 || pos < -3) {return;}
+            if (state != 1) {return;}
+            if (pos == ACTION_FOLD && canFold) {toggleFold(); return;}
+            if (folded) {return;}
+            if (pos == ACTION_PANEL && onPanel != 0) {
+                panelOpen = !panelOpen;
+                onPanel.evaluate(panelOpen);
+                return;
+            }
+            if (pos < -3) {return;}
             state = 2;
             elapsed = 0;
             chosen = pos;
@@ -303,14 +350,26 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         }
         // 业务回调未销毁数据：恢复选择。只由合法收包后的数据层调用。
         method resume() {
-            if (state == 3) {return;}
+            if (refreshPending || state == 3) {return;}
             state = 1; chosen = 0; elapsed = 0;
             enableButtons(true);
         }
+        // 换批期间保持输入锁，避免按旧画面提交新候选的槽位。
+        method waitForRefresh(boolean waiting) {
+            if (state == 3) {return;}
+            refreshPending = waiting;
+            if (waiting) {
+                state = 2; chosen = 0;
+                leave();
+                enableButtons(false);
+            } else {resume();}
+        }
+
         // 与 selectData 解绑后，只持有 UI 快照，动画不再访问同步数据。
         method finish(integer pos) {
             cardSelectorAction action = actions;
             leave();
+            dismissPanel();
             data = 0; token = 0;
             state = 3; chosen = pos; elapsed = 0;
             enableButtons(false);
@@ -326,7 +385,9 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 if (action.pos == -1) {action.enabled = can1; action.label.setText(name1);}
                 else if (action.pos == -2) {action.enabled = can2; action.label.setText(name2);}
                 else if (action.pos == -3) {action.enabled = can3; action.label.setText(name3);}
-                else {action.enabled = canClose; action.label.setText("取消选择");}
+                else if (action.pos == ACTION_PANEL) {action.enabled = onPanel != 0; action.label.setText(panelText);}
+                else if (action.pos == ACTION_FOLD) {action.enabled = canFold;}
+                else {action.enabled = canClose; action.label.setText(closeText);}
                 if (action.enabled) {count += 1;}
                 action = action.next;
             }
@@ -338,11 +399,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                         CARD_SELECTOR_OFFSET_Y - CARD_SELECTOR_HEIGHT * 0.5 - CARD_SELECTOR_BUTTON_OFFSET_Y);
                     index += 1;
                 }
-                action.image.show(action.enabled && state != 3);
-                action.halo.show(action.enabled && state != 3);
-                action.layoutHover(0.0);
-                if (!action.enabled) {action.hovered = false;}
-                action.button.show(action.enabled && state == 1);
+                updateAction(action);
                 action = action.next;
             }
         }
@@ -396,7 +453,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             // 与卡牌共用本地动画周期和缓动；不触发业务hover，也不改变点击区域。
             while (action != 0) {
                 target = 0.0;
-                if (state == 1 && action.enabled && focus == action.button.ui) {
+                if (state == 1 && action.enabled && (!folded || action.pos == ACTION_FOLD) && focus == action.button.ui) {
                     target = 1.0;
                     if (!action.hovered) {music[MUSIC_INDEX_CARD_FLIP_HOVER].play();}
                 }
@@ -421,6 +478,10 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             this.data = data; this.token = token;
             state = 0; elapsed = 0; hovered = 0; chosen = 0; items = 0;
             actions = 0;
+            canFold = false; folded = false; refreshPending = false; panelOpen = false; onPanel = 0;
+            panelText = ""; closeText = "取消选择";
+            cardRoot = uiImage.create(DzGetGameUI()).setTexture(UI_STRING_PATH_BLANK)
+                .setSize(0.001, 0.001).setAbsPoint(ANCHOR_CENTER, 0.4, 0.3);
             prev = 0; next = first;
             if (first != 0) {first.prev = this;}
             first = this;
@@ -431,21 +492,21 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 card.next = items; items = card; card.pos = i; card.weight = 0.0;
                 card.x = (i - (count + 1) * 0.5) * step;
                 // 外光先创建，卡面和独立标题栏遮住内部，光效不截获鼠标。
-                card.haloTop = uiImage.create(DzGetGameUI()).setAlpha(0);
-                card.faceTop = uiImage.create(DzGetGameUI());
-                card.plaque = uiImage.create(DzGetGameUI());
-                card.badge = uiText.create(DzGetGameUI()).setFontSize(7).setAlign(4);
+                card.haloTop = uiImage.create(cardRoot.ui).setAlpha(0);
+                card.faceTop = uiImage.create(cardRoot.ui);
+                card.plaque = uiImage.create(cardRoot.ui);
+                card.badge = uiText.create(cardRoot.ui).setFontSize(7).setAlign(4);
                 DzFrameSetEnable(card.badge.ui, false);
-                card.artwork = icon.create(DzGetGameUI()).enableResize();
-                card.heading = uiText.create(DzGetGameUI()).setFontSize(7).setAlign(1);
+                card.artwork = icon.create(cardRoot.ui).enableResize();
+                card.heading = uiText.create(cardRoot.ui).setFontSize(7).setAlign(1);
                 card.setQuality(1);
-                card.button = uiBtn.createBlank(DzGetGameUI()).exReSize(RMinBJ(CARD_SELECTOR_WIDTH, step), CARD_SELECTOR_HEIGHT * 1.1)
+                card.button = uiBtn.createBlank(cardRoot.ui).exReSize(RMinBJ(CARD_SELECTOR_WIDTH, step), CARD_SELECTOR_HEIGHT * 1.1)
                     .exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, card.x, CARD_SELECTOR_OFFSET_Y + CARD_SELECTOR_HEIGHT * 0.025).show(false);
                 uiHashTable(card.button.ui).eventdata.bind(this);
                 uiHashTable(card.button.ui).eventdata.bind2(i);
                 card.button.spClick(uiEvent.CardSelectorClick);
                 // 普通TEXT只负责显示；禁用命中，点击正文仍由整张卡按钮发包。
-                card.viewport = uiImage.create(DzGetGameUI());
+                card.viewport = uiImage.create(cardRoot.ui);
                 if (card.viewport.ui == 0) {this.destroy(); return 0;}
                 card.viewport.setTexture(UI_STRING_PATH_BLANK).setClip(true);
                 card.description = uiText.create(card.viewport.ui);
@@ -461,11 +522,13 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 DzFrameSetEnable(card.description.ui, false);
                 card.layout(0.92, CARD_SELECTOR_OFFSET_Y - 0.025, 0, 0);
             }
-            for (0 <= i <= 3) {
+            for (0 <= i <= 5) {
                 action = cardSelectorAction.create();
                 action.next = actions; actions = action; action.enabled = false; action.hovered = false;
                 action.pos = i - 4;
                 if (i == 0) {action.pos = 0;}
+                else if (i == 4) {action.pos = ACTION_FOLD;}
+                else if (i == 5) {action.pos = ACTION_PANEL;}
                 action.weight = -1.0;
                 action.halo = uiImage.create(DzGetGameUI()).setTexture(CARD_SELECTOR_BUTTON_HOVER_TEXTURE).setAlpha(0).show(false);
                 action.image = uiImage.create(DzGetGameUI()).setTexture(CARD_SELECTOR_BUTTON_TEXTURE)
@@ -488,7 +551,9 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             cardSelectorItem after;
             cardSelectorAction action = actions;
             cardSelectorAction nextAction;
+            dismissPanel();
             while (card != 0) {after = card.next; card.destroy(); card = after;}
+            cardRoot.destroy(); cardRoot = 0;
             while (action != 0) {nextAction = action.next; action.destroy(); action = nextAction;}
             if (prev == 0) {first = next;} else {prev.next = next;}
             if (next != 0) {next.prev = prev;}
@@ -501,7 +566,9 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 cardSelectorItem card;
                 while (view != 0) {
                     card = view.items;
-                    while (card != 0) {card.measureFrame(); card = card.next;}
+                    if (!view.folded) {
+                        while (card != 0) {card.measureFrame(); card = card.next;}
+                    }
                     view = view.next;
                 }
             });
@@ -521,7 +588,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 if (view == 0) {return;}
                 focus = DzGetMouseFocus();
                 while (view != 0) {
-                    if (view.state == 1) {
+                    if (view.state == 1 && !view.folded) {
                         card = view.items;
                         while (card != 0) {
                             if (focus == card.button.ui && card.hasScroll()) {
