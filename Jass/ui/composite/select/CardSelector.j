@@ -11,8 +11,8 @@
 #define CARD_SELECTOR_GAP 0.018 // 五张牌时的边缘间距，整组居中
 #define CARD_SELECTOR_ROW_WIDTH 0.8 // 一至四张牌在此宽度内均匀排列
 #define CARD_SELECTOR_OFFSET_Y 0.075 // 整组相对屏幕中心的纵向偏移
-#define CARD_SELECTOR_ENTER_SECONDS 0.10 // 全体同时入场的时长，单位秒
-#define CARD_SELECTOR_EXIT_SECONDS 0.10 // 全部卡牌统一离场时长，单位秒
+#define CARD_SELECTOR_ENTER_TICKS 5 // 入场时长：5 个 0.02 秒动画周期
+#define CARD_SELECTOR_EXIT_TICKS 5 // 离场时长：5 个 0.02 秒动画周期
 #define CARD_SELECTOR_HOVER_SCALE 1.06 // 悬停放大倍率
 #define CARD_SELECTOR_HOVER_EASE 0.35 // 每个动画周期向悬停目标靠近的比例
 #define CARD_SELECTOR_ICON_RAISE 0.01 // 图标相对原位置上移距离
@@ -116,18 +116,19 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         static method create() -> thistype {
             thistype this = allocate();
             quality = 0;
+            viewport = 0; description = 0; rail = 0; thumb = 0;
             viewHeight = 0; textHeight = 0; offset = 0; thumbHeight = 0;
             narrow = false; measureAfter = 0; content = null;
             lastScale = -1.0; lastY = -1.0; lastAlpha = -1; lastLight = -1;
             return this;
         }
 
-        // 本地展示 setter；非法品质回退绿色。1绿、2淡蓝、3紫、4橙、5红。
         method setBadgeText(string value) {
             if (value == null || value == "") {badge.setText(""); return;}
             badge.setText(badgeColor + value + "|r");
         }
 
+        // 非法品质回退绿色。1绿、2淡蓝、3紫、4橙、5红。
         method setQuality(integer value) {
             string color = "green";
             integer tint = 0xFF9BEF47;
@@ -230,7 +231,8 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         }
         method onDestroy() {
             button.destroy(); artwork.destroy(); heading.destroy();
-            thumb.destroy(); rail.destroy();
+            if (thumb.isExist()) {thumb.destroy();}
+            if (rail.isExist()) {rail.destroy();}
             if (description.isExist()) {description.destroy();}
             viewport.destroy(); content = null;
             badge.destroy(); plaque.destroy(); haloTop.destroy(); faceTop.destroy();
@@ -251,7 +253,6 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         private integer elapsed;
         private integer hovered;
         private integer chosen;
-        private uiText title;
         private cardSelectorAction actions;
 
         method getItem(integer pos) -> cardSelectorItem {
@@ -313,16 +314,14 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             data = 0; token = 0;
             state = 3; chosen = pos; elapsed = 0;
             enableButtons(false);
-            title.show(false);
             while (action != 0) {action.image.show(false); action.halo.show(false); action = action.next;}
         }
-        // 仅更新本地展示；按已注册按钮压紧排列，顺序为1、2、3、取消。
+        // 保留旧接口的标题参数；卡牌只展示各自的铭牌，此处仅排列底部按钮。
         method setHeader(string value, boolean canClose, boolean can1, string name1, boolean can2, string name2, boolean can3, string name3) {
             cardSelectorAction action = actions;
             integer count = 0;
             integer index = 0;
             real x;
-            title.setText(value).show(false);
             while (action != 0) {
                 if (action.pos == -1) {action.enabled = can1; action.label.setText(name1);}
                 else if (action.pos == -2) {action.enabled = can2; action.label.setText(name2);}
@@ -368,7 +367,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             while (card != 0) {
                 scale = 1.0; y = CARD_SELECTOR_OFFSET_Y; a = 255.0; light = 0.0;
                 if (state == 0) {
-                    t = RMinBJ(1.0, elapsed * 0.02 / CARD_SELECTOR_ENTER_SECONDS);
+                    t = RMinBJ(1.0, I2R(elapsed) / CARD_SELECTOR_ENTER_TICKS);
                     e = 1.0 - Pow(1.0 - t, 3.0);
                     scale = 0.92 + 0.08 * e; y -= 0.025 * (1.0 - e); a = 255.0 * e;
                 } else if (state == 1 || state == 2) {
@@ -380,7 +379,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                     if (state == 1) {light = 255.0 * card.weight;}
                     if (state == 2 && chosen == card.pos) {scale = scale * (0.97 + 0.03 * RMinBJ(1.0, elapsed / 3.0));}
                 } else {
-                    t = RMinBJ(1.0, elapsed * 0.02 / CARD_SELECTOR_EXIT_SECONDS);
+                    t = RMinBJ(1.0, I2R(elapsed) / CARD_SELECTOR_EXIT_TICKS);
                     if (card.pos == chosen) {
                         scale = 1.0 + (CARD_SELECTOR_HOVER_SCALE - 1.0) * card.weight + 0.07 * t;
                         y += 0.035 * t;
@@ -407,8 +406,8 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 action.layoutHover(e);
                 action = action.next;
             }
-            if (state == 0 && elapsed * 0.02 >= CARD_SELECTOR_ENTER_SECONDS) {resume();}
-            if (state == 3 && elapsed * 0.02 >= CARD_SELECTOR_EXIT_SECONDS) {destroy();}
+            if (state == 0 && elapsed >= CARD_SELECTOR_ENTER_TICKS) {resume();}
+            if (state == 3 && elapsed >= CARD_SELECTOR_EXIT_TICKS) {destroy();}
         }
         static method create(integer data, integer token, integer count) -> thistype {
             integer i;
@@ -421,7 +420,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             if (this == 0) {return 0;}
             this.data = data; this.token = token;
             state = 0; elapsed = 0; hovered = 0; chosen = 0; items = 0;
-            title = 0; actions = 0;
+            actions = 0;
             prev = 0; next = first;
             if (first != 0) {first.prev = this;}
             first = this;
@@ -446,18 +445,22 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 uiHashTable(card.button.ui).eventdata.bind2(i);
                 card.button.spClick(uiEvent.CardSelectorClick);
                 // 普通TEXT只负责显示；禁用命中，点击正文仍由整张卡按钮发包。
-                card.viewport = uiImage.create(DzGetGameUI()).setTexture(UI_STRING_PATH_BLANK).setClip(true);
-                card.description = uiText.create(card.viewport.ui).setFontSize(2).setAlign(0);
-                card.rail = uiImage.create(card.viewport.ui).setTexture("ui\\cardselector_colors\\scroll\\track.blp")
+                card.viewport = uiImage.create(DzGetGameUI());
+                if (card.viewport.ui == 0) {this.destroy(); return 0;}
+                card.viewport.setTexture(UI_STRING_PATH_BLANK).setClip(true);
+                card.description = uiText.create(card.viewport.ui);
+                if (card.description.ui == 0) {this.destroy(); return 0;}
+                card.description.setFontSize(2).setAlign(0);
+                card.rail = uiImage.create(card.viewport.ui);
+                card.thumb = uiImage.create(card.viewport.ui);
+                if (card.rail.ui == 0 || card.thumb.ui == 0) {this.destroy(); return 0;}
+                card.rail.setTexture("ui\\cardselector_colors\\scroll\\track.blp")
                     .exRePoint(ANCHOR_TOPRIGHT, card.viewport.ui, ANCHOR_TOPRIGHT, -0.002, -CARD_TEXT_TOP_INSET).show(false);
-                card.thumb = uiImage.create(card.viewport.ui).setTexture("ui\\cardselector_colors\\scroll\\thumb.blp").show(false);
-                // viewport 是 BACKDROP；KK 的 DzFrameSetEnable 在此类型上会引发客户端崩溃。
-                if (!card.description.isExist()) {this.destroy(); return 0;}
+                card.thumb.setTexture("ui\\cardselector_colors\\scroll\\thumb.blp").show(false);
+                // viewport 是 BACKDROP；仅禁用正文 TEXT 的鼠标命中。
                 DzFrameSetEnable(card.description.ui, false);
                 card.layout(0.92, CARD_SELECTOR_OFFSET_Y - 0.025, 0, 0);
             }
-            title = uiText.create(DzGetGameUI()).setFontSize(8).setAlign(4).exReSize(0.5, 0.03)
-                .exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, 0, CARD_SELECTOR_OFFSET_Y + CARD_SELECTOR_HEIGHT * 0.5 + 0.020).show(false);
             for (0 <= i <= 3) {
                 action = cardSelectorAction.create();
                 action.next = actions; actions = action; action.enabled = false; action.hovered = false;
@@ -485,9 +488,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             cardSelectorItem after;
             cardSelectorAction action = actions;
             cardSelectorAction nextAction;
-            leave();
             while (card != 0) {after = card.next; card.destroy(); card = after;}
-            if (title.isExist()) {title.destroy();}
             while (action != 0) {nextAction = action.next; action.destroy(); action = nextAction;}
             if (prev == 0) {first = next;} else {prev.next = next;}
             if (next != 0) {next.prev = prev;}

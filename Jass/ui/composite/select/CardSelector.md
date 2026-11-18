@@ -8,6 +8,7 @@
 - 卡面宽0.14、高按1619/971计算；五张边缘间距0.018。保留 exReSize/exRePoint 的窗口自适应机制。独立栏宽为卡面72%、高15%、中心位于卡面中心上方47.5%高度。
 - 外光是包含标题栏轮廓的透明图，画布1171×1899，卡面原坐标(100,180)，中心相对卡面向上40像素。仅悬停权重驱动透明度，保留原 tick、1.06缩放、0.35缓动、0.10秒入场和0.10秒离场；不采用HTML的300ms动画替换游戏动画。
 - 15张 BLP 在 `D:/War3Asset/Import/resource/ui/cardselector_colors/{green,blue,purple,orange,red}/`，每色 `body.blp`、`title.blp`、`glow.blp`。body/glow为512×1024，title为512×128，强制Alpha、JPEG质量100、1级mipmap。均已解码检查尺寸及外光中心透明。通过CardSelector.j的dependency导入；不再依赖旧tall_v2卡面。底部按钮继续使用原有素材。
+- 公共滚动条还依赖同目录下的 `scroll/track.blp` 和 `scroll/thumb.blp`，随五色贴图一起同步。
 - 无字PNG、转换中间图及浏览器预览位于 `C:/Users/41399/.codex/visualizations/2026/11/16/01a1e633-11ad-7c20-ac85-a8f889412e23/`；红色边框外杂点已重新清理，角落规则网点保留。
 
 新增演示命令：

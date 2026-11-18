@@ -203,7 +203,6 @@ library UTCardSelector requires Selector {
         CreateCardSelectorTest(p, 3, false, 2);
         sd = active[GetPlayerId(p)];
         if (!sd.isExist()) {return;}
-        sd.title = "正文自动换行；点击正文、图标或标题均可选择";
         sd.reflectDescription(function() {
             integer pos = GetSelectPosAsync();
             integer i;
@@ -275,16 +274,6 @@ library UTCardSelector requires Selector {
         assert.Boolean(longCard.hasScroll(), "长正文显示滑条");
         scrollPhase = 0;
     }
-    private function showBoundaries(player p) {
-        selectData sd;
-        CreateCardSelectorTest(p, 3, false, 1);
-        sd = active[GetPlayerId(p)];
-        sd.reflectDescription(function boundaryText);
-        if (GetLocalPlayer() == p) {
-            scrollDemo = sd; scrollToken = sd.getSessionToken(); scrollPhase = 1;
-            sd.refreshCards();
-        }
-    }
     function onInit() {
         hardware.regUpdateEvent(function checkBoundaries);
         UnitTestRegisterChatEvent(function() {
@@ -292,7 +281,15 @@ library UTCardSelector requires Selector {
             integer count = 0;
             boolean reject = false;
             integer pid = GetPlayerId(GetTriggerPlayer());
-            if (command == "-scroll" || command == "s7") {showBoundaries(GetTriggerPlayer()); return;}
+            if (command == "-scroll" || command == "s7") {
+                CreateCardSelectorTest(GetTriggerPlayer(), 3, false, 1);
+                active[pid].reflectDescription(function boundaryText);
+                if (GetLocalPlayer() == GetTriggerPlayer()) {
+                    scrollDemo = active[pid]; scrollToken = scrollDemo.getSessionToken(); scrollPhase = 1;
+                    scrollDemo.refreshCards();
+                }
+                return;
+            }
             if (command == "-mixed") {qualityMode[pid] = 0; CreateCardSelectorTest(GetTriggerPlayer(), 5, false, 2); return;}
             if (command == "-blank") {
                 blankCards[pid] = !blankCards[pid];
