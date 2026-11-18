@@ -532,6 +532,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         string  btn2Text;   //仅卡牌选择器显示
         string  btn3Text;   //仅卡牌选择器显示
         trigger trRefName;  //映射关系:图标文字
+        trigger trRefCardQuality; // CallbackSelectContent: 1..5
+        trigger trRefCardTitle; // 独立顶部标题栏文字
         trigger trRefDescription; // 卡牌正文映射，使用 CallbackSelectContent 返回
         trigger trRefIcon;  //映射关系:图标
         trigger trRefShadow; //映射关系:阴影（布尔）
@@ -570,6 +572,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             this.uiCards = 0;
             this.resolvingPos = 0;
             this.trRefDescription = null;
+            this.trRefCardQuality = null; this.trRefCardTitle = null;
             this.owner = p;
             return this;
         }
@@ -589,6 +592,21 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         }
 
         // 仅本地 UI 刷新；每项映射沿用 GetSelectDataAsync/GetSelectPosAsync。
+        // 与其他映射一样全端注册；回调仅返回本地展示内容。
+        method reflectCardQuality(code func) {
+            if (!this.isExist()) {return;}
+            if (trRefCardQuality != null) {DestroyTrigger(trRefCardQuality);}
+            trRefCardQuality = CreateTrigger();
+            TriggerAddCondition(trRefCardQuality, Condition(func));
+        }
+        // 与其他映射一样全端注册；回调仅返回本地展示内容。
+        method reflectCardTitle(code func) {
+            if (!this.isExist()) {return;}
+            if (trRefCardTitle != null) {DestroyTrigger(trRefCardTitle);}
+            trRefCardTitle = CreateTrigger();
+            TriggerAddCondition(trRefCardTitle, Condition(func));
+        }
+
         method refreshCards() {
             integer i; integer gifIndex;
             cardSelectorItem card;
@@ -606,7 +624,13 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                     card.heading.setText(currentContent);
                     currentSDAsync = this; currentPosAsync = i; currentContent = "";
                     if (trRefDescription != null) {TriggerEvaluate(trRefDescription);}
-                    card.description.setText(currentContent);
+                    card.setDescription(currentContent);
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "1";
+                    if (trRefCardQuality != null) {TriggerEvaluate(trRefCardQuality);}
+                    card.setQuality(S2I(currentContent));
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefCardTitle != null) {TriggerEvaluate(trRefCardTitle);}
+                    card.setBadgeText(currentContent);
                     currentSDAsync = this; currentPosAsync = i; currentShadow = false;
                     if (trRefShadow != null) {TriggerEvaluate(trRefShadow);}
                     card.artwork.setShadow(currentShadow);
@@ -780,6 +804,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                 uiSelector.destroy();uiSelector = 0;
             }
             if (trRefName != null) {DestroyTrigger(trRefName);trRefName = null;}
+            if (trRefCardQuality != null) {DestroyTrigger(trRefCardQuality);trRefCardQuality = null;}
+            if (trRefCardTitle != null) {DestroyTrigger(trRefCardTitle);trRefCardTitle = null;}
             if (trRefDescription != null) {DestroyTrigger(trRefDescription);trRefDescription = null;}
             if (trRefIcon != null) {DestroyTrigger(trRefIcon);trRefIcon = null;}
             if (trRefShadow != null) {DestroyTrigger(trRefShadow);trRefShadow = null;}

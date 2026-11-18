@@ -4,6 +4,8 @@
 //! zinc
 library UTCardSelector requires Selector {
     private selectData active[];
+    private integer qualityMode[]; // 0=按牌位五色，1..5=统一品质
+    private boolean blankCards[];
     private integer calls[];
     private boolean rejectFirst[];
     private boolean protocolBusy = false;
@@ -120,12 +122,15 @@ library UTCardSelector requires Selector {
         sd.title = "选择一份祝福";
         for (1 <= i <= count) {SaveInteger(HASH_SELECT, sd, i, 100 + i);}
         sd.reflectIcon(function() {
+            if (blankCards[GetPlayerId(GetSelectDataAsync().owner)]) {CallbackSelectContent(""); return;}
             CallbackSelectContent("ReplaceableTextures\\CommandButtons\\BTNSelectHeroOn.blp");
         });
         sd.reflectName(function() {
-            CallbackSelectContent("|cffffd84a祝福 " + I2S(GetSelectPosAsync()) + "|r");
+            if (blankCards[GetPlayerId(GetSelectDataAsync().owner)]) {CallbackSelectContent(""); return;}
+            CallbackSelectContent("祝福 " + I2S(GetSelectPosAsync()));
         });
         sd.reflectDescription(function() {
+            if (blankCards[GetPlayerId(GetSelectDataAsync().owner)]) {CallbackSelectContent(""); return;}
             CallbackSelectContent("属性提升 +" + I2S(GetSelectPosAsync() * 20) + "|n|n点击选择此项|n|n|cffaaaaaa沿用 selectData 收包|r");
         });
         sd.registerEnter(function() {
@@ -174,6 +179,22 @@ library UTCardSelector requires Selector {
             active[GetPlayerId(data.owner)] = 0;
             data.destroy();
         });
+        sd.reflectCardQuality(function() {
+            integer q = qualityMode[GetPlayerId(GetSelectDataAsync().owner)];
+            if (q == 0) {q = GetSelectPosAsync();}
+            CallbackSelectContent(I2S(q));
+        });
+        sd.reflectCardTitle(function() {
+            integer pid = GetPlayerId(GetSelectDataAsync().owner);
+            integer q = qualityMode[pid];
+            if (q == 0) {q = GetSelectPosAsync();}
+            if (blankCards[pid]) {CallbackSelectContent("");}
+            else if (q == 2) {CallbackSelectContent("精良祝福");}
+            else if (q == 3) {CallbackSelectContent("稀有祝福");}
+            else if (q == 4) {CallbackSelectContent("史诗祝福");}
+            else if (q == 5) {CallbackSelectContent("传说祝福");}
+            else {CallbackSelectContent("自然祝福");}
+        });
         sd.showCards();
     }
 
@@ -187,7 +208,7 @@ library UTCardSelector requires Selector {
             integer pos = GetSelectPosAsync();
             integer i;
             integer paragraphs = 4; // 返回字符串的回调必须控制总长度，此处用于检查普通TEXT的长文布局
-            string content = "|cffffd84a【开头】|r|n正文左上对齐，2号字体。";
+            string content = "|cffffd84a【开头】|r|n正文左上对齐，2号字体。，2号字体。，2号字体。，2号字体。";
             if (pos == 1) {
                 content += "|n|n短正文，普通文本显示。|n|cff66ff66【正文结束】|r";
             } else {
@@ -195,18 +216,105 @@ library UTCardSelector requires Selector {
                 for (1 <= i <= paragraphs) {
                     content += "|n|n|cff66ccff第 " + I2S(i) + " 段|r：力量 +20，敏捷 +15。这里是较长的说明文字，用于检查中文换行、彩色内容、正文区域点击选择。English 123。";
                 }
-                content += "|n|n|cff66ff66【正文结束】普通文本不支持滚轮，请控制正文长度。|r";
+                content += "|n|n|cff66ff66【正文结束】|r";
             }
             CallbackSelectContent(content);
         });
         sd.refreshCards();
     }
 
+    // 每个客户端只校准本地演示，用原有两个正文控件测一行、两行。
+    private selectData scrollDemo = 0;
+    private integer scrollToken = 0;
+    private integer scrollPhase = 0;
+    private integer fitLines = 1;
+
+    private function boundaryText() {
+        integer pos = GetSelectPosAsync();
+        integer rows = fitLines + pos - 1;
+        integer i;
+        string value = "";
+        if (scrollPhase == 1) {
+            if (pos == 2) {CallbackSelectContent("样本|n样本");}
+            else {CallbackSelectContent("样本");}
+            return;
+        }
+        if (pos == 3) {rows = fitLines * 3;}
+        for (1 <= i <= rows) {
+            if (i > 1) {value += "|n";}
+            if (i == rows) {value += "|cff88ffaa末行 " + I2S(i) + "|r";}
+            else {value += "阅读行 " + I2S(i);}
+        }
+        CallbackSelectContent(value);
+    }
+    private function checkBoundaries() {
+        cardSelectorItem firstCard;
+        cardSelectorItem secondCard;
+        cardSelectorItem longCard;
+        real pitch;
+        if (scrollPhase == 0) {return;}
+        if (!scrollDemo.isExist() || scrollDemo.getSessionToken() != scrollToken || !scrollDemo.uiCards.isExist()) {
+            scrollPhase = 0;
+            return;
+        }
+        firstCard = scrollDemo.uiCards.getItem(1);
+        secondCard = scrollDemo.uiCards.getItem(2);
+        longCard = scrollDemo.uiCards.getItem(3);
+        if (!firstCard.measured() || !secondCard.measured() || !longCard.measured()) {return;}
+        if (scrollPhase == 1) {
+            pitch = secondCard.textHeight - firstCard.textHeight;
+            assert.Boolean(firstCard.textHeight > 0 && pitch > 0, "单TEXT自适应高度及行距可读");
+            if (pitch <= 0 || firstCard.textHeight <= 0) {scrollPhase = 0; return;}
+            fitLines = IMaxBJ(1, R2I((firstCard.viewHeight + 0.0001 - firstCard.textHeight) / pitch) + 1);
+            scrollPhase = 2;
+            scrollDemo.refreshCards();
+            return;
+        }
+        assert.Boolean(!firstCard.hasScroll() && firstCard.textHeight <= firstCard.viewHeight + 0.0001, "恰好一屏不显示滑条");
+        assert.Boolean(secondCard.hasScroll() && secondCard.textHeight > secondCard.viewHeight, "多一行显示滑条");
+        assert.Boolean(longCard.hasScroll(), "长正文显示滑条");
+        scrollPhase = 0;
+    }
+    private function showBoundaries(player p) {
+        selectData sd;
+        CreateCardSelectorTest(p, 3, false, 1);
+        sd = active[GetPlayerId(p)];
+        sd.reflectDescription(function boundaryText);
+        if (GetLocalPlayer() == p) {
+            scrollDemo = sd; scrollToken = sd.getSessionToken(); scrollPhase = 1;
+            sd.refreshCards();
+        }
+    }
     function onInit() {
+        hardware.regUpdateEvent(function checkBoundaries);
         UnitTestRegisterChatEvent(function() {
             string command = GetEventPlayerChatString();
             integer count = 0;
             boolean reject = false;
+            integer pid = GetPlayerId(GetTriggerPlayer());
+            if (command == "-scroll" || command == "s7") {showBoundaries(GetTriggerPlayer()); return;}
+            if (command == "-mixed") {qualityMode[pid] = 0; CreateCardSelectorTest(GetTriggerPlayer(), 5, false, 2); return;}
+            if (command == "-blank") {
+                blankCards[pid] = !blankCards[pid];
+                if (active[pid].isExist()) {active[pid].refreshCards();}
+                return;
+            }
+            if (command == "-cycle") {
+                qualityMode[pid] = ModuloInteger(qualityMode[pid], 5) + 1;
+                if (active[pid].isExist()) {active[pid].refreshCards();}
+                return;
+            }
+            if (SubString(command, 0, 9) == "-quality ") {
+                count = S2I(SubString(command, 9, StringLength(command)));
+                if (count < 1 || count > 6 || command != "-quality " + I2S(count)) {return;}
+                qualityMode[pid] = count;
+                CreateCardSelectorTest(GetTriggerPlayer(), 5, false, 2);
+                if (GetLocalPlayer() == GetTriggerPlayer() && active[pid].uiCards.isExist()) {
+                    if (count == 6) {count = 1;}
+                    assert.Integer(active[pid].uiCards.getItem(1).quality, count, "品质映射/越界回退");
+                }
+                return;
+            }
             if (command == "s1") {count = 5;}
             else if (command == "s2") {count = 3; reject = true;}
             else if (command == "s3") {count = 6;}
@@ -229,6 +337,8 @@ library UTCardSelector requires Selector {
             CreateCardSelectorTest(GetTriggerPlayer(), count, reject, 2);
         });
 		InitTestUIRuler();
+        BJDebugMsg("[CardSelector] -scroll 或 s7：左满屏、中多一行、右长文。滚轮可读到末行，点击滑轨位置可选卡。");
+        BJDebugMsg("[CardSelector] -mixed：五色同屏；-quality 1~5：单品质；-quality 6：非法品质回退；-cycle：原位换色；-blank：空白/文字切换。");
         BJDebugMsg("[CardSelector] s1：5张；-card X：1～5张；s2：首次拒绝后重选；s3：非法数量；s4：同步包校验；s5：短/长/超长正文。");
         BJDebugMsg("[CardSelector] -buttons 0~4：底部按钮数量；s6：btn2/btn3协议校验。标题隐藏，悬停不得触发业务回调或tooltip。");
     }

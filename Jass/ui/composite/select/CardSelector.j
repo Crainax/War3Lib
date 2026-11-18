@@ -5,22 +5,25 @@
 #include "Crainax/data/audio/MusicConstant.j"
 
 #define CARD_SELECTOR_WIDTH 0.14 // 卡牌宽度
-#define CARD_SELECTOR_HEIGHT (CARD_SELECTOR_WIDTH * 948.0 / 350.0) // 卡牌显示比例固定350:948
-#define CARD_SELECTOR_HOVER_WIDTH_SCALE 1.19 // 外沿光效横向覆盖比例
-#define CARD_SELECTOR_HOVER_HEIGHT_SCALE 1.064 // 外沿光效纵向覆盖比例
-#define CARD_SELECTOR_GAP 0.005 // 五张牌时的边缘间距，整组居中
+#define CARD_SELECTOR_HEIGHT (CARD_SELECTOR_WIDTH * 1619.0 / 971.0) // 五色卡面画布比例
+#define CARD_SELECTOR_HOVER_WIDTH_SCALE (1171.0 / 971.0) // 含透明外沿的光效画布
+#define CARD_SELECTOR_HOVER_HEIGHT_SCALE (1899.0 / 1619.0) // 含标题栏和外沿的光效画布
+#define CARD_SELECTOR_GAP 0.018 // 五张牌时的边缘间距，整组居中
 #define CARD_SELECTOR_ROW_WIDTH 0.8 // 一至四张牌在此宽度内均匀排列
 #define CARD_SELECTOR_OFFSET_Y 0.075 // 整组相对屏幕中心的纵向偏移
-#define CARD_SELECTOR_ENTER_SECONDS 0.24 // 全体同时入场的时长，单位秒
-#define CARD_SELECTOR_EXIT_SECONDS 0.32 // 全部卡牌统一离场时长，单位秒
+#define CARD_SELECTOR_ENTER_SECONDS 0.10 // 全体同时入场的时长，单位秒
+#define CARD_SELECTOR_EXIT_SECONDS 0.10 // 全部卡牌统一离场时长，单位秒
 #define CARD_SELECTOR_HOVER_SCALE 1.06 // 悬停放大倍率
 #define CARD_SELECTOR_HOVER_EASE 0.35 // 每个动画周期向悬停目标靠近的比例
 #define CARD_SELECTOR_ICON_RAISE 0.01 // 图标相对原位置上移距离
 #define CARD_SELECTOR_CONTENT_RAISE 0.015 // 图标、标题和正文整体上移距离
-#define CARD_SELECTOR_TITLE_HEIGHT 0.014 // 单行标题框高度，避免正文锚在过高的空白框下方
+#define CARD_SELECTOR_TITLE_HEIGHT 0.020 // 卡名的单行高度
+#define CARD_SCROLL_MARGIN 0.011 // 显示滑条时预留的宽度
+#define CARD_TEXT_TOP_INSET 0.004 // 正文首行与裁剪边界之间的留白
+#define CARD_SCROLL_INK 0.0025 // 轨道与滑块可见宽度
 #define CARD_SELECTOR_CONTENT_GAP 0.005 // 图标与标题、标题与正文的垂直间距
 #define CARD_SELECTOR_PADDING_X 0.013 // 正文左右相对卡牌边缘的内边距
-#define CARD_SELECTOR_PADDING_BOTTOM 0.045 // 正文底部相对卡牌底边的内边距
+#define CARD_SELECTOR_PADDING_BOTTOM 0.018 // 简约边框保留更多正文空间
 #define CARD_SELECTOR_BUTTON_GAP 0.01 // 相邻按钮未悬停时的边缘间距（左按钮右边到右按钮左边），整组居中
 #define CARD_SELECTOR_BUTTON_WIDTH 0.10 // 按钮未悬停时的宽度，高度按10:3.8同步计算
 #define CARD_SELECTOR_BUTTON_HEIGHT (CARD_SELECTOR_BUTTON_WIDTH * 3.8 / 10.0) // 按钮宽高比10:3.8
@@ -29,17 +32,27 @@
 #define CARD_SELECTOR_BUTTON_HOVER_HEIGHT_SCALE (500.0 / 380.0) // 外光画布500相对底图380
 #define CARD_SELECTOR_BUTTON_TEXTURE "ui\\cardselector_button\\button.blp"
 #define CARD_SELECTOR_BUTTON_HOVER_TEXTURE "ui\\cardselector_button\\hover.blp"
-#define CARD_SELECTOR_FACE_TOP "ui\\cardselector_tall_v2\\face_top.blp" // 正面上半张，256x512
-#define CARD_SELECTOR_FACE_BOTTOM "ui\\cardselector_tall_v2\\face_bottom.blp" // 正面下半张，256x512
-#define CARD_SELECTOR_HOVER_TOP "ui\\cardselector_tall_v2\\hover_top.blp" // 金黄色外光上半张，256x512
-#define CARD_SELECTOR_HOVER_BOTTOM "ui\\cardselector_tall_v2\\hover_bottom.blp" // 金黄色外光下半张，256x512
 
-//# dependency:resource/ui/cardselector_tall_v2/face_top.blp
-//# dependency:resource/ui/cardselector_tall_v2/face_bottom.blp
-//# dependency:resource/ui/cardselector_tall_v2/hover_top.blp
-//# dependency:resource/ui/cardselector_tall_v2/hover_bottom.blp
 //# dependency:resource/ui/cardselector_button/button.blp
 //# dependency:resource/ui/cardselector_button/hover.blp
+//# dependency:resource/ui/cardselector_colors/scroll/track.blp
+//# dependency:resource/ui/cardselector_colors/scroll/thumb.blp
+
+//# dependency:resource/ui/cardselector_colors/green/body.blp
+//# dependency:resource/ui/cardselector_colors/green/title.blp
+//# dependency:resource/ui/cardselector_colors/green/glow.blp
+//# dependency:resource/ui/cardselector_colors/blue/body.blp
+//# dependency:resource/ui/cardselector_colors/blue/title.blp
+//# dependency:resource/ui/cardselector_colors/blue/glow.blp
+//# dependency:resource/ui/cardselector_colors/purple/body.blp
+//# dependency:resource/ui/cardselector_colors/purple/title.blp
+//# dependency:resource/ui/cardselector_colors/purple/glow.blp
+//# dependency:resource/ui/cardselector_colors/orange/body.blp
+//# dependency:resource/ui/cardselector_colors/orange/title.blp
+//# dependency:resource/ui/cardselector_colors/orange/glow.blp
+//# dependency:resource/ui/cardselector_colors/red/body.blp
+//# dependency:resource/ui/cardselector_colors/red/title.blp
+//# dependency:resource/ui/cardselector_colors/red/glow.blp
 
 //! zinc
 library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIExtendEvent, UIAnimTimer, Music, SyncBus, UIExtendResize {
@@ -76,13 +89,25 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         real x;
         real weight;
         uiImage faceTop;
-        uiImage faceBottom;
+        uiImage plaque;
+        uiText badge;
+        private string badgeColor;
+        integer quality;
         uiImage haloTop;
-        uiImage haloBottom;
         uiBtn button;
         icon artwork;
         uiText heading;
         uiText description;
+        uiImage viewport;
+        uiImage rail;
+        uiImage thumb;
+        real viewHeight;
+        real textHeight;
+        real offset;
+        private real thumbHeight;
+        private boolean narrow;
+        private integer measureAfter;
+        private string content;
         private real lastScale;
         private real lastY;
         private integer lastAlpha;
@@ -90,42 +115,125 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
 
         static method create() -> thistype {
             thistype this = allocate();
+            quality = 0;
+            viewHeight = 0; textHeight = 0; offset = 0; thumbHeight = 0;
+            narrow = false; measureAfter = 0; content = null;
             lastScale = -1.0; lastY = -1.0; lastAlpha = -1; lastLight = -1;
             return this;
         }
 
+        // 本地展示 setter；非法品质回退绿色。1绿、2淡蓝、3紫、4橙、5红。
+        method setBadgeText(string value) {
+            if (value == null || value == "") {badge.setText(""); return;}
+            badge.setText(badgeColor + value + "|r");
+        }
+
+        method setQuality(integer value) {
+            string color = "green";
+            integer tint = 0xFF9BEF47;
+            string base;
+            if (value < 1 || value > 5) {value = 1;}
+            if (quality == value) {return;}
+            quality = value;
+            badgeColor = "|cff9bef47";
+            if (value == 2) {color = "blue"; tint = 0xFF81D9FF; badgeColor = "|cff81d9ff";}
+            else if (value == 3) {color = "purple"; tint = 0xFFC17BFF; badgeColor = "|cffc17bff";}
+            else if (value == 4) {color = "orange"; tint = 0xFFFFA343; badgeColor = "|cffffa343";}
+            else if (value == 5) {color = "red"; tint = 0xFFFF525C; badgeColor = "|cffff525c";}
+            DzFrameSetTextColor(heading.ui, tint);
+            base = "ui\\cardselector_colors\\" + color + "\\";
+            faceTop.setTexture(base + "body.blp");
+            plaque.setTexture(base + "title.blp");
+            haloTop.setTexture(base + "glow.blp");
+        }
+
+        method measured() -> boolean {return measureAfter == 0;}
+        method hasScroll() -> boolean {return narrow && measured();}
+        method scrollTo(real value) {
+            real limit = RMaxBJ(0.0, textHeight - viewHeight);
+            real travel = viewHeight - thumbHeight;
+            offset = RMaxBJ(0.0, RMinBJ(value, limit));
+            description.exRePoint(ANCHOR_TOPLEFT, viewport.ui, ANCHOR_TOPLEFT, 0, offset - CARD_TEXT_TOP_INSET);
+            if (narrow && limit > 0.0) {
+                thumb.exRePoint(ANCHOR_TOP, rail.ui, ANCHOR_TOP, 0, -travel * offset / limit);
+            }
+        }
+
+        // 先用完整正文宽度测量。高度0交给原生TEXT自动排版。
+        method remeasure() {
+            real width = CARD_SELECTOR_WIDTH - 2.0 * CARD_SELECTOR_PADDING_X;
+            narrow = false;
+            rail.show(false); thumb.show(false);
+            description.exReSize(width, 0);
+            measureAfter = 2;
+        }
+        method setDescription(string value) {
+            if (value == content) {return;}
+            content = value; offset = 0;
+            description.setText(value);
+            remeasure();
+            scrollTo(0);
+        }
+        // KK 要求改变自适应TEXT后至少过一个渲染帧才能读取实际高度。
+        method measureFrame() {
+            real width = CARD_SELECTOR_WIDTH - 2.0 * CARD_SELECTOR_PADDING_X;
+            if (measureAfter <= 0) {return;}
+            measureAfter -= 1;
+            if (measureAfter > 0) {return;}
+            textHeight = DzFrameGetRealHeight(description.ui);
+            if (!narrow && textHeight > viewHeight + 0.0001) {
+                narrow = true;
+                description.exReSize(width - CARD_SCROLL_MARGIN, 0);
+                measureAfter = 2;
+                return;
+            }
+            if (narrow) {
+                thumbHeight = RMinBJ(viewHeight, RMaxBJ(0.012, viewHeight * viewHeight / RMaxBJ(viewHeight, textHeight)));
+                thumb.exReSize(CARD_SCROLL_INK, thumbHeight);
+            }
+            rail.show(narrow); thumb.show(narrow);
+            scrollTo(offset);
+        }
         method layout(real scale, real y, integer alpha, integer light) {
             real w = CARD_SELECTOR_WIDTH * scale;
             real h = CARD_SELECTOR_HEIGHT * scale;
             real gap = CARD_SELECTOR_CONTENT_GAP * scale;
-            real iconY = h * 0.5 - w * 0.65 + CARD_SELECTOR_ICON_RAISE * scale;
+            real iconY = h * 0.5 - w * 0.48 + CARD_SELECTOR_ICON_RAISE * scale;
             real titleHeight = CARD_SELECTOR_TITLE_HEIGHT * scale;
             real bodyTop = iconY - w * 0.135 - gap - titleHeight - gap;
-            real bodyHeight = bodyTop + h * 0.5 - CARD_SELECTOR_PADDING_BOTTOM * scale;
+            real bodyHeight = (bodyTop + h * 0.5) / scale - CARD_SELECTOR_PADDING_BOTTOM;
             // 缩放仅更新几何尺寸，不清空重写正文，避免重置阅读位置。
             if (scale == lastScale && y == lastY && alpha == lastAlpha && light == lastLight) {return;}
             lastScale = scale; lastY = y; lastAlpha = alpha; lastLight = light;
-            // 上半张的底边就是整张卡中心，下半张直接锚同一条接缝。
-            faceTop.exReSize(w, h * 0.5).exRePoint(ANCHOR_BOTTOM, DzGetGameUI(), ANCHOR_CENTER, x, y).setAlpha(alpha);
-            faceBottom.exReSize(w, h * 0.5).exRePoint(ANCHOR_TOP, faceTop.ui, ANCHOR_BOTTOM, 0, 0).setAlpha(alpha);
-            haloTop.exReSize(w * CARD_SELECTOR_HOVER_WIDTH_SCALE, h * CARD_SELECTOR_HOVER_HEIGHT_SCALE * 0.5)
-                .exRePoint(ANCHOR_BOTTOM, faceTop.ui, ANCHOR_BOTTOM, 0, 0).setAlpha(light);
-            haloBottom.exReSize(w * CARD_SELECTOR_HOVER_WIDTH_SCALE, h * CARD_SELECTOR_HOVER_HEIGHT_SCALE * 0.5)
-                .exRePoint(ANCHOR_TOP, haloTop.ui, ANCHOR_BOTTOM, 0, 0).setAlpha(light);
+            faceTop.exReSize(w, h).exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, x, y).setAlpha(alpha);
+            plaque.exReSize(w * 0.72, h * 0.15)
+                .exRePoint(ANCHOR_CENTER, faceTop.ui, ANCHOR_CENTER, 0, h * 0.475).setAlpha(alpha);
+            badge.exReSize(w * 0.55, h * 0.09)
+                .exRePoint(ANCHOR_CENTER, plaque.ui, ANCHOR_CENTER, 0, 0).setAlpha(alpha);
+            // 画布向上扩180、向下扩100；中心偏移40像素，匹配组合外轮廓。
+            haloTop.exReSize(w * CARD_SELECTOR_HOVER_WIDTH_SCALE, h * CARD_SELECTOR_HOVER_HEIGHT_SCALE)
+                .exRePoint(ANCHOR_CENTER, faceTop.ui, ANCHOR_CENTER, 0, h * 40.0 / 1619.0).setAlpha(light);
             artwork.setSize(w * 0.27, w * 0.27);
-            artwork.mainImage.exRePoint(ANCHOR_CENTER, faceTop.ui, ANCHOR_BOTTOM, 0, iconY + CARD_SELECTOR_CONTENT_RAISE * scale).setAlpha(alpha);
+            artwork.mainImage.exRePoint(ANCHOR_CENTER, faceTop.ui, ANCHOR_CENTER, 0, iconY + CARD_SELECTOR_CONTENT_RAISE * scale).setAlpha(alpha);
             if (artwork.glowImage.isExist()) {artwork.glowImage.setAlpha(alpha);}
-            heading.exReSize(w * 0.66, titleHeight).exRePoint(ANCHOR_TOP, artwork.mainImage.ui, ANCHOR_BOTTOM, 0, -gap).setAlpha(alpha);
+            heading.exReSize(w * 0.88, titleHeight).exRePoint(ANCHOR_TOP, artwork.mainImage.ui, ANCHOR_BOTTOM, 0, -gap).setAlpha(alpha);
             // 单锚点加计算尺寸：避免 exRePoint 清除先前锚点，底边仍保持内边距。
             if (description.isExist()) {
-                description.exReSize(RMaxBJ(0.04, w - 2.0 * CARD_SELECTOR_PADDING_X * scale), RMaxBJ(0.04, bodyHeight))
-                    .exRePoint(ANCHOR_TOP, heading.ui, ANCHOR_BOTTOM, 0, -gap).setAlpha(alpha);
+                // 阅读宽高固定，悬停放大时不换行、不改变滑块行程。
+                viewHeight = bodyHeight - CARD_TEXT_TOP_INSET;
+                viewport.exReSize(CARD_SELECTOR_WIDTH - 2.0 * CARD_SELECTOR_PADDING_X, bodyHeight)
+                    .exRePoint(ANCHOR_TOP, faceTop.ui, ANCHOR_CENTER, 0, bodyTop + CARD_SELECTOR_CONTENT_RAISE * scale);
+                description.setAlpha(alpha);
+                rail.exReSize(CARD_SCROLL_INK, viewHeight).setAlpha(alpha);
+                thumb.setAlpha(alpha);
             }
         }
         method onDestroy() {
             button.destroy(); artwork.destroy(); heading.destroy();
+            thumb.destroy(); rail.destroy();
             if (description.isExist()) {description.destroy();}
-            haloTop.destroy(); haloBottom.destroy(); faceTop.destroy(); faceBottom.destroy();
+            viewport.destroy(); content = null;
+            badge.destroy(); plaque.destroy(); haloTop.destroy(); faceTop.destroy();
             next = 0;
         }
     }
@@ -323,20 +431,27 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 card = cardSelectorItem.create();
                 card.next = items; items = card; card.pos = i; card.weight = 0.0;
                 card.x = (i - (count + 1) * 0.5) * step;
-                // 光效先创建，始终位于两张卡面贴图后方。
-                card.haloTop = uiImage.create(DzGetGameUI()).setTexture(CARD_SELECTOR_HOVER_TOP).setAlpha(0);
-                card.haloBottom = uiImage.create(DzGetGameUI()).setTexture(CARD_SELECTOR_HOVER_BOTTOM).setAlpha(0);
-                card.faceTop = uiImage.create(DzGetGameUI()).setTexture(CARD_SELECTOR_FACE_TOP);
-                card.faceBottom = uiImage.create(DzGetGameUI()).setTexture(CARD_SELECTOR_FACE_BOTTOM);
+                // 外光先创建，卡面和独立标题栏遮住内部，光效不截获鼠标。
+                card.haloTop = uiImage.create(DzGetGameUI()).setAlpha(0);
+                card.faceTop = uiImage.create(DzGetGameUI());
+                card.plaque = uiImage.create(DzGetGameUI());
+                card.badge = uiText.create(DzGetGameUI()).setFontSize(7).setAlign(4);
+                DzFrameSetEnable(card.badge.ui, false);
                 card.artwork = icon.create(DzGetGameUI()).enableResize();
-                card.heading = uiText.create(DzGetGameUI()).setFontSize(6).setAlign(1);
-                card.button = uiBtn.createBlank(DzGetGameUI()).exReSize(RMinBJ(CARD_SELECTOR_WIDTH, step), CARD_SELECTOR_HEIGHT)
-                    .exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, card.x, CARD_SELECTOR_OFFSET_Y).show(false);
+                card.heading = uiText.create(DzGetGameUI()).setFontSize(7).setAlign(1);
+                card.setQuality(1);
+                card.button = uiBtn.createBlank(DzGetGameUI()).exReSize(RMinBJ(CARD_SELECTOR_WIDTH, step), CARD_SELECTOR_HEIGHT * 1.1)
+                    .exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, card.x, CARD_SELECTOR_OFFSET_Y + CARD_SELECTOR_HEIGHT * 0.025).show(false);
                 uiHashTable(card.button.ui).eventdata.bind(this);
                 uiHashTable(card.button.ui).eventdata.bind2(i);
                 card.button.spClick(uiEvent.CardSelectorClick);
                 // 普通TEXT只负责显示；禁用命中，点击正文仍由整张卡按钮发包。
-                card.description = uiText.create(DzGetGameUI()).setFontSize(2).setAlign(0);
+                card.viewport = uiImage.create(DzGetGameUI()).setTexture(UI_STRING_PATH_BLANK).setClip(true);
+                card.description = uiText.create(card.viewport.ui).setFontSize(2).setAlign(0);
+                card.rail = uiImage.create(card.viewport.ui).setTexture("ui\\cardselector_colors\\scroll\\track.blp")
+                    .exRePoint(ANCHOR_TOPRIGHT, card.viewport.ui, ANCHOR_TOPRIGHT, -0.002, -CARD_TEXT_TOP_INSET).show(false);
+                card.thumb = uiImage.create(card.viewport.ui).setTexture("ui\\cardselector_colors\\scroll\\thumb.blp").show(false);
+                // viewport 是 BACKDROP；KK 的 DzFrameSetEnable 在此类型上会引发客户端崩溃。
                 if (!card.description.isExist()) {this.destroy(); return 0;}
                 DzFrameSetEnable(card.description.ui, false);
                 card.layout(0.92, CARD_SELECTOR_OFFSET_Y - 0.025, 0, 0);
@@ -380,6 +495,45 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             data = 0; token = 0;
         }
         static method onInit() {
+            hardware.regUpdateEvent(function() {
+                thistype view = first;
+                cardSelectorItem card;
+                while (view != 0) {
+                    card = view.items;
+                    while (card != 0) {card.measureFrame(); card = card.next;}
+                    view = view.next;
+                }
+            });
+            hardware.regResizeEvent(function() {
+                thistype view = first;
+                cardSelectorItem card;
+                while (view != 0) {
+                    card = view.items;
+                    while (card != 0) {card.remeasure(); card = card.next;}
+                    view = view.next;
+                }
+            });
+            hardware.regWheelEvent(function() {
+                thistype view = first;
+                cardSelectorItem card;
+                integer focus;
+                if (view == 0) {return;}
+                focus = DzGetMouseFocus();
+                while (view != 0) {
+                    if (view.state == 1) {
+                        card = view.items;
+                        while (card != 0) {
+                            if (focus == card.button.ui && card.hasScroll()) {
+                                if (DzGetWheelDelta() < 0) {card.scrollTo(card.offset + 0.018);}
+                                else if (DzGetWheelDelta() > 0) {card.scrollTo(card.offset - 0.018);}
+                                return;
+                            }
+                            card = card.next;
+                        }
+                    }
+                    view = view.next;
+                }
+            });
             ticker = uianim.create(function() {
                 thistype current = first;
                 thistype after;
