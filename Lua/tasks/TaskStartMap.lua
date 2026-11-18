@@ -64,6 +64,13 @@ end
 
 path.init(root, projectPath, we, gamePath) -- 初始化路径
 tc.ChangeBuildVersion(buildVersion)
+local artifact = require('Lua.compile.LauncherArtifact')
+local artifact_lock
+if path.project == path.libRoot and buildVersion == '单元测试' then
+    artifact_lock = artifact.acquire(path.project)
+    -- 旧入口不提供引擎身份，不沿用 GUI 之前成品的身份清单。
+    artifact.invalidate(path.project)
+end
 
 local sur = compiler:StartCompile(path)
 
@@ -82,4 +89,5 @@ if sur then
 	end
 end
 
+if artifact_lock then artifact_lock:close() end
 printTaskEnd()

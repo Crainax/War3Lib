@@ -43,10 +43,40 @@ function Write-ProfileBytes([string]$File, [byte[]]$Bytes) {
 function Write-ProfileText([string]$File, [string]$Text) {
     Write-ProfileBytes $File ([Text.Encoding]::UTF8.GetBytes($Text))
 }
-function Get-RunningProfileGame { Get-Process -Name war3, Warcraft* -ErrorAction SilentlyContinue }
+function Get-RunningProfileGame {
+    Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'war3.exe' -or $_.Name -like 'Warcraft*' }
+}
+function Test-IsolatedProfileGame($Process,[string]$PoolRoot='D:\War3\tools\LanTest\pool') {
+    # Only the two fixed private game executables can bypass human profile protection.
+    foreach($name in 'A','B') {
+        $root=Join-Path $PoolRoot $name
+        $expected=Join-Path $root 'Game\war3.exe'
+        if($Process.ExecutablePath) {
+            if([IO.Path]::GetFullPath($Process.ExecutablePath) -ieq $expected){return $true}
+            continue
+        }
+        # Elevated KKWE children can hide their image path. Require the exact
+        # live PID/time, parent launcher and native slot evidence in that case.
+        foreach($file in Get-ChildItem (Join-Path $root 'sessions') -Filter session.json -Recurse -ErrorAction SilentlyContinue) {
+            try {
+                $m=Get-Content $file.FullName -Raw|ConvertFrom-Json
+                foreach($client in $m.clientProcesses) {
+                    $ticks=$Process.CreationDate.ToUniversalTime().Ticks.ToString()
+                    if($client.pid -ne $Process.ProcessId -or $client.creationUtcTicks -ne $ticks){continue}
+                    $slot=@($m.launchers | Where-Object { $_.name -ceq $client.expectedName -and $_.pid -eq $Process.ParentProcessId })
+                    if($slot.Count -ne 1 -or $slot[0].name -cnotmatch '^LanP[1-6]$'){continue}
+                    $proof=Join-Path $file.DirectoryName ("context-"+$slot[0].name+'.log')
+                    $pattern='^'+$Process.ProcessId+' [0-9]+ POOL_IDENTITY_V1 '+$ticks+' '+[regex]::Escape($expected)+'$'
+                    if(Select-String -LiteralPath $proof -Encoding utf8 -Pattern $pattern -Quiet -ErrorAction SilentlyContinue){return $true}
+                }
+            } catch { continue }
+        }
+    }
+    return $false
+}
 function Assert-GameStopped {
-    if (@(Get-RunningProfileGame).Count) {
-        throw 'Close Warcraft III before switching local test profiles.'
+    if (@(Get-RunningProfileGame | Where-Object { !(Test-IsolatedProfileGame $_) }).Count) {
+        throw 'Human or unknown Warcraft environment is busy; existing games preserved.'
     }
 }
 function Assert-NoPendingProfileLaunch([string]$Game) {
@@ -55,9 +85,12 @@ function Assert-NoPendingProfileLaunch([string]$Game) {
         throw "Previous launch is unresolved. Verify the launcher/game have stopped before removing: $pending"
     }
 }
-function Wait-ProfileGameLaunch([string]$Pending, [int]$Attempts = 100) {
+function Wait-ProfileGameLaunch([string]$Pending, [int]$LauncherId, [datetime]$StartedUtc, [int]$Attempts = 100) {
     for ($i=0; $i -lt $Attempts; $i++) {
-        if (@(Get-RunningProfileGame).Count) {
+        $children=@(Get-RunningProfileGame | Where-Object {
+            $_.ParentProcessId -eq $LauncherId -and $_.CreationDate.ToUniversalTime() -ge $StartedUtc -and !(Test-IsolatedProfileGame $_)
+        })
+        if ($children.Count -eq 1) {
             Remove-Item -LiteralPath $Pending
             return
         }
@@ -209,9 +242,10 @@ if ($MyInvocation.InvocationName -ne '.') {
         Switch-LocalTestProfile $ProjectPath $GamePath $WEPath
         $pending = Join-Path $GamePath 'local_test_profile.launching.json'
         Write-ProfileText $pending (@{project=$ProjectPath; startedUtc=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json)
+        $startedUtc=[DateTime]::UtcNow
         $process = Start-Process -FilePath $exe -ArgumentList @('-launchwar3', '-loadfile', ('"' + $MapPath + '"')) -PassThru -WindowStyle Hidden
         # YDWEConfig can exit BEFORE its child game appears. Hold the lock through that gap.
-        Wait-ProfileGameLaunch $pending
+        Wait-ProfileGameLaunch $pending $process.Id $startedUtc
     } catch {
         Write-Error $_ -ErrorAction Continue
         exit 1

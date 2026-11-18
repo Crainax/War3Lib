@@ -33,7 +33,7 @@ local function readFile(filePath)
 end
 
 local function writeFile(filePath, content)
-    local ok, err = ensureDir(fu.GetDir(filePath))
+    local ok, err = ensureDir(assert(filePath:match('^(.*)/[^/]+$')))
     if not ok then
         return false, err
     end
@@ -85,7 +85,7 @@ end
 local function writeTracked(cleanup, filePath, content)
     filePath = normalize(filePath)
     snapshot(cleanup, filePath)
-    rememberDir(cleanup, fu.GetDir(filePath))
+    rememberDir(cleanup, assert(filePath:match('^(.*)/[^/]+$')))
     return writeFile(filePath, content)
 end
 
@@ -93,8 +93,10 @@ local function copyTracked(cleanup, src, dst)
     src = normalize(src)
     dst = normalize(dst)
     snapshot(cleanup, dst)
-    rememberDir(cleanup, fu.GetDir(dst))
-    local ok, err = ensureDir(fu.GetDir(dst))
+    -- callback 和 (key) 没有扩展名，但仍是文件，不能按目录创建。
+    local parent = assert(dst:match('^(.*)/[^/]+$'))
+    rememberDir(cleanup, parent)
+    local ok, err = ensureDir(parent)
     if not ok then
         return false, err
     end

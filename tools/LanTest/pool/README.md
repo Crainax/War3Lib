@@ -7,6 +7,15 @@ are bridged to PowerShell 7 through a serialized request, without shell string
 interpolation. The direct pool entry accepts `-Environment Auto|A|B`.
 The pool uses fixed directories `D:/War3/tools/LanTest/pool/A` and `B`.
 
+Maps are frozen in `pool/snapshots/<id>` before queue admission. Overwriting the
+original build while waiting cannot change that task's map. After successful
+owned-process cleanup, the per-game map and frozen copy are deleted; logs and
+results remain. Admission timeout also removes the frozen copy. Cleanup failure
+or changed map identity preserves the diagnostic files. `map-cleanup.json`
+records deletion of the owned game map. Runtime adapters use the original project
+map path and must keep their project build lease; its hash is checked against the
+snapshot before Prepare.
+
 Project-specific bootstrap adapters may use the direct pool entry's
 `-RuntimeAdapter <ps1> -AdapterOptions <hashtable>`. The runner calls `Prepare`
 after allocation, `Ready` after client discovery, and `Finalize` after owned

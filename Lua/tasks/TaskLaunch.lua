@@ -8,6 +8,8 @@ local fu = require("Lua.utils.FileUtils")
 local lfs = require("lfs")
 local utr = require("Lua.compile.UTReplace")
 local incrementalPack = require("Lua.compile.IncrementalPack")
+local launcher_artifact = require('Lua.compile.LauncherArtifact')
+local unit_test_target = require('Lua.compile.UnitTestTarget')
 local buildPlatform = require 'Lua.compile.BuildPlatform'
 local activePlatform = 'kk'
 local activeNetwork = 'single'
@@ -360,7 +362,7 @@ end
 local function slkSlot(version)
     if activePlatform == '11' then return buildPlatform.slot(sourceProject, version, path.mapName, activePlatform) end
     if isWar3Lib() then path.testScenario = activeScenario end
-	if isWar3Lib() then return path.project .. "/Output/launcher/engines/" .. runtimeProfile.key(activeEngine) .. "/UnitTestMap_slk.w3x" end
+	if isWar3Lib() then return launcher_artifact.map_path(path.project) end
     return path.project .. "/Output/launcher/slk/" .. version .. "/" .. path.mapName .. "_slk.w3x"
 end
 
@@ -428,6 +430,7 @@ local function copyPackagedSlkToSlots(version)
 		print("[全量启动]打包失败,找不到中间文件: " .. map)
 		return false
 	end
+	if isWar3Lib() then launcher_artifact.invalidate(path.project) end
 	if not forceCopyBin(map, legacyMap) then
 		return false
 	end
@@ -436,7 +439,10 @@ local function copyPackagedSlkToSlots(version)
 	if legacyMap ~= slot and not forceCopyBin(legacyMap, slot) then
 		return false
 	end
-	print("[全量启动]版本专属地图: " .. slot)
+	if isWar3Lib() then
+        launcher_artifact.mark(path.project, activeEngine, unit_test_target.selected(path.project, activeScenario), version)
+    end
+	print("[全量启动]当前地图: " .. slot)
 	return true, slot
 end
 
@@ -542,6 +548,10 @@ local function runIncrementalStart(selection)
 		return false
 	end
 	local slot = slkSlot(selection.version)
+	if isWar3Lib() and not launcher_artifact.matches(path.project, activeEngine, unit_test_target.selected(path.project, activeScenario), selection.version) then
+        print('[增量启动]当前基包与测试入口或引擎不匹配，请先全量启动。')
+        return false
+    end
 	if not fu.fileExist(slot) then
 		print("[增量启动]未找到版本专属SLK地图: " .. slot)
 		print("[增量启动]请先用同版本的“启动地图”生成一次版本专属SLK地图")
@@ -549,10 +559,12 @@ local function runIncrementalStart(selection)
 	end
 	if isWar3Lib() then runtimeProfile.stage(activeEngine) end
 	utr.copyResourceFiles()
+	if isWar3Lib() then launcher_artifact.invalidate(path.project) end
 	if not updateMapIncrementallyWithStorm(slot) then
 		return false
 	end
     if activePlatform == '11' then buildPlatform.mark(slot, selection.version, path.project) end
+    if isWar3Lib() then launcher_artifact.mark(path.project, activeEngine, unit_test_target.selected(path.project, activeScenario), selection.version) end
 	local started = startSelectedMap(slot, slotDisplay(selection.version, "_slk"))
 	if started then
 		updateVersionState(selection.version, false, true)
@@ -571,6 +583,10 @@ local function runLegacyStart(selection)
 		return false
 	end
 	local slot = slkSlot(selection.version)
+	if isWar3Lib() and not launcher_artifact.matches(path.project, activeEngine, unit_test_target.selected(path.project, activeScenario), selection.version) then
+        print('[老地图启动]当前地图与测试入口或引擎不匹配，请重新构建。')
+        return false
+    end
 	if not fu.fileExist(slot) then
 		print("[老地图启动]未找到版本专属SLK地图: " .. slot)
 		print("[老地图启动]请先用同版本的“启动地图”生成一次版本专属SLK地图")
@@ -745,7 +761,10 @@ print(string.format(
 
 print("[Lua引擎]" .. activeEngine)
 if isWar3Lib() then print("[测试入口]" .. testTarget.selected(path.project, activeScenario)) end
-local ok = runSelection(selection)
+local artifact_lock = isWar3Lib() and launcher_artifact.acquire(path.project) or nil
+local run_ok, ok = pcall(runSelection, selection)
+if artifact_lock then artifact_lock:close() end
+if not run_ok then error(ok) end
 if platformBuildLock then
     if ok then buildPlatform.cleanup(sourceProject, selection.version, projectPath, path.libRoot) end
     platformBuildLock:close()

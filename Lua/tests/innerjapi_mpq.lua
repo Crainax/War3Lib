@@ -4,9 +4,10 @@ package.cpath=root..'/bin/?.dll;'..package.cpath
 local fs=require 'bee.filesystem'
 local storm=require 'ffi.stormlib'
 local scenario = arg[3] or 'current'
-local targetKey = require('Lua.compile.UnitTestTarget').key(base, scenario)
-for _,engine in ipairs({'ydlua','innerjapi-1.49-9'}) do
- local archive=assert(storm.open(fs.path(base..'/Output/launcher/engines/'..engine..'/tests/'..targetKey..'/UnitTestMap_slk.w3x'),true))
+local engine = assert(arg[4], 'Specify the engine of the current fixed map')
+assert(engine == 'ydlua' or engine == 'innerjapi-1.49-9')
+do
+ local archive=assert(storm.open(fs.path(base..'/Output/UnitTestMap_slk.w3x'),true))
  local inner=engine~='ydlua'
  for _,name in ipairs({'callback','(key)','wenhao_plugin.tga'}) do
   local data=archive:load_file(name)
