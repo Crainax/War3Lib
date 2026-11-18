@@ -23,6 +23,11 @@
 /OriginMap/map/war3map.j
 /ModelTest/*
 /Tools/*
+!/tools/LanTest/
+/tools/LanTest/*
+!/tools/LanTest/pool/
+/tools/LanTest/pool/*
+!/tools/LanTest/pool/MapSnapshot.ps1
 /abandon/
 .vscode/tasks.json
 /output/

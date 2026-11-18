@@ -38,6 +38,12 @@ foreach($name in 'A','B'){
 # Resolve for both candidates before admission; never watch the human game's logs.
 $logPaths=@{};$candidates=if($Environment -eq 'Auto'){@('A','B')}else{@($Environment)}
 foreach($name in $candidates){$logPaths[$name]=Resolve-PoolLogDirectory $ClientLogDirectory $environments[$name].sourceGame $environments[$name].game}
+. (Join-Path $PSScriptRoot 'MapSnapshot.ps1')
+$sourceMap=$map
+$snapshot=New-PoolMapSnapshot -Source $sourceMap -Root (Join-Path $pool 'snapshots') -OwnerId $OwnerId
+$map=$snapshot.path
+$lease=$null;$session=$null;$m=$null
+try {
 $lease=Enter-PoolQueue -Root $pool -OwnerId $OwnerId -MapPath $map -Environment $Environment -WaitSeconds $QueueTimeoutSeconds
 $Environment=$lease.Environment;$e=$environments[$Environment]
 $session=$null;$m=$null;$launchers=@()
@@ -69,12 +75,15 @@ try {
  $id=(Get-Date -Format 'yyyyMMdd-HHmmss')+'-'+$Environment+'-'+[guid]::NewGuid().ToString('N').Substring(0,6)
  $session=Join-Path $e.root ('sessions/'+$id);$null=New-Item -ItemType Directory -Force $session
  $relative='Maps\Test\'+$id+[IO.Path]::GetExtension($map);$target=Join-Path $e.game $relative
- $m=[ordered]@{environment=$Environment;ownerId=$OwnerId;automated=$true;runnerPid=$PID;session=$session;sourceMap=$map;gameMap=$target;sha256=(Get-FileHash $map).Hash;startedUtc=[datetime]::UtcNow.ToString('o');clients=$Clients;gamePath=$e.game;wePath=$e.we;clientLogDirectory=$logPaths[$Environment];autoJoin=(!$ManualJoin);gameName=('Pool-'+$id);hostPid=$null;hostCreationUtcTicks=$null;clientPids=@();clientProcesses=@();launchers=@();queueTicket=$lease.Ticket}
+ $m=[ordered]@{environment=$Environment;ownerId=$OwnerId;automated=$true;runnerPid=$PID;session=$session;sourceMap=$sourceMap;mapSnapshot=$map;gameMap=$target;sha256=$snapshot.sha256;startedUtc=[datetime]::UtcNow.ToString('o');clients=$Clients;gamePath=$e.game;wePath=$e.we;clientLogDirectory=$logPaths[$Environment];autoJoin=(!$ManualJoin);gameName=('Pool-'+$id);hostPid=$null;hostCreationUtcTicks=$null;clientPids=@();clientProcesses=@();launchers=@();queueTicket=$lease.Ticket}
  Save-Manifest
  $m['projectConfiguration']=Set-PoolProject -ProjectPath $ProjectPath -Environment $e -Session $session
  $null=New-Item -ItemType Directory -Force $m.clientLogDirectory
  Save-Manifest
- if($RuntimeAdapter){& $RuntimeAdapter -Phase Prepare -SessionPath $session -GamePath $e.game -MapPath $map -Clients $Clients -Options $AdapterOptions}
+ if($RuntimeAdapter){
+  if((Get-FileHash -LiteralPath $sourceMap).Hash -ne $snapshot.sha256){throw 'Adapter source changed while queued; frozen map preserved until cleanup'}
+  & $RuntimeAdapter -Phase Prepare -SessionPath $session -GamePath $e.game -MapPath $sourceMap -Clients $Clients -Options $AdapterOptions
+ }
  foreach($dir in 'User/AppData/Roaming','User/AppData/Local','User/Documents'){$null=New-Item -ItemType Directory -Force (Join-Path $e.root $dir)}
  foreach($file in 'ydhost.exe','vcruntime140.dll','msvcp140.dll'){Copy-Item (Join-Path $base "bin/$file") (Join-Path $e.root "bin/$file")}
  Copy-Item (Join-Path $base 'bin/lan_player_name.dll') (Join-Path $e.we 'plugin/warcraft3/lan_player_name.dll')
@@ -98,7 +107,7 @@ try {
  do {Collect-Clients;if($m.clientPids.Count -eq $Clients){break};Start-Sleep -Milliseconds 200}while([datetime]::UtcNow -lt $deadline)
  if($m.clientPids.Count -ne $Clients){throw 'Pool child discovery failed'}
  Write-Host "Pool $Environment session: $session"
- if($RuntimeAdapter){& $RuntimeAdapter -Phase Ready -SessionPath $session -GamePath $e.game -MapPath $map -Clients $Clients -Options $AdapterOptions}
+ if($RuntimeAdapter){& $RuntimeAdapter -Phase Ready -SessionPath $session -GamePath $e.game -MapPath $sourceMap -Clients $Clients -Options $AdapterOptions}
  & (Join-Path $base 'Wait-LanTest.ps1') -SessionPath $session -ClientLogDirectory $m.clientLogDirectory @waitArgs
 }catch{
  if($session -and !(Test-Path (Join-Path $session 'result.json'))){@{status='FAIL';message=$_.Exception.Message}|ConvertTo-Json|Set-Content (Join-Path $session 'result.json') -Encoding UTF8}
@@ -111,12 +120,20 @@ try {
   }
  }finally{
   try{if($RuntimeAdapter -and $session){
-   try{& $RuntimeAdapter -Phase Finalize -SessionPath $session -GamePath $e.game -MapPath $map -Clients $Clients -Options $AdapterOptions}
+   try{& $RuntimeAdapter -Phase Finalize -SessionPath $session -GamePath $e.game -MapPath $sourceMap -Clients $Clients -Options $AdapterOptions}
    catch{
     @{status='FAIL';message=('Runtime adapter finalization failed: '+$_.Exception.Message)}|ConvertTo-Json|Set-Content (Join-Path $session 'result.json')
     throw
    }
   }}
-  finally{Exit-PoolQueue $lease $session}
+  finally{
+   try {if($m){$null=Remove-PoolSessionMap $m $session}}
+   finally{Exit-PoolQueue $lease $session}
+  }
  }
+}
+} finally {
+ $safe=(!$m -or ((Test-Path (Join-Path $session 'cleanup.json')) -and (Get-Content (Join-Path $session 'cleanup.json') -Raw|ConvertFrom-Json).success))
+ if($safe){Remove-PoolMapSnapshot $snapshot (Join-Path $pool 'snapshots') $OwnerId}
+ else{Write-Warning "Cleanup incomplete; frozen map retained: $($snapshot.path)"}
 }

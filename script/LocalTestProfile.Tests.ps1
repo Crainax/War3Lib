@@ -1,5 +1,6 @@
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'LocalTestProfile.ps1')
+function Get-RunningProfileGame {}
 $testRoot=Join-Path $env:TEMP ('war3-profile-test-'+[char]0x6D4B+[guid]::NewGuid().ToString('N'))
 $game=Join-Path $testRoot 'game'; $we=Join-Path $testRoot 'we'
 New-Item -ItemType Directory -Path $game,(Join-Path $we 'bin') -Force | Out-Null
@@ -110,12 +111,34 @@ try { Switch-LocalTestProfile $lh $game $we } catch { if($_ -match 'launch is un
 if(!$blocked -or (Get-ProfileHash $active) -ne $before){throw 'Pending launch allowed a switch'}
 function Get-RunningProfileGame {}
 $blocked=$false
-try { Wait-ProfileGameLaunch $pending 1 } catch { if($_ -match 'startup unconfirmed'){$blocked=$true}else{throw} }
+try { Wait-ProfileGameLaunch $pending 123 ([datetime]::UtcNow.AddSeconds(-1)) 1 } catch { if($_ -match 'startup unconfirmed'){$blocked=$true}else{throw} }
 if(!$blocked -or !(Test-Path $pending)){throw 'Timed out launch became switchable'}
-function Get-RunningProfileGame { [pscustomobject]@{ProcessName='war3'} }
-Wait-ProfileGameLaunch $pending 1
+function Get-RunningProfileGame { [pscustomobject]@{Name='war3.exe';ProcessId=124;ParentProcessId=123;CreationDate=[datetime]::UtcNow;ExecutablePath='D:\human\war3.exe'} }
+Wait-ProfileGameLaunch $pending 123 ([datetime]::UtcNow.AddSeconds(-1)) 1
 if(Test-Path $pending){throw 'Observed launch did not clear marker'}
 $blocked=$false
-try { Switch-LocalTestProfile $lh $game $we } catch { if($_ -match 'Close Warcraft'){$blocked=$true}else{throw} }
+try { Switch-LocalTestProfile $lh $game $we } catch { if($_ -match 'environment is busy'){$blocked=$true}else{throw} }
 if(!$blocked -or (Get-ProfileHash $active) -ne $before){throw 'Running game allowed a switch'}
+function Get-RunningProfileGame { foreach($name in 'A','B'){[pscustomobject]@{Name='war3.exe';ProcessId=10;ParentProcessId=20;CreationDate=[datetime]::UtcNow;ExecutablePath="D:\War3\tools\LanTest\pool\$name\Game\war3.exe"}} }
+Switch-LocalTestProfile $lh $game $we
+Write-ProfileText $pending '{}'
+$blocked=$false
+try { Wait-ProfileGameLaunch $pending 20 ([datetime]::UtcNow.AddSeconds(-1)) 1 } catch { $blocked=$true }
+if(!$blocked -or !(Test-Path $pending)){throw 'Pool client mistaken for human launch'}
+function Get-RunningProfileGame { [pscustomobject]@{Name='war3.exe';ProcessId=999999;ParentProcessId=0;CreationDate=[datetime]::UtcNow;ExecutablePath=$null} }
+$blocked=$false
+try { Assert-GameStopped } catch {$blocked=$true}
+if(!$blocked){throw 'Unknown game bypassed profile protection'}
+Write-Host 'PASS: A/B coexistence classification, unknown preservation and exact new-child confirmation'
+$pool=Join-Path $testRoot 'pool';$session=Join-Path $pool 'A/sessions/fixture'
+$null=New-Item -ItemType Directory -Force $session
+$created=[datetime]::UtcNow
+$hidden=[pscustomobject]@{Name='war3.exe';ProcessId=42;ParentProcessId=41;CreationDate=$created;ExecutablePath=$null}
+$ticks=$created.ToUniversalTime().Ticks.ToString()
+@{clientProcesses=@(@{pid=42;creationUtcTicks=$ticks;expectedName='LanP1'});launchers=@(@{pid=41;name='LanP1'})}|ConvertTo-Json -Depth 5|Set-Content (Join-Path $session 'session.json')
+"42 123 POOL_IDENTITY_V1 $ticks $([IO.Path]::GetFullPath((Join-Path $pool 'A/Game/war3.exe')))"|Set-Content (Join-Path $session 'context-LanP1.log') -Encoding utf8
+if(!(Test-IsolatedProfileGame $hidden $pool)){throw 'Exact hidden pool identity rejected'}
+$hidden.CreationDate=$created.AddSeconds(1)
+if(Test-IsolatedProfileGame $hidden $pool){throw 'Reused PID accepted'}
+Write-Host 'PASS: hidden-path pool identity evidence and PID reuse rejection'
 Write-Host "PASS switching, persistence, manual edits, conflicts, initialization, atomic recovery, newer-data preservation, missing outgoing copy, pending/running launch. Fixtures: $testRoot"

@@ -4,8 +4,8 @@ local lfs = require 'lfs'
 local fu = require 'Lua.utils.FileUtils'
 local M = {}
 function M.key(engine)
-    local base = engine == 'innerjapi' and 'innerjapi-1.49-9' or 'ydlua'
-    return base .. '/tests/' .. require('Lua.compile.UnitTestTarget').key(path.project, path.testScenario)
+    -- 引擎和测试入口由产物清单校验；工作目录只保留当前一份。
+    return 'current'
 end
 local assets = {'callback', 'wenhao_plugin.tga', '(key)'}
 local function mkdir(dir)
@@ -25,20 +25,30 @@ local function empty(dir)
         end
     end
 end
-local function copyTree(src, dst)
+local function copyTree(src, dst, relative)
     mkdir(dst)
     for name in lfs.dir(src) do
         if name ~= '.' and name ~= '..' then
             local a, b = src .. '/' .. name, dst .. '/' .. name
-            if lfs.attributes(a, 'mode') == 'directory' then copyTree(a,b)
-            else assert(fu.copyFile(a,b)) end
+            local entry = (relative or '') .. name
+            local runtime_asset = false
+            for _, asset in ipairs(assets) do
+                if entry == asset or entry == 'map/' .. asset or entry == 'resource/' .. asset then
+                    runtime_asset = true
+                end
+            end
+            -- 不先复制再删除原图运行库，避免 Windows 延迟释放导致无法重新写入。
+            if not runtime_asset then
+                if lfs.attributes(a, 'mode') == 'directory' then copyTree(a, b, entry .. '/')
+                else assert(fu.copyFile(a,b)) end
+            end
         end
     end
 end
 function M.stage(engine)
     assert(path.project == path.libRoot and path.buildVersion == '单元测试')
     assert(engine == 'ydlua' or engine == 'innerjapi')
-    local rel = 'Output/launcher/engines/' .. M.key(engine) .. '/staging/UnitTestMap'
+    local rel = 'Output/launcher/work/UnitTestMap'
     local dst = path.project .. '/' .. rel
     -- Exact generated subtree, never the source UnitTestMap.
     local check = path.project
