@@ -309,6 +309,7 @@ library UTCardSelector requires Selector {
         blankCards[pid] = false; qualityMode[pid] = 0;
         CreateCardSelectorTest(p, 5, false, 1);
         sd = active[pid];
+        assert.Boolean(sd.isExist(), "底文演示创建选择数据");
         if (!sd.isExist()) {return;}
         sd.cardCanFold = true;
         sd.btn1Text = "换一批看看";
@@ -345,7 +346,9 @@ library UTCardSelector requires Selector {
             else if (pos == 4) {CallbackSelectContent("|cFF00FF1E等级:|r2/3");}
         });
         sd.refreshCards();
-        if (GetLocalPlayer() == p && sd.uiCards.isExist()) {
+        if (GetLocalPlayer() == p) {
+            assert.Boolean(sd.uiCards.isExist(), "底文演示创建五张卡牌");
+            if (!sd.uiCards.isExist()) {return;}
             firstCard = sd.uiCards.getItem(1);
             emptyCard = sd.uiCards.getItem(5);
             assert.Boolean(DzFrameIsVisible(firstCard.footer.ui) && !DzFrameIsVisible(emptyCard.footer.ui), "有底文时显示，无返回值时隐藏");

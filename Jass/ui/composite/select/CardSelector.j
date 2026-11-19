@@ -205,16 +205,18 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             scrollTo(offset);
         }
         method layout(real scale, real y, integer alpha, integer light) {
-            real w = CARD_SELECTOR_WIDTH * scale;
-            real h = CARD_SELECTOR_HEIGHT * scale;
-            real gap = CARD_SELECTOR_CONTENT_GAP * scale;
-            real iconY = h * 0.5 - w * 0.48 + CARD_SELECTOR_ICON_RAISE * scale;
-            real titleHeight = CARD_SELECTOR_TITLE_HEIGHT * scale;
-            real bodyTop = iconY - w * 0.135 - gap - titleHeight - gap;
-            real bodyHeight = (bodyTop + h * 0.5) / scale - CARD_SELECTOR_PADDING_BOTTOM;
-            real bottomSpace = h * 0.5 + bodyTop + CARD_SELECTOR_CONTENT_RAISE * scale - bodyHeight;
+            real w; real h; real gap; real iconY; real titleHeight;
+            real bodyTop; real bodyHeight; real bottomSpace;
             // 缩放仅更新几何尺寸，不清空重写正文，避免重置阅读位置。
             if (scale == lastScale && y == lastY && alpha == lastAlpha && light == lastLight) {return;}
+            w = CARD_SELECTOR_WIDTH * scale;
+            h = CARD_SELECTOR_HEIGHT * scale;
+            gap = CARD_SELECTOR_CONTENT_GAP * scale;
+            iconY = h * 0.5 - w * 0.48 + CARD_SELECTOR_ICON_RAISE * scale;
+            titleHeight = CARD_SELECTOR_TITLE_HEIGHT * scale;
+            bodyTop = iconY - w * 0.135 - gap - titleHeight - gap;
+            bodyHeight = (bodyTop + h * 0.5) / scale - CARD_SELECTOR_PADDING_BOTTOM;
+            bottomSpace = h * 0.5 + bodyTop + CARD_SELECTOR_CONTENT_RAISE * scale - bodyHeight;
             lastScale = scale; lastY = y; lastAlpha = alpha; lastLight = light;
             faceTop.exReSize(w, h).exRePoint(ANCHOR_CENTER, DzGetGameUI(), ANCHOR_CENTER, x, y).setAlpha(alpha);
             plaque.exReSize(w * 0.72, h * 0.15)
@@ -328,24 +330,22 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             action.layoutHover(0.0);
         }
 
-        private method toggleFold() {
-            cardSelectorAction action = actions;
-            boolean expanded = folded;
-            folded = !folded;
-            leave();
-            cardRoot.show(!folded);
-            enableButtons(true);
-            while (action != 0) {updateAction(action); action = action.next;}
-            if (panelOpen && onPanel != 0) {onPanel.evaluate(expanded);}
-        }
-
         // 仅展示层发送标准 Select 包；不在本地写入数据或执行奖励。
         method click(integer pos) {
             string payload;
+            cardSelectorAction action;
+            boolean expanded;
             if (state != 1) {return;}
             if (pos == ACTION_FOLD && canFold) {
                 music[MUSIC_INDEX_BTN_CLICK].play();
-                toggleFold();
+                expanded = folded;
+                folded = !expanded;
+                leave();
+                cardRoot.show(expanded);
+                enableButtons(true);
+                action = actions;
+                while (action != 0) {updateAction(action); action = action.next;}
+                if (panelOpen && onPanel != 0) {onPanel.evaluate(expanded);}
                 return;
             }
             if (folded) {return;}
