@@ -20,6 +20,9 @@
 #define CARD_SELECTOR_TITLE_HEIGHT 0.020 // 卡名的单行高度
 #define CARD_SCROLL_MARGIN 0.011 // 显示滑条时预留的宽度
 #define CARD_TEXT_TOP_INSET 0.004 // 正文首行与裁剪边界之间的留白
+#define CARD_TEXT_TOP_RAISE 0.008 // 只向上扩展正文视口
+#define CARD_FOOTER_HEIGHT 0.015 // 6号底文的单行高度
+#define CARD_FOOTER_BOTTOM_INSET 0.013 // 卡面下沿到文字框底边的距离
 #define CARD_SCROLL_INK 0.0025 // 轨道与滑块可见宽度
 #define CARD_SELECTOR_CONTENT_GAP 0.005 // 图标与标题、标题与正文的垂直间距
 #define CARD_SELECTOR_PADDING_X 0.013 // 正文左右相对卡牌边缘的内边距
@@ -38,19 +41,19 @@
 //# dependency:resource/ui/cardselector_colors/scroll/track.blp
 //# dependency:resource/ui/cardselector_colors/scroll/thumb.blp
 
-//# dependency:resource/ui/cardselector_colors/green/body.blp
+//# dependency:resource/ui/cardselector_colors/green/body_10.blp
 //# dependency:resource/ui/cardselector_colors/green/title.blp
 //# dependency:resource/ui/cardselector_colors/green/glow.blp
-//# dependency:resource/ui/cardselector_colors/blue/body.blp
+//# dependency:resource/ui/cardselector_colors/blue/body_10.blp
 //# dependency:resource/ui/cardselector_colors/blue/title.blp
 //# dependency:resource/ui/cardselector_colors/blue/glow.blp
-//# dependency:resource/ui/cardselector_colors/purple/body.blp
+//# dependency:resource/ui/cardselector_colors/purple/body_10.blp
 //# dependency:resource/ui/cardselector_colors/purple/title.blp
 //# dependency:resource/ui/cardselector_colors/purple/glow.blp
-//# dependency:resource/ui/cardselector_colors/orange/body.blp
+//# dependency:resource/ui/cardselector_colors/orange/body_10.blp
 //# dependency:resource/ui/cardselector_colors/orange/title.blp
 //# dependency:resource/ui/cardselector_colors/orange/glow.blp
-//# dependency:resource/ui/cardselector_colors/red/body.blp
+//# dependency:resource/ui/cardselector_colors/red/body_10.blp
 //# dependency:resource/ui/cardselector_colors/red/title.blp
 //# dependency:resource/ui/cardselector_colors/red/glow.blp
 
@@ -58,6 +61,7 @@
 library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIExtendEvent, UIAnimTimer, Music, SyncBus, UIExtendResize {
     // 面板显隐只在当前玩家的本地界面执行。
     public type cardPanelEvent extends function(boolean);
+    public type cardPanelClaim extends function() -> boolean;
     private constant integer ACTION_PANEL = -5;
     private constant integer ACTION_FOLD = -4;
     private struct cardSelectorAction {
@@ -102,6 +106,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         icon artwork;
         uiText heading;
         uiText description;
+        uiText footer;
         uiImage viewport;
         uiImage rail;
         uiImage thumb;
@@ -120,7 +125,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         static method create() -> thistype {
             thistype this = allocate();
             quality = 0;
-            viewport = 0; description = 0; rail = 0; thumb = 0;
+            viewport = 0; description = 0; footer = 0; rail = 0; thumb = 0;
             viewHeight = 0; textHeight = 0; offset = 0; thumbHeight = 0;
             narrow = false; measureAfter = 0; content = null;
             lastScale = -1.0; lastY = -1.0; lastAlpha = -1; lastLight = -1;
@@ -147,7 +152,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             else if (value == 5) {color = "red"; tint = 0xFFFF525C; badgeColor = "|cffff525c";}
             DzFrameSetTextColor(heading.ui, tint);
             base = "ui\\cardselector_colors\\" + color + "\\";
-            faceTop.setTexture(base + "body.blp");
+            faceTop.setTexture(base + "body_10.blp");
             plaque.setTexture(base + "title.blp");
             haloTop.setTexture(base + "glow.blp");
         }
@@ -207,6 +212,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             real titleHeight = CARD_SELECTOR_TITLE_HEIGHT * scale;
             real bodyTop = iconY - w * 0.135 - gap - titleHeight - gap;
             real bodyHeight = (bodyTop + h * 0.5) / scale - CARD_SELECTOR_PADDING_BOTTOM;
+            real bottomSpace = h * 0.5 + bodyTop + CARD_SELECTOR_CONTENT_RAISE * scale - bodyHeight;
             // 缩放仅更新几何尺寸，不清空重写正文，避免重置阅读位置。
             if (scale == lastScale && y == lastY && alpha == lastAlpha && light == lastLight) {return;}
             lastScale = scale; lastY = y; lastAlpha = alpha; lastLight = light;
@@ -225,16 +231,21 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             // 单锚点加计算尺寸：避免 exRePoint 清除先前锚点，底边仍保持内边距。
             if (description.isExist()) {
                 // 阅读宽高固定，悬停放大时不换行、不改变滑块行程。
-                viewHeight = bodyHeight - CARD_TEXT_TOP_INSET;
-                viewport.exReSize(CARD_SELECTOR_WIDTH - 2.0 * CARD_SELECTOR_PADDING_X, bodyHeight)
-                    .exRePoint(ANCHOR_TOP, faceTop.ui, ANCHOR_CENTER, 0, bodyTop + CARD_SELECTOR_CONTENT_RAISE * scale);
+                viewHeight = bodyHeight + CARD_TEXT_TOP_RAISE - CARD_TEXT_TOP_INSET;
+                viewport.exReSize(CARD_SELECTOR_WIDTH - 2.0 * CARD_SELECTOR_PADDING_X, bodyHeight + CARD_TEXT_TOP_RAISE)
+                    .exRePoint(ANCHOR_TOP, faceTop.ui, ANCHOR_CENTER, 0, bodyTop + CARD_SELECTOR_CONTENT_RAISE * scale + CARD_TEXT_TOP_RAISE);
                 description.setAlpha(alpha);
                 rail.exReSize(CARD_SCROLL_INK, viewHeight).setAlpha(alpha);
                 thumb.setAlpha(alpha);
+                // 离场时卡面缩小，底文随下沿移动，最高只到正文视口的底边。
+                footer.exReSize(w - 2.0 * CARD_SELECTOR_PADDING_X * scale, CARD_FOOTER_HEIGHT * scale)
+                    .exRePoint(ANCHOR_BOTTOM, faceTop.ui, ANCHOR_BOTTOM, 0, RMinBJ(CARD_FOOTER_BOTTOM_INSET * scale, bottomSpace - CARD_FOOTER_HEIGHT * scale))
+                    .setAlpha(alpha);
             }
         }
         method onDestroy() {
             button.destroy(); artwork.destroy(); heading.destroy();
+            if (footer.isExist()) {footer.destroy();}
             if (thumb.isExist()) {thumb.destroy();}
             if (rail.isExist()) {rail.destroy();}
             if (description.isExist()) {description.destroy();}
@@ -248,6 +259,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         STRUCT_SHARED_METHODS(cardSelector)
         private static thistype first = 0;
         private static uianim ticker;
+        private static uiImage sharedPanelCardLayer = 0;
         private thistype next;
         private thistype prev;
         private cardSelectorItem items;
@@ -331,9 +343,14 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         method click(integer pos) {
             string payload;
             if (state != 1) {return;}
-            if (pos == ACTION_FOLD && canFold) {toggleFold(); return;}
+            if (pos == ACTION_FOLD && canFold) {
+                music[MUSIC_INDEX_BTN_CLICK].play();
+                toggleFold();
+                return;
+            }
             if (folded) {return;}
             if (pos == ACTION_PANEL && onPanel != 0) {
+                music[MUSIC_INDEX_BTN_CLICK].play();
                 panelOpen = !panelOpen;
                 onPanel.evaluate(panelOpen);
                 return;
@@ -350,7 +367,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             else if (pos == -2) {payload = "G," + session;}
             else {payload = "H," + session;}
             syncBus.DzSyncDataEx("Select", payload);
-            music[MUSIC_INDEX_CARD_FLIP_REVEAL].play();
+            music[MUSIC_INDEX_BTN_CLICK].play();
         }
         // 业务回调未销毁数据：恢复选择。只由合法收包后的数据层调用。
         method resume() {
@@ -469,13 +486,27 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             if (state == 0 && elapsed >= CARD_SELECTOR_ENTER_TICKS) {resume();}
             if (state == 3 && elapsed >= CARD_SELECTOR_EXIT_TICKS) {destroy();}
         }
-        static method create(integer data, integer token, integer count) -> thistype {
+        static method createWithPanelClaim(integer data, integer token, integer count, cardPanelClaim claim) -> thistype {
             integer i;
             real step;
             thistype this;
             cardSelectorItem card;
             cardSelectorAction action;
+            integer parent = DzGetGameUI();
             if (count < 1 || count > 5 || CARD_SELECTOR_WIDTH <= 0.0) {return 0;}
+            if (claim != 0) {
+                // 连续轮次共用同一个本地父框，后创建的卡牌不会盖住玩家正在操作的独立面板。
+                if (sharedPanelCardLayer == 0) {
+                    sharedPanelCardLayer = uiImage.create(parent);
+                    if (sharedPanelCardLayer.ui == 0) {
+                        if (sharedPanelCardLayer.isExist()) {sharedPanelCardLayer.destroy();}
+                        sharedPanelCardLayer = 0;
+                        return 0;
+                    }
+                    sharedPanelCardLayer.setTexture(UI_STRING_PATH_BLANK).setSize(0.001, 0.001).setAbsPoint(ANCHOR_CENTER, 0.4, 0.3);
+                }
+                parent = sharedPanelCardLayer.ui;
+            }
             this = allocate();
             if (this == 0) {return 0;}
             session = I2S(data) + "," + I2S(token);
@@ -483,7 +514,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             actions = 0;
             canFold = false; folded = false; refreshPending = false; panelOpen = false; onPanel = 0;
             panelText = ""; closeText = "取消选择";
-            cardRoot = uiImage.create(DzGetGameUI()).setTexture(UI_STRING_PATH_BLANK)
+            cardRoot = uiImage.create(parent).setTexture(UI_STRING_PATH_BLANK)
                 .setSize(0.001, 0.001).setAbsPoint(ANCHOR_CENTER, 0.4, 0.3);
             prev = 0; next = first;
             if (first != 0) {first.prev = this;}
@@ -515,6 +546,10 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 card.description = uiText.create(card.viewport.ui);
                 if (card.description.ui == 0) {this.destroy(); return 0;}
                 card.description.setFontSize(2).setAlign(0);
+                card.footer = uiText.create(cardRoot.ui);
+                if (card.footer.ui == 0) {this.destroy(); return 0;}
+                card.footer.setFontSize(6).setAlign(TEXT_ALIGN_BOTTOMCENTER).show(false);
+                DzFrameSetEnable(card.footer.ui, false);
                 card.rail = uiImage.create(card.viewport.ui);
                 card.thumb = uiImage.create(card.viewport.ui);
                 if (card.rail.ui == 0 || card.thumb.ui == 0) {this.destroy(); return 0;}
@@ -533,21 +568,25 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
                 else if (i == 4) {action.pos = ACTION_FOLD;}
                 else if (i == 5) {action.pos = ACTION_PANEL;}
                 action.weight = -1.0;
-                action.halo = uiImage.create(DzGetGameUI()).setTexture(CARD_SELECTOR_BUTTON_HOVER_TEXTURE).setAlpha(0).show(false);
-                action.image = uiImage.create(DzGetGameUI()).setTexture(CARD_SELECTOR_BUTTON_TEXTURE)
+                action.halo = uiImage.create(parent).setTexture(CARD_SELECTOR_BUTTON_HOVER_TEXTURE).setAlpha(0).show(false);
+                action.image = uiImage.create(parent).setTexture(CARD_SELECTOR_BUTTON_TEXTURE)
                     .show(false);
                 action.halo.exRePoint(ANCHOR_CENTER, action.image.ui, ANCHOR_CENTER, 0, 0);
                 action.label = uiText.create(action.image.ui).setFontSize(4).setAlign(4)
                     .exRePoint(ANCHOR_CENTER, action.image.ui, ANCHOR_CENTER, 0, 0);
                 DzFrameSetEnable(action.label.ui, false);
-                action.button = uiBtn.createBlank(DzGetGameUI()).exReSize(CARD_SELECTOR_BUTTON_WIDTH, CARD_SELECTOR_BUTTON_HEIGHT)
+                action.button = uiBtn.createBlank(parent).exReSize(CARD_SELECTOR_BUTTON_WIDTH, CARD_SELECTOR_BUTTON_HEIGHT)
                     .exRePoint(ANCHOR_CENTER, action.image.ui, ANCHOR_CENTER, 0, 0).show(false);
                 uiHashTable(action.button.ui).eventdata.bind(this); uiHashTable(action.button.ui).eventdata.bind2(action.pos);
                 action.button.spClick(uiEvent.CardSelectorClick);
                 action.layoutHover(0.0);
             }
             ticker.reg();
+            if (claim != 0) {panelOpen = claim.evaluate();}
             return this;
+        }
+        static method create(integer data, integer token, integer count) -> thistype {
+            return thistype.createWithPanelClaim(data, token, count, 0);
         }
         method onDestroy() {
             cardSelectorItem card = items;

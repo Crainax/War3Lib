@@ -7,13 +7,14 @@
 - 动态修改展示数据后调用 `sd.refreshCards()`。新映射 trigger 在 selectData 销毁时释放；换色不重建卡牌、不重置动画。
 - 卡面宽0.14、高按1619/971计算；五张边缘间距0.018。保留 exReSize/exRePoint 的窗口自适应机制。独立栏宽为卡面72%、高15%、中心位于卡面中心上方47.5%高度。
 - 外光是包含标题栏轮廓的透明图，画布1171×1899，卡面原坐标(100,180)，中心相对卡面向上40像素。仅悬停权重驱动透明度，保留原 tick、1.06缩放、0.35缓动、0.10秒入场和0.10秒离场；不采用HTML的300ms动画替换游戏动画。
-- 15张 BLP 在 `D:/War3Asset/Import/resource/ui/cardselector_colors/{green,blue,purple,orange,red}/`，每色 `body.blp`、`title.blp`、`glow.blp`。body/glow为512×1024，title为512×128，强制Alpha、JPEG质量100、1级mipmap。均已解码检查尺寸及外光中心透明。通过CardSelector.j的dependency导入；不再依赖旧tall_v2卡面。底部按钮继续使用原有素材。
+- 15张 BLP 在 `D:/War3Asset/Import/resource/ui/cardselector_colors/{green,blue,purple,orange,red}/`，每色 `body_10.blp`（卡面内部 10% 透明）、`title.blp`、`glow.blp`。body/glow为512×1024，title为512×128，强制Alpha、JPEG质量100、1级mipmap。均已解码检查尺寸及外光中心透明。通过CardSelector.j的dependency导入；不再依赖旧tall_v2卡面。底部按钮继续使用原有素材。
 - 公共滚动条还依赖同目录下的 `scroll/track.blp` 和 `scroll/thumb.blp`，随五色贴图一起同步。
 - 无字PNG、转换中间图及浏览器预览位于 `C:/Users/41399/.codex/visualizations/2026/11/16/01a1e633-11ad-7c20-ac85-a8f889412e23/`；红色边框外杂点已重新清理，角落规则网点保留。
 
 新增演示命令：
 
 - `-mixed`：五色同屏。
+- `-footer`：五张卡依次展示两种套装进度、蓝色魔耗、绿色等级和空底文。第二张滚到“【正文末行】”可对照底文，点“换一批看看”可交换第一、五张的有字／空白状态；“收起／显示”可检查底文是否跟随卡面。
 - `-quality 1`～`-quality 5`：五张同品质；`-quality 6`：非法品质回退绿色并断言。
 - `-cycle`：当前组原位轮换品质，检查贴图、标题和外光共同更新。
 - `-blank`：切换基础演示的空白卡面/图标文字，检查边框与外光。
@@ -28,7 +29,8 @@
 - `reflectIcon`：图标，沿用 `CallbackSelectContent`。
 - `reflectName`：标题。
 - `reflectDescription`：新增正文映射。
-- 正文由 `uiText` 显示，固定2号字、左上排版，自动换行。每张卡只创建一个正文 TEXT，放在启用裁剪的视口内。按完整正文宽度排版后延迟读取实际高度，溢出才显示共用的灰轨白块，收窄正文并重新测量。滚轮移动本地正文；滑条仅显示阅读位置，点击该处照常选卡。图标原有上移0.01，图标、标题和正文再整体上移0.015，正文框尺寸保持不变；标题与图标、正文与标题的间距均为0.005。卡名与顶部铭牌均使用原生7号字和品质色。标题框使用单行高度0.020，正文锚在其底部下方0.005；标题高度、左右与底部内边距在 CardSelector.j 宏中调整。
+- `reflectCardFooter(code)`：在全端注册，在本地通过 `CallbackSelectContent` 返回当前槽位的一行底文，支持文字颜色。空值或空串隐藏底文。随 `refreshCards()` 重新取值。
+- 正文固定2号字，左上排版，自动换行。正文视口顶部上移 0.008，底边保持原位；溢出时收窄正文并重新测量，滚轮移动正文。底文采用独立的6号文本框，底部居中，位于正文视口之外。卡名与顶部铭牌沿用7号字和品质色。
 - 正文不拦截鼠标输入，点击正文、图标、标题或卡牌边缘均通过整张卡按钮发送标准Select包；鼠标在正文上仍保持卡牌悬停高亮。
 - `reflectShadow/reflectGrow`：沿用图标阴影与 growdata。
 - 映射通过 `GetSelectDataAsync()/GetSelectPosAsync()` 读取上下文。卡牌仅保留本地悬停高亮和音效，不调用 `registerEnter/registerLeave`；底部按钮不注册悬停tooltip。
@@ -46,6 +48,7 @@
 ## 本地面板、折叠与轮候
 
 - `sd.cardPanelText` 设置面板按钮文字，`sd.cardPanel` 接受一个 `cardPanelEvent(boolean visible)`。显隐回调仅在 owner 客户端执行。面板内部的玩法操作由业务原有同步事件处理。
+- 需要跨轮保留面板时，可设置 `sd.claimCardPanel`。它仅在新卡面首次实际展示时在 owner 本地调用；返回 true 表示该视图已接管展开的面板，折叠和面板按钮会沿用此状态。
 - `sd.cardCanFold` 启用“收起／显示”。收起时保留本按钮原位，隐藏卡面、点击区域、其他按钮和已打开的附属面板。恢复时继续原选择。`sd.cardCloseText` 指定关闭文字，按钮依然要求注册 `registerClose`。完整顺序为面板、折叠、btn1～3、关闭。
 - `sd.queueCards()` 在本地按请求先后展示。等待期间可销毁数据。分配卡牌失败时使用同一数据打开普通 Selector。`sd.hasLocalView()` 包含已排队的会话，只能用于本地显示判断。
 - 两种窗口均创建失败时，收到有效的 `Z` 消息后，owner 先移出无窗口的队首并展示下一项，各端再执行已注册的失败回调。保留的会话可以用原候选重新排队。

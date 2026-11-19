@@ -2,6 +2,7 @@
 #define UTCardSelectorIncluded
 #undef OriginMapUnitTestMode
 //! zinc
+//# dependency:resource/ui/cardselector_colors/green/body.blp
 library UTCardSelector requires Selector {
     private selectData active[];
     private integer qualityMode[]; // 0=按牌位五色，1..5=统一品质
@@ -300,6 +301,58 @@ library UTCardSelector requires Selector {
         sd.refreshCards();
     }
 
+    private function TestCardFooters(player p) {
+        integer pid = GetPlayerId(p);
+        selectData sd;
+        cardSelectorItem firstCard;
+        cardSelectorItem emptyCard;
+        blankCards[pid] = false; qualityMode[pid] = 0;
+        CreateCardSelectorTest(p, 5, false, 1);
+        sd = active[pid];
+        if (!sd.isExist()) {return;}
+        sd.cardCanFold = true;
+        sd.btn1Text = "换一批看看";
+        sd.registerBtn1(function() {
+            selectData data = GetSelectData();
+            SaveBoolean(HASH_SELECT, data, 0, !LoadBoolean(HASH_SELECT, data, 0));
+        });
+        sd.reflectName(function() {
+            integer pos = GetSelectPosAsync();
+            if (pos == 1) {CallbackSelectContent("守望护腕");}
+            else if (pos == 2) {CallbackSelectContent("守望战甲");}
+            else if (pos == 3) {CallbackSelectContent("寒冰箭");}
+            else if (pos == 4) {CallbackSelectContent("坚韧");}
+            else {CallbackSelectContent("旅人之靴");}
+        });
+        sd.reflectDescription(function() {
+            integer pos = GetSelectPosAsync();
+            integer i;
+            string text = "护甲 +12";
+            if (pos == 2) {
+                for (1 <= i <= 16) {text += "|n套装效果 " + I2S(i);}
+                CallbackSelectContent(text + "|n|cffffd84a【正文末行】|r");
+            } else if (pos == 3) {CallbackSelectContent("对目标造成冰霜伤害并降低移动速度。");}
+            else if (pos == 4) {CallbackSelectContent("[当前] 生命上限 +100|n|cffff9900[下一级]|r 生命上限 +200");}
+            else if (pos == 5) {CallbackSelectContent("移动速度 +15");}
+            else {CallbackSelectContent(text);}
+        });
+        sd.reflectCardFooter(function() {
+            integer pos = GetSelectPosAsync();
+            boolean alternate = LoadBoolean(HASH_SELECT, GetSelectDataAsync(), 0);
+            if ((pos == 1 && !alternate) || (pos == 5 && alternate)) {CallbackSelectContent("|cFF808080守望套装(0/4)|r");}
+            else if (pos == 2) {CallbackSelectContent("|cFF808080守望套装(1/4)|r");}
+            else if (pos == 3) {CallbackSelectContent("|cFF00B3FF魔法消耗:|r 75");}
+            else if (pos == 4) {CallbackSelectContent("|cFF00FF1E等级:|r2/3");}
+        });
+        sd.refreshCards();
+        if (GetLocalPlayer() == p && sd.uiCards.isExist()) {
+            firstCard = sd.uiCards.getItem(1);
+            emptyCard = sd.uiCards.getItem(5);
+            assert.Boolean(DzFrameIsVisible(firstCard.footer.ui) && !DzFrameIsVisible(emptyCard.footer.ui), "有底文时显示，无返回值时隐藏");
+            assert.Boolean(RAbsBJ(firstCard.viewHeight - emptyCard.viewHeight) < 0.0001, "有无底文的卡牌正文高度一致");
+        }
+    }
+
     // 每个客户端只校准本地演示，用原有两个正文控件测一行、两行。
     private selectData scrollDemo = 0;
     private integer scrollToken = 0;
@@ -359,6 +412,16 @@ library UTCardSelector requires Selector {
             integer count = 0;
             boolean reject = false;
             integer pid = GetPlayerId(GetTriggerPlayer());
+            if (command == "-transparency") {
+                qualityMode[pid] = 1;
+                blankCards[pid] = false;
+                CreateCardSelectorTest(GetTriggerPlayer(), 2, false, 1);
+                if (GetLocalPlayer() == GetTriggerPlayer() && active[pid].uiCards.isExist()) {
+                    active[pid].uiCards.getItem(1).faceTop.setTexture("ui\\cardselector_colors\\green\\body.blp");
+                }
+                return;
+            }
+            if (command == "-footer") {TestCardFooters(GetTriggerPlayer()); return;}
             if (command == "-scroll" || command == "s7") {
                 CreateCardSelectorTest(GetTriggerPlayer(), 3, false, 1);
                 active[pid].reflectDescription(function boundaryText);
@@ -414,6 +477,8 @@ library UTCardSelector requires Selector {
             CreateCardSelectorTest(GetTriggerPlayer(), count, reject, 2);
         });
 		InitTestUIRuler();
+        BJDebugMsg("[CardSelector] -transparency：左侧原版绿卡，右侧卡面内部 10% 透明，两侧均使用原版标题。");
+        BJDebugMsg("[CardSelector] -footer：五张底文样例。第二张可滚至正文末行；换批切换第一、五张底文。");
         BJDebugMsg("[CardSelector] -scroll 或 s7：左满屏、中多一行、右长文。滚轮可读到末行，点击滑轨位置可选卡。");
         BJDebugMsg("[CardSelector] -mixed：五色同屏；-quality 1~5：单品质；-quality 6：非法品质回退；-cycle：原位换色；-blank：空白/文字切换。");
         BJDebugMsg("[CardSelector] s1：5张；-card X：1～5张；s2：首次拒绝后重选；s3：非法数量；s4：同步包校验；s5：短/长/超长正文。");

@@ -289,6 +289,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             }
 
             sd.uiSelector = this;
+            this.enteredPos = 0;
 
             totalPage = IMaxBJ(1, (sd.count + SELECT_UI_MAX_COUNT - 1) / SELECT_UI_MAX_COUNT);
             currentPage = 1;
@@ -515,6 +516,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         string cardCloseText;
         string cardPanelText;
         cardPanelEvent cardPanel; // 同步配置；回调仅控制本地面板显隐。
+        cardPanelClaim claimCardPanel; // 可选，仅在 owner 的新卡面创建成功时调用一次。
         private static thistype firstCard = 0;
         private static thistype lastCard = 0;
         private thistype prevCard;
@@ -524,6 +526,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         trigger trRefCardQuality; // CallbackSelectContent: 1..5
         trigger trRefCardTitle; // 独立顶部标题栏文字
         trigger trRefDescription; // 卡牌正文映射，使用 CallbackSelectContent 返回
+        private trigger trRefCardFooter;
         trigger trRefIcon;  //映射关系:图标
         trigger trRefShadow; //映射关系:阴影（布尔）
         trigger trRefGrow;   //映射关系:流光（growdata 索引）
@@ -559,10 +562,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             this.trBtn2 = null; this.trBtn3 = null;
             this.uiSelector = 0;
             this.uiCards = 0;
-            cardCanFold = false; cardCloseText = "取消选择"; cardPanelText = ""; cardPanel = 0;
+            cardCanFold = false; cardCloseText = "取消选择"; cardPanelText = ""; cardPanel = 0; claimCardPanel = 0;
             prevCard = 0; nextCard = 0; queuedCard = false;
             this.resolvingPos = 0;
             this.trRefDescription = null;
+            this.trRefCardFooter = null;
             this.trRefCardQuality = null; this.trRefCardTitle = null;
             this.owner = p;
             return this;
@@ -598,6 +602,14 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             TriggerAddCondition(trRefCardTitle, Condition(func));
         }
 
+        // 与其他卡牌映射一样全端注册，仅在 owner 刷新卡面时求值。
+        method reflectCardFooter(code func) {
+            if (!this.isExist()) {return;}
+            if (trRefCardFooter != null) {DestroyTrigger(trRefCardFooter);}
+            trRefCardFooter = CreateTrigger();
+            TriggerAddCondition(trRefCardFooter, Condition(func));
+        }
+
         method refreshCards() {
             integer i; integer gifIndex;
             cardSelectorItem card;
@@ -620,6 +632,10 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                     currentSDAsync = this; currentPosAsync = i; currentContent = "";
                     if (trRefDescription != null) {TriggerEvaluate(trRefDescription);}
                     card.setDescription(currentContent);
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefCardFooter != null) {TriggerEvaluate(trRefCardFooter);}
+                    if (currentContent == null || currentContent == "") {card.footer.setText("").show(false);}
+                    else {card.footer.setText(currentContent).show(true);}
                     currentSDAsync = this; currentPosAsync = i; currentContent = "1";
                     if (trRefCardQuality != null) {TriggerEvaluate(trRefCardQuality);}
                     card.setQuality(S2I(currentContent));
@@ -640,7 +656,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
 
         private method createCardView() -> boolean {
             if (count < 1 || count > 5 || trClick == null) {return false;}
-            uiCards = cardSelector.create(this, sessionToken, count);
+            uiCards = cardSelector.createWithPanelClaim(this, sessionToken, count, claimCardPanel);
             if (!uiCards.isExist()) {return false;}
             refreshCards();
             return true;
@@ -845,6 +861,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             if (trRefCardQuality != null) {DestroyTrigger(trRefCardQuality);trRefCardQuality = null;}
             if (trRefCardTitle != null) {DestroyTrigger(trRefCardTitle);trRefCardTitle = null;}
             if (trRefDescription != null) {DestroyTrigger(trRefDescription);trRefDescription = null;}
+            if (trRefCardFooter != null) {DestroyTrigger(trRefCardFooter);trRefCardFooter = null;}
             if (trRefIcon != null) {DestroyTrigger(trRefIcon);trRefIcon = null;}
             if (trRefShadow != null) {DestroyTrigger(trRefShadow);trRefShadow = null;}
             if (trRefGrow != null) {DestroyTrigger(trRefGrow);trRefGrow = null;}
