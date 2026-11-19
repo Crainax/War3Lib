@@ -186,6 +186,15 @@ BOOL WINAPI DllMain(HINSTANCE instance,DWORD reason,LPVOID){
  wchar_t port[16]={0};GetEnvironmentVariableW(L"WAR3_POOL_UDP",port,16);udpPort=_wtoi(port);tcpPort=udpPort+1;
  wchar_t exe[MAX_PATH];GetModuleFileNameW(nullptr,exe,MAX_PATH);host=wcsstr(exe,L"ydhost.exe")!=nullptr;
  char exeText[MAX_PATH*3];WideCharToMultiByte(CP_UTF8,0,exe,-1,exeText,sizeof(exeText),nullptr,nullptr);note(exeText);
+ // Slot-specific evidence is inherited from the owning launch. CIM represents
+ // creation time at microsecond precision, so use the same UTC tick rounding.
+ FILETIME birth, exited, kernel, user;
+ if(GetProcessTimes(GetCurrentProcess(), &birth, &exited, &kernel, &user)){
+  ULARGE_INTEGER time;time.LowPart=birth.dwLowDateTime;time.HighPart=birth.dwHighDateTime;
+  char identity[MAX_PATH*3+80];
+  snprintf(identity,sizeof(identity),"POOL_IDENTITY_V1 %llu %s",(time.QuadPart+504911232000000000ULL)/10*10,exeText);
+  note(identity);
+ }
  selftest=wcsstr(exe,L"pool_probe.exe")!=nullptr;
  if(RegOpenKeyExW(HKEY_CURRENT_USER,hive,0,KEY_ALL_ACCESS,&privateRoot)!=ERROR_SUCCESS)return FALSE;
  note("REGISTRY_ISOLATED");

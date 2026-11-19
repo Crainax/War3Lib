@@ -1,0 +1,16 @@
+{
+  "archive_path": "fonts/YLfonts.ttf",
+  "size": 14685740,
+  "sha256": "42c02cfcf0010d5fd00125e6c7a5e99eb2ccccab9187b06755fa02fe5c44bf81",
+  "names": {
+    "1": "Microsoft YaHei",
+    "2": "Bold",
+    "4": "Microsoft YaHei Bold",
+    "5": "Version 0.75",
+    "6": "MicrosoftYaHei",
+    "16": null,
+    "17": null
+  },
+  "weight": 700,
+  "glyphs": 29126
+}

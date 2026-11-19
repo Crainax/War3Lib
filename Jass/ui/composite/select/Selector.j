@@ -26,7 +26,7 @@
 //# dependency:resource/ui/image/select_flash.blp
 //# dependency:resource/ui/image/bg_select.blp
 
-library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
+library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSelector {
 
     public  hashtable HASH_SELECT     = InitHashtable();  //存放数据
     private selectData currentSD      = 0;                //回调参数
@@ -111,22 +111,20 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         private integer    totalPage;                     //总页码
 
         // 悬停状态：进入后未离开，用于在销毁时补发 Leave
-        private boolean    enteredFlag;                   // 是否处于进入状态
-        private integer    enteredPos;                    // 最近一次进入的选择位置
+        private integer    enteredPos;                    // 当前悬停的选项，0 表示已离开
 
         static     tooltip    uiTooltipTemp = 0;  //关闭按钮提示
+
+        private method pageItemCount() -> integer {
+            return IMinBJ(SELECT_UI_MAX_COUNT, sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT);
+        }
 
         //刷新UI内容（用于初始化和翻页）
         method refreshContent() {
             integer i; integer createCount; integer row; integer col; integer colsInRow; integer rowCount; integer pos;integer gifIndex;
             real startX; real startY; real offsetX; real offsetY;
 
-            // 计算当前页的实际显示数量
-            if (sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT > SELECT_UI_MAX_COUNT) {
-                createCount = SELECT_UI_MAX_COUNT;
-            } else {
-                createCount = sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT;
-            }
+            createCount = pageItemCount();
 
             // 计算行数：每行最多6个
             rowCount = (createCount + 5) / 6;
@@ -229,18 +227,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             integer i; integer createCount;
             if (!this.isExist()) {return;}
 
-            // 计算当前页的实际显示数量
-            if (sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT > SELECT_UI_MAX_COUNT) {
-                createCount = SELECT_UI_MAX_COUNT;
-            } else {
-                createCount = sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT;
-            }
+            createCount = pageItemCount();
 
             // 只对当前显示的图标添加 GIF
-            for (1 <= i <= SELECT_UI_MAX_COUNT) {
-                if (i <= createCount) {
-                    imageAnim.gif(sd.owner, gd, icon[i].mainImage.ui);
-                }
+            for (1 <= i <= createCount) {
+                imageAnim.gif(sd.owner, gd, icon[i].mainImage.ui);
             }
         }
 
@@ -252,11 +243,16 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             return uiMain.ui;
         }
 
-        // 滚轮翻页：到边界后停住，不循环
-        private method pageByWheel(real delta) {
+        // 本地滚轮入口：从触发 frame 读取实例，翻页到边界后停住。
+        private static method onMouseWheelFrame() {
+            integer frame = DzGetTriggerUIEventFrame();
             integer targetPage;
+            real delta;
+            thistype this = uiHashTable(frame).eventdata.get();
 
-            if (!this.isExist() || totalPage <= 1) { return; }
+            if (!this.isExist()) { return; }
+            delta = DzGetWheelDelta();
+            if (totalPage <= 1) { return; }
             if (delta < 0) {
                 targetPage = IMinBJ(currentPage + 1, totalPage);
             } else if (delta > 0) {
@@ -269,26 +265,18 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             this.refreshContent();
         }
 
-        // 统一滚轮入口：从触发 frame 取到 this，再调用本地翻页
-        private static method onMouseWheelFrame() {
-            integer frame = DzGetTriggerUIEventFrame();
-            thistype this = uiHashTable(frame).eventdata.get();
-            if (!this.isExist()) { return; }
-            this.pageByWheel(DzGetWheelDelta());
-        }
-
-
         //创建选择支持异步调用
         static method create (player p,selectData sd) -> thistype {
-            integer i; integer createCount;
+            integer i;
             thistype this = 0;
             if (!sd.isExist()) {
                 DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selectData not exist");
                 return 0;
             }
             if (GetLocalPlayer() != p) {return 0;}
+            if (sd.isWaitingInCardQueue()) {return 0;}
 
-            if (sd.uiSelector.isExist()) {
+            if (sd.uiSelector.isExist() || sd.uiCards.isExist()) {
                 DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selector already exist");
                 return 0;
             }
@@ -301,15 +289,9 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             }
 
             sd.uiSelector = this;
+            this.enteredPos = 0;
 
-            // 计算实际创建的图标数量和总页数
-            if (sd.count > SELECT_UI_MAX_COUNT) {
-                createCount = SELECT_UI_MAX_COUNT;
-                totalPage = (sd.count + SELECT_UI_MAX_COUNT - 1) / SELECT_UI_MAX_COUNT; // 向上取整
-            } else {
-                createCount = sd.count;
-                totalPage = 1;
-            }
+            totalPage = IMaxBJ(1, (sd.count + SELECT_UI_MAX_COUNT - 1) / SELECT_UI_MAX_COUNT);
             currentPage = 1;
             this.sd = sd; //绑定数据
             this.sessionToken = sd.getSessionToken();
@@ -345,7 +327,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                         currentPosAsync = pos;
                         TriggerEvaluate(sd.trEnter);
                         // 记录进入状态，供销毁时补发 Leave
-                        this.enteredFlag = true;
                         this.enteredPos = pos;
                         music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
@@ -356,7 +337,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                         currentPosAsync = pos;
                         TriggerEvaluate(sd.trLeave);
                         // 离开后清除进入状态
-                        this.enteredFlag = false;
+                        this.enteredPos = 0;
                     })
                     .onMouseWheel(function selector.onMouseWheelFrame)
                     .spClick(function(integer frame) {
@@ -457,9 +438,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                     this.refreshContent();
                 });
                 uiHashTable(uiPageDownButton.ui).eventdata.bind(this);
-                uiTitle.setText(sd.title+"(第1/"+I2S(totalPage)+"页)");
-            } else {
-                uiTitle.setText(sd.title); //标题正常显示
             }
 
 
@@ -490,12 +468,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             integer j;
             if (!this.isExist()) {return;}
             // 若存在“进入未离开”的悬停，则在销毁前补发一次 Leave 回调
-            if (enteredFlag && sd != 0 && sd.trLeave != null) {
+            if (enteredPos > 0 && sd != 0 && sd.trLeave != null) {
                 currentSDAsync = sd;
                 currentPosAsync = enteredPos;
                 TriggerEvaluate(sd.trLeave);
             }
-            enteredFlag = false;
             enteredPos = 0;
             sessionToken = 0;
             // 销毁icon数组及下方文字
@@ -533,7 +510,23 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         integer count;      //一共多少个选择
         string  title;      //标题
         string  btn1Text;   //按钮1文字
+        string  btn2Text;   //仅卡牌选择器显示
+        string  btn3Text;   //仅卡牌选择器显示
+        boolean cardCanFold;
+        string cardCloseText;
+        string cardPanelText;
+        cardPanelEvent cardPanel; // 同步配置；回调仅控制本地面板显隐。
+        cardPanelClaim claimCardPanel; // 可选，仅在 owner 的新卡面创建成功时调用一次。
+        private static thistype firstCard = 0;
+        private static thistype lastCard = 0;
+        private thistype prevCard;
+        private thistype nextCard;
+        private boolean queuedCard;
         trigger trRefName;  //映射关系:图标文字
+        trigger trRefCardQuality; // CallbackSelectContent: 1..5
+        trigger trRefCardTitle; // 独立顶部标题栏文字
+        trigger trRefDescription; // 卡牌正文映射，使用 CallbackSelectContent 返回
+        private trigger trRefCardFooter;
         trigger trRefIcon;  //映射关系:图标
         trigger trRefShadow; //映射关系:阴影（布尔）
         trigger trRefGrow;   //映射关系:流光（growdata 索引）
@@ -542,9 +535,13 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         trigger trClick;    //按钮点击事件触发器
         trigger trClose;    //右上角的关闭事件触发回调
         trigger trBtn1;     //按钮事件1(下方的)
+        trigger trBtn2;     //卡牌按钮2，同步注册/回调
+        trigger trBtn3;     //卡牌按钮3，同步注册/回调
         trigger trFail;     //UI创建失败的回调触发器
         player  owner;      //拥有者
         selector uiSelector;  //绑定的选择UI
+        cardSelector uiCards; // 本地卡牌展示，不能据此决定同步业务分支
+        private integer resolvingPos; // 同步回调期间的牌位；销毁时用于离场动画
         private integer sessionToken; //当前 ID 生命周期 token，防止延迟包命中复用实例
 
         // UI组件内部共享方法及成员
@@ -561,7 +558,16 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             this.count = count;
             this.title = null;
             this.btn1Text = null;
+            this.btn2Text = null; this.btn3Text = null;
+            this.trBtn2 = null; this.trBtn3 = null;
             this.uiSelector = 0;
+            this.uiCards = 0;
+            cardCanFold = false; cardCloseText = "取消选择"; cardPanelText = ""; cardPanel = 0; claimCardPanel = 0;
+            prevCard = 0; nextCard = 0; queuedCard = false;
+            this.resolvingPos = 0;
+            this.trRefDescription = null;
+            this.trRefCardFooter = null;
+            this.trRefCardQuality = null; this.trRefCardTitle = null;
             this.owner = p;
             return this;
         }
@@ -570,6 +576,157 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         public method getSessionToken() -> integer {
             if (!this.isExist()) { return 0; }
             return this.sessionToken;
+        }
+
+        // 与其他 reflect/register 一样，必须全端同步注册经典 trigger。
+        method reflectDescription(code func) {
+            if (!this.isExist()) {return;}
+            if (trRefDescription != null) {DestroyTrigger(trRefDescription);}
+            trRefDescription = CreateTrigger();
+            TriggerAddCondition(trRefDescription, Condition(func));
+        }
+
+        // 仅本地 UI 刷新；每项映射沿用 GetSelectDataAsync/GetSelectPosAsync。
+        // 与其他映射一样全端注册；回调仅返回本地展示内容。
+        method reflectCardQuality(code func) {
+            if (!this.isExist()) {return;}
+            if (trRefCardQuality != null) {DestroyTrigger(trRefCardQuality);}
+            trRefCardQuality = CreateTrigger();
+            TriggerAddCondition(trRefCardQuality, Condition(func));
+        }
+        // 与其他映射一样全端注册；回调仅返回本地展示内容。
+        method reflectCardTitle(code func) {
+            if (!this.isExist()) {return;}
+            if (trRefCardTitle != null) {DestroyTrigger(trRefCardTitle);}
+            trRefCardTitle = CreateTrigger();
+            TriggerAddCondition(trRefCardTitle, Condition(func));
+        }
+
+        // 与其他卡牌映射一样全端注册，仅在 owner 刷新卡面时求值。
+        method reflectCardFooter(code func) {
+            if (!this.isExist()) {return;}
+            if (trRefCardFooter != null) {DestroyTrigger(trRefCardFooter);}
+            trRefCardFooter = CreateTrigger();
+            TriggerAddCondition(trRefCardFooter, Condition(func));
+        }
+
+        method refreshCards() {
+            integer i; integer gifIndex;
+            cardSelectorItem card;
+            if (!this.isExist() || GetLocalPlayer() != owner || !uiCards.isExist()) {return;}
+            uiCards.canFold = cardCanFold;
+            uiCards.onPanel = cardPanel;
+            uiCards.panelText = cardPanelText;
+            uiCards.closeText = cardCloseText;
+            uiCards.setHeader(title, trClose != null, trBtn1 != null, btn1Text,
+                trBtn2 != null, btn2Text, trBtn3 != null, btn3Text);
+            for (1 <= i <= count) {
+                card = uiCards.getItem(i);
+                if (card != 0) {
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefIcon != null) {TriggerEvaluate(trRefIcon);}
+                    card.artwork.setTexture(currentContent).show(currentContent != null && currentContent != "");
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefName != null) {TriggerEvaluate(trRefName);}
+                    card.heading.setText(currentContent);
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefDescription != null) {TriggerEvaluate(trRefDescription);}
+                    card.setDescription(currentContent);
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefCardFooter != null) {TriggerEvaluate(trRefCardFooter);}
+                    if (currentContent == null || currentContent == "") {card.footer.setText("").show(false);}
+                    else {card.footer.setText(currentContent).show(true);}
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "1";
+                    if (trRefCardQuality != null) {TriggerEvaluate(trRefCardQuality);}
+                    card.setQuality(S2I(currentContent));
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefCardTitle != null) {TriggerEvaluate(trRefCardTitle);}
+                    card.setBadgeText(currentContent);
+                    currentSDAsync = this; currentPosAsync = i; currentShadow = false;
+                    if (trRefShadow != null) {TriggerEvaluate(trRefShadow);}
+                    card.artwork.setShadow(currentShadow);
+                    card.artwork.unGrow();
+                    currentSDAsync = this; currentPosAsync = i; currentContent = "";
+                    if (trRefGrow != null) {TriggerEvaluate(trRefGrow);}
+                    gifIndex = S2I(currentContent);
+                    if (gifIndex > 0) {card.artwork.grow(growdata[gifIndex]);}
+                }
+            }
+        }
+
+        private method createCardView() -> boolean {
+            if (count < 1 || count > 5 || trClick == null) {return false;}
+            uiCards = cardSelector.createWithPanelClaim(this, sessionToken, count, claimCardPanel);
+            if (!uiCards.isExist()) {return false;}
+            refreshCards();
+            return true;
+        }
+
+        // 返回值只代表本地 UI，不能用来决定同步业务。
+        method showCards() -> boolean {
+            if (!this.isExist() || GetLocalPlayer() != owner || hasLocalView()) {return false;}
+            if (createCardView()) {return true;}
+            syncBus.DzSyncDataEx("Select", "Z," + I2S(this) + "," + I2S(sessionToken));
+            return false;
+        }
+
+        private method presentFirstCard() {
+            // 回退复用同一组候选，旧窗口分配失败时由其原有 Z 协议接管。
+            if (!createCardView()) {selector.create(owner, this);}
+        }
+
+        method hasLocalView() -> boolean {
+            return queuedCard || uiCards.isExist() || uiSelector.isExist();
+        }
+
+        // 本地等待项不能被旧入口提前展示；队首仍可回退到普通窗口。
+        method isWaitingInCardQueue() -> boolean {
+            return queuedCard && this != firstCard;
+        }
+
+        // 同一客户端仅展示队首；候选、奖励及等待顺序均不参与游戏判定。
+        method queueCards() {
+            if (!this.isExist() || GetLocalPlayer() != owner || hasLocalView()) {return;}
+            queuedCard = true;
+            prevCard = lastCard;
+            if (lastCard == 0) {firstCard = this;} else {lastCard.nextCard = this;}
+            lastCard = this;
+            if (firstCard == this) {presentFirstCard();}
+        }
+
+        private method dequeueCard() {
+            boolean wasFirst = firstCard == this;
+            if (!queuedCard) {return;}
+            if (prevCard == 0) {firstCard = nextCard;} else {prevCard.nextCard = nextCard;}
+            if (nextCard == 0) {lastCard = prevCard;} else {nextCard.prevCard = prevCard;}
+            prevCard = 0; nextCard = 0; queuedCard = false;
+            if (wasFirst && firstCard != 0) {firstCard.presentFirstCard();}
+        }
+
+        // Z 已校验 owner 和 token。先让出无窗口的本地队首，再同步通知业务。
+        method dispatchFail() {
+            if (GetLocalPlayer() == owner && this == firstCard && !uiCards.isExist() && !uiSelector.isExist()) {
+                dequeueCard();
+            }
+            if (trFail != null) {
+                currentSD = this;
+                TriggerEvaluate(trFail);
+            }
+        }
+
+        // 全端同步调用；保留旧选择器回调语义。sd 被销毁/复用后不再读取旧实例。
+        method dispatchClick(integer pos) {
+            integer token = sessionToken;
+            if (trClick == null) {return;}
+            resolvingPos = pos;
+            currentSD = this; currentPos = pos;
+            TriggerEvaluate(trClick);
+            if (this.isExist()) {
+                if (sessionToken == token) {
+                    resolvingPos = 0;
+                    if (GetLocalPlayer() == owner && uiCards.isExist()) {uiCards.resume(); refreshCards();}
+                }
+            }
         }
 
         //映射关系:图标文字
@@ -650,6 +807,34 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             if (uiSelector != 0 && GetLocalPlayer() == this.owner) {
                 uiSelector.refreshContent();
             }
+            refreshCards();
+        }
+
+        // 卡牌按钮2：必须全端同步注册；回调经 Select 延迟收包执行。
+        method registerBtn2(code callback) {
+            if (!this.isExist()) {return;}
+            if (trBtn2 != null) {DestroyTrigger(trBtn2);}
+            trBtn2 = CreateTrigger();
+            TriggerAddCondition(trBtn2, Condition(callback));
+        }
+        // 卡牌按钮3：必须全端同步注册；不改变旧 Selector 的按钮布局。
+        method registerBtn3(code callback) {
+            if (!this.isExist()) {return;}
+            if (trBtn3 != null) {DestroyTrigger(trBtn3);}
+            trBtn3 = CreateTrigger();
+            TriggerAddCondition(trBtn3, Condition(callback));
+        }
+        // 全端删除按钮回调，本地刷新卡牌布局。
+        method destroyBtn2() {
+            if (!this.isExist()) {return;}
+            if (trBtn2 != null) {DestroyTrigger(trBtn2); trBtn2 = null;}
+            refreshCards();
+        }
+        // 全端删除按钮3回调，本地刷新卡牌布局。
+        method destroyBtn3() {
+            if (!this.isExist()) {return;}
+            if (trBtn3 != null) {DestroyTrigger(trBtn3); trBtn3 = null;}
+            refreshCards();
         }
 
         //创建失败的回调触发器
@@ -662,11 +847,21 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
 
         method onDestroy () {
             if (!this.isExist()) {return;}
+            if (GetLocalPlayer() == this.owner && uiCards.isExist()) {
+                if (resolvingPos > 0 && nextCard == 0) {uiCards.finish(resolvingPos);}
+                else {uiCards.destroy();}
+                uiCards = 0;
+            }
             this.count = 0;
             if (uiSelector != 0 && GetLocalPlayer() == this.owner) {
                 uiSelector.destroy();uiSelector = 0;
             }
+            if (GetLocalPlayer() == owner) {dequeueCard();}
             if (trRefName != null) {DestroyTrigger(trRefName);trRefName = null;}
+            if (trRefCardQuality != null) {DestroyTrigger(trRefCardQuality);trRefCardQuality = null;}
+            if (trRefCardTitle != null) {DestroyTrigger(trRefCardTitle);trRefCardTitle = null;}
+            if (trRefDescription != null) {DestroyTrigger(trRefDescription);trRefDescription = null;}
+            if (trRefCardFooter != null) {DestroyTrigger(trRefCardFooter);trRefCardFooter = null;}
             if (trRefIcon != null) {DestroyTrigger(trRefIcon);trRefIcon = null;}
             if (trRefShadow != null) {DestroyTrigger(trRefShadow);trRefShadow = null;}
             if (trRefGrow != null) {DestroyTrigger(trRefGrow);trRefGrow = null;}
@@ -674,6 +869,8 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
             if (trLeave != null) {DestroyTrigger(trLeave);trLeave = null;}
             if (trClose != null) {DestroyTrigger(trClose);trClose = null;}
             if (trBtn1 != null) {DestroyTrigger(trBtn1);trBtn1 = null;}
+            if (trBtn2 != null) {DestroyTrigger(trBtn2);trBtn2 = null;}
+            if (trBtn3 != null) {DestroyTrigger(trBtn3);trBtn3 = null;}
             if (trClick != null) {DestroyTrigger(trClick);trClick = null;}
             if (trFail != null) {DestroyTrigger(trFail);trFail = null;}
             this.sessionToken = 0;
@@ -684,7 +881,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
         // 对外接口：强制触发该玩家的选择并清理残留 UI
         // 用途：修复小概率 UI 出现但点击无效的问题
         static method forceClickAndCleanup(player p) {
-            integer i; integer j; selectData sd; selector ui;
+            integer i; integer j; integer token; selectData sd; selector ui;
 
             // 先遍历固定上限范围内的 selectData
             for (1 <= i <= SELECTDATA_FORCE_MAX) {
@@ -693,9 +890,15 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                     if (sd.owner == p) {
                         if (sd.trClick != null) {
                             // 模拟一次点击（位置固定为1）
-                            currentSD = sd;
-                            currentPos = 1;
-                            TriggerEvaluate(sd.trClick);
+                            token = sd.getSessionToken();
+                            sd.dispatchClick(1);
+                            // 保留数据的业务也清理本地卡牌；不得误关回调中新建的会话。
+                            if (sd.isExist()) {
+                                if (sd.getSessionToken() == token && GetLocalPlayer() == p) {
+                                    if (sd.uiCards.isExist()) {sd.uiCards.destroy(); sd.uiCards = 0;}
+                                    sd.dequeueCard();
+                                }
+                            }
                         }
                     }
                 }
@@ -744,25 +947,35 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus {
                         canonical = "D,"+I2S(sd)+","+I2S(token)+","+I2S(pos);
                         if (token > 0 && pos > 0 && str == canonical && sd.isExist()) {
                             if (sd.getSessionToken() == token && sd.owner == p && pos <= sd.count && sd.trClick != null) {
-                                currentSD = sd;
-                                currentPos = pos;
-                                TriggerEvaluate(sd.trClick);
+                                sd.dispatchClick(pos);
                             }
                         }
                     }
-                } else if (sep3 == 0) {
+                } else if (sep3 == 0 && (opcode == "C" || opcode == "F" || opcode == "G" || opcode == "H" || opcode == "Z")) {
                     canonical = opcode+","+I2S(sd)+","+I2S(token);
                     if (token > 0 && str == canonical && sd.isExist()) {
-                        if (sd.getSessionToken() == token && sd.owner == p) {
+                        if (sd.getSessionToken() == token && sd.owner == p
+                            && (opcode != "G" || sd.trBtn2 != null) && (opcode != "H" || sd.trBtn3 != null)) {
                             if (opcode == "C" && sd.trClose != null) {
                                 currentSD = sd;
                                 TriggerEvaluate(sd.trClose);
                             } else if (opcode == "F" && sd.trBtn1 != null) {
                                 currentSD = sd;
                                 TriggerEvaluate(sd.trBtn1);
-                            } else if (opcode == "Z" && sd.trFail != null) {
+                            } else if (opcode == "G" && sd.trBtn2 != null) {
                                 currentSD = sd;
-                                TriggerEvaluate(sd.trFail);
+                                TriggerEvaluate(sd.trBtn2);
+                            } else if (opcode == "H" && sd.trBtn3 != null) {
+                                currentSD = sd;
+                                TriggerEvaluate(sd.trBtn3);
+                            } else if (opcode == "Z") {
+                                sd.dispatchFail();
+                            }
+                            // 刷新/关闭回调若保留本轮数据，则解锁卡牌交互。
+                            if (opcode != "Z" && sd.isExist()) {
+                                if (sd.getSessionToken() == token && GetLocalPlayer() == p && sd.uiCards.isExist()) {
+                                    sd.uiCards.resume(); sd.refreshCards();
+                                }
                             }
                         }
                     }

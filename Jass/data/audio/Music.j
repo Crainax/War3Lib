@@ -226,6 +226,26 @@ library Music {
 			thistype[MUSIC_INDEX_ARENA_MONSTER_BAN_SUCCESS].snd = snd;
 			//# endcheck
 
+			//# check: music[1009]
+			//# dependency:sound/sound/card_flip_hover.mp3
+			snd = CreateSound("sound\\card_flip_hover.mp3", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 522);
+			SetSoundChannel(snd, 0);
+			SetSoundVolume(snd, 65);
+			SetSoundPitch(snd, 1.0);
+			thistype[MUSIC_INDEX_CARD_FLIP_HOVER].snd = snd;
+			//# endcheck
+
+			//# check: music[1010]
+			//# dependency:sound/sound/card_flip_reveal.mp3
+			snd = CreateSound("sound\\card_flip_reveal.mp3", false, false, false, 10, 10, "");
+			SetSoundDuration(snd, 627);
+			SetSoundChannel(snd, 0);
+			SetSoundVolume(snd, 110);
+			SetSoundPitch(snd, 1.0);
+			thistype[MUSIC_INDEX_CARD_FLIP_REVEAL].snd = snd;
+			//# endcheck
+
 			//# check: music[2001]
 			//# dependency:sound/sound/blackhole.mp3
 			snd = CreateSound("sound\\blackhole.mp3", false, false, false, 10, 10, "");

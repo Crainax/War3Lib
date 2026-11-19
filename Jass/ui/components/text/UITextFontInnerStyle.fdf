@@ -1,0 +1,19 @@
+Frame "TEXT" "InnerStyleFont0" {
+ UseActiveContext,
+ FrameFont "Fonts\dfst-m3u.ttf", 0.012, "",
+ FontColor 1.0 1.0 1.0 1.0,
+}
+Frame "TEXT" "InnerStyleRight" {
+ UseActiveContext,
+ FrameFont "Fonts\dfst-m3u.ttf", 0.012, "",
+ FontColor 1.0 1.0 1.0 1.0,
+ FontShadowColor 0.0 0.0 0.0 1.0,
+ FontShadowOffset 0.001 -0.001,
+}
+Frame "TEXT" "InnerStyleLeft" {
+ UseActiveContext,
+ FrameFont "Fonts\dfst-m3u.ttf", 0.012, "",
+ FontColor 1.0 1.0 1.0 1.0,
+ FontShadowColor 0.0 0.0 0.0 1.0,
+ FontShadowOffset -0.001 -0.001,
+}

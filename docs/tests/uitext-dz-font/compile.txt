@@ -1,0 +1,18 @@
+[agent] project=D:\War3\Library\War3Lib linkedWorktree=False mode=UNITTEST backend=vjassc
+[编译后端]TaskCompile使用: vjassc
+[本地玩家名]注册表同步: 跳过: agent编译验证不修改INI或注册表
+[DzAPI本地替换]启用: VERSION_UNITTEST <- D:/Program Files (x86)/Warcraft III Frozen Throne/dz_w3_plugin_War3Lib.ini, 批量存档兼容=启用[用时0.00秒]
+[即将开始]编译文件 : D:/War3/Library/War3Lib/Output/0_script.j
+[第一次Wave]预处理成功 : D:/War3/Library/War3Lib/Output/1_wave.j[用时0.09秒]
+[函数检测]检测到 6 个函数 [用时0.03秒]
+[文件注入]注入了 7 个文件 [用时0.00秒]
+[第二次Wave]预处理成功 : D:/War3/Library/War3Lib/Output/3_wave.j[用时0.14秒]
+[Lua]遍历处理成功 : D:/War3/Library/War3Lib/Output/4_luaexecute.j[用时0.02秒]
+[DzAPI本地替换]MapConfig完成: 按Key替换=0, 兜底替换=0[用时0.01秒]
+[DzAPI本地替换]PlayerFlags完成: 按label替换=0, 兜底替换=0[用时0.00秒]
+[DzAPI本地替换]ServerValueLimitLeft完成: 按Key替换=0, 兜底替换=0[用时0.01秒]
+[vjassc]编译成功: D:/War3/Library/War3Lib/Output/5_vjassc.j[用时0.20秒]
+[最终编译]选中输出: D:/War3/Library/War3Lib/Output/5_vjassc.j
+[资源文件]内容: 2个
+[最终输出]成功: D:/War3/Library/War3Lib/Output/output.j
+---任务结束---[单元测试]-[空白地图]-[用时1.10秒]-
