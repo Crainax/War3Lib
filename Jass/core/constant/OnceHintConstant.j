@@ -25,6 +25,7 @@
 #define ONCE_HINT_FIRST_ACHIEVEMENT    2   // 首次解锁任意成就，提示相册入口
 #define ONCE_HINT_MOPUP_ENTRY          3   // 首次出现速通入口 icon，提示其位置
 #define ONCE_HINT_MALL_PIN_GIFT        4   // 曾在 KK 平台将地图添加到首页置顶栏
+#define ONCE_HINT_BIG_SELECTOR_125     5   // 1.2.5 大选择器引导已提示或免提示；下线后保留位号
 
 // --- 31~60：玩法/活动 ---
 
