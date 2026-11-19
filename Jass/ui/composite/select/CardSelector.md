@@ -48,8 +48,10 @@
 - `sd.cardPanelText` 设置面板按钮文字，`sd.cardPanel` 接受一个 `cardPanelEvent(boolean visible)`。显隐回调仅在 owner 客户端执行。面板内部的玩法操作由业务原有同步事件处理。
 - `sd.cardCanFold` 启用“收起／显示”。收起时保留本按钮原位，隐藏卡面、点击区域、其他按钮和已打开的附属面板。恢复时继续原选择。`sd.cardCloseText` 指定关闭文字，按钮依然要求注册 `registerClose`。完整顺序为面板、折叠、btn1～3、关闭。
 - `sd.queueCards()` 在本地按请求先后展示。等待期间可销毁数据。分配卡牌失败时使用同一数据打开普通 Selector。`sd.hasLocalView()` 包含已排队的会话，只能用于本地显示判断。
+- 两种窗口均创建失败时，收到有效的 `Z` 消息后，owner 先移出无窗口的队首并展示下一项，各端再执行已注册的失败回调。保留的会话可以用原候选重新排队。
 - 同步按钮回调需要等待生成新数据时，可在 owner 的 `uiCards` 上调用 `waitForRefresh(true)`，完成刷新后调用 `waitForRefresh(false)`。等待期间禁止提交牌位。
 - `CardSelector_Test.j` 的 `-queue` 检查重复打开、移除中间会话和队首销毁后的接续。
+- `-queuefail` 模拟队首没有窗口，检查失败收包后下一项接续、原候选重新入队，以及注册失败回调时的执行次数。
 
 ## 动画与资源
 

@@ -71,8 +71,9 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         uiText label;
         uiBtn button;
         method layoutHover(real value) {
-            real scale = 1.0 + (CARD_SELECTOR_HOVER_SCALE - 1.0) * value;
+            real scale;
             if (weight == value) {return;}
+            scale = 1.0 + (CARD_SELECTOR_HOVER_SCALE - 1.0) * value;
             weight = value;
             image.exReSize(CARD_SELECTOR_BUTTON_WIDTH * scale, CARD_SELECTOR_BUTTON_HEIGHT * scale);
             halo.exReSize(CARD_SELECTOR_BUTTON_WIDTH * CARD_SELECTOR_BUTTON_HOVER_WIDTH_SCALE * scale,
@@ -173,7 +174,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         }
         method setDescription(string value) {
             if (value == content) {return;}
-            content = value; offset = 0;
+            content = value;
             description.setText(value);
             remeasure();
             scrollTo(0);
@@ -250,8 +251,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
         private thistype next;
         private thistype prev;
         private cardSelectorItem items;
-        private integer data;
-        private integer token;
+        private string session; // Select 包共用的“数据 ID,生命周期 token”
         private integer state; // 0=入场，1=等待，2=等待收包，3=离场
         private integer elapsed;
         private integer hovered;
@@ -292,6 +292,10 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             cardSelectorAction action = actions;
             while (card != 0) {
                 card.button.show(enabled && !folded);
+                if (folded && card.weight != 0.0) {
+                    card.weight = 0.0;
+                    card.layout(1.0, CARD_SELECTOR_OFFSET_Y, 255, 0);
+                }
                 card = card.next;
             }
             while (action != 0) {
@@ -340,11 +344,11 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             chosen = pos;
             leave();
             enableButtons(false);
-            if (pos > 0) {payload = "D," + I2S(data) + "," + I2S(token) + "," + I2S(pos);}
-            else if (pos == 0) {payload = "C," + I2S(data) + "," + I2S(token);}
-            else if (pos == -1) {payload = "F," + I2S(data) + "," + I2S(token);}
-            else if (pos == -2) {payload = "G," + I2S(data) + "," + I2S(token);}
-            else {payload = "H," + I2S(data) + "," + I2S(token);}
+            if (pos > 0) {payload = "D," + session + "," + I2S(pos);}
+            else if (pos == 0) {payload = "C," + session;}
+            else if (pos == -1) {payload = "F," + session;}
+            else if (pos == -2) {payload = "G," + session;}
+            else {payload = "H," + session;}
             syncBus.DzSyncDataEx("Select", payload);
             music[MUSIC_INDEX_CARD_FLIP_REVEAL].play();
         }
@@ -370,7 +374,6 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             cardSelectorAction action = actions;
             leave();
             dismissPanel();
-            data = 0; token = 0;
             state = 3; chosen = pos; elapsed = 0;
             enableButtons(false);
             while (action != 0) {action.image.show(false); action.halo.show(false); action = action.next;}
@@ -413,7 +416,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             // 不以子组件 enter/leave 切换触发音效，避免牌内移动时高亮闪烁。
             if (state == 1) {
                 focus = DzGetMouseFocus();
-                while (card != 0) {
+                while (!folded && card != 0) {
                     if (focus == card.button.ui) {focusPos = card.pos;}
                     card = card.next;
                 }
@@ -421,7 +424,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             }
             card = items;
             elapsed += 1;
-            while (card != 0) {
+            while (!folded && card != 0) {
                 scale = 1.0; y = CARD_SELECTOR_OFFSET_Y; a = 255.0; light = 0.0;
                 if (state == 0) {
                     t = RMinBJ(1.0, I2R(elapsed) / CARD_SELECTOR_ENTER_TICKS);
@@ -475,7 +478,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             if (count < 1 || count > 5 || CARD_SELECTOR_WIDTH <= 0.0) {return 0;}
             this = allocate();
             if (this == 0) {return 0;}
-            this.data = data; this.token = token;
+            session = I2S(data) + "," + I2S(token);
             state = 0; elapsed = 0; hovered = 0; chosen = 0; items = 0;
             actions = 0;
             canFold = false; folded = false; refreshPending = false; panelOpen = false; onPanel = 0;
@@ -558,7 +561,7 @@ library CardSelector requires UIImage, UIText, UIButton, Icon, UIHashTable, UIEx
             if (prev == 0) {first = next;} else {prev.next = next;}
             if (next != 0) {next.prev = prev;}
             if (first == 0) {ticker.unreg();}
-            data = 0; token = 0;
+            session = null;
         }
         static method onInit() {
             hardware.regUpdateEvent(function() {

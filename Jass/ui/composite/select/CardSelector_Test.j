@@ -14,6 +14,8 @@ library UTCardSelector requires Selector {
     private integer protocolToken = 0;
     private integer protocolBtn2Calls = 0;
     private integer protocolBtn3Calls = 0;
+    private selectData failedHead;
+    private selectData followingHead;
 
     function TestCardProtocol(player p) {
         selectData oldData;
@@ -109,26 +111,80 @@ library UTCardSelector requires Selector {
         });
     }
 
+    private function FinishQueuedTestChoice() {GetSelectData().destroy();}
+
     // 同步创建三个会话，仅 owner 的表示层排队；取消中间项后直接接续末项。
     function TestCardQueue(player p) {
         selectData head = selectData.create(p, 5);
         selectData middle = selectData.create(p, 5);
         selectData tail = selectData.create(p, 5);
-        head.registerClick(function() {GetSelectData().destroy();});
-        middle.registerClick(function() {GetSelectData().destroy();});
-        tail.registerClick(function() {GetSelectData().destroy();});
+        head.registerClick(function FinishQueuedTestChoice);
+        middle.registerClick(function FinishQueuedTestChoice);
+        tail.registerClick(function FinishQueuedTestChoice);
         head.cardCanFold = true;
         head.queueCards(); middle.queueCards(); tail.queueCards();
         head.queueCards();
+        selector.create(p, tail);
         if (p == GetLocalPlayer()) {
+            assert.Boolean(!tail.uiSelector.isExist(), "普通窗口入口不能提前展示等待项");
+            assert.Boolean(middle.hasLocalView() && tail.hasLocalView(), "两个等待项均已入队");
             assert.Boolean(head.uiCards.isExist() && !middle.uiCards.isExist() && !tail.uiCards.isExist(), "仅队首展示");
+        } else {
+            assert.Boolean(!head.hasLocalView() && !middle.hasLocalView() && !tail.hasLocalView(), "非 owner 无本地窗口或排队记录");
         }
         middle.destroy();
+        if (p == GetLocalPlayer()) {
+            assert.Boolean(head.uiCards.isExist() && tail.hasLocalView() && !tail.uiCards.isExist(), "移除中间项后队首仍在展示");
+        }
         head.destroy();
         if (p == GetLocalPlayer()) {
             assert.Boolean(tail.uiCards.isExist(), "跳过已销毁的等待项，接续末项");
         }
         tail.destroy();
+    }
+
+    // 模拟两种窗口均失败后的本地状态，走真实的 Z 收包入口。
+    private function SendQueueFailure(selectData sd) {
+        if (GetLocalPlayer() == sd.owner && sd.uiCards.isExist()) {
+            sd.uiCards.destroy();
+            sd.uiCards = 0;
+            syncBus.DzSyncDataEx("Select", "Z," + I2S(sd) + "," + I2S(sd.getSessionToken()));
+        }
+    }
+
+    function TestCardQueueFailure(player p) {
+        if (protocolBusy) {return;}
+        protocolBusy = true; protocolCalls = 0;
+        failedHead = selectData.create(p, 5);
+        followingHead = selectData.create(p, 5);
+        failedHead.registerClick(function() {});
+        followingHead.registerClick(function() {});
+        followingHead.registerFail(function() {
+            protocolCalls += 1;
+            assert.Integer(GetSelectData(), followingHead, "失败回调收到原会话");
+        });
+        SaveInteger(HASH_SELECT, failedHead, 1, 123);
+        failedHead.queueCards();
+        followingHead.queueCards();
+        SendQueueFailure(failedHead);
+        UnitTestAutoTimer(1.0, 1.0, function() {
+            assert.Boolean(failedHead.isExist(), "未注册失败回调时保留选择数据");
+            if (GetLocalPlayer() == failedHead.owner) {
+                assert.Boolean(!failedHead.hasLocalView() && followingHead.uiCards.isExist(), "失败队首让位给下一项");
+            }
+            failedHead.queueCards();
+            SendQueueFailure(followingHead);
+        }, function() {
+            assert.Integer(protocolCalls, 1, "已注册的失败回调在各端执行一次");
+            assert.Integer(LoadInteger(HASH_SELECT, failedHead, 1), 123, "重新入队沿用原候选");
+            if (GetLocalPlayer() == failedHead.owner) {
+                assert.Boolean(failedHead.uiCards.isExist() && !followingHead.hasLocalView(), "重开的会话接续，保留数据的失败回调也能让位");
+            } else {
+                assert.Boolean(!failedHead.hasLocalView() && !followingHead.hasLocalView(), "非 owner 不参与本地排队");
+            }
+            failedHead.destroy(); followingHead.destroy();
+            protocolBusy = false;
+        });
     }
 
     // buttonCount 包含取消按钮，0~4分别展示无按钮至全部按钮。
@@ -313,6 +369,7 @@ library UTCardSelector requires Selector {
                 return;
             }
             if (command == "-queue") {TestCardQueue(GetTriggerPlayer()); return;}
+            if (command == "-queuefail") {TestCardQueueFailure(GetTriggerPlayer()); return;}
             if (command == "-mixed") {qualityMode[pid] = 0; CreateCardSelectorTest(GetTriggerPlayer(), 5, false, 2); return;}
             if (command == "-blank") {
                 blankCards[pid] = !blankCards[pid];

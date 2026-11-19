@@ -111,22 +111,20 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
         private integer    totalPage;                     //总页码
 
         // 悬停状态：进入后未离开，用于在销毁时补发 Leave
-        private boolean    enteredFlag;                   // 是否处于进入状态
-        private integer    enteredPos;                    // 最近一次进入的选择位置
+        private integer    enteredPos;                    // 当前悬停的选项，0 表示已离开
 
         static     tooltip    uiTooltipTemp = 0;  //关闭按钮提示
+
+        private method pageItemCount() -> integer {
+            return IMinBJ(SELECT_UI_MAX_COUNT, sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT);
+        }
 
         //刷新UI内容（用于初始化和翻页）
         method refreshContent() {
             integer i; integer createCount; integer row; integer col; integer colsInRow; integer rowCount; integer pos;integer gifIndex;
             real startX; real startY; real offsetX; real offsetY;
 
-            // 计算当前页的实际显示数量
-            if (sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT > SELECT_UI_MAX_COUNT) {
-                createCount = SELECT_UI_MAX_COUNT;
-            } else {
-                createCount = sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT;
-            }
+            createCount = pageItemCount();
 
             // 计算行数：每行最多6个
             rowCount = (createCount + 5) / 6;
@@ -229,18 +227,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             integer i; integer createCount;
             if (!this.isExist()) {return;}
 
-            // 计算当前页的实际显示数量
-            if (sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT > SELECT_UI_MAX_COUNT) {
-                createCount = SELECT_UI_MAX_COUNT;
-            } else {
-                createCount = sd.count - (currentPage - 1) * SELECT_UI_MAX_COUNT;
-            }
+            createCount = pageItemCount();
 
             // 只对当前显示的图标添加 GIF
-            for (1 <= i <= SELECT_UI_MAX_COUNT) {
-                if (i <= createCount) {
-                    imageAnim.gif(sd.owner, gd, icon[i].mainImage.ui);
-                }
+            for (1 <= i <= createCount) {
+                imageAnim.gif(sd.owner, gd, icon[i].mainImage.ui);
             }
         }
 
@@ -276,13 +267,14 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
 
         //创建选择支持异步调用
         static method create (player p,selectData sd) -> thistype {
-            integer i; integer createCount;
+            integer i;
             thistype this = 0;
             if (!sd.isExist()) {
                 DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selectData not exist");
                 return 0;
             }
             if (GetLocalPlayer() != p) {return 0;}
+            if (sd.isWaitingInCardQueue()) {return 0;}
 
             if (sd.uiSelector.isExist() || sd.uiCards.isExist()) {
                 DisplayImportantTimedTextToPlayer(GetLocalPlayer(), 0, 0, 60, "selector.create: selector already exist");
@@ -298,14 +290,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
 
             sd.uiSelector = this;
 
-            // 计算实际创建的图标数量和总页数
-            if (sd.count > SELECT_UI_MAX_COUNT) {
-                createCount = SELECT_UI_MAX_COUNT;
-                totalPage = (sd.count + SELECT_UI_MAX_COUNT - 1) / SELECT_UI_MAX_COUNT; // 向上取整
-            } else {
-                createCount = sd.count;
-                totalPage = 1;
-            }
+            totalPage = IMaxBJ(1, (sd.count + SELECT_UI_MAX_COUNT - 1) / SELECT_UI_MAX_COUNT);
             currentPage = 1;
             this.sd = sd; //绑定数据
             this.sessionToken = sd.getSessionToken();
@@ -341,7 +326,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                         currentPosAsync = pos;
                         TriggerEvaluate(sd.trEnter);
                         // 记录进入状态，供销毁时补发 Leave
-                        this.enteredFlag = true;
                         this.enteredPos = pos;
                         music[MUSIC_INDEX_BTN_OVER_1].play();
                     })
@@ -352,7 +336,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                         currentPosAsync = pos;
                         TriggerEvaluate(sd.trLeave);
                         // 离开后清除进入状态
-                        this.enteredFlag = false;
+                        this.enteredPos = 0;
                     })
                     .onMouseWheel(function selector.onMouseWheelFrame)
                     .spClick(function(integer frame) {
@@ -453,9 +437,6 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                     this.refreshContent();
                 });
                 uiHashTable(uiPageDownButton.ui).eventdata.bind(this);
-                uiTitle.setText(sd.title+"(第1/"+I2S(totalPage)+"页)");
-            } else {
-                uiTitle.setText(sd.title); //标题正常显示
             }
 
 
@@ -486,12 +467,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             integer j;
             if (!this.isExist()) {return;}
             // 若存在“进入未离开”的悬停，则在销毁前补发一次 Leave 回调
-            if (enteredFlag && sd != 0 && sd.trLeave != null) {
+            if (enteredPos > 0 && sd != 0 && sd.trLeave != null) {
                 currentSDAsync = sd;
                 currentPosAsync = enteredPos;
                 TriggerEvaluate(sd.trLeave);
             }
-            enteredFlag = false;
             enteredPos = 0;
             sessionToken = 0;
             // 销毁icon数组及下方文字
@@ -668,7 +648,7 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
 
         // 返回值只代表本地 UI，不能用来决定同步业务。
         method showCards() -> boolean {
-            if (!this.isExist() || GetLocalPlayer() != owner || queuedCard || uiCards.isExist() || uiSelector.isExist()) {return false;}
+            if (!this.isExist() || GetLocalPlayer() != owner || hasLocalView()) {return false;}
             if (createCardView()) {return true;}
             syncBus.DzSyncDataEx("Select", "Z," + I2S(this) + "," + I2S(sessionToken));
             return false;
@@ -681,6 +661,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
 
         method hasLocalView() -> boolean {
             return queuedCard || uiCards.isExist() || uiSelector.isExist();
+        }
+
+        // 本地等待项不能被旧入口提前展示；队首仍可回退到普通窗口。
+        method isWaitingInCardQueue() -> boolean {
+            return queuedCard && this != firstCard;
         }
 
         // 同一客户端仅展示队首；候选、奖励及等待顺序均不参与游戏判定。
@@ -700,6 +685,17 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
             if (nextCard == 0) {lastCard = prevCard;} else {nextCard.prevCard = prevCard;}
             prevCard = 0; nextCard = 0; queuedCard = false;
             if (wasFirst && firstCard != 0) {firstCard.presentFirstCard();}
+        }
+
+        // Z 已校验 owner 和 token。先让出无窗口的本地队首，再同步通知业务。
+        method dispatchFail() {
+            if (GetLocalPlayer() == owner && this == firstCard && !uiCards.isExist() && !uiSelector.isExist()) {
+                dequeueCard();
+            }
+            if (trFail != null) {
+                currentSD = this;
+                TriggerEvaluate(trFail);
+            }
         }
 
         // 全端同步调用；保留旧选择器回调语义。sd 被销毁/复用后不再读取旧实例。
@@ -955,12 +951,11 @@ library Selector requires Tooltip,ToastHint,Music,Icon,ImageAnim,SyncBus,CardSel
                             } else if (opcode == "H" && sd.trBtn3 != null) {
                                 currentSD = sd;
                                 TriggerEvaluate(sd.trBtn3);
-                            } else if (opcode == "Z" && sd.trFail != null) {
-                                currentSD = sd;
-                                TriggerEvaluate(sd.trFail);
+                            } else if (opcode == "Z") {
+                                sd.dispatchFail();
                             }
                             // 刷新/关闭回调若保留本轮数据，则解锁卡牌交互。
-                            if (sd.isExist()) {
+                            if (opcode != "Z" && sd.isExist()) {
                                 if (sd.getSessionToken() == token && GetLocalPlayer() == p && sd.uiCards.isExist()) {
                                     sd.uiCards.resume(); sd.refreshCards();
                                 }
