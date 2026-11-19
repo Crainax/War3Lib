@@ -32,14 +32,33 @@ foreach($name in $script:ProfileIniNames){
 Add-Content (Join-Path $game 'dz_w3_plugin_War3Lib.ini') 'ManualEdit=1'
 Switch-LocalTestProfile $w $game $we
 if((Get-Content (Join-Path $game 'dz_w3_plugin.ini') -Raw) -notmatch 'ManualEdit=1'){throw 'Lost project edit'}
-Add-Content (Join-Path $game 'dz_w3_plugin.ini') 'GameEdit=2'
-Add-Content (Join-Path $game 'dz_w3_plugin_War3Lib.ini') 'ConflictingEdit=3'
-$before=Get-ProfileHash $cfg
-$blocked=$false
-try{Switch-LocalTestProfile $lh $game $we}catch{if($_ -match 'Both active'){ $blocked=$true }else{throw}}
-if(!$blocked -or (Get-ProfileHash $cfg) -ne $before){throw 'Conflict protection failed'}
-Copy-Item (Join-Path $game 'dz_w3_plugin.ini') (Join-Path $game 'dz_w3_plugin_War3Lib.ini') -Force
+$stamp=[datetime]::UtcNow.AddDays(-1)
+foreach($name in $script:ProfileIniNames){
+ $active=Join-Path $game ($name+'.ini')
+ $saved=Join-Path $game ($name+'_War3Lib.ini')
+ Write-ProfileText $active 'game edit'
+ Write-ProfileText $saved 'project edit'
+ [IO.File]::SetLastWriteTimeUtc($active,$stamp)
+ $offset=if($name -eq 'dz_w3_plugin'){-5}else{5}
+ [IO.File]::SetLastWriteTimeUtc($saved,$stamp.AddMinutes($offset))
+}
 Switch-LocalTestProfile $lh $game $we
+foreach($name in $script:ProfileIniNames){
+ $expected=if($name -eq 'dz_w3_plugin'){'game edit'}else{'project edit'}
+ if([IO.File]::ReadAllText((Join-Path $game ($name+'_War3Lib.ini'))) -ne $expected){throw "Wrong outgoing winner: $name"}
+ if([IO.File]::ReadAllText((Join-Path $game ($name+'.ini'))) -match 'edit'){throw 'Outgoing edit leaked into LH'}
+}
+$active=Join-Path $game 'dz_w3_plugin.ini'
+$saved=Join-Path $game 'dz_w3_plugin_LH.ini'
+foreach($offset in 5,0){
+ Write-ProfileText $active "game $offset"
+ Write-ProfileText $saved "project $offset"
+ [IO.File]::SetLastWriteTimeUtc($active,$stamp)
+ [IO.File]::SetLastWriteTimeUtc($saved,$stamp.AddMinutes($offset))
+ Switch-LocalTestProfile $lh $game $we
+ $expected=if($offset){"project $offset"}else{"game $offset"}
+ if([IO.File]::ReadAllText($active) -ne $expected -or [IO.File]::ReadAllText($saved) -ne $expected){throw "Wrong same-project winner: $offset"}
+}
 if(!(Test-Path (Join-Path $lh 'CloudScripts/main.lua'))){throw 'Missing empty entry'}
 if((Get-Content $cfg -Raw) -notmatch 'Keep=1' -or (Get-Content $cfg -Raw) -notmatch 'Window=1'){throw 'Other config lost'}
 if(Test-Path (Join-Path $game 'local_test_profile.transaction.json')){throw 'Journal leaked'}

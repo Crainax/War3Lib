@@ -16,14 +16,14 @@ function Get-ProfileBytesHash([byte[]]$Bytes) {
     finally { $sha.Dispose() }
 }
 function Read-ProfileSnapshot([string]$File) {
-    if (!(Test-Path -LiteralPath $File)) { return @{path=$File; existed=$false; data=''; hash=''} }
+    if (!(Test-Path -LiteralPath $File)) { return @{path=$File; existed=$false; data=''; hash=''; writeTicks=0} }
     $bytes = [IO.File]::ReadAllBytes($File)
-    return @{path=$File; existed=$true; data=[Convert]::ToBase64String($bytes); hash=(Get-ProfileBytesHash $bytes)}
+    return @{path=$File; existed=$true; data=[Convert]::ToBase64String($bytes); hash=(Get-ProfileBytesHash $bytes); writeTicks=[IO.File]::GetLastWriteTimeUtc($File).Ticks}
 }
 function Get-ProfileHash([string]$File) { return (Read-ProfileSnapshot $File).hash }
 function Assert-ProfileSnapshot($Snapshot) {
     $now = Read-ProfileSnapshot $Snapshot.path
-    if ($now.existed -ne $Snapshot.existed -or $now.data -cne $Snapshot.data) {
+    if ($now.existed -ne $Snapshot.existed -or $now.data -cne $Snapshot.data -or $now.writeTicks -ne $Snapshot.writeTicks) {
         throw "Profile file changed during switching/recovery: $($Snapshot.path)"
     }
 }
@@ -146,6 +146,9 @@ function Restore-ProfileTransaction([string]$Journal) {
         $record = $item.record
         if ($record.existed) {
             Write-ProfileBytes $record.path ([Convert]::FromBase64String($record.data))
+            if ($record.PSObject.Properties['writeTicks']) {
+                [IO.File]::SetLastWriteTimeUtc($record.path, [datetime]::new($record.writeTicks, [DateTimeKind]::Utc))
+            }
         } else {
             Remove-Item -LiteralPath $record.path
         }
@@ -184,11 +187,14 @@ function Switch-LocalTestProfile([string]$Project, [string]$Game, [string]$WE) {
         $activeHash = $snapshots[$current].hash
         $savedHash = $snapshots[$saved].hash
         $baseline = $state.hashes.$name
-        $changed = $activeHash -ne $baseline
-        if ($changed -and $savedHash -and $savedHash -ne $baseline -and $savedHash -ne $activeHash) {
-            throw "Both active and project INIs changed; reconcile manually: $current / $saved"
+        $saveActive = !$savedHash -or $activeHash -ne $baseline
+        if ($saveActive -and $savedHash -and $savedHash -ne $baseline -and $savedHash -ne $activeHash) {
+            # On an exact tie keep the live game's copy.
+            $saveActive = $snapshots[$current].writeTicks -ge $snapshots[$saved].writeTicks
+            $winner = if ($saveActive) { $current } else { $saved }
+            Write-Host "[Local profile] INI conflict ($owner), using $winner"
         }
-        if ($changed -or !$savedHash) { $writes[$saved] = [Convert]::FromBase64String($snapshots[$current].data) }
+        if ($saveActive) { $writes[$saved] = [Convert]::FromBase64String($snapshots[$current].data) }
         if ($writes.ContainsKey($target)) { $bytes = $writes[$target] }
         elseif ($snapshots[$target].existed) { $bytes = [Convert]::FromBase64String($snapshots[$target].data) }
         else {
@@ -208,7 +214,7 @@ function Switch-LocalTestProfile([string]$Project, [string]$Game, [string]$WE) {
     Assert-GameStopped
     $records = @(foreach ($file in $writes.Keys) {
         $snapshot = $snapshots[$file]
-        @{path=$file; existed=$snapshot.existed; data=$snapshot.data; afterHash=(Get-ProfileBytesHash $writes[$file])}
+        @{path=$file; existed=$snapshot.existed; data=$snapshot.data; writeTicks=$snapshot.writeTicks; afterHash=(Get-ProfileBytesHash $writes[$file])}
     })
     Write-ProfileText $journal (ConvertTo-Json -InputObject $records -Depth 5)
     try {
