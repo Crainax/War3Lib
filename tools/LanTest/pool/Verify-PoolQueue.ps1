@@ -50,3 +50,29 @@ try{
  foreach($lease in $leases){Exit-PoolQueue $lease ''}
  foreach($job in $jobs){if($job.State -eq 'Running'){Stop-Job $job};Remove-Job $job}
 }
+
+# Regression for slot and process ID reuse. No process control in this fixture.
+& {
+$testDir=Join-Path ([IO.Path]::GetTempPath()) ('pool-identity-'+[guid]::NewGuid())
+$null=New-Item -ItemType Directory -Path $testDir
+$file=Join-Path $testDir 'context-LanP1.log'
+try {
+ $birth=[datetime]::UtcNow
+ $slot=@{name='LanP1';pid=59608;creationUtcTicks=$birth.AddSeconds(-1).Ticks}
+ $p=[pscustomobject]@{Name='war3.exe';ProcessId=50792;ParentProcessId=59608;ExecutablePath=$null;CreationDate=$birth}
+ $exe='D:\pool\A\Game\war3.exe'
+ function Expect([bool]$ok,[string]$label){if((Test-PoolClientIdentity $p $slot $testDir $exe) -ne $ok){throw $label};"PASS $label"}
+ Expect $false 'unproven client preserved even with matching parent'
+ "50792 100 POOL_IDENTITY_V1 $($birth.Ticks) $exe"|Set-Content $file
+ Expect $true 'slot proves exact client with hidden CIM path'
+ $p.ProcessId=23444
+ Expect $false 'other session using same launcher PID preserved'
+ $p.ProcessId=50792;$p.CreationDate=$birth.AddSeconds(1)
+ Expect $false 'recycled game PID preserved'
+ $p.CreationDate=$birth;$p.ExecutablePath='D:\Manual\war3.exe'
+ Expect $false 'manual game path preserved'
+ $p.ExecutablePath=$null;$slot.name='LanP2'
+ Expect $false 'different slot preserved'
+} finally {if(Test-Path $file){Remove-Item -LiteralPath $file};Remove-Item -LiteralPath $testDir}
+
+}

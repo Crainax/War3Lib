@@ -1,6 +1,11 @@
 ﻿param([Parameter(Mandatory=$true)][string]$SessionPath, [string]$OwnerId)
 $ErrorActionPreference = 'Stop'
 $manifest = Get-Content -LiteralPath (Join-Path $SessionPath 'session.json') -Raw | ConvertFrom-Json
+if ($manifest.PSObject.Properties['environment'] -and $manifest.environment -in 'A','B') {
+    if (!$OwnerId) { throw 'Pool cleanup requires its session owner.' }
+    & (Join-Path $PSScriptRoot 'pool/Stop-PoolTest.ps1') -SessionPath $SessionPath -OwnerId $OwnerId
+    return
+}
 if ($OwnerId -and (!$manifest.PSObject.Properties['ownerId'] -or $manifest.ownerId -cne $OwnerId)) {
     throw 'Session owner mismatch; no process was stopped.'
 }

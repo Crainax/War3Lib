@@ -50,8 +50,10 @@ $session=$null;$m=$null;$launchers=@()
 function Save-Manifest {$m|ConvertTo-Json -Depth 6|Set-Content (Join-Path $session 'session.json') -Encoding UTF8}
 function Collect-Clients {
  foreach($launcher in $launchers){
-  foreach($p in Get-CimInstance Win32_Process -Filter "Name = 'war3.exe'" | Where-Object {$_.ParentProcessId -eq $launcher.pid -and (!$_.ExecutablePath -or $_.ExecutablePath -ieq (Join-Path $e.game 'war3.exe')) -and $_.CreationDate.ToUniversalTime().Ticks -ge [long]$launcher.creationUtcTicks}){
-   if($p.ProcessId -notin $m.clientPids){$m.clientPids+=([int]$p.ProcessId);$m.clientProcesses+=@{pid=[int]$p.ProcessId;creationUtcTicks=$p.CreationDate.ToUniversalTime().Ticks.ToString();expectedName=$launcher.name};Save-Manifest}
+  if(@($m.clientProcesses | Where-Object expectedName -ceq $launcher.name).Count){continue}
+  foreach($p in Get-CimInstance Win32_Process -Filter "Name = 'war3.exe' AND ParentProcessId = $($launcher.pid)"){
+   if(!(Test-PoolClientIdentity $p $launcher $session (Join-Path $e.game 'war3.exe'))){continue}
+   if($p.ProcessId -notin $m.clientPids){$m.clientPids+=([int]$p.ProcessId);$m.clientProcesses+=@{pid=[int]$p.ProcessId;creationUtcTicks=$p.CreationDate.ToUniversalTime().Ticks.ToString();expectedName=$launcher.name};Save-Manifest;break}
   }
  }
 }
@@ -115,8 +117,11 @@ try {
 }finally{
  try{
   if($m){
-   foreach($launcher in $launchers){$p=Get-CimInstance Win32_Process -Filter "ProcessId = $($launcher.pid)";if($p -and $p.CreationDate.ToUniversalTime().Ticks.ToString() -eq $launcher.creationUtcTicks){Stop-Process -Id $launcher.pid -Force -ErrorAction Continue}}
-   try {Collect-Clients} finally {& (Join-Path $PSScriptRoot 'Stop-PoolTest.ps1') -SessionPath $session -OwnerId $OwnerId}
+   try {
+    foreach($launcher in $launchers){Stop-PoolRecordedProcess $launcher.pid $launcher.creationUtcTicks (Join-Path $e.we 'bin/YDWEConfig.exe')}
+   } finally {
+    try {Collect-Clients} finally {& (Join-Path $PSScriptRoot 'Stop-PoolTest.ps1') -SessionPath $session -OwnerId $OwnerId}
+   }
   }
  }finally{
   try{if($RuntimeAdapter -and $session){
