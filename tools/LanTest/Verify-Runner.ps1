@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference='Stop'
+$ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1') {
     $tokens=$null; $errors=$null
@@ -30,22 +30,26 @@ Write-Output "Evidence: $root (synthetic parser tests, not gameplay evidence)"
 $players=@(1..3 | ForEach-Object {
     @{expectedName="LanP$_";pid=$PID;creationUtcTicks=$self.CreationDate.ToUniversalTime().Ticks.ToString()}
 })
-@{clients=3;startedUtc=[datetime]::UtcNow.AddSeconds(-10);hostPid=$PID;clientProcesses=$players} |
+@{clients=3;gameName='fixture';startedUtc=[datetime]::UtcNow.AddSeconds(-10);hostPid=2147483647;clientProcesses=$players} |
     ConvertTo-Json -Depth 4 | Set-Content (Join-Path $root 'session.json')
 $room="[GAME: fixture] started loading with 3 players"
 $departures=@(1..3 | ForEach-Object {"[GAME: fixture] deleting player [LanP$_]: has left the game voluntarily"})
 $victory='PASS: all native player results are victory'
-$complete="$victory`n[UT_DONE] fixture assertions=26 clients=3"
-function CheckVictory($name,$lines,$thirdLog,$expected) {
-    Set-Content (Join-Path $root 'host-stdout.log') -Value (@($room)+$lines)
+$cursor=[Text.Encoding]::UTF8.GetByteCount($room+[Environment]::NewLine)
+$complete="$victory`n[UT_DONE] fixture assertions=26 clients=3 host_room=fixture host_bytes=$cursor"
+function CheckVictory($name,$lines,$thirdLog,$expected,$timeout=1,$reason=$null) {
     foreach($slot in 1..3) {
         Set-Content (Join-Path $logs "test-P$slot.log") -Value $(if($slot -eq 3){$thirdLog}else{$complete})
     }
+    Set-Content (Join-Path $root 'host-stdout.log') -Value (@($room)+$lines)
+    $resultFile=Join-Path $root 'result.json'
+    if(Test-Path $resultFile){Remove-Item -LiteralPath $resultFile}
     try {
-        & (Join-Path $PSScriptRoot 'Wait-LanTest.ps1') -SessionPath $root -ClientLogDirectory $logs -TimeoutSeconds 1 -VictoryPattern $victory -CompletionPattern '\[UT_DONE\] fixture assertions=[1-9][0-9]* clients=3' | Out-Null
+        & (Join-Path $PSScriptRoot 'Wait-LanTest.ps1') -SessionPath $root -ClientLogDirectory $logs -TimeoutSeconds $timeout -VictoryPattern $victory -CompletionPattern '\[UT_DONE\] fixture assertions=[1-9][0-9]* clients=3' | Out-Null
     } catch {}
     $result=Get-Content (Join-Path $root 'result.json') -Raw | ConvertFrom-Json
     if($result.status -ne $expected){throw "$name expected $expected got $($result.status): $($result.message)"}
+    if ($reason -and $result.message -notlike $reason) { throw "$name unexpected reason: $($result.message)" }
     Write-Output "PASS: $name"
 }
 CheckVictory 'three confirmed wins and three voluntary departures' $departures $complete 'PASS'
@@ -62,3 +66,30 @@ foreach ($client in $ended.clientProcesses){$client.pid=2147483647}
 $ended | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $root 'session.json')
 CheckVictory 'host and clients already exited with complete evidence' $departures $complete 'PASS'
 CheckVictory 'exited host with missing departure evidence' $departures[0..1] $complete 'FAIL'
+
+# Freeze the third reader's first sample while the underlying log flushes.
+# The original waiter rejects this snapshot before it can take a second one.
+function Test-SplitVictorySample {
+    param([switch]$LateOos)
+    $fixture=@{firstSample=$true}
+    function Get-Content([string]$LiteralPath,[switch]$Raw) {
+        $text=Microsoft.PowerShell.Management\Get-Content -LiteralPath $LiteralPath -Raw
+        if ($fixture.firstSample -and $LiteralPath -like '*test-P3.log') {
+            $fixture.firstSample=$false
+            Set-Content -LiteralPath $LiteralPath -Value $complete
+            if ($LateOos) { Add-Content -LiteralPath (Join-Path $root 'host-stdout.log') -Value 'desync detected' }
+        }
+        return $text
+    }
+    if ($LateOos) {
+        CheckVictory 'late OOS between samples overrides victory' $departures $victory 'FAIL' 5 'OOS detected by ydhost'
+    } else {
+        CheckVictory 'complete client record flushed across host departure sample' $departures $victory 'PASS' 5
+    }
+}
+Test-SplitVictorySample
+Test-SplitVictorySample -LateOos
+
+CheckVictory 'one client finished after the first voluntary departure' $departures ($complete.Replace("host_bytes=$cursor","host_bytes=$($cursor+20)")) 'FAIL' 1 'Departure before all assertions completed:*'
+CheckVictory 'cursor from another room' $departures ($complete.Replace('host_room=fixture','host_room=other')) 'FAIL'
+CheckVictory 'missing host cursor' $departures ($complete.Substring(0,$complete.IndexOf(' host_room='))) 'FAIL'

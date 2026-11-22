@@ -1,4 +1,4 @@
-﻿param(
+param(
     [Parameter(Mandatory=$true)][string]$SessionPath,
     [string]$ClientLogDirectory,
     [string]$CompletionPattern,
@@ -10,6 +10,7 @@ $ErrorActionPreference='Stop'
 $manifest=Get-Content -LiteralPath (Join-Path $SessionPath 'session.json') -Raw | ConvertFrom-Json
 $deadline=[datetime]::UtcNow.AddSeconds($TimeoutSeconds)
 $loadedAt=$null
+$hostPath=Join-Path $SessionPath 'host-stdout.log'
 $result=@{status='FAIL'; message=''; clients=$manifest.clients; logs=@()}
 try {
     do {
@@ -20,7 +21,20 @@ try {
             $p=Get-CimInstance Win32_Process -Filter "ProcessId = $($client.pid)"
             if (!$p -or $p.CreationDate.ToUniversalTime().Ticks.ToString() -ne $client.creationUtcTicks) { $client }
         })
-        $hostLog=Get-Content -LiteralPath (Join-Path $SessionPath 'host-stdout.log') -Raw
+        if ($VictoryPattern) {
+            # One character per byte, including non-ASCII host messages. Client
+            # cursors are byte offsets in this same append-only session log.
+            $stream=[IO.File]::Open($hostPath,'Open','Read','ReadWrite')
+            try {
+                $reader=[IO.StreamReader]::new($stream,[Text.Encoding]::GetEncoding(28591),$false)
+                try { $hostLog=$reader.ReadToEnd() } finally { $reader.Dispose() }
+            } finally { $stream.Dispose() }
+            if (!$hostExited) { $hostLog=$hostLog.Substring(0,$hostLog.LastIndexOf("`n")+1) }
+            $firstLeave=[regex]::Match($hostLog,'(?im)^.*(?:deleting player|has left the game|disconnected)')
+            $loading=[regex]::Match($hostLog,"started loading with $($manifest.clients) players")
+        } else {
+            $hostLog=Get-Content -LiteralPath $hostPath -Raw
+        }
         if ($hostLog -match '(?i)desync detected') { throw 'OOS detected by ydhost' }
         if ($hostLog -match "started loading with $($manifest.clients) players" -and !$loadedAt) { $loadedAt=[datetime]::UtcNow }
         $completedPlayers=@{}
@@ -36,15 +50,24 @@ try {
                     if ($VictoryPattern) {
                         $done=[regex]::Match($text,$CompletionPattern)
                         if ($text.Substring(0,$done.Index) -notmatch $VictoryPattern) { continue }
+                        $tail=$text.Substring($done.Index+$done.Length)
+                        if ($tail -notmatch '^ host_room=(\S+) host_bytes=([0-9]+)\r?\n') { continue }
+                        $cursor=[long]$Matches[2]
+                        if ($Matches[1] -cne $manifest.gameName) { throw 'Completion belongs to a different room' }
+                        if (!$loading.Success -or $cursor -gt $hostLog.Length) { continue }
+                        if ($cursor -lt $loading.Index+$loading.Length) { throw 'Completion before room loaded' }
+                        if ($firstLeave.Success -and $cursor -gt $firstLeave.Index) {
+                            throw "Departure before all assertions completed: $($file.Name)"
+                        }
                     }
-                    if ($file.BaseName -match '-P([1-6])$') { $completedPlayers[[int]$Matches[1]]=$true }
+                    if ($file.BaseName -match '-P([1-6])$') { $completedPlayers[[int]$Matches[1]]=if ($VictoryPattern) {$cursor} else {$true} }
                 }
             }
         }
         $allDone=$loadedAt -and $CompletionPattern -and $completedPlayers.Count -eq $manifest.clients -and @(1..$manifest.clients | Where-Object { !$completedPlayers.ContainsKey($_) }).Count -eq 0
         $left=@{}
         if ($hostLog -match 'deleting player|has left the game|disconnected') {
-            if (!$VictoryPattern -or !$allDone) { throw 'A client disconnected before test completion' }
+            if (!$VictoryPattern) { throw 'A client disconnected before test completion' }
             foreach ($line in ($hostLog -split '\r?\n')) {
                 if ($line -notmatch 'deleting player|has left the game|disconnected') { continue }
                 if ($line -match '^\[GAME: [^\]]+\] deleting player \[([^\]]+)\]: has left the game voluntarily\s*$') {
@@ -63,7 +86,11 @@ try {
         if ($loadedAt -and $SmokeSeconds -gt 0 -and ([datetime]::UtcNow-$loadedAt).TotalSeconds -ge $SmokeSeconds) {
             $result.status='SMOKE'; $result.message='All clients reached loading; survived observation without host OOS. Not an assertion pass.'; break
         }
-        if ($allDone -and (!$VictoryPattern -or $left.Count -eq $manifest.clients)) {
+        if ($allDone -and (!$VictoryPattern -or ($hostExited -and $left.Count -eq $manifest.clients))) {
+            if ($VictoryPattern) {
+                $result.firstDepartureByte=$firstLeave.Index
+                $result.completionBytes=@(1..$manifest.clients | ForEach-Object { $completedPlayers[$_] })
+            }
             $result.status='PASS'
             $result.message=if ($VictoryPattern) { 'All clients confirmed victory and completed assertions; host recorded voluntary exits for all players.' }
                 else { 'Completion markers found in one fresh log per client; no observed failure/OOS.' }

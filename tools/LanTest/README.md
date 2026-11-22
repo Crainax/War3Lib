@@ -122,3 +122,9 @@ these two successful runs, so preservation of a simultaneous manual game was not
 live-tested. Use the current PowerShell executable for the verification runners:
 the initial Windows PowerShell attempt failed before launch because Get-FileHash
 was unavailable in that inherited module environment.
+
+## Terminal victory evidence
+
+For an automated pool session using `-VictoryPattern`, each client checks all expected native victory results and completes its assertions and cleanup. At that point it reads the byte length of the assigned room’s append-only `host-stdout.log`. Append ` host_room=<gameName> host_bytes=<length>` to the same newline-terminated completion record. The completion regex should end immediately before these fields.
+
+The waiter checks the victory assertions before that record in the same client log. Each recorded length must include the loading marker and end at or before the start of the first departure line. An equal offset means that line was the next append. This permits a delayed client log flush without accepting assertions actually completed after a departure. The final decision uses the closed host log, one verified completion per requested slot, and explicit voluntary departures for all expected players. Errors, OOS and unexpected disconnects still fail. Successful results include `completionBytes` in slot order and `firstDepartureByte`.
