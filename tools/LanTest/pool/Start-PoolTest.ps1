@@ -1,7 +1,7 @@
 param([ValidateSet('Auto','A','B')][string]$Environment='Auto',
  [Parameter(Mandatory)][string]$MapPath,[Parameter(Mandatory)][string]$OwnerId,
  [ValidateRange(1,6)][int]$Clients=2,[ValidateRange(1,86400)][int]$QueueTimeoutSeconds=3600,[ValidateRange(10,1800)][int]$TimeoutSeconds=120,
- [string]$CompletionPattern,[switch]$LegacySizeCap,[switch]$UseScriptSlots,
+ [string]$CompletionPattern,[string]$VictoryPattern,[switch]$LegacySizeCap,[switch]$UseScriptSlots,
  [string]$ClientLogDirectory,[string]$ProjectPath,[string]$MapConfigOverride,[switch]$ManualJoin,
  [ValidateRange(0,120)][int]$SmokeSeconds=0,[switch]$ExpectMapExit,[ValidateRange(1,60)][int]$ExitObserveSeconds=10,
  [string]$LuaRuntime='D:/WE/YDWE1.32.13正式版',
@@ -15,6 +15,7 @@ if([IO.Path]::GetExtension($map) -notin '.w3x','.w3m'){throw 'Provide a packaged
 if($MapConfigOverride){$MapConfigOverride=(Resolve-Path $MapConfigOverride).Path}
 if($RuntimeAdapter){$RuntimeAdapter=(Resolve-Path -LiteralPath $RuntimeAdapter).Path}
 $waitArgs=@{CompletionPattern=$CompletionPattern;TimeoutSeconds=$TimeoutSeconds;SmokeSeconds=$SmokeSeconds}
+if($VictoryPattern){$waitArgs.VictoryPattern=$VictoryPattern}
 if($ExpectMapExit){
  if($Clients -ne 1 -or $SmokeSeconds -ne 0){throw 'Expected map exit requires a one-client assertion run.'}
  if(!(Get-Command (Join-Path $base 'Wait-LanTest.ps1')).Parameters.ContainsKey('ExpectMapExit')){throw 'Installed Wait-LanTest does not support ExpectMapExit; no game launched.'}
