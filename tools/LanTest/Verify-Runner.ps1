@@ -37,7 +37,7 @@ $departures=@(1..3 | ForEach-Object {"[GAME: fixture] deleting player [LanP$_]: 
 $victory='PASS: all native player results are victory'
 $cursor=[Text.Encoding]::UTF8.GetByteCount($room+[Environment]::NewLine)
 $complete="$victory`n[UT_DONE] fixture assertions=26 clients=3 host_room=fixture host_bytes=$cursor"
-function CheckVictory($name,$lines,$thirdLog,$expected,$timeout=1,$reason=$null) {
+function CheckTerminal($name,$lines,$thirdLog,$expected,$timeout=1,$reason=$null,$resultPattern=@{VictoryPattern=$victory}) {
     foreach($slot in 1..3) {
         Set-Content (Join-Path $logs "test-P$slot.log") -Value $(if($slot -eq 3){$thirdLog}else{$complete})
     }
@@ -45,27 +45,27 @@ function CheckVictory($name,$lines,$thirdLog,$expected,$timeout=1,$reason=$null)
     $resultFile=Join-Path $root 'result.json'
     if(Test-Path $resultFile){Remove-Item -LiteralPath $resultFile}
     try {
-        & (Join-Path $PSScriptRoot 'Wait-LanTest.ps1') -SessionPath $root -ClientLogDirectory $logs -TimeoutSeconds $timeout -VictoryPattern $victory -CompletionPattern '\[UT_DONE\] fixture assertions=[1-9][0-9]* clients=3' | Out-Null
+        & (Join-Path $PSScriptRoot 'Wait-LanTest.ps1') -SessionPath $root -ClientLogDirectory $logs -TimeoutSeconds $timeout @resultPattern -CompletionPattern '\[UT_DONE\] fixture assertions=[1-9][0-9]* clients=3' | Out-Null
     } catch {}
     $result=Get-Content (Join-Path $root 'result.json') -Raw | ConvertFrom-Json
     if($result.status -ne $expected){throw "$name expected $expected got $($result.status): $($result.message)"}
     if ($reason -and $result.message -notlike $reason) { throw "$name unexpected reason: $($result.message)" }
     Write-Output "PASS: $name"
 }
-CheckVictory 'three confirmed wins and three voluntary departures' $departures $complete 'PASS'
-CheckVictory 'voluntary departure before completion' $departures $victory 'FAIL'
-CheckVictory 'one client missing victory' $departures "PASS: other assertion`n[UT_DONE] fixture assertions=26 clients=3" 'FAIL'
-CheckVictory 'one client reports zero assertions' $departures ($complete.Replace('=26','=0')) 'FAIL'
-CheckVictory 'disconnect despite completed logs' ($departures + '[GAME: fixture] LanP2 disconnected') $complete 'FAIL'
-CheckVictory 'partial departures cannot pass' $departures[0..1] $complete 'FAIL'
-CheckVictory 'OOS overrides all victory evidence' ($departures + 'desync detected') $complete 'FAIL'
-CheckVictory 'client error overrides victory' $departures ($complete + "`n[UT_FAIL]") 'FAIL'
+CheckTerminal 'three confirmed wins and three voluntary departures' $departures $complete 'PASS'
+CheckTerminal 'voluntary departure before completion' $departures $victory 'FAIL'
+CheckTerminal 'one client missing victory' $departures "PASS: other assertion`n[UT_DONE] fixture assertions=26 clients=3" 'FAIL'
+CheckTerminal 'one client reports zero assertions' $departures ($complete.Replace('=26','=0')) 'FAIL'
+CheckTerminal 'disconnect despite completed logs' ($departures + '[GAME: fixture] LanP2 disconnected') $complete 'FAIL'
+CheckTerminal 'partial departures cannot pass' $departures[0..1] $complete 'FAIL'
+CheckTerminal 'OOS overrides all victory evidence' ($departures + 'desync detected') $complete 'FAIL'
+CheckTerminal 'client error overrides victory' $departures ($complete + "`n[UT_FAIL]") 'FAIL'
 $ended=Get-Content (Join-Path $root 'session.json') -Raw | ConvertFrom-Json
 $ended.hostPid=2147483647
 foreach ($client in $ended.clientProcesses){$client.pid=2147483647}
 $ended | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $root 'session.json')
-CheckVictory 'host and clients already exited with complete evidence' $departures $complete 'PASS'
-CheckVictory 'exited host with missing departure evidence' $departures[0..1] $complete 'FAIL'
+CheckTerminal 'host and clients already exited with complete evidence' $departures $complete 'PASS'
+CheckTerminal 'exited host with missing departure evidence' $departures[0..1] $complete 'FAIL'
 
 # Freeze the third reader's first sample while the underlying log flushes.
 # The original waiter rejects this snapshot before it can take a second one.
@@ -82,14 +82,23 @@ function Test-SplitVictorySample {
         return $text
     }
     if ($LateOos) {
-        CheckVictory 'late OOS between samples overrides victory' $departures $victory 'FAIL' 5 'OOS detected by ydhost'
+        CheckTerminal 'late OOS between samples overrides victory' $departures $victory 'FAIL' 5 'OOS detected by ydhost'
     } else {
-        CheckVictory 'complete client record flushed across host departure sample' $departures $victory 'PASS' 5
+        CheckTerminal 'complete client record flushed across host departure sample' $departures $victory 'PASS' 5
     }
 }
 Test-SplitVictorySample
 Test-SplitVictorySample -LateOos
 
-CheckVictory 'one client finished after the first voluntary departure' $departures ($complete.Replace("host_bytes=$cursor","host_bytes=$($cursor+20)")) 'FAIL' 1 'Departure before all assertions completed:*'
-CheckVictory 'cursor from another room' $departures ($complete.Replace('host_room=fixture','host_room=other')) 'FAIL'
-CheckVictory 'missing host cursor' $departures ($complete.Substring(0,$complete.IndexOf(' host_room='))) 'FAIL'
+CheckTerminal 'one client finished after the first voluntary departure' $departures ($complete.Replace("host_bytes=$cursor","host_bytes=$($cursor+20)")) 'FAIL' 1 'Departure before all assertions completed:*'
+CheckTerminal 'cursor from another room' $departures ($complete.Replace('host_room=fixture','host_room=other')) 'FAIL'
+CheckTerminal 'missing host cursor' $departures ($complete.Substring(0,$complete.IndexOf(' host_room='))) 'FAIL'
+
+$defeat='PASS: all native player results are defeat'
+$complete=$complete.Replace($victory,$defeat)
+$defeatArgs=@{DefeatPattern=$defeat}
+CheckTerminal 'defeat completion before voluntary departures' $departures $complete 'PASS' 1 'All clients confirmed defeat*' $defeatArgs
+CheckTerminal 'defeat does not satisfy victory' $departures $complete 'FAIL'
+CheckTerminal 'victory does not satisfy defeat' $departures ($complete.Replace($defeat,$victory)) 'FAIL' 1 $null $defeatArgs
+CheckTerminal 'defeat cannot hide early departure' $departures ($complete.Replace("host_bytes=$cursor","host_bytes=$($cursor+1)")) 'FAIL' 1 'Departure before all assertions completed:*' $defeatArgs
+CheckTerminal 'defeat cannot hide OOS' (@($departures)+'desync detected') $complete 'FAIL' 1 'OOS detected by ydhost' $defeatArgs
