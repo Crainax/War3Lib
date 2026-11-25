@@ -9,8 +9,8 @@ Manual and PrepareOnly calls retain the legacy path. Windows PowerShell callers
 are automatically bridged to PowerShell 7.
 
 Pass ProjectPath to snapshot project CloudScripts and local INI baseline into
-the selected environment. Test writes never copy back to the human environment.
-ClientLogDirectory defaults to private `War3Lib/日志`; relative paths and old
+the selected environment. Local archive and configuration writes stay private.
+ClientLogDirectory defaults to the project log directory (fallback `War3Lib/日志`); relative paths and old
 absolute paths beneath the original game directory are mapped to the assigned
 game. Completion and OOS rules remain unchanged. See [pool/README.md](pool/README.md)
 for isolation limits, queue behavior, evidence, and supported parameters.
@@ -128,3 +128,5 @@ was unavailable in that inherited module environment.
 For an automated pool session using `-VictoryPattern`, each client checks all expected native victory results and completes its assertions and cleanup. At that point it reads the byte length of the assigned room’s append-only `host-stdout.log`. Append ` host_room=<gameName> host_bytes=<length>` to the same newline-terminated completion record. The completion regex should end immediately before these fields.
 
 The waiter checks the victory assertions before that record in the same client log. Each recorded length must include the loading marker and end at or before the start of the first departure line. An equal offset means that line was the next append. This permits a delayed client log flush without accepting assertions actually completed after a departure. The final decision uses the closed host log, one verified completion per requested slot, and explicit voluntary departures for all expected players. Errors, OOS and unexpected disconnects still fail. Successful results include `completionBytes` in slot order and `firstDepartureByte`.
+
+Automatic pool runs publish client logs to the project log directory after owned cleanup. Read result.json logs for the final filenames. Failed sessions also publish host diagnostics under LanTest故障/<session>. Project configuration supplies the default log directory; an explicit ClientLogDirectory takes precedence.

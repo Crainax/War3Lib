@@ -12,7 +12,7 @@ $manifest=Read-Record 'session.json'
 $cleanup=Read-Record 'cleanup.json'
 if($manifest.ownerId -ne $owner -or $cleanup.ownerId -ne $owner -or !$cleanup.success -or (Read-Record 'result.json').status -ne 'PASS'){throw 'Session or cleanup failed'}
 foreach($player in 1,2){
-    $logs=@(Get-ChildItem (Join-Path $session 'client-logs') -Filter "*-P$player.log")
+    $logs=@((Read-Record 'result.json').logs | Where-Object { $_ -like "*-P$player.log" } | Get-Item)
     if($logs.Count -ne 1){throw "Expected one archived P$player log"}
     $log=Get-Content $logs[0].FullName -Raw
     foreach($mark in 'PASS: ParallelProbe humans=2','PASS: ParallelProbe unique LanP1','PASS: ParallelProbe unique LanP2',"[UT_DONE] ParallelProbe local=P$player"){

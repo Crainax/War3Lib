@@ -37,6 +37,8 @@ foreach($name in 'A','B'){
 }
 . (Join-Path $PSScriptRoot 'PoolQueue.ps1')
 . (Join-Path $PSScriptRoot 'PoolConfiguration.ps1')
+. (Join-Path $PSScriptRoot 'ProjectLogs.ps1')
+if (!$ClientLogDirectory) { $ClientLogDirectory = Get-ProjectLogDirectory $ProjectPath }
 # Resolve for both candidates before admission; never watch the human game's logs.
 $logPaths=@{};$candidates=if($Environment -eq 'Auto'){@('A','B')}else{@($Environment)}
 foreach($name in $candidates){$logPaths[$name]=Resolve-PoolLogDirectory $ClientLogDirectory $environments[$name].sourceGame $environments[$name].game}
@@ -134,7 +136,7 @@ try {
    }
   }}
   finally{
-   try {if($m){$null=Remove-PoolSessionMap $m $session}}
+   try {if($m){$null=Remove-PoolSessionMap $m $session; Publish-PoolLogs $m $e}}
    finally{Exit-PoolQueue $lease $session}
   }
  }

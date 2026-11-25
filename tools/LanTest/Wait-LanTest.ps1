@@ -5,7 +5,9 @@ param(
     [string]$VictoryPattern,
     [string]$DefeatPattern,
     [int]$TimeoutSeconds=120,
-    [int]$SmokeSeconds=0
+    [int]$SmokeSeconds=0,
+    [switch]$ExpectMapExit,
+    [ValidateRange(1,60)][int]$ExitObserveSeconds=10
 )
 $ErrorActionPreference='Stop'
 $manifest=Get-Content -LiteralPath (Join-Path $SessionPath 'session.json') -Raw | ConvertFrom-Json
@@ -15,7 +17,11 @@ $hostPath=Join-Path $SessionPath 'host-stdout.log'
 $result=@{status='FAIL'; message=''; clients=$manifest.clients; logs=@()}
 if ($VictoryPattern -and $DefeatPattern) { throw 'Specify only one terminal result.' }
 $terminalPattern=if ($DefeatPattern) { $DefeatPattern } else { $VictoryPattern }
+$departureAt=$null
 try {
+    if ($ExpectMapExit -and ($manifest.clients -ne 1 -or !$CompletionPattern -or !$ClientLogDirectory -or $SmokeSeconds -or $terminalPattern)) {
+        throw 'Expected map exit requires one client, assertion logs and no conflicting terminal mode.'
+    }
     do {
         # Read process state first. A host can flush its final departures and exit
         # while CIM is queried; adjudicate that observation against newer logs.
@@ -40,6 +46,16 @@ try {
         }
         if ($hostLog -match '(?i)desync detected') { throw 'OOS detected by ydhost' }
         if ($hostLog -match "started loading with $($manifest.clients) players" -and !$loadedAt) { $loadedAt=[datetime]::UtcNow }
+        if ($ExpectMapExit) {
+            $errors=Join-Path $manifest.gamePath 'Errors'
+            if (Test-Path -LiteralPath $errors) {
+                $crash=Get-ChildItem -LiteralPath $errors -File -Filter '*Crash.txt' | Where-Object {
+                    $_.LastWriteTimeUtc -ge ([datetime]$manifest.startedUtc).ToUniversalTime() -and
+                    (Select-String -LiteralPath $_.FullName -SimpleMatch ([IO.Path]::GetFileName($manifest.gameMap)) -Quiet)
+                } | Select-Object -First 1
+                if ($crash) { throw "Game crash during expected map exit: $($crash.FullName)" }
+            }
+        }
         $completedPlayers=@{}
         if ($ClientLogDirectory) {
             $logs=@(Get-ChildItem -LiteralPath $ClientLogDirectory -File -Filter *.log -Recurse | Where-Object { $_.CreationTimeUtc -ge ([datetime]$manifest.startedUtc).ToUniversalTime() })
@@ -70,7 +86,7 @@ try {
         $allDone=$loadedAt -and $CompletionPattern -and $completedPlayers.Count -eq $manifest.clients -and @(1..$manifest.clients | Where-Object { !$completedPlayers.ContainsKey($_) }).Count -eq 0
         $left=@{}
         if ($hostLog -match 'deleting player|has left the game|disconnected') {
-            if (!$terminalPattern) { throw 'A client disconnected before test completion' }
+            if (!$terminalPattern -and !$ExpectMapExit) { throw 'A client disconnected before test completion' }
             foreach ($line in ($hostLog -split '\r?\n')) {
                 if ($line -notmatch 'deleting player|has left the game|disconnected') { continue }
                 if ($line -match '^\[GAME: [^\]]+\] deleting player \[([^\]]+)\]: has left the game voluntarily\s*$') {
@@ -89,7 +105,18 @@ try {
         if ($loadedAt -and $SmokeSeconds -gt 0 -and ([datetime]::UtcNow-$loadedAt).TotalSeconds -ge $SmokeSeconds) {
             $result.status='SMOKE'; $result.message='All clients reached loading; survived observation without host OOS. Not an assertion pass.'; break
         }
-        if ($allDone -and (!$terminalPattern -or ($hostExited -and $left.Count -eq $manifest.clients))) {
+        if ($ExpectMapExit -and $left.Count -eq 1) {
+            if (!$allDone) { throw 'Expected map exit before completion marker' }
+            if (!$departureAt) { $departureAt=[datetime]::UtcNow }
+            $elapsed=([datetime]::UtcNow-$departureAt).TotalSeconds
+            if ($elapsed -ge $ExitObserveSeconds) {
+                $result.exitObservedSeconds=[math]::Floor($elapsed)
+                $result.status='PASS'
+                $result.message='Assertions completed; voluntary map exit observed with original client alive.'
+                break
+            }
+        }
+        if (!$ExpectMapExit -and $allDone -and (!$terminalPattern -or ($hostExited -and $left.Count -eq $manifest.clients))) {
             if ($terminalPattern) {
                 $result.firstDepartureByte=$firstLeave.Index
                 $result.completionBytes=@(1..$manifest.clients | ForEach-Object { $completedPlayers[$_] })
@@ -105,10 +132,5 @@ try {
     if ($result.status -eq 'FAIL') { throw 'Timed out waiting for all clients and test completion' }
 } catch { $result.message=$_.Exception.Message; throw }
 finally {
-    if ($result.logs.Count) {
-        $evidence=Join-Path $SessionPath 'client-logs'
-        $null=New-Item -ItemType Directory -Path $evidence -Force
-        foreach($log in $result.logs) { Copy-Item -LiteralPath $log -Destination $evidence -ErrorAction Continue }
-    }
     $result | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $SessionPath 'result.json') -Encoding UTF8 }
 Write-Output "$($result.status): $($result.message)"

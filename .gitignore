@@ -44,3 +44,6 @@ Python/assets/*.png
 ~$*.xlsx
 ~$*.xls
 ~$*.xlsm
+
+!/tools/LanTest/Remove-ClosedSingleRuntime.ps1
+!/tools/LanTest/pool/ProjectLogs.ps1
