@@ -5,3 +5,5 @@ These are versioned sources for the installed runner at `D:/War3/tools/LanTest`.
 Machine prerequisites: installed KKWE/YDWE runtime, tested loader timing patch and Codex-War3-StopTest scheduled task. See README.md for validated scope and rollback. The task installer and worker sources are in host-config/war3-test-control; installation still requires an administrator. Host rules/skills in host-config are snapshots to merge, not wholesale replacements of another machine configuration.
 
 Parallel launch additionally requires native/Build.ps1 to build bin/lan_player_name.dll and Prepare-ParallelRuntime.ps1. Build artifacts and runtime/ are ignored.
+
+For the optional visual test skill, run `host-config/war3-runtime-test/native/build.cmd` on the test host (x86 VS 2022 Build Tools and Python). Deploy the resulting `assets/opengl32.dll` with the skill scripts. Preview encoding uses Python with Pillow.

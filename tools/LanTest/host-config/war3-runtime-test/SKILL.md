@@ -1,6 +1,6 @@
 ---
 name: war3-runtime-test
-description: 在用户要求 Warcraft III 游戏内单测、后台 LAN 测试或 OOS 验证时，编排 War3Lib/Xlimon/LH 的局域网会话、日志判定及进程清理。不用于仅编译验证，不使用通用桌面自动化。
+description: Warcraft III 游戏内单测、后台 LAN 与 OOS 验证，以及 UI 外观任务的实机截图、看图调整和复验。普通业务走日志断言；仅编译任务无需启动游戏。
 ---
 
 # Warcraft runtime tests
@@ -14,6 +14,16 @@ Read `D:/War3/tools/LanTest/README.md` for the actual validated status and param
 - Host `desync detected` fails the run even without a disconnect. Client exits, missing logs/markers, runtime errors and deadlines fail. Preserve original host/client evidence and report coverage; starting/loading is not proof of successful tests.
 - Cleanup is automatic in the launcher finally block. The manifest records each client PID and CIM creation ticks. Pool sessions use `pool/Stop-PoolTest.ps1`; legacy sessions use `Stop-LanTest.ps1`. Both delegate game termination to Codex-War3-StopTest and stop only the owned host. Confirm cleanup.json and process exit. Never kill by wildcard/name or terminate an unrelated session.
 - YDWE component-internal `-auto` is the only native input exception. No desktop capture/activation, SendKeys, pyautogui or Python/war3auto fallback. Manual launch leaves the game running; automated launch cleans up on success/failure. Installed task does not require an open admin terminal. Only task installation/updates require administrator input.
+
+## UI 实机视觉验收
+
+按验收目标分配。涉及玩家实际看到的布局、贴图、文字、遮挡或状态外观时，主动跑视觉验收。数据、存档、同步、点击回调等纯行为改动沿用日志断言，即使代码位于 UI 目录。遵守用户限定的验证范围。
+
+1. 给测试地图设置可重复的自动入口，调用真实组件显示目标页面或状态，固定影响外观的数据、尺寸和动画阶段。布局与资源稳定后向本局 P1 日志写入场景专属标记。已有入口和标记可直接复用。悬停样式可由测试夹具展示；真实鼠标命中行为须按实际覆盖范围报告。
+2. 编译本轮地图，用 PowerShell 7 运行技能目录下的 `scripts/Start-VisualTest.ps1`，传 `-ProjectPath`、`-MapPath`、`-Scene` 和 `-ReadyPattern`。后者是就绪日志正则；若全部断言在之后完成，另传 `-CompletionPattern`。按地图实际需要传 `-UseScriptSlots`、`-LegacySizeCap` 或 `-ClientLogDirectory`。入口使用同一 A/B 分配队列和归属清理，在本次单客户端 OpenGL 交换帧前读取游戏后缓冲区。多人同步要求另走原有测试。
+   视觉入口为本轮生成临时地图副本。对提供 Trace 的 JASS 地图，将已识别的单测断言和计时器屏显调用转到原客户端日志，保留玩家可见提示。核对日志中的断言及就绪标记，并打开图确认没有测试文字。其他运行时如有诊断遮挡，在对应测试输出入口实现视觉场次专用日志分流。
+3. 用本地图片查看工具打开输出的 JPEG，核对目标状态确已出现，按任务要求检查视觉效果。找出具体问题后调整实现，重新构建，用相同的场景、状态和视口再跑一轮，打开新图对照。若首次已满足要求，记录看图结论即可。空白、错页、遮挡导致无法判断或缺图时，修正场景再取图；日志 PASS 单独记录。字号、描边等细节可在该会话的原帧 `render.ppm` 上按原像素裁切查看。
+4. 默认报告目录为 `D:/War3/Reports/<项目目录名>/UI截图/<场景名>/`，每轮 JPEG 用唯一会话 ID 命名，自动控制在 500 KiB 以内。最终回复附实际截图链接、看图结论；有调整时给出修改前和复验图。核对该会话的 result.json、cleanup.json 和客户端退出。
 
 ## Queue and ownership
 
