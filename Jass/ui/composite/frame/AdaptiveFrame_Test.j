@@ -7,9 +7,9 @@
 //# dependency:resource/ui/frame/task-stripes.blp
 //# dependency:resource/ui/frame/title-daily.blp
 //# dependency:resource/ui/frame/title-daily-long.blp
-library UTAdaptiveFrame requires AdaptiveFrame {
+library UTAdaptiveFrame requires AdaptiveFrame, FrameInset, FrameButton, FrameProgress, FrameCheckbox {
     private adaptiveFrame panel;
-    private frameSkin taskRow;
+    private frameInset taskRow;
     private frameProgress progress;
     private frameCheckbox longTitle;
     private frameCheckbox locked;
@@ -23,8 +23,8 @@ library UTAdaptiveFrame requires AdaptiveFrame {
         integer i;
         real buttonWidth;
         panel.setSize(RMaxBJ(0.34,RMinBJ(w,0.54)),RMaxBJ(0.19,RMinBJ(h,0.32)));
-        w = panel.skin.width;
-        h = panel.skin.height;
+        w = panel.getWidth();
+        h = panel.getHeight();
         dimensions.setText("宽 " + R2SW(w,1,3) + "   高 " + R2SW(h,1,3));
         taskRow.setSize(w - 0.032,h - 0.146);
         progress.setSize(w - 0.109,0.014);
@@ -40,8 +40,8 @@ library UTAdaptiveFrame requires AdaptiveFrame {
         buttons[3].setEnabled(h > 0.1901);
     }
     private function adjust(integer control) {
-        real w = panel.skin.width;
-        real h = panel.skin.height;
+        real w = panel.getWidth();
+        real h = panel.getHeight();
         if (control == buttons[0]) { w += 0.020; }
         else if (control == buttons[1]) { w -= 0.020; }
         else if (control == buttons[2]) { h += 0.015; }
@@ -119,19 +119,19 @@ library UTAdaptiveFrame requires AdaptiveFrame {
         panel = adaptiveFrame.create(DzGetGameUI(),"每日任务",0.40,0.22);
         parent = panel.getRoot().ui;
         panel.getRoot().setAbsPoint(ANCHOR_CENTER,0.4,0.34);
-        taskRow = frameSkin.inset(parent,0.36,0.08);
-        taskRow.root.setPoint(ANCHOR_TOP,parent,ANCHOR_TOP,0,-0.048);
-        rewardIcon = uiImage.create(taskRow.root.ui).setTexture("ReplaceableTextures\\CommandButtons\\BTNHealthStone.blp")
-            .exReSize(0.036,0.036).exRePoint(ANCHOR_LEFT,taskRow.root.ui,ANCHOR_LEFT,0.009,0);
-        taskStripes = uiImage.create(taskRow.root.ui).setTexture("ui\\frame\\task-stripes.blp").exReSize(0.014,0.007)
+        taskRow = frameInset.create(parent,0.36,0.08);
+        taskRow.getRoot().setPoint(ANCHOR_TOP,parent,ANCHOR_TOP,0,-0.048);
+        rewardIcon = uiImage.create(taskRow.getRoot().ui).setTexture("ReplaceableTextures\\CommandButtons\\BTNHealthStone.blp")
+            .exReSize(0.036,0.036).exRePoint(ANCHOR_LEFT,taskRow.getRoot().ui,ANCHOR_LEFT,0.009,0);
+        taskStripes = uiImage.create(taskRow.getRoot().ui).setTexture("ui\\frame\\task-stripes.blp").exReSize(0.014,0.007)
             .exRePoint(ANCHOR_LEFT,rewardIcon.ui,ANCHOR_RIGHT,0.012,0.009);
-        taskName = uiText.create(taskRow.root.ui).setFontSize(6).setText("每日在线1小时")
+        taskName = uiText.create(taskRow.getRoot().ui).setFontSize(6).setText("每日在线1小时")
             .exRePoint(ANCHOR_LEFT,taskStripes.ui,ANCHOR_RIGHT,0.004,0);
         AdaptiveFrameFont(taskName,0.012);
-        progress = frameProgress.create(taskRow.root.ui,0.2,0.014);
+        progress = frameProgress.create(taskRow.getRoot().ui,0.2,0.014);
         progress.root.exRePoint(ANCHOR_LEFT,rewardIcon.ui,ANCHOR_RIGHT,0.012,-0.010);
         longTitle = frameCheckbox.create(parent,"使用长标题",0.11);
-        longTitle.root.exRePoint(ANCHOR_TOPLEFT,taskRow.root.ui,ANCHOR_BOTTOMLEFT,0,-0.005);
+        longTitle.root.exRePoint(ANCHOR_TOPLEFT,taskRow.getRoot().ui,ANCHOR_BOTTOMLEFT,0,-0.005);
         longTitle.changed = uiEvent.changeTitle;
         changeTitle(longTitle);
         locked = frameCheckbox.create(parent,"自动领取",0.090);
@@ -163,23 +163,26 @@ library UTAdaptiveFrame requires AdaptiveFrame {
     private function createDemo() {
         integer i;
         buildDemo();
-        assert.Integer(buttons[0].skin.testButtonTiles(),3,"[AdaptiveFrame] horizontal button uses three slices");
+        assert.Integer(buttons[0].testButtonTiles(),3,"[AdaptiveFrame] horizontal button uses three slices");
         resizePanel(0.54,0.32);
         for (0 <= i <= 3) {
-            assert.Real(buttons[i].skin.height,0.029,"[AdaptiveFrame] fixed button height");
-            assert.Real(buttons[i].skin.width,0.1225,"[AdaptiveFrame] expanded button width");
-            assert.Integer(buttons[i].skin.testButtonTiles(),3,"[AdaptiveFrame] resized button uses three slices");
+            assert.Real(buttons[i].getHeight(),0.029,"[AdaptiveFrame] fixed button height");
+            assert.Real(buttons[i].getWidth(),0.1225,"[AdaptiveFrame] expanded button width");
+            assert.Integer(buttons[i].testButtonTiles(),3,"[AdaptiveFrame] resized button uses three slices");
         }
         resizePanel(0.40,0.22);
         adjust(buttons[0]);
-        assert.Real(panel.skin.width,0.42,"[AdaptiveFrame] wider");
-        assert.Real(panel.skin.height,0.22,"[AdaptiveFrame] width preserves height");
+        assert.Real(panel.getWidth(),0.42,"[AdaptiveFrame] wider");
+        assert.Real(panel.getContentWidth(),0.392,"[AdaptiveFrame] content follows outer width");
+        assert.Real(panel.getContentHeight(),0.166,"[AdaptiveFrame] content excludes header and bottom padding");
+        assert.Real(taskRow.getContentWidth(),taskRow.getWidth() - 0.022,"[AdaptiveFrame] inset content padding");
+        assert.Real(panel.getHeight(),0.22,"[AdaptiveFrame] width preserves height");
         adjust(buttons[1]);
-        assert.Real(panel.skin.width,0.40,"[AdaptiveFrame] narrower");
+        assert.Real(panel.getWidth(),0.40,"[AdaptiveFrame] narrower");
         adjust(buttons[2]);
-        assert.Real(panel.skin.height,0.235,"[AdaptiveFrame] taller");
+        assert.Real(panel.getHeight(),0.235,"[AdaptiveFrame] taller");
         adjust(buttons[3]);
-        assert.Real(panel.skin.height,0.22,"[AdaptiveFrame] shorter");
+        assert.Real(panel.getHeight(),0.22,"[AdaptiveFrame] shorter");
         resizePanel(1,0);
         assert.Boolean(!buttons[0].enabled && !buttons[3].enabled,"[AdaptiveFrame] bounds");
         progress.setValue(1,0);
