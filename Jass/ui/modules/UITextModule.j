@@ -24,7 +24,7 @@ library UITextModule {
 
         // 设置标准字体大小
         // size: 1=迷你号, 2=特小号, 3=小号, 4=标准, 5=中号, 6=大号, 7=特大号
-        method setFontSize (integer size) -> thistype {
+        method setFontLevel (string fontPath, integer size) -> thistype {
             real fontSize = FONT_SIZE_MODERATE; // 修改默认值
             if (!this.isExist()) {return this;}
 
@@ -44,8 +44,12 @@ library UITextModule {
                 fontSize = FONT_SIZE_HUGE;
             }
 
-            DzFrameSetFont(ui, "Fonts\\dfst-m3u.ttf", fontSize, 0);
+            DzFrameSetFont(ui, fontPath, fontSize, 0);
             return this;
+        }
+
+        method setFontSize (integer size) -> thistype {
+            return this.setFontLevel("Fonts\\dfst-m3u.ttf",size);
         }
 
         // 设置对齐方式(前提要先定好大小,不然无处对齐)
