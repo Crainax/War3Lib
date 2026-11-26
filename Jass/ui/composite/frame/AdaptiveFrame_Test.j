@@ -5,6 +5,8 @@
 #define EmptyMapUnitTestMode
 //! zinc
 //# dependency:resource/ui/frame/task-stripes.blp
+//# dependency:resource/ui/frame/title-daily.blp
+//# dependency:resource/ui/frame/title-daily-long.blp
 library UTAdaptiveFrame requires AdaptiveFrame {
     private adaptiveFrame panel;
     private frameSkin taskRow;
@@ -52,9 +54,9 @@ library UTAdaptiveFrame requires AdaptiveFrame {
     }
     private function changeTitle(integer id) {
         if (longTitle.checked) {
-            panel.setTitle("每日任务与活跃度奖励",8);
+            panel.setTitle("每日任务与活跃度奖励",8).setTitleArt("ui\\frame\\title-daily-long.blp",9.06,ADAPTIVE_FRAME_TITLE_HEIGHT);
         } else {
-            panel.setTitle("每日任务",8);
+            panel.setTitle("每日任务",8).setTitleArt("ui\\frame\\title-daily.blp",4.28,ADAPTIVE_FRAME_TITLE_HEIGHT);
         }
     }
     private real normalWidth;
@@ -62,7 +64,7 @@ library UTAdaptiveFrame requires AdaptiveFrame {
 
     private real shortWidth;
     private function checkTitleHeight(string state) {
-        real actual = DzFrameGetRealHeight(panel.title.ui);
+        real actual = DzFrameGetRealHeight(panel.getTitleFrame());
         real reserved = DzFrameGetHeight(panel.testTitleViewport());
         Trace("[AdaptiveFrame] title height " + state + " actual=" + R2SW(actual,1,5) + " reserved=" + R2SW(reserved,1,5));
         assert.Boolean(actual > 0 && actual <= reserved,"[AdaptiveFrame] " + state + " title fits reserved height");
@@ -72,14 +74,14 @@ library UTAdaptiveFrame requires AdaptiveFrame {
         integer r = panel.testRightDecoration();
         rePointer lp = LoadInteger(HASH_UI,l,HASH_KEY_UI_EXTEND_REPOINTER);
         rePointer rp = LoadInteger(HASH_UI,r,HASH_KEY_UI_EXTEND_REPOINTER);
-        assert.Integer(lp.relative,panel.title.ui,"[AdaptiveFrame] left follows text");
-        assert.Integer(rp.relative,panel.title.ui,"[AdaptiveFrame] right follows text");
+        assert.Integer(lp.relative,panel.getTitleFrame(),"[AdaptiveFrame] left follows active title");
+        assert.Integer(rp.relative,panel.getTitleFrame(),"[AdaptiveFrame] right follows active title");
         assert.Integer(DzFrameGetPointRelativePoint(l,ANCHOR_RIGHT),ANCHOR_LEFT,"[AdaptiveFrame] left targets leading edge");
         assert.Integer(DzFrameGetPointRelativePoint(r,ANCHOR_LEFT),ANCHOR_RIGHT,"[AdaptiveFrame] right targets trailing edge");
     }
     private function checkRestored() {
         checkTitleHeight("restored short");
-        assert.Real(DzFrameGetRealWidth(panel.title.ui),shortWidth,"[AdaptiveFrame] short title width restored");
+        assert.Real(DzFrameGetRealWidth(panel.getTitleFrame()),shortWidth,"[AdaptiveFrame] short title width restored");
         checkDecorations();
         Trace("[AdaptiveFrame] 自动断言结束，可点击四个按钮和长标题复选框。");
     }
@@ -90,16 +92,16 @@ library UTAdaptiveFrame requires AdaptiveFrame {
     }
     private function checkLong() {
         checkTitleHeight("long");
-        assert.Boolean(DzFrameGetRealWidth(panel.title.ui) > shortWidth,"[AdaptiveFrame] long title grows");
+        assert.Boolean(DzFrameGetRealWidth(panel.getTitleFrame()) > shortWidth,"[AdaptiveFrame] long title grows");
         checkDecorations();
         Trace("[AdaptiveFrame] long title ready");
         UnitTestAutoTimer(4.0,0.0,function restoreShort,null);
     }
     private function checkTitle() {
         checkTitleHeight("short");
-        shortWidth = DzFrameGetRealWidth(panel.title.ui);
+        shortWidth = DzFrameGetRealWidth(panel.getTitleFrame());
         Trace("[AdaptiveFrame] native normal width=" + R2SW(normalWidth,1,5) + " large=" + R2SW(shortWidth,1,5));
-        assert.Boolean(shortWidth > normalWidth && DzFrameGetRealHeight(panel.title.ui) > normalHeight,"[AdaptiveFrame] native large title grows");
+        assert.Boolean(shortWidth > normalWidth && DzFrameGetRealHeight(panel.getTitleFrame()) > normalHeight,"[AdaptiveFrame] art title grows");
         checkDecorations();
         longTitle.setState(true,true);
         changeTitle(longTitle);
