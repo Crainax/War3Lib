@@ -2,12 +2,11 @@
 #define UTUITextFontDzMemoryIncluded
 #undef OriginMapUnitTestMode
 #undef DzWriteLog
-// Do NOT include helper: its second-wave injection cancels Lua initialization.
-// inject: DzFontRead32
+// DzFontResearchIsolate 只让这个单测取消 Lua 启动。字号解锁在 UITextFontUnlock。
 //# dependency:resource/ui/slider/nandu_slider_bg.blp
 //# dependency:resource/ui/slider/nandu_slider_button.blp
 
-library UTUITextFontDzMemory initializer Init requires UITextFontDzMemory, UnitTestFramwork
+library UTUITextFontDzMemory initializer Init requires UITextFontUnlock, UITextFontDzMemory, UnitTestFramwork
     globals
         private integer sample = 0
         private integer slider = 0
@@ -67,82 +66,9 @@ library UTUITextFontDzMemory initializer Init requires UITextFontDzMemory, UnitT
         return DzFontRead32(base + 0xDA5AD) == 0x7E20F883 and DzFontRead32(base + 0xDA5B1) == 0x0020B807 and DzFontRead32(base + 0xDA5B5) == 0x1DEB0000 and DzFontRead32(base + 0xE125E) == 0x7E20F883 and DzFontRead32(base + 0xE1262) == 0x0020B807 and DzFontRead32(base + 0xE1266) == 0x1DEB0000 and DzFontRead32(mergeSlot) == mergeOriginal and DzFontRead32(produceSlot) == produceOriginal
     endfunction
 
-    private function Protect takes integer address, integer protection returns integer
-        local boolean ok
-        local boolean restored
-        local integer previous
-        if not DzFontWriteWord(mergeSlot, DzFontRead32(base + 0x94E0F4)) then
-            return 0
-        endif
-        set ok = MergeUnits(address, 4, protection, sample + 0xAC)
-        set previous = DzFontRead32(sample + 0xAC)
-        set restored = DzFontWriteWord(mergeSlot, mergeOriginal)
-        call DzSetMemory(sample + 0xAC, 0.0)
-        call DzFrameSetAlpha(sample, 255)
-        call Check(ok and restored, "VirtualProtect succeeded and MergeUnits restored")
-        if not ok or not restored then
-            return 0
-        endif
-        return previous
-    endfunction
-
-    private function FlushInstructions takes nothing returns boolean
-        local boolean ok
-        local boolean restored
-        if not DzFontWriteWord(produceSlot, DzFontRead32(base + 0x94E274)) then
-            return false
-        endif
-        set ok = SetProduce(-1, 0, 0)
-        set restored = DzFontWriteWord(produceSlot, produceOriginal)
-        call Check(ok and restored, "FlushInstructionCache succeeded and SetProduce restored")
-        return ok and restored
-    endfunction
-
-    private function Patch takes boolean enable returns boolean
-        local integer word = 0xB8077E20
-        local integer p1
-        local integer p2
-        local boolean ok1
-        local boolean ok2
-        local boolean flushed
-        local integer expected = 0xEB20F883
-        if enable then
-            set word = 0xB807EB20
-            set expected = 0x7E20F883
-        endif
-        if DzFontRead32(base + 0xDA5AD) != expected or DzFontRead32(base + 0xE125E) != expected or DzFontRead32(base + 0xDA5B1) != 0x0020B807 or DzFontRead32(base + 0xE1262) != 0x0020B807 or DzFontRead32(base + 0xDA5B5) != 0x1DEB0000 or DzFontRead32(base + 0xE1266) != 0x1DEB0000 then
-            call Log("FAIL: unexpected clamp instructions; refusing patch")
-            return false
-        endif
-        set p1 = Protect(base + 0xDA5AF, 0x40)
-        if p1 == 0 then
-            return false
-        endif
-        set ok1 = DzFontWriteWord(base + 0xDA5AF, word)
-        set p2 = Protect(base + 0xE1260, 0x40)
-        if p2 == 0 then
-            call DzFontWriteWord(base + 0xDA5AF, 0xB8077E20)
-            call Protect(base + 0xDA5AF, p1)
-            call FlushInstructions()
-            return false
-        endif
-        set ok2 = DzFontWriteWord(base + 0xE1260, word)
-        if not ok1 or not ok2 then
-            call DzFontWriteWord(base + 0xDA5AF, 0xB8077E20)
-            call DzFontWriteWord(base + 0xE1260, 0xB8077E20)
-        endif
-        set ok1 = Protect(base + 0xDA5AF, p1) == 0x40 and ok1
-        set ok2 = Protect(base + 0xE1260, p2) == 0x40 and ok2
-        set flushed = FlushInstructions()
-        call Check(p1 == 0x20 and p2 == 0x20, "both code pages restored to PAGE_EXECUTE_READ")
-        return ok1 and ok2 and flushed
-    endfunction
-
-    // No wait, timer, callback registration or exit event between enable/restore.
-    // Native setter materializes the font synchronously on this verified build.
+    // 解开、设字、恢复都在 UITextFontUnlockSet 同一次调用内完成。
     private function ScopedSet takes real size returns boolean
-        local boolean enabled
-        local boolean restored
+        local boolean ok
         if busy or failed or not ready or size < 0.001 or size > 0.100 then
             return false
         endif
@@ -151,17 +77,10 @@ library UTUITextFontDzMemory initializer Init requires UITextFontDzMemory, UnitT
             return false
         endif
         set busy = true
-        set enabled = Patch(true)
-        if enabled then
-            call DzFrameSetFont(sample, font, size, 0)
-            set restored = Patch(false)
-        else
-            // Patch itself rolls back failed partial writes. No font call on failure.
-            set restored = Original()
-        endif
+        set ok = UITextFontUnlockSet(sample, font, size)
         set busy = false
-        call Check(enabled and restored and Original(), "setter returns with original 24 code bytes and native entries")
-        return enabled and restored and Original()
+        call Check(ok and Original(), "setter returns with original 24 code bytes and native entries")
+        return ok and Original()
     endfunction
 
     // Local UI state only. No units, sync storage, random calls or timer creation.
@@ -292,6 +211,7 @@ library UTUITextFontDzMemory initializer Init requires UITextFontDzMemory, UnitT
 
     private function Init takes nothing returns nothing
         local trigger chat = CreateTrigger()
+        call DzFontResearchIsolate()
         call TriggerRegisterPlayerChatEvent(chat, Player(0), "-font", false)
         call TriggerAddAction(chat, function Chat)
         call TimerStart(CreateTimer(), 2.0, false, function Probe)

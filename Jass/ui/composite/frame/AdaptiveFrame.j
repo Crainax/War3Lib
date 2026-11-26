@@ -1,6 +1,7 @@
 #ifndef AdaptiveFrameIncluded
 #define AdaptiveFrameIncluded
 #include "Crainax/ui/constants/UIConstants.j"
+#include "Crainax/ui/composite/frame/AdaptiveFrameConfig.h"
 //! zinc
 //# dependency:resource/ui/frame/shell0.blp
 //# dependency:resource/ui/frame/shell1.blp
@@ -44,13 +45,15 @@
 //# dependency:resource/ui/frame/btn-disabled0.blp
 //# dependency:resource/ui/frame/btn-disabled1.blp
 //# dependency:resource/ui/frame/btn-disabled2.blp
-library AdaptiveFrame requires UIImage, UIText, UIButton, UIExtendResize, UIExtendEvent {
+library AdaptiveFrame requires UIImage, UIText, UIButton, UIExtendResize, UIExtendEvent, UITextFontUnlock {
     private function texture(string name) -> string {
         return "ui\\frame\\" + name + ".blp";
     }
 
     public function AdaptiveFrameFont(uiText label, real size) {
-        DzFrameSetFont(label.ui,"fonts\\YaHeiBold.ttf",size,0);
+        if (!UITextFontUnlockSet(label.ui,"fonts\\YaHeiBold.ttf",size)) {
+            DzFrameSetFont(label.ui,"fonts\\YaHeiBold.ttf",size,0);
+        }
     }
 
     // 普通 Frame。调用者先销毁挂在 root 下的业务组件，再销毁容器。
@@ -159,39 +162,30 @@ library AdaptiveFrame requires UIImage, UIText, UIButton, UIExtendResize, UIExte
         method getRoot() -> uiImage {
             return skin.root;
         }
-        private uiImage titleArt;
-        private boolean hasTitleArt;
         private boolean largeTitle;
-        private boolean hasCaption;
+        private integer normalLevel;
         method getTitleFrame() -> integer {
-            if (hasTitleArt && largeTitle) { return titleArt.ui; }
             return title.ui;
         }
         method setLargeTitle(boolean large) -> thistype {
-            integer anchor;
             largeTitle = large;
-            titleArt.show(hasTitleArt && large);
-            title.show(!hasTitleArt || !large);
-            anchor = this.getTitleFrame();
-            left.exRePoint(ANCHOR_RIGHT,anchor,ANCHOR_LEFT,-0.006,0);
-            right.exRePoint(ANCHOR_LEFT,anchor,ANCHOR_RIGHT,0.006,0);
-            left.show(hasCaption || (hasTitleArt && large));
-            right.show(hasCaption || (hasTitleArt && large));
+            if (large) {
+                AdaptiveFrameFont(title,ADAPTIVE_FRAME_TITLE_FONT_SIZE);
+            } else {
+                title.setFontLevel("fonts\\YaHeiBold.ttf",normalLevel);
+            }
             return this;
         }
-        // 固定标题可使用带透明通道的字形贴图；尺寸采用原图的字面宽高比。
         #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
         method testTitleViewport() -> integer { return titleViewport.ui; }
+        method testLeftDecoration() -> integer { return left.ui; }
+        method testRightDecoration() -> integer { return right.ui; }
         #endif
-        method setTitleArt(string path, real aspect, real height) -> thistype {
-            hasTitleArt = path != null && path != "" && aspect > 0 && height > 0;
-            if (hasTitleArt) { titleArt.setTexture(path).exReSize(height * aspect,height); }
-            return this.setLargeTitle(largeTitle);
-        }
         method setTitle(string value, integer fontSize) -> thistype {
-            hasTitleArt = false;
-            hasCaption = value != "";
-            title.setFontLevel("fonts\\YaHeiBold.ttf",fontSize).setText(value);
+            normalLevel = fontSize;
+            title.setText(value);
+            left.show(value != "");
+            right.show(value != "");
             return this.setLargeTitle(largeTitle);
         }
         method setSize(real w, real h) -> thistype {
@@ -209,11 +203,11 @@ library AdaptiveFrame requires UIImage, UIText, UIButton, UIExtendResize, UIExte
             titleViewport = uiImage.create(skin.root.ui).setTexture(UI_STRING_PATH_BLANK).setClip(true)
                 .setPoint(ANCHOR_CENTER,skin.root.ui,ANCHOR_TOP,0,-0.017);
             title = uiText.create(titleViewport.ui).setPoint(ANCHOR_CENTER,titleViewport.ui,ANCHOR_CENTER,0,0);
-            titleArt = uiImage.create(titleViewport.ui).setPoint(ANCHOR_CENTER,titleViewport.ui,ANCHOR_CENTER,0,0);
             largeTitle = true;
-            DzFrameSetScale(title.ui,1.0);
             left = uiImage.create(titleViewport.ui).setTexture(texture("title-left")).exReSize(0.048,0.012);
             right = uiImage.create(titleViewport.ui).setTexture(texture("title-right")).exReSize(0.048,0.012);
+            left.exRePoint(ANCHOR_RIGHT,title.ui,ANCHOR_LEFT,-0.006,0);
+            right.exRePoint(ANCHOR_LEFT,title.ui,ANCHOR_RIGHT,0.006,0);
             rule = uiImage.create(skin.root.ui).setTexture(texture("rule")).setPoint(ANCHOR_TOP,skin.root.ui,ANCHOR_TOP,0,-0.038);
             closeImage = uiImage.create(skin.root.ui).setTexture(texture("close")).exReSize(0.022,0.022)
                 .exRePoint(ANCHOR_RIGHT,skin.root.ui,ANCHOR_TOPRIGHT,-0.008,-0.019);
@@ -237,7 +231,6 @@ library AdaptiveFrame requires UIImage, UIText, UIButton, UIExtendResize, UIExte
             left.destroy();
             right.destroy();
             title.destroy();
-            titleArt.destroy();
             titleViewport.destroy();
             rule.destroy();
             closeHit.destroy();
