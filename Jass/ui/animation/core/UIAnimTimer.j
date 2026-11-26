@@ -8,7 +8,7 @@
 /*
 UI动画核心(计时器部分)
 */
-library UIAnimTimer {
+library UIAnimTimer requires Hardware {
 
 	//动画计时器事件
 	//随便建,但是要reg与unreg才会生效[建只占用个int]影响不大
@@ -18,6 +18,10 @@ library UIAnimTimer {
 		//静态成员[trigNum]
 		static thistype UIAList[];
 		static integer size = 0;
+		private static thistype snapshot[];
+		private boolean pending;
+		private static real remainder = 0.0;
+		private static real frameTime = 0.02;
 		trigger trig;
 		integer trID; //这个是动画在列表中的ID
 
@@ -50,24 +54,44 @@ library UIAnimTimer {
 				UIAList[trID].trID =trID;
 				size = size - 1;
 				trID = 0;
+				pending = false;
 			}
 		}
 
         //共享打印方法
         STRUCT_SHARED_PRINT(size,UIAList)
 
-		static method onInit (){
-			timer t = CreateTimer();
-			TimerStart(t,0.02,true,function () { //计时器运行中
-				integer i , this;
-				if (size > 0) {
-					for (1 <= i <= size) {
-						this = UIAList[i];
-						TriggerEvaluate(trig); //这里可以设置一个静态成员来传参获得是第几个uia
-					}
+		private static method step() {
+			integer index, count = size;
+			thistype entry;
+			for (1 <= index <= count) {
+				entry = UIAList[index];
+				snapshot[index] = entry;
+				entry.pending = true;
+			}
+			for (1 <= index <= count) {
+				entry = snapshot[index];
+				if (entry.pending) {
+					entry.pending = false;
+					TriggerEvaluate(entry.trig);
 				}
+			}
+		}
+
+		static method onInit() {
+			hardware.regUpdateEvent(function() -> boolean {
+				integer raw;
+				if (size == 0) { remainder = 0.0; return true; }
+				raw = DzGetFPS();
+				if (raw > 0) { frameTime = RMinBJ(0.16, 100.0 / I2R(raw)); }
+				remainder += frameTime;
+				while (remainder >= 0.02 && size > 0) {
+					remainder -= 0.02;
+					step();
+				}
+				if (size == 0) { remainder = 0.0; }
+				return true;
 			});
-			t = null;
 		}
 	}
 
