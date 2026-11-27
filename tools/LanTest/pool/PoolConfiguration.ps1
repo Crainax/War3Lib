@@ -12,7 +12,7 @@ function Resolve-PoolLogDirectory([string]$Directory,[string]$SourceGame,[string
  if(!$target.StartsWith($pool+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Client log path escapes the selected pool game directory.'}
  return $target
 }
-function Set-PoolProject([string]$ProjectPath,$Environment,[string]$Session){
+function Set-PoolProject([string]$ProjectPath,$Environment,[string]$Session,[ValidateSet('Direct3D 8','OpenGL')][string]$Renderer='Direct3D 8'){
  # Snapshot cloud sources per session; never alter the checkout or human INIs.
  # Automatic tests snapshot the project's local-archive baseline each run,
  # avoiding A/B selection changing initial state or cross-task contamination.
@@ -54,10 +54,10 @@ function Set-PoolProject([string]$ProjectPath,$Environment,[string]$Session){
  foreach($line in $text -split '\r?\n'){
   if($line -match '^\s*\[([^\]]+)\]'){
    $inside=$Matches[1] -eq 'MapTest';$lines.Add($line)
-   if($inside){if($found){throw 'Duplicate MapTest section'};$found=$true;$lines.Add('EnableMlScript = 1');$lines.Add('MlScriptFolder = '+$cloud)}
-  }elseif(!($inside -and $line -match '^\s*(EnableMlScript|MlScriptFolder)\s*=')){$lines.Add($line)}
+   if($inside){if($found){throw 'Duplicate MapTest section'};$found=$true;$lines.Add('LaunchRenderingEngine = '+$Renderer);$lines.Add('EnableMlScript = 1');$lines.Add('MlScriptFolder = '+$cloud)}
+  }elseif(!($inside -and $line -match '^\s*(LaunchRenderingEngine|EnableMlScript|MlScriptFolder)\s*=')){$lines.Add($line)}
  }
  if(!$found){throw 'Missing MapTest section in private WE config'}
  [IO.File]::WriteAllText($config,($lines -join "`r`n"),[Text.UTF8Encoding]::new($false))
- return @{project=$ProjectPath;profile=$id;cloudSnapshot=$cloud;archiveMode='source-snapshot-no-writeback';seeds=$seeds}
+ return @{renderer=$Renderer;project=$ProjectPath;profile=$id;cloudSnapshot=$cloud;archiveMode='source-snapshot-no-writeback';seeds=$seeds}
 }

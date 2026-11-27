@@ -5,6 +5,7 @@ param([ValidateSet('Auto','A','B')][string]$Environment='Auto',
  [string]$ClientLogDirectory,[string]$ProjectPath,[string]$MapConfigOverride,[switch]$ManualJoin,
  [ValidateRange(0,120)][int]$SmokeSeconds=0,[switch]$ExpectMapExit,[ValidateRange(1,60)][int]$ExitObserveSeconds=10,
  [string]$LuaRuntime='D:/WE/YDWE1.32.13正式版',
+ [ValidateSet('Direct3D 8','OpenGL')][string]$Renderer='Direct3D 8',
  [string]$RuntimeAdapter,[hashtable]$AdapterOptions=@{})
 $ErrorActionPreference='Stop'
 if($PSVersionTable.PSVersion.Major -lt 7){throw 'Pool runner requires PowerShell 7 (pwsh). Use the default Start-LanTest entry for automatic bridging.'}
@@ -83,7 +84,7 @@ try {
  $relative='Maps\Test\'+$id+[IO.Path]::GetExtension($map);$target=Join-Path $e.game $relative
  $m=[ordered]@{environment=$Environment;ownerId=$OwnerId;automated=$true;runnerPid=$PID;session=$session;sourceMap=$sourceMap;mapSnapshot=$map;gameMap=$target;sha256=$snapshot.sha256;startedUtc=[datetime]::UtcNow.ToString('o');clients=$Clients;gamePath=$e.game;wePath=$e.we;clientLogDirectory=$logPaths[$Environment];autoJoin=(!$ManualJoin);gameName=('Pool-'+$id);hostPid=$null;hostCreationUtcTicks=$null;clientPids=@();clientProcesses=@();launchers=@();queueTicket=$lease.Ticket}
  Save-Manifest
- $m['projectConfiguration']=Set-PoolProject -ProjectPath $ProjectPath -Environment $e -Session $session
+ $m['projectConfiguration']=Set-PoolProject -ProjectPath $ProjectPath -Environment $e -Session $session -Renderer $Renderer
  $null=New-Item -ItemType Directory -Force $m.clientLogDirectory
  Save-Manifest
  if($RuntimeAdapter){

@@ -10,14 +10,16 @@ function Assert($ok,$name){if(!$ok){throw $name};Write-Host "PASS: $name"}
 [IO.File]::WriteAllText("$source/dz_w3_plugin_Project.ini",'project seed')
 @{owners=@{dz_w3_plugin='Other';kkapi_local_plugin='Other'}}|ConvertTo-Json|Set-Content "$source/local_test_profile.json"
 [IO.File]::WriteAllText("$project/CloudScripts/main.lua",'-- project cloud source')
-[IO.File]::WriteAllText("$we/bin/EverConfig.cfg","[MapTest]`nEnableMlScript = 0`nMlScriptFolder = human`n[Other]`nUserName = kept")
+[IO.File]::WriteAllText("$we/bin/EverConfig.cfg","[MapTest]`nLaunchRenderingEngine = OpenGL`nEnableMlScript = 0`nMlScriptFolder = human`n[Other]`nUserName = kept")
 $e=@{game=$poolGame;we=$we;sourceGame=$source}
 $a=Set-PoolProject $project $e "$root/session1"
 Assert ((Get-Content "$poolGame/dz_w3_plugin.ini" -Raw) -eq 'project seed') 'project-specific seed selected instead of another active profile'
 Assert ((Get-Content "$poolGame/kkapi_local_plugin.ini" -Raw) -match 'MLS-MsGetEnvType=-1') 'missing project seed initializes private local environment'
 Assert ((Get-Content (Join-Path $a.cloudSnapshot 'main.lua') -Raw) -eq '-- project cloud source') 'cloud scripts copied to session snapshot'
 [IO.File]::WriteAllText("$poolGame/dz_w3_plugin.ini",'modified by test')
-$b=Set-PoolProject $project $e "$root/session2"
+Assert ($a.renderer -eq 'Direct3D 8' -and (Select-String -LiteralPath "$we/bin/EverConfig.cfg" -Pattern '^LaunchRenderingEngine = Direct3D 8$' -Quiet)) 'ordinary pool run uses Direct3D'
+$b=Set-PoolProject $project $e "$root/session2" -Renderer OpenGL
+Assert ($b.renderer -eq 'OpenGL' -and @(Select-String -LiteralPath "$we/bin/EverConfig.cfg" -Pattern '^LaunchRenderingEngine').Count -eq 1 -and (Select-String -LiteralPath "$we/bin/EverConfig.cfg" -Pattern '^LaunchRenderingEngine = OpenGL$' -Quiet)) 'frame capture can explicitly select OpenGL'
 Assert ((Get-Content "$poolGame/dz_w3_plugin.ini" -Raw) -eq 'project seed') 'next task resets baseline instead of inheriting previous writes'
 Assert ((Get-Content "$source/dz_w3_plugin.ini" -Raw) -eq 'active human seed' -and (Get-Content "$source/dz_w3_plugin_Project.ini" -Raw) -eq 'project seed') 'human and project seed files unchanged'
 $mapped=Resolve-PoolLogDirectory "$source/War3Lib/日志" $source $poolGame

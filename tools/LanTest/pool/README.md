@@ -24,6 +24,8 @@ GamePath and SessionPath. An adapter must restore its own temporary files and
 must never clean another session or mutate the human game directory. LHLua uses
 this for immutable source snapshots, digest acknowledgements and j2b restoration.
 
+Ordinary automated sessions select Direct3D 8 in the assigned pool's private WE configuration. The visual capture entry explicitly selects OpenGL. The session manifest records the choice under projectConfiguration.renderer. Each admitted session sets its own renderer before launch. This avoids the observed OpenGL startup path through MSCTF on ordinary runs. Frame capture still exercises that path and checks owned client dumps while waiting for a frame.
+
 ## Isolation
 
 - Physical copies of game binaries/MPQs and WE, with private Maps, Save, Replay,

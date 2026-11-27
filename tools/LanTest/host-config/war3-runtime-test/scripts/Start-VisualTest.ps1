@@ -23,6 +23,7 @@ $options = @{
 }
 $run = @{
     Environment = 'Auto'
+    Renderer = 'OpenGL'
     Clients = 1
     OwnerId = $OwnerId
     MapPath = $MapPath
