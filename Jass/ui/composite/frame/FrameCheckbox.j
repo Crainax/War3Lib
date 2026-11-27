@@ -46,6 +46,15 @@ library FrameCheckbox requires FrameTheme, UIImage, UIExtendResize, UIButton, UI
             DzFrameSetEnable(root.ui,active);
             return this;
         }
+        private method click() {
+            if (enabled) {
+                this.setState(!checked,true);
+                if (changed != 0) { changed.evaluate(this); }
+            }
+        }
+        #if (CURRENT_BUILD_VERSION == VERSION_UNITTEST)
+        method testClick() { this.click(); }
+        #endif
         static method create(integer parent, string caption, real w) -> thistype {
             thistype this = allocate();
             root = uiBtn.createBlank(parent).exReSize(RMaxBJ(w,0.025),0.022);
@@ -57,10 +66,7 @@ library FrameCheckbox requires FrameTheme, UIImage, UIExtendResize, UIButton, UI
             uiHashTable(root.ui).eventdata.bind(this);
             root.onClick(function() {
                 thistype box = uiHashTable(DzGetTriggerUIEventFrame()).eventdata.get();
-                if (box.enabled) {
-                    box.setState(!box.checked,true);
-                    if (box.changed != 0) { box.changed.evaluate(box); }
-                }
+                box.click();
             });
             this.setWidth(w);
             return this.setState(false,true);

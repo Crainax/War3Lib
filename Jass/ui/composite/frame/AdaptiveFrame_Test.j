@@ -79,10 +79,22 @@ library UTAdaptiveFrame requires AdaptiveFrame, FrameInset, FrameButton, FramePr
         assert.Integer(DzFrameGetPointRelativePoint(l,ANCHOR_RIGHT),ANCHOR_LEFT,"[AdaptiveFrame] left targets leading edge");
         assert.Integer(DzFrameGetPointRelativePoint(r,ANCHOR_LEFT),ANCHOR_RIGHT,"[AdaptiveFrame] right targets trailing edge");
     }
+    private function centerDemo() {
+        if (panel != 0) { panel.setLargeTitle(true).setDragPosition(0.4,0.34); }
+    }
+    private function leftTextDemo() {
+        if (panel == 0) { return; }
+        panel.setLargeTitle(false);
+        Trace("[AdaptiveFrame] left text ready");
+        UnitTestAutoTimer(3.0,0.0,function centerDemo,null);
+    }
     private function checkRestored() {
         checkTitleHeight("restored short");
         assert.Real(DzFrameGetRealWidth(panel.getTitleFrame()),shortWidth,"[AdaptiveFrame] short title width restored");
         checkDecorations();
+        panel.setDragPosition(0.055,0.35);
+        Trace("[AdaptiveFrame] left edge ready");
+        UnitTestAutoTimer(3.0,0.0,function leftTextDemo,null);
         Trace("[AdaptiveFrame] 自动断言结束，可点击四个按钮和长标题复选框。");
     }
     private function restoreShort() {
@@ -119,6 +131,7 @@ library UTAdaptiveFrame requires AdaptiveFrame, FrameInset, FrameButton, FramePr
         panel = adaptiveFrame.create(DzGetGameUI(),"每日任务",0.40,0.22);
         parent = panel.getRoot().ui;
         panel.getRoot().setAbsPoint(ANCHOR_CENTER,0.4,0.34);
+        panel.setDraggable(true);
         taskRow = frameInset.create(parent,0.36,0.08);
         taskRow.getRoot().setPoint(ANCHOR_TOP,parent,ANCHOR_TOP,0,-0.048);
         rewardIcon = uiImage.create(taskRow.getRoot().ui).setTexture("ReplaceableTextures\\CommandButtons\\BTNHealthStone.blp")
@@ -171,17 +184,17 @@ library UTAdaptiveFrame requires AdaptiveFrame, FrameInset, FrameButton, FramePr
             assert.Integer(buttons[i].testButtonTiles(),3,"[AdaptiveFrame] resized button uses three slices");
         }
         resizePanel(0.40,0.22);
-        adjust(buttons[0]);
+        buttons[0].testPointerEvent(FRAME_MOUSE_DOWN);
         assert.Real(panel.getWidth(),0.42,"[AdaptiveFrame] wider");
         assert.Real(panel.getContentWidth(),0.392,"[AdaptiveFrame] content follows outer width");
         assert.Real(panel.getContentHeight(),0.166,"[AdaptiveFrame] content excludes header and bottom padding");
         assert.Real(taskRow.getContentWidth(),taskRow.getWidth() - 0.022,"[AdaptiveFrame] inset content padding");
         assert.Real(panel.getHeight(),0.22,"[AdaptiveFrame] width preserves height");
-        adjust(buttons[1]);
+        buttons[1].testPointerEvent(FRAME_MOUSE_DOWN);
         assert.Real(panel.getWidth(),0.40,"[AdaptiveFrame] narrower");
-        adjust(buttons[2]);
+        buttons[2].testPointerEvent(FRAME_MOUSE_DOWN);
         assert.Real(panel.getHeight(),0.235,"[AdaptiveFrame] taller");
-        adjust(buttons[3]);
+        buttons[3].testPointerEvent(FRAME_MOUSE_DOWN);
         assert.Real(panel.getHeight(),0.22,"[AdaptiveFrame] shorter");
         resizePanel(1,0);
         assert.Boolean(!buttons[0].enabled && !buttons[3].enabled,"[AdaptiveFrame] bounds");
@@ -193,6 +206,82 @@ library UTAdaptiveFrame requires AdaptiveFrame, FrameInset, FrameButton, FramePr
         resizePanel(0.40,0.22);
         panel.setLargeTitle(false);
         UnitTestAutoTimer(0.4,0.0,function measureNormal,null);
+    }
+    private function checkLegacyDrag() {
+        uiImage mover = uiImage.create(DzGetGameUI()).exReSize(0.2,0.12);
+        uiBtn hit = uiBtn.createBlank(mover.ui).setAllPoint(mover.ui);
+        mover.exRePoint(ANCHOR_TOP,DzGetGameUI(),ANCHOR_TOP,0,-0.05);
+        hit.enableDrag(mover.ui,0.15,0.65,0.10,0.40);
+        assert.Real(hit.getDragX(),0.4,"[drag] legacy midpoint X");
+        assert.Real(hit.getDragY(),0.25,"[drag] legacy midpoint Y");
+        hit.setDragPosition(0.3,0.2).enableDrag(mover.ui,0.15,0.65,0.10,0.40);
+        assert.Real(hit.getDragX(),0.3,"[drag] legacy re-enable keeps X");
+        hit.setDragBounds(0.35,0.55,0.23,0.37);
+        assert.Real(hit.getDragY(),0.23,"[drag] legacy bottom clamp");
+        hit.destroy();
+        mover.destroy();
+    }
+    private integer baselineDrags;
+    private function checkDrag() {
+        integer hit = panel.testDragHit();
+        uiEvent down = LoadInteger(HASH_UI,hit,HASH_KEY_UI_EXTEND_EVENT_LEFT_DOWN);
+        real limit = 0.04 - panel.getWidth()*GetResizeRate()*0.5;
+        real changed;
+        uiDragger dragger = LoadInteger(HASH_UI,hit,HASH_KEY_UI_EXTEND_DRAGGER);
+        dragger.leftLimit = -5;
+        adaptiveFrame.testWindowResize();
+        assert.Real(dragger.leftLimit,limit,"[drag] window resize refreshes auto bounds");
+        longTitle.testClick();
+        assert.Boolean(longTitle.checked,"[drag] checkbox click handler toggles state");
+        longTitle.testClick();
+        panel.testCloseClick();
+        assert.Boolean(!DzFrameIsVisible(panel.getRoot().ui),"[drag] close handler hides panel");
+        panel.show(true);
+        assert.Real(panel.getDragX(),0.4,"[drag] preserve absolute X");
+        assert.Real(panel.getDragY(),0.34,"[drag] preserve absolute Y");
+        panel.setDragPosition(-2,2);
+        assert.Real(panel.getDragX(),limit,"[drag] partial left edge");
+        assert.Real(panel.getDragY(),0.67,"[drag] partial top edge");
+        panel.setSize(0.20,0.055);
+        assert.Real(panel.getDragY(),0.6,"[drag] small panel stays reachable");
+        panel.setSize(0.12,0.055);
+        assert.Boolean(!DzFrameIsVisible(panel.testLeftDecoration()) && !DzFrameIsVisible(panel.testRightDecoration()),"[AdaptiveFrame] narrow header hides decorations");
+        panel.setSize(0.40,0.22);
+        assert.Boolean(DzFrameIsVisible(panel.testLeftDecoration()) && DzFrameIsVisible(panel.testRightDecoration()),"[AdaptiveFrame] wide header restores decorations");
+        down.evaluate(hit);
+        uiDragger.moveMouse(-3,3);
+        changed = limit + uiDragger.grabOffsetX + 0.01;
+        uiDragger.moveMouse(changed,0.3 + uiDragger.grabOffsetY);
+        assert.Real(panel.getDragX(),limit + 0.01,"[drag] reversible grab offset");
+        uiDragger.releaseMouse();
+        assert.Integer(uiDragger.draggingFrame,0,"[drag] global release cancels capture");
+        down.evaluate(hit);
+        panel.show(false);
+        assert.Integer(uiDragger.draggingFrame,0,"[drag] hide cancels capture");
+        panel.show(true);
+        down.evaluate(hit);
+        panel.setDraggable(false).setDraggable(false);
+        assert.Integer(uiDragger.draggingFrame,0,"[drag] disable cancels capture");
+        assert.Boolean(!HaveSavedInteger(HASH_UI,hit,HASH_KEY_UI_EXTEND_DRAGGER),"[drag] disabled binding removed");
+        panel.setDraggable(true);
+        assert.Real(panel.getDragX(),limit + 0.01,"[drag] re-enable retains dragged X");
+        panel.setPoint(ANCHOR_TOP,DzGetGameUI(),ANCHOR_TOP,0,-0.04);
+        assert.Real(panel.getDragY(),0.45,"[drag] top anchor converted to center");
+        panel.setDraggable(false);
+        panel.getRoot().clearPoint().setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0.02);
+        assert.Real(panel.getDragY(),0.32,"[drag] read raw relative root");
+        panel.setPoint(ANCHOR_CENTER,DzGetGameUI(),ANCHOR_CENTER,0,0.04);
+        panel.setDraggable(true).setDraggable(true);
+        assert.Real(panel.getDragY(),0.34,"[drag] preserve relative Y");
+        assert.Boolean(!HaveSavedInteger(HASH_UI,panel.getRoot().ui,HASH_KEY_UI_EXTEND_REPOINTER),"[drag] old anchor detached");
+        panel.setDragBounds(0.25,0.50,0.20,0.40).setSize(0.40,0.22).setDragPosition(1,-1);
+        assert.Real(panel.getDragX(),0.50,"[drag] custom right survives resize");
+        assert.Real(panel.getDragY(),0.20,"[drag] custom bottom survives resize");
+        adaptiveFrame.testWindowResize();
+        panel.setDragPosition(1,-1);
+        assert.Real(panel.getDragX(),0.50,"[drag] window resize preserves custom bounds");
+        panel.setDragPosition(0.4,0.34);
+        assert.Integer(uiDragger.size,baselineDrags + 1,"[drag] exactly one dragger");
     }
     private integer baselineSizes;
     private integer baselinePoints;
@@ -206,6 +295,7 @@ library UTAdaptiveFrame requires AdaptiveFrame, FrameInset, FrameButton, FramePr
         timer driver = GetExpiredTimer();
         if (tick == 0) {
             buildDemo();
+            checkDrag();
             activeSizes = resizer.size;
             activePoints = rePointer.size;
             longTitle.setState(true,true);
@@ -227,6 +317,7 @@ library UTAdaptiveFrame requires AdaptiveFrame, FrameInset, FrameButton, FramePr
             buttons[0].testPointerEvent(FRAME_MOUSE_ENTER);
             assert.String(buttons[0].testAppearance(),"hover","[AdaptiveFrame] destroy while hovered");
             destroyDemo();
+            assert.Integer(uiDragger.size,baselineDrags,"[drag] destroyed draggers return to baseline");
             assert.Integer(resizer.size,baselineSizes,"[AdaptiveFrame] destroyed sizes return to baseline");
             assert.Integer(rePointer.size,baselinePoints,"[AdaptiveFrame] destroyed anchors return to baseline");
             cycle += 1;
@@ -242,6 +333,8 @@ library UTAdaptiveFrame requires AdaptiveFrame, FrameInset, FrameButton, FramePr
     }
     private function lifecycleTest() {
         timer driver = CreateTimer();
+        baselineDrags = uiDragger.size;
+        checkLegacyDrag();
         baselineSizes = resizer.size;
         baselinePoints = rePointer.size;
         TimerStart(driver,0.05,true,function lifecycleTick);
